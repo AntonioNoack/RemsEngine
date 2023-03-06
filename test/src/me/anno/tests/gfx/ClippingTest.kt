@@ -4,7 +4,7 @@ import me.anno.utils.Clipping
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector4f
 
-fun main(){
+fun main() {
 
     val logger = LogManager.getLogger("ClippingTest")
 
@@ -13,7 +13,7 @@ fun main(){
             Vector4f(10f, 0f, 0f, 0f),
             Vector4f(-1f, 0f, 0f, 0f),
             Vector4f(5f, 0f, 0f, 0f)
-        ){ it.x }.toString()
+        ) { it.x }
     )
 
     val v00 = Vector4f(+1f, +1f, 1f, 1f)
@@ -27,6 +27,6 @@ fun main(){
         logger.info(Clipping.getZ(perm[0], perm[1], perm[2], perm[3]))
     }*/
 
-    logger.info(Clipping.getZ(v00, v01, v10, v11).toString())
+    logger.info(Clipping.getZ(v00, v01, v10, v11))
 
 }

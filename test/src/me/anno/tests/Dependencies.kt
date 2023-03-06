@@ -14,7 +14,6 @@ import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
@@ -25,7 +24,7 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.documents
 import me.anno.utils.structures.Iterators.filter
 import me.anno.utils.structures.Iterators.map
-import me.anno.utils.structures.maps.Maps.removeIf
+import me.anno.utils.structures.lists.Lists.none2
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -42,6 +41,7 @@ class Package(val name: String) {
     var r = 0f
 }
 
+// todo find parts, which could be extracted
 fun main() {
 
     val source = documents.getChild("IdeaProjects/VideoStudio/src")
@@ -49,7 +49,10 @@ fun main() {
     val ignoredPaths = listOf(
         "kotlin.",
         "java.",
-        "javax."
+        "javax.",
+        "org.",
+        "com.",
+        "net.",
     )
 
     val packages = HashMap<String, Package>()
@@ -61,21 +64,21 @@ fun main() {
     ) {
         for (file in folder.listChildren() ?: return) {
             if (file.isDirectory) {
-                val pkg1 = packages.getOrPut(
-                    file.absolutePath.substring(source.absolutePath.length + 1)
-                        .replace('/', '.')
-                ) { Package(file.name) }
-                traverse(file, pkg1)
-                pkg.children.add(pkg1)
-                pkg.dependencies.addAll(pkg1.dependencies)
+                val path = file.absolutePath.substring(source.absolutePath.length + 1)
+                    .replace('/', '.')
+                if (ignoredPaths.none2 { path.startsWith(it) }) {
+                    val pkg1 = packages.getOrPut(path) { Package(file.name) }
+                    traverse(file, pkg1)
+                    pkg.children.add(pkg1)
+                    pkg.dependencies.addAll(pkg1.dependencies)
+                }
             } else {
                 when (file.lcExtension) {
                     "java", "kt" -> {
                         val abs = file.absolutePath
-                        val pkg1 = packages.getOrPut(
-                            abs.substring(source.absolutePath.length + 1, abs.lastIndexOf('.'))
-                                .replace('/', '.')
-                        ) { Package(file.name) }
+                        val path = abs.substring(source.absolutePath.length + 1, abs.lastIndexOf('.'))
+                            .replace('/', '.')
+                        val pkg1 = packages.getOrPut(path) { Package(file.name) }
                         val imports = file.readLinesSync(Int.MAX_VALUE)
                             .map { it.trim() }
                             .filter { it.startsWith("import ") }
@@ -138,17 +141,10 @@ fun main() {
     for (pck in packages.values) pck.depth = pck.path.count { it == '.' }
 
     // remove external dependencies
-    for (pck in packages) pck.value.dependencies.removeIf { it.depth < 0 }
-
-    packages.removeIf { it.value.dependencies.isEmpty() } // boring
-    packages.removeIf { it.value.children.size == 1 } // boring
-
-    // visualize graph?
-    // todo find parts, which could be extracted
-
-    /*for ((k, v) in packages.entries.sortedBy { it.key }) {
-        println("$k: ${v.dependencies.size}")
-    }*/
+    for (pck in packages.values) pck.dependencies.removeIf { it.depth < 0 || it.dependencies.isEmpty() }
+    for (pck in packages.values) pck.dependencies.removeIf { it.depth < 0 || it.dependencies.isEmpty() }
+    for (pck in packages.values) pck.dependencies.removeIf { it.depth < 0 || it.dependencies.isEmpty() }
+    for (pck in packages.values) pck.children.removeIf { it.dependencies.isEmpty() }
 
     // traverse graph, and open/close children
     // draw each node as a circle
@@ -166,18 +162,21 @@ fun main() {
                 // draw circle
                 pck.px = x
                 pck.py = y
-                pck.r = r0
+                if (pck.dependencies.isEmpty()) {
+                    pck.r = 0f
+                    return
+                } else pck.r = r0
                 val radius = r0 * 0.5f
                 if (radius < 1f) return
                 val window = window!!
                 val dist = sq(x - window.mouseX, y - window.mouseY)
-                if (dist < min(sq(radius) * 2f, hoveredDist)) {
-                    hoveredPck = pck
+                if (dist < hoveredDist) {
+                    hoveredPck = if (dist < sq(radius) * 2f) pck else null
                     hoveredDist = dist
                 }
                 if (!pck.isCollapsed && pck.children.isNotEmpty()) {
                     val children = pck.children
-                    val r1 = r0 * 2f / children.size
+                    val r1 = r0 * 2f / max(2, children.size)
                     val da = if (children.size == 1) 0f else TAUf / children.size
                     for (ci in children.indices) {
                         val a1 = a0 + (ci + 0.5f) * da
@@ -206,7 +205,7 @@ fun main() {
                     }
                     if (!pck.isCollapsed && pck.children.isNotEmpty()) {
                         val children = pck.children
-                        val r1 = r0 * 2f / max(4, children.size)
+                        val r1 = children.maxOf { it.r }
                         val font1 = Font("Verdana", r1 * 0.3f)
                         for (ci in children.indices) {
                             drawPackage(children[ci], font1)

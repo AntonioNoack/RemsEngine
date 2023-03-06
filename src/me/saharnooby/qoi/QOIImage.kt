@@ -2,6 +2,7 @@ package me.saharnooby.qoi
 
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readBE32
+import me.anno.utils.structures.tuples.IntPair
 import java.io.IOException
 import java.io.InputStream
 
@@ -19,14 +20,14 @@ class QOIImage(width: Int, height: Int, channels: Int, val linear: Boolean, data
         private const val MAGIC = ('q'.code shl 24) or ('o'.code shl 16) or ('i'.code shl 8) or 'f'.code
 
         @JvmStatic
-        fun findSize(input: InputStream): Pair<Int, Int> {
+        fun findSize(input: InputStream): IntPair {
             val headerMagic = input.readBE32()
             if (headerMagic != MAGIC) throw IOException("Invalid magic value, probably not a QOI image")
             val width = input.readBE32()
             val height = input.readBE32()
             if (width < 1) throw IOException("Invalid image width")
             if (height < 1) throw IOException("Invalid image height")
-            return Pair(width, height)
+            return IntPair(width, height)
         }
 
         @JvmStatic

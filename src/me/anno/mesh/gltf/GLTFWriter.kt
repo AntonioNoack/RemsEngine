@@ -18,6 +18,7 @@ import me.anno.io.zip.InnerFile
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.black3
 import me.anno.utils.Color.white4
+import me.anno.utils.structures.tuples.IntPair
 import org.joml.*
 import org.lwjgl.opengl.GL11.*
 import java.io.ByteArrayOutputStream
@@ -61,7 +62,7 @@ object GLTFWriter {
         if (scene !is Mesh && scene !is Entity)
             throw IllegalArgumentException("Cannot export ${scene.javaClass} as GLTF")
 
-        val textures = HashMap<Pair<Int, Int>, Int>() // source, sampler
+        val textures = HashMap<IntPair, Int>() // source, sampler
         val images = HashMap<FileReference, Int>() // uris
         val samplers = HashMap<Pair<GPUFiltering, Clamping>, Int>()
         val materials = HashMap<Material, Int>()
@@ -456,7 +457,7 @@ object GLTFWriter {
 
         fun getTextureIndex(source: FileReference, sampler: Int): Int {
             return textures.getOrPut(
-                Pair(images.getOrPut(source) { images.size }, sampler)
+                IntPair(images.getOrPut(source) { images.size }, sampler)
             ) { textures.size }
         }
 

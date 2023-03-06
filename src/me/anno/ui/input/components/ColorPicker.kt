@@ -1,6 +1,5 @@
 package me.anno.ui.input.components
 
-import me.anno.config.DefaultStyle
 import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.framebuffer.Framebuffer
@@ -14,6 +13,7 @@ import me.anno.maths.Maths.unmix
 import me.anno.ui.base.ImagePanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.toHexColor
+import me.anno.utils.structures.tuples.IntPair
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -38,7 +38,7 @@ class ColorPicker(
         invalidateDrawing()
     }
 
-    fun getMouseCoordinates(): Pair<Int, Int> {
+    fun getMouseCoordinates(): IntPair {
         val window = window!!
         var x01 = unmix(lix.toFloat(), (lix + liw).toFloat(), window.mouseX)
         var y01 = unmix(liy.toFloat(), (liy + lih).toFloat(), window.mouseY)
@@ -50,7 +50,7 @@ class ColorPicker(
         if (!y0h.isFinite()) y0h = 0f
         val mouseX = Maths.clamp(x0w.toInt(), 0, cpuData.width - 1)
         val mouseY = Maths.clamp(y0h.toInt(), 0, cpuData.height - 1)
-        return Pair(mouseX, mouseY)
+        return IntPair(mouseX, mouseY)
     }
 
     var pixelCount = 9 // should be odd

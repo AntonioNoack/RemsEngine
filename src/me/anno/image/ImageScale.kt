@@ -1,5 +1,6 @@
 package me.anno.image
 
+import me.anno.utils.structures.tuples.IntPair
 import kotlin.math.max
 import kotlin.math.min
 
@@ -10,11 +11,11 @@ object ImageScale {
      * */
     @JvmStatic
     @Suppress("unused")
-    fun scaleMin(imageWidth: Int, imageHeight: Int, minSize: Int): Pair<Int, Int> {
+    fun scaleMin(imageWidth: Int, imageHeight: Int, minSize: Int): IntPair {
         return if (imageWidth < imageHeight) {
-            Pair(minSize, max(1, (imageHeight * minSize + imageWidth / 2) / imageWidth))
+            IntPair(minSize, max(1, (imageHeight * minSize + imageWidth / 2) / imageWidth))
         } else {
-            Pair(max(1, (imageWidth * minSize + imageHeight / 2) / imageHeight), minSize)
+            IntPair(max(1, (imageWidth * minSize + imageHeight / 2) / imageHeight), minSize)
         }
     }
 
@@ -22,13 +23,13 @@ object ImageScale {
      * cuts off excess of the image
      * */
     @JvmStatic
-    fun scaleMin(imageWidth: Int, imageHeight: Int, minWidth: Int, minHeight: Int): Pair<Int, Int> {
+    fun scaleMin(imageWidth: Int, imageHeight: Int, minWidth: Int, minHeight: Int): IntPair {
         return if (imageWidth * minHeight < imageHeight * minWidth) {
             // width is the limit
-            Pair(minWidth, max(1, (imageHeight * minWidth + imageWidth / 2) / imageWidth))
+            IntPair(minWidth, max(1, (imageHeight * minWidth + imageWidth / 2) / imageWidth))
         } else {
             // height is the limit
-            Pair(max(1, (imageWidth * minHeight + imageHeight / 2) / imageHeight), minHeight)
+            IntPair(max(1, (imageWidth * minHeight + imageHeight / 2) / imageHeight), minHeight)
         }
     }
 
@@ -36,11 +37,11 @@ object ImageScale {
      * adds bars on left+right/top+bottom
      * */
     @JvmStatic
-    fun scaleMax(imageWidth: Int, imageHeight: Int, maxSize: Int): Pair<Int, Int> {
+    fun scaleMax(imageWidth: Int, imageHeight: Int, maxSize: Int): IntPair {
         return if (imageWidth > imageHeight) {
-            Pair(maxSize, max(1, (imageHeight * maxSize + imageWidth / 2) / imageWidth))
+            IntPair(maxSize, max(1, (imageHeight * maxSize + imageWidth / 2) / imageWidth))
         } else {
-            Pair(max(1, (imageWidth * maxSize + imageHeight / 2) / imageHeight), maxSize)
+            IntPair(max(1, (imageWidth * maxSize + imageHeight / 2) / imageHeight), maxSize)
         }
     }
 
@@ -48,18 +49,18 @@ object ImageScale {
      * adds bars on left+right/top+bottom
      * */
     @JvmStatic
-    fun scaleMax(imageWidth: Int, imageHeight: Int, maxWidth: Int, maxHeight: Int): Pair<Int, Int> {
+    fun scaleMax(imageWidth: Int, imageHeight: Int, maxWidth: Int, maxHeight: Int): IntPair {
         return if (imageWidth * maxHeight > imageHeight * maxWidth) {
             // width is the limit
-            Pair(maxWidth, max(1, (imageHeight * maxWidth + imageWidth / 2) / imageWidth))
+            IntPair(maxWidth, max(1, (imageHeight * maxWidth + imageWidth / 2) / imageWidth))
         } else {
             // height is the limit
-            Pair(max(1, (imageWidth * maxHeight + imageHeight / 2) / imageHeight), maxHeight)
+            IntPair(max(1, (imageWidth * maxHeight + imageHeight / 2) / imageHeight), maxHeight)
         }
     }
 
     @JvmStatic
-    fun scaleMaxPreview(imageWidth: Int, imageHeight: Int, w: Int, h: Int, maxAspectRatio: Int = 5): Pair<Int, Int> {
+    fun scaleMaxPreview(imageWidth: Int, imageHeight: Int, w: Int, h: Int, maxAspectRatio: Int = 5): IntPair {
         return when {
             // not too tall or too wide
             max(imageWidth, imageHeight) < maxAspectRatio * min(imageWidth, imageHeight) -> {

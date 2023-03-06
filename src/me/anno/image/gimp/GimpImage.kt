@@ -15,6 +15,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.Color.rgba
+import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Buffers.skip
 import org.apache.logging.log4j.LogManager
@@ -42,7 +43,7 @@ class GimpImage {
         private const val TILE_SIZE = 64
         const val MAGIC = "gimp xcf "
 
-        fun findSize(data: InputStream): Pair<Int, Int> {
+        fun findSize(data: InputStream): IntPair {
             for (char in MAGIC) {
                 if (data.read() != char.code)
                     throw IOException("Magic doesn't match")
@@ -55,7 +56,7 @@ class GimpImage {
             val width = data.readBE32()
             val height = data.readBE32()
             if (width <= 0 || height <= 0) throw IOException("Image must not be empty $width x $height")
-            return Pair(width, height)
+            return IntPair(width, height)
         }
 
         fun readImage(file: FileReference, callback: (GimpImage?, Exception?) -> Unit) {

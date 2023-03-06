@@ -12,6 +12,7 @@ import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readBE16
 import me.anno.io.Streams.readLE16
+import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.InputStreams.skipN
 import org.apache.logging.log4j.LogManager
@@ -155,15 +156,15 @@ class TGAImage(// bgra, even if the implementation calls it rgba
         private const val GRAYSCALE_RLE = 11
 
         @JvmStatic
-        fun findSize(input: InputStream): Pair<Int, Int> {
+        fun findSize(input: InputStream): IntPair {
             input.skipN(12)
             val width = input.readLE16()
             val height = input.readLE16()
-            return Pair(width, height)
+            return IntPair(width, height)
         }
 
         /**
-         * `loadImage` is a manual image loader which is entirely
+         * `loadImage` is a manual image loader, which is entirely
          * independent of AWT. OUT: RGB888 or RGBA8888 Image object
          *
          * @param input InputStream of an uncompressed 24b RGB or 32b RGBA TGA

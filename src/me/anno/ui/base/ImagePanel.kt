@@ -10,6 +10,7 @@ import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
+import me.anno.utils.structures.tuples.IntPair
 import kotlin.math.roundToInt
 
 /**
@@ -59,11 +60,11 @@ abstract class ImagePanel(style: Style) : Panel(style) {
 
     var zoom = 1f
 
-    private fun stretch(texture: ITexture2D): Pair<Int, Int> {
+    private fun stretch(texture: ITexture2D): IntPair {
         return when (stretchMode) {
             StretchModes.OVERFLOW -> ImageScale.scaleMin(texture.w, texture.h, w, h)
             StretchModes.PADDING -> ImageScale.scaleMax(texture.w, texture.h, w, h)
-            else -> Pair(w, h)
+            else -> IntPair(w, h)
         }
     }
 

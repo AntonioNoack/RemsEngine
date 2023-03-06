@@ -1,6 +1,7 @@
 package me.anno.tests.assimp
 
 import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Booleans.toInt
 import java.util.*
 import kotlin.math.max
@@ -18,7 +19,7 @@ class TablePrinter {
     val rowTitles = ArrayList<List<String>>()
     val rowTitleCentered = BitSet(0)
 
-    val contentCentered = HashSet<Pair<Int, Int>>()
+    val contentCentered = HashSet<IntPair>()
 
     fun print(s: Any?) {
         builder.append(s.toString())
@@ -52,7 +53,7 @@ class TablePrinter {
         val cx = columns[x]
         while (cx.size <= y) cx.add(emptyList())
         cx[y] = lines
-        if (centered) contentCentered.add(Pair(x, y))
+        if (centered) contentCentered.add(IntPair(x, y))
     }
 
     fun finish(
@@ -117,7 +118,7 @@ class TablePrinter {
                         printValue(0, rowTitles.getOrNull(yi)?.getOrNull(y) ?: "", separator, rowTitleCentered[yi])
                     }
                     for (x in data.indices) {
-                        printValue(x + 1, data[x].getOrNull(y) ?: "", separator, Pair(x, yi) in contentCentered)
+                        printValue(x + 1, data[x].getOrNull(y) ?: "", separator, IntPair(x, yi) in contentCentered)
                     }
                     kotlin.io.println(suffix)
                 }

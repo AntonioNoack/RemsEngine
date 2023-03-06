@@ -17,6 +17,7 @@ import me.anno.utils.OS
 import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Strings.parseTime
 import me.saharnooby.qoi.QOIImage
 import net.sf.image4j.codec.ico.ICOReader
@@ -97,7 +98,7 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
         }
     }
 
-    fun setImage(wh: Pair<Int, Int>) {
+    fun setImage(wh: IntPair) {
         setImage(wh.first, wh.second)
     }
 

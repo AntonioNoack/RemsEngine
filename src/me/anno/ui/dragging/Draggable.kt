@@ -5,6 +5,7 @@ import me.anno.ui.Panel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
+import me.anno.utils.structures.tuples.IntPair
 
 class Draggable(
     private val content: String,
@@ -37,9 +38,9 @@ class Draggable(
         ui.draw(x, y, x + ui.w, y + ui.h)
     }
 
-    override fun getSize(w: Int, h: Int): Pair<Int, Int> {
+    override fun getSize(w: Int, h: Int): IntPair {
         // ui.applyConstraints()
-        return ui.w to ui.h
+        return IntPair(ui.w, ui.h)
     }
 
     override fun getContent(): String = content

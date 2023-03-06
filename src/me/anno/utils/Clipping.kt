@@ -1,5 +1,6 @@
 package me.anno.utils
 
+import me.anno.utils.structures.tuples.FloatPair
 import org.joml.Matrix4f
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -84,7 +85,7 @@ object Clipping {
 
     }
 
-    fun getZ(p00: Vector4f, p01: Vector4f, p10: Vector4f, p11: Vector4f): Pair<Float, Float>? {
+    fun getZ(p00: Vector4f, p01: Vector4f, p10: Vector4f, p11: Vector4f): FloatPair? {
 
         var v00 = p00
         var v01 = p01
@@ -131,7 +132,7 @@ object Clipping {
         val minZ = min(min(v00.z, v01.z), min(v10.z, v11.z))
         val maxZ = max(min(v00.z, v01.z), min(v10.z, v11.z))
 
-        return minZ to maxZ
+        return FloatPair(minZ, maxZ)
 
     }
 

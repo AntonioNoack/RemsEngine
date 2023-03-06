@@ -4,6 +4,7 @@ import me.anno.image.Image
 import me.anno.image.raw.toImage
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
+import me.anno.utils.structures.tuples.IntPair
 import net.sf.image4j.codec.bmp.BMPDecoder
 import net.sf.image4j.codec.bmp.InfoHeader
 import net.sf.image4j.io.CountingInputStream
@@ -249,7 +250,7 @@ object ICOReader {
     }
 
     @JvmStatic
-    fun findSize(input0: InputStream): Pair<Int, Int> {
+    fun findSize(input0: InputStream): IntPair {
         val input1 = CountingInputStream(input0)
         val bestLayer = findBestLayer(input1, MAX_SIZE)
         if (bestLayer.width == 0 || bestLayer.height == 0) {
@@ -260,7 +261,7 @@ object ICOReader {
                 40 -> {
                     // bitmap
                     val infoHeader = BMPDecoder.readInfoHeader(input1, info)
-                    Pair(infoHeader.width, infoHeader.height)
+                    IntPair(infoHeader.width, infoHeader.height)
                 }
                 PNG_MAGIC_LE -> {
                     val info2 = input1.readLE32()
@@ -273,15 +274,15 @@ object ICOReader {
                         val stream = ByteArrayInputStream(pngBytes)
                         stream.use {
                             reader.input = ImageIO.createImageInputStream(it)
-                            return Pair(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
+                            return IntPair(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
                         }
                     }
-                    Pair(0, 0)
+                    IntPair(0, 0)
                 }
                 else -> throw IOException("Unrecognized icon format for image #${bestLayer.index}")
             }
         }
-        return Pair(bestLayer.width, bestLayer.height)
+        return IntPair(bestLayer.width, bestLayer.height)
     }
 
     private const val MAX_SIZE = 1024 * 1024
