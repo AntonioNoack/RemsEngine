@@ -9,15 +9,18 @@ import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.GFXx2D.drawCircle
+import me.anno.graph.ui.GraphEditor.Companion.lightBlueish
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS.documents
 import me.anno.utils.structures.Iterators.filter
@@ -111,25 +114,28 @@ fun main() {
             if (pck != root && pck.parent == null) {
                 val path0 = pck.path
                 val path1 = path0.substring(0, max(path0.lastIndexOf('.'), 0))
-                pck.parent = packages.getOrPut(path1) {
+                val parent = packages.getOrPut(path1) {
                     Package(path1.split('.').last()).apply {
                         path = path1
                     }
                 }
+                pck.parent = parent
+                parent.children.add(pck)
+                parent.dependencies.addAll(pck.dependencies)
                 changed = true
             }
         }
     } while (changed)
 
-    fun assignDepth(node: Package, depth: Int) {
-        node.depth = depth
+    fun sortChildren(node: Package) {
         node.children.sortBy { it.name }
         for (child in node.children) {
-            child.parent = node
-            assignDepth(child, depth + 1)
+            sortChildren(child)
         }
     }
-    assignDepth(root, 0)
+    sortChildren(root)
+
+    for (pck in packages.values) pck.depth = pck.path.count { it == '.' }
 
     // remove external dependencies
     for (pck in packages) pck.value.dependencies.removeIf { it.depth < 0 }
@@ -165,7 +171,7 @@ fun main() {
                 if (radius < 1f) return
                 val window = window!!
                 val dist = sq(x - window.mouseX, y - window.mouseY)
-                if (dist < hoveredDist) {
+                if (dist < min(sq(radius) * 2f, hoveredDist)) {
                     hoveredPck = pck
                     hoveredDist = dist
                 }
@@ -194,13 +200,13 @@ fun main() {
                     if (font.sizeInt in 5..(h / 3)) {
                         drawText(
                             x.toInt(), y.toInt(), font, pck.name,
-                            textColor, backgroundColor.withAlpha(0),
+                            if (pck == hoveredPck) lightBlueish or black else textColor, backgroundColor.withAlpha(0),
                             -1, -1, AxisAlignment.CENTER, AxisAlignment.CENTER
                         )
                     }
                     if (!pck.isCollapsed && pck.children.isNotEmpty()) {
                         val children = pck.children
-                        val r1 = r0 * 2f / children.size
+                        val r1 = r0 * 2f / max(4, children.size)
                         val font1 = Font("Verdana", r1 * 0.3f)
                         for (ci in children.indices) {
                             drawPackage(children[ci], font1)
@@ -258,7 +264,10 @@ fun main() {
                             } else {
                                 "${dep.path}: ${times.size}x, ${
                                     times
-                                        .map { it.path.substring(dep.path.length + 1) }
+                                        .map {
+                                            if (it.path != dep.path) it.path.substring(dep.path.length + 1)
+                                            else it.path
+                                        }
                                         .sorted()
                                         .run {
                                             if (this.size < 5) toString()

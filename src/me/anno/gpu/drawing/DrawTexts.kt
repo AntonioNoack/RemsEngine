@@ -8,6 +8,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawCurves.putRGBA
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.drawing.GFXx2D.posSizeDraw
@@ -53,7 +54,7 @@ object DrawTexts {
     }
 
     val simpleBatch = object : Batch(
-        GFX.flat01, listOf(
+        flat01, listOf(
             Attribute("instData", 3),
             Attribute("color0", AttributeType.UINT8_NORM, 4),
             Attribute("color1", AttributeType.UINT8_NORM, 4),
@@ -263,36 +264,23 @@ object DrawTexts {
 
             GFX.loadTexturesSync.push(true)
 
-            val y2 = (y + dyi).toFloat()
-
             var index = 0
+            val offsets = group.offsets
+            val y2 = y + dyi
             for (codepoint in text.codePoints()) {
-                val txt = String(Character.toChars(codepoint))
-
-                val o0 = group.offsets[index].toFloat()
-                val o1 = group.offsets[index + 1].toFloat()
-                val fx = x + dxi + o0
-                val w = o1 - o0
-                if (!txt.isBlank2()) {
+                if (!Character.isWhitespace(codepoint)) {
+                    val txt = String(Character.toChars(codepoint))
+                    val o0 = offsets[index++].toInt()
+                    val o1 = offsets[index].toInt()
+                    val fx = x + dxi + o0
+                    val w = o1 - o0
                     val texture = FontManager.getTexture(font, txt, -1, -1)
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                         texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-                        shader.use()
-                        val x2 = fx + (w - texture.w) / 2
-                        // println("cp[2] $codepoint, $x2 by $fx + ($w - ${texture.w}) / 2")
-                        GFX.check()
-                        if (shader is Shader) {
-                            posSize(shader, x2, y2, texture.w.toFloat(), texture.h.toFloat())
-                            GFX.flat01.draw(shader)
-                        } else {
-                            shader as ComputeShader
-                            shader.v2i("offset", x2.toInt(), y2.toInt())
-                            shader.runBySize(texture.w, texture.h)
-                        }
-                        GFX.check()
+                        val x2 = fx + (w - texture.w).shr(1)
+                        draw(shader, texture, x2, y2, txt)
                     }
-                }
-                index++
+                } else index++
             }
 
             GFX.loadTexturesSync.pop()
@@ -359,7 +347,7 @@ object DrawTexts {
 
             val texture = FontManager.getTexture(key)
             if (texture != null) {
-                draw(shader, texture, x + dx + (wx - texture.w) / 2, y2, txt)
+                draw(shader, texture, x + dx + (wx - texture.w).shr(1), y2, txt)
             }
 
             wx
@@ -368,24 +356,24 @@ object DrawTexts {
 
             val font2 = FontManager.getFont(font)
             val text = key.text
-            val group = TextGroup(font2, text, 0.0)
+            val offsets = TextGroup(font2, text, 0.0).offsets
 
-            val textWidth = group.offsets.last().toFloat()
+            val textWidth = offsets.last().toFloat()
 
             val wx = textWidth.roundToInt()
             val dxi = getOffset(wx, alignX)
             val dyi = getOffset(font.sampleHeight, alignY)
 
-            val y2 = (y + dyi).toFloat()
+            val y2 = y + dyi
 
-            val o0 = group.offsets[0].toFloat()
-            val o1 = group.offsets[1].toFloat()
+            val o0 = offsets[0].toInt()
+            val o1 = offsets[1].toInt()
             val fx = x + dxi + o0
             val w = o1 - o0
 
             val texture = FontManager.getTexture(key)
             if (texture != null) {
-                draw(shader, texture, (fx + (w - texture.w) * 0.5f).toInt(), y2.toInt(), text)
+                draw(shader, texture, fx + (w - texture.w) .shr(1), y2, text)
             }
 
             wx
@@ -404,7 +392,7 @@ object DrawTexts {
             shader.use()
             if (shader is Shader) {
                 posSize(shader, x2, y2, texture.w, texture.h)
-                GFX.flat01.draw(shader)
+                flat01.draw(shader)
             } else {
                 shader as ComputeShader
                 posSizeDraw(shader, x2, y2, texture.w, texture.h, 1)
@@ -467,7 +455,7 @@ object DrawTexts {
             } else {
                 shader as Shader
                 posSize(shader, x2, y2, w, h)
-                GFX.flat01.draw(shader)
+                flat01.draw(shader)
             }
             GFX.check()
         }

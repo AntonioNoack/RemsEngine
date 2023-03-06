@@ -2,6 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.FlatShaders.flatShader
@@ -100,7 +101,7 @@ object GFXx2D {
         shader.v2f("angleLimits", startDegrees.toRadians(), endDegrees.toRadians())
         shader.v1f("smoothness", 1.5f)
 
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
 
     }
 
@@ -140,7 +141,7 @@ object GFXx2D {
         shader.v2f("angleLimits", startDegrees.toRadians(), endDegrees.toRadians())
         shader.v1f("smoothness", 1.5f)
 
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
 
     }
 
@@ -171,7 +172,7 @@ object GFXx2D {
         shader.v2f("angleLimits", 0f, 0f)
         shader.v1f("smoothness", smoothness)
 
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
 
     }
 
@@ -194,7 +195,7 @@ object GFXx2D {
         shader.v4f("backgroundColor", backgroundColor)
         shader.v1f("smoothness", smoothness)
 
-        GFX.flat01.draw(shader)
+        flat01.draw(shader)
 
     }
 
