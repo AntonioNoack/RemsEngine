@@ -15,7 +15,6 @@ import me.anno.io.Streams.readLE16
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.InputStreams.skipN
-import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
 import kotlin.math.min
@@ -25,14 +24,16 @@ import kotlin.math.min
  * @author Joshua Slack - cleaned, commented, added ability to read 16bit true color and color-mapped TGAs.
  * @author Kirill Vainer - ported to JMonkeyEngine3
  * @author Antonio Noack - added black & white support; fixed naming (?), tested with crytek sponza; fixed 32-bit color order(?)
- * at least for my test cases, everything was correct, and the same as Gimp; optimized it a bit
+ * at least for my test cases, everything was correct, and the same as Gimp; optimized it a bit; added support for x-flip
  * @version $Id: TGALoader.java 4131 2009-03-19 20:15:28Z blaine.dev $
  */
 class TGAImage(// bgra, even if the implementation calls it rgba
-    var data: ByteArray, width: Int, height: Int, channels: Int
+    val data: ByteArray, width: Int, height: Int, channels: Int
 ) : Image(width, height, channels, channels > 3) {
+
     var originalImageType = 0
     var originalPixelDepth = 0
+
     override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
         if (sync && GFX.isGFXThread()) {
             when (numChannels) {
@@ -144,9 +145,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
 
     companion object {
 
-        @JvmStatic
-        private val LOGGER = LogManager.getLogger(TGAImage::class)
-
         private const val NO_IMAGE = 0
         private const val COLORMAPPED = 1
         private const val TRUE_COLOR = 2
@@ -183,12 +181,12 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             // length of the image id (1 byte)
             val idLength = input.read()
 
-            // Type of color map (if any) included with the image
+            // Color map (if any) included with the image
             // 0 - no color map data is included
             // 1 - a color map is included
             val colorMapType = input.read()
 
-            // Type of image being read:
+            // Image type being read:
             val imageType = input.read()
 
             // Read Color Map Specification (5 bytes)
@@ -219,7 +217,6 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             }
             if (imageDescriptor and 16 != 0) { // bit 4 : if 1, flip left/right ordering
                 flipX = true
-                LOGGER.warn("X-flipped TGAs haven't been implemented yet")
             }
 
             // ---------- Done Reading the TGA header ---------- //
@@ -265,15 +262,13 @@ class TGAImage(// bgra, even if the implementation calls it rgba
                 }
             }
 
-
             // Allocate image data array
-            val format: Int
             val dl = if (pixelDepth == 32) 4 else
                 if (imageType == GRAYSCALE || imageType == GRAYSCALE_RLE) 1 else 3
             val rawDataSize = width * height * dl
             if (rawDataSize < 0) throw IOException("Invalid size: $width x $height x $dl")
             val rawData = ByteArray(rawDataSize)
-            format = when (imageType) {
+            val numChannels = when (imageType) {
                 TRUE_COLOR -> readTrueColor(pixelDepth, width, height, flipY, rawData, dl, input)
                 TRUE_COLOR_RLE -> readTrueColorRLE(pixelDepth, width, height, flipY, rawData, dl, input)
                 COLORMAPPED -> readColorMapped(pixelDepth, width, height, flipY, rawData, dl, input, cMapEntries!!)
@@ -286,10 +281,64 @@ class TGAImage(// bgra, even if the implementation calls it rgba
             input.close()
 
             // Create the Image object
-            val image = TGAImage(rawData, width, height, format)
+            val image = TGAImage(rawData, width, height, numChannels)
+            if (flipX) flipX(rawData, width, height, numChannels)
             image.originalImageType = imageType
             image.originalPixelDepth = pixelDepth
             return image
+        }
+
+        private fun flipX(data: ByteArray, width: Int, height: Int, c: Int) {
+            val dx = c * (width shr 1)
+            for (y in 0 until height) {
+                val i0 = y * width * c
+                val i1 = i0 + dx
+                var i2 = i0 + c * (width - 1)
+                when (c) {
+                    1 -> for (i in i0 until i1) {
+                        val t = data[i]
+                        data[i] = data[i2]
+                        data[i2] = t
+                        i2--
+                    }
+                    2 -> for (i in i0 until i1 step 2) {
+                        val t0 = data[i]
+                        val t1 = data[i + 1]
+                        data[i] = data[i2]
+                        data[i + 1] = data[i2 + 1]
+                        data[i2] = t0
+                        data[i2 + 1] = t1
+                        i2 -= 2
+                    }
+                    3 -> for (i in i0 until i1 step 3) {
+                        val t0 = data[i]
+                        val t1 = data[i + 1]
+                        val t2 = data[i + 2]
+                        data[i] = data[i2]
+                        data[i + 1] = data[i2 + 1]
+                        data[i + 2] = data[i2 + 2]
+                        data[i2] = t0
+                        data[i2 + 1] = t1
+                        data[i2 + 2] = t2
+                        i2 -= 3
+                    }
+                    4 -> for (i in i0 until i1 step 4) {
+                        val t0 = data[i]
+                        val t1 = data[i + 1]
+                        val t2 = data[i + 2]
+                        val t3 = data[i + 3]
+                        data[i] = data[i2]
+                        data[i + 1] = data[i2 + 1]
+                        data[i + 2] = data[i2 + 2]
+                        data[i + 3] = data[i2 + 3]
+                        data[i2] = t0
+                        data[i2 + 1] = t1
+                        data[i2 + 2] = t2
+                        data[i2 + 3] = t3
+                        i2 -= 4
+                    }
+                }
+            }
         }
 
         @JvmStatic
