@@ -171,7 +171,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     @HideInInspector
     var boneIndices: ByteArray? = null
 
-    val hasBones get() = boneWeights != null && boneIndices != null
+    val hasBones get() = boneIndices?.isEmpty() == false
 
     @HideInInspector
     @NotSerializedProperty
@@ -740,7 +740,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         val vertexCount = min(positions.size, normals.size) / 3
         val indices = indices
 
-        val hasBones = boneWeights != null && boneWeights.isNotEmpty()
+        val hasBones = hasBones
         hasBonesInBuffer = hasBones
 
         // todo missing attributes cause issues

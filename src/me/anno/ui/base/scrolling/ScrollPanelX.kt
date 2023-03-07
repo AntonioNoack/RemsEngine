@@ -86,6 +86,7 @@ open class ScrollPanelX(
     override fun scrollX(delta: Double) {
         targetScrollPositionX += delta
         clampScrollPosition()
+        window?.needsLayout?.add(this)
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {

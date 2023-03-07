@@ -2,6 +2,7 @@ package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.interfaces.Renderable
@@ -33,6 +34,14 @@ class Skeleton : PrefabSaveable(), Renderable {
 
     @NotSerializedProperty
     private var bonePositions: Array<Vector3f>? = null
+
+    override fun listChildTypes() = "ca"
+    override fun getChildListByType(type: Char): List<PrefabSaveable> {
+        return if (type == 'c') bones
+        else animations.values.mapNotNull { AnimationCache[it] }
+    }
+
+    override val children get() = bones
 
     fun draw(shader: Shader, stack: Matrix4x3f, skinningMatrices: Array<Matrix4x3f>?) {
 
@@ -189,10 +198,11 @@ class Skeleton : PrefabSaveable(), Renderable {
                         positions[j++] = tmp.x
                         positions[j++] = tmp.y
                         positions[j++] = tmp.z
-                        if (boneIndices != null) {
-                            boneIndices[k] = srcBone.id.toByte()
-                            k += 4
-                        }
+                    }
+                    if (boneIndices != null) {
+                        val dk = (boneMeshVertices.size - 2) / 3 * 4
+                        boneIndices.fill(srcBone.id.toByte(), k, k + dk)
+                        k += dk
                     }
                 }
             }

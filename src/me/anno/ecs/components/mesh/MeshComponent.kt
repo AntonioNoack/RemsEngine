@@ -10,7 +10,7 @@ import me.anno.io.serialization.SerializedProperty
 
 // todo light beams: when inside the cone, from that view, then add a little brightness
 
-// todo static storage of things, e.g. for retargeting
+// todo static storage of things, e.g., for retargeting
 // todo skeleton identity shall be defined by same names-array (for finding retargetings)
 
 // todo drag item into inspector, and when clicking on something, let it show up the the last recently used? would allow to drag things from one to the other :3

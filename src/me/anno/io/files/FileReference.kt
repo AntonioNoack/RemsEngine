@@ -4,13 +4,11 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.cache.instances.LastModifiedCache
-import me.anno.ecs.components.cache.MeshCache
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.gpu.GFX
-import me.anno.image.ImageCPUCache
-import me.anno.image.ImageGPUCache
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
+import me.anno.io.zip.InnerFile
+import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCache
 import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -581,6 +579,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     fun openInStandardProgram() {
+        val parent = getParent()
+        if (parent is InnerFile) return parent.openInStandardProgram()
         try {
             Desktop.getDesktop().open(toFile())
         } catch (e: Exception) {
@@ -589,6 +589,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     fun editInStandardProgram() {
+        val parent = getParent()
+        if (parent is InnerFile) return parent.editInStandardProgram()
         try {
             Desktop.getDesktop().edit(toFile())
         } catch (e: Exception) {

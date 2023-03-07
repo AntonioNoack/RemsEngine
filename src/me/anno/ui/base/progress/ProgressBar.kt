@@ -78,6 +78,7 @@ open class ProgressBar(
         val backgroundColor = backgroundColor
         val wxi = wx.toInt()
         if (w - wxi - 1 > 0) drawRect(x + 1 + wxi, y, w - wxi - 1, h, backgroundColor)
+        // todo if total is NaN, draw indeterminate mode like Qt
         drawRect(x, y, wxi, h, color)
         drawRect(x + wxi, y, 1, h, mixARGB(backgroundColor, color, fract(wx).toFloat()))
     }

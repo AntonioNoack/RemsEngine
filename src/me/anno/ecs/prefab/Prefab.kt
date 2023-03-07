@@ -29,7 +29,7 @@ class Prefab : Saveable {
         this.prefab = prefab
     }
 
-    constructor(prefab: Prefab): this(prefab.clazzName, prefab.source)
+    constructor(prefab: Prefab) : this(prefab.clazzName, prefab.source)
 
     var clazzName = ""
 
@@ -351,7 +351,7 @@ class Prefab : Saveable {
                 if (Build.isDebug) {// a safety check, that shouldn't happen in a shipped program
                     instance.forAll {
                         if (it.prefab !== this) {
-                            throw IllegalStateException("Incorrectly created prefab!")
+                            LOGGER.warn("Incorrectly created prefab!, ${instance.prefab?.source} != $source")
                         }
                     }
                 }

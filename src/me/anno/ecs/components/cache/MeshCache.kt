@@ -93,7 +93,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
         }
 
         val hasColors = meshes.any2 { it.first.color0 != null }
-        val hasBones = meshes.any2 { it.first.boneWeights != null && it.first.boneIndices != null }
+        val hasBones = meshes.any2 { it.first.hasBones }
         val hasUVs = meshes.any2 { it.first.uvs != null }
 
         return object : MeshJoiner<Triple<Mesh, Transform?, FileReference>>(hasColors, hasBones, hasUVs) {

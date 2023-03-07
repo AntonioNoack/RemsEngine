@@ -74,7 +74,6 @@ object PrefabCache : CacheSection("Prefab") {
         }
     }
 
-
     fun createInstance(
         prefab: Prefab?,
         superPrefab: FileReference,

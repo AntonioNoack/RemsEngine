@@ -73,8 +73,10 @@ open class ScrollPanelY(
         }
 
     override fun scrollY(delta: Double) {
+        // todo the scrollbar sometimes gets stuck... how???
         targetScrollPositionY += delta
         clampScrollPosition()
+        window?.needsLayout?.add(this)
     }
 
     override fun onUpdate() {

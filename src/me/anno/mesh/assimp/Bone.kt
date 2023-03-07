@@ -1,12 +1,12 @@
 package me.anno.mesh.assimp
 
-import me.anno.io.NamedSaveable
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
 
-class Bone(var id: Int, var parentId: Int, name: String) : NamedSaveable() {
+class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
 
     constructor() : this(-1, -1, "")
 
@@ -31,6 +31,7 @@ class Bone(var id: Int, var parentId: Int, name: String) : NamedSaveable() {
      * offsetMatrix; inverse of bone position + rotation in mesh space
      * */
     val inverseBindPose = Matrix4x3f()
+
     /**
      * inverseBindPose.m30, inverseBindPose.m31, inverseBindPose.m32
      * */
@@ -42,6 +43,7 @@ class Bone(var id: Int, var parentId: Int, name: String) : NamedSaveable() {
      * bone position + rotation in mesh space
      * */
     val bindPose = Matrix4x3f()
+
     /**
      * bindPose.m30, bindPose.m31, bindPose.m32
      * */
@@ -109,6 +111,22 @@ class Bone(var id: Int, var parentId: Int, name: String) : NamedSaveable() {
         writer.writeMatrix4x3f("offset", inverseBindPose)
         writer.writeMatrix4x3f("relativeTransform", relativeTransform)
         writer.writeMatrix4x3f("originalTransform", originalTransform)
+    }
+
+    override fun clone(): Bone {
+        val clone = Bone()
+        copy(clone)
+        return clone
+    }
+
+    override fun copy(clone: PrefabSaveable) {
+        super.copy(clone)
+        clone as Bone
+        clone.id = id
+        clone.parentId = parentId
+        clone.inverseBindPose.set(inverseBindPose)
+        clone.relativeTransform.set(relativeTransform)
+        clone.originalTransform.set(originalTransform)
     }
 
 }

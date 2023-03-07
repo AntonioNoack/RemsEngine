@@ -170,7 +170,7 @@ open class AnimRenderer : MeshComponent() {
 
     fun updateAnimState(): Boolean {
         val time = Engine.gameTime
-        return if (time > prevTime) {
+        return if (time != prevTime) {
             prevTime = time
             prevWeights.set(currWeights)
             prevIndices.set(currIndices)

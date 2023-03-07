@@ -136,7 +136,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     // e.g. "ec" for child entities + child components
     open fun listChildTypes(): String = ""
-    open fun getChildListByType(type: Char): List<PrefabSaveable> = emptyList()
+    open fun getChildListByType(type: Char): List<PrefabSaveable> = children
     open fun getChildListNiceName(type: Char): String = "Children"
     open fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         LOGGER.warn("$className.addChildByType(index,$type,${child.className}) is not supported")

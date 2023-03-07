@@ -430,7 +430,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             drawSimpleTextCharByChar(
                 x + DrawTexts.monospaceFont.sizeInt / 4,
                 y + h - 1 - DrawTexts.monospaceFont.sizeInt,
-                0, "$drawnPrimitives tris, $drawCalls draw calls",
+                0, if (drawCalls == 1L) "$drawnPrimitives tris, 1 draw call"
+                else "$drawnPrimitives tris, $drawCalls draw calls",
                 FrameTimings.textColor,
                 FrameTimings.backgroundColor and 0xffffff
             )

@@ -7,7 +7,13 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.animated
 import me.anno.gpu.M4x3Delta
+import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBuffer
+import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferA
+import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferM
+import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferMA
+import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferSlim
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -68,7 +74,7 @@ open class InstancedStack {
 
             val motionVectors = BaseShader.motionVectors
             var drawCalls = 0
-            GFXState.animated.use(useAnimations) {
+            animated.use(useAnimations) {
 
                 // val t0 = System.nanoTime()
 
@@ -104,11 +110,11 @@ open class InstancedStack {
                 // to enable this mode, your vertex shader needs to be adjusted; motion vectors will only work with static meshes properly
                 val highPerformanceMode = shader.getAttributeLocation("instancePosSize") >= 0
                 // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580
-                val buffer = if (highPerformanceMode) PipelineStage.instancedBufferSlim else {
+                val buffer = if (highPerformanceMode) instancedBufferSlim else {
                     if (motionVectors) {
-                        if (useAnimations) PipelineStage.instancedBufferMA else PipelineStage.instancedBufferM
+                        if (useAnimations) instancedBufferMA else instancedBufferM
                     } else {
-                        if (useAnimations) PipelineStage.instancedBufferA else PipelineStage.instancedBuffer
+                        if (useAnimations) instancedBufferA else instancedBuffer
                     }
                 }
                 // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
