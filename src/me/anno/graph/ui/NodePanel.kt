@@ -1,12 +1,14 @@
 package me.anno.graph.ui
 
 import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getBaselineY
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.gpu.drawing.GFXx2D.drawHalfArrow
+import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -69,15 +71,23 @@ class NodePanel(
 
     override fun calculateSize(w: Int, h: Int) {
 
-        val expectedChars = 16
-        lineCount = 1 + // title
-                max(node.inputs?.size ?: 0, node.outputs?.size ?: 0)
+        val inputs = node.inputs
+        val outputs = node.outputs
 
-        minW = (expectedChars * baseTextSize).toInt()
+        lineCount = 1 + // title
+                max(inputs?.size ?: 0, outputs?.size ?: 0)
+
+        val baseTextSize = baseTextSize
+        val baseTextSizeI4 = (baseTextSize * 4).toInt()
+        val font = gp.font
+
+        // enough width for title
+        minW = baseTextSizeI4 + getSizeX(FontManager.getSize(font, node.name, -1, -1))
+        // enough height for all lines
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
 
-        val inputs = node.inputs
-        if (inputs != null) for (con in inputs) {
+        if (inputs != null) for (i in inputs.indices) {
+            val con = inputs[i]
             // add all needed new input fields
             val oldField = inputFields[con]
             val newField = gp.getInputField(con, oldField)
@@ -88,13 +98,36 @@ class NodePanel(
                     inputFields[con] = newField
                 } else inputFields.remove(con)
             }
-            newField?.calculateSize(minW, minH)
+            val newFieldW = getSizeX(FontManager.getSize(font, con.name, -1, -1)) + baseTextSizeI4
+            minW = if (newField != null) {
+                newField.calculateSize(w, minH)
+                max(
+                    minW, newFieldW + newField.minW + if (outputs != null && i < outputs.size) {
+                        getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1))
+                    } else 0
+                )
+            } else {
+                max(
+                    minW, newFieldW + if (outputs != null && i < outputs.size) {
+                        getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1))
+                    } else 0
+                )
+            }
         } else if (inputFields.isNotEmpty()) {
             // remove all input fields that are no longer needed
             for ((_, panel) in inputFields) {
                 remove(panel)
             }
             inputFields.clear()
+        }
+
+        if (outputs != null) {
+            for (i in (inputs?.size ?: 0) until outputs.size) {
+                minW = max(
+                    minW, baseTextSizeI4 +
+                            getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1))
+                )
+            }
         }
 
         val minH0 = minH

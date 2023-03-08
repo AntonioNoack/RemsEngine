@@ -585,7 +585,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun printLayout(tabDepth: Int) {
         val tooltip = tooltip
         println(
-            "${Tabs.spaces(tabDepth * 2)}${this::class.simpleName}(${(weight * 10).roundToInt()}, " +
+            "${Tabs.spaces(tabDepth * 2)}$className(${(weight * 10).roundToInt()}, " +
                     "${if (isVisible) "v" else "_"}${if (isHovered) "h" else ""}${if (isInFocus) "F" else ""})) " +
                     "$x-${x + w}, $y-${y + h} ($minW $minH) ${
                         if (tooltip == null) "" else "'${tooltip.shorten(20)}' "

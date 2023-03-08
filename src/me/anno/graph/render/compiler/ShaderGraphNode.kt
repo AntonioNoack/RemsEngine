@@ -71,6 +71,11 @@ class ShaderGraphNode : ActionNode(
 
     val constInputs = 6
 
+    fun invalidate() {
+        shader?.destroy()
+        shader = null
+    }
+
     override fun canAddInput(type: String, index: Int): Boolean {
         return index >= constInputs && when (type) {
             "Bool", "Boolean", "Int", "Float", "Vector2f", "Vector3f", "Vector4f",

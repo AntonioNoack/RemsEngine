@@ -10,6 +10,7 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
@@ -23,7 +24,7 @@ class SceneNode : ActionNode(
         "Int", "Height",
         "Int", "Samples",
         "Int", "Stage Id",
-        "Int", "Sorting", // todo enum
+        "Enum<me.anno.gpu.pipeline.Sorting>", "Sorting",
         "Int", "Camera Index",
         "Boolean", "Apply ToneMapping",
     ),
@@ -42,7 +43,18 @@ class SceneNode : ActionNode(
         setInput(2, 256) // height
         setInput(3, 1) // samples
         setInput(4, 0) // stage id
+        setInput(5, Sorting.NO_SORTING)
+        setInput(6, 0) // camera index
+        setInput(7, false) // apply tonemapping
     }
+
+    fun invalidate() {
+        settings = null
+        framebuffer?.destroy()
+        framebuffer = null
+    }
+
+    private var settings: DeferredSettingsV2? = null
 
     override fun executeAction() {
         val width = getInput(1) as Int
@@ -53,31 +65,40 @@ class SceneNode : ActionNode(
         val stageId = getInput(4) as Int
         // val sorting = getInput(5) as Int
         // val cameraIndex = getInput(6) as Int
-        enabledLayers.clear()
-        val outputs = outputs!!
-        for (i in 1 until outputs.size) {
-            val output = outputs[i]
-            if (output.others.isNotEmpty()) {
-                // todo only enable it, if the value actually will be used
-                enabledLayers.add(DeferredLayerType.values[i - 1])
+
+        var settings = settings
+        if (settings == null || settings.samples != samples) {
+            enabledLayers.clear()
+            val outputs = outputs!!
+            for (i in 1 until outputs.size) {
+                val output = outputs[i]
+                if (output.others.isNotEmpty()) {
+                    // todo only enable it, if the value actually will be used
+                    enabledLayers.add(DeferredLayerType.values[i - 1])
+                }
+                setOutput(null, i)
             }
-            setOutput(null, i)
-        }
 
-        if (enabledLayers.isEmpty()) {
-            return
-        }
+            if (enabledLayers.isEmpty()) {
+                return
+            }
 
-        // create deferred settings
-        // todo keep settings if they stayed the same as last frame
-        val settings = DeferredSettingsV2(enabledLayers, samples, true)
+            // create deferred settings
+            // todo keep settings if they stayed the same as last frame
+            settings = DeferredSettingsV2(enabledLayers, samples, true)
+        }
 
         val rv: RenderView = renderView
         val camera: Camera = rv.editorCamera
 
-        val dstBuffer = settings.createBaseBuffer()
-        framebuffer?.destroy()
-        framebuffer = dstBuffer
+        var framebuffer = framebuffer
+        if (framebuffer == null || framebuffer.w != width || framebuffer.h != height) {
+            framebuffer?.destroy()
+            framebuffer = settings.createBaseBuffer()
+            this.framebuffer = framebuffer
+        }
+
+        // todo keep framebuffer, if it stayed the same as last frame
 
         val renderer = Renderer("", settings)
 
@@ -87,12 +108,12 @@ class SceneNode : ActionNode(
         pipeline.applyToneMapping = !hdr
 
         val depthMode = DepthMode.ALWAYS
-        GFXState.useFrame(width, height, true, dstBuffer, renderer) {
+        GFXState.useFrame(width, height, true, framebuffer, renderer) {
 
             Frame.bind()
             GFXState.depthMode.use(depthMode) {
                 rv.setClearDepth()
-                dstBuffer.clearDepth()
+                framebuffer.clearDepth()
             }
 
             rv.clearColor(camera, camera, 0f, hdr)
@@ -103,20 +124,15 @@ class SceneNode : ActionNode(
 
         }
 
-        for (i in 1 until outputs.size) {
-            val output = outputs[i]
-            if (output.others.isNotEmpty()) {
-                // define output value
-                // todo there are special types for which we might need to apply lighting or combine other types
-                val type = DeferredLayerType.values[i - 1]
-                val layer = settings.findLayer(type)!!
-                val tex = dstBuffer.getTextureI(layer.index)
-                if (tex is Texture2D && !tex.isCreated) {
-                    LOGGER.warn("$type -> ${layer.index} is missing")
-                    continue
-                }
-                setOutput(Texture(tex, layer.mapping), i)
+        // todo there are special types for which we might need to apply lighting or combine other types
+        for (layer in settings.layers) {
+            val tex = framebuffer.getTextureI(layer.index)
+            if (tex is Texture2D && !tex.isCreated) {
+                LOGGER.warn("${layer.type} -> ${layer.index} is missing")
+                continue
             }
+            val i = DeferredLayerType.values.indexOf(layer.type) + 1
+            setOutput(Texture(tex, layer.mapping), i)
         }
 
     }

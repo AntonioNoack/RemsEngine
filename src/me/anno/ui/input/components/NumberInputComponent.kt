@@ -16,7 +16,7 @@ open class NumberInputComponent(
         get() = false
 
     override var isVisible: Boolean
-        get() = InputVisibility[visibilityKey]
+        get() = InputVisibility[visibilityKey ?: ""] // can be null in constructor
         set(_) {}
 
     override fun acceptsChar(char: Int): Boolean {
@@ -36,5 +36,7 @@ open class NumberInputComponent(
         copy(clone)
         return clone
     }
+
+    override val className = "NumberInputComponent"
 
 }

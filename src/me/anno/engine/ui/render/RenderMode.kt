@@ -13,6 +13,7 @@ import me.anno.gpu.shader.Renderer.Companion.uvRenderer
 
 // @Deprecated("Shall be replaced by RenderGraph")
 // todo all-metallic / all-rough/smooth render modes?
+@Suppress("unused")
 class RenderMode(
     val name: String,
     val dlt: DeferredLayerType? = null,
@@ -79,7 +80,7 @@ class RenderMode(
 
         val MSAA_X8 = RenderMode("MSAAx8")
 
-        // todo implement this properly:
+        // implement this properly:
         //  - https://www.reddit.com/r/opengl/comments/kvuolj/deferred_rendering_and_msaa/
         //  - https://docs.nvidia.com/gameworks/content/gameworkslibrary/graphicssamples/d3d_samples/antialiaseddeferredrendering.htm
         //  - https://registry.khronos.org/OpenGL-Refpages/gl4/html/texelFetch.xhtml

@@ -1,5 +1,6 @@
 package me.anno.utils.strings
 
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import kotlin.math.abs
 
@@ -144,32 +145,34 @@ object StringHelper {
     @JvmStatic
     fun CharSequence.distance(other: CharSequence, ignoreCase: Boolean = false): Int {
         if (this == other) return 0
-        val m = this.length
-        val n = other.length
-        if (m == 0 || n == 0) return abs(m - n)
-        if (m <= 1 && n <= 1) return 1
-        val stride = m + 1
-        val d = IntArray(stride * (n + 1))
-        for (i in 1..m) d[i] = i
-        for (j in 1..n) d[j * stride] = j
-        for (j in 1..n) {
-            var k = j * stride + 1
-            val cj = other[j - 1]
-            for (i in 1..m) {
-                val ci = this[i - 1]
-                d[k] = when {
-                    ci.equals(cj, ignoreCase) -> d[k - 1 - stride]
-                    i > 1 && j > 1 &&
-                            ci.equals(other[j - 2], ignoreCase) &&
-                            cj.equals(this[i - 2], ignoreCase) ->
-                        min(d[k - 2 - 2 * stride], d[k - 1], d[k - stride]) + 1
-                    else ->
-                        min(d[k - stride - 1], min(d[k - 1], d[k - stride])) + 1
+        val sx = this.length + 1
+        val sy = other.length + 1
+        if (sx == 1 || sy == 1) return abs(sx - sy)
+        if (sx <= 2 && sy <= 2) return 1
+        val dist = IntArray(sx * max(sy, 3))
+        for (x in 1 until sx) dist[x] = x
+        for (y in 1 until sy) {
+            var i2 = (y % 3) * sx
+            dist[i2++] = y
+            var i1 = ((y + 2) % 3) * sx
+            var i0 = ((y + 1) % 3) * sx - 1
+            val prev1 = other[y - 1]
+            for (i in 1 until sx) {
+                val prev0 = this[i - 1]
+                dist[i2] = when {
+                    prev0.equals(prev1, ignoreCase) -> dist[i1]
+                    i > 1 && y > 1 &&
+                            prev0.equals(other[y - 2], ignoreCase) &&
+                            prev1.equals(this[i - 2], ignoreCase) ->
+                        min(dist[i0], dist[i2 - 1], dist[i1 + 1]) + 1
+                    else -> min(dist[i1], dist[i2 - 1], dist[i1 + 1]) + 1
                 }
-                k++
+                i0++
+                i1++
+                i2++
             }
         }
-        return d.last()
+        return dist[sx * (sy % 3) - 1]
     }
 
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303

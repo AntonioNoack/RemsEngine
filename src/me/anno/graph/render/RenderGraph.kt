@@ -203,7 +203,7 @@ object RenderGraph {
                     setPosSize(0, 0, 500, 500) // calculate connector offsets
                     calculateNodePositions(graph.nodes)
 
-                    // todo center graph panel on nodes by calculating their mid point
+                    // centerOnNodes()
                     library = RenderGraph.library
                     for (it in library.allNodes) {
                         val sample = it.first
@@ -215,16 +215,11 @@ object RenderGraph {
 
                     addChangeListener { _, isNodePositionChange ->
                         if (!isNodePositionChange) {
-                            for (n in graph.nodes) {
-                                when (n) {
-                                    is ShaderGraphNode -> {
-                                        n.shader?.destroy()
-                                        n.shader = null
-                                    }
-                                    is ExpressionRenderer -> {
-                                        n.shader?.destroy()
-                                        n.shader = null
-                                    }
+                            for (node in graph.nodes) {
+                                when (node) {
+                                    is ShaderGraphNode -> node.invalidate()
+                                    is ExpressionRenderer -> node.invalidate()
+                                    is SceneNode -> node.invalidate()
                                 }
                             }
                         }

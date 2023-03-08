@@ -164,6 +164,8 @@ open class PureTextInputML(style: Style) :
         while (lines.size > children.size) {// add new TextInput panels
             val panel = object : CorrectingTextInput(style) {
 
+                override val className get() = "PureTextInputML/CorrectingTextInput"
+
                 override val effectiveTextColor: Int
                     get() = if (isInputAllowed && isEnabled) super.effectiveTextColor else
                         mixARGB(textColor, backgroundColor, 0.5f)

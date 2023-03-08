@@ -39,6 +39,11 @@ interface ExpressionRenderer {
         setInput(5, 1)
     }
 
+    fun invalidate() {
+        shader?.destroy()
+        shader = null
+    }
+
     fun render(fp: Boolean): ITexture2D {
         val shader = shader ?: kotlin.run {
             val compiler = object : GraphCompiler(graph as FlowGraph) {

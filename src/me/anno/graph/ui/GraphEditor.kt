@@ -42,6 +42,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.Warning.unused
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
@@ -134,6 +135,28 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
     override val maxScrollPositionY: Long get() = (scrollTop + scrollBottom).toLong()
     override val childSizeX: Long get() = w + maxScrollPositionX
     override val childSizeY: Long get() = h + maxScrollPositionY
+
+    fun centerOnNodes(scaleFactor: Float = 0.9f) {
+        // todo not correct yet :/
+        val graph = graph ?: return
+        val bounds = JomlPools.aabbd.borrow()
+        for (node in graph.nodes) {
+            bounds.union(node.position)
+            val inputs = node.inputs
+            if (inputs != null) for (con in inputs) {
+                bounds.union(con.position)
+            }
+            val outputs = node.outputs
+            if (outputs != null) for (con in outputs) {
+                bounds.union(con.position)
+            }
+        }
+        if (!bounds.isEmpty()) {
+            center.set(bounds.avgX(), bounds.avgY())
+            val factor = scaleFactor / max(bounds.deltaX() / w, bounds.deltaY() / h)
+            if (factor.isFinite() && factor > 0.0) scale *= factor
+        }
+    }
 
     var font = monospaceFont
 

@@ -11,6 +11,8 @@ import me.anno.utils.strings.StringHelper.smallCaps
 fun main() {
     println("abc".distance("abcdef"))
     println("abcdef".distance("abc"))
+    println("bcd".distance("abc"))
+    println("helloworldbcd".distance("halloweltabc"))
     println("polyGeneLubricants".camelCaseToTitle())
     GFXBase.disableRenderDoc()
     println("polyGeneLubricants".smallCaps())
