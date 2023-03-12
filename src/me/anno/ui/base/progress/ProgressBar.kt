@@ -6,13 +6,17 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.maths.Maths
+import me.anno.maths.Maths.PIf
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.Color.black
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Booleans.toInt
+import kotlin.math.cos
 
 open class ProgressBar(
     val name: String,
@@ -74,49 +78,86 @@ open class ProgressBar(
     open fun formatText(): String {
         val progress = progress
         val total = total
-        return if (
-            unit == "Bytes" && progress.isFinite() && total.isFinite() &&
-            progress >= 0.0 && total >= 0.0
-        ) {
-            "${progress.toLong().formatFileSize()} / ${total.toLong().formatFileSize()}"
-        } else {
-            "$progress / $total $unit"
+        return when {
+            unit == "Bytes" && progress.isFinite() && total.isNaN() && progress >= 0.0 ->
+                progress.toLong().formatFileSize()
+            total.isNaN() -> "$progress $unit"
+            unit == "Bytes" && progress.isFinite() && total.isFinite() && progress >= 0.0 && total >= 0.0 ->
+                "${progress.toLong().formatFileSize()} / ${total.toLong().formatFileSize()}"
+            else -> "$progress / $total $unit"
         }
     }
 
-    fun draw(x: Int, y: Int, w: Int, h: Int, time: Long) {
+    open fun draw(x: Int, y: Int, w: Int, h: Int, time: Long) {
         val dt = Maths.dtTo01((time - lastDraw) * 1e-9 * updateSpeed)
         lastDraw = time
         val percentage = progress / total
         lastDrawnUpdate = mix(lastDrawnUpdate, percentage, dt)
 
         // todo animation with shifted stripes?
-        // todo if total is NaN, draw indeterminate mode like Qt
-        val wx = (5 + percentage * (w - 5)).toFloat()
-        val leftColor = color
-        val rightColor = backgroundColor
-        val wxi = wx.toInt()
-        val wxf = fract(wx)
-        val mixedColor = mixARGB(rightColor, leftColor, wxf)
-        drawRect(x, y, wxi, h, leftColor)
-        drawRect(x + wxi, y, 1, h, mixedColor)
-        drawRect(x + 1 + wxi, y, w - wxi - 1, h, rightColor)
-        // show num/total unit
-        val mid = wxi + (wxf >= 0.5f).toInt()
-        val text = formatText()
-        val xt = x + w.shr(1)
-        val yt = y + (h - monospaceFont.sizeInt).shr(1)
-        clip(x, y, mid, h) {
-            drawSimpleTextCharByChar(
-                xt, yt, 1, text,
-                rightColor, leftColor, AxisAlignment.CENTER, AxisAlignment.MIN
-            )
-        }
-        clip(x + mid, y, w - mid, h) {
-            drawSimpleTextCharByChar(
-                xt, yt, 1, text,
-                leftColor, rightColor, AxisAlignment.CENTER, AxisAlignment.MIN
-            )
+        val pad = 1
+        if (percentage.isNaN()) {
+            // draw indeterminate mode like Qt
+            val time1 = (time % 3_000_000_000) * 0.666e-9f
+            val dw = w / 3
+            val x1r = x + (fract(1f - cos(time1 * PIf * 0.5f)) * (w + dw)).toInt() - dw
+            val x1 = max(x, x1r)
+            val x2 = clamp(x1r + dw, x, x + w)
+            val x3 = x + w
+            val leftColor = backgroundColor
+            val rightColor = color
+            drawRect(x, y, x1 - x, h, leftColor)
+            drawRect(x1, y, x2 - x1, h, rightColor)
+            drawRect(x2, y, x3 - x2, h, leftColor)
+            // show num/total unit
+            val text = formatText()
+            val xt = x + w.shr(1)
+            val yt = y + (h - monospaceFont.sizeInt).shr(1)
+            if (x1 > x) clip(x, y, x1 - x, h) {
+                drawSimpleTextCharByChar(
+                    xt, yt, pad, text, rightColor, leftColor,
+                    AxisAlignment.CENTER, AxisAlignment.MIN
+                )
+            }
+            if (x2 > x1) clip(x1, y, x2 - x1, h) {
+                drawSimpleTextCharByChar(
+                    xt, yt, pad, text, leftColor, rightColor,
+                    AxisAlignment.CENTER, AxisAlignment.MIN
+                )
+            }
+            if (x3 > x2) clip(x2, y, x3 - x2, h) {
+                drawSimpleTextCharByChar(
+                    xt, yt, pad, text, rightColor, leftColor,
+                    AxisAlignment.CENTER, AxisAlignment.MIN
+                )
+            }
+        } else {
+            val wx = (5 + percentage * (w - 5)).toFloat()
+            val leftColor = color
+            val rightColor = backgroundColor
+            val wxi = wx.toInt()
+            val wxf = fract(wx)
+            val mixedColor = mixARGB(rightColor, leftColor, wxf)
+            drawRect(x, y, wxi, h, leftColor)
+            drawRect(x + wxi, y, 1, h, mixedColor)
+            drawRect(x + 1 + wxi, y, w - wxi - 1, h, rightColor)
+            // show num/total unit
+            val mid = wxi + (wxf >= 0.5f).toInt()
+            val text = formatText()
+            val xt = x + w.shr(1)
+            val yt = y + (h - monospaceFont.sizeInt).shr(1)
+            clip(x, y, mid, h) {
+                drawSimpleTextCharByChar(
+                    xt, yt, pad, text, rightColor, leftColor,
+                    AxisAlignment.CENTER, AxisAlignment.MIN
+                )
+            }
+            clip(x + mid, y, w - mid, h) {
+                drawSimpleTextCharByChar(
+                    xt, yt, pad, text, leftColor, rightColor,
+                    AxisAlignment.CENTER, AxisAlignment.MIN
+                )
+            }
         }
     }
 

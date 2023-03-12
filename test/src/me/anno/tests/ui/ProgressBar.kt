@@ -16,6 +16,8 @@ fun main() {
     if (true) {
         testUI {
             var offset = 0f
+            // testing indeterminate mode
+            GFX.someWindow.addProgressBar("Something", "Bytes", Double.NaN).progress = 123456789.0
             TextButton("Start", false, style)
                 .addLeftClickListener {
                     val bar = GFX.someWindow.addProgressBar("Sample", "Bytes", 1e6)
