@@ -1,7 +1,8 @@
 package me.anno.gpu
 
 import me.anno.Engine
-import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
+import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
@@ -300,7 +301,7 @@ open class OSWindow(var title: String) {
     }
 
     val progressbarHeight
-        get() = DefaultConfig.style.getSize("progressbarHeight", 8)
+        get() = monospaceFont.sizeInt + style.getSize("progressbarHeight", 8)
 
     val progressbarHeightSum
         get() =

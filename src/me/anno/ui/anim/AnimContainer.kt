@@ -17,7 +17,9 @@ import kotlin.math.abs
 
 /**
  * a container for simple transform animations (scale / translate)
- * todo container with rendered backend for more complex stuff
+ *
+ *
+ * to do a container class with rendered framebuffer for more complex transforms like warping or waves
  * */
 class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(base, space, style) {
 

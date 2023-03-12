@@ -15,16 +15,17 @@ fun main() {
     GFXBase.disableRenderDoc()
     if (true) {
         testUI {
+            var offset = 0f
             TextButton("Start", false, style)
                 .addLeftClickListener {
-                    val bar = GFX.someWindow.addProgressBar("Sample", "Infinity", 1.0)
+                    val bar = GFX.someWindow.addProgressBar("Sample", "Bytes", 1e6)
                     thread {
+                        val offsetI = offset++
                         while (!Engine.shutdown && !bar.isCancelled) {
-                            bar.progress = (Engine.gameTimeF % 1f) * 0.99
+                            bar.progress = (((Engine.gameTimeF + offsetI) * 0.1) % 1.0) * 0.99 * 1e6
                             Thread.sleep(10)
                         }
                         bar.finish()
-                        println("Finished :)")
                     }
                 }
         }
