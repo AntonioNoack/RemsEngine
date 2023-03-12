@@ -15,6 +15,7 @@ abstract class BaseReader {
 
     val sortedContent: List<ISaveable> get() = (withPtr + withoutPtr).filter { it !== UnitSaveable }
 
+    // for debugging
     var sourceName = ""
 
     private val missingReferences = HashMap<Int, ArrayList<Pair<ISaveable, String>>>()

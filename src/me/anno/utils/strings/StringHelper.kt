@@ -141,6 +141,8 @@ object StringHelper {
      * returns the number of changes, which would need to happen to change one string to the other
      * operations: change character, add character, remove character
      * distance >= abs(|this|-|other|)
+     *
+     * if you heavily rely on this method, write me, and I'll cache its dynamic allocations
      * */
     @JvmStatic
     fun CharSequence.distance(other: CharSequence, ignoreCase: Boolean = false): Int {
@@ -149,6 +151,9 @@ object StringHelper {
         val sy = other.length + 1
         if (sx == 1 || sy == 1) return abs(sx - sy)
         if (sx <= 2 && sy <= 2) return 1
+        // switching both sides may be valuable
+        if (sx > sy + 5) return other.distance(this, ignoreCase)
+        // create cache
         val dist = IntArray(sx * max(sy, 3))
         for (x in 1 until sx) dist[x] = x
         for (y in 1 until sy) {

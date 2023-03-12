@@ -111,6 +111,7 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.joml.*
 import java.io.DataInputStream
+import java.io.IOException
 
 /**
  * writing as text is:
@@ -192,7 +193,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
             OBJECT_IMPL -> readObject()
             OBJECT_PTR -> getByPointer(input.readInt(), true)
             OBJECT_NULL -> null
-            else -> throw RuntimeException("Unknown sub-type $subType")
+            else -> throw IOException("Unknown sub-type $subType")
         }
     }
 
@@ -202,7 +203,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                 OBJECT_IMPL -> readObject(type)
                 OBJECT_PTR -> getByPointer(input.readInt(), true)
                 OBJECT_NULL -> null
-                else -> throw RuntimeException("Unknown sub-type $subType")
+                else -> throw IOException("Unknown sub-type $subType")
             }
         }
     }
@@ -359,7 +360,7 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     MATRIX4X3D_ARRAY_2D -> obj.readMatrix4x3dArray2D(name, readArray2D { readMatrix4x3d() })
                     MATRIX4X4D_ARRAY_2D -> obj.readMatrix4x4dArray2D(name, readArray2D { readMatrix4x4d() })
 
-                    else -> throw RuntimeException("Unknown type ${typeName.type}")
+                    else -> throw IOException("Unknown type ${typeName.type}")
                 }
             }
             register(obj, ptr)
