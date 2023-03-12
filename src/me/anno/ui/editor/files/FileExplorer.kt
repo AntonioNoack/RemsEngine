@@ -67,7 +67,6 @@ import kotlin.math.roundToInt
 // todo double click is not working in touch mode?
 // done make file path clickable to quickly move to a grandparent folder :)
 
-// todo buttons for filters, then dir name, search over it?, ...
 // done drag n drop; links or copy?
 // done search options
 // done search results below
@@ -128,7 +127,6 @@ open class FileExplorer(
     }
 
     open fun getFileOptions(): List<FileExplorerOption> {
-        // todo additional options for the game engine, e.g. create prefab
         // todo add option to open json in specialized json editor...
         val rename = FileExplorerOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) { _, _ ->
             onGotAction(0f, 0f, 0f, 0f, "Rename", false)

@@ -61,8 +61,15 @@ open class PureTextInputML(style: Style) :
     // todo update all children, when this is overridden
     var focusTextColor = style.getColor("textColorFocused", -1)
 
-    // todo update all children, when this is overridden
-    open val enableSpellcheck = true
+    var enableSpellcheck = true
+        set(value) {
+            if (field != value) {
+                field = value
+                for (p in actualChildren) {
+                    (p as? CorrectingTextInput ?: continue).enableSpellcheck = value
+                }
+            }
+        }
 
     // todo use these listeners
     // todo call them: enter when limit is reached, or shift is pressed with enter
@@ -197,6 +204,7 @@ open class PureTextInputML(style: Style) :
                 }
 
             }
+            panel.enableSpellcheck = enableSpellcheck
             content.add(panel)
         }
         for ((index, chars) in lines.withIndex()) {

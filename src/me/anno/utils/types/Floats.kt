@@ -157,9 +157,9 @@ object Floats {
     @JvmStatic
     private val f1Symbols = DecimalFormatSymbols(Locale.ENGLISH)
     @JvmStatic
-    private val f1 = DecimalFormat("#.0", f1Symbols).apply { maximumFractionDigits = 1 }
+    private val f1 = DecimalFormat("0.0", f1Symbols).apply { maximumFractionDigits = 1 }
     @JvmStatic
-    private val f1s = DecimalFormat(" #.0;-#.0", f1Symbols).apply { maximumFractionDigits = 1 }
+    private val f1s = DecimalFormat(" 0.0;-0.0", f1Symbols).apply { maximumFractionDigits = 1 }
 
     @JvmStatic
     fun formatPercent(progress: Int, total: Int) = (progress.toDouble() / total.toDouble()).formatPercent()

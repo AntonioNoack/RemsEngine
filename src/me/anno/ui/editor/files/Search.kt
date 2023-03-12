@@ -96,7 +96,7 @@ class Search(val terms: String) {
     fun isEmpty() = expression.isEmpty()
     fun matchesAll() = isEmpty()
 
-    private fun String.containsPieces(part: String, ignoreCase: Boolean): Boolean {
+    private fun CharSequence.containsPieces(part: CharSequence, ignoreCase: Boolean): Boolean {
         @Suppress("SpellCheckingInspection")
         // search: sdfelioid, target: sdf ellipsoid, -> return true
         var index = 0
@@ -109,7 +109,7 @@ class Search(val terms: String) {
         return true
     }
 
-    fun matches(name: String?): Boolean {
+    fun matches(name: CharSequence?): Boolean {
         if (name == null) return false
         if (expression.isEmpty()) return true
         val expr = ArrayList(expression)

@@ -10,15 +10,8 @@ import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.style.Style
 
 @Suppress("unused")
-open class TextInput(
-    title: String,
-    val visibilityKey: String,
-    val enableSpellcheck: Boolean, style: Style
-) : PanelContainer(
-    object : PureTextInput(style) {
-        override val enableSpellcheck = enableSpellcheck
-    }, Padding(), style
-), InputPanel<String>, TextStyleable {
+open class TextInput(title: String, val visibilityKey: String, enableSpellcheck: Boolean, style: Style) :
+    PanelContainer(PureTextInput(style), Padding(), style), InputPanel<String>, TextStyleable {
 
     constructor(style: Style) : this("", "", true, style)
 
@@ -34,6 +27,7 @@ open class TextInput(
     private var isSelectedListener: (() -> Unit)? = null
 
     init {
+        base.enableSpellcheck = enableSpellcheck
         base.placeholder = title
         base.backgroundColor = backgroundColor
     }

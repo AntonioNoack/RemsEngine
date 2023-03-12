@@ -13,8 +13,8 @@ class Stack<V : Any>(private val createInstance: () -> V) {
         val stacks = ArrayList<WeakReference<Stack<*>>>()
         fun resetAll() {
             stacks.removeIf { it.get() == null }
-            for (stack in stacks) {
-                stack.get()?.reset()
+            for (i in stacks.indices) {
+                (stacks.getOrNull(i) ?: continue).get()?.reset()
             }
         }
     }

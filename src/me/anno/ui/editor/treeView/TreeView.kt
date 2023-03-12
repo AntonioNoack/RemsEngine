@@ -2,20 +2,22 @@ package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
+import me.anno.ui.editor.files.Search
+import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
+import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.glfw.GLFW.GLFW_KEY_F
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
-
-// todo search elements
-// todo search with tags
 
 abstract class TreeView<V>(
     val sources: List<V>,
@@ -24,11 +26,16 @@ abstract class TreeView<V>(
     style: Style
 ) : ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
-    val list = child as PanelList
-    val sample get() = list.children.first() as TreeViewPanel<*>
+    val list = child as PanelListY
+    val sample get() = list.children.getOrNull(1) as TreeViewPanel<*>
+    val searchPanel = TextInput("Search Term", "", false, style)
 
     init {
-        padding.top = 16
+        list.add(searchPanel)
+        searchPanel.addChangeListener {
+            search = if (it.isBlank2()) null else Search(it)
+            needsTreeUpdate = true
+        }
     }
 
     private val elementByIndex = ArrayList<V>()
@@ -102,19 +109,20 @@ abstract class TreeView<V>(
         invalidateLayout()
     }
 
+    open fun fulfillsSearch(element: V, name: String, ttt: String?, search: Search): Boolean {
+        return if (ttt == null) search.matches(name)
+        else search.matches("$name $ttt")
+    }
+
+    var search: Search? = null
     private fun addToTreeList(element: V, depth: Int, index0: Int): Int {
         var index = index0
+        val name = getName(element)
+        val ttt = getTooltipText(element)
         val panel = getOrCreateChildPanel(index++, element)
         val isCollapsed = isCollapsed(element)
-        //(panel.parent!!.children[0] as SpacePanel).minW = inset * depth + panel.padding.right
-        val symbol = if (isCollapsed) collapsedSymbol else getSymbol(element)
-        panel.setText(symbol.trim(), getName(element))
-        val padding = panel.padding
-        val left = inset * depth + padding.right
-        if (padding.left != left) {
-            padding.left = left
-            invalidateLayout()
-        }
+        val search = search
+        var isIncludedInSearch = search == null || fulfillsSearch(element, name, ttt, search)
         if (!isCollapsed) {
             val children = getChildren(element)
             for (i in children.indices) {
@@ -123,17 +131,28 @@ abstract class TreeView<V>(
                     LOGGER.warn("${className}.getParent($child) is incorrect, $element")
                 }
                 index = addToTreeList(child, depth + 1, index)
+                if (index > index0 + 1) isIncludedInSearch = true
             }
         }// todo else show that it's collapsed, if there is no symbol
-        // invalidateLayout()
-        return index
+        return if (isIncludedInSearch) {
+            val symbol = if (isCollapsed) collapsedSymbol else getSymbol(element)
+            panel.setText(symbol.trim(), name)
+            panel.tooltip = ttt
+            val padding = panel.padding
+            val left = inset * depth + padding.right
+            if (padding.left != left) {
+                padding.left = left
+                invalidateLayout()
+            }
+            index
+        } else index0
     }
 
     // if the size of the tree is large, this can use up
     // quite a lot of time -> only update when necessary
     private fun updateTree() {
         try {
-            var index = 0
+            var index = 1
             val sources = sources
             for (i in sources.indices) {
                 val element = sources[i]
@@ -177,14 +196,14 @@ abstract class TreeView<V>(
 
     private fun getOrCreateChildPanel(index: Int, element: V): TreeViewPanel<*> {
         if (index < list.children.size) {
-            elementByIndex[index] = element
+            elementByIndex[index - 1] = element
             val panel = list.children[index] as TreeViewPanel<*>
             panel.isVisible = true
             return panel
         }
         elementByIndex += element
         val child = TreeViewPanel(
-            { elementByIndex[index] }, ::isValidElement, ::toggleCollapsed, ::moveChange,
+            { elementByIndex[index - 1] }, ::isValidElement, ::toggleCollapsed, ::moveChange,
             ::getName, ::setName, this::openAddMenu,
             fileContentImporter, showSymbols, this, style
         )
@@ -244,6 +263,13 @@ abstract class TreeView<V>(
                 true
             ) {}
         }
+    }
+
+    override fun onKeyTyped(x: Float, y: Float, key: Int) {
+        // probably should be an action instead...
+        if (key == GLFW_KEY_F && Input.isControlDown) {
+            searchPanel.requestFocus()
+        } else super.onKeyTyped(x, y, key)
     }
 
     companion object {

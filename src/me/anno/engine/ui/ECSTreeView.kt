@@ -11,6 +11,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
+import me.anno.io.NamedSaveable
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
@@ -21,6 +22,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.files.FileContentImporter
+import me.anno.ui.editor.files.Search
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.ui.style.Style
@@ -90,6 +92,17 @@ class ECSTreeView(val library: EditorState, style: Style) :
             element,
             index
         )
+    }
+
+    override fun fulfillsSearch(element: ISaveable, name: String, ttt: String?, search: Search): Boolean {
+        return if (element is NamedSaveable) {
+            val builder = StringBuilder()
+            builder.append(element.name)
+            if (!element.description.isBlank2()) builder.append(' ').append(element.description)
+            if (element is PrefabSaveable) builder.append(' ').append(element.lastWarning ?: "")
+            if (ttt != null && !ttt.isBlank2()) builder.append(' ').append(ttt)
+            search.matches(builder)
+        } else super.fulfillsSearch(element, name, ttt, search)
     }
 
     override fun getIndexInParent(parent: ISaveable, child: ISaveable): Int {

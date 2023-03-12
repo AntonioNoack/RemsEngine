@@ -10,10 +10,8 @@ open class NumberInputComponent(
 
     init {
         setResetListener { "0.0" }
+        enableSpellcheck = false
     }
-
-    override val enableSpellcheck: Boolean
-        get() = false
 
     override var isVisible: Boolean
         get() = InputVisibility[visibilityKey ?: ""] // can be null in constructor

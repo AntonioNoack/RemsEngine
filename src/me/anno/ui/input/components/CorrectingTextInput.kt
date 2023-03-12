@@ -20,7 +20,8 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
 
     override fun getVisualState(): Any? = suggestions
 
-    open val enableSpellcheck = true
+    var enableSpellcheck = true
+
     private val suggestions
         get() =
             if (enableSpellcheck && !isShowingPlaceholder) {
