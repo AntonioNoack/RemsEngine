@@ -60,7 +60,7 @@ class Camera : Component() {
     var clearColor = Vector4f(0.1f, 0.2f, 0.3f, 1f)
 
     val bloomStrength = 0.5f
-    val bloomOffset = 10f
+    val bloomOffset = 25f
 
     /**
      * offset of the center relative to the screen center; in OpenGL coordinates [-1, +1]²

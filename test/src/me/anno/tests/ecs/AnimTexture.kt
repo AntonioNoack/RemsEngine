@@ -1,5 +1,6 @@
 package me.anno.tests.ecs
 
+import me.anno.Engine
 import me.anno.ecs.components.anim.AnimTexture
 import me.anno.ecs.components.anim.Retargeting
 import me.anno.ecs.components.cache.AnimationCache
@@ -22,4 +23,5 @@ fun main() {
     }
     texture.texture!!.createImage(flipY = false, withAlpha = false)
         .write(OS.desktop.getChild("animTexture.png"))
+    Engine.requestShutdown()
 }

@@ -348,10 +348,16 @@ class Prefab : Saveable {
         synchronized(this) {
             return if (!isValid) {
                 val instance = PrefabCache.createInstance(this, prefab, adds, sets, depth, clazzName)
-                if (Build.isDebug) {// a safety check, that shouldn't happen in a shipped program
+                if (false && Build.isDebug) {// a safety check, that shouldn't happen in a shipped program
                     instance.forAll {
                         if (it.prefab !== this) {
-                            LOGGER.warn("Incorrectly created prefab!, ${instance.prefab?.source} != $source")
+                            val x0 = it.prefab
+                            val x1 = this
+                            LOGGER.warn(
+                                "Incorrectly created prefab @${it.className}!, " +
+                                        "Prefab[${x0?.clazzName},+${x0?.adds?.size},*${x0?.sets?.size}]@${System.identityHashCode(x0)} != " +
+                                        "Prefab[${x1.clazzName},+${x1.adds.size},*${x1.sets.size}]@${System.identityHashCode(x1)}"
+                            )
                         }
                     }
                 }

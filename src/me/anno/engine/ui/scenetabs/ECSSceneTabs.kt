@@ -31,6 +31,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         set(value) {
             if (field != value) {
                 field?.onStop()
+                field?.needsStart = false
                 value?.needsStart = true
                 field = value
             }
@@ -111,8 +112,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
     }
 
     fun focus(tab: ECSSceneTab) {
-
-        if (currentTab == tab) return
 
         synchronized(this) {
             currentTab = tab

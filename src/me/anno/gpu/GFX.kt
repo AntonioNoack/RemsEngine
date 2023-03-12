@@ -622,7 +622,7 @@ object GFX {
         val t2 = Engine.nanoTime
         discoverOpenGLNames(clazz.java)
         val t3 = Engine.nanoTime
-        LOGGER.debug("took ${(t3 - t2) * 1e-9f}s for loading ${glConstants.size} OpenGL names")
+        LOGGER.debug("Took ${(t3 - t2) * 1e-9f}s for loading ${glConstants.size} OpenGL names")
         /*val t0 = Engine.nanoTime
         val properties = clazz.staticProperties // this call takes 1000 ms 
         val t1 = Engine.nanoTime

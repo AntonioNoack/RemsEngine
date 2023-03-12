@@ -17,10 +17,10 @@ object FlatShaders {
             Variable(GLSLType.V1F, "alpha"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
         ), "void main(){ result = alpha * texture(tex, uv); }"
-    )
+    ).apply { ignoreNameWarnings("samples", "posSize") }
 
     val copyShaderMS = Shader(
-        "copy", coordsList, coordsVShader, uvList, listOf(
+        "copyMS", coordsList, coordsVShader, uvList, listOf(
             Variable(GLSLType.S2DMS, "tex"),
             Variable(GLSLType.V1F, "alpha"),
             Variable(GLSLType.V1I, "samples"),
@@ -31,7 +31,7 @@ object FlatShaders {
                 "   for(int i=0;i<samples;i++) sum += texelFetch(tex, uvi, i);\n" +
                 "   result = (alpha / float(samples)) * sum;\n" +
                 "}"
-    )
+    ).apply { ignoreNameWarnings("posSize") }
 
     val coordsPosSize = coordsList + listOf(
         Variable(GLSLType.V4F, "posSize"),
@@ -190,7 +190,7 @@ object FlatShaders {
                 "void main(){\n" +
                 "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0);\n" +
                 "   uvw = vec3(coords, z);\n" +
-                "}", listOf(Variable(GLSLType.V3F, "uvw")),  listOf(
+                "}", listOf(Variable(GLSLType.V3F, "uvw")), listOf(
             Variable(GLSLType.S3D, "tex"),
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V1B, "ignoreTexAlpha"),

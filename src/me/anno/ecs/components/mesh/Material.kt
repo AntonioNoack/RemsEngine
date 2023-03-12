@@ -326,10 +326,7 @@ open class Material : PrefabSaveable(), Renderable {
                 val tex = getTex(file)
                 (tex ?: default).bind(index)
                 tex
-            } else {
-                LOGGER.warn("Didn't find texture {} in {}", name, shader.name)
-                null
-            }
+            } else null
         }
 
         fun bindTexture(
@@ -345,10 +342,7 @@ open class Material : PrefabSaveable(), Renderable {
                 val tex = getTex(file)
                 (tex ?: default).bind(index, filtering, clamping)
                 tex
-            } else {
-                LOGGER.warn("Didn't find texture {} in {}", name, shader.name)
-                null
-            }
+            } else null
         }
 
     }

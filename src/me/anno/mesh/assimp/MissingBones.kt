@@ -48,7 +48,7 @@ object MissingBones {
         if (bonesWithIssue.isNotEmpty()) {
             LOGGER.warn("Bone-Node-Mapping incomplete! Bones[${bones.size}]:")
             for ((key, value) in bones.entries) {
-                LOGGER.warn("  $key: ${value.offsetVector}")
+                LOGGER.warn("  $key: ${value.originalTransform.getTranslation(Vector3f())}")
             }
             LOGGER.warn("Nodes[${sceneNodeList.size}]:")
             for ((key, value) in sceneNodeList) {

@@ -1,6 +1,7 @@
 package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty

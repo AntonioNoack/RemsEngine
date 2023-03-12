@@ -14,13 +14,4 @@ object AssimpTree {
         )
     }
 
-    fun convert(m: AIMatrix4x4, dst: Matrix4x3f): Matrix4x3f {
-        return dst.set(
-            m.a1(), m.b1(), m.c1(),
-            m.a2(), m.b2(), m.c2(),
-            m.a3(), m.b3(), m.c3(),
-            m.a4(), m.b4(), m.c4(),
-        )
-    }
-
 }

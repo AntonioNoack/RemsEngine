@@ -199,7 +199,12 @@ class SkyBox : MeshComponentBase() {
         val wr = worldRotation
         sun.rotation = sun.rotation
             .set(sr.x.toDouble(), sr.y.toDouble(), sr.z.toDouble(), sr.w.toDouble())
-            .mul(wr.x.toDouble(), wr.y.toDouble(), wr.z.toDouble(), wr.w.toDouble()) // todo correct order... not working
+            .mul(
+                wr.x.toDouble(),
+                wr.y.toDouble(),
+                wr.z.toDouble(),
+                wr.w.toDouble()
+            ) // todo correct order... not working
         // todo set color based on angle, including red in the twilight
         sun1.color.set(brightness * max(sunDir.y, 0f))
         sun.transform.teleportUpdate()
@@ -382,6 +387,14 @@ class SkyBox : MeshComponentBase() {
         }
 
         val defaultShader = SkyShader("sky")
+            .apply {
+                ignoreNameWarnings(
+                    "diffuseBase", "normalStrength", "emissiveBase",
+                    "roughnessMinMax", "metallicMinMax", "occlusionStrength", "finalTranslucency", "finalClearCoat",
+                    "tint", "hasAnimation", "localTransform", "invLocalTransform", "worldScale", "tiling",
+                    "forceFieldColorCount", "forceFieldUVCount",
+                )
+            }
 
     }
 

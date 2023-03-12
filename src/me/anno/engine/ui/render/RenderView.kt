@@ -125,8 +125,8 @@ import kotlin.math.tan
  * */
 open class RenderView(val library: EditorState, var playMode: PlayMode, style: Style) : Panel(style) {
 
-    private var bloomStrength = 0.5f
-    private var bloomOffset = 10f
+    private var bloomStrength = 0.5f // defined by the camera
+    private var bloomOffset = 1f // defined by the camera
     private val useBloom get() = bloomOffset > 0f && renderMode != RenderMode.WITHOUT_POST_PROCESSING
 
     private val ssao = SSAOEffect()

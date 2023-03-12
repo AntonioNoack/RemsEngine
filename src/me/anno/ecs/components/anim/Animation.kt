@@ -2,6 +2,7 @@ package me.anno.ecs.components.anim
 
 import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.interfaces.Renderable
@@ -11,6 +12,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.min
 import org.joml.Matrix4x3f
@@ -27,10 +29,13 @@ abstract class Animation : PrefabSaveable, Renderable {
 
     final override var name: String = ""
 
+    @SerializedProperty
     var duration = 1f
 
+    @SerializedProperty
     var skeleton: FileReference = InvalidRef
 
+    @DebugProperty
     abstract val numFrames: Int
 
     fun calculateMonotonousTime(time: Float, frameCount: Int): Triple<Float, Int, Int> {
@@ -136,6 +141,7 @@ abstract class Animation : PrefabSaveable, Renderable {
         val bones = skeleton.bones
         val mesh = Mesh()
         val renderer = AnimRenderer()
+        val state = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
 
         init {
             val size = (bones.size - 1) * Skeleton.boneMeshVertices.size
@@ -147,7 +153,7 @@ abstract class Animation : PrefabSaveable, Renderable {
                 mesh.positions!!, mesh.boneIndices!!
             )
             renderer.mesh = mesh.ref
-            renderer.animations = listOf(AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
+            renderer.animations = listOf(state)
         }
 
         fun destroy() {
@@ -156,9 +162,16 @@ abstract class Animation : PrefabSaveable, Renderable {
             Texture2D.byteArrayPool.returnBuffer(mesh.boneIndices)
             mesh.destroy()
         }
+
+        override fun toString(): String {
+            return state.progress.toString()
+        }
+
     }
 
+    @DebugProperty
     private var previewData: PreviewData? = null
+
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
@@ -171,6 +184,8 @@ abstract class Animation : PrefabSaveable, Renderable {
             renderer.fill(pipeline, entity, clickId)
         }
     }
+
+    // todo add all debug information to UI
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

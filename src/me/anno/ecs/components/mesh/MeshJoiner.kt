@@ -164,10 +164,20 @@ abstract class MeshJoiner<V>(
                 if (j2 > i2) System.arraycopy(meshUVs, 0, dstUVs, i2, j2 - i2)
             }
             if (dstBoneIndices != null) {
-                val boneId = getBoneId(element)
                 val j0 = i0 / 3 * 4
-                for (k in 0 until srcNormals.size / 3 * 4 step 4) {
-                    dstBoneIndices[j0 + k] = boneId
+                val dataSize = srcPositions.size / 3 * 4
+                val srcWeights = srcMesh.boneWeights
+                val srcIndices = srcMesh.boneIndices
+                if (srcWeights != null || srcIndices != null) {
+                    if (srcWeights != null)
+                        System.arraycopy(srcWeights, 0, dstBoneWeights!!, j0, min(dataSize, srcWeights.size))
+                    if (srcIndices != null)
+                        System.arraycopy(srcIndices, 0, dstBoneIndices, j0, min(dataSize, srcIndices.size))
+                } else {
+                    val boneId = getBoneId(element)
+                    for (k in 0 until dataSize step 4) {
+                        dstBoneIndices[j0 + k] = boneId
+                    }
                 }
             }
             dstColors?.fill(getVertexColor(element), i0 / 3, (i0 + srcNormals.size) / 3)

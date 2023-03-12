@@ -163,17 +163,16 @@ object AnimationLoader {
 
         val bone = boneMap[name]
         if (bone != null) {
-
             val boneOffsetMatrix = bone.inverseBindPose
             val skinningMatrix = skinningMatrices[bone.id]
-            if (globalTransform == null) {
+            if (globalTransform == null || globalInverseTransform == null) {
                 skinningMatrix
                     .set(localTransform)
                     .mul(boneOffsetMatrix)
             } else {
                 // the same, just converting the vertices temporarily into local global space and then back
                 skinningMatrix
-                    .set(globalInverseTransform!!)
+                    .set(globalInverseTransform)
                     .mul(localTransform)
                     .mul(boneOffsetMatrix)
                     .mul(globalTransform)
@@ -197,7 +196,6 @@ object AnimationLoader {
         }
 
     }
-
 
     fun readAnimationFrame(
         aiScene: AIScene,

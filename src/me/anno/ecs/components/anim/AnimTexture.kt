@@ -34,11 +34,13 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         val start: Int,
         val length: Int,
         var needsUpdate: Boolean
-    )
+    ) {
+        override fun toString() = "${anim.ref}/$retargeting/$start+=$length/$needsUpdate"
+    }
 
     private val animationMap = HashMap<Animation, AnimTexIndex>()
     private val animationList = ArrayList<AnimTexIndex>()
-    private var nextIndex = 0
+    private var nextStart = 0
     private val textureWidth = skeleton.bones.size * 3
     private var internalTexture = Texture2D("anim", textureWidth, 64, 1)
 
@@ -50,7 +52,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
     fun addAnimation(anim: Animation, retargeting: Retargeting?): AnimTexIndex {
         val index = animationMap.getOrPut(anim) {
-            val ni = nextIndex
+            val ni = nextStart
             val v = AnimTexIndex(anim, retargeting, ni, anim.numFrames, false)
             animationList.add(v)
             putNewAnim(anim, retargeting)
@@ -79,8 +81,8 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
     private fun putNewAnim(animation: Animation, retargeting: Retargeting?): Int {
         val numFrames = animation.numFrames + 1
-        updateAnim(animation, retargeting, nextIndex)
-        nextIndex += numFrames
+        updateAnim(animation, retargeting, nextStart)
+        nextStart += numFrames
         return numFrames
     }
 
@@ -104,7 +106,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             )
             Texture2D.bufferPool.returnBuffer(buffer)
         } else {
-            if (start != 0) throw IllegalStateException()
+            if (start != 0) throw IllegalStateException("Internal texture hasn't been created, but start isn't zero, $start")
             // create new texture
             val buffer = Texture2D.bufferPool[internalTexture.w * internalTexture.h * 4 * 4, false, false]
             val data = buffer.asFloatBuffer()
@@ -155,13 +157,18 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     }
 
     fun ensureCapacity(size: Int) {
-        if (internalTexture.h < size) {
+        val oldSize = internalTexture.h
+        if (oldSize < size) {
             internalTexture.destroy()
             internalTexture.reset()
-        }
-        // increase by larger steps
-        while (internalTexture.h < size) {
-            internalTexture.h *= 2
+            // increase by larger steps
+            while (internalTexture.h < size) {
+                internalTexture.h *= 2
+            }
+            for (data in animationList) {
+                if (data.start < oldSize)
+                    updateAnim(data.anim, data.retargeting, data.start)
+            }
         }
     }
 
@@ -169,7 +176,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         internalTexture.destroy()
         animationMap.clear()
         animationList.clear()
-        nextIndex = 0
+        nextStart = 0
     }
 
     companion object {

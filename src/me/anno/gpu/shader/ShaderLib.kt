@@ -950,7 +950,7 @@ object ShaderLib {
     val subpixelCorrectTextShader2 = Array(2) {
         val instanced = it > 0
         ComputeShader(
-            "subpixelCorrectTextShader", Vector3i(16, 16, 1), "" +
+            "subpixelCorrectTextShader2", Vector3i(16, 16, 1), "" +
                     brightness +
                     (if (instanced)
                         "uniform sampler2DArray tex;\n" else
@@ -1002,7 +1002,7 @@ object ShaderLib {
                     "   vec4 color = mix(backgroundColorI, textColor, vec4(mixing, mixingAlpha));\n" +
                     "   imageStore(dst, uv, color);\n" +
                     "}"
-        )
+        ).apply { ignoreNameWarnings("windowSize") }
     }
 
     fun createShader(

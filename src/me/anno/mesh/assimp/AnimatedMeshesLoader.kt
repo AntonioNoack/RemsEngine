@@ -23,7 +23,6 @@ import me.anno.mesh.assimp.AnimationLoader.getDuration
 import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
-import me.anno.mesh.assimp.SkeletonAnimAndBones.loadSkeletonFromAnimationsAndBones
 import me.anno.mesh.fbx.FBX6000
 import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.findNextFileName
@@ -121,27 +120,35 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             aiScene = loadFile(file, flags)
         } catch (e: IOException) {
             if (e.message?.contains("FBX-DOM unsupported") == true) {
-                val meshes = FBX6000.readBinaryFBX6000AsMeshes(file.inputStreamSync())
-                if (meshes.isNotEmpty()) {
-                    val root = InnerFolder(file)
-                    val all = Prefab("Entity")
-                    for (i in meshes.indices) {
-                        val mesh = meshes[i]
-                        val meshPrefab = Prefab("Mesh")
-                        meshPrefab["positions"] = mesh.positions
-                        meshPrefab["indices"] = mesh.indices
-                        meshPrefab["normals"] = mesh.normals
-                        meshPrefab["uvs"] = mesh.uvs
-                        meshPrefab._sampleInstance = mesh
-                        val meshFileName = "$i.json"
-                        val meshFile = root.createPrefabChild(meshFileName, meshPrefab)
-                        val meshComp = all.add(ROOT_PATH, 'c', "MeshComponent", meshFileName)
-                        all[meshComp, "isInstanced"] = true
-                        all[meshComp, "mesh"] = meshFile
-                    }
-                    root.createPrefabChild("Scene.json", all)
-                    return root to all
+                try {
+                    val meshes = FBX6000.readBinaryFBX6000AsMeshes(file.inputStreamSync())
+                    if (meshes.isNotEmpty()) {
+                        val root = InnerFolder(file)
+                        val all = Prefab("Entity")
+                        for (i in meshes.indices) {
+                            val mesh = meshes[i]
+                            val meshPrefab = Prefab("Mesh")
+                            meshPrefab["positions"] = mesh.positions
+                            meshPrefab["indices"] = mesh.indices
+                            meshPrefab["normals"] = mesh.normals
+                            meshPrefab["uvs"] = mesh.uvs
+                            meshPrefab._sampleInstance = mesh
+                            val meshFileName = "$i.json"
+                            val meshFile = root.createPrefabChild(meshFileName, meshPrefab)
+                            val meshComp = all.add(ROOT_PATH, 'c', "MeshComponent", meshFileName)
+                            all[meshComp, "isInstanced"] = true
+                            all[meshComp, "mesh"] = meshFile
+                        }
+                        root.createPrefabChild("Scene.json", all)
+                        return root to all
+                    } else LOGGER.warn("Meshes from $file is empty")
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    throw e
                 }
+            } else {
+                // todo dae/collada: fix incorrect index count from extra spaces before data if present
+                LOGGER.warn("$e from $file")
             }
             throw e
         }
@@ -185,8 +192,9 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
             val skeleton = Prefab("Skeleton")
             compareBoneWithNodeNames(rootNode, boneMap)
-            loadSkeletonFromAnimationsAndBones(aiScene, rootNode, boneList, boneMap)
+            findAllBones(aiScene, rootNode, boneList, boneMap)
             fixBoneOrder(boneList, meshList)
+
             skeleton.setProperty("bones", boneList.toTypedArray())
 
             val skeletonPath = root.createPrefabChild("Skeleton.json", skeleton)
@@ -200,6 +208,9 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                     animations.createPrefabChild("$animName.json", animation)
                 }
             }
+
+            // must be applied after all animations have been loaded
+            correctBonePositions(name, rootNode, boneList, boneMap)
 
             val sampleAnimations = if (animMap.isNotEmpty()) {
                 arrayListOf(
@@ -216,8 +227,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                 hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
                 if (sampleAnimations != null) hierarchy.setUnsafe(animPath, "animations", sampleAnimations)
             }
-
-            correctBonePositions(name, rootNode, boneList, boneMap)
 
             val animRefs = animMap.values.map { it.source }
             skeleton.setUnsafe(ROOT_PATH, "animations", animRefs.associateBy { it.nameWithoutExtension })
@@ -305,12 +314,16 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     }
 
     private fun correctBonePositions(
-        name: String, rootNode: AINode, boneList: List<Bone>, boneMap: HashMap<String, Bone>
+        name: String,
+        rootNode: AINode,
+        boneList: List<Bone>,
+        boneMap: HashMap<String, Bone>
     ) {
-        val (gt, globalInvTransform) = findRootTransform(name, rootNode, boneMap)
-        if (gt != null && globalInvTransform != null) {
+        val (_, globalInvTransform) = findRootTransform(name, rootNode, boneMap)
+        if (globalInvTransform != null) {
+            LOGGER.debug("Applying $globalInvTransform to $name")
             for (bone in boneList) {
-                bone.setBindPose(Matrix4f(globalInvTransform).mul(bone.bindPose))
+                bone.setBindPose(Matrix4x3f(globalInvTransform).mul(bone.bindPose))
             }
         }
     }
@@ -622,20 +635,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             }
         }
         return result
-    }
-
-    fun createAnimationCache2(aiAnimation: AIAnimation, names: MutableCollection<String>) {
-        val channelCount = aiAnimation.mNumChannels()
-        if (channelCount > 0) {
-            val channels = aiAnimation.mChannels()!!
-            for (i in 0 until channelCount) {
-                val aiNodeAnim = AINodeAnim.createSafe(channels[i])
-                if (aiNodeAnim != null) {
-                    val name = aiNodeAnim.mNodeName().dataString()
-                    names.add(name)
-                }
-            }
-        }
     }
 
     private fun calcAnimationMaxFrames(aiAnimation: AIAnimation): Int {

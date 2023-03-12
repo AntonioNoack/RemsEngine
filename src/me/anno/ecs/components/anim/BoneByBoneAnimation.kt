@@ -2,11 +2,13 @@ package me.anno.ecs.components.anim
 
 import me.anno.Engine
 import me.anno.animation.LoopingState
+import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.mix
@@ -318,6 +320,8 @@ class BoneByBoneAnimation() : Animation() {
 
             // front legs are broken slightly???
 
+            ECSRegistry.init()
+
             val meshFile = downloads.getChild("3d/azeria/scene.gltf")
             val imported = PrefabCache.getPrefabInstance(
                 meshFile.getChild("animations").listChildren()!!.first()
@@ -357,17 +361,18 @@ class BoneByBoneAnimation() : Animation() {
                         r.rotateZ(dr)
                         boneByBone.setRotation(fi, boneIndex, r)
                     }
-                    AnimationCache.invalidate(boneByBone, boneByBone.skeleton)
+                    AnimationCache.invalidate(boneByBone)
                     time += 0.01f
                     Thread.sleep(10)
                 }
             }
 
             testSceneWithUI(mesh) {
+                DefaultConfig["debug.renderdoc.enabled"] = true
                 StudioBase.instance?.enableVSync = true
             }
 
-            // Engine.requestShutdown()
+            Engine.requestShutdown()
 
         }
     }

@@ -1,7 +1,6 @@
 package me.anno.gpu.shader.effects
 
 import me.anno.gpu.GFX.flat01
-import me.anno.gpu.monitor.SubpixelLayout
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -33,16 +32,17 @@ object FXAA {
 
     val shader = lazy {
         Shader(
-            "Depth-Based FXAA", coordsList, coordsVShader, uvList, listOf(
+            "FXAA", coordsList, coordsVShader, uvList, listOf(
                 Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.V1B, "showEdges"),
                 Variable(GLSLType.V1B, "disableEffect"),
+                Variable(GLSLType.V1F, "threshold"),
             ),
             "" +
                     "void main(){\n" +
 
-                    "#define u_lumaThreshold 0.01\n" +
+                    "#define u_lumaThreshold threshold\n" +
                     "#define u_texelStep 1.0/textureSize(colorTex,0)\n" +
                     "#define u_maxSpan 8.0\n" +
                     "#define u_mulReduce 0.5\n" +
@@ -116,24 +116,21 @@ object FXAA {
                     "        fragColor.r = 1.0;\n" +
                     "    }\n" +
                     "}"
-        )
+        ).apply {
+            ignoreNameWarnings("posSize")
+        }
     }
 
     fun render(color: ITexture2D, threshold: Float = 1e-5f) {
-        val enableDebugControls = false
         val shader = shader.value
         shader.use()
         shader.v1f("threshold", threshold)
         shader.v1b("disableEffect", enableDebugControls && isControlDown)
-        // use the subpixel layout to define the correct subpixel rendering
-        // only works for RGB or BGR, otherwise just will cancel to 0
-        val sr = SubpixelLayout.r
-        val sb = SubpixelLayout.b
-        // 0.5 for mean, 0.5 to make the effect less obvious
-        shader.v2f("rbOffset", (sr.x - sb.x) * 0.25f, (sr.y - sb.y) * 0.25f)
         shader.v1b("showEdges", enableDebugControls && isShiftDown)
         color.bindTrulyNearest(0)
         flat01.draw(shader)
     }
+
+    var enableDebugControls = false
 
 }

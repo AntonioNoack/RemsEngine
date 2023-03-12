@@ -1,5 +1,6 @@
 package me.anno.tests.mesh
 
+import me.anno.Engine
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
@@ -8,12 +9,11 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.mesh.assimp.AnimHierarchy.loadSkeletonFromAnimations
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.assimp.AnimatedMeshesLoader.createNodeCache
 import me.anno.mesh.assimp.Bone
-import me.anno.mesh.assimp.SkeletonAnimAndBones
 import me.anno.mesh.assimp.StaticMeshesLoader
+import me.anno.mesh.assimp.findAllBones
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
@@ -51,7 +51,7 @@ fun main() {
     skeleton.bones = boneList
 
     // check what is the result using the animations
-    loadSkeletonFromAnimations(aiScene, rootNode, createNodeCache(rootNode), boneList, boneMap)
+    // loadSkeletonFromAnimations(aiScene, rootNode, createNodeCache(rootNode), boneList, boneMap)
     val dst0 = getReference(desktop, "byAnimation.png")
     Thumbs.generateSkeletonFrame(dst0, dst0, skeleton, size) { _, exc -> exc?.printStackTrace() }
     println("by animation: ${boneList.map { it.name }}")
@@ -62,11 +62,12 @@ fun main() {
     boneList.clear()
     boneMap.clear()
 
-    SkeletonAnimAndBones.loadSkeletonFromAnimationsAndBones(aiScene, rootNode, boneList, boneMap)
+    findAllBones(aiScene, rootNode, boneList, boneMap)
     val dst1 = getReference(desktop, "byTree.png")
     Thumbs.generateSkeletonFrame(dst1, dst1, skeleton, size) { _, exc -> exc?.printStackTrace() }
     println("by tree, full: ${boneList.map { it.name }}")
 
+    Engine.requestShutdown()
 
 }
 

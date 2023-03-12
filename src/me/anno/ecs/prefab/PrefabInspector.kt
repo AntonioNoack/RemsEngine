@@ -31,7 +31,9 @@ import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.Color.black
+import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten2Way
@@ -83,7 +85,7 @@ class PrefabInspector(val reference: FileReference) {
     private val savingTask = DelayedTask {
         addEvent {
             history.put(TextWriter.toText(adds + sets.map { k1, k2, v -> CSet(k1, k2, v) }, StudioBase.workspace))
-            LOGGER.debug("pushed new version to history")
+            LOGGER.debug("Pushed new version to history")
         }
     }
 
@@ -144,7 +146,7 @@ class PrefabInspector(val reference: FileReference) {
 
         val path = instance.prefabPath
 
-        list += TextPanel("${path?.nameId}, ${System.identityHashCode(instance)}", style)
+        list += TextPanel("${path?.nameId}, ${instance.className}@${hex32(System.identityHashCode(instance))}", style)
 
         /*if (path == null) {
             LOGGER.error(

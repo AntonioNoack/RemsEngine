@@ -18,7 +18,10 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
     }
 
     fun invalidate(animation: Animation, skeleton: Skeleton) {
-        getTexture(skeleton).invalidate(animation)
+        (animTexCache.getEntryWithoutGenerator(
+            skeleton.prefab!!.source,
+            timeout
+        ) as? AnimTexture)?.invalidate(animation)
     }
 
     fun invalidate(animation: Animation, skeleton: FileReference = animation.skeleton) {

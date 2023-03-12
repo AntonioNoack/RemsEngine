@@ -159,7 +159,7 @@ class ECSSceneTab(
         }
     }
 
-    var needsStart = false
+    var needsStart = true
 
     fun onStart() {
 
