@@ -201,8 +201,6 @@ object Thumbs {
         val size = getSize(neededSize)
         val key = ThumbnailKey(file, file.lastModified, file.isDirectory, size)
 
-        if (size == 1) LOGGER.warn("Requested size 1")
-
         val texture = ImageGPUCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
             if (async) {
                 thread(name = "Thumbs/${key.file.name}") {
@@ -872,7 +870,11 @@ object Thumbs {
         val meshVertices = Texture2D.floatArrayPool[bones.size * boneMeshVertices.size, false, true]
         mesh.positions = meshVertices
         val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
-        renderMultiWindowImage(srcFile, dstFile, count, size, true, simpleNormalRenderer, callback) { it, aspect ->
+        renderMultiWindowImage(srcFile, dstFile, count, size, true, simpleNormalRenderer, { it, e ->
+            callback(it, e)
+            Texture2D.floatArrayPool.returnBuffer(meshVertices)
+            mesh.destroy()
+        }) { it, aspect ->
             val time = it * dt
             // generate the matrices
             animation.getMatrices(entity, time, skinningMatrices)
@@ -892,8 +894,6 @@ object Thumbs {
                 normalizeScale = true
             )
         }
-        Texture2D.floatArrayPool.returnBuffer(meshVertices)
-        mesh.destroy()
     }
 
     @JvmField
@@ -1181,7 +1181,6 @@ object Thumbs {
         }
 
         Signature.findName(srcFile) { signature ->
-
             val reader = readerBySignature[signature]
             if (reader != null) {
                 reader(srcFile, size, dstFile, callback)

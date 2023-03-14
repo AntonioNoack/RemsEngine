@@ -75,6 +75,9 @@ object ECSRegistry {
         registerCustomClass(Material())
         registerCustomClass(MeshComponent())
         registerCustomClass(AnimRenderer())
+        registerCustomClass(ImportedAnimation())
+        registerCustomClass(BoneByBoneAnimation())
+        registerCustomClass(Skeleton())
     }
 
     @JvmStatic
