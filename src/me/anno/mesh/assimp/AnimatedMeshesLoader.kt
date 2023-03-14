@@ -545,13 +545,13 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         boneMap: HashMap<String, Bone>,
         animName: String,
         duration: Double,
-        maxFramesV2: Int,
+        numFrames: Int,
         timeScale: Double,
         animNodeCache: Map<String, NodeAnim>,
         globalTransform: Matrix4x3f?,
         globalInverseTransform: Matrix4x3f?
     ): Prefab {
-        val frames = Array(maxFramesV2) { frameIndex ->
+        val frames = Array(numFrames) { frameIndex ->
             val animatedFrame = Array(boneMap.size) { Matrix4x3f() }
             loadAnimationFrame(
                 aiScene,
@@ -578,15 +578,15 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         boneMap: HashMap<String, Bone>,
         animName: String,
         duration: Double,
-        maxFramesV2: Int,
+        numFrames: Int,
         timeScale: Double,
         animNodeCache: Map<String, NodeAnim>,
         globalTransform: Matrix4x3f?,
         globalInverseTransform: Matrix4x3f?
     ): Prefab {
-        val rootMotion = FloatArray(maxFramesV2 * 3)
-        val rotations = FloatArray(maxFramesV2 * boneMap.size * 4)
-        for (frameIndex in 0 until maxFramesV2) {
+        val rootMotion = FloatArray(numFrames * 3)
+        val rotations = FloatArray(numFrames * boneMap.size * 4)
+        for (frameIndex in 0 until numFrames) {
             loadAnimationFrame(
                 aiScene, rootNode, frameIndex * timeScale, frameIndex, rootMotion, rotations, boneMap, animNodeCache
             )
@@ -594,7 +594,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val prefab = Prefab("BoneByBoneAnimation")
         prefab[ROOT_PATH, "name"] = animName
         prefab[ROOT_PATH, "duration"] = duration.toFloat()
-        prefab[ROOT_PATH, "frameCount"] = maxFramesV2
+        prefab[ROOT_PATH, "frameCount"] = numFrames
         prefab[ROOT_PATH, "boneCount"] = boneMap.size
         prefab[ROOT_PATH, "rootMotion"] = rootMotion
         prefab[ROOT_PATH, "rotations"] = rotations

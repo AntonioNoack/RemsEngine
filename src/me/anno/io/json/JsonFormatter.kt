@@ -94,11 +94,23 @@ object JsonFormatter {
         }
     }
 
-    fun format(sth: Any?) = format(sth.toString())
+    fun format(v: Any?): String {
+        return when (v) {
+            is Map<*, *> -> format(v)
+            is List<*> -> format(v)
+            else -> format(v.toString())
+        }
+    }
 
-    fun format(map: Map<String, Any?>): String {
+    fun format(v: Map<*, *>): String {
         val builder = StringBuilder()
-        append(map, builder)
+        append(v, builder)
+        return format(builder.toString())
+    }
+
+    fun format(v: List<*>): String {
+        val builder = StringBuilder()
+        append(v, builder)
         return format(builder.toString())
     }
 

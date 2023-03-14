@@ -127,7 +127,6 @@ object FBX6000 {
         val meshes = ArrayList<Mesh>()
         val data = parseBinaryFBX6000(source)
         val objects = data["Objects"]
-        // todo load UVs...
         if (objects != null) {
             for (oi in objects.indices) {
                 val obj = objects[oi]
