@@ -77,7 +77,7 @@ fun main() {
     val entity = loaded.hierarchy
     Thumbs.generateEntityFrame(getReference(desktop, "debug.png"), 512, entity) {}
 */
-    Thumbs.generateAssimpMeshFrame(file, getReference(desktop, "miguel.png"), 512) { _, exc ->
+    Thumbs.generateSomething(file, getReference(desktop, "miguel.png"), 512) { _, exc ->
         exc?.printStackTrace()
     }
 

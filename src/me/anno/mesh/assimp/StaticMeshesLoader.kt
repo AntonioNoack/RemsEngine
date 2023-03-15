@@ -10,8 +10,12 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.io.xml.XMLNode
+import me.anno.io.xml.XMLReader
+import me.anno.io.xml.XMLWriter
 import me.anno.io.zip.InnerFile
 import me.anno.io.zip.InnerFolder
+import me.anno.io.zip.InnerTmpFile
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.io.AIFileIOImpl
 import me.anno.mesh.gltf.GLTFMaterialExtractor
@@ -62,6 +66,23 @@ open class StaticMeshesLoader {
     fun loadFile(file: FileReference, flags: Int): AIScene {
         // obj files should use our custom importer
         // if (file.lcExtension == "obj") throw IllegalArgumentException()
+        val sign = Signature.findNameSync(file)
+        if (sign == "dae" && aiGetVersionMajor() < 5) {
+            // Assimp 4.1 is extremely picky when parsing Collada XML for no valid reason
+            // Assimp 5.2 fixes that (but also breaks my animation code)
+            val xml = XMLReader().parse(file.inputStreamSync())!!
+            fun clean(xml: Any): Any {
+                return if (xml is XMLNode) {
+                    for (i in xml.children.indices) {
+                        xml.children[i] = clean(xml.children[i])
+                    }
+                    xml
+                } else xml.toString().trim()
+            }
+            val better = XMLWriter.write(clean(xml) as XMLNode, null, false)
+            val tmpFile = InnerTmpFile.InnerTmpTextFile(better)
+            return loadFile(tmpFile, flags)
+        }
 
         // we could load in parallel,
         // but we'd need to keep track of the scale factor;

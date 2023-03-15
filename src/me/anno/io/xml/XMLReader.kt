@@ -40,6 +40,14 @@ open class XMLReader {
                     this@XMLReader.last = char
                     return builder
                 }
+                '/'.code -> {
+                    if (builder.isEmpty()) {
+                        builder.append(char.toChar())
+                    } else {
+                        this@XMLReader.last = char
+                        return builder
+                    }
+                }
                 -1 -> throw EOFException()
                 else -> builder.append(char.toChar())
             }
@@ -144,7 +152,7 @@ open class XMLReader {
 
     fun parse(input: InputStream) = parse(-1, input)
     fun parse(firstChar: Int, input: InputStream): Any? {
-        val first = if(firstChar < 0) input.skipSpaces() else firstChar
+        val first = if (firstChar < 0) input.skipSpaces() else firstChar
         if (first == '<'.code) {
             val type = input.readTypeUntilSpaceOrEnd(type0).toString()
             val end = last

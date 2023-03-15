@@ -6,7 +6,6 @@ import me.anno.cache.data.ImageData
 import me.anno.cache.data.ImageData.Companion.imageTimeout
 import me.anno.cache.instances.OldMeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
-import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -16,7 +15,6 @@ import me.anno.ecs.components.anim.Skeleton.Companion.boneMeshVertices
 import me.anno.ecs.components.anim.Skeleton.Companion.generateSkeleton
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.SkeletonCache
-import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
@@ -45,11 +43,15 @@ import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
+import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
+import me.anno.gpu.drawing.GFXx2D.transform
 import me.anno.gpu.drawing.SVGxGFX
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -93,7 +95,9 @@ import me.anno.mesh.MeshUtils
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.Clock
+import me.anno.utils.Color.black
 import me.anno.utils.Color.hex4
 import me.anno.utils.Color.white4
 import me.anno.utils.OS
@@ -507,23 +511,6 @@ object Thumbs {
             val li = l0.getOrNull(index)?.nullIfUndefined() ?: l1.getOrNull(index)
             if (li != null && li != InvalidRef) run(li)
         }
-    }
-
-    // just render it using the simplest shader
-    @JvmStatic
-    fun generateAssimpMeshFrame(
-        srcFile: FileReference,
-        dstFile: FileReference,
-        size: Int,
-        callback: (ITexture2D?, Exception?) -> Unit
-    ) {
-        // statically loading is easier, but we may load things twice ->
-        // only load them once, use our cache
-        val data = waitUntilDefined(true) {
-            PrefabCache[srcFile, maxPrefabDepth, true]
-            // loadAssimpStatic(srcFile, null)
-        }.getSampleInstance()
-        generateSomething(data, srcFile, dstFile, size, callback)
     }
 
     @JvmStatic
@@ -1094,12 +1081,16 @@ object Thumbs {
 
     @JvmStatic
     private val readerBySignature =
-        HashMap<String, (FileReference, Int, FileReference, (ITexture2D?, Exception?) -> Unit) -> Unit>()
+        HashMap<String, (FileReference, FileReference, Int, (ITexture2D?, Exception?) -> Unit) -> Unit>()
+
+    @JvmStatic
+    private val readerByExtension =
+        HashMap<String, (FileReference, FileReference, Int, (ITexture2D?, Exception?) -> Unit) -> Unit>()
 
     @JvmStatic
     fun register(
         signature: String,
-        reader: (srcFile: FileReference, size: Int, dstFile: FileReference, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
+        reader: (srcFile: FileReference, dstFile: FileReference, size: Int, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
     ) {
         readerBySignature[signature] = reader
     }
@@ -1109,17 +1100,30 @@ object Thumbs {
         readerBySignature.remove(signature)
     }
 
+    @JvmStatic
+    fun register2(
+        signature: String,
+        reader: (srcFile: FileReference, dstFile: FileReference, size: Int, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
+    ) {
+        readerByExtension[signature] = reader
+    }
+
+    @JvmStatic
+    fun unregister2(signature: String) {
+        readerByExtension.remove(signature)
+    }
+
     init {
-        register("vox") { srcFile, size, dstFile, callback ->
+        register("vox") { srcFile, dstFile, size, callback ->
             generateVOXMeshFrame(srcFile, dstFile, size, callback)
         }
-        register("hdr") { srcFile, size, dstFile, callback ->
+        register("hdr") { srcFile, dstFile, size, callback ->
             val src = HDRImage(srcFile)
             findScale(src, srcFile, size, callback) { dst ->
                 saveNUpload(srcFile, false, dstFile, dst, callback)
             }
         }
-        register("jpg") { srcFile, size, dstFile, callback ->
+        register("jpg") { srcFile, dstFile, size, callback ->
             JPGThumbnails.extractThumbnail(srcFile) { data2 ->
                 if (data2 != null) {
                     try {
@@ -1131,7 +1135,7 @@ object Thumbs {
                 } else generateImage(srcFile, dstFile, size, callback)
             }
         }
-        register("ico") { srcFile, size, dstFile, callback ->
+        register("ico") { srcFile, dstFile, size, callback ->
             // for ico we could find the best image from looking at the headers
             srcFile.inputStream { it, exc ->
                 if (it != null) {
@@ -1140,6 +1144,43 @@ object Thumbs {
                 } else exc?.printStackTrace()
             }
         }
+        register("png", ::generateImage)
+        register("bmp", ::generateImage)
+        register("psd", ::generateImage)
+        register("qoi", ::generateImage)
+        register("ttf", ::generateFontPreview)
+        register("woff1", ::generateFontPreview)
+        register("woff2", ::generateFontPreview)
+        register("dds", ::generateVideoFrame0)
+        register2("dds", ::generateVideoFrame0)
+        register2("webp", ::generateVideoFrame0)
+        register("media") { srcFile, dstFile, size, callback ->
+            generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
+        }
+        register("blend", ::generateSomething)
+        register("mitsuba-scene", ::generateSomething)
+        register("mitsuba-meshes", ::generateSomething)
+        register("exe", ::generateSystemIcon)
+        register2("obj", ::generateSomething)
+        register2("fbx", ::generateSomething)
+        register2("gltf", ::generateSomething)
+        register2("glb", ::generateSomething)
+        register2("dae", ::generateSomething)
+        register2("md2", ::generateSomething)
+        register2("md5mesh", ::generateSomething)
+        register2("svg", ::generateSVGFrame)
+        register2("txt", ::generateTextImage)
+        register2("html", ::generateTextImage)
+        register2("md", ::generateTextImage)
+    }
+
+    fun generateVideoFrame0(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ) {
+        generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
     }
 
     @JvmStatic
@@ -1197,63 +1238,22 @@ object Thumbs {
         Signature.findName(srcFile) { signature ->
             val reader = readerBySignature[signature]
             if (reader != null) {
-                reader(srcFile, size, dstFile, callback)
+                reader(srcFile, dstFile, size, callback)
             } else when (signature) {
                 // list all signatures, which can be assigned strictly by their signature
                 // for ico we could find the best image from looking at the headers
-                "png", "bmp", "psd", "qoi" -> generateImage(srcFile, dstFile, size, callback)
-                "blend" -> generateSomething(
-                    PrefabCache.getPrefabInstance(srcFile),
-                    srcFile, dstFile, size, callback
-                )
                 "zip", "bz2", "tar", "gzip", "xz", "lz4", "7z", "xar" -> {
                 }
                 "sims" -> {
                 }
-                "ttf", "woff1", "woff2" -> {
-                    // generate font preview
-                    val text = "The quick\nbrown fox\njumps over\nthe lazy dog"
-                    val lineCount = 4
-                    val key = Font(srcFile.absolutePath, size * 0.7f / lineCount, isBold = false, isItalic = false)
-                    val font = FontManager.getFont(key)
-                    val texture = font.generateTexture(
-                        text, key.size, size * 2, size * 2,
-                        portableImages = true,
-                        textColor = 255 shl 24,
-                        backgroundColor = -1,
-                        extraPadding = key.sizeInt / 2
-                    )
-                    if (texture is ITexture2D) {
-                        if (texture is Texture2D)
-                            waitUntil(true) { texture.isCreated || texture.isDestroyed }
-                        callback(texture, null)
-                    }
-                }
                 "lua-bytecode" -> {
                 }
                 // todo MIP images... are used by gradient domain samples
-                "dds" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
-                "exe" -> generateSystemIcon(srcFile, dstFile, size, callback)
-                "media" -> generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
-                "mitsuba-scene", "mitsuba-meshes" -> generateSomething(
-                    PrefabCache.getPrefabInstance(srcFile),
-                    srcFile, dstFile, size, callback
-                )
                 else -> try {
-                    when (srcFile.lcExtension) {
-
-                        // done start exe files from explorer
-                        // done preview icon for exe files / links using generateSystemIcon
-
-                        // done thumbnails and import for .vox files (MagicaVoxel voxel meshes)
-
-                        // done thumbnails for meshes, and components
+                    val base = readerByExtension[srcFile.lcExtension]
+                    if (base != null) base(srcFile, dstFile, size, callback)
+                    else when (srcFile.lcExtension) {
                         // todo thumbnails for Rem's Studio transforms
-                        "obj", "fbx", "gltf", "glb", "dae", "md2", "md5mesh" -> {
-                            // todo list all mesh extensions, which are supported by assimp
-                            // preview for mtl file? idk...
-                            generateAssimpMeshFrame(srcFile, dstFile, size, callback)
-                        }
                         // parse unity files
                         in UnityReader.unityExtensions -> UnityReader.readAsAsset(srcFile) { decoded, e ->
                             if (decoded != InvalidRef && decoded != null) {
@@ -1277,8 +1277,7 @@ object Thumbs {
                         "json" -> {
                             try {
                                 // try to read the file as an asset
-                                val something = PrefabCache.getPrefabInstance(srcFile)
-                                generateSomething(something, srcFile, dstFile, size, callback)
+                                generateSomething(srcFile, dstFile, size, callback)
                             } catch (_: ShutdownException) {
                             } catch (e: InvalidClassException) {
                                 LOGGER.info("${e.message}; by $srcFile")
@@ -1298,7 +1297,6 @@ object Thumbs {
                                 exc?.printStackTrace()
                             }
                         }
-                        "svg" -> generateSVGFrame(srcFile, dstFile, size, callback)
                         "mtl" -> {
                             // read as folder
                             val children = InnerFolderCache.readAsFolder(srcFile, false)?.listChildren() ?: emptyList()
@@ -1333,20 +1331,15 @@ object Thumbs {
                                 } else exc?.printStackTrace()
                             }
                         }
-                        // ImageIO says it can do webp, however it doesn't understand most pics...
-                        "webp", "dds" -> generateVideoFrame(srcFile, dstFile, size, callback, 0.0)
                         "lnk", "desktop" -> {
                             // not images, and I don't know yet how to get the image from them
                         }
-                        "ico" -> {
-                            srcFile.inputStream { it, exc ->
-                                if (it != null) {
-                                    val image = ICOReader.read(it, size)
-                                    transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
-                                } else exc?.printStackTrace()
-                            }
+                        "ico" -> srcFile.inputStream { it, exc ->
+                            if (it != null) {
+                                val image = ICOReader.read(it, size)
+                                transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
+                            } else exc?.printStackTrace()
                         }
-                        "txt", "html", "md" -> generateTextImage(srcFile, size, callback)
                         // png, jpg, jpeg, ico, webp, mp4, ...
                         else -> generateImage(srcFile, dstFile, size, callback)
                     }
@@ -1360,12 +1353,52 @@ object Thumbs {
         }
     }
 
-    @JvmStatic
-    private fun generateTextImage(
+    fun generateSomething(
         srcFile: FileReference,
+        dstFile: FileReference,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
+        generateSomething(
+            PrefabCache.getPrefabInstance(srcFile),
+            srcFile, dstFile, size, callback
+        )
+    }
+
+    fun generateFontPreview(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ) {
+        unused(dstFile)
+        // generate font preview
+        val text = "The quick\nbrown fox\njumps over\nthe lazy dog"
+        val lineCount = 4
+        val key = Font(srcFile.absolutePath, size * 0.7f / lineCount, isBold = false, isItalic = false)
+        val font = FontManager.getFont(key)
+        val texture = font.generateTexture(
+            text, key.size, size * 2, size * 2,
+            portableImages = true,
+            textColor = 255 shl 24,
+            backgroundColor = -1,
+            extraPadding = key.sizeInt / 2
+        )
+        if (texture is ITexture2D) {
+            if (texture is Texture2D)
+                waitUntil(true) { texture.isCreated || texture.isDestroyed }
+            callback(texture, null)
+        }
+    }
+
+    @JvmStatic
+    private fun generateTextImage(
+        srcFile: FileReference,
+        dstFile: FileReference,
+        size: Int,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ) {
+        unused(dstFile)
         // todo draw text with cheap/mono letters, if possible
         // todo html preview???
         // todo markdown preview (?)
@@ -1386,24 +1419,42 @@ object Thumbs {
                 itr.close()
                 // remove empty lines at the end
                 while (lines.isNotEmpty() && lines.last().isEmpty()) {
-                    lines = lines.subList(0, lines.size - 1)
+                    lines.removeAt(lines.lastIndex)
                 }
-                val text = lines.joinToString("\n")
-                val lineCount = lines.size
-                val key =
-                    Font(DefaultConfig.defaultFontName, size * 0.7f / lineCount, isBold = false, isItalic = false)
-                val font2 = FontManager.getFont(key)
-                val texture = font2.generateTexture(
-                    text, key.size, size * 2, size * 2,
-                    portableImages = true,
-                    textColor = 255 shl 24,
-                    backgroundColor = -1,
-                    extraPadding = key.sizeInt / 2
-                )
-                if (texture is ITexture2D) {
-                    if (texture is Texture2D)
-                        waitUntil(true) { texture.isCreated || texture.isDestroyed }
-                    callback(texture, null)
+                if (lines.isNotEmpty()) {
+                    val length = lines.maxOf { it.length }
+                    if (length > 0) {
+                        val sx = monospaceFont.sampleWidth
+                        val sy = monospaceFont.sizeInt
+                        val w = (length + 1) * sx
+                        val h = (lines.size + 1) * sy
+                        GFX.addGPUTask("textThumbs", w, h) {
+                            val tex = Framebuffer(
+                                "textThumbs", w, h, 1,
+                                arrayOf(TargetType.UByteTarget3), DepthBufferType.NONE
+                            )
+                            val transform = GFXx2D.transform
+                            transform.identity().scale(1f, -1f, 1f)
+                            useFrame(tex) {
+                                val tc = black
+                                val bg = -1
+                                tex.clearColor(bg)
+                                val x = sx.shr(1)
+                                for (yi in lines.indices) {
+                                    val line = lines[yi].trimEnd()
+                                    if (line.isNotEmpty()) {
+                                        val y = yi * sy + sy.shr(1)
+                                        drawSimpleTextCharByChar(
+                                            x, y, 1, line, tc, bg
+                                        )
+                                    }
+                                }
+                            }
+                            transform.identity()
+                            tex.destroyExceptTextures(false)
+                            callback(tex.getTexture0(), null)
+                        }
+                    }
                 }
             }
         }
@@ -1437,7 +1488,7 @@ object Thumbs {
                 // else nothing to do
                 else -> {
                     LOGGER.info("ImageIO failed, Imaging failed, importType '$importType' != getImportType for $srcFile")
-                    generateTextImage(srcFile, size, callback)
+                    generateTextImage(srcFile, dstFile, size, callback)
                 }
             }
         } else transformNSaveNUpload(srcFile, true, image!!, dstFile, size, callback)

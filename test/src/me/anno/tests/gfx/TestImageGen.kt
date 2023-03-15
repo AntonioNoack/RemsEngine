@@ -26,12 +26,12 @@ import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.io.files.thumbs.Thumbs.generateAssimpMeshFrame
 import me.anno.io.files.thumbs.Thumbs.generateEntityFrame
 import me.anno.io.files.thumbs.Thumbs.generateMaterialFrame
 import me.anno.io.files.thumbs.Thumbs.generateMeshFrame
 import me.anno.io.files.thumbs.Thumbs.generateSVGFrame
 import me.anno.io.files.thumbs.Thumbs.generateSkeletonFrame
+import me.anno.io.files.thumbs.Thumbs.generateSomething
 import me.anno.io.files.thumbs.Thumbs.generateVOXMeshFrame
 import me.anno.io.files.thumbs.Thumbs.generateVideoFrame
 import me.anno.mesh.assimp.Bone
@@ -55,7 +55,7 @@ fun init() {
 fun testAssimpMeshFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    generateAssimpMeshFrame(file, file.dst(), size) { _, exc -> exc?.printStackTrace() }
+    generateSomething(file, file.dst(), size) { _, exc -> exc?.printStackTrace() }
 }
 
 fun testEntityMeshFrame(file: FileReference) {
