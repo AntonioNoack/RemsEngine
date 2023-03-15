@@ -39,7 +39,7 @@
     <orderEntry type="library" name="JBox2d" level="project" />
     <orderEntry type="library" name="Coroutines" level="project" />
     <orderEntry type="library" name="Recast" level="project" />
-    <orderEntry type="library" name="LWJGL-331" level="project" />
     <orderEntry type="library" name="KOML" level="project" />
+    <orderEntry type="library" name="LWJGL-323" level="project" />
   </component>
 </module>

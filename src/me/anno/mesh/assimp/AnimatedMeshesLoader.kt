@@ -13,7 +13,6 @@ import me.anno.io.NamedSaveable
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerFolder
@@ -57,8 +56,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
         unitScaleFactor = (metadata["UnitScaleFactor"] as? Double)?.toFloat() ?: unitScaleFactor
 
-        val signature = Signature.findNameSync(file)
-        LOGGER.info("$metadata, $signature")
+        LOGGER.info("$file -> $metadata")
         // if (signature == "fbx") unitScaleFactor *= 0.01f // a test, works for the ghost...
 
         if (unitScaleFactor == 1f && upAxis == 1 && frontAxis == 2) return null
@@ -418,13 +416,12 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
                         val buff = valueRaw.mData(capacity)
                         val length = max(0, min(capacity - 4, buff.int))
                         buff.limit(buff.position() + length)
-                        "$length: '${StandardCharsets.UTF_8.decode(buff)}'"
+                        StandardCharsets.UTF_8.decode(buff)
                     }
                     6 -> {
-                        // ai vector3d
-                        // todo doubles or floats?
-                        val buffer = valueRaw.mData(12 * 8).asDoubleBuffer()
-                        Vector3d(buffer[0], buffer[1], buffer[2])
+                        // ai vector3d, floats presumably
+                        val buffer = valueRaw.mData(12 * 4).asFloatBuffer()
+                        Vector3f(buffer[0], buffer[1], buffer[2])
                     }
                     else -> continue
                 }

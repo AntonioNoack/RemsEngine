@@ -1,0 +1,45 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Universal2">
+    <output-path>$PROJECT_DIR$/out/artifacts/Universal2</output-path>
+    <root id="archive" name="VideoStudio.jar">
+      <element id="module-output" name="Engine" />
+      <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-stdlib.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-reflect.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-test.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk7.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-stdlib-jdk8.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-imaging-1.0-alpha1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/JTransforms-3.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/FABRIK-IK.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-cli-1.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/jna-5.7.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/jna-platform-5.7.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/bullet/JBullet2x64.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/unrar/jUnRAR.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-vfs2-2.8.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/compress/commons-compress-1.20.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/compress/xz-1.9.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/javaFx/OpenWithExplorer.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/luaj-jse-3.0.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/box2d/JBox2d.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/recast4j/Recast4j.jar" path-in-jar="/" />
+      <element id="module-output" name="KOML" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-assimp-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-assimp.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-glfw-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-glfw.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-jemalloc-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-jemalloc.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-openal-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-openal.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-opengl-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-opengl.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-stb-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-stb.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-tinyexr-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-tinyexr.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

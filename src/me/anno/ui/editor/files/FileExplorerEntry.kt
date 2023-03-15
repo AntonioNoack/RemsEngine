@@ -248,6 +248,9 @@ open class FileExplorerEntry(
         }
         updatePlaybackTime()
 
+        // todo only if is animation
+        if(isHovered) invalidateDrawing()
+
     }
 
     private fun updatePlaybackTime() {

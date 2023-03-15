@@ -7,6 +7,7 @@ import me.anno.cache.data.ImageData.Companion.imageTimeout
 import me.anno.cache.instances.OldMeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
@@ -15,6 +16,7 @@ import me.anno.ecs.components.anim.Skeleton.Companion.boneMeshVertices
 import me.anno.ecs.components.anim.Skeleton.Companion.generateSkeleton
 import me.anno.ecs.components.cache.MaterialCache
 import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
@@ -26,8 +28,11 @@ import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.fonts.FontManager
@@ -544,22 +549,31 @@ object Thumbs {
         entity: Entity,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        val agi = AnimGameItem(entity)
         entity.validateTransform()
-        val cameraMatrix = createCameraMatrix(1f)
-        val modelMatrices =
-            agi.findModelMatrix(cameraMatrix, createModelMatrix(), centerMesh = true, normalizeScale = true)
+        entity.validateAABBs()
+        val bounds = entity.aabb
         // todo draw gui (colliders), entity positions
         for (i in 0 until 3) { // make sure both are loaded
             waitForMeshes(entity)
             waitForTextures(entity, srcFile)
         }
-        val drawSkeletons = !entity.hasComponent(MeshComponentBase::class)
+        val rv = RenderView(EditorState, PlayMode.EDITING, style)
+        rv.enableOrbiting = true
+        rv.radius = 500.0 * max(bounds.deltaX(), max(bounds.deltaY(), bounds.deltaZ()))
+        rv.editorCamera.fovY = 10f.toRadians()
+        rv.rotation.identity()
+            .rotateY(25.0.toRadians())
+            .rotateX((-15.0).toRadians())
+        rv.position.set(bounds.avgX(), bounds.avgY(), bounds.avgZ())
+        val cam = rv.editorCamera
+        rv.updateEditorCameraTransform()
+        rv.prepareDrawScene(size, size, 1f, cam, cam, 0f, false)
+        // don't use EditorState
+        rv.pipeline.clear()
+        rv.pipeline.fill(entity)
         renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
-            agi.drawAssimp(
-                useECSShader = true, cameraMatrix, modelMatrices, 0.0, white4, "",
-                useMaterials = true, drawSkeletons = drawSkeletons
-            )
+            rv.setRenderState()
+            rv.pipeline.draw()
         }
     }
 

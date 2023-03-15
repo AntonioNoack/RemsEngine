@@ -395,14 +395,14 @@ open class StaticMeshesLoader {
         val size = if (isCompressed) width else width * height * 4
 
         // lwjgl 3.3.1
-        val data = if (isCompressed) {
+        /*val data = if (isCompressed) {
             bufferToBytes(texture.pcDataCompressed(), size)
         } else {
             bufferToBytes(texture.pcData(), size)
-        }
+        }*/
 
         // lwjgl 3.2.3
-        // val data = bufferToBytes(texture.pcData(size / 4), size)
+        val data = bufferToBytes(texture.pcData(size / 4), size)
 
         // ensure uniqueness of file name
         var fileExt0 = ""

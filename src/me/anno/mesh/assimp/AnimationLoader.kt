@@ -130,10 +130,7 @@ object AnimationLoader {
         val rotation = interpolateRotation(animationTime, aiNodeAnim)
         val scale = interpolateScale(animationTime, aiNodeAnim)
 
-        dst.identity()
-            .translate(translation)
-            .rotate(rotation)
-            .scale(scale) // probably could be disabled
+        dst.translationRotateScale(translation, rotation, scale)
 
     }
 

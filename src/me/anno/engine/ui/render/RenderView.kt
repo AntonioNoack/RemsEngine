@@ -449,7 +449,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     private val fsr22 by lazy { FSR2v2() }
 
-    private fun drawScene(
+    fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
         camera0: Camera, camera1: Camera, blending: Float,
         renderer: Renderer,
@@ -1080,17 +1080,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         // must be called before we define our render settings
         // so lights don't override our settings, or we'd have to repeat our definition
         if (update) {
-            when (world) {
-                is Entity -> {
-                    world.update()
-                    world.updateVisible()
-                    world.validateTransform()
-                }
-                is Component -> {
-                    world.onUpdate()
-                    world.onVisibleUpdate()
-                }
-            }
+            updateWorld(world)
         }
 
         val blend = clamp(blending, 0f, 1f).toDouble()
@@ -1104,10 +1094,12 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         } else {
             mix(previousCamera.fovOrthographic, camera.fovOrthographic, blending)
         }
-        val t0 = previousCamera.entity!!.transform.globalTransform
-        val t1 = camera.entity!!.transform.globalTransform
-        val rot0 = t0.getUnnormalizedRotation(tmpRot0)
-        val rot1 = t1.getUnnormalizedRotation(tmpRot1)
+        val t0 = previousCamera.entity?.transform?.globalTransform
+        val t1 = camera.entity?.transform?.globalTransform
+        val rot0 = tmpRot0
+        val rot1 = tmpRot1
+        if (t0 != null) t0.getUnnormalizedRotation(tmpRot0) else tmpRot0.identity()
+        if (t1 != null) t1.getUnnormalizedRotation(tmpRot1) else tmpRot1.identity()
 
         bloomOffset = mix(previousCamera.bloomOffset, camera.bloomOffset, blendF)
         bloomStrength = mix(previousCamera.bloomStrength, camera.bloomStrength, blendF)
@@ -1186,8 +1178,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         // lerp the world transforms
         val camTransform = camTransform
-        camTransform.set(previousCamera.entity!!.transform.globalTransform)
-        camTransform.lerp(camera.entity!!.transform.globalTransform, blend)
+        if (t0 != null) camTransform.set(t0) else camTransform.identity()
+        if (t1 != null) camTransform.lerp(t1, blend) else if (t0 != null) camTransform.lerp(Matrix4x3d(), blend)
 
         camTransform.transformPosition(cameraPosition.set(0.0))
         camInverse.set(camTransform).invert()
@@ -1215,6 +1207,28 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             throw IllegalStateException("Material must have source")
         }
 
+        definePipeline(width, height, aspectRatio, fov, world)
+
+    }
+
+    fun updateWorld(world: PrefabSaveable?) {
+        when (world) {
+            is Entity -> {
+                world.update()
+                world.updateVisible()
+                world.validateTransform()
+            }
+            is Component -> {
+                world.onUpdate()
+                world.onVisibleUpdate()
+            }
+        }
+    }
+
+    fun definePipeline(
+        width: Int, height: Int, aspectRatio: Float,
+        fov: Float, world: PrefabSaveable?
+    ) {
         pipeline.clear()
         if (isPerspective) {
             pipeline.frustum.definePerspective(
@@ -1240,7 +1254,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             defaultSun.fill(pipeline, defaultSunEntity, 0)
         }
         entityBaseClickId = pipeline.lastClickId
-
     }
 
     private val reverseDepth get() = renderMode != RenderMode.INVERSE_DEPTH
