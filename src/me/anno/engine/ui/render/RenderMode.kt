@@ -89,7 +89,8 @@ class RenderMode(
         val FSR_X2 = RenderMode("FSRx2")
         val FSR_X4 = RenderMode("FSRx4")
         val FSR_MSAA_X4 = RenderMode("FSR+MSAAx4")
-        val FSR2_V2 = RenderMode("FSR2(Test)")
+        val FSR2_X2 = RenderMode("FSR2x2")
+        val FSR2_X8 = RenderMode("FSR2x8")
         val NEAREST_X4 = RenderMode("Nearest 4x")
 
         val LINES = RenderMode("Lines")

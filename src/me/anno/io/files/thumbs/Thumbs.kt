@@ -43,7 +43,6 @@ import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -51,7 +50,6 @@ import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.gpu.drawing.GFXx2D.transform
 import me.anno.gpu.drawing.SVGxGFX
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -95,7 +93,6 @@ import me.anno.mesh.MeshUtils
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.Clock
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex4
@@ -544,24 +541,30 @@ object Thumbs {
             waitForMeshes(entity)
             waitForTextures(entity, srcFile)
         }
+        renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
+            // todo calculate ideal transform like previously
+            val rv = rv
+            rv.radius = 500.0 * max(bounds.deltaX(), max(bounds.deltaY(), bounds.deltaZ()))
+            rv.position.set(bounds.avgX(), bounds.avgY(), bounds.avgZ())
+            val cam = rv.editorCamera
+            rv.updateEditorCameraTransform()
+            rv.prepareDrawScene(size, size, 1f, cam, cam, 0f, false)
+            // don't use EditorState
+            rv.pipeline.clear()
+            rv.pipeline.fill(entity)
+            rv.setRenderState()
+            rv.pipeline.draw()
+        }
+    }
+
+   private val rv by lazy {
         val rv = RenderView(EditorState, PlayMode.EDITING, style)
         rv.enableOrbiting = true
-        rv.radius = 500.0 * max(bounds.deltaX(), max(bounds.deltaY(), bounds.deltaZ()))
         rv.editorCamera.fovY = 10f.toRadians()
         rv.rotation.identity()
             .rotateY(25.0.toRadians())
             .rotateX((-15.0).toRadians())
-        rv.position.set(bounds.avgX(), bounds.avgY(), bounds.avgZ())
-        val cam = rv.editorCamera
-        rv.updateEditorCameraTransform()
-        rv.prepareDrawScene(size, size, 1f, cam, cam, 0f, false)
-        // don't use EditorState
-        rv.pipeline.clear()
-        rv.pipeline.fill(entity)
-        renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
-            rv.setRenderState()
-            rv.pipeline.draw()
-        }
+        rv
     }
 
     @JvmStatic

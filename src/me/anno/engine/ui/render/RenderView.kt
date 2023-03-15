@@ -467,7 +467,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 w = roundDiv(w * 12, 17)
                 h = roundDiv(h * 12, 17)
             }
-            RenderMode.FSR_X2 -> {
+            RenderMode.FSR_X2, RenderMode.FSR2_X2 -> {
                 w = (w + 1) / 2
                 h = (h + 1) / 2
             }
@@ -475,7 +475,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 w = (w + 2) / 4
                 h = (h + 2) / 4
             }
-            RenderMode.FSR2_V2 -> {
+            RenderMode.FSR2_X8 -> {
                 w = (w + 1) / 8
                 h = (h + 1) / 8
             }
@@ -521,7 +521,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         GFX.copyNoAlpha(buffer)
                         return
                     }
-                    renderMode == RenderMode.FSR2_V2 -> {
+                    renderMode == RenderMode.FSR2_X8 || renderMode == RenderMode.FSR2_X2 -> {
                         drawScene(
                             w, h, camera0, camera1,
                             blending, renderer, buffer,
@@ -553,25 +553,33 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             }
                         }
 
-                        fsr22.calculate(
-                            dstBuffer0.getTexture0() as Texture2D,
-                            buffer.depthTexture as Texture2D,
-                            deferred.findTexture(buffer, DeferredLayerType.NORMAL) as Texture2D,
-                            motion.getTexture0() as Texture2D,
-                            pw, ph
-                        )
+                        val tmp1 = FBStack["fsr", pw, ph, 4, false, 1, true]
+                        useFrame(tmp1) {
+                            GFXState.depthMode.use(DepthMode.CLOSE) {
+                                tmp1.clearDepth()
+                                GFXState.blendMode.use(null) {
+                                    fsr22.calculate(
+                                        dstBuffer0.getTexture0() as Texture2D,
+                                        buffer.depthTexture as Texture2D,
+                                        deferred.findTexture(buffer, DeferredLayerType.NORMAL) as Texture2D,
+                                        motion.getTexture0() as Texture2D,
+                                        pw, ph
+                                    )
+                                }
+                                // todo why is it still jittering?
+                                val tmp = JomlPools.mat4f.create()
+                                tmp.set(cameraMatrix)
+                                fsr22.unjitter(cameraMatrix, cameraRotation, pw, ph)
+                                // setRenderState()
+                                drawGizmos(GFXState.currentBuffer, true, drawDebug = true)
+                                drawSelected()
+                                cameraMatrix.set(tmp)
+                                // setRenderState()
+                                JomlPools.mat4f.sub(1)
+                            }
+                        }
 
-                        // todo which depth buffer is this using?
-                        // we would need the upscaled depth buffer here, ideally
-                        /*clearDepth()
-                        val tmp = JomlPools.mat4f.create()
-                        tmp.set(cameraMatrix)
-                        fsr22.unjitter(cameraMatrix, camRotation, pw, ph)
-                        drawGizmos(world, camPosition, true)
-                        drawSelected()
-                        cameraMatrix.set(tmp)
-                        JomlPools.mat4f.sub(1)*/
-
+                        drawTexture(x0, y0 + ph, pw, -ph, tmp1.getTexture0(), true)
                         return
                     }
                     renderMode == RenderMode.DEPTH -> {
@@ -1164,7 +1172,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             )
         }
 
-        if (renderMode == RenderMode.FSR2_V2) {
+        if (renderMode == RenderMode.FSR2_X8 || renderMode == RenderMode.FSR2_X2) {
             fsr22.jitter(cameraMatrix, width, height)
         }
 

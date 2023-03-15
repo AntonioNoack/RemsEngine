@@ -1,7 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
 import me.anno.cache.ICacheData
-import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.Framebuffer
@@ -21,7 +20,7 @@ import java.util.*
 import kotlin.math.ceil
 
 // todo implement the ideas of FSR2, but just in principle and much easier
-class FSR2v2: ICacheData {
+class FSR2v2 : ICacheData {
 
     val dataTargetTypes = arrayOf(TargetType.FP16Target4, TargetType.FloatTarget4)
     var data0 = Framebuffer("data", 1, 1, dataTargetTypes)
@@ -89,8 +88,8 @@ class FSR2v2: ICacheData {
                     "                           vec4  depthData = texelFetch(prevDepths,dstUV,0);\n" +
                     "                           float prevDepth = depthData.x/prevColorNWeight.w;\n" +
                     "                           vec3  prevNormal = depthData.yzw/prevColorNWeight.w;\n" +
-                    "                           float depthFactor = 1.0/(1.0+5.0*sq(prevDepth-depth));\n" +
-                    "                           float normalFactor = 1.0/(1.0+5.0*dot2(prevNormal - normal));\n" +
+                    "                           float depthFactor = 1.0/(1.0+50.0*sq(prevDepth-depth));\n" +
+                    "                           float normalFactor = 1.0/(1.0+50.0*dot2(prevNormal - normal));\n" +
                     "                           float w = fg2.x * fg2.y * depthFactor * normalFactor;\n" + // weight depending on distance to pixel
                     // todo better depth reconstruction; maybe near+far (<single edge>-optimized)
                     // todo by color difference (?)
@@ -149,11 +148,10 @@ class FSR2v2: ICacheData {
                     "void main(){\n" +
                     "   ivec2 uvi = ivec2(uv*textureSize(colorNWeights,0));\n" +
                     "   vec4 colorNWeight = texelFetch(colorNWeights,uvi,0);\n" +
-                    "   vec4 depth = texelFetch(depths,uvi,0);\n" +
-                    // "   result = vec4((uv.x < 0.5 ? colorNWeight.rgb/colorNWeight.w : vec3(fract(depth.x)/colorNWeight.w)), 1.0);\n" +
+                    "   vec4 depth = texelFetch(depths,uvi,0)/colorNWeight.w;\n" +
                     "   result = vec4(colorNWeight.rgb/colorNWeight.w, 1.0);\n" +
-                    "   if(uv.x > 0.5) result = vec4(depth.yzw/colorNWeight.w, 1.0);\n" +
-                    // "   result = vec4(vec3(fract(depth/colorNWeight.w)), 1.0);\n" +
+                    "   if(uv.x > 0.5) result = vec4(depth.yzw, 1.0);\n" +
+                    "   gl_FragDepth = pow(2.0,depth.x);\n" +
                     "}\n"
         ).apply { setTextureIndices("colorNWeights", "depths") }
     }
@@ -214,44 +212,44 @@ class FSR2v2: ICacheData {
         motion: Texture2D, // motion in 3d
         pw: Int, ph: Int,
     ) {
-        renderPurely {
-            val rw = color.w
-            val rh = color.h
-            lastScaleX = pw.toFloat() / rw
-            lastScaleY = ph.toFloat() / rh
-            if (previousDepth.pointer == 0) {
-                previousDepth.w = rw
-                previousDepth.h = rh
-            }
-            previousDepth.ensure()
-            data1.ensure()
-            useFrame(pw, ph, true, data0) {
-                val shader = updateShader
-                shader.use()
-                shader.v2f("prevJitter", pjx, pjy)
-                shader.v2f("currJitter", jx, jy)
-                shader.v2i("renderSizeI", rw, rh)
-                shader.v2f("renderSizeF", rw.toFloat(), rh.toFloat())
-                color.bindTrulyNearest(0)
-                depth.bindTrulyNearest(1)
-                normal.bindTrulyNearest(2)
-                motion.bindTrulyNearest(3)
-                data1.bindTextures(4, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-                shader.v2i("displaySizeI", data1.w, data1.h)
-                shader.v2f("displaySizeF", data1.w.toFloat(), data1.h.toFloat())
-                shader.v1f("sharpness", 3f * lastScaleX * lastScaleY) // a guess
-                shader.v1f("maxWeight", 5f)
-                flat01.draw(shader)
-            }
-            /*useFrame(depth.w, depth.h, true, previousDepth) {
-                GFX.copyNoAlpha(depth)
-            }*/
-            // render result
-            val shader = displayShader
+
+        val rw = color.w
+        val rh = color.h
+        lastScaleX = pw.toFloat() / rw
+        lastScaleY = ph.toFloat() / rh
+        if (previousDepth.pointer == 0) {
+            previousDepth.w = rw
+            previousDepth.h = rh
+        }
+        previousDepth.ensure()
+        data1.ensure()
+        useFrame(pw, ph, true, data0) {
+            val shader = updateShader
             shader.use()
-            data0.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            shader.v2f("prevJitter", pjx, pjy)
+            shader.v2f("currJitter", jx, jy)
+            shader.v2i("renderSizeI", rw, rh)
+            shader.v2f("renderSizeF", rw.toFloat(), rh.toFloat())
+            color.bindTrulyNearest(0)
+            depth.bindTrulyNearest(1)
+            normal.bindTrulyNearest(2)
+            motion.bindTrulyNearest(3)
+            data1.bindTextures(4, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            shader.v2i("displaySizeI", data1.w, data1.h)
+            shader.v2f("displaySizeF", data1.w.toFloat(), data1.h.toFloat())
+            shader.v1f("sharpness", 3f * lastScaleX * lastScaleY) // a guess
+            shader.v1f("maxWeight", 5f)
             flat01.draw(shader)
         }
+        /*useFrame(depth.w, depth.h, true, previousDepth) {
+            GFX.copyNoAlpha(depth)
+        }*/
+        // render result
+        val shader = displayShader
+        shader.use()
+        data0.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        flat01.draw(shader)
+
         val tmp = data0
         data0 = data1
         data1 = tmp
