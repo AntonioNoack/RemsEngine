@@ -14,6 +14,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.mix
 import me.anno.mesh.assimp.Bone
 import me.anno.studio.StudioBase
+import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
@@ -254,7 +255,6 @@ class BoneByBoneAnimation() : Animation() {
         val skel = SkeletonCache[skeleton]!!
         boneCount = skel.bones.size
         frameCount = anim.frames.size
-        println("$boneCount x $frameCount")
         val boneCount = skel.bones.size
         translations = FloatArray(boneCount * frameCount * 3)
         rotations = FloatArray(boneCount * frameCount * 4)
@@ -343,7 +343,7 @@ class BoneByBoneAnimation() : Animation() {
             mesh.mesh = meshFile
 
             for (bone in SkeletonCache[mesh.skeleton]!!.bones) {
-                println("${bone.id}: ${bone.name}")
+                LOGGER.debug("Bone ${bone.id}: ${bone.name}")
             }
 
             // create script, which modifies the animation at runtime

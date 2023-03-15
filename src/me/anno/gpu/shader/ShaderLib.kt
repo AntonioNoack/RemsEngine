@@ -701,7 +701,8 @@ object ShaderLib {
     val shader3D = createShader(
         "3d", v3Dl, v3D, y3D, f3Dl, f3D, listOf("tex"),
         "cgSlope", "cgOffset", "cgPower", "cgSaturation",
-        "normals", "uvs", "tangents", "colors", "drawMode", "tint"
+        "normals", "uvs", "tangents", "colors", "drawMode", "tint",
+        "finalNormal", "finalEmissive"
     )
 
     val shader3DPolygon =

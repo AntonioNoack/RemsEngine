@@ -193,6 +193,7 @@ object FontManager {
         // must be sync:
         // - textures need to be available
         // - Java/Windows is not thread-safe
+        if (cacheKey.text.isBlank2()) return null
         return TextCache.getEntry(cacheKey, textureTimeout, false) { key ->
             val font2 = getFont(key)
             val averageFontSize = getAvgFontSize(key.fontSizeIndex())

@@ -93,7 +93,6 @@ object ScreenSpaceAmbientOcclusion {
             Variable(GLSLType.V1F, "skipRadiusSq"),
             Variable(GLSLType.V1I, "numSamples"),
             Variable(GLSLType.V1I, "mask"),
-            Variable(GLSLType.V2I, "size"),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.S2D, "sampleKernel"),
             Variable(GLSLType.S2D, "finalPosition"),
@@ -245,7 +244,6 @@ object ScreenSpaceAmbientOcclusion {
             nor.bindTrulyNearest(1)
             pos.bindTrulyNearest(0)
             // define all uniforms
-            shader.v2i("size", fw, fh)
             shader.v1f("radius", radius)
             shader.v1f("skipRadiusSq", sq(radius * 20f))
             shader.m4x4("transform", transform)

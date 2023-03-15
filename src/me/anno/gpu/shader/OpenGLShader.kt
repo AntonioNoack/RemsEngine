@@ -254,11 +254,11 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         return this
     }
 
-    fun getUniformLocation(name: String): Int {
+    fun getUniformLocation(name: String, warnIfMissing: Boolean = true): Int {
         return uniformLocations.getOrPut(name) {
             if (safeShaderBinding) use()
             val loc = glGetUniformLocation(program, name)
-            if (loc < 0 && name !in ignoredNames && !sourceContainsWord(name)) {
+            if (loc < 0 && warnIfMissing && name !in ignoredNames && !sourceContainsWord(name)) {
                 LOGGER.warn("Uniform location \"$name\" not found in shader ${this.name}")
             }
             loc

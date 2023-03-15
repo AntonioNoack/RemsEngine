@@ -359,7 +359,8 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                 shader.ignoreNameWarnings(
                     "tint", "invLocalTransform", "colors",
                     "tangents", "uvs", "normals", "isDirectional",
-                    "defLayer0", "defLayer1", "defLayer2", "defLayer3", "defLayer4"
+                    "defLayer0", "defLayer1", "defLayer2", "defLayer3", "defLayer4",
+                    "receiveShadows", "countPerPixel"
                 )
                 shader.setTextureIndices(textures)
                 shader

@@ -416,7 +416,12 @@ open class StaticMeshesLoader {
         val size = if (isCompressed) width else width * height * 4
 
         // lwjgl 3.3.1
-        /*val data = if (isCompressed) {
+        /*private fun bufferToBytes(buffer: ByteBuffer, size: Int): ByteArray {
+            val bytes = ByteArray(size)
+            buffer.get(bytes, 0, min(buffer.remaining(), size))
+            return bytes
+        }
+        val data = if (isCompressed) {
             bufferToBytes(texture.pcDataCompressed(), size)
         } else {
             bufferToBytes(texture.pcData(), size)
@@ -479,12 +484,6 @@ open class StaticMeshesLoader {
             bytes[j++] = buffer.a()
             buffer.get()
         }
-        return bytes
-    }
-
-    private fun bufferToBytes(buffer: ByteBuffer, size: Int): ByteArray {
-        val bytes = ByteArray(size)
-        buffer.get(bytes, 0, min(buffer.remaining(), size))
         return bytes
     }
 

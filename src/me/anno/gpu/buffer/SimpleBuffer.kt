@@ -99,7 +99,7 @@ open class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             override fun draw(shader: Shader) {
                 // this draws full-screen passes like blur using a single triangle
                 // if you dislike this behaviour, create your own buffer 😉
-                if (Frame.isFullscreen() && shader.getUniformLocation("posSize") < 0)
+                if (Frame.isFullscreen() && shader.getUniformLocation("posSize", false) < 0)
                     flat01FS.draw(shader)
                 else super.draw(shader)
             }
