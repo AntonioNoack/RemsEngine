@@ -200,7 +200,7 @@ class Skeleton : PrefabSaveable(), Renderable {
                         positions[j++] = tmp.z
                     }
                     if (boneIndices != null) {
-                        val dk = (boneMeshVertices.size - 2) / 3 * 4
+                        val dk = boneMeshVertices.size / 3 * 4
                         boneIndices.fill(srcBone.id.toByte(), k, k + dk)
                         k += dk
                     }

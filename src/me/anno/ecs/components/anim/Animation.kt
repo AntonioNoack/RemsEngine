@@ -1,5 +1,6 @@
 package me.anno.ecs.components.anim
 
+import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
@@ -153,6 +154,7 @@ abstract class Animation : PrefabSaveable, Renderable {
                 mesh.positions!!, mesh.boneIndices!!
             )
             renderer.mesh = mesh.ref
+            renderer.skeleton = skeleton.ref
             renderer.animations = listOf(state)
         }
 
@@ -160,6 +162,9 @@ abstract class Animation : PrefabSaveable, Renderable {
             Texture2D.floatArrayPool.returnBuffer(mesh.positions)
             Texture2D.floatArrayPool.returnBuffer(mesh.normals)
             Texture2D.byteArrayPool.returnBuffer(mesh.boneIndices)
+            mesh.positions = null
+            mesh.normals = null
+            mesh.boneIndices = null
             mesh.destroy()
         }
 
@@ -180,7 +185,10 @@ abstract class Animation : PrefabSaveable, Renderable {
         val skeleton = SkeletonCache[skeleton] ?: return clickId
         if (previewData == null) previewData = PreviewData(skeleton, this)
         return previewData!!.run {
-            renderer.updateAnimState()
+            if (renderer.prevTime != Engine.gameTime) {
+                state.update(renderer, Engine.deltaTime, false)
+                renderer.updateAnimState()
+            }
             renderer.fill(pipeline, entity, clickId)
         }
     }
