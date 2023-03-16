@@ -2,6 +2,8 @@ package me.anno.tests.assimp
 
 import me.anno.Engine
 import me.anno.ecs.components.anim.BoneByBoneAnimation
+import me.anno.ecs.components.anim.BoneByBoneAnimation.Companion.fromImported
+import me.anno.ecs.components.anim.BoneByBoneAnimation.Companion.toImported
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.cache.SkeletonCache
@@ -44,10 +46,9 @@ fun main() {
 
     println("duration: ${animation.duration}, frames: ${animation.frames.size}")
 
-    val calc = BoneByBoneAnimation.Helper()
-
     val printer = TablePrinter()
     val pred = Vector3f()
+    val predictedTranslations = Array(bones.size) { Vector3f() }
     for ((fi, frameIndex) in (0 until animation.numFrames step 5).withIndex()) {
 
         for (boneId in bones.indices) {
@@ -62,16 +63,18 @@ fun main() {
 
             val skinning = animation.frames[frameIndex][boneId] // target matrix
             val parentSkinning = animation.frames[frameIndex].getOrNull(bone.parentId)
-            val test = calc.fromImported(bone, skinning, parentSkinning, Matrix4x3f())
+            val test = Matrix4x3f()
+            fromImported(bone, skinning, parentSkinning, Vector3f(), test)
 
-            val invTest = calc.toImported(
+            val invTest = Matrix4x3f()
+            toImported(
                 bone, parentSkinning,
                 test.getTranslation(Vector3f()),
                 test.getUnnormalizedRotation(Quaternionf()),
-                Matrix4x3f()
+                invTest
             )
 
-            pred.set(calc.predictedTranslations[boneId])
+            pred.set(predictedTranslations[boneId])
 
             printer.println("predicted: (${pred.x.f2x()} ${pred.y.f2x()} ${pred.z.f2x()})")
             printer.println(skinning.f2y())

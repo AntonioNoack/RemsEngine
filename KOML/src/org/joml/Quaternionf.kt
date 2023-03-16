@@ -185,20 +185,14 @@ open class Quaternionf {
         return this
     }
 
-    fun set(q: Quaternionf): Quaternionf {
-        x = q.x
-        y = q.y
-        z = q.z
-        w = q.w
-        return this
-    }
-
-    fun set(q: Quaterniond): Quaternionf {
-        x = q.x.toFloat()
-        y = q.y.toFloat()
-        z = q.z.toFloat()
-        w = q.w.toFloat()
-        return this
+    fun set(q: Quaternionf) = set(q.x, q.y, q.z, q.w)
+    fun set(q: Quaterniond) = set(q.x.toFloat(), q.y.toFloat(), q.z.toFloat(), q.w.toFloat())
+    fun set(src: FloatArray, i: Int) = set(src[i], src[i + 1], src[i + 2], src[i + 3])
+    fun get(dst: FloatArray, i: Int) {
+        dst[i] = x
+        dst[i + 1] = y
+        dst[i + 2] = z
+        dst[i + 3] = w
     }
 
     fun set(axisAngle: AxisAngle4f): Quaternionf {

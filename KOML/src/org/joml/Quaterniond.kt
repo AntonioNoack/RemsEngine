@@ -189,20 +189,15 @@ open class Quaterniond {
         return this
     }
 
-    fun set(q: Quaterniond): Quaterniond {
-        x = q.x
-        y = q.y
-        z = q.z
-        w = q.w
-        return this
-    }
+    fun set(q: Quaterniond) = set(q.x, q.y, q.z, q.w)
+    fun set(q: Quaternionf) = set(q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble())
 
-    fun set(q: Quaternionf): Quaterniond {
-        x = q.x.toDouble()
-        y = q.y.toDouble()
-        z = q.z.toDouble()
-        w = q.w.toDouble()
-        return this
+    fun set(src: DoubleArray, i: Int) = set(src[i], src[i + 1], src[i + 2], src[i + 3])
+    fun get(dst: DoubleArray, i: Int) {
+        dst[i] = x
+        dst[i + 1] = y
+        dst[i + 2] = z
+        dst[i + 3] = w
     }
 
     fun set(axisAngle: AxisAngle4f): Quaterniond {

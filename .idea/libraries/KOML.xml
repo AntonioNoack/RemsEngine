@@ -8,6 +8,7 @@
       <root url="file://$PROJECT_DIR$/KOML/src" />
       <root url="file://$PROJECT_DIR$/KOML" />
       <root url="file://$PROJECT_DIR$/KOML/src" />
+      <root url="file://$PROJECT_DIR$/KOML" />
     </SOURCES>
   </library>
 </component>

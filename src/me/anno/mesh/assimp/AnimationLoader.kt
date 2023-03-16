@@ -201,7 +201,7 @@ object AnimationLoader {
         animationTime: Double,
         aiNode: AINode,
         frameIndex: Int,
-        rootMotion: FloatArray,
+        translations: FloatArray,
         rotations: FloatArray
     ) {
 
@@ -223,9 +223,9 @@ object AnimationLoader {
                 // set root motion
                 val index = frameIndex * 3
                 val translation = interpolateTranslation(animationTime, aiNodeAnim)
-                rootMotion[index + 0] = translation.x
-                rootMotion[index + 1] = translation.y
-                rootMotion[index + 2] = translation.z
+                translations[index + 0] = translation.x
+                translations[index + 1] = translation.y
+                translations[index + 2] = translation.z
             }
 
             val rotation = interpolateRotation(animationTime, aiNodeAnim)
@@ -244,7 +244,7 @@ object AnimationLoader {
                     aiScene, boneMap,
                     animNodeCache, animationTime,
                     AINode.create(children[i]),
-                    frameIndex, rootMotion, rotations
+                    frameIndex, translations, rotations
                 )
             }
         }

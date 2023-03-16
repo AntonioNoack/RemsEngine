@@ -26,6 +26,7 @@ import me.anno.mesh.fbx.FBX6000
 import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.types.Matrices.isIdentity
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -209,6 +210,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
             // must be applied after all animations have been loaded
             correctBonePositions(name, rootNode, boneList, boneMap)
+            shortedBoneNames(boneList)
 
             val sampleAnimations = if (animMap.isNotEmpty()) {
                 arrayListOf(
@@ -244,6 +246,14 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         root.sealPrefabs()
 
         return root to hierarchy
+    }
+
+    @Suppress("SpellCheckingInspection")
+    private fun shortedBoneNames(bones: List<Bone>) {
+        val prefix = "mixamorig:"
+        if (bones.all2 { it.name.startsWith(prefix) }) {
+            for (bone in bones) bone.name = bone.name.substring(prefix.length)
+        }
     }
 
     private fun applyMatrixFix(prefab: Prefab, matrix: Matrix3f) {
@@ -551,14 +561,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val frames = Array(numFrames) { frameIndex ->
             val animatedFrame = Array(boneMap.size) { Matrix4x3f() }
             loadAnimationFrame(
-                aiScene,
-                rootNode,
-                frameIndex * timeScale,
-                animatedFrame,
-                globalTransform,
-                globalInverseTransform,
-                boneMap,
-                animNodeCache
+                aiScene, rootNode, frameIndex * timeScale, animatedFrame,
+                globalTransform, globalInverseTransform, boneMap, animNodeCache
             )
             animatedFrame
         }
@@ -581,19 +585,21 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         globalTransform: Matrix4x3f?,
         globalInverseTransform: Matrix4x3f?
     ): Prefab {
-        val rootMotion = FloatArray(numFrames * 3)
-        val rotations = FloatArray(numFrames * boneMap.size * 4)
+        val numBones = boneMap.size
+        val translations = FloatArray(numFrames * 3)
+        val rotations = FloatArray(numFrames * numBones * 4)
         for (frameIndex in 0 until numFrames) {
             loadAnimationFrame(
-                aiScene, rootNode, frameIndex * timeScale, frameIndex, rootMotion, rotations, boneMap, animNodeCache
+                aiScene, rootNode, frameIndex * timeScale, frameIndex,
+                translations, rotations, boneMap, animNodeCache
             )
         }
         val prefab = Prefab("BoneByBoneAnimation")
         prefab[ROOT_PATH, "name"] = animName
         prefab[ROOT_PATH, "duration"] = duration.toFloat()
         prefab[ROOT_PATH, "frameCount"] = numFrames
-        prefab[ROOT_PATH, "boneCount"] = boneMap.size
-        prefab[ROOT_PATH, "rootMotion"] = rootMotion
+        prefab[ROOT_PATH, "boneCount"] = numBones
+        prefab[ROOT_PATH, "translations"] = translations
         prefab[ROOT_PATH, "rotations"] = rotations
         if (globalTransform != null) prefab[ROOT_PATH, "globalTransform"] = globalTransform
         if (globalInverseTransform != null) prefab[ROOT_PATH, "globalInvTransform"] = globalInverseTransform
