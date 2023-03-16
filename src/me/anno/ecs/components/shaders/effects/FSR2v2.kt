@@ -241,15 +241,11 @@ class FSR2v2 : ICacheData {
             shader.v1f("maxWeight", 5f)
             flat01.draw(shader)
         }
-        /*useFrame(depth.w, depth.h, true, previousDepth) {
-            GFX.copyNoAlpha(depth)
-        }*/
         // render result
         val shader = displayShader
         shader.use()
         data0.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
         flat01.draw(shader)
-
         val tmp = data0
         data0 = data1
         data1 = tmp

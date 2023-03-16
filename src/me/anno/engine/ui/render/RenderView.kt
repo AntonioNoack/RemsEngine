@@ -72,7 +72,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input.isKeyDown
-import me.anno.input.Input.isShiftDown
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.roundDiv
@@ -494,8 +493,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             h = buffer.h
         }
 
-        // clock.stop("drawing scene", 0.05)
-
         var dstBuffer = buffer
 
         val renderMode = renderMode
@@ -507,6 +504,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             RenderMode.FSR_MSAA_X4 -> true
             else -> false
         }
+
         when {
             useDeferredRendering -> {
                 when {
@@ -815,16 +813,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     }
                     renderer == DeferredRenderer -> {
                         dstBuffer = drawSceneDeferred(
-                            buffer, baseNBuffer1, lightNBuffer1, baseSameDepth1,
-                            camera0, camera1, blending, renderer, dstBuffer,
-                            deferred
+                            buffer, w, h, baseNBuffer1, lightNBuffer1, baseSameDepth1,
+                            camera0, camera1, blending, renderer, deferred
                         )
                     }
                     renderer == DeferredRendererMSAA -> {
                         dstBuffer = drawSceneDeferred(
-                            buffer, baseNBuffer8, lightNBuffer8, baseSameDepth8,
-                            camera0, camera1, blending, renderer, dstBuffer,
-                            deferredMSAA
+                            buffer, w, h, baseNBuffer8, lightNBuffer8, baseSameDepth8,
+                            camera0, camera1, blending, renderer, deferredMSAA
                         )
                     }
                     else -> {
@@ -872,13 +868,17 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val effect = renderMode.effect
         when {
             useFSR -> {
-                val flipY = isShiftDown // works without difference, so maybe it could be removed...
                 val tw = x1 - x0
                 val th = y1 - y0
                 val tmp = FBStack["fsr", tw, th, 4, false, 1, false]
-                useFrame(tmp) { FSR.upscale(dstBuffer.getTexture0(), 0, 0, tw, th, flipY, false) }
+                useFrame(tmp) {
+                    FSR.upscale(
+                        dstBuffer.getTexture0(), 0, 0, tw, th,
+                        flipY = false, applyToneMapping = false
+                    )
+                }
                 // afterwards sharpen
-                FSR.sharpen(tmp.getTexture0(), 0.5f, x, y, tw, th, flipY)
+                FSR.sharpen(tmp.getTexture0(), 0.5f, x, y, tw, th, false)
             }
             effect != null -> {
                 val map = when (effect) {
@@ -923,16 +923,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 GFX.copyNoAlpha(dstBuffer)
             }
         }
-
     }
 
     fun drawSceneDeferred(
-        buffer: IFramebuffer, baseBuffer: IFramebuffer,
-        lightBuffer: IFramebuffer, baseSameDepth: IFramebuffer,
+        buffer: IFramebuffer, w: Int, h: Int,
+        baseBuffer: IFramebuffer, lightBuffer: IFramebuffer, baseSameDepth: IFramebuffer,
         camera0: Camera, camera1: Camera, blending: Float,
-        renderer: Renderer,
-        dstBuffer1: IFramebuffer,
-        deferredSettings: DeferredSettingsV2
+        renderer: Renderer, deferredSettings: DeferredSettingsV2
     ): IFramebuffer {
 
         if (buffer != baseBuffer)
@@ -943,7 +940,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         drawScene(
             w, h, camera0, camera1,
             blending, renderer, buffer,
-            true,
+            changeSize = true,
             hdr = true
         )
 
@@ -993,7 +990,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 // don't write depth
                 GFXState.depthMask.use(false) {
                     LightPipelineStage.combineLighting(
-                        deferred, true, pipeline.ambient,
+                        deferred, applyToneMapping = true, pipeline.ambient,
                         buffer, lightBuffer, ssao
                     )
                 }
@@ -1006,7 +1003,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         }
 
         // anti-aliasing
-        val dstBuffer = FBStack["RenderView-dst", w, h, 4, false, 1, false]
+        val dstBuffer = FBStack["RenderView-dst", buffer.w, buffer.h, 4, false, 1, false]
         useFrame(w, h, true, dstBuffer) {
             FXAA.render(baseSameDepth.getTexture0())
         }

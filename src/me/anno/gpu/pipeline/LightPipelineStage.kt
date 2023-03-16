@@ -24,6 +24,7 @@ import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
 import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -289,6 +290,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                         Variable(GLSLType.V1B, "receiveShadows"),
                         // Variable(GLSLType.V3F, "finalColor"), // not really required
                         Variable(GLSLType.V3F, "finalPosition"),
+                        Variable(GLSLType.V3F, "finalColor"),
                         Variable(GLSLType.V3F, "finalNormal"),
                         // Variable(GLSLType.V1F, "finalOcclusion"), post-process, including ambient
                         Variable(GLSLType.V1F, "finalMetallic"),
@@ -324,8 +326,10 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                             "NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
                             "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
                             // ~65k is the limit, after that only Infinity
+                            // todo car sample's light on windows looks clamped... who is clamping it?
                             "vec3 color = mix(diffuseLight, specularLight, finalMetallic);\n" +
-                            "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n"
+                            "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n" +
+                            ""
                 )
 
                 // deferred inputs
