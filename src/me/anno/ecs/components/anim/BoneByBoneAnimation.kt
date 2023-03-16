@@ -12,6 +12,7 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.mesh.assimp.Bone
 import me.anno.studio.StudioBase
@@ -132,7 +133,7 @@ class BoneByBoneAnimation() : Animation() {
         val bones = skeleton.bones
         val tmpPos = JomlPools.vec3f.borrow()
         val tmpRot = JomlPools.quat4f.borrow()
-        for (boneId in bones.indices) {
+        for (boneId in 0 until min(dst.size, bones.size)) {
             val bone = bones[boneId]
             getTranslation(fraction, frameIndex0, frameIndex1, boneId, tmpPos)
             getRotation(fraction, frameIndex0, frameIndex1, boneId, tmpRot)
@@ -146,7 +147,7 @@ class BoneByBoneAnimation() : Animation() {
         val bones = skeleton.bones
         val tmpPos = JomlPools.vec3f.borrow()
         val tmpRot = JomlPools.quat4f.borrow()
-        for (boneId in bones.indices) {
+        for (boneId in 0 until min(dst.size, bones.size)) {
             val bone = bones[boneId]
             getTranslation(index, boneId, tmpPos)
             getRotation(index, boneId, tmpRot)
@@ -154,6 +155,15 @@ class BoneByBoneAnimation() : Animation() {
         }
         return dst
     }
+
+    // use this? idk...
+    /*fun applyGlobal(dst: Array<Matrix4x3f>) {
+        val global = globalTransform
+        if (!global.isIdentity()) for (boneId in 0 until min(dst.size, boneCount)) {
+            val dstI = dst[boneId]
+            global.mul(dstI, dstI)
+        }
+    }*/
 
     override fun clone(): BoneByBoneAnimation {
         val clone = BoneByBoneAnimation()
@@ -196,7 +206,7 @@ class BoneByBoneAnimation() : Animation() {
                 val bone = bones[j]
                 val pj = bone.parentId
                 val pose = frame[j] // bind pose [world space] -> animated pose [world space]
-                val data = fromImported(bone, pose, frame.getOrNull(pj), tmpPos, tmpMat)
+                val data = fromImported(bone.bindPose, pose, frame.getOrNull(pj), tmpPos, tmpMat)
                 setTranslation(i, j, data.getTranslation(tmpPos))
                 setRotation(i, j, data.getUnnormalizedRotation(tmpRot)) // probably would be the same as tmp2
             }
@@ -230,15 +240,17 @@ class BoneByBoneAnimation() : Animation() {
     companion object {
 
         fun fromImported(
-            bone: Bone,
+            bindPose: Matrix4x3f,
             skinning: Matrix4x3f,
             parentSkinning: Matrix4x3f?,
             tmp: Vector3f,
             dst: Matrix4x3f
         ): Matrix4x3f {
-            predict(parentSkinning, bone, tmp)
-            skinning.mul(bone.bindPose, dst) // position in model
-            dst.translateLocal(-tmp.x, -tmp.y, -tmp.z)
+            skinning.mul(bindPose, dst) // position in model
+            if (parentSkinning != null) {
+                predict(parentSkinning, bindPose, tmp)
+                dst.translateLocal(-tmp.x, -tmp.y, -tmp.z)
+            }
             return dst
         }
 
@@ -252,13 +264,15 @@ class BoneByBoneAnimation() : Animation() {
             dst: Matrix4x3f
         ) {
             dst.translationRotate(t, r)
-            predict(parentSkinning, bone, t)
-            dst.translateLocal(t)
+            if (parentSkinning != null) {
+                predict(parentSkinning, bone.bindPose, t)
+                dst.translateLocal(t)
+            }
             dst.mul(bone.inverseBindPose)
         }
 
-        fun predict(parentSkinning: Matrix4x3f?, bone: Bone, dst: Vector3f) {
-            parentSkinning?.transformPosition(bone.bindPose.getTranslation(dst)) ?: dst.set(0f)
+        fun predict(parentSkinning: Matrix4x3f, bindPose: Matrix4x3f, dst: Vector3f) {
+            parentSkinning.transformPosition(bindPose.getTranslation(dst))
         }
 
 
@@ -281,23 +295,25 @@ class BoneByBoneAnimation() : Animation() {
 
             // val meshFile = downloads.getChild("3d/azeria/scene.gltf")
             val meshFile = downloads.getChild("3d/FemaleStandingPose/7.4.fbx")
-            val imported = PrefabCache.getPrefabInstance(
+            val animation = PrefabCache.getPrefabInstance(
                 meshFile.getChild("animations").listChildren()!!.first()
-            ) as ImportedAnimation
-
-            val boneByBone = BoneByBoneAnimation(imported)
+                    .getChild("BoneByBone.json")
+            ).run {
+                if (this is ImportedAnimation) BoneByBoneAnimation(this)
+                else this as BoneByBoneAnimation
+            }
 
             // create test scene
             val mesh = AnimRenderer()
-            mesh.skeleton = boneByBone.skeleton
-            mesh.animations = listOf(AnimationState(boneByBone.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
+            mesh.skeleton = animation.skeleton
+            mesh.animations = listOf(AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
             mesh.mesh = meshFile
 
             for (bone in SkeletonCache[mesh.skeleton]!!.bones) {
                 LOGGER.debug(
                     "Bone ${bone.id}: ${bone.name}${" ".repeat(max(0, 80 - bone.name.length))}" +
-                            "f0: ${boneByBone.getTranslation(0, bone.id, Vector3f())}, " +
-                            "${boneByBone.getRotation(0, bone.id, Quaternionf())}"
+                            "f0: ${animation.getTranslation(0, bone.id, Vector3f())}, " +
+                            "${animation.getRotation(0, bone.id, Quaternionf())}"
                 )
             }
 
@@ -311,12 +327,12 @@ class BoneByBoneAnimation() : Animation() {
                 while (!Engine.shutdown) {
                     val dr = sin(time * 20f) / 50f
                     val boneIndex = 67 // fox: 7
-                    for (fi in 0 until boneByBone.frameCount) {
-                        boneByBone.getRotation(fi, boneIndex, r)
+                    for (fi in 0 until animation.frameCount) {
+                        animation.getRotation(fi, boneIndex, r)
                         r.rotateZ(dr)
-                        boneByBone.setRotation(fi, boneIndex, r)
+                        animation.setRotation(fi, boneIndex, r)
                     }
-                    AnimationCache.invalidate(boneByBone)
+                    AnimationCache.invalidate(animation)
                     time += 0.01f
                     Thread.sleep(10)
                 }

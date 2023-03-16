@@ -194,63 +194,6 @@ object AnimationLoader {
 
     }
 
-    fun readAnimationFrame(
-        aiScene: AIScene,
-        boneMap: Map<String, Bone>,
-        animNodeCache: Map<String, NodeAnim>,
-        animationTime: Double,
-        aiNode: AINode,
-        frameIndex: Int,
-        translations: FloatArray,
-        rotations: FloatArray
-    ) {
-
-        val name = aiNode.mName().dataString()
-        val nodeAnim = animNodeCache[name]
-
-        if (nodeAnim != null) {
-
-            val bone = boneMap[name]!!
-
-            // localTransform = T * R * (S=1)
-            // rotation is something
-            // scale is null
-            // println("avg vs read: ${nodeAnim.average} vs ${localTransform.getTranslation(Vector3f())}")
-
-            val aiNodeAnim = nodeAnim.aiNodeAnim
-
-            if (bone.parentId == -1) {
-                // set root motion
-                val index = frameIndex * 3
-                val translation = interpolateTranslation(animationTime, aiNodeAnim)
-                translations[index + 0] = translation.x
-                translations[index + 1] = translation.y
-                translations[index + 2] = translation.z
-            }
-
-            val rotation = interpolateRotation(animationTime, aiNodeAnim)
-            val index = (frameIndex * boneMap.size + bone.id) * 4
-            rotations[index + 0] = rotation.x
-            rotations[index + 1] = rotation.y
-            rotations[index + 2] = rotation.z
-            rotations[index + 3] = rotation.w
-
-        }
-
-        val children = aiNode.mChildren()
-        if (children != null) {
-            for (i in 0 until aiNode.mNumChildren()) {
-                readAnimationFrame(
-                    aiScene, boneMap,
-                    animNodeCache, animationTime,
-                    AINode.create(children[i]),
-                    frameIndex, translations, rotations
-                )
-            }
-        }
-
-    }
-
     fun getDuration(
         animNodeCache: Map<String, NodeAnim>
     ): Double {
@@ -277,22 +220,6 @@ object AnimationLoader {
             aiScene, boneMap, true, animNodeCache,
             timeIndex, rootNode, skinningMatrices,
             null, globalTransform, globalInverseTransform
-        )
-    }
-
-    fun loadAnimationFrame(
-        aiScene: AIScene,
-        rootNode: AINode,
-        timeIndex: Double,
-        frameIndex: Int,
-        rootMotion: FloatArray,
-        rotations: FloatArray,
-        boneMap: Map<String, Bone>,
-        animNodeCache: Map<String, NodeAnim>
-    ) {
-        readAnimationFrame(
-            aiScene, boneMap, animNodeCache,
-            timeIndex, rootNode, frameIndex, rootMotion, rotations
         )
     }
 

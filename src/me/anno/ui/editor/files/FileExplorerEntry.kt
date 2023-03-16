@@ -16,7 +16,6 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2Dual
 import me.anno.gpu.GFXState
-import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
@@ -161,7 +160,7 @@ open class FileExplorerEntry(
         when {
             isParent -> ".."
             file.nameWithoutExtension.isBlank2() && file.name.isBlank2() -> file.toString()
-            showFileExtensions || file.nameWithoutExtension.isBlank2() -> file.name
+            showFileExtensions || file.nameWithoutExtension.isBlank2() || file.isDirectory -> file.name
             else -> file.nameWithoutExtension
         }, style
     )
@@ -249,7 +248,7 @@ open class FileExplorerEntry(
         updatePlaybackTime()
 
         // todo only if is animation
-        if(isHovered) invalidateDrawing()
+        if (isHovered) invalidateDrawing()
 
     }
 
