@@ -74,8 +74,10 @@ open class ScrollPanelY(
 
     override fun scrollY(delta: Double) {
         // todo the scrollbar sometimes gets stuck... how???
+        if (delta == 0.0) return
         targetScrollPositionY += delta
         clampScrollPosition()
+        val window = window
         window?.needsLayout?.add(this)
     }
 

@@ -33,7 +33,7 @@ object ECSShaderLib {
                     Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
                     Variable(GLSLType.M4x4, "transform"),
                     Variable(GLSLType.M4x4, "prevTransform"),
-                    Variable(GLSLType.V3F,"normalOverride"),
+                    Variable(GLSLType.V3F, "normalOverride"),
                     Variable(GLSLType.V1B, "isOrtho"),
                     Variable(GLSLType.V4F, "currPosition", VariableMode.OUT),
                     Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
@@ -74,6 +74,9 @@ object ECSShaderLib {
                         "finalAlpha = color.a;\n"
             )
         }
-    }.ignoreNameWarnings("drawMode", "tint", "normals", "uvs", "tangents", "colors")
+    }.ignoreNameWarnings(
+        "drawMode", "tint", "normals", "uvs", "tangents", "colors",
+        "reflectionPlane", "reflectionMap"
+    )
 
 }

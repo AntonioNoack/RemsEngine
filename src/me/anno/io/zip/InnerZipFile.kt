@@ -113,6 +113,7 @@ class InnerZipFile(
                         file.lookup = lookup
                         for ((_, value) in registry) {
                             lookup[value.name] = value
+                            lookup.getOrPut(value.nameWithoutExtension) { value }
                             if (value is InnerFolder) value.lookup = lookup
                         }
                         callback(file, null)

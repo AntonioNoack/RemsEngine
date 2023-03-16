@@ -44,26 +44,26 @@ class RenderMode(
         val ALL_DEFERRED_LAYERS = RenderMode("All Deferred Layers")
         val ALL_DEFERRED_BUFFERS = RenderMode("All Deferred Buffers")
 
-        val COLOR = RenderMode(DeferredLayerType.COLOR)
-        val NORMAL = RenderMode(DeferredLayerType.NORMAL)
+        val COLOR = RenderMode("Color", DeferredLayerType.COLOR)
+        val NORMAL = RenderMode("Normal", DeferredLayerType.NORMAL)
 
-        val UV = RenderMode("UV", uvRenderer)
+        val UV = RenderMode("UVs", uvRenderer)
         // mode to show bone weights? ask for it, if you're interested :)
 
-        val TANGENT = RenderMode(DeferredLayerType.TANGENT)
-        val BITANGENT = RenderMode(DeferredLayerType.BITANGENT)
-        val EMISSIVE = RenderMode(DeferredLayerType.EMISSIVE)
-        val ROUGHNESS = RenderMode(DeferredLayerType.ROUGHNESS)
-        val METALLIC = RenderMode(DeferredLayerType.METALLIC)
-        val POSITION = RenderMode(DeferredLayerType.POSITION)
-        val TRANSLUCENCY = RenderMode(DeferredLayerType.TRANSLUCENCY)
-        val OCCLUSION = RenderMode(DeferredLayerType.OCCLUSION)
-        val SHEEN = RenderMode(DeferredLayerType.SHEEN)
-        val ANISOTROPY = RenderMode(DeferredLayerType.ANISOTROPIC)
-        val MOTION_VECTORS = RenderMode(DeferredLayerType.MOTION)
+        val TANGENT = RenderMode("Tangent", DeferredLayerType.TANGENT)
+        val BITANGENT = RenderMode("Bitangent", DeferredLayerType.BITANGENT)
+        val EMISSIVE = RenderMode("Emissive", DeferredLayerType.EMISSIVE)
+        val ROUGHNESS = RenderMode("Roughness", DeferredLayerType.ROUGHNESS)
+        val METALLIC = RenderMode("Metallic", DeferredLayerType.METALLIC)
+        val POSITION = RenderMode("Position", DeferredLayerType.POSITION)
+        val TRANSLUCENCY = RenderMode("Translucency", DeferredLayerType.TRANSLUCENCY)
+        val OCCLUSION = RenderMode("Baked Occlusion", DeferredLayerType.OCCLUSION)
+        val SHEEN = RenderMode("Sheen", DeferredLayerType.SHEEN)
+        val ANISOTROPY = RenderMode("Anisotropy", DeferredLayerType.ANISOTROPIC)
+        val MOTION_VECTORS = RenderMode("Motion Vectors", DeferredLayerType.MOTION)
 
-        val PREVIEW = RenderMode(previewRenderer)
-        val SIMPLE = RenderMode(simpleNormalRenderer)
+        val PREVIEW = RenderMode("Preview", previewRenderer)
+        val SIMPLE = RenderMode("Simple", simpleNormalRenderer)
 
         // ALPHA, // currently not defined
         val LIGHT_SUM = RenderMode("Light Sum") // todo implement dust-light-spilling for impressive fog

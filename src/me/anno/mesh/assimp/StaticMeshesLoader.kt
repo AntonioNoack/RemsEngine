@@ -32,7 +32,6 @@ import org.lwjgl.assimp.Assimp.*
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
-import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sign
 
@@ -79,6 +78,7 @@ open class StaticMeshesLoader {
                     xml
                 } else xml.toString().trim()
             }
+
             val better = XMLWriter.write(clean(xml) as XMLNode, null, false)
             val tmpFile = InnerTmpFile.InnerTmpTextFile(better)
             return loadFile(tmpFile, flags)
@@ -155,7 +155,6 @@ open class StaticMeshesLoader {
 
         val meshCount = aiNode.mNumMeshes()
         if (meshCount > 0) {
-
             val rendererClass = if (hasSkeleton) "AnimRenderer" else "MeshComponent"
             val meshIndices = aiNode.mMeshes()!!
             for (i in 0 until meshCount) {
@@ -163,7 +162,6 @@ open class StaticMeshesLoader {
                 val meshComponent = prefab.add(path, 'c', rendererClass, mesh.name)
                 prefab.setUnsafe(meshComponent, "mesh", mesh)
             }
-
         }
 
         val childCount = aiNode.mNumChildren()
@@ -273,7 +271,7 @@ open class StaticMeshesLoader {
         prefab.setProperty("name", name)
 
         val diffuseMap =
-            getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir, missingFilesLookup)
+            findTexture(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir, missingFilesLookup)
         if (diffuseMap != InvalidRef) prefab.setProperty("diffuseMap", diffuseMap)
         else {// I think the else-if is the correct thing here; the storm-trooper is too dark otherwise
 
@@ -302,16 +300,16 @@ open class StaticMeshesLoader {
         }
 
         val emissiveMap =
-            getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE, texturesDir, missingFilesLookup)
+            findTexture(aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE, texturesDir, missingFilesLookup)
         if (emissiveMap != InvalidRef) prefab.setProperty("emissiveMap", emissiveMap)
 
         // normal
         val normalMap =
-            getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS, texturesDir, missingFilesLookup)
+            findTexture(aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS, texturesDir, missingFilesLookup)
         if (normalMap != InvalidRef) prefab.setProperty("normalMap", normalMap)
 
         // metallic / roughness
-        val metallicRoughness = getPath(
+        val metallicRoughness = findTexture(
             aiScene, aiMaterial, loadedTextures,
             AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, texturesDir,
             missingFilesLookup
@@ -348,9 +346,16 @@ open class StaticMeshesLoader {
 
         // other stuff
         val displacementMap =
-            getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_DISPLACEMENT, texturesDir, missingFilesLookup)
+            findTexture(
+                aiScene,
+                aiMaterial,
+                loadedTextures,
+                aiTextureType_DISPLACEMENT,
+                texturesDir,
+                missingFilesLookup
+            )
         val occlusionMap =
-            getPath(aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP, texturesDir, missingFilesLookup)
+            findTexture(aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP, texturesDir, missingFilesLookup)
         if (displacementMap != InvalidRef) prefab.setProperty("displacementMap", displacementMap)
         if (occlusionMap != InvalidRef) prefab.setProperty("occlusionMap", occlusionMap)
 
@@ -369,7 +374,7 @@ open class StaticMeshesLoader {
         return a[0]
     }
 
-    private fun getPath(
+    private fun findTexture(
         aiScene: AIScene,
         aiMaterial: AIMaterial,
         loadedTextures: List<FileReference>,
@@ -400,7 +405,9 @@ open class StaticMeshesLoader {
             ?: loadedTextures.firstOrNull { it.name.equals(maybePath.name, true) }
             ?: loadedTextures.firstOrNull { it.nameWithoutExtension == maybePath.nameWithoutExtension }
             ?: loadedTextures.firstOrNull { it.nameWithoutExtension.equals(maybePath.nameWithoutExtension, true) }
-            ?: missingFilesLookup[maybePath.name] ?: maybePath
+            ?: missingFilesLookup[maybePath.name]
+            ?: missingFilesLookup[maybePath.nameWithoutExtension + "_A"] // for files from Synty
+            ?: maybePath
     }
 
     private fun loadTexture(parentFolder: InnerFolder, texture: AITexture, index: Int): InnerFile {

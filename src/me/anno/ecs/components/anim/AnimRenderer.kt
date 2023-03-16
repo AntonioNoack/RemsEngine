@@ -293,13 +293,13 @@ open class AnimRenderer : MeshComponent() {
         clone.currWeights.set(currWeights)
     }
 
-    override fun onDrawGUI(all: Boolean) {
+    /*override fun onDrawGUI(all: Boolean) {
         val skeleton = SkeletonCache[skeleton]
         if (skeleton != null) {
             val shader = pbrModelShader.value
             skeleton.draw(shader, Matrix4x3f(), null)
         }
-    }
+    }*/
 
     override val className get() = "AnimRenderer"
 

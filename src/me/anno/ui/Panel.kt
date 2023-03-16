@@ -64,7 +64,21 @@ open class Panel(val style: Style) : PrefabSaveable() {
      *
      * alignment should be "fill"
      * */
-    open var weight = 0f
+    var weight = 0f
+        set(value) {
+            if (value.isFinite() && field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
+
+    /**
+     * this weight is used inside some 2d layouts
+     * it allows layout by percentages and such
+     *
+     * alignment should be "fill"
+     * */
+    var weight2 = 0f
         set(value) {
             if (value.isFinite() && field != value) {
                 field = value

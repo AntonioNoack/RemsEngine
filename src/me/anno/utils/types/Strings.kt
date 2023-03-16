@@ -375,7 +375,7 @@ object Strings {
 
     @JvmStatic
     fun CharSequence.toLong(i0: Int = 0, i1: Int = length): Long {
-        val c0 = this[0]
+        val c0 = this[i0]
         if (c0 == '-') return -toLong(i0 + 1, i1)
         var number = c0.code - 48L
         for (i in i0 + 1 until i1) {

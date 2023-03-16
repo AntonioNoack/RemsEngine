@@ -174,7 +174,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val meshList = loadMeshPrefabs(aiScene, materials, boneList, boneMap).toList()
         val meshes = createReferences(root, "meshes", meshList)
         val hasAnimations = aiScene.mNumAnimations() > 0
-        val hasSkeleton = boneList.isNotEmpty() || hasAnimations
+        val hasSkeleton = boneList.isNotEmpty() && hasAnimations
         val hierarchy = buildScene(aiScene, meshes, hasSkeleton)
 
         val metadata = loadMetadata(aiScene)

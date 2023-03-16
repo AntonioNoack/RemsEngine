@@ -1,7 +1,6 @@
 package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
-import me.anno.utils.Color.black
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
@@ -34,6 +33,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.Draggable
+import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
@@ -219,6 +219,10 @@ class ECSSceneTab(
                     },
                     MenuOption(NameDesc("Close")) {
                         ECSSceneTabs.close(this)
+                    },
+                    MenuOption(NameDesc("Close All")) {
+                        for (tab in ECSSceneTabs.children3.reversed())
+                            ECSSceneTabs.close(tab)
                     }
                 ))
             }

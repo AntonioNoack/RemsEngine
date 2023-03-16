@@ -1,6 +1,7 @@
 package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.style.Style
@@ -36,27 +37,53 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
 
     override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int) = true
 
+    var splitX = 0.2f
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
+    var splitY = 0.2f
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateLayout()
+            }
+        }
+
+    private val minWHs = IntArray(8)
+
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
 
-        var minW = 0
-        var minH = 0
+        val sx = (splitX * w).toInt()
+        val sy = (splitY * h).toInt()
 
-        // todo calculate how much space is available for the children
         for (child in children) {
-            var aw = w / 3
-            var ah = h / 3
-            if (child.alignmentX == AxisAlignment.FILL) aw = w
-            if (child.alignmentY == AxisAlignment.FILL) ah = h
+            val aw = when (child.alignmentX) {
+                AxisAlignment.FILL -> w
+                AxisAlignment.MIN, AxisAlignment.MAX -> sx
+                AxisAlignment.CENTER -> w - 2 * sx
+            }
+            val ah = when (child.alignmentY) {
+                AxisAlignment.FILL -> h
+                AxisAlignment.MIN, AxisAlignment.MAX -> sy
+                AxisAlignment.CENTER -> h - 2 * sy
+            }
             child.calculateSize(aw, ah)
-            if (child.alignmentX != AxisAlignment.FILL) child.w = child.minW
-            if (child.alignmentY != AxisAlignment.FILL) child.h = child.minH
-            minW = max(minW, if (child.alignmentX == AxisAlignment.FILL) w else child.w)
-            minH = max(minH, if (child.alignmentY == AxisAlignment.FILL) h else child.h)
+            val mixX = child.alignmentX != AxisAlignment.FILL
+            val mixY = child.alignmentY != AxisAlignment.FILL
+            child.w = if (mixX) mix(child.minW, aw, child.weight) else aw
+            child.h = if (mixY) mix(child.minH, ah, child.weight2) else ah
+            val sxi = child.alignmentX.id
+            val syi = child.alignmentY.id + 4
+            minWHs[sxi] = max(minWHs[sxi], child.w)
+            minWHs[syi] = max(minWHs[syi], child.h)
         }
 
-        this.minW = minW
-        this.minH = minH
+        minW = max(minWHs[3], max(minWHs[0], minWHs[2]) * 2 + minWHs[1])
+        minH = max(minWHs[7], max(minWHs[4], minWHs[6]) * 2 + minWHs[5])
 
     }
 
