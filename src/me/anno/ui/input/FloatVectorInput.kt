@@ -10,8 +10,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.StudioBase.Companion.warn
-import me.anno.ui.base.constraints.WrapAlign
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.VectorInputList
@@ -32,7 +30,7 @@ open class FloatVectorInput(
 ) : TitledListY(title, visibilityKey, style), InputPanel<Vector4d>, TextStyleable {
 
     constructor(title: String, visibilityKey: String, type: Type, style: Style) :
-            this(title, visibilityKey, type, style, { FloatInput( "", visibilityKey, type, style) })
+            this(title, visibilityKey, type, style, { FloatInput("", visibilityKey, type, style) })
 
     constructor(style: Style) : this("", "", Type.FLOAT, style)
 
@@ -471,7 +469,7 @@ open class FloatVectorInput(
 
     fun onEmpty2(defaultValue: Any) {
         for (index in valueFields.indices) {
-            valueFields[index].setValue(getDouble(defaultValue, index), false)
+            valueFields[index].setValue(getDouble(defaultValue, index, 0.0), false)
         }
         if (resetListener == null) {
             onChange()

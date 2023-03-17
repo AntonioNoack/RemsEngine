@@ -4,16 +4,16 @@ abstract class NextEntryIterator<V> : Iterator<V> {
 
     abstract fun nextEntry(): V?
 
-    var next: V? = null
+    private var next: V? = null
     override fun hasNext(): Boolean {
         if (next == null) next = nextEntry()
         return next != null
     }
 
     override fun next(): V {
-        val v = next
-        next = nextEntry()
-        @Suppress("unchecked_cast")
-        return v as V
+        var v = next
+        if (v == null) v = nextEntry()
+        next = null
+        return v!!
     }
 }

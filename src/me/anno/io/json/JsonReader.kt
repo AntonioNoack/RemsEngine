@@ -173,9 +173,7 @@ class JsonReader(val data: InputStream) {
                     } else skipSomething(skipSpace())
                     next = skipSpace()
                 }
-                ',' -> {
-                    next = skipSpace()
-                }
+                ',' -> next = skipSpace()
                 else -> assert(next, '}', '"')
             }
         }

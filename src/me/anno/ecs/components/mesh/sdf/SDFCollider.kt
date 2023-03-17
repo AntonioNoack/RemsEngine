@@ -14,7 +14,6 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths.sq
 import me.anno.maths.geometry.MarchingCubes
-import me.anno.utils.types.Matrices.transformPosition2
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3d
@@ -115,9 +114,9 @@ class SDFCollider : Collider() {
             // draw last used triangles for debugging
             MarchingCubes.march(fx, fy, fz, field, 0f, AABBf(sdf.entity!!.aabb), false) { a, b, c ->
                 if (transform != null) {
-                    transform.transformPosition2(a)
-                    transform.transformPosition2(b)
-                    transform.transformPosition2(c)
+                    transform.transformPosition(a)
+                    transform.transformPosition(b)
+                    transform.transformPosition(c)
                 }
                 LineBuffer.addLine(a, b, color)
                 LineBuffer.addLine(b, c, color)

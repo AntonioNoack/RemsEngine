@@ -6,8 +6,6 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.mesh.assimp.StaticMeshesLoader.Companion.defaultFlags
 import me.anno.utils.LOGGER
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.toRadians

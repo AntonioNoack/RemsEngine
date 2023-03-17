@@ -47,7 +47,6 @@ import me.anno.utils.Warning.unused
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.none2
-import me.anno.utils.types.Matrices.distance
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Matrices.set2
 import org.apache.logging.log4j.LogManager

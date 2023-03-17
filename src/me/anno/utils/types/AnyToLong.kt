@@ -4,11 +4,15 @@ import org.joml.*
 
 object AnyToLong {
 
-    fun getLong(any: Any?, index: Int, defaultValue: Long = 0): Long {
+    fun getLong(any: Any?, defaultValue: Long): Long {
+        return any[0, defaultValue]
+    }
+
+    fun getLong(any: Any?, index: Int, defaultValue: Long): Long {
         return any[index, defaultValue]
     }
 
-    operator fun Any?.get(index: Int, defaultValue: Long = 0): Long {
+    operator fun Any?.get(index: Int, defaultValue: Long): Long {
         return when (this) {
             null -> defaultValue
             is Int -> when (index) {

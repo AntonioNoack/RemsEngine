@@ -7,11 +7,15 @@ object AnyToDouble {
 
     private val LOGGER = LogManager.getLogger(AnyToDouble::class)
 
-    fun getDouble(any: Any?, index: Int, defaultValue: Double = 0.0): Double {
+    fun getDouble(any: Any?, index: Int, defaultValue: Double): Double {
         return any[index, defaultValue]
     }
 
-    operator fun Any?.get(index: Int, defaultValue: Double = 0.0): Double {
+    fun getDouble(any: Any?, defaultValue: Double): Double {
+        return any[0, defaultValue]
+    }
+
+    operator fun Any?.get(index: Int, defaultValue: Double): Double {
         return when (this) {
             null -> defaultValue
             is Int -> when (index) {

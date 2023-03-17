@@ -10,11 +10,12 @@ import java.io.OutputStream
 object Base64 {
 
     private const val invalidCode: Byte = -1
-    private val base64ToCode = ByteArray(256) { invalidCode }
+    private val base64ToCode = ByteArray(256)
     private val codeToBase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".toByteArray()
 
     init {
 
+        base64ToCode.fill(invalidCode)
         for (index in codeToBase64.indices) {
             val letter = codeToBase64[index]
             base64ToCode[letter.toInt()] = index.toByte()

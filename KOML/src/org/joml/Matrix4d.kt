@@ -8260,6 +8260,27 @@ open class Matrix4d {
                 JomlMath.isFinite(m21) && JomlMath.isFinite(m22) && JomlMath.isFinite(m23) &&
                 JomlMath.isFinite(m30) && JomlMath.isFinite(m31) && JomlMath.isFinite(m32) && JomlMath.isFinite(m33)
 
+    fun mirror(pos: Vector3d, normal: Vector3d): Matrix4d {
+        val nx = normal.x
+        val ny = normal.y
+        val nz = normal.z
+        val xx = -2f * nx * nx
+        val xy = -2f * nx * ny
+        val xz = -2f * nx * nz
+        val yy = -2f * ny * ny
+        val yz = -2f * ny * nz
+        val zz = -2f * nz * nz
+        translate(pos)
+        mul(
+            1.0 + xx, xy, xz, 0.0,
+            xy, 1.0 + yy, yz, 0.0,
+            xz, yz, 1.0 + zz, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        )
+        translate(-pos.x, -pos.y, -pos.z)
+        return this
+    }
+
     companion object {
         @JvmStatic
         fun projViewFromRectangle(

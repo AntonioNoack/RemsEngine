@@ -16,7 +16,6 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.mesh.Shapes
-import me.anno.utils.types.Matrices.mirror
 import me.anno.utils.types.Matrices.mul2
 import org.joml.*
 import org.lwjgl.opengl.GL11C.glScissor

@@ -21,7 +21,7 @@ class InnerRarFile(
     override var signature: Signature? = null
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(data!!.inputStream(),null)
+        callback(data!!.inputStream(), null)
     }
 
     override fun inputStreamSync(): InputStream {

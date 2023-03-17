@@ -20,6 +20,7 @@ import me.anno.utils.Sleep.sleepABit10
 import me.anno.utils.Sleep.sleepShortly
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.titlecase
+import me.anno.utils.types.AnyToInt.getInt
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.util.*
@@ -198,10 +199,10 @@ object Spellchecking : CacheSection("Spellchecking") {
                                     val suggestionsJson = JsonReader(suggestionsString).readArray()
                                     val suggestionsList = suggestionsJson.map { suggestion ->
                                         suggestion as JsonObject
-                                        val start = suggestion.getInt("start")
-                                        val end = suggestion.getInt("end")
-                                        val message = suggestion.getString("message")!!
-                                        val shortMessage = suggestion.getString("shortMessage")!!
+                                        val start = getInt(suggestion["start"],0)
+                                        val end = getInt(suggestion["end"],0)
+                                        val message = suggestion["message"].toString()
+                                        val shortMessage = suggestion["shortMessage"].toString()
                                         val improvements = suggestion["suggestions"] as JsonArray
                                         val result = Suggestion(
                                             start, end, message, shortMessage,

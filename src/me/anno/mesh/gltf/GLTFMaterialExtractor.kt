@@ -1,9 +1,8 @@
 package me.anno.mesh.gltf
 
 import me.anno.io.files.FileReference
-import me.anno.io.json.JsonArray
-import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
+import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.InputStreams.skipN
 
 object GLTFMaterialExtractor {
@@ -26,16 +25,16 @@ object GLTFMaterialExtractor {
                     else -> false
                 }
             }
-        }["materials"] as? JsonArray ?: return null
+        }["materials"] as? List<*> ?: return null
         // sample: [{name=fox_material, pbrMetallicRoughness={baseColorTexture={index=0}, metallicFactor=0.0, roughnessFactor=0.6036471918720245}}]
         val result = HashMap<String, PBRMaterialData>(materialList.size)
         for (index in materialList.indices) {
             val material = materialList[index]
-            if (material is JsonObject) {
-                val name = material.getString("name") ?: continue
-                val pbrData = material["pbrMetallicRoughness"] as? JsonObject ?: continue
-                val metallic = pbrData.getFloat("metallicFactor", 1f)
-                val roughness = pbrData.getFloat("roughnessFactor", 1f)
+            if (material is HashMap<*, *>) {
+                val name = material["name"]?.toString() ?: continue
+                val pbrData = material["pbrMetallicRoughness"] as? HashMap<*, *> ?: continue
+                val metallic = getFloat(pbrData["metallicFactor"], 1f)
+                val roughness = getFloat(pbrData["roughnessFactor"], 1f)
                 result[name] = PBRMaterialData(metallic, roughness)
             }
         }

@@ -1,6 +1,7 @@
 package me.anno.io.json
 
-import me.anno.io.json.JsonNode.Companion.toJsonNode
+import me.anno.utils.types.Ints.toIntOrDefault
+import me.anno.utils.types.Ints.toLongOrDefault
 import java.io.InputStream
 import java.io.OutputStream
 import java.lang.reflect.Modifier
@@ -10,6 +11,64 @@ import java.lang.reflect.Modifier
  * idk how correct/complete it is...
  * */
 object ObjectMapper {
+
+    fun asInt(value: Any?, default: Int = 0): Int {
+        return when (value) {
+            null -> default
+            false -> 0
+            true -> 1
+            is Int -> value
+            is Long -> value.toInt()
+            is Float -> value.toInt()
+            is Double -> value.toInt()
+            else -> value.toString().toIntOrDefault(default)
+        }
+    }
+
+    fun asLong(value: Any?, default: Long = 0L): Long {
+        return when (value) {
+            null -> default
+            false -> 0
+            true -> 1
+            is Int -> value.toLong()
+            is Long -> value
+            is Float -> value.toLong()
+            is Double -> value.toLong()
+            else -> value.toString().toLongOrDefault(default)
+        }
+    }
+
+    fun asFloat(value: Any?, default: Float = 0f): Float {
+        return when (value) {
+            null -> default
+            false -> 0f
+            true -> 1f
+            is Int -> value.toFloat()
+            is Long -> value.toFloat()
+            is Float -> value
+            is Double -> value.toFloat()
+            else -> value.toString().toFloatOrNull() ?: default
+        }
+    }
+
+    fun asDouble(value: Any?, default: Double = 0.0): Double {
+        return when (value) {
+            null -> default
+            false -> 0.0
+            true -> 1.0
+            is Int -> value.toDouble()
+            is Long -> value.toDouble()
+            is Float -> value.toDouble()
+            is Double -> value
+            else -> value.toString().toDoubleOrNull() ?: default
+        }
+    }
+
+    fun asBool(value: Any?, default: Boolean = false): Boolean {
+        return asInt(value, if (default) 1 else 0) != 0
+    }
+
+    fun asText(value: Any?) = value.toString()
 
     fun writeJsonString(output: OutputStream, str: String) {
         output.write(
@@ -184,9 +243,9 @@ object ObjectMapper {
         return convertValue(JsonReader(value).readObject(), clazz)
     }
 
-    fun <V> convertValue(values: JsonNode, clazz: Class<V>): V {
+    fun <V> convertValue(values: JsonObject, clazz: Class<V>): V {
         val instance = clazz.getConstructor().newInstance()
-        clazz.declaredFields.forEach { field ->
+        for (field in clazz.declaredFields) {
             if (!Modifier.isStatic(field.modifiers)) {
                 if (!field.isAccessible) {
                     try {
@@ -196,7 +255,7 @@ object ObjectMapper {
                     }
                     // field.trySetAccessible()
                 }
-                val value = values.get(field.name)
+                val value = values[field.name]
                 if (value == null) {
                     field.set(instance, null)
                 } else {
@@ -210,24 +269,21 @@ object ObjectMapper {
         return instance
     }
 
-    fun getValue(type: Type, value: JsonNode): Any {
+    fun getValue(type: Type, value: Any?): Any {
         return if (type.arrayDimension > 0) {
             value as JsonArray
             when (type.arrayDimension) {
                 1 -> {
                     when (val clazzName = type.name) {
-                        "float" -> FloatArray(value.content.size) {
-                            value.content[it].toString().toFloat()
-                        }
+                        "float" -> FloatArray(value.size) { asFloat(value[it]) }
                         else -> {
                             val clazz = getClass(clazzName)
+
                             @Suppress("unchecked_cast")
-                            val array = java.lang.reflect.Array.newInstance(clazz, value.content.size) as Array<Any>
+                            val array = java.lang.reflect.Array.newInstance(clazz, value.size) as Array<Any>
                             val childType = type.getChild()
-                            val content = value.content
-                            for (index in content.indices) {
-                                val any = content[index]
-                                array[index] = getValue(childType, any.toJsonNode())
+                            for (index in value.indices) {
+                                array[index] = getValue(childType, value[index])
                             }
                             array
                         }
@@ -235,32 +291,31 @@ object ObjectMapper {
                 }
                 else -> {
                     val clazz = IntArray(0).javaClass // let's hope it doesn't matter ;)
+
                     @Suppress("unchecked_cast")
-                    val array = java.lang.reflect.Array.newInstance(clazz, value.content.size) as Array<Any>
+                    val array = java.lang.reflect.Array.newInstance(clazz, value.size) as Array<Any>
                     val childType = type.getChild()
-                    val content = value.content
-                    for (index in content.indices) {
-                        val any = content[index]
-                        array[index] = getValue(childType, any.toJsonNode())
+                    for (index in value.indices) {
+                        array[index] = getValue(childType, value[index])
                     }
                     array
                 }
             }
         } else {
             when (type.name) {
-                "java.lang.Integer" -> value.asInt()
-                "java.lang.Long" -> value.asLong()
-                "java.lang.Float" -> value.asFloat()
-                "java.lang.Double" -> value.asDouble()
-                "java.lang.String" -> value.asText()
-                "java.lang.Number" -> value.asDouble()
-                "java.lang.Boolean" -> value.asBool()
+                "java.lang.Integer" -> asInt(value)
+                "java.lang.Long" -> asLong(value)
+                "java.lang.Float" -> asFloat(value)
+                "java.lang.Double" -> asDouble(value)
+                "java.lang.String" -> asText(value)
+                "java.lang.Number" -> asDouble(value)
+                "java.lang.Boolean" -> asBool(value)
                 "java.util.List" -> {
                     value as JsonArray
                     val val2 = ArrayList<Any>()
                     val contentType = type.generics[0]
-                    for (it in value.content) {
-                        val2.add(getValue(contentType, it.toJsonNode()))
+                    for (it in value) {
+                        val2.add(getValue(contentType, it))
                     }
                     val2
                 }
@@ -268,15 +323,15 @@ object ObjectMapper {
                     value as JsonObject
                     val val2 = HashMap<String, Any>()
                     val contentType = type.generics[1]
-                    for ((key, val3) in value.map) {
-                        val2[key] = getValue(contentType, val3.toJsonNode())
+                    for ((key, val3) in value) {
+                        val2[key] = getValue(contentType, val3)
                     }
                     val2
                 }
                 else -> {
                     // (type)
                     val clazz = getClass(type.name)
-                    convertValue(value.toJsonNode(), clazz)
+                    convertValue(value as JsonObject, clazz)
                 }
             }
         }

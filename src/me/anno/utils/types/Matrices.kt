@@ -1,10 +1,8 @@
 package me.anno.utils.types
 
-import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f3s
 import org.joml.*
-import kotlin.math.sqrt
 
 @Suppress("unused")
 object Matrices {
@@ -182,57 +180,13 @@ object Matrices {
     }
 
     @JvmStatic
-    fun Matrix4d.mirror(p: Vector3d, normal: Vector3d): Matrix4d {
-        val nx = normal.x
-        val ny = normal.y
-        val nz = normal.z
-        val xx = -2f * nx * nx
-        val xy = -2f * nx * ny
-        val xz = -2f * nx * nz
-        val yy = -2f * ny * ny
-        val yz = -2f * ny * nz
-        val zz = -2f * nz * nz
-        translate(p)
-        mul(
-            1.0 + xx, xy, xz, 0.0,
-            xy, 1.0 + yy, yz, 0.0,
-            xz, yz, 1.0 + zz, 0.0,
-            0.0, 0.0, 0.0, 1.0
-        )
-        translate(-p.x, -p.y, -p.z)
-        return this
-    }
-
-    @JvmStatic
     fun Matrix3d.mul2(other: Matrix4d): Matrix3d {
-        mul(
-            Matrix3d(
-                other.m00, other.m01, other.m02,
-                other.m10, other.m11, other.m12,
-                other.m20, other.m21, other.m22
-            )
+        val tmp = JomlPools.mat3d.borrow().set(
+            other.m00, other.m01, other.m02,
+            other.m10, other.m11, other.m12,
+            other.m20, other.m21, other.m22
         )
-        return this
-    }
-
-    @JvmStatic
-    fun Matrix4x3d.distanceSquared(other: Matrix4x3d): Double {
-        return sq(m30 - other.m30, m31 - other.m31, m32 - other.m32)
-    }
-
-    @JvmStatic
-    fun Matrix4x3d.distanceSquared(other: Matrix4x3f): Double {
-        return sq(m30 - other.m30, m31 - other.m31, m32 - other.m32)
-    }
-
-    @JvmStatic
-    fun Matrix4x3d.distance(other: Matrix4x3d): Double {
-        return sqrt(distanceSquared(other))
-    }
-
-    @JvmStatic
-    fun Matrix4x3d.distance(other: Matrix4x3f): Double {
-        return sqrt(distanceSquared(other))
+        return mul(tmp)
     }
 
     @JvmStatic
@@ -253,15 +207,6 @@ object Matrices {
                 transformPosition(Vector3f(1f, 0f, 0f)).distanceSquared(other.transformPosition(Vector3f(1f, 0f, 0f))) +
                 transformPosition(Vector3f(0f, 1f, 0f)).distanceSquared(other.transformPosition(Vector3f(0f, 1f, 0f))) +
                 transformPosition(Vector3f(0f, 0f, 1f)).distanceSquared(other.transformPosition(Vector3f(0f, 0f, 1f)))
-    }
-
-    @JvmStatic
-    fun Matrix4x3d.transformPosition2(v: Vector3f, dst: Vector3f = v): Vector3f {
-        return dst.set(
-            m00 * v.x + m10 * v.y + m20 * v.z + m30,
-            m01 * v.x + m11 * v.y + m21 * v.z + m31,
-            m02 * v.x + m12 * v.y + m22 * v.z + m32
-        )
     }
 
     @JvmStatic

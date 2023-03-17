@@ -2,15 +2,20 @@ package me.anno.utils.types
 
 object Arrays {
 
+    @JvmStatic
     fun ByteArray?.resize(size: Int) =
         if (this == null || this.size != size) ByteArray(size) else this
 
+    @JvmStatic
     fun IntArray?.resize(size: Int) =
         if (this == null || this.size != size) IntArray(size) else this
 
+    @JvmStatic
     fun FloatArray?.resize(size: Int) =
         if (this == null || this.size != size) FloatArray(size) else this
 
+    @JvmStatic
+    @Suppress("unused")
     fun <V> Array<V>.joinToCompress(separator: String = ", ", prefix: String = "[", suffix: String = "]"): String {
         val builder = StringBuilder(prefix)
         if (isNotEmpty()) {
@@ -36,6 +41,7 @@ object Arrays {
     }
 
     @JvmStatic
+    @Suppress("unused")
     inline fun <reified V> Array<V>.subArray(i0: Int = 0, i1: Int = size): Array<V> {
         return Array(i1 - i0) { this[i0 + it] }
     }
@@ -96,12 +102,14 @@ object Arrays {
         } as List<V>
     }
 
+    @JvmStatic
     fun LongArray.rotateRight(shift: Int) {
         val end = LongArray(shift) { this[size - shift + it] }
         System.arraycopy(this, 0, this, shift, size - shift)
         System.arraycopy(end, 0, this, 0, shift)
     }
 
+    @JvmStatic
     inline fun <reified V> Array<V>.rotateRight(shift: Int) {
         val end = Array(shift) { this[size - shift + it] }
         System.arraycopy(this, 0, this, shift, size - shift)

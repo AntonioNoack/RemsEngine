@@ -2,6 +2,7 @@ package org.joml
 
 import org.joml.JomlMath.addSigns
 import org.joml.Runtime.f
+import org.joml.Vector3d.Companion.lengthSquared
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -1421,18 +1422,46 @@ open class Matrix4x3d {
     }
 
     fun transformPosition(v: Vector3d, dst: Vector3d = v): Vector3d {
+        val vx = v.x
+        val vy = v.y
+        val vz = v.z
         return dst.set(
-            m00 * v.x + m10 * v.y + m20 * v.z + m30,
-            m01 * v.x + m11 * v.y + m21 * v.z + m31,
-            m02 * v.x + m12 * v.y + m22 * v.z + m32
+            m00 * vx + m10 * vy + m20 * vz + m30,
+            m01 * vx + m11 * vy + m21 * vz + m31,
+            m02 * vx + m12 * vy + m22 * vz + m32
+        )
+    }
+
+    fun transformPosition(v: Vector3f, dst: Vector3f = v): Vector3f {
+        val vx = v.x.toDouble()
+        val vy = v.y.toDouble()
+        val vz = v.z.toDouble()
+        return dst.set(
+            m00 * vx + m10 * vy + m20 * vz + m30,
+            m01 * vx + m11 * vy + m21 * vz + m31,
+            m02 * vx + m12 * vy + m22 * vz + m32
         )
     }
 
     fun transformDirection(v: Vector3d, dst: Vector3d = v): Vector3d {
+        val vx = v.x
+        val vy = v.y
+        val vz = v.z
         return dst.set(
-            m00 * v.x + m10 * v.y + m20 * v.z,
-            m01 * v.x + m11 * v.y + m21 * v.z,
-            m02 * v.x + m12 * v.y + m22 * v.z
+            m00 * vx + m10 * vy + m20 * vz,
+            m01 * vx + m11 * vy + m21 * vz,
+            m02 * vx + m12 * vy + m22 * vz
+        )
+    }
+
+    fun transformDirection(v: Vector3f, dst: Vector3f = v): Vector3f {
+        val vx = v.x.toDouble()
+        val vy = v.y.toDouble()
+        val vz = v.z.toDouble()
+        return dst.set(
+            m00 * vx + m10 * vy + m20 * vz,
+            m01 * vx + m11 * vy + m21 * vz,
+            m02 * vx + m12 * vy + m22 * vz
         )
     }
 
@@ -5417,5 +5446,21 @@ open class Matrix4x3d {
         ) && JomlMath.isFinite(m22) && JomlMath.isFinite(m30) && JomlMath.isFinite(m31) && JomlMath.isFinite(
             m32
         )
+
+    fun distanceSquared(other: Matrix4x3d): Double {
+        return lengthSquared(m30 - other.m30, m31 - other.m31, m32 - other.m32)
+    }
+
+    fun distanceSquared(other: Matrix4x3f): Double {
+        return lengthSquared(m30 - other.m30, m31 - other.m31, m32 - other.m32)
+    }
+
+    fun distance(other: Matrix4x3d): Double {
+        return sqrt(distanceSquared(other))
+    }
+
+    fun distance(other: Matrix4x3f): Double {
+        return sqrt(distanceSquared(other))
+    }
 
 }

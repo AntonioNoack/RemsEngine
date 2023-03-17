@@ -18,6 +18,9 @@ import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.tuples.IntPair
+import me.anno.utils.types.AnyToDouble.getDouble
+import me.anno.utils.types.AnyToInt.getInt
+import me.anno.utils.types.AnyToLong.getLong
 import me.anno.utils.types.Strings.parseTime
 import me.saharnooby.qoi.QOIImage
 import net.sf.image4j.codec.ico.ICOReader
@@ -172,31 +175,31 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
         duration = format["duration"]?.toString()?.toDouble() ?: getDurationIfMissing(file)
 
         val audio = streams.firstOrNull {
-            (it as JsonObject)["codec_type"]?.asText().equals("audio", true)
+            (it as JsonObject)["codec_type"].toString().equals("audio", true)
         } as? JsonObject
 
         if (audio != null) {
             hasAudio = true
-            audioStartTime = audio.getDouble("start_time")
-            audioDuration = audio.getDouble("duration", duration)
-            audioSampleRate = audio.getInt("sample_rate", 20)
-            audioSampleCount = audio.getLong("duration_ts", (audioSampleRate * audioDuration).toLong())
-            audioChannels = audio.getInt("channels", 1)
+            audioStartTime = getDouble(audio["start_time"], 0.0)
+            audioDuration = getDouble(audio["duration"], duration)
+            audioSampleRate = getInt(audio["sample_rate"], 20)
+            audioSampleCount = getLong(audio["duration_ts"], (audioSampleRate * audioDuration).toLong())
+            audioChannels = getInt(audio["channels"], 1)
         }
 
         val video = streams.firstOrNull {
-            (it as JsonObject)["codec_type"]?.asText().equals("video", true)
+            (it as JsonObject)["codec_type"].toString().equals("video", true)
         } as? JsonObject
 
         if (video != null) {
 
             hasVideo = true
-            videoStartTime = video.getDouble("start_time", 0.0)
-            videoDuration = video.getDouble("duration", duration)
-            videoFrameCount = video.getInt("nb_frames", 0)
-            videoWidth = video.getInt("width")
-            videoHeight = video.getInt("height")
-            videoFPS = video.getString("r_frame_rate")?.parseFraction() ?: 30.0
+            videoStartTime = getDouble(video["start_time"], 0.0)
+            videoDuration = getDouble(video["duration"], duration)
+            videoFrameCount = getInt(video["nb_frames"], 0)
+            videoWidth = getInt(video["width"], 0)
+            videoHeight = getInt(video["height"], 0)
+            videoFPS = video["r_frame_rate"]?.toString()?.parseFraction() ?: 30.0
 
             if (videoFrameCount == 0) {
                 if (videoDuration > 0.0) {
