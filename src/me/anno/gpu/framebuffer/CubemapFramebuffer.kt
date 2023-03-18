@@ -71,7 +71,7 @@ class CubemapFramebuffer(
         }
     }
 
-    override fun getTextureI(index: Int): ITexture2D = textures[index]
+    override fun getTextureI(index: Int) = textures[index]
 
     override fun bindDirectly() = bind()
     override fun bindDirectly(w: Int, h: Int) {

@@ -3,14 +3,14 @@ package me.anno.utils.types
 object Ints {
 
     @JvmStatic
-    fun String?.toIntOrDefault(default: Int): Int {
+    fun CharSequence?.toIntOrDefault(default: Int): Int {
         val v = toLongOrDefault(default.toLong())
         val w = v.toInt()
         return if (w.toLong() == v) w else default
     }
 
     @JvmStatic
-    fun String?.toLongOrDefault(default: Long): Long {
+    fun CharSequence?.toLongOrDefault(default: Long): Long {
 
         if (this == null) return default
         val length = this.length

@@ -12,6 +12,7 @@ import kotlin.concurrent.thread
  * the os is important for some things, e.g., the allowed file names, and the home directory;
  * this object contains information about which OS/base-engine is used, and where user-related documents are located;
  * */
+@Suppress("unused")
 object OS {
 
     @JvmField

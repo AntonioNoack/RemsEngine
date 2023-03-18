@@ -4,7 +4,7 @@ import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
 import me.anno.utils.strings.StringHelper.shorten
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.utils.types.AnyToInt.getInt
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
@@ -71,7 +71,7 @@ class VideoData(
         // this is less efficient for large amounts of videos,
         // but it's better for fast loading of video, because the encoder is already loaded etc...
         @JvmStatic
-        val framesPerContainer get() = StudioBase.instance!!.gfxSettings.getInt("video.frames.perContainer")
+        val framesPerContainer get() = getInt(StudioBase.instance!!.gfxSettings["video.frames.perContainer"], 64)
     }
 
 }

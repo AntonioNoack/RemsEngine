@@ -13,28 +13,6 @@ import kotlin.math.PI
 object Floats {
 
     @JvmStatic
-    fun Any.anyToDouble(): Double {
-        return when (this) {
-            is Int -> this.toDouble()
-            is Long -> this.toDouble()
-            is Float -> this.toDouble()
-            is Double -> this
-            else -> throw RuntimeException()
-        }
-    }
-
-    @JvmStatic
-    fun Any.anyToFloat(): Float {
-        return when (this) {
-            is Int -> this.toFloat()
-            is Long -> this.toFloat()
-            is Float -> this
-            is Double -> this.toFloat()
-            else -> throw RuntimeException()
-        }
-    }
-
-    @JvmStatic
     fun FloatBuffer.put3(v: Vector2f) {
         put(v.x)
         put(v.y)

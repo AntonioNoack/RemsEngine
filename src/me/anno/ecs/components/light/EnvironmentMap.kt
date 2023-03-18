@@ -23,13 +23,11 @@ import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.maths.Maths.PIf
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.rotate2
-import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Quaterniond
-import org.joml.Vector3d
+import org.joml.*
 import kotlin.math.PI
 
 // todo these could be used as
@@ -242,6 +240,19 @@ class EnvironmentMap : LightComponentBase() {
                 3 -> rot3.rotateX(-PI * 0.5)
                 // 4 is already correct
                 5 -> rot3.rotateY(PI)
+            }
+        }
+
+        fun rotateForCubemap(rot3: Quaternionf, side: Int) {
+            // rotate based on direction
+            // POSITIVE_X, NEGATIVE_X, POSITIVE_Y, NEGATIVE_Y, POSITIVE_Z, NEGATIVE_Z
+            when (side) {
+                0 -> rot3.rotateY(+PIf * 0.5f)
+                1 -> rot3.rotateY(-PIf * 0.5f)
+                2 -> rot3.rotateX(+PIf * 0.5f)
+                3 -> rot3.rotateX(-PIf * 0.5f)
+                // 4 is already correct
+                5 -> rot3.rotateY(PIf)
             }
         }
 

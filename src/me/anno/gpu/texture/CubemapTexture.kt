@@ -15,7 +15,7 @@ import java.nio.ByteBuffer
 // can be used e.g. for game engine for environment & irradiation maps
 // todo multi-sampled environment maps, because some gpus may handle them just fine :3
 
-class CubemapTexture(
+open class CubemapTexture(
     var name: String,
     var size: Int,
     val samples: Int
@@ -90,7 +90,7 @@ class CubemapTexture(
 
     @Suppress("unused")
     fun createRGB(sides: List<ByteArray>) {
-        beforeUpload(6 * 3, sides[0].size)
+        beforeUpload(3, sides[0].size)
         val size = size
         val byteBuffer = Texture2D.bufferPool[size * size * 3, false, false]
         val internalFormat = GL_RGB8
@@ -108,7 +108,7 @@ class CubemapTexture(
     }
 
     fun createRGBA(sides: List<ByteArray>) {
-        beforeUpload(6 * 4, sides[0].size)
+        beforeUpload(4, sides[0].size)
         val size = size
         val byteBuffer = Texture2D.bufferPool[size * size * 4, false, false]
         val internalFormat = GL_RGBA8

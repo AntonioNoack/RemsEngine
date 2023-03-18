@@ -158,9 +158,7 @@ object ScreenSpaceReflections {
                     "       }\n" +
                     "   }\n" +
 
-                    "   if(hit0 == 0){\n" +
-                    "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
-                    // debug color
+                    "   if(hit0 == 0) {\n" +
                     "       vec4 color2 = getSkyColor1(pivot) * vec4(texture(finalColor, uv).rgb, 1.0);\n" +
                     "       color0 = mix(color0, color2.rgb, min(reflectivity * color2.a * strength, 1.0));\n" +
                     "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +

@@ -88,15 +88,16 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     var snapCenter = false
 
     var snapSize = 1.0
+    val drawModeInput = EnumInput(
+        "Draw Mode", "", view.renderMode.name, RenderMode.values.map { NameDesc(it.name) }, style
+    ).setChangeListener { _, index, _ ->
+        view.renderMode = RenderMode.values[index]
+    }
 
     init {
         // todo debugging view selection
         val topLeft = PanelListX(style)
-        topLeft.add(EnumInput(
-            "Draw Mode", "", view.renderMode.name, RenderMode.values.map { NameDesc(it.name) }, style
-        ).setChangeListener { _, index, _ ->
-            view.renderMode = RenderMode.values[index]
-        })
+        topLeft.add(drawModeInput)
         topLeft.add(TextButton("Play", "Start the game", false, style).addLeftClickListener {
             ECSSceneTabs.currentTab?.play()
             // todo also set this instance text to "Back"
@@ -128,6 +129,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     override fun onUpdate() {
         super.onUpdate()
         if (dragged != null) invalidateDrawing() // might be displayable
+        drawModeInput.setValue(NameDesc(view.renderMode.name), false)
     }
 
     override fun fill(pipeline: Pipeline) {

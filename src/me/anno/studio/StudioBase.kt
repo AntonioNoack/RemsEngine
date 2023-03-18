@@ -43,9 +43,6 @@ import java.util.concurrent.PriorityBlockingQueue
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-// which parts of the engine can be split into modules? would be good for compile times and for shipping small, compact apps (e.g. on the web)
-// todo generate dependency graph visualization/computation? :)
-
 /**
  * base class for UI setup;
  * manages audio, graphics, settings, game loop, ui
@@ -370,8 +367,6 @@ abstract class StudioBase(
         private val LOGGER = LogManager.getLogger(StudioBase::class.java)
 
         var dragged: IDraggable? = null
-
-        // val defaultWindowStack get() = instance?.windowStack
 
         /**
          * schedules a task that will be executed on the main loop

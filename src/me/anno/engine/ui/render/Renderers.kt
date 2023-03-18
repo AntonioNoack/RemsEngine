@@ -85,7 +85,7 @@ object Renderers {
     val cheapRenderer = overdrawRenderer
 
     @JvmField
-    val pbrRenderer = object : Renderer("pbr") {
+    val pbrRenderer = object : Renderer("pbr") {// todo renderer depends on sky...
         override fun getPostProcessing(): ShaderStage {
             return ShaderStage(
                 "pbr", listOf(
@@ -142,6 +142,8 @@ object Renderers {
                         "   vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
                         "   bool hasSpecular = dot(specularColor,vec3(1.0)) > 0.001;\n" +
                         "   bool hasDiffuse = dot(diffuseColor,vec3(1.0)) > 0.001;\n" +
+                        "   vec3 lightPosition, lightDirWS, localNormal, effectiveSpecular, effectiveDiffuse;\n" +
+                        "   float NdotL = 0.0;\n" + // normal dot light
                         "   if(hasDiffuse || hasSpecular){\n" +
                         specularBRDFv2NoDivInlined2Start +
                         "       for(int i=0;i<numberOfLights;i++){\n" +
@@ -153,10 +155,8 @@ object Renderers {
                         "           vec4 data2 = shadowData[i];\n" +
                         "           vec3 lightColor = data0.rgb;\n" +
                         "           int lightType = int(data0.a);\n" +
-                        "           vec3 lightPosition, lightDirWS, localNormal, effectiveSpecular, effectiveDiffuse;\n" +
                         "           lightDirWS = effectiveDiffuse = effectiveSpecular = vec3(0.0);\n" + // making Nvidia GPUs happy
                         "           localNormal = normalize(mat3x3(WStoLightSpace) * finalNormal);\n" +
-                        "           float NdotL = 0.0;\n" + // normal dot light
                         "           int shadowMapIdx0 = int(data2.r);\n" +
                         "           int shadowMapIdx1 = int(data2.g);\n" +
                         // local coordinates of the point in the light "cone"
@@ -178,10 +178,27 @@ object Renderers {
                         "           NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
                         "           diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
                         "       }\n" +
+
+
                         specularBRDFv2NoDivInlined2End +
                         "   }\n" +
+
+                        // respect reflectionMap, todo multiple samples?
+                        // todo base LOD on roughness (and maybe metallic)
+                        // respect sky -> sky can be baked as reflectionMap, if we find none :)
                         "   finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                         "   finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
+
+                        "   if(dot(finalPosition,finalPosition) < 1e38){\n" +
+                        "       float reflectivity = finalMetallic * (1.0 - finalRoughness);\n" +
+                        "       float maskSharpness = 2.0;\n" + // shouldn't be hardcoded
+                        "       reflectivity = (reflectivity - 1.0) * maskSharpness + 1.0;\n" +
+                        "       if(reflectivity > 0.0){\n" +
+                        "           vec3 skyColor = texture(reflectionMap, reflect(V, finalNormal)).rgb;\n" +
+                        "           finalColor = mix(finalColor, skyColor, reflectivity);\n" +
+                        "       }\n" +
+                        "   }\n" +
+
                         "#endif\n" +
                         "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
                         "   finalResult = vec4(finalColor, finalAlpha);\n"
@@ -273,8 +290,8 @@ object Renderers {
                         "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
                         "   float NdotL = dot(finalNormal, lightDirection);\n" +
                         "   if(NdotL > 0.0){\n" +
-                        "       vec3 H = normalize(V + lightDirection);\n" +
-                        "       if(hasSpecular){\n" +
+                        "       if(hasSpecular) {\n" +
+                        "           vec3 H = normalize(V + lightDirection);\n" +
                         specularBRDFv2NoDivInlined2 +
                         "           specularLight += lightColor * computeSpecularBRDF;\n" +
                         "       }\n" +

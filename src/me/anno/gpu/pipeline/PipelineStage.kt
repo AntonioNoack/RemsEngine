@@ -28,13 +28,17 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
+import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.io.Saveable
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.set2
 import org.joml.AABBd
 import org.joml.Matrix4x3f
@@ -230,9 +234,24 @@ class PipelineStage(
         }
     }
 
+    fun setupReflectionMap(pipeline: Pipeline, shader: Shader, aabb: AABBd) {
+        val envMapSlot = shader.getTextureIndex("reflectionMap")
+        if (envMapSlot >= 0) {
+            // find closest environment map
+            // todo should respect size more...
+            val pos = JomlPools.vec3d.borrow().set(aabb.avgX(), aabb.avgY(), aabb.avgZ())
+            val map = pipeline.lightPseudoStage.environmentMaps.minByOrNull {
+                it.transform!!.distanceSquaredGlobally(pos)
+            }
+            val bakedSkyBox = (map?.texture ?: pipeline.bakedSkyBox)?.getTexture0() ?: blackCube
+            bakedSkyBox.bindTrulyNearest(envMapSlot)
+        }
+    }
+
     fun setupLights(pipeline: Pipeline, shader: Shader, aabb: AABBd, receiveShadows: Boolean) {
 
         setupPlanarReflection(pipeline, shader, aabb)
+        setupReflectionMap(pipeline, shader, aabb)
 
         val time = Engine.gameTime
         val numberOfLightsPtr = shader["numberOfLights"]
@@ -355,10 +374,18 @@ class PipelineStage(
                                 }
                             }
                         }
+                        // bind the other textures to avoid undefined behaviour, even if we don't use them
+                        for (i in planarSlot until Renderers.MAX_PLANAR_LIGHTS) {
+                            TextureLib.depthTexture.bindTrulyNearest(planarIndex0 + i)
+                        }
+                        for (i in cubicSlot until Renderers.MAX_CUBEMAP_LIGHTS) {
+                            TextureLib.depthCube.bindTrulyNearest(cubicIndex0 + i)
+                        }
                     }
                     buffer.position(0)
                     shader.v4Array(shadowData, buffer)
                 }
+
             }
         }
 

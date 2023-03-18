@@ -166,9 +166,7 @@ object Color {
     }
 
     @JvmStatic
-    fun Vector3f.toRGB() = toRGB(255)
-    @JvmStatic
-    fun Vector3f.toRGB(scale: Int): Int {
+    fun Vector3f.toRGB(scale: Int = 255): Int {
         return clamp((x * scale).toInt(), 0, 255).shl(16) or
                 clamp((y * scale).toInt(), 0, 255).shl(8) or
                 clamp((z * scale).toInt(), 0, 255) or
@@ -176,9 +174,7 @@ object Color {
     }
 
     @JvmStatic
-    fun Vector4f.toARGB() = toARGB(255)
-    @JvmStatic
-    fun Vector4f.toARGB(scale: Int): Int {
+    fun Vector4f.toARGB(scale: Int = 255): Int {
         return clamp((x * scale).toInt(), 0, 255).shl(16) or
                 clamp((y * scale).toInt(), 0, 255).shl(8) or
                 clamp((z * scale).toInt(), 0, 255) or
@@ -186,9 +182,7 @@ object Color {
     }
 
     @JvmStatic
-    fun Vector3d.toRGB() = toRGB(255)
-    @JvmStatic
-    fun Vector3d.toRGB(scale: Int): Int {
+    fun Vector3d.toRGB(scale: Int = 255): Int {
         return clamp((x * scale).toInt(), 0, 255).shl(16) or
                 clamp((y * scale).toInt(), 0, 255).shl(8) or
                 clamp((z * scale).toInt(), 0, 255) or
@@ -196,9 +190,7 @@ object Color {
     }
 
     @JvmStatic
-    fun Vector4d.toARGB() = toARGB(255)
-    @JvmStatic
-    fun Vector4d.toARGB(scale: Int): Int {
+    fun Vector4d.toARGB(scale: Int = 255): Int {
         return clamp((x * scale).toInt(), 0, 255).shl(16) or
                 clamp((y * scale).toInt(), 0, 255).shl(8) or
                 clamp((z * scale).toInt(), 0, 255) or

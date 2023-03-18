@@ -7,6 +7,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
+import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
@@ -58,7 +59,7 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.DrawTextures.drawTextureAlpha
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.*
-import me.anno.gpu.pipeline.LightPipelineStage
+import me.anno.gpu.pipeline.LightShaders.combineLighting
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
@@ -72,6 +73,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input.isKeyDown
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.roundDiv
@@ -207,6 +209,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         baseNBuffer8.destroy()
         editorCameraNode.destroy()
         fsr22.destroy()
+        pipeline.bakedSkyBox?.destroy()
+        pipeline.bakedSkyBox = null
     }
 
     open fun updateEditorCameraTransform() {
@@ -381,6 +385,38 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             else -> base1Buffer
         }
 
+        if (renderer == pbrRenderer) {
+            val sky = pipeline.skyBox
+            if (sky != null) {
+                val bsb = pipeline.bakedSkyBox ?: CubemapFramebuffer(
+                    "skyBox", 256, 1,
+                    arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
+                )
+                val cameraMatrix = Matrix4f()
+                val skyRot = Quaternionf()
+                bsb.draw(rawAttributeRenderers[DeferredLayerType.EMISSIVE]) { side ->
+                    // draw sky
+                    // could be optimized to draw a single triangle instead of a full cube for each side
+                    EnvironmentMap.rotateForCubemap(skyRot.identity(), side)
+                    val shader = (sky.shader ?: pbrModelShader).value
+                    shader.use()
+                    shader.v1i("hasVertexColors",0)
+                    Perspective.setPerspective(
+                        cameraMatrix, PIf * 0.5f, 1f,
+                        0.1f, 10f, 0f, 0f
+                    )
+                    cameraMatrix.rotate(skyRot)
+                    shader.m4x4("transform", cameraMatrix)
+                    sky.material.bind(shader)
+                    sky.draw(shader, 0)
+                }
+                pipeline.bakedSkyBox = bsb
+            } else {
+                pipeline.bakedSkyBox?.destroy()
+                pipeline.bakedSkyBox = null
+            }
+        }
+
         drawScene(
             x0, y0, x1, y1,
             camera0, camera1, blending,
@@ -544,7 +580,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         useFrame(w, h, true, dstBuffer0) {
                             // don't write depth
                             GFXState.depthMask.use(false) {
-                                LightPipelineStage.combineLighting(
+                                combineLighting(
                                     deferred, true, pipeline.ambient,
                                     buffer, lightBuffer, ssao
                                 )
@@ -673,7 +709,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         useFrame(illuminated, copyRenderer) {
                             // apply lighting; don't write depth
                             GFXState.depthMask.use(false) {
-                                LightPipelineStage.combineLighting(
+                                combineLighting(
                                     deferred, hdr, pipeline.ambient,
                                     buffer, lightBuffer, whiteTexture
                                 )
@@ -957,7 +993,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
             val illuminated = FBStack["", w, h, 4, true, buffer.samples, false]
             useFrame(illuminated, copyRenderer) { // apply post-processing
-                LightPipelineStage.combineLighting(
+                combineLighting(
                     deferred, false, pipeline.ambient,
                     buffer, lightBuffer, ssao
                 )
@@ -989,7 +1025,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                 // don't write depth
                 GFXState.depthMask.use(false) {
-                    LightPipelineStage.combineLighting(
+                    combineLighting(
                         deferred, applyToneMapping = true, pipeline.ambient,
                         buffer, lightBuffer, ssao
                     )

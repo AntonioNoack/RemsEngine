@@ -1,5 +1,6 @@
 package me.anno.utils.types
 
+import me.anno.utils.types.Ints.toLongOrDefault
 import org.joml.*
 
 object AnyToLong {
@@ -67,6 +68,7 @@ object AnyToLong {
                 3 -> w.toLong()
                 else -> defaultValue
             }
+            is CharSequence -> toLongOrDefault(defaultValue)
             else -> defaultValue
         }
     }

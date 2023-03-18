@@ -24,6 +24,7 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -80,6 +81,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
     val ambient = Vector3f()
 
     var skyBox: SkyBox? = null
+    var bakedSkyBox: CubemapFramebuffer? = null
 
     val planarReflections = ArrayList<PlanarReflection>()
 
