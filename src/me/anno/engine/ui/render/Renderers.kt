@@ -191,11 +191,11 @@ object Renderers {
 
                         "   if(dot(finalPosition,finalPosition) < 1e38){\n" +
                         "       float reflectivity = finalMetallic * (1.0 - finalRoughness);\n" +
-                        "       float maskSharpness = 2.0;\n" + // shouldn't be hardcoded
+                        "       float maskSharpness = 1.0;\n" + // shouldn't be hardcoded
                         "       reflectivity = (reflectivity - 1.0) * maskSharpness + 1.0;\n" +
                         "       if(reflectivity > 0.0){\n" +
                         "           vec3 skyColor = texture(reflectionMap, reflect(V, finalNormal)).rgb;\n" +
-                        "           finalColor = mix(finalColor, skyColor, reflectivity);\n" +
+                        "           finalColor = mix(finalColor, skyColor, sqrt(reflectivity));\n" +
                         "       }\n" +
                         "   }\n" +
 

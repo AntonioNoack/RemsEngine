@@ -13,7 +13,7 @@ import me.anno.utils.Color.white4
 class SSREffect : ToneMappedEffect() {
 
     @Range(0.0, 1e3)
-    var maskSharpness = 2f
+    var maskSharpness = 1f
 
     @Range(0.0, 1e38)
     var wallThickness = 0.2f
