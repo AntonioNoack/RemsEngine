@@ -38,6 +38,7 @@ class SSREffect : ToneMappedEffect() {
                 buffer.depthTexture!!,
                 layers[DeferredLayerType.NORMAL]!!.getTexture0(),
                 layers[DeferredLayerType.COLOR]!!.getTexture0(),
+                layers[DeferredLayerType.EMISSIVE]!!.getTexture0(),
                 layers[DeferredLayerType.METALLIC]!!.getTexture0(),
                 format.findMapping(DeferredLayerType.METALLIC)!!,
                 layers[DeferredLayerType.ROUGHNESS]!!.getTexture0(),

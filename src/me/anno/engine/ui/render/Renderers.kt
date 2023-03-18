@@ -137,6 +137,7 @@ object Renderers {
                         "   vec3 V = normalize(-finalPosition);\n" +
                         // light calculations
                         "   float NdotV = abs(dot(finalNormal,V));\n" +
+                        "   vec3 finalColor0 = finalColor;\n" +
                         "   vec3 diffuseColor = finalColor * (1.0 - finalMetallic);\n" +
                         "   vec3 specularColor = finalColor * finalMetallic;\n" +
                         "   vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
@@ -194,7 +195,7 @@ object Renderers {
                         "       float maskSharpness = 1.0;\n" + // shouldn't be hardcoded
                         "       reflectivity = (reflectivity - 1.0) * maskSharpness + 1.0;\n" +
                         "       if(reflectivity > 0.0){\n" +
-                        "           vec3 skyColor = texture(reflectionMap, reflect(V, finalNormal)).rgb;\n" +
+                        "           vec3 skyColor = 0.15 * finalEmissive + finalColor0 * texture(reflectionMap, reflect(V, finalNormal)).rgb;\n" +
                         "           finalColor = mix(finalColor, skyColor, sqrt(reflectivity));\n" +
                         "       }\n" +
                         "   }\n" +

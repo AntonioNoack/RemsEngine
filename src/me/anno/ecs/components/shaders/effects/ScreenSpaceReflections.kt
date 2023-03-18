@@ -27,6 +27,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.TextureLib.blackTexture
 import org.joml.Matrix4f
 import org.joml.Vector4f
 
@@ -43,6 +44,7 @@ object ScreenSpaceReflections {
             Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.S2D, "finalColor"),
+            Variable(GLSLType.S2D, "finalEmissive"),
             Variable(GLSLType.S2D, "finalIlluminated"),
             Variable(GLSLType.S2D, "finalDepth"),
             Variable(GLSLType.S2D, "finalNormal"),
@@ -157,9 +159,13 @@ object ScreenSpaceReflections {
                     "       }\n" +
                     "   }\n" +
 
+                    "   vec4 skyAtPivot = getSkyColor1(pivot);\n" +
+                    "   vec4 baseColor = vec4(\n" +
+                    "       texture(finalColor, uv).rgb +\n" +
+                    "       texture(finalEmissive, uv).rgb * 0.15, 1.0);\n" +
                     "   if(hit0 == 0) {\n" +
-                    "       vec4 color2 = getSkyColor1(pivot) * vec4(texture(finalColor, uv).rgb, 1.0);\n" +
-                    "       color0 = mix(color0, color2.rgb, min(reflectivity * color2.a * strength, 1.0));\n" +
+                    "       vec4 skyColor = skyAtPivot * baseColor;\n" +
+                    "       color0 = mix(color0, skyColor.rgb, min(reflectivity * skyColor.a * strength, 1.0));\n" +
                     "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     "       return;\n" +
                     "   }\n" +
@@ -190,9 +196,9 @@ object ScreenSpaceReflections {
                     "   vec3 distanceDelta = bestPositionTo - positionFrom;\n" +
                     "   float distanceSq = dot(distanceDelta, distanceDelta);\n" +
                     "   if(distanceSq >= maxDistanceSq || bestUV.x < 0.0 || bestUV.x > 1.0 || bestUV.y < 0.0 || bestUV.y > 1.0){\n" +
+                    "       vec4 skyColor = skyAtPivot * baseColor;\n" +
+                    "       color0 = mix(color0, skyColor.rgb, min(reflectivity * skyColor.a * strength, 1.0));\n" +
                     "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
-                    // debug color
-                    // "       fragColor = vec4(0,0,0,1);\n" +
                     "       return;\n" +
                     "   }\n" +
 
@@ -205,13 +211,10 @@ object ScreenSpaceReflections {
 
                     // reflected position * base color of mirror (for golden reflections)
                     "   vec3 color1 = texture(finalIlluminated, bestUV).rgb;\n" +
-                    "   vec4 sky = getSkyColor1(pivot);\n" +
-                    "   vec4 color2 = mix(sky, vec4(color1,1.0), visibility) * vec4(texture(finalColor, uv).rgb, 1.0);\n" +
-                    "   color0 = mix(color0, color2.rgb, min(reflectivity * color2.a * strength, 1.0));\n" +
+                    "   vec4 skyColor = mix(skyAtPivot, vec4(color1,1.0), visibility) * baseColor;\n" +
+                    "   color0 = mix(color0, skyColor.rgb, min(reflectivity * skyColor.a * strength, 1.0));\n" +
                     "   fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
-                    // "   fragColor = vec4(0,0,visibility,1);\n" +
-                    // "   fragColor = vec4(bestUV, visibility, 1);\n" +
-                    "}"
+                    "}\n"
         )
     }
 
@@ -257,14 +260,18 @@ object ScreenSpaceReflections {
         val roughnessLayer = deferred.findLayer(DeferredLayerType.ROUGHNESS) ?: return null
         val roughnessMask = roughnessLayer.mapping
         val normalTexture = deferred.findTexture(buffer, DeferredLayerType.NORMAL) ?: return null
+        val emissiveTexture = deferred.findTexture(buffer, DeferredLayerType.EMISSIVE) ?: blackTexture
         val colorTexture = deferred.findTexture(buffer, DeferredLayerType.COLOR) ?: return null
+        val metallic = deferred.findTexture(buffer, metallicLayer)
+        val roughness = deferred.findTexture(buffer, roughnessLayer)
         return compute(
             buffer.depthTexture!!,
             normalTexture,
             colorTexture,
-            deferred.findTexture(buffer, metallicLayer),
+            emissiveTexture,
+            metallic,
             metallicMask,
-            deferred.findTexture(buffer, roughnessLayer),
+            roughness,
             roughnessMask,
             illuminated,
             transform,
@@ -281,6 +288,7 @@ object ScreenSpaceReflections {
         depth: ITexture2D,
         normal: ITexture2D,
         color: ITexture2D,
+        emissive: ITexture2D,
         metallic: ITexture2D,
         metallicMask: String,
         roughness: ITexture2D,
@@ -324,6 +332,7 @@ object ScreenSpaceReflections {
             bindDepthToPosition(shader)
             illuminated.bind(shader, "finalIlluminated", n, c)
             roughness.bind(shader, "finalRoughness", n, c)
+            emissive.bind(shader, "finalEmissive", n, c)
             metallic.bind(shader, "finalMetallic", n, c)
             normal.bind(shader, "finalNormal", n, c)
             depth.bind(shader, "finalDepth", n, c)
