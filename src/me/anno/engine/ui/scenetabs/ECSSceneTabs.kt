@@ -41,15 +41,15 @@ object ECSSceneTabs : ScrollPanelX(style) {
         content.spacing = 4
     }
 
-    fun open(reference: FileReference, playMode: PlayMode): ECSSceneTab {
+    fun open(reference: FileReference, playMode: PlayMode, setActive: Boolean): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == reference }
         return if (opened != null) {
-            open(opened)
+            open(opened, setActive)
             opened
         } else {
             val tab = ECSSceneTab(reference, playMode, findName(reference))
             content += tab
-            open(tab)
+            open(tab, setActive)
             tab
         }
     }
@@ -57,7 +57,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
     fun add(file: FileReference, classNameIfNull: String, playMode: PlayMode): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == file }
         return if (opened == null) {
-            val tab = ECSSceneTab(file, classNameIfNull, playMode, findName(file))
+            val tab = ECSSceneTab(file, playMode, findName(file))
             content += tab
             tab
         } else opened
@@ -101,16 +101,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
         }
     }
 
-    fun open(file: FileReference, classNameIfNull: String = "Entity", playMode: PlayMode) {
-        for (tab in children3) {
-            if (tab.file == file && tab.playMode == playMode) {
-                focus(tab)
-                return
-            }
-        }
-        open(ECSSceneTab(file, classNameIfNull, playMode))
-    }
-
     fun focus(tab: ECSSceneTab) {
 
         synchronized(this) {
@@ -136,7 +126,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     val project get() = (StudioBase.instance as? RemsEngine)?.currentProject
 
-    fun open(tab: ECSSceneTab) {
+    fun open(tab: ECSSceneTab, setActive: Boolean) {
 
         if (tab.file.nullIfUndefined() == null) {
             throw RuntimeException("Cannot open InvalidRef as tab on prefab ${System.identityHashCode(tab.prefab)}")
@@ -152,12 +142,15 @@ object ECSSceneTabs : ScrollPanelX(style) {
         }
 
         if (tab.parent == null) tab.parent = this
-        if (!tab.isHovered) tab.scrollTo()
 
-        val prefab = tab.inspector.prefab
-        updatePrefab(prefab)
+        if (setActive) {
+            if (!tab.isHovered) tab.scrollTo()
 
-        focus(tab)
+            val prefab = tab.inspector.prefab
+            updatePrefab(prefab)
+
+            focus(tab)
+        }
 
     }
 
@@ -193,7 +186,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         }
     }*/
 
-    fun close(sceneTab: ECSSceneTab) {
+    fun close(sceneTab: ECSSceneTab, setNextActive: Boolean) {
         if (currentTab === sceneTab) {
             if (children2.size == 1) {
                 LOGGER.warn(Dict["Cannot close last element", "ui.sceneTabs.cannotCloseLast"])
@@ -201,7 +194,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
             } else {
                 val index = sceneTab.indexInParent
                 sceneTab.removeFromParent()
-                open(children2.getOrPrevious(index) as ECSSceneTab)
+                open(children2.getOrPrevious(index) as ECSSceneTab, setNextActive)
             }
         } else sceneTab.removeFromParent()
         val project = project
@@ -220,7 +213,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         try {
-            open(files.first(), "Entity", PlayMode.EDITING)
+            open(files.first(), PlayMode.EDITING, true)
         } catch (e: Exception) {
             e.printStackTrace()
         }

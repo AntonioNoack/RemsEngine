@@ -196,7 +196,7 @@ object Renderers {
                         "       reflectivity = (reflectivity - 1.0) * maskSharpness + 1.0;\n" +
                         "       if(reflectivity > 0.0){\n" +
                         "           vec3 skyColor = 0.15 * finalEmissive + finalColor0 * texture(reflectionMap, reflect(V, finalNormal)).rgb;\n" +
-                        "           finalColor = mix(finalColor, skyColor, sqrt(reflectivity));\n" +
+                        "           finalColor = mix(finalColor, skyColor, sqrt(reflectivity) * (1.0 - finalOcclusion));\n" +
                         "       }\n" +
                         "   }\n" +
 

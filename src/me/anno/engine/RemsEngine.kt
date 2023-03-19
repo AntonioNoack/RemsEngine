@@ -48,6 +48,8 @@ import org.joml.Matrix4f
 //  - branching maps & branching results
 //  - go into/out of/step
 
+// todo : link files, which then get index for choosing meshes, skeletons, animations and such :)
+
 
 // todo graphics: billboards: light only / override color (decals)
 // todo rendered when point is visible, or always (for nice light camera-bug effects, e.g. stars with many blades)

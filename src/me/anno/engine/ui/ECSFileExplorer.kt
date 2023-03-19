@@ -40,7 +40,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         // open the file
         val prefab = PrefabCache[file]
         if (prefab != null) {
-            ECSSceneTabs.open(file, PlayMode.EDITING)
+            ECSSceneTabs.open(file, PlayMode.EDITING, true)
         } else {
             switchTo(file)
             // msg(NameDesc("Could not open prefab!"))
@@ -306,7 +306,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
 
         init {
             val openAsScene = FileExplorerOption(openAsSceneDesc) { p, file ->
-                ECSSceneTabs.open(file, PlayMode.EDITING)
+                ECSSceneTabs.open(file, PlayMode.EDITING, true)
                 invalidateFileExplorers(p)
             }
             fileOptions.add(openAsScene)

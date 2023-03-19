@@ -74,8 +74,8 @@ object ComponentUI {
     private val LOGGER = LogManager.getLogger(ComponentUI::class)
 
     val fileInputRightClickOptions = listOf(
-        // todo create menu of files with same type in project, e.g. image files, meshes or sth like that
-        FileExplorerOption(NameDesc("Open Scene")) { _, it -> ECSSceneTabs.open(it, "Entity", PlayMode.EDITING) },
+        // todo create menu of files with same type in project, e.g., image files, meshes or sth like that
+        FileExplorerOption(NameDesc("Open Scene")) { _, it -> ECSSceneTabs.open(it, PlayMode.EDITING, true) },
         // create mutable scene, = import
         FileExplorerOption(NameDesc("Import")) { panel, it ->
             val prefab = PrefabCache[it]

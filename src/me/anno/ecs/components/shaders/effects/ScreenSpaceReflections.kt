@@ -232,7 +232,7 @@ object ScreenSpaceReflections {
     ) = compute(
         buffer, illuminated, deferred, transform,
         skyBox, skyColor,
-        1f, 2f, 0.2f, 10, 8f,
+        1f, 1f, 0.2f, 10, 8f,
         applyToneMapping, dst
     )
 
@@ -247,7 +247,7 @@ object ScreenSpaceReflections {
         skyBox: SkyBox?,
         skyColor: Vector4f,
         strength: Float = 1f,
-        maskSharpness: Float = 2f,
+        maskSharpness: Float = 1f,
         wallThickness: Float = 0.2f,
         fineSteps: Int = 10, // 10 are enough, if there are only rough surfaces
         maxDistance: Float = 8f,
@@ -298,7 +298,7 @@ object ScreenSpaceReflections {
         skyBox: SkyBox?,
         skyColor: Vector4f,
         strength: Float = 1f,
-        maskSharpness: Float = 2f,
+        maskSharpness: Float = 1f,
         wallThickness: Float = 0.2f,
         fineSteps: Int = 10, // 10 are enough, if there are only rough surfaces
         maxDistance: Float = 8f,

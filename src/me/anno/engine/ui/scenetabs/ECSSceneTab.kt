@@ -53,18 +53,12 @@ class ECSSceneTab(
 
     constructor(
         file: FileReference,
-        classNameIfNull: String,
         playMode: PlayMode,
-        name: String = findName(file)
-    ) : this(PrefabInspector(file, classNameIfNull), file, playMode, name)
-
-    constructor(
-        file: FileReference, playMode: PlayMode,
         name: String = findName(file)
     ) : this(PrefabInspector(file), file, playMode, name)
 
     init {
-        LOGGER.info("Created tab with ${inspector.prefab.countTotalChanges(true)}+ changes")
+        // LOGGER.info("Created tab with ${inspector.prefab.countTotalChanges(true)}+ changes")
         padding.set(6, 2, 6, 2)
     }
 
@@ -205,7 +199,7 @@ class ECSSceneTab(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
-            button.isLeft -> ECSSceneTabs.open(this)
+            button.isLeft -> ECSSceneTabs.open(this, true)
             button.isRight -> {
                 openMenu(windowStack, listOf(
                     MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) {
@@ -218,11 +212,12 @@ class ECSSceneTab(
                         Input.setClipboardContent(onCopyRequested(0f, 0f).toString())
                     },
                     MenuOption(NameDesc("Close")) {
-                        ECSSceneTabs.close(this)
+                        ECSSceneTabs.close(this, true)
                     },
                     MenuOption(NameDesc("Close All")) {
+                        val tabs = ECSSceneTabs.children3.reversed()
                         for (tab in ECSSceneTabs.children3.reversed())
-                            ECSSceneTabs.close(tab)
+                            ECSSceneTabs.close(tab, tabs.last() == tab)
                     }
                 ))
             }
@@ -233,7 +228,7 @@ class ECSSceneTab(
     fun play() {
         val tab = ECSSceneTabs.currentTab!!
         val playMode = if (playMode == PlayMode.EDITING) PlayMode.PLAY_TESTING else PlayMode.EDITING
-        ECSSceneTabs.open(ECSSceneTab(tab.inspector, tab.file, playMode, findName(tab.file)))
+        ECSSceneTabs.open(ECSSceneTab(tab.inspector, tab.file, playMode, findName(tab.file)), true)
     }
 
     fun playFullscreen() {

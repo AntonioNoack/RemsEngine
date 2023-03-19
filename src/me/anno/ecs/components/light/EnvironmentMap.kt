@@ -5,6 +5,9 @@ import me.anno.ecs.annotations.Range
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.ui.LineShapes.drawCross
 import me.anno.engine.ui.render.ECSShaderLib
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
@@ -13,6 +16,7 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
@@ -59,7 +63,7 @@ class EnvironmentMap : LightComponentBase() {
         ENVIRONMENT
     }
 
-    var resolution = 1024
+    var resolution = 256
 
     @Range(0.0, 1.0)
     var near = 0.01
@@ -89,7 +93,7 @@ class EnvironmentMap : LightComponentBase() {
         entity: Entity,
         clickId: Int
     ): Int {
-        // todo needs be added to specific array in pipeline, I think :)
+        pipeline.lightStage.add(this)
         this.clickId = clickId
         return clickId + 1
     }
@@ -100,8 +104,8 @@ class EnvironmentMap : LightComponentBase() {
                 texture?.destroy()
                 texture = CubemapFramebuffer(
                     "EnvironmentMap",
-                    resolution, samples, 1,
-                    true, DepthBufferType.TEXTURE_16
+                    resolution, samples, arrayOf(TargetType.FP16Target3),
+                    DepthBufferType.TEXTURE_16
                 )
                 needsUpdate = true
             }
@@ -129,7 +133,6 @@ class EnvironmentMap : LightComponentBase() {
         val entity = entity!!
 
         val pipeline = pipeline
-        pipeline.clear()
 
         // we don't want a positive feedback-loop
         pipeline.ignoredComponent = this
@@ -142,9 +145,10 @@ class EnvironmentMap : LightComponentBase() {
         val sqrt3 = 1.7320508075688772
         val worldScale = sqrt3 / global.getScale(JomlPools.vec3d.borrow()).length()
 
+        val near = near
         val far = 1.0
 
-        val deg90 = PI * 0.5
+        val deg90 = PIf * 0.5f
         val rot2 = tmpQ1.set(rotation).invert()
         val rot3 = tmpQ2
 
@@ -152,9 +156,9 @@ class EnvironmentMap : LightComponentBase() {
         val root = entity.getRoot(Entity::class)
         GFXState.depthMode.use(DepthMode.CLOSER) {
             texture.draw(resolution, pbrRenderer) { side ->
-                texture.clearColor(.7f, .9f, 1f, 1f, true)
+
                 Perspective.setPerspective(
-                    cameraMatrix, deg90.toFloat(), 1f,
+                    cameraMatrix, deg90, 1f,
                     near.toFloat(), far.toFloat(), 0f, 0f
                 )
                 rotateForCubemap(rot3.identity(), side)
@@ -163,12 +167,46 @@ class EnvironmentMap : LightComponentBase() {
                 val rotation2 = rot3.invert()
                 pipeline.clear()
                 pipeline.frustum.definePerspective(
-                    near / worldScale, far / worldScale, deg90,
+                    near / worldScale, far / worldScale, deg90.toDouble(),
                     resolution, resolution, 1.0,
                     position, rotation2 // needs to be the inverse again
                 )
                 pipeline.applyToneMapping = false
                 pipeline.fill(root)
+
+                // define RenderState
+                RenderState.worldScale = worldScale
+                RenderState.cameraMatrix.set(cameraMatrix)
+                cameraMatrix.invert(RenderState.cameraMatrixInv)
+                RenderState.cameraPosition.set(position)
+                RenderState.cameraRotation.set(rotation2)
+                RenderState.calculateDirections()
+
+                // clear using sky
+                val ci = RenderView.currentInstance
+                if (ci != null) {
+                    GFXState.depthMode.use(DepthMode.ALWAYS) {
+                        val sky = ci.pipeline.skyBox
+                        if (sky != null) {
+                            val shader = (sky.shader ?: pbrModelShader).value
+                            shader.use()
+                            shader.v1i("hasVertexColors", 0)
+                            shader.m4x4("transform", cameraMatrix)
+                            sky.material.bind(shader)
+                            sky.draw(shader, 0)
+                            lastWarning = null
+                        } else {
+                            // todo find cameras correctly
+                            lastWarning = "No sky was found"
+                            ci.clearColor(ci.editorCamera, ci.editorCamera, 0f, true)
+                        }
+                    }
+                    texture.clearDepth()
+                } else {
+                    lastWarning = "Current RenderView is undefined"
+                    texture.clearColor(.7f, .9f, 1f, 1f, true)
+                }
+
                 pipeline.draw()
             }
         }

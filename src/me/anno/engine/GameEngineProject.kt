@@ -113,17 +113,16 @@ class GameEngineProject() : NamedSaveable() {
         // may be changed by ECSSceneTabs otherwise
         val lastScene = lastScene
         // open all tabs
-        for (tab in openTabs.clone() as Set<*>) {
-            tab as FileReference
+        for (tab in openTabs) {
             try {
-                ECSSceneTabs.open(tab, "Entity", PlayMode.EDITING)
+                ECSSceneTabs.open(tab, PlayMode.EDITING, false)
             } catch (e: Exception) {
                 LOGGER.warn("Could not open $tab", e)
             }
         }
         // make last scene current
         try {
-            ECSSceneTabs.open(lastScene, "Entity", PlayMode.EDITING)
+            ECSSceneTabs.open(lastScene, PlayMode.EDITING, true)
         } catch (e: Exception) {
             LOGGER.warn("Could not open $lastScene", e)
         }

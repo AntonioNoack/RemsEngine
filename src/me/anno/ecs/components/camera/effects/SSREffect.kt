@@ -5,6 +5,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.shaders.effects.ScreenSpaceReflections
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -44,7 +45,7 @@ class SSREffect : ToneMappedEffect() {
                 layers[DeferredLayerType.ROUGHNESS]!!.getTexture0(),
                 format.findMapping(DeferredLayerType.ROUGHNESS)!!,
                 layers[DeferredLayerType.HDR_RESULT]!!.getTexture0(),
-                RenderState.cameraMatrix, null, white4, // todo add/support skybox
+                RenderState.cameraMatrix, RenderView.currentInstance?.pipeline?.skyBox, white4,
                 strength,
                 maskSharpness,
                 wallThickness,

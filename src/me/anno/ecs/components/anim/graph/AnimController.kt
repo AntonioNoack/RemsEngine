@@ -43,7 +43,7 @@ class AnimController : Component() {
 
     @DebugAction
     fun openEditor() {
-        ECSSceneTabs.open(graphSource, "StateMachine", PlayMode.EDITING)
+        ECSSceneTabs.open(graphSource, PlayMode.EDITING, true)
     }
 
     override fun onEnable() {

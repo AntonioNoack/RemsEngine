@@ -50,7 +50,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
     var deferred: DeferredSettingsV2? = deferred
         set(value) {
             field = value
-            lightPseudoStage.deferred = value
+            lightStage.deferred = value
         }
 
     // pipelines, that we need:
@@ -67,7 +67,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
     @SerializedProperty
     val stages = ArrayList<PipelineStage>()
 
-    val lightPseudoStage = LightPipelineStage(deferred)
+    val lightStage = LightPipelineStage(deferred)
 
     var defaultStage: PipelineStage = PipelineStage(
         "default", Sorting.NO_SORTING, 0, null, DepthMode.CLOSER,
@@ -96,7 +96,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
     }
 
     fun hasTooManyLights(): Boolean {
-        return lightPseudoStage.size > RenderView.MAX_FORWARD_LIGHTS
+        return lightStage.size > RenderView.MAX_FORWARD_LIGHTS
     }
 
     fun findStage(mesh: Mesh?, material: Material): PipelineStage {
@@ -156,7 +156,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
     fun addLight(light: LightComponent, entity: Entity) {
         // for debugging of the light shapes
         // addMesh(light.getLightPrimitive(), MeshRenderer(), entity, 0)
-        val stage = lightPseudoStage
+        val stage = lightStage
         // update light transform
         // its drawn position probably should be smoothed -> we probably should use the drawnMatrix instead of the global one
         // we may want to set a timestamp, so we don't update it twice? no, we fill the pipeline only once
@@ -186,7 +186,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
 
     fun clear() {
         ambient.set(0f)
-        lightPseudoStage.clear()
+        lightStage.clear()
         defaultStage.clear()
         planarReflections.clear()
         lights.fill(null)
@@ -251,7 +251,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
      * creates a list of relevant lights for a forward-rendering draw call of a mesh or region
      * */
     fun getClosestRelevantNLights(region: AABBd, numberOfLights: Int, lights: Array<LightRequest<*>?>): Int {
-        val lightStage = lightPseudoStage
+        val lightStage = lightStage
         if (numberOfLights <= 0) return 0
         val size = lightStage.size
         if (size < numberOfLights) {
@@ -274,7 +274,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
             val center = center.set(region.avgX(), region.avgY(), region.avgZ())
             if (!center.isFinite) center.set(0.0)
             lightList.clear()
-            lightPseudoStage.listOfAll(lightList)
+            this.lightStage.listOfAll(lightList)
             val smallest = lightList
             for (i in 0 until smallest.size) {
                 lights[i] = smallest[i]

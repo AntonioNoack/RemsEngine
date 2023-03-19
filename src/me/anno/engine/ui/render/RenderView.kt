@@ -392,24 +392,28 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     "skyBox", 256, 1,
                     arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
                 )
-                val cameraMatrix = Matrix4f()
-                val skyRot = Quaternionf()
+                val cameraMatrix = JomlPools.mat4f.create()
+                val skyRot = JomlPools.quat4f.create()
                 bsb.draw(rawAttributeRenderers[DeferredLayerType.EMISSIVE]) { side ->
                     // draw sky
                     // could be optimized to draw a single triangle instead of a full cube for each side
                     EnvironmentMap.rotateForCubemap(skyRot.identity(), side)
                     val shader = (sky.shader ?: pbrModelShader).value
                     shader.use()
-                    shader.v1i("hasVertexColors",0)
                     Perspective.setPerspective(
                         cameraMatrix, PIf * 0.5f, 1f,
                         0.1f, 10f, 0f, 0f
                     )
                     cameraMatrix.rotate(skyRot)
                     shader.m4x4("transform", cameraMatrix)
-                    sky.material.bind(shader)
+                    if (side == 0) {
+                        shader.v1i("hasVertexColors", 0)
+                        sky.material.bind(shader)
+                    }// else already set
                     sky.draw(shader, 0)
                 }
+                JomlPools.mat4f.sub(1)
+                JomlPools.quat4f.sub(1)
                 pipeline.bakedSkyBox = bsb
             } else {
                 pipeline.bakedSkyBox?.destroy()
@@ -650,7 +654,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             hdr = false // doesn't matter
                         )
                         val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
-                        pipeline.lightPseudoStage.visualizeLightCount = true
+                        pipeline.lightStage.visualizeLightCount = true
                         drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
                         drawGizmos(lightBuffer, false)
                         // todo special shader to better differentiate the values than black-white
@@ -660,7 +664,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             lightBuffer.getTexture0(), true,
                             -1, null, true // lights are bright -> dim them down
                         )
-                        pipeline.lightPseudoStage.visualizeLightCount = false
+                        pipeline.lightStage.visualizeLightCount = false
                         return
                     }
                     renderMode == RenderMode.SSAO -> {
@@ -1290,7 +1294,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         if (world != null) pipeline.fill(world)
         controlScheme?.fill(pipeline)
         // if the scene would be dark, define lights, so we can see something
-        if (pipeline.lightPseudoStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
+        if (pipeline.lightStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
             pipeline.ambient.set(0.5f)
             defaultSun.fill(pipeline, defaultSunEntity, 0)
         }
@@ -1433,7 +1437,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             Frame.bind()
             tmp4f.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
             dst.clearColor(0)
-            pipeline.lightPseudoStage.bindDraw(deferred, cameraMatrix, cameraPosition, worldScale)
+            pipeline.lightStage.bindDraw(deferred, cameraMatrix, cameraPosition, worldScale)
         }
     }
 
@@ -1564,14 +1568,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         cy: Float = window!!.mouseY,
         dst: Vector3d = Vector3d()
     ): Vector3d {
-        val rx = (cx - x) / w * +2.0 - 1.0
-        val ry = (cy - y) / h * -2.0 + 1.0
-        val tanHalfFoV = tan(fovYRadians * 0.5)
-        val aspectRatio = w.toFloat() / h
-        val dir = dst.set(rx * tanHalfFoV * aspectRatio, ry * tanHalfFoV, -1.0)
-        cameraRotation.transform(dir)
-        dir.normalize()
-        return dst
+        val rx = (cx - x) / w * 2.0 - 1.0
+        val ry = (cy - y) / h * 2.0 - 1.0
+        return getRelativeMouseRayDirection(rx, -ry, dst)
     }
 
     fun getRelativeMouseRayDirection(

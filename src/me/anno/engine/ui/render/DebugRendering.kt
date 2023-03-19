@@ -1,6 +1,5 @@
 package me.anno.engine.ui.render
 
-import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.light.EnvironmentMap
@@ -18,7 +17,6 @@ import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.input.Input
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.utils.Color.a
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
@@ -34,7 +32,7 @@ object DebugRendering {
                 if (e is Entity) {
                     e.getComponentsInChildren(LightComponentBase::class)
                         .firstOrNull2 { if (it is LightComponent) it.hasShadow else true }
-                } else null
+                } else if(e is LightComponent && e.hasShadow) e else null
             }
         if (light != null) {
             val x = view.x
@@ -55,7 +53,7 @@ object DebugRendering {
             // draw the texture
             when (texture) {
                 is CubemapTexture -> {
-                    DrawTextures.drawProjection(x, y + s, s * 3 / 2, -s, texture, true, -1, false, isDepth)
+                    DrawTextures.drawProjection(x, y, s * 3 / 2, s, texture, true, -1, false, isDepth)
                 }
                 is ITexture2D -> {
                     if (Input.isShiftDown && light is PlanarReflection) {

@@ -33,7 +33,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
-import me.anno.utils.Color.toHexColor
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten2Way
@@ -56,28 +55,16 @@ class PrefabInspector(val reference: FileReference) {
             return prefab
         }
 
-    constructor(reference: FileReference, classNameIfNull: String) :
-            this(reference) {
-        if (PrefabCache[reference] == null && !reference.exists) {
-            val prefab = Prefab(classNameIfNull)
-            prefab.source = reference
-            reference.writeText(TextWriter.toText(prefab, InvalidRef))
+    val history by lazy {
+        val prefab = prefab
+        prefab.history ?: ChangeHistory().apply {
+            put("[]")
+            prefab.history = this
         }
     }
 
-    val history = prefab.history ?: ChangeHistory()
     val adds get() = prefab.adds as MutableList
     val sets get() = prefab.sets // as MutableList
-
-    init {
-
-        if (history.isEmpty()) {
-            history.put("[]")
-        }
-
-        prefab.history = history
-
-    }
 
     // val changes = ArrayList()
     val root get() = prefab.getSampleInstance()

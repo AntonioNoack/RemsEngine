@@ -28,7 +28,6 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
@@ -240,7 +239,7 @@ class PipelineStage(
             // find closest environment map
             // todo should respect size more...
             val pos = JomlPools.vec3d.borrow().set(aabb.avgX(), aabb.avgY(), aabb.avgZ())
-            val map = pipeline.lightPseudoStage.environmentMaps.minByOrNull {
+            val map = pipeline.lightStage.environmentMaps.minByOrNull {
                 it.transform!!.distanceSquaredGlobally(pos)
             }
             val bakedSkyBox = (map?.texture ?: pipeline.bakedSkyBox)?.getTexture0() ?: blackCube
@@ -449,7 +448,7 @@ class PipelineStage(
         // but that would probably be hard to implement reliably
         val hasLights = maxNumberOfLights > 0
         val needsLightUpdateForEveryMesh = hasLights &&
-                pipeline.lightPseudoStage.size > maxNumberOfLights
+                pipeline.lightStage.size > maxNumberOfLights
         var lastReceiveShadows = false
 
         pipeline.lights.fill(null)
