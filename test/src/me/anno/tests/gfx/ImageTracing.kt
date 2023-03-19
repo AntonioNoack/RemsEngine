@@ -5,7 +5,6 @@ import me.anno.maths.Maths.mix
 import me.anno.utils.OS.desktop
 import me.anno.utils.structures.arrays.FloatArrayList
 import me.anno.utils.structures.arrays.IntArrayList
-import java.io.IOException
 import java.util.*
 
 @Suppress("UNUSED_PARAMETER")

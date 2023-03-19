@@ -168,13 +168,20 @@ class AABBf(
         return this
     }
 
-    fun intersect(other: AABBf, dst: AABBf = this): AABBf {
-        dst.minX = max(minX, other.minX)
-        dst.minY = max(minY, other.minY)
-        dst.minZ = max(minZ, other.minZ)
-        dst.maxX = min(maxX, other.maxX)
-        dst.maxY = min(maxY, other.maxY)
-        dst.maxZ = min(maxZ, other.maxZ)
+    fun intersectionVolume(o: AABBf): Float {
+        val dx = max(0f, min(maxX, o.maxX) - max(minX, o.minX))
+        val dy = max(0f, min(maxY, o.maxY) - max(minY, o.minY))
+        val dz = max(0f, min(maxZ, o.maxZ) - max(minZ, o.minZ))
+        return dx * dy * dz
+    }
+
+    fun intersect(o: AABBf, dst: AABBf = this): AABBf {
+        dst.minX = max(minX, o.minX)
+        dst.minY = max(minY, o.minY)
+        dst.minZ = max(minZ, o.minZ)
+        dst.maxX = min(maxX, o.maxX)
+        dst.maxY = min(maxY, o.maxY)
+        dst.maxZ = min(maxZ, o.maxZ)
         return dst
     }
 

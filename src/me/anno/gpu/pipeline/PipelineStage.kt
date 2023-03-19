@@ -201,9 +201,6 @@ class PipelineStage(
         }
     }
 
-    fun setupLights(pipeline: Pipeline, shader: Shader, request: DrawRequest, receiveShadows: Boolean) =
-        setupLights(pipeline, shader, request.entity.aabb, receiveShadows)
-
     @Suppress("unused_parameter")
     fun setupPlanarReflection(pipeline: Pipeline, shader: Shader, aabb: AABBd) {
 
@@ -236,14 +233,30 @@ class PipelineStage(
     fun setupReflectionMap(pipeline: Pipeline, shader: Shader, aabb: AABBd) {
         val envMapSlot = shader.getTextureIndex("reflectionMap")
         if (envMapSlot >= 0) {
-            // find closest environment map
-            // todo should respect size more...
+            // find the closest environment map
+            val minVolume = 0.5 * aabb.volume()
             val pos = JomlPools.vec3d.borrow().set(aabb.avgX(), aabb.avgY(), aabb.avgZ())
-            val map = pipeline.lightStage.environmentMaps.minByOrNull {
-                it.transform!!.distanceSquaredGlobally(pos)
-            }
+            val envMapBounds = JomlPools.aabbd.borrow()
+            val map = if (minVolume.isFinite()) pipeline.lightStage.environmentMaps
+                .filter {
+                    // only if environment map fills >= 50% of the AABB
+                    val v0 = envMapBounds
+                        .setMin(-1.0, -1.0, -1.0)
+                        .setMax(+1.0, +1.0, +1.0)
+                        .transform(it.transform!!.globalTransform)
+                        .intersectionVolume(aabb)
+                    v0 > minVolume
+                }
+                .minByOrNull {
+                    it.transform!!.distanceSquaredGlobally(pos)
+                } else null
             val bakedSkyBox = (map?.texture ?: pipeline.bakedSkyBox)?.getTexture0() ?: blackCube
-            bakedSkyBox.bindTrulyNearest(envMapSlot)
+            // todo bug: mipmaps are not updating automatically :/
+            bakedSkyBox.bind(
+                envMapSlot,
+                GPUFiltering.TRULY_NEAREST,
+                Clamping.CLAMP
+            ) // clamping doesn't really apply here
         }
     }
 
@@ -447,8 +460,9 @@ class PipelineStage(
         // we could theoretically cluster them to need fewer uploads
         // but that would probably be hard to implement reliably
         val hasLights = maxNumberOfLights > 0
-        val needsLightUpdateForEveryMesh = hasLights &&
-                pipeline.lightStage.size > maxNumberOfLights
+        val needsLightUpdateForEveryMesh =
+            ((hasLights && pipeline.lightStage.size > maxNumberOfLights) ||
+                    pipeline.lightStage.environmentMaps.isNotEmpty())
         var lastReceiveShadows = false
 
         pipeline.lights.fill(null)
@@ -488,7 +502,8 @@ class PipelineStage(
                         receiveShadows != lastReceiveShadows
                     ) {
                         // upload all light data
-                        setupLights(pipeline, shader, request, receiveShadows)
+                        val aabb = tmpAABBd.set(mesh.ensureBounds()).transform(transform.getDrawMatrix())
+                        setupLights(pipeline, shader, aabb, receiveShadows)
                         lastReceiveShadows = receiveShadows
                     }
                 }

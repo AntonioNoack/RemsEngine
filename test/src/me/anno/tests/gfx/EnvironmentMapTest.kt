@@ -8,17 +8,28 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS
+import org.joml.Vector3d
 
 fun main() {
+
+    // todo left and right looks mirrored...
+
+    // todo rendering in deferred mode must use them as well
+
     // test environment map
     ECSRegistry.init()
     val scene = Entity()
-    scene.add(MeshComponent(OS.downloads.getChild("3d/DamagedHelmet.glb")))
-    scene.add(MeshComponent(OS.documents.getChild("metal-roughness.glb")))
-    scene.add(SkyBox())
-    scene.add(Entity("Environment Map").apply {
+    scene.add(Entity().apply {
+        position = Vector3d(2.8, 0.0, 0.0)
+        add(MeshComponent(OS.downloads.getChild("3d/DamagedHelmet.glb")))
         add(EnvironmentMap())
     })
+    scene.add(Entity().apply {
+        add(MeshComponent(OS.documents.getChild("MetallicSphere.glb")))
+        add(EnvironmentMap())
+    })
+    scene.add(MeshComponent(OS.documents.getChild("metal-roughness.glb")))
+    scene.add(SkyBox())
     testSceneWithUI(scene) {
         it.renderer.renderMode = RenderMode.FORCE_NON_DEFERRED
     }

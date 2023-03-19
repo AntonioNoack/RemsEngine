@@ -385,7 +385,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             else -> base1Buffer
         }
 
-        if (renderer == pbrRenderer) {
+        if (renderer == pbrRenderer || pipeline.lightStage.environmentMaps.isNotEmpty()) {
             val sky = pipeline.skyBox
             if (sky != null) {
                 val bsb = pipeline.bakedSkyBox ?: CubemapFramebuffer(
@@ -1294,10 +1294,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         if (world != null) pipeline.fill(world)
         controlScheme?.fill(pipeline)
         // if the scene would be dark, define lights, so we can see something
-        if (pipeline.lightStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
-            pipeline.ambient.set(0.5f)
-            defaultSun.fill(pipeline, defaultSunEntity, 0)
-        }
+        addDefaultLightsIfRequired(pipeline)
         entityBaseClickId = pipeline.lastClickId
     }
 
@@ -1679,6 +1676,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         val aabbColorDefault = -1
         val aabbColorHovered = 0xffaaaa or black
+
+        fun addDefaultLightsIfRequired(pipeline: Pipeline) {
+            if (pipeline.lightStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
+                pipeline.ambient.set(0.5f)
+                defaultSun.fill(pipeline, defaultSunEntity, 0)
+            }
+        }
 
         fun clearColor(
             cameraMatrix: Matrix4f, prevCamMatrix: Matrix4f,

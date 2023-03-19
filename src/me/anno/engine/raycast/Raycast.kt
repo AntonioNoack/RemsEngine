@@ -178,7 +178,7 @@ object Raycast {
 
     }
 
-    val blasCache = CacheSection("BLAS")
+    // val blasCache = CacheSection("BLAS")
 
     fun raycastTriangleMesh(
         transform: Transform?, mesh: Mesh,
@@ -396,9 +396,6 @@ object Raycast {
         val indices = mesh.boneIndices ?: return
         fun transformByBones(i: Int, j: Int): Vector3d {
             val tmp = tmpF[i]
-            val tmp2 = tmpF[i + 1]
-            val tmp3 = tmpF[i + 2]
-            val dst = tmpD[i + 2]
             val i4 = j * 4
             if (weights == null) {
                 tmp.set(positions, j * 3)
@@ -409,8 +406,9 @@ object Raycast {
                     matrix.transformPosition(tmp)
                 }
             } else {
-                tmp2.set(positions, j * 3)
-                tmp.set(0f)
+                val tmp2 = tmpF[i + 1].set(positions, j * 3)
+                val tmp3 = tmpF[i + 2]
+                tmp.set(0f) // sum
                 var unitFactor = 1f
                 // interpolate using weights
                 for (k in 0 until 4) {
@@ -425,9 +423,7 @@ object Raycast {
                 }
                 tmp2.mulAdd(unitFactor, tmp, tmp) // tmp += tmp2 * unitFactor
             }
-            dst.set(tmp)
-            globalTransform?.transformPosition(dst)
-            return dst
+            return tmpD[i + 2].set(tmp)
         }
 
         val tmpPos = tmpD[0]
@@ -438,18 +434,22 @@ object Raycast {
             val b = transformByBones(1, bi)
             val c = transformByBones(2, ci)
 
+            if (globalTransform != null) {
+                globalTransform.transformPosition(a)
+                globalTransform.transformPosition(b)
+                globalTransform.transformPosition(c)
+            }
+
             val maxDistance = result.distance
             val distance = rayTriangleIntersection(
                 start, direction, a, b, c,
                 radiusAtOrigin, radiusPerUnit,
                 maxDistance, tmpPos, tmpNor
             )
-            if (distance < result.distance) {
-                if (if (tmpNor.dot(direction) < 0f) acceptFront else acceptBack) {
-                    result.distance = distance
-                    result.positionWS.set(tmpPos)
-                    result.normalWS.set(tmpNor)
-                }
+            if (distance < result.distance && if (tmpNor.dot(direction) < 0f) acceptFront else acceptBack) {
+                result.distance = distance
+                result.positionWS.set(tmpPos)
+                result.normalWS.set(tmpNor)
             }
         }
     }
@@ -482,10 +482,8 @@ object Raycast {
                         start, dir, ai, bi, ci,
                         distance, localHitTmp, localNormalTmp
                     )
-                    if (localDistance < distance) {
-                        if (if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack)
-                            throw StopIteration
-                    }
+                    if (localDistance < distance && if (localNormalTmp.dot(dir) < 0f) acceptFront else acceptBack)
+                        throw StopIteration
                 }
             } catch (e: Throwable) {
                 if (e !== StopIteration) throw e

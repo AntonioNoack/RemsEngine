@@ -8,7 +8,6 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.ITexture2D
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL30.*
@@ -47,6 +46,8 @@ class CubemapFramebuffer(
     override val numTextures: Int = targets.size
 
     lateinit var textures: Array<CubemapTexture>
+
+    var autoUpdateMipmaps = true
 
     override fun getTargetType(slot: Int) = targets[slot]
 
@@ -113,6 +114,7 @@ class CubemapFramebuffer(
         GFX.check()
         textures = Array(targets.size) { index ->
             val texture = CubemapTexture("$name-$index", size, samples)
+            texture.autoUpdateMipmaps = autoUpdateMipmaps
             texture.create(targets[index])
             GFX.check()
             texture
@@ -138,13 +140,14 @@ class CubemapFramebuffer(
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                val depthTexture = CubemapTexture("$name-depth", size, samples)
-                depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
+                val texture = CubemapTexture("$name-depth", size, samples)
+                texture.autoUpdateMipmaps = autoUpdateMipmaps
+                texture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
                 glFramebufferTexture2D(
                     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                    GL_TEXTURE_CUBE_MAP_POSITIVE_X, depthTexture.pointer, 0
+                    GL_TEXTURE_CUBE_MAP_POSITIVE_X, texture.pointer, 0
                 )
-                this.depthTexture = depthTexture
+                this.depthTexture = texture
             }
             DepthBufferType.ATTACHMENT -> {
                 val target = GL_TEXTURE_CUBE_MAP_POSITIVE_X

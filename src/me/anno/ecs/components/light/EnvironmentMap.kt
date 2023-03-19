@@ -8,6 +8,7 @@ import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderView.Companion.addDefaultLightsIfRequired
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
@@ -28,28 +29,19 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.PIf
+import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.rotate2
 import org.joml.*
 import kotlin.math.PI
 
-// todo these could be used as
+// these could be used as
 //  - a) reflection maps
 //  - b) environment illumination map
 
 // todo or render from shader
-// todo - always find closest to object
-// todo - bake surrounding lighting for reflections
 // todo - blur
-// todo - hdr
-
-// is this a light component?
-//  - only 1 per object
-//  - closest to object
-//  - few per scene (?)
-
-// todo or we could say, that only elements in this AABB are valid receivers :)
 
 /**
  * environment map for reflections,
@@ -57,16 +49,20 @@ import kotlin.math.PI
  * */
 class EnvironmentMap : LightComponentBase() {
 
-    enum class SourceType {
-        TEXTURE, // could have different projections...
-        SHADER,
-        ENVIRONMENT
+    enum class SourceType(val id: Int) {
+        ENVIRONMENT(0),
+        TEXTURE(1), // could have different projections; not really supported yet
+        // SHADER(2),
     }
 
+    @Range(1.0, 8192.0)
     var resolution = 256
 
     @Range(0.0, 1.0)
     var near = 0.01
+
+    @Range(1.0, 1e308)
+    var far = 1e3
 
     var type = SourceType.ENVIRONMENT
 
@@ -104,7 +100,7 @@ class EnvironmentMap : LightComponentBase() {
                 texture?.destroy()
                 texture = CubemapFramebuffer(
                     "EnvironmentMap",
-                    resolution, samples, arrayOf(TargetType.FP16Target3),
+                    max(1, resolution), samples, arrayOf(TargetType.FP16Target3),
                     DepthBufferType.TEXTURE_16
                 )
                 needsUpdate = true
@@ -133,27 +129,24 @@ class EnvironmentMap : LightComponentBase() {
         val entity = entity!!
 
         val pipeline = pipeline
-
-        // we don't want a positive feedback-loop
-        pipeline.ignoredComponent = this
+        pipeline.ignoredEntity = entity
+        pipeline.ignoredComponent = null
 
         val transform = entity.transform
-        val resolution = resolution
+        val resolution = max(4, resolution)
         val global = transform.globalTransform
         val position = global.getTranslation(tmpV3)
-        val rotation = global.getUnnormalizedRotation(tmpQd)
         val sqrt3 = 1.7320508075688772
         val worldScale = sqrt3 / global.getScale(JomlPools.vec3d.borrow()).length()
 
-        val near = near
-        val far = 1.0
-
         val deg90 = PIf * 0.5f
-        val rot2 = tmpQ1.set(rotation).invert()
-        val rot3 = tmpQ2
+        val camRot = tmpQ2
+        val camRotInv = tmpQ3
 
         val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
+        root.validateTransform()
+        root.validateAABBs()
         GFXState.depthMode.use(DepthMode.CLOSER) {
             texture.draw(resolution, pbrRenderer) { side ->
 
@@ -161,15 +154,16 @@ class EnvironmentMap : LightComponentBase() {
                     cameraMatrix, deg90, 1f,
                     near.toFloat(), far.toFloat(), 0f, 0f
                 )
-                rotateForCubemap(rot3.identity(), side)
-                rot3.mul(rot2)
-                cameraMatrix.rotate2(rot3)
-                val rotation2 = rot3.invert()
+                rotateForCubemap(camRot.identity(), side)
+                camRot.invert(camRotInv)
+
+                cameraMatrix.rotate2(camRot)
+
                 pipeline.clear()
                 pipeline.frustum.definePerspective(
                     near / worldScale, far / worldScale, deg90.toDouble(),
                     resolution, resolution, 1.0,
-                    position, rotation2 // needs to be the inverse again
+                    position, camRotInv // needs to be the inverse again
                 )
                 pipeline.applyToneMapping = false
                 pipeline.fill(root)
@@ -179,7 +173,7 @@ class EnvironmentMap : LightComponentBase() {
                 RenderState.cameraMatrix.set(cameraMatrix)
                 cameraMatrix.invert(RenderState.cameraMatrixInv)
                 RenderState.cameraPosition.set(position)
-                RenderState.cameraRotation.set(rotation2)
+                RenderState.cameraRotation.set(camRotInv)
                 RenderState.calculateDirections()
 
                 // clear using sky
@@ -207,6 +201,8 @@ class EnvironmentMap : LightComponentBase() {
                     texture.clearColor(.7f, .9f, 1f, 1f, true)
                 }
 
+                addDefaultLightsIfRequired(pipeline)
+                pipeline.bakedSkyBox = ci?.pipeline?.bakedSkyBox
                 pipeline.draw()
             }
         }
@@ -250,6 +246,7 @@ class EnvironmentMap : LightComponentBase() {
         private val tmpQd = Quaterniond()
         private val tmpQ1 = Quaterniond()
         private val tmpQ2 = Quaterniond()
+        private val tmpQ3 = Quaterniond()
 
         // private val LOGGER = LogManager.getLogger(EnvironmentMap::class)
 

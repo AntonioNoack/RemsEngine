@@ -181,6 +181,23 @@ class AABBd(
         return this
     }
 
+    fun intersect(o: AABBd, dst: AABBd = this): AABBd {
+        dst.minX = max(minX, o.minX)
+        dst.minY = max(minY, o.minY)
+        dst.minZ = max(minZ, o.minZ)
+        dst.maxX = min(maxX, o.maxX)
+        dst.maxY = min(maxY, o.maxY)
+        dst.maxZ = min(maxZ, o.maxZ)
+        return dst
+    }
+
+    fun intersectionVolume(o: AABBd): Double {
+        val dx = max(0.0, min(maxX, o.maxX) - max(minX, o.minX))
+        val dy = max(0.0, min(maxY, o.maxY) - max(minY, o.minY))
+        val dz = max(0.0, min(maxZ, o.maxZ) - max(minZ, o.minZ))
+        return dx * dy * dz
+    }
+
     fun transformAABB(transform: Matrix4x3d, dst: AABBd = this): AABBd {
         return transform(transform, dst)
     }

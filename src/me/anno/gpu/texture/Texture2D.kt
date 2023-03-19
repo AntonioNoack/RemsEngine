@@ -1022,8 +1022,6 @@ open class Texture2D(
             // whenever the base mipmap is changed, the mipmaps will be updated :)
             // todo it seems like this needs to be called manually in WebGL
             glTexParameteri(target, GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
-            // is called afterwards anyway
-            // glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filtering.mag)

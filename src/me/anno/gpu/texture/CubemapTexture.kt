@@ -9,7 +9,9 @@ import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
+import org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP
 import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL32C.GL_TEXTURE_CUBE_MAP_SEAMLESS
 import java.nio.ByteBuffer
 
 // can be used e.g. for game engine for environment & irradiation maps
@@ -179,13 +181,16 @@ open class CubemapTexture(
     }
 
     private fun clamping() {
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
+        // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+        // glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
     }
 
     var hasMipmap = false
     var filtering: GPUFiltering = GPUFiltering.TRULY_NEAREST
+
+    var autoUpdateMipmaps = true
 
     private fun filtering(nearest: GPUFiltering) {
         if (!hasMipmap && nearest.needsMipmap && samples <= 1) {
@@ -196,7 +201,9 @@ open class CubemapTexture(
                 glTexParameteri(target, GL_TEXTURE_LOD_BIAS, 0)
                 glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+            // whenever the base mipmap is changed, the mipmaps will be updated :)
+            // todo it seems like this needs to be called manually in WebGL
+            glTexParameteri(target, GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
         }
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, nearest.min)
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, nearest.mag)

@@ -190,12 +190,16 @@ object Renderers {
                         "   finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                         "   finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
 
+                        // todo it would be nice, if we could search the reflectionMap using its depth
+                        //  like screen-space reflections to get a more 3d look
                         "   if(dot(finalPosition,finalPosition) < 1e38){\n" +
                         "       float reflectivity = finalMetallic * (1.0 - finalRoughness);\n" +
                         "       float maskSharpness = 1.0;\n" + // shouldn't be hardcoded
                         "       reflectivity = (reflectivity - 1.0) * maskSharpness + 1.0;\n" +
                         "       if(reflectivity > 0.0){\n" +
-                        "           vec3 skyColor = 0.15 * finalEmissive + finalColor0 * texture(reflectionMap, reflect(V, finalNormal)).rgb;\n" +
+                        // todo why do I need to flip x here???
+                        "           vec3 dir = vec3(-1,1,1) * reflect(V, finalNormal);\n" +
+                        "           vec3 skyColor = 0.15 * finalEmissive + finalColor0 * texture(reflectionMap, dir).rgb;\n" +
                         "           finalColor = mix(finalColor, skyColor, sqrt(reflectivity) * (1.0 - finalOcclusion));\n" +
                         "       }\n" +
                         "   }\n" +
