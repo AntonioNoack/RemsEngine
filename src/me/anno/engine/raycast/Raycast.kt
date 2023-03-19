@@ -9,9 +9,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.hasFlag
-import me.anno.maths.bvh.BLASNode
-import me.anno.maths.bvh.BVHBuilder
-import me.anno.maths.bvh.SplitMethod
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Triangles.computeConeInterpolation
@@ -192,10 +189,7 @@ object Raycast {
 
         val original = result.distance
         if (original <= 0.0) return false
-
-        val acceptFront = typeMask.hasFlag(TRIANGLE_FRONT)
-        val acceptBack = typeMask.hasFlag(TRIANGLE_BACK)
-        if (!acceptFront && !acceptBack) return false
+        if (typeMask.and(TRIANGLES) == 0) return false
 
         val globalTransform = transform?.globalTransform
         // quick-path for easy meshes: no extra checks worth it
@@ -254,11 +248,11 @@ object Raycast {
                         result.localToGlobal(globalTransform, start, direction, end)
                     }
                 } else {*/
-                    localRaycast(
-                        mesh, globalTransform, inverse, start, direction, end, localSrt, localDir, localEnd,
-                        radiusAtOrigin, radiusPerUnit, result, typeMask, extraDistance, tmp0
-                    )
-               // }
+                localRaycast(
+                    mesh, globalTransform, inverse, start, direction, end, localSrt, localDir, localEnd,
+                    radiusAtOrigin, radiusPerUnit, result, typeMask, extraDistance, tmp0
+                )
+                // }
             } else {
                 // mesh is scaled to zero on some axis, need to work in global coordinates
                 // this is quite a bit more expensive, because we need to transform each mesh point into global coordinates
@@ -270,14 +264,15 @@ object Raycast {
                 )
             }
         }
+        return eval(result, start, direction, end, original)
+    }
 
+    fun eval(result: RayHit, start: Vector3d, direction: Vector3d, end: Vector3d, original: Double): Boolean {
         if (result.distance < original) {
             direction.mulAdd(result.distance, start, end) // end = start + distance * dir, needed for colliders
             // LOGGER.info("Hit ${mesh.prefab!!.source.nameWithoutExtension.withLength(5)} @ ${result.distance.f3()} from ${original.f3()}")
         }
-
         return result.distance < original
-
     }
 
     fun localRaycast(
@@ -369,6 +364,80 @@ object Raycast {
                 globalTransform.transformPosition(b)
                 globalTransform.transformPosition(c)
             }
+            val maxDistance = result.distance
+            val distance = rayTriangleIntersection(
+                start, direction, a, b, c,
+                radiusAtOrigin, radiusPerUnit,
+                maxDistance, tmpPos, tmpNor
+            )
+            if (distance < result.distance) {
+                if (if (tmpNor.dot(direction) < 0f) acceptFront else acceptBack) {
+                    result.distance = distance
+                    result.positionWS.set(tmpPos)
+                    result.normalWS.set(tmpNor)
+                }
+            }
+        }
+    }
+
+    fun globalRaycastByBones(
+        result: RayHit, globalTransform: Matrix4x3d?,
+        mesh: Mesh, start: Vector3d, direction: Vector3d,
+        radiusAtOrigin: Double, radiusPerUnit: Double, typeMask: Int,
+        matrices: Array<Matrix4x3f>
+    ) {
+        val acceptFront = typeMask.hasFlag(TRIANGLE_FRONT)
+        val acceptBack = typeMask.hasFlag(TRIANGLE_BACK)
+        if (!acceptFront && !acceptBack) return
+        val tmpF = result.tmpVector3fs
+        val tmpD = result.tmpVector3ds
+        val positions = mesh.positions ?: return
+        val weights = mesh.boneWeights
+        val indices = mesh.boneIndices ?: return
+        fun transformByBones(i: Int, j: Int): Vector3d {
+            val tmp = tmpF[i]
+            val tmp2 = tmpF[i + 1]
+            val tmp3 = tmpF[i + 2]
+            val dst = tmpD[i + 2]
+            val i4 = j * 4
+            if (weights == null) {
+                tmp.set(positions, j * 3)
+                // just use single index
+                val index = indices[i4].toInt().and(255)
+                if (index < matrices.size) {
+                    val matrix = matrices[index]
+                    matrix.transformPosition(tmp)
+                }
+            } else {
+                tmp2.set(positions, j * 3)
+                tmp.set(0f)
+                var unitFactor = 1f
+                // interpolate using weights
+                for (k in 0 until 4) {
+                    val index = indices[i4 + k].toInt().and(255)
+                    val weight = weights[i4 + k]
+                    if (weight != 0f && index < matrices.size) {
+                        val matrix = matrices[index]
+                        matrix.transformPosition(tmp2, tmp3) // tmp3 = matrix * tmp2
+                        tmp3.mulAdd(weight, tmp, tmp) // tmp += tmp3 * weight
+                        unitFactor -= weight
+                    }
+                }
+                tmp2.mulAdd(unitFactor, tmp, tmp) // tmp += tmp2 * unitFactor
+            }
+            dst.set(tmp)
+            globalTransform?.transformPosition(dst)
+            return dst
+        }
+
+        val tmpPos = tmpD[0]
+        val tmpNor = tmpD[1]
+        mesh.forEachTriangleIndex { ai, bi, ci ->
+
+            val a = transformByBones(0, ai)
+            val b = transformByBones(1, bi)
+            val c = transformByBones(2, ci)
+
             val maxDistance = result.distance
             val distance = rayTriangleIntersection(
                 start, direction, a, b, c,

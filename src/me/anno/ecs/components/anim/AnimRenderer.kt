@@ -12,7 +12,8 @@ import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.Raycast
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
@@ -21,6 +22,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.assimp.AnimGameItem
 import org.joml.Matrix4x3f
+import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
@@ -274,6 +276,32 @@ open class AnimRenderer : MeshComponent() {
 
     }
 
+    override fun raycast(
+        entity: Entity, start: Vector3d, direction: Vector3d, end: Vector3d,
+        radiusAtOrigin: Double, radiusPerUnit: Double,
+        typeMask: Int, includeDisabled: Boolean, result: RayHit
+    ): Boolean {
+        val mesh = getMesh() ?: return false
+        if (!mesh.hasBones) return false
+        updateAnimState()
+        val matrices = getMatrices() ?: return super.raycast(
+            entity, start, direction, end,
+            radiusAtOrigin, radiusPerUnit, typeMask, includeDisabled, result
+        )
+        val original = result.distance
+        Raycast.globalRaycastByBones(
+            result, entity.transform.globalTransform,
+            mesh, start, direction, radiusAtOrigin,
+            radiusPerUnit, typeMask,
+            matrices
+        )
+        return if (Raycast.eval(result, start, direction, end, original)) {
+            result.mesh = mesh
+            result.component = this
+            true
+        } else false
+    }
+
     override fun clone(): AnimRenderer {
         val clone = AnimRenderer()
         copy(clone)
@@ -292,14 +320,6 @@ open class AnimRenderer : MeshComponent() {
         clone.currIndices.set(currIndices)
         clone.currWeights.set(currWeights)
     }
-
-    /*override fun onDrawGUI(all: Boolean) {
-        val skeleton = SkeletonCache[skeleton]
-        if (skeleton != null) {
-            val shader = pbrModelShader.value
-            skeleton.draw(shader, Matrix4x3f(), null)
-        }
-    }*/
 
     override val className get() = "AnimRenderer"
 
