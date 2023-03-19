@@ -47,12 +47,6 @@ class SSAOEffect : CameraEffect() {
         )
     }
 
-    override fun clone(): SSAOEffect {
-        val clone = SSAOEffect()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SSAOEffect

@@ -132,12 +132,6 @@ open class SDFTriangle : SDFShape() {
         return sqrt(term) + pos.w
     }
 
-    override fun clone(): SDFTriangle {
-        val clone = SDFTriangle()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFTriangle

@@ -58,12 +58,6 @@ open class ScriptComponent : Component() {
         callFunction("onDestroy", source, this)
     }
 
-    override fun clone(): ScriptComponent {
-        val clone = ScriptComponent()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as ScriptComponent

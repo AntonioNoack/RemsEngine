@@ -51,12 +51,6 @@ class PointLight : LightComponent(LightType.POINT) {
         needsUpdate = true
     }
 
-    override fun clone(): PointLight {
-        val clone = PointLight()
-        copy(clone)
-        return clone
-    }
-
     override fun updateShadowMap(
         cascadeScale: Double,
         worldScale: Double,

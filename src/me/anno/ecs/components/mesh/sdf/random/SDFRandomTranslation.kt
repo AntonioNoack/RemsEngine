@@ -71,12 +71,6 @@ class SDFRandomTranslation : SDFRandom() {
         bounds.maxZ += avgZ + dltZ
     }
 
-    override fun clone(): PrefabSaveable {
-        val clone = SDFRandomTranslation()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFRandomTranslation

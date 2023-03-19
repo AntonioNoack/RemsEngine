@@ -56,12 +56,6 @@ class SDFRoundness : DistanceMapper() {
         return distance - roundness
     }
 
-    override fun clone(): SDFRoundness {
-        val clone = SDFRoundness()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFRoundness

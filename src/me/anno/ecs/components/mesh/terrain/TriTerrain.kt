@@ -304,12 +304,6 @@ class TriTerrain : Component(), CustomEditMode {
         data.add(chunk)
     }
 
-    override fun clone(): TriTerrain {
-        val clone = TriTerrain()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as TriTerrain

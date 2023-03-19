@@ -6,12 +6,6 @@ class ManualProceduralMesh : ProceduralMesh() {
         // nothing to do...
     }
 
-    override fun clone(): ProceduralMesh {
-        val clone = ManualProceduralMesh()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "ManualProceduralMesh"
 
 }

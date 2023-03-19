@@ -210,12 +210,6 @@ class SkyBox : MeshComponentBase() {
         sun.transform.teleportUpdate()
     }
 
-    override fun clone(): Component {
-        val clone = SkyBox()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SkyBox

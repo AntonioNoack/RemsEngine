@@ -112,12 +112,6 @@ class Skeleton : PrefabSaveable(), Renderable {
         previewData = null
     }
 
-    override fun clone(): PrefabSaveable {
-        val clone = Skeleton()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         clone as Skeleton
         clone.animations.clear()

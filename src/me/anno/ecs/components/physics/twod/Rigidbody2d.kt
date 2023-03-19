@@ -107,12 +107,6 @@ class Rigidbody2d : Component() {
 
     val inertia get() = box2dInstance?.inertia
 
-    override fun clone(): Rigidbody2d {
-        val clone = Rigidbody2d()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Rigidbody2d

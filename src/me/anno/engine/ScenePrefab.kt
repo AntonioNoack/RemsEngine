@@ -1,5 +1,6 @@
 package me.anno.engine
 
+import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.files.FileRootRef
@@ -93,7 +94,7 @@ object ScenePrefab : InnerLazyPrefabFile(
     fun getPhysics(scene: me.anno.ecs.Entity) = scene.physics
 
     fun createLocalPlayer(entity: me.anno.ecs.Entity, name: kotlin.String): me.anno.ecs.Entity {
-        val instance = getPlayerPrefab(entity).clone()
+        val instance = getPlayerPrefab(entity).clone() as Entity
         instance.name = name
         instance.isEnabled = true
         getLocalPlayers(entity).add(instance)
@@ -101,7 +102,7 @@ object ScenePrefab : InnerLazyPrefabFile(
     }
 
     fun createRemotePlayer(entity: me.anno.ecs.Entity, name: kotlin.String): me.anno.ecs.Entity {
-        val instance = getPlayerPrefab(entity).clone()
+        val instance = getPlayerPrefab(entity).clone() as Entity
         instance.name = name
         instance.isEnabled = true
         getRemotePlayers(entity).add(instance)

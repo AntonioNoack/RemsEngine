@@ -60,8 +60,6 @@ abstract class ProceduralMesh : MeshComponentBase() {
 
     abstract fun generateMesh(mesh: Mesh)
 
-    abstract override fun clone(): ProceduralMesh
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as ProceduralMesh

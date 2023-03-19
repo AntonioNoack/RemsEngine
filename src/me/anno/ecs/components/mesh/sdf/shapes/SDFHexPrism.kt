@@ -102,12 +102,6 @@ open class SDFHexPrism : SDFSmoothShape() {
         return min(max(dx, dy), 0f) + length(max(dx, 0f), max(dy, 0f)) - k0 + pos.w
     }
 
-    override fun clone(): SDFHexPrism {
-        val clone = SDFHexPrism()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFHexPrism

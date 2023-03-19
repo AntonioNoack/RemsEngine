@@ -22,12 +22,6 @@ class BloomEffect : ToneMappedEffect() {
         write(layers, dstType, output)
     }
 
-    override fun clone(): BloomEffect {
-        val clone = BloomEffect()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as BloomEffect

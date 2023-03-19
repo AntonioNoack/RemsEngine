@@ -589,12 +589,6 @@ open class SDFGroup : SDFComponent() {
         return 1
     }
 
-    override fun clone(): SDFGroup {
-        val clone = SDFGroup()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFGroup
@@ -607,7 +601,7 @@ open class SDFGroup : SDFComponent() {
         clone.dynamicSmoothness = dynamicSmoothness
         clone.children.clear()
         clone.children.addAll(children.map {
-            val child = it.clone()
+            val child = it.clone() as SDFComponent
             child.parent = clone
             child
         })

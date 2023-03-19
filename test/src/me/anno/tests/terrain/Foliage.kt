@@ -195,8 +195,8 @@ fun main() {
     // done partially - gpu culling
 
     val densitySource = pictures.getChild("Maps/GardeningFloorPlan.png")
-    val mesh0 = MeshCache[documents.getChild("GrassBlade0.obj")]!!.clone()
-    val mesh1 = MeshCache[documents.getChild("GrassBlade1.obj")]!!.clone()
+    val mesh0 = MeshCache[documents.getChild("GrassBlade0.obj")]!!.clone() as Mesh
+    val mesh1 = MeshCache[documents.getChild("GrassBlade1.obj")]!!.clone() as Mesh
 
     val size = 1000
     // 50k detailed meshes + 10M just-triangles 😃

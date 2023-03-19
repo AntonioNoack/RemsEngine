@@ -95,12 +95,6 @@ class SDFStar : SDF2DShape() {
         return length(px, py) * sign(px)
     }
 
-    override fun clone(): SDFComponent {
-        val clone = SDFStar()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFStar

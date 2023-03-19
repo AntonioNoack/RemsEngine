@@ -51,12 +51,6 @@ open class QuickScriptComponent : Component() {
         callFunction(destroyScript)
     }
 
-    override fun clone(): QuickScriptComponent {
-        val clone = QuickScriptComponent()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as QuickScriptComponent

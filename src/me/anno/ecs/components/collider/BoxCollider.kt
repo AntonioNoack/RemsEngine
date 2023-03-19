@@ -40,12 +40,6 @@ class BoxCollider : Collider() {
         drawBox(entity, guiLineColor, halfExtends)
     }
 
-    override fun clone(): BoxCollider {
-        val clone = BoxCollider()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as BoxCollider

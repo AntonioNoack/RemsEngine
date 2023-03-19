@@ -55,12 +55,6 @@ class Texture3DBTMaterial : Material() {
         shader.v3f("color1", color1)
     }
 
-    override fun clone(): Texture3DBTMaterial {
-        val clone = Texture3DBTMaterial()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Texture3DBTMaterial

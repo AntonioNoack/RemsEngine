@@ -27,12 +27,6 @@ class AmbientLight : LightComponentBase() {
         return true
     }
 
-    override fun clone(): AmbientLight {
-        val clone = AmbientLight()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as AmbientLight

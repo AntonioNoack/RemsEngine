@@ -62,12 +62,6 @@ class SDFBlob : SDFShape() {
         return l - 1.5f - vx * cos(min(sqrt(1.01f - b / l) * (PIf * 4f), PIf))
     }
 
-    override fun clone(): SDFBlob {
-        val clone = SDFBlob()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "SDFBlob"
 
     companion object {

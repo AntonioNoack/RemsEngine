@@ -109,12 +109,6 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         target.weight = weight
     }
 
-    override fun clone(): Node {
-        val clone = AnimStateNode()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as AnimStateNode

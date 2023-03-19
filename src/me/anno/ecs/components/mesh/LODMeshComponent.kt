@@ -77,12 +77,6 @@ class LODMeshComponent() : MeshComponentBase() {
         return MeshCache[ref]
     }
 
-    override fun clone(): Component {
-        val clone = LODMeshComponent()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as LODMeshComponent

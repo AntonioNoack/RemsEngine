@@ -779,12 +779,6 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         return sdfTransPool.create().set(posIndex, scaleName, offsetName)
     }
 
-    override fun clone(): SDFComponent {
-        val clone = SDFComponent()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFComponent

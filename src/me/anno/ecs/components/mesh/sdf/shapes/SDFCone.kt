@@ -83,12 +83,6 @@ open class SDFCone : SDFShape() {
         return sqrt(d) * sign(s)
     }
 
-    override fun clone(): SDFCone {
-        val clone = SDFCone()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFCone

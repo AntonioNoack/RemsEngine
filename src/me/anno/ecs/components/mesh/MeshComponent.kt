@@ -57,12 +57,6 @@ open class MeshComponent() : MeshComponentBase() {
     // on destroy we should maybe destroy the mesh:
     // only if it is unique, and owned by ourselves
 
-    override fun clone(): MeshComponent {
-        val clone = MeshComponent()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as MeshComponent

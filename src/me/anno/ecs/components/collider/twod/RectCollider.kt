@@ -67,12 +67,6 @@ class RectCollider : Collider2d() {
         )
     }
 
-    override fun clone(): RectCollider {
-        val clone = RectCollider()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as RectCollider

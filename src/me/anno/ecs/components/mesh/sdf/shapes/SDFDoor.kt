@@ -93,12 +93,6 @@ class SDFDoor : SDF2DShape() {
         return d * sign(max(qx, qy))
     }
 
-    override fun clone(): SDFDoor {
-        val clone = SDFDoor()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFDoor

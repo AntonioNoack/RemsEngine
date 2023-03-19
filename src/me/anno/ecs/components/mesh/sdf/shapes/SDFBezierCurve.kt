@@ -149,12 +149,6 @@ class SDFBezierCurve : SDFShape() {
         ) - mix(mix(b0.w, b1.w, t), mix(b1.w, b2.w, t), t)
     }
 
-    override fun clone(): SDFBezierCurve {
-        val clone = SDFBezierCurve()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFBezierCurve

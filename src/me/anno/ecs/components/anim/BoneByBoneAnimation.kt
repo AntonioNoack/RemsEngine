@@ -165,12 +165,6 @@ class BoneByBoneAnimation() : Animation() {
         }
     }*/
 
-    override fun clone(): BoneByBoneAnimation {
-        val clone = BoneByBoneAnimation()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as BoneByBoneAnimation

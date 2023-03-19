@@ -101,12 +101,6 @@ class SDFRandomRotation : SDFRandom() {
 
     }
 
-    override fun clone(): PrefabSaveable {
-        val clone = SDFRandomRotation()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFRandomRotation

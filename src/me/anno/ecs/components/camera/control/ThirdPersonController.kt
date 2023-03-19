@@ -10,12 +10,6 @@ open class ThirdPersonController : CameraController() {
         lastWarning = "hasn't been implemented yet"
     }
 
-    override fun clone(): ThirdPersonController {
-        val clone = ThirdPersonController()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "ThirdPersonControls"
 
 }

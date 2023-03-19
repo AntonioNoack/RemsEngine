@@ -17,12 +17,6 @@ class CameraState : Component() {
         return 1
     }
 
-    override fun clone(): CameraState {
-        val clone = CameraState()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as CameraState

@@ -141,12 +141,6 @@ class SDFNoise : DistanceMapper() {
         return distance - delta
     }
 
-    override fun clone(): PrefabSaveable {
-        val clone = SDFNoise()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFNoise

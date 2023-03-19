@@ -82,12 +82,6 @@ open class BillboardTransformer : Component() {
         return 1
     }
 
-    override fun clone(): Component {
-        val clone = BillboardTransformer()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as BillboardTransformer

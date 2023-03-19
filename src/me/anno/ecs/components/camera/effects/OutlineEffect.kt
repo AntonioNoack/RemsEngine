@@ -87,12 +87,6 @@ class OutlineEffect : CameraEffect() {
         }
     }
 
-    override fun clone(): OutlineEffect {
-        val clone = OutlineEffect()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as OutlineEffect

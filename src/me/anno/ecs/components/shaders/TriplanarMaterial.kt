@@ -32,12 +32,6 @@ class TriplanarMaterial : Material() {
         shader.v1f("worldScale", RenderState.worldScale)
     }
 
-    override fun clone(): TriplanarMaterial {
-        val clone = TriplanarMaterial()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as TriplanarMaterial

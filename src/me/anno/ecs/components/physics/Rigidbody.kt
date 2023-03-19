@@ -432,12 +432,6 @@ open class Rigidbody : Component() {
         // PlaneShapes.drawCircle(entity!!, -1)
     }
 
-    override fun clone(): Rigidbody {
-        val clone = Rigidbody()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Rigidbody

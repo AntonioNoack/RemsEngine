@@ -6,6 +6,8 @@
     <JAVADOC />
     <SOURCES>
       <root url="file://$PROJECT_DIR$/../Recast4j/src" />
+      <root url="file://$PROJECT_DIR$/../Recast4j/src" />
+      <root url="file://$PROJECT_DIR$/../Recast4j/src" />
     </SOURCES>
   </library>
 </component>

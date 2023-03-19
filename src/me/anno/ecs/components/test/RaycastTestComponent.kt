@@ -48,12 +48,6 @@ class RaycastTestComponent : Component() {
         return true
     }
 
-    override fun clone(): RaycastTestComponent {
-        val clone = RaycastTestComponent()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as RaycastTestComponent

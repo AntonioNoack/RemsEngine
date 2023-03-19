@@ -160,12 +160,6 @@ class SDFArray2 : SDFGroupArray() {
         seeds.removeLast()
     }
 
-    override fun clone(): SDFArray2 {
-        val clone = SDFArray2()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFArray2

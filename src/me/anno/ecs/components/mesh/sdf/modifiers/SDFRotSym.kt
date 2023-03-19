@@ -122,12 +122,6 @@ class SDFRotSym : PositionMapper() {
         z -= v.z
     }
 
-    override fun clone(): SDFRotSym {
-        val clone = SDFRotSym()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFRotSym

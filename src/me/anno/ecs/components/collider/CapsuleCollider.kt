@@ -90,12 +90,6 @@ class CapsuleCollider : Collider() {
         }
     }
 
-    override fun clone(): CapsuleCollider {
-        val clone = CapsuleCollider()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as CapsuleCollider

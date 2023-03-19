@@ -18,12 +18,6 @@ class SphereCollider : Collider() {
     @SerializedProperty
     var radius = 1.0
 
-    override fun clone(): SphereCollider {
-        val clone = SphereCollider()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SphereCollider

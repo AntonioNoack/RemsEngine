@@ -27,12 +27,6 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
     override fun render(color: ITexture2D) =
         render(color, strength, mode)
 
-    override fun clone(): ColorBlindnessEffect {
-        val clone = ColorBlindnessEffect()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as ColorBlindnessEffect

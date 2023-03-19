@@ -86,12 +86,6 @@ class AutoTileableMaterial : Material() {
         tex2.bind(shader, "invLUTTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
     }
 
-    override fun clone(): Material {
-        val clone = AutoTileableMaterial()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as AutoTileableMaterial

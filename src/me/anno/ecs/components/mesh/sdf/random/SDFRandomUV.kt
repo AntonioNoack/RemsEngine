@@ -35,12 +35,6 @@ class SDFRandomUV : SDFRandom() {
 
     override fun calcTransform(pos: Vector4f, seed: Int) {}
 
-    override fun clone(): PrefabSaveable {
-        val clone = SDFRandomUV()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "SDFRandomUV"
 
     companion object {

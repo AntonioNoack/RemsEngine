@@ -30,12 +30,6 @@ class Vehicle : Rigidbody() {
         mass = 1.0
     }
 
-    override fun clone(): Vehicle {
-        val clone = Vehicle()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Vehicle

@@ -78,8 +78,6 @@ abstract class Component : PrefabSaveable(), Inspectable {
         entity?.invalidateOwnAABB()
     }
 
-    abstract override fun clone(): Component
-
     open fun onCreate() {}
 
     override fun onDestroy() {}
@@ -138,7 +136,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
 
     @NotSerializedProperty
     open val components
-        get() = entity!!.components
+        get() = entity?.components ?: listOf(this)
 
     override fun toString(): String {
         return "$className('$name')"

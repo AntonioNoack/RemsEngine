@@ -9,12 +9,6 @@ open class FirstPersonController : CameraController() {
         lastWarning = "hasn't been implemented yet"
     }
 
-    override fun clone(): FirstPersonController {
-        val clone = FirstPersonController()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "FirstPersonControls"
 
 }

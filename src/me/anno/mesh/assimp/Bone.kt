@@ -91,12 +91,6 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
         writer.writeMatrix4x3f("originalTransform", originalTransform)
     }
 
-    override fun clone(): Bone {
-        val clone = Bone()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Bone

@@ -126,12 +126,6 @@ class SDFColumn : DistanceMapper() {
         }
     }
 
-    override fun clone(): PrefabSaveable {
-        val clone = SDFColumn()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "SDFColumn"
 
     companion object {

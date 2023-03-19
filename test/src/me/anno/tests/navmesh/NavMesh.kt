@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.navigation.NavMesh
+import me.anno.ecs.components.navigation.NavMeshAgent
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.Raycast
@@ -17,11 +18,8 @@ import me.anno.maths.Maths.mix
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
 import org.joml.Vector3d
-import org.joml.Vector3f
 import org.recast4j.detour.*
 import org.recast4j.detour.crowd.Crowd
-import org.recast4j.detour.crowd.CrowdAgent
-import org.recast4j.detour.crowd.CrowdAgentParams
 import org.recast4j.detour.crowd.CrowdConfig
 import java.util.*
 import kotlin.math.atan
@@ -29,63 +27,38 @@ import kotlin.math.atan2
 import kotlin.math.max
 
 // walk along path
-class AgentController(
+class AgentController1(
     meshData: MeshData,
     navMesh: org.recast4j.detour.NavMesh,
-    val query: NavMeshQuery,
-    val filter: DefaultQueryFilter,
-    val random: Random,
-    val navMesh1: NavMesh,
+    query: NavMeshQuery,
+    filter: DefaultQueryFilter,
+    random: Random,
+    navMesh1: NavMesh,
     crowd: Crowd,
     val flag: Entity,
-    val mask: Int
-) : Component() {
+    mask: Int
+) : NavMeshAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, mask) {
 
-    var currRef: FindRandomPointResult
-
-    val agent1: CrowdAgent
-
-    val speed = 10f
-
-    init {
-
-        val header = meshData.header!!
-        val tileRef = navMesh.getTileRefAt(header.x, header.y, header.layer)
-        currRef = query.findRandomPointWithinCircle(tileRef, Vector3f(), 200f, filter, random).result!!
-
-        val params = CrowdAgentParams()
-        params.radius = navMesh1.agentRadius
-        params.height = navMesh1.agentHeight
-        params.maxSpeed = speed
-        params.maxAcceleration = 10f
-        // other params?
-        agent1 = crowd.addAgent(currRef.randomPt, params)
-
+    override fun findNextTarget() {
+        super.findNextTarget()
+        flag.teleportToGlobal(Vector3d(crowdAgent.targetPos))
     }
 
-    fun findNextTarget() {
-        val nextRef = query.findRandomPointWithinCircle(
-            currRef.randomRef, agent1.targetPos,
-            200f, filter, random
-        ).result!!
-        agent1.setTarget(nextRef.randomRef, nextRef.randomPt)
-        flag.teleportToGlobal(Vector3d(nextRef.randomPt))
-    }
-
+    private var upDownAngle = 0.0
     private val raycastDir = Vector3d(0.0, -1.0, 0.0)
     override fun onUpdate(): Int {
         // move agent from src to dst
         val entity = entity!!
-        val nextPos = agent1.currentPosition
-        val distSq = agent1.actualVelocity.lengthSquared()
-        if (!(distSq > 0f && agent1.targetPos.distanceSquared(nextPos) >= 1f)) {
+        val nextPos = crowdAgent.currentPosition
+        val distSq = crowdAgent.actualVelocity.lengthSquared()
+        if (!(distSq > 0f && crowdAgent.targetPos.distanceSquared(nextPos) >= 1f)) {
             findNextTarget()
         }
         // project agent onto surface
         val lp = entity.position
         val start = Vector3d(nextPos)
-        start.y = lp.y + navMesh1.agentHeight * 0.5
-        val dist = navMesh1.agentHeight.toDouble()
+        start.y = lp.y + crowdAgent.params.height * 0.5
+        val dist = crowdAgent.params.height.toDouble()
         val world = entity.parentEntity!!
         val hr = Raycast.raycast(
             world, start, raycastDir, 0.0, 0.0,
@@ -104,10 +77,7 @@ class AgentController(
         return 1
     }
 
-    var upDownAngle = 0.0
 
-    override fun clone() = this
-    override val className = "AgentController"
 }
 
 /**
@@ -127,10 +97,12 @@ fun main() {
         val agentMesh = MeshCache[agentMeshRef, false]!!
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.ensureBounds()
+        val agentScale = 0.01f
+        val flagScale = 0.01f
 
         val navMesh1 = NavMesh()
-        navMesh1.agentHeight = agentBounds.deltaY()
-        navMesh1.agentRadius = max(agentBounds.deltaX(), agentBounds.deltaZ()) * 0.5f
+        navMesh1.agentHeight = agentBounds.deltaY() * agentScale
+        navMesh1.agentRadius = max(agentBounds.deltaX(), agentBounds.deltaZ()) * agentScale * 0.5f
         navMesh1.agentMaxClimb = navMesh1.agentHeight * 0.7f
         navMesh1.collisionMask = mask
         world.add(navMesh1)
@@ -141,7 +113,7 @@ fun main() {
             scale = scale.set(1.5)
         })
 
-        val meshData = navMesh1.build()!!
+        val meshData = navMesh1.build() ?: throw IllegalStateException("Failed to build NavMesh")
         navMesh1.data = meshData
 
         // visualize navmesh
@@ -170,11 +142,15 @@ fun main() {
         // todo agents should avoid each other
         for (i in 0 until 250) {
             val flag = Entity("Flag")
+            flag.scale = Vector3d(flagScale.toDouble())
             flag.add(MeshComponent(flagMesh).apply { isInstanced = true })
             world.add(flag)
             val agent = Entity("Agent")
-            agent.add(MeshComponent(agentMeshRef).apply { isInstanced = true })
-            agent.add(AgentController(meshData, navMesh, query, filter, random, navMesh1, crowd, flag, mask))
+            agent.add(Entity().apply {
+                scale = Vector3d(agentScale.toDouble())
+                add(MeshComponent(agentMeshRef).apply { isInstanced = true })
+            })
+            agent.add(AgentController1(meshData, navMesh, query, filter, random, navMesh1, crowd, flag, mask))
             world.add(agent)
         }
 

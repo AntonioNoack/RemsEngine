@@ -8,12 +8,6 @@ class RemotePlayer : Player() {
     // would be defined on a server
     var connection: TCPClient? = null
 
-    override fun clone(): RemotePlayer {
-        val clone = RemotePlayer()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "RemotePlayer"
 
 }

@@ -110,12 +110,6 @@ class SplineMesh : ProceduralMesh() {
             }
         }
 
-    override fun clone(): SplineMesh {
-        val clone = SplineMesh()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SplineMesh

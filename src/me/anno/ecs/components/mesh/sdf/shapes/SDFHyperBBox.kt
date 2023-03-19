@@ -95,12 +95,6 @@ class SDFHyperBBox : SDFHyperCube() {
         return min(lineSDF(px, qy, qz), min(lineSDF(qx, py, qz), lineSDF(qx, qy, pz))) - k + pos.w
     }
 
-    override fun clone(): SDFHyperBBox {
-        val clone = SDFHyperBBox()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFHyperBBox

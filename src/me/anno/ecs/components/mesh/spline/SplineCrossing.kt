@@ -122,7 +122,7 @@ class SplineCrossing : ProceduralMesh() {
                 val centerPoints = ArrayList<Vector3f>()
 
                 fun createPoint(p: SplineControlPoint, f: Boolean): SplineControlPoint {
-                    val clone = p.clone()
+                    val clone = p.clone() as SplineControlPoint
                     val cloneEntity = Entity()
                     // rotate 180° if looking wrong direction (can be found using its spline, or atan2)
                     // rotate 180° * f
@@ -257,12 +257,6 @@ class SplineCrossing : ProceduralMesh() {
         mesh.normals = nor
         mesh.color0 = colors
         return mesh
-    }
-
-    override fun clone(): ProceduralMesh {
-        val clone = SplineCrossing()
-        copy(clone)
-        return clone
     }
 
     override val className get() = "SplineCrossing"

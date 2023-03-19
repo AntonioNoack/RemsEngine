@@ -122,12 +122,6 @@ class SDFHalfSpace() : DistanceMapper() {
         return sMaxCubic(distance, plane.dot(pos), smoothness)
     }
 
-    override fun clone(): SDFHalfSpace {
-        val clone = SDFHalfSpace()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFHalfSpace

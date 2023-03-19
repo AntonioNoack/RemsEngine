@@ -30,12 +30,6 @@ class SplineControlPoint : Component() {
     fun getLocalUp(dst: Vector3d): Vector3d =
         transform!!.localTransform.transformDirection(dst.set(0.0, 1.0, 0.0))
 
-    override fun clone(): SplineControlPoint {
-        val clone = SplineControlPoint()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SplineControlPoint

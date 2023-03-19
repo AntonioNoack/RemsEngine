@@ -30,12 +30,6 @@ class SDFSphere : SDFShape() {
         return length(pos.x, pos.y, pos.z) - 1f + pos.w
     }
 
-    override fun clone(): SDFSphere {
-        val clone = SDFSphere()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "SDFSphere"
 
     companion object {

@@ -976,12 +976,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int) = pipeline.fill(this)
 
-    override fun clone(): Entity {
-        val clone = Entity()
-        copy(clone)
-        return clone
-    }
-
     /**
      * O(|E|+|C|) clone of properties and components
      * */
@@ -1001,7 +995,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         val cloneEntities = clone.internalChildren
         if (cloneEntities.isNotEmpty()) cloneEntities.clear()
         for (i in children.indices) {
-            val entity = children[i].clone()
+            val entity = children[i].clone() as Entity
             entity.parent = clone
             cloneEntities.add(entity)
         }
@@ -1009,7 +1003,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         val cloneComponents = clone.internalComponents
         if (cloneComponents.isNotEmpty()) cloneComponents.clear()
         for (i in components.indices) {
-            val component = components[i].clone()
+            val component = components[i].clone() as Component
             component.entity = clone
             cloneComponents.add(component)
         }

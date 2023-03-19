@@ -121,12 +121,6 @@ class SDFTriangleGrid : PositionMapper() {
         }
     }
 
-    override fun clone(): SDFTriangleGrid {
-        val clone = SDFTriangleGrid()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFTriangleGrid

@@ -56,12 +56,6 @@ class SSREffect : ToneMappedEffect() {
         )
     }
 
-    override fun clone(): SSREffect {
-        val clone = SSREffect()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SSREffect

@@ -34,12 +34,6 @@ open class Player : Component() {
         } else super.readObject(name, value)
     }
 
-    override fun clone(): Player {
-        val clone = Player()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Player

@@ -40,12 +40,6 @@ class ImportedAnimation : Animation() {
         return frames[index]
     }
 
-    override fun clone(): ImportedAnimation {
-        val clone = ImportedAnimation()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as ImportedAnimation

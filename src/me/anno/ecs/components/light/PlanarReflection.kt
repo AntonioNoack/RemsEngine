@@ -219,12 +219,6 @@ class PlanarReflection : LightComponentBase() {
         return clickId // not itself clickable
     }
 
-    override fun clone(): PlanarReflection {
-        val clone = PlanarReflection()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as PlanarReflection

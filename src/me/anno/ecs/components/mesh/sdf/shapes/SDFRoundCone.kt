@@ -111,12 +111,6 @@ open class SDFRoundCone : SDFShape() {
         return qx * a + qy * b - r1
     }
 
-    override fun clone(): SDFRoundCone {
-        val clone = SDFRoundCone()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFRoundCone

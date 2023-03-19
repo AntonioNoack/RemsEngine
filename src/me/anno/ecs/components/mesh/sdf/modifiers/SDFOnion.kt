@@ -97,12 +97,6 @@ class SDFOnion() : DistanceMapper() {
         }
     }
 
-    override fun clone(): SDFOnion {
-        val clone = SDFOnion()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFOnion

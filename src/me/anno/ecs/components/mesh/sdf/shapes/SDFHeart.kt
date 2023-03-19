@@ -52,12 +52,6 @@ class SDFHeart : SDF2DShape() {
         }
     }
 
-    override fun clone(): SDFHeart {
-        val clone = SDFHeart()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "SDFHeart"
 
     companion object {

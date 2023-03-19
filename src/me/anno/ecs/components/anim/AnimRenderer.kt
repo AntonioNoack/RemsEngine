@@ -302,12 +302,6 @@ open class AnimRenderer : MeshComponent() {
         } else false
     }
 
-    override fun clone(): AnimRenderer {
-        val clone = AnimRenderer()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as AnimRenderer

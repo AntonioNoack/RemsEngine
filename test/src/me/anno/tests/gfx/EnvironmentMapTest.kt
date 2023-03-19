@@ -12,9 +12,8 @@ import org.joml.Vector3d
 
 fun main() {
 
-    // todo left and right looks mirrored...
-
     // todo rendering in deferred mode must use them as well
+    // todo rename EnvironmentMap to ReflectionMap or ReflectionCubemap?
 
     // test environment map
     ECSRegistry.init()

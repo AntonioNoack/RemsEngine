@@ -116,12 +116,6 @@ open class QuickInputScriptComponent : QuickScriptComponent(), ControlReceiver {
         }
     }
 
-    override fun clone(): QuickInputScriptComponent {
-        val clone = QuickInputScriptComponent()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as QuickInputScriptComponent

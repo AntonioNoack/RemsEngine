@@ -74,12 +74,6 @@ class AnimController : Component() {
         return 1
     }
 
-    override fun clone(): Component {
-        val clone = AnimController()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as AnimController

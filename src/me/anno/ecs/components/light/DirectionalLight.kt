@@ -64,12 +64,6 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         drawArrowZ(entity, +1.0, -1.0)
     }
 
-    override fun clone(): DirectionalLight {
-        val clone = DirectionalLight()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as DirectionalLight

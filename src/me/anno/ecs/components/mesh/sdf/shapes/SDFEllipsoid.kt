@@ -51,12 +51,6 @@ open class SDFEllipsoid : SDFShape() {
         return k0 * (k0 - 1f) / k1
     }
 
-    override fun clone(): SDFEllipsoid {
-        val clone = SDFEllipsoid()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFEllipsoid

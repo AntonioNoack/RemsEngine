@@ -42,12 +42,6 @@ class ConvexCollider : Collider() {
         }
     }
 
-    override fun clone(): ConvexCollider {
-        val clone = ConvexCollider()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as ConvexCollider

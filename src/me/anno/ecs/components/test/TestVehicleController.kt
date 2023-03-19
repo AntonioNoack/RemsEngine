@@ -62,12 +62,6 @@ class TestVehicleController : Component(), ControlReceiver {
         return true
     }
 
-    override fun clone(): Component {
-        val clone = TestVehicleController()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as TestVehicleController

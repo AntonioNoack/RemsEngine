@@ -170,7 +170,12 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     open fun getIndexOf(child: PrefabSaveable): Int = getChildListByType(getTypeOf(child)).indexOf(child)
     open fun getTypeOf(child: PrefabSaveable): Char = ' '
 
-    public abstract override fun clone(): PrefabSaveable
+    public override fun clone(): PrefabSaveable {
+        val clone = javaClass.newInstance()
+        copy(clone)
+        return clone
+    }
+
     open fun copy(clone: PrefabSaveable) {
         clone.name = name
         clone.description = description

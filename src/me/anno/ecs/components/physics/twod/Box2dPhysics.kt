@@ -197,12 +197,6 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
         )
     }
 
-    override fun clone(): Box2dPhysics {
-        val clone = Box2dPhysics()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "Box2dPhysics"
 
     companion object {

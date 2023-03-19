@@ -86,12 +86,6 @@ class ConeCollider : Collider() {
         }
     }
 
-    override fun clone(): ConeCollider {
-        val clone = ConeCollider()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as ConeCollider

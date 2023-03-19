@@ -41,12 +41,6 @@ open class OrbitControls : CameraController() {
             .rotateZ(rotation.z.toDouble()) // correct place? probably :)
     }
 
-    override fun clone(): OrbitControls {
-        val clone = OrbitControls()
-        copy(clone)
-        return clone
-    }
-
     override val className get() = "OrbitControls"
 
 }

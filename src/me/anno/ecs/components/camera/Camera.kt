@@ -85,12 +85,6 @@ class Camera : Component() {
         }
     }
 
-    override fun clone(): Camera {
-        val clone = Camera()
-        copy(clone)
-        return clone
-    }
-
     override fun onDrawGUI(all: Boolean) {
         val entity = entity
         val aspect = 16f / 9f

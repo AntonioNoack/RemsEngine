@@ -200,12 +200,6 @@ class SDFArray : PositionMapper() {
         }
     }
 
-    override fun clone(): SDFArray {
-        val clone = SDFArray()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFArray

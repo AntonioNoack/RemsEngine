@@ -42,12 +42,6 @@ class Texture3DBTv2Material : Material() {
         shader.v1b("useSDF", useSDF)
     }
 
-    override fun clone(): Texture3DBTv2Material {
-        val clone = Texture3DBTv2Material()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as Texture3DBTv2Material

@@ -157,12 +157,6 @@ class VehicleWheel : Component() {
         return wheel
     }
 
-    override fun clone(): VehicleWheel {
-        val clone = VehicleWheel()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as VehicleWheel

@@ -57,12 +57,6 @@ open class SDFMesh : SDFSmoothShape() {
         TODO()
     }
 
-    override fun clone(): SDFMesh {
-        val clone = SDFMesh()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFMesh

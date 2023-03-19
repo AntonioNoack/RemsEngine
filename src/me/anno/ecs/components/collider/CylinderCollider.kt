@@ -92,12 +92,6 @@ class CylinderCollider : Collider() {
         }
     }
 
-    override fun clone(): CylinderCollider {
-        val clone = CylinderCollider()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as CylinderCollider

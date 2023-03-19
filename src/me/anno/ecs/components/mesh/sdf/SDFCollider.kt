@@ -128,12 +128,6 @@ class SDFCollider : Collider() {
         DrawAABB.drawAABB(transform, sdf.localAABB, RenderState.worldScale, color)
     }
 
-    override fun clone(): Component {
-        val clone = SDFCollider()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFCollider

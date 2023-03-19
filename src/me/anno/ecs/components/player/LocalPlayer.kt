@@ -5,12 +5,6 @@ package me.anno.ecs.components.player
 
 open class LocalPlayer : Player() {
 
-    override fun clone(): LocalPlayer {
-        val clone = LocalPlayer()
-        copy(clone)
-        return clone
-    }
-
     companion object {
 
         /**

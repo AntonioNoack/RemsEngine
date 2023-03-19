@@ -68,12 +68,6 @@ class ConeTwistConstraint : Constraint<com.bulletphysics.dynamics.constraintsolv
         bulletInstance?.setLimit(angleX, angleY, twist, softness, biasFactor, relaxation)
     }
 
-    override fun clone(): ConeTwistConstraint {
-        val clone = ConeTwistConstraint()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as ConeTwistConstraint

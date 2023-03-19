@@ -80,12 +80,6 @@ open class SDFCylinder : SDFSmoothShape() {
         return min(max(dx, dy), 0f) + length(max(dx, 0f), max(dy, 0f)) - k + pos.w
     }
 
-    override fun clone(): SDFCylinder {
-        val clone = SDFCylinder()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFCylinder

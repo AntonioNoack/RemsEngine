@@ -142,12 +142,6 @@ class SDFStretcher() : PositionMapper() {
         bounds.maxZ = max(z2, z3)
     }
 
-    override fun clone(): SDFStretcher {
-        val clone = SDFStretcher()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFStretcher

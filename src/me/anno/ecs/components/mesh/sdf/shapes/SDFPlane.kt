@@ -75,12 +75,6 @@ open class SDFPlane : SDFShape() {
         return pos.y
     }
 
-    override fun clone(): SDFPlane {
-        val clone = SDFPlane()
-        copy(clone)
-        return clone
-    }
-
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)
         clone as SDFPlane
