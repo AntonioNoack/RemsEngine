@@ -1,7 +1,6 @@
 package me.anno.tests.assimp
 
 import me.anno.Engine
-import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.BoneByBoneAnimation.Companion.fromImported
 import me.anno.ecs.components.anim.BoneByBoneAnimation.Companion.toImported
 import me.anno.ecs.components.anim.ImportedAnimation
@@ -64,7 +63,7 @@ fun main() {
             val skinning = animation.frames[frameIndex][boneId] // target matrix
             val parentSkinning = animation.frames[frameIndex].getOrNull(bone.parentId)
             val test = Matrix4x3f()
-            fromImported(bone.bindPose, skinning, parentSkinning, Vector3f(), test)
+            fromImported(bone.bindPose, skinning, parentSkinning, Vector3f(), Quaternionf(), test)
 
             val invTest = Matrix4x3f()
             toImported(

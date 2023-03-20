@@ -30,6 +30,7 @@ class Retargeting : NamedSaveable() {
 
         fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Retargeting? {
             if (srcSkeleton == dstSkeleton) return null
+            // todo when a skeleton changes, update this
             val data = cache.getEntry(
                 Quad(
                     srcSkeleton, srcSkeleton.lastModified,

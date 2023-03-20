@@ -262,6 +262,10 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         if (bones.all2 { it.name.startsWith(prefix) }) {
             for (bone in bones) bone.name = bone.name.substring(prefix.length)
         }
+        for (bone in bones) bone.name = bone.name
+            .replace("_\$AssimpFbx\$_Translation", "_T")
+            .replace("_\$AssimpFbx\$_Rotation", "_R")
+            .replace("_\$AssimpFbx\$_Scaling", "_S")
     }
 
     private fun applyMatrixFix(prefab: Prefab, matrix: Matrix3f) {

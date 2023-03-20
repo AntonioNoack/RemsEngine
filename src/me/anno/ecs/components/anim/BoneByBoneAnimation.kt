@@ -19,6 +19,7 @@ import me.anno.studio.StudioBase
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.f3s
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
@@ -42,6 +43,14 @@ class BoneByBoneAnimation() : Animation() {
     var rotations: FloatArray? = null // Array(frameCount * boneCount) { Quaternionf() }
 
     override val numFrames get() = frameCount
+
+    fun init() {
+        val space = Math.multiplyExact(boneCount, frameCount)
+        val s3 = Math.multiplyExact(3, space)
+        val s4 = Math.multiplyExact(4, space)
+        translations = translations.resize(s3)
+        rotations = rotations.resize(s4)
+    }
 
     fun getTranslation(frame: Int, bone: Int, dst: Vector3f): Vector3f {
         return dst.set(translations!!, 3 * (frame * boneCount + bone))
@@ -67,7 +76,7 @@ class BoneByBoneAnimation() : Animation() {
         src.get(translations!!, 3 * (frame * boneCount + bone))
     }
 
-    fun getRotation(frame: Int, bone: Int, dst: Quaternionf = Quaternionf()): Quaternionf {
+    fun getRotation(frame: Int, bone: Int, dst: Quaternionf): Quaternionf {
         return dst.set(rotations!!, 4 * (frame * boneCount + bone))
     }
 
@@ -188,9 +197,9 @@ class BoneByBoneAnimation() : Animation() {
         val boneCount = skel.bones.size
         translations = FloatArray(boneCount * frameCount * 3)
         rotations = FloatArray(boneCount * frameCount * 4)
-        val tmpPos = Vector3f()
-        val tmpRot = Quaternionf()
-        val tmpMat = Matrix4x3f()
+        val tmpV = Vector3f()
+        val tmpQ = Quaternionf()
+        val tmpM = Matrix4x3f()
         val frames = anim.frames
         val bones = skel.bones
         for (i in frames.indices) {
@@ -200,9 +209,9 @@ class BoneByBoneAnimation() : Animation() {
                 val bone = bones[j]
                 val pj = bone.parentId
                 val pose = frame[j] // bind pose [world space] -> animated pose [world space]
-                val data = fromImported(bone.bindPose, pose, frame.getOrNull(pj), tmpPos, tmpMat)
-                setTranslation(i, j, data.getTranslation(tmpPos))
-                setRotation(i, j, data.getUnnormalizedRotation(tmpRot)) // probably would be the same as tmp2
+                val data = fromImported(bone.bindPose, pose, frame.getOrNull(pj), tmpV, tmpQ, tmpM)
+                setTranslation(i, j, data.getTranslation(tmpV))
+                setRotation(i, j, data.getUnnormalizedRotation(tmpQ)) // probably would be the same as tmp2
             }
         }
         return this
@@ -237,15 +246,34 @@ class BoneByBoneAnimation() : Animation() {
             bindPose: Matrix4x3f,
             skinning: Matrix4x3f,
             parentSkinning: Matrix4x3f?,
-            tmp: Vector3f,
+            tmpV: Vector3f, tmpQ: Quaternionf,
             dst: Matrix4x3f
         ): Matrix4x3f {
             skinning.mul(bindPose, dst) // position in model
             if (parentSkinning != null) {
-                predict(parentSkinning, bindPose, tmp)
-                dst.translateLocal(-tmp.x, -tmp.y, -tmp.z)
+                // (parent * bindPose)^-1 * dst
+                predict(parentSkinning, bindPose, JomlPools.mat4x3f.borrow())
+                    .invert().mul(dst, dst)
             }
+            // make that the rotation is always in world space
+            //  by rotating the base of the rotation into world space
+            val pos = dst.getTranslation(tmpV)
+            val rot = dst.getUnnormalizedRotation(tmpQ)
+            rotQuat(rot, bindPose)
+            bindPose.transformDirection(pos)
+            dst.translationRotate(pos, rot)
             return dst
+        }
+
+        /**
+         * rotate the main axis of a quaternion;
+         * I don't know whether anyone uses this, whether this is a legit operation;
+         * I think I need it here, and it looks correct to me
+         * */
+        fun rotQuat(q: Quaternionf, rot: Matrix4x3f) {
+            val v = JomlPools.vec3f.borrow()
+            rot.transformDirection(v.set(q.x, q.y, q.z))
+            q.set(v.x, v.y, v.z, q.w)
         }
 
         /**
@@ -257,18 +285,23 @@ class BoneByBoneAnimation() : Animation() {
             t: Vector3f, r: Quaternionf,
             dst: Matrix4x3f
         ) {
+
+            bone.inverseBindPose.transformDirection(t)
+            rotQuat(r, bone.inverseBindPose)
+
             dst.translationRotate(t, r)
             if (parentSkinning != null) {
-                predict(parentSkinning, bone.bindPose, t)
-                dst.translateLocal(t)
+                // dst = parent * bindPose * dst
+                bone.bindPose.mul(dst, dst)
+                parentSkinning.mul(dst, dst)
+                // predict(parentSkinning, bone.bindPose, JomlPools.mat4x3f.borrow()).mul(dst, dst)
             }
             dst.mul(bone.inverseBindPose)
         }
 
-        fun predict(parentSkinning: Matrix4x3f, bindPose: Matrix4x3f, dst: Vector3f) {
-            parentSkinning.transformPosition(bindPose.getTranslation(dst))
+        fun predict(parentSkinning: Matrix4x3f, bindPose: Matrix4x3f, dst: Matrix4x3f): Matrix4x3f {
+            return parentSkinning.mul(bindPose, dst)
         }
-
 
         fun format(m: Matrix4x3f): String {
             return "[[${m.m00.f3s()} ${m.m01.f3s()} ${m.m02.f3s()}] " +
@@ -285,14 +318,16 @@ class BoneByBoneAnimation() : Animation() {
 
             // front legs are broken slightly???
 
+            // todo why is this springy?
+
             ECSRegistry.initMeshes()
 
-            // val meshFile = downloads.getChild("3d/azeria/scene.gltf")
-            val meshFile = downloads.getChild("3d/FemaleStandingPose/7.4.fbx")
-            val animation = PrefabCache.getPrefabInstance(
-                meshFile.getChild("animations").listChildren()!!.first()
-                    .getChild("BoneByBone.json")
-            ).run {
+            val meshFile = downloads.getChild("3d/azeria/scene.gltf")
+            // val meshFile = downloads.getChild("3d/FemaleStandingPose/7.4.fbx")
+            var animFile = meshFile.getChild("animations")
+            if (animFile.listChildren()!!.first().isDirectory) animFile = animFile.listChildren()!!.first()
+            animFile = animFile.getChild("BoneByBone.json")
+            val animation = PrefabCache.getPrefabInstance(animFile).run {
                 if (this is ImportedAnimation) BoneByBoneAnimation(this)
                 else this as BoneByBoneAnimation
             }
@@ -319,11 +354,11 @@ class BoneByBoneAnimation() : Animation() {
                 val r = Quaternionf()
                 var time = 0f
                 while (!Engine.shutdown) {
-                    val dr = sin(time * 20f) / 50f
-                    val boneIndex = 67 // fox: 7
+                    val dr = sin(time * 20f) / 20f
+                    val boneIndex = if (meshFile.absolutePath.contains("azeria")) 7 else 67
                     for (fi in 0 until animation.frameCount) {
                         animation.getRotation(fi, boneIndex, r)
-                        r.rotateZ(dr)
+                        r.rotateX(-dr)
                         animation.setRotation(fi, boneIndex, r)
                     }
                     AnimationCache.invalidate(animation)

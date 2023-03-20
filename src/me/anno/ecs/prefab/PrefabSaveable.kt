@@ -181,8 +181,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         clone.description = description
         clone.isEnabled = isEnabled
         clone.isCollapsed = isCollapsed
-        clone.prefab = prefab
-        clone.prefabPath = prefabPath
+        // clone.prefab = prefab
+        // clone.prefabPath = prefabPath
     }
 
     override fun onDestroy() {}

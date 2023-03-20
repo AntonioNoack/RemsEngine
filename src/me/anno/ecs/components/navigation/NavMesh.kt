@@ -123,14 +123,14 @@ class NavMesh : Component() {
         })
         built.telemetry?.print()
         println(built.compactHeightField.run {
-            "compactHeightField: cells[${cells.size}]: ${cells.count { it.count == 1 }} + ${cells.count { it.count == 2 }} + ${cells.count { it.count > 2 }}, " +
+            "compactHeightField: cells[${index.size}]: ${index.indices.count { index[it] + 1 == endIndex[it] }} + ..." +
                     "${this.width} x ${this.height}, ${this.borderSize} border, ${this.areas.size} areas, " +
                     "${this.spans.size} spans"
         })
 
         built.compactHeightField.apply {
             IntImage(width, height, IntArray(width * height) {
-                if (cells[it].count > 0) spans[cells[it].index].y * 0x10101 else 0
+                if (endIndex[it] > index[it]) spans[index[it]].y * 0x10101 else 0
             }, false)
                 .write(desktop.getChild("compactHeight.png"))
         }
