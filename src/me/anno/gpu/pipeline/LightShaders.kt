@@ -5,6 +5,9 @@ import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
 import me.anno.engine.pbr.PBRLibraryGLTF
+import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColor
+import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
+import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.engine.ui.render.Renderers
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
@@ -227,7 +230,7 @@ object LightShaders {
                         Variable(GLSLType.V4F, "data0", VariableMode.OUT),
                         Variable(GLSLType.V4F, "data1", VariableMode.OUT),
                         Variable(GLSLType.V4F, "data2", VariableMode.OUT),
-                        Variable(GLSLType.M4x3, "WStoLightSpace", VariableMode.OUT),
+                        Variable(GLSLType.M4x3, "camSpaceToLightSpace", VariableMode.OUT),
                         Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
                     ), "" +
                             "data0 = lightData0;\n" +
@@ -240,7 +243,7 @@ object LightShaders {
                             "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
                             "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
                             "}\n" +
-                            "WStoLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2,invInsTrans3);\n" +
+                            "camSpaceToLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2,invInsTrans3);\n" +
                             "uvw = gl_Position.xyw;\n"
                 )
             } else {
@@ -298,7 +301,7 @@ object LightShaders {
                     Variable(GLSLType.V1F, "finalRoughness"),
                     Variable(GLSLType.V1F, "finalSheen"),
                     Variable(GLSLType.V1F, "finalTranslucency"),
-                    Variable(GLSLType.M4x3, "WStoLightSpace"), // invLightMatrices[i]
+                    Variable(GLSLType.M4x3, "camSpaceToLightSpace"), // invLightMatrices[i]
                     Variable(GLSLType.V4F, "light", VariableMode.OUT)
                 ) + depthToPositionList, "" +
                         // light calculation including shadows if !instanced
@@ -311,17 +314,17 @@ object LightShaders {
                         // light properties, which are typically inside the loop
                         "vec3 lightColor = data0.rgb;\n" +
                         "vec3 finalPosition = rawDepthToPosition(uv,texture(depthTex,uv).x);\n" +
-                        "vec3 dir = WStoLightSpace * vec4(finalPosition, 1.0);\n" +
-                        "vec3 localNormal = normalize(mat3x3(WStoLightSpace) * finalNormal);\n" +
+                        "vec3 dir = camSpaceToLightSpace * vec4(finalPosition, 1.0);\n" +
+                        "vec3 localNormal = normalize(mat3x3(camSpaceToLightSpace) * finalNormal);\n" +
                         "float NdotL = 0.0;\n" + // normal dot light
                         "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS = vec3(0.0);\n" +
                         coreFragment +
                         "if(hasSpecular && NdotL > 0.0001 && NdotV > 0.0001){\n" +
                         "   vec3 H = normalize(V + lightDirWS);\n" +
-                        PBRLibraryGLTF.specularBRDFv2NoColorStart +
-                        PBRLibraryGLTF.specularBRDFv2NoColor +
+                        specularBRDFv2NoColorStart +
+                        specularBRDFv2NoColor +
                         "   specularLight = effectiveSpecular * computeSpecularBRDF;\n" +
-                        PBRLibraryGLTF.specularBRDFv2NoColorEnd +
+                        specularBRDFv2NoColorEnd +
                         "}\n" +
                         // translucency; looks good and approximately correct
                         // sheen is a fresnel effect, which adds light at the edge, e.g., for clothing

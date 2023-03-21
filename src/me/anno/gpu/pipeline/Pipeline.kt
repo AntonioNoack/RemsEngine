@@ -3,14 +3,10 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.interfaces.Renderable
@@ -160,10 +156,8 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
         // update light transform
         // its drawn position probably should be smoothed -> we probably should use the drawnMatrix instead of the global one
         // we may want to set a timestamp, so we don't update it twice? no, we fill the pipeline only once
-        val invWorldTransform = light.invWorldMatrix
-        val drawTransform = entity.transform.getDrawMatrix()
-        invWorldTransform
-            .set4x3delta(drawTransform, RenderState.cameraPosition, RenderState.worldScale)
+        light.invCamSpaceMatrix
+            .set4x3delta(entity.transform.getDrawMatrix(), RenderState.cameraPosition, RenderState.worldScale)
             .invert()
         stage.add(light, entity)
     }

@@ -151,7 +151,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
                 if (light is DirectionalLight) shader.v1f("cutoff", light.cutoff)
 
-                shader.m4x3("WStoLightSpace", light.invWorldMatrix)
+                shader.m4x3("camSpaceToLightSpace", light.invCamSpaceMatrix)
 
                 var shadowIdx1 = 0
                 if (light is PointLight) {
@@ -251,8 +251,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                 val m = lightI.transform.getDrawMatrix(time)
                 m4x3delta(m, cameraPosition, worldScale, nioBuffer)
                 if (!visualizeLightCount) {
-                    val mInv = light.invWorldMatrix
-                    m4x3x(mInv, nioBuffer)
+                    m4x3x(light.invCamSpaceMatrix, nioBuffer)
                     // put all light data: lightData0, lightData1
                     // put data0:
                     val color = light.color

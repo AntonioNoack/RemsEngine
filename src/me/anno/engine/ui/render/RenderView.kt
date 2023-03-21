@@ -1291,6 +1291,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
         pipeline.resetClickId()
+        setRenderState() // needed for light matrix calculation (camSpaceToLightSpace)
         if (world != null) pipeline.fill(world)
         controlScheme?.fill(pipeline)
         // if the scene would be dark, define lights, so we can see something

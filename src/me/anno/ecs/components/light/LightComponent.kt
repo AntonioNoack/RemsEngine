@@ -26,7 +26,6 @@ import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
-import org.lwjgl.opengl.GL11C.GL_GREATER
 import org.lwjgl.opengl.GL11C.GL_LESS
 import kotlin.math.pow
 
@@ -228,10 +227,10 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     /**
      * is set by the pipeline,
-     * is equal to inv(transform.globalMatrix - cameraPosition)
+     * is equal to invert((transform.globalMatrix - cameraPosition) * worldScale)
      * */
     @NotSerializedProperty
-    val invWorldMatrix = Matrix4x3f()
+    val invCamSpaceMatrix = Matrix4x3f()
 
     open fun getShaderV0(drawTransform: Matrix4x3d, worldScale: Double): Float = 0f
     open fun getShaderV1(): Float = 0f

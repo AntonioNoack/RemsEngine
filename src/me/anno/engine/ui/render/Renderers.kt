@@ -148,7 +148,7 @@ object Renderers {
                         "   if(hasDiffuse || hasSpecular){\n" +
                         specularBRDFv2NoDivInlined2Start +
                         "       for(int i=0;i<numberOfLights;i++){\n" +
-                        "           mat4x3 WStoLightSpace = invLightMatrices[i];\n" +
+                        "           mat4x3 camSpaceToLightSpace = invLightMatrices[i];\n" +
                         "           vec3 dir = invLightMatrices[i] * vec4(finalPosition,1.0);\n" + // local coordinates for falloff
                         // "       if(!hasSpecular && dot(dir,dir) >= 1.0) continue;\n" +
                         "           vec4 data0 = lightData0[i];\n" + // color, type
@@ -157,7 +157,7 @@ object Renderers {
                         "           vec3 lightColor = data0.rgb;\n" +
                         "           int lightType = int(data0.a);\n" +
                         "           lightDirWS = effectiveDiffuse = effectiveSpecular = vec3(0.0);\n" + // making Nvidia GPUs happy
-                        "           localNormal = normalize(mat3x3(WStoLightSpace) * finalNormal);\n" +
+                        "           localNormal = normalize(mat3x3(camSpaceToLightSpace) * finalNormal);\n" +
                         "           int shadowMapIdx0 = int(data2.r);\n" +
                         "           int shadowMapIdx1 = int(data2.g);\n" +
                         // local coordinates of the point in the light "cone"

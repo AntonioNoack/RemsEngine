@@ -94,7 +94,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     "NdotL = localNormal.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
                     // inv(W->L) * vec4(0,0,1,0) =
                     // transpose(m3x3(W->L)) * vec3(0.0,0.0,1.0)
-                    "lightDirWS = normalize(vec3(WStoLightSpace[0][2],WStoLightSpace[1][2],WStoLightSpace[2][2]));\n" +
+                    "lightDirWS = normalize(vec3(camSpaceToLightSpace[0][2],camSpaceToLightSpace[1][2],camSpaceToLightSpace[2][2]));\n" +
                     (if (withShadows) "" +
                             "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
                             // when we are close to the edge, we blend in
