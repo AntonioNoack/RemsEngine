@@ -3,7 +3,7 @@ package me.anno.tests.navmesh
 import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent

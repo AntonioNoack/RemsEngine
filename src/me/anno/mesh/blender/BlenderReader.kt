@@ -1,6 +1,6 @@
 package me.anno.mesh.blender
 
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.fonts.mesh.Triangulation

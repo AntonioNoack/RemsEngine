@@ -361,7 +361,8 @@ open class FileExplorerEntry(
                 null // just not an animation
             }
             if (animSample is Animation) {
-                val time = (Engine.gameTime / 1e9) % animSample.duration
+                val frameTime = (Engine.gameTime / 1e9) % animSample.duration
+                val frameIndex = (frameTime * animSample.numFrames).toFloat()
                 val samples = min(
                     GFX.maxSamples, when (StudioBase.instance?.gfxSettings) {
                         GFXSettings.HIGH -> 8
@@ -369,12 +370,13 @@ open class FileExplorerEntry(
                         else -> 1
                     }
                 )
+                val aspect = w.toFloat() / h
                 if (samples > 1) {
                     val tmp = FBStack["tmp", w, h, 4, false, 8, true] // msaa; probably should depend on gfx settings
                     GFXState.useFrame(0, 0, w, h, tmp, Renderers.simpleNormalRenderer) {
                         GFXState.depthMode.use(DepthMode.CLOSER) {
                             tmp.clearColor(backgroundColor, true)
-                            Thumbs.drawAnimatedSkeleton(animSample, time.toFloat(), w.toFloat() / h)
+                            Thumbs.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }
                     }
                     GFX.copy(tmp)
@@ -388,7 +390,7 @@ open class FileExplorerEntry(
                         // todo clip to correct area
                         GFXState.depthMode.use(DepthMode.CLOSER) {
                             GFXState.currentBuffer.clearDepth()
-                            Thumbs.drawAnimatedSkeleton(animSample, time.toFloat(), w.toFloat() / h)
+                            Thumbs.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }
                     }
                 }

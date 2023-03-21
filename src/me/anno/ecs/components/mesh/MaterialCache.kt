@@ -1,4 +1,4 @@
-package me.anno.ecs.components.cache
+package me.anno.ecs.components.mesh
 
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.components.mesh.Material

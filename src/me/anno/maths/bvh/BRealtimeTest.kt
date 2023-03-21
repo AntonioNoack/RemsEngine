@@ -2,7 +2,7 @@ package me.anno.maths.bvh
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.engine.ECSRegistry

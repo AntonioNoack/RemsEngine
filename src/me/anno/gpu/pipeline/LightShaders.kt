@@ -6,6 +6,7 @@ import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
 import me.anno.engine.pbr.PBRLibraryGLTF
 import me.anno.engine.ui.render.Renderers
+import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute
@@ -13,7 +14,12 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
+import me.anno.gpu.shader.ReverseDepth.depthToPosition
+import me.anno.gpu.shader.ReverseDepth.depthToPositionList
+import me.anno.gpu.shader.ReverseDepth.rawToDepth
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -81,8 +87,10 @@ object LightShaders {
         shader.use()
         shader.v1b("applyToneMapping", applyToneMapping)
         shader.v3f("ambientLight", ambientLight)
-        scene.bindTrulyNearestMS(2)
-        ssao.bindTrulyNearest(1)
+        bindDepthToPosition(shader)
+        scene.bindTrulyNearestMS(3)
+        ssao.bindTrulyNearest(2)
+        scene.depthTexture!!.bindTrulyNearest(1)
         light.bindTrulyNearestMS(0)
         GFX.flat01.draw(shader)
     }
@@ -125,17 +133,18 @@ object LightShaders {
             val fragment = ShaderStage(
                 "f", listOf(
                     Variable(GLSLType.V3F, "finalColor"),
-                    Variable(GLSLType.V3F, "finalPosition"),
                     Variable(GLSLType.V1F, "finalOcclusion"),
                     Variable(GLSLType.V3F, "finalEmissive"),
                     Variable(GLSLType.V1B, "applyToneMapping"),
                     Variable(GLSLType.S2D, "finalLight"),
                     Variable(GLSLType.S2D, "ambientOcclusion"),
+                    Variable(GLSLType.S2D, "depthTex"),
                     Variable(GLSLType.V3F, "ambientLight"),
                     Variable(GLSLType.V4F, "color", VariableMode.OUT)
-                ), "" +
+                ) + depthToPositionList, "" +
                         "   vec3 color3;\n" +
-                        "   if(length(finalPosition) < 1e34) {\n" +
+                        "   float depth = rawToDepth(texture(depthTex, uv).x);\n" +
+                        "   if(depth < 1e34) {\n" +
                         "       vec3 light = texture(finalLight, uv).rgb + ambientLight;\n" +
                         "       float occlusion = (1.0 - finalOcclusion) * (1.0 - texture(ambientOcclusion, uv).r);\n" +
                         "       color3 = finalColor * light * occlusion + finalEmissive;\n" +
@@ -143,7 +152,8 @@ object LightShaders {
                         "   if(applyToneMapping) color3 = tonemap(color3);\n" +
                         "   color = vec4(color3, 1.0);\n"
             )
-            fragment.add(Renderers.tonemapGLSL)
+            fragment.add(tonemapGLSL)
+            fragment.add(rawToDepth)
 
             // deferred inputs
             // find deferred layers, which exist, and appear in the shader
@@ -170,7 +180,7 @@ object LightShaders {
             // find all textures
             // first the ones for the deferred data
             // then the ones for the shadows
-            val textures = listOf("finalLight", "ambientOcclusion") + settingsV2.layers2.map { it.name }
+            val textures = listOf("finalLight", "depthTex", "ambientOcclusion") + settingsV2.layers2.map { it.name }
             shader.ignoreNameWarnings(
                 "tint", "invLocalTransform",
                 "defLayer0", "defLayer1", "defLayer2", "defLayer3",
@@ -279,7 +289,8 @@ object LightShaders {
                     Variable(GLSLType.SCubeShadow, "shadowMapCubic", 1),
                     Variable(GLSLType.V1B, "receiveShadows"),
                     // Variable(GLSLType.V3F, "finalColor"), // not really required
-                    Variable(GLSLType.V3F, "finalPosition"),
+                    // Variable(GLSLType.V3F, "finalPosition"),
+                    Variable(GLSLType.S2D, "depthTex"),
                     Variable(GLSLType.V3F, "finalColor"),
                     Variable(GLSLType.V3F, "finalNormal"),
                     // Variable(GLSLType.V1F, "finalOcclusion"), post-process, including ambient
@@ -289,16 +300,17 @@ object LightShaders {
                     Variable(GLSLType.V1F, "finalTranslucency"),
                     Variable(GLSLType.M4x3, "WStoLightSpace"), // invLightMatrices[i]
                     Variable(GLSLType.V4F, "light", VariableMode.OUT)
-                ), "" +
+                ) + depthToPositionList, "" +
                         // light calculation including shadows if !instanced
                         "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
                         "bool hasSpecular = finalMetallic > 0.0;\n" +
-                        "vec3 V = normalize(-finalPosition);\n" +
+                        "vec3 V = -normalize(rawCameraDirection(uv));\n" +
                         "float NdotV = dot(finalNormal,V);\n" +
                         "int shadowMapIdx0 = 0;\n" + // always 0 at the start
                         "int shadowMapIdx1 = int(data2.g);\n" +
                         // light properties, which are typically inside the loop
                         "vec3 lightColor = data0.rgb;\n" +
+                        "vec3 finalPosition = rawDepthToPosition(uv,texture(depthTex,uv).x);\n" +
                         "vec3 dir = WStoLightSpace * vec4(finalPosition, 1.0);\n" +
                         "vec3 localNormal = normalize(mat3x3(WStoLightSpace) * finalNormal);\n" +
                         "float NdotL = 0.0;\n" + // normal dot light
@@ -321,6 +333,9 @@ object LightShaders {
                         "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n" +
                         ""
             )
+            fragment.add(rawToDepth)
+            fragment.add(depthToPosition)
+            fragment.add(quatRot)
 
             // deferred inputs
             // find deferred layers, which exist, and appear in the shader
@@ -348,7 +363,7 @@ object LightShaders {
             // first the ones for the deferred data
             // then the ones for the shadows
             val textures = settingsV2.layers2.map { it.name } +
-                    listOf("shadowMapCubic0") +
+                    listOf("shadowMapCubic0", "depthTex") +
                     Array(Renderers.MAX_PLANAR_LIGHTS) { "shadowMapPlanar$it" }
             shader.ignoreNameWarnings(
                 "tint", "invLocalTransform", "colors",

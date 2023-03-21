@@ -5,7 +5,7 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabSaveable

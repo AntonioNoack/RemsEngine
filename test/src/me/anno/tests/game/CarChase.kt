@@ -2,13 +2,10 @@ package me.anno.tests.game
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MaterialCache
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Rigidbody
@@ -23,7 +20,6 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.GFXBase
 import me.anno.input.Input
-import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
@@ -31,9 +27,6 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
-import me.anno.utils.Color.toARGB
-import me.anno.utils.ColorParsing.getClosestColorName
-import me.anno.utils.ColorParsing.toHexColorOrName
 import me.anno.utils.OS.documents
 import org.joml.Quaterniond
 import org.joml.Vector3d

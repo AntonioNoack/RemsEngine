@@ -1,7 +1,7 @@
 package me.anno.tests.rtrt
 
-import me.anno.ecs.components.cache.MaterialCache
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponent

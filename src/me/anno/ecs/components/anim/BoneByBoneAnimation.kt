@@ -3,9 +3,6 @@ package me.anno.ecs.components.anim
 import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.config.DefaultConfig
-import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.AnimationCache
-import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
@@ -44,12 +41,20 @@ class BoneByBoneAnimation() : Animation() {
 
     override val numFrames get() = frameCount
 
-    fun init() {
+    fun prepareBuffers() {
         val space = Math.multiplyExact(boneCount, frameCount)
         val s3 = Math.multiplyExact(3, space)
         val s4 = Math.multiplyExact(4, space)
-        translations = translations.resize(s3)
-        rotations = rotations.resize(s4)
+        val translations = translations.resize(s3)
+        val rotations = rotations.resize(s4)
+        // set transform to identity
+        translations.fill(0f)
+        rotations.fill(0f)
+        for (i in 0 until space) {
+            rotations[i * 4 + 3] = 1f
+        }
+        this.translations = translations
+        this.rotations = rotations
     }
 
     fun getTranslation(frame: Int, bone: Int, dst: Vector3f): Vector3f {
@@ -136,9 +141,9 @@ class BoneByBoneAnimation() : Animation() {
         }
     }
 
-    override fun getMatrices(entity: Entity?, time: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
+    override fun getMatrices(index: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
         val skeleton = SkeletonCache[skeleton] ?: return null
-        val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(time, frameCount)
+        val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(index, frameCount)
         val bones = skeleton.bones
         val tmpPos = JomlPools.vec3f.borrow()
         val tmpRot = JomlPools.quat4f.borrow()
@@ -255,13 +260,16 @@ class BoneByBoneAnimation() : Animation() {
                 predict(parentSkinning, bindPose, JomlPools.mat4x3f.borrow())
                     .invert().mul(dst, dst)
             }
+
             // make that the rotation is always in world space
             //  by rotating the base of the rotation into world space
+            // todo there probably is a way to transform this without awkward maths
             val pos = dst.getTranslation(tmpV)
             val rot = dst.getUnnormalizedRotation(tmpQ)
             rotQuat(rot, bindPose)
             bindPose.transformDirection(pos)
             dst.translationRotate(pos, rot)
+
             return dst
         }
 
@@ -286,12 +294,13 @@ class BoneByBoneAnimation() : Animation() {
             dst: Matrix4x3f
         ) {
 
+            // todo there probably is a way to transform this without awkward maths
             bone.inverseBindPose.transformDirection(t)
             rotQuat(r, bone.inverseBindPose)
 
             dst.translationRotate(t, r)
             if (parentSkinning != null) {
-                // dst = parent * bindPose * dst
+                // dst = (parent * bindPose) * dst
                 bone.bindPose.mul(dst, dst)
                 parentSkinning.mul(dst, dst)
                 // predict(parentSkinning, bone.bindPose, JomlPools.mat4x3f.borrow()).mul(dst, dst)
@@ -310,6 +319,7 @@ class BoneByBoneAnimation() : Animation() {
                     "[${m.m30.f3s()}, ${m.m31.f3s()}, ${m.m32.f3s()}]]"
         }
 
+        // todo recode animation retargeting using this class :3
         /**
          * ImportedAnimation -> BoneByBone -> ImportedAnimation
          * */
@@ -318,7 +328,7 @@ class BoneByBoneAnimation() : Animation() {
 
             // front legs are broken slightly???
 
-            // todo why is this springy?
+            // todo why is this springy/squishy?
 
             ECSRegistry.initMeshes()
 

@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.sdf
 
-import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2

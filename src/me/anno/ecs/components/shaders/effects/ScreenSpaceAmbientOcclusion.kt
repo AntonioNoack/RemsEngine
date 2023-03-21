@@ -34,6 +34,8 @@ import kotlin.math.sqrt
 
 object ScreenSpaceAmbientOcclusion {
 
+    // todo option to calculate normals from depth for forward-ssao
+
     // could be set lower for older hardware, would need restart
     private val MAX_SAMPLES = max(4, DefaultConfig["gpu.ssao.maxSamples", 512])
 

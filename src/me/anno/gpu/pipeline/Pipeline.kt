@@ -3,7 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.Material

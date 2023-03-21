@@ -3,8 +3,8 @@ package me.anno.mesh.assimp
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
-import me.anno.ecs.components.cache.MaterialCache
-import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.anim.SkeletonCache
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
@@ -91,7 +91,7 @@ class AnimGameItem(
         val skeleton = SkeletonCache[animation.skeleton] ?: return null
         val boneCount = min(skeleton.bones.size, maxBones)
         val matrices = tmpMatrices
-        animation.getMatrices(null, time.toFloat(), matrices)
+        animation.getMatrices(time.toFloat(), matrices)
         shader.use()
         matrixBuffer.limit(matrixSize * boneCount)
         for (index in 0 until boneCount) {

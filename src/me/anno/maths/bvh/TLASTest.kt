@@ -2,7 +2,7 @@ package me.anno.maths.bvh
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBoundingBox.Companion.boundingBoxSDF
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry

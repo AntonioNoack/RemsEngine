@@ -6,9 +6,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
-import me.anno.ecs.components.anim.Retargeting.Companion.getRetargeting
-import me.anno.ecs.components.cache.AnimationCache
-import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
@@ -184,22 +181,20 @@ open class AnimRenderer : MeshComponent() {
      * gets the animation matrices; thread-unsafe, can only be executed on gfx thread
      * */
     fun getMatrices(): Array<Matrix4x3f>? {
-        val skeleton = SkeletonCache[skeleton] ?: return null
         var matrices: Array<Matrix4x3f>? = null
         var sumWeight = 0f
         val animations = animations
+        val skeleton = skeleton
         for (index in animations.indices) {
             val animSource = animations[index]
             val weight = animSource.weight
             val relativeWeight = weight / (sumWeight + weight)
-            val time = animSource.progress
             val animation = AnimationCache[animSource.source] ?: continue
-            val retargeting = findRetargeting(this.skeleton, animation)
-            if (index == 0) {
-                matrices = animation.getMappedMatricesSafely(entity, time, tmpMapping0, skeleton, retargeting)
+            val frameIndex = (animSource.progress * animation.numFrames) / animation.duration
+            if (matrices == null) {
+                matrices = animation.getMappedMatricesSafely(frameIndex, tmpMapping0, skeleton)
             } else if (relativeWeight > 0f) {
-                matrices!!
-                val matrix = animation.getMappedMatricesSafely(entity, time, tmpMapping1, skeleton, retargeting)
+                val matrix = animation.getMappedMatricesSafely(frameIndex, tmpMapping1, skeleton)
                 for (j in matrices.indices) {
                     matrices[j].lerp(matrix[j], relativeWeight)
                 }
@@ -213,9 +208,6 @@ open class AnimRenderer : MeshComponent() {
         val skeleton = SkeletonCache[skeleton] ?: return null
         return AnimationCache[skeleton].texture
     }
-
-    fun findRetargeting(dstSkeleton: FileReference, animation: Animation) =
-        getRetargeting(animation.skeleton, dstSkeleton)
 
     open fun getAnimState(
         dstWeights: Vector4f,
@@ -258,8 +250,7 @@ open class AnimRenderer : MeshComponent() {
             if (abs(weight) > abs(dstWeights[dstWeights.minComponent()])) {
                 val animation = AnimationCache[animState.source] ?: continue
                 val frameIndex = animState.progress / animation.duration * animation.numFrames
-                val retargeting = findRetargeting(this.skeleton, animation)
-                val internalIndex = animTexture.getIndex(animation, retargeting, frameIndex)
+                val internalIndex = animTexture.getIndex(animation, frameIndex)
                 if (writeIndex < 4) {
                     dstIndices.setComponent(writeIndex, internalIndex)
                     dstWeights.setComponent(writeIndex, weight)

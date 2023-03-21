@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh.sdf.shapes
 
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable

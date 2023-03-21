@@ -2,10 +2,10 @@ package me.anno.maths.bvh
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast.raycastTriangleMesh

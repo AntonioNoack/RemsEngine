@@ -74,6 +74,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
         targetScrollPositionY += delta
         clampScrollPosition()
         window?.needsLayout?.add(this)
+        invalidateDrawing()
     }
 
     val scrollbar = ScrollbarY(this, style)

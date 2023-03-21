@@ -22,7 +22,6 @@ import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFolderCache
 import me.anno.io.zip.InnerFolderCache.imageFormats
 import me.anno.io.zip.InnerLinkFile
-import me.anno.io.zip.InnerPrefabFile
 import me.anno.studio.StudioBase
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
@@ -313,7 +312,7 @@ object PrefabCache : CacheSection("Prefab") {
         return when {
             resource == null || resource == InvalidRef -> null
             resource is InnerLinkFile -> {
-                println("[link] $resource -> ${resource.link}")
+                LOGGER.debug("[link] $resource -> ${resource.link}")
                 getPrefabPair(resource.link, depth, async)
             }
             resource is PrefabReadable -> {
@@ -321,7 +320,7 @@ object PrefabCache : CacheSection("Prefab") {
                 FileReadPrefabData(resource).apply { value = prefab }
             }
             resource.exists && !resource.isDirectory -> {
-                LOGGER.info("get prefab from $resource, ${resource?.exists}, ${resource?.isDirectory}")
+                // LOGGER.info("get prefab from $resource, ${resource?.exists}, ${resource?.isDirectory}")
                 val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
                     if (debugLoading) LOGGER.info("loading $file")
                     ensureClasses()

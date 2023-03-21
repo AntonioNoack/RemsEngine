@@ -5,7 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.AnimRenderer
-import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.light.PointLight

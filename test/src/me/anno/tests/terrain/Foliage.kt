@@ -3,11 +3,11 @@ package me.anno.tests.terrain
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.ecs.components.mesh.sdf.SDFComposer.sdfConstants
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFNoise.Companion.generalNoise
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFNoise.Companion.perlinNoise

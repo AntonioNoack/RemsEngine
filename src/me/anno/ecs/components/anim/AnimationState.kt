@@ -2,7 +2,6 @@ package me.anno.ecs.components.anim
 
 import me.anno.animation.LoopingState
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.cache.AnimationCache
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference

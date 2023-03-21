@@ -12,7 +12,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV3
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.ui.render.ECSMeshShader

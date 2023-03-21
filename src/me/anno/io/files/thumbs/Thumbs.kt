@@ -13,8 +13,8 @@ import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.anim.Skeleton.Companion.boneMeshVertices
 import me.anno.ecs.components.anim.Skeleton.Companion.generateSkeleton
-import me.anno.ecs.components.cache.MaterialCache
-import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
@@ -26,6 +26,7 @@ import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ECSRegistry
+import me.anno.engine.GameEngineProject
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.PlayMode
@@ -864,12 +865,11 @@ object Thumbs {
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
         val skeleton = SkeletonCache[animation.skeleton] ?: return
-        val entity = Entity()
         val mesh = Mesh()
         val duration = animation.duration
         val hasMotion = duration > 0.0
         val count = if (hasMotion) 6 else 1
-        val dt = if (hasMotion) duration / count else 0f
+        val dt = if (hasMotion) animation.numFrames.toFloat() / count else 0f
         val bones = skeleton.bones
         val meshVertices = Texture2D.floatArrayPool[bones.size * boneMeshVertices.size, false, true]
         mesh.positions = meshVertices
@@ -879,9 +879,9 @@ object Thumbs {
             Texture2D.floatArrayPool.returnBuffer(meshVertices)
             mesh.destroy()
         }) { it, aspect ->
-            val time = it * dt
+            val frameIndex = it * dt
             // generate the matrices
-            animation.getMatrices(entity, time, skinningMatrices)
+            animation.getMatrices(frameIndex, skinningMatrices)
             // apply the matrices to the bone positions
             for (i in 0 until min(animPositions.size, bones.size)) {
                 val position = animPositions[i].set(bones[i].bindPosition)
@@ -911,19 +911,18 @@ object Thumbs {
     @JvmStatic
     fun drawAnimatedSkeleton(
         animation: Animation,
-        time: Float,
+        frameIndex: Float,
         aspect: Float
     ) {
         // todo center on bounds by all frames combined
         val skeleton = SkeletonCache[animation.skeleton] ?: return
-        val entity = Entity()
         val mesh = Mesh()
         val bones = skeleton.bones
         val meshVertices = Texture2D.floatArrayPool[bones.size * boneMeshVertices.size, false, true]
         mesh.positions = meshVertices
         val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
         // generate the matrices
-        animation.getMatrices(entity, time, skinningMatrices)
+        animation.getMatrices(frameIndex, skinningMatrices)
         // apply the matrices to the bone positions
         for (i in 0 until min(animPositions.size, bones.size)) {
             val position = animPositions[i].set(bones[i].bindPosition)
@@ -972,6 +971,7 @@ object Thumbs {
                 generateSomething(instance, srcFile, dstFile, size, callback)
             }
             // todo thumbnails for graphs
+            is GameEngineProject -> {}
             null -> {}
             else -> {
                 // todo can we create a json preview or sth like that?

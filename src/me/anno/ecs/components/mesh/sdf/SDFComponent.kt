@@ -17,6 +17,7 @@ import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -951,18 +952,6 @@ open class SDFComponent : ProceduralMesh(), Renderable {
             }
             return defineUniform(uniforms, type, value)
         }
-
-        const val quatRot = "" +
-                "mat2 rot(float angle){\n" +
-                "   float c = cos(angle), s = sin(angle);\n" +
-                "   return mat2(c,-s,+s,c);\n" +
-                "}\n" +
-                "vec3 quatRot(vec3 v, vec4 q){\n" +
-                "   return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);\n" +
-                "}\n" +
-                "vec3 quatRotInv(vec3 v, vec4 q){\n" +
-                "   return v - 2.0 * cross(q.xyz, q.w * v - cross(q.xyz, v));\n" +
-                "}\n"
 
         val rot0 = Quaternionf()
         val pos0 = Vector3f()

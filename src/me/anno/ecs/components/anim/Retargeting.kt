@@ -3,45 +3,46 @@ package me.anno.ecs.components.anim
 import me.anno.animation.LoopingState
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.ecs.components.anim.BoneEmbeddings.getWEs
-import me.anno.ecs.components.anim.BoneEmbeddings.helperWE
-import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.mesh.assimp.Bone
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.downloads
-import me.anno.utils.structures.lists.Lists.firstOrNull2
-import me.anno.utils.structures.tuples.Quad
-import org.apache.logging.log4j.LogManager
+import me.anno.utils.structures.tuples.LongPair
 import org.joml.Matrix4x3f
+import org.joml.Quaternionf
+import org.joml.Vector3f
 import kotlin.math.min
+import kotlin.math.sqrt
 
 class Retargeting : NamedSaveable() {
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(Retargeting::class)
         private val cache = CacheSection("Retargeting")
-        private const val timeout = 10_000L
+        private const val timeout = 500_000L
 
         fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Retargeting? {
             if (srcSkeleton == dstSkeleton) return null
-            // todo when a skeleton changes, update this
             val data = cache.getEntry(
-                Quad(
-                    srcSkeleton, srcSkeleton.lastModified,
-                    dstSkeleton, dstSkeleton.lastModified
-                ),
+                Pair(srcSkeleton, dstSkeleton),
+                LongPair(srcSkeleton.lastModified, dstSkeleton.lastModified),
                 timeout,
                 false
-            ) { k12 ->
+            ) { k12, _ ->
+
+                // todo database, which stores bone assignments for a project
+                // todo automatic bone-assignment, if none is found
+                //  - use similar assignments, if some are found in the database
+                // todo merge skeletons, if they are very similar (names, positions, structure)
+
                 val ret = Retargeting()
-                ret.srcSkeleton = k12.a
-                ret.dstSkeleton = k12.c
+                ret.srcSkeleton = k12.first
+                ret.dstSkeleton = k12.second
                 CacheData(ret)
             } as CacheData<*>
             return data.value as Retargeting
@@ -67,122 +68,106 @@ class Retargeting : NamedSaveable() {
 
     }
 
-    // todo find retargeting from the skeleton to the new skeleton...
-    // todo if not found, generate it automatically, and try our best to do it perfectly
-    // todo retargeting probably needs to include a max/min-angle and angle multiplier and change of base matrices
-    // (or all animations need to be defined in some common animation space)
-
     var srcSkeleton: FileReference = InvalidRef
     var dstSkeleton: FileReference = InvalidRef
 
-    var srcBoneMapping = emptyList<String>()
-
-    // mapping matrices: [srcBoneSpace -> dstBoneSpace] & inverse
-    // [srcBoneSpace -> dstBoneSpace] = [srcBoneSpace -> worldSpace] * [worldSpace -> dstBoneSpace]
-    var srcToDstM = emptyArray<Matrix4x3f>()
-    var dstToSrcM = emptyArray<Matrix4x3f>()
-
-    var isValid = false
+    // for each dstBone, which bone is responsible for the transform
+    var dstBoneMapping: Array<String>? = null
 
     val isIdentityMapping get() = srcSkeleton == dstSkeleton
 
-    // mapping[dstBoneId] is srcBoneId or -1
-    var dstToSrc = IntArray(0)
+    fun map(src: BoneByBoneAnimation): BoneByBoneAnimation? {
+        if (isIdentityMapping) return src
+        return map(src, BoneByBoneAnimation())
+    }
 
-    fun validate() {
+    private val mappedAnimations = ArrayList<Pair<BoneByBoneAnimation, BoneByBoneAnimation>>()
 
-        // todo a) save animation as rotations only; best in global space :)
-        // todo b) map bones correctly;
-        //  - hierarchy distance
-        //  - embedding distance
-        //  - location distance
-        // todo c) apply them
-
-        synchronized(this) {
-            if (isValid) return
-            // calculate all the indices
-            val srcSkeleton = SkeletonCache[srcSkeleton]!!
-            val dstSkeleton = SkeletonCache[dstSkeleton]!!
-            val srcBones = srcSkeleton.bones
-            val srcBoneNames = srcBones.map { it.name }
-            val srcMap = srcBoneNames.withIndex().associate { it.value to it.index }
-            val size = dstSkeleton.bones.size
-            if (dstToSrc.size != size) {// no need to reallocate
-                dstToSrc = IntArray(size)
-                dstToSrcM = Array(size) { Matrix4x3f() }
-                srcToDstM = Array(size) { Matrix4x3f() }
-            }
-
-            if (srcBoneMapping.size != size) {
-                val newNames = ArrayList<String>(size)
-                newNames.addAll(srcBoneMapping.subList(0, min(srcBoneMapping.size, size)))
-                for (index in newNames.size until size) {
-                    val mapping = findMapping(srcSkeleton, dstSkeleton, index)
-                    LOGGER.debug("Mapped $mapping to ${dstSkeleton.bones[index].name}")
-                    newNames.add(mapping)
-                }
-                srcBoneMapping = newNames
-            }
-
-            val dstToSrcM = dstToSrcM
-            val srcToDstM = srcToDstM
-
-            for (dstBoneIndex in 0 until size) {
-                val srcBoneIndex = srcMap[this.srcBoneMapping[dstBoneIndex]]
-                if (srcBoneIndex != null) {
-                    // todo local bone spaces could be modified to allow T pose -> A pose retargetings
-                    // define retargeting transform
-                    val srcBone = srcSkeleton.bones[srcBoneIndex]
-                    val dstBone = dstSkeleton.bones[dstBoneIndex]
-                    val dstToSrcMi = dstToSrcM[dstBoneIndex]
-                    val srcToDstMi = srcToDstM[dstBoneIndex]
-                    // todo is incorrect
-                    // idea: transform the animation matrix = an offset matrix, so be transformed from src space to dst space
-                    val s0 = srcBone.bindPose
-                    val s1 = srcBone.inverseBindPose
-                    val d0 = dstBone.bindPose
-                    val d1 = dstBone.inverseBindPose
-                    // todo this will include a scale when the model is scaled
-                    dstToSrcMi.set(d0).mul(s1)
-                    srcToDstMi.set(dstToSrcMi).invert() // can be simplified in the future, when dstToSrcMi is correct
-                }
-                dstToSrc[dstBoneIndex] = srcBoneIndex ?: -1
-            }
-            isValid = true
+    fun invalidate() {
+        // good enough?
+        // we need to remap them...
+        // todo this is a memory leak... animations can get destroyed, and we won't remove them
+        for ((src, dst) in mappedAnimations) {
+            map2(src, dst)
         }
     }
 
-    /**
-     * given a bone index in dstSkeleton, find the name of the bone in srcSkeleton;
-     * or empty if nothing matches
-     * */
-    fun findMapping(srcSkeleton: Skeleton, dstSkeleton: Skeleton, dstIndex: Int): String {
-        val dstBone = dstSkeleton.bones[dstIndex]
-        val name = dstBone.name
-        val srcMatch0 = srcSkeleton.bones.firstOrNull2 { it.name == name }
-        if (srcMatch0 != null) return srcMatch0.name
-        val srcMatch1 = srcSkeleton.bones.firstOrNull2 { it.name.equals(name, true) }
-        if (srcMatch1 != null) return srcMatch1.name
-        // if not found, find best match
-        // replace synonymous terms... upper leg<->pelvis, hip<->pelvis,
-        // word embeddings for best match? :)
-        val srcEmbeddings = getWEs(srcSkeleton)
-        val dstEmbedding = getWEs(dstSkeleton)[dstIndex] ?: return ""
-        // todo hierarchy and positions for matches
-        val index = helperWE.find(srcEmbeddings, dstEmbedding, 0f)
-        if (index < 0) return ""
-        return srcSkeleton.bones[index].name
+    fun map(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
+        if (isIdentityMapping || src === dst) return src
+        mappedAnimations.add(src to dst)
+        return map2(src, dst)
     }
 
-    fun invalidate() {
-        isValid = false
+    fun map2(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
+        val srcSkel = SkeletonCache[srcSkeleton]?.bones ?: return null
+        val dstSkel = SkeletonCache[dstSkeleton]?.bones ?: return null
+        dst.frameCount = src.frameCount
+        dst.boneCount = dstSkel.size
+        dst.duration = src.duration
+        dst.prepareBuffers()
+        val srcBones = srcSkel.associateBy { it.name }
+        val mapping = dstBoneMapping ?: return dst
+        val tmpM = Matrix4x3f()
+        val tmpV = Vector3f()
+        val tmpQ = Quaternionf()
+        // find base skeleton scale each, and then scale all bones
+        val srcScaleSq = srcSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / srcSkel.size
+        val dstScaleSq = dstSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / dstSkel.size
+        val translationScale = sqrt(dstScaleSq / srcScaleSq).toFloat()
+        for (dstBone in 0 until min(dstSkel.size, mapping.size)) {
+            val srcBone = srcBones[mapping[dstBone]] ?: continue
+            var srcBone0: Bone? = null
+            var lastValidDst = dstSkel[dstBone].parentId
+            while (lastValidDst >= 0) {
+                // check if this bone is mapped
+                srcBone0 = srcBones[mapping[lastValidDst]]
+                if (srcBone0 != null) break // found valid bone :)
+                lastValidDst = dstSkel[lastValidDst].parentId // next ancestor
+            }
+            for (frame in 0 until dst.frameCount) {
+                // collect bones from previously mapped parent to this one
+                // to do/warn!: if srcBone0 is not an ancestor of srcBone, the result will be broken;
+                // we'd have to invert the result of srcBone0 to their common root
+                var index = 0
+                fun applyBone(bone: Bone) {
+                    // handle parent
+                    if (bone.parentId >= 0) {
+                        val parentBone = srcSkel[bone.parentId]
+                        if (parentBone != srcBone0) applyBone(parentBone)
+                    }
+                    val srcBone1 = bone.id
+                    if (index == 0) {
+                        src.getTranslation(frame, srcBone1, tmpV)
+                        src.getRotation(frame, srcBone1, tmpQ)
+                    } else {
+                        if (index == 1) tmpM.translationRotate(tmpV, tmpQ)
+                        src.getTranslation(frame, srcBone1, tmpV)
+                        src.getRotation(frame, srcBone1, tmpQ)
+                        // correct order? should be
+                        tmpM.translate(tmpV)
+                        tmpM.rotate(tmpQ)
+                    }
+                    index++
+                }
+                applyBone(srcBone)
+                if (index > 1) { // we used the matrix, so extract the result
+                    tmpM.getTranslation(tmpV)
+                    tmpM.getUnnormalizedRotation(tmpQ)
+                }
+                tmpV.mul(translationScale)
+                dst.setTranslation(frame, dstBone, tmpV)
+                dst.setRotation(frame, dstBone, tmpQ)
+            }
+        }
+        return dst
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFile("srcSkeleton", srcSkeleton)
         writer.writeFile("dstSkeleton", dstSkeleton)
-        writer.writeStringArray("dstNames", srcBoneMapping.toTypedArray())
+        val dstBoneMapping = dstBoneMapping
+        if (dstBoneMapping != null) writer.writeStringArray("dstNames", dstBoneMapping)
     }
 
     override fun readFile(name: String, value: FileReference) {
@@ -195,10 +180,7 @@ class Retargeting : NamedSaveable() {
 
     override fun readStringArray(name: String, values: Array<String>) {
         when (name) {
-            "dstNames" -> {
-                srcBoneMapping = values.toList()
-                invalidate()
-            }
+            "dstNames" -> dstBoneMapping = values
             else -> super.readStringArray(name, values)
         }
     }

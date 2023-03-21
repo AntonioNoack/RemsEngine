@@ -1,6 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX.flat01
@@ -106,7 +106,7 @@ object ScreenSpaceReflections {
                     "   ivec2 texSizeI = textureSize(finalDepth, 0);\n" +
                     "   vec2  texSize  = vec2(texSizeI);\n" +
 
-                    "   vec3 positionFrom     = depthToPosition(texture(finalDepth,uv).r);\n" +
+                    "   vec3 positionFrom     = rawDepthToPosition(uv,texture(finalDepth,uv).r);\n" +
 
                     "   vec3 normal           = normalize(texture(finalNormal, uv).xyz * 2.0 - 1.0);\n" +
                     "   vec3 pivot            = normalize(reflect(positionFrom, normal));\n" +
@@ -143,7 +143,7 @@ object ScreenSpaceReflections {
                     "   for (int i = 0; i <= maxLinearSteps; i++){\n" +
 
                     "       dstUV     += increment;\n" +
-                    "       positionTo = depthToPosition(texture(finalDepth, dstUV).r);\n" +
+                    "       positionTo = rawDepthToPosition(dstUV,texture(finalDepth, dstUV).r);\n" +
 
                     "       fraction1 = useX ? (dstUV.x - uv.x) / deltaXY.x : (dstUV.y - uv.y) / deltaXY.y;\n" +
 
@@ -180,7 +180,7 @@ object ScreenSpaceReflections {
                     "       float fractionI = mix(fraction0, fraction1, float(i)/float(steps));\n" +
 
                     "       dstUV      = mix(uv, endUV, fractionI);\n" +
-                    "       positionTo = depthToPosition(texture(finalDepth,dstUV).r);\n" +
+                    "       positionTo = rawDepthToPosition(dstUV,texture(finalDepth,dstUV).r);\n" +
 
                     "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, fractionI);\n" +
                     "       depth        = viewDistance - length(positionTo);\n" +

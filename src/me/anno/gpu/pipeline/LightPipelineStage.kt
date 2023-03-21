@@ -19,11 +19,10 @@ import me.anno.gpu.pipeline.LightShaders.lightInstanceBuffer
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShader
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShaderInstanced
 import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
+import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.TextureLib.depthCube
-import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.io.Saveable
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.SmallestKList
@@ -66,12 +65,21 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         }
     }
 
-    private fun initShader(shader: Shader, cameraMatrix: Matrix4f) {
+    private fun initShader(
+        shader: Shader, cameraMatrix: Matrix4f,
+        type: LightType, scene: IFramebuffer
+    ) {
+        shader.use()
         // information for the shader, which is material agnostic
         // add all things, the shader needs to know, e.g., light direction, strength, ...
         // (for the cheap shaders, which are not deferred)
+        shader.v1b("isDirectional", type == LightType.DIRECTIONAL)
+        shader.v1b("receiveShadows", true)
+        shader.v1f("countPerPixel", countPerPixel)
+        scene.depthTexture!!.bindTrulyNearest(shader, "depthTex")
         shader.m4x4("transform", cameraMatrix)
         bindNullDepthTextures(shader)
+        bindDepthToPosition(shader)
     }
 
     fun getShader(type: LightType, isInstanced: Boolean): Shader {
@@ -85,7 +93,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         }
     }
 
-    fun draw(source: IFramebuffer, cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
+    fun draw(scene: IFramebuffer, cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
 
         val time = Engine.gameTime
 
@@ -96,7 +104,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         // (twice as many draw calls, but hopefully less work altogether)
 
         // if (destination is multi-sampled &&) settings is multisampled, bind the multi-sampled textures
-        source.bindTrulyNearestMS(0)
+        scene.bindTrulyNearestMS(0)
 
         nonInstanced.forEachType { lights, type, size ->
 
@@ -104,13 +112,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
             val mesh = sample.getLightPrimitive()
 
             val shader = getShader(type, false)
-            shader.use()
-
-            shader.v4f("tint", -1)
-            shader.v1b("receiveShadows", true)
-            shader.v1f("countPerPixel", countPerPixel)
-
-            initShader(shader, cameraMatrix)
+            initShader(shader, cameraMatrix, type, scene)
 
             mesh.ensureBuffer()
 
@@ -194,7 +196,13 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
             this.cameraPosition = cameraPosition
             this.worldScale = worldScale
             GFXState.instanced.use(true) {
-                instanced.forEachType(::drawBatches)
+                instanced.forEachType { lights, type, s ->
+                    if (type == LightType.DIRECTIONAL) {
+                        GFXState.depthMode.use(DepthMode.ALWAYS) {
+                            drawBatches(scene, lights, type, size)
+                        }
+                    } else drawBatches(scene, lights, type, size)
+                }
             }
         }
 
@@ -204,15 +212,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
     private var cameraPosition: Vector3d? = null
     private var worldScale: Double = 1.0
 
-    fun drawBatches(lights: List<LightRequest<*>>, type: LightType, size: Int) {
-        if (type == LightType.DIRECTIONAL) {
-            GFXState.depthMode.use(DepthMode.ALWAYS) {
-                drawBatches2(lights, type, size)
-            }
-        } else drawBatches2(lights, type, size)
-    }
-
-    fun drawBatches2(lights: List<LightRequest<*>>, type: LightType, size: Int) {
+    fun drawBatches(scene: IFramebuffer, lights: List<LightRequest<*>>, type: LightType, size: Int) {
 
         val visualizeLightCount = visualizeLightCount
 
@@ -220,18 +220,12 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         val mesh = sample.getLightPrimitive()
         mesh.ensureBuffer()
 
-        val shader = getShader(type, true)
-        shader.use()
-
-        shader.v1b("isDirectional", type == LightType.DIRECTIONAL)
-        shader.v1b("receiveShadows", true)
-        shader.v1f("countPerPixel", countPerPixel)
-
         val cameraMatrix = cameraMatrix!!
         val cameraPosition = cameraPosition!!
         val worldScale = worldScale
 
-        initShader(shader, cameraMatrix)
+        val shader = getShader(type, true)
+        initShader(shader, cameraMatrix, type, scene)
 
         val time = Engine.gameTime
 

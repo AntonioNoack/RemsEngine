@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
-import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material

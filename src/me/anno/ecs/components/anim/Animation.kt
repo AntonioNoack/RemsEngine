@@ -2,9 +2,9 @@ package me.anno.ecs.components.anim
 
 import me.anno.Engine
 import me.anno.animation.LoopingState
+import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
-import me.anno.ecs.components.cache.SkeletonCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
@@ -15,11 +15,10 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.min
 import org.joml.Matrix4x3f
 
 // todo allow procedural animations; for that we'd need more knowledge about the model
-abstract class Animation : PrefabSaveable, Renderable {
+abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
     constructor() : super()
 
@@ -39,9 +38,9 @@ abstract class Animation : PrefabSaveable, Renderable {
     @DebugProperty
     abstract val numFrames: Int
 
-    fun calculateMonotonousTime(time: Float, frameCount: Int): Triple<Float, Int, Int> {
-        val duration = duration
-        val timeF = fract(time / duration) * frameCount
+    fun calculateMonotonousTime(index: Float, frameCount: Int): Triple<Float, Int, Int> {
+
+        val timeF = fract(index / frameCount) * frameCount
 
         val index0 = timeF.toInt() % frameCount
         val index1 = (index0 + 1) % frameCount
@@ -51,89 +50,52 @@ abstract class Animation : PrefabSaveable, Renderable {
         return Triple(fraction, index0, index1)
     }
 
-    abstract fun getMatrices(entity: Entity?, time: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
+    abstract fun getMatrices(index: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
     abstract fun getMatrices(index: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
 
+    fun getMappedAnimation(skel: FileReference): BoneByBoneAnimation {
+        val dstSkel = SkeletonCache[skel] ?: throw IllegalStateException("Missing Skeleton $skel for retargeting")
+        return AnimationCache.getMappedAnimation(this, dstSkel)
+    }
+
     fun getMappedMatrices(
-        entity: Entity?,
-        time: Float,
+        frameIndex: Float,
         dst: Array<Matrix4x3f>,
-        retargeting: Retargeting?
+        dstSkeleton: FileReference
     ): Array<Matrix4x3f>? {
-        val base = getMatrices(entity, time, dst) ?: return null
-        if (retargeting == null || retargeting.isIdentityMapping) return base
-        if (retargeting.srcSkeleton != skeleton) throw RuntimeException("Incompatible skeletons!")
-        return getMappedMatrices(base, dst, SkeletonCache[retargeting.dstSkeleton]!!, retargeting)
+        if (dstSkeleton == skeleton) return getMatrices(frameIndex, dst)
+        return getMappedAnimation(dstSkeleton).getMappedMatrices(frameIndex, dst, dstSkeleton)
     }
 
     fun getMappedMatrices(
         frameIndex: Int,
         dst: Array<Matrix4x3f>,
-        dstSkeleton: Skeleton,
-        retargeting: Retargeting?
+        dstSkeleton: FileReference
     ): Array<Matrix4x3f>? {
-        val base = getMatrices(frameIndex, dst) ?: return null
-        if (retargeting == null || retargeting.isIdentityMapping) return base
-        if (retargeting.srcSkeleton != skeleton) throw RuntimeException("Incompatible skeletons!")
-        return getMappedMatrices(base, dst, dstSkeleton, retargeting)
-    }
-
-    private fun getMappedMatrices(
-        srcMatrices: Array<Matrix4x3f>,
-        dstMatrices: Array<Matrix4x3f>,
-        dstSkeleton: Skeleton,
-        retargeting: Retargeting
-    ): Array<Matrix4x3f> {
-        retargeting.validate()
-        val dstToSrc = retargeting.dstToSrc
-        val dstToSrcM = retargeting.dstToSrcM
-        val srcToDstM = retargeting.srcToDstM
-        val dstSize = min(dstMatrices.size, dstSkeleton.bones.size)
-        val dstMapSize = dstToSrc.size
-        for (i in 0 until dstMapSize) {
-            val src = srcMatrices.getOrNull(dstToSrc[i])
-            val dst = dstMatrices[i]
-            if (src != null) {
-                dst.set(srcToDstM[i])
-                dst.mul(src)
-                dst.mul(dstToSrcM[i])
-            } else dst.identity()
-        }
-        for (i in dstMapSize until dstSize) {
-            dstMatrices[i].identity()
-        }
-        return dstMatrices
+        if (dstSkeleton == skeleton) return getMatrices(frameIndex, dst)
+        return getMappedAnimation(dstSkeleton).getMappedMatrices(frameIndex, dst, dstSkeleton)
     }
 
     fun getMappedMatricesSafely(
-        entity: Entity?,
-        time: Float,
+        frameIndex: Float,
         dst: Array<Matrix4x3f>,
-        dstSkeleton: Skeleton,
-        retargeting: Retargeting?
+        dstSkeleton: FileReference
     ): Array<Matrix4x3f> {
-        val base = getMappedMatrices(entity, time, dst, retargeting)
-        return if (base == null) {
-            for (i in dstSkeleton.bones.indices) {
-                dst[i].identity()
-            }
-            dst
-        } else base
+        val base = getMappedMatrices(frameIndex, dst, dstSkeleton)
+        if (base != null) return base
+        for (i in dst.indices) dst[i].identity()
+        return dst
     }
 
     fun getMappedMatricesSafely(
         frameIndex: Int,
         dst: Array<Matrix4x3f>,
-        dstSkeleton: Skeleton,
-        retargeting: Retargeting?
+        dstSkeleton: FileReference
     ): Array<Matrix4x3f> {
-        val base = getMappedMatrices(frameIndex, dst, dstSkeleton, retargeting)
-        return if (base == null) {
-            for (i in dstSkeleton.bones.indices) {
-                dst[i].identity()
-            }
-            dst
-        } else base
+        val base = getMappedMatrices(frameIndex, dst, dstSkeleton)
+        if (base != null) return base
+        for (i in dst.indices) dst[i].identity()
+        return dst
     }
 
     class PreviewData(skeleton: Skeleton, animation: Animation) {
@@ -233,6 +195,11 @@ abstract class Animation : PrefabSaveable, Renderable {
         super.onDestroy()
         previewData?.destroy()
         previewData = null
+    }
+
+    override fun destroy() {
+        super.destroy()
+        onDestroy()
     }
 
     override val approxSize get() = 100

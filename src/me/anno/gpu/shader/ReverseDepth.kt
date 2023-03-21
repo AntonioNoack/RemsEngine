@@ -14,11 +14,14 @@ object ReverseDepth {
     val depthToPosition = "" +
             "vec3 quatRot(vec3,vec4);\n" +
             "float rawToDepth(float);\n" +
-            "vec3 rawCameraDirection(){\n" +
+            "vec3 rawCameraDirection(vec2 uv){\n" +
             "   return quatRot(vec3((uv-0.5)*fovFactor.xy, -1.0), camRot);\n" +
             "}\n" +
-            "vec3 depthToPosition(float rawDepth){\n" +
-            "   return rawCameraDirection() * rawToDepth(rawDepth);\n" +
+            "vec3 rawDepthToPosition(vec2 uv, float rawDepth){\n" +
+            "   return rawCameraDirection(uv) * rawToDepth(rawDepth);\n" +
+            "}\n" +
+            "vec3 depthToPosition(vec2 uv, float depth){\n" +
+            "   return rawCameraDirection(uv) * depth;\n" +
             "}\n"
 
     val depthToPositionList = listOf(

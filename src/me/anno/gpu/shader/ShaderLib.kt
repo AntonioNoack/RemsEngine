@@ -100,9 +100,16 @@ object ShaderLib {
     fun brightness(r: Float, g: Float, b: Float) = sqrt(y.dot(r * r, g * g, b * b, 1f))
 
     // https://community.khronos.org/t/quaternion-functions-for-glsl/50140/3
-    const val quaternionTransform = "" +
-            "vec3 quaternionTransform(vec4 q, vec3 v){\n" +
-            "   return v + 2.0*cross(cross(v, q.xyz) + q.w*v, q.xyz);\n" +
+    const val quatRot = "" +
+            "mat2 rot(float angle){\n" +
+            "   float c = cos(angle), s = sin(angle);\n" +
+            "   return mat2(c,-s,+s,c);\n" +
+            "}\n" +
+            "vec3 quatRot(vec3 v, vec4 q){\n" +
+            "   return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);\n" +
+            "}\n" +
+            "vec3 quatRotInv(vec3 v, vec4 q){\n" +
+            "   return v - 2.0 * cross(q.xyz, q.w * v - cross(q.xyz, v));\n" +
             "}\n"
 
     // from http://www.java-gaming.org/index.php?topic=35123.0

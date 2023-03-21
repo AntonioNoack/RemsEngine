@@ -1,11 +1,10 @@
-package me.anno.ecs.components.cache
+package me.anno.ecs.components.mesh
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.*
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabCache

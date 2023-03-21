@@ -1,7 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.BaseShader

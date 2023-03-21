@@ -43,39 +43,24 @@ fun findLayers() = when (8 + GFX.maxColorAttachments) {
     3 -> listOf(
         DeferredLayerType.COLOR_EMISSIVE, // 4
         DeferredLayerType.NORMAL, // 3
-        DeferredLayerType.POSITION, // 3
         DeferredLayerType.ROUGHNESS, // 1
         DeferredLayerType.METALLIC, // 1
+        DeferredLayerType.SHEEN, // 1
+        DeferredLayerType.TRANSLUCENCY, // 1
+        DeferredLayerType.ANISOTROPIC, // 1
         // total: 12
     )
-    4 -> listOf(
+    else -> listOf(
         DeferredLayerType.COLOR, // 3
-        DeferredLayerType.OCCLUSION, // 1
         DeferredLayerType.NORMAL, // 3
-        DeferredLayerType.POSITION, // 3, could be replaced by depth + transform + math
         DeferredLayerType.EMISSIVE, // 3
         // DeferredLayerType.TANGENT,
+        DeferredLayerType.OCCLUSION, // 1
         DeferredLayerType.ROUGHNESS, // 1
         DeferredLayerType.METALLIC,// 1
         DeferredLayerType.SHEEN, // 1
-        // total: 16
+        DeferredLayerType.TRANSLUCENCY, // 1
+        DeferredLayerType.ANISOTROPIC, // 1
+        // total: 15
     )
-    else -> {
-        listOf(
-            DeferredLayerType.COLOR, // 3
-            DeferredLayerType.OCCLUSION, // 1
-            DeferredLayerType.NORMAL, // 3
-            DeferredLayerType.POSITION, // 3, could be replaced by depth + transform + math
-            DeferredLayerType.EMISSIVE, // 3
-            // DeferredLayerType.TANGENT,
-            DeferredLayerType.ROUGHNESS, // 1
-            DeferredLayerType.METALLIC,// 1
-            DeferredLayerType.SHEEN, // 1
-            DeferredLayerType.TRANSLUCENCY, // 1
-            // applied in material shader
-            // DeferredLayerType.CLEAR_COAT,
-            DeferredLayerType.ANISOTROPIC, // 1
-            // total: 18
-        )
-    }
 }

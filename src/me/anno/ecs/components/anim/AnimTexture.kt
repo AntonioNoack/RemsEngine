@@ -18,7 +18,7 @@ import kotlin.math.min
 // done merge this into ECSMeshShader
 // todo merge multiple skeletons if needed, so we don't have duplicate textures
 // todo compact animation if no movement takes place
-// todo allow for bone-by-bone animation with dynamic anim textures
+// todo improve performance for dynamic animations?
 
 /**
  * a texture saving joint transforms;
@@ -30,12 +30,11 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
     class AnimTexIndex(
         val anim: Animation,
-        val retargeting: Retargeting?,
         val start: Int,
         val length: Int,
         var needsUpdate: Boolean
     ) {
-        override fun toString() = "${anim.ref}/$retargeting/$start+=$length/$needsUpdate"
+        override fun toString() = "${anim.ref}/$start+=$length/$needsUpdate"
     }
 
     private val animationMap = HashMap<Animation, AnimTexIndex>()
@@ -50,16 +49,16 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             else null
         }
 
-    fun addAnimation(anim: Animation, retargeting: Retargeting?): AnimTexIndex {
+    fun addAnimation(anim: Animation): AnimTexIndex {
         val index = animationMap.getOrPut(anim) {
             val ni = nextStart
-            val v = AnimTexIndex(anim, retargeting, ni, anim.numFrames, false)
+            val v = AnimTexIndex(anim, ni, anim.numFrames, false)
             animationList.add(v)
-            putNewAnim(anim, retargeting)
+            putNewAnim(anim)
             v
         }
         if (index.needsUpdate) {
-            updateAnim(anim, retargeting, index.start)
+            updateAnim(anim, index.start)
         }
         return index
     }
@@ -69,24 +68,24 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         index.needsUpdate = true
     }
 
-    fun getIndex(anim: Animation, retargeting: Retargeting?, index: Int): Int {
-        val animTexIndex = addAnimation(anim, retargeting)
+    fun getIndex(anim: Animation, index: Int): Int {
+        val animTexIndex = addAnimation(anim)
         return animTexIndex.start + index
     }
 
-    fun getIndex(anim: Animation, retargeting: Retargeting?, index: Float): Float {
-        val animTexIndex = addAnimation(anim, retargeting)
+    fun getIndex(anim: Animation, index: Float): Float {
+        val animTexIndex = addAnimation(anim)
         return animTexIndex.start + index
     }
 
-    private fun putNewAnim(animation: Animation, retargeting: Retargeting?): Int {
+    private fun putNewAnim(animation: Animation): Int {
         val numFrames = animation.numFrames + 1
-        updateAnim(animation, retargeting, nextStart)
+        updateAnim(animation, nextStart)
         nextStart += numFrames
         return numFrames
     }
 
-    private fun updateAnim(animation: Animation, retargeting: Retargeting?, start: Int): Int {
+    private fun updateAnim(animation: Animation, start: Int): Int {
         val numFrames = animation.numFrames + 1
         ensureCapacity(start + numFrames)
         val textureType = TargetType.FloatTarget4
@@ -95,7 +94,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             // 4 for sizeof(float), 4 for rgba
             val buffer = Texture2D.bufferPool[internalTexture.w * internalTexture.h * 4 * 4, false, false]
             val data = buffer.asFloatBuffer()
-            fillData(data, animation, retargeting)
+            fillData(data, animation)
             data.position(0)
             internalTexture.overridePartially(
                 buffer,
@@ -120,30 +119,27 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
     private fun fillData(
         data: FloatBuffer,
-        anim: Animation,
-        retargeting: Retargeting?
+        anim: Animation
     ) {
         val tmp = tmpMatrices
         for (frameIndex in 0 until anim.numFrames) {
-            fillData(data, anim, retargeting, tmp, frameIndex)
+            fillData(data, anim, tmp, frameIndex)
         }
         // repeat last frame, so we can interpolate between last and first frame
-        fillData(data, anim, retargeting, tmp, 0)
+        fillData(data, anim, tmp, 0)
     }
 
     private fun fillData(
         data: FloatBuffer,
         anim: Animation,
-        retargeting: Retargeting?,
         tmp: Array<Matrix4x3f>,
         frameIndex: Int
     ) {
         // get frame
-        val tmp1 = anim.getMappedMatricesSafely(frameIndex, tmp, skeleton, retargeting)
-        val boneCount = min(skeleton.bones.size, tmp1.size)
+        val tmp1 = anim.getMappedMatricesSafely(frameIndex, tmp, skeleton.ref)
         // put into texture
         val startPosition = data.position()
-        for (i in 0 until boneCount) {
+        for (i in 0 until min(skeleton.bones.size, tmp1.size)) {
             tmp1[i].putInto(data)
         }
         data.position(startPosition + 4 * textureWidth)// 4x for rgba
@@ -152,7 +148,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     private fun fillData(data: FloatBuffer) {
         for (index in animationList.indices) {
             val data2 = animationList[index]
-            fillData(data, data2.anim, data2.retargeting)
+            fillData(data, data2.anim)
         }
     }
 
@@ -167,7 +163,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             }
             for (data in animationList) {
                 if (data.start < oldSize)
-                    updateAnim(data.anim, data.retargeting, data.start)
+                    updateAnim(data.anim, data.start)
             }
         }
     }

@@ -281,6 +281,9 @@ fun destroyMesh(mesh: Mesh) {
 
 fun main() {
 
+    // todo shadows are broken!!! :/
+    // todo rendering uses finalPosition...
+
     val n = 100
     val (hexagons, _) = createHexSphere(n)
     val world = HexagonSphereMCWorld(HexagonSphere(n, 1))
@@ -310,13 +313,11 @@ fun main() {
         .set(sky.sunRotation)
 
     sunEntity.add(object : Component() {
-        override fun clone() = throw NotImplementedError()
         override fun onUpdate(): Int {
             sky.applyOntoSun(sunEntity, sun, 5f)
             return 1
         }
     })
-
 
     val ambient = AmbientLight()
     ambient.color.set(0.5f)

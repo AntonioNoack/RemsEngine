@@ -3,7 +3,7 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFTwist.Companion.twistFunc
 import me.anno.ecs.prefab.PrefabSaveable

@@ -1,7 +1,7 @@
 package me.anno.tests.collider
 
 import me.anno.Engine
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.engine.ECSRegistry
 import me.anno.utils.OS

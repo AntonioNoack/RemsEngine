@@ -2,9 +2,8 @@ package me.anno.tests.ecs
 
 import me.anno.Engine
 import me.anno.ecs.components.anim.AnimTexture
-import me.anno.ecs.components.anim.Retargeting
-import me.anno.ecs.components.cache.AnimationCache
-import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.anim.AnimationCache
+import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.engine.ECSRegistry
 import me.anno.utils.OS
 
@@ -17,9 +16,8 @@ fun main() {
     val skeleton = SkeletonCache[skeletonSource]!!
     val animations = animationsSources.map { AnimationCache[it]!! }
     val texture = AnimTexture(skeleton)
-    val retargeting = Retargeting()
     for (anim in animations.sortedBy { it.name }) {
-        texture.addAnimation(anim, retargeting)
+        texture.addAnimation(anim)
     }
     texture.texture!!.createImage(flipY = false, withAlpha = false)
         .write(OS.desktop.getChild("animTexture.png"))

@@ -1,7 +1,6 @@
 package me.anno.ecs.components.camera.effects
 
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.quatRot
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -14,6 +13,7 @@ import me.anno.gpu.shader.ReverseDepth.depthToPositionList
 import me.anno.gpu.shader.ReverseDepth.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping

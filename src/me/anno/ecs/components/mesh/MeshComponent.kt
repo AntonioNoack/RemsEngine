@@ -1,7 +1,6 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.cache.MeshCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference

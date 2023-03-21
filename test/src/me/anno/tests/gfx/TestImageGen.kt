@@ -6,8 +6,8 @@ import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.ImportedAnimation
 import me.anno.ecs.components.anim.Skeleton
-import me.anno.ecs.components.cache.MeshCache
-import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent

@@ -2,7 +2,7 @@ package me.anno.io.files.thumbs
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh

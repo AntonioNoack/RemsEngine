@@ -1,12 +1,10 @@
 package me.anno.tests.gfx
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MeshCache
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
-import me.anno.gpu.shader.BaseShader
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS.downloads
 

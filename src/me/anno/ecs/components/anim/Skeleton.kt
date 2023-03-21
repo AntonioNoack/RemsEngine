@@ -2,7 +2,6 @@ package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.cache.AnimationCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.interfaces.Renderable

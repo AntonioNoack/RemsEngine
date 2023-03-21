@@ -1,6 +1,6 @@
 package me.anno.tests.mesh
 
-import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ECSRegistry
 import me.anno.image.Image

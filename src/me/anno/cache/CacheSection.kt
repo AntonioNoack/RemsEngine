@@ -3,10 +3,10 @@ package me.anno.cache
 import me.anno.Build
 import me.anno.Engine.gameTime
 import me.anno.cache.instances.LastModifiedCache
-import me.anno.ecs.components.cache.AnimationCache
-import me.anno.ecs.components.cache.MaterialCache
-import me.anno.ecs.components.cache.MeshCache
-import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.anim.AnimationCache
+import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException

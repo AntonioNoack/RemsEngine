@@ -4,8 +4,8 @@ import me.anno.Engine
 import me.anno.ecs.components.anim.BoneByBoneAnimation.Companion.fromImported
 import me.anno.ecs.components.anim.BoneByBoneAnimation.Companion.toImported
 import me.anno.ecs.components.anim.ImportedAnimation
-import me.anno.ecs.components.cache.AnimationCache
-import me.anno.ecs.components.cache.SkeletonCache
+import me.anno.ecs.components.anim.AnimationCache
+import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.engine.ECSRegistry
 import me.anno.utils.OS.documents
 import me.anno.utils.types.Floats.f2x

@@ -2,7 +2,7 @@ package me.anno.tests.mesh.fbx
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.components.cache.MaterialCache
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache.getPrefabInstance
 import me.anno.io.files.FileReference
