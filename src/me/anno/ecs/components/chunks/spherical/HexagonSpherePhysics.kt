@@ -46,24 +46,22 @@ class HexagonSpherePhysics(
     fun update(dt0: Float) {
         if (hexagon == null) teleport(currPosition, false)
 
-        val steps = 1
+        // if the velocity is too large, apply sub-steps
+        val steps = max(1, (2f * velocity.length() / sphere.len).toInt())
+        val dt = dt0 / steps
+        val up = JomlPools.vec3f.borrow()
         for (i in 0 until steps) {
-
-            val dt = dt0 / steps
 
             // apply gravity
             // hexagon.center must be used instead of position,
             // because the position introduces small drift towards the hexagon center,
             // because it doesn't align 100% with the current hexagon's triangles
-            val up = JomlPools.vec3f.borrow()
             hexagon!!.center.normalize(up)
             accelerate(up, dt * gravity)
 
             // apply motion against all colliders
             velocity.mulAdd(dt, currPosition, nextPosition)
             applyCollisions(dt)
-
-            // todo if the velocity is too large, apply sub-steps
 
             // move
             lastPosition.set(currPosition)

@@ -229,19 +229,19 @@ open class StaticMeshesLoader {
             when (buffer.remaining()) {
                 1 -> {
                     // a point
-                    indices[i + 0] = buffer.get()
+                    indices[i] = buffer.get()
                     indices[i + 1] = indices[i + 0]
                     indices[i + 2] = indices[i + 0]
                 }
                 2 -> {
                     // a line
-                    indices[i + 0] = buffer.get()
+                    indices[i] = buffer.get()
                     indices[i + 1] = buffer.get()
                     indices[i + 2] = indices[i + 0]
                 }
                 3 -> {
                     // a triangle, as it should be by the triangulation flag
-                    indices[i + 0] = buffer.get()
+                    indices[i] = buffer.get()
                     indices[i + 1] = buffer.get()
                     indices[i + 2] = buffer.get()
                 }
@@ -362,11 +362,7 @@ open class StaticMeshesLoader {
         return prefab
     }
 
-    private val pMax = IntArray(1)
-
-    init {
-        pMax[0] = 1
-    }
+    private val pMax = intArrayOf(1)
 
     fun getFloat(aiMaterial: AIMaterial, key: String): Float {
         val a = FloatArray(1)
@@ -566,13 +562,12 @@ open class StaticMeshesLoader {
     private fun processUVs(aiMesh: AIMesh, vertexCount: Int): FloatArray? {
         val src = aiMesh.mTextureCoords(0)
         return if (src != null) {
-            var j = 0
             val vec = AIVector3D.malloc()
             val dst = FloatArray(vertexCount * 2)
-            while (src.remaining() > 0) {
+            for (j in dst.indices step 2) {
                 src.get(vec)
-                dst[j++] = vec.x()
-                dst[j++] = vec.y()
+                dst[j] = vec.x()
+                dst[j + 1] = vec.y()
             }
             vec.free()
             dst
@@ -586,13 +581,12 @@ open class StaticMeshesLoader {
         processVec3(aiMesh.mVertices()!!, dst)
 
     private fun processVec3(src: AIVector3D.Buffer, dst: FloatArray): FloatArray {
-        var j = 0
         val vec = AIVector3D.malloc()
-        while (src.hasRemaining() && j < dst.size) {
+        for (j in dst.indices step 3) {
             src.get(vec)
-            dst[j++] = vec.x()
-            dst[j++] = vec.y()
-            dst[j++] = vec.z()
+            dst[j] = vec.x()
+            dst[j + 1] = vec.y()
+            dst[j + 2] = vec.z()
         }
         vec.free()
         return dst
@@ -605,21 +599,20 @@ open class StaticMeshesLoader {
         dst: FloatArray
     ): FloatArray {
         var i = 0
-        var j = 0
         val vec = AIVector3D.malloc()
-        while (tangents.hasRemaining() && bitangents.hasRemaining() && j < dst.size) {
+        for (j in dst.indices step 4) {
             tangents.get(vec)
             val tx = vec.x()
             val ty = vec.y()
             val tz = vec.z()
-            dst[j++] = tx
-            dst[j++] = ty
-            dst[j++] = tz
+            dst[j] = tx
+            dst[j + 1] = ty
+            dst[j + 2] = tz
             val nx = normals[i++]
             val ny = normals[i++]
             val nz = normals[i++]
             bitangents.get(vec)
-            dst[j++] = sign(crossDot(nx, ny, nz, tx, ty, tz, vec.x(), vec.y(), vec.z()))
+            dst[j + 3] = sign(crossDot(nx, ny, nz, tx, ty, tz, vec.x(), vec.y(), vec.z()))
         }
         vec.free()
         return dst
@@ -630,22 +623,21 @@ open class StaticMeshesLoader {
     private fun f2i(v: Float): Int {
         return if (v <= 0f) 0
         else if (v < 1f) (v * 255).roundToInt()
-        else 1
+        else 255
     }
 
     private fun processVertexColors(aiMesh: AIMesh, index: Int, vertexCount: Int): IntArray? {
         val src = aiMesh.mColors(index)
         return if (src != null) {
-            var j = 0
             val vec = AIColor4D.malloc()
             val dst = IntArray(vertexCount)
-            while (src.remaining() > 0 && j < vertexCount) {
+            for (j in 0 until vertexCount) {
                 src.get(vec)
                 val r = f2i(vec.r())
                 val g = f2i(vec.g())
                 val b = f2i(vec.b())
                 val a = f2i(vec.a())
-                dst[j++] = rgba(r, g, b, a)
+                dst[j] = rgba(r, g, b, a)
             }
             vec.free()
             // when every pixel is black or white, it doesn't actually have data

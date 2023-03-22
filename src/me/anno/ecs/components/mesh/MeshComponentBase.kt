@@ -11,6 +11,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
@@ -99,6 +100,17 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         ensureBuffer()
     }
 
+    /**
+     * todo not yet used;
+     * set this parameter, if you want this object to be only drawn, if it is really visible;
+     * visibility is checked every 4 frames (maybe)
+     *
+     * only works, if not isInstanced
+     * */
+    @DebugProperty
+    @NotSerializedProperty
+    var occlusionQuery: OcclusionQuery? = null
+
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
@@ -109,7 +121,10 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
             if (isInstanced && mesh.proceduralLength <= 0) {
                 pipeline.addMeshInstanced(mesh, this, entity, clickId)
             } else {
-                pipeline.addMesh(mesh, this, entity, gfxId)
+                val oc = occlusionQuery
+                if (oc == null || oc.wasVisible || oc.frameCounter++ > 0) {
+                    pipeline.addMesh(mesh, this, entity, gfxId)
+                }
             }
             this.clickId = clickId
             clickId + 1

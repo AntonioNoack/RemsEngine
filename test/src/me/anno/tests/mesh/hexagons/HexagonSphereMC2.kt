@@ -174,7 +174,7 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
         val pos = pos.set(RenderState.cameraPosition).safeNormalize()
         if (pos.lengthSquared() < 0.5) pos.z = 1.0
         dir.set(pos)
-        chunks.removeIf { (key, child) ->
+        chunks.removeIf { (_, child) ->
             val comp = child.getComponent(MeshComponent::class)
             if (comp != null) {
                 aabb.clear()

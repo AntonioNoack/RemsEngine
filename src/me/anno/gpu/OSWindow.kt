@@ -204,7 +204,7 @@ open class OSWindow(var title: String) {
         fsCallback = GLFW.glfwSetFramebufferSizeCallback(window, object : GLFWFramebufferSizeCallback() {
             override fun invoke(window1: Long, w: Int, h: Int) {
                 if (w > 0 && h > 0) {
-                    StudioBase.addEvent {
+                    addEvent {
                         if (w != width || h != height) {
                             width = w
                             height = h

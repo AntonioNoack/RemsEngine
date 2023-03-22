@@ -5,12 +5,12 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.AnimRenderer
-import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -486,6 +486,10 @@ class PipelineStage(
                 val materialIndex = request.materialIndex
                 val material = getMaterial(renderer, mesh, materialIndex)
 
+                // todo support this for MeshSpawner as well?
+                val oc = (renderer as? MeshComponentBase)?.occlusionQuery
+                oc?.start()
+
                 val shader = getShader(material)
                 shader.use()
                 bindRandomness(shader)
@@ -550,6 +554,8 @@ class PipelineStage(
                 } else {
                     mesh.draw(shader, materialIndex)
                 }
+
+                oc?.stop()
 
                 drawnPrimitives += mesh.numPrimitives
                 drawCalls++
@@ -644,6 +650,9 @@ class PipelineStage(
             val transform = entity.transform
             val renderer = request.component
 
+            val oc = (renderer as? MeshComponentBase)?.occlusionQuery
+            oc?.start()
+
             setupLocalTransform(shader, transform, time)
 
             mesh.ensureBuffer()
@@ -670,6 +679,8 @@ class PipelineStage(
             } else {
                 mesh.drawDepth(shader)
             }
+
+            oc?.stop()
 
             drawnPrimitives += mesh.numPrimitives
             drawCalls++
