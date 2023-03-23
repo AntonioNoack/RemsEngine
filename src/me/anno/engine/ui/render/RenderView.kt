@@ -68,6 +68,7 @@ import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.effects.FXAA
+import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
@@ -385,7 +386,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             else -> base1Buffer
         }
 
-        if (renderer == pbrRenderer || pipeline.lightStage.environmentMaps.isNotEmpty()) {
+        if (renderer == pbrRenderer ||
+            pipeline.lightStage.environmentMaps.isNotEmpty() ||
+            (renderMode.dlt == null && renderMode.effect == null)
+        ) {
             val sky = pipeline.skyBox
             if (sky != null) {
                 val bsb = pipeline.bakedSkyBox ?: CubemapFramebuffer(
@@ -397,7 +401,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 bsb.draw(rawAttributeRenderers[DeferredLayerType.EMISSIVE]) { side ->
                     // draw sky
                     // could be optimized to draw a single triangle instead of a full cube for each side
-                    EnvironmentMap.rotateForCubemap(skyRot.identity(), side)
+                    rotateForCubemap(skyRot.identity(), side)
                     val shader = (sky.shader ?: pbrModelShader).value
                     shader.use()
                     Perspective.setPerspective(
@@ -419,6 +423,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 pipeline.bakedSkyBox?.destroy()
                 pipeline.bakedSkyBox = null
             }
+        } else {
+            pipeline.bakedSkyBox?.destroy()
+            pipeline.bakedSkyBox = null
         }
 
         drawScene(
@@ -721,7 +728,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         }
                         val result = ScreenSpaceReflections.compute(
                             buffer, illuminated.getTexture0(),
-                            deferred, cameraMatrix, pipeline.skyBox,
+                            deferred, cameraMatrix, pipeline.skyBox, pipeline.bakedSkyBox?.getTexture0(),
                             Vector4f(clearColor.x, clearColor.y, clearColor.z, 1f), hdr
                         )
                         drawTexture(x, y + h - 1, w, -h, result ?: buffer.getTexture0(), true, -1, null)
@@ -1006,7 +1013,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             // screen space reflections
             val ssReflections = ScreenSpaceReflections.compute(
                 buffer, illuminated.getTexture0(), deferred, cameraMatrix,
-                pipeline.skyBox, Vector4f(clearColor.x, clearColor.y, clearColor.z, 1f), false
+                pipeline.skyBox, pipeline.bakedSkyBox?.getTexture0(),
+                Vector4f(clearColor.x, clearColor.y, clearColor.z, 1f), false
             ) ?: illuminated.getTexture0()
 
             useFrame(w, h, true, baseSameDepth) {

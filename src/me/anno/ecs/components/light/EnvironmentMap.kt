@@ -24,6 +24,7 @@ import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
@@ -265,32 +266,6 @@ class EnvironmentMap : LightComponentBase() {
             )
             pipeline.stages.add(pipeline.defaultStage)
             pipeline
-        }
-
-        fun rotateForCubemap(rot3: Quaterniond, side: Int) {
-            // rotate based on direction
-            // POSITIVE_X, NEGATIVE_X, POSITIVE_Y, NEGATIVE_Y, POSITIVE_Z, NEGATIVE_Z
-            when (side) {
-                0 -> rot3.rotateY(+PI * 0.5)
-                1 -> rot3.rotateY(-PI * 0.5)
-                2 -> rot3.rotateX(+PI * 0.5)
-                3 -> rot3.rotateX(-PI * 0.5)
-                // 4 is already correct
-                5 -> rot3.rotateY(PI)
-            }
-        }
-
-        fun rotateForCubemap(rot3: Quaternionf, side: Int) {
-            // rotate based on direction
-            // POSITIVE_X, NEGATIVE_X, POSITIVE_Y, NEGATIVE_Y, POSITIVE_Z, NEGATIVE_Z
-            when (side) {
-                0 -> rot3.rotateY(+PIf * 0.5f)
-                1 -> rot3.rotateY(-PIf * 0.5f)
-                2 -> rot3.rotateX(+PIf * 0.5f)
-                3 -> rot3.rotateX(-PIf * 0.5f)
-                // 4 is already correct
-                5 -> rot3.rotateY(PIf)
-            }
         }
 
     }

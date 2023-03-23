@@ -157,12 +157,14 @@ object TextureLib {
 
     }
 
+    private val white = byteArrayOf(-1,-1,-1,-1)
 
     val invisibleTexture = IndestructibleTexture2D("invisible", 1, 1, ByteArray(4))
     val invisibleTex3d = IndestructibleTexture3D("invisible", 1, 1, 1, ByteArray(4))
     val whiteTexture = IndestructibleTexture2D("white", 1, 1, intArrayOf(-1))
-    val whiteTex3d = IndestructibleTexture3D("white3d", 1, 1, 1, byteArrayOf(-1, -1, -1, -1))
-    val whiteTex2da = IndestructibleTexture2DArray("white2da", 1, 1, 1, byteArrayOf(-1, -1, -1, -1))
+    val whiteTex3d = IndestructibleTexture3D("white3d", 1, 1, 1, white)
+    val whiteTex2da = IndestructibleTexture2DArray("white2da", 1, 1, 1, white)
+    val whiteCube = IndestructibleCubemap("whiteCube", 1, white)
     val depthTexture = IndestructibleTexture2D("depth", 1, 1, "depth")
     val depthCube = IndestructibleCubemap("depth", 1, "depth")
     val stripeTexture = IndestructibleTexture2D("stripes", 5, 1, IntArray(5) { if (it == 2) -1 else 0xffffff })
@@ -191,6 +193,7 @@ object TextureLib {
         whiteTexture.doDestroy()
         whiteTex3d.doDestroy()
         whiteTex2da.doDestroy()
+        whiteCube.doDestroy()
         depthCube.doDestroy()
         depthTexture.doDestroy()
         stripeTexture.doDestroy()

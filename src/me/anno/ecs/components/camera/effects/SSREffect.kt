@@ -33,6 +33,7 @@ class SSREffect : ToneMappedEffect() {
         format: DeferredSettingsV2,
         layers: MutableMap<DeferredLayerType, IFramebuffer>
     ) {
+        val ci = RenderView.currentInstance
         write(
             layers, dstType,
             ScreenSpaceReflections.compute(
@@ -45,7 +46,8 @@ class SSREffect : ToneMappedEffect() {
                 layers[DeferredLayerType.ROUGHNESS]!!.getTexture0(),
                 format.findMapping(DeferredLayerType.ROUGHNESS)!!,
                 layers[DeferredLayerType.HDR_RESULT]!!.getTexture0(),
-                RenderState.cameraMatrix, RenderView.currentInstance?.pipeline?.skyBox, white4,
+                RenderState.cameraMatrix, ci?.pipeline?.skyBox,
+                ci?.pipeline?.bakedSkyBox?.getTexture0(), white4,
                 strength,
                 maskSharpness,
                 wallThickness,

@@ -14,6 +14,7 @@ import me.anno.gpu.drawing.Perspective.setPerspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.mesh.Shapes
@@ -94,7 +95,7 @@ class PointLight : LightComponent(LightType.POINT) {
             texture.draw(resolution, Renderer.nothingRenderer) { side ->
                 texture.clearDepth()
                 setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
-                EnvironmentMap.rotateForCubemap(rot3.identity(), side)
+                rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rotInvert)
                 cameraMatrix.rotate2(rot3)
                 pipeline.clear()

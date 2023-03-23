@@ -73,6 +73,7 @@ class CubemapFramebuffer(
     }
 
     override fun getTextureI(index: Int) = textures[index]
+    override fun getTexture0() = textures[0] // overridden for the result type
 
     override fun bindDirectly() = bind()
     override fun bindDirectly(w: Int, h: Int) {
@@ -262,30 +263,29 @@ class CubemapFramebuffer(
         GFX.check()
     }
 
-    fun draw(size: Int, renderer: Renderer, render: (side: Int) -> Unit) {
+    fun draw(size: Int, renderer: Renderer, renderSide: (side: Int) -> Unit) {
         useFrame(size, size, true, this, renderer) {
-            Frame.bind()
-            for (side in 0 until 6) {
-                // update all attachments, updating the framebuffer texture targets
-                updateAttachments(side)
-                val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
-                if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
-                render(side)
-            }
+            renderSides(renderSide)
         }
     }
 
-    fun draw(renderer: Renderer, render: (side: Int) -> Unit) {
+    fun draw(renderer: Renderer, renderSide: (side: Int) -> Unit) {
         useFrame(this, renderer) {
-            Frame.bind()
-            for (side in 0 until 6) {
-                // update all attachments, updating the framebuffer texture targets
-                updateAttachments(side)
-                val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
-                if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
-                render(side)
-            }
+            renderSides(renderSide)
         }
+    }
+
+    private fun renderSides(render: (side: Int) -> Unit){
+        Frame.bind()
+        for (side in 0 until 6) {
+            // update all attachments, updating the framebuffer texture targets
+            updateAttachments(side)
+            val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
+            if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
+            render(side)
+        }
+        depthTexture?.needsMipmaps = true
+        for (i in textures.indices) textures[i].needsMipmaps = true
     }
 
     override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer {

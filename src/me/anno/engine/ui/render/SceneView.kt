@@ -1,8 +1,7 @@
 package me.anno.engine.ui.render
 
-import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
@@ -11,8 +10,11 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.control.PlayControls
+import me.anno.engine.ui.scenetabs.ECSSceneTab
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
+import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI
@@ -79,22 +81,27 @@ class SceneView(
 
         @Suppress("unused")
         fun testScene(scene: FileReference, init: ((SceneView) -> Unit)? = null): Panel {
-            EditorState.prefabSource = scene
-            val sceneView = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
+            val listY = PanelListY(style)
+            listY.add(ECSSceneTabs)
+            ECSSceneTabs.open(ECSSceneTab(scene, PlayMode.EDITING), true)
+            val sceneView = SceneView(EditorState, PlayMode.EDITING, style)
             PrefabInspector.currentInspector = PrefabInspector(scene)
-            val list = CustomList(false, DefaultConfig.style)
-            list.add(ECSTreeView(EditorState, DefaultConfig.style), 1f)
+            val list = CustomList(false, style)
+            list.add(ECSTreeView(EditorState, style), 1f)
             list.add(sceneView, 3f)
-            list.add(PropertyInspector({ EditorState.selection }, DefaultConfig.style), 1f)
+            list.add(PropertyInspector({ EditorState.selection }, style), 1f)
             if (init != null) init(sceneView)
-            return list
+            listY.add(list)
+            list.weight = 1f
+            listY.weight = 1f
+            return listY
         }
 
         @Suppress("unused")
         fun testScene2(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null): Panel {
             scene.prefabPath = Path.ROOT_PATH
             EditorState.prefabSource = scene.ref
-            val sceneView = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
+            val sceneView = SceneView(EditorState, PlayMode.EDITING, style)
             PrefabInspector.currentInspector = PrefabInspector(scene.ref)
             if (init != null) init(sceneView)
             return sceneView

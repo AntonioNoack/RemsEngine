@@ -54,7 +54,6 @@ object ShaderLib {
             "}"
 
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
-    val svsList = coordsList
     const val simpleVertexShader = "" +
             "uniform vec4 posSize;\n" +
             "uniform vec4 tiling;\n" +

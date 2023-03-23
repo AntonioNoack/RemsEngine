@@ -6,13 +6,15 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.DebugGPUStorage
-import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.framebuffer.*
+import me.anno.maths.Maths
+import org.joml.Quaterniond
+import org.joml.Quaternionf
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
-import org.lwjgl.opengl.GL14.GL_GENERATE_MIPMAP
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL32C.GL_TEXTURE_CUBE_MAP_SEAMLESS
 import java.nio.ByteBuffer
+import kotlin.math.PI
 
 // can be used e.g. for game engine for environment & irradiation maps
 // todo multi-sampled environment maps, because some gpus may handle them just fine :3
@@ -45,6 +47,8 @@ open class CubemapTexture(
         set(_) {}
 
     private val target = GL_TEXTURE_CUBE_MAP
+
+    var needsMipmaps = false
 
     private fun ensurePointer() {
         if (isDestroyed) throw RuntimeException("Texture was destroyed")
@@ -168,6 +172,10 @@ open class CubemapTexture(
             Texture2D.activeSlot(index)
             val result = Texture2D.bindTexture(target, pointer)
             ensureFilterAndClamping(nearest)
+            if (needsMipmaps) {
+                needsMipmaps = false
+                glGenerateMipmap(target)
+            }
             return result
         } else throw IllegalStateException("Cannot bind non-created texture!")
     }
@@ -201,9 +209,8 @@ open class CubemapTexture(
                 glTexParameteri(target, GL_TEXTURE_LOD_BIAS, 0)
                 glTexParameterf(target, EXTTextureFilterAnisotropic.GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy)
             }
-            // whenever the base mipmap is changed, the mipmaps will be updated :)
-            // todo it seems like this needs to be called manually in WebGL
-            glTexParameteri(target, GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
+            // automatic mipmap updates are not supported
+            needsMipmaps = true
         }
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, nearest.min)
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, nearest.mag)
@@ -259,6 +266,32 @@ open class CubemapTexture(
         fun allocate(oldValue: Long, newValue: Long): Long {
             allocated += newValue - oldValue
             return newValue
+        }
+
+        fun rotateForCubemap(rot3: Quaterniond, side: Int) {
+            // rotate based on direction
+            // POSITIVE_X, NEGATIVE_X, POSITIVE_Y, NEGATIVE_Y, POSITIVE_Z, NEGATIVE_Z
+            when (side) {
+                0 -> rot3.rotateY(+PI * 0.5)
+                1 -> rot3.rotateY(-PI * 0.5)
+                2 -> rot3.rotateX(+PI * 0.5)
+                3 -> rot3.rotateX(-PI * 0.5)
+                // 4 is already correct
+                5 -> rot3.rotateY(PI)
+            }
+        }
+
+        fun rotateForCubemap(rot3: Quaternionf, side: Int) {
+            // rotate based on direction
+            // POSITIVE_X, NEGATIVE_X, POSITIVE_Y, NEGATIVE_Y, POSITIVE_Z, NEGATIVE_Z
+            when (side) {
+                0 -> rot3.rotateY(+Maths.PIf * 0.5f)
+                1 -> rot3.rotateY(-Maths.PIf * 0.5f)
+                2 -> rot3.rotateX(+Maths.PIf * 0.5f)
+                3 -> rot3.rotateX(-Maths.PIf * 0.5f)
+                // 4 is already correct
+                5 -> rot3.rotateY(Maths.PIf)
+            }
         }
     }
 

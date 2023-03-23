@@ -92,6 +92,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
             return "" +
                     getCutoff(cutoffContinue) +
                     "NdotL = localNormal.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
+                    "lightColor *= max(NdotL, 0.0);\n" + // light looks much better with it
                     // inv(W->L) * vec4(0,0,1,0) =
                     // transpose(m3x3(W->L)) * vec3(0.0,0.0,1.0)
                     "lightDirWS = normalize(vec3(camSpaceToLightSpace[0][2],camSpaceToLightSpace[1][2],camSpaceToLightSpace[2][2]));\n" +

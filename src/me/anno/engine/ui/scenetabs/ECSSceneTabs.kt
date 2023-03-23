@@ -111,7 +111,8 @@ object ECSSceneTabs : ScrollPanelX(style) {
             // EditorState.select(instance, null)
             EditorState.select(null)
             if (tab !in children3) content += tab
-            for (window in windowStack) {
+            val ws = window?.windowStack
+            if (ws != null) for (window in ws) {
                 window.panel.forAllPanels {
                     if (it is RenderView) {
                         it.playMode = tab.playMode
