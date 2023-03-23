@@ -1,9 +1,9 @@
 package me.anno.studio
 
 import me.anno.config.DefaultConfig
+import me.anno.engine.GameEngineProject
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
-import me.anno.io.utils.StringMap
 import org.apache.logging.log4j.LogManager
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -32,9 +32,10 @@ object Projects {
                             val configFile = FileReference.getReference(folder, "config.json")
                             if (configFile.exists) {
                                 try {
-                                    val config = TextReader.read(configFile, folder, true).firstOrNull() as? StringMap
+                                    LOGGER.debug("Reading $configFile")
+                                    val config = TextReader.readFirstOrNull<GameEngineProject>(configFile, folder, true)
                                     if (config != null) {
-                                        projects += ProjectHeader(config["general.name", folder.name], folder)
+                                        projects += ProjectHeader(config.name.ifBlank { folder.name }, folder)
                                         usedFiles += folder
                                     }
                                 } catch (e: Exception) {

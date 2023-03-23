@@ -1,5 +1,6 @@
 package me.anno.mesh.assimp
 
+import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform

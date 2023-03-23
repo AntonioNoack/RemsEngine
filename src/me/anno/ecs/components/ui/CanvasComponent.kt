@@ -166,14 +166,14 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
         }
     }
 
-    override fun onVisibleUpdate(): Boolean {
+    override fun onUpdate(): Int {
         if (space == Space.WORLD_SPACE ||
             RenderView.currentInstance?.playMode == PlayMode.EDITING
         ) {
             defineMesh()
             render()
         }
-        return true
+        return 1
     }
 
     @DebugAction

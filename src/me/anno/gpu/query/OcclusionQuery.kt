@@ -5,20 +5,24 @@ import me.anno.gpu.GFX
 import org.lwjgl.opengl.GL15C.*
 
 class OcclusionQuery(
-    val minSamples: Int = 16,
-    val everyNthFrame: Int = 4
+    var minSamples: Int = 16,
+    var everyNthFrame: Int = 4
 ) : ICacheData {
 
     companion object {
-        // can be switched to GL_ANY_SAMPLES_PASSED_CONSERVATIVE, which may be faster
+
+        // to do mode, where depth-prepass is used for occlusion queries instead of color pass,
+        //  and color is only drawn, where the query is positive
+
+        // is changed to GL_ANY_SAMPLES_PASSED_CONSERVATIVE, where it is available
         var target = GL_SAMPLES_PASSED
         private const val cap = 4
         private const val capM1 = cap - 1
     }
 
-    private var ids: IntArray? = null
-    private var readSlot = 0
-    private var writeSlot = 0
+    private var ids: IntArray? = null // could be inlined into four integers
+    var readSlot = 0
+    var writeSlot = 0
     var frameCounter = 0
 
     fun start() {
@@ -26,7 +30,7 @@ class OcclusionQuery(
         if (ids == null) {
             ids = IntArray(cap)
             glGenQueries(ids)
-            frameCounter = (Math.random() * 16).toInt() // pseudo-random ^^
+            frameCounter = -(Math.random() * everyNthFrame).toInt() // randomness to spread out the load
             this.ids = ids
         }
         glBeginQuery(target, ids[writeSlot.and(capM1)])
@@ -40,10 +44,13 @@ class OcclusionQuery(
     override fun destroy() {
         GFX.checkIsGFXThread()
         val ids = ids
-        if (ids != null) glDeleteQueries(ids)
+        if (ids != null) {
+            glDeleteQueries(ids)
+            this.ids = null
+        }
     }
 
-    private var lastResult = -1
+    var lastResult = -1
 
     val drawnSamples
         get(): Int {
@@ -70,6 +77,6 @@ class OcclusionQuery(
             return result < 0 || result >= minSamples
         }
 
-    override fun toString() = "$lastResult@$readSlot"
+    override fun toString() = "$lastResult@$readSlot[$frameCounter]"
 
 }

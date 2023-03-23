@@ -45,7 +45,7 @@ class BlenderControlsAddon {
             in '0'..'9', in "+-*/()" -> {
                 if (mode != InputMode.NONE) {
                     inputString += char
-                    LOGGER.debug("New Input: $inputString")
+                    // LOGGER.debug("New Input: $inputString")
                 } else return false
             }
             'g', 's', 'r' -> {
@@ -73,7 +73,7 @@ class BlenderControlsAddon {
             'y' -> axisMask = if (isShiftDown) 5 else 2
             'z' -> axisMask = if (isShiftDown) 3 else 4
             else -> {
-                LOGGER.debug("Ignored key press $key/$char")
+                // LOGGER.debug("Ignored key press $key/$char")
                 return false
             }
         }

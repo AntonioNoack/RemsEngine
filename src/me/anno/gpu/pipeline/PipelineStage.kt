@@ -168,6 +168,9 @@ class PipelineStage(
     var instancedSize = 0
     val drawRequests = ArrayList<DrawRequest>()
 
+    // doesn't work yet, why ever
+    var occlusionQueryPrepass = false
+
     val size get() = nextInsertIndex + instancedSize
 
     val instanced = InstancedStack.Impl()
@@ -469,25 +472,27 @@ class PipelineStage(
 
         // draw non-instanced meshes
         var previousMaterialInScene: Material? = null
+        val oqp = occlusionQueryPrepass
         for (index in 0 until nextInsertIndex) {
 
             val request = drawRequests[index]
+            val renderer = request.component
+            // todo support this for MeshSpawner (oc in general) and instanced rendering (oqp) as well?
+            val oc = (renderer as? MeshComponentBase)?.occlusionQuery
+            if (oc != null && oqp && !oc.wasVisible) continue
 
             GFX.drawnId = request.clickId
 
-            val hasAnimation = (request.component as? MeshComponentBase)?.hasAnimation ?: false
+            val hasAnimation = (renderer as? MeshComponentBase)?.hasAnimation ?: false
             GFXState.animated.use(hasAnimation) {
 
                 val mesh = request.mesh
                 val entity = request.entity
 
                 val transform = entity.transform
-                val renderer = request.component
                 val materialIndex = request.materialIndex
                 val material = getMaterial(renderer, mesh, materialIndex)
 
-                // todo support this for MeshSpawner as well?
-                val oc = (renderer as? MeshComponentBase)?.occlusionQuery
                 oc?.start()
 
                 val shader = getShader(material)
@@ -642,16 +647,17 @@ class PipelineStage(
         for (index in 0 until nextInsertIndex) {
 
             val request = drawRequests[index]
+            val renderer = request.component
+
+            val oc = (renderer as? MeshComponentBase)?.occlusionQuery
+            oc?.start()
+
             val mesh = request.mesh
             val entity = request.entity
             val materialIndex = request.materialIndex
             val material = getMaterial(request.component, mesh, materialIndex)
 
             val transform = entity.transform
-            val renderer = request.component
-
-            val oc = (renderer as? MeshComponentBase)?.occlusionQuery
-            oc?.start()
 
             setupLocalTransform(shader, transform, time)
 

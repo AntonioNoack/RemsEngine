@@ -74,7 +74,7 @@ class RenderMode(
 
         val INVERSE_DEPTH = RenderMode("Inverse Depth")
         val OVERDRAW = RenderMode("Overdraw")
-        val WITH_PRE_DRAW_DEPTH = RenderMode("With Pre-Depth-Pass")
+        val WITH_DEPTH_PREPASS = RenderMode("With Depth-Prepass")
         val MONO_WORLD_SCALE = RenderMode("Mono World-Scale")
         val GHOSTING_DEBUG = RenderMode("Ghosting Debug")
 

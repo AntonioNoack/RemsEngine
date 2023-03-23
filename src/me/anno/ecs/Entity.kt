@@ -86,10 +86,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     @DebugProperty
     @NotSerializedProperty
-    var hasOnVisibleUpdate = true
-
-    @DebugProperty
-    @NotSerializedProperty
     var hasControlReceiver = true
 
     @DebugProperty
@@ -405,20 +401,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return hasDrawGUI
     }*/
 
-    @DebugAction
-    fun updateVisible(): Boolean {
-        val hasUpdate = executeOptimizedEvent(
-            { it.hasOnVisibleUpdate },
-            Entity::updateVisible,
-            Component::onVisibleUpdate
-        )
-        this.hasOnVisibleUpdate = hasUpdate
-        return hasUpdate
-    }
-
     fun invalidateUpdates() {
         parentEntity?.invalidateUpdates()
-        hasOnVisibleUpdate = true
         hasOnUpdate = true
     }
 

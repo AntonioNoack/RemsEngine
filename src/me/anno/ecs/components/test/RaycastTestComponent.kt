@@ -30,7 +30,7 @@ class RaycastTestComponent : Component() {
     @SerializedProperty
     var radiusPerUnit = 0.0
 
-    override fun onVisibleUpdate(): Boolean {
+    override fun onUpdate(): Int {
         // throw ray cast, and draw the result
         val entity = entity!!
         val transform = entity.transform.globalTransform
@@ -45,7 +45,7 @@ class RaycastTestComponent : Component() {
         } else {
             DebugShapes.debugLines.add(DebugLine(start, Vector3d(direction).add(start), 0xff0000))
         }
-        return true
+        return 1
     }
 
     override fun copy(clone: PrefabSaveable) {

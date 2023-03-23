@@ -1260,12 +1260,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         when (world) {
             is Entity -> {
                 world.update()
-                world.updateVisible()
                 world.validateTransform()
             }
             is Component -> {
                 world.onUpdate()
-                world.onVisibleUpdate()
             }
         }
     }
@@ -1362,8 +1360,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         pipeline.applyToneMapping = !hdr
 
-        val preDrawDepth = renderMode == RenderMode.WITH_PRE_DRAW_DEPTH
-        if (preDrawDepth) {
+        val depthPrepass = renderMode == RenderMode.WITH_DEPTH_PREPASS
+        if (depthPrepass) {
             useFrame(w, h, changeSize, dst, cheapRenderer) {
 
                 Frame.bind()
@@ -1376,7 +1374,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 GFXState.depthMode.use(depthMode) {
                     GFXState.cullMode.use(CullMode.BACK) {
                         GFXState.blendMode.use(null) {
-                            stage0.drawColors(pipeline)
+                            stage0.drawDepths(pipeline)
                         }
                     }
                 }
@@ -1387,7 +1385,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         useFrame(w, h, changeSize, dst, renderer) {
 
-            if (!preDrawDepth) {
+            if (!depthPrepass) {
                 Frame.bind()
                 GFXState.depthMode.use(depthMode) {
                     setClearDepth()
@@ -1519,9 +1517,17 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     stack.popMatrix()
 
                     if (drawAABBs) {
-                        val aabb = entity.aabb
-                        val hit = aabb.testLine(cameraPosition, mouseDirection, 1e10)
-                        drawAABB(aabb, if (hit) aabbColorHovered else aabbColorDefault)
+                        val aabb1 = entity.aabb
+                        val hit1 = aabb1.testLine(cameraPosition, mouseDirection, 1e10)
+                        drawAABB(aabb1, if (hit1) aabbColorHovered else aabbColorDefault)
+                        if (entity.hasRenderables) for (i in components.indices) {
+                            val component = components[i]
+                            if (component.isEnabled && component is MeshComponentBase) {
+                                val aabb2 = component.globalAABB
+                                val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
+                                drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
+                            }
+                        }
                     }
 
                     LineBuffer.drawIf1M(cameraMatrix)

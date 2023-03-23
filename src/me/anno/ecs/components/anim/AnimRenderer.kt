@@ -76,13 +76,8 @@ open class AnimRenderer : MeshComponent() {
             anim.update(this, dt, true)
             if (anim.speed != 0f) anyIsRunning = true
         }
-        return if (anyIsRunning) 1 else 10
-    }
-
-    override fun onVisibleUpdate(): Boolean {
-        super.onVisibleUpdate()
         updateAnimState()
-        return true
+        return if (anyIsRunning) 1 else 10
     }
 
     override val hasAnimation: Boolean

@@ -1,7 +1,6 @@
 package me.anno.ecs.components.shaders
 
 import me.anno.Engine
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Group
@@ -12,13 +11,13 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV3
-import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -173,6 +172,7 @@ class SkyBox : MeshComponentBase() {
         entity: Entity,
         clickId: Int
     ): Int {
+        lastDrawn = Engine.gameTime
         pipeline.skyBox = this
         return super.fill(pipeline, entity, clickId)
     }
@@ -186,6 +186,11 @@ class SkyBox : MeshComponentBase() {
     }
 
     override fun getMesh() = mesh
+
+    init {
+        globalAABB.all()
+        localAABB.all()
+    }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         aabb.all() // skybox is visible everywhere

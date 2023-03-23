@@ -38,6 +38,10 @@ object Engine {
         private set
 
     @JvmStatic
+    var lastGameTime = 0L
+        private set
+
+    @JvmStatic
     var gameTimeF = 0f
         private set
 
@@ -71,6 +75,7 @@ object Engine {
         currentFPS = min(currentFPS + (newFPS - currentFPS) * 0.05f, newFPS)
         lastTime = thisTime
 
+        lastGameTime = gameTime
         gameTime = thisTime - startTime
         gameTimeF = gameTime * 1e-9f
         gameTimeD = gameTime * 1e-9

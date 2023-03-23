@@ -54,7 +54,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         }
     }
 
-    fun add(file: FileReference, classNameIfNull: String, playMode: PlayMode): ECSSceneTab {
+    fun add(file: FileReference, playMode: PlayMode): ECSSceneTab {
         val opened = children3.firstOrNull { it.file == file }
         return if (opened == null) {
             val tab = ECSSceneTab(file, playMode, findName(file))
@@ -135,8 +135,8 @@ object ECSSceneTabs : ScrollPanelX(style) {
         // add tab to project
         val project = project
         if (project != null) {
-            if (project.openTabs.add(tab.file) || project.lastScene != tab.file) {
-                project.lastScene = tab.file
+            if (project.openTabs.add(tab.file.absolutePath) || project.lastScene != tab.file.absolutePath) {
+                project.lastScene = tab.file.absolutePath
                 project.invalidate()
             }
         }
@@ -199,7 +199,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         } else sceneTab.removeFromParent()
         val project = project
         if (project != null) {
-            project.openTabs.remove(sceneTab.file)
+            project.openTabs.remove(sceneTab.file.absolutePath)
             project.invalidate()
         }
     }

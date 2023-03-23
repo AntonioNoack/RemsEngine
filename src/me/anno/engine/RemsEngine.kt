@@ -24,10 +24,12 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.files.thumbs.ThumbsExt
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.debug.FrameTimings
 import me.anno.ui.editor.OptionBar
@@ -130,7 +132,12 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
     }
 
     override fun save() {
-        ECSSceneTabs.currentTab?.save()
+        try {
+            ECSSceneTabs.currentTab?.save()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Menu.msg(GFX.someWindow.windowStack, NameDesc(e.toString()))
+        }
     }
 
     fun loadSafely(file: FileReference): Prefab {

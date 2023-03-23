@@ -28,6 +28,7 @@ import me.anno.mesh.assimp.AnimGameItem
 import me.anno.studio.StudioBase
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
@@ -199,7 +200,14 @@ class ECSSceneTab(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
-            button.isLeft -> ECSSceneTabs.open(this, true)
+            button.isLeft -> {
+                try {
+                    ECSSceneTabs.open(this, true)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Menu.msg(windowStack, NameDesc(e.toString()))
+                }
+            }
             button.isRight -> {
                 openMenu(windowStack, listOf(
                     MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) {

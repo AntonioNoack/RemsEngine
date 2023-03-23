@@ -570,15 +570,6 @@ open class SDFGroup : SDFComponent() {
         }
     }
 
-    override fun onVisibleUpdate(): Boolean {
-        val children = children
-        for (index in children.indices) {
-            val child = children[index]
-            if (child.isEnabled) child.onVisibleUpdate()
-        }
-        return true
-    }
-
     override fun onUpdate(): Int {
         super.onUpdate()
         val children = children

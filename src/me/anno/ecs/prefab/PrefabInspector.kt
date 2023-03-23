@@ -14,10 +14,12 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
@@ -405,6 +407,18 @@ class PrefabInspector(val reference: FileReference) {
 
     fun save() {
         if (reference == InvalidRef) throw IllegalStateException("Prefab doesn't have source!!")
+        if (reference.exists) {
+            // check, that we actually can save this file;
+            //  we must not override resources like .obj files
+            val testRead = try {
+                TextReader.read(reference, workspace, false).firstOrNull()
+            } catch (e: Exception) {
+                null
+            }
+            if (testRead !is Prefab) {
+                throw IllegalArgumentException("Must not override assets! $reference is not a prefab")
+            }
+        }
         val selected = collectSelected()
         // save -> changes last modified -> selection becomes invalid
         // remember selection, and apply it later (in maybe 500-1000ms)

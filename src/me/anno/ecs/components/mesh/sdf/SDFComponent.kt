@@ -275,15 +275,6 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         return 1
     }
 
-    override fun onVisibleUpdate(): Boolean {
-        val components = internalComponents
-        for (index in components.indices) {
-            val child = components[index]
-            if (child.isEnabled) child.onVisibleUpdate()
-        }
-        return true
-    }
-
     override fun hasRaycastType(typeMask: Int): Boolean {
         return typeMask.and(Raycast.TRIANGLES) != 0 || typeMask.and(Raycast.SDFS) != 0
     }

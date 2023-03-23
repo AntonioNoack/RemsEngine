@@ -7,6 +7,7 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
@@ -48,8 +49,8 @@ class GameEngineProject() : NamedSaveable() {
     }
 
     var location: FileReference = InvalidRef // a folder
-    var lastScene: FileReference = InvalidRef
-    val openTabs = HashSet<FileReference>()
+    var lastScene: String? = null
+    val openTabs = HashSet<String>()
 
     val configFile get() = location.getChild("config.json")
 
@@ -99,14 +100,15 @@ class GameEngineProject() : NamedSaveable() {
         StudioBase.workspace = location
 
         // if last scene is invalid, create a valid scene
-        if (lastScene == InvalidRef) {
-            lastScene = location.getChild("Scene.json")
+        if (lastScene == null) {
+            lastScene = location.getChild("Scene.json").absolutePath
             LOGGER.debug("Set scene to $lastScene")
         }
 
-        if (!lastScene.exists) {
+        val lastSceneRef = getReference(lastScene)
+        if (!lastSceneRef.exists) {
             val prefab = Prefab("Entity", ScenePrefab)
-            lastScene.writeText(TextWriter.toText(prefab, InvalidRef))
+            lastSceneRef.writeText(TextWriter.toText(prefab, InvalidRef))
             LOGGER.debug("Wrote new scene to $lastScene")
         }
 
@@ -115,14 +117,14 @@ class GameEngineProject() : NamedSaveable() {
         // open all tabs
         for (tab in openTabs) {
             try {
-                ECSSceneTabs.open(tab, PlayMode.EDITING, false)
+                ECSSceneTabs.open(getReference(tab), PlayMode.EDITING, false)
             } catch (e: Exception) {
                 LOGGER.warn("Could not open $tab", e)
             }
         }
         // make last scene current
         try {
-            ECSSceneTabs.open(lastScene, PlayMode.EDITING, true)
+            ECSSceneTabs.open(lastSceneRef, PlayMode.EDITING, true)
         } catch (e: Exception) {
             LOGGER.warn("Could not open $lastScene", e)
         }
@@ -130,22 +132,32 @@ class GameEngineProject() : NamedSaveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeFile("lastScene", lastScene)
-        writer.writeFileArray("openTabs", openTabs.toTypedArray())
+        writer.writeString("lastScene", lastScene)
+        writer.writeStringArray("openTabs", openTabs.toTypedArray())
         // location doesn't really need to be saved
     }
 
     override fun readString(name: String, value: String?) {
         when (name) {
-            "lastScene" -> lastScene = value?.toGlobalFile() ?: InvalidRef
+            "lastScene" -> lastScene = value?.toGlobalFile()?.absolutePath ?: value
             else -> super.readString(name, value)
         }
     }
 
     override fun readFile(name: String, value: FileReference) {
         when (name) {
-            "lastScene" -> lastScene = value
+            "lastScene" -> lastScene = value.absolutePath
             else -> super.readFile(name, value)
+        }
+    }
+
+    override fun readStringArray(name: String, values: Array<String>) {
+        when (name) {
+            "openTabs" -> {
+                openTabs.clear()
+                openTabs.addAll(values)
+            }
+            else -> super.readStringArray(name, values)
         }
     }
 
@@ -153,7 +165,7 @@ class GameEngineProject() : NamedSaveable() {
         when (name) {
             "openTabs" -> {
                 openTabs.clear()
-                openTabs.addAll(values.filter { it.exists })
+                openTabs.addAll(values.filter { it.exists }.map { it.absolutePath })
             }
             else -> super.readFileArray(name, values)
         }

@@ -292,7 +292,8 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
         for (i in components.indices) {
             val component = components[i]
             if (component.isEnabled && component !== ignoredComponent && component is Renderable) {
-                clickId = component.fill(this, entity, clickId)
+                if (component !is MeshComponentBase || frustum.isVisible(component.globalAABB))
+                    clickId = component.fill(this, entity, clickId)
             }
         }
         val children = entity.children

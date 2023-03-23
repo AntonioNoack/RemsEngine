@@ -49,10 +49,6 @@ open class ScriptComponent : Component() {
         return callIntFunction("onUpdate", source, this, 1)
     }
 
-    override fun onVisibleUpdate(): Boolean {
-        return callIntFunction("onVisibleUpdate", source, this, 1) > 0
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         callFunction("onDestroy", source, this)

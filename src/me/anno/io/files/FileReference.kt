@@ -8,7 +8,6 @@ import me.anno.gpu.GFX
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.io.zip.InnerFile
-import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCache
 import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.MILLIS_TO_NANOS

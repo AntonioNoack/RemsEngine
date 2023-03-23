@@ -22,9 +22,6 @@ open class QuickScriptComponent : Component() {
     var updateScript = ""
 
     @Type("Lua/Code")
-    var visualUpdateScript = ""
-
-    @Type("Lua/Code")
     var destroyScript = ""
 
     @DebugAction
@@ -40,12 +37,6 @@ open class QuickScriptComponent : Component() {
     }
 
     @DebugAction
-    override fun onVisibleUpdate(): Boolean {
-        callFunction(visualUpdateScript)
-        return super.onVisibleUpdate()
-    }
-
-    @DebugAction
     override fun onDestroy() {
         super.onDestroy()
         callFunction(destroyScript)
@@ -56,7 +47,6 @@ open class QuickScriptComponent : Component() {
         clone as QuickScriptComponent
         clone.createScript = createScript
         clone.updateScript = updateScript
-        clone.visualUpdateScript = visualUpdateScript
         clone.destroyScript = destroyScript
     }
 

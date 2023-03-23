@@ -38,10 +38,12 @@ open class MeshComponent() : MeshComponentBase() {
 
     override fun getMesh(): Mesh? = MeshCache[mesh]
 
-    override fun onVisibleUpdate(): Boolean {
+
+    override fun onUpdate(): Int {
+        super.onUpdate()
         // keep the mesh loaded
         mesh = getReference(mesh)
-        return true
+        return 1
     }
 
     override fun ensureBuffer() {
@@ -55,6 +57,12 @@ open class MeshComponent() : MeshComponentBase() {
 
     // on destroy we should maybe destroy the mesh:
     // only if it is unique, and owned by ourselves
+
+    override fun onDestroy() {
+        super.onDestroy()
+        occlusionQuery?.destroy()
+        occlusionQuery = null
+    }
 
     override fun copy(clone: PrefabSaveable) {
         super.copy(clone)

@@ -16,6 +16,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.FlatShaders.copyShaderMS
 import me.anno.gpu.shader.OpenGLShader
@@ -36,6 +37,7 @@ import org.joml.Vector4f
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL43C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE
 import org.lwjgl.opengl.GL43C.GL_MAX_UNIFORM_LOCATIONS
 import org.lwjgl.opengl.GL45C.GL_CONTEXT_LOST
 import org.lwjgl.opengl.GL46
@@ -131,6 +133,9 @@ object GFX {
 
     @JvmField
     var maxTextureSize = 512 // assumption before loading anything
+
+    @JvmField
+    var glVersion = 0
 
     @JvmField
     var canLooseContext = OS.isAndroid
@@ -351,6 +356,7 @@ object GFX {
         glThread = Thread.currentThread()
         LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
         LOGGER.info("GLSL Version " + glGetString(GL_SHADING_LANGUAGE_VERSION))
+        glVersion = glGetInteger(GL_MAJOR_VERSION) * 100 + glGetInteger(GL_MINOR_VERSION)
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
         val capabilities = GFXBase.capabilities
         supportsAnisotropicFiltering = capabilities?.GL_EXT_texture_filter_anisotropic ?: false
@@ -367,6 +373,7 @@ object GFX {
         maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
         maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
         maxTextureSize = max(256, glGetInteger(GL_MAX_TEXTURE_SIZE))
+        if (glVersion >= 430) OcclusionQuery.target = GL_ANY_SAMPLES_PASSED_CONSERVATIVE
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")
         LOGGER.info("Max Uniforms: $maxUniforms")
         LOGGER.info("Max Color Attachments: $maxColorAttachments")

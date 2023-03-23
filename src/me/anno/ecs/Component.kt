@@ -1,5 +1,6 @@
 package me.anno.ecs
 
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
@@ -39,6 +40,10 @@ abstract class Component : PrefabSaveable(), Inspectable {
     val isSelectedIndirectly
         get() = this in EditorState.selection ||
                 entity?.anyInHierarchy { it == EditorState.lastSelection } == true
+
+    @DebugProperty
+    @NotSerializedProperty
+    var lastDrawn = 0L
 
     // can be overridden, e.g. for materials
     override fun listChildTypes(): String = ""
@@ -111,12 +116,6 @@ abstract class Component : PrefabSaveable(), Inspectable {
      * whether onUpdate() needs to be called
      * */
     fun needsUpdate() = nextUpdateItr > 0
-
-    /**
-     * is called every frame, when the entity was visible
-     * return true, if you need this event
-     * */
-    open fun onVisibleUpdate(): Boolean = false
 
     /**
      * called on rigidbodies, when the physics engine does a simulation step; async
