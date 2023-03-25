@@ -35,7 +35,7 @@ open class Shader(
         fragment: String
     ) : this(shaderName, emptyList(), vertex, varying, emptyList(), fragment)
 
-    val attributes = vertexVariables.filter { it.isAttribute }
+    var attributes = vertexVariables.filter { it.isAttribute }
 
     init {
         if (attributes.isEmpty() && ("in " in vertexShader || "attribute " in vertexShader)) {
@@ -158,7 +158,28 @@ open class Shader(
         builder.clear()
 
         val program = if (useShaderFileCache) {
-            ShaderCache.createShader(vertexSource, fragmentSource)
+
+            val program = ShaderCache.createShader(vertexSource, fragmentSource)
+
+            GFX.check()
+
+            if (attributes.isNotEmpty()) {
+                val attrs = ArrayList<Variable>()
+                val none = Variable(GLSLType.V1I, "")
+                for (i in attributes.indices) {
+                    val attr = attributes[i]
+                    val loc = glGetAttribLocation(program, attr.name)
+                    if (loc >= 0) {
+                        while (loc >= attrs.size) attrs.add(none)
+                        attrs[loc] = attr
+                    }
+                }
+                attrs.trimToSize()
+                attributes = attrs
+            }
+
+            program
+
         } else {
 
             val program = glCreateProgram()
@@ -172,6 +193,13 @@ open class Shader(
 
             /*val fragmentShader = */
             compile(name, program, GL_FRAGMENT_SHADER, fragmentSource)
+
+            GFX.check()
+
+            val attributes = attributes
+            for (i in attributes.indices) {
+                glBindAttribLocation(program, i, attributes[i].name)
+            }
 
             GFX.check()
 
@@ -190,13 +218,6 @@ open class Shader(
             postPossibleError(name, program, false, vertexSource, fragmentSource)
 
             program
-        }
-
-        GFX.check()
-
-        val attributes = attributes
-        for (i in attributes.indices) {
-            glBindAttribLocation(program, i, attributes[i].name)
         }
 
         GFX.check()

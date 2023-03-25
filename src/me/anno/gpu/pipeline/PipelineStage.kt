@@ -27,9 +27,11 @@ import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -455,6 +457,7 @@ class PipelineStage(
         var lastEntity: Entity? = null
         var lastMesh: Mesh? = null
         var lastShader: Shader? = null
+        var lastComp: Component? = null
         var drawnPrimitives = 0L
         var drawCalls = 0L
 
@@ -533,7 +536,11 @@ class PipelineStage(
                 // only if the entity or mesh changed
                 // not if the material has changed
                 // this updates the skeleton and such
-                if (entity !== lastEntity || lastMesh !== mesh || lastShader !== shader) {
+                if (entity !== lastEntity ||
+                    lastMesh !== mesh ||
+                    lastShader !== shader ||
+                    lastComp?.javaClass != renderer.javaClass
+                ) {
                     val hasAnim = if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
                         renderer.defineVertexTransform(shader, entity, mesh)
                     else false
@@ -541,6 +548,7 @@ class PipelineStage(
                     lastEntity = entity
                     lastMesh = mesh
                     lastShader = shader
+                    lastComp = renderer
                 }
 
                 shaderColor(shader, "tint", -1)

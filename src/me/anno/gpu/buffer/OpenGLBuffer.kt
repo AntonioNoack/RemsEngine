@@ -82,11 +82,7 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         GFX.check()
         isUpToDate = true
 
-        /*if (*/DebugGPUStorage.buffers.add(this)/*) {
-            val title = "Created buffer of size ${locallyAllocated.formatFileSize()}"
-            if (locallyAllocated > 1e6) RuntimeException(title).printStackTrace()
-            else LOGGER.debug(title)
-        }*/
+        DebugGPUStorage.buffers.add(this)
 
     }
 
@@ -252,12 +248,11 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
             set(_) {}
 
         var renewVAOs = true
-        var alwaysBindBuffer = true
 
         private var boundVAO = -1
         fun bindVAO(vao: Int) {
             val vao2 = if (useVAOs) vao else 0
-            if (vao2 >= 0 && (alwaysBindBuffer || boundVAO != vao)) {
+            if (vao2 >= 0 && boundVAO != vao) {
                 boundVAO = vao2
                 glBindVertexArray(vao2)
             }
@@ -268,7 +263,7 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         var boundBuffers = IntArray(1)
         fun bindBuffer(slot: Int, buffer: Int, force: Boolean = false) {
             val index = slot - GL_ARRAY_BUFFER
-            if (alwaysBindBuffer || index !in boundBuffers.indices) {
+            if (index !in boundBuffers.indices) {
                 glBindBuffer(slot, buffer)
             } else {
                 if (boundBuffers[index] != buffer || force) {
@@ -297,7 +292,6 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
             private set
 
         fun allocate(oldValue: Long, newValue: Long): Long {
-            // GFX.checkIsGFXThread()
             allocated += newValue - oldValue
             return newValue
         }

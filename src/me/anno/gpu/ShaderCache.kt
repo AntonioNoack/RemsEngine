@@ -12,12 +12,11 @@ import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.ARBComputeShader.GL_COMPUTE_SHADER
-import org.lwjgl.opengl.GL20C.*
-import org.lwjgl.opengl.GL41C.glGetProgramBinary
-import org.lwjgl.opengl.GL41C.glProgramBinary
+import org.lwjgl.opengl.GL41C.*
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -25,6 +24,8 @@ import java.security.MessageDigest
 import java.util.*
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.InflaterInputStream
+import kotlin.math.max
+import kotlin.math.min
 
 object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
     "ShaderCache.json", "shaders", "ShaderCache"
@@ -38,8 +39,15 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
 
     private val length = ByteBuffer.allocateDirect(4).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer()
     private val format = ByteBuffer.allocateDirect(4).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer()
-    private val data = ByteBuffer.allocateDirect(65536)
-    private val dataI = ByteArray(data.capacity())
+    private var data = ByteBuffer.allocateDirect(65536)
+    private val dataI = ByteArray(4096)
+
+    fun ensureCapacity(size: Int) {
+        if (data.capacity() < size) {
+            data = ByteBuffer.allocateDirect(max(size, data.capacity() * 2))
+            LOGGER.debug("Resizing to ${size.toLong().formatFileSize()}")
+        }
+    }
 
     private val magicStr = "SHADERv0".toByteArray()
     private val headerLength = magicStr.size + 8
@@ -159,6 +167,8 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         onError: (Exception?) -> Unit
     ) {
 
+        GFX.check()
+
         val program = compile(key)
 
         if (wkSession != GFXState.session) {
@@ -167,29 +177,33 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         }
         weakCache[key] = program
 
-        data.position(0).limit(data.capacity() - headerLength)
+        val length0 = glGetProgrami(program, GL_PROGRAM_BINARY_LENGTH)
+        ensureCapacity(length0)
+        data.position(0).limit(length0)
         glGetProgramBinary(program, length, format, data)
 
         val length = length[0]
         val format = format[0]
 
-        if (length >= data.capacity() || length <= 0) {
+        if (length > data.capacity() || length <= 0) {
             LOGGER.warn("Shader data too long, $length > ${data.capacity()}")
             onError(null)
             return
         }
-
-        val data1 = ByteBuffer.allocateDirect(length)
-        data.position(0).limit(length)
-        data1.put(data).flip()
 
         dst.outputStream().use {
             it.write(magicStr)
             it.writeLE32(length)
             it.writeLE32(format)
             val tmp = DeflaterOutputStream(it)
-            data1.get(dataI, 0, length)
-            tmp.write(dataI, 0, length)
+            var i = 0
+            while (i < length) {
+                val len = min(dataI.size, length - i)
+                data.position(i)
+                data.get(dataI, 0, len)
+                tmp.write(dataI, 0, len)
+                i += len
+            }
             tmp.close()
         }
 

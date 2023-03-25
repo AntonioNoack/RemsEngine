@@ -3,10 +3,10 @@ package me.anno.gpu.buffer
 import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.none2
-import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL33C.*
 
 abstract class Buffer(attributes: List<Attribute>, usage: Int) :
@@ -31,7 +31,6 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
     private fun ensureVAO() {
         if (useVAOs) {
             if (vao <= 0) vao = glGenVertexArrays()
-            if (vao <= 0) throw IllegalStateException()
         }
     }
 
@@ -41,65 +40,35 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
     }
 
     private var hasWarned = false
-    open fun createVAO(shader: Shader) {
-
-        ensureBuffer()
-        ensureVAO()
-
-        bindVAO(vao)
-        bindBuffer(type, pointer)
-
-        var hasAttr = false
-        val attributes = attributes
-        for (i in attributes.indices) {
-            hasAttr = bindAttribute(shader, attributes[i], false) || hasAttr
-        }
-        if (!hasAttr && !hasWarned) {
-            hasWarned = true
-            LOGGER.warn("VAO does not have attribute!, $attributes, ${shader.vertexSource}")
-        }
-
-        val attributes2 = shader.attributes
-        for (i in attributes2.indices) {
-            val attr = attributes2[i]
-            // check if name is bound in attributes
-            val attrName = attr.name
-            if (attributes.none2 { it.name == attrName }) {
-                // disable attribute
-                unbindAttribute(shader, attrName)
-            }
-        }
-
-        // disable all attributes, which were not bound? no, not required
-
-    }
-
-    open fun createVAOInstanced(shader: Shader, instanceData: Buffer?) {
+    open fun createVAO(shader: Shader, instanceData: Buffer? = null) {
 
         ensureVAO()
         ensureBuffer()
 
         bindVAO(vao)
         bindBuffer(type, pointer)
+
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
-        val attr1 = attributes
-        for (attrIndex in attr1.indices) {
-            bindAttribute(shader, attr1[attrIndex], false)
+        val attrs1 = attributes
+        for (i in attrs1.indices) {
+            bindAttribute(shader, attrs1[i], false)
         }
 
         val attr2 = instanceData?.attributes
         if (instanceData != null) {
             instanceData.ensureBuffer()
             bindBuffer(type, instanceData.pointer)
-            for (attrIndex in attr2!!.indices) {
-                bindAttribute(shader, attr2[attrIndex], true)
+            for (i in attr2!!.indices) {
+                bindAttribute(shader, attr2[i], true)
             }
         }
 
-        for (attr in shader.attributes) {
+        val attrs2 = shader.attributes
+        for (i in attrs2.indices) {
+            val attr = attrs2[i]
             // check if name is bound in attr1/attr2
             val attrName = attr.name
-            if (attr1.none2 { it.name == attrName } && (attr2 == null || attr2.none2 { it.name == attrName })) {
+            if (attrs1.none2 { it.name == attrName } && (attr2 == null || attr2.none2 { it.name == attrName })) {
                 // disable attribute
                 unbindAttribute(shader, attrName)
             }
@@ -133,7 +102,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
             lastShader = shader
             baseAttributes = attributes
             instanceAttributes = instanceData?.attributes
-            createVAOInstanced(shader, instanceData)
+            createVAO(shader, instanceData)
         } else bindVAO(vao)
         GFX.check()
     }
@@ -239,10 +208,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
     companion object {
 
         @JvmStatic
-        private val LOGGER = LogManager.getLogger(Buffer::class)
-
-        @JvmStatic
-        fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
+        fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean ): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
             val index = shader.getAttributeLocation(attr.name)
             return if (index > -1) {
@@ -261,7 +227,14 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
         @JvmStatic
         fun unbindAttribute(shader: Shader, attr: String) {
             val index = shader.getAttributeLocation(attr)
-            if (index > -1) glDisableVertexAttribArray(index)
+            if (index > -1) {
+                glDisableVertexAttribArray(index)
+                when (shader.attributes[index].type) {
+                    GLSLType.V1B, GLSLType.V2B, GLSLType.V3B, GLSLType.V4B,
+                    GLSLType.V1I, GLSLType.V2I, GLSLType.V3I, GLSLType.V4I -> glVertexAttribI1i(index, 0)
+                    else -> glVertexAttrib1f(index, 0f)
+                }
+            }
         }
     }
 }

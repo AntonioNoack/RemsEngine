@@ -2,11 +2,8 @@ package me.anno.gpu.buffer
 
 import me.anno.Build
 import me.anno.gpu.GFX
-import me.anno.gpu.buffer.Buffer.Companion.bindAttribute
-import me.anno.gpu.buffer.Buffer.Companion.unbindAttribute
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
-import me.anno.utils.structures.lists.Lists.none2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL31C.*
 import org.lwjgl.system.MemoryUtil
@@ -48,70 +45,8 @@ class IndexBuffer(
         }
     }
 
-    fun createVAO(shader: Shader) {
-
-        base.ensureBuffer()
-
-        ensureVAO()
-
-        bindVAO(vao)
-        bindBuffer(GL_ARRAY_BUFFER, base.pointer)
-        var hasAttr = false
-        val attributes = base.attributes
-        for (index in attributes.indices) {
-            hasAttr = bindAttribute(shader, attributes[index], false) || hasAttr
-        }
-        if (!hasAttr && !hasWarned) {
-            hasWarned = true
-            LOGGER.warn("VAO does not have attribute!, ${base.attributes}, ${shader.vertexSource}")
-        }
-
-        for (attr in shader.attributes) {
-            // check if name is bound in attributes
-            val attrName = attr.name
-            if (attributes.none2 { it.name == attrName }) {
-                // disable attribute
-                unbindAttribute(shader, attrName)
-            }
-        }
-
-        // disable all attributes, which were not bound
-        // not required
-        updateElementBuffer()
-
-    }
-
-    fun createVAOInstanced(shader: Shader, instanceData: Buffer?) {
-
-        ensureVAO()
-        base.ensureBuffer()
-
-        bindVAO(vao)
-        bindBuffer(GL_ARRAY_BUFFER, base.pointer)
-        // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
-        val attr1 = base.attributes
-        for (attr in attr1) {
-            bindAttribute(shader, attr, false)
-        }
-
-        val attr2 = instanceData?.attributes
-        if(instanceData != null){
-            instanceData.ensureBuffer()
-            bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
-            for (attr in attr2!!) {
-                bindAttribute(shader, attr, true)
-            }
-        }
-
-        for (attr in shader.attributes) {
-            // check if name is bound in attr1/attr2
-            val attrName = attr.name
-            if (attr1.none2 { it.name == attrName } && (attr2 == null || attr2.none2 { it.name == attrName })) {
-                // disable attribute
-                unbindAttribute(shader, attrName)
-            }
-        }
-
+    fun createVAO(shader: Shader, instanceData: Buffer? = null) {
+        base.createVAO(shader, instanceData)
         updateElementBuffer()
     }
 
@@ -222,7 +157,7 @@ class IndexBuffer(
             baseAttributes = base.attributes
             instanceAttributes = instanceData?.attributes
             lastInstanceBuffer = instanceData
-            createVAOInstanced(shader, instanceData)
+            createVAO(shader, instanceData)
         } else bindVAO(vao)
         GFX.check()
     }
@@ -256,7 +191,13 @@ class IndexBuffer(
 
     override fun drawInstanced(shader: Shader, instanceCount: Int) {
         bindInstanced(shader, null)
-        glDrawElementsInstanced(if (drawMode < 0) base.drawMode else drawMode, indices.size, elementsType, 0, instanceCount)
+        glDrawElementsInstanced(
+            if (drawMode < 0) base.drawMode else drawMode,
+            indices.size,
+            elementsType,
+            0,
+            instanceCount
+        )
         unbind()
     }
 
