@@ -1,6 +1,7 @@
 package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
+import me.anno.gpu.ShaderCache
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
@@ -26,24 +27,26 @@ class ComputeShader(
 
     override fun compile() {
 
-        val program = glCreateProgram()
-        updateSession()
-
         checkGroupSizeBounds()
         val source = "" +
                 "#version $version\n" +
                 "layout(local_size_x = ${groupSize.x}, local_size_y = ${groupSize.y}, local_size_z = ${groupSize.z}) in;\n" +
                 source
-        /*val shader = */compile(name, program, GL_COMPUTE_SHADER, source)
-        glLinkProgram(program)
-        postPossibleError(name, program, false, source)
-        // glDeleteShader(shader)
-        logShader(name, source)
 
-        GFX.check()
+        updateSession()
 
-        this.program = program // only assign this value, when no error has occurred
-
+        if (useShaderFileCache) {
+            this.program = ShaderCache.createShader(source,null)
+        } else {
+            val program = glCreateProgram()
+            /*val shader = */compile(name, program, GL_COMPUTE_SHADER, source)
+            glLinkProgram(program)
+            postPossibleError(name, program, false, source)
+            // glDeleteShader(shader)
+            logShader(name, source)
+            GFX.check()
+            this.program = program // only assign this value, when no error has occurred
+        }
     }
 
     override fun sourceContainsWord(word: String): Boolean {

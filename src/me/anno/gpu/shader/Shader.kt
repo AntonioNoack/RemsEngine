@@ -2,6 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.Build
 import me.anno.gpu.GFX
+import me.anno.gpu.ShaderCache
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.builder.Varying
@@ -63,11 +64,6 @@ open class Shader(
 
         val varyings = varyings.map { Varying(if (it.isFlat || it.type.isFlat) "flat" else "", it.type, it.name) }
 
-        val program = glCreateProgram()
-        GFX.check()
-        updateSession()
-        GFX.check()
-
         if (glslVersion < 330 && fragmentVariables.any2 { it.isOutput })
             glslVersion = 330 // needed for layout(location=x) qualifier
 
@@ -113,9 +109,6 @@ open class Shader(
 
         vertexSource = builder.toString()
         builder.clear()
-
-        /*val vertexShader = */
-        compile(name, program, GL_VERTEX_SHADER, vertexSource)
 
         builder.append(versionString)
         for (extension in fragmentShader.split('\n')
@@ -164,8 +157,40 @@ open class Shader(
         fragmentSource = builder.toString()
         builder.clear()
 
-        /*val fragmentShader = */
-        compile(name, program, GL_FRAGMENT_SHADER, fragmentSource)
+        val program = if (useShaderFileCache) {
+            ShaderCache.createShader(vertexSource, fragmentSource)
+        } else {
+
+            val program = glCreateProgram()
+            GFX.check()
+            updateSession()
+            GFX.check()
+            /*val vertexShader = */
+            compile(name, program, GL_VERTEX_SHADER, vertexSource)
+
+            GFX.check()
+
+            /*val fragmentShader = */
+            compile(name, program, GL_FRAGMENT_SHADER, fragmentSource)
+
+            GFX.check()
+
+            glLinkProgram(program)
+
+            GFX.check()
+
+            // glDeleteShader(vertexShader)
+            // glDeleteShader(fragmentShader)
+            // if (geometryShader >= 0) glDeleteShader(geometryShader)
+
+            logShader(name, vertexSource, fragmentSource)
+
+            GFX.check()
+
+            postPossibleError(name, program, false, vertexSource, fragmentSource)
+
+            program
+        }
 
         GFX.check()
 
@@ -173,23 +198,6 @@ open class Shader(
         for (i in attributes.indices) {
             glBindAttribLocation(program, i, attributes[i].name)
         }
-
-        GFX.check()
-
-        glLinkProgram(program)
-
-        GFX.check()
-
-        // these could be reused...
-        // glDeleteShader(vertexShader)
-        // glDeleteShader(fragmentShader)
-        // if (geometryShader >= 0) glDeleteShader(geometryShader)
-
-        logShader(name, vertexSource, fragmentSource)
-
-        GFX.check()
-
-        postPossibleError(name, program, false, vertexSource, fragmentSource)
 
         GFX.check()
 

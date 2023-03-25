@@ -43,11 +43,11 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         @JvmStatic
         fun getInfo(input: FileReference) = (FFMPEGMeta(null)
-            .run(listOf("-i", input.absolutePath)) as FFMPEGMeta).stringData
+            .run("-i", input.absolutePath) as FFMPEGMeta).stringData
 
         @JvmStatic
         fun getSupportedFormats() = (FFMPEGMeta(null)
-            .run(listOf("-formats")) as FFMPEGMeta).stringData
+            .run("-formats") as FFMPEGMeta).stringData
 
         @JvmStatic
         fun getImageSequence(
@@ -75,10 +75,10 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         ): GPUFrameReader {
             val video = GPUFrameReader(input, (startTime * fps).roundToInt(), frameCount)
             video.run(
-                getImageSequenceArguments(
+                *getImageSequenceArguments(
                     input, signature, w, h, startTime, frameCount, fps,
                     originalWidth, originalFPS, totalFrameCount
-                )
+                ).toTypedArray()
             )
             return video
         }
@@ -93,12 +93,12 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         ): CPUFrameReader {
             val video = CPUFrameReader(input, frameIndex, frameCount)
             video.run(
-                getImageSequenceArguments(
+                *getImageSequenceArguments(
                     input, signature, w, h,
                     frameIndex / max(fps, 1e-3), frameCount, fps,
                     originalWidth, originalFPS,
                     totalFrameCount
-                )
+                ).toTypedArray()
             )
             return video
         }
@@ -147,22 +147,20 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         @JvmStatic
         fun getAudioSequence(input: FileReference, startTime: Double, duration: Double, sampleRate: Int) =
             FFMPEGAudio(input, sampleRate, duration).run(
-                listOf(
-                    "-ss", "$startTime", // important!!!
-                    "-i", input.absolutePath,
-                    "-t", "$duration", // duration
-                    "-ar", "$sampleRate",
-                    // -aq quality, codec specific
-                    "-f", "wav",
-                    // the -bitexact tag doesn't exist on my Linux ffmpeg :(, and ffmpeg just still adds the info block
-                    // -> we need to remove it
-                    // "-bitexact", // don't add an additional LIST-INFO chunk; we don't care
-                    // wav is exported with length -1, which slick does not support
-                    // ogg reports "error 34", and ffmpeg is slow
-                    // "-c:a", "pcm_s16le", "-ac", "2",
-                    "-"
-                    // "pipe:1" // 1 = stdout, 2 = stdout
-                )
+                "-ss", "$startTime", // important!!!
+                "-i", input.absolutePath,
+                "-t", "$duration", // duration
+                "-ar", "$sampleRate",
+                // -aq quality, codec specific
+                "-f", "wav",
+                // the -bitexact tag doesn't exist on my Linux ffmpeg :(, and ffmpeg just still adds the info block
+                // -> we need to remove it
+                // "-bitexact", // don't add an additional LIST-INFO chunk; we don't care
+                // wav is exported with length -1, which slick does not support
+                // ogg reports "error 34", and ffmpeg is slow
+                // "-c:a", "pcm_s16le", "-ac", "2",
+                "-"
+                // "pipe:1" // 1 = stdout, 2 = stdout
             ) as FFMPEGAudio
 
         @JvmStatic
@@ -194,11 +192,11 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     var srcW = 0
     var srcH = 0
 
-    abstract fun process(process: Process, arguments: List<String>)
+    abstract fun process(process: Process, vararg arguments: String)
 
     abstract fun destroy()
 
-    fun run(arguments: List<String>): FFMPEGStream {
+    fun run(vararg arguments: String): FFMPEGStream {
 
         if (isProcessCountLimited) acquire(true, processLimiter)
 
@@ -206,10 +204,10 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, arguments.size + 1, true)
         if (arguments.isNotEmpty()) builder += "-hide_banner"
-        builder += arguments
+        builder.args += arguments
 
         val process = builder.start()
-        process(process, arguments)
+        process(process, *arguments)
         if (isProcessCountLimited) {
             waitForRelease(process)
         }

@@ -3,6 +3,7 @@ package me.anno.video
 import me.anno.cache.CacheData
 import me.anno.cache.FileCache
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.utils.Sleep.waitUntil
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
@@ -10,7 +11,9 @@ import org.apache.logging.log4j.LogManager
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
-object VideoProxyCreator : FileCache<VideoProxyCreator.Key>("ProxyCache.json", "proxies", "VideoProxies") {
+object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
+    "ProxyCache.json", "proxies", "VideoProxies"
+) {
 
     const val scale = 4
     const val minSize = 16
@@ -20,6 +23,9 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key>("ProxyCache.json", "
     data class Key(val file: FileReference, val lastModified: Long, val sliceIndex: Long)
 
     private fun getKey(src: FileReference, sliceIndex: Long) = Key(src, src.lastModified, sliceIndex)
+
+    // loading is done by FFMPEG
+    override fun load(key: Key, src: FileReference?): FileReference = src ?: InvalidRef
 
     fun getProxyFileDontUpdate(src: FileReference, sliceIndex: Long): FileReference? {
         init()
@@ -65,7 +71,7 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key>("ProxyCache.json", "
         }
         dst.delete()
         object : FFMPEGStream(null, true) {
-            override fun process(process: Process, arguments: List<String>) {
+            override fun process(process: Process, vararg arguments: String) {
                 // filter information, that we don't need (don't spam the console that much, rather create an overview for it)
                 // devNull("error", process.errorStream)
                 devLog("error", process.errorStream)
@@ -76,16 +82,14 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key>("ProxyCache.json", "
 
             override fun destroy() {}
         }.run(
-            listOf(
-                "-y", // override existing files: they may exist, if the previous proxy creation process for this file was killed
-                "-ss", "${(sliceIndex * framesPerSlice) / meta.videoFPS}", // start time
-                "-i", "\"${src.absolutePath}\"",
-                "-filter:v",
-                "scale=\"$w:$h\"",
-                "-vframes", "$framesPerSlice", // exact amount needed? (less at the end)
-                "-c:a", "copy",
-                dst.absolutePath
-            )
+            "-y", // override existing files: they may exist, if the previous proxy creation process for this file was killed
+            "-ss", "${(sliceIndex * framesPerSlice) / meta.videoFPS}", // start time
+            "-i", "\"${src.absolutePath}\"",
+            "-filter:v",
+            "scale=\"$w:$h\"",
+            "-vframes", "$framesPerSlice", // exact amount needed? (less at the end)
+            "-c:a", "copy",
+            dst.absolutePath
         )
     }
 

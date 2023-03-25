@@ -1,5 +1,6 @@
 package me.anno.ecs.components.anim
 
+import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.ecs.annotations.Range
 import me.anno.io.Saveable
@@ -38,13 +39,21 @@ class AnimationState(
         else super.readInt(name, value)
     }
 
+    private var lastDt = 0f
+    private var lastTime = 0L
     fun update(ar: AnimRenderer, dt: Float, async: Boolean) {
-        val instance = AnimationCache[source, async]
-        if (instance != null) {
-            progress += speed * dt
-            val duration = instance.duration
-            if (progress < 0f || progress >= duration) {
-                ar.onAnimFinished(this)
+        if (lastDt == dt && lastTime == Engine.gameTime) {
+            return // duplicate call
+        } else {
+            lastDt = dt
+            lastTime = Engine.gameTime
+            val instance = AnimationCache[source, async]
+            if (instance != null) {
+                progress += speed * dt
+                val duration = instance.duration
+                if (progress < 0f || progress >= duration) {
+                    ar.onAnimFinished(this)
+                }
             }
         }
     }

@@ -24,8 +24,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         // because they might change; and then they change, the compiler doesn't always update them
 
         const val getAnimMatrix =
-            "" + loadMat4x3 +
+            loadMat4x3 +
                     "mat4x3 getAnimMatrix(int index, float time){\n" +
+                    "   if(index < 0 || index >= textureSize(animTexture,0).x) return mat4x3(vec4(1,0,0,0),vec4(1,0,0,0),vec4(1,0,0,0));\n" +
                     "   int timeI = int(time); float timeF = fract(time);\n" +
                     "   vec4 a = mix(texelFetch(animTexture, ivec2(index,  timeI), 0), texelFetch(animTexture, ivec2(index,  timeI+1), 0), timeF);\n" +
                     "   vec4 b = mix(texelFetch(animTexture, ivec2(index+1,timeI), 0), texelFetch(animTexture, ivec2(index+1,timeI+1), 0), timeF);\n" +

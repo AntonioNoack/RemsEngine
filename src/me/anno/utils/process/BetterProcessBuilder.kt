@@ -3,8 +3,8 @@ package me.anno.utils.process
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
-import me.anno.utils.OS
 import me.anno.maths.Maths.clamp
+import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import kotlin.concurrent.thread
@@ -55,6 +55,10 @@ class BetterProcessBuilder(
     }
 
     operator fun plusAssign(arguments: Collection<String>) {
+        args += arguments
+    }
+
+    operator fun plusAssign(arguments: Array<String>) {
         args += arguments
     }
 

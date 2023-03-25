@@ -52,6 +52,10 @@ import org.joml.Matrix4f
 
 // todo : link files, which then get index for choosing meshes, skeletons, animations and such :)
 
+// todo fix VAOs
+// todo indices and weights are missing... why?, since when?
+
+
 
 // todo graphics: billboards: light only / override color (decals)
 // todo rendered when point is visible, or always (for nice light camera-bug effects, e.g. stars with many blades)
@@ -62,8 +66,6 @@ import org.joml.Matrix4f
 // which platforms support Compute Shaders? we need them for forward+
 // Windows, Android with OpenGL 3.0
 
-// todo foliage rendering... how ever we can do that at all scales...
-
 // todo runtime-only-PrefabSaveables must show warning in UI, that they are temporary
 
 // todo spellchecking could then become a mod :)
@@ -72,9 +74,6 @@ import org.joml.Matrix4f
 // todo right click on a path:
 // todo - mutate -> create an asset based on that and replace the path, then inspect
 // todo - inspect -> show it in the editor
-
-// todo reduce skeletal animations to a single translation plus rotations only?
-// todo animation matrices then can be reduced to rotation + translation
 
 // games, which we want to develop:
 //  - city builder

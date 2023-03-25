@@ -37,8 +37,12 @@ object Base64 {
 
     fun encodeBase64(v: Long, writePadding: Boolean = false): String {
         val input = ByteArray(8) { v.shr(it shl 3).toInt().toByte() }
-        val output = ByteArrayOutputStream(11) // ceil(64/6)
-        encodeBase64(input.inputStream(), output, writePadding)
+        return encodeBase64(input, writePadding)
+    }
+
+    fun encodeBase64(bytes: ByteArray, writePadding: Boolean = false): String {
+        val output = ByteArrayOutputStream((bytes.size * 4 + 2) / 3)
+        encodeBase64(bytes.inputStream(), output, writePadding)
         return String(output.toByteArray())
     }
 

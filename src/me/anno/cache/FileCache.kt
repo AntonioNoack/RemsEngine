@@ -11,46 +11,50 @@ import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 
-abstract class FileCache<Key>(val configFileName: String, val configFolderName: String, cacheName: String) :
+abstract class FileCache<Key, Value>(val configFileName: String, val configFolderName: String, cacheName: String) :
     CacheSection(cacheName) {
 
     // create a metadata file, where last used (Rem's Studio starting time) is written
     lateinit var info: StringMap
 
     // check all last instances, which can be deleted...
-    lateinit var proxyFolder: FileReference
+    lateinit var cacheFolder: FileReference
 
     var isInitialized = false
     fun init() {
         if (isInitialized) return
         isInitialized = true
         info = ConfigBasics.loadConfig(configFileName, InvalidRef, StringMap(), false)
-        proxyFolder = ConfigBasics.cacheFolder.getChild(configFolderName).apply { tryMkdirs() }
-        proxyFolder.mkdirs()
+        cacheFolder = ConfigBasics.cacheFolder.getChild(configFolderName).apply { tryMkdirs() }
+        cacheFolder.mkdirs()
         deleteUnusedFiles()
     }
 
     // src1.exists && !src1.isDirectory
     open fun isKeyValid(key: Key): Boolean = true
+    abstract fun load(key: Key, src: FileReference?): Value
 
-    fun generateFile(key: Key): CacheData<FileReference?> {
+    fun generateFile(key: Key): CacheData<Value?> {
+        init()
         return if (isKeyValid(key)) {
             val uuid = getUniqueFilename(key)
-            val dst = proxyFolder.getChild(uuid)
-            val data = CacheData<FileReference?>(null)
+            val dst = cacheFolder.getChild(uuid)
+            val data = CacheData<Value?>(null)
             if (!dst.exists) {
-                val tmp = proxyFolder.getChild(dst.nameWithoutExtension + ".tmp.${dst.extension}")
-                LOGGER.debug("$key -> $tmp -> $dst")
+                val tmp = cacheFolder.getChild(
+                    if (dst.lcExtension.isEmpty()) dst.nameWithoutExtension + ".tmp"
+                    else dst.nameWithoutExtension + ".tmp.${dst.extension}"
+                )
                 fillFileContents(key, tmp, {
                     postCreateProxy(uuid, tmp, dst)
-                    data.value = dst
+                    data.value = load(key, dst)
                 }, {
                     it?.printStackTrace()
-                    data.value = InvalidRef
+                    data.value = load(key, InvalidRef)
                 })
             } else {
                 markUsed(uuid)
-                data.value = dst
+                data.value = load(key, dst)
             }
             data
         } else CacheData(null)
@@ -66,13 +70,18 @@ abstract class FileCache<Key>(val configFileName: String, val configFolderName: 
     fun postCreateProxy(uuid: String, tmp: FileReference, dst: FileReference): Boolean {
         LastModifiedCache.invalidate(tmp)
         if (tmp.exists) {
+            LastModifiedCache.invalidate(dst)
             if (dst.exists) dst.deleteRecursively()
-            tmp.renameTo(dst)
+            dst.getParent()?.mkdirs()
+            if (!tmp.renameTo(dst)) {
+                LOGGER.warn("Rename from $tmp to $dst failed!")
+            }
+            LastModifiedCache.invalidate(dst)
             if (dst.exists) {
                 markUsed(uuid)
                 return true
-            } else LOGGER.warn("$dst is somehow missing")
-        } else LOGGER.warn("$tmp is somehow missing")
+            } else LOGGER.warn("$dst is somehow missing [1]")
+        } else LOGGER.warn("$tmp is somehow missing [2]")
         return false
     }
 
@@ -91,7 +100,7 @@ abstract class FileCache<Key>(val configFileName: String, val configFolderName: 
         var deleted = 0
         var kept = 0
         var freed = 0L
-        val children = proxyFolder.listChildren()
+        val children = cacheFolder.listChildren()
         if (children != null) for (file in children) {
             if (!file.isDirectory && abs(info[file.name, file.lastModified] - startDateTime) > proxyValidityTimeout) {
                 freed += file.length()

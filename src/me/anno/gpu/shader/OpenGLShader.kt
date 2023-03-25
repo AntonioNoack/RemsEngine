@@ -20,6 +20,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     companion object {
 
         var logShaders = false
+        var useShaderFileCache = false
 
         private val LOGGER = LogManager.getLogger(OpenGLShader::class)
 
@@ -61,13 +62,17 @@ abstract class OpenGLShader(val name: String) : ICacheData {
                 shaderCache.clear()
             }
             val shader = shaderCache.getOrPut(type to source) {
-                val shader = glCreateShader(type)
-                glShaderSource(shader, source)
-                glCompileShader(shader)
-                shader
+                compileShader(type, source)
             }
             glAttachShader(program, shader)
             postPossibleError(shaderName, shader, true, source)
+            return shader
+        }
+
+        fun compileShader(type: Int, source: String): Int {
+            val shader = glCreateShader(type)
+            glShaderSource(shader, source)
+            glCompileShader(shader)
             return shader
         }
 
@@ -126,6 +131,11 @@ abstract class OpenGLShader(val name: String) : ICacheData {
                 /*if(!log.contains("deprecated", true)){
                     throw RuntimeException()
                 }*/
+            }
+            if (!isShader) {
+                if (glGetProgrami(shader, GL_LINK_STATUS) == 0) {
+                    throw IllegalStateException("Linking $shader failed")
+                }
             }
         }
 

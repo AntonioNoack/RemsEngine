@@ -24,7 +24,7 @@ abstract class FrameReader<FrameType>(
     val frames = ArrayList<FrameType>(bufferLength)
     val parser = FFMPEGMetaParser()
 
-    override fun process(process: Process, arguments: List<String>) {
+    override fun process(process: Process, vararg arguments: String) {
         thread(name = "${file?.name}:error-stream") {
             val out = process.errorStream.bufferedReader()
             try {

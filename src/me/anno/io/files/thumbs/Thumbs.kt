@@ -13,10 +13,10 @@ import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.anim.Skeleton.Companion.boneMeshVertices
 import me.anno.ecs.components.anim.Skeleton.Companion.generateSkeleton
-import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.shapes.Icosahedron
@@ -545,8 +545,13 @@ object Thumbs {
         renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
             // todo calculate ideal transform like previously
             val rv = rv
-            rv.radius = 500.0 * max(bounds.deltaX(), max(bounds.deltaY(), bounds.deltaZ()))
-            rv.position.set(bounds.avgX(), bounds.avgY(), bounds.avgZ())
+            if (!bounds.isEmpty() && bounds.volume().isFinite()) {
+                rv.radius = 500.0 * max(bounds.deltaX(), max(bounds.deltaY(), bounds.deltaZ()))
+                rv.position.set(bounds.avgX(), bounds.avgY(), bounds.avgZ())
+            } else {
+                rv.radius = 1.0
+                rv.position.set(.00)
+            }
             val cam = rv.editorCamera
             rv.updateEditorCameraTransform()
             rv.prepareDrawScene(size, size, 1f, cam, cam, 0f, false)
@@ -558,7 +563,7 @@ object Thumbs {
         }
     }
 
-   private val rv by lazy {
+    private val rv by lazy {
         val rv = RenderView(EditorState, PlayMode.EDITING, style)
         rv.enableOrbiting = true
         rv.editorCamera.fovY = 10f.toRadians()

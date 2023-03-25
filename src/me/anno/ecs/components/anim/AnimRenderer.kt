@@ -67,17 +67,21 @@ open class AnimRenderer : MeshComponent() {
         }
     }
 
+    private var lastUpdate = 0L
     override fun onUpdate(): Int {
         // update all weights
-        val dt = Engine.deltaTime
-        var anyIsRunning = false
-        for (index in animations.indices) {
-            val anim = animations[index]
-            anim.update(this, dt, true)
-            if (anim.speed != 0f) anyIsRunning = true
-        }
-        updateAnimState()
-        return if (anyIsRunning) 1 else 10
+        return if (lastUpdate != Engine.gameTime) {
+            lastUpdate = Engine.gameTime
+            val dt = Engine.deltaTime
+            var anyIsRunning = false
+            for (index in animations.indices) {
+                val anim = animations[index]
+                anim.update(this, dt, true)
+                if (anim.speed != 0f) anyIsRunning = true
+            }
+            updateAnimState()
+            if (anyIsRunning) 1 else 10
+        } else 1
     }
 
     override val hasAnimation: Boolean

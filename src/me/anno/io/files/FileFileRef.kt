@@ -167,7 +167,10 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     override fun getParent() = getReference(file.parentFile).nullIfUndefined() ?: FileRootRef
 
     override fun renameTo(newName: FileReference): Boolean {
-        val response = file.renameTo(File(newName.absolutePath))
+        val response = file.renameTo(
+            if(newName is FileFileRef) newName.file
+            else File(newName.absolutePath)
+        )
         if (response) {
             LastModifiedCache.invalidate(this)
             LastModifiedCache.invalidate(newName)

@@ -47,7 +47,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
         ensureVAO()
 
         bindVAO(vao)
-        bindBuffer(GL_ARRAY_BUFFER, pointer)
+        bindBuffer(type, pointer)
 
         var hasAttr = false
         val attributes = attributes
@@ -80,7 +80,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
         ensureBuffer()
 
         bindVAO(vao)
-        bindBuffer(GL_ARRAY_BUFFER, pointer)
+        bindBuffer(type, pointer)
         // first the instanced attributes, so the function can be called with super.createVAOInstanced without binding the buffer again
         val attr1 = attributes
         for (attrIndex in attr1.indices) {
@@ -90,7 +90,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
         val attr2 = instanceData?.attributes
         if (instanceData != null) {
             instanceData.ensureBuffer()
-            bindBuffer(GL_ARRAY_BUFFER, instanceData.pointer)
+            bindBuffer(type, instanceData.pointer)
             for (attrIndex in attr2!!.indices) {
                 bindAttribute(shader, attr2[attrIndex], true)
             }

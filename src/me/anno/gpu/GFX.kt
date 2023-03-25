@@ -356,7 +356,8 @@ object GFX {
         glThread = Thread.currentThread()
         LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
         LOGGER.info("GLSL Version " + glGetString(GL_SHADING_LANGUAGE_VERSION))
-        glVersion = glGetInteger(GL_MAJOR_VERSION) * 100 + glGetInteger(GL_MINOR_VERSION)
+        glVersion = glGetInteger(GL_MAJOR_VERSION) * 10 + glGetInteger(GL_MINOR_VERSION)
+        LOGGER.info("OpenGL Version Id $glVersion")
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
         val capabilities = GFXBase.capabilities
         supportsAnisotropicFiltering = capabilities?.GL_EXT_texture_filter_anisotropic ?: false
@@ -373,7 +374,8 @@ object GFX {
         maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
         maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
         maxTextureSize = max(256, glGetInteger(GL_MAX_TEXTURE_SIZE))
-        if (glVersion >= 430) OcclusionQuery.target = GL_ANY_SAMPLES_PASSED_CONSERVATIVE
+        OpenGLShader.useShaderFileCache = !GFXBase.usesRenderDoc && glVersion >= 41
+        if (glVersion >= 43) OcclusionQuery.target = GL_ANY_SAMPLES_PASSED_CONSERVATIVE
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")
         LOGGER.info("Max Uniforms: $maxUniforms")
         LOGGER.info("Max Color Attachments: $maxColorAttachments")

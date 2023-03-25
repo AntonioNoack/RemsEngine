@@ -90,6 +90,9 @@ object GFXBase {
     var capabilities: GLCapabilities? = null
 
     @JvmField
+    var usesRenderDoc = false
+
+    @JvmField
     val robot = try {
         Robot()
     } catch (e: AWTException) {
@@ -125,6 +128,7 @@ object GFXBase {
             if (getReference(path).exists) {
                 LOGGER.info("Loading RenderDoc")
                 System.load(path)
+                usesRenderDoc = true
             } else LOGGER.warn("Did not find RenderDoc, searched '$path'")
         } catch (e: Exception) {
             LOGGER.warn("Could not initialize RenderDoc")
