@@ -370,10 +370,9 @@ class Prefab : Saveable {
 
     fun createInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
         val clone = getSampleInstance(depth).clone()
-        clone.forAll {
-            if (it.prefab !== this)
-                throw IllegalStateException("Incorrectly created prefab! $source")
-        }
+        /*clone.forAll {
+            if (it.prefab !== this) LOGGER.warn("Incorrectly created prefab! $source by ${it.prefab} != $this")
+        }*/
         return clone
     }
 

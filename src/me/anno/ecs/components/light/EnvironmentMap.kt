@@ -23,39 +23,23 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.image.ImageGPUCache
-import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.rotate2
-import org.joml.*
-import kotlin.math.PI
-
-// these could be used as
-//  - a) reflection maps
-//  - b) environment illumination map
-
-// todo or render from shader
-// todo - blur
+import org.joml.AABBd
+import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
 
 /**
  * environment map for reflections,
  * radiance map, sky map, ...
  * */
 class EnvironmentMap : LightComponentBase() {
-
-    enum class SourceType(val id: Int) {
-        ENVIRONMENT(0),
-        TEXTURE(1), // could have different projections; not really supported yet
-        // SHADER(2),
-    }
 
     @Range(1.0, 8192.0)
     var resolution = 256
@@ -66,10 +50,7 @@ class EnvironmentMap : LightComponentBase() {
     @Range(1.0, 1e308)
     var far = 1e3
 
-    var type = SourceType.ENVIRONMENT
-
     var shader: BaseShader? = null
-    var textureSource: FileReference = InvalidRef
 
     @NotSerializedProperty
     var texture: CubemapFramebuffer? = null
@@ -98,19 +79,14 @@ class EnvironmentMap : LightComponentBase() {
     }
 
     override fun onVisibleUpdate(): Boolean {
-        if (type != SourceType.TEXTURE) {
-            if (texture == null || texture?.samples != samples) {
-                texture?.destroy()
-                texture = CubemapFramebuffer(
-                    "EnvironmentMap",
-                    max(1, resolution), samples, arrayOf(TargetType.FP16Target3),
-                    DepthBufferType.TEXTURE_16
-                )
-                needsUpdate = true
-            }
-        } else {
+        if (texture == null || texture?.samples != samples) {
             texture?.destroy()
-            texture = null
+            texture = CubemapFramebuffer(
+                "EnvironmentMap",
+                max(1, resolution), samples, arrayOf(TargetType.FP16Target3),
+                DepthBufferType.TEXTURE_16
+            )
+            needsUpdate = true
         }
         val texture = texture
         if (texture != null && (needsUpdate || autoUpdate)) {
@@ -215,26 +191,6 @@ class EnvironmentMap : LightComponentBase() {
 
     }
 
-    fun canBind(): Boolean {
-        return when (type) {
-            SourceType.TEXTURE -> ImageGPUCache[textureSource, textureTimeout, true] != null
-            else -> texture != null
-        }
-    }
-
-    fun bind(index: Int) {
-        when (type) {
-            SourceType.TEXTURE -> {
-                val texture = ImageGPUCache[textureSource, textureTimeout, true]
-                texture!!.bind(index)
-            }
-            else -> {
-                val buffer = texture
-                buffer!!.bindTexture0(0, GPUFiltering.LINEAR, Clamping.CLAMP)
-            }
-        }
-    }
-
     override fun clone(): EnvironmentMap {
         val clone = EnvironmentMap()
         copy(clone)
@@ -246,16 +202,10 @@ class EnvironmentMap : LightComponentBase() {
     companion object {
 
         private val tmpV3 = Vector3d()
-        private val tmpQd = Quaterniond()
-        private val tmpQ1 = Quaterniond()
         private val tmpQ2 = Quaterniond()
         private val tmpQ3 = Quaterniond()
 
-        // private val LOGGER = LogManager.getLogger(EnvironmentMap::class)
-
         val crossExtends = Vector3d(0.1)
-
-        val textureTimeout = 10000L
 
         val pipeline by lazy {
             val pipeline = Pipeline(DeferredSettingsV2(listOf(), 1, false))

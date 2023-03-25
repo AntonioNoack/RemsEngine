@@ -554,17 +554,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         when {
             useDeferredRendering -> {
                 when {
-                    renderMode.dlt != null -> {
-                        drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
-                            changeSize = true,
-                            hdr = false
-                        )
-                        drawGizmos(buffer, true)
-                        GFX.copyNoAlpha(buffer)
-                        return
-                    }
                     renderMode == RenderMode.FSR2_X8 || renderMode == RenderMode.FSR2_X2 -> {
                         drawScene(
                             w, h, camera0, camera1,
@@ -883,9 +872,19 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 }
                 clock.stop("presenting deferred buffers", 0.1)
             }
+            renderMode.dlt != null -> {
+                drawScene(
+                    w, h, camera0, camera1,
+                    blending, renderer, buffer,
+                    changeSize = true,
+                    hdr = true
+                )
+                drawGizmos(buffer, true)
+                isHDR = renderMode.dlt.highDynamicRange
+            }
             useBloom -> {
                 // supports bloom
-                // screen-space reflections cannot be supported
+                // todo support SSR via calculated normals
                 val tmp = FBStack["scene", w, h, 4, true, buffer.samples, true]
                 drawScene(
                     w, h, camera0, camera1,
@@ -1647,6 +1646,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     fun setRenderState() {
 
+        RenderState.aspectRatio = w.toFloat() / h
         RenderState.worldScale = worldScale
         RenderState.prevWorldScale = prevWorldScale
 

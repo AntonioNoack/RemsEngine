@@ -248,24 +248,28 @@ object PrefabCache : CacheSection("Prefab") {
         }
         Signature.findName(file) { signature ->
             when (signature) {
-                "json" -> file.inputStream { it, e ->
-                    if (it != null) {
-                        val prefab = TextReader.read(it, StudioBase.workspace, false).firstOrNull()
-                        it.close()
-                        if (prefab is Prefab) prefab.source = file
-                        if (prefab != null) {
-                            callback(prefab, null)
+                "json" -> {
+                    if (file.lcExtension == "gltf") {
+                        loadPrefabFromFolder(file, callback)
+                    } else file.inputStream { it, e ->
+                        if (it != null) {
+                            val prefab = TextReader.read(it, StudioBase.workspace, false).firstOrNull()
+                            it.close()
+                            if (prefab is Prefab) prefab.source = file
+                            if (prefab != null) {
+                                callback(prefab, null)
+                            } else {
+                                loadPrefabFromFolder(file, callback)
+                            }
                         } else {
+                            when (e) {
+                                is UnknownClassException -> LOGGER.warn("$e by $file", e)
+                                is InvalidFormatException -> if (printJsonErrors && file.lcExtension == "json")
+                                    LOGGER.warn("$e by $file", e)
+                                else -> e?.printStackTrace() // may be interesting
+                            }
                             loadPrefabFromFolder(file, callback)
                         }
-                    } else {
-                        when (e) {
-                            is UnknownClassException -> LOGGER.warn("$e by $file", e)
-                            is InvalidFormatException -> if (printJsonErrors && file.lcExtension == "json")
-                                LOGGER.warn("$e by $file", e)
-                            else -> e?.printStackTrace() // may be interesting
-                        }
-                        loadPrefabFromFolder(file, callback)
                     }
                 }
                 "yaml" -> loadUnityFile(file) { prefab, e ->

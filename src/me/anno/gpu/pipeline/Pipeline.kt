@@ -18,6 +18,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.CubemapFramebuffer
@@ -28,6 +29,7 @@ import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.SmallestKList
 import me.anno.utils.types.Matrices.distanceSquared
 import org.apache.logging.log4j.LogManager
@@ -163,8 +165,14 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
     }
 
     fun draw() {
-        for (stage in stages) {
-            stage.bindDraw(this)
+        if (GFXState.currentRenderer.deferredSettings != null &&
+            stages.any2 { it.blendMode != null } && GFXState.currentBuffer.numTextures >= 2
+        ) {
+            GlassPass.apply(this)
+        } else {
+            for (stage in stages) {
+                stage.bindDraw(this)
+            }
         }
     }
 

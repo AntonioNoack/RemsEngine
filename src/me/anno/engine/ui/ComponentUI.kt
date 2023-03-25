@@ -810,7 +810,7 @@ object ComponentUI {
                     }
                 }.apply {
                     property.init(this)
-                    setValues((value as ByteArray).toList())
+                    setValues((value as? ByteArray)?.asList() ?: emptyList())
                 }
             }
             "ShortArray", "Short[]", "short[]" -> {
@@ -820,7 +820,7 @@ object ComponentUI {
                     }
                 }.apply {
                     property.init(this)
-                    setValues((value as ShortArray).toList())
+                    setValues((value as? ShortArray)?.asList() ?: emptyList())
                 }
             }
             "IntArray", "IntegerArray", "Integer[]", "integer[]", "Int[]", "int[]" -> {
@@ -830,7 +830,7 @@ object ComponentUI {
                     }
                 }.apply {
                     property.init(this)
-                    setValues((value as IntArray).toList())
+                    setValues((value as? IntArray)?.asList() ?: emptyList())
                 }
             }
             "LongArray", "Long[]", "long[]" -> {
@@ -840,7 +840,7 @@ object ComponentUI {
                     }
                 }.apply {
                     property.init(this)
-                    setValues((value as LongArray).toList())
+                    setValues((value as? LongArray)?.asList() ?: emptyList())
                 }
             }
             "FloatArray", "Float[]", "float[]" -> {
@@ -850,7 +850,7 @@ object ComponentUI {
                     }
                 }.apply {
                     property.init(this)
-                    setValues((value as FloatArray).toList())
+                    setValues((value as? FloatArray)?.asList() ?: emptyList())
                 }
             }
             "DoubleArray", "Double[]", "double[]" -> {
@@ -860,7 +860,7 @@ object ComponentUI {
                     }
                 }.apply {
                     property.init(this)
-                    setValues((value as DoubleArray).toList())
+                    setValues((value as? DoubleArray)?.asList() ?: emptyList())
                 }
             }
 

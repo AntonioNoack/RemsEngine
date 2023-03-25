@@ -53,8 +53,6 @@ import org.joml.Matrix4f
 // todo : link files, which then get index for choosing meshes, skeletons, animations and such :)
 
 // todo fix VAOs
-// todo indices and weights are missing... why?, since when?
-
 
 
 // todo graphics: billboards: light only / override color (decals)

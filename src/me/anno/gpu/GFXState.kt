@@ -54,25 +54,33 @@ object GFXState {
     // (not that practical in RemsStudio)
     // val renderer = SecureStack(Renderer.colorRenderer)
 
-    val blendMode = object : SecureStack<BlendMode?>(BlendMode.DEFAULT) {
+    val blendMode = object : SecureStack<Any?>(BlendMode.DEFAULT) {
         // could be optimized
-        override fun onChangeValue(newValue: BlendMode?, oldValue: BlendMode?) {
+        override fun onChangeValue(newValue: Any?, oldValue: Any?) {
             // LOGGER.info("Blending: $newValue <- $oldValue")
             GFX.check()
-            if (newValue == null) {
-                glDisable(GL_BLEND)
-            } else {
-                glEnable(GL_BLEND)
-                // if is parent, then use the parent value
-                if (newValue == BlendMode.INHERIT) {
-                    var self: BlendMode? = newValue
+            when (newValue) {
+                null -> glDisable(GL_BLEND)
+                BlendMode.INHERIT -> {
                     var index = index
-                    while (self == BlendMode.INHERIT) {
+                    var self: Any?
+                    do {
                         self = values[index--]
-                    }
+                    } while (self == BlendMode.INHERIT)
                     return onChangeValue(self, oldValue)
                 }
-                newValue.forceApply()
+                is BlendMode -> {
+                    glEnable(GL_BLEND)
+                    newValue.forceApply()
+                }
+                is Array<*> -> {
+                    glEnable(GL_BLEND)
+                    for (i in newValue.indices) {
+                        val v = newValue[i] as BlendMode
+                        v.forceApply(i)
+                    }
+                }
+                else -> throw IllegalArgumentException()
             }
         }
     }

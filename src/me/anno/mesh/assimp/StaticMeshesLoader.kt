@@ -20,10 +20,10 @@ import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.io.AIFileIOImpl
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
-import me.anno.utils.LOGGER
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Triangles.crossDot
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -38,6 +38,8 @@ import kotlin.math.sign
 open class StaticMeshesLoader {
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class.java)
 
         const val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
                 aiProcess_Triangulate or // we don't want to triangulate ourselves
@@ -270,18 +272,28 @@ open class StaticMeshesLoader {
         val name = nameStr.dataString()
         prefab.setProperty("name", name)
 
+        LOGGER.debug("Material $name")
+
+        var opacity = getFloat(aiMaterial, AI_MATKEY_OPACITY, 1f)
+        if (opacity == 0f) opacity = 1f // completely transparent makes no sense
+
         val diffuseMap =
             findTexture(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir, missingFilesLookup)
-        if (diffuseMap != InvalidRef) prefab.setProperty("diffuseMap", diffuseMap)
-        else {// I think the else-if is the correct thing here; the storm-trooper is too dark otherwise
-
-            var opacity = getFloat(aiMaterial, AI_MATKEY_OPACITY)
-            if (opacity == 0f) opacity = 1f // completely transparent makes no sense
-            // todo can we check whether this key is actually set? or change the default value?
-            // LOGGER.info("opacity: $opacity")
-
+        if (diffuseMap != InvalidRef) {
+            prefab.setProperty("diffuseMap", diffuseMap)
+            if (opacity != 1f) prefab.setProperty("diffuseBase", Vector4f(1f, 1f, 1f, opacity))
+        } else {
+            // I think the else-if is the correct thing here; the storm-trooper is too dark otherwise
             // diffuse
             val diffuse = getColor(aiMaterial, color, AI_MATKEY_COLOR_DIFFUSE)
+            val specular = getColor(aiMaterial, color, AI_MATKEY_COLOR_SPECULAR)
+            val ambient = getColor(aiMaterial, color, AI_MATKEY_COLOR_AMBIENT)
+            val transparent = getColor(aiMaterial, color, AI_MATKEY_COLOR_TRANSPARENT)
+            val reflective = getColor(aiMaterial, color, AI_MATKEY_COLOR_REFLECTIVE)
+            val transparency = getFloat(aiMaterial, AI_MATKEY_TRANSPARENCYFACTOR, 1f)
+            LOGGER.debug("  opacity: $opacity")
+            LOGGER.debug("  diffuse: $diffuse, specular: $specular, ambient: $ambient, map: $diffuseMap")
+            LOGGER.debug("  transparent: $transparent, reflective: $reflective, trans-factor: $transparency")
             if (diffuse != null) {
                 diffuse.w = opacity
                 prefab.setProperty("diffuseBase", diffuse)
@@ -292,6 +304,7 @@ open class StaticMeshesLoader {
 
         // emissive
         val emissive = getColor(aiMaterial, color, AI_MATKEY_COLOR_EMISSIVE)
+        LOGGER.debug("  emissive: $emissive")
         if (emissive != null) {
             emissive.mul(20f) // for brighter colors; 5.0 is our default because of Reinhard tonemapping
             // 4x, because we want it to be impressive ^^, and to actually feel like glowing;
@@ -315,6 +328,9 @@ open class StaticMeshesLoader {
             missingFilesLookup
         )
 
+        val ior = getFloat(aiMaterial, AI_MATKEY_REFRACTI, 1f)
+        if (ior > 1f) prefab.setProperty("indexOfRefraction", ior)
+
         if (metallicRoughness != InvalidRef) {
             prefab.setProperty("metallicMap", getReference(metallicRoughness, "b.png"))
             prefab.setProperty("roughnessMap", getReference(metallicRoughness, "g.png"))
@@ -327,13 +343,13 @@ open class StaticMeshesLoader {
 
             // roughness
             // AI_MATKEY_SHININESS as color, .r: 360, 500, so the exponent?
-            val shininessExponent = getFloat(aiMaterial, AI_MATKEY_SHININESS)
+            val shininessExponent = getFloat(aiMaterial, AI_MATKEY_SHININESS, 1f)
             // val shininessStrength = getFloat(aiMaterial, AI_MATKEY_SHININESS_STRENGTH) // always 0.0
             // LOGGER.info("roughness: $shininess x $shininessStrength")
             val roughnessBase = shininessToRoughness(shininessExponent)
             prefab.setProperty("roughnessMinMax", Vector2f(0f, roughnessBase))
 
-            val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY) // 0.0, rarely 0.5
+            val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY, 0f) // 0.0, rarely 0.5
             if (metallic != 0f) prefab.setProperty("metallicMinMax", Vector2f(0f, metallic))
 
         }
@@ -364,10 +380,10 @@ open class StaticMeshesLoader {
 
     private val pMax = intArrayOf(1)
 
-    fun getFloat(aiMaterial: AIMaterial, key: String): Float {
+    fun getFloat(aiMaterial: AIMaterial, key: String, default: Float): Float {
         val a = FloatArray(1)
-        aiGetMaterialFloatArray(aiMaterial, key, aiTextureType_NONE, 0, a, pMax)
-        return a[0]
+        return if (aiGetMaterialFloatArray(aiMaterial, key, aiTextureType_NONE, 0, a, pMax) != 1) default
+        else a[0]
     }
 
     private fun findTexture(

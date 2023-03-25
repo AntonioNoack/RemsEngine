@@ -1,13 +1,13 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
-import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -263,11 +263,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         colors: Boolean,
         motionVectors: Boolean,
         limitedTransform: Boolean,
+        postProcessing: ShaderStage?
     ): ShaderBuilder {
         val builder = createBuilder()
         builder.addVertex(createVertexStage(isInstanced, isAnimated, colors, motionVectors, limitedTransform))
         builder.addVertex(createRandomIdStage())
         builder.addFragment(createFragmentStage(isInstanced, isAnimated, motionVectors))
+        if (postProcessing != null) builder.addFragment(postProcessing)
         return builder
     }
 
@@ -540,12 +542,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         isInstanced: Boolean,
         isAnimated: Boolean,
         motionVectors: Boolean,
-        limitedTransform: Boolean
+        limitedTransform: Boolean,
     ): Shader {
-
-        val base = createBase(isInstanced, isAnimated, !motionVectors, motionVectors, limitedTransform)
-        base.addFragment(postProcessing)
-
+        val base = createBase(isInstanced, isAnimated, !motionVectors, motionVectors, limitedTransform, postProcessing)
         val shader = base.create()
         finish(shader)
         return shader
@@ -556,13 +555,14 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         isInstanced: Boolean,
         isAnimated: Boolean,
         motionVectors: Boolean,
-        limitedTransform: Boolean
+        limitedTransform: Boolean,
+        postProcessing: ShaderStage?
     ): Shader {
 
         val base = createBase(
             isInstanced, isAnimated,
             deferred.layerTypes.size > 1 || !motionVectors,
-            motionVectors, limitedTransform
+            motionVectors, limitedTransform, postProcessing
         )
         base.outputs = deferred
 

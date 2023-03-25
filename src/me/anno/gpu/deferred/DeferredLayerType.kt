@@ -162,6 +162,11 @@ open class DeferredLayerType(
             BufferQuality.HIGH_16, true, 0, "", ""
         )
 
+        val ALPHA = DeferredLayerType(
+            "ALPHA", "finalAlpha", 1, BufferQuality.LOW_8,
+            false, 0, "", ""
+        )
+
         val values = arrayListOf(
             COLOR,
             EMISSIVE,
@@ -186,7 +191,8 @@ open class DeferredLayerType(
             COLOR_EMISSIVE,
             LIGHT_SUM,
             MOTION,
-            DEPTH
+            DEPTH,
+            ALPHA
         )
 
         val byName = LazyMap { name: String ->

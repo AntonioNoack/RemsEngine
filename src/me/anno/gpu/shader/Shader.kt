@@ -132,14 +132,14 @@ open class Shader(
 
         var outCtr = 0
         for (v in fragmentVariables) {
+            if (v.ignored) continue
             val prefix = when (v.inOutMode) {
                 VariableMode.IN, VariableMode.INOUT -> {
                     "uniform"
                 }
                 VariableMode.ATTR -> throw IllegalArgumentException("Fragment variable must not have type ATTR")
                 VariableMode.OUT -> {
-                    builder.append("layout(location=")
-                        .append(outCtr++).append(") ")
+                    builder.append("layout(location=").append(outCtr++).append(") ")
                     "out"
                 }
             }

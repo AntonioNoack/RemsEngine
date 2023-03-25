@@ -27,11 +27,9 @@ import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
-import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -419,8 +417,8 @@ class PipelineStage(
     }
 
     fun DrawRequest.distanceTo(cameraPosition: Vector3d): Double {
-        // - it.entity.transform.dotViewDir(cameraPosition, viewDir)
-        return entity.transform.distanceSquaredGlobally(cameraPosition)
+        return -entity.transform.dotViewDir(cameraPosition, RenderState.cameraDirection)
+        // return entity.transform.distanceSquaredGlobally(cameraPosition)
     }
 
     @Suppress("unused")
@@ -435,6 +433,7 @@ class PipelineStage(
 
         // val viewDir = pipeline.frustum.cameraRotation.transform(Vector3d(0.0, 0.0, 1.0))
         val cameraPosition = RenderState.cameraPosition
+        val cameraDirection = RenderState.cameraDirection
         when (sorting) {
             Sorting.NO_SORTING -> {
             }

@@ -12,6 +12,7 @@ object RenderState {
 
     var worldScale = 1.0
     var prevWorldScale = 1.0
+    var aspectRatio = 1f
 
     val cameraMatrix = Matrix4f()
     val cameraMatrixInv = Matrix4f()

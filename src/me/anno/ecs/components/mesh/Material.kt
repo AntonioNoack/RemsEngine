@@ -78,6 +78,10 @@ open class Material : PrefabSaveable(), Renderable {
     // todo instead back/front/both?
     var isDoubleSided = false
 
+    // not yet supported
+    @Range(1.0, 5.0)
+    var indexOfRefraction = 1f
+
     // base * map
     @Range(0.0, 100.0)
     @Type("Color3HDR")

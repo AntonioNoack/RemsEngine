@@ -12,7 +12,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
 
 // @Deprecated("Shall be replaced by RenderGraph")
-// todo all-metallic / all-rough/smooth render modes?
+// todo all-metallic / all-rough/smooth render modes
 @Suppress("unused")
 class RenderMode(
     val name: String,
@@ -46,6 +46,7 @@ class RenderMode(
 
         val COLOR = RenderMode("Color", DeferredLayerType.COLOR)
         val NORMAL = RenderMode("Normal", DeferredLayerType.NORMAL)
+        val ALPHA = RenderMode("Opacity (Alpha)", DeferredLayerType.ALPHA)
 
         val UV = RenderMode("UVs", uvRenderer)
         // mode to show bone weights? ask for it, if you're interested :)

@@ -77,8 +77,10 @@ class DecalMaterial : Material() {
                     limitedTransform: Boolean
                 ): Shader {
                     // todo data needs to be supplied as input
-                    val base = createBase(isInstanced, isAnimated, !motionVectors, motionVectors, limitedTransform)
-                    base.addFragment(postProcessing)
+                    val base = createBase(
+                        isInstanced, isAnimated, !motionVectors,
+                        motionVectors, limitedTransform, postProcessing
+                    )
                     val shader = base.create()
                     finish(shader)
                     return shader
@@ -89,13 +91,14 @@ class DecalMaterial : Material() {
                     isInstanced: Boolean,
                     isAnimated: Boolean,
                     motionVectors: Boolean,
-                    limitedTransform: Boolean
+                    limitedTransform: Boolean,
+                    postProcessing: ShaderStage?
                 ): Shader {
                     // todo data needs to be supplied as input
                     val base = createBase(
                         isInstanced, isAnimated,
                         deferred.layerTypes.size > 1 || !motionVectors,
-                        motionVectors, limitedTransform
+                        motionVectors, limitedTransform, postProcessing
                     )
                     base.outputs = deferred
 

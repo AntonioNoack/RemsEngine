@@ -1,7 +1,6 @@
 package me.anno.gpu.shader
 
 import me.anno.cache.ICacheData
-import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -135,7 +134,7 @@ open class BaseShader(
                         shader
                     }
                 }
-                else -> get(deferred, stateId)
+                else -> createDeferredShader(deferred, stateId, renderer.getPostProcessing())
             }
             GFX.check()
             if (shader.use())
@@ -173,6 +172,7 @@ open class BaseShader(
         isAnimated: Boolean,
         motionVectors: Boolean,
         limitedTransform: Boolean,
+        postProcessing: ShaderStage?,
     ): Shader {
         val shader = deferred.createShader(
             name,
@@ -182,7 +182,8 @@ open class BaseShader(
             varyings,
             fragmentVariables,
             fragmentShader,
-            textures
+            textures,
+            postProcessing
         )
         finish(shader)
         return shader
@@ -197,14 +198,15 @@ open class BaseShader(
         GFX.check()
     }
 
-    operator fun get(settings: DeferredSettingsV2, stateId: Int): Shader {
+    fun createDeferredShader(settings: DeferredSettingsV2, stateId: Int, postProcessing: ShaderStage?): Shader {
         return deferredShaders.getOrPut(settings, stateId) { settings2, stateId2 ->
-            createDeferredShader(
+            this.createDeferredShader(
                 settings2,
                 stateId2.hasFlag(1),
                 stateId2.hasFlag(2),
                 stateId2.hasFlag(4),
-                stateId2.hasFlag(8)
+                stateId2.hasFlag(8),
+                postProcessing,
             )
         }
     }

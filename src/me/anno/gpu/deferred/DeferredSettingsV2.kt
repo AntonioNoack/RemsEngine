@@ -5,8 +5,9 @@ import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.RandomEffect.randomFunc
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.ShaderBuilder
+import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.joml.Vector4f
@@ -144,66 +145,17 @@ data class DeferredSettingsV2(
         varyings: List<Variable>,
         fragmentVariables: List<Variable>,
         fragmentShader: String,
-        textures: List<String>?
+        textures: List<String>?,
+        postProcessing: ShaderStage?
     ): Shader {
-
-        // what do we do, if the position is missing? we cannot do anything...
         val vertex = if (instanced) "#define INSTANCED;\n$vertexShader" else vertexShader
-        val fragment = StringBuilder(16)
-
-        appendLayerDeclarators(fragment)
-
-        val lastBracketIndex = fragmentShader.lastIndexOf('}')
-        val mainIndex = fragmentShader.indexOf("void main(")
-        if (mainIndex < 0 || lastBracketIndex < 0) throw RuntimeException("Expected to find } in fragment source, but only got '$vertexShader'/'$fragmentShader'")
-
-        val oldFragmentCode1 = fragmentShader
-            .substring(fragmentShader.indexOf('{', mainIndex + 11) + 1, lastBracketIndex)
-            .replace("gl_FragColor", "vec4 glFragColor")
-
-        fragment.append(fragmentShader, 0, mainIndex)
-        fragment.append("void main(){")
-
-        for (variable in fragmentVariables) {
-            if (variable.isOutput) {
-                variable.declare(fragment)
-            }
-        }
-
-        fragment.append(oldFragmentCode1)
-
-        val hasFragColor = "gl_FragColor" in fragmentShader
-        if (hasFragColor) {
-            fragment.append("vec3 finalColor = glFragColor.rgb;\n")
-            fragment.append("float finalAlpha = glFragColor.a;\n")
-        }
-
-        appendMissingDeclarations(fragment)
-        appendLayerWriters(fragment)
-
-        fragment.append("}")
-
-        val shader = Shader(
-            shaderName, vertexVariables,
-            vertex, varyings,
-            fragmentVariables // out is defined by deferred layers
-                .filter { it.inOutMode != VariableMode.OUT },
-            fragment.toString()
-        )
-        shader.glslVersion = 330
+        val builder = ShaderBuilder(shaderName, this)
+        builder.addVertex(ShaderStage(vertexVariables + varyings, vertex))
+        builder.addFragment(ShaderStage(fragmentVariables + varyings, fragmentShader))
+        builder.addFragment(postProcessing)
+        val shader = builder.create()
         shader.setTextureIndices(textures)
         return shader
-    }
-
-    fun appendMissingDeclarations(output: StringBuilder) {
-        for (type in layerTypes) {
-            if (type.glslName !in output) {
-                type.appendDefinition(output)
-                output.append(" = ")
-                type.appendDefaultValue(output)
-                output.append(";\n")
-            }
-        }
     }
 
     fun appendLayerDeclarators(output: StringBuilder) {

@@ -2,6 +2,8 @@ package me.anno.gpu.blending
 
 import me.anno.language.translation.NameDesc
 import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL40C.glBlendEquationSeparatei
+import org.lwjgl.opengl.GL40C.glBlendFuncSeparatei
 
 // custom blend modes? only for the engine by programmers;
 // I don't think people in Rem's Studio or otherwise would/could use them well
@@ -50,9 +52,14 @@ class BlendMode(
         } else throw RuntimeException("UNSPECIFIED can't be applied!")
     }
 
-    fun forceApply(){
+    fun forceApply() {
         glBlendEquationSeparate(func.mode, funcAlpha.mode)
         glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
+    }
+
+    fun forceApply(i: Int) {
+        glBlendEquationSeparatei(i, func.mode, funcAlpha.mode)
+        glBlendFuncSeparatei(i, src, dst, srcAlpha, dstAlpha)
     }
 
     fun cloneWithName(displayName: NameDesc, id: String): BlendMode {
@@ -87,7 +94,9 @@ class BlendMode(
 
         val PURE_ADD = BlendMode(NameDesc("Pure Add", "", "gpu.blendMode.addPure"), "Pure Add")
             .set(GL_ONE, GL_ONE)
-            .set(BlendFunc.ADD)
+
+        val PURE_MUL = BlendMode(NameDesc("Pure Add", "", "gpu.blendMode.addPure"), "Pure Add")
+            .set(GL_DST_COLOR, GL_ZERO)
 
         /*val ADD_MASK = BlendMode("Sub Mask", "Sub Mask")
             .set(GL_ONE, GL_ONE)
