@@ -165,11 +165,10 @@ object ScreenSpaceReflections {
                     "   }\n" +
 
                     "   vec4 skyAtPivot = getSkyColor1(pivot, roughness);\n" +
-                    "   vec4 baseColor = vec4(\n" +
-                    "       texture(finalColor, uv).rgb +\n" +
-                    "       texture(finalEmissive, uv).rgb * 0.15, 1.0);\n" +
+                    "   vec4 baseEmission = vec4(texture(finalEmissive, uv).rgb, 0.0);\n" +
+                    "   vec4 baseColor = vec4(texture(finalColor, uv).rgb, 1.0);\n" +
                     "   if(hit0 == 0) {\n" +
-                    "       vec4 skyColor = skyAtPivot * baseColor;\n" +
+                    "       vec4 skyColor = skyAtPivot * baseColor + baseEmission;\n" +
                     "       color0 = mix(color0, skyColor.rgb, min(reflectivity * skyColor.a * strength, 1.0));\n" +
                     "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     "       return;\n" +
@@ -201,7 +200,7 @@ object ScreenSpaceReflections {
                     "   vec3 distanceDelta = bestPositionTo - positionFrom;\n" +
                     "   float distanceSq = dot(distanceDelta, distanceDelta);\n" +
                     "   if(distanceSq >= maxDistanceSq || bestUV.x < 0.0 || bestUV.x > 1.0 || bestUV.y < 0.0 || bestUV.y > 1.0){\n" +
-                    "       vec4 skyColor = skyAtPivot * baseColor;\n" +
+                    "       vec4 skyColor = skyAtPivot * baseColor + baseEmission;\n" +
                     "       color0 = mix(color0, skyColor.rgb, min(reflectivity * skyColor.a * strength, 1.0));\n" +
                     "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     "       return;\n" +
@@ -216,7 +215,7 @@ object ScreenSpaceReflections {
 
                     // reflected position * base color of mirror (for golden reflections)
                     "   vec3 color1 = texture(finalIlluminated, bestUV).rgb;\n" +
-                    "   vec4 skyColor = mix(skyAtPivot, vec4(color1,1.0), visibility) * baseColor;\n" +
+                    "   vec4 skyColor = mix(skyAtPivot, vec4(color1,1.0), visibility) * baseColor + baseEmission;\n" +
                     "   color0 = mix(color0, skyColor.rgb, min(reflectivity * skyColor.a * strength, 1.0));\n" +
                     "   fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     "}\n"

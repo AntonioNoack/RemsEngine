@@ -21,8 +21,9 @@ fun main() {
 
     // render scene with transparency
     // done rendering in deferred mode was missing sky reflections
-    // todo rendering GlassPass in deferred mode is much darker... why?
-    // todo rendering WeightedBlend in deferred mode is much brighter... why?
+    // rendering GlassPass in deferred mode is much darker... why?
+    // because its reflectivity influences the emissions...
+    // -> make reflectivity not influence emissions
 
     ECSRegistry.init()
     val scene = Entity()
@@ -35,7 +36,6 @@ fun main() {
         .createInstance().apply {
             this as Entity
             position = position.set(1.2, 0.85, -1.0)
-
         })
     scene.addChild(PrefabCache[downloads.getChild("glass_bottle-freepoly.org.glb")]!!
         .createInstance().apply {
