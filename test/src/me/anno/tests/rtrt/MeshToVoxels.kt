@@ -110,7 +110,7 @@ fun meshToSeparatedVoxels(
             mesh.draw(shader, i)
         }
     }
-    GFXState.depthMode.use(DepthMode.ALWAYS11) {
+    GFXState.depthMode.use(DepthMode.FORWARD_ALWAYS) {
         if (waitForTextures) waitForTextures(mesh, mesh.ref)
         val clock = Clock()
         val invX = 1f / blocksX

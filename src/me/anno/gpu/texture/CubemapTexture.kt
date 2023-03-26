@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.Build
 import me.anno.cache.ICacheData
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer
@@ -222,17 +223,13 @@ open class CubemapTexture(
         if (nearest != this.filtering) filtering(nearest)
     }
 
-    var depthFunc = 0
+    var depthFunc: DepthMode = DepthMode.ALWAYS
         set(value) {
             if (field != value) {
                 field = value
                 bindBeforeUpload()
-                if (value != 0) {
-                    glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE)
-                    glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value)
-                } else {
-                    glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_NONE)
-                }
+                glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE)
+                glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.v)
             }
         }
 

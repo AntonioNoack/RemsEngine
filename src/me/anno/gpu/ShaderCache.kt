@@ -50,7 +50,6 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
     }
 
     private val magicStr = "SHADERv0".toByteArray()
-    private val headerLength = magicStr.size + 8
 
     private var wkSession = -1
     private val weakCache = WeakHashMap<Pair<String, String?>, Int>()

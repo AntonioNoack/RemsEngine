@@ -103,7 +103,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     var samples = 1
 
-    var depthFunc = GL_LESS
+    var depthFunc = DepthMode.CLOSER
 
     fun ensureShadowBuffers() {
         if (hasShadow) {

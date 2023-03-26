@@ -209,8 +209,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         baseNBuffer8.destroy()
         editorCameraNode.destroy()
         fsr22.destroy()
-        pipeline.bakedSkyBox?.destroy()
-        pipeline.bakedSkyBox = null
+        pipeline.destroy()
     }
 
     open fun updateEditorCameraTransform() {

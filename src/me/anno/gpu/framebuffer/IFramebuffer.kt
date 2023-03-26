@@ -15,6 +15,9 @@ import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL30C.glClearBufferfv
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 interface IFramebuffer {
 
@@ -107,6 +110,44 @@ interface IFramebuffer {
         }
     }
 
+    fun clearColor(colors: Array<Vector4f>, depth: Boolean = false) {
+        if (isBound()) {
+            Frame.bind()
+            val tmp = tmp4f
+            for (i in colors.indices) {
+                tmp.put(0, colors[i].x)
+                tmp.put(1, colors[i].y)
+                tmp.put(2, colors[i].z)
+                tmp.put(3, colors[i].w)
+                glClearBufferfv(GL_COLOR, i, tmp)
+            }
+            if (depth) clearDepth()
+        } else {
+            useFrame(this) {
+                clearColor(colors, depth)
+            }
+        }
+    }
+
+    fun clearColor(colors: IntArray, depth: Boolean = false) {
+        if (isBound()) {
+            Frame.bind()
+            val tmp = tmp4f
+            for (i in colors.indices) {
+                tmp.put(0, colors[i].r01())
+                tmp.put(1, colors[i].g01())
+                tmp.put(2, colors[i].b01())
+                tmp.put(3, colors[i].a01())
+                glClearBufferfv(GL_COLOR, i, tmp)
+            }
+            if (depth) clearDepth()
+        } else {
+            useFrame(this) {
+                clearColor(colors, depth)
+            }
+        }
+    }
+
     fun clearColor(color: Int, stencil: Int, depth: Boolean) =
         clearColor(color.r01(), color.g01(), color.b01(), color.a01(), stencil, depth)
 
@@ -151,6 +192,10 @@ interface IFramebuffer {
     fun use(index: Int, renderer: Renderer, render: () -> Unit) {
         GFXState.renderers[index] = renderer
         GFXState.framebuffer.use(this, render)
+    }
+
+    companion object {
+        private val tmp4f = ByteBuffer.allocateDirect(16).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
     }
 
 }

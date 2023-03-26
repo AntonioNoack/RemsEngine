@@ -7,20 +7,23 @@ import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
+import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
 
 fun main() {
+
     // render scene with transparency
     // done rendering in deferred mode was missing sky reflections
-    // todo rendering in deferred mode is much darker... why?
+    // todo rendering GlassPass in deferred mode is much darker... why?
+    // todo rendering WeightedBlend in deferred mode is much brighter... why?
+
     ECSRegistry.init()
     val scene = Entity()
     scene.addChild(PrefabCache[downloads.getChild("glass_table.glb")]!!
@@ -84,10 +87,12 @@ fun main() {
         false
     }
     testSceneWithUI(scene) {
-        it.renderer.renderMode = RenderMode.FORCE_NON_DEFERRED
+        // it.renderer.renderMode = RenderMode.FORCE_NON_DEFERRED
+        it.renderer.pipeline.defaultStage.sorting = Sorting.BACK_TO_FRONT
+        it.renderer.pipeline.transparentPass = GlassPass()
         it.renderer.pipeline.stages.add(
             PipelineStage(
-                "transparent", Sorting.FRONT_TO_BACK,
+                "transparent", Sorting.BACK_TO_FRONT,
                 16, BlendMode.DEFAULT,
                 DepthMode.CLOSER, false, // both true and false are incorrect here
                 CullMode.FRONT, pbrModelShader

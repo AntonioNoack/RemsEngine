@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
@@ -22,6 +23,8 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.CubemapFramebuffer
+import me.anno.gpu.pipeline.transparency.TransparentPass
+import me.anno.gpu.pipeline.transparency.WeightedBlended
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -43,7 +46,7 @@ import java.util.*
  * collects meshes for sorting (transparency, overdraw), and for instanced rendering
  * todo instead of a pipeline, maybe the best would be a render graph...
  * */
-class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
+class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
 
     var deferred: DeferredSettingsV2? = deferred
         set(value) {
@@ -164,15 +167,20 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
         stage.add(light, entity)
     }
 
+    var transparentPass: TransparentPass = WeightedBlended()
+
+    override fun destroy() {
+        bakedSkyBox?.destroy()
+        bakedSkyBox = null
+        transparentPass.destroy()
+    }
+
     fun draw() {
         if (GFXState.currentRenderer.deferredSettings != null &&
             stages.any2 { it.blendMode != null } && GFXState.currentBuffer.numTextures >= 2
-        ) {
-            GlassPass.apply(this)
-        } else {
-            for (stage in stages) {
-                stage.bindDraw(this)
-            }
+        ) transparentPass.draw0(this)
+        else for (stage in stages) {
+            stage.bindDraw(this)
         }
     }
 
@@ -212,7 +220,6 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable() {
         rootElement.validateAABBs()
         val lastClickId = subFill(rootElement, lastClickId)
         this.lastClickId = lastClickId
-        // LOGGER.debug("$contained/$nonContained")
         return lastClickId
     }
 

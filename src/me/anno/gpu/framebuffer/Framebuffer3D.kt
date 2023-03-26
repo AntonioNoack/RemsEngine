@@ -70,7 +70,7 @@ class Framebuffer3D(
         when (targets.size) {
             0 -> GL30C.glDrawBuffer(GL30C.GL_NONE)
             1 -> GL30C.glDrawBuffer(GL30C.GL_COLOR_ATTACHMENT0)
-            else -> GL30C.glDrawBuffers(textures.indices.map { GL30C.GL_COLOR_ATTACHMENT0 + it }.toIntArray())
+            else -> GL30C.glDrawBuffers(IntArray(numTextures) { GL30C.GL_COLOR_ATTACHMENT0 + it })
         }
         GFX.check()
         when (depthBufferType) {

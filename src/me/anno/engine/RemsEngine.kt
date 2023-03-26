@@ -50,6 +50,8 @@ import org.joml.Matrix4f
 //  - branching maps & branching results
 //  - go into/out of/step
 
+// todo retargetings database
+
 // todo : link files, which then get index for choosing meshes, skeletons, animations and such :)
 
 // todo fix VAOs
@@ -60,7 +62,7 @@ import org.joml.Matrix4f
 
 // todo loading is slow: all tabs are loaded, even if only a single one is actually used
 
-// todo forward-plus rendering (transparency / anti-aliasing)
+// todo forward-plus rendering
 // which platforms support Compute Shaders? we need them for forward+
 // Windows, Android with OpenGL 3.0
 

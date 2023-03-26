@@ -1,6 +1,7 @@
 package me.anno.gpu.texture
 
 import me.anno.cache.ICacheData
+import me.anno.gpu.DepthMode
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.utils.Color.black
 
