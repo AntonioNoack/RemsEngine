@@ -292,17 +292,17 @@ open class AnimRenderer : MeshComponent() {
         } else false
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as AnimRenderer
-        clone.skeleton = skeleton
-        clone.animations = animations
-        clone.useDefaultAnimation = useDefaultAnimation
-        clone.prevIndices.set(prevIndices)
-        clone.prevTime = prevTime
-        clone.prevWeights.set(prevWeights)
-        clone.currIndices.set(currIndices)
-        clone.currWeights.set(currWeights)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as AnimRenderer
+        dst.skeleton = skeleton
+        dst.animations = animations
+        dst.useDefaultAnimation = useDefaultAnimation
+        dst.prevIndices.set(prevIndices)
+        dst.prevTime = prevTime
+        dst.prevWeights.set(prevWeights)
+        dst.currIndices.set(currIndices)
+        dst.currWeights.set(currWeights)
     }
 
     override val className get() = "AnimRenderer"

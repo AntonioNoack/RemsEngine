@@ -282,37 +282,37 @@ open class Material : PrefabSaveable(), Renderable {
 
     override fun clone(): Material {
         val material = Material()
-        copy(material)
+        copyInto(material)
         return material
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Material
-        clone.diffuseBase.set(diffuseBase)
-        clone.diffuseMap = diffuseMap
-        clone.emissiveBase.set(emissiveBase)
-        clone.emissiveMap = emissiveMap
-        clone.normalMap = normalMap
-        clone.normalStrength = normalStrength
-        clone.sheen = sheen
-        clone.sheenNormalMap = sheenNormalMap
-        clone.occlusionStrength = occlusionStrength
-        clone.occlusionMap = occlusionMap
-        clone.shaderOverrides.clear()
-        clone.shaderOverrides.putAll(shaderOverrides)
-        clone.roughnessMap = roughnessMap
-        clone.roughnessMinMax.set(roughnessMinMax)
-        clone.metallicMap = metallicMap
-        clone.metallicMinMax.set(metallicMinMax)
-        clone.clearCoatColor.set(clearCoatColor)
-        clone.clearCoatRoughness = clearCoatRoughness
-        clone.clearCoatMetallic = clearCoatMetallic
-        clone.shader = shader
-        clone.pipelineStage = pipelineStage
-        clone.isDoubleSided = isDoubleSided
-        clone.linearFiltering = linearFiltering
-        clone.clamping = clamping
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Material
+        dst.diffuseBase.set(diffuseBase)
+        dst.diffuseMap = diffuseMap
+        dst.emissiveBase.set(emissiveBase)
+        dst.emissiveMap = emissiveMap
+        dst.normalMap = normalMap
+        dst.normalStrength = normalStrength
+        dst.sheen = sheen
+        dst.sheenNormalMap = sheenNormalMap
+        dst.occlusionStrength = occlusionStrength
+        dst.occlusionMap = occlusionMap
+        dst.shaderOverrides.clear()
+        dst.shaderOverrides.putAll(shaderOverrides)
+        dst.roughnessMap = roughnessMap
+        dst.roughnessMinMax.set(roughnessMinMax)
+        dst.metallicMap = metallicMap
+        dst.metallicMinMax.set(metallicMinMax)
+        dst.clearCoatColor.set(clearCoatColor)
+        dst.clearCoatRoughness = clearCoatRoughness
+        dst.clearCoatMetallic = clearCoatMetallic
+        dst.shader = shader
+        dst.pipelineStage = pipelineStage
+        dst.isDoubleSided = isDoubleSided
+        dst.linearFiltering = linearFiltering
+        dst.clamping = clamping
     }
 
     override val className get() = "Material"

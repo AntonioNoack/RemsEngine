@@ -20,11 +20,11 @@ class SizeLimitingContainer(child: Panel, var sizeX: Int, var sizeY: Int, style:
         if (sizeY >= 0) minH = min(minH, padding.height + sizeY)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SizeLimitingContainer
-        clone.sizeX = sizeX
-        clone.sizeY = sizeY
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SizeLimitingContainer
+        dst.sizeX = sizeX
+        dst.sizeY = sizeY
     }
 
     override fun save(writer: BaseWriter) {

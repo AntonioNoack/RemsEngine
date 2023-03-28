@@ -48,11 +48,11 @@ class RaycastTestComponent : Component() {
         return 1
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as RaycastTestComponent
-        clone.colliderMask = colliderMask
-        clone.maxDistance = maxDistance
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as RaycastTestComponent
+        dst.colliderMask = colliderMask
+        dst.maxDistance = maxDistance
     }
 
     override val className get() = "RaycastTest"

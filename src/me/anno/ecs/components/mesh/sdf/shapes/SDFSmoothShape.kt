@@ -23,11 +23,11 @@ abstract class SDFSmoothShape : SDFShape() {
             }
         }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFSmoothShape
-        clone.smoothness = smoothness
-        clone.dynamicSmoothness = dynamicSmoothness
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFSmoothShape
+        dst.smoothness = smoothness
+        dst.dynamicSmoothness = dynamicSmoothness
     }
 
 }

@@ -75,10 +75,10 @@ open class SDFPlane : SDFShape() {
         return pos.y
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFPlane
-        clone.axis = axis
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFPlane
+        dst.axis = axis
     }
 
     override val className get() = "SDFPlane"

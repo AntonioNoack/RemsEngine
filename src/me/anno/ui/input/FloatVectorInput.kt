@@ -482,18 +482,18 @@ open class FloatVectorInput(
 
     override fun clone(): FloatVectorInput {
         val clone = FloatVectorInput(title, visibilityKey, type, style, createComponent)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as FloatVectorInput
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as FloatVectorInput
         // only works if there are no hard references
-        clone.changeListeners.clear()
-        clone.changeListeners.addAll(changeListeners)
-        clone.resetListener = resetListener
-        clone.setValue(Vector4d(vxd, vyd, vzd, vwd), false)
+        dst.changeListeners.clear()
+        dst.changeListeners.addAll(changeListeners)
+        dst.resetListener = resetListener
+        dst.setValue(Vector4d(vxd, vyd, vzd, vwd), false)
     }
 
     override val className get() = "FloatVectorInput"

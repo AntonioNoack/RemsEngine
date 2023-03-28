@@ -74,10 +74,10 @@ class AnimController : Component() {
         return 1
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as AnimController
-        clone.graphSource = graphSource
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as AnimController
+        dst.graphSource = graphSource
     }
 
     override val className get() = "AnimController"

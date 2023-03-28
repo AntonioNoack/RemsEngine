@@ -128,11 +128,11 @@ class SDFCollider : Collider() {
         DrawAABB.drawAABB(transform, sdf.localAABB, RenderState.worldScale, color)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFCollider
-        clone.isConvex = isConvex
-        clone.margin = margin
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFCollider
+        dst.isConvex = isConvex
+        dst.margin = margin
     }
 
     override val className get() = "SDFCollider"

@@ -105,14 +105,14 @@ class LuaAnimTextPanel(text: String, var animation: String, style: Style) : Anim
 
     override fun clone(): LuaAnimTextPanel {
         val clone = LuaAnimTextPanel(text, animation, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as LuaAnimTextPanel
-        clone.animation = animation
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as LuaAnimTextPanel
+        dst.animation = animation
     }
 
     override val className get() = "LuaAnimTextPanel"

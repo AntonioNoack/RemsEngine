@@ -179,15 +179,15 @@ class BoneByBoneAnimation() : Animation() {
         }
     }*/
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as BoneByBoneAnimation
-        clone.boneCount = boneCount
-        clone.frameCount = frameCount
-        clone.translations = translations
-        clone.rotations = rotations
-        clone.globalTransform.set(globalTransform)
-        clone.globalInvTransform.set(globalInvTransform)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as BoneByBoneAnimation
+        dst.boneCount = boneCount
+        dst.frameCount = frameCount
+        dst.translations = translations
+        dst.rotations = rotations
+        dst.globalTransform.set(globalTransform)
+        dst.globalInvTransform.set(globalInvTransform)
     }
 
     constructor(anim: ImportedAnimation) : this() {

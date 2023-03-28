@@ -432,21 +432,21 @@ open class Rigidbody : Component() {
         // PlaneShapes.drawCircle(entity!!, -1)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Rigidbody
-        clone.centerOfMass = centerOfMass
-        clone.activeByDefault = activeByDefault
-        clone.angularDamping = angularDamping
-        clone.friction = friction
-        clone.mass = mass
-        clone.linearDamping = linearDamping
-        clone.sleepingTimeThreshold = sleepingTimeThreshold
-        clone.angularSleepingThreshold = angularSleepingThreshold
-        clone.linearSleepingThreshold = linearSleepingThreshold
-        clone.restitution = restitution
-        clone.overrideGravity = overrideGravity
-        clone.gravity.set(gravity)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Rigidbody
+        dst.centerOfMass = centerOfMass
+        dst.activeByDefault = activeByDefault
+        dst.angularDamping = angularDamping
+        dst.friction = friction
+        dst.mass = mass
+        dst.linearDamping = linearDamping
+        dst.sleepingTimeThreshold = sleepingTimeThreshold
+        dst.angularSleepingThreshold = angularSleepingThreshold
+        dst.linearSleepingThreshold = linearSleepingThreshold
+        dst.restitution = restitution
+        dst.overrideGravity = overrideGravity
+        dst.gravity.set(gravity)
     }
 
     override val className get() = "Rigidbody"

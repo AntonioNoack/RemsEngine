@@ -85,10 +85,10 @@ abstract class MathNode<V : Enum<V>>(
         else super.readInt(name, value)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as MathNode<V>
-        clone.type = type
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as MathNode<V>
+        dst.type = type
     }
 
 }

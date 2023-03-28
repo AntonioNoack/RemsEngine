@@ -19,7 +19,7 @@ import kotlin.math.atan
 class SpotLight() : LightComponent(LightType.SPOT) {
 
     constructor(src: SpotLight) : this() {
-        src.copy(this)
+        src.copyInto(this)
     }
 
     // for a large angle, it just becomes a point light
@@ -68,11 +68,11 @@ class SpotLight() : LightComponent(LightType.SPOT) {
 
     override fun clone() = SpotLight(this)
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SpotLight
-        clone.coneAngle = coneAngle
-        clone.near = near
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SpotLight
+        dst.coneAngle = coneAngle
+        dst.near = near
     }
 
     override val className get() = "SpotLight"

@@ -21,12 +21,12 @@ open class SDFShape : SDFComponent() {
 
     var materialId = 0
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFShape
-        clone.dynamicSize = dynamicSize
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFShape
+        dst.dynamicSize = dynamicSize
         // clone.material = material
-        clone.materialId = materialId
+        dst.materialId = materialId
     }
 
     fun smartMinBegin(builder: StringBuilder, dstIndex: Int) {

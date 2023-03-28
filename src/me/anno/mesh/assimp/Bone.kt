@@ -91,14 +91,14 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
         writer.writeMatrix4x3f("originalTransform", originalTransform)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Bone
-        clone.id = id
-        clone.parentId = parentId
-        clone.inverseBindPose.set(inverseBindPose)
-        clone.relativeTransform.set(relativeTransform)
-        clone.originalTransform.set(originalTransform)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Bone
+        dst.id = id
+        dst.parentId = parentId
+        dst.inverseBindPose.set(inverseBindPose)
+        dst.relativeTransform.set(relativeTransform)
+        dst.originalTransform.set(originalTransform)
     }
 
 }

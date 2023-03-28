@@ -30,12 +30,12 @@ class SplineControlPoint : Component() {
     fun getLocalUp(dst: Vector3d): Vector3d =
         transform!!.localTransform.transformDirection(dst.set(0.0, 1.0, 0.0))
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SplineControlPoint
-        clone.profile = profile
-        clone.width = width
-        clone.height = height
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SplineControlPoint
+        dst.profile = profile
+        dst.width = width
+        dst.height = height
     }
 
     override val className get() = "SplineControlPoint"

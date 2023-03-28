@@ -194,16 +194,16 @@ open class IntInput(
 
     override fun clone(): IntInput {
         val clone = IntInput(title, visibilityKey, type, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as IntInput
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as IntInput
         // only works if there are no hard references
-        clone.changeListener = changeListener
-        clone.savedDelta = savedDelta // ^^
+        dst.changeListener = changeListener
+        dst.savedDelta = savedDelta // ^^
     }
 
     override val className get() = "IntInput"

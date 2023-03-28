@@ -132,14 +132,14 @@ open class TextButton(
 
     override fun clone(): TextButton {
         val clone = TextButton(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as TextButton
-        clone.isSquare = isSquare
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as TextButton
+        dst.isSquare = isSquare
     }
 
     override val className get() = "TextButton"

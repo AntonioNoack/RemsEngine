@@ -71,11 +71,11 @@ class SDFRandomTranslation : SDFRandom() {
         bounds.maxZ += avgZ + dltZ
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFRandomTranslation
-        clone.minTranslation = minTranslation
-        clone.maxTranslation = maxTranslation
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFRandomTranslation
+        dst.minTranslation = minTranslation
+        dst.maxTranslation = maxTranslation
     }
 
     override val className get() = "SDFRandomTranslation"

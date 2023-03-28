@@ -10,7 +10,7 @@ open class PureTextInput(style: Style) : PureTextInputML(style.getChild("edit"))
 
     override fun clone(): PureTextInput {
         val clone = PureTextInput(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 

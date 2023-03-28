@@ -160,15 +160,15 @@ class SDFArray2 : SDFGroupArray() {
         seeds.removeLast()
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFArray2
-        clone.dynamic = dynamic
-        clone.mirrorX = mirrorX
-        clone.mirrorY = mirrorY
-        clone.mirrorZ = mirrorZ
-        clone.count = count
-        clone.cellSize = cellSize
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFArray2
+        dst.dynamic = dynamic
+        dst.mirrorX = mirrorX
+        dst.mirrorY = mirrorY
+        dst.mirrorZ = mirrorZ
+        dst.count = count
+        dst.cellSize = cellSize
     }
 
     override val className get() = "SDFArray2"

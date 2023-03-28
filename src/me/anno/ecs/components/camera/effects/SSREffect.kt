@@ -58,13 +58,13 @@ class SSREffect : ToneMappedEffect() {
         )
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SSREffect
-        clone.maskSharpness = maskSharpness
-        clone.wallThickness = wallThickness
-        clone.maxDistance = maxDistance
-        clone.fineSteps = fineSteps
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SSREffect
+        dst.maskSharpness = maskSharpness
+        dst.wallThickness = wallThickness
+        dst.maxDistance = maxDistance
+        dst.fineSteps = fineSteps
     }
 
     override val className get() = "SSREffect"

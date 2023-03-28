@@ -377,16 +377,16 @@ class SDFVoronoiArray : PositionMapper() {
         )
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFVoronoiArray
-        clone.enableX = enableX
-        clone.enableY = enableY
-        clone.enableZ = enableZ
-        clone.seed = seed
-        clone.cellSize = cellSize
-        clone.min = min
-        clone.max = max
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFVoronoiArray
+        dst.enableX = enableX
+        dst.enableY = enableY
+        dst.enableZ = enableZ
+        dst.seed = seed
+        dst.cellSize = cellSize
+        dst.min = min
+        dst.max = max
     }
 
     override val className get() = "SDFVoronoiArray"

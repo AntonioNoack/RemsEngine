@@ -27,15 +27,15 @@ open class SpacerPanel(
 
     override fun clone(): SpacerPanel {
         val clone = SpacerPanel(sizeX, sizeY, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SpacerPanel
-        clone.sizeX = sizeX
-        clone.sizeY = sizeY
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SpacerPanel
+        dst.sizeX = sizeX
+        dst.sizeY = sizeY
     }
 
     override val className get() = "SpacerPanel"

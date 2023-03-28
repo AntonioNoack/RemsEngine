@@ -42,11 +42,11 @@ class Texture3DBTv2Material : Material() {
         shader.v1b("useSDF", useSDF)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Texture3DBTv2Material
-        clone.size.set(size)
-        clone.useSDF = useSDF
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Texture3DBTv2Material
+        dst.size.set(size)
+        dst.useSDF = useSDF
         // texture cannot be simply copied
     }
 

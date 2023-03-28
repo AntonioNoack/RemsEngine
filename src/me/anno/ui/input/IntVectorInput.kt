@@ -268,18 +268,18 @@ open class IntVectorInput(
 
     override fun clone(): IntVectorInput {
         val clone = IntVectorInput(title, visibilityKey, type, style, createComponent)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as IntVectorInput
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as IntVectorInput
         // only works if there are no hard references
-        clone.changeListeners.clear()
-        clone.changeListeners.addAll(changeListeners)
-        clone.resetListener = resetListener
-        clone.setValue(vx, vy, vz, vw, false)
+        dst.changeListeners.clear()
+        dst.changeListeners.addAll(changeListeners)
+        dst.resetListener = resetListener
+        dst.setValue(vx, vy, vz, vw, false)
     }
 
     override val className get() = "IntVectorInput"

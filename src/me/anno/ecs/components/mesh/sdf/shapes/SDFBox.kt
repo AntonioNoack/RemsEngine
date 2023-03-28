@@ -64,10 +64,10 @@ open class SDFBox : SDFSmoothShape() {
         return outer + inner - r + pos.w
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFBox
-        clone.halfExtends.set(halfExtends)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFBox
+        dst.halfExtends.set(halfExtends)
     }
 
     override val className get() = "SDFBox"

@@ -33,10 +33,10 @@ abstract class CollidingComponent : Component() {
 
     abstract override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as CollidingComponent
-        clone.collisionMask = collisionMask
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as CollidingComponent
+        dst.collisionMask = collisionMask
     }
 
 }

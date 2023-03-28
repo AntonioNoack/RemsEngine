@@ -11,7 +11,7 @@ import org.joml.Vector3d
 class SliderConstraint() : Constraint<com.bulletphysics.dynamics.constraintsolver.SliderConstraint>() {
 
     constructor(base: SliderConstraint) : this() {
-        base.copy(this)
+        base.copyInto(this)
     }
 
     @Suppress("unused")
@@ -190,25 +190,25 @@ class SliderConstraint() : Constraint<com.bulletphysics.dynamics.constraintsolve
 
     override fun clone() = SliderConstraint(this)
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SliderConstraint
-        clone.lowerLimit = lowerLimit
-        clone.upperLimit = upperLimit
-        clone.lowerAngleLimit = lowerAngleLimit
-        clone.upperAngleLimit = upperAngleLimit
-        clone.enableLinearMotor = enableLinearMotor
-        clone.enableAngularMotor = enableAngularMotor
-        clone.targetMotorVelocity = targetMotorVelocity
-        clone.targetMotorAngularVelocity = targetMotorAngularVelocity
-        clone.motorMaxForce = motorMaxForce
-        clone.motorMaxAngularForce = motorMaxAngularForce
-        clone.linearDamping.set(linearDamping)
-        clone.linearRestitution.set(linearRestitution)
-        clone.linearSoftness.set(linearSoftness)
-        clone.angularDamping.set(angularDamping)
-        clone.angularRestitution.set(angularRestitution)
-        clone.angularSoftness.set(angularSoftness)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SliderConstraint
+        dst.lowerLimit = lowerLimit
+        dst.upperLimit = upperLimit
+        dst.lowerAngleLimit = lowerAngleLimit
+        dst.upperAngleLimit = upperAngleLimit
+        dst.enableLinearMotor = enableLinearMotor
+        dst.enableAngularMotor = enableAngularMotor
+        dst.targetMotorVelocity = targetMotorVelocity
+        dst.targetMotorAngularVelocity = targetMotorAngularVelocity
+        dst.motorMaxForce = motorMaxForce
+        dst.motorMaxAngularForce = motorMaxAngularForce
+        dst.linearDamping.set(linearDamping)
+        dst.linearRestitution.set(linearRestitution)
+        dst.linearSoftness.set(linearSoftness)
+        dst.angularDamping.set(angularDamping)
+        dst.angularRestitution.set(angularRestitution)
+        dst.angularSoftness.set(angularSoftness)
     }
 
     override val className get() = "SliderConstraint"

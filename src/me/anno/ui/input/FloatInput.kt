@@ -183,18 +183,18 @@ open class FloatInput(
 
     override fun clone(): FloatInput {
         val clone = FloatInput(title, visibilityKey, type, style, inputPanel0?.clone())
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as FloatInput
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as FloatInput
         // only works without hard references
-        clone.changeListener = changeListener
-        clone.allowInfinity = allowInfinity
-        clone.tooltip = tooltip
-        clone.setValue(lastValue, false)
+        dst.changeListener = changeListener
+        dst.allowInfinity = allowInfinity
+        dst.tooltip = tooltip
+        dst.setValue(lastValue, false)
     }
 
     override val className get() = "FloatInput"

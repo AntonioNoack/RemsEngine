@@ -85,10 +85,10 @@ class SDFStairs : SDF2DShape() {
         return sqrt(d) * s
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFStairs
-        clone.stepSizeCount.set(stepSizeCount)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFStairs
+        dst.stepSizeCount.set(stepSizeCount)
     }
 
     override val className get() = "SDFStairs"

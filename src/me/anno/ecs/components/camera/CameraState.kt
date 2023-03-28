@@ -17,14 +17,14 @@ class CameraState : Component() {
         return 1
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as CameraState
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as CameraState
         // mmh... may create issues:
-        clone.currentCamera = currentCamera
-        clone.previousCamera = previousCamera
-        clone.cameraBlendingTime = cameraBlendingTime
-        clone.cameraBlendingProgress = cameraBlendingProgress
+        dst.currentCamera = currentCamera
+        dst.previousCamera = previousCamera
+        dst.cameraBlendingTime = cameraBlendingTime
+        dst.cameraBlendingProgress = cameraBlendingProgress
     }
 
     override val className get() = "CameraStateComponent"

@@ -296,23 +296,23 @@ class NavMesh : Component() {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as NavMesh
-        clone.agentHeight = agentHeight
-        clone.agentRadius = agentRadius
-        clone.agentMaxClimb = agentMaxClimb
-        clone.agentMaxSlope = agentMaxSlope
-        clone.partitionType = partitionType
-        clone.maxVerticesPerPoly = maxVerticesPerPoly
-        clone.cellSize = cellSize
-        clone.cellHeight = cellHeight
-        clone.regionMergeSize = regionMergeSize
-        clone.regionMinSize = regionMinSize
-        clone.edgeMaxLen = edgeMaxLen
-        clone.edgeMaxError = edgeMaxError
-        clone.detailSampleDist = detailSampleDist
-        clone.detailSampleMaxError = detailSampleMaxError
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as NavMesh
+        dst.agentHeight = agentHeight
+        dst.agentRadius = agentRadius
+        dst.agentMaxClimb = agentMaxClimb
+        dst.agentMaxSlope = agentMaxSlope
+        dst.partitionType = partitionType
+        dst.maxVerticesPerPoly = maxVerticesPerPoly
+        dst.cellSize = cellSize
+        dst.cellHeight = cellHeight
+        dst.regionMergeSize = regionMergeSize
+        dst.regionMinSize = regionMinSize
+        dst.edgeMaxLen = edgeMaxLen
+        dst.edgeMaxError = edgeMaxError
+        dst.detailSampleDist = detailSampleDist
+        dst.detailSampleMaxError = detailSampleMaxError
     }
 
 }

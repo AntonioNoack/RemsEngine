@@ -222,19 +222,19 @@ abstract class Node() : PrefabSaveable() {
         // not ideal, but probably good enough for now and manual graph creation
         if (!isConnected()) {
             val clone = javaClass.newInstance()
-            copy(clone)
+            copyInto(clone)
             return clone
         }
         return TextReader.readFirst(TextWriter.toText(this, InvalidRef), InvalidRef)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Node
-        clone.position.set(position)
-        clone.layer = layer
-        clone.graph = graph
-        clone.color = color
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Node
+        dst.position.set(position)
+        dst.layer = layer
+        dst.graph = graph
+        dst.color = color
     }
 
 }

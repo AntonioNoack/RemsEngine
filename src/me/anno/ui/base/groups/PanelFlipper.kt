@@ -150,22 +150,22 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
 
     override fun clone(): PanelFlipper {
         val clone = PanelFlipper(sorter, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as PanelFlipper
-        clone.transitionType = transitionType
-        clone.useLeftMouseButton = useLeftMouseButton
-        clone.useRightMouseButton = useRightMouseButton
-        clone.useMouseWheel = useMouseWheel
-        clone.position = position
-        clone.targetPosition = targetPosition
-        clone.smoothingPerSeconds = smoothingPerSeconds
-        clone.leftBounce = leftBounce
-        clone.rightBounce = rightBounce
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as PanelFlipper
+        dst.transitionType = transitionType
+        dst.useLeftMouseButton = useLeftMouseButton
+        dst.useRightMouseButton = useRightMouseButton
+        dst.useMouseWheel = useMouseWheel
+        dst.position = position
+        dst.targetPosition = targetPosition
+        dst.smoothingPerSeconds = smoothingPerSeconds
+        dst.leftBounce = leftBounce
+        dst.rightBounce = rightBounce
     }
 
     override val className get() = "PanelFlipper"

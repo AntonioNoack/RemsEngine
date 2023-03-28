@@ -91,10 +91,10 @@ open class SDFPyramid : SDFShape() {
         return -sqrt(dx) * sign(dy)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFPyramid
-        clone.params.set(params)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFPyramid
+        dst.params.set(params)
     }
 
     override val className get() = "SDFPyramid"

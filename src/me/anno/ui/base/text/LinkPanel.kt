@@ -38,7 +38,7 @@ open class LinkPanel(link: String, style: Style) : TextPanel(link, style.getChil
 
     override fun clone(): LinkPanel {
         val clone = LinkPanel(text, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 

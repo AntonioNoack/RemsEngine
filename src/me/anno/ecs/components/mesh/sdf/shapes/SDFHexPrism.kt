@@ -102,10 +102,10 @@ open class SDFHexPrism : SDFSmoothShape() {
         return min(max(dx, dy), 0f) + length(max(dx, 0f), max(dy, 0f)) - k0 + pos.w
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFHexPrism
-        clone.params.set(params)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFHexPrism
+        dst.params.set(params)
     }
 
     override val className get() = "SDFHexPrism"

@@ -97,13 +97,13 @@ class SDFOnion() : DistanceMapper() {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFOnion
-        clone.rings = rings
-        clone.dynamicRings = dynamicRings
-        clone.thickness = thickness
-        clone.dynamicThickness = dynamicThickness
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFOnion
+        dst.rings = rings
+        dst.dynamicRings = dynamicRings
+        dst.thickness = thickness
+        dst.dynamicThickness = dynamicThickness
     }
 
     override val className get() = "SDFOnion"

@@ -315,15 +315,15 @@ abstract class AudioComponentBase : Component() {
         return 1
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as AudioComponentBase
-        clone.playMode = playMode
-        clone.volume = volume
-        clone.speed = speed
-        clone.rollOffFactor = rollOffFactor
-        clone.referenceDistance = referenceDistance
-        clone.maxDistance = maxDistance
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as AudioComponentBase
+        dst.playMode = playMode
+        dst.volume = volume
+        dst.speed = speed
+        dst.rollOffFactor = rollOffFactor
+        dst.referenceDistance = referenceDistance
+        dst.maxDistance = maxDistance
     }
 
 }

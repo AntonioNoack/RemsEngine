@@ -183,7 +183,7 @@ open class ScrollPanelY(
 
     override fun clone(): ScrollPanelY {
         val clone = ScrollPanelY(child.clone(), padding, style, alignmentX)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 

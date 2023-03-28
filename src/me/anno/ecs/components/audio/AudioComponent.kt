@@ -20,11 +20,11 @@ class AudioComponent() : AudioComponentBase() {
     @Docs("Keeps the track in memory, so it can be started without delay")
     var keepInMemory = true
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as AudioComponent
-        clone.source = source
-        clone.keepInMemory = keepInMemory
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as AudioComponent
+        dst.source = source
+        dst.keepInMemory = keepInMemory
     }
 
     private fun keepInMemory() {

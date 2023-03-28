@@ -101,14 +101,14 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
         bulletInstance?.enableAngularMotor(enableMotor, motorVelocity, motorTorque)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as HingeConstraint
-        clone.lowerLimit = lowerLimit
-        clone.upperLimit = upperLimit
-        clone.limitSoftness = limitSoftness
-        clone.biasFactor = biasFactor
-        clone.relaxation = relaxation
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as HingeConstraint
+        dst.lowerLimit = lowerLimit
+        dst.upperLimit = upperLimit
+        dst.limitSoftness = limitSoftness
+        dst.biasFactor = biasFactor
+        dst.relaxation = relaxation
     }
 
     override val className get() = "HingeConstraint"

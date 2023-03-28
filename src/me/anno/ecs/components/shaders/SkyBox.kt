@@ -215,21 +215,21 @@ class SkyBox : MeshComponentBase() {
         sun.transform.teleportUpdate()
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SkyBox
-        clone.shader = shader
-        clone.sunRotation = sunRotation
-        clone.sunBaseDir = sunBaseDir
-        clone.cirrus = cirrus
-        clone.cumulus = cumulus
-        clone.cumulusSpeed = cumulusSpeed
-        clone.cumulusOffset = cumulusOffset
-        clone.cirrusSpeed = cirrusSpeed
-        clone.cirrusOffset = cirrusOffset
-        clone.nadir = nadir
-        clone.worldRotation = worldRotation
-        clone.sunSpeed.set(sunSpeed)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SkyBox
+        dst.shader = shader
+        dst.sunRotation = sunRotation
+        dst.sunBaseDir = sunBaseDir
+        dst.cirrus = cirrus
+        dst.cumulus = cumulus
+        dst.cumulusSpeed = cumulusSpeed
+        dst.cumulusOffset = cumulusOffset
+        dst.cirrusSpeed = cirrusSpeed
+        dst.cirrusOffset = cirrusOffset
+        dst.nadir = nadir
+        dst.worldRotation = worldRotation
+        dst.sunSpeed.set(sunSpeed)
     }
 
     override val className get() = "SkyBox"

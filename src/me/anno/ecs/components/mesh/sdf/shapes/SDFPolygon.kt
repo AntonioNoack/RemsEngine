@@ -68,10 +68,10 @@ class SDFPolygon : SDF2DShape() {
         return length(px, py) * sign(px)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFPolygon
-        clone.points = points
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFPolygon
+        dst.points = points
     }
 
     override val className get() = "SDFPolygon"

@@ -111,11 +111,11 @@ class Skeleton : PrefabSaveable(), Renderable {
         previewData = null
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        clone as Skeleton
-        clone.animations.clear()
-        clone.animations.putAll(animations)
-        clone.bones = ArrayList(bones)
+    override fun copyInto(dst: PrefabSaveable) {
+        dst as Skeleton
+        dst.animations.clear()
+        dst.animations.putAll(animations)
+        dst.bones = ArrayList(bones)
     }
 
     override val className get() = "Skeleton"

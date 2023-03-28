@@ -131,15 +131,15 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
 
     override fun clone(): TextInput {
         val clone = TextInput(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as TextInput
-        clone.base.placeholder = base.placeholder
-        clone.base.backgroundColor = base.backgroundColor
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as TextInput
+        dst.base.placeholder = base.placeholder
+        dst.base.backgroundColor = base.backgroundColor
     }
 
     override val className get() = "TextInput"

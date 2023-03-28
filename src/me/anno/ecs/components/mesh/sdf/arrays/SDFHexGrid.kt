@@ -107,11 +107,11 @@ class SDFHexGrid : PositionMapper() {
         bounds.maxZ = Float.POSITIVE_INFINITY
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFHexGrid
-        clone.cellSize = cellSize
-        clone.dynamicSize = dynamicSize
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFHexGrid
+        dst.cellSize = cellSize
+        dst.dynamicSize = dynamicSize
     }
 
     override val className get() = "SDFHexGrid"

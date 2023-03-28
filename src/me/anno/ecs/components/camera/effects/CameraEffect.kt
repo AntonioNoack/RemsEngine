@@ -39,10 +39,10 @@ abstract class CameraEffect : PrefabSaveable() {
         layers[type] = fb.wrapAsFramebuffer()
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as CameraEffect
-        clone.strength = strength
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as CameraEffect
+        dst.strength = strength
     }
 
     override fun save(writer: BaseWriter) {

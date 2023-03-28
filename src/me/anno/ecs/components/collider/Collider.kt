@@ -88,11 +88,11 @@ abstract class Collider : CollidingComponent() {
         return true
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Collider
-        clone.roundness = roundness
-        clone.hasPhysics = hasPhysics
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Collider
+        dst.roundness = roundness
+        dst.hasPhysics = hasPhysics
     }
 
     fun unionRing(

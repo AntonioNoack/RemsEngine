@@ -54,12 +54,12 @@ class PointConstraint : Constraint<Point2PointConstraint>() {
         return instance
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as PointConstraint
-        clone.impulseClamp = impulseClamp
-        clone.damping = damping
-        clone.tau = tau
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as PointConstraint
+        dst.impulseClamp = impulseClamp
+        dst.damping = damping
+        dst.tau = tau
     }
 
     override val className get() = "PointConstraint"

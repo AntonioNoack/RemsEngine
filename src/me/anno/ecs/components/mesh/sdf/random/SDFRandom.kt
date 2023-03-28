@@ -102,13 +102,13 @@ abstract class SDFRandom : PositionMapper() {
 
     abstract fun calcTransform(pos: Vector4f, seed: Int)
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFRandom
-        clone.dynamic = dynamic
-        clone.appliedPortion = appliedPortion
-        clone.seedXOR = seedXOR
-        clone.randomIndex = randomIndex
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFRandom
+        dst.dynamic = dynamic
+        dst.appliedPortion = appliedPortion
+        dst.seedXOR = seedXOR
+        dst.randomIndex = randomIndex
     }
 
     companion object {

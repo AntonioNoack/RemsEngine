@@ -193,7 +193,7 @@ class EnvironmentMap : LightComponentBase() {
 
     override fun clone(): EnvironmentMap {
         val clone = EnvironmentMap()
-        copy(clone)
+        copyInto(clone)
         return EnvironmentMap()
     }
 

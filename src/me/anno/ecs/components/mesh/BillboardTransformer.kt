@@ -82,15 +82,15 @@ open class BillboardTransformer : Component() {
         return 1
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as BillboardTransformer
-        clone.minSize = minSize
-        clone.maxSize = maxSize
-        clone.maxSizeDistance = maxSizeDistance
-        clone.tiltX = tiltX
-        clone.tiltY = tiltY
-        clone.tiltZ = tiltZ
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as BillboardTransformer
+        dst.minSize = minSize
+        dst.maxSize = maxSize
+        dst.maxSizeDistance = maxSizeDistance
+        dst.tiltX = tiltX
+        dst.tiltY = tiltY
+        dst.tiltZ = tiltZ
     }
 
 }

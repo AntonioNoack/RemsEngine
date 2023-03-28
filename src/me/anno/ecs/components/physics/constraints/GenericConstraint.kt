@@ -13,7 +13,7 @@ import kotlin.math.PI
 class GenericConstraint() : Constraint<Generic6DofConstraint>() {
 
     constructor(base: GenericConstraint) : this() {
-        base.copy(this)
+        base.copyInto(this)
     }
 
     var linearLimitsAreInASpaceNotBSpace = true
@@ -68,14 +68,14 @@ class GenericConstraint() : Constraint<Generic6DofConstraint>() {
 
     override fun clone() = GenericConstraint(this)
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as GenericConstraint
-        clone.linearLimitsAreInASpaceNotBSpace = linearLimitsAreInASpaceNotBSpace
-        clone.lowerLimit.set(lowerLimit)
-        clone.upperLimit.set(upperLimit)
-        clone.lowerAngleLimit.set(lowerAngleLimit)
-        clone.upperAngleLimit.set(upperAngleLimit)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as GenericConstraint
+        dst.linearLimitsAreInASpaceNotBSpace = linearLimitsAreInASpaceNotBSpace
+        dst.lowerLimit.set(lowerLimit)
+        dst.upperLimit.set(upperLimit)
+        dst.lowerAngleLimit.set(lowerAngleLimit)
+        dst.upperAngleLimit.set(upperAngleLimit)
     }
 
     override val className get() = "GenericConstraint"

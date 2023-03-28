@@ -31,7 +31,7 @@ import kotlin.math.sqrt
 open class MeshCollider() : Collider() {
 
     constructor(src: MeshCollider) : this() {
-        src.copy(this)
+        src.copyInto(this)
     }
 
     constructor(src: FileReference) : this() {
@@ -384,16 +384,16 @@ open class MeshCollider() : Collider() {
         return MeshCollider(this)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as MeshCollider
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as MeshCollider
         // todo getInClone returns an error for thumbnail test on
         // getReference("Downloads/up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage/f9a80be48a6254344b5f885cfff4bbb0/64472554668277586.json")
-        clone.mesh = mesh // getInClone(mesh, clone)
-        clone.meshFile = meshFile
-        clone.isConvex = isConvex
-        clone.hull = hull
-        clone.meshTransform.set(meshTransform)
+        dst.mesh = mesh // getInClone(mesh, clone)
+        dst.meshFile = meshFile
+        dst.isConvex = isConvex
+        dst.hull = hull
+        dst.meshTransform.set(meshTransform)
     }
 
     override val className get() = "MeshCollider"

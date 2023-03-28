@@ -580,20 +580,20 @@ open class SDFGroup : SDFComponent() {
         return 1
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFGroup
-        clone.smoothness = smoothness
-        clone.progress = progress
-        clone.type = type
-        clone.style = style
-        clone.groove.set(groove)
-        clone.numStairs = numStairs
-        clone.dynamicSmoothness = dynamicSmoothness
-        clone.children.clear()
-        clone.children.addAll(children.map {
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFGroup
+        dst.smoothness = smoothness
+        dst.progress = progress
+        dst.type = type
+        dst.style = style
+        dst.groove.set(groove)
+        dst.numStairs = numStairs
+        dst.dynamicSmoothness = dynamicSmoothness
+        dst.children.clear()
+        dst.children.addAll(children.map {
             val child = it.clone() as SDFComponent
-            child.parent = clone
+            child.parent = dst
             child
         })
     }

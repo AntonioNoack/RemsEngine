@@ -56,10 +56,10 @@ class SDFRoundness : DistanceMapper() {
         return distance - roundness
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFRoundness
-        clone.roundness = roundness
-        clone.dynamic = dynamic
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFRoundness
+        dst.roundness = roundness
+        dst.dynamic = dynamic
     }
 }

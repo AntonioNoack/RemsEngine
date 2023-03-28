@@ -64,10 +64,10 @@ open class MeshComponent() : MeshComponentBase() {
         occlusionQuery = null
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as MeshComponent
-        clone.mesh = mesh
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as MeshComponent
+        dst.mesh = mesh
     }
 
     override val className get() = "MeshComponent"

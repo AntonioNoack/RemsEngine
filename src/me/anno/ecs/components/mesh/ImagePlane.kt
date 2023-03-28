@@ -96,17 +96,17 @@ class ImagePlane(var source: FileReference = InvalidRef) : ProceduralMesh() {
 
     override fun clone(): ImagePlane {
         val clone = ImagePlane(source)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ImagePlane
-        clone.async = async
-        clone.source = source
-        clone.alignmentX = alignmentX
-        clone.alignmentY = alignmentY
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ImagePlane
+        dst.async = async
+        dst.source = source
+        dst.alignmentX = alignmentX
+        dst.alignmentY = alignmentY
     }
 
     override val className get() = "ImagePlane"

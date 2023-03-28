@@ -101,11 +101,11 @@ class SDFRandomRotation : SDFRandom() {
 
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFRandomRotation
-        clone.minAngleDegrees = minAngleDegrees
-        clone.maxAngleDegrees = maxAngleDegrees
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFRandomRotation
+        dst.minAngleDegrees = minAngleDegrees
+        dst.maxAngleDegrees = maxAngleDegrees
     }
 
     override val className get() = "SDFRandomRotation"

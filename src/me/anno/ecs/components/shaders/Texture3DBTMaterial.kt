@@ -55,12 +55,12 @@ class Texture3DBTMaterial : Material() {
         shader.v3f("color1", color1)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Texture3DBTMaterial
-        clone.color0.set(color0)
-        clone.color1.set(color1)
-        clone.size.set(size)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Texture3DBTMaterial
+        dst.color0.set(color0)
+        dst.color1.set(color1)
+        dst.size.set(size)
         // texture cannot be simply copied
     }
 

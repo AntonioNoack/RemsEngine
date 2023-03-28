@@ -60,11 +60,11 @@ abstract class ProceduralMesh : MeshComponentBase() {
 
     abstract fun generateMesh(mesh: Mesh)
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ProceduralMesh
-        clone.needsUpdate = clone.needsUpdate || needsUpdate
-        clone.materials = materials
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ProceduralMesh
+        dst.needsUpdate = dst.needsUpdate || needsUpdate
+        dst.materials = materials
     }
 
     override fun onUpdate(): Int {

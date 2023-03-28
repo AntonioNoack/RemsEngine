@@ -110,14 +110,14 @@ class SplineMesh : ProceduralMesh() {
             }
         }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SplineMesh
-        clone.isStrictlyUp = isStrictlyUp
-        clone.pointsPerRadiant = pointsPerRadiant
-        clone.piecewiseLinear = piecewiseLinear
-        clone.isClosed = isClosed
-        clone.profile = profile
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SplineMesh
+        dst.isStrictlyUp = isStrictlyUp
+        dst.pointsPerRadiant = pointsPerRadiant
+        dst.piecewiseLinear = piecewiseLinear
+        dst.isClosed = isClosed
+        dst.profile = profile
     }
 
     override fun onUpdate(): Int {

@@ -14,7 +14,7 @@ import kotlin.math.max
 open class NineTilePanel(style: Style) : PanelGroup(style) {
 
     constructor(base: NineTilePanel) : this(base.style) {
-        base.copy(this)
+        base.copyInto(this)
     }
 
     override val children = ArrayList<Panel>()
@@ -100,11 +100,11 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
 
     override fun clone() = NineTilePanel(this)
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as NineTilePanel
-        clone.children.clear()
-        clone.children.addAll(children.map { it.clone() })
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as NineTilePanel
+        dst.children.clear()
+        dst.children.addAll(children.map { it.clone() })
     }
 
     override val className get() = "NineTilePanel"

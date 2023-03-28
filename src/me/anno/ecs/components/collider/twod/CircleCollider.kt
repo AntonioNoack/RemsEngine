@@ -46,10 +46,10 @@ class CircleCollider : Collider2d() {
         unionCube(globalTransform, aabb, tmp, r, r, 1.0)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as CircleCollider
-        clone.radius = radius
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as CircleCollider
+        dst.radius = radius
     }
 
     override val className get() = "CircleCollider"

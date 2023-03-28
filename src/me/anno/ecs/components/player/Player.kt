@@ -34,14 +34,14 @@ open class Player : Component() {
         } else super.readObject(name, value)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Player
-        cameraState.copy(clone.cameraState)
-        clone.sessionInfo.clear()
-        clone.sessionInfo.putAll(sessionInfo)
-        clone.persistentInfo.clear()
-        clone.persistentInfo.putAll(persistentInfo)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Player
+        cameraState.copyInto(dst.cameraState)
+        dst.sessionInfo.clear()
+        dst.sessionInfo.putAll(sessionInfo)
+        dst.persistentInfo.clear()
+        dst.persistentInfo.putAll(persistentInfo)
     }
 
     override val className get() = "Player"

@@ -16,10 +16,10 @@ abstract class SDFGroupArray : SDFGroup() {
             field.set(value)
         }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFGroupArray
-        clone.overlap = overlap
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFGroupArray
+        dst.overlap = overlap
     }
 
     abstract fun defineLoopHead(

@@ -176,13 +176,13 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as MeshComponentBase
-        clone.materials = materials // clone list?
-        clone.castShadows = castShadows
-        clone.receiveShadows = receiveShadows
-        clone.isInstanced = isInstanced
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as MeshComponentBase
+        dst.materials = materials // clone list?
+        dst.castShadows = castShadows
+        dst.receiveShadows = receiveShadows
+        dst.isInstanced = isInstanced
     }
 
     companion object {

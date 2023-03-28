@@ -236,15 +236,15 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     open fun getShaderV1(): Float = 0f
     open fun getShaderV2(): Float = 0f
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as LightComponent
-        clone.shadowMapCascades = shadowMapCascades
-        clone.shadowMapPower = shadowMapPower
-        clone.shadowMapResolution = shadowMapResolution
-        clone.color = color
-        clone.needsUpdate = true
-        clone.autoUpdate = autoUpdate
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as LightComponent
+        dst.shadowMapCascades = shadowMapCascades
+        dst.shadowMapPower = shadowMapPower
+        dst.shadowMapResolution = shadowMapResolution
+        dst.color = color
+        dst.needsUpdate = true
+        dst.autoUpdate = autoUpdate
     }
 
     override fun destroy() {

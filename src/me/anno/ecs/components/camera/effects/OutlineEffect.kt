@@ -87,15 +87,15 @@ class OutlineEffect : CameraEffect() {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as OutlineEffect
-        clone.radius = radius
-        clone.numGroups = numGroups
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as OutlineEffect
+        dst.radius = radius
+        dst.numGroups = numGroups
         for (i in 0 until MAX_NUM_GROUPS) {
-            clone.groupIds[i] = groupIds[i]
-            clone.fillColors[i].set(fillColors[i])
-            clone.lineColors[i].set(lineColors[i])
+            dst.groupIds[i] = groupIds[i]
+            dst.fillColors[i].set(fillColors[i])
+            dst.lineColors[i].set(lineColors[i])
         }
     }
 

@@ -28,11 +28,11 @@ class CuboidMesh : ProceduralMesh() {
         mesh.invalidateGeometry()
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as CuboidMesh
-        clone.size.set(size)
-        clone.invalidateMesh()
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as CuboidMesh
+        dst.size.set(size)
+        dst.invalidateMesh()
     }
 
     override val className get() = "CuboidMesh"

@@ -131,14 +131,14 @@ class Camera : Component() {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Camera
-        clone.isPerspective = isPerspective
-        clone.near = near
-        clone.far = far
-        clone.fovY = fovY
-        clone.clearColor.set(clearColor)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Camera
+        dst.isPerspective = isPerspective
+        dst.near = near
+        dst.far = far
+        dst.fovY = fovY
+        dst.clearColor.set(clearColor)
     }
 
     override val className get() = "Camera"

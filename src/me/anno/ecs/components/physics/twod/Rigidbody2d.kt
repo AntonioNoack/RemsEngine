@@ -107,17 +107,17 @@ class Rigidbody2d : Component() {
 
     val inertia get() = box2dInstance?.inertia
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Rigidbody2d
-        clone.gravityScale = gravityScale
-        clone.linearDamping = linearDamping
-        clone.linearVelocity.set(linearVelocity)
-        clone.angularDamping = angularDamping
-        clone.angularVelocity = angularVelocity
-        clone.preventRotation = preventRotation
-        clone.preventTunneling = preventTunneling
-        clone.alwaysActive = alwaysActive
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Rigidbody2d
+        dst.gravityScale = gravityScale
+        dst.linearDamping = linearDamping
+        dst.linearVelocity.set(linearVelocity)
+        dst.angularDamping = angularDamping
+        dst.angularVelocity = angularVelocity
+        dst.preventRotation = preventRotation
+        dst.preventTunneling = preventTunneling
+        dst.alwaysActive = alwaysActive
     }
 
     override val className get() = "Rigidbody2d"

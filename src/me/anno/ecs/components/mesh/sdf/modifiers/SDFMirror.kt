@@ -123,12 +123,12 @@ class SDFMirror() : PositionMapper() {
         if (dot < 0f) pos.sub(dot * normal.a, dot * normal.b, dot * normal.c, 0f)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFMirror
-        clone.plane = plane
-        clone.dynamicPlane = dynamicPlane
-        clone.useBranch = useBranch
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFMirror
+        dst.plane = plane
+        dst.dynamicPlane = dynamicPlane
+        dst.useBranch = useBranch
     }
 
     override val className get() = "SDFMirror"

@@ -115,13 +115,13 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
         (firstInHierarchy { it is ScrollableY } as? ScrollableY)?.scrollY((next.y + next.h / 2) - (prev.y + prev.h / 2))
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as PanelList
-        clone.spacing = spacing
-        clone.disableConstantSpaceForWeightedChildren = disableConstantSpaceForWeightedChildren
-        clone.children.clear()
-        clone.children.addAll(children.map { it.clone() })
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as PanelList
+        dst.spacing = spacing
+        dst.disableConstantSpaceForWeightedChildren = disableConstantSpaceForWeightedChildren
+        dst.children.clear()
+        dst.children.addAll(children.map { it.clone() })
     }
 
 }

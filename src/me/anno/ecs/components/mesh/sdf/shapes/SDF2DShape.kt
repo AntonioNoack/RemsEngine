@@ -153,11 +153,11 @@ open class SDF2DShape : SDFShape() {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDF2DShape
-        clone.axes = axes
-        clone.rotary = rotary
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDF2DShape
+        dst.axes = axes
+        dst.rotary = rotary
     }
 
 }

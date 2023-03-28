@@ -83,15 +83,15 @@ abstract class Constraint<TypedConstraint : com.bulletphysics.dynamics.constrain
         LineShapes.drawPoint(other?.entity ?: entity, otherPosition, 1.0)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Constraint<*>
-        clone.other = getInClone(other, clone)
-        clone.selfPosition.set(selfPosition)
-        clone.selfRotation.set(selfRotation)
-        clone.otherPosition.set(otherPosition)
-        clone.otherRotation.set(otherRotation)
-        clone.disableCollisionsBetweenLinked = disableCollisionsBetweenLinked
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Constraint<*>
+        dst.other = getInClone(other, dst)
+        dst.selfPosition.set(selfPosition)
+        dst.selfRotation.set(selfRotation)
+        dst.otherPosition.set(otherPosition)
+        dst.otherRotation.set(otherRotation)
+        dst.disableCollisionsBetweenLinked = disableCollisionsBetweenLinked
     }
 
 }

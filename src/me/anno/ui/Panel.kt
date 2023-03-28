@@ -806,28 +806,28 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     override fun clone(): Panel {
         val clone = Panel(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Panel
-        clone.minX = minX
-        clone.minY = minY
-        clone.x = x
-        clone.y = y
-        clone.w = w
-        clone.h = h
-        clone.tooltip = tooltip
-        clone.tooltipPanel = clone.tooltipPanel // could create issues, should be found in parent or cloned
-        clone.weight = weight
-        clone.isVisible = isVisible
-        clone.backgroundColor = backgroundColor
-        clone.backgroundRadiusCorners = backgroundRadiusCorners
-        clone.backgroundRadius = backgroundRadius
-        clone.layoutConstraints.clear()
-        clone.layoutConstraints.addAll(layoutConstraints.map { it.clone() })
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Panel
+        dst.minX = minX
+        dst.minY = minY
+        dst.x = x
+        dst.y = y
+        dst.w = w
+        dst.h = h
+        dst.tooltip = tooltip
+        dst.tooltipPanel = dst.tooltipPanel // could create issues, should be found in parent or cloned
+        dst.weight = weight
+        dst.isVisible = isVisible
+        dst.backgroundColor = backgroundColor
+        dst.backgroundRadiusCorners = backgroundRadiusCorners
+        dst.backgroundRadius = backgroundRadius
+        dst.layoutConstraints.clear()
+        dst.layoutConstraints.addAll(layoutConstraints.map { it.clone() })
     }
 
     override fun readInt(name: String, value: Int) {

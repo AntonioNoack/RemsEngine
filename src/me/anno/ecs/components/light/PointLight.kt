@@ -112,11 +112,11 @@ class PointLight : LightComponent(LightType.POINT) {
 
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as PointLight
-        clone.lightSize = lightSize
-        clone.near = near
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as PointLight
+        dst.lightSize = lightSize
+        dst.near = near
     }
 
     override fun drawShape() {

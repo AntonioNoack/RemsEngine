@@ -184,11 +184,11 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Animation
-        clone.skeleton = skeleton
-        clone.duration = duration
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Animation
+        dst.skeleton = skeleton
+        dst.duration = duration
     }
 
     override fun onDestroy() {

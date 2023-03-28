@@ -75,11 +75,11 @@ class LODMeshComponent() : MeshComponentBase() {
         return MeshCache[ref]
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as LODMeshComponent
-        clone.lod1Dist = lod1Dist
-        clone.meshes = meshes // clone the list?
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as LODMeshComponent
+        dst.lod1Dist = lod1Dist
+        dst.meshes = meshes // clone the list?
     }
 
     override val className get() = "LODMeshComponent"

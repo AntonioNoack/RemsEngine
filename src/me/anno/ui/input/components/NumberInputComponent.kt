@@ -31,7 +31,7 @@ open class NumberInputComponent(
 
     override fun clone(): NumberInputComponent {
         val clone = NumberInputComponent(visibilityKey, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 

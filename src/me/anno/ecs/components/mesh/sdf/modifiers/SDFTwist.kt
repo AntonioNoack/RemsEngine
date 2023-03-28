@@ -149,16 +149,16 @@ class SDFTwist : PositionMapper() {
         pos.rotateAbout(angle, destination.x, destination.y, destination.z)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFTwist
-        clone.sourceParams.set(sourceParams)
-        clone.source.set(source)
-        clone.center.set(center)
-        clone.destination.set(destination)
-        clone.dynamicSource = dynamicSource
-        clone.dynamicCenter = dynamicCenter
-        clone.dynamicDestination = dynamicDestination
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFTwist
+        dst.sourceParams.set(sourceParams)
+        dst.source.set(source)
+        dst.center.set(center)
+        dst.destination.set(destination)
+        dst.dynamicSource = dynamicSource
+        dst.dynamicCenter = dynamicCenter
+        dst.dynamicDestination = dynamicDestination
     }
 
     override val className get() = "SDFTwist"

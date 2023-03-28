@@ -86,12 +86,12 @@ class ConeCollider : Collider() {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ConeCollider
-        clone.axis = axis
-        clone.height = height
-        clone.radius = radius
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ConeCollider
+        dst.axis = axis
+        dst.height = height
+        dst.radius = radius
     }
 
     override val className get() = "ConeCollider"

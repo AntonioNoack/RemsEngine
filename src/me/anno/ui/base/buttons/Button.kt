@@ -48,14 +48,14 @@ open class Button(
 
     override fun clone(): Button {
         val clone = Button(isSquare, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Button
-        clone.isSquare = isSquare
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Button
+        dst.isSquare = isSquare
     }
 
     override val className get() = "Button"

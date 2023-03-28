@@ -92,12 +92,12 @@ class CylinderCollider : Collider() {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as CylinderCollider
-        clone.axis = axis
-        clone.halfHeight = halfHeight
-        clone.radius = radius
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as CylinderCollider
+        dst.axis = axis
+        dst.halfHeight = halfHeight
+        dst.radius = radius
     }
 
     override val className get() = "CylinderCollider"

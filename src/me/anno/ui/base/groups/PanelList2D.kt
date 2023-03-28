@@ -14,7 +14,7 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
     constructor(style: Style) : this(null, style)
 
     constructor(base: PanelList2D) : this(base.sorter, base.style) {
-        base.copy(this)
+        base.copyInto(this)
     }
 
     override val children = ArrayList<Panel>(256)
@@ -148,16 +148,16 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
 
     override fun clone() = PanelList2D(this)
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as PanelList2D
-        clone.childWidth = childWidth
-        clone.childHeight = childHeight
-        clone.scaleChildren = scaleChildren
-        clone.rows = rows
-        clone.columns = columns
-        clone.spacing = spacing
-        clone.maxColumns = maxColumns
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as PanelList2D
+        dst.childWidth = childWidth
+        dst.childHeight = childHeight
+        dst.scaleChildren = scaleChildren
+        dst.rows = rows
+        dst.columns = columns
+        dst.spacing = spacing
+        dst.maxColumns = maxColumns
     }
 
 }

@@ -57,10 +57,10 @@ open class SDFMesh : SDFSmoothShape() {
         TODO()
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFMesh
-        clone.mesh = mesh
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFMesh
+        dst.mesh = mesh
     }
 
     override val className get() = "SDFMesh"

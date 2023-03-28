@@ -58,12 +58,12 @@ abstract class Collider2d : Collider() {
         return transform0 to shape
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Collider2d
-        clone.density = density
-        clone.friction = friction
-        clone.restitution = restitution
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Collider2d
+        dst.density = density
+        dst.friction = friction
+        dst.restitution = restitution
     }
 
     abstract fun createBox2dShape(): Shape

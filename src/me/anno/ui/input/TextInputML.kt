@@ -108,13 +108,13 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
 
     override fun clone(): TextInputML {
         val clone = TextInputML(base.placeholder, text, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as TextInputML
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as TextInputML
         // ...
     }
 

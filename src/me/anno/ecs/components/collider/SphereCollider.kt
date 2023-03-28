@@ -18,10 +18,10 @@ class SphereCollider : Collider() {
     @SerializedProperty
     var radius = 1.0
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SphereCollider
-        clone.radius = radius
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SphereCollider
+        dst.radius = radius
     }
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {

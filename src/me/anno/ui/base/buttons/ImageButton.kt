@@ -63,17 +63,17 @@ class ImageButton(
 
     override fun clone(): ImageButton {
         val clone = ImageButton(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ImageButton
-        clone.path = path
-        clone.padding = padding
-        clone.size = size
-        clone.isSquare = isSquare
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ImageButton
+        dst.path = path
+        dst.padding = padding
+        dst.size = size
+        dst.isSquare = isSquare
     }
 
     override val className get() = "ImageButton"

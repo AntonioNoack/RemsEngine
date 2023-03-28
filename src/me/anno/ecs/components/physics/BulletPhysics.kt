@@ -53,7 +53,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     // -> components can be registered before/after enable :)
 
     constructor(base: BulletPhysics) : this() {
-        base.copy(this)
+        base.copyInto(this)
     }
 
     // I use jBullet2, however I have modified it to use doubles for everything

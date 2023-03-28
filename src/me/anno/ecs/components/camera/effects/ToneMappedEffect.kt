@@ -12,10 +12,10 @@ abstract class ToneMappedEffect : CameraEffect() {
 
     override fun listOutputs() = if (applyToneMapping) sdrOutputs else hdrOutputs
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ToneMappedEffect
-        clone.applyToneMapping = applyToneMapping
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ToneMappedEffect
+        dst.applyToneMapping = applyToneMapping
     }
 
     companion object {

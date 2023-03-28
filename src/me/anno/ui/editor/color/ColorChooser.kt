@@ -242,23 +242,23 @@ open class ColorChooser(
             style, withAlpha,
             palette.clone()
         )
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ColorChooser
-        clone.colorSpace = colorSpace
-        clone.visualisation = visualisation
-        clone.hue = hue
-        clone.saturation = saturation
-        clone.lightness = lightness
-        clone.opacity = opacity
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ColorChooser
+        dst.colorSpace = colorSpace
+        dst.visualisation = visualisation
+        dst.hue = hue
+        dst.saturation = saturation
+        dst.lightness = lightness
+        dst.opacity = opacity
         // only works, if there is no reference involved
-        clone.changeListener = changeListener
-        clone.rgb.set(rgb)
-        clone.rgba.set(rgba)
+        dst.changeListener = changeListener
+        dst.rgb.set(rgb)
+        dst.rgba.set(rgba)
     }
 
     override val className get() = "ColorChooser"

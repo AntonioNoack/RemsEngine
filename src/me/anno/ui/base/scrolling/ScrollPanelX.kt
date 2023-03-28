@@ -178,7 +178,7 @@ open class ScrollPanelX(
 
     override fun clone(): ScrollPanelX {
         val clone = ScrollPanelX(child.clone(), padding, style, alignmentX)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 

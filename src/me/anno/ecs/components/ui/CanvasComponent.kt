@@ -60,7 +60,7 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
     // todo this element always need glCullFace, or you see the back when it's transparent
 
     constructor(base: CanvasComponent) : this() {
-        base.copy(this)
+        base.copyInto(this)
     }
 
     // this is a trick to continue the hierarchy using panels
@@ -236,18 +236,18 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
 
     override fun clone() = CanvasComponent(this)
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as CanvasComponent
-        clone.space = space
-        clone.width = width
-        clone.height = height
-        clone.style = style
-        clone.windowStack.clear()
-        clone.windowStack.addAll(windowStack.map {
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as CanvasComponent
+        dst.space = space
+        dst.width = width
+        dst.height = height
+        dst.style = style
+        dst.windowStack.clear()
+        dst.windowStack.addAll(windowStack.map {
             val newPanel = it.panel.clone()
-            newPanel.parent = clone
-            Window(newPanel, isTransparent, it.isFullscreen, clone.windowStack, it.x, it.y)
+            newPanel.parent = dst
+            Window(newPanel, isTransparent, it.isFullscreen, dst.windowStack, it.x, it.y)
         })
     }
 

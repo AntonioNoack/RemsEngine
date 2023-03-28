@@ -301,24 +301,24 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
 
     override fun clone(): TextPanel {
         val clone = TextPanel(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as TextPanel
-        clone.instantTextLoading = instantTextLoading
-        clone.padding = padding
-        clone.text = text
-        clone.font = font
-        clone.textColor = textColor
-        clone.focusTextColor = focusTextColor
-        clone.focusBackground = focusBackground
-        clone.textAlignment = textAlignment
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as TextPanel
+        dst.instantTextLoading = instantTextLoading
+        dst.padding = padding
+        dst.text = text
+        dst.font = font
+        dst.textColor = textColor
+        dst.focusTextColor = focusTextColor
+        dst.focusBackground = focusBackground
+        dst.textAlignment = textAlignment
         // clone.textCacheKey = textCacheKey
-        clone.breaksIntoMultiline = breaksIntoMultiline
-        clone.disableCopy = disableCopy
+        dst.breaksIntoMultiline = breaksIntoMultiline
+        dst.disableCopy = disableCopy
     }
 
     override fun save(writer: BaseWriter) {

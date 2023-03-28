@@ -67,10 +67,10 @@ class RectCollider : Collider2d() {
         )
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as RectCollider
-        clone.halfExtends.set(halfExtends)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as RectCollider
+        dst.halfExtends.set(halfExtends)
     }
 
     override val className get() = "RectCollider"

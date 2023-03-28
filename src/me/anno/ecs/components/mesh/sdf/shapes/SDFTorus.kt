@@ -70,10 +70,10 @@ class SDFTorus : SDFShape() {
         return length(length(pos.x, pos.z) - tx, pos.y) - ty + pos.w
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFTorus
-        clone.params.set(params)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFTorus
+        dst.params.set(params)
     }
 
     override val className get() = "SDFTorus"

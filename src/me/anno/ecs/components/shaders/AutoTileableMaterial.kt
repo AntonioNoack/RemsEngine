@@ -86,13 +86,13 @@ class AutoTileableMaterial : Material() {
         tex2.bind(shader, "invLUTTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as AutoTileableMaterial
-        clone.anisotropic = anisotropic
-        clone.worldPosCenter.set(worldPosCenter)
-        clone.scale.set(scale)
-        clone.tileDir.set(tileDir)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as AutoTileableMaterial
+        dst.anisotropic = anisotropic
+        dst.worldPosCenter.set(worldPosCenter)
+        dst.scale.set(scale)
+        dst.tileDir.set(tileDir)
     }
 
     override val className get() = "AutoTileableMaterial"

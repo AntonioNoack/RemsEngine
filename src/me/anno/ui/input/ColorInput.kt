@@ -256,16 +256,16 @@ open class ColorInput(
 
     override fun clone(): ColorInput {
         val clone = ColorInput(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ColorInput
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ColorInput
         // only works, if there is no references
-        clone.isSelectedListener = isSelectedListener
-        clone.setResetListener(contentView.resetListener)
+        dst.isSelectedListener = isSelectedListener
+        dst.setResetListener(contentView.resetListener)
     }
 
     override val className get() = "ColorInput"

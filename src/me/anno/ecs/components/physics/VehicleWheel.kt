@@ -157,23 +157,23 @@ class VehicleWheel : Component() {
         return wheel
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as VehicleWheel
-        clone.radius = radius
-        clone.brakeForce = brakeForce
-        clone.engineForce = engineForce
-        clone.steering = steering
-        clone.rollInfluence = rollInfluence
-        clone.suspensionDamping = suspensionDamping
-        clone.suspensionStiffness = suspensionStiffness
-        clone.suspensionRestLength = suspensionRestLength
-        clone.suspensionCompression = suspensionCompression
-        clone.maxSuspensionTravelCm = maxSuspensionTravelCm
-        clone.steeringMultiplier = steeringMultiplier
-        clone.engineForceMultiplier = engineForceMultiplier
-        clone.brakeForceMultiplier = brakeForceMultiplier
-        clone.frictionSlip = frictionSlip
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as VehicleWheel
+        dst.radius = radius
+        dst.brakeForce = brakeForce
+        dst.engineForce = engineForce
+        dst.steering = steering
+        dst.rollInfluence = rollInfluence
+        dst.suspensionDamping = suspensionDamping
+        dst.suspensionStiffness = suspensionStiffness
+        dst.suspensionRestLength = suspensionRestLength
+        dst.suspensionCompression = suspensionCompression
+        dst.maxSuspensionTravelCm = maxSuspensionTravelCm
+        dst.steeringMultiplier = steeringMultiplier
+        dst.engineForceMultiplier = engineForceMultiplier
+        dst.brakeForceMultiplier = brakeForceMultiplier
+        dst.frictionSlip = frictionSlip
     }
 
     override val className get() = "VehicleWheel"

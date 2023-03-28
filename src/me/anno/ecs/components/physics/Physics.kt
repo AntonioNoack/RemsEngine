@@ -384,14 +384,14 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Physics<*, *>
-        clone.allowedSpace.set(allowedSpace)
-        clone.targetUpdatesPerSecond = targetUpdatesPerSecond
-        clone.timeNanos = timeNanos
-        clone.synchronousPhysics = synchronousPhysics
-        clone.gravity.set(gravity)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Physics<*, *>
+        dst.allowedSpace.set(allowedSpace)
+        dst.targetUpdatesPerSecond = targetUpdatesPerSecond
+        dst.timeNanos = timeNanos
+        dst.synchronousPhysics = synchronousPhysics
+        dst.gravity.set(gravity)
     }
 
 }

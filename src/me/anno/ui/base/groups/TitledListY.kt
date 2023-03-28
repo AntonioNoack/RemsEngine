@@ -60,7 +60,7 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
 
     override fun clone(): TitledListY {
         val clone = TitledListY(title, visibilityKey, sorter, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 

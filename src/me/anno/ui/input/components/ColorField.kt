@@ -33,7 +33,7 @@ class ColorField(
         base.constSize,
         base.style
     ) {
-        base.copy(this)
+        base.copyInto(this)
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -134,12 +134,12 @@ class ColorField(
 
     override fun clone(): Panel = ColorField(this)
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ColorField
-        clone.color = color
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ColorField
+        dst.color = color
         // only works if there are no references inside
-        clone.changeListener = changeListener
+        dst.changeListener = changeListener
     }
 
     companion object {

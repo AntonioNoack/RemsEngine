@@ -91,10 +91,10 @@ open class SDFDeathStar : SDFShape() {
         else max(length(px, py) - ra, -length(px - d, py) - rb)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFDeathStar
-        clone.params.set(params)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFDeathStar
+        dst.params.set(params)
     }
 
     override val className get() = "SDFDeathStar"

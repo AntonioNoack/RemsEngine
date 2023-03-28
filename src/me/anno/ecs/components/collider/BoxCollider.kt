@@ -40,10 +40,10 @@ class BoxCollider : Collider() {
         drawBox(entity, guiLineColor, halfExtends)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as BoxCollider
-        clone.halfExtends.set(halfExtends)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as BoxCollider
+        dst.halfExtends.set(halfExtends)
     }
 
     override fun raycast(

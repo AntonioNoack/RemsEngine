@@ -60,11 +60,11 @@ abstract class CameraController : Component(), ControlReceiver {
     var numpadAsMouseSpeed = 90f
     var numpadWheelSpeed = 1f
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as CameraController
-        clone.base = getInClone(base, clone)
-        clone.camera = getInClone(camera, clone)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as CameraController
+        dst.base = getInClone(base, dst)
+        dst.camera = getInClone(camera, dst)
     }
 
     override fun save(writer: BaseWriter) {

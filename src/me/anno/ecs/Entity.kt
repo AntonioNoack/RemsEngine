@@ -963,32 +963,32 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     /**
      * O(|E|+|C|) clone of properties and components
      * */
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Entity
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Entity
         // copy all properties
-        clone.hasRenderables = hasRenderables
-        clone.hasValidCollisionMask = hasValidCollisionMask
-        clone.hasSpaceFillingComponents = hasSpaceFillingComponents
-        clone.hasValidAABB = hasValidAABB
-        clone.aabb.set(aabb)
-        clone.transform.set(transform)
-        clone.collisionMask = collisionMask
+        dst.hasRenderables = hasRenderables
+        dst.hasValidCollisionMask = hasValidCollisionMask
+        dst.hasSpaceFillingComponents = hasSpaceFillingComponents
+        dst.hasValidAABB = hasValidAABB
+        dst.aabb.set(aabb)
+        dst.transform.set(transform)
+        dst.collisionMask = collisionMask
         // first the structure
         val children = internalChildren
-        val cloneEntities = clone.internalChildren
+        val cloneEntities = dst.internalChildren
         if (cloneEntities.isNotEmpty()) cloneEntities.clear()
         for (i in children.indices) {
             val entity = children[i].clone() as Entity
-            entity.parent = clone
+            entity.parent = dst
             cloneEntities.add(entity)
         }
         val components = internalComponents
-        val cloneComponents = clone.internalComponents
+        val cloneComponents = dst.internalComponents
         if (cloneComponents.isNotEmpty()) cloneComponents.clear()
         for (i in components.indices) {
             val component = components[i].clone() as Component
-            component.entity = clone
+            component.entity = dst
             cloneComponents.add(component)
         }
     }

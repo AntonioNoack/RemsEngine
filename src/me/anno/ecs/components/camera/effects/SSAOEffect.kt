@@ -47,12 +47,12 @@ class SSAOEffect : CameraEffect() {
         )
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SSAOEffect
-        clone.samples = samples
-        clone.radius = radius
-        clone.enable2x2Blur = enable2x2Blur
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SSAOEffect
+        dst.samples = samples
+        dst.radius = radius
+        dst.enable2x2Blur = enable2x2Blur
     }
 
     override val className get() = "SSAOEffect"

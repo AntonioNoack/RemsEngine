@@ -44,7 +44,7 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     override fun clone(): PanelStack {
         val clone = PanelStack(sorter, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 

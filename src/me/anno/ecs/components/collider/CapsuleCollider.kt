@@ -90,12 +90,12 @@ class CapsuleCollider : Collider() {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as CapsuleCollider
-        clone.axis = axis
-        clone.halfHeight = halfHeight
-        clone.radius = radius
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as CapsuleCollider
+        dst.axis = axis
+        dst.halfHeight = halfHeight
+        dst.radius = radius
     }
 
     override val className get() = "CapsuleCollider"

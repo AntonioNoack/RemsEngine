@@ -29,10 +29,10 @@ class AmbientLight : LightComponentBase() {
         return true
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as AmbientLight
-        clone.color = color
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as AmbientLight
+        dst.color = color
     }
 
     override val className get() = "AmbientLight"

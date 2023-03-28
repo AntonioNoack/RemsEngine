@@ -121,11 +121,11 @@ class SDFTriangleGrid : PositionMapper() {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFTriangleGrid
-        clone.dynamic = dynamic
-        clone.cellSize.set(cellSize)
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFTriangleGrid
+        dst.dynamic = dynamic
+        dst.cellSize.set(cellSize)
     }
 
     override val className get() = "SDFTriangleGrid"

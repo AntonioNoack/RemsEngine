@@ -116,19 +116,19 @@ open class QuickInputScriptComponent : QuickScriptComponent(), ControlReceiver {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as QuickInputScriptComponent
-        clone.actionScript = actionScript
-        clone.charTypedScript = charTypedScript
-        clone.keyDownScript = keyDownScript
-        clone.keyTypedScript = keyTypedScript
-        clone.keyUpScript = keyUpScript
-        clone.mouseClickScript = mouseClickScript
-        clone.mouseDownScript = mouseDownScript
-        clone.mouseMoveScript = mouseMoveScript
-        clone.mouseUpScript = mouseUpScript
-        clone.mouseWheelScript = mouseWheelScript
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as QuickInputScriptComponent
+        dst.actionScript = actionScript
+        dst.charTypedScript = charTypedScript
+        dst.keyDownScript = keyDownScript
+        dst.keyTypedScript = keyTypedScript
+        dst.keyUpScript = keyUpScript
+        dst.mouseClickScript = mouseClickScript
+        dst.mouseDownScript = mouseDownScript
+        dst.mouseMoveScript = mouseMoveScript
+        dst.mouseUpScript = mouseUpScript
+        dst.mouseWheelScript = mouseWheelScript
     }
 
     override val className get() = "QuickInputScriptComponent"

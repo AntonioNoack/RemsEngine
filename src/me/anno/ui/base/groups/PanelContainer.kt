@@ -11,7 +11,7 @@ open class PanelContainer(
 ) : PanelGroup(style) {
 
     constructor(base: PanelContainer) : this(base.child.clone(), base.padding, base.style) {
-        base.copy(this)
+        base.copyInto(this)
     }
 
     init {

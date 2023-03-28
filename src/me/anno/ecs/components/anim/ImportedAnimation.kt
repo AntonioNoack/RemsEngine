@@ -38,10 +38,10 @@ class ImportedAnimation : Animation() {
         return frames[index]
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ImportedAnimation
-        clone.frames = frames // deep copy?
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ImportedAnimation
+        dst.frames = frames // deep copy?
     }
 
     override fun save(writer: BaseWriter) {

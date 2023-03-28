@@ -120,17 +120,17 @@ class BooleanInput(
 
     override fun clone(): BooleanInput {
         val clone = BooleanInput(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as BooleanInput
-        clone.titleView?.text = titleView?.text ?: ""
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as BooleanInput
+        dst.titleView?.text = titleView?.text ?: ""
         // only works, if there is no references
-        clone.isSelectedListener = isSelectedListener
-        clone.isChecked = isChecked
+        dst.isSelectedListener = isSelectedListener
+        dst.isChecked = isChecked
     }
 
     override val className get() = "BooleanInput"

@@ -84,12 +84,12 @@ open class SDFHyperCube : SDFSmoothShape() {
         return outer + inner - r + pos.w
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFHyperCube
-        clone.halfExtends.set(halfExtends)
-        clone.rotation4d.set(rotation4d)
-        clone.w = w
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFHyperCube
+        dst.halfExtends.set(halfExtends)
+        dst.rotation4d.set(rotation4d)
+        dst.w = w
     }
 
     override val className get() = "SDFHyperCube"

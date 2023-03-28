@@ -42,10 +42,10 @@ class ConvexCollider : Collider() {
         }
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ConvexCollider
-        clone.points = points
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ConvexCollider
+        dst.points = points
     }
 
     override val className get() = "ConvexCollider"

@@ -30,14 +30,14 @@ class Vehicle : Rigidbody() {
         mass = 1.0
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Vehicle
-        clone.suspensionDamping = suspensionDamping
-        clone.suspensionStiffness = suspensionStiffness
-        clone.suspensionCompression = suspensionCompression
-        clone.maxSuspensionTravelCm = maxSuspensionTravelCm
-        clone.frictionSlip = frictionSlip
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Vehicle
+        dst.suspensionDamping = suspensionDamping
+        dst.suspensionStiffness = suspensionStiffness
+        dst.suspensionCompression = suspensionCompression
+        dst.maxSuspensionTravelCm = maxSuspensionTravelCm
+        dst.frictionSlip = frictionSlip
     }
 
     override val className get() = "Vehicle"

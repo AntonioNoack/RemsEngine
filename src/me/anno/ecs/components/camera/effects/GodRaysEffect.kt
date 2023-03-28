@@ -66,13 +66,13 @@ class GodRaysEffect : ToneMappedEffect() {
         write(layers, dstType, output)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as GodRaysEffect
-        clone.numSamples = numSamples
-        clone.falloff.set(falloff)
-        clone.sunColor.set(sunColor)
-        clone.lightPosition
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as GodRaysEffect
+        dst.numSamples = numSamples
+        dst.falloff.set(falloff)
+        dst.sunColor.set(sunColor)
+        dst.lightPosition
     }
 
     override val className get() = "GodRaysEffect"

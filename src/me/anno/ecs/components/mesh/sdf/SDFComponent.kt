@@ -771,32 +771,32 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         return sdfTransPool.create().set(posIndex, scaleName, offsetName)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFComponent
-        clone.positionMappers.clear()
-        clone.positionMappers.addAll(clone.positionMappers.map {
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFComponent
+        dst.positionMappers.clear()
+        dst.positionMappers.addAll(dst.positionMappers.map {
             val mapper = it.clone() as PositionMapper
-            mapper.parent = clone
+            mapper.parent = dst
             mapper
         })
-        clone.distanceMappers.clear()
-        clone.distanceMappers.addAll(clone.distanceMappers.map {
+        dst.distanceMappers.clear()
+        dst.distanceMappers.addAll(dst.distanceMappers.map {
             val mapper = it.clone() as DistanceMapper
-            mapper.parent = clone
+            mapper.parent = dst
             mapper
         })
-        clone.position.set(position)
-        clone.rotation.set(rotation)
-        clone.scale = scale
-        clone.dynamicPosition = dynamicPosition
-        clone.dynamicRotation = dynamicRotation
-        clone.dynamicScale = dynamicScale
-        clone.globalReliability = globalReliability
-        clone.normalEpsilon = normalEpsilon
-        clone.maxSteps = maxSteps
-        clone.maxRelativeError = maxRelativeError
-        clone.relativeMeshMargin = relativeMeshMargin
+        dst.position.set(position)
+        dst.rotation.set(rotation)
+        dst.scale = scale
+        dst.dynamicPosition = dynamicPosition
+        dst.dynamicRotation = dynamicRotation
+        dst.dynamicScale = dynamicScale
+        dst.globalReliability = globalReliability
+        dst.normalEpsilon = normalEpsilon
+        dst.maxSteps = maxSteps
+        dst.maxRelativeError = maxRelativeError
+        dst.relativeMeshMargin = relativeMeshMargin
     }
 
     override val className get() = "SDFComponent"

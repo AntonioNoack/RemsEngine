@@ -108,10 +108,10 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         target.weight = weight
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as AnimStateNode
-        clone.progress = progress
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as AnimStateNode
+        dst.progress = progress
     }
 
     override fun save(writer: BaseWriter) {

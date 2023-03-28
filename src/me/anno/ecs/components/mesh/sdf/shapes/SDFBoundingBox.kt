@@ -85,11 +85,11 @@ open class SDFBoundingBox : SDFBox() {
         return min(lineSDF(px, qy, qz), min(lineSDF(qx, py, qz), lineSDF(qx, qy, pz))) - k + pos.w
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SDFBoundingBox
-        clone.thickness = thickness
-        clone.dynamicThickness = dynamicThickness
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SDFBoundingBox
+        dst.thickness = thickness
+        dst.dynamicThickness = dynamicThickness
     }
 
     override val className get() = "SDFBoundingBox"

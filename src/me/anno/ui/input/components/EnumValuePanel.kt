@@ -22,11 +22,11 @@ class EnumValuePanel(title: String, private var owner: EnumInput, style: Style) 
 
     override fun clone() = EnumValuePanel(this)
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as EnumValuePanel
-        clone.text = text
-        clone.owner = getInClone(owner, clone) ?: owner
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as EnumValuePanel
+        dst.text = text
+        dst.owner = getInClone(owner, dst) ?: owner
     }
 
 }

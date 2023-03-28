@@ -123,15 +123,15 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
 
     override fun clone(): AnimContainer {
         val clone = AnimContainer(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as AnimContainer
-        clone.speed = speed
-        clone.animations.addAll(animations.map { it.clone() })
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as AnimContainer
+        dst.speed = speed
+        dst.animations.addAll(animations.map { it.clone() })
     }
 
     override val className get() = "AnimContainer"

@@ -764,19 +764,19 @@ open class PureTextInputML(style: Style) :
 
     override fun clone(): PureTextInputML {
         val clone = PureTextInputML(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as PureTextInputML
-        clone.text = text
-        clone.cursor1.set(cursor1)
-        clone.cursor2.set(cursor2)
-        clone.lineLimit = lineLimit
-        clone.placeholder = placeholder
-        clone.focusTextColor = focusTextColor
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as PureTextInputML
+        dst.text = text
+        dst.cursor1.set(cursor1)
+        dst.cursor2.set(cursor2)
+        dst.lineLimit = lineLimit
+        dst.placeholder = placeholder
+        dst.focusTextColor = focusTextColor
     }
 
     override val className get() = "PureTextInputML"

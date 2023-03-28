@@ -16,7 +16,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
 
     override fun clone(): PanelListX {
         val clone = PanelListX(sorter, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 

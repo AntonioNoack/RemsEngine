@@ -224,48 +224,48 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
     var ignoreStrayPointsInAABB = false
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Mesh
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Mesh
         // ensureBuffer()
         // materials
-        clone.materials = materials
+        dst.materials = materials
         // mesh data
-        clone.positions = positions
-        clone.normals = normals
-        clone.uvs = uvs
-        clone.color0 = color0
-        clone.color1 = color1
-        clone.color2 = color2
-        clone.color3 = color3
-        clone.color4 = color4
-        clone.color5 = color5
-        clone.color6 = color6
-        clone.color7 = color7
-        clone.tangents = tangents
-        clone.indices = indices
-        clone.lineIndices = lineIndices
-        clone.boneWeights = boneWeights
-        clone.boneIndices = boneIndices
-        clone.materialIds = materialIds
+        dst.positions = positions
+        dst.normals = normals
+        dst.uvs = uvs
+        dst.color0 = color0
+        dst.color1 = color1
+        dst.color2 = color2
+        dst.color3 = color3
+        dst.color4 = color4
+        dst.color5 = color5
+        dst.color6 = color6
+        dst.color7 = color7
+        dst.tangents = tangents
+        dst.indices = indices
+        dst.lineIndices = lineIndices
+        dst.boneWeights = boneWeights
+        dst.boneIndices = boneIndices
+        dst.materialIds = materialIds
         // morph targets
-        clone.morphTargets = morphTargets
+        dst.morphTargets = morphTargets
         // draw mode
-        clone.drawMode = drawMode
+        dst.drawMode = drawMode
         // buffer
-        clone.needsMeshUpdate = needsMeshUpdate
-        clone.buffer = buffer
-        clone.triBuffer = triBuffer
-        clone.lineBuffer = lineBuffer
-        clone.debugLineBuffer = debugLineBuffer
-        clone.hasUVs = hasUVs
-        clone.hasVertexColors = hasVertexColors
-        clone.hasBonesInBuffer = hasBonesInBuffer
-        clone.helperMeshes = helperMeshes
-        clone.hasHighPrecisionNormals = hasHighPrecisionNormals
+        dst.needsMeshUpdate = needsMeshUpdate
+        dst.buffer = buffer
+        dst.triBuffer = triBuffer
+        dst.lineBuffer = lineBuffer
+        dst.debugLineBuffer = debugLineBuffer
+        dst.hasUVs = hasUVs
+        dst.hasVertexColors = hasVertexColors
+        dst.hasBonesInBuffer = hasBonesInBuffer
+        dst.helperMeshes = helperMeshes
+        dst.hasHighPrecisionNormals = hasHighPrecisionNormals
         // aabb
-        clone.aabb.set(aabb)
-        clone.ignoreStrayPointsInAABB = ignoreStrayPointsInAABB
+        dst.aabb.set(aabb)
+        dst.ignoreStrayPointsInAABB = ignoreStrayPointsInAABB
     }
 
     override fun save(writer: BaseWriter) {

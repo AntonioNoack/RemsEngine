@@ -304,9 +304,9 @@ class TriTerrain : Component(), CustomEditMode {
         data.add(chunk)
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as TriTerrain
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as TriTerrain
         // copy or clone the data?
         // todo copy everything
     }

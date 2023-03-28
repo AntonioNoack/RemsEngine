@@ -51,16 +51,16 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
 
     override fun clone(): SimpleTextPanel {
         val clone = SimpleTextPanel(style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as SimpleTextPanel
-        clone.text = text
-        clone.textColor = textColor
-        clone.focusTextColor = focusTextColor
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as SimpleTextPanel
+        dst.text = text
+        dst.textColor = textColor
+        dst.focusTextColor = focusTextColor
     }
 
     override val className get() = "SimpleTextPanel"

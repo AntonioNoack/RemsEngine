@@ -137,19 +137,19 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
 
     override fun clone(): Checkbox {
         val clone = Checkbox(defaultValue, defaultValue, size, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as Checkbox
-        clone.isChecked = isChecked
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as Checkbox
+        dst.isChecked = isChecked
         // !! can be incorrect, if there is references within the listener
-        clone.resetListener = resetListener
+        dst.resetListener = resetListener
         // !! can be incorrect, if there is references within the listener
-        clone.changeListener = changeListener
-        clone.wasHovered = wasHovered
+        dst.changeListener = changeListener
+        dst.wasHovered = wasHovered
     }
 
 }

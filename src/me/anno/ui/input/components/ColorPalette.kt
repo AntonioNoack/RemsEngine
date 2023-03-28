@@ -59,15 +59,15 @@ open class ColorPalette(
 
     override fun clone(): ColorPalette {
         val clone = ColorPalette(dimX, dimY, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as ColorPalette
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as ColorPalette
         // !! this can be incorrect, if the function references this special instance
-        clone.onColorSelected = onColorSelected
+        dst.onColorSelected = onColorSelected
     }
 
     override val className get() = "ColorPalette"

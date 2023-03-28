@@ -172,15 +172,15 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     public override fun clone(): PrefabSaveable {
         val clone = javaClass.newInstance()
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    open fun copy(clone: PrefabSaveable) {
-        clone.name = name
-        clone.description = description
-        clone.isEnabled = isEnabled
-        clone.isCollapsed = isCollapsed
+    open fun copyInto(dst: PrefabSaveable) {
+        dst.name = name
+        dst.description = description
+        dst.isEnabled = isEnabled
+        dst.isCollapsed = isCollapsed
         // clone.prefab = prefab
         // clone.prefabPath = prefabPath
     }

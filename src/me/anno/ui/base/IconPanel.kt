@@ -14,14 +14,14 @@ open class IconPanel(var internalPath: FileReference, style: Style) : ImagePanel
 
     override fun clone(): IconPanel {
         val clone = IconPanel(internalPath, style)
-        copy(clone)
+        copyInto(clone)
         return clone
     }
 
-    override fun copy(clone: PrefabSaveable) {
-        super.copy(clone)
-        clone as IconPanel
-        clone.internalPath = internalPath
+    override fun copyInto(dst: PrefabSaveable) {
+        super.copyInto(dst)
+        dst as IconPanel
+        dst.internalPath = internalPath
     }
 
     override val className get() = "IconPanel"
