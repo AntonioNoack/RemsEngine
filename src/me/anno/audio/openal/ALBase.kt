@@ -9,7 +9,7 @@ object ALBase {
 
     fun check() {
         // check thread safety
-        // can be disable for final build
+        // can be disabled for final build
         if (isDebug) {
             val currentThread = Thread.currentThread()
             if (alThread !== currentThread) {

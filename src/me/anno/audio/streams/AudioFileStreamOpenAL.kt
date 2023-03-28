@@ -15,20 +15,18 @@ import java.nio.ShortBuffer
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.max
 
-// only play once, then destroy; it makes things easier
-// (on user input and when finally rendering only)
-
-// done? destroy OpenAL context when stopping playing, and recreate when starting
-// done? to fix "AL lib: (EE) ALCwasapiPlayback_mixerProc: Failed to get padding: 0x88890004"
-// we fixed sth like that
-
 class AudioFileStreamOpenAL(
     file: FileReference,
     repeat: LoopingState,
     var startTime: Double,
+    val relative: Boolean,
     meta: FFMPEGMetadata,
-    speed: Double
-) : AudioFileStream(file, repeat, getIndex(startTime, speed, playbackSampleRate), meta, speed) {
+    speed: Double,
+    left: Boolean, center: Boolean, right: Boolean
+) : AudioFileStream(
+    file, repeat, getIndex(startTime, speed, playbackSampleRate),
+    meta, speed, playbackSampleRate, left, center, right
+) {
 
     companion object {
         @JvmStatic
@@ -39,7 +37,7 @@ class AudioFileStreamOpenAL(
 
     var startTimeNanos = 0L
     var realStartTimeNanos = 0L
-    val alSource by lazy { SoundSource(false, true) }
+    val alSource by lazy { SoundSource(loop = false, relative) }
 
     var queued = AtomicLong()
     var processed = 0
@@ -66,14 +64,9 @@ class AudioFileStreamOpenAL(
         alSource.stop()
         alSource.destroy()
         ALBase.check()
-        // let's hope it works
         for (buffer in buffers) {
             buffer.destroy()
         }
-        // ALBase.check()
-        // somehow crashes..., buffers can't be reused either (without error)
-        // buffers.toSet().forEach { it.destroy() }
-        // ALBase.check()
     }
 
     val cachedBuffers = 10
@@ -139,9 +132,7 @@ class AudioFileStreamOpenAL(
                     val capacity = stereoBuffer.capacity()
                     val targetIndex = samples.toInt() * 2 - (bufferIndex - startIndex) * capacity
                     if (targetIndex < 0 && -targetIndex >= capacity) {
-                        // this buffer is too new (?)...
                         LOGGER.warn("Buffer is too new, probably something has changed")
-                        // return@addTask
                     }
 
                     if (capacity > targetIndex + 256 && targetIndex >= 0) {
@@ -161,7 +152,10 @@ class AudioFileStreamOpenAL(
                 ALBase.check()
                 val soundBuffer = SoundBuffer()
                 ALBase.check()
-                soundBuffer.loadRawStereo16(stereoBuffer, sb0, playbackSampleRate)
+                soundBuffer.loadRaw16(
+                    stereoBuffer, sb0, playbackSampleRate,
+                    if (stereo) AL_FORMAT_STEREO16 else AL_FORMAT_MONO16
+                )
                 soundBuffer.ensureData()
                 buffers.add(soundBuffer)
 
@@ -173,7 +167,6 @@ class AudioFileStreamOpenAL(
                 alSource.play()
                 ALBase.check()
 
-                // time += openALSliceDuration
                 isWaitingForBuffer.set(false)
                 ALBase.check()
 

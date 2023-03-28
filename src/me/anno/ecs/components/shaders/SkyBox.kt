@@ -351,6 +351,7 @@ class SkyBox : MeshComponentBase() {
                         "const vec3 Km = Bm / pow(nitrogen, vec3(0.84));\n" +
                         "pos.y = max(pos.y, 0.0);\n" +
 
+                        // todo the sun is too dark
                         // Atmospheric Scattering
                         "float mu = max(dot(pos, sunDir), 0.0);\n" +
                         "float rayleigh = 3.0 / (8.0 * 3.1416) * (1.0 + mu * mu);\n" +

@@ -4,6 +4,7 @@ import me.anno.audio.openal.AudioManager.openALSession
 import me.anno.audio.streams.AudioStream.Companion.bufferPool
 import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
+import me.anno.utils.LOGGER
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.openal.AL10.*
@@ -23,6 +24,7 @@ class SoundBuffer() : ICacheData {
     var data: ShortBuffer? = null
 
     var sampleRate = 0
+    var format = AL_FORMAT_MONO16
 
     fun ensurePointer() {
         if (pointer == 0 || session != openALSession) {
@@ -36,7 +38,7 @@ class SoundBuffer() : ICacheData {
         val data = data ?: throw IllegalStateException("Missing audio data")
         ensurePointer()
         ALBase.check()
-        alBufferData(pointer, AL_FORMAT_STEREO16, data, sampleRate)
+        alBufferData(pointer, format, data, sampleRate)
         ALBase.check()
         bufferPool.returnBuffer(data0)
         this.data0 = null
@@ -55,16 +57,19 @@ class SoundBuffer() : ICacheData {
         data = ShortBuffer.allocate(size)
     }
 
-    fun loadRawStereo16(data: ShortBuffer, data0: ByteBuffer, sampleRate: Int) {
+    fun loadRaw16(data: ShortBuffer, data0: ByteBuffer, sampleRate: Int, format: Int) {
         this.data = data
         this.data0 = data0
         this.sampleRate = sampleRate
+        this.format = format
     }
 
     fun loadWAV(waveData: WaveData) {
         ensurePointer()
         data = waveData.data!!.asShortBuffer()
+        format = waveData.format
         alBufferData(pointer, waveData.format, waveData.data!!, waveData.sampleRate)
+        LOGGER.debug("wav: $format")
         waveData.destroy()
         ALBase.check()
     }
@@ -79,6 +84,7 @@ class SoundBuffer() : ICacheData {
             val pcm = readVorbis(file, info)
             val format = if (info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16
             ensurePointer()
+            LOGGER.debug("ogg: $format")
             alBufferData(pointer, format, pcm, info.sample_rate())
             ALBase.check()
         }

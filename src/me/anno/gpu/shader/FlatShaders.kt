@@ -55,20 +55,6 @@ object FlatShaders {
                 "}"
     )
 
-    val flatShaderStriped = BaseShader(
-        "flatShaderStriped", coordsPosSize, coordsPosSizeVShader,
-        emptyList(), listOf(
-            Variable(GLSLType.V4F, "color"),
-            Variable(GLSLType.V1I, "offset"),
-            Variable(GLSLType.V1I, "stride")
-        ), "" +
-                "void main(){\n" +
-                "   int x = int(gl_FragCoord.x);\n" +
-                "   if(x % stride != offset) discard;\n" +
-                "   gl_FragColor = color;\n" +
-                "}"
-    )
-
     val flatShaderGradient = ShaderLib.createShader(
         "flatShaderGradient", listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR)), "" +
                 "uniform vec4 posSize;\n" +

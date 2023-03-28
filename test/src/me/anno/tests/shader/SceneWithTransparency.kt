@@ -20,10 +20,6 @@ import me.anno.utils.OS.downloads
 fun main() {
 
     // render scene with transparency
-    // done rendering in deferred mode was missing sky reflections
-    // rendering GlassPass in deferred mode is much darker... why?
-    // because its reflectivity influences the emissions...
-    // -> make reflectivity not influence emissions
 
     ECSRegistry.init()
     val scene = Entity()
@@ -63,14 +59,11 @@ fun main() {
                     println(material.name)
                     when (material.name) {
                         "Piano_vetro", "sanjiaodisikeqiu_t", "08___Default_1001", "DefaultMaterial",
-                        "glass", "material_0", "coat" -> {
+                        "glass", "material_0", "coat", "WINDSHIELD", "Material.003" -> {
                             material.pipelineStage = 1
                             material.isDoubleSided = true
                             material.diffuseBase.w = 0.9f
-                            if (material.name == "DefaultMaterial") {
-                                material.metallicMinMax.set(1f)
-                                material.roughnessMinMax.set(0f)
-                            }
+                            material.metallicMinMax.y = 1f
                         }
                         "930_lights" -> {
                             material.pipelineStage = 1

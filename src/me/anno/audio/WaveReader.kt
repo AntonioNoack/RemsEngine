@@ -1,7 +1,7 @@
 package me.anno.audio
 
-import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
@@ -26,10 +26,7 @@ object WaveReader {
     var debug = false
     private val LOGGER = LogManager.getLogger(WaveReader::class)
 
-    fun readWAV(input: InputStream, frameCount: Int): Pair<ByteBuffer, ShortBuffer> {
-
-        val stereoPCM: ShortBuffer
-        val stereoB0: ByteBuffer
+    fun readWAV(input: InputStream, frameCount: Int): Triple<ByteBuffer, ShortBuffer, Boolean> {
 
         fun readTag() = String(input.readNBytes2(4, true))
 
@@ -100,38 +97,53 @@ object WaveReader {
         val dataSize = readInt()
         if (debug) LOGGER.info("size of the data $dataSize")
 
-        // allocating $frameCount * 4 bytes
+        val sampleCount = frameCount * channels
+        val size = sampleCount * 2
+        when (channels) {
+            1 -> {
 
-        val byteBuffer = ByteBufferPool.allocateDirect(frameCount * 4)
-        stereoB0 = byteBuffer
-        stereoPCM = byteBuffer.asShortBuffer()
-        try {
-            when (channels) {
-                1 -> {// duplicate the data for left+right
-                    for (i in 0 until frameCount) {
-                        val value = readShort().toShort()
-                        stereoPCM.put(value)
-                        stereoPCM.put(value)
-                    }
-                }
-                2 -> {// copy 1:1
-                    if (stereoPCM.order() == ByteOrder.LITTLE_ENDIAN) {// fast path
-                        input.readNBytes2(4 * frameCount, stereoB0, false)
-                    } else {// if our program is ever executed on a big endian machine
-                        for (i in 0 until 2 * frameCount) {
-                            stereoPCM.put(readShort().toShort())
+                val bytes = ByteBufferPool.allocateDirect(size)
+                val shorts = bytes.asShortBuffer()
+
+                if (shorts.order() == ByteOrder.LITTLE_ENDIAN) {// fast path
+                    input.readNBytes2(size, bytes, false)
+                } else {// if our program is ever executed on a big endian machine
+                    try {
+                        for (i in 0 until sampleCount) {
+                            shorts.put(readShort().toShort())
                         }
+                    } catch (ignored: EOFException) {
                     }
                 }
-                else -> throw RuntimeException("Unsupported number of audio channels: $channels")
+
+                if (bytes.position() > 0) bytes.flip()
+                if (shorts.position() > 0) shorts.flip()
+
+                return Triple(bytes, shorts, false)
             }
-        } catch (_: EOFException) {
+            2 -> {
+
+                val bytes = ByteBufferPool.allocateDirect(size)
+                val shorts = bytes.asShortBuffer()
+
+                if (shorts.order() == ByteOrder.LITTLE_ENDIAN) {// fast path
+                    input.readNBytes2(size, bytes, false)
+                } else {// if our program is ever executed on a big endian machine
+                    try {
+                        for (i in 0 until sampleCount) {
+                            shorts.put(readShort().toShort())
+                        }
+                    } catch (ignored: EOFException) {
+                    }
+                }
+
+                if (bytes.position() > 0) bytes.flip()
+                if (shorts.position() > 0) shorts.flip()
+
+                return Triple(bytes, shorts, true)
+            }
+            else -> throw RuntimeException("Unsupported number of audio channels: $channels")
         }
-
-        if (stereoB0.position() > 0) stereoB0.flip()
-        if (stereoPCM.position() > 0) stereoPCM.flip()
-
-        return stereoB0 to stereoPCM
 
     }
 

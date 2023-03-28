@@ -23,8 +23,8 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.CubemapFramebuffer
+import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
-import me.anno.gpu.pipeline.transparency.WeightedBlended
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -167,7 +167,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         stage.add(light, entity)
     }
 
-    var transparentPass: TransparentPass = WeightedBlended()
+    var transparentPass: TransparentPass = GlassPass()
 
     override fun destroy() {
         bakedSkyBox?.destroy()
@@ -177,10 +177,11 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
 
     fun draw() {
         if (GFXState.currentRenderer.deferredSettings != null &&
-            stages.any2 { it.blendMode != null } && GFXState.currentBuffer.numTextures >= 2
+            stages.any2 { it.blendMode != null && it.size > 0 } &&
+            GFXState.currentBuffer.numTextures >= 2
         ) transparentPass.draw0(this)
         else for (stage in stages) {
-            stage.bindDraw(this)
+            if (stage.size > 0) stage.bindDraw(this)
         }
     }
 

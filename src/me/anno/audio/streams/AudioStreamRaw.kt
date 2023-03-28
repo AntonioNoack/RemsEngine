@@ -13,7 +13,7 @@ import me.anno.utils.structures.tuples.FloatPair
 import me.anno.utils.structures.tuples.ShortPair
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.getAudioSequence
-import java.nio.ShortBuffer
+import org.lwjgl.openal.AL10
 import kotlin.math.max
 import kotlin.math.min
 
@@ -31,6 +31,7 @@ class AudioStreamRaw(
 
         // 1024 (48Hz .. 48kHz) or 2048? (24Hz .. 48kHz)
         var bufferSize = 4096
+
         // should be set by the engine depending on the OS
         // could be overridden manually, e.g. to get a 8kHz vibe;
         // if you do that, consider overriding bufferSize as well, so the audio could be adjusted faster if needed (idk yet)
@@ -111,7 +112,10 @@ class AudioStreamRaw(
                 val sliceTime = sliceIndex * ffmpegSliceSampleDuration
                 val soundBuffer = AudioCache.getEntry(key, timeout, false) {
                     val sequence = getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, sampleRate)
-                    waitUntilDefined(true) { if(sequence.isEmpty) SoundBuffer(0) else sequence.soundBuffer }
+                    waitUntilDefined(true) {
+                        if (sequence.isEmpty) SoundBuffer(0)
+                        else sequence.soundBuffer
+                    }
                 } as SoundBuffer
                 lastSoundBuffer = soundBuffer
                 lastSliceIndex = sliceIndex
@@ -120,10 +124,13 @@ class AudioStreamRaw(
 
             val data = soundBuffer.data!!
             val localIndex = (index % ffmpegSliceSampleCount).toInt()
-            val arrayIndex0 = localIndex * 2 // for stereo
-
-            shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
-
+            if (soundBuffer.format == AL10.AL_FORMAT_STEREO16) {
+                val arrayIndex0 = localIndex * 2 // for stereo
+                shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
+            } else {
+                val v = data[localIndex] // mono
+                shortPair.set(v, v)
+            }
         }
 
     }

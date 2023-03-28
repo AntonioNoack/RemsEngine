@@ -272,7 +272,8 @@ open class FileExplorerEntry(
                             if (meta.hasAudio) {
                                 this.audio = AudioFileStreamOpenAL(
                                     file, LoopingState.PLAY_LOOP,
-                                    -hoverPlaybackDelay, meta, 1.0
+                                    -hoverPlaybackDelay, true, meta, 1.0,
+                                    left = true, center = false, right = true
                                 )
                                 AudioTasks.addTask("start", 5) {
                                     audio?.start()

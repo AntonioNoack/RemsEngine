@@ -1,9 +1,8 @@
-package me.anno.ui.base.components
+package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.FlatShaders.flatShader
@@ -18,7 +17,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 @Suppress("unused")
-object Corner {
+object DrawRounded {
 
     private fun corner(mx: Boolean, my: Boolean): StaticBuffer {
 

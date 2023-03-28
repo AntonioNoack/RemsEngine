@@ -5,6 +5,8 @@ import me.anno.audio.WaveReader
 import me.anno.audio.openal.SoundBuffer
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
+import org.lwjgl.openal.AL10.AL_FORMAT_MONO16
+import org.lwjgl.openal.AL10.AL_FORMAT_STEREO16
 import kotlin.concurrent.thread
 
 class FFMPEGAudio(file: FileReference?, val sampleRate: Int, val length: Double) :
@@ -37,8 +39,11 @@ class FFMPEGAudio(file: FileReference?, val sampleRate: Int, val length: Double)
             input.reset()
             val buffer = SoundBuffer()
             try {
-                val wav = WaveReader.readWAV(input, frameCount)
-                buffer.loadRawStereo16(wav.second, wav.first, sampleRate)
+                val (bytes, shorts, stereo) = WaveReader.readWAV(input, frameCount)
+                buffer.loadRaw16(
+                    shorts, bytes, sampleRate,
+                    if (stereo) AL_FORMAT_STEREO16 else AL_FORMAT_MONO16
+                )
                 soundBuffer = buffer
             } catch (ignored: ShutdownException) {
             }

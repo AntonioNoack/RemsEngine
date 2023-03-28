@@ -1,10 +1,11 @@
 package me.anno.audio.openal
 
 import me.anno.audio.openal.AudioManager.openALSession
+import me.anno.utils.LOGGER
 import org.joml.Vector3f
 import org.lwjgl.openal.AL10.*
 
-class SoundSource(val loop: Boolean, val relative: Boolean) {
+class SoundSource(val loop: Boolean, val relativePositionsToListener: Boolean) {
 
     var session = openALSession
     var sourcePtr = alGenSources()
@@ -12,7 +13,7 @@ class SoundSource(val loop: Boolean, val relative: Boolean) {
 
     init {
         alSourcei(sourcePtr, AL_LOOPING, if (loop) AL_TRUE else AL_FALSE)
-        alSourcei(sourcePtr, AL_SOURCE_RELATIVE, if (relative) AL_TRUE else AL_FALSE)
+        alSourcei(sourcePtr, AL_SOURCE_RELATIVE, if (relativePositionsToListener) AL_TRUE else AL_FALSE)
         ALBase.check()
     }
 
@@ -21,19 +22,28 @@ class SoundSource(val loop: Boolean, val relative: Boolean) {
             session = openALSession
             sourcePtr = alGenSources()
             alSourcei(sourcePtr, AL_LOOPING, if (loop) AL_TRUE else AL_FALSE)
-            alSourcei(sourcePtr, AL_SOURCE_RELATIVE, if (relative) AL_TRUE else AL_FALSE)
+            alSourcei(sourcePtr, AL_SOURCE_RELATIVE, if (relativePositionsToListener) AL_TRUE else AL_FALSE)
             ALBase.check()
             hasBeenStarted = false
             true
         } else false
     }
 
-    fun setDistanceModel(rolloffFactor: Float = 1f, referenceDistance: Float = 1f, maxDistance: Float = 1e3f) {
+    fun setDistanceModel(rollOffFactor: Float = 1f, referenceDistance: Float = 1f, maxDistance: Float = 1e3f) {
         if (sourcePtr < 0) return
-        // max distance = stopped attenuation???
-        alSourcef(sourcePtr, AL_ROLLOFF_FACTOR, rolloffFactor)
-        alSourcef(sourcePtr, AL_REFERENCE_DISTANCE, referenceDistance)
-        alSourcef(sourcePtr, AL_MAX_DISTANCE, maxDistance)
+        // rollOffFactor = 0 == no attenuation
+        LOGGER.debug("setDistanceModel($sourcePtr,$rollOffFactor,$referenceDistance,$maxDistance)")
+        alSourcef(sourcePtr, AL_ROLLOFF_FACTOR, rollOffFactor)
+        alSourcef(
+            sourcePtr,
+            AL_REFERENCE_DISTANCE,
+            referenceDistance
+        ) // until this distance, the volume is constant (in clamped models)
+        alSourcef(
+            sourcePtr,
+            AL_MAX_DISTANCE,
+            maxDistance
+        ) // after this distance, the model is no longer attenuated, but still playing; except in linear model, there it stops
     }
 
     fun setBuffer(buffer: Int) {
@@ -42,29 +52,27 @@ class SoundSource(val loop: Boolean, val relative: Boolean) {
         alSourcei(sourcePtr, AL_BUFFER, buffer)
     }
 
-    fun setPosition(position: Vector3f) {
+    fun setPosition(v: Vector3f) = setPosition(v.x, v.y, v.z)
+    fun setVelocity(v: Vector3f) = setVelocity(v.x, v.y, v.z)
+
+    fun setPosition(x: Float, y: Float, z: Float) {
         if (sourcePtr < 0) return
-        alSource3f(sourcePtr, AL_POSITION, position.x, position.y, position.z)
+        alSource3f(sourcePtr, AL_POSITION, x, y, z)
     }
 
-    fun setVelocity(speed: Vector3f) {
+    fun setVelocity(x: Float, y: Float, z: Float) {
         if (sourcePtr < 0) return
-        alSource3f(sourcePtr, AL_VELOCITY, speed.x, speed.y, speed.z)
+        alSource3f(sourcePtr, AL_VELOCITY, x, y, z)
     }
 
-    fun setPosition(px: Float, py: Float, pz: Float) {
+    fun setGain(value: Float) {
         if (sourcePtr < 0) return
-        alSource3f(sourcePtr, AL_POSITION, px, py, pz)
+        alSourcef(sourcePtr, AL_GAIN, value)
     }
 
-    fun setVelocity(sx: Float, sy: Float, sz: Float) {
+    fun setSpeed(value: Float) {
         if (sourcePtr < 0) return
-        alSource3f(sourcePtr, AL_VELOCITY, sx, sy, sz)
-    }
-
-    fun setGain(gain: Float) {
-        if (sourcePtr < 0) return
-        alSourcef(sourcePtr, AL_GAIN, gain)
+        alSourcef(sourcePtr, AL_PITCH, value)
     }
 
     fun setProperty(param: Int, value: Float) {

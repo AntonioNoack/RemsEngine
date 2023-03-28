@@ -12,8 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger
 
 abstract class AudioStream(
     val speed: Double,
-    val playbackSampleRate: Int = 48000
+    val playbackSampleRate: Int = 48000,
+    val left: Boolean, val center: Boolean, val right: Boolean
 ) {
+
+    val stereo = left && right && !center
 
     companion object {
 
@@ -62,21 +65,51 @@ abstract class AudioStream(
 
     var isPlaying = false
 
-    abstract fun getBuffer(bufferIndex: Long): Pair<FloatArray, FloatArray>
+    abstract fun getBuffer(bufferIndex: Long): Pair<FloatArray?, FloatArray?>
 
     fun requestNextBuffer(bufferIndex: Long, session: Int) {
 
         isWaitingForBuffer.set(true)
         taskQueue += {// load all data async
 
-            val sb0 = bufferPool[bufferSize * 2 * 2, false, true]
+            val bufferSize = bufferSize
+            val size = bufferSize * 2 * (if (stereo) 2 else 1)
+            val sb0 = bufferPool[size, false, true]
                 .order(ByteOrder.nativeOrder())
             val stereoBuffer = sb0.asShortBuffer()
 
-            val (left, right) = getBuffer(bufferIndex)
-            for (i in 0 until bufferSize) {
-                stereoBuffer.put(floatToShort(left[i]))
-                stereoBuffer.put(floatToShort(right[i]))
+            when {
+                center -> {
+                    val (left, right) = getBuffer(bufferIndex)
+                    left!!
+                    right!!
+                    for (i in 0 until bufferSize) {
+                        stereoBuffer.put(floatToShort((left[i] + right[i]) * 0.5f))
+                    }
+                }
+                stereo -> {
+                    val (left, right) = getBuffer(bufferIndex)
+                    left!!
+                    right!!
+                    for (i in 0 until bufferSize) {
+                        stereoBuffer.put(floatToShort(left[i]))
+                        stereoBuffer.put(floatToShort(right[i]))
+                    }
+                }
+                left -> {
+                    val (left, _) = getBuffer(bufferIndex)
+                    left!!
+                    for (i in 0 until bufferSize) {
+                        stereoBuffer.put(floatToShort(left[i]))
+                    }
+                }
+                else -> {
+                    val (_, right) = getBuffer(bufferIndex)
+                    right!!
+                    for (i in 0 until bufferSize) {
+                        stereoBuffer.put(floatToShort(right[i]))
+                    }
+                }
             }
 
             stereoBuffer.position(0)

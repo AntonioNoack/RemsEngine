@@ -18,7 +18,7 @@ import me.anno.video.ffmpeg.FFMPEGMetadata
 /**
  * audio effects:
  * done better echoing ;)
- * todo velocity frequency change
+ * done by OpenAL: velocity frequency change
  * done pitch
  * todo losing high frequencies in the distance
  * done audio becoming quiet in the distance
@@ -29,10 +29,11 @@ abstract class AudioFileStream(
     var startIndex: Long,
     val meta: FFMPEGMetadata,
     speed: Double,
-    playbackSampleRate: Int = 48000
-) : AudioStream(speed, playbackSampleRate) {
+    playbackSampleRate: Int = 48000,
+    left: Boolean, center: Boolean, right: Boolean
+) : AudioStream(speed, playbackSampleRate, left, center, right) {
 
-    override fun getBuffer(bufferIndex: Long): Pair<FloatArray, FloatArray> {
+    override fun getBuffer(bufferIndex: Long): Pair<FloatArray?, FloatArray?> {
         return AudioFXCache.getBuffer(bufferIndex, this, false)!!
     }
 

@@ -1,11 +1,28 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.FlatShaders.flatShaderStriped
+import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.FlatShaders
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.builder.Variable
 import org.joml.Vector4f
 
 object DrawStriped {
+
+    val flatShaderStriped = BaseShader(
+        "flatShaderStriped", FlatShaders.coordsPosSize, FlatShaders.coordsPosSizeVShader,
+        emptyList(), listOf(
+            Variable(GLSLType.V4F, "color"),
+            Variable(GLSLType.V1I, "offset"),
+            Variable(GLSLType.V1I, "stride")
+        ), "" +
+                "void main(){\n" +
+                "   int x = int(gl_FragCoord.x);\n" +
+                "   if(x % stride != offset) discard;\n" +
+                "   gl_FragColor = color;\n" +
+                "}"
+    )
 
     @Suppress("unused")
     fun drawRectStriped(x: Int, y: Int, w: Int, h: Int, offset: Int, stride: Int, color: Vector4f) {

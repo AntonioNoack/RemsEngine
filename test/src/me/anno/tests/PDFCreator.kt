@@ -108,7 +108,7 @@ fun main() {
         section.clear()
         section.add(lastSection + 1)
         nextPage()
-        write(title+"\n", 18f, AxisAlignment.MIN, 0f)
+        write(title + "\n", 18f, AxisAlignment.MIN, 0f)
     }
 
     fun nextSection(title: String) {}
@@ -134,7 +134,7 @@ fun main() {
             trim.startsWith("\\section") -> nextSection(sectionText)
             trim.startsWith("\\subsection") -> nextSubsection(sectionText)
             else -> {
-                write(sectionText, 12f, AxisAlignment.FILL,0f, -1)
+                write(sectionText, 12f, AxisAlignment.FILL, 0f, -1)
             }
         }
     }

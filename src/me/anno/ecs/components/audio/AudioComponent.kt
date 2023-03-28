@@ -3,8 +3,6 @@ package me.anno.ecs.components.audio
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioFXCache
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
-import me.anno.audio.streams.AudioStreamRaw.Companion.playbackSampleRate
-import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
@@ -12,7 +10,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import kotlin.math.ceil
 
-class AudioComponent : AudioComponentBase() {
+class AudioComponent() : AudioComponentBase() {
 
     // todo autostart option
 
@@ -62,12 +60,11 @@ class AudioComponent : AudioComponentBase() {
     }
 
     override fun onUpdate(): Int {
-        var ret = 30
+        super.onUpdate()
         if (keepInMemory) {
             keepInMemory()
-            ret = 5
         }
-        return ret
+        return 1
     }
 
     override val className get() = "AudioComponent"
