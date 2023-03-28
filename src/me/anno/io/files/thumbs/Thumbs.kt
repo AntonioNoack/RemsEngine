@@ -570,6 +570,7 @@ object Thumbs {
         rv.rotation.identity()
             .rotateY(25.0.toRadians())
             .rotateX((-15.0).toRadians())
+        rv.pipeline.defaultStage.cullMode = CullMode.BOTH
         rv
     }
 
@@ -604,12 +605,14 @@ object Thumbs {
         // sometimes black: because of vertex colors, which are black
         // render everything without color
         renderToImage(srcFile, false, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
-            mesh.drawAssimp(
-                1f, null,
-                useMaterials = true,
-                centerMesh = true,
-                normalizeScale = true
-            )
+            GFXState.cullMode.use(CullMode.BOTH) {
+                mesh.drawAssimp(
+                    1f, null,
+                    useMaterials = true,
+                    centerMesh = true,
+                    normalizeScale = true
+                )
+            }
         }
     }
 
@@ -629,12 +632,14 @@ object Thumbs {
         // sometimes black: because of vertex colors, which are black
         // render everything without color
         renderToImage(srcFile, false, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
-            mesh.drawAssimp(
-                1f, comp,
-                useMaterials = true,
-                centerMesh = true,
-                normalizeScale = true
-            )
+            GFXState.cullMode.use(CullMode.BOTH) {
+                mesh.drawAssimp(
+                    1f, comp,
+                    useMaterials = true,
+                    centerMesh = true,
+                    normalizeScale = true
+                )
+            }
         }
     }
 
@@ -698,7 +703,9 @@ object Thumbs {
         renderToImage(srcFile, false, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
             // setup full render state
             defineRenderState()
-            pipeline.defaultStage.drawColors(pipeline)
+            GFXState.cullMode.use(CullMode.BOTH) {
+                pipeline.defaultStage.drawColors(pipeline)
+            }
         }
     }
 

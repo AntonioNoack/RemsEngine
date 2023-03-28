@@ -205,7 +205,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
     }
 
     override fun invalidateLayout() {
-        window?.needsLayout?.add(this)
+        window?.addNeedsLayout(this)
     }
 
 }

@@ -6,6 +6,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
+import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
 import me.anno.input.MouseButton
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -13,7 +14,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
-import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.Constraint
@@ -133,12 +133,11 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun invalidateLayout() {
         val parent = uiParent
         if (parent == null) {
-            window?.needsLayout?.add(this)
+            window?.addNeedsLayout(this)
         } else parent.invalidateLayout()
     }
 
     open fun invalidateDrawing() {
-        val window = window
         window?.addNeedsRedraw(this)
     }
 
@@ -380,14 +379,14 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     fun setPosSize(x: Int, y: Int, w: Int, h: Int) {
-        setPosition(x, y)
         setSize(w, h)
-        // to do why is the menu-window depending on this?
-        // is this still incorrect? currently, I couldn't reproduce the bug,
-        // so maybe it has been fixed indirectly
-        if (this.x != x || this.y != y) {
-            setPosition(this.x, this.y)
-        } // else is already placed
+        this.x = x
+        this.y = y
+        val constraints = layoutConstraints
+        for (i in constraints.indices) {
+            constraints[i].apply(this)
+        }
+        setPosition(this.x, this.y)
     }
 
     open fun setPosition(x: Int, y: Int) {
@@ -398,13 +397,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun setSize(w: Int, h: Int) {
         this.w = w
         this.h = h
-        val constraints = layoutConstraints
-        for (i in constraints.indices) {
-            val c = constraints[i]
-            c.apply(this)
-            if (this.w > w || this.h > h)
-                throw RuntimeException("Constraint ${c::class} isn't working properly: $w -> ${this.w}, $h -> ${this.h}")
-        }
     }
 
     /**
@@ -640,7 +632,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun acceptsChar(char: Int) = true
 
     open fun scrollTo(x: Int, y: Int) {
-        // find parent scroll lists, such that after scrolling, this panel has it's center there
+        // find parent scroll lists, such that after scrolling, this panel has its center there
         var dx = (this.x + this.w / 2) - x
         var dy = (this.y + this.h / 2) - y
         var par = uiParent

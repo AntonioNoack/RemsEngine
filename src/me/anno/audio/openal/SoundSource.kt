@@ -1,11 +1,17 @@
 package me.anno.audio.openal
 
 import me.anno.audio.openal.AudioManager.openALSession
-import me.anno.utils.LOGGER
+import me.anno.maths.Maths.sq
 import org.joml.Vector3f
 import org.lwjgl.openal.AL10.*
+import kotlin.math.max
+import kotlin.math.sqrt
 
-class SoundSource(val loop: Boolean, val relativePositionsToListener: Boolean) {
+class SoundSource(val loop: Boolean, var relativePositionsToListener: Boolean) {
+
+    companion object {
+        var maxVelocity = 343f * 0.9f // close to speed of sound
+    }
 
     var session = openALSession
     var sourcePtr = alGenSources()
@@ -29,21 +35,21 @@ class SoundSource(val loop: Boolean, val relativePositionsToListener: Boolean) {
         } else false
     }
 
+    fun setRelative(relative: Boolean) {
+        relativePositionsToListener = relative
+        alSourcei(sourcePtr, AL_SOURCE_RELATIVE, if (relative) AL_TRUE else AL_FALSE)
+    }
+
     fun setDistanceModel(rollOffFactor: Float = 1f, referenceDistance: Float = 1f, maxDistance: Float = 1e3f) {
         if (sourcePtr < 0) return
+        val relative = rollOffFactor <= 0f
+        if (relative != relativePositionsToListener) setRelative(relative)
         // rollOffFactor = 0 == no attenuation
-        LOGGER.debug("setDistanceModel($sourcePtr,$rollOffFactor,$referenceDistance,$maxDistance)")
-        alSourcef(sourcePtr, AL_ROLLOFF_FACTOR, rollOffFactor)
-        alSourcef(
-            sourcePtr,
-            AL_REFERENCE_DISTANCE,
-            referenceDistance
-        ) // until this distance, the volume is constant (in clamped models)
-        alSourcef(
-            sourcePtr,
-            AL_MAX_DISTANCE,
-            maxDistance
-        ) // after this distance, the model is no longer attenuated, but still playing; except in linear model, there it stops
+        alSourcef(sourcePtr, AL_ROLLOFF_FACTOR, max(rollOffFactor, 0f))
+        // until this distance, the volume is constant (in clamped models)
+        alSourcef(sourcePtr, AL_REFERENCE_DISTANCE, max(referenceDistance, 1e-38f))
+        // after this distance, the model is no longer attenuated, but still playing; except in linear model, there it stops
+        alSourcef(sourcePtr, AL_MAX_DISTANCE, max(maxDistance, 1e-38f))
     }
 
     fun setBuffer(buffer: Int) {
@@ -62,7 +68,18 @@ class SoundSource(val loop: Boolean, val relativePositionsToListener: Boolean) {
 
     fun setVelocity(x: Float, y: Float, z: Float) {
         if (sourcePtr < 0) return
-        alSource3f(sourcePtr, AL_VELOCITY, x, y, z)
+        var nx = x
+        var ny = y
+        var nz = z
+        val lenSq = sq(nx, ny, nz)
+        val maxVelocity = maxVelocity
+        if (lenSq > maxVelocity * maxVelocity) {
+            val factor = maxVelocity / sqrt(lenSq)
+            nx *= factor
+            ny *= factor
+            nz *= factor
+        }
+        alSource3f(sourcePtr, AL_VELOCITY, nx, ny, nz)
     }
 
     fun setGain(value: Float) {

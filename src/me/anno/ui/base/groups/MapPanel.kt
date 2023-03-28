@@ -89,14 +89,16 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     @NotSerializedProperty
     var isDownOnScrollbarY = false
 
-    override fun scrollX(delta: Double) {
+    override fun scrollX(delta: Double): Double {
         scrollPositionX += delta
         moveMap(-delta, 0.0)
+        return 0.0
     }
 
-    override fun scrollY(delta: Double) {
+    override fun scrollY(delta: Double): Double {
         scrollPositionY += delta
         moveMap(0.0, -delta)
+        return 0.0
     }
 
     override fun onUpdate() {
@@ -110,7 +112,7 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     }
 
     override fun invalidateLayout() {
-        window?.needsLayout?.add(this)
+        window?.addNeedsLayout(this)
     }
 
     open fun shallMoveMap(): Boolean = Input.isLeftDown

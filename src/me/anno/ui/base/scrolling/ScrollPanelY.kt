@@ -48,9 +48,6 @@ open class ScrollPanelY(
     override var scrollPositionY = 0.0
     override var targetScrollPositionY = 0.0
 
-    @NotSerializedProperty
-    private var isDownOnScrollbar = false
-
     val scrollbar = ScrollbarY(this, style)
     val scrollbarWidth = style.getSize("scrollbarWidth", 8)
     val scrollbarPadding = style.getSize("scrollbarPadding", 1)
@@ -72,27 +69,39 @@ open class ScrollPanelY(
             return max(0, childH + padding.height - h)
         }
 
-    override fun scrollY(delta: Double) {
-        // todo the scrollbar sometimes gets stuck... how???
-        if (delta == 0.0) return
-        targetScrollPositionY += delta
-        clampScrollPosition()
-        val window = window
-        window?.needsLayout?.add(this)
+    override fun scrollY(delta: Double): Double {
+        if (delta == 0.0) return 0.0
+        val old = targetScrollPositionY
+        val new = clamp(old + delta, 0.0, maxScrollPositionY.toDouble())
+        targetScrollPositionY = new
+        return new - (old + delta) // remaining scroll amount
     }
 
     override fun onUpdate() {
         super.onUpdate()
-        val window = window!!
-        val mx = window.mouseXi
-        val my = window.mouseYi
-        scrollbar.isBeingHovered = capturesChildEvents(mx, my)
+        val window = window
+        if (window != null) {
+            val mx = window.mouseXi
+            val my = window.mouseYi
+            scrollbar.isBeingHovered = capturesChildEvents(mx, my)
+        }
         scrollPositionY = mix(scrollPositionY, targetScrollPositionY, dtTo01(deltaTime * scrollHardnessY))
         if (scrollbar.updateAlpha()) invalidateDrawing()
         if (round(scrollPositionY) != lastScrollPosY || maxScrollPositionY != lastMaxScrollPosY) {
             lastScrollPosY = round(scrollPositionY)
             lastMaxScrollPosY = maxScrollPositionY
-            window.needsLayout += this
+            placeChild()
+        }
+    }
+
+    fun placeChild() {
+        val child = child
+        val padding = padding
+        val scroll0 = round(scrollPositionY).toLong()
+        val scroll = clamp(scroll0, 0L, max(0, child.minH + padding.height - h).toLong()).toInt()
+        child.setPosition(x + padding.left, y + padding.top - scroll)
+        if (child is LongScrollable) {
+            child.setExtraScrolling(0L, scroll0 - scroll)
         }
     }
 
@@ -115,14 +124,7 @@ open class ScrollPanelY(
     override fun setPosition(x: Int, y: Int) {
         this.x = x
         this.y = y
-        val child = child
-        val padding = padding
-        val scroll0 = scrollPositionY.toLong()
-        val scroll = clamp(scroll0, 0L, max(0, child.minH + padding.height - h).toLong()).toInt()
-        child.setPosition(x + padding.left, y + padding.top - scroll)
-        if (child is LongScrollable) {
-            child.setExtraScrolling(0L, scroll0 - scroll)
-        }
+        placeChild()
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -158,21 +160,24 @@ open class ScrollPanelY(
         targetScrollPositionY = clamp(targetScrollPositionY, 0.0, maxScrollPositionY.toDouble())
     }
 
+    @NotSerializedProperty
+    private var isDownOnScrollbar = 0
+
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        isDownOnScrollbar = capturesChildEvents(x.toInt(), y.toInt())
-        if (!isDownOnScrollbar) super.onMouseDown(x, y, button)
+        if (button.isLeft) isDownOnScrollbar = if (capturesChildEvents(x.toInt(), y.toInt())) 1 else -1
+        else super.onMouseDown(x, y, button)
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        isDownOnScrollbar = false
+        isDownOnScrollbar = 0
         super.onMouseUp(x, y, button)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (isDownOnScrollbar && Input.isLeftDown) {
-            scrollY(dy / relativeSizeY)
-            // dy was consumed
-            if (dx != 0f) super.onMouseMoved(x, y, dx, 0f)
+        if (isDownOnScrollbar != 0 && Input.isLeftDown) {
+            // todo test this remainder using scroll panels inside scroll panels
+            val dy2 = scrollY(if (isDownOnScrollbar > 0) dy / relativeSizeY else -dy.toDouble()).toFloat()
+            if (dx != 0f || dy2 != 0f) super.onMouseMoved(x, y, dx, dy2)
         } else super.onMouseMoved(x, y, dx, dy)
     }
 

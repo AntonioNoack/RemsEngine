@@ -14,7 +14,7 @@ fun main() {
     // - 2d background music
     val scene = Entity()
     scene.add(AudioComponent().apply {
-        // todo audio seems to break with very high velocities -> clamp them
+        // todo audio seems to break with very high distances??? -> clamp them
         name = "Local"
         rollOffFactor = 1f
         referenceDistance = 1f

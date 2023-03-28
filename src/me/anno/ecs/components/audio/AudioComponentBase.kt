@@ -42,6 +42,7 @@ abstract class AudioComponentBase : Component() {
                     }
                 }
             }
+
         val prevCamPos = Vector3f()
         val currCamPos = Vector3f()
         val currCamDirZ = Vector3f()
@@ -188,6 +189,7 @@ abstract class AudioComponentBase : Component() {
         }
     var referenceDistance = 1f
         set(value) {
+            val f = max(referenceDistance, 0f)
             if (field != value) {
                 field = value
                 if (stream0 != null) addTask("distance", 1) { updateDistanceModel() }
@@ -202,8 +204,9 @@ abstract class AudioComponentBase : Component() {
         }
 
     fun updateDistanceModel() {
-        stream0?.alSource?.setDistanceModel(max(0f, rollOffFactor), referenceDistance, maxDistance)
-        stream1?.alSource?.setDistanceModel(max(0f, rollOffFactor), referenceDistance, maxDistance)
+        val rof = max(0f, rollOffFactor)
+        stream0?.alSource?.setDistanceModel(rof, referenceDistance, maxDistance)
+        stream1?.alSource?.setDistanceModel(rof, referenceDistance, maxDistance)
     }
 
     @DebugProperty
@@ -211,8 +214,10 @@ abstract class AudioComponentBase : Component() {
 
     @DebugAction
     open fun resume() {
-        if (stream0 != null) return // already playing
-        start(stopTime)
+        if (stream0 != null) {
+            stream0?.alSource?.play()
+            stream1?.alSource?.play()
+        } else start(stopTime)
     }
 
     private val lastPosition0 = Vector3f()
@@ -220,6 +225,15 @@ abstract class AudioComponentBase : Component() {
     private val lastPosition1 = Vector3f()
     private val lastVelocity1 = Vector3f()
     private var lastTime = 0L
+
+    @DebugAction
+    open fun pause() {
+        if (stream0 == null) return
+        addTask("pause", 1) {
+            stream0?.alSource?.pause()
+            stream1?.alSource?.pause()
+        }
+    }
 
     @DebugAction
     open fun stop() {

@@ -23,11 +23,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
         if (element in this) return false
         if (size < data.size) data[size] = element
         size++
-        return size <= data.size
-    }
-
-    fun indexOf(element: V): Int {
-        return data.indexOf(element)
+        return true
     }
 
     // implemented to reduce allocations
@@ -56,6 +52,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun removeAll(elements: Collection<V>): Boolean {
+        if (size >= data.size) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
         var writeIndex = 0
         val oldSize = min(size, data.size)
         for (readIndex in 0 until oldSize) {
@@ -64,13 +61,12 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
                 data[writeIndex++] = element
             }
         }
-        // if (!isFull()) {
         size = writeIndex
-        // }
         return writeIndex != oldSize || isFull()
     }
 
     override fun removeIf(p0: Predicate<in V>): Boolean {
+        if (size > data.size) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
         var writeIndex = 0
         val oldSize = min(size, data.size)
         for (readIndex in 0 until oldSize) {
@@ -80,13 +76,12 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
                 data[writeIndex++] = element
             }
         }
-        // if (!isFull()) {
         size = writeIndex
-        // }
         return writeIndex != oldSize || isFull()
     }
 
     override fun retainAll(elements: Collection<V>): Boolean {
+        if (size > data.size) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
         var writeIndex = 0
         val oldSize = min(size, data.size)
         for (readIndex in 0 until oldSize) {
@@ -95,9 +90,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
                 data[writeIndex++] = element
             }
         }
-        // if (!isFull()) {
         size = writeIndex
-        // }
         return writeIndex != oldSize || isFull()
     }
 
@@ -105,11 +98,13 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
         val targetSize = data.size + elements.size
         var wasChanged = false
         for (e in elements) {
-            if (!add(e)) {
-                size = targetSize
-                return true
-            } else {
-                wasChanged = true
+            if (e !in data) {
+                if (!add(e)) { // we're full, so we're done
+                    size = targetSize
+                    return true
+                } else {
+                    wasChanged = true
+                }
             }
         }
         return wasChanged

@@ -59,7 +59,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             lastScrollPosY = round(scrollPositionY)
             lastMaxScrollPosX = maxScrollPositionX
             lastMaxScrollPosY = maxScrollPositionY
-            window.needsLayout += this
+            window.addNeedsLayout(this)
         }
     }
 
@@ -74,12 +74,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
 
     override val maxScrollPositionX get() = max(0, child.minW + padding.width - w).toLong()
     override val maxScrollPositionY get() = max(0, child.minH + padding.height - h).toLong()
-
-    @NotSerializedProperty
-    private var isDownOnScrollbarX = false
-
-    @NotSerializedProperty
-    private var isDownOnScrollbarY = false
 
     private val scrollbarX = ScrollbarX(this, style)
     private val scrollbarY = ScrollbarY(this, style)
@@ -106,16 +100,18 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             return if (child is LongScrollable) child.sizeY else child.minH.toLong()
         }
 
-    override fun scrollX(delta: Double) {
+    override fun scrollX(delta: Double): Double {
         targetScrollPositionX += delta
         clampScrollPosition()
-        window?.needsLayout?.add(this)
+        window?.addNeedsLayout(this)
+        return 0.0
     }
 
-    override fun scrollY(delta: Double) {
+    override fun scrollY(delta: Double): Double {
         targetScrollPositionY += delta
         clampScrollPosition()
-        window?.needsLayout?.add(this)
+        window?.addNeedsLayout(this)
+        return 0.0
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
@@ -229,32 +225,37 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         targetScrollPositionY = clamp(targetScrollPositionY, 0.0, maxScrollPositionY.toDouble())
     }
 
+    @NotSerializedProperty
+    private var isDownOnScrollbarX = 0
+
+    @NotSerializedProperty
+    private var isDownOnScrollbarY = 0
+
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        val xi = x.toInt()
-        val yi = y.toInt()
-        isDownOnScrollbarX = hasScrollbarX && drawsOverX(xi, yi)
-        isDownOnScrollbarY = hasScrollbarY && drawsOverY(xi, yi)
-        if (!isDownOnScrollbarX && !isDownOnScrollbarY) super.onMouseDown(x, y, button)
+        if (button.isLeft) {
+            val xi = x.toInt()
+            val yi = y.toInt()
+            isDownOnScrollbarX = if (hasScrollbarX && drawsOverX(xi, yi)) 1 else -1
+            isDownOnScrollbarY = if (hasScrollbarY && drawsOverY(xi, yi)) 1 else -1
+        } else super.onMouseDown(x, y, button)
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        isDownOnScrollbarX = false
-        isDownOnScrollbarY = false
+        isDownOnScrollbarX = 0
+        isDownOnScrollbarY = 0
         super.onMouseUp(x, y, button)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         var rx = dx
         var ry = dy
-        if (isDownOnScrollbarX && rx != 0f) {
-            scrollX(rx / relativeSizeX)
-            // consume rx
-            rx = 0f
+        if (isDownOnScrollbarX != 0 && rx != 0f) {
+            // todo test this remainder using scroll panels inside scroll panels
+            rx = scrollX(if (isDownOnScrollbarX > 0) rx / relativeSizeX else -rx.toDouble()).toFloat()
         }
-        if (isDownOnScrollbarY && ry != 0f) {
-            scrollY(ry / relativeSizeY)
-            // consume ry
-            ry = 0f
+        if (isDownOnScrollbarY != 0 && ry != 0f) {
+            // todo test this remainder using scroll panels inside scroll panels
+            ry = scrollY(if (isDownOnScrollbarX > 0) ry / relativeSizeY else -ry.toDouble()).toFloat()
         }
         if (rx != 0f || ry != 0f) {
             super.onMouseMoved(x, y, rx, ry)

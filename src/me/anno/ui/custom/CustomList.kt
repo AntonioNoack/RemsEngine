@@ -24,7 +24,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     }
 
     override fun invalidateLayout() {
-        window?.needsLayout?.add(this)
+        window?.addNeedsLayout(this)
     }
 
     val minSize get() = if (isY) 10f / h else 10f / w

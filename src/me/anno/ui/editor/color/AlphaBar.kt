@@ -21,8 +21,10 @@ class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
             true
         )
     }) {
+
     override fun invalidateDrawing() {
         uiParent?.invalidateDrawing()
+        super.invalidateDrawing()
     }
 
     override fun getVisualState() = chooser.opacity

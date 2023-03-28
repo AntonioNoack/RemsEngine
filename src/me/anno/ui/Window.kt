@@ -66,13 +66,18 @@ open class Window(
     }
 
     // todo optimized way to request redraw-updates: e.g., for blinking cursors only a very small section actually changes
-    val needsRedraw = LimitedList<Panel>(16)
-    val needsLayout = LimitedList<Panel>(16)
+    private val needsRedraw = LimitedList<Panel>(16)
+    private val needsLayout = LimitedList<Panel>(16)
+    private val needsLayoutTmp = LimitedList<Panel>(16)
 
     fun addNeedsRedraw(panel: Panel) {
         if (panel.canBeSeen) {
             needsRedraw.add(panel.getOverlayParent() ?: panel)
         }
+    }
+
+    fun addNeedsLayout(panel: Panel) {
+        needsLayout.add(panel)
     }
 
     var w = -1
@@ -173,16 +178,17 @@ open class Window(
     }
 
     fun validateLayouts(dx: Int, dy: Int, windowW: Int, windowH: Int, panel: Panel) {
-        val needsLayout = needsLayout
-        if (this.w != windowW || this.h != windowH || panel in needsLayout || needsLayout.isFull()) {
+        val needsLayout = needsLayoutTmp
+        needsLayout.clear()
+        needsLayout.addAll(this.needsLayout)
+        if (this.w != windowW || this.h != windowH || panel in needsLayout) {
             this.w = windowW
             this.h = windowH
             calculateFullLayout(dx, dy, windowW, windowH)
             needsRedraw.add(panel)
             needsLayout.clear()
         } else {
-            var i = 0
-            while (needsLayout.isNotEmpty() && i++ < needsLayout.size) {
+            while (needsLayout.isNotEmpty()) {
                 val p = needsLayout.minByOrNull { it.depth }!!
                 // recalculate layout
                 p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)

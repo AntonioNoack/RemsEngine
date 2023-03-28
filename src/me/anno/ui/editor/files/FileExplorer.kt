@@ -292,13 +292,10 @@ open class FileExplorer(
             invalidate()
         }
 
-        uContent += ScrollPanelY(
-            favourites,
-            Padding(1),
-            style,
-            AxisAlignment.MIN
-        )// .child.setWeight(1f)
-        uContent += content2d.setWeight2(3f)
+        uContent += ScrollPanelY(favourites, Padding(1), style, AxisAlignment.MIN)
+        uContent += ScrollPanelY(content2d, Padding(1), style, AxisAlignment.MIN).apply {
+            weight = 1f
+        }
 
     }
 
@@ -737,7 +734,8 @@ open class FileExplorer(
             content2d.childHeight = if (listMode) (textSize * 1.5f).roundToInt()
             else esi + (textSize * 2.5f).roundToInt()
             // scroll to hoverItemIndex, hoverFractionY
-            content2d.scrollTo(hoveredItemIndex, hoverFractionY)
+            // todo restore that (?)
+            // content2d.scrollTo(hoveredItemIndex, hoverFractionY)
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
 

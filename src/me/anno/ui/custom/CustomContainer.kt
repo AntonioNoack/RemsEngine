@@ -49,7 +49,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
     }
 
     override fun invalidateLayout() {
-        window?.needsLayout?.add(this)
+        window?.addNeedsLayout(this)
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
