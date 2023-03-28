@@ -9,6 +9,7 @@ import me.anno.utils.hpc.HeavyProcessing.numThreads
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Floats.f3
+import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrameReader
 import org.apache.logging.log4j.LogManager
@@ -146,13 +147,13 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         @JvmStatic
         fun getAudioSequence(input: FileReference, startTime: Double, duration: Double, sampleRate: Int) =
-            FFMPEGAudio(input, sampleRate, duration).run(
+            FFMPEGAudio(input, getMeta(input, false)!!.audioChannels, sampleRate, duration).run(
                 "-ss", "$startTime", // important!!!
                 "-i", input.absolutePath,
                 "-t", "$duration", // duration
                 "-ar", "$sampleRate",
                 // -aq quality, codec specific
-                "-f", "wav",
+                "-f", "s16le", "-acodec", "pcm_s16le",
                 // the -bitexact tag doesn't exist on my Linux ffmpeg :(, and ffmpeg just still adds the info block
                 // -> we need to remove it
                 // "-bitexact", // don't add an additional LIST-INFO chunk; we don't care

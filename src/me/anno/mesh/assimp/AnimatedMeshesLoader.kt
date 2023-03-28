@@ -58,7 +58,6 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
         unitScaleFactor = (metadata["UnitScaleFactor"] as? Double)?.toFloat() ?: unitScaleFactor
 
-        LOGGER.info("$file -> $metadata")
         // if (signature == "fbx") unitScaleFactor *= 0.01f // a test, works for the ghost...
 
         if (unitScaleFactor == 1f && upAxis == 1 && frontAxis == 2) return null
@@ -342,7 +341,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     ) {
         val (_, globalInvTransform) = findRootTransform(name, rootNode, boneMap)
         if (globalInvTransform != null) {
-            LOGGER.debug("Applying $globalInvTransform to $name")
+            LOGGER.debug("Applying global transform $globalInvTransform to $name")
             for (bone in boneList) {
                 bone.setBindPose(Matrix4x3f(globalInvTransform).mul(bone.bindPose))
             }

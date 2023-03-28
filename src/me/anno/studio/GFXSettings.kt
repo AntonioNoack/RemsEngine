@@ -19,7 +19,7 @@ enum class GFXSettings(
     val displayName get() = Dict[displayNameEn, displayNameDict]
     val data = StringMap()
 
-    operator fun get(key: String) = data[key] as Boolean
+    operator fun get(key: String): Any? = data[key]
 
     companion object {
         @JvmStatic

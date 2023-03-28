@@ -90,13 +90,15 @@ open class StaticMeshesLoader {
         // but we'd need to keep track of the scale factor;
         // it only is allowed to be set, if the file is a fbx file
         return synchronized(StaticMeshesLoader) {
+            val isFBXFile = sign == "fbx"
+            val scale = if (isFBXFile && aiGetVersionMajor() == 4) 0.01f else 1f
             val obj = if (file is FileFileRef /*&&/|| file.absolutePath.count { it == '.' } <= 1*/) {
                 val store = aiCreatePropertyStore()!!
-                aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1f)
+                aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
                 aiImportFileExWithProperties(file.absolutePath, flags, null, store)
             } else {
                 val store = aiCreatePropertyStore()!!
-                aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, 1f)
+                aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
                 val fileIO = AIFileIOImpl.create(file, file.getParent()!!)
                 aiImportFileExWithProperties(file.name, flags, fileIO, store)
                     ?: aiImportFileFromMemoryWithProperties( // the first method threw "bad allocation" somehow 🤷‍♂️
