@@ -5,12 +5,10 @@ import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.io.serialization.SerializedProperty
-import me.anno.utils.types.Floats.step
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.abs
 import kotlin.math.sqrt
 
 class SphereCollider : Collider() {

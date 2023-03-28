@@ -1,7 +1,6 @@
 package me.anno.ecs.components.physics.twod
 
 import me.anno.ecs.Component
-import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import org.jbox2d.dynamics.Body
 import org.joml.Vector2f

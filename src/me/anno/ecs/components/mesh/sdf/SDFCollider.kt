@@ -4,7 +4,6 @@ import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.shapes.CollisionShape
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
-import me.anno.ecs.Component
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.MeshCollider.Companion.defaultShape

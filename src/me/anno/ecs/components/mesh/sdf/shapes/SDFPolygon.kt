@@ -2,15 +2,11 @@ package me.anno.ecs.components.mesh.sdf.shapes
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
-import me.anno.image.ImageWriter
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.length
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector4f
 import kotlin.math.*

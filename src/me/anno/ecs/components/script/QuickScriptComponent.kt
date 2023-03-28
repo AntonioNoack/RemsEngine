@@ -2,7 +2,6 @@ package me.anno.ecs.components.script
 
 import me.anno.Engine
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.player.LocalPlayer

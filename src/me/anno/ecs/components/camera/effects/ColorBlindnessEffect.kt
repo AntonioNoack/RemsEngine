@@ -9,8 +9,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 
 class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {

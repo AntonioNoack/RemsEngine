@@ -4,8 +4,6 @@ import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.studio.StudioBase.Companion.warn
-import me.anno.ui.base.constraints.WrapAlign
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.VectorInputList

@@ -1,6 +1,5 @@
 package me.anno.ecs.components.script
 
-import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.script.ScriptComponent.Companion.toLua
 import me.anno.ecs.interfaces.ControlReceiver

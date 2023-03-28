@@ -2,8 +2,6 @@ package me.anno.ecs.components.camera.effects
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.deferred.DeferredLayerType
-import org.joml.Vector3f
-import kotlin.math.max
 
 abstract class ToneMappedEffect : CameraEffect() {
 

@@ -149,7 +149,7 @@ object StringHelper {
         if (this == other) return 0
         val sx = this.length + 1
         val sy = other.length + 1
-        if (sx == 1 || sy == 1) return abs(sx - sy)
+        if (sx <= 1 || sy <= 1) return abs(sx - sy)
         if (sx <= 2 && sy <= 2) return 1
         // switching both sides may be valuable
         if (sx > sy + 5) return other.distance(this, ignoreCase)
@@ -177,7 +177,8 @@ object StringHelper {
                 i2++
             }
         }
-        return dist[sx * (sy % 3) - 1]
+        val yi = (((sy + 2) % 3) + 1)
+        return dist[sx * yi - 1]
     }
 
     // by polyGeneLubricants, https://stackoverflow.com/a/2560017/4979303

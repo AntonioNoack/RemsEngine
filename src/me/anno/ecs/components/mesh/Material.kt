@@ -5,7 +5,6 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -22,7 +21,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
-import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
 

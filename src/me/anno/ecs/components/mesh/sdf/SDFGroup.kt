@@ -18,7 +18,6 @@ import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.tuples.Quad
 import org.joml.AABBf
 import org.joml.Vector2f
-import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.roundToInt

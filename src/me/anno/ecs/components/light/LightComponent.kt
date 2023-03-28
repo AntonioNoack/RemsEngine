@@ -26,7 +26,6 @@ import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
-import org.lwjgl.opengl.GL11C.GL_LESS
 import kotlin.math.pow
 
 abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
