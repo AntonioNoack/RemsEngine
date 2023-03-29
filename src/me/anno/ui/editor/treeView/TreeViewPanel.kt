@@ -29,7 +29,7 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
 
-class TreeViewPanel<V>(
+class TreeViewPanel<V : Any>(
     val getElement: () -> V,
     val isValidElement: (Any?) -> Boolean,
     val toggleCollapsed: (V) -> Unit,
@@ -194,60 +194,70 @@ class TreeViewPanel<V>(
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        val element = getElement()
-        if (element is PrefabSaveable && element.root.prefab?.isWritable == false) {
+        val hovered = getElement()
+        if (hovered is PrefabSaveable && hovered.root.prefab?.isWritable == false) {
             LOGGER.warn("Prefab is not writable!")
-            return
-        }
-        try {
-            val child0 = TextReader.read(data, StudioBase.workspace, true).firstOrNull()
+        } else try {
 
-            @Suppress("unchecked_cast")
-            val child = child0 as? V ?: return super.onPaste(x, y, data, type)
+            val relativeY = (y - this.y) / this.h
 
+            // check if the element can be moved without deleting everything
             @Suppress("unchecked_cast")
             val original = (dragged as? Draggable)?.getOriginal() as? V
-            val relativeY = (y - this.y) / this.h
-            element!!
-            moveChange {
-                if (relativeY < 0.33f) {
-                    // paste on top
-                    if (element.parent != null) {
-                        treeView.addBefore(element, child)
-                    } else {
-                        treeView.addChild(element, child, -1)
+            if (original != null) {
+                var canBeMoved = true
+                var ancestor = hovered
+                while (true) {
+                    if (original === ancestor) {
+                        canBeMoved = false
+                        break
                     }
-                    // we can't remove the element, if it's the parent
-                    if (original !in child.listOfAll) {
-                        original?.removeFromParent()
-                    }
-                } else if (relativeY < 0.67f) {
-                    // paste as child
-                    treeView.addChild(element, child, -1)
-                    if (element != original) {
-                        // we can't remove the element, if it's the parent
-                        if (original !in child.listOfAll) {
-                            original?.removeFromParent()
-                        }
-                    }
-                } else {
-                    // paste below
-                    if (element.parent != null) {
-                        treeView.addAfter(element, child)
-                    } else {
-                        treeView.addChild(element, child, -1)
-                    }
-                    // we can't remove the element, if it's the parent
-                    if (original !in child.listOfAll) {
-                        original?.removeFromParent()
-                    }
+                    ancestor = ancestor.parent ?: break
                 }
-                treeView.selectElements(listOf(child))
+                if (canBeMoved) {
+                    moveChange {
+                        original.removeFromParent()
+                        insertElement(relativeY, hovered, original)
+                    }
+                    return
+                }
             }
+
+            // if not, create a copy
+            @Suppress("unchecked_cast")
+            val clone = TextReader.read(data, StudioBase.workspace, true).firstOrNull()
+                    as? V ?: return super.onPaste(x, y, data, type)
+
+            moveChange {
+                insertElement(relativeY, hovered, clone)
+            }
+
         } catch (e: Exception) {
             e.printStackTrace()
             super.onPaste(x, y, data, type)
         }
+    }
+
+    fun insertElement(relativeY: Float, hovered: V, clone: V) {
+        if (relativeY < 0.33f) {
+            // paste on top
+            if (hovered.parent != null) {
+                treeView.addBefore(hovered, clone)
+            } else {
+                treeView.addChild(hovered, clone, treeView.getChildren(hovered).size)
+            }
+        } else if (relativeY < 0.67f) {
+            // paste as child
+            treeView.addChild(hovered, clone, treeView.getChildren(hovered).size)
+        } else {
+            // paste below
+            if (hovered.parent != null) {
+                treeView.addAfter(hovered, clone)
+            } else {
+                treeView.addChild(hovered, clone, treeView.getChildren(hovered).size)
+            }
+        }
+        treeView.selectElements(listOf(clone))
     }
 
     val V.parent: V? get() = treeView.getParent(this)

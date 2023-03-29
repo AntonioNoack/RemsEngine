@@ -29,7 +29,7 @@ class Draggable(
         ui += WrapAlign.LeftTop
         loadTexturesSync.push(true)
         ui.calculateSize(300, 300)
-        ui.setSize(300, 300)
+        ui.setPosSize(0, 0, ui.minW, ui.minH)
         loadTexturesSync.pop()
     }
 
@@ -39,7 +39,6 @@ class Draggable(
     }
 
     override fun getSize(w: Int, h: Int): IntPair {
-        // ui.applyConstraints()
         return IntPair(ui.w, ui.h)
     }
 

@@ -203,7 +203,6 @@ object EngineActions {
         register["FileExplorer.right.down", "OpenOptions"]
         register["FileExplorer.mouseBackward.down", "Back"]
         register["FileExplorer.mouseForward.down", "Forward"]
-        register["FileExplorerEntry.left.double", "Enter"]
         register["TreeViewPanel.left.press", "DragStart"]
         register["TreeViewPanel.f2.down", "Rename"]
         register["StackPanel.left.press", "DragStart"]

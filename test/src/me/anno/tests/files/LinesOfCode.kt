@@ -90,18 +90,12 @@ fun main() {
             override fun destroy(element: FileReference) {}
             override fun getName(element: FileReference) = element.name
             override fun setName(element: FileReference, name: String) {}
-            override fun getIndexInParent(parent: FileReference, child: FileReference): Int {
-                return getChildren(parent).indexOf(child)
-            }
 
             override fun stringifyForCopy(element: FileReference): String = element.absolutePath
             override fun canBeInserted(parent: FileReference, element: FileReference, index: Int) = false
             override fun canBeRemoved(element: FileReference) = false
             override fun getDragType(element: FileReference) = "File"
             override fun isValidElement(element: Any?) = element is FileReference
-            override fun toggleCollapsed(element: FileReference) {
-                if (!notCollapsed.add(element)) notCollapsed.remove(element)
-            }
         }
     }
 }

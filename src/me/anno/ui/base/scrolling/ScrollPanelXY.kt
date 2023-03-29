@@ -7,6 +7,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
@@ -249,11 +250,11 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         var rx = dx
         var ry = dy
-        if (isDownOnScrollbarX != 0 && rx != 0f) {
+        if (isDownOnScrollbarX != 0 && rx != 0f && StudioBase.dragged == null) {
             // todo test this remainder using scroll panels inside scroll panels
             rx = scrollX(if (isDownOnScrollbarX > 0) rx / relativeSizeX else -rx.toDouble()).toFloat()
         }
-        if (isDownOnScrollbarY != 0 && ry != 0f) {
+        if (isDownOnScrollbarY != 0 && ry != 0f && StudioBase.dragged == null) {
             // todo test this remainder using scroll panels inside scroll panels
             ry = scrollY(if (isDownOnScrollbarX > 0) ry / relativeSizeY else -ry.toDouble()).toFloat()
         }

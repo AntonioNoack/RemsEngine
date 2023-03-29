@@ -53,21 +53,6 @@ class ECSTreeView(val library: EditorState, style: Style) :
         return element is PrefabSaveable
     }
 
-    override fun toggleCollapsed(element: ISaveable) {
-        val isCollapsed = isCollapsed(element)
-        val target = !isCollapsed
-        // remove children from the selection???...
-        val targets = content.children.filterIsInstance<TreeViewPanel<*>>().filter { it.isInFocus }
-        if (targets.isEmpty()) {
-            setCollapsed(element, target)
-        } else {
-            for (it in targets) {
-                val element2 = it.getElement()
-                if (element2 is PrefabSaveable) setCollapsed(element2, target)
-            }
-        }
-    }
-
     override fun addChild(element: ISaveable, child: Any, index: Int) {
         element as PrefabSaveable
         val prefab: Prefab
@@ -103,15 +88,6 @@ class ECSTreeView(val library: EditorState, style: Style) :
             if (ttt != null && !ttt.isBlank2()) builder.append(' ').append(ttt)
             search.matches(builder)
         } else super.fulfillsSearch(element, name, ttt, search)
-    }
-
-    override fun getIndexInParent(parent: ISaveable, child: ISaveable): Int {
-        // todo we need the add index (inside the current prefab) for this to work correctly
-        // todo or we should support complete reordering
-        LOGGER.warn("getIndexInParent isn't implemented fully")
-        return if (child is PrefabSaveable) {
-            child.indexInParent
-        } else 0
     }
 
     override fun removeChild(parent: ISaveable, child: ISaveable) {

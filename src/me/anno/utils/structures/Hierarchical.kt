@@ -22,31 +22,10 @@ interface Hierarchical<V : Hierarchical<V>> {
 
     fun deleteChild(child: V)
 
-    @Suppress("unused")
-    fun addBefore(sibling: V) {
-        val p = parent!!
-        val index = p.children.indexOf(this)
-        p.addChild(index, sibling)
-        sibling.parent = p
-    }
-
-    @Suppress("unused")
-    fun addAfter(sibling: V) {
-        val p = parent!!
-        val index = p.children.indexOf(this)
-        p.addChild(index + 1, sibling)
-        sibling.parent = p
-    }
-
     fun addChild(child: V) {
-        /*if (
-            GFX.glThread != null &&
-            Thread.currentThread() != GFX.glThread &&
-            this in RemsStudio.root.listOfAll
-        ) throw RuntimeException("Called from wrong thread!")*/
         @Suppress("unchecked_cast")
-        if (child.contains(this as V)) throw RuntimeException("this cannot contain its parent!")
-        // child.parent?.removeChild(child)
+        if (child.contains(this as V)) throw IllegalArgumentException("this cannot contain its parent!")
+        if (children.contains(child)) throw IllegalArgumentException("Cannot add child twice")
         child.parent = this
         (children as MutableList<V>).add(child)
     }

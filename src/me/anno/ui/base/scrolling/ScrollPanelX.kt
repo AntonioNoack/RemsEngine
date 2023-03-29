@@ -7,6 +7,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
@@ -169,7 +170,7 @@ open class ScrollPanelX(
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (isDownOnScrollbar != 0 && Input.isLeftDown) {
+        if (isDownOnScrollbar != 0 && Input.isLeftDown && StudioBase.dragged == null) {
             // todo test this remainder using scroll panels inside scroll panels
             val dx2 = scrollX(if (isDownOnScrollbar > 0) dx / relativeSizeX else -dx.toDouble()).toFloat()
             if (dx2 != 0f || dy != 0f) super.onMouseMoved(x, y, dx2, dy)

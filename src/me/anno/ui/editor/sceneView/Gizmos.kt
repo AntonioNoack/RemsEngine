@@ -122,6 +122,9 @@ object Gizmos {
         cameraTransform.transformDirection(yAxis, tmp3fs[1])
         cameraTransform.transformDirection(zAxis, tmp3fs[2])
 
+        val oriX = tmp3fs[0]
+        val oriY = tmp3fs[1]
+
         val gizmoSize = 50f
         val gizmoPadding = 10f
         val gx = x0 + w - gizmoSize - gizmoPadding
@@ -134,8 +137,8 @@ object Gizmos {
             val y = v.y
             val z = v.z
             val color = when {
-                v === tmp3fs[0] -> 0xff7777
-                v === tmp3fs[1] -> 0x77ff77
+                v === oriX -> 0xff7777
+                v === oriY -> 0x77ff77
                 else -> 0x7777ff
             }
             val lx = gx - x0

@@ -29,8 +29,10 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     val minSize get() = if (isY) 10f / h else 10f / w
 
-    fun change(p: Panel, delta: Float) {
-        p.weight = clamp(p.weight + delta, minSize, 1f)
+    fun change(p: Panel, delta: Float, minSize: Float): Float {
+        val target = p.weight + delta
+        p.weight = clamp(target, minSize, 1f)
+        return target - p.weight // remaining value
     }
 
     fun remove(index: Int) {
@@ -48,22 +50,18 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     }
 
     fun move(index: Int, delta: Float) {
-        if (index in 1 until children.size - 1) {
-            val c1 = children[index - 1]
-            val c2 = children[index + 1]
-            val deltaS = delta / (if (isY) h else w)
-            change(c1, +deltaS)
-            change(c2, -deltaS)
-            invalidateLayout()
+        val w = delta / (if (isY) h else w)
+        var li = index
+        val minSize = minSize
+        var w0 = change(children[li--], +w, minSize)
+        while (abs(w0) > 1e-5f && li > 0) {
+            w0 = change(children[li--], w0, minSize)
         }
-    }
-
-    fun move2(index: Int, delta: Float) {
-        val c1 = children[index]
-        val c2 = children[index + 1]
-        val deltaS = delta / (if (isY) h else w)
-        change(c1, +deltaS)
-        change(c2, -deltaS)
+        var ri = index + 1
+        var w1 = change(children[ri++], -w, minSize)
+        while (abs(w1) > 1e-5f && ri < children.size) {
+            w1 = change(children[ri++], w1, minSize)
+        }
         invalidateLayout()
     }
 
@@ -178,10 +176,10 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         var ry = dy
         if (isDownIndex >= 0) {
             if (isY) {
-                move2(isDownIndex, dy)
+                move(isDownIndex, dy)
                 ry = 0f
             } else {
-                move2(isDownIndex, dx)
+                move(isDownIndex, dx)
                 rx = 0f
             }
         }
@@ -269,7 +267,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         while (scrollbars.size < size) {
             scrollbars.add(Scrollbar(style))
         }
-        while (size > scrollbars.size) {
+        while (scrollbars.size > size) {
             scrollbars.removeAt(scrollbars.lastIndex)
         }
     }

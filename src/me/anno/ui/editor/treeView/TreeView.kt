@@ -5,7 +5,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
-import me.anno.studio.StudioBase
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
@@ -19,7 +18,7 @@ import org.lwjgl.glfw.GLFW.GLFW_KEY_F
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
-abstract class TreeView<V>(
+abstract class TreeView<V : Any>(
     val sources: List<V>,
     private val fileContentImporter: FileContentImporter<V>,
     private val showSymbols: Boolean,
@@ -76,17 +75,21 @@ abstract class TreeView<V>(
 
     abstract fun setName(element: V, name: String)
 
-    open fun addBefore(self: V, sibling: V) {
-        val parent = getParent(self)!!
-        addChild(parent, self!!, getIndexInParent(parent, sibling))
+    open fun addBefore(sibling: V, added: V) {
+        val parent = getParent(sibling)!!
+        if (getParent(added) == parent) removeChild(parent, added)
+        addChild(parent, added, getIndexInParent(parent, sibling))
     }
 
-    open fun addAfter(self: V, sibling: V) {
-        val parent = getParent(self)!!
-        addChild(parent, self!!, getIndexInParent(parent, sibling) + 1)
+    open fun addAfter(sibling: V, added: V) {
+        val parent = getParent(sibling)!!
+        if (getParent(added) == parent) {
+            removeChild(parent, added)
+        }
+        addChild(parent, added, getIndexInParent(parent, sibling) + 1)
     }
 
-    abstract fun getIndexInParent(parent: V, child: V): Int
+    fun getIndexInParent(parent: V, child: V): Int = getChildren(parent).indexOf(child)
 
     abstract fun stringifyForCopy(element: V): String
 
@@ -219,20 +222,22 @@ abstract class TreeView<V>(
 
     abstract fun isValidElement(element: Any?): Boolean
 
-    abstract fun toggleCollapsed(element: V)
+    fun toggleCollapsed(element: V) {
+        setCollapsed(element, !isCollapsed(element))
+    }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         return when (action) {
             "Delete" -> {
+                println("delete action")
                 moveChange {
                     var ctr = 0
-                    val studioBase = StudioBase.instance!!
                     for (child in list.children) {
                         if (child is TreeViewPanel<*>) {
                             @Suppress("unchecked_cast")
                             val element = child.getElement() as V
                             val parent = getParent(element)
-                            if (parent != null && studioBase.isSelected(element)) {
+                            if (parent != null && child.isAnyChildInFocus && canBeRemoved(element)) {
                                 if (!(element is PrefabSaveable && element.root.prefab?.isWritable == false)) {
                                     removeChild(parent, element)
                                     ctr++
