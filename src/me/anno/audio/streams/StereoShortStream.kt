@@ -1,11 +1,9 @@
 package me.anno.audio.streams
 
-interface StereoFloatStream {
-
+fun interface StereoShortStream {
     fun getBuffer(
         bufferSize: Int,
         time0: Double,
         time1: Double
-    ): Pair<FloatArray, FloatArray>
-
+    ): Pair<ShortArray, ShortArray>
 }

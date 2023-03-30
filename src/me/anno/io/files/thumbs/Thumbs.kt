@@ -1265,7 +1265,6 @@ object Thumbs {
                 }
                 "lua-bytecode" -> {
                 }
-                // todo MIP images... are used by gradient domain samples
                 else -> try {
                     val base = readerByExtension[srcFile.lcExtension]
                     if (base != null) base(srcFile, dstFile, size, callback)
@@ -1416,7 +1415,6 @@ object Thumbs {
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
         unused(dstFile)
-        // todo draw text with cheap/mono letters, if possible
         // todo html preview???
         // todo markdown preview (?)
         // generate text preview

@@ -65,7 +65,7 @@ abstract class AudioStream(
 
     var isPlaying = false
 
-    abstract fun getBuffer(bufferIndex: Long): Pair<FloatArray?, FloatArray?>
+    abstract fun getBuffer(bufferIndex: Long): Pair<ShortArray?, ShortArray?>
 
     fun requestNextBuffer(bufferIndex: Long, session: Int) {
 
@@ -92,22 +92,22 @@ abstract class AudioStream(
                     left!!
                     right!!
                     for (i in 0 until bufferSize) {
-                        stereoBuffer.put(floatToShort(left[i]))
-                        stereoBuffer.put(floatToShort(right[i]))
+                        stereoBuffer.put(left[i])
+                        stereoBuffer.put(right[i])
                     }
                 }
                 left -> {
                     val (left, _) = getBuffer(bufferIndex)
                     left!!
                     for (i in 0 until bufferSize) {
-                        stereoBuffer.put(floatToShort(left[i]))
+                        stereoBuffer.put(left[i])
                     }
                 }
                 else -> {
                     val (_, right) = getBuffer(bufferIndex)
                     right!!
                     for (i in 0 until bufferSize) {
-                        stereoBuffer.put(floatToShort(right[i]))
+                        stereoBuffer.put(right[i])
                     }
                 }
             }

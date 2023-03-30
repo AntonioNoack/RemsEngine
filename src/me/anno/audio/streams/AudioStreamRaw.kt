@@ -1,15 +1,16 @@
 package me.anno.audio.streams
 
 import me.anno.animation.LoopingState
-import me.anno.audio.AudioPools.FAPool
+import me.anno.audio.AudioPools.SAPool
+import me.anno.audio.AudioReadable
 import me.anno.audio.openal.SoundBuffer
 import me.anno.cache.instances.AudioCache
 import me.anno.cache.keys.AudioSliceKey
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
-import me.anno.utils.structures.tuples.FloatPair
 import me.anno.utils.structures.tuples.ShortPair
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.getAudioSequence
@@ -20,8 +21,9 @@ import kotlin.math.min
 class AudioStreamRaw(
     val file: FileReference,
     val repeat: LoopingState,
-    val meta: FFMPEGMetadata
-) : StereoFloatStream {
+    val meta: FFMPEGMetadata,
+    val time0: Double, val time1: Double
+) : StereoShortStream {
 
     // todo if out of bounds, and not recoverable, just stop
 
@@ -40,7 +42,7 @@ class AudioStreamRaw(
 
         inline fun averageSamples(
             mni: Double, mxi: Double,
-            s0: ShortPair, s1: ShortPair, s2: ShortPair, dst: FloatPair,
+            s0: ShortPair, s1: ShortPair, s2: ShortPair, dst: ShortPair,
             getMaxAmplitudesSync: (i: Long, s: ShortPair) -> Unit
         ) {
 
@@ -100,36 +102,72 @@ class AudioStreamRaw(
 
             val index = repeat[index0, maxSampleIndex]
 
-            val ffmpegSliceSampleCount = ffmpegSliceSampleCount
-            val sliceIndex = index / ffmpegSliceSampleCount
-            val soundBuffer: SoundBuffer = if (sliceIndex == lastSliceIndex) {
-                lastSoundBuffer!!
-            } else {
-                val file = file
-                val ffmpegSliceSampleDuration = ffmpegSliceSampleDuration
-                val key = AudioSliceKey(file, sliceIndex)
-                val timeout = (ffmpegSliceSampleDuration * 2 * 1000).toLong()
-                val sliceTime = sliceIndex * ffmpegSliceSampleDuration
-                val soundBuffer = AudioCache.getEntry(key, timeout, false) {
-                    val sequence = getAudioSequence(file, sliceTime, ffmpegSliceSampleDuration, sampleRate)
-                    waitUntilDefined(true) {
-                        if (sequence.isEmpty) SoundBuffer(0)
-                        else sequence.soundBuffer
-                    }
-                } as SoundBuffer
-                lastSoundBuffer = soundBuffer
-                lastSliceIndex = sliceIndex
-                soundBuffer
-            }
+            if (file is AudioReadable) {
 
-            val data = soundBuffer.data!!
-            val localIndex = (index % ffmpegSliceSampleCount).toInt()
-            if (soundBuffer.format == AL10.AL_FORMAT_STEREO16) {
-                val arrayIndex0 = localIndex * 2 // for stereo
-                shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
+                if (file.prefersBufferedSampling) {
+                    // we use buffer-length slices by our internal generation functions,
+                    // because they probably have low overhead
+                    val sliceSampleCount = ((time1 - time0) * sampleRate).toInt()
+                    val index0i = (time0 * sampleRate).toLong()
+                    val soundBuffer = if (lastSoundBuffer == null) {
+                        val file = file
+                        val soundBuffer = file.getBuffer(time0, time1, sampleRate)
+                        lastSoundBuffer = soundBuffer
+                        soundBuffer
+                    } else lastSoundBuffer!!
+                    val data = soundBuffer.data!!
+                    val localIndex = clamp((index - index0i).toInt(), 0, sliceSampleCount - 1)
+                    if (soundBuffer.format == AL10.AL_FORMAT_STEREO16) {
+                        val arrayIndex0 = localIndex * 2 // for stereo
+                        shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
+                    } else {
+                        val v = data[localIndex] // mono
+                        shortPair.set(v, v)
+                    }
+                } else {
+                    // easiest case: file wants to be sampled one-by-one
+                    val time = index.toDouble() / sampleRate
+                    if (file.channels == 2) {
+                        shortPair.set(file.sample(time, 0), file.sample(time, 1))
+                    } else {
+                        val v = file.sample(time, 0)
+                        shortPair.set(v, v)
+                    }
+                }
             } else {
-                val v = data[localIndex] // mono
-                shortPair.set(v, v)
+
+                // we use long slices by FFMPEG, because calling FFMPEG has a relatively high overhead
+                val sliceSampleCount = ffmpegSliceSampleCount
+                val sliceIndex = index / sliceSampleCount
+                val soundBuffer = if (sliceIndex == lastSliceIndex) {
+                    lastSoundBuffer!!
+                } else {
+                    val file = file
+                    val sliceDuration = ffmpegSliceSampleDuration
+                    val key = AudioSliceKey(file, sliceIndex)
+                    val timeout = (sliceDuration * 2 * 1000).toLong()
+                    val sliceTime = sliceIndex * sliceDuration
+                    val soundBuffer = AudioCache.getEntry(key, timeout, false) {
+                        val sequence = getAudioSequence(file, sliceTime, sliceDuration, sampleRate)
+                        waitUntilDefined(true) {
+                            if (sequence.isEmpty) SoundBuffer(0)
+                            else sequence.soundBuffer
+                        }
+                    } as SoundBuffer
+                    lastSoundBuffer = soundBuffer
+                    lastSliceIndex = sliceIndex
+                    soundBuffer
+                }
+
+                val data = soundBuffer.data!!
+                val localIndex = (index % sliceSampleCount).toInt()
+                if (soundBuffer.format == AL10.AL_FORMAT_STEREO16) {
+                    val arrayIndex0 = localIndex * 2 // for stereo
+                    shortPair.set(data[arrayIndex0], data[arrayIndex0 + 1])
+                } else {
+                    val v = data[localIndex] // mono
+                    shortPair.set(v, v)
+                }
             }
         }
 
@@ -139,18 +177,18 @@ class AudioStreamRaw(
         bufferSize: Int,
         time0: Double,
         time1: Double,
-    ): Pair<FloatArray, FloatArray> {
+    ): Pair<ShortArray, ShortArray> {
 
         val index0 = sampleRate * time0
         val index1 = sampleRate * time1
 
-        val leftBuffer = FAPool[bufferSize, true, true]
-        val rightBuffer = FAPool[bufferSize, true, true]
+        val leftBuffer = SAPool[bufferSize, true, true]
+        val rightBuffer = SAPool[bufferSize, true, true]
 
         val s0 = ShortPair()
         val s1 = ShortPair()
         val s2 = ShortPair()
-        val dst = FloatPair()
+        val dst = ShortPair()
 
         var indexI = index0
         for (sampleIndex in 0 until bufferSize) {

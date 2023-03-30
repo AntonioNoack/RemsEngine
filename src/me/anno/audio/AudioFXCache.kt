@@ -17,9 +17,8 @@ import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import java.util.concurrent.Semaphore
-import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToLong
 
 object AudioFXCache : CacheSection("AudioFX0") {
@@ -85,8 +84,8 @@ object AudioFXCache : CacheSection("AudioFX0") {
 
     class AudioData(
         val key: PipelineKey,
-        var timeLeft: FloatArray,
-        var timeRight: FloatArray
+        var timeLeft: ShortArray,
+        var timeRight: ShortArray
     ) : ICacheData {
 
         override fun equals(other: Any?): Boolean {
@@ -119,7 +118,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
     fun getBuffer(
         pipelineKey: PipelineKey,
         async: Boolean
-    ): Pair<FloatArray, FloatArray>? {
+    ): Pair<ShortArray, ShortArray>? {
         val buffer = getBuffer1(pipelineKey, async) ?: return null
         return Pair(buffer.timeLeft, buffer.timeRight)
     }
@@ -135,10 +134,10 @@ object AudioFXCache : CacheSection("AudioFX0") {
     ): AudioData {
         // we cannot simply return null from this function, so getEntryLimited isn't an option
         acquire(true, rawDataLimiter)
-        val entry = getEntry(key to "", timeout, false) {
-            val stream = AudioStreamRaw(key.file, key.repeat, meta)
-            val pair = stream.getBuffer(key.bufferSize, key.time0, key.time1)
-            AudioData(key, pair.first, pair.second)
+        val entry = getEntry(key to "", timeout, false) { (it, _) ->
+            val stream = AudioStreamRaw(it.file, it.repeat, meta, it.time0, it.time1)
+            val pair = stream.getBuffer(it.bufferSize, it.time0, it.time1)
+            AudioData(it, pair.first, pair.second)
         } as AudioData
         rawDataLimiter.release()
         return entry
@@ -176,7 +175,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
         index: Long,
         stream: AudioFileStream,
         async: Boolean
-    ): Pair<FloatArray, FloatArray>? {
+    ): Pair<ShortArray, ShortArray>? {
         val t0 = stream.frameIndexToTime(index)
         val t1 = stream.frameIndexToTime(index + 1)
         return getBuffer(stream.file, t0, t1, bufferSize, stream.repeat, async)
@@ -242,16 +241,16 @@ object AudioFXCache : CacheSection("AudioFX0") {
                 val splits = SPLITS
                 val values = SAPool[splits * 2, false, true]
                 var lastBufferIndex = 0L
-                lateinit var buffer: Pair<FloatArray, FloatArray>
+                lateinit var buffer: Pair<ShortArray, ShortArray>
                 val bufferSizeM1 = bufferSize - 1
                 for (split in 0 until splits) {
 
-                    var min = +1e5f
-                    var max = -1e5f
+                    var mv = Short.MAX_VALUE.toInt()
+                    var xv = Short.MIN_VALUE.toInt()
 
                     val deltaIndex = index1 - index0
                     val index0i = index0 + deltaIndex * split / splits
-                    val index1i = kotlin.math.min(index0i + 256, index0 + deltaIndex * (split + 1) / splits)
+                    val index1i = min(index0i + 256, index0 + deltaIndex * (split + 1) / splits)
                     for (i in index0i until index1i) {
 
                         val bufferIndex = i.floorDiv(bufferSize)
@@ -263,20 +262,18 @@ object AudioFXCache : CacheSection("AudioFX0") {
                         }
 
                         val localIndex = i.toInt() and bufferSizeM1
-                        val v0 = buffer.first[localIndex]
-                        val v1 = buffer.second[localIndex]
+                        val v0 = buffer.first[localIndex].toInt()
+                        val v1 = buffer.second[localIndex].toInt()
 
-                        min = kotlin.math.min(min, v0)
-                        min = kotlin.math.min(min, v1)
-                        max = max(max, v0)
-                        max = max(max, v1)
+                        mv = min(mv, v0)
+                        mv = min(mv, v1)
+                        xv = max(xv, v0)
+                        xv = max(xv, v1)
 
                     }
 
-                    val minInt = floor(min).toInt()
-                    val maxInt = ceil(max).toInt()
-                    values[split * 2 + 0] = clamp(minInt, -32768, 32767).toShort()
-                    values[split * 2 + 1] = clamp(maxInt, -32768, 32767).toShort()
+                    values[split * 2 + 0] = mv.toShort()
+                    values[split * 2 + 1] = xv.toShort()
 
                 }
                 data.value = values

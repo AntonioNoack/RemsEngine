@@ -2,21 +2,16 @@ package me.anno.gpu
 
 import me.anno.cache.CacheData
 import me.anno.cache.FileCache
-import me.anno.config.DefaultConfig.style
-import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.OpenGLShader.Companion.compileShader
 import me.anno.gpu.shader.OpenGLShader.Companion.postPossibleError
 import me.anno.io.Base64.encodeBase64
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
-import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.opengl.ARBComputeShader.GL_COMPUTE_SHADER
-import org.lwjgl.opengl.GL41C.*
+import org.lwjgl.opengl.GL43C.*
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -217,46 +212,4 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
             .replace('/', '-') + ".bin"
     }
 
-    private fun compileCachedShaders() {
-        GFX.checkIsGFXThread()
-        init()
-        val list = cacheFolder.listChildren()!!.toSet()
-        val fine = list.filter { sample ->
-            if (sample.lcExtension == "bin") {
-                val prefix = "${sample.name}."
-                list.any { o -> o != sample && o.name.startsWith(prefix) }
-            } else false
-        }
-        for (sample in fine) {
-            val prefix = "${sample.nameWithoutExtension}."
-            val resp = list.filter { o -> o != sample && o.name.startsWith(prefix) }
-            if (resp.size == 1) {
-                // compute shader
-                val f0 = resp[0].readTextSync()
-                createShader(f0, null)
-            } else {
-                // graphics shader
-                val i = if (resp[0].name.contains(".vs.")) 0 else 1
-                val vs = resp[i].readTextSync()
-                val fs = resp[1 - i].readTextSync()
-                createShader(vs, fs)
-            }
-        }
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        // glProgramBinary() doesn't work with RenderDoc :/
-        if (true) {
-            GFXBase.disableRenderDoc()
-            testUI3 {
-                compileCachedShaders()
-                Panel(style)
-            }
-        } else {
-            // works just fine
-            HiddenOpenGLContext.createOpenGL()
-            compileCachedShaders()
-        }
-    }
 }

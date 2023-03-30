@@ -1,5 +1,6 @@
 package me.anno.video.ffmpeg
 
+import me.anno.audio.AudioReadable
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.image.ImageReadable
@@ -55,8 +56,16 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
     }
 
     init {
-        if (file is ImageReadable) {
+        if (file is AudioReadable) {
+            hasAudio = true
+            audioChannels = file.channels
+            audioSampleRate = file.sampleRate
+            audioSampleCount = file.sampleCount
+            audioDuration = file.duration
+            duration = audioDuration
+        } else if (file is ImageReadable) {
             val image = file.readImage()
+            hasVideo = true
             videoWidth = image.width
             videoHeight = image.height
         } else when (val signature1 = signature ?: Signature.findNameSync(file)) {

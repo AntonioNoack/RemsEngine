@@ -32,9 +32,7 @@ abstract class AudioFileStream(
     playbackSampleRate: Int = 48000,
     left: Boolean, center: Boolean, right: Boolean
 ) : AudioStream(speed, playbackSampleRate, left, center, right) {
-
-    override fun getBuffer(bufferIndex: Long): Pair<FloatArray?, FloatArray?> {
+    override fun getBuffer(bufferIndex: Long): Pair<ShortArray?, ShortArray?> {
         return AudioFXCache.getBuffer(bufferIndex, this, false)!!
     }
-
 }

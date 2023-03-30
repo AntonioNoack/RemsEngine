@@ -1,5 +1,6 @@
 package me.anno.io.zip
 
+import me.anno.audio.AudioReadable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.Image
@@ -162,15 +163,25 @@ abstract class InnerTmpFile private constructor(
 
     }
 
+    abstract class InnerTmpAudioFile : InnerTmpFile("mp3"), AudioReadable {
+        override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+            throw NotImplementedError()
+        }
+    }
+
     companion object { // only works if extension does not contain dots
         @JvmField
         var printTmpFiles = false
+
         @JvmStatic
         private val LOGGER = LogManager.getLogger(InnerTmpFile::class)
+
         @JvmStatic
         private val files = ArrayList<WeakReference<InnerTmpFile>>()
+
         @JvmStatic
         private val id = AtomicInteger()
+
         @JvmStatic
         fun find(str: String): InnerTmpFile? {
             // prefix.uuid.ext or prefix.ext
