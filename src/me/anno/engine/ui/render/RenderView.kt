@@ -252,18 +252,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         updateEditorCameraTransform()
 
-        setRenderState()
-
         val world = getWorld()
-        if (isKeyDown(GLFW.GLFW_KEY_PAUSE)) {
-            world?.simpleTraversal(false) {
-                if (it is Entity && it.hasComponentInChildren(MeshComponentBase::class)) {
-                    val transform = it.transform
-                    println("${Tabs.spaces(2 * it.depthInHierarchy)}'${it.name}':\n${transform.localTransform}\n${transform.globalTransform}")
-                }
-                false
-            }
-        }
 
         setRenderState()
 
@@ -291,7 +280,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         val showIds = renderMode == RenderMode.CLICK_IDS
         val showOverdraw = renderMode == RenderMode.OVERDRAW
-        val showSpecialBuffer = showIds || showOverdraw || isKeyDown('j')
+        val showSpecialBuffer = showIds || showOverdraw
         var useDeferredRendering = when (renderMode) {
             RenderMode.DEFAULT, RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.NO_DEPTH,
             RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4, RenderMode.FSR_SQRT2, RenderMode.FSR_X2, RenderMode.NEAREST_X4,
@@ -1273,21 +1262,18 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         fov: Float, world: PrefabSaveable?
     ) {
         pipeline.clear()
-        if (!isKeyDown('v')) {
-            if (isPerspective) {
-                pipeline.frustum.definePerspective(
-                    near, far, fovYRadians.toDouble(),
-                    width, height, aspectRatio.toDouble(),
-                    cameraPosition, cameraRotation,
-                )
-            } else {
-                pipeline.frustum.defineOrthographic(
-                    fov.toDouble(), aspectRatio.toDouble(), near, far, width,
-                    cameraPosition, cameraRotation
-                )
-            }
+        if (isPerspective) {
+            pipeline.frustum.definePerspective(
+                near, far, fovYRadians.toDouble(),
+                width, height, aspectRatio.toDouble(),
+                cameraPosition, cameraRotation,
+            )
+        } else {
+            pipeline.frustum.defineOrthographic(
+                fov.toDouble(), aspectRatio.toDouble(), near, far, width,
+                cameraPosition, cameraRotation
+            )
         }
-        pipeline.frustum.showPlanes(worldScale)
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
         pipeline.resetClickId()
