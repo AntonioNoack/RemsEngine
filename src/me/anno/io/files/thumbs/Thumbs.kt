@@ -534,14 +534,14 @@ object Thumbs {
         entity: Entity,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        entity.validateTransform()
-        entity.validateAABBs()
-        val bounds = entity.aabb
         // todo draw gui (colliders), entity positions
         for (i in 0 until 3) { // make sure both are loaded
             waitForMeshes(entity)
             waitForTextures(entity, srcFile)
         }
+        entity.validateTransform()
+        entity.validateAABBs()
+        val bounds = entity.aabb
         renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
             // todo calculate ideal transform like previously
             val rv = rv
@@ -550,8 +550,10 @@ object Thumbs {
                 rv.position.set(bounds.avgX(), bounds.avgY(), bounds.avgZ())
             } else {
                 rv.radius = 1.0
-                rv.position.set(.00)
+                rv.position.set(0.0)
             }
+            rv.near = rv.radius * 0.001
+            rv.far = rv.radius * 5.0
             val cam = rv.editorCamera
             rv.updateEditorCameraTransform()
             rv.prepareDrawScene(size, size, 1f, cam, cam, 0f, false)

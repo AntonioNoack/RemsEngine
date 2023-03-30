@@ -12,9 +12,14 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
+import me.anno.gpu.shader.ReverseDepth.depthToPosition
+import me.anno.gpu.shader.ReverseDepth.depthToPositionList
+import me.anno.gpu.shader.ReverseDepth.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -97,14 +102,16 @@ object ScreenSpaceAmbientOcclusion {
             Variable(GLSLType.V1I, "mask"),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.S2D, "sampleKernel"),
-            Variable(GLSLType.S2D, "finalPosition"),
+            Variable(GLSLType.S2D, "finalDepth"),
             Variable(GLSLType.S2D, "finalNormal"),
             Variable(GLSLType.S2D, "random4x4"),
             Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT)
-        ), "" +
+        ) + depthToPositionList, "" +
                 "float dot2(vec3 p){ return dot(p,p); }\n" +
+                quatRot +
+                rawToDepth + depthToPosition +
                 "void main(){\n" +
-                "   vec3 origin = texture(finalPosition, uv).xyz;\n" +
+                "   vec3 origin = rawDepthToPosition(uv, texture(finalDepth, uv).x);\n" +
                 "   if(dot2(origin) > skipRadiusSq){\n" + // sky and such can be skipped automatically
                 "       glFragColor = vec4(0.0);\n" +
                 "   } else {\n" +
@@ -131,7 +138,7 @@ object ScreenSpaceAmbientOcclusion {
                 // && abs(originDepth - sampleDepth) < radius
                 // without it, the result looks approx. the same :)
                 "           if(isInside){\n" +
-                "               float sampleDepth = dot2(texture(finalPosition, offset.xy).xyz);\n" +
+                "               float sampleDepth = dot2(rawDepthToPosition(offset.xy, texture(finalDepth, offset.xy).x));\n" +
                 "               occlusion += step(0.0, sampleTheoDepth-sampleDepth);\n" +
                 "           }\n" +
                 "       }\n" +
@@ -140,7 +147,7 @@ object ScreenSpaceAmbientOcclusion {
                 "}"
     ).apply {
         glslVersion = 330
-        setTextureIndices("finalPosition", "finalNormal", "random4x4", "sampleKernel")
+        setTextureIndices("finalDepth", "finalNormal", "random4x4", "sampleKernel")
     }
 
     private val blurShader = Shader(
@@ -187,9 +194,9 @@ object ScreenSpaceAmbientOcclusion {
         enableBlur: Boolean,
     ): Framebuffer? {
         // ensure we can find the required inputs
-        val position = settingsV2.findTextureMS(data, DeferredLayerType.POSITION) ?: return null
+        val depth = data.depthTexture ?: return null
         val normal = settingsV2.findTextureMS(data, DeferredLayerType.NORMAL) ?: return null
-        return calculate(position, normal, transform, radius, strength, samples, enableBlur)
+        return calculate(depth, normal, transform, radius, strength, samples, enableBlur)
     }
 
     private fun copy(src: ITexture2D, dst: Framebuffer): ITexture2D {
@@ -200,7 +207,7 @@ object ScreenSpaceAmbientOcclusion {
     }
 
     private fun calculate(
-        position: ITexture2D,
+        depth: ITexture2D,
         normal: ITexture2D,
         transform: Matrix4f,
         radius: Float,
@@ -218,16 +225,15 @@ object ScreenSpaceAmbientOcclusion {
 
         // resolution can be halved to improve performance
         val scale = DefaultConfig["gpu.ssao.scale", 1f]
-        val fw = (position.w * scale).roundToInt()
-        val fh = (position.h * scale).roundToInt()
-        val tw = min(fw, position.w)
-        val th = min(fh, position.h)
+        val fw = (depth.w * scale).roundToInt()
+        val fh = (depth.h * scale).roundToInt()
+        val tw = min(fw, depth.w)
+        val th = min(fh, depth.h)
 
         // todo given depth, calculate position
         // costs compute, but saves bandwidth
 
         // scale down source to reduce vram bandwidth
-        val pos = copy(position, FBStack["ssao-pos", tw, th, 4, BufferQuality.HIGH_16, 1, false])
         val nor = copy(normal, FBStack["ssao-nor", tw, th, 4, BufferQuality.LOW_8, 1, false])
 
         val dst = FBStack["ssao-1st", fw, fh, 1, false, 1, false]
@@ -235,6 +241,7 @@ object ScreenSpaceAmbientOcclusion {
             GFX.check()
             val shader = occlusionShader
             shader.use()
+            bindDepthToPosition(shader)
             // bind all textures
             if (lastSamples != samples) { // || Input.isShiftDown
                 // generate random kernel
@@ -244,7 +251,7 @@ object ScreenSpaceAmbientOcclusion {
             sampleKernel.bindTrulyNearest(3)
             random4x4.bindTrulyNearest(2)
             nor.bindTrulyNearest(1)
-            pos.bindTrulyNearest(0)
+            depth.bindTrulyNearest(0)
             // define all uniforms
             shader.v1f("radius", radius)
             shader.v1f("skipRadiusSq", sq(radius * 20f))
@@ -289,15 +296,15 @@ object ScreenSpaceAmbientOcclusion {
         if (strength <= 0f) return whiteTexture
         lateinit var result: ITexture2D
         renderPurely {
-            val tmp = calculate(data, settingsV2, transform, radius, strength, min(samples, MAX_SAMPLES), enableBlur)
-                ?: return null
+            val samples1 = min(samples, MAX_SAMPLES)
+            val tmp = calculate(data, settingsV2, transform, radius, strength, samples1, enableBlur) ?: return null
             result = if (enableBlur) average(tmp).getTexture0() else tmp.getTexture0()
         }
         return result
     }
 
     fun compute(
-        position: ITexture2D,
+        depth: ITexture2D,
         normal: ITexture2D,
         transform: Matrix4f,
         radius: Float,
@@ -307,7 +314,7 @@ object ScreenSpaceAmbientOcclusion {
     ): IFramebuffer {
         lateinit var result: IFramebuffer
         renderPurely {
-            val tmp = calculate(position, normal, transform, radius, strength, min(samples, MAX_SAMPLES), enableBlur)
+            val tmp = calculate(depth, normal, transform, radius, strength, min(samples, MAX_SAMPLES), enableBlur)
             result = if (enableBlur) average(tmp) else tmp
         }
         return result

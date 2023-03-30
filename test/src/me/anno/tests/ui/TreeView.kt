@@ -92,8 +92,9 @@ fun main() {
 
             override fun setCollapsed(element: Element, collapsed: Boolean) {}
 
-            override fun addChild(element: Element, child: Any, index: Int) {
+            override fun addChild(element: Element, child: Any, index: Int): Boolean {
                 element.add(index, child as Element)
+                return true
             }
 
             override fun removeChild(parent: Element, child: Element) {

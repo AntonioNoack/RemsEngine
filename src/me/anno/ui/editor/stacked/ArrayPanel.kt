@@ -17,14 +17,19 @@ import me.anno.ui.Panel
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import kotlin.math.max
+import kotlin.math.min
 
 abstract class ArrayPanel<EntryType, PanelType : Panel>(
     title: String,
     visibilityKey: String,
     val newValue: () -> EntryType, style: Style
 ) : TitledListY(title, visibilityKey, style) {
+
+    // todo when there is a lot of values, unfold them like in Chrome Dev Console:
+    //  100 at a time, every power of 10 is grouped
 
     val values = ArrayList<EntryType>()
 
@@ -98,8 +103,13 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
 
     fun setValues(values: List<EntryType>) {
         clear()
-        for (value in values) {
-            add(createPanel(value))
+        for (i in 0 until min(values.size, 100)) {
+            add(createPanel(values[i]))
+        }
+        if (values.size > 100) {
+            add(TextPanel("...", style).apply {
+                tooltip = "More elements are not yet supported"
+            })
         }
         this.values.addAll(values)
     }

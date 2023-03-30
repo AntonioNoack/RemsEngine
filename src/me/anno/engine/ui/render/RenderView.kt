@@ -228,6 +228,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             if (enableOrbiting) rotation.transform(tmp3d.set(0.0, 0.0, radius)).add(position)
             else position
         cameraNode.transform.localRotation = rotation
+        cameraNode.transform.teleportUpdate()
         cameraNode.validateTransform()
 
     }
@@ -1437,7 +1438,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     }
 
     var drawGridWhenPlaying = false
-    var drawGridWhenEditing = false
+    var drawGridWhenEditing = true
 
     fun drawGizmos(drawGridLines: Boolean, drawDebug: Boolean = true) {
 

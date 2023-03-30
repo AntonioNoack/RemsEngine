@@ -38,7 +38,7 @@ class SSAOEffect : CameraEffect() {
         write(
             layers, DeferredLayerType.OCCLUSION,
             ScreenSpaceAmbientOcclusion.compute(
-                layers[DeferredLayerType.POSITION]!!.getTexture0(),
+                buffer.depthTexture!!,
                 layers[DeferredLayerType.NORMAL]!!.getTexture0(),
                 RenderState.cameraMatrix,
                 radius, strength, samples,

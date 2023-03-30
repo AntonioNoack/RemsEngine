@@ -74,7 +74,7 @@ fun main() {
                 else notCollapsed.add(element)
             }
 
-            override fun addChild(element: FileReference, child: Any, index: Int) {}
+            override fun addChild(element: FileReference, child: Any, index: Int): Boolean = false
             override fun remove(child: Panel) {}
             override fun removeChild(parent: FileReference, child: FileReference) {}
             override fun getSymbol(element: FileReference): String = "X"
