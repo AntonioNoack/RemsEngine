@@ -128,17 +128,14 @@ open class FileExplorer(
 
     open fun getFileOptions(): List<FileExplorerOption> {
         // todo add option to open json in specialized json editor...
-        val rename = FileExplorerOption(NameDesc("Rename", "Change the name of this file", "ui.file.rename")) { _, _ ->
-            onGotAction(0f, 0f, 0f, 0f, "Rename", false)
-        }
+        val rename = FileExplorerOption(renameDesc) { _, _ -> onGotAction(0f, 0f, 0f, 0f, "Rename", false) }
         val openInExplorer = FileExplorerOption(openInExplorerDesc) { _, it -> it.openInExplorer() }
         val openInStandard = FileExplorerOption(openInStandardProgramDesc) { _, it -> it.openInStandardProgram() }
         val editInStandard = FileExplorerOption(editInStandardProgramDesc) { _, it -> it.editInStandardProgram() }
         val copyPath = FileExplorerOption(copyPathDesc) { _, it -> setClipboardContent(it.absolutePath) }
-        val delete = FileExplorerOption(
-            NameDesc("Delete", "Delete this file", "ui.file.delete"),
-        ) { p, it -> deleteFileMaybe(p, it) }
-        return listOf(rename, openInExplorer, openInStandard, editInStandard, copyPath, delete)
+        val copyName = FileExplorerOption(copyNameDesc) { _, it -> setClipboardContent(it.name) }
+        val delete = FileExplorerOption(deleteDesc) { p, it -> deleteFileMaybe(p, it) }
+        return listOf(rename, openInExplorer, openInStandard, editInStandard, copyPath, copyName, delete)
     }
 
     open fun onDoubleClick(file: FileReference) {}
@@ -602,6 +599,7 @@ open class FileExplorer(
                     MenuOption(openInStandardProgramDesc) { folder.openInStandardProgram() },
                     MenuOption(editInStandardProgramDesc) { folder.editInStandardProgram() },
                     MenuOption(copyPathDesc) { setClipboardContent(folder.absolutePath) },
+                    MenuOption(copyNameDesc) { setClipboardContent(folder.name) },
                     menuSeparator1,
                     MenuOption(NameDesc("Sort by Name")) { fileSorting = FileSorting.NAME }
                         .setEnabled(fileSorting != FileSorting.NAME),
@@ -781,6 +779,13 @@ open class FileExplorer(
         }
 
         @JvmField
+        val renameDesc = NameDesc(
+            "Rename",
+            "Change the name of this file",
+            "ui.file.rename"
+        )
+
+        @JvmField
         val openInExplorerDesc = NameDesc(
             "Open In Explorer",
             "Show the file in your default file explorer",
@@ -806,6 +811,20 @@ open class FileExplorer(
             "Copy Path",
             "Copy the path of the file to clipboard",
             "ui.file.copyPath"
+        )
+
+        @JvmField
+        val copyNameDesc = NameDesc(
+            "Copy Name",
+            "Copy the name of the file to clipboard",
+            "ui.file.copyName"
+        )
+
+        @JvmField
+        val deleteDesc = NameDesc(
+            "Delete",
+            "Delete this file",
+            "ui.file.delete"
         )
 
     }

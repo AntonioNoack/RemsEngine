@@ -38,7 +38,6 @@ open class MeshComponent() : MeshComponentBase() {
 
     override fun getMesh(): Mesh? = MeshCache[mesh]
 
-
     override fun onUpdate(): Int {
         super.onUpdate()
         // keep the mesh loaded

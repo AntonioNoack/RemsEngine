@@ -83,7 +83,7 @@ abstract class BVHBuilder(val bounds: AABBf) : ICacheData {
                 localBounds.transform(localToWorld, globalBounds)
                 objects.add(TLASLeaf(centroid, localToWorld, worldToLocal, blas, globalBounds))
             }
-            for (index in dr.indices) {
+            for (index in 0 until dr.size) {
                 val dri = dr[index]
                 // to do theoretically, we'd need to respect the material override as well,
                 // but idk how to do materials yet...

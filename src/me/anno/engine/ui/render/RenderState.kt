@@ -15,7 +15,6 @@ object RenderState {
     var aspectRatio = 1f
 
     val cameraMatrix = Matrix4f()
-    val cameraMatrixInv = Matrix4f()
     val cameraPosition = Vector3d()
     val cameraRotation = Quaterniond()
     val cameraDirectionRight = Vector3d() // = cameraRotation.transform([1,0,0])
@@ -31,8 +30,7 @@ object RenderState {
             .rotate(cameraRotation)
     }
 
-    val prevCamMatrix = Matrix4f()
-    val prevCamMatrixInv = Matrix4f()
+    val prevCameraMatrix = Matrix4f()
     val prevCameraPosition = Vector3d()
     val prevCameraRotation = Quaterniond()
 

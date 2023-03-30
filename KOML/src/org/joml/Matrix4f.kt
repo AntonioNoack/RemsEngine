@@ -2639,13 +2639,8 @@ open class Matrix4f {
         } else if (properties and 8 != 0) {
             this.rotateTranslation(ang, x, y, z, dst)
         } else {
-            if (properties and 2 != 0) this.rotateAffine(ang, x, y, z, dst) else this.rotateGeneric(
-                ang,
-                x,
-                y,
-                z,
-                dst
-            )
+            if (properties and 2 != 0) this.rotateAffine(ang, x, y, z, dst)
+            else this.rotateGeneric(ang, x, y, z, dst)
         }
     }
 

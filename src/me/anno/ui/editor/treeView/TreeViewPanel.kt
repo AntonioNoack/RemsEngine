@@ -216,7 +216,8 @@ class TreeViewPanel<V : Any>(
                 }
                 if (canBeMoved) {
                     moveChange {
-                        original.removeFromParent()
+                        val op = treeView.getParent(original)
+                        if (op != null) treeView.removeChild(op, original)
                         insertElement(relativeY, hovered, original)
                     }
                     return
@@ -239,25 +240,35 @@ class TreeViewPanel<V : Any>(
     }
 
     fun insertElement(relativeY: Float, hovered: V, clone: V) {
-        if (relativeY < 0.33f) {
+        val success = if (relativeY < 0.33f) {
             // paste on top
             if (hovered.parent != null) {
                 treeView.addBefore(hovered, clone)
             } else {
-                treeView.addChild(hovered, clone, treeView.getChildren(hovered).size)
+                insertElementLast(hovered, clone)
             }
         } else if (relativeY < 0.67f) {
             // paste as child
-            treeView.addChild(hovered, clone, treeView.getChildren(hovered).size)
+            insertElementLast(hovered, clone)
         } else {
             // paste below
             if (hovered.parent != null) {
                 treeView.addAfter(hovered, clone)
             } else {
-                treeView.addChild(hovered, clone, treeView.getChildren(hovered).size)
+                insertElementLast(hovered, clone)
             }
         }
-        treeView.selectElements(listOf(clone))
+        if (success) treeView.selectElements(listOf(clone))
+    }
+
+    fun insertElementLast(hovered: V, clone: V): Boolean {
+        val index = treeView.getChildren(hovered).size
+        return if (treeView.canBeInserted(hovered, clone, index)) {
+            treeView.addChild(hovered, clone, index)
+        } else {
+            LOGGER.warn("Cannot add child")
+            false
+        }
     }
 
     val V.parent: V? get() = treeView.getParent(this)
@@ -271,10 +282,6 @@ class TreeViewPanel<V : Any>(
                 }
             }
         }
-
-    private fun V.removeFromParent() {
-        treeView.removeChild(treeView.getParent(this) ?: return, this)
-    }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val transform = getElement()

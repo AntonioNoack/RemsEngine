@@ -75,7 +75,7 @@ class InstancedStackI32(capacity: Int = 512) :
 
         if (!depth && previousMaterial == null) {
             aabb.clear()
-            pipeline.frustum.union(aabb)
+            // pipeline.frustum.union(aabb)
             stage.setupLights(pipeline, shader, aabb, true)
         }
 

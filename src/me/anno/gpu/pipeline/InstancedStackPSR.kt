@@ -70,7 +70,7 @@ class InstancedStackPSR(capacity: Int = 64) :
 
         if (!depth && previousMaterial == null) {
             aabb.clear()
-            pipeline.frustum.union(aabb)
+            // pipeline.frustum.union(aabb)
             stage.setupLights(pipeline, shader, aabb, true)
         }
 

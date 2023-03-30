@@ -1,7 +1,6 @@
 package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
@@ -58,7 +57,10 @@ abstract class TreeView<V : Any>(
 
     abstract fun setCollapsed(element: V, collapsed: Boolean)
 
-    abstract fun addChild(element: V, child: Any, index: Int)
+    /**
+     * returns true on success
+     * */
+    abstract fun addChild(element: V, child: Any, index: Int): Boolean
 
     abstract fun removeChild(parent: V, child: V)
 
@@ -75,18 +77,30 @@ abstract class TreeView<V : Any>(
 
     abstract fun setName(element: V, name: String)
 
-    open fun addBefore(sibling: V, added: V) {
+    open fun addBefore(sibling: V, added: V): Boolean {
         val parent = getParent(sibling)!!
         if (getParent(added) == parent) removeChild(parent, added)
-        addChild(parent, added, getIndexInParent(parent, sibling))
+        val index = getIndexInParent(parent, sibling)
+        return if (canBeInserted(parent, added, index)) {
+            addChild(parent, added, index)
+        } else {
+            LOGGER.warn("Cannot add child")
+            false
+        }
     }
 
-    open fun addAfter(sibling: V, added: V) {
+    open fun addAfter(sibling: V, added: V): Boolean {
         val parent = getParent(sibling)!!
         if (getParent(added) == parent) {
             removeChild(parent, added)
         }
-        addChild(parent, added, getIndexInParent(parent, sibling) + 1)
+        val index = getIndexInParent(parent, sibling) + 1
+        return if (canBeInserted(parent, added, index)) {
+            addChild(parent, added, index)
+        } else {
+            LOGGER.warn("Cannot add child")
+            false
+        }
     }
 
     fun getIndexInParent(parent: V, child: V): Int = getChildren(parent).indexOf(child)
@@ -94,8 +108,9 @@ abstract class TreeView<V : Any>(
     abstract fun stringifyForCopy(element: V): String
 
     // todo use these functions to show indicator colors
-    // todo use these functions to actually forbid the action
     abstract fun canBeRemoved(element: V): Boolean
+
+    // todo use this functions to actually forbid the action
     abstract fun canBeInserted(parent: V, element: V, index: Int): Boolean
 
     abstract fun getDragType(element: V): String
@@ -229,21 +244,16 @@ abstract class TreeView<V : Any>(
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         return when (action) {
             "Delete" -> {
-                println("delete action")
                 moveChange {
-                    var ctr = 0
                     for (child in list.children) {
                         if (child is TreeViewPanel<*>) {
                             @Suppress("unchecked_cast")
                             val element = child.getElement() as V
                             val parent = getParent(element)
-                            if (parent != null && child.isAnyChildInFocus && canBeRemoved(element)) {
-                                if (!(element is PrefabSaveable && element.root.prefab?.isWritable == false)) {
+                            if (parent != null && child.isAnyChildInFocus) {
+                                if (canBeRemoved(element)) {
                                     removeChild(parent, element)
-                                    ctr++
-                                } else {
-                                    LOGGER.warn("Cannot remove element, because prefab is not writable!")
-                                }
+                                } else LOGGER.warn("Cannot remove element")
                             }
                         }
                     }

@@ -7,7 +7,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
-import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
@@ -1110,8 +1109,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     private val tmp4f = Vector4f()
 
-    private val tmpRot0 = Quaternionf()
-    private val tmpRot1 = Quaternionf()
+    private val tmpRot0 = Quaterniond()
+    private val tmpRot1 = Quaterniond()
     fun prepareDrawScene(
         width: Int,
         height: Int,
@@ -1123,9 +1122,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     ) {
 
         val world = getWorld()
-        if (update && world is Entity) {
-            world.invalidateVisibility()
-        }
 
         // must be called before we define our render settings
         // so lights don't override our settings, or we'd have to repeat our definition
@@ -1144,21 +1140,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         } else {
             mix(previousCamera.fovOrthographic, camera.fovOrthographic, blending)
         }
-        val t0 = previousCamera.entity?.transform?.globalTransform
-        val t1 = camera.entity?.transform?.globalTransform
-        val rot0 = tmpRot0
-        val rot1 = tmpRot1
-        if (t0 != null) t0.getUnnormalizedRotation(tmpRot0) else tmpRot0.identity()
-        if (t1 != null) t1.getUnnormalizedRotation(tmpRot1) else tmpRot1.identity()
 
         bloomOffset = mix(previousCamera.bloomOffset, camera.bloomOffset, blendF)
         bloomStrength = mix(previousCamera.bloomStrength, camera.bloomStrength, blendF)
-
-        if (!rot0.isFinite) rot0.identity()
-        if (!rot1.isFinite) rot1.identity()
-
-        val rotInv = rot0.slerp(rot1, blendF)
-        val rot = rot1.set(rotInv).conjugate() // conjugate is quickly inverting, when already normalized
 
         val centerX = mix(previousCamera.center.x, camera.center.x, blendF)
         val centerY = mix(previousCamera.center.x, camera.center.y, blendF)
@@ -1223,20 +1207,36 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             LOGGER.warn("Set matrix to identity, because it was non-finite! $cameraMatrix")
         }
 
-        cameraMatrix.rotate(rot)
+        val t0 = previousCamera.entity?.transform?.run {
+            validate()
+            getDrawMatrix()
+        }
+        val t1 = camera.entity?.transform?.run {
+            validate()
+            getDrawMatrix()
+        }
+
+
+        val rot0 = tmpRot0
+        val rot1 = tmpRot1
+        if (t0 != null) t0.getUnnormalizedRotation(tmpRot0) else tmpRot0.identity()
+        if (t1 != null) t1.getUnnormalizedRotation(tmpRot1) else tmpRot1.identity()
+        if (!rot0.isFinite) rot0.identity()
+        if (!rot1.isFinite) rot1.identity()
+
+        val rotInv = rot0.slerp(rot1, blend)
+        val rot = rotInv.conjugate(rot1)
+
+        cameraMatrix.rotate(Quaternionf(rot))
         cameraMatrix.invert(cameraMatrixInv)
 
-        // lerp the world transforms
-        val camTransform = camTransform
-        if (t0 != null) camTransform.set(t0) else camTransform.identity()
-        if (t1 != null) camTransform.lerp(t1, blend) else if (t0 != null) camTransform.lerp(Matrix4x3d(), blend)
-
-        camTransform.transformPosition(cameraPosition.set(0.0))
-        camInverse.set(camTransform).invert()
         cameraRotation.set(rotInv)
+        cameraRotation.transform(cameraDirection.set(0.0, 0.0, -1.0)).normalize()
 
-        cameraRotation.transform(cameraDirection.set(0.0, 0.0, -1.0))
-        cameraDirection.normalize()
+        if (t0 != null) t0.getTranslation(cameraPosition)
+        else cameraPosition.set(0.0)
+        if (t1 != null) cameraPosition.lerp(t1.getTranslation(Vector3d()), blend)
+        else cameraPosition.mul(1.0 - blend)
 
         // camera matrix and mouse position to ray direction
         if (update) {
@@ -1244,7 +1244,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             getMouseRayDirection(window.mouseX, window.mouseY, mouseDirection)
         }
 
-        // debugPoints.add(DebugPoint(Vector3d(camDirection).mul(20.0).add(camPosition), 0xff0000, -1))
         prevCamMatrix.set(lastCamMat)
         prevCamMatrixInv.set(lastCamMatInv)
         prevCamPosition.set(lastCamPos)
@@ -1252,10 +1251,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         prevWorldScale = lastWorldScale
 
         currentInstance = this
-
-        if (world is Material && world.prefab?.source?.exists != true) {
-            throw IllegalStateException("Material must have source")
-        }
 
         definePipeline(width, height, aspectRatio, fov, world)
 
@@ -1278,19 +1273,21 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         fov: Float, world: PrefabSaveable?
     ) {
         pipeline.clear()
-        if (isPerspective) {
-            pipeline.frustum.definePerspective(
-                near, far, fovYRadians.toDouble(),
-                width, height, aspectRatio.toDouble(),
-                cameraPosition, cameraRotation,
-            )
-        } else {
-            pipeline.frustum.defineOrthographic(
-                fov.toDouble(), aspectRatio.toDouble(), near, far, width,
-                cameraPosition, cameraRotation
-            )
-            // pipeline.frustum.showPlanes()
+        if (!isKeyDown('v')) {
+            if (isPerspective) {
+                pipeline.frustum.definePerspective(
+                    near, far, fovYRadians.toDouble(),
+                    width, height, aspectRatio.toDouble(),
+                    cameraPosition, cameraRotation,
+                )
+            } else {
+                pipeline.frustum.defineOrthographic(
+                    fov.toDouble(), aspectRatio.toDouble(), near, far, width,
+                    cameraPosition, cameraRotation
+                )
+            }
         }
+        pipeline.frustum.showPlanes(worldScale)
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
         pipeline.resetClickId()
@@ -1454,6 +1451,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     }
 
     var drawGridWhenPlaying = false
+    var drawGridWhenEditing = false
 
     fun drawGizmos(drawGridLines: Boolean, drawDebug: Boolean = true) {
 
@@ -1551,8 +1549,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                 // JomlPools.vec3d.sub(1)
 
-                if (drawGridLines && (drawGridWhenPlaying || playMode == PlayMode.EDITING)) {
-                    drawGrid(radius)
+                if (drawGridLines) {
+                    if (if (playMode == PlayMode.EDITING) drawGridWhenEditing else drawGridWhenPlaying) {
+                        drawGrid(radius)
+                    }
                 }
 
                 if (drawDebug) {
@@ -1616,8 +1616,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     val cameraMatrix = Matrix4f()
     val cameraMatrixInv = Matrix4f()
 
-    val camTransform = Matrix4x3d()
-    val camInverse = Matrix4d()
     val cameraPosition = Vector3d()
     val cameraDirection = Vector3d()
     val cameraRotation = Quaterniond()
@@ -1654,10 +1652,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         RenderState.calculateDirections()
         RenderState.cameraDirection.set(cameraDirection)
         RenderState.cameraMatrix.set(cameraMatrix)
-        RenderState.cameraMatrixInv.set(cameraMatrixInv)
 
-        RenderState.prevCamMatrix.set(prevCamMatrix)
-        RenderState.prevCamMatrixInv.set(prevCamMatrixInv)
+        RenderState.prevCameraMatrix.set(prevCamMatrix)
         RenderState.prevCameraPosition.set(prevCamPosition)
 
         RenderState.isPerspective = isPerspective

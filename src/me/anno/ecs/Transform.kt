@@ -65,6 +65,7 @@ class Transform() : Saveable() {
     private val sca = Vector3d(1.0)
 
     fun teleportUpdate(time: Long = Engine.gameTime) {
+        validate()
         lastUpdateTime = time
         lastUpdateDt = 0L
         drawTransform.set(globalTransform)
@@ -323,15 +324,6 @@ class Transform() : Saveable() {
         val y = w.m31 - v.y
         val z = w.m32 - v.z
         return x * x + y * y + z * z
-    }
-
-    @Suppress("unused")
-    fun dotViewDir(pos2: Vector3d, dir: Vector3d): Double {
-        val w = globalTransform
-        val x = w.m30 - pos2.x
-        val y = w.m31 - pos2.y
-        val z = w.m32 - pos2.z
-        return dir.dot(x, y, z)
     }
 
     override fun readMatrix4x3d(name: String, value: Matrix4x3d) {

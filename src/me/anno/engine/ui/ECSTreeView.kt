@@ -24,7 +24,6 @@ import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.files.Search
 import me.anno.ui.editor.treeView.TreeView
-import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.normARGB
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
@@ -53,7 +52,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
         return element is PrefabSaveable
     }
 
-    override fun addChild(element: ISaveable, child: Any, index: Int) {
+    override fun addChild(element: ISaveable, child: Any, index: Int): Boolean {
         element as PrefabSaveable
         val prefab: Prefab
         val prefabPath: Path
@@ -68,7 +67,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
             }
             else -> {
                 LOGGER.warn("Unknown type $child")
-                return
+                return false
             }
         }
         Hierarchy.add(
@@ -77,6 +76,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
             element,
             index
         )
+        return true
     }
 
     override fun fulfillsSearch(element: ISaveable, name: String, ttt: String?, search: Search): Boolean {
@@ -290,11 +290,13 @@ class ECSTreeView(val library: EditorState, style: Style) :
 
     override fun canBeInserted(parent: ISaveable, element: ISaveable, index: Int): Boolean {
         if (parent !is PrefabSaveable) return false
+        if (parent.root.prefab?.isWritable == false) return false
         return parent.getOriginal().run { this == null || index >= children.size }
     }
 
     override fun canBeRemoved(element: ISaveable): Boolean {
         if (element !is PrefabSaveable) return false
+        if (element.root.prefab?.isWritable == false) return false
         val indexInParent = element.indexInParent
         val parent = element.parent!!
         val parentPrefab = parent.getOriginal()

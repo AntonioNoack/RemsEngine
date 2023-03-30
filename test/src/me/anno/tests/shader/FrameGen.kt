@@ -251,7 +251,7 @@ fun main() {
                     data1 = tmp
 
                     val cameraMatrix = RenderState.cameraMatrix
-                    val prevCamMatrix = RenderState.prevCamMatrix
+                    val prevCamMatrix = RenderState.prevCameraMatrix
                     val cameraRotation = RenderState.cameraRotation
                     val prevCamRotation = RenderState.prevCameraRotation
                     val cameraPosition = RenderState.cameraPosition

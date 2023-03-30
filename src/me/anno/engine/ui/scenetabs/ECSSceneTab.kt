@@ -124,7 +124,7 @@ class ECSSceneTab(
                 // find still bounds
                 resetCamera(skeletalBounds(root), true)
             }
-            else -> LOGGER.warn("Please implement bounds for ${root.className}")
+            else -> LOGGER.warn("Please implement bounds for class ${root.className}")
         }
     }
 
@@ -210,22 +210,15 @@ class ECSSceneTab(
             }
             button.isRight -> {
                 openMenu(windowStack, listOf(
-                    MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) {
-                        play()
-                    },
-                    MenuOption(NameDesc("Play Fullscreen")) {
-                        playFullscreen()
-                    },
-                    MenuOption(NameDesc("Copy Path")) {
-                        Input.setClipboardContent(onCopyRequested(0f, 0f).toString())
-                    },
-                    MenuOption(NameDesc("Close")) {
-                        ECSSceneTabs.close(this, true)
-                    },
+                    MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) { play() },
+                    MenuOption(NameDesc("Play Fullscreen")) { playFullscreen() },
+                    MenuOption(NameDesc("Copy Path")) { Input.setClipboardContent(file.absolutePath) },
+                    MenuOption(NameDesc("Copy Name")) { Input.setClipboardContent(file.name) },
+                    MenuOption(NameDesc("Close")) { ECSSceneTabs.close(this, true) },
                     MenuOption(NameDesc("Close All")) {
                         val tabs = ECSSceneTabs.children3.reversed()
-                        for (tab in ECSSceneTabs.children3.reversed())
-                            ECSSceneTabs.close(tab, tabs.last() == tab)
+                        val lastTab = tabs.last()
+                        for (tab in tabs) ECSSceneTabs.close(tab, lastTab == tab)
                     }
                 ))
             }

@@ -101,17 +101,14 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
     }
 
     fun findStage(mesh: Mesh?, material: Material): PipelineStage {
-        if (material != null) {
-            val stage0 = material.pipelineStage
-            if (stage0 < 0) return defaultStage
-            while (stages.size <= stage0) {
-                stages.add(defaultStage.clone())
-            }
-            return stages[stage0]
+        val stage0 = material.pipelineStage
+        if (stage0 < 0) return defaultStage
+        while (stages.size <= stage0) {
+            stages.add(defaultStage.clone())
         }
+        return stages[stage0]
         // todo analyse, whether the material has transparency, and if so,
         // todo add it to the transparent pass
-        return defaultStage
     }
 
     fun addMesh(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, clickId: Int) {
@@ -302,7 +299,6 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
     }
 
     private fun subFill(entity: Entity, clickId0: Int): Int {
-        entity.hasBeenVisible = true
         var clickId = clickId0
         val components = entity.components
         for (i in components.indices) {
@@ -351,7 +347,6 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
     }
 
     private fun subFillDepth(entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
-        entity.hasBeenVisible = true
         val components = entity.components
         for (i in components.indices) {
             val component = components[i]
@@ -403,13 +398,9 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         val children = entity.children
         for (i in children.indices) {
             val child = children[i]
-            if (child.isEnabled) {
-                val aabb = child.aabb
-                val needsDrawing = frustum.isVisible(aabb)
-                if (needsDrawing) {
-                    val found = findDrawnSubject(searchedId, child)
-                    if (found != null) return found
-                }
+            if (child.isEnabled && frustum.isVisible(child.aabb)) {
+                val found = findDrawnSubject(searchedId, child)
+                if (found != null) return found
             }
         }
         return null

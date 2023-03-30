@@ -238,7 +238,6 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 camera.fovOrthographic = 5f
                 camera.fovY = 90f
                 camera.isPerspective = true
-                view.updateEditorCameraTransform()
             }
             "Cam5" -> {// switch between orthographic and perspective
                 // switch between ortho and perspective

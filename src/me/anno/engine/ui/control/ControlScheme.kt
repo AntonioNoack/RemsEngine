@@ -160,7 +160,6 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
             .rotateX(rotationTarget.x.toRadians())
             .rotateZ(rotationTarget.z.toRadians())
         view.rotation.slerp(tmp, Maths.dtTo01(deltaTime * 25.0))
-        view.updateEditorCameraTransform()
         invalidateDrawing()
     }
 
@@ -189,7 +188,6 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         if (isSelected) {
             val factor = Maths.pow(0.5f, dy / 16f)
             zoom(factor)
-            view.updateEditorCameraTransform()
             invalidateDrawing()
         }
     }

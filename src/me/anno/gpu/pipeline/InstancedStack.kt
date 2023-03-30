@@ -90,7 +90,7 @@ open class InstancedStack {
 
                 if (!depth && previousMaterial == null && !needsLightUpdateForEveryMesh) {
                     aabb.clear()
-                    pipeline.frustum.union(aabb)
+                    // pipeline.frustum.union(aabb)
                     stage.setupLights(pipeline, shader, aabb, true)
                 }
 

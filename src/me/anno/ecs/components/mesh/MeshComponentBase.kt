@@ -27,7 +27,7 @@ import org.joml.Vector3f
 abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
     /**
-     * whether a object will receive shadows from shadow-mapped lights;
+     * whether an object will receive shadows from shadow-mapped lights;
      * may be ignored for instanced meshes (to save bandwidth/computations)
      * */
     @SerializedProperty
@@ -37,7 +37,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     var castShadows = true
 
     @SerializedProperty
-    var isInstanced = false
+    var isInstanced = true // idk... good for large scenes, bad for accurate lighting in forward rendering
 
     // todo respect this property
     // (useful for Synty meshes, which sometimes have awkward vertex colors)
@@ -124,7 +124,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
             } else {
                 val oc = occlusionQuery
                 if (oc == null || oc.wasVisible || oc.frameCounter++ > 0) {
-                    pipeline.addMesh(mesh, this, entity, gfxId)
+                    pipeline.addMesh(mesh, this, entity, clickId)
                 }
             }
             lastDrawn = Engine.gameTime

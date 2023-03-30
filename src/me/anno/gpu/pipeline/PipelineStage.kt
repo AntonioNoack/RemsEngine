@@ -36,6 +36,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.blackCube
+import me.anno.input.Input
 import me.anno.io.Saveable
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.set2
@@ -43,6 +44,9 @@ import org.joml.AABBd
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL30C.*
+import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
 class PipelineStage(
     var name: String,
@@ -166,7 +170,37 @@ class PipelineStage(
 
     var nextInsertIndex = 0
     var instancedSize = 0
-    val drawRequests = ArrayList<DrawRequest>()
+    val drawRequests = ArrayList2<DrawRequest>()
+
+    class ArrayList2<V>(cap: Int = 16) {
+
+        var size = 0
+        private var content = arrayOfNulls<Any?>(cap)
+
+        fun resize(size: Int) {
+            val newSize = max(16, size)
+            val content = content
+            if (content.size != newSize) {
+                val new = arrayOfNulls<Any?>(newSize)
+                System.arraycopy(content, 0, new, 0, min(newSize, content.size))
+                this.content = new
+                this.size = min(this.size, new.size)
+            }
+        }
+
+        fun add(element: V) {
+            if (size >= content.size) resize(content.size * 2)
+            content[size++] = element
+        }
+
+        @Suppress("unchecked_cast")
+        operator fun get(index: Int): V = content[index] as V
+        fun sortWith(comp: Comparator<V>) {
+            @Suppress("unchecked_cast")
+            Arrays.sort(content, 0, size, comp as Comparator<Any?>)
+        }
+
+    }
 
     // doesn't work yet, why ever
     var occlusionQueryPrepass = false
@@ -411,14 +445,14 @@ class PipelineStage(
         // add all things, the shader needs to know, e.g., light direction, strength, ...
         // (for the cheap shaders, which are not deferred)
         shader.m4x4("transform", RenderState.cameraMatrix)
-        shader.m4x4("prevTransform", RenderState.prevCamMatrix)
+        shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
         shader.v3f("ambientLight", pipeline.ambient)
         shader.v1b("applyToneMapping", pipeline.applyToneMapping)
     }
 
-    fun DrawRequest.distanceTo(cameraPosition: Vector3d): Double {
-        return -entity.transform.dotViewDir(cameraPosition, RenderState.cameraDirection)
-        // return entity.transform.distanceSquaredGlobally(cameraPosition)
+    fun DrawRequest.revDistance(dir: Vector3d): Double {
+        val w = entity.transform.globalTransform
+        return dir.dot(w.m30, w.m31, w.m32)
     }
 
     @Suppress("unused")
@@ -432,23 +466,23 @@ class PipelineStage(
         // to do and light groups, so we don't need to update lights that often
 
         // val viewDir = pipeline.frustum.cameraRotation.transform(Vector3d(0.0, 0.0, 1.0))
-        val cameraPosition = RenderState.cameraPosition
-        val cameraDirection = RenderState.cameraDirection
-        when (sorting) {
+        drawRequests.size = nextInsertIndex
+        val dir = RenderState.cameraDirection
+        if (!Input.isKeyDown('l')) when (sorting) {
             Sorting.NO_SORTING -> {
             }
             Sorting.FRONT_TO_BACK -> {
                 drawRequests.sortWith { a, b ->
-                    val ma = a.distanceTo(cameraPosition)
-                    val mb = b.distanceTo(cameraPosition)
-                    ma.compareTo(mb)
+                    val ma = a.revDistance(dir)
+                    val mb = b.revDistance(dir)
+                    mb.compareTo(ma)
                 }
             }
             Sorting.BACK_TO_FRONT -> {
                 drawRequests.sortWith { a, b ->
-                    val ma = a.distanceTo(cameraPosition)
-                    val mb = b.distanceTo(cameraPosition)
-                    mb.compareTo(ma)
+                    val ma = a.revDistance(dir)
+                    val mb = b.revDistance(dir)
+                    ma.compareTo(mb)
                 }
             }
         }
@@ -719,10 +753,10 @@ class PipelineStage(
     private var hadTooMuchSpace = 0
     fun clear() {
 
-        // there is too much space since 100 iterations
+        // there is has been much space for 10 iterations
         if (nextInsertIndex < drawRequests.size shr 1) {
-            if (hadTooMuchSpace++ > 100) {
-                drawRequests.clear()
+            if (hadTooMuchSpace++ > 10) {
+                drawRequests.resize(nextInsertIndex)
             }
         } else hadTooMuchSpace = 0
 
@@ -736,9 +770,9 @@ class PipelineStage(
     }
 
     fun add(component: Component, mesh: Mesh, entity: Entity, materialIndex: Int, clickId: Int) {
+        val nextInsertIndex = nextInsertIndex++
         if (nextInsertIndex >= drawRequests.size) {
-            val request = DrawRequest(mesh, component, entity, materialIndex, clickId)
-            drawRequests.add(request)
+            drawRequests.add(DrawRequest(mesh, component, entity, materialIndex, clickId))
         } else {
             val request = drawRequests[nextInsertIndex]
             request.mesh = mesh
@@ -747,7 +781,6 @@ class PipelineStage(
             request.materialIndex = materialIndex
             request.clickId = clickId
         }
-        nextInsertIndex++
     }
 
     fun addInstanced(

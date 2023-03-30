@@ -171,10 +171,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     @NotSerializedProperty
     var isPhysicsControlled = false
 
-    @DebugProperty
-    @NotSerializedProperty
-    var hasBeenVisible = false
-
     // collision mask for faster collision checks
     @DebugProperty
     @NotSerializedProperty
@@ -404,17 +400,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     fun invalidateUpdates() {
         parentEntity?.invalidateUpdates()
         hasOnUpdate = true
-    }
-
-    fun invalidateVisibility() {
-        hasBeenVisible = false
-        val children = children
-        for (i in children.indices) {
-            val child = children[i]
-            if (child.hasBeenVisible) {
-                child.invalidateVisibility()
-            }
-        }
     }
 
     fun onUIEvent(event: UIEvent): Boolean {

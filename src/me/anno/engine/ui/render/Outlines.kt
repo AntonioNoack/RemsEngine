@@ -102,7 +102,7 @@ object Outlines {
                     shader.use()
 
                     shader.m4x4("transform", RenderState.cameraMatrix)
-                    shader.m4x4("prevTransform", RenderState.prevCamMatrix)
+                    shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
 
                     val worldScale = RenderState.worldScale
                     shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)

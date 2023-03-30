@@ -106,11 +106,6 @@ class PrefabInspector(val reference: FileReference) {
         }
     }
 
-    /*fun isChanged(path: Path): Boolean {
-        val oldChange = sets.firstOrNull { it.path == path }
-        return oldChange != null
-    }*/
-
     fun isChanged(path: Path?, name: String): Boolean {
         path ?: return false
         return sets.contains(path, name)
@@ -164,9 +159,18 @@ class PrefabInspector(val reference: FileReference) {
 
         val warningPanel = UpdatingTextPanel(500, style) { instance.lastWarning }
         warningPanel.textColor = warningPanel.textColor.mulARGB(0xffff3333.toInt())
-        warningPanel.tooltip = "Click to hide this warning until the issue reappears"
+        warningPanel.tooltip = "Click to hide this warning until the issue reappears."
         warningPanel.addLeftClickListener { instance.lastWarning = null } // "marks" the warning as "read"
         list += warningPanel
+
+        if (instance.className !in ISaveable.objectTypeRegistry) {
+            val warningPanel1 = TextPanel("Class '${instance.className}' wasn't registered as a custom class", style)
+            warningPanel1.tooltip =
+                "This class cannot be saved properly to disk, and might not be copyable.\n" +
+                        "Use registerCustomClass { customConstructor() } or registerCustomClass(YourClass::class)."
+            warningPanel1.textColor = warningPanel.textColor
+            list += warningPanel1
+        }
 
         list.add(TextInput("Name", "", instance.name, style).apply {
             isBold = isChanged(getPath(), "name")

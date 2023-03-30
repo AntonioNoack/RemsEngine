@@ -652,10 +652,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     open fun scrollTo() {
-        val window = window
-        if (window == null) {
-            LOGGER.warn("Window of $this is null")
-        } else scrollTo(window.mouseXi, window.mouseYi)
+        val window = window ?: return
+        scrollTo(window.mouseXi, window.mouseYi)
     }
 
     fun listOfPanelHierarchy(callback: (Panel) -> Unit) {

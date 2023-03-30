@@ -54,7 +54,7 @@ class SpotLight() : LightComponent(LightType.SPOT) {
         cameraMatrix.rotate(Quaternionf(rotation).invert())
         pipeline.frustum.definePerspective(
             near / worldScale, far / worldScale, fovYRadians, resolution, resolution,
-            1.0, position, rotation,
+            1.0, position, rotation
         )
     }
 

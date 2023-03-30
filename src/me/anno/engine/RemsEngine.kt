@@ -50,7 +50,6 @@ import org.joml.Matrix4f
 //  - branching maps & branching results
 //  - go into/out of/step
 
-// todo get audio working + test it
 // todo then create first release :3 (to easier get started for others)
 
 // todo retargetings database

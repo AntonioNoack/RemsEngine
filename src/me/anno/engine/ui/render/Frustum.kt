@@ -2,6 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths.sq
+import me.anno.utils.Color.black
 import org.joml.*
 import kotlin.math.*
 
@@ -95,7 +96,7 @@ class Frustum {
 
     }
 
-    fun transform(cameraPosition: Vector3d, cameraRotation: Quaterniond){
+    fun transform(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
         val positions = positions
         val normals = normals
         val planes = planes
@@ -179,8 +180,6 @@ class Frustum {
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.set(cameraRotation)
 
-        // showPlanes()
-
     }
 
     fun definePerspective(
@@ -191,7 +190,7 @@ class Frustum {
         height: Int,
         aspectRatio: Double,
         cameraPosition: Vector3d,
-        cameraRotation: Quaterniond,
+        cameraRotation: Quaterniond
     ) {
 
         // pixelSize = max(width, height) * 0.5 * objectSize * projMatFOVFactor
@@ -242,19 +241,21 @@ class Frustum {
 
         isPerspective = true
 
-        // showPlanes()
     }
 
-    fun showPlanes() {
+    fun showPlanes(worldScale: Double) {
         for (i in 0 until 6) {
             val length = 10.0
             val s = 1.0
             val p = positions[i]
             val n = normals[i]
-            LineBuffer.putRelativeLine(p, Vector3d(n).normalize(length).add(p), 0x00ff00)
-            LineBuffer.putRelativeLine(Vector3d(p).add(-s, 0.0, 0.0), Vector3d(p).add(+s, 0.0, 0.0), 0x00ff00)
-            LineBuffer.putRelativeLine(Vector3d(p).add(0.0, -s, 0.0), Vector3d(p).add(0.0, +s, 0.0), 0x00ff00)
-            LineBuffer.putRelativeLine(Vector3d(p).add(0.0, 0.0, -s), Vector3d(p).add(0.0, 0.0, +s), 0x00ff00)
+            RenderState.cameraPosition.set(cameraPosition)
+            RenderState.worldScale = worldScale
+            val color = 0x00ff00 or black
+            LineBuffer.putRelativeLine(p, Vector3d(n).normalize(length).add(p), color)
+            LineBuffer.putRelativeLine(Vector3d(p).add(-s, 0.0, 0.0), Vector3d(p).add(+s, 0.0, 0.0), color)
+            LineBuffer.putRelativeLine(Vector3d(p).add(0.0, -s, 0.0), Vector3d(p).add(0.0, +s, 0.0), color)
+            LineBuffer.putRelativeLine(Vector3d(p).add(0.0, 0.0, -s), Vector3d(p).add(0.0, 0.0, +s), color)
         }
     }
 
@@ -312,6 +313,7 @@ class Frustum {
     }
 
     fun union(aabb: AABBd) {
+
         // calculate all 8 intersection points of the 6 planes
         // the pairs must be guaranteed to be opposite
 

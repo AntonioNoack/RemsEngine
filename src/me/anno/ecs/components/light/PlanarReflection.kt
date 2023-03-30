@@ -57,11 +57,12 @@ class PlanarReflection : LightComponentBase() {
         val h = instance.h
         val aspectRatio = w.toFloat() / h
 
+        val worldScale = RenderState.worldScale
         draw(
             pipeline, w, h,
             RenderState.cameraMatrix,
             RenderState.cameraPosition,
-            RenderState.cameraRotation, RenderState.worldScale
+            RenderState.cameraRotation, worldScale
         ) { pos, rot ->
             pipeline.frustum.definePerspective(
                 near, far, RenderState.fovYRadians.toDouble(),

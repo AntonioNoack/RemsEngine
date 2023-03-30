@@ -150,7 +150,6 @@ class EnvironmentMap : LightComponentBase() {
                 // define RenderState
                 RenderState.worldScale = worldScale
                 RenderState.cameraMatrix.set(cameraMatrix)
-                cameraMatrix.invert(RenderState.cameraMatrixInv)
                 RenderState.cameraPosition.set(position)
                 RenderState.cameraRotation.set(camRotInv)
                 RenderState.calculateDirections()

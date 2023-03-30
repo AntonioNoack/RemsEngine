@@ -66,7 +66,7 @@ class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, Ins
                         if (previousMaterial == null) {
                             val aabb = PipelineStage.tmpAABBd
                             aabb.clear()
-                            pipeline.frustum.union(aabb)
+                            // pipeline.frustum.union(aabb)
                             stage.setupLights(pipeline, shader, aabb, true)
                         }
 
