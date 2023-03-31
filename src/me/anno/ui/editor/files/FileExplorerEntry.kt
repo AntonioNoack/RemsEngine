@@ -112,7 +112,6 @@ open class FileExplorerEntry(
     var time = 0.0
     var frameIndex = 0
     var maxFrameIndex = 0
-    val hoverPlaybackDelay = 0.5
     var scale = 1
     var previewFPS = 1.0
     var meta: FFMPEGMetadata? = null
@@ -136,7 +135,8 @@ open class FileExplorerEntry(
             folderPath
         } else {
             when (file.name.lowercase()) {
-                "music", "musik", "videos", "movies" -> musicPath
+                "music", "musik" -> musicPath
+                "videos", "movies" -> videoPath
                 "documents", "dokumente", "downloads" -> textPath
                 "images", "pictures", "bilder" -> imagePath
                 else -> if (file.hasChildren())
@@ -149,7 +149,8 @@ open class FileExplorerEntry(
             "Container" -> zipPath
             "Image", "Cubemap", "Cubemap-Equ" -> imagePath
             "Text" -> textPath
-            "Audio", "Video" -> musicPath
+            "Audio" -> musicPath
+            "Video" -> videoPath
             "Executable" -> exePath
             // todo link icon for .lnk and .url, and maybe .desktop
             else -> docsPath
@@ -172,16 +173,6 @@ open class FileExplorerEntry(
         titlePanel.breaksIntoMultiline = true
         titlePanel.parent = this
         titlePanel.instantTextLoading = true
-    }
-
-    private var audio: AudioFileStreamOpenAL? = null
-
-    fun stopPlayback() {
-        val audio = audio
-        if (audio != null && audio.isPlaying) {
-            AudioTasks.addTask("stop", 1) { audio.stop() }
-            this.audio = null
-        }
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -268,17 +259,8 @@ open class FileExplorerEntry(
                         if (startTime == 0L) {
                             startTime = Engine.gameTime
                             val file = getReferenceOrTimeout(path)
-                            stopPlayback()
-                            if (meta.hasAudio) {
-                                this.audio = AudioFileStreamOpenAL(
-                                    file, LoopingState.PLAY_LOOP,
-                                    -hoverPlaybackDelay, true, meta, 1.0,
-                                    left = true, center = false, right = true
-                                )
-                                AudioTasks.addTask("start", 5) {
-                                    audio?.start()
-                                }
-                            }
+                            stopPlayback(file)
+                            if (meta.hasAudio) startPlayback(file, meta)
                             0
                         } else {
                             time = (Engine.gameTime - startTime) * 1e-9 - hoverPlaybackDelay
@@ -286,7 +268,8 @@ open class FileExplorerEntry(
                         }
                     } else {
                         startTime = 0
-                        stopPlayback()
+                        val file = getReferenceOrTimeout(path)
+                        stopPlayback(file)
                         0
                     } % maxFrameIndex
                     scale = max(min(meta.videoWidth / w, meta.videoHeight / h), 1)
@@ -828,6 +811,37 @@ open class FileExplorerEntry(
 
     companion object {
 
+        private var audioRef: FileReference? = null
+        private var audio: AudioFileStreamOpenAL? = null
+        val hoverPlaybackDelay = 0.5
+
+        fun startPlayback(file: FileReference, meta: FFMPEGMetadata) {
+            stopAnyPlayback()
+            audio = AudioFileStreamOpenAL(
+                file, LoopingState.PLAY_LOOP,
+                -hoverPlaybackDelay, true, meta, 1.0,
+                left = true, center = false, right = true
+            )
+            audioRef = file
+            AudioTasks.addTask("start", 5) {
+                audio?.start()
+            }
+        }
+
+        fun stopPlayback(file: FileReference) {
+            if (audioRef != file) return
+            stopAnyPlayback()
+        }
+
+        fun stopAnyPlayback() {
+            val audio = audio
+            if (audio != null) {
+                AudioTasks.addTask("stop", 1) { audio.stop() }
+                this.audio = null
+            }
+            audioRef = null
+        }
+
         @JvmField
         var showFileExtensions = false
 
@@ -854,6 +868,9 @@ open class FileExplorerEntry(
 
         @JvmField
         val imagePath = getReference("res://file/image.png")
+
+        @JvmField
+        val videoPath = getReference("res://file/video.png")
 
         @JvmField
         val emptyFolderPath = getReference("res://file/empty_folder.png")

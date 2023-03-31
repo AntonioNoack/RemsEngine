@@ -183,7 +183,7 @@ open class FileExplorer(
                     when (fileSorting) {
                         FileSorting.NAME -> a.name.compareTo(b.name, true)
                         FileSorting.SIZE -> a.length().compareTo(b.length())
-                        FileSorting.LAST_MODIFIED -> a.lastModified.compareTo(b.lastModified)
+                        FileSorting.LAST_MODIFIED -> b.lastModified.compareTo(a.lastModified)
                     }, -1, +1
                 ) * (if (ascendingSorting) +1 else -1)
                 if (folderSorting == FolderSorting.MIXED) base
@@ -303,9 +303,7 @@ open class FileExplorer(
     }
 
     fun removeOldFiles() {
-        for (it in content2d.children) {
-            (it as? FileExplorerEntry)?.stopPlayback()
-        }
+        FileExplorerEntry.stopAnyPlayback()
         content2d.clear()
     }
 
