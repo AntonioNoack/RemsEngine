@@ -3,6 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.StaticBuffer
@@ -10,7 +11,8 @@ import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongPair
 
-class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, InstancedStackStatic.Data>(capacity), DrawableStack {
+class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, InstancedStackStatic.Data>(capacity),
+    DrawableStack {
 
     class Data {
 
@@ -77,7 +79,11 @@ class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, Ins
                         GFX.check()
 
                         shader.v4f("clickId", stack.clickIds[i])
-                        mesh.drawInstanced(shader, 0, stack.data[i])
+                        if (material.isDoubleSided) {
+                            GFXState.cullMode.use(CullMode.BOTH) {
+                                mesh.drawInstanced(shader, 0, stack.data[i])
+                            }
+                        } else mesh.drawInstanced(shader, 0, stack.data[i])
                         drawnPrimitives += mesh.numPrimitives * stack.data[i].elementCount.toLong()
                         drawCalls++
 

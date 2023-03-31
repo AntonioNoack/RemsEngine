@@ -46,8 +46,9 @@ class Framebuffer(
         h: Int,
         target: TargetType,
         depthBufferType: DepthBufferType = DepthBufferType.NONE
-    ) :
-            this(name, w, h, 1, arrayOf(target), depthBufferType)
+    ) : this(name, w, h, 1, arrayOf(target), depthBufferType)
+
+    fun clone() = Framebuffer(name, w, h, samples, targets, depthBufferType)
 
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
     override val numTextures: Int = targets.size

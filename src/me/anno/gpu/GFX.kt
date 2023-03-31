@@ -123,7 +123,7 @@ object GFX {
     var maxVertexUniformComponents = 0
 
     @JvmField
-    var maxBoundTextures = 0
+    var maxBoundTextures = 1
 
     @JvmField
     var maxUniforms = 0

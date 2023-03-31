@@ -3,6 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.RenderState
+import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.maths.Maths
@@ -139,7 +140,11 @@ class InstancedStackPSR(capacity: Int = 64) :
                     }
                 }
 
-                mesh.drawInstanced(shader, 0, buffer)
+                if (material.isDoubleSided) {
+                    GFXState.cullMode.use(CullMode.BOTH) {
+                        mesh.drawInstanced(shader, 0, buffer)
+                    }
+                } else mesh.drawInstanced(shader, 0, buffer)
                 baseIndex = endIndex
                 drawCalls++
 

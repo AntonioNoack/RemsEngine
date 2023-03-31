@@ -1,6 +1,5 @@
 package me.anno.maths.noise
 
-import me.anno.image.ImageWriter
 import me.anno.maths.Maths.smoothStep
 import me.anno.maths.Maths.smoothStepUnsafe
 import kotlin.math.floor

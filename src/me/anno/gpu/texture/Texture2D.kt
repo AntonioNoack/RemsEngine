@@ -177,6 +177,7 @@ open class Texture2D(
             bufferPool.returnBuffer(tmp)
             return
         }
+        bindBeforeUpload()
         val w = w
         val h = h
         val target = target
@@ -1044,6 +1045,7 @@ open class Texture2D(
 
     private fun bindBeforeUpload() {
         if (pointer == 0) throw RuntimeException("Pointer must be defined")
+        invalidateBinding()
         bindTexture(target, pointer)
     }
 

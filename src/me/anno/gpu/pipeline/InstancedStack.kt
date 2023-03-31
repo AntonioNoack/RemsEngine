@@ -224,7 +224,11 @@ open class InstancedStack {
                     val t5 = System.nanoTime()
                     st45 += t5 - t4
 
-                    mesh.drawInstanced(shader, materialIndex, buffer)
+                    if (material.isDoubleSided) {
+                        GFXState.cullMode.use(CullMode.BOTH) {
+                            mesh.drawInstanced(shader, materialIndex, buffer)
+                        }
+                    } else mesh.drawInstanced(shader, materialIndex, buffer)
                     drawCalls++
 
                     val t6 = System.nanoTime()

@@ -1,14 +1,22 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
+import me.anno.gpu.CullMode
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.GFXState
-import me.anno.gpu.buffer.LineBuffer
-import me.anno.gpu.CullMode
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.m4x3delta
-import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.buffer.LineBuffer
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.SimpleRenderer
+import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4d
@@ -16,6 +24,16 @@ import org.joml.Matrix4d
 object Outlines {
 
     // private val LOGGER = LogManager.getLogger(Outlines::class)
+
+    val whiteRenderer = SimpleRenderer(
+        "white", ShaderStage(
+            listOf(
+                Variable(GLSLType.V1F, "zDistance"),
+                Variable(GLSLType.V1F, "finalAlpha"),
+                Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+            ), "if(finalAlpha<0.01) discard; finalResult = vec4(1.0);\n"
+        )
+    )
 
     private val tmpMat4d = Matrix4d()
 
@@ -41,11 +59,11 @@ object Outlines {
         }
     }
 
-    fun drawOutline(meshComponent: MeshComponentBase, mesh: Mesh) {
+    fun drawOutline(comp: MeshComponentBase, mesh: Mesh) {
 
         // todo respect alpha somehow?
 
-        val entity = meshComponent.entity ?: return
+        val entity = comp.entity ?: return
         val transform0 = entity.transform
 
         val transform = transform0.getDrawMatrix()
@@ -92,31 +110,36 @@ object Outlines {
         offsetCorrectedTransform.translate(aabb.avgX() * fac, aabb.avgY() * fac, aabb.avgZ() * fac)
 
         if (scale < 1e10f) {
-            val cullMode = if (mesh.inverseOutline) CullMode.BACK else CullMode.FRONT
-            GFXState.cullMode.use(cullMode) {
-                val baseShader = ShaderLib.monochromeModelShader
-                val animated = meshComponent.hasAnimation
-                GFXState.animated.use(animated) {
+            useFrame(whiteRenderer) {
+                val cullMode = if (mesh.inverseOutline) CullMode.BACK else CullMode.FRONT
+                GFXState.cullMode.use(cullMode) {
+                    val matRef = comp.materials.firstOrNull() ?: mesh.materials.firstOrNull()
+                    val material = MaterialCache[matRef, false] ?: defaultMaterial
+                    val baseShader = material.shader ?: pbrModelShader
+                    val animated = comp.hasAnimation
+                    if (!material.isDoubleSided) GFXState.animated.use(animated) {
 
-                    val shader = baseShader.value
-                    shader.use()
+                        val shader = baseShader.value
+                        shader.use()
+                        material.bind(shader)
 
-                    shader.m4x4("transform", RenderState.cameraMatrix)
-                    shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
+                        shader.m4x4("transform", RenderState.cameraMatrix)
+                        shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
 
-                    val worldScale = RenderState.worldScale
-                    shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
-                    // todo inv local transform
-                    shader.m4x3delta("prevLocalTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
-                    shader.v1f("worldScale", worldScale)
-                    shader.v1f("prevWorldScale", RenderState.prevWorldScale)
-                    shaderColor(shader, "tint", -1)
+                        val worldScale = RenderState.worldScale
+                        shader.m4x3delta("localTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
+                        // todo inv local transform
+                        shader.m4x3delta("prevLocalTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
+                        shader.v1f("worldScale", worldScale)
+                        shader.v1f("prevWorldScale", RenderState.prevWorldScale)
+                        shaderColor(shader, "tint", -1)
 
-                    val hasAnim = animated && meshComponent.defineVertexTransform(shader, entity, mesh)
-                    shader.v1b("hasAnimation", hasAnim)
+                        val hasAnim = animated && comp.defineVertexTransform(shader, entity, mesh)
+                        shader.v1b("hasAnimation", hasAnim)
 
-                    mesh.draw(shader, 0)
+                        mesh.draw(shader, 0)
 
+                    }
                 }
             }
         }

@@ -401,8 +401,7 @@ object ComponentUI {
             }
             "Int", "Integer" -> {
                 if (title.endsWith("color", true)) {
-                    value as Int
-                    return ColorInput(style, title, visibilityKey, value.toVecRGBA(), true).apply {
+                    return ColorInput(style, title, visibilityKey, (value as? Int ?: 0).toVecRGBA(), true).apply {
                         property.init(this)
                         askForReset(property) { it as Int; setValue(it.toVecRGBA(), false) }
                         setResetListener { (property.reset(this) as Int).toVecRGBA() }
@@ -411,8 +410,8 @@ object ComponentUI {
                         }
                     }
                 } else {
-                    val type = Type(default as Int,
-                        { clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()).toInt() }, { it })
+                    val type = Type(default as? Int ?: 0,
+                        { clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()) }, { it })
                     return IntInput(title, visibilityKey, type, style).apply {
                         property.init(this)
                         setValue(value as Int, false)
@@ -425,7 +424,7 @@ object ComponentUI {
                 }
             }
             "UInt" -> {
-                val type = Type(default as UInt,
+                val type = Type(default as? UInt ?: 0u,
                     { clamp(it.toLong(), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
@@ -438,7 +437,7 @@ object ComponentUI {
                 }
             }
             "Long" -> {
-                val type = Type(default as? Long ?: throw RuntimeException("$title is not long"),
+                val type = Type(default as? Long ?: 0L,
                     { clamp(it.toLong(), range.minLong(), range.maxLong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
@@ -451,7 +450,7 @@ object ComponentUI {
                 }
             }
             "ULong" -> {// not fully supported
-                val type = Type(default as ULong,
+                val type = Type(default as? ULong ?: 0uL,
                     { clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
@@ -465,8 +464,8 @@ object ComponentUI {
             }
             // todo slider type, which returns a float in 01 range
             "Float" -> {
-                val type = Type(default as? Float ?: throw RuntimeException("$title is not float"),
-                    { clamp(it as Float, range.minFloat(), range.maxFloat()) }, { it })
+                val type = Type(default as? Float ?: 0f,
+                    { clamp(it as Float, range.minFloat(), range.maxFloat()).toDouble() }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue(value as Float, false)
@@ -478,7 +477,7 @@ object ComponentUI {
                 }
             }
             "Double" -> {
-                val type = Type(default as? Double ?: throw RuntimeException("$title is not double"),
+                val type = Type(default as? Double ?: 0.0,
                     { clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
                     property.init(this)
