@@ -60,7 +60,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             lastScrollPosY = round(scrollPositionY)
             lastMaxScrollPosX = maxScrollPositionX
             lastMaxScrollPosY = maxScrollPositionY
-            window.addNeedsLayout(this)
+            setPosition(x, y)
+            invalidateDrawing()
         }
     }
 

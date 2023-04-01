@@ -92,6 +92,7 @@ open class ScrollPanelY(
             lastScrollPosY = round(scrollPositionY)
             lastMaxScrollPosY = maxScrollPositionY
             placeChild()
+            invalidateDrawing()
         }
     }
 
