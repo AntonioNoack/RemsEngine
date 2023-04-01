@@ -58,6 +58,7 @@ import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
+import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.apache.logging.log4j.LogManager
@@ -464,8 +465,8 @@ object ComponentUI {
             }
             // todo slider type, which returns a float in 01 range
             "Float" -> {
-                val type = Type(default as? Float ?: 0f,
-                    { clamp(it as Float, range.minFloat(), range.maxFloat()).toDouble() }, { it })
+                val type = Type(AnyToFloat.getFloat(default, 0f),
+                    { clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue(value as Float, false)

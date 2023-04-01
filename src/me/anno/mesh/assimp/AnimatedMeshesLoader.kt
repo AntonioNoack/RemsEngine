@@ -1,6 +1,5 @@
 package me.anno.mesh.assimp
 
-import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
@@ -25,6 +24,12 @@ import me.anno.mesh.assimp.AnimationLoader.getDuration
 import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
 import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
+import me.anno.mesh.assimp.StaticMeshesLoader.buildScene
+import me.anno.mesh.assimp.StaticMeshesLoader.defaultFlags
+import me.anno.mesh.assimp.StaticMeshesLoader.loadFile
+import me.anno.mesh.assimp.StaticMeshesLoader.loadMaterialPrefabs
+import me.anno.mesh.assimp.StaticMeshesLoader.loadTextures
+import me.anno.mesh.assimp.StaticMeshesLoader.processPositions
 import me.anno.mesh.fbx.FBX6000
 import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.findNextFileName
@@ -39,11 +44,11 @@ import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.min
 
-object AnimatedMeshesLoader : StaticMeshesLoader() {
+object AnimatedMeshesLoader {
 
     private val LOGGER = LogManager.getLogger(AnimatedMeshesLoader::class)
 
-    private fun matrixFix(file: FileReference, metadata: Map<String, Any>): Matrix3f? {
+    private fun matrixFix(metadata: Map<String, Any>): Matrix3f? {
 
         var unitScaleFactor = 1f
 
@@ -80,8 +85,8 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
 
     }
 
-    override fun read(file: FileReference, resources: FileReference, flags: Int): AnimGameItem {
-        val (folder, prefab) = readAsFolder2(file, resources, flags)
+    fun read(file: FileReference, resources: FileReference): AnimGameItem {
+        val (folder, prefab) = readAsFolder2(file, resources)
 
         val instance = prefab.createInstance() as Entity
         val animations = folder.getChild("animations").listChildren()?.mapNotNull {
@@ -99,11 +104,14 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     }
 
     fun readAsFolder(
-        file: FileReference, resources: FileReference = file.getParent() ?: InvalidRef, flags: Int = defaultFlags
+        file: FileReference,
+        resources: FileReference = file.getParent() ?: InvalidRef, flags: Int = defaultFlags
     ): InnerFolder = readAsFolder2(file, resources, flags).first
 
     fun readAsFolder2(
-        file: FileReference, resources: FileReference = file.getParent() ?: InvalidRef, flags: Int = defaultFlags
+        file: FileReference,
+        resources: FileReference = file.getParent() ?: InvalidRef,
+        flags: Int = defaultFlags
     ): Pair<InnerFolder, Prefab> {
 
         var name = file.nameWithoutExtension
@@ -115,8 +123,11 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         // so we can inherit from the materials, meshes, animations, ...
         // all and separately
         val aiScene: AIScene
+        val isFBX: Boolean
         try {
-            aiScene = loadFile(file, flags)
+            val (aiScene1, isFBX1) = loadFile(file, flags)
+            aiScene = aiScene1
+            isFBX = isFBX1
         } catch (e: IOException) {
             if (e.message?.contains("FBX-DOM unsupported") == true) {
                 try {
@@ -151,6 +162,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
             }
             throw e
         }
+
         val root = InnerFolder(file)
         val rootNode = aiScene.mRootNode()!!
         val loadedTextures = if (aiScene.mNumTextures() > 0) {
@@ -178,7 +190,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
         val hierarchy = buildScene(aiScene, meshes, hasSkeleton)
 
         val metadata = loadMetadata(aiScene)
-        val matrixFix = matrixFix(file, metadata)
+        val matrixFix = if (isFBX) null else matrixFix(metadata) // fbx is already 100x
         if (matrixFix != null) {
             applyMatrixFix(hierarchy, matrixFix)
         }
@@ -727,7 +739,7 @@ object AnimatedMeshesLoader : StaticMeshesLoader() {
     private fun createMeshPrefab(
         aiMesh: AIMesh, materials: List<FileReference>, boneList: ArrayList<Bone>, boneMap: HashMap<String, Bone>
     ): Prefab {
-        val prefab = createMeshPrefab(aiMesh, materials)
+        val prefab = StaticMeshesLoader.createMeshPrefab(aiMesh, materials)
         val boneData = processBones(aiMesh, boneList, boneMap, aiMesh.mNumVertices())
         if (boneData != null) {
             prefab.setProperty("boneIndices", boneData.first)

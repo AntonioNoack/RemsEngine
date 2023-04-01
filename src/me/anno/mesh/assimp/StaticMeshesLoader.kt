@@ -35,36 +35,32 @@ import java.nio.IntBuffer
 import kotlin.math.roundToInt
 import kotlin.math.sign
 
-open class StaticMeshesLoader {
+object StaticMeshesLoader {
 
-    companion object {
+    private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class.java)
 
-        private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class.java)
+    const val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
+            aiProcess_Triangulate or // we don't want to triangulate ourselves
+            aiProcess_JoinIdenticalVertices or // is required to load indexed geometry
+            // aiProcess_FixInfacingNormals or // is recommended, may be incorrect... is incorrect for the Sponza sample from Intel
+            aiProcess_GlobalScale
+    // or aiProcess_PreTransformVertices // <- disables animations
 
-        const val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
-                aiProcess_Triangulate or // we don't want to triangulate ourselves
-                aiProcess_JoinIdenticalVertices or // is required to load indexed geometry
-                // aiProcess_FixInfacingNormals or // is recommended, may be incorrect... is incorrect for the Sponza sample from Intel
-                aiProcess_GlobalScale
-
-        @JvmStatic
-        fun shininessToRoughness(shininessExponent: Float): Float {
-            // an approximation, which maps the exponent to roughness;
-            // just roughly...
-            //   0: 1.00
-            // 100: 0.50
-            // 200: 0.34
-            // 600: 0.14
-            // 900: 0.10
-            // 1e3: 0.09
-            return 1f / (shininessExponent * 0.01f + 1f)
-        }
-
-        // or aiProcess_PreTransformVertices // <- disables animations
-
+    @JvmStatic
+    fun shininessToRoughness(shininessExponent: Float): Float {
+        // an approximation, which maps the exponent to roughness;
+        // just roughly...
+        //   0: 1.00
+        // 100: 0.50
+        // 200: 0.34
+        // 600: 0.14
+        // 900: 0.10
+        // 1e3: 0.09
+        return 1f / (shininessExponent * 0.01f + 1f)
     }
 
-    fun loadFile(file: FileReference, flags: Int): AIScene {
+
+    fun loadFile(file: FileReference, flags: Int): Pair<AIScene, Boolean> {
         // obj files should use our custom importer
         // if (file.lcExtension == "obj") throw IllegalArgumentException()
         val sign = Signature.findNameSync(file)
@@ -106,14 +102,15 @@ open class StaticMeshesLoader {
                     )
             }
             // should be sync as well
-            obj ?: throw IOException("Error loading model $file, ${aiGetErrorString()}")
+            if (obj == null) throw IOException("Error loading model $file, ${aiGetErrorString()}")
+            Pair(obj, isFBXFile)
         }
     }
 
-    fun load(file: FileReference): AnimGameItem = read(file, file.getParent() ?: InvalidRef, defaultFlags)
+    fun load(file: FileReference): AnimGameItem = read(file, file.getParent() ?: InvalidRef)
 
-    open fun read(file: FileReference, resources: FileReference, flags: Int = defaultFlags): AnimGameItem {
-        val asFolder = AnimatedMeshesLoader.readAsFolder2(file, resources, flags)
+    fun read(file: FileReference, resources: FileReference): AnimGameItem {
+        val asFolder = AnimatedMeshesLoader.readAsFolder2(file, resources)
         val prefab = asFolder.second
         val instance = prefab.createInstance() as Entity
         return AnimGameItem(instance)

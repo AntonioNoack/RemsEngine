@@ -23,7 +23,7 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
     }
 
     val base = child as PureTextInputML
-    val text get() = base.text
+    val text get() = base.lastValue
 
     init {
         base.placeholder = title
@@ -67,7 +67,7 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
         return this
     }
 
-    override val lastValue: String get() = base.text
+    override val lastValue: String get() = base.lastValue
     override fun setValue(value: String, notify: Boolean): TextInputML {
         base.setText(value, notify)
         return this

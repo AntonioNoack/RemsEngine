@@ -10,7 +10,6 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.mesh.assimp.AnimatedMeshesLoader.createNodeCache
 import me.anno.mesh.assimp.Bone
 import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.mesh.assimp.findAllBones
@@ -41,7 +40,7 @@ fun main() {
     // done test animation / skeleton
     @Suppress("SpellCheckingInspection")
     val file = getReference(downloads, "3d/taryk/scene.gltf")
-    val aiScene = AnimatedMeshesLoader.loadFile(file, StaticMeshesLoader.defaultFlags)
+    val aiScene = StaticMeshesLoader.loadFile(file, StaticMeshesLoader.defaultFlags).first
     val rootNode = aiScene.mRootNode()!!
 
     val boneList = ArrayList<Bone>()

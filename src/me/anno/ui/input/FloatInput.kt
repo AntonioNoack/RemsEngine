@@ -169,7 +169,7 @@ open class FloatInput(
             wasInFocus = true
         } else if (wasInFocus) {
             // apply the value, or reset if invalid
-            val value = parseValue(inputPanel.text) ?: lastValue
+            val value = parseValue(inputPanel.lastValue) ?: lastValue
             setValue(value, true)
             wasInFocus = false
         }

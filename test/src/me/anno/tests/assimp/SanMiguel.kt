@@ -67,7 +67,7 @@ fun main() {
     clock.stop("custom")
 
     clock.start()
-    StaticMeshesLoader().load(file)
+    StaticMeshesLoader.load(file)
     clock.stop("assimp")
 
     // val file = getReference(documents, "sphere.obj")

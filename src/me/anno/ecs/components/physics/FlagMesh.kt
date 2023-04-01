@@ -115,7 +115,7 @@ class FlagMesh : MeshComponent() {
 
     private var time = 0f
     private var fract = 0f
-    val dt = 1f / 30f
+    var dt = 1f / 30f
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         ensureBuffer()
@@ -149,7 +149,7 @@ class FlagMesh : MeshComponent() {
                 time -= dt
             }
             fract = 1f - time / dt
-        } // else step is too large
+        } else time = 0f // else step is too large
 
         material.shaderOverrides["coords0Tex"] = TypeValue(GLSLType.S2D, tex0.getTexture0())
         material.shaderOverrides["coords1Tex"] = TypeValue(GLSLType.S2D, tex1.getTexture0())
@@ -264,9 +264,14 @@ class FlagMesh : MeshComponent() {
                             // calculate normals and tangents
                             "       #ifdef COLORS\n" +
                             "           vec2 du = vec2(duv.x,0.0), dv = vec2(0.0,duv.y);\n" +
-                            "           vec3 tan = normalize(texture(coords0Tex,uvs+du).rgb - texture(coords0Tex,uvs-du).rgb);\n" +
-                            "           vec3 bitan = texture(coords0Tex,uvs+dv).rgb - texture(coords0Tex,uvs-dv).rgb;\n" +
-                            "           normal = normalize(cross(bitan,tan));\n" +
+                            // is dx the correct axis for tan or bitan?
+                            "           vec3 tan0 = texture(coords0Tex,uvs+du).rgb - texture(coords0Tex,uvs-du).rgb;\n" +
+                            "           vec3 tan1 = texture(coords1Tex,uvs+du).rgb - texture(coords1Tex,uvs-du).rgb;\n" +
+                            "           vec3 tan = normalize(mix(tan0,tan1,coordsFract));\n" +
+                            "           vec3 bit0 = texture(coords0Tex,uvs+dv).rgb - texture(coords0Tex,uvs-dv).rgb;\n" +
+                            "           vec3 bit1 = texture(coords1Tex,uvs+dv).rgb - texture(coords1Tex,uvs-dv).rgb;\n" +
+                            "           vec3 bit = mix(bit0,bit1,coordsFract);\n" +
+                            "           normal = normalize(cross(bit,tan));\n" +
                             "           tangent = vec4(tan,1.0);\n" +
                             "       #endif\n" +
                             animCode1 +

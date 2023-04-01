@@ -20,7 +20,7 @@ import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCallback
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.maths.Maths.hasFlag
-import me.anno.mesh.assimp.StaticMeshesLoader.Companion.shininessToRoughness
+import me.anno.mesh.assimp.StaticMeshesLoader.shininessToRoughness
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing

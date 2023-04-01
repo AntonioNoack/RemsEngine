@@ -46,7 +46,7 @@ open class PureTextInputML(style: Style) :
             if (text.isEmpty()) update(false)
         }
 
-    var text = ""
+    private var text = ""
         set(value) {
             if (field != value) {
                 field = value

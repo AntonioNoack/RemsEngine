@@ -233,6 +233,8 @@ object EngineActions {
         register["PureTextInput.rightArrow.typed", "MoveRight"]
         register["ConsoleInput.upArrow.typed", "MoveUp"]
         register["ConsoleInput.downArrow.typed", "MoveDown"]
+        register["NumberInputComponent.leftArrow.typed", "MoveLeft"]
+        register["NumberInputComponent.rightArrow.typed", "MoveRight"]
 
         register["PanelListX.leftArrow.typed", "Previous"]
         register["PanelListX.rightArrow.typed", "Next"]

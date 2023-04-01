@@ -18,7 +18,7 @@ fun main() {
         "3d/azeria/azeria.zip/scene.gltf"
     )) {
         val fileI = getReference(downloads, file)
-        StaticMeshesLoader().read(fileI, fileI.getParent()!!)
+        StaticMeshesLoader.read(fileI, fileI.getParent()!!)
         LOGGER.info("done :)")
     }
 

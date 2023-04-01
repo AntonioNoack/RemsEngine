@@ -1,7 +1,7 @@
 package me.anno.tests.assimp
 
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.utils.LOGGER
 import me.anno.utils.OS
 
@@ -13,8 +13,8 @@ fun main() {
     val fbxPath = getReference(OS.downloads, "3d/trooper fbx/source/silly_dancing.fbx")
     val glbPath = getReference(OS.downloads, "3d/trooper gltf/scene.gltf")
 
-    val fbx = AnimatedMeshesLoader.load(fbxPath)
-    val glb = AnimatedMeshesLoader.load(glbPath)
+    val fbx = StaticMeshesLoader.load(fbxPath)
+    val glb = StaticMeshesLoader.load(glbPath)
 
     /*fbx.bones.forEachIndexed { index,it ->
         LOGGER.info("$index ${it.name}")

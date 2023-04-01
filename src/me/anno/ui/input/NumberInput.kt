@@ -127,7 +127,7 @@ abstract class NumberInput<BaseType>(
     abstract fun changeValue(dx: Float, dy: Float)
 
     fun setText(newText: String, notify: Boolean) {
-        val oldText = inputPanel.text
+        val oldText = inputPanel.lastValue
         if (oldText == newText) return
         inputPanel.setText(newText, notify)
         if (oldText.length != newText.length) {

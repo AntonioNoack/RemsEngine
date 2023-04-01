@@ -1,13 +1,13 @@
 package me.anno.tests.assimp
 
-import me.anno.mesh.assimp.AnimatedMeshesLoader
+import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.utils.LOGGER
 import me.anno.utils.OS
 
 fun main() {
 
     val file = OS.documents.getChild("CuteGhost.fbx")
-    val model = AnimatedMeshesLoader.load(file)
+    val model = StaticMeshesLoader.load(file)
 
     // LOGGER.info(model.bones)
 

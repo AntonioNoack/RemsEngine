@@ -42,9 +42,9 @@ fun main() {
         .createInstance().apply {
             this as Entity
             position = position.set(1.6, 0.85, -1.37)
-            scale = scale.set(0.001)
+            scale = scale.set(0.1)
         })
-    scene.addChild(PrefabCache[downloads.getChild("free_1975_porsche_911_930_turbo.zip/scene.gltf")]!!
+    if (false) scene.addChild(PrefabCache[downloads.getChild("free_1975_porsche_911_930_turbo.zip/scene.gltf")]!!
         .createInstance().apply {
             this as Entity
             position = position.set(-1.6, 0.0, -1.43)

@@ -220,12 +220,12 @@ object ActionManager {
         actions: List<String>?,
         @Suppress("unused_parameter") print: Boolean,
     ): Boolean {
-        // if (print) LOGGER.info("${panel::class.simpleName}/${panel.className}, ${actions?.size}")
+        if (print) LOGGER.info("${panel::class.simpleName}/${panel.className}, ${actions?.size}")
         if (actions == null) return false
-        for (actionIndex in actions.indices) {
-            val action = actions[actionIndex]
+        for (i in actions.indices) {
+            val action = actions[i]
             if (panel.onGotAction(x, y, dx, dy, action, isContinuous)) {
-                // if (print) LOGGER.info("consumed action $action by ${panel::class}")
+                if (print) LOGGER.info("consumed action $action by ${panel::class}")
                 return true
             }
         }
