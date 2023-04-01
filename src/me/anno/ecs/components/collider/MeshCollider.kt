@@ -30,10 +30,6 @@ import kotlin.math.sqrt
 
 open class MeshCollider() : Collider() {
 
-    constructor(src: MeshCollider) : this() {
-        src.copyInto(this)
-    }
-
     constructor(src: FileReference) : this() {
         meshFile = src
     }
@@ -378,10 +374,6 @@ open class MeshCollider() : Collider() {
                 aabb.union(tmp)
             }
         } else super.union(globalTransform, aabb, tmp, preferExact)
-    }
-
-    override fun clone(): MeshCollider {
-        return MeshCollider(this)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

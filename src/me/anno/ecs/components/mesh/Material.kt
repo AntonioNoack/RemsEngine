@@ -76,10 +76,6 @@ open class Material : PrefabSaveable(), Renderable {
     // todo instead back/front/both?
     var isDoubleSided = false
 
-    // not yet supported
-    @Range(1.0, 5.0)
-    var indexOfRefraction = 1f
-
     // base * map
     @Range(0.0, 100.0)
     @Type("Color3HDR")
@@ -142,6 +138,15 @@ open class Material : PrefabSaveable(), Renderable {
     // e.g. for patterns, e.g. stroking over some clothes leaves patterns
     @Type("Texture/Reference")
     var sheenNormalMap: FileReference = InvalidRef
+
+    // not yet supported
+    @Range(1.0, 5.0)
+    var indexOfRefraction = 1f
+
+    // todo respect this property
+    // (useful for Synty meshes, which sometimes have awkward vertex colors)
+    @SerializedProperty
+    var enableVertexColors = true
 
     operator fun set(name: String, type: GLSLType, value: Any) {
         shaderOverrides[name] = TypeValue(type, value)
@@ -278,12 +283,6 @@ open class Material : PrefabSaveable(), Renderable {
         return true
     }
 
-    override fun clone(): Material {
-        val material = Material()
-        copyInto(material)
-        return material
-    }
-
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as Material
@@ -318,7 +317,6 @@ open class Material : PrefabSaveable(), Renderable {
     companion object {
 
         var timeout = 1000L
-        private val LOGGER = LogManager.getLogger(Material::class)
 
         fun getTex(image: FileReference) = ImageGPUCache[image, timeout, true]
 

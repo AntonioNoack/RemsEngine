@@ -15,6 +15,7 @@ import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.pooling.JomlPools
@@ -32,7 +33,7 @@ object DebugRendering {
                 if (e is Entity) {
                     e.getComponentsInChildren(LightComponentBase::class)
                         .firstOrNull2 { if (it is LightComponent) it.hasShadow else true }
-                } else if(e is LightComponent && e.hasShadow) e else null
+                } else if (e is LightComponent && e.hasShadow) e else null
             }
         if (light != null) {
             val x = view.x
@@ -48,9 +49,10 @@ object DebugRendering {
                     isDepth = true
                 }
                 is EnvironmentMap -> texture = light.texture?.textures?.firstOrNull()
-                is PlanarReflection -> texture = light.lastBuffer
+                is PlanarReflection -> texture = light.lastBuffer?.getTexture0()
             }
             // draw the texture
+            if (texture is Texture2D && texture.isDestroyed) return
             when (texture) {
                 is CubemapTexture -> {
                     DrawTextures.drawProjection(x, y, s * 3 / 2, s, texture, true, -1, false, isDepth)

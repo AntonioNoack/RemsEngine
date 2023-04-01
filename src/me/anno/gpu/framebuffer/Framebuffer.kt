@@ -194,6 +194,15 @@ class Framebuffer(
                 glDisable(GL_MULTISAMPLE)
             }
         }
+
+        // todo if this fine? might cost a lof ot performance...
+        for (texture in textures) {
+            texture.hasMipmap = false
+            texture.filtering = GPUFiltering.TRULY_NEAREST
+        }
+        depthTexture?.hasMipmap = false
+        depthTexture?.filtering = GPUFiltering.TRULY_NEAREST
+
     }
 
     private fun ensureSize(newWidth: Int, newHeight: Int) {
@@ -297,11 +306,8 @@ class Framebuffer(
     ): Int {
         val renderBuffer = glGenRenderbuffers()
         glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        if (withMultisampling) {
-            glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, format, w, h)
-        } else {
-            glRenderbufferStorage(GL_RENDERBUFFER, format, w, h)
-        }
+        if (withMultisampling) glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, format, w, h)
+        else glRenderbufferStorage(GL_RENDERBUFFER, format, w, h)
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, renderBuffer)
         GFX.check()
         renderBufferAllocated = Texture2D.allocate(
@@ -321,7 +327,7 @@ class Framebuffer(
             // these texture types MUST be the same as for the texture creation process
             DepthBufferType.TEXTURE -> createRenderbuffer(GL_DEPTH_ATTACHMENT, TargetType.DEPTH32F)
             DepthBufferType.TEXTURE_16 -> createRenderbuffer(GL_DEPTH_ATTACHMENT, TargetType.DEPTH16)
-            else -> createRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT, 4) // 4 is worst-case assumed
+            else -> createRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4) // 4 is worst-case assumed
         }
     }
 

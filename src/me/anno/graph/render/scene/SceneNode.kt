@@ -89,7 +89,6 @@ class SceneNode : ActionNode(
         }
 
         val rv: RenderView = renderView
-        val camera: Camera = rv.editorCamera
 
         var framebuffer = framebuffer
         if (framebuffer == null || framebuffer.w != width || framebuffer.h != height) {
@@ -107,19 +106,11 @@ class SceneNode : ActionNode(
         val hdr = true // todo hdr?
         pipeline.applyToneMapping = !hdr
 
-        val depthMode = DepthMode.ALWAYS
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
 
-            Frame.bind()
-            GFXState.depthMode.use(depthMode) {
-                rv.setClearDepth()
-                framebuffer.clearDepth()
-            }
-
-            rv.clearColor(camera, camera, 0f, hdr)
+            rv.clearColorOrSky(rv.cameraMatrix)
             GFX.check()
-            pipeline.stages[stageId]
-                .bindDraw(pipeline)
+            pipeline.stages[stageId].bindDraw(pipeline)
             GFX.check()
 
         }

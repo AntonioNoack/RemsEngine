@@ -200,7 +200,6 @@ fun main() {
         var count2 = 0
         val cubeMesh = Shapes.flatCube.scaled(0.4f).front
         val debugCubeSpawner = object : MeshSpawner() {
-            override fun clone() = throw NotImplementedError()
             override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
                 for (index in 0 until count0) {
                     run(cubeMesh, mat0, getTransform(index))

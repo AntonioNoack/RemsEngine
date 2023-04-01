@@ -36,13 +36,14 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @SerializedProperty
     var castShadows = true
 
+    // idk... good for large scenes, bad for accurate lighting in forward rendering
+    // automatic instancing based on if shader is default??...
+    // check what the performance is in the large dungeon sample scene from Synty
+    // 20 non-instanced, 3000 draw calls
+    // 30 instanced, 300 draw calls
+    // -> idk...
     @SerializedProperty
-    var isInstanced = true // idk... good for large scenes, bad for accurate lighting in forward rendering
-
-    // todo respect this property
-    // (useful for Synty meshes, which sometimes have awkward vertex colors)
-    @SerializedProperty
-    var enableVertexColors = true
+    var isInstanced = false
 
     @Docs("Abstract function for you to define your mesh")
     abstract fun getMesh(): Mesh?
@@ -102,9 +103,11 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     }
 
     /**
-     * todo not yet used;
      * set this parameter, if you want this object to be only drawn, if it is really visible;
-     * visibility is checked every 4 frames (maybe)
+     * visibility is checked every <everyNthFrame> frames
+     *
+     * you also can use this option to check whether an option was drawn;
+     * if it shall be drawn every frame, but you want check visibility, set <everyNthFrame> to 0
      *
      * only works, if not isInstanced
      * */
@@ -140,15 +143,17 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
             val aabb2 = mesh.ensureBounds()
             localAABB.set(aabb2)
             globalAABB.clear()
-            aabb2.transformUnion(globalTransform, globalAABB)
+            fillSpace(mesh, globalTransform, globalAABB)
             aabb.union(globalAABB)
         }
         return true
     }
 
-    fun fillSpace(mesh: Mesh, globalTransform: Matrix4x3d, aabb: AABBd) {
+    fun fillSpace(mesh: Mesh, transform: Matrix4x3d?, dst: AABBd) {
         // add aabb of that mesh with the transform
-        mesh.ensureBounds().transformUnion(globalTransform, aabb)
+        val bounds = mesh.ensureBounds()
+        if (transform != null) bounds.transformUnion(transform, dst)
+        else dst.union(bounds)
     }
 
     open val hasAnimation: Boolean = false

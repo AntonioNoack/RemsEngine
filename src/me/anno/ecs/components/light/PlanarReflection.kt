@@ -7,36 +7,31 @@ import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawXYPlane
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderView.Companion.addDefaultLightsIfRequired
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2D
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.min
 import me.anno.mesh.Shapes
 import me.anno.utils.types.Matrices.mul2
 import org.joml.*
 import org.lwjgl.opengl.GL11C.glScissor
-import kotlin.math.max
-import kotlin.math.min
 
 class PlanarReflection : LightComponentBase() {
 
-    // todo custom mesh & shader, on which it is applied?
-
-    // 1-2*n*nT
-
     @NotSerializedProperty
-    var lastBuffer: ITexture2D? = null
+    var lastBuffer: Framebuffer? = null
     var samples = 1
     var usesFP = true
-
-    // todo automatically apply deferred rendering?
-
-    // todo when the area is small, optimize it
-    // todo or maybe always use a stencil mask :)
 
     var clearColor = Vector3f(1f, 1f, 1f)
     val globalNormal = Vector3d()
@@ -46,31 +41,30 @@ class PlanarReflection : LightComponentBase() {
     var near = 0.001
     var far = 1e3
 
-    override fun onVisibleUpdate(): Boolean {
+    // todo everything lags behind 1 frame -> this needs to be calculated after the camera position has been calculated!!!
+    override fun onUpdate(): Int {
 
-        val instance = RenderView.currentInstance!!
+        lastDrawn = Engine.gameTime
+
+        val instance = RenderView.currentInstance ?: return 1
         val pipeline = instance.pipeline
-
-        pipeline.clear()
 
         val w = instance.w
         val h = instance.h
-        val aspectRatio = w.toFloat() / h
 
-        val worldScale = RenderState.worldScale
+        pipeline.ignoredComponent = this
         draw(
-            pipeline, w, h,
-            RenderState.cameraMatrix,
-            RenderState.cameraPosition,
-            RenderState.cameraRotation, worldScale
-        ) { pos, rot ->
-            pipeline.frustum.definePerspective(
-                near, far, RenderState.fovYRadians.toDouble(),
-                w, h, aspectRatio.toDouble(),
-                pos, rot
-            )
-        }
-        return true
+            instance, pipeline, w, h,
+            instance.cameraMatrix,
+            instance.cameraPosition,
+            RenderState.worldScale
+        )
+        pipeline.ignoredComponent = null
+
+        // restore state just in case we have multiple planes or similar
+        instance.setRenderState()
+
+        return 1
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
@@ -82,10 +76,9 @@ class PlanarReflection : LightComponentBase() {
     }
 
     fun draw(
+        ci: RenderView,
         pipeline: Pipeline, w: Int, h: Int,
-        cameraMatrix: Matrix4f, cameraPosition: Vector3d, camRotation: Quaterniond,
-        worldScale: Double,
-        defineFrustum: (camPosition: Vector3d, camRotation: Quaterniond) -> Unit
+        cameraMatrix0: Matrix4f, cameraPosition: Vector3d, worldScale: Double
     ) {
 
         val transform = transform!!.getDrawMatrix(Engine.gameTime)
@@ -103,72 +96,67 @@ class PlanarReflection : LightComponentBase() {
             if (bothSided) {
                 mirrorNormal.mul(-1.0)
             } else {
+                lastBuffer?.destroy()
                 lastBuffer = null
                 return
             }
         }
 
-        val mirror = tmp1M.identity().mirror(mirrorPosition, mirrorNormal)
+        val mirrorMatrix = tmp1M.identity()
+            .mirror(mirrorPosition, mirrorNormal)
 
-        val reflectedCameraPosition = mirror.transformPosition(tmp1d.set(cameraPosition))
-
-        // todo correctly mirror a rotation:
-        // idea:
-        // first transform mirror into local space,
-        // then flip z
-        // then transform back into global space
-
-        // todo this is incorrect :/
-        val localRotation = transform.getUnnormalizedRotation(Quaterniond())
-        val camRot = Quaterniond(localRotation).invert()
-        camRot.mul(camRotation)
-        camRot.z = -camRot.z
-        camRot.mul(localRotation)
+        val reflectedCameraPosition = mirrorMatrix.transformPosition(tmp1d.set(cameraPosition))
 
         val root = getRoot(Entity::class)
-        pipeline.ignoredEntity = entity
+        pipeline.clear()
         // todo define the correct frustum using the correct rotation & position
-        pipeline.frustum.setToEverything(reflectedCameraPosition, camRot)
-        // defineFrustum(camPos, camRot)
-        // pipeline.frustum.applyTransform(mirror)
+        pipeline.frustum.setToEverything(reflectedCameraPosition, ci.cameraRotation)
         pipeline.fill(root)
+        addDefaultLightsIfRequired(pipeline)
         pipeline.planarReflections.clear()
 
-        pipeline.disableReflectionCullingPlane()
-        val reflectedMirrorPosition = mirror.transformPosition(Vector3d(mirrorPosition))
+        val reflectedMirrorPosition = mirrorMatrix.transformPosition(Vector3d(mirrorPosition))
         // if(mirrorPosition.dot(cameraPosition) < 0) mirrorNormal.mul(-1.0)
         pipeline.reflectionCullingPlane.set(
             mirrorNormal,
-            (mirrorNormal.dot(reflectedCameraPosition) - mirrorNormal.dot(reflectedMirrorPosition)) * worldScale
+            -(mirrorNormal.dot(reflectedCameraPosition) - mirrorNormal.dot(reflectedMirrorPosition)) * worldScale
         )
 
-        mirror.setTranslation(0.0, 0.0, 0.0)
-        val camMatrix = tmp0M.set(cameraMatrix).mul2(mirror)
+        mirrorMatrix.setTranslation(0.0, 0.0, 0.0)
+        val cameraMatrix1 = tmp0M.set(cameraMatrix0).mul2(mirrorMatrix)
+            .scaleLocal(1f, -1f, 1f) // flip y, so we don't need to turn around the cull-mode
+
+        // set render state
+        RenderState.cameraMatrix.set(cameraMatrix1)
+        RenderState.cameraPosition.set(reflectedCameraPosition)
+        RenderState.cameraDirection.reflect(mirrorNormal) // for sorting
 
         // todo cut frustum into local area by bounding box
-        // todo is perspective then depends on camera
 
-        val buffer = FBStack["mirror", w, h, 4, usesFP, samples, true]
-        GFXState.depthMode.use(DepthMode.CLOSER) {
-            useFrame(w, h, true, buffer, pbrRenderer) {
-                // clear stencil?
-                buffer.clearColor(clearColor, 1f, true)
-                // or GL_STENCIL_BUFFER_BIT
-                // find the correct sub-frame of work: maybe we don't need to draw everything
-                val aabb = findRegion(tmpAABB, cameraMatrix, transform, cameraPosition)
-                if (aabb.maxZ >= 0f && aabb.minX <= 1f) {
-                    // todo correct culling / bounding box calculation
-                    if ((aabb.minZ <= 0f || aabb.maxZ >= 1f)) {
-                        aabb.setMin(-1f, -1f, 0f)
-                        aabb.setMax(+1f, +1f, 0f)
-                    }
-                    val x0 = max(((aabb.minX * .5f + .5f) * w).toInt(), 0)
-                    val y0 = max(((aabb.minY * .5f + .5f) * h).toInt(), 0)
-                    val x1 = min(((aabb.maxX * .5f + .5f) * w).toInt(), w)
-                    val y1 = min(((aabb.maxY * .5f + .5f) * h).toInt(), h)
-                    if (x1 > x0 && y1 > y0) {
+        val buffer = lastBuffer ?: Framebuffer("planarReflection", w, h, samples, 1, usesFP, DepthBufferType.INTERNAL)
+        lastBuffer = buffer
+
+        // find the correct sub-frame of work: we don't need to draw everything
+        val aabb = findRegion(tmpAABB, cameraMatrix0, transform, cameraPosition)
+        if (aabb.maxZ >= 0f && aabb.minZ <= 1f) {
+
+            // todo correct culling in this case
+            if ((aabb.minZ <= 0f || aabb.maxZ >= 1f)) {
+                aabb.setMin(-1f, -1f, 0f)
+                aabb.setMax(+1f, +1f, 0f)
+            }
+
+            val x0 = max(((aabb.minX * .5f + .5f) * w).toInt(), 0)
+            val y0 = max(((aabb.minY * .5f + .5f) * h).toInt(), 0)
+            val x1 = min(((aabb.maxX * .5f + .5f) * w).toInt(), w)
+            val y1 = min(((aabb.maxY * .5f + .5f) * h).toInt(), h)
+
+            if (x1 > x0 && y1 > y0) {
+                useFrame(w, h, true, buffer, pbrRenderer) {
+                    GFXState.depthMode.use(DepthMode.CLOSER) {
                         GFXState.scissorTest.use(true) {
-                            glScissor(x0, y0, x1 - x0, y1 - y0)
+                            glScissor(x0, h - 1 - y1, x1 - x0, y1 - y0)
+                            ci.clearColorOrSky(cameraMatrix1)
                             // buffer.clearColor(1f,0f,0f,1f)
                             pipeline.draw()
                         }
@@ -176,10 +164,6 @@ class PlanarReflection : LightComponentBase() {
                 }
             }
         }
-
-        // todo tag: visible by mirror (vampires are not being reflected)
-        lastBuffer = buffer.getTexture0()
-
     }
 
     fun findRegion(aabb: AABBf, cameraMatrix: Matrix4f, drawTransform: Matrix4x3d, camPosition: Vector3d): AABBf {
@@ -218,6 +202,12 @@ class PlanarReflection : LightComponentBase() {
     ): Int {
         pipeline.planarReflections.add(this)
         return clickId // not itself clickable
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        lastBuffer?.destroy()
+        lastBuffer = null
     }
 
     override fun copyInto(dst: PrefabSaveable) {

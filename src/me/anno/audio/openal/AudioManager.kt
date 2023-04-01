@@ -84,7 +84,6 @@ object AudioManager {
             lastCheckedTime = time
             // 0.1ms -> it would be fine to even check it every time
             // we could consider only playback devices, but realistically the audio config shouldn't change often
-            // (AudioSystem.getMixer(mixerInfo).isLineSupported(Line.Info(playback ? SourceDataLine.class : TargetDataLine.class)))
             val audioDevices = AudioSystem.getMixerInfo()
             // val t1 = System.nanoTime()
             if (audioDevices.isNotEmpty()) {

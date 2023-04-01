@@ -135,7 +135,6 @@ fun main() {
                     this.nextIndex++
                 }
 
-                override fun clone() = throw NotImplementedError()
                 override fun generateMesh(mesh: Mesh) {
                     val oldSize = elements.size
                     nextIndex = 0

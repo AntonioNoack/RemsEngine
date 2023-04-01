@@ -155,7 +155,6 @@ fun main() {
         }
 
         world.addComponent(object : Component() {
-            override fun clone() = this
             override fun onUpdate(): Int {
                 crowd.update(Engine.deltaTime, null)
                 return 1

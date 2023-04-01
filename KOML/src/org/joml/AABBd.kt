@@ -47,7 +47,6 @@ class AABBd(
         if (dim == 0) maxX
         else (if (dim == 1) maxY else maxZ)
 
-
     fun union(other: AABBd, dst: AABBd = this): AABBd {
         dst.minX = min(minX, other.minX)
         dst.minY = min(minY, other.minY)
@@ -55,6 +54,16 @@ class AABBd(
         dst.maxX = max(maxX, other.maxX)
         dst.maxY = max(maxY, other.maxY)
         dst.maxZ = max(maxZ, other.maxZ)
+        return this
+    }
+
+    fun union(other: AABBf, dst: AABBd = this): AABBd {
+        dst.minX = min(minX, other.minX.toDouble())
+        dst.minY = min(minY, other.minY.toDouble())
+        dst.minZ = min(minZ, other.minZ.toDouble())
+        dst.maxX = max(maxX, other.maxX.toDouble())
+        dst.maxY = max(maxY, other.maxY.toDouble())
+        dst.maxZ = max(maxZ, other.maxZ.toDouble())
         return this
     }
 

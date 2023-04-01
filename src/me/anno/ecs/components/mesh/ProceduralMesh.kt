@@ -81,7 +81,6 @@ abstract class ProceduralMesh : MeshComponentBase() {
         @JvmStatic
         fun createProceduralMesh(generate: (mesh: Mesh) -> Unit): ProceduralMesh {
             return object : ProceduralMesh() {
-                override fun clone() = throw NotImplementedError()
                 override fun generateMesh(mesh: Mesh) {
                     generate(mesh)
                 }

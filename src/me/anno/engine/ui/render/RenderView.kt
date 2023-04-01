@@ -71,7 +71,6 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.input.Input.isKeyDown
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
@@ -83,12 +82,10 @@ import me.anno.ui.debug.FrameTimings
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Color.black
-import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import org.lwjgl.glfw.GLFW
 import kotlin.math.atan
 import kotlin.math.max
 import kotlin.math.min
@@ -244,6 +241,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         val drawnPrimitives0 = PipelineStage.drawnPrimitives
         val drawCalls0 = PipelineStage.drawCalls
+
+        currentInstance = this
 
         clock.start()
 
@@ -1214,13 +1213,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         if (!rot0.isFinite) rot0.identity()
         if (!rot1.isFinite) rot1.identity()
 
-        val rotInv = rot0.slerp(rot1, blend)
-        val rot = rotInv.conjugate(rot1)
+        val camRot = rot0.slerp(rot1, blend)
+        val camRotInv = camRot.conjugate(rot1)
 
-        cameraMatrix.rotate(Quaternionf(rot))
+        cameraMatrix.rotate(JomlPools.quat4f.borrow().set(camRotInv))
         cameraMatrix.invert(cameraMatrixInv)
 
-        cameraRotation.set(rotInv)
+        cameraRotation.set(camRot)
         cameraRotation.transform(cameraDirection.set(0.0, 0.0, -1.0)).normalize()
 
         if (t0 != null) t0.getTranslation(cameraPosition)
@@ -1312,16 +1311,18 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         get() = if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
         else if (reverseDepth) DepthMode.FARTHER else DepthMode.FORWARD_FARTHER
 
-    var skipClear = false
-
     val clearColor = Vector4f()
 
     fun clearColor(
         previousCamera: Camera, camera: Camera,
         blending: Float, hdr: Boolean
+    ) = clearColor(previousCamera, camera, cameraMatrix, prevCamMatrix, blending, hdr)
+
+    fun clearColor(
+        previousCamera: Camera, camera: Camera,
+        cameraMatrix: Matrix4f, prevCamMatrix: Matrix4f,
+        blending: Float, hdr: Boolean
     ) {
-        // this can be skipped, if we have a sky
-        if (skipClear) return
         val c = clearColor
         c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
         // inverse tonemapping
@@ -1332,6 +1333,26 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             cameraDirection,
             isPerspective, clearColor
         )
+    }
+
+    fun clearColorOrSky(cameraMatrix: Matrix4f, prevCamMatrix: Matrix4f = cameraMatrix) {
+        GFXState.depthMode.use(DepthMode.ALWAYS) {
+            val sky = pipeline.skyBox
+            if (sky != null) {
+                val shader = (sky.shader ?: pbrModelShader).value
+                shader.use()
+                shader.v1i("hasVertexColors", 0)
+                shader.m4x4("transform", cameraMatrix)
+                sky.material.bind(shader)
+                sky.draw(shader, 0)
+                lastWarning = null
+            } else {
+                // todo find cameras correctly
+                lastWarning = "No sky was found"
+                clearColor(editorCamera, editorCamera, cameraMatrix, prevCamMatrix, 0f, true)
+            }
+            GFXState.currentBuffer.clearDepth()
+        }
     }
 
     fun drawScene(
@@ -1650,6 +1671,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         RenderState.far = scaledFar.toFloat()
 
     }
+
+    override val className: String get() = "RenderView"
 
     companion object {
 

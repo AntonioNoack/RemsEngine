@@ -1,6 +1,8 @@
 package me.anno.ecs.components.mesh.shapes
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.io.files.FileReference
+import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.PI
 import kotlin.math.cos
@@ -8,13 +10,14 @@ import kotlin.math.sin
 
 object Cylinder {
 
-    // todo option to use different materials for top, middle and bottom?
     fun createMesh(
         us: Int = 10,
         vs: Int = 2,
         top: Boolean,
         bottom: Boolean,
-        mesh: Mesh = Mesh()
+        mesh: Mesh = Mesh(),
+        // option to use different materials for top, middle and bottom
+        topMiddleBottom: List<FileReference>? = null
     ): Mesh {
 
         val quadCount = us * vs
@@ -23,11 +26,14 @@ object Cylinder {
 
         val vertexCount = us * vs + us * (top.toInt() + bottom.toInt())
 
-        mesh.positions = FloatArray(3 * vertexCount)
-        mesh.normals = FloatArray(3 * vertexCount)
-        mesh.uvs = FloatArray(2 * vertexCount)
+        mesh.positions = mesh.positions.resize(3 * vertexCount)
+        mesh.normals = mesh.normals.resize(3 * vertexCount)
+        mesh.uvs = mesh.uvs.resize(2 * vertexCount)
+        if (topMiddleBottom != null) mesh.materials = topMiddleBottom
+        val materialIds = if (topMiddleBottom != null) mesh.materialIds.resize(vertexCount) else null
+        mesh.materialIds = materialIds
 
-        // precalculate the angles? mmh...
+        // precalculate the angles
         val cu = FloatArray(us)
         val su = FloatArray(us)
         for (i in 0 until us) {
@@ -57,6 +63,9 @@ object Cylinder {
             }
         }
 
+        val k0 = k / 3
+        materialIds?.fill(1, 0, k0)
+
         if (top) {
             for (u in 0 until us) {
                 // calculate position
@@ -72,6 +81,9 @@ object Cylinder {
             }
         }
 
+        val k1 = k / 3
+        materialIds?.fill(1, k0, k1)
+
         if (bottom) {
             for (u in 0 until us) {
                 // calculate position
@@ -86,6 +98,9 @@ object Cylinder {
                 uvs[l++] = 0f
             }
         }
+
+        val k2 = k / 3
+        materialIds?.fill(1, k1, k2)
 
         val indices = IntArray(indexCount)
         mesh.indices = indices
@@ -130,7 +145,7 @@ object Cylinder {
         return mesh
     }
 
-    fun getIndex(u: Int, v: Int, us: Int, vs: Int): Int {
+    private fun getIndex(u: Int, v: Int, us: Int, vs: Int): Int {
         val u2 = if (u >= us) 0 else u
         val v2 = if (v >= vs) 0 else v
         return u2 + v2 * us

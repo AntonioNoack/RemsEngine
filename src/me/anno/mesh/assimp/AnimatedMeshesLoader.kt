@@ -48,7 +48,7 @@ object AnimatedMeshesLoader {
 
     private val LOGGER = LogManager.getLogger(AnimatedMeshesLoader::class)
 
-    private fun matrixFix(metadata: Map<String, Any>): Matrix3f? {
+    private fun matrixFix(metadata: Map<String, Any>, isFBX: Boolean): Matrix3f? {
 
         var unitScaleFactor = 1f
 
@@ -61,7 +61,7 @@ object AnimatedMeshesLoader {
         val coordAxis = (metadata["CoordAxis"] as? Int) ?: 0
         val coordAxisSign = (metadata["CoordAxisSign"] as? Int) ?: 1
 
-        unitScaleFactor = (metadata["UnitScaleFactor"] as? Double)?.toFloat() ?: unitScaleFactor
+        if (!isFBX) unitScaleFactor = (metadata["UnitScaleFactor"] as? Double)?.toFloat() ?: unitScaleFactor
 
         // if (signature == "fbx") unitScaleFactor *= 0.01f // a test, works for the ghost...
 
@@ -190,7 +190,7 @@ object AnimatedMeshesLoader {
         val hierarchy = buildScene(aiScene, meshes, hasSkeleton)
 
         val metadata = loadMetadata(aiScene)
-        val matrixFix = if (isFBX) null else matrixFix(metadata) // fbx is already 100x
+        val matrixFix = matrixFix(metadata, isFBX) // fbx is already 100x
         if (matrixFix != null) {
             applyMatrixFix(hierarchy, matrixFix)
         }

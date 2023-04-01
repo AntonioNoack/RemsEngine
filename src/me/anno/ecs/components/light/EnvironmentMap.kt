@@ -6,7 +6,6 @@ import me.anno.ecs.annotations.Range
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.ui.LineShapes.drawCross
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.RenderView.Companion.addDefaultLightsIfRequired
@@ -157,23 +156,7 @@ class EnvironmentMap : LightComponentBase() {
                 // clear using sky
                 val ci = RenderView.currentInstance
                 if (ci != null) {
-                    GFXState.depthMode.use(DepthMode.ALWAYS) {
-                        val sky = ci.pipeline.skyBox
-                        if (sky != null) {
-                            val shader = (sky.shader ?: pbrModelShader).value
-                            shader.use()
-                            shader.v1i("hasVertexColors", 0)
-                            shader.m4x4("transform", cameraMatrix)
-                            sky.material.bind(shader)
-                            sky.draw(shader, 0)
-                            lastWarning = null
-                        } else {
-                            // todo find cameras correctly
-                            lastWarning = "No sky was found"
-                            ci.clearColor(ci.editorCamera, ci.editorCamera, 0f, true)
-                        }
-                    }
-                    texture.clearDepth()
+                    ci.clearColorOrSky(cameraMatrix)
                 } else {
                     lastWarning = "Current RenderView is undefined"
                     texture.clearColor(.7f, .9f, 1f, 1f, true)
@@ -188,12 +171,6 @@ class EnvironmentMap : LightComponentBase() {
 
         // todo create irradiance mipmaps: blur & size down, just like bloom
 
-    }
-
-    override fun clone(): EnvironmentMap {
-        val clone = EnvironmentMap()
-        copyInto(clone)
-        return EnvironmentMap()
     }
 
     override val className get() = "EnvironmentMap"

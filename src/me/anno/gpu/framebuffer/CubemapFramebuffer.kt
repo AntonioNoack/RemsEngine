@@ -177,7 +177,8 @@ class CubemapFramebuffer(
         depthRenderBuffer = renderBuffer
         if (renderBuffer < 0) throw RuntimeException()
         glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, size, size)
+        if (samples > 1) glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT, size, size)
+        else glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, size, size)
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer)
     }
 
@@ -275,7 +276,7 @@ class CubemapFramebuffer(
         }
     }
 
-    private fun renderSides(render: (side: Int) -> Unit){
+    private fun renderSides(render: (side: Int) -> Unit) {
         Frame.bind()
         for (side in 0 until 6) {
             // update all attachments, updating the framebuffer texture targets

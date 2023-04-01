@@ -59,10 +59,6 @@ class TypeTestComponent : Component() {
 
     var someRotDouble = Quaterniond(0.707, 0.0, 0.0, 0.707).normalize()
 
-    override fun clone(): TypeTestComponent {
-        return TypeTestComponent()
-    }
-
     override val className get() = "TypeTestComponent"
 
 }

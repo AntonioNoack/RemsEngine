@@ -80,20 +80,22 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val reflectionPlaneCalculation = "" +
                 // reflections
-                // use roughness instead?
-                // "   if(finalMetallic > 0.0) finalColor = mix(finalColor, texture(reflectionPlane,uv).rgb, finalMetallic);\n" +
                 "if(hasReflectionPlane){\n" +
-                "   float effect = dot(reflectionPlaneNormal,finalNormal) * (1.0 - finalRoughness);\n" +
-                "   float factor = clamp((effect-.3)*1.4, 0.0, 1.0);\n" +
+                "   float effect = dot(reflectionPlaneNormal,finalNormal) * sqrt((1.0 - finalRoughness) * finalMetallic);\n" +
+                "   float factor = min(effect, 1.0);\n" +
                 "   if(factor > 0.0){\n" +
                 "       vec3 newColor = vec3(0.0);\n" +
-                "       vec3 newEmissive = finalColor * texelFetch(reflectionPlane, ivec2(gl_FragCoord.xy), 0).rgb;\n" +
-                // also multiply for mirror color <3
-                "       finalEmissive = mix(finalEmissive, newEmissive, factor);\n" +
-                // "       finalEmissive /= (1-finalEmissive);\n" + // only required, if tone mapping is applied
-                "       finalColor = mix(finalColor, newColor, factor);\n" +
-                // "       finalRoughness = 0;\n" +
-                // "       finalMetallic = 0;\n" +
+                // todo distance to plane, and fading
+                // todo use normal for pseudo-refractive offset
+                "       vec2 uv7 = gl_FragCoord.xy/renderSize;\n" +
+                "       uv7.y = 1.0-uv7.y;\n" + // flipped on y-axis to save reprogramming of culling
+                "       vec3 specularColor = finalColor;\n" + // could be changed
+                // todo more samples from texture to reduce blocky look
+                "       vec3 newEmissive = specularColor * textureLod(reflectionPlane, uv7, finalRoughness * 10.0).rgb;\n" +
+                "       finalEmissive  = mix(finalEmissive, newEmissive, factor);\n" +
+                "       finalColor     = mix(finalColor, newColor, factor);\n" +
+                "       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +
+                "       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
                 "   }\n" +
                 "};\n"
 
@@ -483,6 +485,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V1F, "sheen"),
             Variable(GLSLType.V4F, "clearCoat"),
             Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
+            Variable(GLSLType.V2F, "renderSize"),
         )
         if (motionVectors) {
             list += Variable(GLSLType.V4F, "currPosition")

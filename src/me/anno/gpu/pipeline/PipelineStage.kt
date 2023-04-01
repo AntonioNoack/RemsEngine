@@ -5,10 +5,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.AnimRenderer
-import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.light.LightType
-import me.anno.ecs.components.light.PointLight
-import me.anno.ecs.components.light.SpotLight
+import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
@@ -238,30 +235,43 @@ class PipelineStage(
         }
     }
 
-    @Suppress("unused_parameter")
     fun setupPlanarReflection(pipeline: Pipeline, shader: Shader, aabb: AABBd) {
 
         shader.v4f("reflectionCullingPlane", pipeline.reflectionCullingPlane)
+        shader.v2f("renderSize", GFXState.currentBuffer.w.toFloat(), GFXState.currentBuffer.h.toFloat())
 
         val ti = shader.getTextureIndex("reflectionPlane")
-        if (ti < 0) {
+        if (ti < 0 || pipeline.planarReflections.isEmpty()) {
             shader.v1b("hasReflectionPlane", false)
             return
         }
-        val pr = pipeline.planarReflections
-        val bestPr = pr.filter {
-            val lb = it.lastBuffer as Texture2D?
-            lb != null && lb.pointer != 0
-        }.minByOrNull {
-            // todo find the by-angle-and-position best matching planar reflection
-            // todo don't choose a planar reflection, that is invisible from the camera
-            // it.globalNormal.dot(target.direction)
-            0f
-        }
+
+        val minVolume = 0.5 * aabb.volume()
+        val pos = JomlPools.vec3d.borrow().set(aabb.avgX(), aabb.avgY(), aabb.avgZ())
+        val mapBounds = JomlPools.aabbd.borrow()
+        val bestPr = if (minVolume.isFinite()) {
+            var candidates: Collection<PlanarReflection> = pipeline.planarReflections.filter {
+                val lb = it.lastBuffer
+                lb != null && lb.pointer != 0
+            }
+            if (minVolume > 1e-308) candidates = candidates.filter {
+                // only if environment map fills >= 50% of the AABB
+                val volume = mapBounds
+                    .setMin(-1.0, -1.0, -1.0)
+                    .setMax(+1.0, +1.0, +1.0)
+                    .transform(it.transform!!.globalTransform)
+                    .intersectionVolume(aabb)
+                volume >= minVolume
+            }
+            candidates.minByOrNull {
+                it.transform!!.distanceSquaredGlobally(pos)
+            }
+        } else null
+
         shader.v1b("hasReflectionPlane", bestPr != null)
         if (bestPr != null) {
             val tex = bestPr.lastBuffer!!
-            tex.bindTrulyNearest(ti)
+            tex.getTexture0().bind(ti, GPUFiltering.LINEAR, Clamping.CLAMP)
             val normal = bestPr.globalNormal
             shader.v3f("reflectionPlaneNormal", normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat())
         }
@@ -273,20 +283,22 @@ class PipelineStage(
             // find the closest environment map
             val minVolume = 0.5 * aabb.volume()
             val pos = JomlPools.vec3d.borrow().set(aabb.avgX(), aabb.avgY(), aabb.avgZ())
-            val envMapBounds = JomlPools.aabbd.borrow()
-            val map = if (minVolume.isFinite()) pipeline.lightStage.environmentMaps
-                .filter {
+            val mapBounds = JomlPools.aabbd.borrow()
+            val map = if (minVolume.isFinite()) {
+                var candidates: Collection<EnvironmentMap> = pipeline.lightStage.environmentMaps
+                if (minVolume > 1e-308) candidates = candidates.filter {
                     // only if environment map fills >= 50% of the AABB
-                    val v0 = envMapBounds
+                    val volume = mapBounds
                         .setMin(-1.0, -1.0, -1.0)
                         .setMax(+1.0, +1.0, +1.0)
                         .transform(it.transform!!.globalTransform)
                         .intersectionVolume(aabb)
-                    v0 > minVolume
+                    volume >= minVolume
                 }
-                .minByOrNull {
+                candidates.minByOrNull {
                     it.transform!!.distanceSquaredGlobally(pos)
-                } else null
+                }
+            } else null
             val bakedSkyBox = (map?.texture ?: pipeline.bakedSkyBox)?.getTexture0() ?: blackCube
             // todo bug: mipmaps are not updating automatically :/
             bakedSkyBox.bind(
