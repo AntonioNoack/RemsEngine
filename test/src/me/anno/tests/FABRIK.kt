@@ -16,6 +16,8 @@ fun main() {
 
     testDrawing {
 
+        it.clear()
+
         val sc = it.h / 10f
         val dx = it.x + it.w / 2
         val dy = it.y + it.h / 2

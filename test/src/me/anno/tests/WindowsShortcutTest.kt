@@ -18,13 +18,13 @@ fun main() {
     for (name in names) {
         val file = getReference(name)
         val link = WindowsShortcut(file)
-        System.out.printf("-------%s------ \n", name)
-        System.out.printf("getRealFilename: %s \n", link.absolutePath)
-        System.out.printf("getDescription: %s \n", link.description)
-        System.out.printf("getRelativePath: %s \n", link.relativePath)
-        System.out.printf("getWorkingDirectory: %s \n", link.workingDirectory)
-        System.out.printf("getCommandLineArguments: %s \n", link.commandLineArguments)
-        System.out.printf("isLocal: %b \n", link.isLocal)
-        System.out.printf("isDirectory: %b \n", link.isDirectory)
+        System.out.printf("------ %s -----\n", name)
+        System.out.printf("getRealFilename: %s\n", link.absolutePath)
+        System.out.printf("getDescription: %s\n", link.description)
+        System.out.printf("getRelativePath: %s\n", link.relativePath)
+        System.out.printf("getWorkingDirectory: %s\n", link.workingDirectory)
+        System.out.printf("getCommandLineArguments: %s\n", link.commandLineArguments)
+        System.out.printf("isLocal: %b\n", link.isLocal)
+        System.out.printf("isDirectory: %b\n", link.isDirectory)
     }
 }

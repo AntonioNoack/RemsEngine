@@ -3,11 +3,10 @@ package me.anno.tests.terrain
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.ecs.components.mesh.sdf.SDFComposer.sdfConstants
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFNoise.Companion.generalNoise
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFNoise.Companion.perlinNoise
@@ -20,6 +19,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
@@ -30,6 +30,7 @@ import me.anno.image.ImageGPUCache
 import me.anno.image.raw.FloatImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
 import me.anno.maths.noise.PerlinNoise
@@ -39,6 +40,10 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Floats.f3
+import me.anno.utils.types.Floats.toDegrees
+import org.joml.AABBd
+import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.*
@@ -48,8 +53,11 @@ class FoliageShader(
     val terrainTexture: Lazy<Texture2D>,
     val densitySource: FileReference,
     val previousStages: List<Mesh>,
+    val mesh: Mesh,
     val rv: RenderView? = null
 ) : ECSMeshShader("foliage") {
+
+    var proceduralBudget = mesh.proceduralLength
 
     override fun createVertexStage(
         isInstanced: Boolean,
@@ -147,31 +155,37 @@ class FoliageShader(
         val frustum = rv.pipeline.frustum
         val p0 = frustum.planes[0]
         val p1 = frustum.planes[1]
-        var angle2d = PI - (atan2(p0.x, p0.z) - atan2(p1.x, p1.z))
-        if (angle2d > TAU) angle2d -= TAU
-        angle2d = max(angle2d, 0.09)
+        var projectedFOV = PI - (atan2(p0.x, p0.z) - atan2(p1.x, p1.z))
+        if (projectedFOV > TAU) projectedFOV -= TAU
+        projectedFOV = max(projectedFOV, 0.09)
 
         // calculate, where the down-vector hits the plane
         // offset needs to be increased massively, when we look down
         val dirY = max(dir.y, -0.999)
-        val tn = dirY / sqrt(1 - sq(dirY)) // tan(asin(x)) = x/sqrt(1-x*x)
+        val fovY = rv.fovYRadians
+        val forwardAngle = asin(dir.y)
+        // val downAngle = clamp(forwardAngle - fovY * 0.5, -PI / 2, -0.001)
+        val upAngle = clamp(forwardAngle + fovY * 0.5, -PI / 2, -0.001)
+
+        val tn0 = dirY / sqrt(1 - sq(dirY)) // tan(asin(x)) = x/sqrt(1-x*x)
+        val tn1 = -1.0 / tan(upAngle)
         val height = max(pos.y, 0.0)
-        val offset = height * tn
+        val z0h = height * tn0
+        val z1h = max(pos.y, 1.0) * tn1
 
         // add extra offset for what the bottom sees compared to the horizon
         val extra = max(-dirY, 0.0) * tan(RenderState.fovYRadians * 0.5) * height
 
-        val fovQ = tan(angle2d * 0.5)
+        val tanProjFOV = tan(projectedFOV * 0.5)
         shader.v2f(
             "camPosXZ",
-            ((pos.x - (offset - extra) * sin(camRotY)) * maxDensity).toFloat(),
-            ((pos.z - (offset - extra) * cos(camRotY)) * maxDensity).toFloat()
+            ((pos.x - (z0h - extra) * sin(camRotY)) * maxDensity).toFloat(),
+            ((pos.z - (z0h - extra) * cos(camRotY)) * maxDensity).toFloat()
         )
 
-        shader.v1f("fovQ", fovQ)
-        val z0 = max(0, -(offset * maxDensity).toInt())
-
-        // todo shorten procedural length by upper plane when looking down
+        shader.v1f("fovQ", tanProjFOV)
+        val z0 = max(0, -(z0h * maxDensity).toInt())
+        val z1 = max(0.0, z1h * maxDensity)
 
         // twice as dense to prevent flickering;
         // I'd love a better solution...
@@ -179,9 +193,15 @@ class FoliageShader(
 
         // offset by number of meshes in other LODs
         val lodIndexOffset = temporalStabilityFactor * previousStages.sumOf { it.proceduralLength }
+
+        // start index
+        val index0 = sq(z0) * tanProjFOV + lodIndexOffset
+        val index1 = sq((z1 + z0)) * 2.5f * tanProjFOV // 2.5 is just a guess... the formula is incorrect...
+
         shader.v1f("temporalStabilityFactor", temporalStabilityFactor)
-        shader.v1f("index0", sq(z0) * fovQ + lodIndexOffset)
+        shader.v1f("index0", index0)
         shader.v1f("invMaxDensity", 1f / maxDensity)
+        mesh.proceduralLength = min(max((index1 - index0).toInt(), 1), proceduralBudget)
 
     }
 }
@@ -221,7 +241,6 @@ fun main() {
     val maxDensity = 5f
     val invMaxDensity = 1f / maxDensity
 
-
     val terrainMesh = Mesh()
     terrainMesh.material = Material().apply {
         diffuseBase.set(0.02f, 0.22f, 0.02f, 1f)
@@ -260,16 +279,24 @@ fun main() {
         mesh0.material = Material().apply {
             isDoubleSided = true
             translucency = grassTranslucency
-            shader = FoliageShader(maxDensity, terrainTexture, densitySource, emptyList(), sv0.renderer)
+            shader = FoliageShader(maxDensity, terrainTexture, densitySource, emptyList(), mesh0, sv0.renderer)
         }.ref
         mesh1.material = Material().apply {
             isDoubleSided = true
             translucency = grassTranslucency
-            shader = FoliageShader(maxDensity, terrainTexture, densitySource, listOf(mesh0), sv0.renderer)
+            shader = FoliageShader(maxDensity, terrainTexture, densitySource, listOf(mesh0), mesh1, sv0.renderer)
         }.ref
 
-        scene.add(MeshComponent(mesh0))
-        scene.add(MeshComponent(mesh1))
+        class AllMeshComp(mesh: Mesh) : MeshComponent(mesh) {
+            override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+                localAABB.all()
+                globalAABB.all()
+                aabb.all()
+                return true
+            }
+        }
+        scene.add(AllMeshComp(mesh0))
+        scene.add(AllMeshComp(mesh1))
         StudioBase.instance?.enableVSync = false
 
         list

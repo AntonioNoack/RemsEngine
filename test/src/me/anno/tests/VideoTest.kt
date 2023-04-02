@@ -53,7 +53,6 @@ fun main() {
         return stack
     }
 
-    // val fb = Framebuffer("test", w, h, 8, 1, false, DepthBufferType.NONE)
     val vc = VideoCreator(w, h, fps, numFrames, FFMPEGEncodingBalance.M0, FFMPEGEncodingType.DEFAULT, 25, dst)
     val vbt = object : VideoBackgroundTask(vc) {
         override fun getMotionBlurSteps(time: Double): Int = 10
@@ -76,10 +75,4 @@ fun main() {
     vc.init()
     vbt.start() // works fine...
     GFX.workGPUTasksUntilShutdown()
-    /*renderVideo(w, h, fps, dst, numFrames.toInt(), fb) { frameIndex, callback ->
-        useFrame(fb, previewRenderer) {
-            vbt.renderScene(frameIndex / fps, false, previewRenderer)
-        }
-        callback()
-    }*/
 }

@@ -1,19 +1,19 @@
 package me.anno.tests
 
 import me.anno.Engine
+import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.image.raw.IntImage
-import me.anno.maths.Maths
 import me.anno.maths.geometry.WaveFunctionCollapse
-import me.anno.ui.debug.TestDrawPanel
+import me.anno.ui.base.groups.MapPanel
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.a
 import me.anno.utils.OS
 import me.anno.utils.structures.maps.LazyMap
 import java.util.*
-import kotlin.math.min
 
 fun main() {
     // load a set of images
@@ -56,18 +56,35 @@ fun main() {
     val grid = wfc.collapseInit(sizeX, sizeY)
     val texToImage = LazyMap({ key: Image -> Texture2D(key, false) }, wfc.types.size)
     var hasRemaining = true
-    TestDrawPanel.testDrawing {
-        it.clear()
-        val t0 = Engine.nanoTime
-        while (hasRemaining && Engine.nanoTime - t0 < 1e9 / 60)
-            hasRemaining = wfc.collapseStep(sizeX, sizeY, grid, random)
-        for (y in 0 until min(sizeY, Maths.ceilDiv(it.h, tileH))) {
-            var i = y * sizeX
-            for (x in 0 until min(sizeX, Maths.ceilDiv(it.w, tileW))) {
-                // draw tile onto result
-                val cell = (grid[i++].result as? WaveFunctionCollapse.ImageCellType) ?: continue
-                val tile = cell.image
-                DrawTextures.drawTexture(x * tileW, y * tileH, tileW, tileH, texToImage[tile], false, -1)
+    testUI3 {
+        object : MapPanel(style) {
+            init {
+                minScale = 1.0 / 16.0
+                maxScale = 32.0
+            }
+
+            val xs = IntArray(sizeX + 1)
+            val ys = IntArray(sizeY + 1)
+            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                super.onDraw(x0, y0, x1, y1)
+                val t0 = Engine.nanoTime
+                while (hasRemaining && Engine.nanoTime - t0 < 1e9 / 60)
+                    hasRemaining = wfc.collapseStep(sizeX, sizeY, grid, random)
+                val x0i = x + w / 2
+                val y0i = y + h / 2
+                for (x in 0..sizeX) xs[x] = x0i + ((x * tileW - center.x) * scale).toInt()
+                for (y in 0..sizeY) ys[y] = y0i + ((y * tileH - center.y) * scale).toInt()
+                for (y in 0 until sizeY) {
+                    for (x in 0 until sizeX) {
+                        // draw tile onto result
+                        val cell = (grid[x + y * sizeX].result as? WaveFunctionCollapse.ImageCellType) ?: continue
+                        val tile = cell.image
+                        DrawTextures.drawTexture(
+                            xs[x], ys[y], xs[x + 1] - xs[x], ys[y + 1] - ys[y],
+                            texToImage[tile], false, -1
+                        )
+                    }
+                }
             }
         }
     }

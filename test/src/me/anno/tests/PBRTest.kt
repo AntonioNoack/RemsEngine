@@ -40,6 +40,7 @@ private val testShader = Shader(
             "   float HdotV = data0.a;\n" +
             "   float finalRoughness = uv.x;\n" +
             "   float finalMetallic = uv.y;\n" +
+            "   vec3 finalNormal = vec3(0.0);\n" +
             "#define DOTS\n" +
             // calculate H and result
             "   vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);\n" +
@@ -85,8 +86,8 @@ fun main() {
     val randomTex = Texture2D("random", size, size, 1)
     val random = Random(1234L)
     val randomData = FloatArray(size * size * 4) {
-        // ((it * (it % 4 + 1)) % size) * 1f / size
-        random.nextFloat()
+        ((it * (it % 4 + 1)) % size) * 1f / size
+        // random.nextFloat()
     }
     randomTex.createRGBA(randomData, false)
     val target = FBStack["test", size, size, TargetType.FloatTarget4, 1, false]
