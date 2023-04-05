@@ -19,7 +19,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -207,7 +206,7 @@ open class Material : PrefabSaveable(), Renderable {
         clickId: Int
     ): Int {
         val mesh = Pipeline.sampleMesh
-        val stage = pipeline.findStage(mesh, this)
+        val stage = pipeline.findStage(this)
         val materialSource = root.ref
         mesh.material = materialSource
         stage.add(Pipeline.sampleMeshComponent, mesh, entity, 0, clickId)

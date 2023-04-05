@@ -38,7 +38,7 @@ class MaterialGraphCompiler(
                         val x = expr(c)
                         builder.append(l.glslName).append("=")
                         // clamping could be skipped, if we were sure that the value is within bounds
-                        when (if (l.highDynamicRange) null else l.map01) {
+                        when (if (l.highDynamicRange) null else l.workToData) {
                             "*0.5+0.5" -> builder.append("clamp(").append(x).append(",-1.0,1.0)")
                             "" -> builder.append("clamp(").append(x).append(",0.0,1.0)")
                             null -> builder.append(x)
@@ -85,7 +85,7 @@ class MaterialGraphCompiler(
                 if (!first) builder.append(", ")
                 builder
                     .append("inout ")
-                    .append(DeferredSettingsV2.glslTypes[l.dimensions - 1])
+                    .append(DeferredSettingsV2.glslTypes[l.workDims - 1])
                     .append(" ").append(l.glslName)
                 first = false
             }
@@ -206,22 +206,24 @@ class MaterialGraphCompiler(
                 }
             }
 
-            override fun createFragmentStage(
+            override fun createFragmentStages(
                 isInstanced: Boolean,
                 isAnimated: Boolean,
                 motionVectors: Boolean
-            ): ShaderStage {
+            ): List<ShaderStage> {
                 val vars = usedVars + super.createFragmentVariables(isInstanced, isAnimated, motionVectors)
-                return ShaderStage(
-                    "calc", vars,
-                    discardByCullingPlane +
-                            normalTanBitanCalculation +
-                            funcCall +
-                            // todo node for clear coat calculation
-                            // todo optional sheen calculation
-                            reflectionPlaneCalculation +
-                            (if (motionVectors) finalMotionCalculation else "")
-                ).add(functions)
+                return listOf(
+                    ShaderStage(
+                        "calc", vars,
+                        discardByCullingPlane +
+                                normalTanBitanCalculation +
+                                funcCall +
+                                // todo node for clear coat calculation
+                                // todo optional sheen calculation
+                                reflectionPlaneCalculation +
+                                (if (motionVectors) finalMotionCalculation else "")
+                    ).add(functions)
+                )
             }
         }
     }

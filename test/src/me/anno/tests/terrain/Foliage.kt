@@ -59,7 +59,7 @@ class FoliageShader(
 
     var proceduralBudget = mesh.proceduralLength
 
-    override fun createVertexStage(
+    override fun createVertexStages(
         isInstanced: Boolean,
         isAnimated: Boolean,
         colors: Boolean,

@@ -105,7 +105,7 @@ class GlassPass : TransparentPass() {
         val l1 = s0.findLayer(DeferredLayerType.EMISSIVE)!!
 
         combine {
-            val shader = applyShader[IntPair(l0.index, l1.index)]
+            val shader = applyShader[IntPair(l0.texIndex, l1.texIndex)]
             shader.use()
 
             // bind all textures

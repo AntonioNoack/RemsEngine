@@ -4,7 +4,6 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
-import me.anno.engine.pbr.PBRLibraryGLTF
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
@@ -172,7 +171,7 @@ object LightShaders {
                 // and write the mapping
                 val glslName = layer.type.glslName
                 if (fragment.variables.any2 { it.name == glslName }) {
-                    layer.appendMapping(deferredCode, "Tmp", "uv", imported, sampleVariableName)
+                    layer.appendMapping(deferredCode, "", "Tmp", "", "uv", imported, sampleVariableName)
                 }
             }
             deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }
@@ -354,7 +353,7 @@ object LightShaders {
                 // and write the mapping
                 val glslName = layer.type.glslName
                 if (fragment.variables.any2 { it.name == glslName }) {
-                    layer.appendMapping(deferredCode, "Tmp", "uv", imported, sampleVariableName)
+                    layer.appendMapping(deferredCode, "", "Tmp", "", "uv", imported, sampleVariableName)
                 }
             }
             deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }

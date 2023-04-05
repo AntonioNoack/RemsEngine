@@ -11,6 +11,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.joml.Vector4f
+import java.util.*
 import kotlin.math.max
 
 data class DeferredSettingsV2(
@@ -19,38 +20,39 @@ data class DeferredSettingsV2(
     val fpLights: Boolean
 ) {
 
-    class Layer(val type: DeferredLayerType, val textureName: String, val index: Int, val mapping: String) {
+    class Layer(val type: DeferredLayerType, val textureName: String, val texIndex: Int, val mapping: String) {
 
         fun appendMapping(
             fragment: StringBuilder,
-            suffix: String,
+            dstSuffix: String,
+            tmpSuffix: String,
+            texSuffix: String,
             uv: String,
-            imported: MutableSet<String>,
+            imported: MutableSet<String>?,
             sampleVariableName: String?
         ) {
-            if (imported.add(textureName)) {
+            val texName = textureName + texSuffix
+            if (imported != null && imported.add(texName)) {
+                fragment.append("vec4 ").append(textureName).append(tmpSuffix)
                 if (sampleVariableName != null) {
-                    fragment.append("vec4 ").append(textureName).append(suffix)
-                    fragment.append(" = texelFetch(").append(textureName)
-                    fragment.append(", ivec2(textureSize(")
-                        .append(textureName) // texture will be sampler2DMS, so no lod is used as parameter
+                    fragment.append(" = texelFetch(").append(texName)
+                    // texture will be sampler2DMS, so no lod is used as parameter
+                    fragment.append(", ivec2(textureSize(").append(texName)
                     fragment.append(")*").append(uv)
                     fragment.append("), ").append(sampleVariableName).append(");\n")
                 } else {
-                    fragment.append("vec4 ").append(textureName).append(suffix)
-                    fragment.append(" = texture(").append(textureName)
+                    fragment.append(" = texture(").append(texName)
                     fragment.append(", ").append(uv).append(");\n")
                 }
             }
-            fragment.append(glslTypes[type.dimensions - 1])
+            fragment.append(glslTypes[type.workDims - 1])
             fragment.append(' ')
-            fragment.append(type.glslName)
+            fragment.append(type.glslName).append(dstSuffix)
             fragment.append(" = ")
-            fragment.append(textureName)
-            fragment.append(suffix)
+            fragment.append(textureName).append(tmpSuffix)
             fragment.append('.')
             fragment.append(mapping)
-            fragment.append(type.map10)
+            fragment.append(type.dataToWork)
             fragment.append(";\n")
         }
 
@@ -60,7 +62,7 @@ data class DeferredSettingsV2(
             output.append(mapping)
             output.append(" = (")
             output.append(type.glslName)
-            output.append(type.map01)
+            output.append(type.workToData)
             // append random rounding
             output.append(")*(1.0+defRR*").append(textureName).append("RR.x")
             output.append(")+defRR*").append(textureName).append("RR.y")
@@ -71,7 +73,7 @@ data class DeferredSettingsV2(
 
     val layers = ArrayList<Layer>()
     val layers2: ArrayList<DeferredLayer>
-    val emptySlots = ArrayList<Pair<String, String>>()
+    val emptySlots = ArrayList<Triple<Int, String, String>>() // index, name, mask
 
     init {
 
@@ -83,7 +85,7 @@ data class DeferredSettingsV2(
         var usedTextures0 = -1
 
         for (layerType in layerTypes) {
-            val dimensions = layerType.dimensions
+            val dimensions = layerType.dataDims
             val layerIndex = spaceInLayers.indexOfFirst { it >= dimensions }
             val startIndex = 4 - spaceInLayers[layerIndex]
             val mapping = "rgba".substring(startIndex, startIndex + dimensions)
@@ -108,17 +110,22 @@ data class DeferredSettingsV2(
                 }
             )
             layers2.add(layer2)
-            when (spaceInLayers[layerIndex]) {
-                1 -> emptySlots += Pair(layer2.name, "a")
-                2 -> emptySlots += Pair(layer2.name, "ba")
-                3 -> emptySlots += Pair(layer2.name, "gba")
+            val empty = spaceInLayers[layerIndex]
+            if (empty > 0) {
+                val mask = when (spaceInLayers[layerIndex]) {
+                    1 -> "a"
+                    2 -> "ba"
+                    3 -> "gba"
+                    else -> throw NotImplementedError()
+                }
+                emptySlots += Triple(layerIndex, layer2.name, mask)
             }
         }
 
     }
 
     val settingsV1 = DeferredSettingsV1(layers2, fpLights)
-    val layers1 = Array(layers2.size) { layers2[it].type }
+    val targetTypes = Array(layers2.size) { layers2[it].type }
 
     fun createBaseBuffer(): IFramebuffer {
         val layers = layers2
@@ -127,12 +134,12 @@ data class DeferredSettingsV2(
         return if (layers.size <= GFX.maxColorAttachments) {
             Framebuffer(
                 name, 1, 1, samples,
-                layers1, depthBufferType
+                targetTypes, depthBufferType
             )
         } else {
             MultiFramebuffer(
                 name, 1, 1, samples,
-                layers1, depthBufferType
+                targetTypes, depthBufferType
             )
         }
     }
@@ -158,30 +165,39 @@ data class DeferredSettingsV2(
         return shader
     }
 
-    fun appendLayerDeclarators(output: StringBuilder) {
-        for ((index, type) in settingsV1.layers.withIndex()) {
-            output.append("layout (location = ")
-            output.append(index)
-            output.append(") out vec4 ")
-            output.append(type.name)
-            output.append(";\n")
-            output.append("uniform vec2 ").append(type.name).append("RR;\n")
+    fun appendLayerDeclarators(output: StringBuilder, disabledLayers: BitSet?) {
+        val layers = settingsV1.layers
+        for (index in layers.indices) {
+            if (disabledLayers == null || !disabledLayers[index]) {
+                val type = layers[index]
+                output.append("layout (location = ")
+                output.append(index)
+                output.append(") out vec4 ")
+                output.append(type.name)
+                output.append(";\n")
+                output.append("uniform vec2 ").append(type.name).append("RR;\n")
+            }
         }
     }
 
-    fun appendLayerWriters(output: StringBuilder) {
+    fun appendLayerWriters(output: StringBuilder, disabledLayers: BitSet?) {
         output.append(randomFunc)
         output.append("float defRR = GET_RANDOM(0.001 * gl_FragCoord)-0.5;\n")
-        for (layer in layers) {
-            layer.appendLayer(output)
-        }
-        for ((name, map) in emptySlots) {
-            val value = when (map.length) {
-                1 -> " = finalAlpha;\n"
-                2 -> " = vec2(0.0,finalAlpha);\n"
-                else -> " = vec3(0.0,0.0,finalAlpha);\n"
+        for (index in layers.indices) {
+            val layer = layers[index]
+            if (disabledLayers == null || !disabledLayers[layer.texIndex]) {
+                layer.appendLayer(output)
             }
-            output.append(name).append('.').append(map).append(value)
+        }
+        for ((index, name, map) in emptySlots) {
+            if (disabledLayers == null || !disabledLayers[index]) {
+                val value = when (map.length) {
+                    1 -> " = finalAlpha;\n"
+                    2 -> " = vec2(0.0,finalAlpha);\n"
+                    else -> " = vec3(0.0,0.0,finalAlpha);\n"
+                }
+                output.append(name).append('.').append(map).append(value)
+            }
         }
     }
 
@@ -204,11 +220,11 @@ data class DeferredSettingsV2(
     }
 
     fun findTexture(buffer: IFramebuffer, layer: Layer): ITexture2D {
-        return buffer.getTextureI(layer.index)
+        return buffer.getTextureI(layer.texIndex)
     }
 
     fun findTextureMS(buffer: IFramebuffer, layer: Layer): ITexture2D {
-        return buffer.getTextureIMS(layer.index)
+        return buffer.getTextureIMS(layer.texIndex)
     }
 
     fun split(index: Int, splitSize: Int): DeferredSettingsV2 {
@@ -216,7 +232,7 @@ data class DeferredSettingsV2(
         val index1 = index0 + splitSize
         return DeferredSettingsV2(
             layerTypes.filter { type ->
-                findLayer(type)!!.index in index0 until index1
+                findLayer(type)!!.texIndex in index0 until index1
             }, samples,
             settingsV1.fpLights
         )

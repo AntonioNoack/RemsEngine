@@ -6,7 +6,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
 
 /**
  * a material, that is defined by blocks (which may be empty);
@@ -25,7 +24,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
     override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, limitedTransform: Boolean): Shader {
         val builder = createBuilder()
         builder.addVertex(
-            createVertexStage(
+            createVertexStages(
                 isInstanced,
                 isAnimated,
                 colors = false,
@@ -33,7 +32,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                 limitedTransform
             )
         )
-        builder.addFragment(createFragmentStage(isInstanced, isAnimated, motionVectors = false))
+        builder.addFragment(createFragmentStages(isInstanced, isAnimated, motionVectors = false))
         GFX.check()
         val shader = builder.create()
         shader.glslVersion = glslVersion
@@ -76,84 +75,90 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
         return list
     }
 
-    override fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): ShaderStage {
-        return ShaderStage(
-            "block-traced shader", createFragmentVariables(isInstanced, isAnimated, motionVectors), "" +
-                    // step by step define all material properties
-                    "if(!gl_FrontFacing) discard;\n" +
-                    "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
-                    "vec3 bounds1 = vec3(bounds-1);\n" +
-                    // start our ray on the surface of the cube: we don't need to project the ray onto the box
-                    "vec3 dir = normalize(mat3x3(invLocalTransform) * finalPosition);\n" +
-                    // "vec3 dir = normalize(finalPosition);\n" +
-                    // prevent divisions by zero
-                    "if(abs(dir.x) < 1e-7) dir.x = 1e-7;\n" +
-                    "if(abs(dir.y) < 1e-7) dir.y = 1e-7;\n" +
-                    "if(abs(dir.z) < 1e-7) dir.z = 1e-7;\n" +
-                    // could be a uniform, too (if perspective is projection, not ortho)
-                    "vec3 localStart = -(mat3x3(invLocalTransform) * vec3(localTransform[3][0],localTransform[3][1],localTransform[3][2])/worldScale);\n" +
-                    // start from camera, and project onto front sides
-                    // for proper rendering, we need to use the backsides, and therefore we project the ray from the back onto the front
-                    "vec3 dirSign = sign(dir);\n" +
-                    "vec3 dtf3 = (dirSign * halfBounds + localStart) / dir;\n" +
-                    "float dtf = min(min(dtf3.x, min(dtf3.y, dtf3.z)), 0.0);\n" +
-                    "localStart += -dtf * dir + halfBounds;\n" +
-                    "vec3 blockPosition = clamp(floor(localStart), vec3(0.0), bounds1);\n" +
-                    "vec3 dist3 = (dirSign*.5+.5 + blockPosition - localStart)/dir;\n" +
-                    "vec3 invUStep = dirSign/dir;\n" +
-                    "float nextDist, dist = 0.0;\n" +
-                    initProperties(isInstanced) +
-                    "int lastNormal = dtf3.z == dtf ? 2 : dtf3.y == dtf ? 1 : 0, i;\n" +
-                    "bool done = false;\n" +
-                    "for(i=0;i<maxSteps;i++){\n" +
-                    "   nextDist = min(dist3.x, min(dist3.y, dist3.z));\n" +
-                    "   bool continueTracing = false;\n" +
-                    "   bool setNormal = true;\n" +
-                    "   float skippingDist = 0.0;\n" +
-                    processBlock(isInstanced) +
-                    "   if(skippingDist >= 1.0){\n" +
-                    // skip multiple blocks; and then recalculate all necessary stats
-                    "       blockPosition = floor(localStart + dir * (dist + skippingDist));\n" +
-                    "       if(any(lessThan(blockPosition, vec3(0.0))) || any(greaterThan(blockPosition, bounds1))) break;\n" +
-                    "       dist3 = (dirSign*.5+.5 + blockPosition - localStart)/dir;\n" +
-                    "       nextDist = min(dist3.x, min(dist3.y, dist3.z));\n" +
-                    "       dist = nextDist;\n" +
-                    "   } else if(continueTracing){\n" + // continue traversal
-                    "       if(nextDist == dist3.x){\n" +
-                    "           blockPosition.x += dirSign.x; dist3.x += invUStep.x; if(setNormal) lastNormal = 0;\n" +
-                    "           if(blockPosition.x < 0.0 || blockPosition.x > bounds1.x){ break; }\n" +
-                    "       } else if(nextDist == dist3.y){\n" +
-                    "           blockPosition.y += dirSign.y; dist3.y += invUStep.y; if(setNormal) lastNormal = 1;\n" +
-                    "           if(blockPosition.y < 0.0 || blockPosition.y > bounds1.y){ break; }\n" +
-                    "       } else {\n" +
-                    "           blockPosition.z += dirSign.z; dist3.z += invUStep.z; if(setNormal) lastNormal = 2;\n" +
-                    "           if(blockPosition.z < 0.0 || blockPosition.z > bounds1.z){ break; }\n" +
-                    "       }\n" +
-                    "       dist = nextDist;\n" +
-                    "   } else break;\n" + // hit something :)
-                    "}\n" +
-                    onFinish(isInstanced) +
-                    // compute normal
-                    "vec3 localNormal = vec3(0.0);\n" +
-                    "if(lastNormal == 0){ localNormal.x = -dirSign.x; } else\n" +
-                    "if(lastNormal == 1){ localNormal.y = -dirSign.y; }\n" +
-                    "else {               localNormal.z = -dirSign.z; }\n" +
-                    "finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
-                    "finalTangent = finalBitangent = vec3(0.0);\n" +
-                    "mat3x3 tbn = mat3x3(finalTangent,finalBitangent,finalNormal);\n" +
-                    // correct depth
-                    modifyDepth(isInstanced) +
-                    "vec3 localPos = localStart - halfBounds + dir * dist;\n" +
-                    "finalPosition = localTransform * vec4(localPos, 1.0);\n" +
-                    // must be used for correct mirror rendering
-                    discardByCullingPlane +
-                    "vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
-                    "gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                    computeMaterialProperties(isInstanced) +
-                    reflectionPlaneCalculation +
-                    v0 + sheenCalculation +
-                    clearCoatCalculation +
-                    ""
+    override fun createFragmentStages(
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        motionVectors: Boolean
+    ): List<ShaderStage> {
+        return listOf(
+            ShaderStage(
+                "block-traced shader", createFragmentVariables(isInstanced, isAnimated, motionVectors), "" +
+                        // step by step define all material properties
+                        "if(!gl_FrontFacing) discard;\n" +
+                        "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
+                        "vec3 bounds1 = vec3(bounds-1);\n" +
+                        // start our ray on the surface of the cube: we don't need to project the ray onto the box
+                        "vec3 dir = normalize(mat3x3(invLocalTransform) * finalPosition);\n" +
+                        // "vec3 dir = normalize(finalPosition);\n" +
+                        // prevent divisions by zero
+                        "if(abs(dir.x) < 1e-7) dir.x = 1e-7;\n" +
+                        "if(abs(dir.y) < 1e-7) dir.y = 1e-7;\n" +
+                        "if(abs(dir.z) < 1e-7) dir.z = 1e-7;\n" +
+                        // could be a uniform, too (if perspective is projection, not ortho)
+                        "vec3 localStart = -(mat3x3(invLocalTransform) * vec3(localTransform[3][0],localTransform[3][1],localTransform[3][2])/worldScale);\n" +
+                        // start from camera, and project onto front sides
+                        // for proper rendering, we need to use the backsides, and therefore we project the ray from the back onto the front
+                        "vec3 dirSign = sign(dir);\n" +
+                        "vec3 dtf3 = (dirSign * halfBounds + localStart) / dir;\n" +
+                        "float dtf = min(min(dtf3.x, min(dtf3.y, dtf3.z)), 0.0);\n" +
+                        "localStart += -dtf * dir + halfBounds;\n" +
+                        "vec3 blockPosition = clamp(floor(localStart), vec3(0.0), bounds1);\n" +
+                        "vec3 dist3 = (dirSign*.5+.5 + blockPosition - localStart)/dir;\n" +
+                        "vec3 invUStep = dirSign/dir;\n" +
+                        "float nextDist, dist = 0.0;\n" +
+                        initProperties(isInstanced) +
+                        "int lastNormal = dtf3.z == dtf ? 2 : dtf3.y == dtf ? 1 : 0, i;\n" +
+                        "bool done = false;\n" +
+                        "for(i=0;i<maxSteps;i++){\n" +
+                        "   nextDist = min(dist3.x, min(dist3.y, dist3.z));\n" +
+                        "   bool continueTracing = false;\n" +
+                        "   bool setNormal = true;\n" +
+                        "   float skippingDist = 0.0;\n" +
+                        processBlock(isInstanced) +
+                        "   if(skippingDist >= 1.0){\n" +
+                        // skip multiple blocks; and then recalculate all necessary stats
+                        "       blockPosition = floor(localStart + dir * (dist + skippingDist));\n" +
+                        "       if(any(lessThan(blockPosition, vec3(0.0))) || any(greaterThan(blockPosition, bounds1))) break;\n" +
+                        "       dist3 = (dirSign*.5+.5 + blockPosition - localStart)/dir;\n" +
+                        "       nextDist = min(dist3.x, min(dist3.y, dist3.z));\n" +
+                        "       dist = nextDist;\n" +
+                        "   } else if(continueTracing){\n" + // continue traversal
+                        "       if(nextDist == dist3.x){\n" +
+                        "           blockPosition.x += dirSign.x; dist3.x += invUStep.x; if(setNormal) lastNormal = 0;\n" +
+                        "           if(blockPosition.x < 0.0 || blockPosition.x > bounds1.x){ break; }\n" +
+                        "       } else if(nextDist == dist3.y){\n" +
+                        "           blockPosition.y += dirSign.y; dist3.y += invUStep.y; if(setNormal) lastNormal = 1;\n" +
+                        "           if(blockPosition.y < 0.0 || blockPosition.y > bounds1.y){ break; }\n" +
+                        "       } else {\n" +
+                        "           blockPosition.z += dirSign.z; dist3.z += invUStep.z; if(setNormal) lastNormal = 2;\n" +
+                        "           if(blockPosition.z < 0.0 || blockPosition.z > bounds1.z){ break; }\n" +
+                        "       }\n" +
+                        "       dist = nextDist;\n" +
+                        "   } else break;\n" + // hit something :)
+                        "}\n" +
+                        onFinish(isInstanced) +
+                        // compute normal
+                        "vec3 localNormal = vec3(0.0);\n" +
+                        "if(lastNormal == 0){ localNormal.x = -dirSign.x; } else\n" +
+                        "if(lastNormal == 1){ localNormal.y = -dirSign.y; }\n" +
+                        "else {               localNormal.z = -dirSign.z; }\n" +
+                        "finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
+                        "finalTangent = finalBitangent = vec3(0.0);\n" +
+                        "mat3x3 tbn = mat3x3(finalTangent,finalBitangent,finalNormal);\n" +
+                        // correct depth
+                        modifyDepth(isInstanced) +
+                        "vec3 localPos = localStart - halfBounds + dir * dist;\n" +
+                        "finalPosition = localTransform * vec4(localPos, 1.0);\n" +
+                        // must be used for correct mirror rendering
+                        discardByCullingPlane +
+                        "vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+                        "gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                        computeMaterialProperties(isInstanced) +
+                        reflectionPlaneCalculation +
+                        v0 + sheenCalculation +
+                        clearCoatCalculation +
+                        ""
+            )
         )
     }
 

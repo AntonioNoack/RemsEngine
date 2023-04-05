@@ -4,6 +4,7 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
+import java.util.*
 import kotlin.math.max
 
 class ShaderBuilder(val name: String) {
@@ -23,6 +24,7 @@ class ShaderBuilder(val name: String) {
     val fragment = MainStage()
 
     var outputs: DeferredSettingsV2? = null
+    var disabledLayers: BitSet? = null
 
     var glslVersion = OpenGLShader.DefaultGLSLVersion
 
@@ -32,8 +34,16 @@ class ShaderBuilder(val name: String) {
         vertex.add(stage ?: return)
     }
 
+    fun addVertex(stages: List<ShaderStage>) {
+        for (stage in stages) vertex.add(stage)
+    }
+
     fun addFragment(stage: ShaderStage?) {
         fragment.add(stage ?: return)
+    }
+
+    fun addFragment(stages: List<ShaderStage>) {
+        for (stage in stages) fragment.add(stage)
     }
 
     private fun collectTextureIndices(textureIndices: MutableList<String>, uniforms: Collection<Variable>) {
@@ -62,8 +72,8 @@ class ShaderBuilder(val name: String) {
 
         // LOGGER.info("Vertex-Defined: $vertexDefined, Vertex-Uniforms: $vertexUniforms")
 
-        val bridgeVariables =
-            HashMap<Variable, Variable>() // variables, that fragment imports & exports & vertex exports
+        // variables, that fragment imports & exports & vertex exports
+        val bridgeVariables = HashMap<Variable, Variable>()
         for (variable in vertexDefined) {
             val name = variable.name
             if (vertex.stages.any { it.variables.any { v -> v.name == name && v.isOutput } }) {
@@ -86,9 +96,9 @@ class ShaderBuilder(val name: String) {
         }
 
         // create the code
-        val vertCode = vertex.createCode(false, outputs, bridgeVariables)
+        val vertCode = vertex.createCode(false, outputs, disabledLayers, bridgeVariables)
         val attributes = vertex.attributes
-        val fragCode = fragment.createCode(true, outputs, bridgeVariables)
+        val fragCode = fragment.createCode(true, outputs, disabledLayers, bridgeVariables)
         val varying = (vertex.imported + vertex.exported).toList()
             .filter { it !in bridgeVariables } + bridgeVariables.values
         val shader = Shader(

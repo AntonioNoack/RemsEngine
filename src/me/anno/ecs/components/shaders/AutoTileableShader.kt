@@ -86,7 +86,11 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             "   return vec4(yuv2rgb(yuv.xyz), yuv.a);\n" +
             "}\n"
 
-    override fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): ShaderStage {
+    override fun createFragmentStages(
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        motionVectors: Boolean
+    ): List<ShaderStage> {
         val vars = createFragmentVariables(isInstanced, isAnimated, motionVectors)
         vars.add(Variable(GLSLType.V1B, "anisotropic"))
         vars.add(Variable(GLSLType.V3F, "tileOffset"))
@@ -96,30 +100,32 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
         vars.add(Variable(GLSLType.S2D, "invLUTTex"))
         vars.add(Variable(GLSLType.M2x2, "worldToLat"))
         vars.add(Variable(GLSLType.M2x2, "latToWorld"))
-        return ShaderStage(
-            "material", vars,
-            discardByCullingPlane +
-                    // step by step define all material properties
-                    "vec3 colorPos = finalPosition - tileOffset;\n" +
-                    "vec4 texDiffuseMap = getTexture(diffuseMap, vec2(dot(colorPos, tileDirU), dot(colorPos, tileDirV)));\n" +
-                    // "vec4 texDiffuseMap = getTexture(diffuseMap, uv);\n" +
-                    "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
-                    "if(color.a < ${1f / 255f}) discard;\n" +
-                    "finalColor = color.rgb;\n" +
-                    "finalAlpha = color.a;\n" +
-                    // todo apply mapping to normal map, emissive, metallic and roughness as well
-                    normalTanBitanCalculation +
-                    normalMapCalculation +
-                    emissiveCalculation +
-                    occlusionCalculation +
-                    metallicCalculation +
-                    roughnessCalculation +
-                    reflectionPlaneCalculation +
-                    v0 + sheenCalculation +
-                    clearCoatCalculation +
-                    (if (motionVectors) finalMotionCalculation else "")
-        ).add(rgb2yuv).add(yuv2rgb).add(anisotropic16).add(noiseFunc)
-            .add(getTexture).add(sampleTile)
+        return listOf(
+            ShaderStage(
+                "material", vars,
+                discardByCullingPlane +
+                        // step by step define all material properties
+                        "vec3 colorPos = finalPosition - tileOffset;\n" +
+                        "vec4 texDiffuseMap = getTexture(diffuseMap, vec2(dot(colorPos, tileDirU), dot(colorPos, tileDirV)));\n" +
+                        // "vec4 texDiffuseMap = getTexture(diffuseMap, uv);\n" +
+                        "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
+                        "if(color.a < ${1f / 255f}) discard;\n" +
+                        "finalColor = color.rgb;\n" +
+                        "finalAlpha = color.a;\n" +
+                        // todo apply mapping to normal map, emissive, metallic and roughness as well
+                        normalTanBitanCalculation +
+                        normalMapCalculation +
+                        emissiveCalculation +
+                        occlusionCalculation +
+                        metallicCalculation +
+                        roughnessCalculation +
+                        reflectionPlaneCalculation +
+                        v0 + sheenCalculation +
+                        clearCoatCalculation +
+                        (if (motionVectors) finalMotionCalculation else "")
+            ).add(rgb2yuv).add(yuv2rgb).add(anisotropic16).add(noiseFunc)
+                .add(getTexture).add(sampleTile)
+        )
     }
 
     object TileMath {

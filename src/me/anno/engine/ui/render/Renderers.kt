@@ -1,10 +1,6 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.components.camera.effects.CameraEffect
-import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.light.LightType
-import me.anno.ecs.components.light.PointLight
-import me.anno.ecs.components.light.SpotLight
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
@@ -268,21 +264,21 @@ object Renderers {
     @JvmField
     val attributeRenderers = LazyMap({ type: DeferredLayerType ->
         val variables = listOf(
-            Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, VariableMode.IN),
+            Variable(DeferredSettingsV2.glslTypes[type.workDims - 1], type.glslName, VariableMode.IN),
             Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
         )
         val shaderCode = when (type) {
             DeferredLayerType.MOTION -> "" +
-                    "finalResult = vec4(${type.glslName}${type.map01}, 1.0);" +
+                    "finalResult = vec4(${type.glslName}${type.workToData}, 1.0);" +
                     "finalResult.rgb *= 10.0 / (1.0 + abs(finalColor));\n" +
                     "finalResult.rgb += 0.5;\n"
             else -> {
                 "finalResult = ${
-                    when (type.dimensions) {
-                        1 -> "vec4(vec3(${type.glslName}${type.map01}),1.0)"
-                        2 -> "vec4(${type.glslName}${type.map01},1.0,1.0)"
-                        3 -> "vec4(${type.glslName}${type.map01},1.0)"
-                        4 -> "vec4(${type.glslName}${type.map01})"
+                    when (type.workDims) {
+                        1 -> "vec4(vec3(${type.glslName}${type.workToData}),1.0)"
+                        2 -> "vec4(${type.glslName}${type.workToData},1.0,1.0)"
+                        3 -> "vec4(${type.glslName}${type.workToData},1.0)"
+                        4 -> "vec4(${type.glslName}${type.workToData})"
                         else -> ""
                     }
                 };\n" + if (type.highDynamicRange) {
@@ -299,16 +295,16 @@ object Renderers {
     @JvmField
     val rawAttributeRenderers = LazyMap({ type: DeferredLayerType ->
         val variables = listOf(
-            Variable(DeferredSettingsV2.glslTypes[type.dimensions - 1], type.glslName, VariableMode.IN),
+            Variable(DeferredSettingsV2.glslTypes[type.workDims - 1], type.glslName, VariableMode.IN),
             Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
         )
         val shaderCode = "" +
                 "finalResult = ${
-                    when (type.dimensions) {
-                        1 -> "vec4(vec3(${type.glslName}${type.map01}),1.0)"
-                        2 -> "vec4(${type.glslName}${type.map01},1.0,1.0)"
-                        3 -> "vec4(${type.glslName}${type.map01},1.0)"
-                        4 -> "(${type.glslName}${type.map01})"
+                    when (type.workDims) {
+                        1 -> "vec4(vec3(${type.glslName}${type.workToData}),1.0)"
+                        2 -> "vec4(${type.glslName}${type.workToData},1.0,1.0)"
+                        3 -> "vec4(${type.glslName}${type.workToData},1.0)"
+                        4 -> "(${type.glslName}${type.workToData})"
                         else -> ""
                     }
                 };\n"
@@ -322,16 +318,16 @@ object Renderers {
         LazyMap({ (type, settings) ->
             val layer = settings.findLayer(type)
             if (layer != null) {
-                val type2 = GLSLType.floats[type.dimensions - 1].glslName
+                val type2 = GLSLType.floats[type.workDims - 1].glslName
                 val shader = Shader(
                     type.name, coordsList, coordsVShader, uvList, listOf(
                         Variable(GLSLType.S2D, "source"),
                         Variable(GLSLType.V4F, "result", VariableMode.OUT)
                     ), "" +
                             "void main(){\n" +
-                            "   $type2 data = texture(source,uv).${layer.mapping}${type.map01};\n" +
+                            "   $type2 data = texture(source,uv).${layer.mapping}${type.workToData};\n" +
                             "   vec3 color = " +
-                            when (type.dimensions) {
+                            when (type.workDims) {
                                 1 -> "vec3(data)"
                                 2 -> "vec3(data,0.0)"
                                 3 -> "data"

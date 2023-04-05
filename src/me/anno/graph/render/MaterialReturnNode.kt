@@ -13,7 +13,7 @@ class MaterialReturnNode : ReturnNode(outputs) {
         for (i in layers.indices) {
             val layer = layers[i]
             val v = layer.defaultValueARGB
-            val defaultValue: Any = when (layer.dimensions) {
+            val defaultValue: Any = when (layer.workDims) {
                 1 -> v.z
                 2 -> Vector2f(v.y, v.z)
                 3 -> Vector3f(v.x, v.y, v.z)
@@ -28,7 +28,7 @@ class MaterialReturnNode : ReturnNode(outputs) {
     companion object {
         val outputs = MaterialGraph.layers.map {
             listOf(
-                MaterialGraph.types[it.dimensions - 1],
+                MaterialGraph.types[it.workDims - 1],
                 it.name.upperSnakeCaseToTitle()
             )
         }.flatten()

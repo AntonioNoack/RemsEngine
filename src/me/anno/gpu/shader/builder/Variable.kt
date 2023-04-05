@@ -71,6 +71,20 @@ class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inO
         }
     }
 
+    fun declare0(code: StringBuilder, prefix: String? = null) {
+        if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.glslName.startsWith("sampler")) {
+            throw IllegalStateException("Cannot assign to uniform array")
+        } else {
+            // define normal variable
+            if (prefix != null) code.append(prefix).append(' ')
+            code.append(type.glslName)
+            if (arraySize >= 0) {
+                code.append('[').append(arraySize).append(']')
+            }
+            code.append(' ').append(name)
+        }
+    }
+
     var isFlat = false
     var ignored = false
 

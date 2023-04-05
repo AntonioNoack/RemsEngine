@@ -268,9 +268,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         postProcessing: ShaderStage?
     ): ShaderBuilder {
         val builder = createBuilder()
-        builder.addVertex(createVertexStage(isInstanced, isAnimated, colors, motionVectors, limitedTransform))
+        builder.addVertex(createVertexStages(isInstanced, isAnimated, colors, motionVectors, limitedTransform))
         builder.addVertex(createRandomIdStage())
-        builder.addFragment(createFragmentStage(isInstanced, isAnimated, motionVectors))
+        builder.addFragment(createFragmentStages(isInstanced, isAnimated, motionVectors))
         if (postProcessing != null) builder.addFragment(postProcessing)
         return builder
     }
@@ -402,13 +402,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 (if (limitedTransform) "#define LIMITED_TRANSFORM\n" else "")
     }
 
-    open fun createVertexStage(
+    open fun createVertexStages(
         isInstanced: Boolean,
         isAnimated: Boolean,
         colors: Boolean,
         motionVectors: Boolean,
         limitedTransform: Boolean
-    ): ShaderStage {
+    ): List<ShaderStage> {
         val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
         val variables = createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
         val stage = ShaderStage(
@@ -431,7 +431,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
         if (isAnimated && useAnimTextures) stage.add(getAnimMatrix)
         if (limitedTransform) stage.add(quatRot)
-        return stage
+        return listOf(stage)
     }
 
     open fun createFragmentVariables(
@@ -496,23 +496,29 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     }
 
     // just like the gltf pbr shader define all material properties
-    open fun createFragmentStage(isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean): ShaderStage {
-        return ShaderStage(
-            "material",
-            createFragmentVariables(isInstanced, isAnimated, motionVectors),
-            discardByCullingPlane +
-                    // step by step define all material properties
-                    baseColorCalculation +
-                    normalTanBitanCalculation +
-                    normalMapCalculation +
-                    emissiveCalculation +
-                    occlusionCalculation +
-                    metallicCalculation +
-                    roughnessCalculation +
-                    reflectionPlaneCalculation +
-                    v0 + sheenCalculation +
-                    clearCoatCalculation +
-                    (if (motionVectors) finalMotionCalculation else "")
+    open fun createFragmentStages(
+        isInstanced: Boolean,
+        isAnimated: Boolean,
+        motionVectors: Boolean
+    ): List<ShaderStage> {
+        return listOf(
+            ShaderStage(
+                "material",
+                createFragmentVariables(isInstanced, isAnimated, motionVectors),
+                discardByCullingPlane +
+                        // step by step define all material properties
+                        baseColorCalculation +
+                        normalTanBitanCalculation +
+                        normalMapCalculation +
+                        emissiveCalculation +
+                        occlusionCalculation +
+                        metallicCalculation +
+                        roughnessCalculation +
+                        reflectionPlaneCalculation +
+                        v0 + sheenCalculation +
+                        clearCoatCalculation +
+                        (if (motionVectors) finalMotionCalculation else "")
+            )
         )
     }
 
@@ -520,7 +526,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val builder = createBuilder()
         builder.addVertex(
-            createVertexStage(
+            createVertexStages(
                 isInstanced,
                 isAnimated,
                 colors = false,

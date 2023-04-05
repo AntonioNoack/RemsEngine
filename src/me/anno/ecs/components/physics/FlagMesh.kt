@@ -236,13 +236,13 @@ class FlagMesh : MeshComponent() {
         )
 
         val shader = object : ECSMeshShader("cloth") {
-            override fun createVertexStage(
+            override fun createVertexStages(
                 isInstanced: Boolean,
                 isAnimated: Boolean,
                 colors: Boolean,
                 motionVectors: Boolean,
                 limitedTransform: Boolean
-            ): ShaderStage {
+            ): List<ShaderStage> {
                 val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
                 val variables =
                     createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
@@ -284,7 +284,7 @@ class FlagMesh : MeshComponent() {
                 )
                 if (isAnimated && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
                 if (limitedTransform) stage.add(ShaderLib.quatRot)
-                return stage
+                return listOf(stage)
             }
         }
 

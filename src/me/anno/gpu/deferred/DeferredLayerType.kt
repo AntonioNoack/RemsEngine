@@ -8,18 +8,21 @@ import org.joml.Vector4f
 open class DeferredLayerType(
     val name: String,
     val glslName: String,
-    val dimensions: Int,
+    val workDims: Int,
+    val dataDims: Int,
     val minimumQuality: BufferQuality, // todo this depends on the platform; todo or we could use a mapping between attributes :)
     val highDynamicRange: Boolean,
     val defaultValueARGB: Vector4f,
-    val map01: String,
-    val map10: String
+    val workToData: String,
+    val dataToWork: String
 ) {
+
+    override fun toString() = name
 
     constructor(
         name: String, glslName: String, dimensions: Int, minimumQuality: BufferQuality, highDynamicRange: Boolean,
         defaultValueARGB: Int, map01: String, map10: String
-    ) : this(name, glslName, dimensions, minimumQuality, highDynamicRange, defaultValueARGB.toVecRGBA(), map01, map10)
+    ) : this(name, glslName, dimensions, dimensions, minimumQuality, highDynamicRange, defaultValueARGB.toVecRGBA(), map01, map10)
 
     constructor(name: String, glslName: String, defaultValueARGB: Int) :
             this(name, glslName, 1, BufferQuality.LOW_8, false, defaultValueARGB, "", "")
@@ -28,13 +31,13 @@ open class DeferredLayerType(
             this(name, glslName, dimensions, BufferQuality.LOW_8, false, defaultValueARGB, "", "")
 
     fun appendDefinition(fragment: StringBuilder) {
-        fragment.append(glslTypes[dimensions - 1])
+        fragment.append(glslTypes[workDims - 1])
         fragment.append(' ')
         fragment.append(glslName)
     }
 
     fun appendDefaultValue(fragment: StringBuilder) {
-        when (dimensions) {
+        when (workDims) {
             1 -> fragment.append(defaultValueARGB.z)
             2 -> fragment.append("vec2(")
                 .append(defaultValueARGB.y)
@@ -62,7 +65,7 @@ open class DeferredLayerType(
 
     fun getValue(settingsV2: DeferredSettingsV2, uv: String = "uv"): String {
         val layer = settingsV2.layers.first { it.type == this }
-        return "texture(${layer.textureName}, $uv).${layer.mapping}$map10"
+        return "texture(${layer.textureName}, $uv).${layer.mapping}$dataToWork"
     }
 
     companion object {

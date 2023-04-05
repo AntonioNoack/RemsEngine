@@ -21,8 +21,12 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.set4x3delta
+import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.CubemapFramebuffer
+import me.anno.gpu.pipeline.PipelineStage.Companion.DECAL_PASS
+import me.anno.gpu.pipeline.PipelineStage.Companion.OPAQUE_PASS
+import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.io.ISaveable
@@ -100,11 +104,28 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         return lightStage.size > RenderView.MAX_FORWARD_LIGHTS
     }
 
-    fun findStage(mesh: Mesh?, material: Material): PipelineStage {
+    fun findStage(material: Material): PipelineStage {
         val stage0 = material.pipelineStage
         if (stage0 < 0) return defaultStage
         while (stages.size <= stage0) {
-            stages.add(defaultStage.clone())
+            stages.add(
+                when (stages.size) {
+                    OPAQUE_PASS -> defaultStage
+                    TRANSPARENT_PASS -> PipelineStage(
+                        "transparent",
+                        Sorting.BACK_TO_FRONT, 64,
+                        BlendMode.DEFAULT, DepthMode.CLOSER, false, CullMode.BOTH,
+                        pbrModelShader
+                    )
+                    DECAL_PASS -> PipelineStage(
+                        "decal", Sorting.NO_SORTING, 64,
+                        null, DepthMode.FARTHER, false, CullMode.FRONT,
+                        // todo default decal shader? :) would be nice :D
+                        pbrModelShader
+                    )
+                    else -> defaultStage.clone()
+                }
+            )
         }
         return stages[stage0]
         // todo analyse, whether the material has transparency, and if so,
@@ -119,7 +140,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
             val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
             val m1 = m0 ?: materials.getOrNull(index)
             val material = MaterialCache[m1, defaultMaterial]
-            val stage = findStage(mesh, material)
+            val stage = findStage(material)
             stage.add(renderer, mesh, entity, index, clickId)
         }
     }
@@ -136,7 +157,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
             val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
             val m1 = m0 ?: materials.getOrNull(index)
             val material = MaterialCache[m1, defaultMaterial]
-            val stage = findStage(mesh, material)
+            val stage = findStage(material)
             stage.addInstanced(mesh, renderer, entity, material, index, clickId)
         }
     }

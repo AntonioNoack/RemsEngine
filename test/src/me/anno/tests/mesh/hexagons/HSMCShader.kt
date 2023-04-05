@@ -30,13 +30,13 @@ object HSMCShader : ECSMeshShader("hexagons") {
         if (ti >= 0) texture.bind(ti, GPUFiltering.NEAREST, Clamping.REPEAT)
     }
 
-    override fun createVertexStage(
+    override fun createVertexStages(
         isInstanced: Boolean,
         isAnimated: Boolean,
         colors: Boolean,
         motionVectors: Boolean,
         limitedTransform: Boolean
-    ): ShaderStage {
+    ): List<ShaderStage> {
         val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
         val variables = createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
             .filter {
@@ -45,37 +45,39 @@ object HSMCShader : ECSMeshShader("hexagons") {
                     else -> true
                 }
             }
-        return ShaderStage(
-            "vertex",
-            variables, defines +
-                    "localPosition = coords;\n" + // is output, so no declaration needed
-                    motionVectorInit +
-                    instancedInitCode +
-                    "#define tangents vec4(0,0,0,1)\n" +
-                    normalInitCode +
-                    // calculate uv from color to save memory and bandwidth
-                    "#ifdef COLORS\n" +
-                    "   int idx = int(colors0.r*65535.0+colors0.g*255.0+0.5);\n" +
-                    "   vertexColor0 = colors0;\n" +
-                    "   const vec2 uvArray[11] = vec2[](" +
-                    "${uv6.joinToString { "vec2(${it.x},${1f - it.y})" }}, " +
-                    "${uv5.joinToString { "vec2(${it.x},${1f - it.y})" }});\n" +
-                    "   uv = idx < 11 ? uvArray[idx] : vec2(bool(idx&1) ? 0.0 : 0.5, -0.125 * float((idx-11)>>1));\n" +
-                    "#endif\n" +
-                    applyTransformCode +
-                    // colorInitCode +
-                    "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
-                    motionVectorCode +
-                    positionPostProcessing
+        return listOf(
+            ShaderStage(
+                "vertex",
+                variables, defines +
+                        "localPosition = coords;\n" + // is output, so no declaration needed
+                        motionVectorInit +
+                        instancedInitCode +
+                        "#define tangents vec4(0,0,0,1)\n" +
+                        normalInitCode +
+                        // calculate uv from color to save memory and bandwidth
+                        "#ifdef COLORS\n" +
+                        "   int idx = int(colors0.r*65535.0+colors0.g*255.0+0.5);\n" +
+                        "   vertexColor0 = colors0;\n" +
+                        "   const vec2 uvArray[11] = vec2[](" +
+                        "${uv6.joinToString { "vec2(${it.x},${1f - it.y})" }}, " +
+                        "${uv5.joinToString { "vec2(${it.x},${1f - it.y})" }});\n" +
+                        "   uv = idx < 11 ? uvArray[idx] : vec2(bool(idx&1) ? 0.0 : 0.5, -0.125 * float((idx-11)>>1));\n" +
+                        "#endif\n" +
+                        applyTransformCode +
+                        // colorInitCode +
+                        "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                        motionVectorCode +
+                        positionPostProcessing
+            )
         )
     }
 
-    override fun createFragmentStage(
+    override fun createFragmentStages(
         isInstanced: Boolean,
         isAnimated: Boolean,
         motionVectors: Boolean
-    ): ShaderStage {
-        return ShaderStage(
+    ): List<ShaderStage> {
+        return listOf(ShaderStage(
             "material",
             createFragmentVariables(isInstanced, isAnimated, motionVectors)
                 .filter {
@@ -130,6 +132,6 @@ object HSMCShader : ECSMeshShader("hexagons") {
                     // v0 + sheenCalculation +
                     // clearCoatCalculation +
                     (if (motionVectors) finalMotionCalculation else "")
-        ).add(dither2x2)
+        ).add(dither2x2))
     }
 }

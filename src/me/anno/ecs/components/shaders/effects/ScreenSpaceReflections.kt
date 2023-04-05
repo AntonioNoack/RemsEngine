@@ -75,8 +75,8 @@ object ScreenSpaceReflections {
             if (shader != null) {
                 val overrides = material.shaderOverrides
                 variables.addAll(overrides.entries.map { Variable(it.value.type, it.key) })
-                val stage = shader.createFragmentStage(isInstanced = false, isAnimated = false, motionVectors = false)
-                functions.addAll(stage.functions.map { it.body })
+                val stages = shader.createFragmentStages(isInstanced = false, isAnimated = false, motionVectors = false)
+                for (stage in stages) functions.addAll(stage.functions.map { it.body })
                 functions.add("vec4 getSkyColor1(vec3 pos, float roughness){ return vec4(getSkyColor(pos),1.0);\n }")
             } else functions.add(defaultSkyColor)
         } else functions.add(defaultSkyColor)

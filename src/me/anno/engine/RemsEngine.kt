@@ -141,23 +141,6 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
         }
     }
 
-    fun loadSafely(file: FileReference): Prefab {
-        if (file.exists && !file.isDirectory) {
-            return try {
-                loadScenePrefab(file)
-            } catch (e: Exception) {
-                val nextName = findNextFileName(file, 1, '-')
-                LOGGER.warn("Could not open $file", e)
-                val newFile = file.getSibling(nextName)
-                return loadSafely(newFile)
-            }
-        } else {
-            val prefab = Prefab("Entity")
-            prefab.source = file
-            return prefab
-        }
-    }
-
     override fun clearAll() {
         val selected = collectSelected()
         super.clearAll()
@@ -283,7 +266,6 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
             PropertyInspector.invalidateUI(true)
         }
 
-        private val LOGGER = LogManager.getLogger(RemsEngine::class)
         val instance2: RemsEngine? get() = instance as? RemsEngine
 
         @JvmStatic

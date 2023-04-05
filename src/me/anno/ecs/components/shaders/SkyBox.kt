@@ -240,15 +240,15 @@ class SkyBox : MeshComponentBase() {
 
         open class SkyShader(name: String) : ECSMeshShader(name) {
 
-            override fun createVertexStage(
+            override fun createVertexStages(
                 isInstanced: Boolean,
                 isAnimated: Boolean,
                 colors: Boolean,
                 motionVectors: Boolean,
                 limitedTransform: Boolean
-            ): ShaderStage {
+            ): List<ShaderStage> {
                 val defines = if (colors) "#define COLORS\n" else ""
-                return ShaderStage(
+                return listOf(ShaderStage(
                     "vertex",
                     createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform),
                     "" +
@@ -260,14 +260,14 @@ class SkyBox : MeshComponentBase() {
                             "#endif\n" +
                             "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                             ShaderLib.positionPostProcessing
-                )
+                ))
             }
 
-            override fun createFragmentStage(
+            override fun createFragmentStages(
                 isInstanced: Boolean,
                 isAnimated: Boolean,
                 motionVectors: Boolean
-            ): ShaderStage {
+            ): List<ShaderStage> {
 
                 val funcNoise = "" +
                         "float hash(float);\n" +
@@ -333,7 +333,7 @@ class SkyBox : MeshComponentBase() {
                 stage.add(funcNoise)
                 stage.add(funcFBM)
                 stage.add(getSkyColor())
-                return stage
+                return listOf(stage)
             }
 
             open fun getSkyColor(): String {

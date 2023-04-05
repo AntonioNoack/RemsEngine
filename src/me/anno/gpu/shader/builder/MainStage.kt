@@ -6,6 +6,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
+import java.util.*
 
 class MainStage {
 
@@ -183,7 +184,8 @@ class MainStage {
     fun createCode(
         isFragmentStage: Boolean,
         outputs: DeferredSettingsV2?,
-        bridgeVariables: Map<Variable, Variable>
+        disabledLayers: BitSet?,
+        bridgeVariables1: Map<Variable, Variable>
     ): String {
 
         // set what is all defined
@@ -206,7 +208,7 @@ class MainStage {
                 code.append("layout(location=0) out vec4 BuildColor;\n")
             } else {
                 // register all layers
-                outputs.appendLayerDeclarators(code)
+                outputs.appendLayerDeclarators(code, disabledLayers)
             }
             code.append('\n')
         }
@@ -261,18 +263,20 @@ class MainStage {
 
         // assign bridge variables/varyings
         if (isFragmentStage) {
-            for ((local, varying) in bridgeVariables) {
-                local.declare(code, null)
-                code.append(local.name).append('=').append(varying.name).append(";\n")
+            for ((local, varying) in bridgeVariables1) {
+                local.declare0(code, null)
+                code.append("=").append(varying.name).append("; // bridge1\n")
+                defined += local
             }
             for (variable in bridgeVariables2) {
-                variable.declare(code, null)
-                code.append(variable.name).append("=get_")
-                    .append(variable.name).append("();\n")
+                variable.declare0(code, null)
+                code.append("=get_").append(variable.name).append("(); // bridge2\n")
+                defined += variable
             }
         } else {
-            for ((local, _) in bridgeVariables) {
+            for ((local, _) in bridgeVariables1) {
                 local.declare(code, null)
+                defined += local
             }
         }
 
@@ -282,17 +286,17 @@ class MainStage {
             code.append("// start of stage ").append(stage.callName).append('\n')
             val params = stage.variables
             // if this function defines a variable, which has been undefined before, define it
-            for (param in params) {
+            for (param in params.sortedBy { it.type }) {
                 if (param.isOutput && param !in defined) {
-                    param.declare(code, null)
+                    param.declare0(code, null)
                     // write default value if name matches deferred layer
                     // if the shader works properly, it is overridden anyway
                     val dlt = DeferredLayerType.byName[param.name]
-                    if (dlt != null && dlt.dimensions == param.type.components) {
-                        code.append(param.name).append("=")
+                    if (dlt != null && dlt.workDims == param.type.components) {
+                        code.append('=')
                         dlt.appendDefaultValue(code)
-                        code.append(";\n")
                     }
+                    code.append(";\n")
                     defined += param
                 }
             }
@@ -314,7 +318,7 @@ class MainStage {
         }
 
         if (!isFragmentStage) {
-            for ((local, varying) in bridgeVariables) {
+            for ((local, varying) in bridgeVariables1) {
                 code.append(varying.name).append('=').append(local.name).append(";\n")
             }
         }
@@ -352,17 +356,18 @@ class MainStage {
 
                 val layerTypes = outputs.layerTypes
                 for (type in layerTypes) {
-                    // write the default values, if not already defined
-                    if (defined.none { type.glslName == it.name }) {
-                        type.appendDefinition(code)
-                        code.append(" = ")
-                        type.appendDefaultValue(code)
-                        code.append(";\n")
+                    // only needed if output is not disabled
+                    if (disabledLayers == null || !disabledLayers[outputs.findLayer(type)!!.texIndex]) {
+                        // write the default values, if not already defined
+                        if (defined.none { type.glslName == it.name }) {
+                            type.appendDefinition(code)
+                            code.append(" = ")
+                            type.appendDefaultValue(code)
+                            code.append(";\n")
+                        }
                     }
                 }
-
-                outputs.appendLayerWriters(code)
-
+                outputs.appendLayerWriters(code, disabledLayers)
             }
         }
         code.append("}\n")

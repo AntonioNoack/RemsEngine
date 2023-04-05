@@ -211,11 +211,11 @@ object SDFComposer {
         if (needsSwitch) builder.append("}\n")
 
         val shader = object : ECSMeshShader("raycasting-${tree.hashCode()}") {
-            override fun createFragmentStage(
+            override fun createFragmentStages(
                 isInstanced: Boolean,
                 isAnimated: Boolean,
                 motionVectors: Boolean
-            ): ShaderStage {
+            ): List<ShaderStage> {
                 // instancing is not supported
                 val fragmentVariables = listOf(
                     Variable(GLSLType.M4x4, "transform"),
@@ -405,7 +405,7 @@ object SDFComposer {
                 builder2.append(raycasting)
                 builder2.append(normal)
                 stage.add(builder2.toString())
-                return stage
+                return listOf(stage)
             }
         }
         // why are those not ignored?

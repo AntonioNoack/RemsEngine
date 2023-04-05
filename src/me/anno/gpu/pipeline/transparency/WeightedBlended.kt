@@ -5,7 +5,6 @@ import me.anno.engine.ui.render.RendererLib.lightCode
 import me.anno.engine.ui.render.RendererLib.skyMapCode
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.DepthMode
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
@@ -23,7 +22,6 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.input.Input
 import me.anno.language.translation.NameDesc
 import me.anno.utils.Color.black
 import me.anno.utils.structures.maps.LazyMap
@@ -161,7 +159,7 @@ class WeightedBlended : TransparentPass() {
         }
 
         combine {
-            val shader = applyShader[IntPair(l0.index, l1.index)]
+            val shader = applyShader[IntPair(l0.texIndex, l1.texIndex)]
             shader.use()
             shader.v1b("perTargetBlending", perTargetBlending)
             s0.findTexture(b0, l0).bindTrulyNearest(shader, "diffuseSrcTex")

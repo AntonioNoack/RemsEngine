@@ -36,7 +36,7 @@ import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.input.Input
 import me.anno.io.Saveable
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Matrices.set2
+import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
@@ -57,6 +57,10 @@ class PipelineStage(
 ) : Saveable() {
 
     companion object {
+
+        const val OPAQUE_PASS = 0
+        const val TRANSPARENT_PASS = 1
+        const val DECAL_PASS = 2
 
         var drawnPrimitives = 0L
         var drawCalls = 0L
@@ -157,7 +161,7 @@ class PipelineStage(
 
             val invLocalUniform = shader["invLocalTransform"]
             if (invLocalUniform >= 0) {
-                val invLocal = tmp4x3.set2(localTransform).invert()
+                val invLocal = tmp4x3.set4x3Delta(localTransform).invert()
                 shader.m4x3(invLocalUniform, invLocal)
             }
 

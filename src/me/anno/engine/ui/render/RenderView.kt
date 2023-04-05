@@ -1288,10 +1288,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     private val reverseDepth get() = renderMode != RenderMode.INVERSE_DEPTH
 
     fun setClearDepth() {
-        val stages = pipeline.stages
-        for (index in stages.indices) {
-            stages[index].depthMode = depthMode
-        }
         stage0.depthMode = depthMode
         /**
          * the depth mode is a little convoluted:

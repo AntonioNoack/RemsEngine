@@ -6,6 +6,7 @@ import me.anno.gpu.ShaderCache
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.builder.Varying
+import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL20.*
@@ -131,12 +132,14 @@ open class Shader(
         }
 
         var outCtr = 0
-        for (v in fragmentVariables) {
+        for (v in fragmentVariables.sortedWith { a, b ->
+            a.type.compareTo(b.type).ifSame {
+                a.name.compareTo(b.name)
+            }
+        }) {
             if (v.ignored) continue
             val prefix = when (v.inOutMode) {
-                VariableMode.IN, VariableMode.INOUT -> {
-                    "uniform"
-                }
+                VariableMode.IN, VariableMode.INOUT -> "uniform"
                 VariableMode.ATTR -> throw IllegalArgumentException("Fragment variable must not have type ATTR")
                 VariableMode.OUT -> {
                     builder.append("layout(location=").append(outCtr++).append(") ")

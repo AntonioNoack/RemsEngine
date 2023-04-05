@@ -39,7 +39,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         this.clickId = clickId
         var done = forEachInstancedGroup { mesh, material, group, overrides ->
             val material2 = material ?: Mesh.defaultMaterial
-            val stage = pipeline.findStage(mesh, material2)
+            val stage = pipeline.findStage(material2)
             val stack = stage.instancedX.getOrPut(mesh, material2) { _, _ -> InstancedStackStatic.Data() }
             stack.data.add(group)
             stack.attr.add(overrides)
@@ -47,7 +47,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         }
         done = done || forEachMeshGroupI32 { mesh, material, matrix ->
             val material2 = material ?: Mesh.defaultMaterial
-            val stage = pipeline.findStage(mesh, material2)
+            val stage = pipeline.findStage(material2)
             val stack = stage.instancedI32.getOrPut(mesh, material2) { _, _ -> InstancedStackI32.Data() }
             if (stack.clickIds.isEmpty() || (stack.clickIds.last() != this.clickId || stack.matrices.last() != matrix)) {
                 stack.clickIds.add(stack.size)
@@ -58,7 +58,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         }
         done = done || forEachMeshGroupTRS { mesh, material ->
             val material2 = material ?: Mesh.defaultMaterial
-            val stage = pipeline.findStage(mesh, material2)
+            val stage = pipeline.findStage(material2)
             val stack = stage.instancedPSR.getOrPut(mesh, material2) { _, _ -> InstancedStackPSR.Data() }
             if (stack.clickIds.isEmpty() || stack.clickIds.last() != this.clickId) {
                 stack.clickIds.add(stack.size)
@@ -69,7 +69,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         lastStack = null
         done = done || forEachMeshGroup { mesh, material ->
             val material2 = material ?: Mesh.defaultMaterial
-            val stage = pipeline.findStage(mesh, material2)
+            val stage = pipeline.findStage(material2)
             val stack = stage.instanced.getOrPut(mesh, material2) { mesh1, _ ->
                 if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
             }
@@ -90,7 +90,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             mesh.aabb.transformUnion(transform.globalTransform, tmpAABB)
             if (pipeline.frustum.contains(tmpAABB)) {
                 val material2 = material ?: Mesh.defaultMaterial
-                val stage = pipeline.findStage(mesh, material2)
+                val stage = pipeline.findStage(material2)
                 if (mesh.proceduralLength <= 0) {
                     val stack = stage.instanced.getOrPut(mesh, material2) { mesh1, _ ->
                         if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()

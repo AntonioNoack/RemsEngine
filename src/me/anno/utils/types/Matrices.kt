@@ -1,5 +1,7 @@
 package me.anno.utils.types
 
+import me.anno.engine.ui.render.RenderState.cameraPosition
+import me.anno.engine.ui.render.RenderState.worldScale
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f3s
 import org.joml.*
@@ -122,6 +124,24 @@ object Matrices {
             src.m10.toFloat(), src.m11.toFloat(), src.m12.toFloat(),
             src.m20.toFloat(), src.m21.toFloat(), src.m22.toFloat(),
             src.m30.toFloat(), src.m31.toFloat(), src.m32.toFloat()
+        )
+        return this
+    }
+
+    /**
+     * replace missing setter/constructor
+     * */
+    @JvmStatic
+    fun Matrix4x3f.set4x3Delta(src: Matrix4x3d): Matrix4x3f {
+        val scale = worldScale
+        val position = cameraPosition
+        set(
+            (src.m00 * scale).toFloat(), (src.m01 * scale).toFloat(), (src.m02 * scale).toFloat(),
+            (src.m10 * scale).toFloat(), (src.m11 * scale).toFloat(), (src.m12 * scale).toFloat(),
+            (src.m20 * scale).toFloat(), (src.m21 * scale).toFloat(), (src.m22 * scale).toFloat(),
+            ((src.m30 - position.x) * scale).toFloat(),
+            ((src.m31 - position.y) * scale).toFloat(),
+            ((src.m32 - position.z) * scale).toFloat(),
         )
         return this
     }

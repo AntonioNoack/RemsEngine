@@ -1,13 +1,10 @@
 package me.anno.graph.render.scene
 
-import me.anno.ecs.components.camera.Camera
 import me.anno.engine.ui.render.RenderView
-import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.Sorting
@@ -117,9 +114,9 @@ class SceneNode : ActionNode(
 
         // todo there are special types for which we might need to apply lighting or combine other types
         for (layer in settings.layers) {
-            val tex = framebuffer.getTextureI(layer.index)
+            val tex = framebuffer.getTextureI(layer.texIndex)
             if (tex is Texture2D && !tex.isCreated) {
-                LOGGER.warn("${layer.type} -> ${layer.index} is missing")
+                LOGGER.warn("${layer.type} -> ${layer.texIndex} is missing")
                 continue
             }
             val i = DeferredLayerType.values.indexOf(layer.type) + 1
