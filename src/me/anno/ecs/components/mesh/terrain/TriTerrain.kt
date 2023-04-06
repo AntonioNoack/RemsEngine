@@ -7,6 +7,7 @@ import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.sq
 import me.anno.utils.structures.arrays.ExpandingFloatArray
+import me.anno.utils.structures.lists.Lists.fill
 import org.joml.AABBf
 import org.joml.Matrix3f
 import org.joml.Vector3f

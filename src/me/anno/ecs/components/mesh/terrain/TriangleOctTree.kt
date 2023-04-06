@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import org.joml.Vector3d
 import org.joml.Vector3f
+import java.util.BitSet
 
 // float coordinates, because other use-cases are probably really rare
 // double coordinates, because everything else is double, and #insanity lol
@@ -23,7 +24,7 @@ class TriangleOctTree(
             this(terrain, null, Vector3f(), Vector3f(), maxTriangles)
 
     var indices = IntArray(maxTriangles * 3)
-    var isOnEdge = BooleanArray(maxTriangles * 3) // A,B,C
+    var isOnEdge = BitSet(maxTriangles * 3) // A,B,C
 
     fun add(v: TriangleOctTree) {
         TODO()

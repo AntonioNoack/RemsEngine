@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.Build
+import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Docs
@@ -36,6 +37,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         entity: Entity,
         clickId: Int
     ): Int {
+        lastDrawn = Engine.gameTime
         this.clickId = clickId
         var done = forEachInstancedGroup { mesh, material, group, overrides ->
             val material2 = material ?: Mesh.defaultMaterial

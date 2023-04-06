@@ -4,11 +4,12 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.texture.Texture2D
+import me.anno.maths.bvh.BVHBuilder.createTexture
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 
-abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
+abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
 
     abstract fun findGeometryData(): GeometryData
 
@@ -36,7 +37,7 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             GFX.checkIsGFXThread()
             val buffers = BLASs.map { it.findGeometryData() } // positions without index
             // RGB is not supported by compute shaders (why ever...), so use RGBA
-            val numTriangles = buffers.sumOf { it.positions.size / 9 }
+            val numTriangles = buffers.sumOf { it.indices.size / 3 }
             val texture = createTexture("triangles", numTriangles, PIXELS_PER_TRIANGLE)
             val bytesPerPixel = 16
             val buffer = Texture2D.bufferPool[texture.w * texture.h * bytesPerPixel, false, false]
@@ -51,29 +52,30 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
                 }
                 val data2 = buffers[index]
                 val positions = data2.positions
+                val indices = data2.indices
                 val normals = data2.normals
                 val colors = data2.vertexColors
-                val numLocalTriangles = positions.size / 9
-                val numLocalVertices = numLocalTriangles * 3
-                var k = 0
-                for (i in 0 until numLocalVertices) {
-                    data.position((i * PIXELS_PER_VERTEX + pixelIndex) * 4)
-                    data.put(positions[k])
-                    data.put(positions[k + 1])
-                    data.put(positions[k + 2])
-                    data.put(0f) // padding
-                    if (PIXELS_PER_VERTEX > 1) {
-                        data.put(normals[k])
-                        data.put(normals[k + 1])
-                        data.put(normals[k + 2])
-                        data.put(Float.fromBits(if (colors != null) colors[i] else -1))
+                for (i in indices.indices step 3) {
+                    fun put(k: Int) {
+                        data.put(positions[k])
+                        data.put(positions[k + 1])
+                        data.put(positions[k + 2])
+                        data.put(0f) // padding
+                        if (PIXELS_PER_VERTEX > 1) {
+                            data.put(normals[k])
+                            data.put(normals[k + 1])
+                            data.put(normals[k + 2])
+                            data.put(Float.fromBits(if (colors != null) colors[i] else -1))
+                        }
                     }
-                    k += 3
+                    put(indices[i] * 3)
+                    put(indices[i + 1] * 3)
+                    put(indices[i + 2] * 3)
                 }
-                pixelIndex += numLocalVertices * PIXELS_PER_VERTEX
-                triangleIndex += numLocalTriangles
+                pixelIndex += indices.size * PIXELS_PER_VERTEX
+                triangleIndex += indices.size / 3
             }
-            LOGGER.info("Filled triangles ${(pixelIndex * 4f / data.capacity()).formatPercent()}%")
+            LOGGER.info("Filled triangles ${(pixelIndex * 4f / data.capacity()).formatPercent()}%, $texture")
             texture.createRGBA(data, buffer, false)
             Texture2D.bufferPool.returnBuffer(buffer)
             return texture
@@ -93,10 +95,9 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
             // todo most meshes don't need such high precision, maybe use u8 or u16 or fp16
             val buffers = BLASs.map { it.findGeometryData() } // positions without index
             // RGB is not supported by compute shaders (why ever...), so use RGBA
-            val numTriangles = buffers.sumOf { it.positions.size / 9 }
+            val numTriangles = buffers.sumOf { it.indices.size / 3 }
             val buffer = ComputeBuffer(triangleAttr, numTriangles * 3)
             // write triangle into memory
-            var pixelIndex = 0
             var triangleIndex = 0
             for (index in BLASs.indices) {
                 val blasRoot = BLASs[index]
@@ -105,26 +106,27 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
                 }
                 val data2 = buffers[index]
                 val positions = data2.positions
+                val indices = data2.indices
                 val normals = data2.normals
                 val colors = data2.vertexColors
-                val numLocalTriangles = positions.size / 9
-                val numLocalVertices = numLocalTriangles * 3
-                var k = 0
-                for (i in 0 until numLocalVertices) {
-                    buffer.nioBuffer!!.position((i * PIXELS_PER_VERTEX + pixelIndex) * 4)
-                    buffer.put(positions[k])
-                    buffer.put(positions[k + 1])
-                    buffer.put(positions[k + 2])
-                    buffer.put(0f) // padding
-                    if (PIXELS_PER_VERTEX > 1) {
-                        buffer.put(normals[k])
-                        buffer.put(normals[k + 1])
-                        buffer.put(normals[k + 2])
-                        buffer.put(Float.fromBits(if (colors != null) colors[i] else -1))
+                val numLocalTriangles = indices.size / 3
+                for (i in indices.indices step 3) {
+                    fun put(k: Int) {
+                        buffer.put(positions[k])
+                        buffer.put(positions[k + 1])
+                        buffer.put(positions[k + 2])
+                        buffer.put(0f) // padding
+                        if (PIXELS_PER_VERTEX > 1) {
+                            buffer.put(normals[k])
+                            buffer.put(normals[k + 1])
+                            buffer.put(normals[k + 2])
+                            buffer.put(Float.fromBits(if (colors != null) colors[i] else -1))
+                        }
                     }
-                    k += 3
+                    put(indices[i] * 3)
+                    put(indices[i + 1] * 3)
+                    put(indices[i + 2] * 3)
                 }
-                pixelIndex += numLocalVertices * PIXELS_PER_VERTEX
                 triangleIndex += numLocalTriangles
             }
             return buffer
@@ -190,7 +192,7 @@ abstract class BLASNode(bounds: AABBf) : BVHBuilder(bounds) {
                 }
             }
 
-            LOGGER.info("Filled BLAS ${(i.toFloat() / data.capacity()).formatPercent()}%")
+            LOGGER.info("Filled BLAS ${(i.toFloat() / data.capacity()).formatPercent()}%, $texture")
             texture.createRGBA(data, buffer, false)
             Texture2D.bufferPool.returnBuffer(buffer)
             return texture

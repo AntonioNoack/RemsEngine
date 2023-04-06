@@ -45,7 +45,7 @@ const val sky1 = 0x5c729b
 
 fun renderOnCPU(
     w: Int, h: Int, name: String, cx: Double, cy: Double, fovZ: Double,
-    start2: Vector3f, rotation: Quaternionf, bvh: BVHBuilder,
+    start2: Vector3f, rotation: Quaternionf, bvh: BVHNode,
 ) {
     val dir0 = JomlPools.vec3f.create()
     dir0.set(cx, cy, fovZ).normalize()
@@ -115,7 +115,7 @@ fun createComputeShader(useBVH: Boolean, maxDepth: Int, mesh: Mesh?): ComputeSha
                 } else {
                     "" +
                             "int triTexSize = TEXTURE_SIZE(triangles).x;\n" +
-                            "for(uint triangleIndex=0;triangleIndex<${mesh!!.numPrimitives};triangleIndex++){\n" + // triangle index
+                            "for(uint triangleIndex=0;triangleIndex<${mesh!!.numPrimitives};triangleIndex++){\n" +
                             // load triangle data
                             "    uint pixelIndex = triangleIndex * 3;\n" + // 3 = pixels per triangle
                             "    uint triX = pixelIndex % triTexSize;\n" +

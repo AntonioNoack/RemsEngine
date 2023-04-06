@@ -137,8 +137,8 @@ object RayTracing {
 
     val glslBLASIntersection = "" +
             "void intersectBLAS(\n" +
-            "       uint nodeIndex, vec3 pos, vec3 dir, vec3 invDir,\n" +
-            "       inout vec3 normal, inout float distance, inout uint nodeCtr\n" +
+            "    uint nodeIndex, vec3 pos, vec3 dir, vec3 invDir,\n" +
+            "    inout vec3 normal, inout float distance, inout uint nodeCtr\n" +
             "){\n" +
             "   uvec2 nodeTexSize = TEXTURE_SIZE(nodes);\n" +
             "   uvec2 triTexSize  = TEXTURE_SIZE(triangles);\n" +
@@ -171,7 +171,7 @@ object RayTracing {
             "               uint triY = index / triTexSize.x;\n" +
             "               for(;index<end;index += ${PIXELS_PER_TRIANGLE}u){\n" + // triangle index -> load triangle data
             "#if $PIXELS_PER_VERTEX >= 2\n" +
-            "                   vec3 p0 = LOAD_PIXEL(triangles, ivec2(triX,   triY)).rgb;\n" +
+            "                   vec3 p0 = LOAD_PIXEL(triangles, ivec2(triX, triY)).rgb;\n" +
             "                   vec3 n0 = LOAD_PIXEL(triangles, ivec2(triX+1u, triY)).rgb;\n" +
             "                   vec3 p1 = LOAD_PIXEL(triangles, ivec2(triX+${PIXELS_PER_VERTEX}u,triY)).rgb;\n" +
             "                   vec3 n1 = LOAD_PIXEL(triangles, ivec2(triX+${PIXELS_PER_VERTEX + 1}u,triY)).rgb;\n" +
@@ -179,7 +179,7 @@ object RayTracing {
             "                   vec3 n2 = LOAD_PIXEL(triangles, ivec2(triX+${PIXELS_PER_VERTEX * 2 + 1}u,triY)).rgb;\n" +
             "                   intersectTriangle(pos, dir, p0, p1, p2, n0, n1, n2, normal, distance);\n" +
             "#else\n" +
-            "                   vec3 p0 = LOAD_PIXEL(triangles, ivec2(triX,   triY)).rgb;\n" +
+            "                   vec3 p0 = LOAD_PIXEL(triangles, ivec2(triX, triY)).rgb;\n" +
             "                   vec3 p1 = LOAD_PIXEL(triangles, ivec2(triX+${PIXELS_PER_VERTEX}u,triY)).rgb;\n" +
             "                   vec3 p2 = LOAD_PIXEL(triangles, ivec2(triX+${PIXELS_PER_VERTEX * 2}u,triY)).rgb;\n" +
             "                   intersectTriangle(pos, dir, p0, p1, p2, normal, distance);\n" +

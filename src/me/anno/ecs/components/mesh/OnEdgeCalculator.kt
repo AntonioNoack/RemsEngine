@@ -1,11 +1,13 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.utils.structures.lists.Lists.fill
+import java.util.BitSet
 import kotlin.math.max
 import kotlin.math.min
 
 object OnEdgeCalculator {
 
-    fun calculateIsOnEdge(mesh: Mesh, dst: BooleanArray = BooleanArray(mesh.numPrimitives.toInt() * 3)): BooleanArray {
+    fun calculateIsOnEdge(mesh: Mesh, dst: BitSet = BitSet(mesh.numPrimitives.toInt() * 3)): BitSet {
 
         dst.fill(true)
 

@@ -4,13 +4,14 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.texture.Texture2D
+import me.anno.maths.bvh.BVHBuilder.createTexture
 import me.anno.utils.types.Buffers.skip
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 
-abstract class TLASNode(bounds: AABBf) : BVHBuilder(bounds) {
+abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
 
     abstract fun countTLASLeaves(): Int
     abstract fun forEach(run: (TLASNode) -> Unit)

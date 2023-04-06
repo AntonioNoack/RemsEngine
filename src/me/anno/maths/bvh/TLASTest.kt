@@ -58,7 +58,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
         downloads.getChild("3d/XYZ arrows.obj")
     )
 
-    val source = sources[3]
+    val source = sources[0]
     val pipeline = Pipeline(DeferredSettingsV2(listOf(DeferredLayerType.COLOR), 1, false))
     pipeline.defaultStage = PipelineStage(
         "default", Sorting.NO_SORTING, 0, null, DepthMode.ALWAYS, true,

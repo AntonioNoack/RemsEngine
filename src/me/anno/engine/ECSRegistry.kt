@@ -20,6 +20,8 @@ import me.anno.ecs.components.collider.twod.CircleCollider
 import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.decal.DecalMaterial
+import me.anno.ecs.components.mesh.decal.DecalMeshComponent
 import me.anno.ecs.components.mesh.sdf.SDFRegistry
 import me.anno.ecs.components.mesh.spline.PathProfile
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
@@ -126,6 +128,8 @@ object ECSRegistry {
         registerCustomClass(AutoTileableMaterial())
         registerCustomClass(BillboardTransformer())
         registerCustomClass(ImagePlane())
+        registerCustomClass(DecalMeshComponent())
+        registerCustomClass(DecalMaterial())
 
         // animated meshes
         AnimStateNode.register()

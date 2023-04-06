@@ -1,6 +1,7 @@
 package me.anno.utils.structures.lists
 
 import me.anno.utils.structures.heap.Heap
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -548,6 +549,11 @@ object Lists {
         }
 
         return this
+    }
+
+    @JvmStatic
+    fun BitSet.fill(value: Boolean) {
+        for (i in 0 until size()) set(i, value)
     }
 
 }

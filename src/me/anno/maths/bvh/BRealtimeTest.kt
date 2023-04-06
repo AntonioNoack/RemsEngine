@@ -2,11 +2,12 @@ package me.anno.maths.bvh
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.shader.ComputeTextureMode
@@ -16,8 +17,10 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.SpyPanel
+import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
@@ -30,31 +33,156 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
+import org.joml.JomlMath.invsqrt
 import org.joml.Quaternionf
+import org.joml.Vector3d
 import org.joml.Vector3f
+import java.nio.IntBuffer
 import kotlin.math.pow
 
 fun main() {
-    ECSRegistry.init()
+    GFXBase.forceLoadRenderDoc()
+    ECSRegistry.initMeshes()
     val meshSource = documents.getChild("monkey.obj")
     val mesh = MeshCache[meshSource]!!
     val blas = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN, 8)!!
-    blas.print()
+    // blas.print()
     main2(blas, Vector3f(), Quaternionf(), 1f)
 }
 
+fun hitToColor(normal: Vector3d): Int {
+    val lenSq = normal.lengthSquared()
+    return if (lenSq > 0f)
+        normal.mul(0.5f * invsqrt(lenSq))
+            .add(0.5, 0.5, 0.5).toRGB()
+    else sky1
+}
+
+fun hitToColor(normal: Vector3f): Int {
+    val lenSq = normal.lengthSquared()
+    return if (lenSq > 0f)
+        normal.mul(0.5f * invsqrt(lenSq))
+            .add(0.5f, 0.5f, 0.5f).toRGB()
+    else sky1
+}
+
+fun createControls(
+    cameraPosition: Vector3f,
+    cameraRotation: Quaternionf,
+    bvh: BVHNode,
+    main: PanelGroup
+): OrbitControls {
+
+    val controls = OrbitControls()
+    val camera = Camera()
+    val camEntity = Entity()
+    val base = Entity()
+
+    camEntity.add(camera)
+    base.add(camEntity)
+
+    controls.camera = camera
+    controls.position.set(cameraPosition)
+    controls.base = base
+    controls.radius = 1f
+    controls.movementSpeed = 0.02f * bvh.bounds.volume().pow(1f / 3f)
+    controls.rotationSpeed = 0.15f
+    controls.friction = 20f
+
+    val window = GFX.someWindow
+    var lx = window.mouseX
+    var ly = window.mouseY
+    var lz = Input.mouseWheelSumY
+    main.addChild(SpyPanel(style) {
+        if (window.windowStack.inFocus.any2 { it is TestDrawPanel }) {
+            if (Input.isRightDown) {
+                val dx = window.mouseX - lx
+                val dy = window.mouseY - ly
+                controls.onMouseMoved(0f, 0f, dx, dy)
+            }
+            if (Input.wasKeyPressed('v')) {
+                StudioBase.instance!!.toggleVsync()
+            }
+            val dw = Input.mouseWheelSumY - lz
+            controls.onMouseWheel(0f, 0f, 0f, dw, true)
+        }
+        lx = window.mouseX
+        ly = window.mouseY
+        lz = Input.mouseWheelSumY
+        controls.onUpdate()
+        controls.throwWarning()
+        base.validateTransform()
+        camEntity.validateTransform()
+        cameraPosition.set(camEntity.transform.globalPosition)
+        cameraRotation.set(camEntity.transform.globalRotation)
+    })
+
+    return controls
+
+}
+
+fun fillTile(
+    x0: Int, x1: Int, y0: Int, y1: Int, group: RayGroup, bvh: BVHNode,
+    cx: Float, cy: Float, fovZ: Float, maxDistanceF: Float,
+    camPos2: Vector3f, camRot2: Quaternionf,
+    ints: IntBuffer, w: Int
+) {
+    val tileSize = max(2, max(x1 - x0, y1 - y0))
+    val tsm1 = 1f / (tileSize - 1)
+    group.size = (y1 - y0) * (x1 - x0)
+    group.local?.size = group.size
+    val dir = JomlPools.vec3f.create()
+    dir.set(x0 - cx, cy - y0, fovZ).normalize()
+    // define ray position & main ray
+    group.setMain(camPos2, camRot2.transform(dir), maxDistanceF)
+    // define ray gradients by sample at (tileSize-1,0) and (0,tileSize-1)
+    dir.set(x0 + tileSize - 1 - cx, cy - y0, fovZ).normalize()
+    group.setDx(camRot2.transform(dir))
+    dir.set(x0 - cx, cy - (y0 + tileSize - 1), fovZ).normalize()
+    group.setDy(camRot2.transform(dir))
+    var k = 0
+    for (j in 0 until y1 - y0) {
+        val y = y0 + j
+        for (i in 0 until x1 - x0) {
+            val x = x0 + i
+            // define ray
+            dir.set(x - cx, cy - y, fovZ).normalize()
+            camRot2.transform(dir)
+            group.setRay(k, dir)
+            group.dxs[k] = i * tsm1
+            group.dys[k] = j * tsm1
+            k++
+        }
+    }
+    group.finishSetup()
+    bvh.intersect(group)
+    val normal = JomlPools.vec3f.create()
+    k = 0
+    for (y in y0 until y1) {
+        for (x in x0 until x1) {
+            normal.set(group.normalX[k], group.normalY[k], group.normalZ[k])
+            ints.put(x + y * w, hitToColor(normal))
+            k++
+        }
+    }
+    JomlPools.vec3f.sub(2)
+}
+
 fun createCPUPanel(
+    scale: Int,
     cameraPosition: Vector3f,
     cameraRotation: Quaternionf,
     fovZFactor: Float,
-    cpuTexture: Texture2D,
-    bvh: BLASNode,
+    bvh: BVHNode,
     useGroups: Boolean,
 ): Panel {
 
     var isCPUComputing = false
     var cpuSpeed = -1L
     var cpuFPS = 0L
+
+    val cpuTexture = Texture2D("cpu", 1, 1, 1)
+    cpuTexture.createRGBA()
 
     fun computeSpeed(w: Int, h: Int, dt: Long) = dt / (w * h)
 
@@ -67,8 +195,8 @@ fun createCPUPanel(
 
         // render cpu side
         // render at lower resolution because of performance
-        val w = it.w
-        val h = it.h
+        val w = it.w / scale
+        val h = it.h / scale
 
         val cx = (w - 1) * 0.5f
         val cy = (h - 1) * 0.5f
@@ -85,46 +213,11 @@ fun createCPUPanel(
                 val maxDistanceF = maxDistance.toFloat()
                 pipeline.processBalanced2d(0, 0, w, h, tileSize, 1) { x0, y0, x1, y1 ->
                     if (useGroups) {
-                        val tsm1 = 1f / (tileSize - 1)
-                        val group = groups.get()
-                        val dir = JomlPools.vec3f.create()
-                        dir.set(x0 - cx, cy - y0, fovZ).normalize()
-                        // define ray position & main ray
-                        group.setMain(camPos2, camRot2.transform(dir), maxDistanceF)
-                        // define ray gradients by sample at (tileSize-1,0) and (0,tileSize-1)
-                        dir.set(x0 + tileSize - 1 - cx, cy - y0, fovZ).normalize()
-                        group.setDx(camRot2.transform(dir))
-                        dir.set(x0 - cx, cy - (y0 + tileSize - 1), fovZ).normalize()
-                        group.setDy(camRot2.transform(dir))
-                        for (j in 0 until tileSize) {
-                            val y = y0 + j
-                            for (i in 0 until tileSize) {
-                                val x = x0 + i
-                                // define ray
-                                dir.set(x - cx, cy - y, fovZ).normalize()
-                                camRot2.transform(dir)
-                                val k = i + j * tileSize
-                                group.setRay(k, dir)
-                                group.dxs[k] = i * tsm1
-                                group.dys[k] = j * tsm1
-                            }
-                        }
-                        group.finishSetup()
-                        bvh.intersect(group)
-                        val normal = JomlPools.vec3f.create()
-                        for (y in y0 until y1) {
-                            for (x in x0 until x1) {
-                                val i = x - x0
-                                val j = y - y0
-                                val k = i + j * tileSize
-                                normal.set(group.normalX[k], group.normalY[k], group.normalZ[k])
-                                val color = if (normal.lengthSquared() > 0f)
-                                    normal.normalize(0.5f).add(0.5f, 0.5f, 0.5f).toRGB()
-                                else sky1
-                                ints.put(x + y * w, color)
-                            }
-                        }
-                        JomlPools.vec3f.sub(2)
+                        fillTile(
+                            x0, x1, y0, y1, groups.get(), bvh,
+                            cx, cy, fovZ, maxDistanceF,
+                            camPos2, camRot2, ints, w
+                        )
                     } else {
                         for (y in y0 until y1) {
                             for (x in x0 until x1) {
@@ -135,11 +228,8 @@ fun createCPUPanel(
                                 hit.normalWS.set(0.0)
                                 hit.distance = maxDistance
                                 bvh.intersect(camPos2, dir, hit)
-                                val color = if (hit.normalWS.lengthSquared() > 0.0)
-                                    hit.normalWS.normalize(0.5).add(0.5, 0.5, 0.5).toRGB()
-                                else sky1 // Maths.mixARGB2(sky0, sky1, 0.1f * length(dirX, dirY))
+                                ints.put(x + y * w, hitToColor(hit.normalWS))
                                 JomlPools.vec3f.sub(1)
-                                ints.put(x + y * w, color)
                             }
                         }
                     }
@@ -184,58 +274,16 @@ fun main2(
 
     testUI3 {
 
-        val cpuTex0 = Texture2D("cpu", 1, 1, 1)
-        val cpuTex1 = Texture2D("cpu", 1, 1, 1)
         val gpuTex0 = Texture2D("gpu", 1, 1, 1)
 
-        cpuTex0.createRGBA()
-        cpuTex1.createRGBA()
-
         val main = PanelListY(style)
-        val controls = OrbitControls()
-        val camera = Camera()
-        val camEntity = Entity()
-        val base = Entity()
-
-        camEntity.add(camera)
-        base.add(camEntity)
-
-        controls.camera = camera
-        controls.position.set(cameraPosition)
-        controls.base = base
-        controls.radius = 1f
-        controls.movementSpeed = 0.2f * bvh.bounds.volume().pow(1f / 3f)
-        controls.rotationSpeed = 0.15f
-
-        val window = GFX.someWindow
-        var lx = window.mouseX
-        var ly = window.mouseY
-        var lz = Input.mouseWheelSumY
-        main.add(SpyPanel(style) {
-            if (window.windowStack.inFocus.any2 { it is TestDrawPanel }) {
-                if (Input.isRightDown) {
-                    val dx = window.mouseX - lx
-                    val dy = window.mouseY - ly
-                    controls.onMouseMoved(0f, 0f, dx, dy)
-                }
-                val dw = Input.mouseWheelSumY - lz
-                controls.onMouseWheel(0f, 0f, 0f, dw, true)
-            }
-            lx = window.mouseX
-            ly = window.mouseY
-            lz = Input.mouseWheelSumY
-            controls.onUpdate()
-            controls.throwWarning()
-            base.validateTransform()
-            camEntity.validateTransform()
-            cameraPosition.set(camEntity.transform.globalPosition)
-            cameraRotation.set(camEntity.transform.globalRotation)
-        })
+        createControls(cameraPosition, cameraRotation, bvh, main)
 
         val list = CustomList(false, style)
 
-        list.add(createCPUPanel(cameraPosition, cameraRotation, fovZFactor, cpuTex0, bvh, false))
-        list.add(createCPUPanel(cameraPosition, cameraRotation, fovZFactor, cpuTex1, bvh, true))
+        val scale = 1
+        list.add(createCPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, false))
+        list.add(createCPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, true))
 
         val triangles = createTriangleTexture(bvh)
         val blasNodes = createBLASTexture(bvh)

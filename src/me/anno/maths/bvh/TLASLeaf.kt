@@ -1,14 +1,13 @@
 package me.anno.maths.bvh
 
 import me.anno.engine.raycast.RayHit
+import me.anno.input.Input
 import me.anno.maths.Maths.min
-import me.anno.maths.Maths.sq
 import me.anno.utils.Tabs
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
-import kotlin.math.sqrt
 
 class TLASLeaf(
     centroid: Vector3f,
@@ -17,7 +16,7 @@ class TLASLeaf(
     val blas: BLASNode,             //          1-2
     bounds: AABBf,                  //            6
     //                              // total: 31/32 floats = 124/128 bytes
-) : TLASLeaf0(centroid,bounds) {
+) : TLASLeaf0(centroid, bounds) {
 
     override fun collectMeshes(result: MutableCollection<BLASNode>) {
         result.add(blas)
@@ -30,71 +29,66 @@ class TLASLeaf(
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
 
-            // for testing only
-            if (dir.x < dir.y) {
-                hit.ctr++
-                // return
-            }
-
             // transform from global to local coordinates
             // and trace the ray inside the local bounds
 
-            val worldToLocal = worldToLocal
 
             val localPos = JomlPools.vec3f.create()
             val localDir = JomlPools.vec3f.create()
-            val localInvDir = JomlPools.vec3f.create()
-            val localEnd = JomlPools.vec3f.create()
+            val localTmp = JomlPools.vec3f.create()
 
+            val worldToLocal = worldToLocal
             worldToLocal.transformPosition(pos, localPos)
             worldToLocal.transformDirection(dir, localDir).normalize()
-            localInvDir.set(1f).div(localDir)
-
-            // debug
-            /*if (dir.x > dir.y && hit.ctr > 2) {
-                hit.normalWS.set(localPos.mul(100f).fract())
-                throw IOException()
-            }*/
-
-            // here localEnd = dir * distance
-            localEnd.set(dir).mul(min(hit.distance.toFloat(), 1e38f))
-            // then make it local
-            worldToLocal.transformDirection(localEnd, localEnd)
 
             // distance must be converted from local to global and vise versa
             val globalDistance = hit.distance
-            val localDistance = localEnd.length().toDouble()
+            val localDistance = localDir.mul(min(globalDistance.toFloat(), 1e38f), localTmp).length().toDouble()
 
             hit.distance = localDistance
 
-            blas.intersect(localPos, localDir, localInvDir, localDir.dirIsNeg(), hit)
-
-            val hitSomething = if (hit.distance < localDistance) {
+            val hitSomething = blas.intersect(localPos, localDir, hit)
+            if (hitSomething) {
                 val localToWorld = localToWorld
                 // a better point was found
                 // transform distance and normal to global
-                localEnd.set(localDir).mul(hit.distance.toFloat()).add(localPos)
-                localToWorld.transformPosition(localEnd)
-                hit.distance = pos.distance(localEnd).toDouble()
+                hit.distance = localDir.mul(min(hit.distance.toFloat(), 1e38f), localTmp).length().toDouble()
                 // transform normal from local to world
                 localDir.set(hit.normalWS)
                 localToWorld.transformDirection(localDir) // is normalized later
                 hit.normalWS.set(localDir)
-                true
             } else {
                 hit.distance = globalDistance
-                false
             }
 
-            JomlPools.vec3f.sub(4)
+            JomlPools.vec3f.sub(3)
             hitSomething
         } else false
     }
 
+    // for TLASes, this function is often just slower :/
+    // for BLASes, it can be 4x faster
     override fun intersect(group: RayGroup) {
         if (group.intersects(bounds)) {
 
-            // todo this doesn't work :/, where is the mistake?
+            if (Input.isControlDown) {
+                val dir = Vector3f()
+                val hit = RayHit()
+                for (i in 0 until group.size) {
+                    dir.set(group.dir)
+                    group.dxm.mulAdd(group.dxs[i], dir, dir)
+                    group.dym.mulAdd(group.dys[i], dir, dir)
+                    dir.normalize()
+                    hit.distance = group.depths[i].toDouble()
+                    if (intersect(group.pos, dir, hit)) {
+                        group.normalX[i] = hit.normalWS.x.toFloat()
+                        group.normalY[i] = hit.normalWS.y.toFloat()
+                        group.normalZ[i] = hit.normalWS.z.toFloat()
+                        group.depths[i] = hit.distance.toFloat()
+                    }
+                }
+                return
+            }
 
             // transform from global to local coordinates
             // and trace the ray inside the local bounds
@@ -105,6 +99,9 @@ class TLASLeaf(
             val v0 = JomlPools.vec3f.create()
             val v1 = JomlPools.vec3f.create()
 
+            worldToLocal.transformDirection(group.dir.normalize(v0))
+            val w2lLengthFactor = v0.length()
+
             // transform distances
             val dxs = local.dxs
             val dys = local.dys
@@ -113,27 +110,35 @@ class TLASLeaf(
             local.normalY.fill(0f)
             local.normalZ.fill(0f)
 
+            var j = 0
             for (i in 0 until group.size) {
 
                 v0.set(group.dir)
                 group.dxm.mulAdd(dxs[i], v0, v0)
                 group.dym.mulAdd(dys[i], v0, v0)
-                v0.mul(group.depths[i])
+                v0.normalize()
 
-                worldToLocal.transformDirection(v0, v0)
-                local.depths[i] = v0.length()
-
+                v0.set(1f / v0.x, 1f / v0.y, 1f / v0.z)
+                if (bounds.isRayIntersecting(group.pos, v0, group.depths[i])) {
+                    group.mapping[j] = i
+                    local.depths[j] = group.depths[j] * w2lLengthFactor
+                    j++
+                }
             }
+
+            if (j <= 0) return
+
+            local.size = j
+
+            local.maxDistance = (0 until j).maxOf { local.depths[it] }
 
             // transform main directions and position
             worldToLocal.transformPosition(group.pos, local.pos)
             worldToLocal.transformDirection(group.dir, local.dir)
             worldToLocal.transformDirection(group.dx, local.dx)
             worldToLocal.transformDirection(group.dy, local.dy)
-
-            // transform local dxm,dym
-            local.dxm.set(local.dx).sub(local.dir)
-            local.dym.set(local.dy).sub(local.dir)
+            worldToLocal.transformDirection(group.dxm, local.dxm)
+            worldToLocal.transformDirection(group.dym, local.dym)
 
             // transform minimum and maximum direction
             worldToLocal.transformDirection(group.min, v0)
@@ -146,30 +151,18 @@ class TLASLeaf(
             blas.intersect(local)
 
             val localToWorld = localToWorld
-            val dxm = local.dxm
-            val dym = local.dym
-            for (i in 0 until group.size) {
-
-                v1.set(local.normalX[i], local.normalY[i], local.normalZ[i])
-                if (v1.lengthSquared() > 0f) {
-
-                    // local dir
-                    v0.set(local.dir)
-                    dxm.mulAdd(dxs[i], v0, v0)
-                    dym.mulAdd(dys[i], v0, v0)
-                    v0.mul(local.depths[i])
-
-                    localToWorld.transformDirection(v0)
-                    val globalDistSq = v0.lengthSquared()
-                    println("hit sth, $globalDistSq vs ${sq(group.depths[i])}")
-                    if (globalDistSq < sq(group.depths[i])) {
-                        group.depths[i] = sqrt(globalDistSq)
-                        // transform normal from local to world
-                        localToWorld.transformDirection(v1) // is normalized later
-                        group.normalX[i] = v1.x
-                        group.normalY[i] = v1.y
-                        group.normalZ[i] = v1.z
-                    }
+            val l2wLengthFactor = 1f / w2lLengthFactor
+            for (i in 0 until local.size) {
+                val k = group.mapping[i]
+                val globalDist = local.depths[i] * l2wLengthFactor
+                if (globalDist < group.depths[k]) {
+                    group.depths[k] = globalDist
+                    // transform normal from local to world
+                    v1.set(local.normalX[i], local.normalY[i], local.normalZ[i])
+                    localToWorld.transformDirection(v1) // is normalized later
+                    group.normalX[k] = v1.x
+                    group.normalY[k] = v1.y
+                    group.normalZ[k] = v1.z
                 }
             }
 

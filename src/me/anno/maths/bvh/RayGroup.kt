@@ -8,7 +8,7 @@ import kotlin.math.min
 // execute every O(sx*sy) operation in an optimized loop, or smarter
 class RayGroup(val sx: Int, val sy: Int, val local: RayGroup? = null) {
 
-    val size = sx * sy
+    var size = sx * sy
 
     val pos = Vector3f()
     val dir = Vector3f()
@@ -52,6 +52,8 @@ class RayGroup(val sx: Int, val sy: Int, val local: RayGroup? = null) {
     var tolerance = 3f
 
     val tmpVector3fs = Array(10) { Vector3f() }
+
+    val mapping = IntArray(size)
 
     fun setMain(pos: Vector3f, dir: Vector3f, maxDistance: Float) {
         this.pos.set(pos)

@@ -97,9 +97,9 @@ class BLASLeaf(
             val j3 = i3 + length * 3
             while (i3 < j3) {
 
-                a.set(positions, indices[i3])
-                b.set(positions, indices[i3 + 1])
-                c.set(positions, indices[i3 + 2])
+                a.set(positions, indices[i3] * 3)
+                b.set(positions, indices[i3 + 1] * 3)
+                c.set(positions, indices[i3 + 2] * 3)
                 i3 += 3
 
                 // inlined, optimized calculation with dx and dy

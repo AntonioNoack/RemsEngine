@@ -46,61 +46,15 @@ object Arrays {
         return Array(i1 - i0) { this[i0 + it] }
     }
 
+    // if you need your own, message me 😄
     @JvmStatic
-    fun ByteArray.subArray(i0: Int = 0, i1: Int = size): ByteArray {
-        return ByteArray(i1 - i0) { this[i0 + it] }
-    }
+    fun ByteArray.subArray(i0: Int = 0, i1: Int = size) = ByteArray(i1 - i0) { this[i0 + it] }
 
     @JvmStatic
-    fun <V> Array<V>.subList(i0: Int = 0, i1: Int = size): List<V> {
-        val self = this
-        return object : List<Any?> {
-            override val size: Int = i1 - i0
-            override fun get(index: Int) = self[i0 + index]
-            override fun isEmpty() = i1 == i0
-            override fun iterator() = listIterator()
-            override fun listIterator() = listIterator(0)
-            override fun listIterator(index: Int): ListIterator<Any?> {
-                return object : ListIterator<Any?> {
-                    var idx = i0 + index
-                    override fun hasNext() = idx < i1
-                    override fun hasPrevious() = idx > i0
-                    override fun next() = self[idx++]
-                    override fun nextIndex() = idx - i0
-                    override fun previous() = self[--idx]
-                    override fun previousIndex() = idx - i0 - 1
-                }
-            }
+    fun IntArray.subArray(i0: Int = 0, i1: Int = size) = IntArray(i1 - i0) { this[i0 + it] }
 
-            override fun subList(fromIndex: Int, toIndex: Int): List<Any?> {
-                return self.subList(i0 + fromIndex, i0 + toIndex)
-            }
-
-            override fun lastIndexOf(element: Any?): Int {
-                for (i in i1 - 1 downTo i0) {
-                    if (self[i] == element) return i - i0
-                }
-                return -1
-            }
-
-            override fun indexOf(element: Any?): Int {
-                for (i in i0 until i1) {
-                    if (self[i] == element) return i - i0
-                }
-                return -1
-            }
-
-            override fun containsAll(elements: Collection<Any?>): Boolean {
-                for (element in elements) {
-                    if (!contains(element)) return false
-                }
-                return true
-            }
-
-            override fun contains(element: Any?) = indexOf(element) >= 0
-
-        } as List<V>
-    }
+    @JvmStatic
+    fun <V> Array<V>.subList(i0: Int = 0, i1: Int = size): List<V> = asList().subList(i0, i1)
 
     @JvmStatic
     fun LongArray.rotateRight(shift: Int) {
