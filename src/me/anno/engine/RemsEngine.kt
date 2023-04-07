@@ -5,8 +5,6 @@ import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.prefab.Hierarchy
-import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache.loadScenePrefab
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
@@ -39,8 +37,6 @@ import me.anno.ui.editor.config.ConfigPanel
 import me.anno.ui.style.Style
 import me.anno.ui.utils.WindowStack.Companion.createReloadWindow
 import me.anno.utils.OS
-import me.anno.utils.files.Files.findNextFileName
-import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 
 // to do Unity($)/RemsEngine(research) shader debugger:
@@ -49,6 +45,9 @@ import org.joml.Matrix4f
 //  - printf() statements
 //  - branching maps & branching results
 //  - go into/out of/step
+
+// todo usable editing of materials: own color + indent + super material selector
+// todo + add & remove materials
 
 // todo then create first release :3 (to easier get started for others)
 

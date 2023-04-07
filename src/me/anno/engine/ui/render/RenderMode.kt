@@ -115,6 +115,7 @@ class RenderMode(
         val RAY_TEST = RenderMode("Raycast Test")
 
         val DEPTH_OF_FIELD = RenderMode("Depth Of Field", DepthOfFieldEffect())
+        val SMOOTH_NORMALS = RenderMode("Smooth Normals")
 
     }
 

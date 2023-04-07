@@ -97,8 +97,6 @@ import kotlin.math.tan
 // (because meshes at 0 are very common and to be expected)
 
 // done shadows
-// todo usable editing of materials: own color + indent + super material selector
-// todo + add & remove materials
 
 // done render in different modes: overdraw, color blindness, normals, color, before-post-process, with-post-process
 // done nice ui for that: drop down menus at top or bottom
@@ -612,6 +610,31 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         )
                         drawGizmos(depth, true)
                         drawDepthTexture(x, y, w, h, depth.depthTexture!!)
+                        return
+                    }
+                    renderMode == RenderMode.SMOOTH_NORMALS -> {
+                        drawScene(
+                            w, h, camera0, camera1,
+                            blending, renderer, buffer,
+                            changeSize = true, hdr = true
+                        )
+                        // smooth normals before light, so light is influenced by it
+                        SmoothedNormals.smoothNormals(buffer, deferred)
+                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
+                        drawSceneLights(w, h, camera0, camera1, blending, copyRenderer, buffer, lightBuffer)
+                        val ssao = if (ssao.strength > 0f) ScreenSpaceAmbientOcclusion.compute(
+                            buffer, deferred, cameraMatrix,
+                            ssao.radius, ssao.strength, ssao.samples, ssao.enable2x2Blur
+                        ) ?: blackTexture else blackTexture
+                        useFrame(w, h, true, baseSameDepth1) {
+                            // theoretically, this pass could blur the normals itself...
+                            combineLighting(
+                                deferred, true, pipeline.ambient,
+                                buffer, lightBuffer, ssao
+                            )
+                        }
+                        drawGizmos(baseSameDepth1, true)
+                        drawTexture(x, y + h, w, -h, baseSameDepth1.getTexture0())
                         return
                     }
                     renderMode == RenderMode.LIGHT_SUM -> {
