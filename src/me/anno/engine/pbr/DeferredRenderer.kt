@@ -36,13 +36,14 @@ fun findLayers() = when (8 + GFX.maxColorAttachments) {
     1 -> listOf(DeferredLayerType.COLOR_EMISSIVE)
     2 -> listOf(
         DeferredLayerType.COLOR_EMISSIVE, // 4
-        DeferredLayerType.NORMAL, // 3
+        DeferredLayerType.NORMAL, // 2
         DeferredLayerType.ROUGHNESS, // 1
-        // total: 8
+        // total: 7
     )
     3 -> listOf(
         DeferredLayerType.COLOR_EMISSIVE, // 4
-        DeferredLayerType.NORMAL, // 3
+        DeferredLayerType.NORMAL, // 2
+        DeferredLayerType.OCCLUSION, // 1
         DeferredLayerType.ROUGHNESS, // 1
         DeferredLayerType.METALLIC, // 1
         DeferredLayerType.SHEEN, // 1
@@ -52,7 +53,7 @@ fun findLayers() = when (8 + GFX.maxColorAttachments) {
     )
     else -> listOf(
         DeferredLayerType.COLOR, // 3
-        DeferredLayerType.NORMAL, // 3
+        DeferredLayerType.NORMAL, // 2
         DeferredLayerType.EMISSIVE, // 3
         // DeferredLayerType.TANGENT,
         DeferredLayerType.OCCLUSION, // 1
@@ -61,6 +62,6 @@ fun findLayers() = when (8 + GFX.maxColorAttachments) {
         DeferredLayerType.SHEEN, // 1
         DeferredLayerType.TRANSLUCENCY, // 1
         DeferredLayerType.ANISOTROPIC, // 1
-        // total: 15
+        // total: 14
     )
 }

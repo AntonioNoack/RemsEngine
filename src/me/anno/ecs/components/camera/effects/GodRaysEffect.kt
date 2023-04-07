@@ -44,7 +44,7 @@ class GodRaysEffect : ToneMappedEffect() {
         layers: MutableMap<DeferredLayerType, IFramebuffer>
     ) {
         val color = layers[DeferredLayerType.HDR_RESULT]!!.getTexture0()
-        val depth = layers[DeferredLayerType.DEPTH]!!.getTexture0()
+        val depth = buffer.depthTexture!!
         val output = FBStack["god-rays", color.w, color.h, 4, false, 1, false]
         useFrame(output) {
             val shader = shader

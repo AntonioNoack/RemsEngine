@@ -39,6 +39,7 @@ class SSREffect : ToneMappedEffect() {
             ScreenSpaceReflections.compute(
                 buffer.depthTexture!!,
                 layers[DeferredLayerType.NORMAL]!!.getTexture0(),
+                format.zw(DeferredLayerType.NORMAL),
                 layers[DeferredLayerType.COLOR]!!.getTexture0(),
                 layers[DeferredLayerType.EMISSIVE]!!.getTexture0(),
                 layers[DeferredLayerType.METALLIC]!!.getTexture0(),
@@ -71,8 +72,10 @@ class SSREffect : ToneMappedEffect() {
 
     companion object {
         val inputs = listOf(
-            DeferredLayerType.POSITION, DeferredLayerType.NORMAL,
-            DeferredLayerType.COLOR, DeferredLayerType.METALLIC, DeferredLayerType.ROUGHNESS
+            DeferredLayerType.NORMAL,
+            DeferredLayerType.COLOR,
+            DeferredLayerType.METALLIC,
+            DeferredLayerType.ROUGHNESS
         )
     }
 

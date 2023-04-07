@@ -46,7 +46,7 @@ object ECSShaderLib {
                             "gl_Position = isOrtho ? vec4(coords.xy, 0.0, 1.0) : currPosition;\n" +
                             "prevPosition = isOrtho ? currPosition : (prevTransform * vec4(coords, 1.0));\n" +
                             ShaderLib.positionPostProcessing
-                )
+                ).add(ShaderLib.octNormalPacking)
             )
         }
 

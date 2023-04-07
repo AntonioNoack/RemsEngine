@@ -3,10 +3,12 @@ package me.anno.gpu.shader.builder
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderLib
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
 import java.util.*
+import kotlin.collections.LinkedHashSet
 
 class MainStage {
 
@@ -242,8 +244,8 @@ class MainStage {
         }
 
         // define all required functions
-        // todo find dependencies, if possible, and order them
         // work-around: like in C, declare the function header, and then GLSL will find the dependency by itself :)
+        if (outputs != null) functions2.add(ShaderLib.octNormalPacking)
         for (func in functions2) code.append(func)
         if (functions2.isNotEmpty()) code.append('\n')
 
@@ -375,7 +377,7 @@ class MainStage {
     }
 
     val functions1 = HashSet<String>()
-    val functions2 = ArrayList<String>()
+    val functions2 = LinkedHashSet<String>()
 
     private fun defineFunction(function: Function) {
         val key = function.header.ifBlank2(function.body)

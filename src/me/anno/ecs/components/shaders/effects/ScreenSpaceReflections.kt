@@ -20,6 +20,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -63,7 +64,8 @@ object ScreenSpaceReflections {
             Variable(GLSLType.V1F, "strength"),
             Variable(GLSLType.V1B, "applyToneMapping"),
             Variable(GLSLType.V4F, "skyColor"),
-            Variable(GLSLType.SCube, "skyCubeMap")
+            Variable(GLSLType.SCube, "skyCubeMap"),
+            Variable(GLSLType.V1B, "normalZW"),
         )
         val functions = HashSet<String>()
         val defaultSkyColor = "vec4 getSkyColor1(vec3 dir, float roughness) {\n" +
@@ -86,6 +88,7 @@ object ScreenSpaceReflections {
         functions.add(quatRot)
         functions.add(rawToDepth)
         functions.add(depthToPosition)
+        functions.add(octNormalPacking)
         variables.addAll(depthToPositionList)
 
         return Shader(
@@ -113,7 +116,8 @@ object ScreenSpaceReflections {
 
                     "   vec3 positionFrom     = rawDepthToPosition(uv,texture(finalDepth,uv).r);\n" +
 
-                    "   vec3 normal           = normalize(texture(finalNormal, uv).xyz * 2.0 - 1.0);\n" +
+                    "   vec4 normalData = texture(finalNormal, uv);\n" +
+                    "   vec3 normal           = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
                     "   vec3 pivot            = normalize(reflect(positionFrom, normal));\n" +
 
                     "   float startDistance = length(positionFrom);\n" +
@@ -272,7 +276,8 @@ object ScreenSpaceReflections {
         val roughness = deferred.findTexture(buffer, roughnessLayer)
         return compute(
             buffer.depthTexture!!,
-            normalTexture, colorTexture, emissiveTexture,
+            normalTexture, deferred.zw(DeferredLayerType.NORMAL),
+            colorTexture, emissiveTexture,
             metallic, metallicMask,
             roughness, roughnessMask,
             illuminated, transform,
@@ -288,6 +293,7 @@ object ScreenSpaceReflections {
     fun compute(
         depth: ITexture2D,
         normal: ITexture2D,
+        normalZW: Boolean,
         color: ITexture2D,
         emissive: ITexture2D,
         metallic: ITexture2D,
@@ -326,6 +332,7 @@ object ScreenSpaceReflections {
             shader.v1f("thickness", wallThickness) // thickness, when we are under something
             shader.v1f("strength", strength)
             shader.m4x4("transform", transform)
+            shader.v1b("normalZW", normalZW)
             val n = GPUFiltering.TRULY_LINEAR
             val c = Clamping.CLAMP
             shader.v4f("metallicMask", singleToVector[metallicMask]!!)

@@ -9,6 +9,7 @@ import me.anno.gpu.shader.ReverseDepth.depthToPosition
 import me.anno.gpu.shader.ReverseDepth.depthToPositionList
 import me.anno.gpu.shader.ReverseDepth.rawToDepth
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -56,7 +57,7 @@ class DecalShader(val layers: ArrayList<DeferredLayerType>) : ECSMeshShader("dec
                         "alphaMultiplier = abs(uv.x-0.5) < 0.5 && abs(uv.y-0.5) < 0.5 ? max(1.0-abs(localPosition.z), 0.0) : 0.0;\n" +
                         "alphaMultiplier *= -dot(normal, finalNormal_in2);\n" +
                         "if(alphaMultiplier < 0.5/255.0) discard;\n"
-            ).add(quatRot).add(rawToDepth).add(depthToPosition),
+            ).add(quatRot).add(rawToDepth).add(depthToPosition).add(ShaderLib.octNormalPacking),
         ) + original + listOf(
             ShaderStage(
                 "effect-modulator", listOf(

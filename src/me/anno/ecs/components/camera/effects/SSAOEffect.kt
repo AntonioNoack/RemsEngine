@@ -40,6 +40,7 @@ class SSAOEffect : CameraEffect() {
             ScreenSpaceAmbientOcclusion.compute(
                 buffer.depthTexture!!,
                 layers[DeferredLayerType.NORMAL]!!.getTexture0(),
+                format.zw(DeferredLayerType.NORMAL),
                 RenderState.cameraMatrix,
                 radius, strength, samples,
                 enable2x2Blur
@@ -58,7 +59,7 @@ class SSAOEffect : CameraEffect() {
     override val className get() = "SSAOEffect"
 
     companion object {
-        private val inputList = listOf(DeferredLayerType.POSITION, DeferredLayerType.NORMAL)
+        private val inputList = listOf(DeferredLayerType.NORMAL)
         private val outputList = listOf(DeferredLayerType.OCCLUSION)
     }
 

@@ -12,14 +12,12 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.*
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.shader.SimpleRenderer
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -269,16 +267,17 @@ object Renderers {
         )
         val shaderCode = when (type) {
             DeferredLayerType.MOTION -> "" +
-                    "finalResult = vec4(${type.glslName}${type.workToData}, 1.0);" +
-                    "finalResult.rgb *= 10.0 / (1.0 + abs(finalColor));\n" +
+                    "finalResult = vec4(${type.glslName}, 1.0);" +
+                    "finalResult.rgb *= 10.0 / (1.0 + abs(finalResult.rgb));\n" +
                     "finalResult.rgb += 0.5;\n"
+            DeferredLayerType.NORMAL -> "finalResult = vec4(${type.glslName}*0.5+0.5, 1.0);\n"
             else -> {
                 "finalResult = ${
                     when (type.workDims) {
-                        1 -> "vec4(vec3(${type.glslName}${type.workToData}),1.0)"
-                        2 -> "vec4(${type.glslName}${type.workToData},1.0,1.0)"
-                        3 -> "vec4(${type.glslName}${type.workToData},1.0)"
-                        4 -> "vec4(${type.glslName}${type.workToData})"
+                        1 -> "vec4(vec3(${type.glslName}),1.0)"
+                        2 -> "vec4(${type.glslName},0.0,1.0)"
+                        3 -> "vec4(${type.glslName},1.0)"
+                        4 -> type.glslName
                         else -> ""
                     }
                 };\n" + if (type.highDynamicRange) {
@@ -289,6 +288,7 @@ object Renderers {
         }
         val name = type.name
         val stage = ShaderStage(name, variables, shaderCode)
+            .add(octNormalPacking)
         SimpleRenderer(name, stage)
     }, DeferredLayerType.values.size)
 
@@ -301,15 +301,16 @@ object Renderers {
         val shaderCode = "" +
                 "finalResult = ${
                     when (type.workDims) {
-                        1 -> "vec4(vec3(${type.glslName}${type.workToData}),1.0)"
-                        2 -> "vec4(${type.glslName}${type.workToData},1.0,1.0)"
-                        3 -> "vec4(${type.glslName}${type.workToData},1.0)"
-                        4 -> "(${type.glslName}${type.workToData})"
+                        1 -> "vec4(vec3(${type.glslName}),1.0)"
+                        2 -> "vec4(${type.glslName},1.0,1.0)"
+                        3 -> "vec4(${type.glslName},1.0)"
+                        4 -> type.glslName
                         else -> ""
                     }
                 };\n"
         val name = type.name
         val stage = ShaderStage(name, variables, shaderCode)
+            .add(ShaderLib.octNormalPacking)
         SimpleRenderer(name, stage)
     }, DeferredLayerType.values.size)
 
@@ -324,8 +325,9 @@ object Renderers {
                         Variable(GLSLType.S2D, "source"),
                         Variable(GLSLType.V4F, "result", VariableMode.OUT)
                     ), "" +
+                            octNormalPacking +
                             "void main(){\n" +
-                            "   $type2 data = texture(source,uv).${layer.mapping}${type.workToData};\n" +
+                            "   $type2 data = ${type.dataToWork}(texture(source,uv).${layer.mapping});\n" +
                             "   vec3 color = " +
                             when (type.workDims) {
                                 1 -> "vec3(data)"

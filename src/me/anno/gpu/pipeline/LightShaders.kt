@@ -21,6 +21,7 @@ import me.anno.gpu.shader.ReverseDepth.depthToPosition
 import me.anno.gpu.shader.ReverseDepth.depthToPositionList
 import me.anno.gpu.shader.ReverseDepth.rawToDepth
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -174,6 +175,7 @@ object LightShaders {
                     layer.appendMapping(deferredCode, "", "Tmp", "", "uv", imported, sampleVariableName)
                 }
             }
+            fragment.add(ShaderLib.octNormalPacking)
             deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }
             builder.addFragment(ShaderStage("deferred", deferredInputs, deferredCode.toString()))
             builder.addFragment(fragment)
@@ -356,6 +358,7 @@ object LightShaders {
                     layer.appendMapping(deferredCode, "", "Tmp", "", "uv", imported, sampleVariableName)
                 }
             }
+            fragment.add(ShaderLib.octNormalPacking)
             deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }
             builder.addFragment(ShaderStage("deferred", deferredInputs, deferredCode.toString()))
             builder.addFragment(fragment)

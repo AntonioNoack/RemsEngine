@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.FBStack
@@ -19,6 +18,7 @@ import me.anno.gpu.shader.ReverseDepth.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -105,17 +105,20 @@ object ScreenSpaceAmbientOcclusion {
             Variable(GLSLType.S2D, "finalDepth"),
             Variable(GLSLType.S2D, "finalNormal"),
             Variable(GLSLType.S2D, "random4x4"),
+            Variable(GLSLType.V1B, "normalZW"),
             Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT)
         ) + depthToPositionList, "" +
                 "float dot2(vec3 p){ return dot(p,p); }\n" +
                 quatRot +
                 rawToDepth + depthToPosition +
+                octNormalPacking +
                 "void main(){\n" +
                 "   vec3 origin = rawDepthToPosition(uv, texture(finalDepth, uv).x);\n" +
                 "   if(dot2(origin) > skipRadiusSq){\n" + // sky and such can be skipped automatically
                 "       glFragColor = vec4(0.0);\n" +
                 "   } else {\n" +
-                "       vec3 normal = texture(finalNormal, uv).xyz * 2.0 - 1.0;\n" +
+                "       vec4 normalData = texture(finalNormal, uv);\n" +
+                "       vec3 normal = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
                 // reverse back sides, e.g., for plants
                 // could be done by the material as well...
                 "       if(dot(origin,normal) > 0.0) normal = -normal;\n" +
@@ -195,20 +198,18 @@ object ScreenSpaceAmbientOcclusion {
     ): Framebuffer? {
         // ensure we can find the required inputs
         val depth = data.depthTexture ?: return null
-        val normal = settingsV2.findTextureMS(data, DeferredLayerType.NORMAL) ?: return null
-        return calculate(depth, normal, transform, radius, strength, samples, enableBlur)
-    }
-
-    private fun copy(src: ITexture2D, dst: Framebuffer): ITexture2D {
-        useFrame(dst) {
-            GFX.copyNoAlpha(src)
-        }
-        return dst.getTexture0()
+        val normalLayer = settingsV2.findLayer(DeferredLayerType.NORMAL) ?: return null
+        val normal = settingsV2.findTextureMS(data, normalLayer)
+        return calculate(
+            depth, normal, normalLayer.mapping == "zw",
+            transform, radius, strength, samples, enableBlur
+        )
     }
 
     private fun calculate(
         depth: ITexture2D,
         normal: ITexture2D,
+        normalZW: Boolean,
         transform: Matrix4f,
         radius: Float,
         strength: Float,
@@ -227,14 +228,6 @@ object ScreenSpaceAmbientOcclusion {
         val scale = DefaultConfig["gpu.ssao.scale", 1f]
         val fw = (depth.w * scale).roundToInt()
         val fh = (depth.h * scale).roundToInt()
-        val tw = min(fw, depth.w)
-        val th = min(fh, depth.h)
-
-        // todo given depth, calculate position
-        // costs compute, but saves bandwidth
-
-        // scale down source to reduce vram bandwidth
-        val nor = copy(normal, FBStack["ssao-nor", tw, th, 4, BufferQuality.LOW_8, 1, false])
 
         val dst = FBStack["ssao-1st", fw, fh, 1, false, 1, false]
         useFrame(dst, Renderer.copyRenderer) {
@@ -250,7 +243,7 @@ object ScreenSpaceAmbientOcclusion {
             }
             sampleKernel.bindTrulyNearest(3)
             random4x4.bindTrulyNearest(2)
-            nor.bindTrulyNearest(1)
+            normal.bindTrulyNearest(1)
             depth.bindTrulyNearest(0)
             // define all uniforms
             shader.v1f("radius", radius)
@@ -259,6 +252,7 @@ object ScreenSpaceAmbientOcclusion {
             shader.v1i("numSamples", samples)
             shader.v1f("strength", strength)
             shader.v1i("mask", if (enableBlur) 3 else 0)
+            shader.v1b("normalZW", normalZW)
             // draw
             GFX.flat01.draw(shader)
             GFX.check()
@@ -294,30 +288,30 @@ object ScreenSpaceAmbientOcclusion {
         enableBlur: Boolean,
     ): ITexture2D? {
         if (strength <= 0f) return whiteTexture
-        lateinit var result: ITexture2D
-        renderPurely {
+        return renderPurely {
             val samples1 = min(samples, MAX_SAMPLES)
-            val tmp = calculate(data, settingsV2, transform, radius, strength, samples1, enableBlur) ?: return null
-            result = if (enableBlur) average(tmp).getTexture0() else tmp.getTexture0()
+            val tmp = calculate(data, settingsV2, transform, radius, strength, samples1, enableBlur)
+            if (tmp == null) null else if (enableBlur) average(tmp).getTexture0() else tmp.getTexture0()
         }
-        return result
     }
 
     fun compute(
         depth: ITexture2D,
         normal: ITexture2D,
+        normalZW: Boolean,
         transform: Matrix4f,
         radius: Float,
         strength: Float,
         samples: Int,
         enableBlur: Boolean,
     ): IFramebuffer {
-        lateinit var result: IFramebuffer
-        renderPurely {
-            val tmp = calculate(depth, normal, transform, radius, strength, min(samples, MAX_SAMPLES), enableBlur)
-            result = if (enableBlur) average(tmp) else tmp
+        return renderPurely {
+            val tmp = calculate(
+                depth, normal, normalZW, transform, radius,
+                strength, min(samples, MAX_SAMPLES), enableBlur
+            )
+            if (enableBlur) average(tmp) else tmp
         }
-        return result
     }
 
 }

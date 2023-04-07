@@ -22,7 +22,17 @@ open class DeferredLayerType(
     constructor(
         name: String, glslName: String, dimensions: Int, minimumQuality: BufferQuality, highDynamicRange: Boolean,
         defaultValueARGB: Int, map01: String, map10: String
-    ) : this(name, glslName, dimensions, dimensions, minimumQuality, highDynamicRange, defaultValueARGB.toVecRGBA(), map01, map10)
+    ) : this(
+        name,
+        glslName,
+        dimensions,
+        dimensions,
+        minimumQuality,
+        highDynamicRange,
+        defaultValueARGB.toVecRGBA(),
+        map01,
+        map10
+    )
 
     constructor(name: String, glslName: String, defaultValueARGB: Int) :
             this(name, glslName, 1, BufferQuality.LOW_8, false, defaultValueARGB, "", "")
@@ -63,11 +73,6 @@ open class DeferredLayerType(
         }
     }
 
-    fun getValue(settingsV2: DeferredSettingsV2, uv: String = "uv"): String {
-        val layer = settingsV2.layers.first { it.type == this }
-        return "texture(${layer.textureName}, $uv).${layer.mapping}$dataToWork"
-    }
-
     companion object {
 
         val COLOR = DeferredLayerType(
@@ -81,24 +86,27 @@ open class DeferredLayerType(
             true, 0, "", ""
         )
 
-        // todo we should add randomness like with finalColor, maybe to all buffers for random rounding
+        /***
+         * normal, encoded in 2d!, so please unpack and pack it correctly using the function in ShaderLib
+         * */
         val NORMAL = DeferredLayerType(
-            "NORMAL", "finalNormal", 3, BufferQuality.MEDIUM_12,
-            false, 0x77ff77, "*0.5+0.5", "*2.0-1.0"
+            "NORMAL", "finalNormal",
+            3, 2, BufferQuality.MEDIUM_12, false,
+            0x77ff77.toVecRGBA(), "PackNormal", "UnpackNormal"
         )
 
         // todo do we need the tangent? it is calculated from uvs, so maybe for anisotropy...
         // high precision is required for curved metallic objects; otherwise we get banding
         val TANGENT = DeferredLayerType(
             "TANGENT", "finalTangent",
-            3, BufferQuality.MEDIUM_12, false,
-            0x7777ff, "*0.5+0.5", "*2.0-1.0"
+            3, 2, BufferQuality.MEDIUM_12, false,
+            0x7777ff.toVecRGBA(), "PackNormal", "UnpackNormal"
         )
 
         val BITANGENT = DeferredLayerType(
             "BITANGENT", "finalBitangent",
-            3, BufferQuality.MEDIUM_12, false,
-            0x7777ff, "*0.5+0.5", "*2.0-1.0"
+            3, 2, BufferQuality.MEDIUM_12, false,
+            0x7777ff.toVecRGBA(), "PackNormal", "UnpackNormal"
         )
 
         // may be in camera space, player space, or world space

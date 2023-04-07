@@ -49,11 +49,11 @@ data class DeferredSettingsV2(
             fragment.append(' ')
             fragment.append(type.glslName).append(dstSuffix)
             fragment.append(" = ")
+            fragment.append(type.dataToWork).append('(')
             fragment.append(textureName).append(tmpSuffix)
             fragment.append('.')
             fragment.append(mapping)
-            fragment.append(type.dataToWork)
-            fragment.append(";\n")
+            fragment.append(");\n")
         }
 
         fun appendLayer(output: StringBuilder) {
@@ -61,8 +61,8 @@ data class DeferredSettingsV2(
             output.append('.')
             output.append(mapping)
             output.append(" = (")
-            output.append(type.glslName)
-            output.append(type.workToData)
+            output.append(type.workToData).append('(')
+            output.append(type.glslName).append(')')
             // append random rounding
             output.append(")*(1.0+defRR*").append(textureName).append("RR.x")
             output.append(")+defRR*").append(textureName).append("RR.y")
@@ -203,6 +203,12 @@ data class DeferredSettingsV2(
 
     fun findLayer(type: DeferredLayerType): Layer? {
         return layers.firstOrNull2 { it.type == type }
+    }
+
+    fun zw(type: DeferredLayerType): Boolean {
+        val layer = layers.first { it.type == type }
+        if (layer.mapping.length != 2) throw IllegalStateException()
+        return layer.mapping == "zw"
     }
 
     fun findMapping(type: DeferredLayerType): String? {

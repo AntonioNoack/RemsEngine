@@ -41,11 +41,11 @@ open class SecureStack<V>(var currentValue: V) : List<V> {
         }
     }
 
-    inline fun use(v: V, func: () -> Unit) {
+    inline fun <W> use(v: V, func: () -> W): W {
         internalPush(v)
         try {
             internalSet(v)
-            func()
+            return func()
         } finally {
             internalPop()
         }

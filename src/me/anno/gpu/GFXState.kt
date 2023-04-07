@@ -170,17 +170,28 @@ object GFXState {
     /**
      * render without blending and without depth test
      * */
-    inline fun renderPurely(render: () -> Unit) {
-        blendMode.use(null) {
+    fun <V> renderPurely(render: () -> V): V {
+        return blendMode.use(null) {
             depthMode.use(DepthMode.ALWAYS, render)
+        }
+    }
+
+    /**
+     * render without blending and without depth test
+     * */
+    fun <V> renderPurely2(render: () -> V): V {
+        return blendMode.use(null) {
+            depthMask.use(false) {
+                depthMode.use(DepthMode.ALWAYS, render)
+            }
         }
     }
 
     /**
      * render with back-to-front alpha blending and without depth test
      * */
-    inline fun renderDefault(render: () -> Unit) {
-        blendMode.use(BlendMode.DEFAULT) {
+    fun <V> renderDefault(render: () -> V): V {
+        return blendMode.use(BlendMode.DEFAULT) {
             depthMode.use(DepthMode.ALWAYS, render)
         }
     }
