@@ -1,5 +1,6 @@
 package me.anno.maths.bvh
 
+import me.anno.engine.raycast.RayHit
 import org.joml.AABBf
 import org.joml.Vector3f
 import kotlin.math.max
@@ -55,11 +56,19 @@ class RayGroup(val sx: Int, val sy: Int, val local: RayGroup? = null) {
 
     val mapping = IntArray(size)
 
+    val hit: RayHit = local?.hit ?: RayHit()
+
+    var tlasCtr = 0
+    var blasCtr = 0
+    var trisCtr = 0
+
     fun setMain(pos: Vector3f, dir: Vector3f, maxDistance: Float) {
         this.pos.set(pos)
         this.dir.set(dir)
         min.set(dir)
         max.set(dir)
+        invMin.set(1f / dir.x, 1f / dir.y, 1f / dir.z)
+        invMax.set(invMin)
         dxs[0] = 0f
         dys[0] = 0f
         depths.fill(maxDistance)
@@ -90,13 +99,13 @@ class RayGroup(val sx: Int, val sy: Int, val local: RayGroup? = null) {
     fun setRay(i: Int, dir: Vector3f) {
         min.min(dir)
         max.max(dir)
+        val ix = 1f / dir.x
+        val iy = 1f / dir.y
+        val iz = 1f / dir.z
+        invMin.min(ix, iy, iz)
+        invMax.max(ix, iy, iz)
         dxs[i] = dir.dot(dxm) * dXmf - ddXmf
         dys[i] = dir.dot(dym) * dYmf - ddYmf
-    }
-
-    fun finishSetup() {
-        invMin.set(1f).div(min)
-        invMax.set(1f).div(max)
     }
 
     fun intersects(aabb: AABBf): Boolean {

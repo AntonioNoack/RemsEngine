@@ -152,7 +152,7 @@ abstract class CameraController : Component(), ControlReceiver {
 
                 lastWarning = null
 
-                val dt = clamp(Engine.deltaTime * friction)
+                val dt = clamp(Engine.deltaTime * friction, 0f, 0.25f)
 
                 acceleration.set(0f)
 

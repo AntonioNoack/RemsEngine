@@ -5,7 +5,7 @@ import me.anno.gpu.GFXBase;
 
 public class NsightRunner {
     public static void main(String[] args) {
-        GFXBase.INSTANCE.disableRenderDoc();
+        GFXBase.disableRenderDoc();
         RemsEngine.main(args);
     }
 }

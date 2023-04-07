@@ -16,6 +16,7 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
     }
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+        hit.tlasCtr++
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
             // put far bvh node on the stack, advance to near
             if (dirIsNeg.and(mask) != 0) {
@@ -27,6 +28,7 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
     }
 
     override fun intersect(group: RayGroup) {
+        group.tlasCtr++
         if (group.intersects(bounds)) {
             // put far bvh node on the stack, advance to near
             if (group.dir[axis] < 0f) {

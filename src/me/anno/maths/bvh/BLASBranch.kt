@@ -10,6 +10,7 @@ class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABB
     val mask = 1 shl axis
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+        hit.blasCtr++
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
             // put far bvh node on the stack, advance to near
             val v = dirIsNeg.and(mask) != 0
@@ -20,6 +21,7 @@ class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABB
     }
 
     override fun intersect(group: RayGroup) {
+        group.blasCtr++
         if (group.intersects(bounds)) {
             // put far bvh node on the stack, advance to near
             val v = group.dir[axis] < 0f

@@ -27,6 +27,7 @@ class TLASLeaf(
     }
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+        hit.tlasCtr++
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
 
             // transform from global to local coordinates
@@ -69,11 +70,12 @@ class TLASLeaf(
     // for TLASes, this function is often just slower :/
     // for BLASes, it can be 4x faster
     override fun intersect(group: RayGroup) {
+        group.tlasCtr++
         if (group.intersects(bounds)) {
 
-            if (Input.isControlDown) {
-                val dir = Vector3f()
-                val hit = RayHit()
+            if (!Input.isControlDown) {
+                val dir = JomlPools.vec3f.create()
+                val hit = group.hit
                 for (i in 0 until group.size) {
                     dir.set(group.dir)
                     group.dxm.mulAdd(group.dxs[i], dir, dir)
@@ -87,6 +89,7 @@ class TLASLeaf(
                         group.depths[i] = hit.distance.toFloat()
                     }
                 }
+                JomlPools.vec3f.sub(1)
                 return
             }
 
@@ -145,8 +148,6 @@ class TLASLeaf(
             worldToLocal.transformDirection(group.max, v1)
             local.min.set(v0).min(v1)
             local.max.set(v0).max(v1)
-
-            local.finishSetup()
 
             blas.intersect(local)
 

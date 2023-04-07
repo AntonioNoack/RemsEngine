@@ -517,12 +517,16 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     }
 
     fun min(v: Vector3f, dst: Vector3f = this): Vector3f {
-        val x = x
-        val y = y
-        val z = z
         dst.x = min(x, v.x)
         dst.y = min(y, v.y)
         dst.z = min(z, v.z)
+        return dst
+    }
+
+    fun min(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
+        dst.x = min(this.x, x)
+        dst.y = min(this.y, y)
+        dst.z = min(this.z, z)
         return dst
     }
 
@@ -533,6 +537,13 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         dst.x = max(x, v.x)
         dst.y = max(y, v.y)
         dst.z = max(z, v.z)
+        return dst
+    }
+
+    fun max(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
+        dst.x = max(this.x, x)
+        dst.y = max(this.y, y)
+        dst.z = max(this.z, z)
         return dst
     }
 

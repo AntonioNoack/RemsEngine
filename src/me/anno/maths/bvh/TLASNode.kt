@@ -98,30 +98,31 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
 
         val numNodes = nodeId
         val buffer = ComputeBuffer(tlasAttr, numNodes)
+        val data = buffer.nioBuffer!!
+        val floats = data.asFloatBuffer()
 
         fun writeMatrix(m: Matrix4x3f) {
             // send data column major
             // as that's the way for the constructor it seems
-            val data = buffer.nioBuffer!!
 
-            data.putFloat(m.m00)
-            data.putFloat(m.m10)
-            data.putFloat(m.m20)
-            data.putFloat(m.m30)
+            floats.put(m.m00)
+            floats.put(m.m01)
+            floats.put(m.m02)
 
-            data.putFloat(m.m01)
-            data.putFloat(m.m11)
-            data.putFloat(m.m21)
-            data.putFloat(m.m31)
+            floats.put(m.m10)
+            floats.put(m.m11)
+            floats.put(m.m12)
 
-            data.putFloat(m.m02)
-            data.putFloat(m.m12)
-            data.putFloat(m.m22)
-            data.putFloat(m.m32)
+            floats.put(m.m20)
+            floats.put(m.m21)
+            floats.put(m.m22)
+
+            floats.put(m.m30)
+            floats.put(m.m31)
+            floats.put(m.m32)
 
         }
 
-        val data = buffer.nioBuffer!!
         forEach {
 
             val v0: Int
@@ -138,24 +139,25 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
             }
 
             val b = it.bounds
-            buffer.put(b.minX)
-            buffer.put(b.minY)
-            buffer.put(b.minZ)
-            buffer.put(Float.fromBits(v0))
+            floats.put(b.minX)
+            floats.put(b.minY)
+            floats.put(b.minZ)
+            floats.put(Float.fromBits(v0))
 
-            buffer.put(b.maxX)
-            buffer.put(b.maxY)
-            buffer.put(b.maxZ)
-            buffer.put(Float.fromBits(v1))
+            floats.put(b.maxX)
+            floats.put(b.maxY)
+            floats.put(b.maxZ)
+            floats.put(Float.fromBits(v1))
 
             if (it is TLASLeaf) {
                 writeMatrix(it.worldToLocal)
                 writeMatrix(it.localToWorld)
             } else {
-                data.skip(2 * 12 * 4)
+                floats.skip(2 * 12)
             }
 
         }
+        data.position(floats.position() * 4)
         return buffer
     }
 

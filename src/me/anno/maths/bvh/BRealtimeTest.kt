@@ -1,5 +1,6 @@
 package me.anno.maths.bvh
 
+import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -8,14 +9,28 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
+import me.anno.gpu.GFXState.blendMode
+import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.buffer.ComputeBuffer
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
-import me.anno.gpu.shader.ComputeTextureMode
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.*
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.maths.Maths.SECONDS_TO_NANOS
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.max
+import me.anno.maths.Maths.mixARGB
+import me.anno.maths.bvh.BLASNode.Companion.createBLASBuffer
 import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
+import me.anno.maths.bvh.BLASNode.Companion.createTriangleBuffer
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleTexture
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -25,20 +40,32 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.utils.Clock
 import me.anno.utils.Color.toRGB
 import me.anno.utils.OS.documents
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.hpc.ThreadLocal2
+import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.types.Booleans.toInt
+import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.joml.JomlMath.invsqrt
 import org.joml.Quaternionf
-import org.joml.Vector3d
 import org.joml.Vector3f
+import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import kotlin.math.pow
+
+enum class DrawMode(val id: Int) {
+    NORMAL(0),
+    TLAS_DEPTH(1),
+    BLAS_DEPTH(2),
+    TRIS_DEPTH(3),
+    GLOBAL_ILLUMINATION(5),
+}
+
+var drawMode = DrawMode.NORMAL
 
 fun main() {
     GFXBase.forceLoadRenderDoc()
@@ -50,20 +77,31 @@ fun main() {
     main2(blas, Vector3f(), Quaternionf(), 1f)
 }
 
-fun hitToColor(normal: Vector3d): Int {
-    val lenSq = normal.lengthSquared()
-    return if (lenSq > 0f)
-        normal.mul(0.5f * invsqrt(lenSq))
-            .add(0.5, 0.5, 0.5).toRGB()
-    else sky1
+fun hitToColor(normal: Vector3f, dir: Vector3f, tlas: Int, blas: Int, tris: Int): Int {
+    return when (drawMode) {
+        DrawMode.NORMAL -> {
+            val lenSq = normal.lengthSquared()
+            return if (lenSq > 0f) {
+                normal.mul(0.5f * invsqrt(lenSq))
+                normal.add(0.5f, 0.5f, 0.5f)
+                normal.set(normal.z, normal.y, normal.x).toRGB() // reversed
+            } else mixARGB(sky0BGR, sky1BGR, dir.y * 0.5f + 0.5f)
+        }
+        DrawMode.TLAS_DEPTH -> coloring1(tlas * 0.1f)
+        DrawMode.BLAS_DEPTH -> coloring1(blas * 0.1f)
+        DrawMode.TRIS_DEPTH -> coloring1(tris * 0.1f)
+        else -> 0
+    }
 }
 
-fun hitToColor(normal: Vector3f): Int {
-    val lenSq = normal.lengthSquared()
-    return if (lenSq > 0f)
-        normal.mul(0.5f * invsqrt(lenSq))
-            .add(0.5f, 0.5f, 0.5f).toRGB()
-    else sky1
+fun coloring1(t: Float): Int {
+    val base = fract(t) * .8f + .2f
+    // reversed colors
+    val a = 0xea8261
+    val b = 0x4b5edc
+    val c = 0xdbdcdd
+    val f = clamp(t * 0.05f, 0f, 2f)
+    return mixARGB(0, if (f < 1f) mixARGB(a, b, f) else mixARGB(b, c, f - 1f), base)
 }
 
 fun createControls(
@@ -84,8 +122,8 @@ fun createControls(
     controls.camera = camera
     controls.position.set(cameraPosition)
     controls.base = base
-    controls.radius = 1f
-    controls.movementSpeed = 0.02f * bvh.bounds.volume().pow(1f / 3f)
+    controls.radius = bvh.bounds.volume().pow(1f / 3f)
+    controls.movementSpeed = 0.20f * controls.radius
     controls.rotationSpeed = 0.15f
     controls.friction = 20f
 
@@ -125,8 +163,9 @@ fun fillTile(
     x0: Int, x1: Int, y0: Int, y1: Int, group: RayGroup, bvh: BVHNode,
     cx: Float, cy: Float, fovZ: Float, maxDistanceF: Float,
     camPos2: Vector3f, camRot2: Quaternionf,
-    ints: IntBuffer, w: Int
+    ints: IntBuffer, w: Int, alpha: Float,
 ) {
+    // todo center primary ray
     val tileSize = max(2, max(x1 - x0, y1 - y0))
     val tsm1 = 1f / (tileSize - 1)
     group.size = (y1 - y0) * (x1 - x0)
@@ -143,6 +182,7 @@ fun fillTile(
     var k = 0
     for (j in 0 until y1 - y0) {
         val y = y0 + j
+        val dysK = j * tsm1
         for (i in 0 until x1 - x0) {
             val x = x0 + i
             // define ray
@@ -150,34 +190,46 @@ fun fillTile(
             camRot2.transform(dir)
             group.setRay(k, dir)
             group.dxs[k] = i * tsm1
-            group.dys[k] = j * tsm1
+            group.dys[k] = dysK
             k++
         }
     }
-    group.finishSetup()
+    group.tlasCtr = 0
+    group.blasCtr = 0
+    group.trisCtr = 0
+    group.hit.tlasCtr = 0
+    group.hit.blasCtr = 0
+    group.hit.trisCtr = 0
     bvh.intersect(group)
     val normal = JomlPools.vec3f.create()
     k = 0
+    val tlas = group.tlasCtr + group.hit.tlasCtr
+    val blas = group.blasCtr + group.hit.blasCtr
+    val tris = group.trisCtr + group.hit.trisCtr
     for (y in y0 until y1) {
+        var i = x0 + y * w
         for (x in x0 until x1) {
             normal.set(group.normalX[k], group.normalY[k], group.normalZ[k])
-            ints.put(x + y * w, hitToColor(normal))
+            val color = hitToColor(normal, group.dir, tlas, blas, tris)
+            ints.put(i, mixARGB(ints[i], color, alpha))
             k++
+            i++
         }
     }
     JomlPools.vec3f.sub(2)
 }
 
+val pipeline = ProcessingGroup("brt", 1f)
 fun createCPUPanel(
     scale: Int,
     cameraPosition: Vector3f,
     cameraRotation: Quaternionf,
     fovZFactor: Float,
     bvh: BVHNode,
+    controls: OrbitControls,
     useGroups: Boolean,
 ): Panel {
 
-    var isCPUComputing = false
     var cpuSpeed = -1L
     var cpuFPS = 0L
 
@@ -186,10 +238,20 @@ fun createCPUPanel(
 
     fun computeSpeed(w: Int, h: Int, dt: Long) = dt / (w * h)
 
-    val pipeline = ProcessingGroup("brt", 1f)
-    val tileSize = 8
+    val tileSize = 4
     val groups = ThreadLocal2 { RayGroup(tileSize, tileSize, RayGroup(tileSize, tileSize)) }
+    var frameIndex = 0
+    var lastDrawMode: DrawMode? = null
+    val lastPos = Vector3f()
+    val lastRot = Quaternionf()
+    var lastW = 0
+    var lastH = 0
+    var isRendering = false
+    var cpuBuffer: IntBuffer? = null
+    var cpuBytes: ByteBuffer? = null
     return TestDrawPanel {
+
+        val parent = it.uiParent!!
 
         it.clear()
 
@@ -198,16 +260,43 @@ fun createCPUPanel(
         val w = it.w / scale
         val h = it.h / scale
 
-        val cx = (w - 1) * 0.5f
-        val cy = (h - 1) * 0.5f
-        val fovZ = -w * fovZFactor
+        val cx = Math.random().toFloat() - 0.5f + (parent.w * 0.5f - it.x) / scale
+        val cy = Math.random().toFloat() - 0.5f + (parent.h * 0.5f) / scale
+        val fovZ = -parent.h * fovZFactor / scale
+
+        // if camera was moved, set frameIndex back to zero
+        if (lastDrawMode != drawMode ||
+            lastPos.distance(cameraPosition) > controls.radius * 0.01f ||
+            lastRot.difference(cameraRotation, JomlPools.quat4f.borrow()).angle() > 1e-3f
+        ) {
+            lastPos.set(cameraPosition)
+            lastRot.set(cameraRotation)
+            lastDrawMode = drawMode
+            frameIndex = 0
+        }
+
+        if (lastW != w || lastH != h) {
+            lastW = w
+            lastH = h
+            frameIndex = 0
+        }
+
+        val alpha = 1f / (frameIndex + 1f)
 
         fun nextFrame() {
-            val camPos2 = Vector3f(cameraPosition)
-            val camRot2 = Quaternionf(cameraRotation)
+            if (isRendering || frameIndex >= 256) return
+            isRendering = true
             pipeline += {
-                val cpuBuffer = Texture2D.bufferPool[w * h * 4, false, false]
-                val ints = cpuBuffer.asIntBuffer()
+
+                val size = w * h * 4
+                cpuBytes = if (cpuBytes?.capacity() != size) {
+                    ByteBufferPool.free(cpuBytes)
+                    val bytes = ByteBufferPool.allocateDirect(size)
+                    cpuBuffer = bytes.asIntBuffer()
+                    bytes
+                } else cpuBytes!!
+
+                val ints = cpuBuffer!!
                 val t0 = System.nanoTime()
                 val maxDistance = 1e10
                 val maxDistanceF = maxDistance.toFloat()
@@ -216,22 +305,30 @@ fun createCPUPanel(
                         fillTile(
                             x0, x1, y0, y1, groups.get(), bvh,
                             cx, cy, fovZ, maxDistanceF,
-                            camPos2, camRot2, ints, w
+                            lastPos, lastRot, ints, w, alpha
                         )
                     } else {
+                        val dir = JomlPools.vec3f.create()
+                        val nor = JomlPools.vec3f.create()
                         for (y in y0 until y1) {
+                            var i = x0 + y * w
                             for (x in x0 until x1) {
-                                val dir = JomlPools.vec3f.create()
                                 dir.set(x - cx, cy - y, fovZ).normalize()
-                                camRot2.transform(dir)
+                                lastRot.transform(dir)
                                 val hit = localResult.get()
                                 hit.normalWS.set(0.0)
                                 hit.distance = maxDistance
-                                bvh.intersect(camPos2, dir, hit)
-                                ints.put(x + y * w, hitToColor(hit.normalWS))
-                                JomlPools.vec3f.sub(1)
+                                hit.tlasCtr = 0
+                                hit.blasCtr = 0
+                                hit.trisCtr = 0
+                                bvh.intersect(lastPos, dir, hit)
+                                nor.set(hit.normalWS)
+                                val color = hitToColor(nor, dir, hit.tlasCtr, hit.blasCtr, hit.trisCtr)
+                                ints.put(i, mixARGB(ints[i], color, alpha))
+                                i++
                             }
                         }
+                        JomlPools.vec3f.sub(2)
                     }
                 }
                 val t1 = System.nanoTime()
@@ -246,21 +343,233 @@ fun createCPUPanel(
                     cpuTexture.w = w
                     cpuTexture.h = h
                     cpuTexture.createRGBA(ints, false)
-                    Texture2D.bufferPool.returnBuffer(cpuBuffer)
-                    isCPUComputing = false
+                    isRendering = false
+                    frameIndex++
                 }
+
             }
         }
 
-        if (!isCPUComputing) {
-            isCPUComputing = true
-            nextFrame()
-        }
+        nextFrame()
 
         DrawTextures.drawTexture(it.x, it.y, it.w, it.h, cpuTexture, true, -1, null)
-        DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.h - 50, 2, "$cpuSpeed ns/e, $cpuFPS fps")
+        DrawTexts.drawSimpleTextCharByChar(
+            it.x + 4,
+            it.y + it.h - 50,
+            2,
+            "$cpuSpeed ns/e, $cpuFPS fps, $frameIndex spp"
+        )
 
     }
+}
+
+fun createGPUPanel(
+    scale: Int,
+    cameraPosition: Vector3f,
+    cameraRotation: Quaternionf,
+    fovZFactor: Float,
+    bvh: BVHNode,
+    controls: OrbitControls,
+    useComputeShader: Boolean,
+    useComputeBuffer: Boolean
+): Panel {
+
+    val avgBuffer = Framebuffer("avg", 1, 1, 1, 1, true, DepthBufferType.NONE)
+
+    val drawShader = Shader(
+        "draw", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(
+            Variable(GLSLType.V1B, "enableToneMapping"),
+            Variable(GLSLType.V1F, "brightness"),
+            Variable(GLSLType.S2D, "tex"),
+            Variable(GLSLType.V4F, "result", VariableMode.OUT)
+        ), "" +
+                "void main(){\n" +
+                "   vec3 color = texture(tex,uv).rgb;\n" +
+                "   if(enableToneMapping) color /= (color + brightness);\n" +
+                "   result = vec4(color, 1.0);\n" +
+                "}"
+    )
+
+    val lastPos = Vector3f()
+    val lastRot = Quaternionf()
+    var lastDrawMode: DrawMode? = null
+
+    var frameIndex = 0
+    fun prepareShader(shader: OpenGLShader, it: Panel) {
+
+        it.clone()
+
+        val w = it.w / scale
+        val h = it.h / scale
+
+        // if camera was moved, set frameIndex back to zero
+        if (lastDrawMode != drawMode ||
+            lastPos.distance(cameraPosition) > controls.radius * 0.01f ||
+            lastRot.difference(cameraRotation, JomlPools.quat4f.borrow()).angle() > 1e-3f
+        ) {
+            lastPos.set(cameraPosition)
+            lastRot.set(cameraRotation)
+            lastDrawMode = drawMode
+            frameIndex = 0
+        }
+
+        if (avgBuffer.w != w || avgBuffer.h != h) {
+            avgBuffer.w = w
+            avgBuffer.h = h
+            avgBuffer.destroy()
+            avgBuffer.create()
+            frameIndex = 0
+        }
+
+        val parent = it.uiParent!!
+        val cx = Math.random().toFloat() - 0.5f + (parent.w * 0.5f - it.x) / scale
+        val cy = Math.random().toFloat() - 0.5f + (parent.h * 0.5f) / scale
+        val fovZ = -parent.h * fovZFactor / scale
+
+        shader.use()
+        shader.v2i("size", w, h)
+        shader.v3f("worldPos", cameraPosition)
+        shader.v4f("worldRot", cameraRotation)
+        shader.v3f("cameraOffset", cx, cy, fovZ)
+        shader.v3f("sky0", sky0)
+        shader.v3f("sky1", sky1)
+        shader.v1i("drawMode", drawMode.id)
+        shader.v1i("frameIndex", frameIndex)
+        shader.v1f("alpha", 1f / (frameIndex + 1f))
+
+    }
+
+    fun drawResult(it: Panel, prefix: String) {
+
+        val tex = avgBuffer.getTexture0()
+
+        val drawMode = lastDrawMode
+        val enableAutoExposure = drawMode == DrawMode.GLOBAL_ILLUMINATION
+
+        // draw with auto-exposure
+        val brightness = if (enableAutoExposure)
+            max(Reduction.reduce(tex, Reduction.MAX).x, 1e-7f) else 1f
+        drawShader.use()
+        drawShader.v1f("brightness", 0.2f * brightness)
+        drawShader.v1b("enableToneMapping", enableAutoExposure)
+        tex.bindTrulyNearest(0)
+        SimpleBuffer.flat01.draw(drawShader)
+
+        val gpuFPS = Engine.currentFPS.f1()
+        DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.h - 50, 2, "$prefix: $gpuFPS fps, $frameIndex spp")
+
+    }
+
+    if (useComputeShader) {
+        val shader: ComputeShader
+        if (useComputeBuffer) {
+            val triangles: ComputeBuffer
+            val blasNodes: ComputeBuffer
+            val tlasNodes: ComputeBuffer?
+            when (bvh) {
+                is TLASNode -> {
+                    val (shader1, triangles1, blasNodes1, tlasNodes1) = createTLASBufferComputeShader(bvh)
+                    shader = shader1
+                    triangles = triangles1
+                    blasNodes = blasNodes1
+                    tlasNodes = tlasNodes1
+                }
+                is BLASNode -> {
+                    triangles = createTriangleBuffer(listOf(bvh))
+                    blasNodes = createBLASBuffer(listOf(bvh))
+                    shader = createBLASBufferComputeShader(bvh.maxDepth())
+                    tlasNodes = null
+                }
+                else -> throw IllegalStateException()
+            }
+            return TestDrawPanel {
+                prepareShader(shader, it)
+                if (frameIndex < 256) {
+                    val avgTexture = avgBuffer.getTexture0()
+                    shader.bindBuffer(0, triangles)
+                    shader.bindBuffer(1, blasNodes)
+                    if (tlasNodes != null) shader.bindBuffer(2, tlasNodes)
+                    shader.bindTexture(3, avgTexture as Texture2D, ComputeTextureMode.READ_WRITE)
+                    shader.runBySize(avgBuffer.w, avgBuffer.h)
+                    frameIndex++
+                }
+                drawResult(it, "CB")
+            }
+        } else {
+            val triangles: Texture2D
+            val blasNodes: Texture2D
+            val tlasNodes: Texture2D?
+            when (bvh) {
+                is TLASNode -> {
+                    val (shader1, triangles1, blasNodes1, tlasNodes1) = createTLASTextureComputeShader(bvh)
+                    shader = shader1
+                    triangles = triangles1
+                    blasNodes = blasNodes1
+                    tlasNodes = tlasNodes1
+                }
+                is BLASNode -> {
+                    triangles = createTriangleTexture(listOf(bvh))
+                    blasNodes = createBLASTexture(listOf(bvh))
+                    shader = createBLASTextureComputeShader(bvh.maxDepth())
+                    tlasNodes = null
+                }
+                else -> throw IllegalStateException()
+            }
+            return TestDrawPanel {
+                prepareShader(shader, it)
+                if (frameIndex < 256) {
+                    val avgTexture = avgBuffer.getTexture0()
+                    shader.bindTexture(0, triangles, ComputeTextureMode.READ)
+                    shader.bindTexture(1, blasNodes, ComputeTextureMode.READ)
+                    if (tlasNodes != null) shader.bindTexture(2, tlasNodes, ComputeTextureMode.READ)
+                    shader.bindTexture(3, avgTexture as Texture2D, ComputeTextureMode.READ_WRITE)
+                    shader.runBySize(avgBuffer.w, avgBuffer.h)
+                    frameIndex++
+                }
+                drawResult(it, "CT")
+            }
+        }
+    } else {
+
+        val shader: Shader
+        val triangles: Texture2D
+        val blasNodes: Texture2D
+        val tlasNodes: Texture2D?
+
+        when (bvh) {
+            is TLASNode -> {
+                val (shader1, meshes) = createTLASTextureGraphicsShader(bvh)
+                shader = shader1
+                triangles = createTriangleTexture(meshes)
+                blasNodes = createBLASTexture(meshes)
+                tlasNodes = bvh.createTLASTexture()
+            }
+            is BLASNode -> {
+                triangles = createTriangleTexture(listOf(bvh))
+                blasNodes = createBLASTexture(listOf(bvh))
+                shader = createBLASTextureGraphicsShader(bvh)
+                tlasNodes = null
+            }
+            else -> throw IllegalStateException()
+        }
+
+        return TestDrawPanel {
+            useFrame(avgBuffer) {
+                blendMode.use(BlendMode.DEFAULT) {
+                    prepareShader(shader, it)
+                    if (frameIndex < 256) {
+                        triangles.bindTrulyNearest(0)
+                        blasNodes.bindTrulyNearest(1)
+                        tlasNodes?.bindTrulyNearest(2)
+                        SimpleBuffer.flat01.draw(shader)
+                        frameIndex++
+                    }
+                }
+            }
+            drawResult(it, "GT")
+        }
+    }
+
 }
 
 fun main2(
@@ -269,65 +578,28 @@ fun main2(
     cameraRotation: Quaternionf,
     fovZFactor: Float
 ) {
-
     LogManager.disableLogger("WorkSplitter")
-
     testUI3 {
 
-        val gpuTex0 = Texture2D("gpu", 1, 1, 1)
-
         val main = PanelListY(style)
-        createControls(cameraPosition, cameraRotation, bvh, main)
+        val controls = createControls(cameraPosition, cameraRotation, bvh, main)
 
         val list = CustomList(false, style)
 
         val scale = 1
-        list.add(createCPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, false))
-        list.add(createCPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, true))
+        list.add(createCPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, controls, true))
+        list.add(createCPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, controls, false))
 
-        val triangles = createTriangleTexture(bvh)
-        val blasNodes = createBLASTexture(bvh)
-        val shader = createComputeShader(true, bvh.maxDepth(), null)
+        val ucs = true
+        // with monkey and two spheres: 340 fps, 570 fps, 540 fps on RTX 3070
+        list.add(createGPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, controls, ucs, false))
+        list.add(createGPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, controls, ucs, true))
+        list.add(createGPUPanel(scale, cameraPosition, cameraRotation, fovZFactor, bvh, controls, !ucs, false))
 
-        list.add(TestDrawPanel {
-
-            it.clear()
-
-            // render gpu side
-            val w = it.w
-            val h = it.h
-
-            val cx = (w - 1) * 0.5f
-            val cy = (h - 1) * 0.5f
-            val fovZ = -w * fovZFactor
-
-            if (!gpuTex0.isCreated || gpuTex0.w != w || gpuTex0.h != h) {
-                gpuTex0.w = w
-                gpuTex0.h = h
-                gpuTex0.createRGBA()
-            }
-
-            shader.use()
-            shader.v2i("size", w, h)
-            shader.v3f("worldPos", cameraPosition)
-            shader.v4f("worldRot", cameraRotation)
-            shader.v3f("cameraOffset", cx, cy, fovZ)
-            shader.v3f("sky0", sky0)
-            shader.v3f("sky1", sky1)
-            shader.v1i("drawMode", Input.isKeyDown('x').toInt(1))
-            shader.bindTexture(0, triangles, ComputeTextureMode.READ)
-            shader.bindTexture(1, blasNodes, ComputeTextureMode.READ)
-            shader.bindTexture(2, gpuTex0, ComputeTextureMode.WRITE)
-            shader.runBySize(w, h)
-
-            DrawTextures.drawTexture(it.x, it.y + it.h, it.w, -it.h, gpuTex0, true, -1, null)
-
-        })
-
+        list.weight = 1f
         main.add(list)
-        list.setWeight2(100f)
+        main.add(typeInput())
         main
 
     }
-
 }

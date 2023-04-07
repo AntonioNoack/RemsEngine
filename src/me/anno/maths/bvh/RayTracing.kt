@@ -137,15 +137,15 @@ object RayTracing {
 
     val glslBLASIntersection = "" +
             "void intersectBLAS(\n" +
-            "    uint nodeIndex, vec3 pos, vec3 dir, vec3 invDir,\n" +
-            "    inout vec3 normal, inout float distance, inout uint nodeCtr\n" +
+            "   uint nodeIndex, vec3 pos, vec3 dir, vec3 invDir, inout float distance, inout vec3 normal,\n" +
+            "   inout uint blasCtr, inout uint trisCtr\n" +
             "){\n" +
             "   uvec2 nodeTexSize = TEXTURE_SIZE(nodes);\n" +
             "   uvec2 triTexSize  = TEXTURE_SIZE(triangles);\n" +
             "   uint nextNodeStack[BLAS_DEPTH];\n" +
             "   uint stackIndex = 0u;\n" +
-            "   uint k=nodeCtr + 512u;\n" +
-            "   while(nodeCtr++<k){\n" + // could be k<bvh.count() or true or 2^depth
+            "   uint k=0u;\n" +
+            "   while(k++<512u){\n" + // could be k<bvh.count() or true or 2^depth
             // fetch node data
             "       uint pixelIndex = nodeIndex * ${PIXELS_PER_BLAS_NODE}u;\n" +
             "       uint nodeX = pixelIndex % nodeTexSize.x;\n" +
@@ -154,7 +154,7 @@ object RayTracing {
             "       vec4 d1 = LOAD_PIXEL(nodes, ivec2(nodeX+1u,nodeY));\n" +
             "       if(intersectAABB(pos,invDir,d0.xyz,d1.xyz,distance)){\n" + // bounds check
             "           uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
-            "           if(v01.y < 3u){\n" +
+            "           if(v01.y < 3u) {\n" +
             // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
             "               if(dir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
             "                   nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
@@ -166,6 +166,7 @@ object RayTracing {
             "           } else {\n" +
             // this node is a leaf
             // check all triangles for intersections
+            "               trisCtr += v01.y;\n" +
             "               uint index = v01.x, end = index + v01.y;\n" +
             "               uint triX = index % triTexSize.x;\n" +
             "               uint triY = index / triTexSize.x;\n" +
@@ -197,10 +198,14 @@ object RayTracing {
             "           nodeIndex = nextNodeStack[--stackIndex];\n" +
             "       }\n" +
             "   }\n" +
+            "   blasCtr += k;\n" +
             "}\n"
 
     val glslTLASIntersection = "" +
-            "uint intersectTLAS(vec3 worldPos, vec3 worldDir, inout float worldDistance, out vec3 worldNormal){\n" +
+            "void intersectTLAS(\n" +
+            "   vec3 worldPos, vec3 worldDir, inout float worldDistance, out vec3 worldNormal,\n" +
+            "   inout uint tlasCtr, inout uint blasCtr, inout uint trisCtr\n" +
+            "){\n" +
             "   uint nodeStack[TLAS_DEPTH];\n" +
             "   for(int i=TLAS_DEPTH-1;i>=0;i--) nodeStack[i]=0u;\n" +
             "   uint nodeIndex = 0u;\n" +
@@ -208,9 +213,8 @@ object RayTracing {
             "   worldNormal = vec3(0.0);\n" +
             "   uvec2 tlasTexSize = TEXTURE_SIZE(tlasNodes);\n" +
             "   vec3 worldInvDir = 1.0 / worldDir;\n" +
-            "   uint k=512u,nodeCtr=0u;\n" +
-            "   uint numIntersections=0u;\n" +
-            "   while(k-- > 0u){\n" + // start of tlas
+            "   uint k=0u;\n" +
+            "   while(k++<512u){\n" + // start of tlas
             // fetch tlas node data
             "       uint pixelIndex = nodeIndex * ${TLASNode.PIXELS_PER_TLAS_NODE}u;\n" +
             "       uint nodeX = pixelIndex % tlasTexSize.x;\n" +
@@ -229,7 +233,6 @@ object RayTracing {
             "                   nodeIndex += v01.x;\n" + // search child next
             "               }\n" +
             "           } else {\n" + // tlas leaf
-            "           numIntersections++;\n" +
             // load more data and then transform ray into local coordinates
             "               vec4 d10 = LOAD_PIXEL(tlasNodes, ivec2(nodeX+2u,nodeY));\n" +
             "               vec4 d11 = LOAD_PIXEL(tlasNodes, ivec2(nodeX+3u,nodeY));\n" +
@@ -239,12 +242,11 @@ object RayTracing {
             "               vec3 localPos = worldToLocal * vec4(worldPos, 1.0);\n" +
             "               vec3 localDir0 = mat3x3(worldToLocal) * worldDir;\n" +
             "               vec3 localDir = normalize(localDir0);\n" +
-            "               vec3 localInvDir = 1.0 / localDir;\n" +
             // transform world distance into local coordinates
             "               float localDistance = worldDistance * length(localDir0);\n" +
             "               float localDistanceOld = localDistance;\n" +
             "               vec3 localNormal = vec3(0.0);\n" +
-            "               intersectBLAS(v01.x, localPos, localDir, localInvDir, localNormal, localDistance, nodeCtr);\n" +
+            "               intersectBLAS(v01.x, localPos, localDir, 1.0 / localDir, localDistance, localNormal, blasCtr, trisCtr);\n" +
             "               if(localDistance < localDistanceOld){\n" + // we hit something
             "                   vec4 d20 = LOAD_PIXEL(tlasNodes, ivec2(nodeX+5u,nodeY));\n" +
             "                   vec4 d21 = LOAD_PIXEL(tlasNodes, ivec2(nodeX+6u,nodeY));\n" +
@@ -258,7 +260,7 @@ object RayTracing {
             "                       worldDistance = worldDistance1;\n" +
             "                       worldNormal = mat3x3(localToWorld) * localNormal;\n" +
             "                   }\n" +
-            "               }\n" + // end of blas; get next tlas node*/
+            "               }\n" + // end of blas; get next tlas node
             "               if(stackIndex < 1u) break;\n" +
             "               nodeIndex = nodeStack[--stackIndex];\n" +
             "           }\n" +
@@ -267,22 +269,9 @@ object RayTracing {
             "           nodeIndex = nodeStack[--stackIndex];\n" +
             "       }\n" +
             "   }\n" + // end of tlas
-            "   return numIntersections;\n" +
+            "   tlasCtr += k;\n" +
             "}\n"
 
     fun Vector4f.dot(v: Vector3f, w: Float) = dot(v.x, v.y, v.z, w)
-
-    /*fun rayTriangleIntersection(
-        rayOrigin: Vector3f,
-        rayDirection: Vector3f,
-        planeAB: Vector4f, // normal ( = (A+B)/2 towards (A+B+C)/3), -dot(position ( = (A+B)/2 ), normal)
-        planeBC: Vector4f,
-        planeCA: Vector4f,
-        planeTri: Vector4f
-    ): Boolean {
-        // to do project ray onto plane
-        val hitPoint = rayOrigin + rayDirection * (planeTri.dot(rayDirection) - planeTri.dot(rayOrigin))
-        return planeAB.dot(hitPoint) >= 0f && planeBC.dot(hitPoint) >= 0f && planeCA.dot(hitPoint) >= 0f
-    }*/
 
 }

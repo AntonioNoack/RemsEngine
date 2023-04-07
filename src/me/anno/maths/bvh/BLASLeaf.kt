@@ -25,7 +25,9 @@ class BLASLeaf(
     override fun forEach(run: (BLASNode) -> Unit) = run(this)
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+        hit.blasCtr++
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
+            hit.trisCtr += length
 
             val vs = hit.tmpVector3fs
             val a = vs[0]
@@ -73,7 +75,9 @@ class BLASLeaf(
     }
 
     override fun intersect(group: RayGroup) {
+        group.blasCtr++
         if (group.intersects(bounds)) {
+            group.trisCtr += length
 
             val vs = group.tmpVector3fs
             val a = vs[0]

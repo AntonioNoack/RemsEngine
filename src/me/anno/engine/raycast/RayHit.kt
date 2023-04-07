@@ -21,7 +21,6 @@ class RayHit {
     val tmpVector3ds = Array(10) { Vector3d() }
     val tmpVector4fs = Array(3) { Vector4f() }
     val tmpMat4x3d = Matrix4x3d()
-    val tmpMat4x3d2 = Matrix4x3d()
     val tmpAABBd = AABBd()
 
     // mesh data, that we could calculate
@@ -30,12 +29,15 @@ class RayHit {
     // var uv: Vector2f? = null
 
     val positionWS = Vector3d()
+
     /**
      * might not be normalized!
      * */
     val normalWS = Vector3d()
 
-    var ctr = 0
+    var blasCtr = 0
+    var tlasCtr = 0
+    var trisCtr = 0
 
     override fun toString(): String {
         return "RayHit(pos: $positionWS, nor: $normalWS, dist: $distance)"
