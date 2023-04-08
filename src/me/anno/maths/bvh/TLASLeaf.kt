@@ -54,10 +54,9 @@ class TLASLeaf(
                 // a better point was found
                 // transform distance and normal to global
                 hit.distance = localDir.mul(min(hit.distance.toFloat(), 1e38f), localTmp).length().toDouble()
-                // transform normal from local to world
-                localDir.set(hit.normalWS)
-                localToWorld.transformDirection(localDir) // is normalized later
-                hit.normalWS.set(localDir)
+                // transform normals from local to world; are normalized later
+                hit.geometryNormalWS.set(localToWorld.transformDirection(localDir.set(hit.geometryNormalWS)))
+                hit.shadingNormalWS.set(localToWorld.transformDirection(localDir.set(hit.shadingNormalWS)))
             } else {
                 hit.distance = globalDistance
             }
@@ -83,9 +82,12 @@ class TLASLeaf(
                     dir.normalize()
                     hit.distance = group.depths[i].toDouble()
                     if (intersect(group.pos, dir, hit)) {
-                        group.normalX[i] = hit.normalWS.x.toFloat()
-                        group.normalY[i] = hit.normalWS.y.toFloat()
-                        group.normalZ[i] = hit.normalWS.z.toFloat()
+                        group.normalGX[i] = hit.geometryNormalWS.x.toFloat()
+                        group.normalGY[i] = hit.geometryNormalWS.y.toFloat()
+                        group.normalGZ[i] = hit.geometryNormalWS.z.toFloat()
+                        group.normalSX[i] = hit.shadingNormalWS.x.toFloat()
+                        group.normalSY[i] = hit.shadingNormalWS.y.toFloat()
+                        group.normalSZ[i] = hit.shadingNormalWS.z.toFloat()
                         group.depths[i] = hit.distance.toFloat()
                     }
                 }
@@ -109,9 +111,12 @@ class TLASLeaf(
             val dxs = local.dxs
             val dys = local.dys
 
-            local.normalX.fill(0f)
-            local.normalY.fill(0f)
-            local.normalZ.fill(0f)
+            local.normalGX.fill(0f)
+            local.normalGY.fill(0f)
+            local.normalGZ.fill(0f)
+            local.normalSX.fill(0f)
+            local.normalSY.fill(0f)
+            local.normalSZ.fill(0f)
 
             var j = 0
             for (i in 0 until group.size) {
@@ -158,12 +163,15 @@ class TLASLeaf(
                 val globalDist = local.depths[i] * l2wLengthFactor
                 if (globalDist < group.depths[k]) {
                     group.depths[k] = globalDist
-                    // transform normal from local to world
-                    v1.set(local.normalX[i], local.normalY[i], local.normalZ[i])
-                    localToWorld.transformDirection(v1) // is normalized later
-                    group.normalX[k] = v1.x
-                    group.normalY[k] = v1.y
-                    group.normalZ[k] = v1.z
+                    // transform normals from local to world; are normalized later
+                    localToWorld.transformDirection(v1.set(local.normalGX[i], local.normalGY[i], local.normalGZ[i]))
+                    group.normalGX[k] = v1.x
+                    group.normalGY[k] = v1.y
+                    group.normalGZ[k] = v1.z
+                    localToWorld.transformDirection(v1.set(local.normalSX[i], local.normalSY[i], local.normalSZ[i]))
+                    group.normalSX[k] = v1.x
+                    group.normalSY[k] = v1.y
+                    group.normalSZ[k] = v1.z
                 }
             }
 

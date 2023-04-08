@@ -255,9 +255,9 @@ fun main() {
             )
             return if (hit != null) {
                 // convert ws position to local space
-                hit.normalWS.normalize()
-                val x = (hit.positionWS.x + hit.normalWS.x + dx).toInt()
-                val z = (hit.positionWS.z + hit.normalWS.z + dz).toInt()
+                hit.geometryNormalWS.normalize()
+                val x = (hit.positionWS.x + hit.geometryNormalWS.x + dx).toInt()
+                val z = (hit.positionWS.z + hit.geometryNormalWS.z + dz).toInt()
                 if (x in 0 until sx && z in 0 until sz) {
                     findPoint(x, z)
                 } else null

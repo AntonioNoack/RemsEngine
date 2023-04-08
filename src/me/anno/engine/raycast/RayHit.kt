@@ -33,14 +33,25 @@ class RayHit {
     /**
      * might not be normalized!
      * */
-    val normalWS = Vector3d()
+    val geometryNormalWS = Vector3d()
+
+    /**
+     * might not be normalized!
+     * */
+    val shadingNormalWS = Vector3d()
+
+    /**
+     * might not be normalized!
+     * */
+    val barycentric = Vector3d()
+    val uv = Vector2d()
 
     var blasCtr = 0
     var tlasCtr = 0
     var trisCtr = 0
 
     override fun toString(): String {
-        return "RayHit(pos: $positionWS, nor: $normalWS, dist: $distance)"
+        return "RayHit(pos: $positionWS, nor: $geometryNormalWS, dist: $distance)"
     }
 
     fun setFromLocal(
@@ -57,7 +68,7 @@ class RayHit {
         val hitPosition = positionWS.set(localDir).mul(localDistance.toDouble()).add(localStart)
         // LOGGER.info("hit position $hitPosition from local hit $localStart + $localDistance * $localDir")
         globalTransform.transformPosition(hitPosition)
-        val hitNormal = normalWS.set(localNormal)
+        val hitNormal = geometryNormalWS.set(localNormal)
         globalTransform.transformDirection(hitNormal)
         // calculate the world space distance
         val distance = hitPosition.distance(start)
@@ -74,7 +85,7 @@ class RayHit {
         val hitPosition = positionWS.set(localHit)
         // LOGGER.info("hit position $hitPosition from local hit $localHit")
         globalTransform?.transformPosition(hitPosition)
-        val hitNormal = normalWS.set(localNormal)
+        val hitNormal = geometryNormalWS.set(localNormal)
         globalTransform?.transformDirection(hitNormal)
         // calculate the world space distance
         val distance = hitPosition.distance(start)
@@ -91,7 +102,7 @@ class RayHit {
     ) {
         globalTransform ?: return
         globalTransform.transformPosition(positionWS)
-        globalTransform.transformDirection(normalWS)
+        globalTransform.transformDirection(geometryNormalWS)
         val distance = positionWS.distance(start)
         this.distance = distance
         // update the end vector

@@ -5,7 +5,6 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.bvh.BVHBuilder.createTexture
-import me.anno.utils.types.Buffers.skip
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
@@ -88,41 +87,47 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
 
     }
 
-    fun createTLASBuffer(): ComputeBuffer {
+    fun createTLASBuffer(): Pair<ComputeBuffer, ComputeBuffer> {
 
         GFX.checkIsGFXThread()
         var nodeId = 0
+        var numLeafs = 0
         forEach {
             it.nodeId = nodeId++
+            if (it is TLASLeaf) numLeafs++
         }
 
         val numNodes = nodeId
-        val buffer = ComputeBuffer(tlasAttr, numNodes)
-        val data = buffer.nioBuffer!!
-        val floats = data.asFloatBuffer()
+        val baseBuffer = ComputeBuffer(tlasAttr0, numNodes)
+        val transformBuffer = ComputeBuffer(tlasAttr1, numLeafs)
+        val baseData = baseBuffer.nioBuffer!!
+        val transformData = transformBuffer.nioBuffer!!
+        val f0 = baseData.asFloatBuffer()
+        val f1 = transformData.asFloatBuffer()
 
         fun writeMatrix(m: Matrix4x3f) {
             // send data column major
             // as that's the way for the constructor it seems
 
-            floats.put(m.m00)
-            floats.put(m.m01)
-            floats.put(m.m02)
+            f1.put(m.m00)
+            f1.put(m.m01)
+            f1.put(m.m02)
 
-            floats.put(m.m10)
-            floats.put(m.m11)
-            floats.put(m.m12)
+            f1.put(m.m10)
+            f1.put(m.m11)
+            f1.put(m.m12)
 
-            floats.put(m.m20)
-            floats.put(m.m21)
-            floats.put(m.m22)
+            f1.put(m.m20)
+            f1.put(m.m21)
+            f1.put(m.m22)
 
-            floats.put(m.m30)
-            floats.put(m.m31)
-            floats.put(m.m32)
+            f1.put(m.m30)
+            f1.put(m.m31)
+            f1.put(m.m32)
 
         }
 
+        numLeafs = 3
         forEach {
 
             val v0: Int
@@ -135,39 +140,41 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
                 it as TLASLeaf
                 // offset is like an ID
                 v0 = it.blas.nodeId
-                v1 = 3 // = max axis + 1
+                v1 = numLeafs++ // = max axis + 1 + transform index
             }
 
             val b = it.bounds
-            floats.put(b.minX)
-            floats.put(b.minY)
-            floats.put(b.minZ)
-            floats.put(Float.fromBits(v0))
+            f0.put(b.minX)
+            f0.put(b.minY)
+            f0.put(b.minZ)
+            f0.put(Float.fromBits(v0))
 
-            floats.put(b.maxX)
-            floats.put(b.maxY)
-            floats.put(b.maxZ)
-            floats.put(Float.fromBits(v1))
+            f0.put(b.maxX)
+            f0.put(b.maxY)
+            f0.put(b.maxZ)
+            f0.put(Float.fromBits(v1))
 
             if (it is TLASLeaf) {
                 writeMatrix(it.worldToLocal)
                 writeMatrix(it.localToWorld)
-            } else {
-                floats.skip(2 * 12)
             }
 
         }
-        data.position(floats.position() * 4)
-        return buffer
+        baseData.position(f0.position() * 4)
+        transformData.position(f1.position() * 4)
+        return Pair(baseBuffer,transformBuffer)
     }
 
     companion object {
 
-        val tlasAttr = listOf(
+        val tlasAttr0 = listOf(
             Attribute("min", 3),
             Attribute("v0", 1),
             Attribute("max", 3),
             Attribute("v1", 1),
+        )
+
+        val tlasAttr1 = listOf(
             Attribute("worldToLocal", 12),
             Attribute("localToWorld", 12),
         )

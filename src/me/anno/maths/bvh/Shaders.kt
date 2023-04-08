@@ -33,7 +33,7 @@ val shading = "" +
         "   uint tlasCtr=0u,blasCtr=0u,trisCtr=0u;\n" +
         "if(drawMode==${DrawMode.GLOBAL_ILLUMINATION.id}){\n" +
         "   float roughness = 0.1;\n" +
-        "   for(int i=ZERO,limit=8;i<limit;i++){\n" +
+        "   for(int i=ZERO,limit=3;i<limit;i++){\n" +
         "       distance = Infinity;\n" +
         "#ifndef TLAS_DEPTH\n" +
         "       intersectBLAS(0u,pos,dir,1.0/dir,distance,normal,blasCtr,trisCtr);\n" +
@@ -71,11 +71,10 @@ val shading = "" +
         "   if(drawMode==${DrawMode.NORMAL.id}) {\n" +
         // simple coloring
         "      if(dot(normal,normal)>0.0){\n" +
-        "         normal = normalize(normal);\n" +
-        "         color = normal*.5+.5;\n" +
+        "           color = normalize(normal)*.5+.5;\n" +
         "      } else {\n" +
         // compute sky color
-        "          color = mix(sky0,sky1,dir.y*.5+.5);\n" +
+        "           color = mix(sky0,sky1,dir.y*.5+.5);\n" +
         "      }\n" +
         "   } else if(drawMode==${DrawMode.TLAS_DEPTH.id}){\n" +
         "      color = coloring(float(tlasCtr)*0.1);\n" +
@@ -83,6 +82,22 @@ val shading = "" +
         "      color = coloring(float(blasCtr)*0.1);\n" +
         "   } else if(drawMode==${DrawMode.TRIS_DEPTH.id}){\n" +
         "      color = coloring(float(trisCtr)*${0.1 / 9});\n" +
+        "   } else if(drawMode==${DrawMode.SIMPLE_SHADOW.id}){\n" +
+        "      if(dot(normal,normal)>0.0){\n" +
+        "           pos += dir * distance * 0.999;\n" +
+        "           dir = normalize(vec3(5,9,3) + nextRandS3(seed));\n" +
+        "           distance = Infinity;\n" +
+        "           color = vec3(dot(normalize(normal),dir)*.4+.6);\n" +
+        "#ifndef TLAS_DEPTH\n" +
+        "       intersectBLAS(0u,pos,dir,1.0/dir,distance,normal,blasCtr,trisCtr);\n" +
+        "#else\n" +
+        "       intersectTLAS(pos,dir,distance,normal,tlasCtr,blasCtr,trisCtr);\n" +
+        "#endif\n" +
+        "           if(distance < 1e6) color *= 0.2;\n" + // shadow
+        "      } else {\n" +
+        // compute sky color
+        "          color = mix(sky0,sky1,dir.y*.5+.5);\n" +
+        "      }\n" +
         "   }\n" +
         "}\n"
 
@@ -256,7 +271,7 @@ fun createTLASTextureComputeShader(bvh: TLASNode): Quad<ComputeShader, Texture2D
     )
 }
 
-fun createTLASBufferComputeShader(tlas: TLASNode): Quad<ComputeShader, ComputeBuffer, ComputeBuffer, ComputeBuffer> {
+fun createTLASBufferComputeShader(tlas: TLASNode): Pair<ComputeShader, Array<ComputeBuffer>> {
 
     val uniqueMeshes = HashSet<BLASNode>(tlas.countTLASLeaves())
     tlas.collectMeshes(uniqueMeshes)
@@ -293,5 +308,5 @@ fun createTLASBufferComputeShader(tlas: TLASNode): Quad<ComputeShader, ComputeBu
                 "}\n"
     )
 
-    return Quad(shader, triangles, blasNodes, tlasNodes)
+    return Pair(shader, arrayOf(triangles, blasNodes, tlasNodes.first, tlasNodes.second))
 }

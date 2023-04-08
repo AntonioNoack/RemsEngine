@@ -1,6 +1,5 @@
 package me.anno.engine.raycast
 
-import me.anno.cache.CacheSection
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.collider.Collider
@@ -113,7 +112,7 @@ object Raycast {
             }
         }
         return if (result.distance < originalDistance) {
-            result.normalWS.normalize()
+            result.geometryNormalWS.normalize()
             result
         } else null
     }
@@ -374,7 +373,7 @@ object Raycast {
                 if (if (tmpNor.dot(direction) < 0f) acceptFront else acceptBack) {
                     result.distance = distance
                     result.positionWS.set(tmpPos)
-                    result.normalWS.set(tmpNor)
+                    result.geometryNormalWS.set(tmpNor)
                 }
             }
         }
@@ -449,7 +448,7 @@ object Raycast {
             if (distance < result.distance && if (tmpNor.dot(direction) < 0f) acceptFront else acceptBack) {
                 result.distance = distance
                 result.positionWS.set(tmpPos)
-                result.normalWS.set(tmpNor)
+                result.geometryNormalWS.set(tmpNor)
             }
         }
     }

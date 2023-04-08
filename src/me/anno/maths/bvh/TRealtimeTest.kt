@@ -35,10 +35,12 @@ fun run(
 
         val list = CustomList(false, style)
 
-        val scale = 4
+        var scale = 4
         list.add(createCPUPanel(scale, pos, rot, fovZFactor, bvh, controls, true))
         list.add(createCPUPanel(scale, pos, rot, fovZFactor, bvh, controls, false))
 
+        // gpu is fast enough :)
+        scale = 1
         val useComputeShader = true
         list.add(createGPUPanel(scale, pos, rot, fovZFactor, bvh, controls, useComputeShader, false))
         list.add(createGPUPanel(scale, pos, rot, fovZFactor, bvh, controls, useComputeShader, true))

@@ -3,14 +3,10 @@ package me.anno.maths.bvh
 import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_BLAS_NODE
 import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
 import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
-import org.joml.*
-import kotlin.math.max
-import kotlin.math.min
 
-@Suppress("unused")
 object RayTracing {
 
-    val glslIntersections = "" +
+    const val glslIntersections = "" +
             // https://stackoverflow.com/questions/59257678/intersect-a-ray-with-a-triangle-in-glsl-c
             "float pointInOrOn(vec3 p1, vec3 p2, vec3 a, vec3 b){\n" +
             "    vec3 ba  = b-a;\n" +
@@ -44,6 +40,7 @@ object RayTracing {
             "   float distance = dot(p0-pos, N) / dnn;\n" +
             "   vec3 px = pos + dir * distance;\n" +
             // https://gamedev.stackexchange.com/questions/23743/whats-the-most-efficient-way-to-find-barycentric-coordinates
+            // todo use this way in the cpu implementations as well
             "   vec3 v0 = p1-p0, v1 = p2-p0, v2 = px-p0;\n" +
             "   float d00=dot(v0,v0),d01=dot(v0,v1),d11=dot(v1,v1),d20=dot(v2,v0),d21=dot(v2,v1);\n" +
             "   float d = 1.0/(d00*d11-d01*d01);\n" +
@@ -52,10 +49,10 @@ object RayTracing {
             "   float u = 1.0 - v - w;\n" +
             // large, branchless and-concatenation
             "   bool hit = \n" +
-            "       step(0.0, -dnn) *\n" + // is front face
+            "       step(dnn,0.0) *\n" + // is front face
             "       step(0.0,u)*step(0.0,v)*step(0.0,w) *\n" +
-            "       step(0.0, distance) *\n" +
-            "       step(0.0, bestDistance - distance) > 0.0;\n" +
+            "       step(0.0,distance) *\n" +
+            "       step(distance,bestDistance) > 0.0;\n" +
             "   bestDistance = hit ? distance : bestDistance;\n" +
             "   normal = hit ? (u*n0+v*n1+w*n2) : normal;\n" +
             "}\n" +
@@ -99,7 +96,7 @@ object RayTracing {
             "#define TEXTURE_SIZE(name) imageSize(name)\n" +
             "#define LOAD_PIXEL(name,uv) imageLoad(name,uv)\n"
 
-    val glslRandomGen = "" +
+    const val glslRandomGen = "" +
             // from https://github.com/SlightlyMad/SimpleDxrPathTracer
             // http://reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/
             // https://github.com/nvpro-samples/optix_prime_baking/blob/master/random.h
@@ -271,7 +268,5 @@ object RayTracing {
             "   }\n" + // end of tlas
             "   tlasCtr += k;\n" +
             "}\n"
-
-    fun Vector4f.dot(v: Vector3f, w: Float) = dot(v.x, v.y, v.z, w)
 
 }

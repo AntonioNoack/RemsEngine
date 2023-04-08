@@ -43,9 +43,12 @@ class RayGroup(val sx: Int, val sy: Int, val local: RayGroup? = null) {
 
     val colors = IntArray(size)
     val depths = FloatArray(size)
-    val normalX = FloatArray(size)
-    val normalY = FloatArray(size)
-    val normalZ = FloatArray(size)
+    val normalGX = FloatArray(size)
+    val normalGY = FloatArray(size)
+    val normalGZ = FloatArray(size)
+    val normalSX = FloatArray(size)
+    val normalSY = FloatArray(size)
+    val normalSZ = FloatArray(size)
 
     var maxDistance = 0f
 
@@ -73,9 +76,12 @@ class RayGroup(val sx: Int, val sy: Int, val local: RayGroup? = null) {
         dys[0] = 0f
         depths.fill(maxDistance)
         this.maxDistance = maxDistance
-        normalX.fill(0f)
-        normalY.fill(0f)
-        normalZ.fill(0f)
+        normalGX.fill(0f)
+        normalGY.fill(0f)
+        normalGZ.fill(0f)
+        normalSX.fill(0f)
+        normalSY.fill(0f)
+        normalSZ.fill(0f)
     }
 
     fun setDx(dx: Vector3f) {

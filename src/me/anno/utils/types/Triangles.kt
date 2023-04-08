@@ -1,6 +1,7 @@
 package me.anno.utils.types
 
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
 import org.joml.*
 import kotlin.math.abs
@@ -15,17 +16,36 @@ object Triangles {
         a: Vector3f, b: Vector3f, c: Vector3f,
         maxDistance: Float,
         dstNormal: Vector3f,
-        dstPosition: Vector3f
+        dstPosition: Vector3f,
+        dstUVW: Vector3f? = null,
     ): Float {
         val n = subCross(a, b, c, dstNormal)
-        val d = n.dot(a)
-        val distance = (d - n.dot(origin)) / n.dot(direction)
+        val dist = n.dot(a)
+        val distance = (dist - n.dot(origin)) / n.dot(direction)
         if (distance < 0f || distance >= maxDistance) return Float.POSITIVE_INFINITY
         direction.mulAdd(distance, origin, dstPosition)
-        if (subCrossDot(a, b, dstPosition, n) < 0f ||
-            subCrossDot(b, c, dstPosition, n) < 0f ||
-            subCrossDot(c, a, dstPosition, n) < 0f
-        ) return Float.POSITIVE_INFINITY
+
+        val v0x = b.x - a.x
+        val v0y = b.y - a.y
+        val v0z = b.z - a.z
+        val v1x = c.x - a.x
+        val v1y = c.y - a.y
+        val v1z = c.z - a.z
+        val v2x = dstPosition.x - a.x
+        val v2y = dstPosition.y - a.y
+        val v2z = dstPosition.z - a.z
+        val d00 = sq(v0x, v0y, v0z)
+        val d01 = v0x * v1x + v0y * v1y + v0z * v1z
+        val d11 = sq(v1x, v1y, v1z)
+        val d20 = v0x * v2x + v0y * v2y + v0z * v2z
+        val d21 = v1x * v2x + v1y * v2y + v1z * v2z
+        val d = 1f / (d00 * d11 - d01 * d01)
+        val v = (d11 * d20 - d01 * d21) * d
+        val w = (d00 * d21 - d01 * d20) * d
+        val u = 1f - v - w
+
+        if (u < 0f || v < 0f || w < 0f) return Float.POSITIVE_INFINITY
+        dstUVW?.set(u, v, w)
         return distance
     }
 
@@ -38,19 +58,82 @@ object Triangles {
         a: Vector3f, b: Vector3f, c: Vector3f,
         maxDistance: Float,
         dstNormal: Vector3f,
-        dstPosition: Vector3f
+        dstPosition: Vector3f,
+        dstUVW: Vector3f? = null,
     ): Float {
         val n = subCross(a, b, c, dstNormal)
         val ndd = n.dot(direction)
         if (ndd >= 0f) return Float.POSITIVE_INFINITY
-        val d = n.dot(a)
-        val distance = (d - n.dot(origin)) / ndd
+        val dist = n.dot(a)
+        val distance = (dist - n.dot(origin)) / ndd
         if (distance < 0f || distance >= maxDistance) return Float.POSITIVE_INFINITY
-        direction.mulAdd(distance, origin, dstPosition)
-        if (subCrossDot(a, b, dstPosition, n) < 0f ||
-            subCrossDot(b, c, dstPosition, n) < 0f ||
-            subCrossDot(c, a, dstPosition, n) < 0f
-        ) return Float.POSITIVE_INFINITY
+        direction.mulAdd(distance, origin, dstPosition) // dstPosition = dx, p0=a, p1=b, p2=c
+
+        val v0x = b.x - a.x
+        val v0y = b.y - a.y
+        val v0z = b.z - a.z
+        val v1x = c.x - a.x
+        val v1y = c.y - a.y
+        val v1z = c.z - a.z
+        val v2x = dstPosition.x - a.x
+        val v2y = dstPosition.y - a.y
+        val v2z = dstPosition.z - a.z
+        val d00 = sq(v0x, v0y, v0z)
+        val d01 = v0x * v1x + v0y * v1y + v0z * v1z
+        val d11 = sq(v1x, v1y, v1z)
+        val d20 = v0x * v2x + v0y * v2y + v0z * v2z
+        val d21 = v1x * v2x + v1y * v2y + v1z * v2z
+        val d = 1f / (d00 * d11 - d01 * d01)
+        val v = (d11 * d20 - d01 * d21) * d
+        val w = (d00 * d21 - d01 * d20) * d
+        val u = 1f - v - w
+
+        if (u < 0f || v < 0f || w < 0f) return Float.POSITIVE_INFINITY
+        dstUVW?.set(u, v, w)
+        return distance
+    }
+
+    /**
+     * only front faces are valid; back faces are skipped;
+     * returns Infinity on miss
+     * */
+    fun rayTriangleIntersectionFront(
+        origin: Vector3d, direction: Vector3d,
+        a: Vector3d, b: Vector3d, c: Vector3d,
+        maxDistance: Double,
+        dstNormal: Vector3d,
+        dstPosition: Vector3d,
+        dstUVW: Vector3d? = null,
+    ): Double {
+        val n = subCross(a, b, c, dstNormal)
+        val ndd = n.dot(direction)
+        if (ndd >= 0.0) return Double.POSITIVE_INFINITY
+        val dist = n.dot(a)
+        val distance = (dist - n.dot(origin)) / ndd
+        if (distance < 0.0 || distance >= maxDistance) return Double.POSITIVE_INFINITY
+        direction.mulAdd(distance, origin, dstPosition) // dstPosition = dx, p0=a, p1=b, p2=c
+
+        val v0x = b.x - a.x
+        val v0y = b.y - a.y
+        val v0z = b.z - a.z
+        val v1x = c.x - a.x
+        val v1y = c.y - a.y
+        val v1z = c.z - a.z
+        val v2x = dstPosition.x - a.x
+        val v2y = dstPosition.y - a.y
+        val v2z = dstPosition.z - a.z
+        val d00 = sq(v0x, v0y, v0z)
+        val d01 = v0x * v1x + v0y * v1y + v0z * v1z
+        val d11 = sq(v1x, v1y, v1z)
+        val d20 = v0x * v2x + v0y * v2y + v0z * v2z
+        val d21 = v1x * v2x + v1y * v2y + v1z * v2z
+        val d = 1.0 / (d00 * d11 - d01 * d01)
+        val v = (d11 * d20 - d01 * d21) * d
+        val w = (d00 * d21 - d01 * d20) * d
+        val u = 1.0 - v - w
+
+        if (u < 0.0 || v < 0.0 || w < 0.0) return Double.POSITIVE_INFINITY
+        dstUVW?.set(u, v, w)
         return distance
     }
 
@@ -61,16 +144,35 @@ object Triangles {
         maxDistance: Double,
         dstPosition: Vector3d,
         dstNormal: Vector3d,
+        dstUVW: Vector3f? = null,
     ): Double {
         val n = subCross(a, b, c, dstNormal) // to keep the magnitude of the calculations under control
-        val d = n.dot(a)
-        val distance = (d - n.dot(origin)) / n.dot(direction) // distance to triangle
+        val dist = n.dot(a)
+        val distance = (dist - n.dot(origin)) / n.dot(direction) // distance to triangle
         if (distance < 0f || distance >= maxDistance) return Double.POSITIVE_INFINITY
         direction.mulAdd(distance, origin, dstPosition)
-        if (subCrossDot(a, b, dstPosition, n) < 0.0 ||
-            subCrossDot(b, c, dstPosition, n) < 0.0 ||
-            subCrossDot(c, a, dstPosition, n) < 0.0
-        ) return Double.POSITIVE_INFINITY
+
+        val v0x = b.x - a.x
+        val v0y = b.y - a.y
+        val v0z = b.z - a.z
+        val v1x = c.x - a.x
+        val v1y = c.y - a.y
+        val v1z = c.z - a.z
+        val v2x = dstPosition.x - a.x
+        val v2y = dstPosition.y - a.y
+        val v2z = dstPosition.z - a.z
+        val d00 = sq(v0x, v0y, v0z)
+        val d01 = v0x * v1x + v0y * v1y + v0z * v1z
+        val d11 = sq(v1x, v1y, v1z)
+        val d20 = v0x * v2x + v0y * v2y + v0z * v2z
+        val d21 = v1x * v2x + v1y * v2y + v1z * v2z
+        val d = 1.0 / (d00 * d11 - d01 * d01)
+        val v = (d11 * d20 - d01 * d21) * d
+        val w = (d00 * d21 - d01 * d20) * d
+        val u = 1.0 - v - w
+
+        if (u < 0.0 || v < 0.0 || w < 0.0) return Double.POSITIVE_INFINITY
+        dstUVW?.set(u, v, w)
         return distance
     }
 
@@ -81,9 +183,10 @@ object Triangles {
         maxDistance: Float,
         dstPosition: Vector3f,
         dstNormal: Vector3f,
+        dstUVW: Vector3f? = null,
     ): Float {
         val n = subCross(a, b, c, dstNormal) // to keep the magnitude of the calculations under control
-        val d = n.dot(a)
+        val dist = n.dot(a)
         val cx = (a.x + b.x + c.x) * thirdF
         val cy = (a.y + b.y + c.y) * thirdF
         val cz = (a.z + b.z + c.z) * thirdF
@@ -91,13 +194,31 @@ object Triangles {
         val ox = mix(origin.x, cx, f)
         val oy = mix(origin.y, cy, f)
         val oz = mix(origin.z, cz, f)
-        val distance = (d - n.dot(ox, oy, oz)) / n.dot(direction) // distance to triangle
+        val distance = (dist - n.dot(ox, oy, oz)) / n.dot(direction) // distance to triangle
         if (distance < 0f || distance >= maxDistance) return Float.POSITIVE_INFINITY
         dstPosition.set(direction).mul(distance).add(ox, oy, oz)
-        if (subCrossDot(a, b, dstPosition, n) < 0f ||
-            subCrossDot(b, c, dstPosition, n) < 0f ||
-            subCrossDot(c, a, dstPosition, n) < 0f
-        ) return Float.POSITIVE_INFINITY
+
+        val v0x = b.x - a.x
+        val v0y = b.y - a.y
+        val v0z = b.z - a.z
+        val v1x = c.x - a.x
+        val v1y = c.y - a.y
+        val v1z = c.z - a.z
+        val v2x = dstPosition.x - a.x
+        val v2y = dstPosition.y - a.y
+        val v2z = dstPosition.z - a.z
+        val d00 = sq(v0x, v0y, v0z)
+        val d01 = v0x * v1x + v0y * v1y + v0z * v1z
+        val d11 = sq(v1x, v1y, v1z)
+        val d20 = v0x * v2x + v0y * v2y + v0z * v2z
+        val d21 = v1x * v2x + v1y * v2y + v1z * v2z
+        val d = 1f / (d00 * d11 - d01 * d01)
+        val v = (d11 * d20 - d01 * d21) * d
+        val w = (d00 * d21 - d01 * d20) * d
+        val u = 1f - v - w
+
+        if (u < 0f || v < 0f || w < 0f) return Float.POSITIVE_INFINITY
+        dstUVW?.set(u, v, w)
         return distance
     }
 
@@ -108,11 +229,12 @@ object Triangles {
         maxDistance: Double,
         dstPosition: Vector3d,
         dstNormal: Vector3d,
+        dstUVW: Vector3d? = null
     ): Double {
         // compute triangle normal
         val n = subCross(a, b, c, dstNormal) // to keep the magnitude of the calculations under control
         // compute distance
-        val d = n.dot(a)
+        val dist = n.dot(a)
         val cx = (a.x + b.x + c.x) * thirdD
         val cy = (a.y + b.y + c.y) * thirdD
         val cz = (a.z + b.z + c.z) * thirdD
@@ -120,13 +242,31 @@ object Triangles {
         val ox = mix(origin.x, cx, f)
         val oy = mix(origin.y, cy, f)
         val oz = mix(origin.z, cz, f)
-        val distance = (d - n.dot(ox, oy, oz)) / n.dot(direction) // distance to triangle
+        val distance = (dist - n.dot(ox, oy, oz)) / n.dot(direction) // distance to triangle
         if (distance < 0.0 || distance >= maxDistance) return Double.POSITIVE_INFINITY
         dstPosition.set(direction).mul(distance).add(ox, oy, oz)
-        if (subCrossDot(a, b, dstPosition, n) < 0.0 ||
-            subCrossDot(b, c, dstPosition, n) < 0.0 ||
-            subCrossDot(c, a, dstPosition, n) < 0.0
-        ) return Double.POSITIVE_INFINITY
+
+        val v0x = b.x - a.x
+        val v0y = b.y - a.y
+        val v0z = b.z - a.z
+        val v1x = c.x - a.x
+        val v1y = c.y - a.y
+        val v1z = c.z - a.z
+        val v2x = dstPosition.x - a.x
+        val v2y = dstPosition.y - a.y
+        val v2z = dstPosition.z - a.z
+        val d00 = sq(v0x, v0y, v0z)
+        val d01 = v0x * v1x + v0y * v1y + v0z * v1z
+        val d11 = sq(v1x, v1y, v1z)
+        val d20 = v0x * v2x + v0y * v2y + v0z * v2z
+        val d21 = v1x * v2x + v1y * v2y + v1z * v2z
+        val d = 1.0 / (d00 * d11 - d01 * d01)
+        val v = (d11 * d20 - d01 * d21) * d
+        val w = (d00 * d21 - d01 * d20) * d
+        val u = 1.0 - v - w
+
+        if (u < 0.0 || v < 0.0 || w < 0.0) return Double.POSITIVE_INFINITY
+        dstUVW?.set(u, v, w)
         return distance
     }
 
@@ -148,7 +288,7 @@ object Triangles {
     }
 
     /**
-     * calculates ((b-a) x (c-a)) * n
+     * calculates (ba x (c-a)) * n
      * without any allocations
      * */
     fun halfSubCrossDot(ba: Vector3f, a: Vector3f, c: Vector3f, n: Vector3f): Float {
@@ -411,17 +551,12 @@ object Triangles {
         maxDistance: Float,
         allowBackside: Boolean
     ): Boolean {
-        val n = subCross(a, b, c, JomlPools.vec3f.borrow())
-        val d = n.dot(a)
-        val t = (d - n.dot(origin)) / n.dot(direction)
-        return if (t in 0f..maxDistance) {
-            val q = origin + direction * t
-            var sum = 0
-            if (subCrossDot(a, b, q, n) < 0f) sum++
-            if (subCrossDot(b, c, q, n) < 0f) sum++
-            if (subCrossDot(c, a, q, n) < 0f) sum++
-            sum == 0 || (allowBackside && sum == 3)
-        } else false
+        val t0 = JomlPools.vec3f.create()
+        val t1 = JomlPools.vec3f.create()
+        val dist = if (allowBackside) rayTriangleIntersection(origin, direction, a, b, c, maxDistance, t0, t1)
+        else rayTriangleIntersectionFront(origin, direction, a, b, c, maxDistance, t0, t1)
+        JomlPools.vec3f.sub(2)
+        return dist.isFinite()
     }
 
     fun rayTriangleIntersect(
@@ -430,17 +565,12 @@ object Triangles {
         maxDistance: Double,
         allowBackside: Boolean
     ): Boolean {
-        val n = subCross(a, b, c, JomlPools.vec3d.borrow())
-        val d = n.dot(a)
-        val t = (d - n.dot(origin)) / n.dot(direction)
-        return if (t in 0.0..maxDistance) {
-            val q = origin + direction * t
-            var sum = 0
-            if (subCrossDot(a, b, q, n) < 0.0) sum++
-            if (subCrossDot(b, c, q, n) < 0.0) sum++
-            if (subCrossDot(c, a, q, n) < 0.0) sum++
-            sum == 0 || (allowBackside && sum == 3)
-        } else false
+        val t0 = JomlPools.vec3d.create()
+        val t1 = JomlPools.vec3d.create()
+        val dist = if (allowBackside) rayTriangleIntersection(origin, direction, a, b, c, maxDistance, t0, t1)
+        else rayTriangleIntersectionFront(origin, direction, a, b, c, maxDistance, t0, t1)
+        JomlPools.vec3d.sub(2)
+        return dist.isFinite()
     }
 
     const val thirdD = 1.0 / 3.0

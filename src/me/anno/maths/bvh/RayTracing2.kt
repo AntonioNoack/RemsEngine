@@ -17,11 +17,13 @@ object RayTracing2 {
             "   vec3 max;\n" +
             "   uint v1;\n" +
             "};\n" +
-            "struct TLASNode {\n" +
+            "struct TLASNode0 {\n" +
             "   vec3    min;\n" +
             "   uint    v0;\n" +
             "   vec3    max;\n" +
             "   uint    v1;\n" +
+            "};\n"+
+            "struct TLASNode1 {\n" +
             // mat4x3 seems to have a different layout -> it must have 4x4 layout instead of 4x3 🤨
             "   vec4 w2l0, w2l1, w2l2;\n" +
             "   vec4 l2w0, l2w1, l2w2;\n" +
@@ -31,8 +33,9 @@ object RayTracing2 {
     val bufferLayouts = "" +
             "layout(std140, shared, binding = 0) readonly buffer triangles  { Vertex vertices[]; };\n" +
             "layout(std140, shared, binding = 1) readonly buffer blasBuffer { BLASNode blasNodes[]; };\n" +
-            "layout(std140, shared, binding = 2) readonly buffer tlasBuffer { TLASNode tlasNodes[]; };\n" +
-            "layout(rgba32f, binding = 3) uniform image2D dst;\n"
+            "layout(std140, shared, binding = 2) readonly buffer tlasBuffer0 { TLASNode0 tlasNodes0[]; };\n" +
+            "layout(std140, shared, binding = 3) readonly buffer tlasBuffer1 { TLASNode1 tlasNodes1[]; };\n" +
+            "layout(rgba32f, binding = 4) uniform image2D dst;\n"
 
     const val glslBLASIntersection2 = "" +
             "void intersectBLAS(\n" +
@@ -88,7 +91,7 @@ object RayTracing2 {
             "   uint k=0u;\n" +
             "   while(k++<512u){\n" + // start of tlas
             // fetch tlas node data
-            "       TLASNode node = tlasNodes[nodeIndex];\n" +
+            "       TLASNode0 node = tlasNodes0[nodeIndex];\n" +
             "       if(intersectAABB(worldPos,worldInvDir,node.min,node.max,worldDistance)){\n" +
             "           uvec2 v01 = uvec2(node.v0,node.v1);\n" +
             "           if(v01.y < 3u){\n" + // tlas branch
@@ -102,7 +105,8 @@ object RayTracing2 {
             "               }\n" +
             "           } else {\n" + // tlas leaf
             // transform ray into local coordinates
-            "               mat4x3 worldToLocal = loadMat4x3(node.w2l0,node.w2l1,node.w2l2);\n" +
+            "               TLASNode1 node1 = tlasNodes1[v01.y-3u];\n" +
+            "               mat4x3 worldToLocal = loadMat4x3(node1.w2l0,node1.w2l1,node1.w2l2);\n" +
             "               vec3 localPos = worldToLocal * vec4(worldPos, 1.0);\n" +
             "               vec3 localDir0 = mat3x3(worldToLocal) * worldDir;\n" +
             "               vec3 localDir = normalize(localDir0);\n" +
@@ -114,7 +118,7 @@ object RayTracing2 {
             "               if(localDistance < localDistanceOld){\n" + // we hit something
             // transform result into global coordinates
             // theoretically we could get z-fighting here
-            "                   mat4x3 localToWorld = loadMat4x3(node.l2w0,node.l2w1,node.l2w2);\n" +
+            "                   mat4x3 localToWorld = loadMat4x3(node1.l2w0,node1.l2w1,node1.l2w2);\n" +
             "                   float worldDistance1 = localDistance * length(localToWorld * vec4(localDir, 0.0));\n" +
             "                   if(worldDistance1 < worldDistance){\n" + // could be false by numerical errors
             // transform hit normal into world coordinates

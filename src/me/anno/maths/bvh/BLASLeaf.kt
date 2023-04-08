@@ -38,37 +38,54 @@ class BLASLeaf(
 
             val localHit = vs[5]
             val localNormal = vs[6]
+            val localNormal2 = vs[7]
+            val barycentrics = vs[8]
 
             var bestLocalDistance = hit.distance.toFloat()
             val bld0 = bestLocalDistance
 
             val positions = geometry.positions
             val indices = geometry.indices
+            val normals = geometry.normals
 
             var i3 = start * 3
             val j3 = i3 + length * 3
             while (i3 < j3) {
 
-                a.set(positions, indices[i3] * 3)
-                b.set(positions, indices[i3 + 1] * 3)
-                c.set(positions, indices[i3 + 2] * 3)
+                val ai = indices[i3] * 3
+                val bi = indices[i3 + 1] * 3
+                val ci = indices[i3 + 2] * 3
+                a.set(positions, ai)
+                b.set(positions, bi)
+                c.set(positions, ci)
                 i3 += 3
 
                 val localDistance = rayTriangleIntersectionFront(
-                    pos, dir, a, b, c, bestLocalDistance, localNormalTmp, localHitTmp
+                    pos, dir, a, b, c, bestLocalDistance,
+                    localNormalTmp, localHitTmp, barycentrics
                 )
                 if (localDistance < bestLocalDistance) {
                     bestLocalDistance = localDistance
                     // could swap pointers as well
                     localHit.set(localHitTmp)
                     localNormal.set(localNormalTmp)
+                    // barycentric is only set, if an improvement is found;
+                    // find smooth normals using barycentrics
+                    barycentrics.div(barycentrics.x + barycentrics.y + barycentrics.z)
+                    localNormal2.set(
+                        barycentrics.x * normals[ai] + barycentrics.y * normals[bi] + barycentrics.z * normals[ci],
+                        barycentrics.x * normals[ai + 1] + barycentrics.y * normals[bi + 1] + barycentrics.z * normals[ci + 1],
+                        barycentrics.x * normals[ai + 2] + barycentrics.y * normals[bi + 2] + barycentrics.z * normals[ci + 2],
+                    )
                 }
             }
 
             val bld = bestLocalDistance.toDouble()
             if (bld < bld0) {
                 hit.distance = bld
-                hit.normalWS.set(localNormal)
+                hit.geometryNormalWS.set(localNormal)
+                hit.shadingNormalWS.set(localNormal2)
+                hit.barycentric.set(barycentrics)
                 true
             } else false
         } else false
@@ -93,6 +110,7 @@ class BLASLeaf(
 
             val positions = geometry.positions
             val indices = geometry.indices
+            val normals = geometry.normals
 
             val pos = group.pos
             val maxDistance = group.maxDistance
@@ -101,9 +119,12 @@ class BLASLeaf(
             val j3 = i3 + length * 3
             while (i3 < j3) {
 
-                a.set(positions, indices[i3] * 3)
-                b.set(positions, indices[i3 + 1] * 3)
-                c.set(positions, indices[i3 + 2] * 3)
+                val ai = indices[i3] * 3
+                val bi = indices[i3 + 1] * 3
+                val ci = indices[i3 + 2] * 3
+                a.set(positions, ai)
+                b.set(positions, bi)
+                c.set(positions, ci)
                 i3 += 3
 
                 // inlined, optimized calculation with dx and dy
@@ -174,18 +195,21 @@ class BLASLeaf(
                                 val dxi = dxs[j]
                                 val dyi = dys[j]
 
-                                val d0 = d00 + dxi * d0x + dyi * d0y
-                                val d1 = d10 + dxi * d1x + dyi * d1y
-                                val d2 = d20 + dxi * d2x + dyi * d2y
+                                val w = d00 + dxi * d0x + dyi * d0y // ab
+                                val u = d10 + dxi * d1x + dyi * d1y // bc
+                                val v = d20 + dxi * d2x + dyi * d2y // ca
 
                                 val bestLocalDistance = group.depths[j]
                                 val dist = dist0 + dxi * distX + dyi * distY
-                                val distance = if (min(d0, min(d1, d2)) >= 0f) dist else bestLocalDistance
+                                val distance = if (min(w, min(u, v)) >= 0f) dist else bestLocalDistance
                                 if (distance < bestLocalDistance) {
                                     group.depths[j] = distance
-                                    group.normalX[j] = localNormal.x
-                                    group.normalY[j] = localNormal.y
-                                    group.normalZ[j] = localNormal.z
+                                    group.normalGX[j] = localNormal.x
+                                    group.normalGY[j] = localNormal.y
+                                    group.normalGZ[j] = localNormal.z
+                                    group.normalSX[j] = normals[ai] * u + normals[bi] * v + normals[ci] * w
+                                    group.normalSY[j] = normals[ai + 1] * u + normals[bi + 1] * v + normals[ci + 1] * w
+                                    group.normalSZ[j] = normals[ai + 2] * u + normals[bi + 2] * v + normals[ci + 2] * w
                                 }
                             }
 
@@ -215,17 +239,20 @@ class BLASLeaf(
 
                             dir.mulAdd(dist, pos, localHit)
 
-                            val d0 = halfSubCrossDot(ab, a, localHit, triN)
-                            val d1 = halfSubCrossDot(bc, b, localHit, triN)
-                            val d2 = halfSubCrossDot(ca, c, localHit, triN)
+                            val w = halfSubCrossDot(ab, a, localHit, triN)
+                            val u = halfSubCrossDot(bc, b, localHit, triN)
+                            val v = halfSubCrossDot(ca, c, localHit, triN)
 
                             val bestLocalDistance = group.depths[j]
-                            val distance = if (min(d0, min(d1, d2)) >= 0f) dist else bestLocalDistance
+                            val distance = if (min(w, min(u, v)) >= 0f) dist else bestLocalDistance
                             if (distance < bestLocalDistance) {
                                 group.depths[j] = distance
-                                group.normalX[j] = localNormal.x
-                                group.normalY[j] = localNormal.y
-                                group.normalZ[j] = localNormal.z
+                                group.normalGX[j] = localNormal.x
+                                group.normalGY[j] = localNormal.y
+                                group.normalGZ[j] = localNormal.z
+                                group.normalSX[j] = normals[ai] * u + normals[bi] * v + normals[ci] * w
+                                group.normalSY[j] = normals[ai + 1] * u + normals[bi + 1] * v + normals[ci + 1] * w
+                                group.normalSZ[j] = normals[ai + 2] * u + normals[bi + 2] * v + normals[ci + 2] * w
                             }
                         }
                     }

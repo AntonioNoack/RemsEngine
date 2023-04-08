@@ -1,6 +1,5 @@
 package me.anno.maths.bvh
 
-import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -13,11 +12,13 @@ import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.ComputeBuffer
-import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.query.GPUClockNanos
 import me.anno.gpu.shader.*
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -40,7 +41,6 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
-import me.anno.utils.Clock
 import me.anno.utils.Color.toRGB
 import me.anno.utils.OS.documents
 import me.anno.utils.hpc.ProcessingGroup
@@ -48,7 +48,6 @@ import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
 import org.joml.JomlMath.invsqrt
 import org.joml.Quaternionf
@@ -63,6 +62,7 @@ enum class DrawMode(val id: Int) {
     BLAS_DEPTH(2),
     TRIS_DEPTH(3),
     GLOBAL_ILLUMINATION(5),
+    SIMPLE_SHADOW(6),
 }
 
 var drawMode = DrawMode.NORMAL
@@ -73,7 +73,6 @@ fun main() {
     val meshSource = documents.getChild("monkey.obj")
     val mesh = MeshCache[meshSource]!!
     val blas = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN, 8)!!
-    // blas.print()
     main2(blas, Vector3f(), Quaternionf(), 1f)
 }
 
@@ -209,7 +208,7 @@ fun fillTile(
     for (y in y0 until y1) {
         var i = x0 + y * w
         for (x in x0 until x1) {
-            normal.set(group.normalX[k], group.normalY[k], group.normalZ[k])
+            normal.set(group.normalSX[k], group.normalSY[k], group.normalSZ[k])
             val color = hitToColor(normal, group.dir, tlas, blas, tris)
             ints.put(i, mixARGB(ints[i], color, alpha))
             k++
@@ -236,8 +235,6 @@ fun createCPUPanel(
     val cpuTexture = Texture2D("cpu", 1, 1, 1)
     cpuTexture.createRGBA()
 
-    fun computeSpeed(w: Int, h: Int, dt: Long) = dt / (w * h)
-
     val tileSize = 4
     val groups = ThreadLocal2 { RayGroup(tileSize, tileSize, RayGroup(tileSize, tileSize)) }
     var frameIndex = 0
@@ -249,9 +246,8 @@ fun createCPUPanel(
     var isRendering = false
     var cpuBuffer: IntBuffer? = null
     var cpuBytes: ByteBuffer? = null
+    var dt = 0L
     return TestDrawPanel {
-
-        val parent = it.uiParent!!
 
         it.clear()
 
@@ -260,6 +256,7 @@ fun createCPUPanel(
         val w = it.w / scale
         val h = it.h / scale
 
+        val parent = it.uiParent!!
         val cx = Math.random().toFloat() - 0.5f + (parent.w * 0.5f - it.x) / scale
         val cy = Math.random().toFloat() - 0.5f + (parent.h * 0.5f) / scale
         val fovZ = -parent.h * fovZFactor / scale
@@ -273,12 +270,14 @@ fun createCPUPanel(
             lastRot.set(cameraRotation)
             lastDrawMode = drawMode
             frameIndex = 0
+            dt = 0L
         }
 
         if (lastW != w || lastH != h) {
             lastW = w
             lastH = h
             frameIndex = 0
+            dt = 0L
         }
 
         val alpha = 1f / (frameIndex + 1f)
@@ -316,14 +315,14 @@ fun createCPUPanel(
                                 dir.set(x - cx, cy - y, fovZ).normalize()
                                 lastRot.transform(dir)
                                 val hit = localResult.get()
-                                hit.normalWS.set(0.0)
+                                hit.shadingNormalWS.set(0.0)
                                 hit.distance = maxDistance
                                 hit.tlasCtr = 0
                                 hit.blasCtr = 0
                                 hit.trisCtr = 0
                                 bvh.intersect(lastPos, dir, hit)
-                                nor.set(hit.normalWS)
-                                val color = hitToColor(nor, dir, hit.tlasCtr, hit.blasCtr, hit.trisCtr)
+                                val color =
+                                    hitToColor(nor.set(hit.shadingNormalWS), dir, hit.tlasCtr, hit.blasCtr, hit.trisCtr)
                                 ints.put(i, mixARGB(ints[i], color, alpha))
                                 i++
                             }
@@ -332,21 +331,16 @@ fun createCPUPanel(
                     }
                 }
                 val t1 = System.nanoTime()
-                val dt = max(t1 - t0, 1L)
-                cpuSpeed = if (cpuSpeed > 0) {// smoothing
-                    (cpuSpeed * 7 + computeSpeed(w, h, dt)) shr 3
-                } else {
-                    computeSpeed(w, h, dt)
-                }
-                cpuFPS = SECONDS_TO_NANOS / dt
+                dt += t1 - t0
+                frameIndex++
+                cpuSpeed = dt / (w * h * frameIndex.toLong())
+                cpuFPS = SECONDS_TO_NANOS * frameIndex / dt
                 GFX.addGPUTask("brt-cpu", 1) {
                     cpuTexture.w = w
                     cpuTexture.h = h
                     cpuTexture.createRGBA(ints, false)
                     isRendering = false
-                    frameIndex++
                 }
-
             }
         }
 
@@ -363,6 +357,20 @@ fun createCPUPanel(
     }
 }
 
+val drawShader = Shader(
+    "draw", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(
+        Variable(GLSLType.V1B, "enableToneMapping"),
+        Variable(GLSLType.V1F, "brightness"),
+        Variable(GLSLType.S2D, "tex"),
+        Variable(GLSLType.V4F, "result", VariableMode.OUT)
+    ), "" +
+            "void main(){\n" +
+            "   vec3 color = texture(tex,uv).rgb;\n" +
+            "   if(enableToneMapping) color /= (color + brightness);\n" +
+            "   result = vec4(color, 1.0);\n" +
+            "}"
+)
+
 fun createGPUPanel(
     scale: Int,
     cameraPosition: Vector3f,
@@ -374,25 +382,13 @@ fun createGPUPanel(
     useComputeBuffer: Boolean
 ): Panel {
 
-    val avgBuffer = Framebuffer("avg", 1, 1, 1, 1, true, DepthBufferType.NONE)
-
-    val drawShader = Shader(
-        "draw", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(
-            Variable(GLSLType.V1B, "enableToneMapping"),
-            Variable(GLSLType.V1F, "brightness"),
-            Variable(GLSLType.S2D, "tex"),
-            Variable(GLSLType.V4F, "result", VariableMode.OUT)
-        ), "" +
-                "void main(){\n" +
-                "   vec3 color = texture(tex,uv).rgb;\n" +
-                "   if(enableToneMapping) color /= (color + brightness);\n" +
-                "   result = vec4(color, 1.0);\n" +
-                "}"
-    )
+    val avgBuffer = Framebuffer("avg", 1, 1, 1, arrayOf(TargetType.FloatTarget4), DepthBufferType.NONE)
 
     val lastPos = Vector3f()
     val lastRot = Quaternionf()
     var lastDrawMode: DrawMode? = null
+
+    val clockNanos = GPUClockNanos()
 
     var frameIndex = 0
     fun prepareShader(shader: OpenGLShader, it: Panel) {
@@ -411,6 +407,7 @@ fun createGPUPanel(
             lastRot.set(cameraRotation)
             lastDrawMode = drawMode
             frameIndex = 0
+            clockNanos.scaleWeight()
         }
 
         if (avgBuffer.w != w || avgBuffer.h != h) {
@@ -419,11 +416,12 @@ fun createGPUPanel(
             avgBuffer.destroy()
             avgBuffer.create()
             frameIndex = 0
+            clockNanos.scaleWeight()
         }
 
         val parent = it.uiParent!!
         val cx = Math.random().toFloat() - 0.5f + (parent.w * 0.5f - it.x) / scale
-        val cy = Math.random().toFloat() - 0.5f + (parent.h * 0.5f) / scale
+        val cy = Math.random().toFloat() - 0.5f + (parent.h * 0.5f) / scale - 1 // why ever -1 is needed...
         val fovZ = -parent.h * fovZFactor / scale
 
         shader.use()
@@ -453,9 +451,9 @@ fun createGPUPanel(
         drawShader.v1f("brightness", 0.2f * brightness)
         drawShader.v1b("enableToneMapping", enableAutoExposure)
         tex.bindTrulyNearest(0)
-        SimpleBuffer.flat01.draw(drawShader)
+        flat01.draw(drawShader)
 
-        val gpuFPS = Engine.currentFPS.f1()
+        val gpuFPS = SECONDS_TO_NANOS / max(1, clockNanos.average)
         DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.h - 50, 2, "$prefix: $gpuFPS fps, $frameIndex spp")
 
     }
@@ -465,20 +463,23 @@ fun createGPUPanel(
         if (useComputeBuffer) {
             val triangles: ComputeBuffer
             val blasNodes: ComputeBuffer
-            val tlasNodes: ComputeBuffer?
+            val tlasNodes0: ComputeBuffer?
+            val tlasNodes1: ComputeBuffer?
             when (bvh) {
                 is TLASNode -> {
-                    val (shader1, triangles1, blasNodes1, tlasNodes1) = createTLASBufferComputeShader(bvh)
+                    val (shader1, buffers) = createTLASBufferComputeShader(bvh)
                     shader = shader1
-                    triangles = triangles1
-                    blasNodes = blasNodes1
-                    tlasNodes = tlasNodes1
+                    triangles = buffers[0]
+                    blasNodes = buffers[1]
+                    tlasNodes0 = buffers[2]
+                    tlasNodes1 = buffers[3]
                 }
                 is BLASNode -> {
                     triangles = createTriangleBuffer(listOf(bvh))
                     blasNodes = createBLASBuffer(listOf(bvh))
                     shader = createBLASBufferComputeShader(bvh.maxDepth())
-                    tlasNodes = null
+                    tlasNodes0 = null
+                    tlasNodes1 = null
                 }
                 else -> throw IllegalStateException()
             }
@@ -488,9 +489,12 @@ fun createGPUPanel(
                     val avgTexture = avgBuffer.getTexture0()
                     shader.bindBuffer(0, triangles)
                     shader.bindBuffer(1, blasNodes)
-                    if (tlasNodes != null) shader.bindBuffer(2, tlasNodes)
-                    shader.bindTexture(3, avgTexture as Texture2D, ComputeTextureMode.READ_WRITE)
+                    if (tlasNodes0 != null) shader.bindBuffer(2, tlasNodes0)
+                    if (tlasNodes1 != null) shader.bindBuffer(3, tlasNodes1)
+                    shader.bindTexture(4, avgTexture as Texture2D, ComputeTextureMode.READ_WRITE)
+                    clockNanos.start()
                     shader.runBySize(avgBuffer.w, avgBuffer.h)
+                    clockNanos.stop()
                     frameIndex++
                 }
                 drawResult(it, "CB")
@@ -523,7 +527,9 @@ fun createGPUPanel(
                     shader.bindTexture(1, blasNodes, ComputeTextureMode.READ)
                     if (tlasNodes != null) shader.bindTexture(2, tlasNodes, ComputeTextureMode.READ)
                     shader.bindTexture(3, avgTexture as Texture2D, ComputeTextureMode.READ_WRITE)
+                    clockNanos.start()
                     shader.runBySize(avgBuffer.w, avgBuffer.h)
+                    clockNanos.stop()
                     frameIndex++
                 }
                 drawResult(it, "CT")
@@ -561,7 +567,9 @@ fun createGPUPanel(
                         triangles.bindTrulyNearest(0)
                         blasNodes.bindTrulyNearest(1)
                         tlasNodes?.bindTrulyNearest(2)
-                        SimpleBuffer.flat01.draw(shader)
+                        clockNanos.start()
+                        flat01.draw(shader)
+                        clockNanos.stop()
                         frameIndex++
                     }
                 }

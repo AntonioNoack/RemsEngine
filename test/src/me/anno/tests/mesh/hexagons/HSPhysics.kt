@@ -228,7 +228,7 @@ fun main() {
                         dir.mulAdd(-sphere.len * 0.05, hit.positionWS, hit.positionWS)
                     } else {
                         // move hit more into the block
-                        hit.normalWS.mulAdd(-sphere.len * 0.25, hit.positionWS, hit.positionWS)
+                        hit.geometryNormalWS.mulAdd(-sphere.len * 0.25, hit.positionWS, hit.positionWS)
                     }
                     val hexagon = sphere.findClosestHexagon(Vector3f(hit.positionWS))
                     val h = hit.positionWS.length().toFloat()
