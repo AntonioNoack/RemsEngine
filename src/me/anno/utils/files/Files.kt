@@ -11,6 +11,18 @@ import java.util.*
 
 object Files {
 
+    fun FileReference.findNextChild(
+        nameWithoutExtension: String,
+        extension: String, digitsLength: Int, colonSymbol: Char, startingNumber: Long = 1
+    ): FileReference {
+        return getChild(
+            findNextFileName(
+                this, nameWithoutExtension, extension,
+                digitsLength, colonSymbol, startingNumber
+            )
+        )
+    }
+
     fun findNextFileName(
         parent: FileReference,
         nameWithoutExtension: String,

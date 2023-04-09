@@ -170,7 +170,6 @@ class PipelineStage(
     }
 
     var nextInsertIndex = 0
-    var instancedSize = 0
     val drawRequests = ArrayList2<DrawRequest>()
 
     class ArrayList2<V>(cap: Int = 16) {
@@ -206,7 +205,7 @@ class PipelineStage(
     // doesn't work yet, why ever
     var occlusionQueryPrepass = false
 
-    val size get() = nextInsertIndex + instancedSize
+    val size get() = nextInsertIndex + instances.sumOf { it.size() }
 
     val instanced = InstancedStack.Impl()
     val instancedWithIdx = InstancedStack.ImplIdx()
@@ -777,7 +776,6 @@ class PipelineStage(
         } else hadTooMuchSpace = 0
 
         nextInsertIndex = 0
-        instancedSize = 0
 
         for (inst in instances) {
             inst.clear()
@@ -833,7 +831,6 @@ class PipelineStage(
                 )
             } else stack.add(transform, clickId)
         } else stack.add(transform, clickId)
-        instancedSize++
     }
 
     @Suppress("unused")

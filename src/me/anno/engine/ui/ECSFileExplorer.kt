@@ -25,8 +25,10 @@ import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.ui.style.Style
+import me.anno.utils.files.Files.findNextChild
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.structures.lists.Lists.all2
 import org.apache.logging.log4j.LogManager
 
 
@@ -89,9 +91,23 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
                 MenuOption(NameDesc("Import")) {
                     import(current, files)
                 },
-                MenuOption(NameDesc("Copy-Import")) {
+               /* MenuOption(NameDesc("Copy-Import")) {
                     // todo implement this: all resources must be copied, no trace shall remain
                     // import(current, files)
+                    LOGGER.warn("Not yet implemented!")
+                },*/
+                MenuOption(NameDesc("Link To Index")) {
+                    val firstParent = files.first().getParent()
+                    val name = if (files.size == 1) files.first().nameWithoutExtension
+                    else if (files.all2 { it.getParent() == firstParent }) firstParent?.nameWithoutExtension ?: "Root"
+                    else files.first().nameWithoutExtension
+                    val newFile = current.findNextChild(name, "url", 3, '-')
+                    // http://www.lyberty.com/encyc/articles/tech/dot_url_format_-_an_unofficial_guide.html
+                    newFile.writeText(
+                        "[InternetShortcut]\r\n" +
+                                files.joinToString(","){"URL=file://${it.toLocalPath()}\r\n"}
+                    )
+                    LOGGER.debug("Created url link file $newFile")
                 },
                 MenuOption(NameDesc(if (files.size > 1) "Raw-Copy" else "Other")) {
                     super.onPasteFiles(x, y, files)

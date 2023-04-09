@@ -16,10 +16,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3f
-import org.joml.Vector3d
+import org.joml.*
 
 @Docs("Displays many meshes at once without Entities; can be used for particle systems and such")
 abstract class MeshSpawner : CollidingComponent(), Renderable {
@@ -165,8 +162,26 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         return hit
     }
 
+    val localAABB = AABBd()
+    val globalAABB = AABBd()
+
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        aabb.all()
+        // calculate local aabb
+        val local = localAABB
+        local.clear()
+        forEachMesh { mesh, _, transform ->
+            mesh.ensureBounds()
+                .transformUnion(transform.localTransform, local, local)
+        }
+
+        // calculate global aabb
+        val global = globalAABB
+        local.transform(globalTransform, global)
+
+        // add the result to the output
+        aabb.union(global)
+
+        // yes, we calculated stuff
         return true
     }
 
@@ -195,7 +210,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
-     * if this is implemented, return true; and forEachMeshGroupPSR just will be a fallback;
+     * if this is implemented, return true; and forEachMeshGroupTRS just will be a fallback;
      *
      * each element must be added as StaticBuffer, and attribute map like Material.shaderOverrides,
      * which then must be interpreted in the Material.shader

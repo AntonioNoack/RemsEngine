@@ -210,7 +210,6 @@ object ComponentUI {
 
             // todo tables for structs? (database table type)
 
-            // is ISaveable -> { list all child properties }
             else -> {
                 if (value != null && value is Enum<*>) {
                     val input = EnumInput.createInput(title, value, style)
@@ -977,8 +976,7 @@ object ComponentUI {
                         val fi = FileInput(title, style, value0, fileInputRightClickOptions).apply {
                             property.init(this)
                             setResetListener {
-                                property.reset(this) as? FileReference
-                                    ?: InvalidRef
+                                property.reset(this) as? FileReference ?: InvalidRef
                             }
                             setChangeListener {
                                 // todo check if this file is ok

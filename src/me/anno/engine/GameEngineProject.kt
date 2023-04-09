@@ -9,16 +9,20 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.hpc.ProcessingQueue
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 
 class GameEngineProject() : NamedSaveable() {
 
     companion object {
+        private val assetIndexQueue = ProcessingQueue("AssetIndex")
         private val LOGGER = LogManager.getLogger(GameEngineProject::class)
         fun readOrCreate(location: FileReference?): GameEngineProject? {
             location ?: return null
@@ -53,6 +57,8 @@ class GameEngineProject() : NamedSaveable() {
     val openTabs = HashSet<String>()
 
     val configFile get() = location.getChild("config.json")
+
+    val assetIndex = HashSet<FileReference>()
 
     private var isValid = true
     fun invalidate() {
@@ -112,6 +118,9 @@ class GameEngineProject() : NamedSaveable() {
             LOGGER.debug("Wrote new scene to $lastScene")
         }
 
+        assetIndex.clear()
+        indexResources(location)
+
         // may be changed by ECSSceneTabs otherwise
         val lastScene = lastScene
         // open all tabs
@@ -127,6 +136,44 @@ class GameEngineProject() : NamedSaveable() {
             ECSSceneTabs.open(lastSceneRef, PlayMode.EDITING, true)
         } catch (e: Exception) {
             LOGGER.warn("Could not open $lastScene", e)
+        }
+    }
+
+    fun indexResources(file: FileReference, depth: Int = 2) {
+        if (file.isDirectory) {
+            for (child in file.listChildren()?.toList() ?: return) {
+                try {
+                    indexResources(child, depth)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+            }
+        } else {
+            Signature.findName(file) { sign ->
+                when (sign) {
+                    "png", "jpg", "gimp", "blend", "gltf", "dae", "md2", "exr", "qoi",
+                    "media", "vox", "fbx", "obj", "webp", "dds", "hdr", "ico", "pdf",
+                    "ttf", "woff1", "woff2", "gif", "bmp" -> assetIndex.add(file)
+                    else -> {
+                        if (depth >= 0 && file.isSomeKindOfDirectory) {
+                            val children = file.listChildren()
+                            if (children != null) for (child in children.toList()) { // .toList() is to prevent concurrency issues
+                                try {
+                                    indexResources(child, depth - 1)
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        } else {
+                            // todo make this async
+                            val prefab = PrefabCache[file, false]
+                            if (prefab != null) {
+                                assetIndex.add(file)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

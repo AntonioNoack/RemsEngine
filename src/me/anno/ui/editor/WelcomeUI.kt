@@ -7,6 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
+import me.anno.io.zip.InnerFile
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.language.translation.NameDesc.Companion.translate
@@ -297,7 +298,6 @@ abstract class WelcomeUI {
             val file = fileInput.file
             var state = "ok"
             var msg = ""
-            val writeAccessTestFile = (file.getParent() ?: InvalidRef).getChild(".${Engine.nanoTime}.txt")
             when {
                 !rootIsOk(file) -> {
                     state = "error"
@@ -315,27 +315,12 @@ abstract class WelcomeUI {
                     state = "warning"
                     msg = translate("Folder is not empty!", "ui.project.folderNotEmpty")
                 }
-                // check if we have write- and read-access
-                try {
-                    writeAccessTestFile.writeText(writeAccessTestFile.name)
-                    false
-                } catch (e: IOException) {
-                    true
-                } -> {
+                // check for read-write-access
+                file is InnerFile && !(file.toFile().run { canRead() && canWrite() }) -> {
                     state = "error"
-                    msg = translate("Cannot write in folder", "ui.project.writeFailed")
+                    msg = translate("Cannot read/write in folder", "ui.project.readWriteFailed")
                 }
-                try {
-                    writeAccessTestFile.readTextSync() != writeAccessTestFile.name
-                } catch (e: Exception) {
-                    true
-                } -> {
-                    state = "error"
-                    msg = translate("Cannot read properly from folder", "ui.project.readFailed")
-                }
-                else -> {
-                    writeAccessTestFile.delete()
-                }
+                else -> {}
             }
             fileInput.tooltip = msg
             fileInput.uiParent?.tooltip = msg

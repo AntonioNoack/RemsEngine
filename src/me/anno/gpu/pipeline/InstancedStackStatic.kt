@@ -11,8 +11,8 @@ import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongPair
 
-class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, InstancedStackStatic.Data>(capacity),
-    DrawableStack {
+class InstancedStackStatic(capacity: Int = 512) :
+    KeyPairMap<Mesh, Material, InstancedStackStatic.Data>(capacity), DrawableStack {
 
     class Data {
 
@@ -27,6 +27,10 @@ class InstancedStackStatic(capacity: Int = 512) : KeyPairMap<Mesh, Material, Ins
             clickIds.clear()
         }
 
+    }
+
+    override fun size(): Long {
+        return values.values.sumOf { it.size.toLong() }
     }
 
     override fun draw(

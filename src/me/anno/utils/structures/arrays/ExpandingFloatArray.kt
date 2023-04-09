@@ -5,10 +5,7 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.LOGGER
 import me.anno.utils.pooling.FloatArrayPool
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import kotlin.math.max
 import kotlin.math.min
 
@@ -139,6 +136,16 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
         this.size = size
     }
 
+    fun add(v: Vector3d) {
+        ensureExtra(3)
+        val array = array
+        var size = size
+        array[size++] = v.x.toFloat()
+        array[size++] = v.y.toFloat()
+        array[size++] = v.z.toFloat()
+        this.size = size
+    }
+
     fun add(v: Vector4f) {
         ensureExtra(4)
         val array = array
@@ -158,6 +165,17 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
         array[size++] = v.y
         array[size++] = v.z
         array[size++] = v.w
+        this.size = size
+    }
+
+    fun add(v: Quaterniond) {
+        ensureExtra(4)
+        val array = array
+        var size = size
+        array[size++] = v.x.toFloat()
+        array[size++] = v.y.toFloat()
+        array[size++] = v.z.toFloat()
+        array[size++] = v.w.toFloat()
         this.size = size
     }
 

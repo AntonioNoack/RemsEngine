@@ -146,4 +146,8 @@ class InstancedStackI32(capacity: Int = 512) :
         }
     }
 
+    override fun size(): Long {
+        return values.values.sumOf { it.size.toLong() }
+    }
+
 }

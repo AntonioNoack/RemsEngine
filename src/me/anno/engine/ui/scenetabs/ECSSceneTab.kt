@@ -6,6 +6,7 @@ import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
+import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
@@ -90,16 +91,6 @@ class ECSSceneTab(
                 root.validateAABBs()
                 resetCamera(root.aabb, true)
             }
-            is Collider -> {
-                val aabb = JomlPools.aabbd.create().clear()
-                val mat = JomlPools.mat4x3d.create().identity()
-                val vec = JomlPools.vec3d.create()
-                root.union(mat, aabb, vec, false)
-                resetCamera(aabb, false)
-                JomlPools.mat4x3d.sub(1)
-                JomlPools.vec3d.sub(1)
-                JomlPools.aabbd.sub(1)
-            }
             is Animation -> {
                 val skeleton = SkeletonCache[root.skeleton] ?: return
                 val aabb = skeletalBounds(skeleton)
@@ -119,6 +110,14 @@ class ECSSceneTab(
                 aabb.maxY += motionBounds.maxY
                 aabb.maxZ += motionBounds.maxZ
                 resetCamera(aabb, true)
+            }
+            is CollidingComponent -> {
+                val aabb = JomlPools.aabbd.create().clear()
+                val mat = JomlPools.mat4x3d.create().identity()
+                root.fillSpace(mat, aabb)
+                resetCamera(aabb, true)
+                JomlPools.mat4x3d.sub(1)
+                JomlPools.aabbd.sub(1)
             }
             is Skeleton -> {
                 // find still bounds

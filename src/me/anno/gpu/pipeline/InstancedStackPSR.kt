@@ -161,4 +161,8 @@ class InstancedStackPSR(capacity: Int = 64) :
         }
     }
 
+    override fun size(): Long {
+        return values.values.sumOf { it.size.toLong() }
+    }
+
 }

@@ -17,4 +17,6 @@ interface DrawableStack {
 
     fun clear()
 
+    fun size(): Long
+
 }

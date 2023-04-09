@@ -254,6 +254,11 @@ open class InstancedStack {
     }
 
     class Impl(capacity: Int = 512) : KeyPairMap<Mesh, Material, InstancedStack>(capacity), DrawableStack {
+
+        override fun size(): Long {
+            return values.values.sumOf { it.size.toLong() }
+        }
+
         override fun draw(
             pipeline: Pipeline,
             stage: PipelineStage,
@@ -329,6 +334,11 @@ open class InstancedStack {
                 }
             }
         }
+
+        override fun size(): Long {
+            return values.values.sumOf { it.size.toLong() }
+        }
+
     }
 
 }

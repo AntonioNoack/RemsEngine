@@ -30,7 +30,7 @@ object BVHBuilder {
         cameraPosition: Vector3d, worldScale: Double, splitMethod: SplitMethod, maxNodeSize: Int
     ): TLASNode {
         val clock = Clock()
-        val objects = ArrayList<TLASLeaf>(scene.size)
+        val objects = ArrayList<TLASLeaf>(scene.size.toInt())
         // add non-instanced objects
         val dr = scene.drawRequests
         fun add(mesh: Mesh, blas: BLASNode, transform: Transform) {

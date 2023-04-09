@@ -17,7 +17,6 @@ import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFolderCache
 import me.anno.io.zip.InnerFolderCache.imageFormats
@@ -54,14 +53,9 @@ object PrefabCache : CacheSection("Prefab") {
         } else null
     }
 
-    fun getPrefabInstance(resource: FileReference?, async: Boolean) =
-        getPrefabInstance(resource, maxPrefabDepth, async)
+    fun getPrefabInstance(resource: FileReference?, async: Boolean) = getPrefabInstance(resource, maxPrefabDepth, async)
 
-    fun getPrefabInstance(
-        resource: FileReference?,
-        depth: Int = maxPrefabDepth,
-        async: Boolean = false
-    ): ISaveable? {
+    fun getPrefabInstance(resource: FileReference?, depth: Int = maxPrefabDepth, async: Boolean = false): ISaveable? {
         val pair = getPrefabPair(resource, depth, async) ?: return null
         return pair.instance ?: try {
             pair.prefab?.getSampleInstance(depth)
@@ -75,12 +69,8 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     fun createInstance(
-        prefab: Prefab?,
-        superPrefab: FileReference,
-        adds: List<CAdd>?,
-        sets: KeyPairMap<Path, String, Any?>?,
-        depth: Int,
-        clazz: String
+        prefab: Prefab?, superPrefab: FileReference, adds: List<CAdd>?,
+        sets: KeyPairMap<Path, String, Any?>?, depth: Int, clazz: String
     ): PrefabSaveable {
         // to do here is some kind of race condition taking place
         // without this println, or Thread.sleep(),
@@ -112,13 +102,8 @@ object PrefabCache : CacheSection("Prefab") {
         return instance
     }
 
-    fun createInstance(
-        superPrefab: FileReference,
-        adds: List<CAdd>?,
-        sets: List<CSet>?,
-        depth: Int,
-        clazz: String
-    ): PrefabSaveable {
+    fun createInstance(superPrefab: FileReference, adds: List<CAdd>?, sets: List<CSet>?, depth: Int, clazz: String):
+            PrefabSaveable {
         // LOGGER.info("creating instance from $superPrefab")
         val instance = createSuperInstance(superPrefab, depth, clazz)
         // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
@@ -190,11 +175,7 @@ object PrefabCache : CacheSection("Prefab") {
         }, ${nameList.map { "${get(it.key)?.get(Path.ROOT_PATH, "name")}" }}, $nameMap"
     }
 
-    private fun createSuperInstance(
-        prefab: FileReference,
-        depth: Int,
-        clazz: String
-    ): PrefabSaveable {
+    private fun createSuperInstance(prefab: FileReference, depth: Int, clazz: String): PrefabSaveable {
         if (depth < 0) {
             LOGGER.warn("Dependency Graph: ${printDependencyGraph(prefab)}")
             throw StackOverflowError("Circular dependency in $prefab")
@@ -208,7 +189,6 @@ object PrefabCache : CacheSection("Prefab") {
     fun loadScenePrefab(file: FileReference): Prefab {
         val prefab = this[file, maxPrefabDepth] ?: Prefab("Entity").apply { this.prefab = ScenePrefab }
         prefab.source = file
-        if (!file.exists) file.writeText(TextWriter.toText(prefab, StudioBase.workspace))
         return prefab
     }
 
@@ -325,28 +305,30 @@ object PrefabCache : CacheSection("Prefab") {
             }
             resource.exists && !resource.isDirectory -> {
                 // LOGGER.info("get prefab from $resource, ${resource?.exists}, ${resource?.isDirectory}")
-                val entry = getFileEntry(resource, false, prefabTimeout, async) { file, _ ->
-                    if (debugLoading) LOGGER.info("loading $file")
-                    ensureClasses()
-                    val data = FileReadPrefabData(file)
-                    loadPrefab4(file) { loaded, e ->
-                        data.value = loaded
-                        if (loaded != null) FileWatch.addWatchDog(file)
-                        if (debugLoading) LOGGER.info(
-                            "loaded ${file.absolutePath.shorten(200)}, got ${loaded?.className}@${
-                                System.identityHashCode(loaded)
-                            }"
-                        )
-                        e?.printStackTrace()
-                    }
-                    data
-                }
+                val entry = getFileEntry(resource, false, prefabTimeout, async, ::loadPrefabPair)
                 if (entry is FileReadPrefabData && entry.hasValue && entry.value == null)
                     throw IOException("Could not load $resource as prefab")
                 return entry as? FileReadPrefabData
             }
             else -> null
         }
+    }
+
+    private fun loadPrefabPair(file: FileReference, lastModified: Long): FileReadPrefabData {
+        if (debugLoading) LOGGER.info("loading $file@$lastModified")
+        ensureClasses()
+        val data = FileReadPrefabData(file)
+        loadPrefab4(file) { loaded, e ->
+            data.value = loaded
+            if (loaded != null) FileWatch.addWatchDog(file)
+            if (debugLoading) LOGGER.info(
+                "loaded ${file.absolutePath.shorten(200)}, got ${loaded?.className}@${
+                    System.identityHashCode(loaded)
+                }"
+            )
+            e?.printStackTrace()
+        }
+        return data
     }
 
 }

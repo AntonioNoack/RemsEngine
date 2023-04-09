@@ -82,8 +82,6 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
 
         const val sampleSize = 128
 
-        val bmp = Signature("bmp", 0, "BM")
-
         fun findName(bytes: ByteBuffer) = find(bytes)?.name
         fun find(bytes: ByteBuffer): Signature? {
             val nonHashed = signatures
@@ -167,6 +165,8 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
                 }
             }
         }
+
+        val bmp = Signature("bmp", 0, "BM")
 
         // source: https://en.wikipedia.org/wiki/List_of_file_signatures
         // https://www.garykessler.net/library/file_sigs.html
@@ -263,7 +263,11 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             // json, kind of
             Signature("json", 0, "["),
             Signature("json", 0, "{"),
-            Signature("sims", 0, "DBPF")
+            Signature("sims", 0, "DBPF"),
+            // windows link file
+            Signature("lnk", 0, 0x4c),
+            // window url file
+            Signature("url", 0, "[InternetShortcut]")
         ).apply {
             // first long ones, then short ones; to be more specific first
             sortByDescending { it.bytes.size }

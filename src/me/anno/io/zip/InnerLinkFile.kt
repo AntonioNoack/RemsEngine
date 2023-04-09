@@ -51,6 +51,7 @@ class InnerLinkFile(
         link.readByteBuffer(native, callback)
     }
 
+    override fun listChildren() = link.listChildren()
     override fun length() = link.length()
 
     override val exists: Boolean = link.exists

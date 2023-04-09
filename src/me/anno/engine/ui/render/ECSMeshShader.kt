@@ -135,7 +135,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val applyTransformCode = "" +
                 "#ifdef LIMITED_TRANSFORM\n" +
-                "   finalPosition = quatRot(localPosition + instancePosSize.xyz, instanceRot) * instancePosSize.w;\n" +
+                "   finalPosition = quatRot(localPosition, instanceRot) * instancePosSize.w + instancePosSize.xyz;\n" +
                 "   #ifdef COLORS\n" +
                 // scale not needed, because scale is scalar in this case
                 "       normal = quatRot(normal, instanceRot);\n" +

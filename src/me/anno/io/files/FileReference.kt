@@ -8,6 +8,7 @@ import me.anno.gpu.GFX
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.io.zip.InnerFile
+import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCache
 import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -730,8 +731,13 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun listChildren(): List<FileReference>? {
-        // LOGGER.info("listing children of $this, lnk: ${windowsLnk.value}")
-        val link = windowsLnk.value ?: return null
+        val link = windowsLnk.value
+        if (link == null) {
+            val folder = InnerFolderCache.readAsFolder(this, false)
+            if (folder is InnerFolder) return folder.listChildren()
+            if (folder != null) return listOf(folder)
+            return null
+        }
         // if the file is not a directory, then list the parent?
         // todo mark this child somehow?...
         val abs = link.absolutePath ?: return null
