@@ -359,6 +359,15 @@ class AABBd(
         return dx * dx + dy * dy + dz * dz
     }
 
+    fun addMargin(r: Double) {
+        minX -= r
+        minY -= r
+        minZ -= r
+        maxX += r
+        maxY += r
+        maxZ += r
+    }
+
     fun collideFront(pos: Vector3d, dir: Vector3d): Double {
         val dx = (if (dir.x < 0.0) maxX else minX) - pos.x
         val dy = (if (dir.y < 0.0) maxY else minY) - pos.y

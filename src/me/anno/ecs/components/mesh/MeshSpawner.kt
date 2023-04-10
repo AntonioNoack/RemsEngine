@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.interfaces.Renderable
@@ -162,7 +163,12 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         return hit
     }
 
+    @DebugProperty
+    @NotSerializedProperty
     val localAABB = AABBd()
+
+    @DebugProperty
+    @NotSerializedProperty
     val globalAABB = AABBd()
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
@@ -236,7 +242,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * might be removed in the future, because you could use forEachInstancedGroup without performance loss
      * */
-    open fun forEachMeshGroupI32(run: (Mesh, Material?, Matrix4x3f) -> ExpandingIntArray) = false
+    open fun forEachMeshGroupI32(run: (Mesh, Material?, Matrix4x3d) -> ExpandingIntArray) = false
 
     companion object {
         private val LOGGER = LogManager.getLogger(MeshSpawner::class)

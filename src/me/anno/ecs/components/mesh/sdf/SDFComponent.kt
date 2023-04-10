@@ -905,17 +905,8 @@ open class SDFComponent : ProceduralMesh(), Renderable {
             return this
         }
 
-        fun StringBuilder.appendMinus(
-            uniform: String
-        ): StringBuilder {
-            append("vec2(-").append(uniform).append(".x,").append(uniform).append(".y)")
-            return this
-        }
-
-        fun StringBuilder.appendMinus(
-            uniform: Int
-        ): StringBuilder {
-            append("vec2(-res").append(uniform).append(".x,res").append(uniform).append(".y)")
+        fun StringBuilder.appendMinus(uniform: Int): StringBuilder {
+            append("vec4(-res").append(uniform).append(".x,res").append(uniform).append(".yzw)")
             return this
         }
 

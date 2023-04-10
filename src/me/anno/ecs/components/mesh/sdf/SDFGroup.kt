@@ -333,15 +333,15 @@ open class SDFGroup : SDFComponent() {
             builder.append("=1.0-abs(").append(param1).append('-').append(activeIndex).append(".0);\n")
             //builder.append("if(w").append(weightIndex).append(" > 0.0){\n")
             child.buildShader(builder, posIndex, nextVariableId, tmpIndex, uniforms, functions, seeds)
-            builder.append("if(w").append(weightIndex)
-                .append(" >= 0.5){\n") // assign material if this is the most dominant
-            builder.append("res").append(dstIndex).append(".y=res").append(tmpIndex).append(".y;\n")
-            builder.append("}\n")
+            // assign material if this is the most dominant
+            val needsCondition = activeIndex > 0
+            if (needsCondition) builder.append("if(w").append(weightIndex).append(" >= 0.5){\n")
+            builder.append("res").append(dstIndex).append(".yzw=res").append(tmpIndex).append(".yzw;\n")
+            if (needsCondition) builder.append("}\n")
             builder.append("res").append(dstIndex)
-                .append(".x+=w").append(weightIndex)
+                .append(if(needsCondition) ".x+=w" else ".x=w").append(weightIndex)
                 .append("*res").append(tmpIndex)
                 .append(".x;\n")
-            //builder.append("}\n")
             activeIndex++
         }
     }
@@ -601,8 +601,6 @@ open class SDFGroup : SDFComponent() {
 
     companion object {
 
-        // private val LOGGER = LogManager.getLogger(SDFGroup::class)
-
         fun sMinCubic(a: Float, b: Float, k: Float): Float {
             if (k <= 0f) return min(a, b)
             val h = max(k - abs(a - b), 0f) / k
@@ -634,14 +632,14 @@ open class SDFGroup : SDFComponent() {
                 "float unionChamfer(float a, float b, float r){\n" +
                 "   return min(min(a,b),(a+b-r)*sqrt(0.5));\n" +
                 "}\n" +
-                "vec2 unionChamfer(vec2 a, vec2 b, float r){\n" +
-                "   return vec2(unionChamfer(a.x,b.x,r),a.x+r<b.x?a.y:b.y);\n" +
+                "vec4 unionChamfer(vec4 a, vec4 b, float r){\n" +
+                "   return vec4(unionChamfer(a.x,b.x,r),a.x+r<b.x?a.yzw:b.yzw);\n" +
                 "}\n" +
                 "float interChamfer(float a, float b, float r){\n" +
                 "   return max(max(a,b),(a+b+r)*sqrt(0.5));\n" +
                 "}\n" +
-                "vec2 interChamfer(vec2 a, vec2 b, float r){\n" +
-                "   return vec2(interChamfer(a.x,b.x,r),a.x>b.x?a.y:b.y);\n" +
+                "vec4 interChamfer(vec4 a, vec4 b, float r){\n" +
+                "   return vec4(interChamfer(a.x,b.x,r),a.x>b.x?a.yzw:b.yzw);\n" +
                 "}\n" +
                 "float diffChamfer(float a, float b, float r){\n" +
                 "   return interChamfer(a,-b,r);\n" +
@@ -651,15 +649,15 @@ open class SDFGroup : SDFComponent() {
                 "   vec2 u = max(r-vec2(a,b), vec2(0.0));\n" +
                 "   return max(r,min(a,b)) - length(u);\n" +
                 "}\n" +
-                "vec2 unionRound(vec2 a, vec2 b, float r){\n" +
-                "   return vec2(unionRound(a.x,b.x,r),a.x<b.x?a.y:b.y);\n" +
+                "vec4 unionRound(vec4 a, vec4 b, float r){\n" +
+                "   return vec4(unionRound(a.x,b.x,r),a.x<b.x?a.yzw:b.yzw);\n" +
                 "}\n" +
                 "float interRound(float a, float b, float r){\n" +
                 "   vec2 u = max(r+vec2(a,b), vec2(0.0));\n" +
                 "   return min(-r,max(a,b)) + length(u);" +
                 "}\n" +
-                "vec2 interRound(vec2 a, vec2 b, float r){\n" +
-                "   return vec2(interRound(a.x,b.x,r),a.x>b.x?a.y:b.y);\n" +
+                "vec4 interRound(vec4 a, vec4 b, float r){\n" +
+                "   return vec4(interRound(a.x,b.x,r),a.x>b.x?a.yzw:b.yzw);\n" +
                 "}\n" +
                 "float diffRound(float a, float b, float r){\n" +
                 "   return interRound(a,-b,r);\n" +
@@ -682,63 +680,63 @@ open class SDFGroup : SDFComponent() {
                 "      return min(length(p) - columnRadius, min(p.x, a));\n" +
                 "   } else return min(a, b);\n" + // saving computations
                 "}\n" +
-                "vec2 unionColumn(vec2 a, vec2 b, float r, float n){\n" +
+                "vec4 unionColumn(vec4 a, vec4 b, float r, float n){\n" +
                 // +r*(1.0-1.0/n)
-                "   return vec2(unionColumn(a.x,b.x,r,n),a.x<b.x?a.y:b.y);\n" +
+                "   return vec4(unionColumn(a.x,b.x,r,n),a.x<b.x?a.yzw:b.yzw);\n" +
                 "}\n" +
                 // todo inter-column would need to have it's sign reversed...
                 "float interColumn(float a, float b, float r, float n){\n" +
                 "   return -unionColumn(-a,-b,r,n);\n" +
                 "}\n" +
-                "vec2 interColumn(vec2 a, vec2 b, float r, float n){\n" +
-                "   return vec2(interColumn(a.x,b.x,r,n),a.x>b.x?a.y:b.y);\n" +
+                "vec4 interColumn(vec4 a, vec4 b, float r, float n){\n" +
+                "   return vec4(interColumn(a.x,b.x,r,n),a.x>b.x?a.yzw:b.yzw);\n" +
                 "}\n" +
                 "float unionStairs(float a, float b, float r, float n){\n" +
                 "   float s = r/n;\n" +
                 "   float u = b-r;\n" +
                 "   return min(min(a,b), 0.5*(u+a+abs((mod(u-a+s, 2.0*s))-s)));" +
                 "}\n" +
-                "vec2 unionStairs(vec2 a, vec2 b, float r, float n){\n" +
+                "vec4 unionStairs(vec4 a, vec4 b, float r, float n){\n" +
                 // +r*(1.0-1.0/n)
-                "   return vec2(unionStairs(a.x,b.x,r,n),a.x<b.x?a.y:b.y);\n" +
+                "   return vec4(unionStairs(a.x,b.x,r,n),a.x<b.x?a.yzw:b.yzw);\n" +
                 "}\n" +
                 "float interStairs(float a, float b, float r, float n){\n" +
                 "   return -unionStairs(-a,-b,r,n);\n" +
                 "}\n" +
-                "vec2 interStairs(vec2 a, vec2 b, float r, float n){\n" +
-                "   return vec2(interStairs(a.x,b.x,r,n),a.x>b.x?a.y:b.y);\n" +
+                "vec4 interStairs(vec4 a, vec4 b, float r, float n){\n" +
+                "   return vec4(interStairs(a.x,b.x,r,n),a.x>b.x?a.yzw:b.yzw);\n" +
                 "}\n" +
                 "float unionSoft(float a, float b, float r){\n" +
                 "   if(r <= 0.0) return min(a,b);\n" +
                 "   float e = max(r-abs(a-b),0.0);\n" +
                 "   return min(a,b)-e*e*0.25/r;\n" +
                 "}\n" +
-                "vec2 unionSoft(vec2 a, vec2 b, float r){\n" +
-                "   return vec2(unionSoft(a.x,b.x,r),a.x<b.x?a.y:b.y);\n" +
+                "vec4 unionSoft(vec4 a, vec4 b, float r){\n" +
+                "   return vec4(unionSoft(a.x,b.x,r),a.x<b.x?a.yzw:b.yzw);\n" +
                 "}\n" +
                 "float sdEngrave(float a, float b, float r){\n" +
                 "   return max(a,(a+r-abs(b))*sqrt(0.5));\n" +
                 "}\n" +
-                "vec2 sdEngrave(vec2 a, vec2 b, float r){\n" +
-                "   return vec2(sdEngrave(a.x,b.x,r),abs(b.x)<r?b.y:a.y);\n" +
+                "vec4 sdEngrave(vec4 a, vec4 b, float r){\n" +
+                "   return vec4(sdEngrave(a.x,b.x,r),abs(b.x)<r?b.yzw:a.yzw);\n" +
                 "}\n" +
                 "float sdGroove(float a, float b, vec2 r){\n" +
                 "   return max(a,min(a+r.x,r.y-abs(b)));\n" +
                 "}\n" +
-                "vec2 sdGroove(vec2 a, vec2 b, vec2 r){\n" +
-                "   return vec2(sdGroove(a.x,b.x,r),abs(b.x)<r.y?b.y:a.y);\n" +
+                "vec4 sdGroove(vec4 a, vec4 b, vec2 r){\n" +
+                "   return vec4(sdGroove(a.x,b.x,r),abs(b.x)<r.y?b.yzw:a.yzw);\n" +
                 "}\n" +
                 "float sdTongue(float a, float b, vec2 r){\n" +
                 "   return min(a,max(a-r.x,abs(b)-r.y));\n" +
                 "}\n" +
-                "vec2 sdTongue(vec2 a, vec2 b, vec2 r){\n" +
-                "   return vec2(sdTongue(a.x,b.x,r),abs(b.x)<r.y?b.y:a.y);\n" +
+                "vec4 sdTongue(vec4 a, vec4 b, vec2 r){\n" +
+                "   return vec4(sdTongue(a.x,b.x,r),abs(b.x)<r.y?b.yzw:a.yzw);\n" +
                 "}\n" +
                 "float sdPipe(float a, float b, float r){\n" +
                 "   return length(vec2(a,b))-r;\n" +
                 "}\n" +
-                "vec2 sdPipe(vec2 a, vec2 b, float r){\n" +
-                "   return vec2(sdPipe(a.x,b.x,r),a.x<b.x?a.y:b.y);\n" +
+                "vec4 sdPipe(vec4 a, vec4 b, float r){\n" +
+                "   return vec4(sdPipe(a.x,b.x,r),a.x<b.x?a.yzw:b.yzw);\n" +
                 "}\n"
 
         const val smoothMinCubic = "" +
@@ -812,8 +810,8 @@ open class SDFGroup : SDFComponent() {
         const val sdDiff1 = "" + // max(+-)
                 "float sdDiff1(float d1, float d2){ return max(d1, -d2); }\n" +
                 "float sdDiff1(float d1, float d2, float k){ return sdMax(d1, -d2, k); }\n" +
-                "vec4 sdDiff1(vec2 d1, vec2 d2){ return sdMax(d1, vec4(-d2.x, d2.yzw)); }\n" +
-                "vec4 sdDiff1(vec2 d1, vec2 d2, float k){ return sdMax(d1, vec4(-d2.x, d2.yzw), k); }\n"
+                "vec4 sdDiff1(vec4 d1, vec4 d2){ return sdMax(d1, vec4(-d2.x, d2.yzw)); }\n" +
+                "vec4 sdDiff1(vec4 d1, vec4 d2, float k){ return sdMax(d1, vec4(-d2.x, d2.yzw), k); }\n"
         const val sdInt = "vec4 sdInt(vec4 sum, vec4 di, float weight){\n" +
                 "weight = 1.0-abs(weight);\n" +
                 "if(weight < 0.0) return sum;\n" +

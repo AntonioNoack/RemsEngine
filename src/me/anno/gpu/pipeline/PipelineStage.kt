@@ -133,7 +133,7 @@ class PipelineStage(
 
         val instancedBufferI32 = StaticBuffer(
             listOf(
-                Attribute("instanceI32", AttributeType.SINT32, 1)
+                Attribute("instanceI32", AttributeType.SINT32, 1, true)
             ), instancedBatchSize * 16, GL_DYNAMIC_DRAW
         )
 

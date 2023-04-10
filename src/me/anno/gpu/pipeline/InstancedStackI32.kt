@@ -6,10 +6,12 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.maths.Maths
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongPair
+import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 
 class InstancedStackI32(capacity: Int = 512) :
@@ -20,7 +22,7 @@ class InstancedStackI32(capacity: Int = 512) :
         val size get() = data.size
         val data = ExpandingIntArray(256)
         val clickIds = ExpandingIntArray(16)
-        val matrices = ArrayList<Matrix4x3f>() // transform for a group of meshes
+        val matrices = ArrayList<Matrix4x3d>() // transform for a group of meshes
 
         fun clear() {
             data.clear()
@@ -105,14 +107,7 @@ class InstancedStackI32(capacity: Int = 512) :
 
             val clickId = instances.clickIds[i * 2 + 1]
             shader.v4f("clickId", clickId)
-            shader.v3f(
-                "cameraPosition",
-                cameraPosition.x.toFloat(),
-                cameraPosition.y.toFloat(),
-                cameraPosition.z.toFloat()
-            )
-            shader.v1f("worldScale", worldScale.toFloat())
-            shader.m4x3("instTransform", instances.matrices[i])
+            shader.m4x3delta("localTransform", instances.matrices[i], cameraPosition, worldScale)
 
             // draw them in batches of size <= batchSize
             while (baseIndex < totalEndIndex) {
@@ -121,9 +116,12 @@ class InstancedStackI32(capacity: Int = 512) :
 
                 val endIndex = Maths.min(totalEndIndex, baseIndex + batchSize)
                 val data = instances.data
+                nioBuffer.position(0)
                 for (index in baseIndex until endIndex) {
                     nioBuffer.putInt(data[index])
                 }
+                buffer.isUpToDate = false
+                buffer.ensureBufferWithoutResize()
                 // slightly optimized over PSR ^^, ~ 8-fold throughput
                 if (material.isDoubleSided) {
                     GFXState.cullMode.use(CullMode.BOTH) {

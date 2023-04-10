@@ -5,6 +5,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.image.svg.SVGMesh
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.opengl.GL31C.*
+import java.nio.ByteOrder
 
 open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
     Buffer(attributes, usage) {
@@ -74,6 +75,7 @@ open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage
     final override fun createNioBuffer() {
         val byteSize = vertexCount * attributes.sumOf { it.byteSize }
         nioBuffer = ByteBufferPool.allocateDirect(byteSize)
+            .order(ByteOrder.nativeOrder())
     }
 
     companion object {
