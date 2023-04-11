@@ -27,7 +27,7 @@ private fun testAdd() {
     scene.source = InnerTmpFile.InnerTmpPrefabFile(scene)
     val sample0 = scene.getSampleInstance() as Entity
     val size0 = sample0.sizeOfHierarchy
-    val added = Hierarchy.add(scene, Path.ROOT_PATH, scene, Path.ROOT_PATH)!!
+    val added = Hierarchy.add(scene, Path.ROOT_PATH, scene, Path.ROOT_PATH, 'e')!!
     val sample1 = scene.getSampleInstance() as Entity
     val size1 = sample1.sizeOfHierarchy
     if (size0 * 2 != size1) {
@@ -131,7 +131,7 @@ private fun testMultiAdd() {
     for (i in 0 until count) {
         val child = Prefab("SDFHalfSpace")
         child[Path.ROOT_PATH, "plane"] = Planef(0f, 1f, 0f, i.toFloat())
-        Hierarchy.add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH)
+        Hierarchy.add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH, 'c')
     }
     println(prefab.adds)
     println(prefab.sets)
@@ -152,7 +152,7 @@ private fun testReordering() {
         order.add(insertIndex, i)
         val child = Prefab("SDFHalfSpace")
         child[Path.ROOT_PATH, "plane"] = Planef(0f, 1f, 0f, i.toFloat())
-        Hierarchy.add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH, insertIndex)
+        Hierarchy.add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH, 'c', insertIndex)
     }
     println(prefab.adds)
     println(prefab.sets)
@@ -168,7 +168,7 @@ fun testAddSimpleChild() {
     val added = PrefabCache[FileReference.getReference(OS.documents, "CuteGhost.fbx")]!!
     val ca = scene.adds.size
     val cs = scene.sets.size
-    Hierarchy.add(added, Path.ROOT_PATH, scene, Path.ROOT_PATH, -1)
+    Hierarchy.add(added, Path.ROOT_PATH, scene, Path.ROOT_PATH, 'e')
     val nca = scene.adds.size
     val ncs = scene.sets.size
     Hierarchy.assert(nca, ca + 1)

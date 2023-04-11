@@ -18,6 +18,7 @@ import me.anno.engine.raycast.Raycast
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib.quatRot
+import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -219,6 +220,11 @@ open class SDFComponent : ProceduralMesh(), Renderable {
     val positionMappers = ArrayList<PositionMapper>()
     val distanceMappers = ArrayList<DistanceMapper>()
 
+    @DebugAction
+    fun createShaderToyScript(){
+        setClipboardContent(SDFComposer.createShaderToyShader(this))
+    }
+
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
@@ -386,6 +392,14 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         if (this is SDFGroupArray) {
             clampBounds(dst)
             applyArrayTransform(dst)
+            val mi = min(modulatorIndex, children.lastIndex)
+            if (mi > 0) {
+                val tmp = JomlPools.aabbf.create()
+                tmp.clear()
+                calculateBaseBounds(tmp, children.subList(0, mi))
+                dst.intersect(tmp)
+                JomlPools.aabbf.sub(1)
+            }
         }
         // reversed as well?
         for (index in distanceMappers.indices) {
@@ -515,7 +529,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         dst.setMax(+1f, +1f, +1f)
     }
 
-    fun buildDMShader(
+    fun buildDistanceMapperShader(
         builder: StringBuilder,
         posIndex: Int,
         dstIndex: Int,

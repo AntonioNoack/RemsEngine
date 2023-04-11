@@ -3,17 +3,22 @@ package me.anno.ecs.components.mesh.sdf.arrays
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.components.mesh.sdf.VariableCounter
-import me.anno.ecs.components.mesh.sdf.arrays.SDFArray.Companion.sdArray
+import me.anno.ecs.components.mesh.sdf.arrays.SDFArrayMapper.Companion.sdArray
 import me.anno.ecs.components.mesh.sdf.random.SDFRandom.Companion.randLib
 import me.anno.ecs.components.mesh.sdf.random.SDFRandomRotation
 import me.anno.ecs.components.mesh.sdf.random.SDFRandomUV
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
+import me.anno.ecs.components.mesh.sdf.shapes.SDFCylinder
+import me.anno.ecs.components.mesh.sdf.shapes.SDFHeart
+import me.anno.ecs.components.mesh.sdf.shapes.SDFTorus
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.shader.GLSLType
 import me.anno.utils.OS.pictures
+import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector3i
@@ -25,16 +30,16 @@ class SDFArray2 : SDFGroupArray() {
         val rep = cellSize
         val lim = count
         if (rep.x > 0f) {
-            bounds.minX = SDFArray.minMod2(bounds.minX, rep.x, lim.x)
-            bounds.maxX = SDFArray.maxMod2(bounds.maxX, rep.x, lim.x)
+            bounds.minX = SDFArrayMapper.minMod2(bounds.minX, rep.x, lim.x)
+            bounds.maxX = SDFArrayMapper.maxMod2(bounds.maxX, rep.x, lim.x)
         }
         if (rep.y > 0f) {
-            bounds.minY = SDFArray.minMod2(bounds.minY, rep.y, lim.y)
-            bounds.maxY = SDFArray.maxMod2(bounds.maxY, rep.y, lim.y)
+            bounds.minY = SDFArrayMapper.minMod2(bounds.minY, rep.y, lim.y)
+            bounds.maxY = SDFArrayMapper.maxMod2(bounds.maxY, rep.y, lim.y)
         }
         if (rep.z > 0f) {
-            bounds.minZ = SDFArray.minMod2(bounds.minZ, rep.z, lim.z)
-            bounds.maxZ = SDFArray.maxMod2(bounds.maxZ, rep.z, lim.z)
+            bounds.minZ = SDFArrayMapper.minMod2(bounds.minZ, rep.z, lim.z)
+            bounds.maxZ = SDFArrayMapper.maxMod2(bounds.maxZ, rep.z, lim.z)
         }
     }
 
@@ -91,6 +96,19 @@ class SDFArray2 : SDFGroupArray() {
             }
         }
 
+    override fun calculateHalfCellSize(
+        builder: StringBuilder,
+        nextVariableId: VariableCounter,
+        dstIndex: Int,
+        uniforms: HashMap<String, TypeValue>,
+        functions: HashSet<String>,
+        seeds: ArrayList<String>
+    ) {
+        val cellSize = defineUniform(uniforms, GLSLType.V3F, cellSize)
+        // todo use rotated dir
+        builder.append("mcs").append(dstIndex).append("=dot(abs(rd)*").append(cellSize).append(",vec3(1.0));\n")
+    }
+
     override fun defineLoopHead(
         builder: StringBuilder,
         posIndex0: Int,
@@ -108,14 +126,15 @@ class SDFArray2 : SDFGroupArray() {
         val overlap = defineUniform(uniforms, GLSLType.V3F, overlap)
         val count = defineUniform(uniforms, GLSLType.V3I, count)
         val cellSize = defineUniform(uniforms, GLSLType.V3F, cellSize)
-        builder.append("vec3 l=vec3($count-1)*0.5+vec3(lessThanEqual($count,ivec3(0)))*1e38;\n")
-        builder.append("vec3 h=vec3(").append(count).append("&1)*0.5;\n")
-        builder.append("vec3 min$posIndex0=mod2C(pos$posIndex0-$overlap,$cellSize,l,h);\n")
-        builder.append("vec3 max$posIndex0=mod2C(pos$posIndex0+$overlap,$cellSize,l,h);\n")
-        builder.append("vec3 pos").append(posIndex0 + 1).append("=pos").append(posIndex0).append(";\n")
-        val rnd = nextVariableId.next()
-        builder.append("vec3 tmp").append(rnd).append(";\n")
-        builder.append("bool first$posIndex0=true;\n")
+        val pp1 = nextVariableId.next()
+        builder.append("vec3 l$pp1=vec3($count-1)*0.5+vec3(lessThanEqual($count,ivec3(0)))*1e38;\n")
+        builder.append("vec3 h$pp1=vec3(").append(count).append("&1)*0.5;\n")
+        builder.append("vec3 min$pp1=mod2C(pos$posIndex0-$overlap,$cellSize,l$pp1,h$pp1);\n")
+        builder.append("vec3 max$pp1=mod2C(pos$posIndex0+$overlap,$cellSize,l$pp1,h$pp1);\n")
+        builder.append("vec3 pos").append(pp1).append("=pos").append(posIndex0).append(";\n")
+        val tmp1 = nextVariableId.next()
+        builder.append("vec3 tmp").append(tmp1).append(";\n")
+        builder.append("bool first").append(innerDstIndex).append("=true;\n")
         for (axis in 0 until 3) {
             val mirror = when (axis) {
                 0 -> mirrorX
@@ -123,22 +142,24 @@ class SDFArray2 : SDFGroupArray() {
                 else -> mirrorZ
             }
             val a = axes[axis]
-            builder.append("for(tmp$rnd.$a=min$posIndex0.$a;tmp$rnd.$a<=max$posIndex0.$a;tmp$rnd.$a++){\n")
-            builder.append("pos${posIndex0 + 1}.$a=")
+            builder.append("for(tmp$tmp1.$a=min$pp1.$a;tmp$tmp1.$a<=max$pp1.$a;tmp$tmp1.$a++){\n")
+            builder.append("pos${pp1}.$a=")
             if (mirror) {
-                builder.append("(pos$posIndex0.$a-$cellSize.$a*tmp$rnd.$a)*mirror(tmp$rnd.$a);\n")
+                builder.append("(pos$posIndex0.$a-$cellSize.$a*tmp$tmp1.$a)*mirror(tmp$tmp1.$a);\n")
             } else {
-                builder.append("pos$posIndex0.$a-$cellSize.$a*tmp$rnd.$a;\n")
+                builder.append("pos$posIndex0.$a-$cellSize.$a*tmp$tmp1.$a;\n")
             }
         }
         // calculate seed
         val seed = "seed" + nextVariableId.next()
         builder.append("int ").append(seed).append("=threeInputRandom(int(floor(tmp")
-            .append(rnd).append(".x)),int(floor(tmp")
-            .append(rnd).append(".y)),int(floor(tmp")
-            .append(rnd).append(".z)));\n")
+            .append(tmp1).append(".x)),int(floor(tmp")
+            .append(tmp1).append(".y)),int(floor(tmp")
+            .append(tmp1).append(".z)));\n")
+        // todo unify this concept
+        builder.append("vec3 cellPos=tmp$tmp1*$cellSize;\n")
         seeds.add(seed)
-        return posIndex0 + 1
+        return pp1
     }
 
     override fun defineLoopFoot(
@@ -151,12 +172,11 @@ class SDFArray2 : SDFGroupArray() {
         functions: HashSet<String>,
         seeds: ArrayList<String>
     ) {
-        val (funcName, smoothness, groove, stairs) =
-            appendGroupHeader(functions, uniforms, CombinationMode.UNION, style)
-        builder.append("if(first$posIndex0){ first$posIndex0=false; res$outerDstIndex=res$innerDstIndex;\n } else {\n")
-        appendMerge(builder, outerDstIndex, innerDstIndex, funcName, smoothness, groove, stairs)
-        builder.append("}\n")
-        builder.append("}}}\n")
+        val (func, smoothness, groove, stairs) = appendGroupHeader(functions, uniforms, CombinationMode.UNION, style)
+        builder.append("if(first").append(innerDstIndex).append("){first").append(innerDstIndex)
+            .append("=false;res$outerDstIndex=res$innerDstIndex;}else{\n")
+        appendMerge(builder, outerDstIndex, innerDstIndex, func, smoothness, groove, stairs)
+        builder.append("}}}}\n")
         seeds.removeLast()
     }
 
@@ -180,26 +200,64 @@ class SDFArray2 : SDFGroupArray() {
             ECSRegistry.init()
             testSceneWithUI(Entity().apply {
                 add(SDFArray2().apply {
+                    useModulatorMaterials = true
+                    addChild(SDFGroup().apply {
+                        addChild(SDFTorus().apply {
+                            localReliability = 0.8f
+                            scale = 500f
+                            materialId = 0
+                        })
+                        addChild(SDFHeart().apply {
+                            bound11()
+                            rotation = rotation.rotateX((-90f).toRadians())
+                            scale = 600f
+                            materialId = 1
+                            position.set(0f, 0f, 50f)
+                        })
+                    })
+                    modulatorIndex = 1
                     sdfMaterials = listOf(
                         Material().apply {
-                            diffuseMap = pictures.getChild("speckle.jpg")
-                        }.ref
+                            diffuseMap = pictures
+                                // .getChild("Textures/Rainbow/SpectrumH.png")
+                                .getChild("speckle.jpg")
+                        }.ref,
+                        Material().apply {
+                            diffuseBase.set(1f, 0.3f, 0.2f, 1f)
+                        }.ref,
                     )
                     maxSteps = 500
-                    cellSize.set(2f, 1f, 1f)
-                    count.set(100, 1, 25)
-                    overlap.set(0.1f)
-                    addChild(SDFBox().apply {
-                        smoothness = 0.03f
-                        halfExtends.set(1f, .2f, .5f)
-                        addChild(SDFRandomRotation().apply {
+                    cellSize.set(10f, 2f, 5f)
+                    count.set(200)
+                    overlap.set(2.5f)
+                    // todo file input for sdfMaterials: add/create new materials (even if just temporary)
+                    //  todo add option to then save them after creation
+                    // todo try material for sphere
+                    addChild(SDFGroup().apply {
+                        smoothness = 0.1f
+                        if (false) addChild(SDFRandomRotation().apply {
                             minAngleDegrees.set(-5f, 0f, -5f)
                             maxAngleDegrees.set(+5f, 0f, +5f)
                             appliedPortion = 0.2f
                             seedXOR = 1234
                         })
                         addChild(SDFRandomUV())
+                        addChild(SDFBox().apply {
+                            smoothness = 0.2f
+                            halfExtends.set(5f, 1f, 2.5f)
+                        })
+                        addChild(SDFCylinder().apply {
+                            smoothness = 0.1f
+                            radius = 0.75f
+                            halfHeight = 0.5f
+                            position.set(0f, 1f, 0f)
+                            addChild(SDFArrayMapper().apply {
+                                count.set(4, 1, 2)
+                                cellSize.set(2.5f)
+                            })
+                        })
                     })
+
                 })
             })
         }

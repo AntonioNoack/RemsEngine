@@ -76,7 +76,10 @@ abstract class SDFRandom : PositionMapper() {
 
         return if (dynamic || appliedPortion > 0f) {
             builder.append(seedName).append("=nextRandI(").append(seedName).append(");\n")
-            builder.append("if((").append(seedName).append(" & 16777215) < ${appliedPortion * 16777215}){\n")
+            builder.append("if((").append(seedName).append(" & 16777215) < ")
+            if (dynamic) builder.appendUniform(uniforms, GLSLType.V1I) { (appliedPortion * 16777215).toInt() }
+            else builder.append((appliedPortion * 16777215).toInt())
+            builder.append("){\n")
             val offsetName = buildShader(builder, posIndex, nextVariableId, uniforms, functions, seedName)
             builder.append("}\n")
             offsetName

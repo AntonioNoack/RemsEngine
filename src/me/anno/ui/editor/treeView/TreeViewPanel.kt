@@ -201,6 +201,9 @@ class TreeViewPanel<V : Any>(
 
             val relativeY = (y - this.y) / this.h
 
+            // todo find type somehow...
+            val type1 = ' '
+
             // check if the element can be moved without deleting everything
             @Suppress("unchecked_cast")
             val original = (dragged as? Draggable)?.getOriginal() as? V
@@ -216,9 +219,9 @@ class TreeViewPanel<V : Any>(
                 }
                 if (canBeMoved) {
                     moveChange {
-                        val op = treeView.getParent(original)
-                        if (op != null) treeView.removeChild(op, original)
-                        insertElement(relativeY, hovered, original)
+                        val parent = treeView.getParent(original)
+                        if (parent != null) treeView.removeChild(parent, original)
+                        insertElement(relativeY, hovered, original, type1)
                     }
                     return
                 }
@@ -230,7 +233,7 @@ class TreeViewPanel<V : Any>(
                     as? V ?: return super.onPaste(x, y, data, type)
 
             moveChange {
-                insertElement(relativeY, hovered, clone)
+                insertElement(relativeY, hovered, clone, type1)
             }
 
         } catch (e: Exception) {
@@ -239,32 +242,32 @@ class TreeViewPanel<V : Any>(
         }
     }
 
-    fun insertElement(relativeY: Float, hovered: V, clone: V) {
+    fun insertElement(relativeY: Float, hovered: V, clone: V, type: Char) {
         val success = if (relativeY < 0.33f) {
             // paste on top
             if (hovered.parent != null) {
-                treeView.addBefore(hovered, clone)
+                treeView.addBefore(hovered, clone, type)
             } else {
-                insertElementLast(hovered, clone)
+                insertElementLast(hovered, clone, type)
             }
         } else if (relativeY < 0.67f) {
             // paste as child
-            insertElementLast(hovered, clone)
+            insertElementLast(hovered, clone, type)
         } else {
             // paste below
             if (hovered.parent != null) {
-                treeView.addAfter(hovered, clone)
+                treeView.addAfter(hovered, clone, type)
             } else {
-                insertElementLast(hovered, clone)
+                insertElementLast(hovered, clone, type)
             }
         }
         if (success) treeView.selectElements(listOf(clone))
     }
 
-    fun insertElementLast(hovered: V, clone: V): Boolean {
+    fun insertElementLast(hovered: V, clone: V, type: Char): Boolean {
         val index = treeView.getChildren(hovered).size
         return if (treeView.canBeInserted(hovered, clone, index)) {
-            treeView.addChild(hovered, clone, index)
+            treeView.addChild(hovered, clone, type, index)
         } else {
             LOGGER.warn("Cannot add child")
             false

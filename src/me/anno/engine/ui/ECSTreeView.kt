@@ -20,7 +20,6 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.files.Search
 import me.anno.ui.editor.treeView.TreeView
@@ -52,7 +51,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
         return element is PrefabSaveable
     }
 
-    override fun addChild(element: ISaveable, child: Any, index: Int): Boolean {
+    override fun addChild(element: ISaveable, child: Any, type: Char, index: Int): Boolean {
         element as PrefabSaveable
         val prefab: Prefab
         val prefabPath: Path
@@ -70,12 +69,9 @@ class ECSTreeView(val library: EditorState, style: Style) :
                 return false
             }
         }
-        Hierarchy.add(
-            prefab,
-            prefabPath,
-            element,
-            index
-        )
+        println("Input: ${element.prefab?.adds}")
+        Hierarchy.add(prefab, prefabPath, element, type, index)
+        println("Output: ${element.prefab?.adds}")
         return true
     }
 
@@ -93,7 +89,10 @@ class ECSTreeView(val library: EditorState, style: Style) :
     override fun removeChild(parent: ISaveable, child: ISaveable) {
         // todo somehow the window element cannot be removed
         if (parent is PrefabSaveable && child is PrefabSaveable) {
-            LOGGER.info("Trying to remove element ${child.className} from ${parent.className}")
+            parent.root.ensurePrefab()
+            parent.ensurePrefab()
+            child.ensurePrefab()
+            LOGGER.info("Trying to remove element ${child.className}/${child.ref}/${child.prefabPath} from ${parent.className}/${parent.ref}/${parent.prefabPath}")
             EditorState.selection = EditorState.selection.filter { it !in child.listOfHierarchy }
             Hierarchy.removePathFromPrefab(parent.root.prefab!!, child)
         } else throw NotImplementedError()
@@ -260,30 +259,22 @@ class ECSTreeView(val library: EditorState, style: Style) :
         if (prefab.isWritable) {
             // open add menu for often created entities: camera, light, nodes, ...
             // we could use which prefabs were most often created :)
-            val classes = parent.listChildTypes().map { parent.getOptionsByType(it) }
-                .flatten()
-                .apply { sortBy { it.title } }
+            val types = parent.listChildTypes()
             openMenu(
                 windowStack,
-                classes.map { option ->
-                    val sampleInstance = option.generator() as ISaveable
-                    val className = sampleInstance.className
-                    val title = option.title
-                    MenuOption(NameDesc(title)) {
-                        val nameId = Path.generateRandomId()
-                        val path = prefab.add(
-                            parent.prefabPath!!,
-                            if (sampleInstance is Entity) 'e' else 'c',
-                            className,
-                            nameId
-                        )
-                        val child = option.generator() as PrefabSaveable
-                        child.prefabPath = path
-                        child.prefab = prefab
-                        parent.addChild(child)
-                        PropertyInspector.invalidateUI(true)
-                    }
+                types.map { type ->
+                    (parent.getOptionsByType(type) ?: emptyList())
+                        .map { option ->
+                            val title = option.title
+                            MenuOption(NameDesc(title)) {
+                                val sample = (option.value0 ?: option.generator()) as PrefabSaveable
+                                val prefab1 = Prefab(sample.className)
+                                addChild(parent, prefab1, type, -1)
+                            }
+                        }
                 }
+                    .flatten()
+                    .sortedBy { it.title }
             )
         } else LOGGER.warn("Prefab is not writable!")
     }
@@ -300,7 +291,8 @@ class ECSTreeView(val library: EditorState, style: Style) :
         val indexInParent = element.indexInParent
         val parent = element.parent!!
         val parentPrefab = parent.getOriginal()
-        return parentPrefab == null || indexInParent >= parentPrefab.children.size
+        if (element.prefab == null) return true
+        return !(parentPrefab == null || indexInParent >= parentPrefab.children.size)
     }
 
     override fun selectElements(elements: List<ISaveable>) {
@@ -342,7 +334,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
             is Prefab -> {
                 val prefab = library.prefab
                 val root = prefab?.getSampleInstance() ?: return false
-                Hierarchy.add(prefab, Path.ROOT_PATH, element, Path.ROOT_PATH, root)
+                addChild(root, element, ' ', -1)
                 true
             }
             is PrefabSaveable -> return false

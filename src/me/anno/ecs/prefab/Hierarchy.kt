@@ -209,18 +209,19 @@ object Hierarchy {
         return instance
     }
 
-    fun add(srcPrefab: Prefab, srcPath: Path, dst: PrefabSaveable, insertIndex: Int = -1) =
-        add(srcPrefab, srcPath, dst.root.prefab!!, dst.prefabPath!!, dst, insertIndex)
+    fun add(srcPrefab: Prefab, srcPath: Path, dst: PrefabSaveable, type: Char, insertIndex: Int = -1) =
+        add(srcPrefab, srcPath, dst.root.prefab!!, dst.prefabPath!!, dst, type, insertIndex)
 
     fun add(
         srcPrefab: Prefab,
         srcPath: Path,
         dstPrefab: Prefab,
         dstParentPath: Path,
+        type: Char,
         insertIndex: Int = -1
     ): Path? {
         val dstParentInstance = getInstanceAt(dstPrefab.getSampleInstance(), dstParentPath)!!
-        return add(srcPrefab, srcPath, dstPrefab, dstParentPath, dstParentInstance, insertIndex)
+        return add(srcPrefab, srcPath, dstPrefab, dstParentPath, dstParentInstance, type, insertIndex)
     }
 
     fun add(
@@ -229,27 +230,26 @@ object Hierarchy {
         dstPrefab: Prefab,
         dstParentPath: Path,
         dstParentInstance: PrefabSaveable,
+        type: Char,
         insertIndex: Int = -1
     ): Path? {
         if (!dstPrefab.isWritable) throw ImmutablePrefabException(dstPrefab.source)
-        LOGGER.debug("Trying to add ${srcPrefab.source}/$srcPath to ${dstPrefab.source}/$dstParentPath")
+        LOGGER.debug(
+            "Trying to add " +
+                    "'${srcPrefab.source}'/'$srcPath'@${System.identityHashCode(srcPrefab)} to " +
+                    "'${dstPrefab.source}'/'$dstParentPath'@${System.identityHashCode(dstPrefab)}"
+        )
         if (srcPrefab == dstPrefab || (srcPrefab.source == dstPrefab.source && srcPrefab.source != InvalidRef)) {
             LOGGER.debug("src == dst, so trying extraction")
             return add(
-                extractPrefab(srcPrefab, srcPath, null),
-                Path.ROOT_PATH,
-                dstPrefab,
-                dstParentPath,
-                dstParentInstance,
-                insertIndex
+                extractPrefab(srcPrefab, srcPath, null), Path.ROOT_PATH,
+                dstPrefab, dstParentPath, dstParentInstance, type, insertIndex
             )
         } else {
             // find all necessary changes
             if (srcPath.isEmpty()) {
                 LOGGER.debug("Path is empty")
                 // find correct type and insert index
-                val srcSample = getInstanceAt(srcPrefab.getSampleInstance(), srcPath)!!
-                val type = dstParentInstance.getTypeOf(srcSample)
                 val nameId = Path.generateRandomId()
                 val clazz = srcPrefab.clazzName
                 val allowLink = srcPrefab.source != InvalidRef
@@ -257,14 +257,14 @@ object Hierarchy {
                     val srcPrefabSource = srcPrefab.source
                     if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
                     val dstPath = dstPrefab.add(dstParentPath, type, clazz, nameId, srcPrefabSource, insertIndex)
-                    LOGGER.debug("Adding element '$nameId' of class $clazz, type '$type' to path '$dstPath'")
+                    LOGGER.debug("Adding element '$nameId' of class $clazz, type '$type' to path '$dstPath' [1]")
                     ECSSceneTabs.updatePrefab(dstPrefab)
                     return dstPath
                 } else {
                     val srcPrefabSource = srcPrefab.prefab
                     if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
                     val dstPath = dstPrefab.add(dstParentPath, type, clazz, nameId, srcPrefabSource, insertIndex)
-                    LOGGER.debug("Adding element '$nameId' of class $clazz, type '$type' to path '$dstPath'")
+                    LOGGER.debug("Adding element '$nameId' of class $clazz, type '$type' to path '$dstPath' [2]")
                     val adds = srcPrefab.adds
                     assert(adds !== dstPrefab.adds)
                     for (index1 in adds.indices) {
@@ -281,12 +281,8 @@ object Hierarchy {
             } else {
                 LOGGER.debug("Extraction")
                 return add(
-                    extractPrefab(srcPrefab, srcPath, null),
-                    Path.ROOT_PATH,
-                    dstPrefab,
-                    dstParentPath,
-                    dstParentInstance,
-                    insertIndex
+                    extractPrefab(srcPrefab, srcPath, null), Path.ROOT_PATH,
+                    dstPrefab, dstParentPath, dstParentInstance, type, insertIndex
                 )
             }
         }
@@ -326,11 +322,10 @@ object Hierarchy {
     fun removePathFromPrefab(
         prefab: Prefab,
         saveable: PrefabSaveable
-    ) = removePathFromPrefab(
-        prefab,
-        saveable.prefabPath ?: throw RuntimeException("Saveable is missing prefab path"),
-        saveable.className
-    )
+    ) {
+        saveable.ensurePrefab()
+        removePathFromPrefab(prefab, saveable.prefabPath, saveable.className)
+    }
 
     fun removePathFromPrefab(
         prefab: Prefab,

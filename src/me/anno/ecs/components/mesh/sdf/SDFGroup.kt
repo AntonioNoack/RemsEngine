@@ -13,7 +13,7 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
-import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.tuples.Quad
 import org.joml.AABBf
@@ -166,8 +166,11 @@ open class SDFGroup : SDFComponent() {
 
     override fun calculateBaseBounds(dst: AABBf) {
         // for now, just use the worst case
-        val children = children
-        when (val size = numActiveChildren) {
+        calculateBaseBounds(dst, children)
+    }
+
+    fun calculateBaseBounds(dst: AABBf, children: List<SDFComponent>) {
+        when (val size = children.count { it.isEnabled }) {
             0 -> {}
             1 -> children.first { it.isEnabled }.calculateBounds(dst)
             else -> {
@@ -258,11 +261,22 @@ open class SDFGroup : SDFComponent() {
         seeds: ArrayList<String>
     ) {
         val children = children
-        if (children.any2 { it.isEnabled }) {
+        buildShader1(builder, posIndex0, nextVariableId, dstIndex, uniforms, functions, seeds, children, true)
+    }
+
+    fun buildShader1(
+        builder: StringBuilder,
+        posIndex0: Int, nextVariableId: VariableCounter, dstIndex: Int,
+        uniforms: HashMap<String, TypeValue>, functions: HashSet<String>,
+        seeds: ArrayList<String>, children: List<SDFComponent>,
+        applyTransform: Boolean
+    ) {
+        val enabledChildCount = children.count { it.isEnabled }
+        if (enabledChildCount > 0) {
             val type = type
-            val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
-            val posIndex = trans.posIndex
-            if (numActiveChildren == 1) {
+            val transform = if (applyTransform) buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds) else null
+            val posIndex = transform?.posIndex ?: posIndex0
+            if (enabledChildCount == 1) {
                 // done ^^
                 children.first2 { it.isEnabled }
                     .buildShader(builder, posIndex, nextVariableId, dstIndex, uniforms, functions, seeds)
@@ -272,7 +286,8 @@ open class SDFGroup : SDFComponent() {
                 if (type == CombinationMode.INTERPOLATION) {
                     appendInterpolation(
                         builder, posIndex, tmpIndex, nextVariableId,
-                        dstIndex, uniforms, functions, seeds
+                        dstIndex, uniforms, functions, seeds,
+                        children
                     )
                 } else {
                     val (funcName, smoothness, groove, stairs) = appendGroupHeader(functions, uniforms, type, style)
@@ -293,20 +308,29 @@ open class SDFGroup : SDFComponent() {
                 }
             }
             // first scale or offset? offset, because it was applied after scaling
-            val offsetName = trans.offsetName
-            val scaleName = trans.scaleName
-            if (offsetName != null)
-                builder.append("res").append(dstIndex).append(".x+=").append(offsetName).append(";\n")
-            if (scaleName != null)
-                builder.append("res").append(dstIndex).append(".x*=").append(scaleName).append(";\n")
-            if (localReliability != 1f)
-                builder.append("res").append(dstIndex).append(".x*=")
-                    .appendUniform(uniforms, GLSLType.V1F) { localReliability }.append(";\n")
-            buildDMShader(builder, posIndex, dstIndex, nextVariableId, uniforms, functions, seeds)
+            if (transform != null) buildTransformCorrection(builder, transform, dstIndex, uniforms)
+            buildDistanceMapperShader(builder, posIndex, dstIndex, nextVariableId, uniforms, functions, seeds)
         } else {
             builder.append("res").append(dstIndex).append("=vec4(Infinity,-1.0,0.0,0.0);\n")
-            buildDMShader(builder, posIndex0, dstIndex, nextVariableId, uniforms, functions, seeds)
+            buildDistanceMapperShader(builder, posIndex0, dstIndex, nextVariableId, uniforms, functions, seeds)
         }
+    }
+
+    fun buildTransformCorrection(
+        builder: StringBuilder,
+        trans: SDFTransform,
+        dstIndex: Int,
+        uniforms: HashMap<String, TypeValue>
+    ) {
+        val offsetName = trans.offsetName
+        val scaleName = trans.scaleName
+        if (offsetName != null)
+            builder.append("res").append(dstIndex).append(".x+=").append(offsetName).append(";\n")
+        if (scaleName != null)
+            builder.append("res").append(dstIndex).append(".x*=").append(scaleName).append(";\n")
+        if (localReliability != 1f)
+            builder.append("res").append(dstIndex).append(".x*=")
+                .appendUniform(uniforms, GLSLType.V1F) { localReliability }.append(";\n")
     }
 
     fun appendInterpolation(
@@ -316,7 +340,8 @@ open class SDFGroup : SDFComponent() {
         dstIndex: Int,
         uniforms: HashMap<String, TypeValue>,
         functions: HashSet<String>,
-        seeds: ArrayList<String>
+        seeds: ArrayList<String>,
+        children: List<SDFComponent>
     ) {
         val param1 = defineUniform(uniforms, GLSLType.V1F) { clamp(progress, 0f, children.size - 1f) }
         // helper functions
@@ -339,7 +364,7 @@ open class SDFGroup : SDFComponent() {
             builder.append("res").append(dstIndex).append(".yzw=res").append(tmpIndex).append(".yzw;\n")
             if (needsCondition) builder.append("}\n")
             builder.append("res").append(dstIndex)
-                .append(if(needsCondition) ".x+=w" else ".x=w").append(weightIndex)
+                .append(if (needsCondition) ".x+=w" else ".x=w").append(weightIndex)
                 .append("*res").append(tmpIndex)
                 .append(".x;\n")
             activeIndex++
@@ -438,7 +463,7 @@ open class SDFGroup : SDFComponent() {
     }
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
-        return when (numActiveChildren) {
+        return when (children.count2 { it.isEnabled }) {
             0 -> Float.POSITIVE_INFINITY
             1 -> {
                 val pw = pos.w
@@ -509,7 +534,7 @@ open class SDFGroup : SDFComponent() {
 
     override fun findClosestComponent(pos: Vector4f, seeds: IntArrayList): SDFComponent {
         val children = children
-        return when (numActiveChildren) {
+        return when (children.count2 { it.isEnabled }) {
             0 -> this
             1 -> {
                 applyTransform(pos, seeds)

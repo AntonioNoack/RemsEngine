@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
-import me.anno.ecs.components.mesh.sdf.arrays.SDFArray
+import me.anno.ecs.components.mesh.sdf.arrays.SDFArrayMapper
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
@@ -117,7 +117,7 @@ class SDFRandomRotation : SDFRandom() {
 
             val entity = Entity()
 
-            val array = SDFArray()
+            val array = SDFArrayMapper()
             array.cellSize.set(2f)
             array.count.set(10, 1, 10)
 

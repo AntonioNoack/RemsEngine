@@ -52,6 +52,13 @@ object AnyToDouble {
                 3 -> w.toDouble()
                 else -> defaultValue
             }
+            is Planef -> when (index) {
+                0 -> a.toDouble()
+                1 -> b.toDouble()
+                2 -> c.toDouble()
+                3 -> d.toDouble()
+                else -> defaultValue
+            }
             is Quaternionf -> when (index) {
                 0 -> x.toDouble()
                 1 -> y.toDouble()
@@ -75,6 +82,13 @@ object AnyToDouble {
                 1 -> y
                 2 -> z
                 3 -> w
+                else -> defaultValue
+            }
+            is Planed -> when (index) {
+                0 -> a
+                1 -> b
+                2 -> c
+                3 -> d
                 else -> defaultValue
             }
             is Quaterniond -> when (index) {

@@ -6,11 +6,10 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.TwoDims
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
-import me.anno.ecs.components.mesh.sdf.arrays.SDFArray
+import me.anno.ecs.components.mesh.sdf.arrays.SDFArrayMapper
 import me.anno.ecs.components.mesh.sdf.arrays.SDFHexGrid
 import me.anno.ecs.components.mesh.sdf.arrays.SDFTriangleGrid
 import me.anno.ecs.components.mesh.sdf.shapes.SDFSphere
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFXBase
@@ -64,7 +63,7 @@ class SDFRandomUV : SDFRandom() {
             hexGrid.cellSize = 3f
             add(hexGrid, -10f)
 
-            val cubeGrid = SDFArray()
+            val cubeGrid = SDFArrayMapper()
             cubeGrid.cellSize.set(3f)
             cubeGrid.count.set(10, 1, 10)
             add(cubeGrid, 0f)

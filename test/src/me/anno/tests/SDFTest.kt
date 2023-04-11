@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.ecs.components.mesh.sdf.SDFComposer
 import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.components.mesh.sdf.VariableCounter
-import me.anno.ecs.components.mesh.sdf.arrays.SDFArray
+import me.anno.ecs.components.mesh.sdf.arrays.SDFArrayMapper
 import me.anno.ecs.components.mesh.sdf.arrays.SDFHexGrid
 import me.anno.ecs.components.mesh.sdf.modifiers.*
 import me.anno.ecs.components.mesh.sdf.shapes.*
@@ -247,7 +247,7 @@ fun createShape(): SDFComponent {
     finalShape.addChild(group2)
     finalShape.type = SDFGroup.CombinationMode.UNION
     finalShape.smoothness = 0.5f
-    val array = SDFArray()
+    val array = SDFArrayMapper()
     array.cellSize.set(4f)
     // array.count.set(4, 1, 5)
     // group2.addChild(array)

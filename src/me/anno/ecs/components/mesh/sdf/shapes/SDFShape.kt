@@ -73,7 +73,7 @@ open class SDFShape : SDFComponent() {
         trans: SDFTransform
     ) {
         smartMinEnd(builder, uniforms, trans.scaleName, trans.offsetName)
-        buildDMShader(builder, trans.posIndex, dstIndex, nextVariableId, uniforms, functions, seeds)
+        buildDistanceMapperShader(builder, trans.posIndex, dstIndex, nextVariableId, uniforms, functions, seeds)
         sdfTransPool.destroy(trans)
     }
 

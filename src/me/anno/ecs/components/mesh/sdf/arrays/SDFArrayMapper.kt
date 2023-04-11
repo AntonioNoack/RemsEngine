@@ -17,7 +17,7 @@ import org.joml.Vector4f
 import kotlin.math.floor
 import kotlin.math.round
 
-class SDFArray : PositionMapper() {
+class SDFArrayMapper : PositionMapper() {
 
     // todo all arrays should have the option to evaluate the neighbors for correct sdfs without gaps
     // -> for this array, use SDFArray2 :)
@@ -202,7 +202,7 @@ class SDFArray : PositionMapper() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SDFArray
+        dst as SDFArrayMapper
         dst.dynamicX = dynamicX
         dst.dynamicY = dynamicY
         dst.dynamicZ = dynamicZ

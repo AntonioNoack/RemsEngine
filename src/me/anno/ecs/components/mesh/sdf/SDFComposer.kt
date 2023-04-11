@@ -15,13 +15,13 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.length
 import me.anno.utils.pooling.JomlPools
-import org.joml.Vector2f
-import org.joml.Vector3f
+import org.joml.*
 import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -32,8 +32,6 @@ import kotlin.math.max
  * builds shaders for signed distance function rendering
  * */
 object SDFComposer {
-
-    // todo exporter for ShaderToy
 
     const val dot2 = "" +
             "float dot2(vec2 v){ return dot(v,v); }\n" +
@@ -185,11 +183,10 @@ object SDFComposer {
         }
 
         for (index in 0 until max(materials.size, 1)) {
-            if (needsSwitch) builder.append("case ").append(index).append(":\n")
+            if (needsSwitch) builder.append("case ").append(index).append(": {\n")
             val material = materials.getOrNull(index) ?: defaultMaterial
             // todo support shading functions, textures and material interpolation
             // define all properties as uniforms, so they can be changed without recompilation
-
             // todo this is pretty limited by the total number of textures :/
             val canUseTextures = materialsUsingTextures[index]
             val color = defineUniform(uniforms, material.diffuseBase)
@@ -197,16 +194,17 @@ object SDFComposer {
                 builder.append("vec4 color = texture(")
                     .append(defineUniform(uniforms, GLSLType.S2D) { material.diffuseMap })
                     .append(",uv) * ").append(color).append(";\n")
+                builder.append("finalColor = color.rgb;\n")
+                builder.append("finalAlpha = color.w;\n")
             } else {
-                builder.append("vec4 color = ").append(color).append(";\n")
+                builder.append("finalColor = ").append(color).append(".rgb;\n")
+                builder.append("finalAlpha = ").append(color).append(".w;\n")
             }
-            builder.append("finalColor = color.rgb;\n")
-            builder.append("finalAlpha = color.w;\n")
             // todo create textures for these
             builder.append("finalMetallic = ").appendUniform(uniforms, material.metallicMinMax).append(".y;\n")
             builder.append("finalRoughness = ").appendUniform(uniforms, material.roughnessMinMax).append(".y;\n")
             builder.append("finalEmissive = ").appendUniform(uniforms, material.emissiveBase).append(";\n")
-            if (needsSwitch) builder.append("break;\n")
+            if (needsSwitch) builder.append("break; }\n")
         }
         if (needsSwitch) builder.append("}\n")
 
@@ -415,6 +413,155 @@ object SDFComposer {
             "ambientLight"
         )
         return uniforms to shader
+    }
+
+    fun createShaderToyShader(tree: SDFComponent): String {
+
+        val stateScript = "" +
+                // adjusted from https://www.shadertoy.com/view/ttVfDc
+                // iChannel0 of buffer A must be itself
+                // iChannel1 of buffer A must be keyboard
+                // todo calculate pos and dir
+                "void mainImage(out vec4 col, in vec2 uv) {  \n" +
+                "   if(uv.y > 1.0 || uv.x > 4.0) discard;\n" +
+                "   col = vec4(0.0);\n" +
+                "   vec4 iMouseLast      = texelFetch(iChannel0, ivec2(0, 0), 0);\n" +
+                "   vec4 iMouseAccuLast  = texelFetch(iChannel0, ivec2(1, 0), 0);\n" +
+                "   float kW = texelFetch(iChannel1, ivec2(0x57, 0), 0).x;\n" +
+                "   float kA = texelFetch(iChannel1, ivec2(0x41, 0), 0).x;\n" +
+                "   float kS = texelFetch(iChannel1, ivec2(0x53, 0), 0).x;\n" +
+                "   float kD = texelFetch(iChannel1, ivec2(0x44, 0), 0).x;\n" +
+                "   float kQ = texelFetch(iChannel1, ivec2(0x50, 0), 0).x;\n" +
+                "   float kE = texelFetch(iChannel1, ivec2(0x45, 0), 0).x;\n" +
+                "   vec2 mouseDelta = iMouse.z > 0.0 && iMouseLast.z > 0.0 ? iMouse.xy - iMouseLast.xy : vec2(0.0);\n" +
+                "   vec4 lastRot = texelFetch(iChannel0, ivec2(3, 0), 0);\n" +
+                "   vec3 dir = quatRot(vec3(0,0,-1),lastRot);\n" +
+                // *iDeltaTime is somehow unknown :/
+                "   vec3 pos = texelFetch(iChannel0,ivec2(2,0),0).xyz + quatRot(vec3(kD-kA,kQ-kE,kS-kW),lastRot);\n" +
+                "   vec4 rot = vec4(0,0,0,1);\n" + // todo rotate y and x
+                "   if(uv.x == 0.5) col = iMouse;\n" +
+                "   if(uv.x == 1.5) col = vec4(iMouseAccuLast.xy + mouseDelta,0,1);\n" +
+                "   if(uv.x == 2.5) col = vec4(pos,1.0);\n" +
+                "   if(uv.x == 3.5) col = rot;\n" +
+                "}"
+
+        // done compute approximate bounds on cpu, so we can save computations
+        // done traverse with larger step size on normals? normals don't use traversal
+        // done traverse over tree to assign material ids? no, the programmer does that to reduce cases
+        val functions = LinkedHashSet<String>()
+        val uniforms = HashMap<String, TypeValue>()
+        val shapeDependentShader = StringBuilder()
+        val seeds = ArrayList<String>()
+        tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions, seeds)
+
+        uniforms["sdfReliability"] = TypeValue(GLSLType.V1F, tree.globalReliability)
+        uniforms["sdfNormalEpsilon"] = TypeValue(GLSLType.V1F, tree.normalEpsilon)
+        uniforms["sdfMaxRelativeError"] = TypeValue(GLSLType.V1F, tree.maxRelativeError)
+        uniforms["maxSteps"] = TypeValue(GLSLType.V1I, tree.maxSteps)
+        uniforms["distanceBounds"] = TypeValue(GLSLType.V2F, Vector2f(0.01f, 1000f))
+
+        val materials = tree.sdfMaterials.map { MaterialCache[it] }
+        val builder = StringBuilder(max(1, materials.size) * 128)
+
+        val needsSwitch = materials.size > 1
+        if (needsSwitch) builder
+            .append("switch(clamp(int(ray.y),0,")
+            .append(materials.lastIndex)
+            .append(")){\n")
+
+        // register all materials that use textures
+        val materialsUsingTextures = BitSet(materials.size)
+        if (materials.isNotEmpty()) {
+            tree.simpleTraversal(false) {
+                if (it is SDFComponent && it.positionMappers.any { pm -> pm is SDFRandomUV }) {
+                    it.simpleTraversal(false) { c ->
+                        if (c is SDFShape) {
+                            if (c.materialId < materialsUsingTextures.size())
+                                materialsUsingTextures.set(c.materialId)
+                        }
+                        false
+                    }
+                }
+                false
+            }
+        }
+
+        for (index in 0 until max(materials.size, 1)) {
+            if (needsSwitch) builder.append("case ").append(index).append(":\n")
+            val material = materials.getOrNull(index) ?: defaultMaterial
+            builder.append("finalColor = vec3(${material.diffuseBase.x},${material.diffuseBase.y},${material.diffuseBase.z});\n")
+            builder.append("finalAlpha = ${material.diffuseBase.w};\n")
+            builder.append("finalMetallic = ${material.metallicMinMax.y};\n")
+            builder.append("finalRoughness = ${material.roughnessMinMax.y};\n")
+            builder.append("finalEmissive = vec3(${material.emissiveBase.x},${material.emissiveBase.y},${material.emissiveBase.z});\n")
+            if (needsSwitch) builder.append("break;\n")
+        }
+        if (needsSwitch) builder.append("}\n")
+
+        val defines = uniforms.entries.joinToString("\n") {
+            "#define ${it.key} ${
+                when (val v = it.value.value) {
+                    is Vector2f -> "vec2(${v.x},${v.y})"
+                    is Vector3f -> "vec3(${v.x},${v.y},${v.z})"
+                    is Vector4f -> "vec4(${v.x},${v.y},${v.z},${v.w})"
+                    is Quaternionf -> "vec4(${v.x},${v.y},${v.z},${v.w})"
+                    is Vector2i -> "ivec2(${v.x},${v.y})"
+                    is Vector3i -> "ivec3(${v.x},${v.y},${v.z})"
+                    is Vector4i -> "ivec4(${v.x},${v.y},${v.z},${v.w})"
+                    else -> v.toString()
+                }
+            }"
+        }
+
+        val trace = "vec4 trace(vec3 localPos, vec3 localDir,\n" +
+                "out vec3 finalColor, out float finalAlpha, out vec3 finalNormal,\n" +
+                "out float finalMetallic, out float finalRoughness, out vec3 finalEmissive) {\n" +
+                "   int steps; finalAlpha = 0.0;\n" +
+                "   vec4 ray = raycast(localPos, localDir, steps);\n" +
+                "   if(ray.y >= 0.0) {\n" +
+                "      vec3 localHit = localPos + ray.x * localDir;\n" +
+                "      finalNormal = calcNormal(localPos, localDir, localHit, sdfNormalEpsilon);\n" +
+                // step by step define all material properties
+                "      vec2 uv = ray.zw;\n" +
+                builder.toString() +
+                "   }\n" +
+                "   return ray;\n" +
+                "}\n"
+
+        val res = StringBuilder()
+        res.append(quatRot)
+        res.append(stateScript)
+        res.append( "\n\n// this belongs in the image slot\n")
+        res.append("#define ZERO 0\n")
+        res.append(defines).append("\n")
+        res.append(sdfConstants)
+        functions.add(quatRot)
+        for (func in functions) res.append(func)
+        res.append("vec4 map(vec3 ro, vec3 rd, vec3 pos0){\n")
+        res.append("   vec4 res0;vec2 uv=vec2(0.0);\n")
+        res.append(shapeDependentShader)
+        res.append("   return res0;\n}\n")
+        res.append(raycasting)
+        res.append(normal)
+
+        // trace a ray :)
+        val mainScript = "" +
+                "void mainImage(out vec4 col, in vec2 uv){\n" +
+                "   uv = (uv-iResolution.xy*0.5) / iResolution.y;" +
+                "   vec3 color,normal,emissive;\n" +
+                "   float alpha,metallic,roughness;\n" +
+                "   vec3 pos = texelFetch(iChannel0,ivec2(2,0),0).xyz;\n" +
+                "   vec4 rot = texelFetch(iChannel0,ivec2(3,0),0);\n" +
+                "   vec3 dir = quatRot(normalize(vec3(uv-0.5,-1.0)),rot);\n" +
+                "   vec4 ray = trace(pos,dir,color,alpha,normal,metallic,roughness,emissive);\n" +
+                // todo nicer shading, maybe 1st degree reflections
+                "   col = vec4(color,alpha);\n" +
+                "}\n"
+
+        res.append(trace)
+        res.append(mainScript)
+
+        return res.toString()
     }
 
 }

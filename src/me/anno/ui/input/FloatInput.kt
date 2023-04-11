@@ -7,6 +7,7 @@ import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.style.Style
+import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
 import kotlin.math.*
@@ -122,23 +123,7 @@ open class FloatInput(
 
     // must be open for Rem's Studio
     open fun getValue(value: Any): Double {
-        return when (value) {
-            is Boolean -> value.toDouble()
-            is Float -> value.toDouble()
-            is Double -> value
-            is Int -> value.toDouble()
-            is Long -> value.toDouble()
-            is Vector2i -> value.x.toDouble()
-            is Vector3i -> value.x.toDouble()
-            is Vector4i -> value.x.toDouble()
-            is Vector2f -> value.x.toDouble()
-            is Vector3f -> value.x.toDouble()
-            is Vector4f -> value.x.toDouble()
-            is Vector2d -> value.x
-            is Vector3d -> value.x
-            is Vector4d -> value.x
-            else -> throw RuntimeException("Unknown type $value for ${value.javaClass.simpleName}")
-        }
+        return AnyToDouble.getDouble(value, 0, 0.0)
     }
 
     fun setChangeListener(listener: (value: Double) -> Unit): FloatInput {

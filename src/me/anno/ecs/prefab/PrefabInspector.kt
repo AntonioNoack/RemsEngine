@@ -129,17 +129,8 @@ class PrefabInspector(val reference: FileReference) {
             )
 
         val path = instance.prefabPath
-
-        list += TextPanel("${path?.nameId}, ${instance.className}@${hex32(System.identityHashCode(instance))}", style)
-
-        /*if (path == null) {
-            LOGGER.error(
-                "Missing path for " +
-                        "[${instance.listOfHierarchy.joinToString { "${it.className}:${it.name}" }}], " +
-                        "prefab: '${instance.prefab?.source}', root prefab: '${instance.root.prefab?.source}'"
-            )
-            return
-        }*/
+        instance.ensurePrefab()
+        list += TextPanel("$path@${instance.prefab?.source}, ${instance.className}@${hex32(System.identityHashCode(instance))}", style)
 
         // the index may not be set in the beginning
         fun getPath(): Path? {

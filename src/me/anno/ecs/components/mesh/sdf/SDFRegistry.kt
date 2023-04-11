@@ -40,7 +40,7 @@ object SDFRegistry {
         // groups
         registerCustomClass(SDFGroup())
         // modifiers
-        registerCustomClass(SDFArray())
+        registerCustomClass(SDFArrayMapper())
         registerCustomClass(SDFColumn())
         registerCustomClass(SDFHalfSpace())
         registerCustomClass(SDFHexGrid())

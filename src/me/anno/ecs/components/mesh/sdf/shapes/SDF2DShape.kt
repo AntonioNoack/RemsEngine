@@ -93,7 +93,8 @@ open class SDF2DShape : SDFShape() {
         if (root.prefab != null) {
             val prefab = Prefab("SDFHalfSpace")
             prefab[Path.ROOT_PATH, "plane"] = Planef(pos, dir)
-            Hierarchy.add(prefab, Path.ROOT_PATH, this)
+            val type = 'd' // SDFHalfSpace is a distance mapper = 'd'
+            Hierarchy.add(prefab, Path.ROOT_PATH, this, type)
         } else {
             val child = SDFHalfSpace()
             child.plane.set(pos, dir)

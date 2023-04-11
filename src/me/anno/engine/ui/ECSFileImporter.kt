@@ -37,7 +37,7 @@ object ECSFileImporter : FileContentImporter<ISaveable>() {
             val path = parent.prefabPath!!
             val prefab = PrefabCache[file]
             if (prefab != null) {
-                val newPath = Hierarchy.add(prefab, Path.ROOT_PATH, inspector.prefab, path)
+                val newPath = Hierarchy.add(prefab, Path.ROOT_PATH, inspector.prefab, path, ' ')
                 if (doSelect && newPath != null) {
                     val root = inspector.prefab.getSampleInstance()
                     val instance = Hierarchy.getInstanceAt(root, newPath)

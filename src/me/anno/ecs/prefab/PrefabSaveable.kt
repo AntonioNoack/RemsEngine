@@ -1,5 +1,6 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
@@ -48,6 +49,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
                 prefab._sampleInstance = this
                 this.prefab = prefab
                 this.prefabPath = Path.ROOT_PATH
+                setAllChildPaths()
             }
             return prefab.source
         }
@@ -59,31 +61,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     var prefab: Prefab? = null
 
     @NotSerializedProperty
-    var prefabPath: Path? = null
-        get() {
-            if (field != null) return field
-            val parent = parent
-            if (parent != null) {
-                val pp = parent.prefabPath
-                if (pp != null) {
-                    // find, which type we are
-                    for (childType in parent.listChildTypes()) {
-                        val children = parent.getChildListByType(childType)
-                        val index = children.indexOf(this)
-                        if (index >= 0) {
-                            // find nameId
-                            val nameId = Path.generateRandomId()
-                            val newPath = Path(pp, nameId, index, childType)
-                            LOGGER.warn("Was missing prefab path, so generated new path $newPath")
-                            field = newPath
-                            return newPath
-                        }
-                    }
-                    // if we are here, parent must be misconfigured
-                }
-            }
-            return null
-        }
+    var prefabPath: Path = Path.ROOT_PATH
 
     @NotSerializedProperty
     override var parent: PrefabSaveable? = null
@@ -140,6 +118,43 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     open fun getChildListNiceName(type: Char): String = "Children"
     open fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         LOGGER.warn("$className.addChildByType(index,$type,${child.className}) is not supported")
+    }
+
+    fun ensurePrefab() {
+        if (prefab != null) return
+        val parent = parent
+        if (parent != null) {
+            parent.ensurePrefab()
+        } else {
+            ref
+            // prefab is ensured :)
+            // todo now add all adds
+            setAllChildPaths()
+        }
+    }
+
+    fun setChildPath(child: PrefabSaveable, index: Int, type: Char) {
+        val prefab = prefab
+        if (child.prefab == null && prefab != null) {
+            child.prefab = prefab
+            val nameId = Path.generateRandomId()
+            child.prefabPath = prefabPath.added(nameId, index, type)
+            // register path in prefab.adds
+            prefab.ensureMutableLists()
+            (prefab.adds as MutableList).add(CAdd(prefabPath, type, child.className, nameId))
+            // update all children within child as well
+            child.setAllChildPaths()
+        }
+    }
+
+    fun setAllChildPaths() {
+        for (type2 in listChildTypes()) {
+            val children = getChildListByType(type2)
+            for (ci in children.indices) {
+                val child2 = children[ci]
+                setChildPath(child2, ci, type2)
+            }
+        }
     }
 
     open fun getOptionsByType(type: Char): List<Option>? = null

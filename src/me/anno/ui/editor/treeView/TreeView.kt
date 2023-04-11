@@ -60,7 +60,7 @@ abstract class TreeView<V : Any>(
     /**
      * returns true on success
      * */
-    abstract fun addChild(element: V, child: Any, index: Int): Boolean
+    abstract fun addChild(element: V, child: Any, type: Char, index: Int): Boolean
 
     abstract fun removeChild(parent: V, child: V)
 
@@ -77,26 +77,26 @@ abstract class TreeView<V : Any>(
 
     abstract fun setName(element: V, name: String)
 
-    open fun addBefore(sibling: V, added: V): Boolean {
+    open fun addBefore(sibling: V, added: V, type: Char): Boolean {
         val parent = getParent(sibling)!!
         if (getParent(added) == parent) removeChild(parent, added)
         val index = getIndexInParent(parent, sibling)
         return if (canBeInserted(parent, added, index)) {
-            addChild(parent, added, index)
+            addChild(parent, added, type, index)
         } else {
             LOGGER.warn("Cannot add child")
             false
         }
     }
 
-    open fun addAfter(sibling: V, added: V): Boolean {
+    open fun addAfter(sibling: V, added: V, type: Char): Boolean {
         val parent = getParent(sibling)!!
         if (getParent(added) == parent) {
             removeChild(parent, added)
         }
         val index = getIndexInParent(parent, sibling) + 1
         return if (canBeInserted(parent, added, index)) {
-            addChild(parent, added, index)
+            addChild(parent, added, type, index)
         } else {
             LOGGER.warn("Cannot add child")
             false
@@ -253,7 +253,7 @@ abstract class TreeView<V : Any>(
                             if (parent != null && child.isAnyChildInFocus) {
                                 if (canBeRemoved(element)) {
                                     removeChild(parent, element)
-                                } else LOGGER.warn("Cannot remove element")
+                                } else LOGGER.info("Cannot remove element")
                             }
                         }
                     }
