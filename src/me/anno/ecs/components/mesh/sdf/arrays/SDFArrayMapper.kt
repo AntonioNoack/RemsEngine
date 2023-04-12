@@ -145,6 +145,7 @@ class SDFArrayMapper : PositionMapper() {
                 builder.append(posIndex).append(".").append(component).append(",")
                 builder.append(size).append(",tmp")
                     .append(nameIdx).append(".").append(component).append(");\n")
+                // todo adjust dir if mirrored
             }
             else -> {
                 builder.append("pos").append(posIndex).append(".").append(component)
@@ -154,6 +155,7 @@ class SDFArrayMapper : PositionMapper() {
                 builder.append((count - 1) * 0.5f).append(",")
                 builder.append(count.and(1) * 0.5f).append(",tmp")
                     .append(nameIdx).append(".").append(component).append(");\n")
+                // todo adjust dir if mirrored
             }
         }
     }

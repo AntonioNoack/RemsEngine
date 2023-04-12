@@ -61,8 +61,13 @@ class ECSTreeView(val library: EditorState, style: Style) :
                 prefabPath = Path.ROOT_PATH
             }
             is PrefabSaveable -> {
+                if (element.prefab == null) {
+                    // if prefab is null -> we can safely just add things
+                    element.addChildByType(index, type, child)
+                    return true
+                }
                 prefab = child.root.prefab!!
-                prefabPath = child.prefabPath!!
+                prefabPath = child.prefabPath
             }
             else -> {
                 LOGGER.warn("Unknown type $child")
@@ -89,6 +94,11 @@ class ECSTreeView(val library: EditorState, style: Style) :
     override fun removeChild(parent: ISaveable, child: ISaveable) {
         // todo somehow the window element cannot be removed
         if (parent is PrefabSaveable && child is PrefabSaveable) {
+            if(parent.prefab == null){
+                // just remove it
+                child.removeFromParent()
+                return
+            }
             parent.root.ensurePrefab()
             parent.ensurePrefab()
             child.ensurePrefab()

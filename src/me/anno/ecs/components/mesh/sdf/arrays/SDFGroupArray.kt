@@ -114,7 +114,8 @@ abstract class SDFGroupArray : SDFGroup() {
                 builder, posIndex1, nextVariableId, res1, uniforms, functions, seeds,
                 children.subList(0, modulatorIndex), false
             )
-            builder.append("if(res").append(res1).append(".x>mcs").append(res1).append("){\n")
+            // use this shortcut, if the query is outside the shape, or cells of the array are too small to be noticeable
+            builder.append("if(res").append(res1).append(".x>mcs").append(res1).append(" || mcs$res1*sca$posIndex1<0.003){\n")
             // fast path, where the mesh is skipped
             builder.append("res").append(dstIndex).append("=0.5*res").append(res1).append(";\n")
             builder.append("res").append(dstIndex).append(".x+=0.5*mcs").append(res1).append(";\n")
@@ -127,6 +128,8 @@ abstract class SDFGroupArray : SDFGroup() {
             // todo remember the winning cell pos -> query it for modulator UVs and modulator materials
             val posIndex2 = nextVariableId.next()
             builder.append("vec3 pos").append(posIndex2).append("=cellPos; ctr$res0++;\n")
+            appendIdentityDir(builder, posIndex2, posIndexI)
+            appendIdentitySca(builder, posIndex2, posIndexI)
             buildShader1(
                 builder, posIndex2, nextVariableId, res1, uniforms, functions, seeds,
                 children.subList(0, modulatorIndex), false
@@ -149,12 +152,15 @@ abstract class SDFGroupArray : SDFGroup() {
         if (modulatorIndex > 0) {
             builder.append("}\n")
             if (useModulatorUVs && useModulatorMaterials) {
-                builder.append("if(res$res1.y>=0.0) res").append(dstIndex).append(".yzw=res").append(res1).append(".yzw;\n")
+                builder.append("if(res$res1.y>=0.0) res").append(dstIndex).append(".yzw=res").append(res1)
+                    .append(".yzw;\n")
             } else {
                 if (useModulatorMaterials)
-                    builder.append("if(res$res1.y>=0.0) res").append(dstIndex).append(".y=res").append(res1).append(".y;\n")
+                    builder.append("if(res$res1.y>=0.0) res").append(dstIndex).append(".y=res").append(res1)
+                        .append(".y;\n")
                 else if (useModulatorUVs)
-                    builder.append("if(res$res1.y>=0.0) res").append(dstIndex).append(".zw=res").append(res1).append(".zw;\n")
+                    builder.append("if(res$res1.y>=0.0) res").append(dstIndex).append(".zw=res").append(res1)
+                        .append(".zw;\n")
             }
         }
         // builder.append("res$dstIndex.zw = vec2(0.1*float(ctr$res0));\n")

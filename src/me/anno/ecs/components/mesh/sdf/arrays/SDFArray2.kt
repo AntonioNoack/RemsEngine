@@ -9,10 +9,8 @@ import me.anno.ecs.components.mesh.sdf.arrays.SDFArrayMapper.Companion.sdArray
 import me.anno.ecs.components.mesh.sdf.random.SDFRandom.Companion.randLib
 import me.anno.ecs.components.mesh.sdf.random.SDFRandomRotation
 import me.anno.ecs.components.mesh.sdf.random.SDFRandomUV
-import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
-import me.anno.ecs.components.mesh.sdf.shapes.SDFCylinder
-import me.anno.ecs.components.mesh.sdf.shapes.SDFHeart
-import me.anno.ecs.components.mesh.sdf.shapes.SDFTorus
+import me.anno.ecs.components.mesh.sdf.shapes.*
+import me.anno.ecs.components.mesh.sdf.uv.LinearUVMapper
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -132,6 +130,7 @@ class SDFArray2 : SDFGroupArray() {
         builder.append("vec3 min$pp1=mod2C(pos$posIndex0-$overlap,$cellSize,l$pp1,h$pp1);\n")
         builder.append("vec3 max$pp1=mod2C(pos$posIndex0+$overlap,$cellSize,l$pp1,h$pp1);\n")
         builder.append("vec3 pos").append(pp1).append("=pos").append(posIndex0).append(";\n")
+        builder.append("vec3 dir").append(pp1).append("=dir").append(posIndex0).append(";\n")
         val tmp1 = nextVariableId.next()
         builder.append("vec3 tmp").append(tmp1).append(";\n")
         builder.append("bool first").append(innerDstIndex).append("=true;\n")
@@ -143,12 +142,15 @@ class SDFArray2 : SDFGroupArray() {
             }
             val a = axes[axis]
             builder.append("for(tmp$tmp1.$a=min$pp1.$a;tmp$tmp1.$a<=max$pp1.$a;tmp$tmp1.$a++){\n")
-            builder.append("pos${pp1}.$a=")
             if (mirror) {
-                builder.append("(pos$posIndex0.$a-$cellSize.$a*tmp$tmp1.$a)*mirror(tmp$tmp1.$a);\n")
+                builder.append("pos${pp1}.$a=(pos$posIndex0.$a-$cellSize.$a*tmp$tmp1.$a)*mirror(tmp$tmp1.$a);\n")
+                builder.append("dir${pp1}.$a=dir$posIndex0.$a*mirror(tmp$tmp1.$a);\n")
             } else {
-                builder.append("pos$posIndex0.$a-$cellSize.$a*tmp$tmp1.$a;\n")
+                builder.append("pos${pp1}.$a=pos$posIndex0.$a-$cellSize.$a*tmp$tmp1.$a;\n")
+                builder.append("dir${pp1}.$a=dir$posIndex0.$a;\n")
             }
+            // scale isn't changing
+            appendIdentitySca(builder, pp1, posIndex0)
         }
         // calculate seed
         val seed = "seed" + nextVariableId.next()
@@ -200,20 +202,23 @@ class SDFArray2 : SDFGroupArray() {
             ECSRegistry.init()
             testSceneWithUI(Entity().apply {
                 add(SDFArray2().apply {
+                    maxSteps = 500
                     useModulatorMaterials = true
                     addChild(SDFGroup().apply {
+                        // todo why are they not showing up?
+                        if (false) addChild(LinearUVMapper())
                         addChild(SDFTorus().apply {
-                            localReliability = 0.8f
                             scale = 500f
                             materialId = 0
                         })
                         addChild(SDFHeart().apply {
-                            bound11()
+                            bound1(-0.1f, 10f, 2)
                             rotation = rotation.rotateX((-90f).toRadians())
                             scale = 600f
                             materialId = 1
                             position.set(0f, 0f, 50f)
                         })
+                        type = CombinationMode.DIFFERENCE1
                     })
                     modulatorIndex = 1
                     sdfMaterials = listOf(
@@ -226,9 +231,8 @@ class SDFArray2 : SDFGroupArray() {
                             diffuseBase.set(1f, 0.3f, 0.2f, 1f)
                         }.ref,
                     )
-                    maxSteps = 500
                     cellSize.set(10f, 2f, 5f)
-                    count.set(200)
+                    count.set(1000)
                     overlap.set(2.5f)
                     // todo file input for sdfMaterials: add/create new materials (even if just temporary)
                     //  todo add option to then save them after creation
@@ -246,18 +250,30 @@ class SDFArray2 : SDFGroupArray() {
                             smoothness = 0.2f
                             halfExtends.set(5f, 1f, 2.5f)
                         })
-                        addChild(SDFCylinder().apply {
-                            smoothness = 0.1f
-                            radius = 0.75f
-                            halfHeight = 0.5f
+                        addChild(SDFGroup().apply {
                             position.set(0f, 1f, 0f)
+                            addChild(SDFCylinder().apply {
+                                smoothness = 0.1f
+                                radius = 0.75f
+                                halfHeight = 0.5f
+                            })
+                            // nice looking logo on top of studs
+                            // very performance hungry, because I don't know how far an object is
+                            // it might be enough to use normal maps
+                            //  todo calculate tangents, and add more options for UV mappings
+                            addChild(SDFHeightMap().apply {
+                                position.set(0f, 0.48f, 0f)
+                                scale = 0.5f
+                                source = pictures.getChild("Maps/Bricks2.png")
+                                maxHeight = 0.1f
+                            })
+                            if (false) addChild(LinearUVMapper())
                             addChild(SDFArrayMapper().apply {
                                 count.set(4, 1, 2)
                                 cellSize.set(2.5f)
                             })
                         })
                     })
-
                 })
             })
         }

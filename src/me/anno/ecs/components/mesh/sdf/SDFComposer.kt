@@ -53,7 +53,7 @@ object SDFComposer {
             "   float tMin = distanceBounds.x, tMax = distanceBounds.y;\n" +
             "   float t = tMin;\n" +
             "   for(i=0; i<maxSteps && t<tMax; i++){\n" +
-            "     vec4 h = map(ro,rd,ro+rd*t);\n" +
+            "     vec4 h = map(ro,rd,ro+rd*t,t);\n" +
             "     if(abs(h.x)<(sdfMaxRelativeError*t)){\n" + // allowed error grows with distance
             "       res = vec4(t,h.yzw);\n" +
             "       break;\n" +
@@ -66,15 +66,15 @@ object SDFComposer {
 
     // http://iquilezles.org/www/articles/normalsSDF/normalsSDF.htm
     const val normal = "" +
-            "vec3 calcNormal(vec3 ro, vec3 rd, vec3 pos, float epsilon) {\n" +
+            "vec3 calcNormal(vec3 ro, vec3 rd, vec3 pos, float epsilon, float t) {\n" +
             // inspired by tdhooper and klems - a way to prevent the compiler from inlining map() 4 times
-            "  vec3 n = vec3(0.0);vec2 uv;\n" +
-            "  for(int i=ZERO;i<4;i++) {\n" +
+            "   vec3 n = vec3(0.0);vec2 uv;\n" +
+            "   for(int i=ZERO;i<4;i++) {\n" +
             // 0.5773 is just a scalar factor
             "      vec3 e = vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))*2.0-1.0;\n" +
-            "      n += e*map(ro,rd,pos+e*epsilon).x;\n" +
-            "  }\n" +
-            "  return normalize(n);\n" +
+            "      n += e*map(ro,rd,pos+e*epsilon,t).x;\n" +
+            "   }\n" +
+            "   return normalize(n);\n" +
             "}\n"
 
     fun createECSShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, ECSMeshShader> {
@@ -193,7 +193,7 @@ object SDFComposer {
             if (canUseTextures && material.diffuseMap.exists) {
                 builder.append("vec4 color = texture(")
                     .append(defineUniform(uniforms, GLSLType.S2D) { material.diffuseMap })
-                    .append(",uv) * ").append(color).append(";\n")
+                    .append(",finalUV) * ").append(color).append(";\n")
                 builder.append("finalColor = color.rgb;\n")
                 builder.append("finalAlpha = color.w;\n")
             } else {
@@ -244,6 +244,7 @@ object SDFComposer {
                     Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
                     // Variable(GLSLType.V3F, "finalTangent", VariableMode.OUT),
                     // Variable(GLSLType.V3F, "finalBitangent", VariableMode.OUT),
+                    Variable(GLSLType.V2F, "finalUV", VariableMode.OUT),
                     Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
                     Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
                     Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
@@ -292,7 +293,7 @@ object SDFComposer {
                             "   vec3 localHit = invLocalTransform * vec4(finalPosition, 1.0);\n" +
                             "   localPos = localHit - localDir * dot(localDir, localHit - localCamPos);\n" +
                             "}\n" +
-                            "vec4 ray = map(localPos,localDir,localPos);\n" +
+                            "vec4 ray = map(localPos,localDir,localPos,0.001);\n" + // 0.001 is a lie...
                             "int steps;\n" +
                             "finalAlpha = 0.0;\n" +
                             "if(ray.x >= 0.0){\n" + // not inside an object (that's ideal)
@@ -312,7 +313,7 @@ object SDFComposer {
                             "                       finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
                             "                       vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
                             "                       gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                            "                       distance = map(localPos,localDir,localHit).x;\n" + // < 0.0 removed, because we show the shape there
+                            "                       distance = map(localPos,localDir,localHit,distance).x;\n" + // < 0.0 removed, because we show the shape there
                             // waves like in Inigo Quilez demos, e.g. https://www.shadertoy.com/view/tt3yz7
                             // show the inside as well? mmh...
                             "                       vec3 col = vec3(0.9,0.6,0.3) * (1.0 - exp(-2.0*distance));\n" +
@@ -328,10 +329,12 @@ object SDFComposer {
                             "           vec3 localHit = localPos + ray.x * localDir;\n" +
                             // check bounds
                             //"           if(all(greaterThan(localHit,localMin)) && all(lessThan(localHit,localMax))){\n" +
-                            "               vec3 localNormal = calcNormal(localPos, localDir, localHit, sdfNormalEpsilon);\n" +
+                            "               vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
+                            // todo normal could be guessed from depth aka dFdx(ray.x),dFdy(ray.x)
+                            // todo calculate tangent from dFdx(uv) and dFdy(uv)
+                            "               finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
                             // convert localHit to global hit
                             "               finalPosition = localTransform * vec4(localHit, 1.0);\n" +
-                            "               finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
                             // respect reflection plane
                             "               if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
                             // calculate depth
@@ -339,7 +342,7 @@ object SDFComposer {
                             "               gl_FragDepth = newVertex.z/newVertex.w;\n" +
                             //"           } else discard;\n" + // to do instead of discarding, we should clamp the distance, and check the color there
                             // step by step define all material properties
-                            "           vec2 uv = ray.zw;\n" +
+                            "           finalUV = ray.zw;\n" +
                             builder.toString() +
                             "       }\n" +
                             "   } else {\n" + // show number of steps
@@ -347,7 +350,8 @@ object SDFComposer {
                             "       vec3 localHit = localPos + ray.x * localDir;\n" +
                             "       finalPosition = localTransform * vec4(localHit, 1.0);\n" +
                             // "                   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
-                            "       finalNormal = vec3(0.0);\n" +
+                            "       vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
+                            "       finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
                             "       vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
                             "       gl_FragDepth = newVertex.z/newVertex.w;\n" +
                             // shading from https://www.shadertoy.com/view/WdVyDW
@@ -395,9 +399,8 @@ object SDFComposer {
                     StringBuilder(100 + functions.sumOf { it.length } + shapeDependentShader.length + raycasting.length + normal.length)
                 builder2.append(sdfConstants)
                 for (func in functions) builder2.append(func)
-                builder2.append("vec4 map(vec3 ro, vec3 rd, vec3 pos0){\n")
-                builder2.append("   vec4 res0;\n")
-                builder2.append("   vec2 uv=vec2(0.0);\n")
+                builder2.append("vec4 map(vec3 ro, vec3 rd, vec3 pos0, float t){\n")
+                builder2.append("   vec4 res0; vec3 dir0 = rd; float sca0 = 1.0/t; vec2 uv = vec2(0.0);\n")
                 builder2.append(shapeDependentShader)
                 builder2.append("   return res0;\n}\n")
                 builder2.append(raycasting)
@@ -520,7 +523,7 @@ object SDFComposer {
                 "   vec4 ray = raycast(localPos, localDir, steps);\n" +
                 "   if(ray.y >= 0.0) {\n" +
                 "      vec3 localHit = localPos + ray.x * localDir;\n" +
-                "      finalNormal = calcNormal(localPos, localDir, localHit, sdfNormalEpsilon);\n" +
+                "      finalNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
                 // step by step define all material properties
                 "      vec2 uv = ray.zw;\n" +
                 builder.toString() +
@@ -531,14 +534,14 @@ object SDFComposer {
         val res = StringBuilder()
         res.append(quatRot)
         res.append(stateScript)
-        res.append( "\n\n// this belongs in the image slot\n")
-        res.append("#define ZERO 0\n")
+        res.append("\n\n// this belongs in the image slot\n")
+        res.append("#define ZERO min(int(iFrame),0)\n")
         res.append(defines).append("\n")
         res.append(sdfConstants)
         functions.add(quatRot)
         for (func in functions) res.append(func)
-        res.append("vec4 map(vec3 ro, vec3 rd, vec3 pos0){\n")
-        res.append("   vec4 res0;vec2 uv=vec2(0.0);\n")
+        res.append("vec4 map(vec3 ro, vec3 rd, vec3 pos0, float t){\n")
+        res.append("   vec4 res0; vec3 dir0=rd; float sca0=1.0/t; vec2 uv=vec2(0.0);\n")
         res.append(shapeDependentShader)
         res.append("   return res0;\n}\n")
         res.append(raycasting)

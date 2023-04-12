@@ -96,10 +96,10 @@ abstract class Image(
             c10 = getSafeRGB(xi + 1, yi)
             c11 = getSafeRGB(xi + 1, yi + 1)
         }
-        c00 = c00 shr shift and 255
-        c01 = c01 shr shift and 255
-        c10 = c10 shr shift and 255
-        c11 = c11 shr shift and 255
+        c00 = c00.shr(shift).and(255)
+        c01 = c01.shr(shift).and(255)
+        c10 = c10.shr(shift).and(255)
+        c11 = c11.shr(shift).and(255)
         val r0 = c00 * gy + fy * c01
         val r1 = c10 * gy + fy * c11
         return r0 * gx + fx * r1

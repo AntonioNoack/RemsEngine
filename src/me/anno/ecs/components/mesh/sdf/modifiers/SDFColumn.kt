@@ -4,9 +4,9 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
+import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendVec
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.ecs.components.mesh.sdf.VariableCounter
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths
 import me.anno.maths.Maths.TAUf
 import org.joml.AABBf
@@ -98,16 +98,8 @@ class SDFColumn : DistanceMapper() {
         } else {
             builder.append("pos").append(posIndex).append(".y,")
         }
-        if (dynamic) {
-            builder.appendUniform(uniforms, params)
-        } else {
-            builder.append("vec4(")
-            builder.append(params.x).append(',')
-            builder.append(params.y).append(',')
-            builder.append(params.z).append(',')
-            builder.append(params.w)
-            builder.append(")")
-        }
+        if (dynamic) builder.appendUniform(uniforms, params)
+        else builder.appendVec(params)
         builder.append(");\n")
     }
 

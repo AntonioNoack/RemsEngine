@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.sdf
 
 import me.anno.Build
+import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.*
@@ -221,7 +222,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
     val distanceMappers = ArrayList<DistanceMapper>()
 
     @DebugAction
-    fun createShaderToyScript(){
+    fun createShaderToyScript() {
         setClipboardContent(SDFComposer.createShaderToyShader(this))
     }
 
@@ -233,6 +234,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         val mesh = getMesh()
         this.clickId = clickId
         pipeline.addMesh(mesh, this, entity, gfxId)
+        lastDrawn = Engine.gameTime
         return clickId + 1
     }
 
@@ -690,86 +692,95 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         functions: HashSet<String>,
         seeds: ArrayList<String>
     ): SDFTransform {
-        var posIndex = posIndex0
+        var currIndex = posIndex0
         val position = position
         val dynamicPosition = dynamicRotation || globalDynamic
         val dynamicRotation = dynamicRotation || globalDynamic
         val dynamicScale = dynamicScale || globalDynamic
         if (position != pos0 || dynamicPosition) {
-            val prevPosition = posIndex
-            posIndex = nextVariableId.next()
+            val prevIndex = currIndex
+            currIndex = nextVariableId.next()
             builder.append("vec3 pos")
-            builder.append(posIndex)
+            builder.append(currIndex)
             builder.append("=pos")
-            builder.append(prevPosition)
+            builder.append(prevIndex)
             builder.append("-")
             if (dynamicPosition) {
                 val uniform = defineUniform(uniforms, position)
                 builder.append(uniform)
             } else builder.appendVec(position)
             builder.append(";\n")
+            appendIdentityDir(builder, currIndex, prevIndex)
+            appendIdentitySca(builder, currIndex, prevIndex)
         }
         val rotation = rotation
         if (rotation != rot0 || dynamicRotation) {
             functions += quatRot
-            val prevPosition = posIndex
-            posIndex = nextVariableId.next()
-            builder.append("vec3 pos")
-            builder.append(posIndex)
-            builder.append("=quatRotInv(pos")
-            builder.append(prevPosition)
+            val prevIndex = currIndex
+            currIndex = nextVariableId.next()
             if (dynamicRotation) {
-                builder.append(",")
                 val uniform = defineUniform(uniforms, rotation)
-                builder.append(uniform)
-                builder.append(");\n")
+                builder.append("vec3 pos").append(currIndex)
+                builder.append("=quatRotInv(pos").append(prevIndex).append(",")
+                builder.append(uniform).append(");\n")
+                builder.append("vec3 dir").append(currIndex)
+                builder.append("=quatRotInv(dir").append(prevIndex).append(",")
+                builder.append(uniform).append(");\n")
             } else {
-                builder.append(",vec4(")
-                builder.append(rotation.x)
-                builder.append(",")
-                builder.append(rotation.y)
-                builder.append(",")
-                builder.append(rotation.z)
-                builder.append(",")
-                builder.append(rotation.w)
-                builder.append("));\n")
+                builder.append("vec4 rot").append(currIndex)
+                    .append("=").appendVec(rotation).append(";\n")
+                builder.append("vec3 pos").append(currIndex)
+                builder.append("=quatRotInv(pos").append(prevIndex)
+                builder.append(",rot").append(currIndex).append(");\n")
+                builder.append("vec3 dir").append(currIndex)
+                builder.append("=quatRotInv(dir").append(prevIndex)
+                builder.append(",rot").append(currIndex).append(");\n")
             }
+            appendIdentitySca(builder, currIndex, prevIndex)
         }
         val scaleName = if (scale != sca0 || dynamicScale) {
-            val prevPosition = posIndex
-            posIndex = nextVariableId.next()
+            val prevIndex = currIndex
+            currIndex = nextVariableId.next()
+            appendIdentityDir(builder, currIndex, prevIndex)
             builder.append("vec3 pos")
-            builder.append(posIndex)
+            builder.append(currIndex)
             builder.append("=pos")
-            builder.append(prevPosition)
+            builder.append(prevIndex)
             if (dynamicScale) {
                 val uniform = defineUniform(uniforms, GLSLType.V1F) { scale }
                 builder.append("/")
                 builder.append(uniform)
                 builder.append(";\n")
+                builder.append("float sca").append(currIndex)
+                    .append("=sca").append(prevIndex).append("*").append(uniform).append(";\n")
                 uniform
             } else {
+                val invScale = 1f / scale
                 builder.append("*")
-                builder.append(1f / scale)
+                builder.append(invScale)
                 builder.append(";\n")
+                builder.append("float sca").append(currIndex)
+                    .append("=sca").append(prevIndex).append("*").append(invScale).append(";\n")
                 scale.toString()
             }
         } else null
         val mappers = positionMappers
-        if (posIndex == posIndex0 && mappers.any2 { it.isEnabled }) {
-            val prevPosition = posIndex
-            posIndex = nextVariableId.next()
+        if (currIndex == posIndex0 && mappers.any2 { it.isEnabled }) {
+            val prevIndex = currIndex
+            currIndex = nextVariableId.next()
             builder.append("vec3 pos")
-            builder.append(posIndex)
+            builder.append(currIndex)
             builder.append("=pos")
-            builder.append(prevPosition)
+            builder.append(prevIndex)
             builder.append(";\n")
+            appendIdentityDir(builder, currIndex, prevIndex)
+            appendIdentitySca(builder, currIndex, prevIndex)
         }
         var offsetName: String? = null
         for (index in mappers.indices) {
             val mapper = mappers[index]
             if (mapper.isEnabled) {
-                val offsetName1 = mapper.buildShader(builder, posIndex, nextVariableId, uniforms, functions, seeds)
+                val offsetName1 = mapper.buildShader(builder, currIndex, nextVariableId, uniforms, functions, seeds)
                 if (offsetName1 != null) {
                     if (offsetName == null) {
                         offsetName = offsetName1
@@ -782,7 +793,15 @@ open class SDFComponent : ProceduralMesh(), Renderable {
                 }
             }
         }
-        return sdfTransPool.create().set(posIndex, scaleName, offsetName)
+        return sdfTransPool.create().set(currIndex, scaleName, offsetName)
+    }
+
+    fun appendIdentityDir(builder: StringBuilder, posIndex: Int, prevPosition: Int) {
+        builder.append("#define dir$posIndex dir$prevPosition\n")
+    }
+
+    fun appendIdentitySca(builder: StringBuilder, posIndex: Int, prevPosition: Int) {
+        builder.append("#define sca$posIndex sca$prevPosition\n")
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -829,12 +848,10 @@ open class SDFComponent : ProceduralMesh(), Renderable {
 
         fun StringBuilder.appendVec(v: Vector2f): StringBuilder {
             append("vec2(")
+            append(v.x)
             if (v.x != v.y) {
-                append(v.x)
                 append(',')
                 append(v.y)
-            } else {
-                append(v.x)
             }
             append(')')
             return this
@@ -842,14 +859,12 @@ open class SDFComponent : ProceduralMesh(), Renderable {
 
         fun StringBuilder.appendVec(v: Vector3f): StringBuilder {
             append("vec3(")
+            append(v.x)
             if (v.x != v.y || v.y != v.z) {
-                append(v.x)
                 append(',')
                 append(v.y)
                 append(',')
                 append(v.z)
-            } else {
-                append(v.x)
             }
             append(')')
             return this
@@ -857,20 +872,33 @@ open class SDFComponent : ProceduralMesh(), Renderable {
 
         fun StringBuilder.appendVec(v: Vector3i): StringBuilder {
             append("ivec3(")
+            append(v.x)
             if (v.x != v.y || v.y != v.z) {
-                append(v.x)
                 append(',')
                 append(v.y)
                 append(',')
                 append(v.z)
-            } else {
-                append(v.x)
             }
             append(')')
             return this
         }
 
         fun StringBuilder.appendVec(v: Vector4f): StringBuilder {
+            append("vec4(")
+            append(v.x)
+            if (v.x != v.y || v.x != v.z || v.x != v.w) {
+                append(',')
+                append(v.y)
+                append(',')
+                append(v.z)
+                append(',')
+                append(v.w)
+            }
+            append(')')
+            return this
+        }
+
+        fun StringBuilder.appendVec(v: Quaternionf): StringBuilder {
             append("vec4(")
             append(v.x)
             append(',')

@@ -99,7 +99,7 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
                 "   vec2 ray = raycast(camPosition, dir);\n" +
                 "   if(ray.y < 0.0) discard;\n" +
                 "   vec3 hit = camPosition + ray.x * dir;\n" +
-                "   vec3 normal = calcNormal(hit, sdfNormalEpsilon);\n" +
+                "   vec3 normal = calcNormal(hit, ray.x * sdfNormalEpsilon, ray.x);\n" +
                 // "   gl_FragColor = vec4(vec3(me.anno.tests.dot(normal,sunDir)*.4+.8), 1.0);\n" +
                 "   gl_FragColor = vec4(normal*.5+.5, 1.0);\n" +
                 "}")
