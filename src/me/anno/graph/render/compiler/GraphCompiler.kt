@@ -6,8 +6,10 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ReverseDepth.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.Node
@@ -76,6 +78,14 @@ abstract class GraphCompiler(val g: FlowGraph) {
     val movies = HashMap<MovieNode, Pair<String, Boolean>>() // file -> name, linear
     val textures = HashMap<FileReference, Pair<String, Boolean>>() // file -> name, linear
     val textures2 = HashMap<NodeInput, Pair<String, Boolean>>() // file -> name, linear
+
+    init {
+        typeToFunc["ONP"] = ""
+        typeToFunc["R2D"] = ""
+        extraFunctions.append(octNormalPacking)
+        extraFunctions.append(rawToDepth)
+    }
+
     fun defineFunc(name: String, prefix: String, suffix: String?): String? {
         suffix ?: return null
         extraFunctions.append(prefix).append(' ').append(name).append(suffix).append('\n')
@@ -85,8 +95,9 @@ abstract class GraphCompiler(val g: FlowGraph) {
     fun aType(an: NodeConnector, bn: NodeInput): String {
         if (an.type == "Texture") {
             val tex = bn.getValue() as? Texture ?: return "Vector4f"
-            val params = tex.mapping
-            return when (params.length) {
+            val map = tex.mapping
+            val enc = tex.encoding
+            return when (enc?.workDims ?: map.length) {
                 0 -> if (tex.tex == whiteTexture && tex.color == white4) "Float" else "Vector4f"
                 1 -> "Float"
                 2 -> "Vector2f"
@@ -215,7 +226,9 @@ abstract class GraphCompiler(val g: FlowGraph) {
                             "texture($texName,uv)${if (tintStr != null) "*$tintStr" else ""}"
                         } else tintStr ?: "1.0"
                         val map = tex.mapping
-                        if (map.isEmpty()) tex1 else "$tex1.$map"
+                        val tex2 = if (map.isEmpty()) tex1 else "$tex1.$map"
+                        val enc = tex.encoding
+                        if (enc != null) "(${enc.dataToWork}($tex2))" else tex2
                     } else "((int(floor(uv.x*4.0)+floor(uv.y*4.0)) & 1) != 0 ? vec4(1,0,1,1) : vec4(0,0,0,1))"
                 }
                 else -> throw IllegalArgumentException("Unknown node type ${out.type} by ${n.javaClass.name}")
@@ -226,9 +239,10 @@ abstract class GraphCompiler(val g: FlowGraph) {
     fun expr(c: NodeInput): String {
         if (c.type == "Flow") throw IllegalArgumentException("Cannot request value of flow type")
         val n0 = c.others.firstOrNull()
-        if (n0 is NodeOutput) {
-            return convert(aType(n0, c), c.type, expr(n0, n0.node!!))
-                ?: throw IllegalStateException("Cannot convert ${n0.type} to ${c.type}!")
+        if (n0 is NodeOutput) { // it is connected
+            val aType0 = aType(n0, c)
+            return convert(aType0, c.type, expr(n0, n0.node!!))
+                ?: throw IllegalStateException("Cannot convert ${n0.type}->$aType0 to ${c.type}!")
         }
         val v = c.currValue
         return (when (c.type) {

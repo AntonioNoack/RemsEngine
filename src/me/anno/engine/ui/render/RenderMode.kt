@@ -10,21 +10,22 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.RandomEffect
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
+import me.anno.graph.types.FlowGraph
 
-// @Deprecated("Shall be replaced by RenderGraph")
 // todo all-metallic / all-rough/smooth render modes
 @Suppress("unused")
 class RenderMode(
     val name: String,
     val dlt: DeferredLayerType? = null,
     val effect: CameraEffect? = null,
-    val renderer: Renderer? = null
+    val renderer: Renderer? = null,
+    val renderGraph: FlowGraph? = null,
 ) {
 
     constructor(name: String, effect: CameraEffect) : this(name, null, effect)
     constructor(name: String, renderer: Renderer) : this(name, null, null, renderer)
     constructor(renderer: Renderer) : this(renderer.name, null, null, renderer)
-    constructor(dlt: DeferredLayerType) : this(dlt.name, dlt)
+    constructor(name: String, renderGraph: FlowGraph?) : this(name, null, null, null, renderGraph)
 
     init {
         values.add(this)

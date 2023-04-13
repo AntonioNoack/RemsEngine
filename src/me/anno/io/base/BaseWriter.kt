@@ -3,6 +3,8 @@ package me.anno.io.base
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.Shader
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
@@ -587,7 +589,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             }
             else -> {
                 val msg = "saving $name: $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?"
-                if (value !is Function<*>) throw RuntimeException("Todo implement $msg") // functions cannot easily be serialized
+                if (value !is Function<*> && value !is Shader && value !is BaseShader)
+                    throw RuntimeException("Todo implement $msg") // functions cannot easily be serialized
                 else LOGGER.warn("Ignored $msg")
             }
         }

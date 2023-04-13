@@ -137,12 +137,13 @@ open class Shader(
                 a.name.compareTo(b.name)
             }
         }) {
-            if (v.ignored) continue
             val prefix = when (v.inOutMode) {
                 VariableMode.IN, VariableMode.INOUT -> "uniform"
                 VariableMode.ATTR -> throw IllegalArgumentException("Fragment variable must not have type ATTR")
                 VariableMode.OUT -> {
-                    builder.append("layout(location=").append(outCtr++).append(") ")
+                    val slot = if (v.slot < 0) outCtr else v.slot
+                    builder.append("layout(location=").append(slot).append(") ")
+                    outCtr++
                     "out"
                 }
             }

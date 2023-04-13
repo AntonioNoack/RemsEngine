@@ -23,6 +23,7 @@ import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2D
 import me.anno.io.Saveable
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.SmallestKList
@@ -57,7 +58,25 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                 GFXState.depthMode.use(depthMode) {
                     GFXState.depthMask.use(writeDepth) {
                         GFXState.cullMode.use(cullMode) {
-                            draw(source, cameraMatrix, cameraPosition, worldScale)
+                            source.bindTrulyNearestMS(0)
+                            draw(
+                                cameraMatrix, cameraPosition, worldScale,
+                                ::getShader, source.depthTexture as Texture2D,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun bind(run: () -> Unit) {
+        if (instanced.isNotEmpty() || nonInstanced.isNotEmpty()) {
+            GFXState.blendMode.use(blendMode) {
+                GFXState.depthMode.use(depthMode) {
+                    GFXState.depthMask.use(writeDepth) {
+                        GFXState.cullMode.use(cullMode) {
+                            run()
                         }
                     }
                 }
@@ -67,7 +86,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
     private fun initShader(
         shader: Shader, cameraMatrix: Matrix4f,
-        type: LightType, scene: IFramebuffer
+        type: LightType, depthTexture: Texture2D
     ) {
         shader.use()
         // information for the shader, which is material agnostic
@@ -76,7 +95,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         shader.v1b("isDirectional", type == LightType.DIRECTIONAL)
         shader.v1b("receiveShadows", true)
         shader.v1f("countPerPixel", countPerPixel)
-        scene.depthTexture!!.bindTrulyNearest(shader, "depthTex")
+        depthTexture.bindTrulyNearest(shader, "depthTex")
         shader.m4x4("transform", cameraMatrix)
         bindNullDepthTextures(shader)
         bindDepthToPosition(shader)
@@ -87,13 +106,19 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
             if (isInstanced) visualizeLightCountShaderInstanced
             else visualizeLightCountShader
         } else {
-            val deferred =
-                deferred ?: throw IllegalStateException("Cannot draw lights directly without deferred buffers")
+            val deferred = deferred
+                ?: throw IllegalStateException("Cannot draw lights directly without deferred buffers")
             LightShaders.getShader(deferred, type)
         }
     }
 
-    fun draw(scene: IFramebuffer, cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
+    fun draw(
+        cameraMatrix: Matrix4f,
+        cameraPosition: Vector3d,
+        worldScale: Double,
+        getShader: (LightType, Boolean) -> Shader,
+        depthTexture: Texture2D,
+    ) {
 
         val time = Engine.gameTime
 
@@ -104,7 +129,6 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         // (twice as many draw calls, but hopefully less work altogether)
 
         // if (destination is multi-sampled &&) settings is multisampled, bind the multi-sampled textures
-        scene.bindTrulyNearestMS(0)
 
         nonInstanced.forEachType { lights, type, size ->
 
@@ -112,7 +136,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
             val mesh = sample.getLightPrimitive()
 
             val shader = getShader(type, false)
-            initShader(shader, cameraMatrix, type, scene)
+            initShader(shader, cameraMatrix, type, depthTexture)
 
             mesh.ensureBuffer()
 
@@ -149,7 +173,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                     light.getShaderV0(m, worldScale)
                 )
 
-                if (light is DirectionalLight) shader.v1f("cutoff", light.cutoff)
+                shader.v1f("cutoff", if (light is DirectionalLight) light.cutoff else 1f)
 
                 shader.m4x3("camSpaceToLightSpace", light.invCamSpaceMatrix)
 
@@ -196,12 +220,13 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
             this.cameraPosition = cameraPosition
             this.worldScale = worldScale
             GFXState.instanced.use(true) {
-                instanced.forEachType { lights, type, s ->
+                instanced.forEachType { lights, type, _ ->
+                    val shader = getShader(type, true)
                     if (type == LightType.DIRECTIONAL) {
                         GFXState.depthMode.use(DepthMode.ALWAYS) {
-                            drawBatches(scene, lights, type, size)
+                            drawBatches(depthTexture, lights, type, size, shader)
                         }
-                    } else drawBatches(scene, lights, type, size)
+                    } else drawBatches(depthTexture, lights, type, size, shader)
                 }
             }
         }
@@ -212,7 +237,12 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
     private var cameraPosition: Vector3d? = null
     private var worldScale: Double = 1.0
 
-    fun drawBatches(scene: IFramebuffer, lights: List<LightRequest<*>>, type: LightType, size: Int) {
+    fun drawBatches(
+        depthTexture: Texture2D,
+        lights: List<LightRequest<*>>,
+        type: LightType, size: Int,
+        shader: Shader
+    ) {
 
         val visualizeLightCount = visualizeLightCount
 
@@ -224,8 +254,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         val cameraPosition = cameraPosition!!
         val worldScale = worldScale
 
-        val shader = getShader(type, true)
-        initShader(shader, cameraMatrix, type, scene)
+        initShader(shader, cameraMatrix, type, depthTexture)
 
         val time = Engine.gameTime
 

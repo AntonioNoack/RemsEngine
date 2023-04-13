@@ -68,11 +68,9 @@ class WeightedBlended : TransparentPass() {
                     Variable(GLSLType.S2D, "revealTexture"),
                     Variable(GLSLType.S2D, "diffuseSrcTex"),
                     Variable(GLSLType.S2D, "emissiveSrcTex"),
-                    Variable(GLSLType.V4F, "diffuse", VariableMode.OUT).apply { ignored = true },
-                    Variable(GLSLType.V4F, "emissive", VariableMode.OUT).apply { ignored = true },
+                    Variable(GLSLType.V4F, "diffuse", VariableMode.OUT).apply { slot = it.first },
+                    Variable(GLSLType.V4F, "emissive", VariableMode.OUT).apply { slot = it.second },
                 ), "" +
-                        "layout(location=${it.first}) out vec4 diffuse;\n" +
-                        "layout(location=${it.second}) out vec4 emissive;\n" +
                         "void main() {\n" +
                         "   ivec2 uvi = ivec2(gl_FragCoord.xy);\n" +
                         "   vec4  data0 = texelFetch(accuTexture, uvi, 0);\n" +

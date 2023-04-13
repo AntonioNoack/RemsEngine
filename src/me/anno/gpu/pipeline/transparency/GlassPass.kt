@@ -68,11 +68,9 @@ class GlassPass : TransparentPass() {
                     Variable(GLSLType.S2D, "emissiveGlassTex"),
                     Variable(GLSLType.V3F, "refX"),
                     Variable(GLSLType.V3F, "refY"),
-                    Variable(GLSLType.V4F, "diffuse", VariableMode.OUT).apply { ignored = true },
-                    Variable(GLSLType.V4F, "emissive", VariableMode.OUT).apply { ignored = true },
+                    Variable(GLSLType.V4F, "diffuse", VariableMode.OUT).apply { slot = it.first },
+                    Variable(GLSLType.V4F, "emissive", VariableMode.OUT).apply { slot = it.second },
                 ), "" +
-                        "layout(location=${it.first}) out vec4 diffuse;\n" +
-                        "layout(location=${it.second}) out vec4 emissive;\n" +
                         "void main() {\n" +
                         "   vec4 tint = vec4(exp(-texture(diffuseGlassTex,uv).rgb),1.0);\n" +
                         "   diffuse  = texture(diffuseSrcTex,uv) * tint;\n" +

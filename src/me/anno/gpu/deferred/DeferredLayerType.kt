@@ -12,7 +12,7 @@ open class DeferredLayerType(
     val dataDims: Int,
     val minimumQuality: BufferQuality, // todo this depends on the platform; todo or we could use a mapping between attributes :)
     val highDynamicRange: Boolean,
-    val defaultValueARGB: Vector4f,
+    val defaultWorkValue: Vector4f,
     val workToData: String,
     val dataToWork: String
 ) {
@@ -21,17 +21,14 @@ open class DeferredLayerType(
 
     constructor(
         name: String, glslName: String, dimensions: Int, minimumQuality: BufferQuality, highDynamicRange: Boolean,
-        defaultValueARGB: Int, map01: String, map10: String
+        defaultValueARGB: Int, w2d: String, d2w: String
     ) : this(
         name,
         glslName,
-        dimensions,
-        dimensions,
-        minimumQuality,
-        highDynamicRange,
+        dimensions, dimensions,
+        minimumQuality, highDynamicRange,
         defaultValueARGB.toVecRGBA(),
-        map01,
-        map10
+        w2d, d2w
     )
 
     constructor(name: String, glslName: String, defaultValueARGB: Int) :
@@ -48,27 +45,27 @@ open class DeferredLayerType(
 
     fun appendDefaultValue(fragment: StringBuilder) {
         when (workDims) {
-            1 -> fragment.append(defaultValueARGB.z)
+            1 -> fragment.append(defaultWorkValue.z)
             2 -> fragment.append("vec2(")
-                .append(defaultValueARGB.y)
+                .append(defaultWorkValue.y)
                 .append(", ")
-                .append(defaultValueARGB.z)
+                .append(defaultWorkValue.z)
                 .append(')')
             3 -> fragment.append("vec3(")
-                .append(defaultValueARGB.x)
+                .append(defaultWorkValue.x)
                 .append(", ")
-                .append(defaultValueARGB.y)
+                .append(defaultWorkValue.y)
                 .append(", ")
-                .append(defaultValueARGB.z)
+                .append(defaultWorkValue.z)
                 .append(')')
             4 -> fragment.append("vec4(")
-                .append(defaultValueARGB.x)
+                .append(defaultWorkValue.x)
                 .append(", ")
-                .append(defaultValueARGB.y)
+                .append(defaultWorkValue.y)
                 .append(", ")
-                .append(defaultValueARGB.z)
+                .append(defaultWorkValue.z)
                 .append(", ")
-                .append(defaultValueARGB.w)
+                .append(defaultWorkValue.w)
                 .append(')')
         }
     }
@@ -76,13 +73,13 @@ open class DeferredLayerType(
     companion object {
 
         val COLOR = DeferredLayerType(
-            "COLOR", "finalColor", 3, BufferQuality.LOW_8,
+            "Color", "finalColor", 3, BufferQuality.LOW_8,
             false, 0x7799ff, "", ""
         )
 
         // could need high precision...
         val EMISSIVE = DeferredLayerType(
-            "EMISSIVE", "finalEmissive", 3, BufferQuality.MEDIUM_12,
+            "Emissive", "finalEmissive", 3, BufferQuality.MEDIUM_12,
             true, 0, "", ""
         )
 
@@ -90,7 +87,7 @@ open class DeferredLayerType(
          * normal, encoded in 2d!, so please unpack and pack it correctly using the function in ShaderLib
          * */
         val NORMAL = DeferredLayerType(
-            "NORMAL", "finalNormal",
+            "Normal", "finalNormal",
             3, 2, BufferQuality.MEDIUM_12, false,
             0x77ff77.toVecRGBA(), "PackNormal", "UnpackNormal"
         )
@@ -98,60 +95,60 @@ open class DeferredLayerType(
         // todo do we need the tangent? it is calculated from uvs, so maybe for anisotropy...
         // high precision is required for curved metallic objects; otherwise we get banding
         val TANGENT = DeferredLayerType(
-            "TANGENT", "finalTangent",
+            "Tangent", "finalTangent",
             3, 2, BufferQuality.MEDIUM_12, false,
             0x7777ff.toVecRGBA(), "PackNormal", "UnpackNormal"
         )
 
         val BITANGENT = DeferredLayerType(
-            "BITANGENT", "finalBitangent",
+            "Bitangent", "finalBitangent",
             3, 2, BufferQuality.MEDIUM_12, false,
             0x7777ff.toVecRGBA(), "PackNormal", "UnpackNormal"
         )
 
         // may be in camera space, player space, or world space
         // the best probably would be player space: relative to the player, same rotation, scale, etc. as world
-        val POSITION = DeferredLayerType("POSITION", "finalPosition", 3, BufferQuality.HIGH_32, true, 0, "", "")
+        val POSITION = DeferredLayerType("Position", "finalPosition", 3, BufferQuality.HIGH_32, true, 0, "", "")
 
-        val METALLIC = DeferredLayerType("METALLIC", "finalMetallic", 0)
+        val METALLIC = DeferredLayerType("Metallic", "finalMetallic", 0)
 
         // roughness = 1-reflectivity
-        val ROUGHNESS = DeferredLayerType("ROUGHNESS", "finalRoughness", 0x11)
+        val ROUGHNESS = DeferredLayerType("Roughness", "finalRoughness", 0x11)
 
-        // from an occlusion texture, cavity; 0 = no cavities, 1 = completely hidden
+        // from an occlusion texture, cavity; 1 = no cavities, 0 = completely hidden
         // textures in materials are typically inverted, so they can be inverted here as well
-        val OCCLUSION = DeferredLayerType("OCCLUSION", "finalOcclusion", 0)
+        val OCCLUSION = DeferredLayerType("Occlusion", "finalOcclusion", 0)
 
         // transparency? is a little late... finalAlpha, needs to be handled differently
-        val TRANSLUCENCY = DeferredLayerType("TRANSLUCENCY", "finalTranslucency", 0)
-        val SHEEN = DeferredLayerType("SHEEN", "finalSheen", 0)
-        val SHEEN_NORMAL = DeferredLayerType("SHEEN_NORMAL", "finalSheenNormal", 3, 0x77ff77)
+        val TRANSLUCENCY = DeferredLayerType("Translucency", "finalTranslucency", 0)
+        val SHEEN = DeferredLayerType("Sheen", "finalSheen", 0)
+        val SHEEN_NORMAL = DeferredLayerType("Sheen Normal", "finalSheenNormal", 3, 0x77ff77)
 
         // clear coat roughness? how would we implement that?
         // color, amount; e.g. for cars
-        val CLEAR_COAT = DeferredLayerType("CLEAR_COAT", "finalClearCoat", 4, 0xff9900ff.toInt())
-        val CLEAT_COAT_ROUGH_METALLIC = DeferredLayerType("CLEAR_COAT_RM", "finalClearCoatRoughMetallic", 2, 0x00ff)
+        val CLEAR_COAT = DeferredLayerType("Clear Coat", "finalClearCoat", 4, 0xff9900ff.toInt())
+        val CLEAT_COAT_ROUGH_METALLIC = DeferredLayerType("Clear Coat Roughness + Metallic", "finalClearCoatRoughMetallic", 2, 0x00ff)
 
         // can be used for water droplets: they are a coating with their own normals
-        val CLEAR_COAT_NORMAL = DeferredLayerType("CLEAR_COAT_NORMAL", "finalClearCoatNormal", 3, 0x77ff77)
+        val CLEAR_COAT_NORMAL = DeferredLayerType("Cleat Coat Normal", "finalClearCoatNormal", 3, 0x77ff77)
 
         // color + radius/intensity, e.g. for skin
-        val SUBSURFACE = DeferredLayerType("SUBSURFACE", "finalSubsurface", 4, 0x00ffffff)
+        val SUBSURFACE = DeferredLayerType("Subsurface", "finalSubsurface", 4, 0x00ffffff)
 
         // amount, rotation
-        val ANISOTROPIC = DeferredLayerType("ANISOTROPIC", "finalAnisotropic", 2, 0)
+        val ANISOTROPIC = DeferredLayerType("Anisotropy", "finalAnisotropic", 2, 0)
 
         // needs some kind of mapping...
-        val INDEX_OF_REFRACTION = DeferredLayerType("IOR", "finalIndexOfRefraction", 0)
+        val INDEX_OF_REFRACTION = DeferredLayerType("Index of Refraction", "finalIndexOfRefraction", 0)
 
         // ids / markers
         val ID = DeferredLayerType("ID", "finalId", 4, 0)
-        val FLAGS = DeferredLayerType("FLAGS", "finalFlags", 4, 0)
+        val FLAGS = DeferredLayerType("Flags", "finalFlags", 4, 0)
 
         // pseudo types for effects
         val HDR_RESULT = DeferredLayerType("HDR", "finalHDR", 0)
         val SDR_RESULT = DeferredLayerType("SDR", "finalSDR", 0)
-        val LIGHT_SUM = DeferredLayerType("LIGHT_SUM", "finalLight", 0)
+        val LIGHT_SUM = DeferredLayerType("Light Sum", "finalLight", 0)
 
         // is there more, which we could use?
 
@@ -163,18 +160,18 @@ open class DeferredLayerType(
 
         // use baked depth instead of this, this is kind of virtual
         val DEPTH = DeferredLayerType(
-            "DEPTH", "finalDepth", 1,
-            BufferQuality.HIGH_32, true, 0, "", ""
+            "Depth", "finalDepth", 1,
+            BufferQuality.HIGH_32, true, 0, "depthToRaw", "rawToDepth"
         )
 
         // make there should be an option for 2d motion vectors as well
         val MOTION = DeferredLayerType(
-            "MOTION", "finalMotion", 3,
+            "Motion Vectors", "finalMotion", 3,
             BufferQuality.HIGH_16, true, 0, "", ""
         )
 
         val ALPHA = DeferredLayerType(
-            "ALPHA", "finalAlpha", 1, BufferQuality.LOW_8,
+            "Opacity", "finalAlpha", 1, BufferQuality.LOW_8,
             false, 0, "", ""
         )
 
@@ -186,25 +183,25 @@ open class DeferredLayerType(
             POSITION,
             METALLIC,
             ROUGHNESS,
-            OCCLUSION,
             TRANSLUCENCY,
             SHEEN,
             SHEEN_NORMAL,
             CLEAR_COAT,
             CLEAR_COAT_NORMAL,
+            OCCLUSION,
             SUBSURFACE,
             ANISOTROPIC,
             INDEX_OF_REFRACTION,
             ID,
             FLAGS,
-            HDR_RESULT,
-            SDR_RESULT,
             COLOR_EMISSIVE,
             LIGHT_SUM,
             MOTION,
             DEPTH,
             ALPHA
         )
+
+        // stencil?
 
         val byName = LazyMap { name: String ->
             // O(n), but should be called only for new types (which are rare)

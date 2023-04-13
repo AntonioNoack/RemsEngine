@@ -7,11 +7,19 @@ import kotlin.math.tan
 object ReverseDepth {
 
     val rawToDepth = "" +
+            "#ifndef RAW_TO_DEPTH\n" +
+            "#define RAW_TO_DEPTH\n" +
             "float rawToDepth(float rawDepth){\n" +
             "   return fovFactor.z / rawDepth;\n" +
-            "}\n"
+            "}\n" +
+            "float depthToRaw(float depth){\n" +
+            "   return fovFactor.z / depth;\n" +
+            "}\n" +
+            "#endif\n"
 
     val depthToPosition = "" +
+            "#ifndef DEPTH_TO_POS\n" +
+            "#define DEPTH_TO_POS\n" +
             "vec3 quatRot(vec3,vec4);\n" +
             "float rawToDepth(float);\n" +
             "vec3 rawCameraDirection(vec2 uv){\n" +
@@ -22,7 +30,8 @@ object ReverseDepth {
             "}\n" +
             "vec3 depthToPosition(vec2 uv, float depth){\n" +
             "   return rawCameraDirection(uv) * depth;\n" +
-            "}\n"
+            "}\n" +
+            "#endif\n"
 
     val depthToPositionList = listOf(
         Variable(GLSLType.V4F, "camRot"),

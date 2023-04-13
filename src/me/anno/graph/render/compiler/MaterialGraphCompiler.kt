@@ -124,7 +124,7 @@ class MaterialGraphCompiler(
         val layers = MaterialGraph.layers
         val layer0Name = layers[0].glslName
         if (exportedLayers[0]) {
-            val v = DeferredLayerType.COLOR.defaultValueARGB
+            val v = DeferredLayerType.COLOR.defaultWorkValue
             builder.append("vec4 ").append(layer0Name).append("=vec4(${v.x},${v.y},${v.z},1.0);\n")
         }
         builder.append("if(calc(")

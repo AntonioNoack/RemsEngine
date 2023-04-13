@@ -3,6 +3,7 @@ package me.anno.gpu.deferred
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.RandomEffect.randomFunc
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -246,7 +247,7 @@ data class DeferredSettingsV2(
 
     companion object {
 
-        val glslTypes = arrayOf(GLSLType.V1F, GLSLType.V2F, GLSLType.V3F, GLSLType.V4F)
+        val glslTypes = floats
 
         val singleToVector = mapOf(
             "r" to Vector4f(1f, 0f, 0f, 0f),

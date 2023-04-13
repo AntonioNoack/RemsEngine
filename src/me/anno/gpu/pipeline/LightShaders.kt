@@ -197,188 +197,128 @@ object LightShaders {
 
     var countPerPixel = 0.25f
 
+    val vertexI = ShaderStage(
+        "v", listOf(
+            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "invInsTrans0", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "invInsTrans1", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "invInsTrans2", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "invInsTrans3", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "lightData0", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "lightData1", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
+            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.V1B, "isDirectional"),
+            Variable(GLSLType.V4F, "data0", VariableMode.OUT),
+            Variable(GLSLType.V4F, "data1", VariableMode.OUT),
+            Variable(GLSLType.V4F, "data2", VariableMode.OUT),
+            Variable(GLSLType.M4x3, "camSpaceToLightSpace", VariableMode.OUT),
+            Variable(GLSLType.V3F, "uvw", VariableMode.OUT),
+        ), "" +
+                "data0 = lightData0;\n" +
+                "data1 = lightData1;\n" +
+                "data2 = shadowData;\n" +
+                // cutoff = 0 -> scale onto the whole screen, has effect everywhere
+                "if(isDirectional && data2.a <= 0.0){\n" +
+                "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                "} else {\n" +
+                "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
+                "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                "}\n" +
+                "camSpaceToLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2,invInsTrans3);\n" +
+                "uvw = gl_Position.xyw;\n"
+    )
+
+    val vertexNI = ShaderStage(
+        "v", listOf(
+            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.M4x3, "localTransform"),
+            Variable(GLSLType.V1F, "cutoff"),
+            Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
+        ), "" +
+                // cutoff = 0 -> scale onto the whole screen, has effect everywhere
+                "if(cutoff <= 0.0){\n" +
+                "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
+                "} else {\n" +
+                "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                "}\n" +
+                "uvw = gl_Position.xyw;\n"
+    )
+
     private val shaderCache = HashMap<Pair<DeferredSettingsV2, Int>, Shader>()
-    fun getShader(settingsV2: DeferredSettingsV2, type: LightType): Shader {
-        val isInstanced = GFXState.instanced.currentValue
-        val useMSAA = useMSAA
-        val key = type.ordinal * 4 + useMSAA.toInt(2) + isInstanced.toInt()
-        return shaderCache.getOrPut(settingsV2 to key) {
 
-            /*
-            * vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);
-            * vec3 specularColor = finalColor * finalMetallic;
-            * finalColor = diffuseColor * diffuseLight + specularLight; // specular already contains the color
-            * finalColor = finalColor * finalOcclusion + finalEmissive; // color, happens in post-processing
-            * finalColor = tonemap(finalColor); // tone mapping
-            * */
-            val builder = ShaderBuilder("$type-$isInstanced")
-            val vertexStage = if (isInstanced) {
-                ShaderStage(
-                    "v", listOf(
-                        Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "invInsTrans0", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "invInsTrans1", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "invInsTrans2", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "invInsTrans3", VariableMode.ATTR),
-                        Variable(GLSLType.V4F, "lightData0", VariableMode.ATTR),
-                        Variable(GLSLType.V4F, "lightData1", VariableMode.ATTR),
-                        Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
-                        Variable(GLSLType.M4x4, "transform", VariableMode.IN),
-                        Variable(GLSLType.V4F, "data0", VariableMode.OUT),
-                        Variable(GLSLType.V4F, "data1", VariableMode.OUT),
-                        Variable(GLSLType.V4F, "data2", VariableMode.OUT),
-                        Variable(GLSLType.M4x3, "camSpaceToLightSpace", VariableMode.OUT),
-                        Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
-                    ), "" +
-                            "data0 = lightData0;\n" +
-                            "data1 = lightData1;\n" +
-                            "data2 = shadowData;\n" +
-                            // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                            "if(${type == LightType.DIRECTIONAL} && data2.a <= 0.0){\n" +
-                            "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
-                            "} else {\n" +
-                            "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
-                            "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
-                            "}\n" +
-                            "camSpaceToLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2,invInsTrans3);\n" +
-                            "uvw = gl_Position.xyw;\n"
-                )
-            } else {
-                ShaderStage(
-                    "v", listOf(
-                        Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-                        Variable(GLSLType.M4x4, "transform", VariableMode.IN),
-                        Variable(GLSLType.M4x3, "localTransform", VariableMode.IN),
-                        Variable(GLSLType.V1F, "cutoff", VariableMode.IN),
-                        Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
-                    ), "" +
-                            // cutoff = 0 -> scale onto the whole screen, has effect everywhere
-                            "if(${type == LightType.DIRECTIONAL} && cutoff <= 0.0){\n" +
-                            "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
-                            "} else {\n" +
-                            "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
-                            "}\n" +
-                            "uvw = gl_Position.xyw;\n"
-                )
-            }
-            builder.addVertex(vertexStage)
-            builder.addFragment(
-                ShaderStage(
-                    "uv", listOf(
-                        Variable(GLSLType.V3F, "uvw", VariableMode.IN),
-                        Variable(GLSLType.V2F, "uv", VariableMode.OUT)
-                    ), "uv = uvw.xy/uvw.z*.5+.5;\n"
-                )
-            )
-            val withShadows = !isInstanced
-            val cutoffContinue = "discard"
-            val coreFragment = when (type) {
-                LightType.SPOT -> SpotLight.getShaderCode(cutoffContinue, withShadows)
-                LightType.DIRECTIONAL -> DirectionalLight.getShaderCode(cutoffContinue, withShadows)
-                LightType.POINT -> PointLight.getShaderCode(cutoffContinue, withShadows, true)
-            }
-            val fragment = ShaderStage(
-                "f", listOf(
-                    Variable(GLSLType.V4F, "data0"),
-                    Variable(GLSLType.V4F, "data1"),
-                    Variable(GLSLType.V4F, "data2"), // only if with shadows
-                    // light maps for shadows
-                    // - spotlights, directional lights
-                    Variable(GLSLType.S2DShadow, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
-                    // - point lights
-                    Variable(GLSLType.SCubeShadow, "shadowMapCubic", 1),
-                    Variable(GLSLType.V1B, "receiveShadows"),
-                    // Variable(GLSLType.V3F, "finalColor"), // not really required
-                    // Variable(GLSLType.V3F, "finalPosition"),
-                    Variable(GLSLType.S2D, "depthTex"),
-                    Variable(GLSLType.V3F, "finalColor"),
-                    Variable(GLSLType.V3F, "finalNormal"),
-                    // Variable(GLSLType.V1F, "finalOcclusion"), post-process, including ambient
-                    Variable(GLSLType.V1F, "finalMetallic"),
-                    Variable(GLSLType.V1F, "finalRoughness"),
-                    Variable(GLSLType.V1F, "finalSheen"),
-                    Variable(GLSLType.V1F, "finalTranslucency"),
-                    Variable(GLSLType.M4x3, "camSpaceToLightSpace"), // invLightMatrices[i]
-                    Variable(GLSLType.V4F, "light", VariableMode.OUT)
-                ) + depthToPositionList, "" +
-                        // light calculation including shadows if !instanced
-                        "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
-                        "bool hasSpecular = finalMetallic > 0.0;\n" +
-                        "vec3 V = -normalize(rawCameraDirection(uv));\n" +
-                        "float NdotV = dot(finalNormal,V);\n" +
-                        "int shadowMapIdx0 = 0;\n" + // always 0 at the start
-                        "int shadowMapIdx1 = int(data2.g);\n" +
-                        // light properties, which are typically inside the loop
-                        "vec3 lightColor = data0.rgb;\n" +
-                        "vec3 finalPosition = rawDepthToPosition(uv,texture(depthTex,uv).x);\n" +
-                        "vec3 dir = camSpaceToLightSpace * vec4(finalPosition, 1.0);\n" +
-                        "vec3 localNormal = normalize(mat3x3(camSpaceToLightSpace) * finalNormal);\n" +
-                        "float NdotL = 0.0;\n" + // normal dot light
-                        "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS = vec3(0.0);\n" +
-                        coreFragment +
-                        "if(hasSpecular && NdotL > 0.0001 && NdotV > 0.0001){\n" +
-                        "   vec3 H = normalize(V + lightDirWS);\n" +
-                        specularBRDFv2NoColorStart +
-                        specularBRDFv2NoColor +
-                        "   specularLight = effectiveSpecular * computeSpecularBRDF;\n" +
-                        specularBRDFv2NoColorEnd +
-                        "}\n" +
-                        // translucency; looks good and approximately correct
-                        // sheen is a fresnel effect, which adds light at the edge, e.g., for clothing
-                        "NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
-                        "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
-                        // ~65k is the limit, after that only Infinity
-                        // todo car sample's light on windows looks clamped... who is clamping it?
-                        "vec3 color = mix(diffuseLight, specularLight, finalMetallic);\n" +
-                        "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n" +
-                        ""
-            )
-            fragment.add(rawToDepth)
-            fragment.add(depthToPosition)
-            fragment.add(quatRot)
-
-            // deferred inputs
-            // find deferred layers, which exist, and appear in the shader
-            val deferredCode = StringBuilder()
-            val deferredInputs = ArrayList<Variable>()
-            deferredInputs += Variable(GLSLType.V2F, "uv")
-            val imported = HashSet<String>()
-            val sampleVariableName = if (useMSAA) "gl_SampleID" else null
-            val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
-            for (layer in settingsV2.layers) {
-                // if this layer is present,
-                // then define the output,
-                // and write the mapping
-                val glslName = layer.type.glslName
-                if (fragment.variables.any2 { it.name == glslName }) {
-                    layer.appendMapping(deferredCode, "", "Tmp", "", "uv", imported, sampleVariableName)
-                }
-            }
-            fragment.add(ShaderLib.octNormalPacking)
-            deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }
-            builder.addFragment(ShaderStage("deferred", deferredInputs, deferredCode.toString()))
-            builder.addFragment(fragment)
-            if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
-            val shader = builder.create()
-            // find all textures
-            // first the ones for the deferred data
-            // then the ones for the shadows
-            val textures = settingsV2.layers2.map { it.name } +
-                    listOf("shadowMapCubic0", "depthTex") +
-                    Array(Renderers.MAX_PLANAR_LIGHTS) { "shadowMapPlanar$it" }
-            shader.ignoreNameWarnings(
-                "tint", "invLocalTransform", "colors",
-                "tangents", "uvs", "normals", "isDirectional",
-                "defLayer0", "defLayer1", "defLayer2", "defLayer3", "defLayer4",
-                "receiveShadows", "countPerPixel"
-            )
-            shader.setTextureIndices(textures)
-            shader
+    fun createMainFragmentStage(type: LightType, isInstanced: Boolean): ShaderStage {
+        val withShadows = !isInstanced
+        val cutoffContinue = "discard"
+        val coreFragment = when (type) {
+            LightType.SPOT -> SpotLight.getShaderCode(cutoffContinue, withShadows)
+            LightType.DIRECTIONAL -> DirectionalLight.getShaderCode(cutoffContinue, withShadows)
+            LightType.POINT -> PointLight.getShaderCode(cutoffContinue, withShadows, true)
         }
+        val fragment = ShaderStage(
+            "f", listOf(
+                Variable(GLSLType.V4F, "data0"),
+                Variable(GLSLType.V4F, "data1"),
+                Variable(GLSLType.V4F, "data2"), // only if with shadows
+                // light maps for shadows
+                // - spotlights, directional lights
+                Variable(GLSLType.S2DShadow, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
+                // - point lights
+                Variable(GLSLType.SCubeShadow, "shadowMapCubic", 1),
+                Variable(GLSLType.V1B, "receiveShadows"),
+                // Variable(GLSLType.V3F, "finalColor"), // not really required
+                // Variable(GLSLType.V3F, "finalPosition"),
+                Variable(GLSLType.S2D, "depthTex"),
+                Variable(GLSLType.V3F, "finalColor"),
+                Variable(GLSLType.V3F, "finalNormal"),
+                Variable(GLSLType.V1F, "finalMetallic"),
+                Variable(GLSLType.V1F, "finalRoughness"),
+                Variable(GLSLType.V1F, "finalSheen"),
+                Variable(GLSLType.V1F, "finalTranslucency"),
+                Variable(GLSLType.M4x3, "camSpaceToLightSpace"), // invLightMatrices[i]
+                Variable(GLSLType.V4F, "light", VariableMode.OUT)
+            ) + depthToPositionList, "" +
+                    // light calculation including shadows if !instanced
+                    "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
+                    "bool hasSpecular = finalMetallic > 0.0;\n" +
+                    "vec3 V = -normalize(rawCameraDirection(uv));\n" +
+                    "float NdotV = dot(finalNormal,V);\n" +
+                    "int shadowMapIdx0 = 0;\n" + // always 0 at the start
+                    "int shadowMapIdx1 = int(data2.g);\n" +
+                    // light properties, which are typically inside the loop
+                    "vec3 lightColor = data0.rgb;\n" +
+                    "vec3 finalPosition = rawDepthToPosition(uv,texture(depthTex,uv).x);\n" +
+                    "vec3 dir = camSpaceToLightSpace * vec4(finalPosition, 1.0);\n" +
+                    "vec3 localNormal = normalize(mat3x3(camSpaceToLightSpace) * finalNormal);\n" +
+                    "float NdotL = 0.0;\n" + // normal dot light
+                    "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS = vec3(0.0);\n" +
+                    coreFragment +
+                    "if(hasSpecular && NdotL > 0.0001 && NdotV > 0.0001){\n" +
+                    "   vec3 H = normalize(V + lightDirWS);\n" +
+                    specularBRDFv2NoColorStart +
+                    specularBRDFv2NoColor +
+                    "   specularLight = effectiveSpecular * computeSpecularBRDF;\n" +
+                    specularBRDFv2NoColorEnd +
+                    "}\n" +
+                    // translucency; looks good and approximately correct
+                    // sheen is a fresnel effect, which adds light at the edge, e.g., for clothing
+                    "NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
+                    "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
+                    // ~65k is the limit, after that only Infinity
+                    // todo car sample's light on windows looks clamped... who is clamping it?
+                    "vec3 color = mix(diffuseLight, specularLight, finalMetallic);\n" +
+                    "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n" +
+                    ""
+        )
+        fragment.add(rawToDepth)
+        fragment.add(depthToPosition)
+        fragment.add(quatRot)
+        return fragment
     }
 
     val visualizeLightCountShader = Shader(
@@ -429,5 +369,62 @@ object LightShaders {
                 "void main(){ result = vec4(countPerPixel); }"
     ).apply {
         ignoreNameWarnings("normals", "uvs", "tangents", "colors", "receiveShadows")
+    }
+
+    val uvwStage = ShaderStage(
+        "uv", listOf(
+            Variable(GLSLType.V3F, "uvw", VariableMode.IN),
+            Variable(GLSLType.V2F, "uv", VariableMode.OUT)
+        ), "uv = uvw.xy/uvw.z*.5+.5;\n"
+    )
+
+    fun getShader(settingsV2: DeferredSettingsV2, type: LightType): Shader {
+        val isInstanced = GFXState.instanced.currentValue
+        val useMSAA = useMSAA
+        val key = type.ordinal * 4 + useMSAA.toInt(2) + isInstanced.toInt()
+        return shaderCache.getOrPut(settingsV2 to key) {
+
+            val builder = ShaderBuilder("Light-$type-$isInstanced")
+            builder.addVertex(if (isInstanced) vertexI else vertexNI)
+            builder.addFragment(uvwStage)
+
+            val fragment = createMainFragmentStage(type, isInstanced)
+            // deferred inputs: find deferred layers, which exist, and appear in the shader
+            val deferredCode = StringBuilder()
+            val deferredInputs = ArrayList<Variable>()
+            deferredInputs += Variable(GLSLType.V2F, "uv")
+            val imported = HashSet<String>()
+            val sampleVariableName = if (useMSAA) "gl_SampleID" else null
+            val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
+            for (layer in settingsV2.layers) {
+                // if this layer is present,
+                // then define the output,
+                // and write the mapping
+                val glslName = layer.type.glslName
+                if (fragment.variables.any2 { it.name == glslName }) {
+                    layer.appendMapping(deferredCode, "", "Tmp", "", "uv", imported, sampleVariableName)
+                }
+            }
+            fragment.add(ShaderLib.octNormalPacking)
+            deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }
+            builder.addFragment(ShaderStage("deferred", deferredInputs, deferredCode.toString()))
+            builder.addFragment(fragment)
+            if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
+            val shader = builder.create()
+            // find all textures
+            // first the ones for the deferred data
+            // then the ones for the shadows
+            val textures = settingsV2.layers2.map { it.name } +
+                    listOf("shadowMapCubic0", "depthTex") +
+                    Array(Renderers.MAX_PLANAR_LIGHTS) { "shadowMapPlanar$it" }
+            shader.ignoreNameWarnings(
+                "tint", "invLocalTransform", "colors",
+                "tangents", "uvs", "normals", "isDirectional",
+                "defLayer0", "defLayer1", "defLayer2", "defLayer3", "defLayer4",
+                "receiveShadows", "countPerPixel"
+            )
+            shader.setTextureIndices(textures)
+            shader
+        }
     }
 }

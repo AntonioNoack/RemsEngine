@@ -14,8 +14,8 @@ import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.utils.LOGGER
 
-class SceneNode : ActionNode(
-    "Scene",
+class RenderSceneNode : ActionNode(
+    "Render Scene",
     listOf(
         "Int", "Width",
         "Int", "Height",
@@ -48,10 +48,15 @@ class SceneNode : ActionNode(
     fun invalidate() {
         settings = null
         framebuffer?.destroy()
-        framebuffer = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        invalidate()
     }
 
     private var settings: DeferredSettingsV2? = null
+    lateinit var renderer: Renderer
 
     override fun executeAction() {
         val width = getInput(1) as Int
@@ -62,6 +67,7 @@ class SceneNode : ActionNode(
         val stageId = getInput(4) as Int
         // val sorting = getInput(5) as Int
         // val cameraIndex = getInput(6) as Int
+        val applyToneMapping = getInput(7) == true
 
         var settings = settings
         if (settings == null || settings.samples != samples) {
@@ -76,43 +82,33 @@ class SceneNode : ActionNode(
                 setOutput(null, i)
             }
 
-            if (enabledLayers.isEmpty()) {
-                return
-            }
+            if (enabledLayers.isEmpty()) return
+
+            enabledLayers.remove(DeferredLayerType.DEPTH)
 
             // create deferred settings
-            // todo keep settings if they stayed the same as last frame
             settings = DeferredSettingsV2(enabledLayers, samples, true)
-        }
-
-        val rv: RenderView = renderView
-
-        var framebuffer = framebuffer
-        if (framebuffer == null || framebuffer.w != width || framebuffer.h != height) {
+            this.settings = settings
+            renderer = Renderer("tmp", settings)
             framebuffer?.destroy()
             framebuffer = settings.createBaseBuffer()
-            this.framebuffer = framebuffer
         }
 
-        // todo keep framebuffer, if it stayed the same as last frame
-
-        val renderer = Renderer("", settings)
+        val renderView = renderView
+        val framebuffer = framebuffer!!
 
         GFX.check()
 
-        val hdr = true // todo hdr?
-        pipeline.applyToneMapping = !hdr
-
+        pipeline.applyToneMapping = applyToneMapping
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
-
-            rv.clearColorOrSky(rv.cameraMatrix)
+            renderView.clearColorOrSky(renderView.cameraMatrix)
             GFX.check()
             pipeline.stages[stageId].bindDraw(pipeline)
             GFX.check()
-
         }
 
         // todo there are special types for which we might need to apply lighting or combine other types
+        //  e.g. for forward-rendering :)
         for (layer in settings.layers) {
             val tex = framebuffer.getTextureI(layer.texIndex)
             if (tex is Texture2D && !tex.isCreated) {
@@ -120,8 +116,12 @@ class SceneNode : ActionNode(
                 continue
             }
             val i = DeferredLayerType.values.indexOf(layer.type) + 1
-            setOutput(Texture(tex, layer.mapping), i)
+            setOutput(Texture(tex, layer.mapping, layer.type), i)
         }
+
+        val tex = framebuffer.depthTexture!!
+        val i = DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH) + 1
+        setOutput(Texture(tex, "r", DeferredLayerType.DEPTH), i)
 
     }
 }

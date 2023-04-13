@@ -12,7 +12,7 @@ class MaterialReturnNode : ReturnNode(outputs) {
         val layers = MaterialGraph.layers
         for (i in layers.indices) {
             val layer = layers[i]
-            val v = layer.defaultValueARGB
+            val v = layer.defaultWorkValue
             val defaultValue: Any = when (layer.workDims) {
                 1 -> v.z
                 2 -> Vector2f(v.y, v.z)

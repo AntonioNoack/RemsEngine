@@ -11,7 +11,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.io.base.BaseWriter
 
 // todo each camera effect shall become a node in RenderGraph
-// @Deprecated("Shall be replaced by RenderGraph")
+@Deprecated("Shall be replaced by RenderGraph")
 abstract class CameraEffect : PrefabSaveable() {
 
     @Range(0.0, 1e10)

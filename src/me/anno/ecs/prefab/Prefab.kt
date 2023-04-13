@@ -144,12 +144,6 @@ class Prefab : Saveable {
         return true
     }
 
-    fun setIfNotExisting(path: Path, name: String, value: Any?) {
-        if (!sets.contains(path, name)) {// could be optimized to use no instantiations
-            set(path, name, value)
-        }
-    }
-
     /**
      * does not check, whether the change already exists;
      * it assumes, that it does not yet exist

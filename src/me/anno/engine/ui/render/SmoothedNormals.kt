@@ -47,9 +47,8 @@ object SmoothedNormals {
                 Variable(GLSLType.S2D, "baseTex"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V1F, "radius"),
-                Variable(GLSLType.V4F, "result", VariableMode.OUT).apply { ignored = true },
+                Variable(GLSLType.V4F, "result", VariableMode.OUT).apply { slot = it shr 1 },
             ) + depthToPositionList, "" +
-                    "layout(location=${it shr 1}) out vec4 result;\n" +
                     quatRot + rawToDepth +
                     octNormalPacking +
                     "void main() {\n" +

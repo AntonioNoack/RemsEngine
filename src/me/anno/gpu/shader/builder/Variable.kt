@@ -86,7 +86,7 @@ class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inO
     }
 
     var isFlat = false
-    var ignored = false
+    var slot = -1
 
     override fun equals(other: Any?): Boolean {
         return other is Variable && other.name == name

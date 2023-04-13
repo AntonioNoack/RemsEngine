@@ -29,8 +29,8 @@ object MaterialGraph {
 
     fun kotlinToGLSL(type: String): String {
         return when (type) {
-            "Int" -> "int"
-            "Float" -> "float"
+            "Int", "Long" -> "int"
+            "Float", "Double" -> "float"
             "Vector2f" -> "vec2"
             "Vector3f" -> "vec3"
             "Vector4f" -> "vec4"
@@ -45,24 +45,25 @@ object MaterialGraph {
         else if (dstType == "Boolean") return convert(srcType, "Bool", expr)
         return when (srcType) {
             "Bool" -> when (dstType) {
-                "Int" -> "$expr?1:0"
-                "Float" -> "$expr?1.0:0.0"
+                "Int", "Long" -> "$expr?1:0"
+                "Float", "Double" -> "$expr?1.0:0.0"
                 "Vector2f" -> "vec2($expr?1.0:0.0)"
                 "Vector3f" -> "vec3($expr?1.0:0.0)"
                 "Vector4f" -> "vec4(vec3($expr?1.0:0.0),1.0)"
                 else -> null
             }
-            "Float" -> when (dstType) {
+            "Float", "Double" -> when (dstType) {
                 "Bool" -> "$expr!=0.0"
-                "Int" -> "int($expr)"
+                "Float", "Double" -> expr
+                "Int", "Long" -> "int($expr)"
                 "Vector2f" -> "vec2($expr)"
                 "Vector3f" -> "vec3($expr)"
                 "Vector4f" -> "vec4(vec3($expr),1.0)"
                 else -> null
             }
-            "Int" -> when (dstType) {
+            "Int", "Long" -> when (dstType) {
                 "Bool" -> "$expr!=0"
-                "Float" -> "float($expr)"
+                "Float", "Double" -> "float($expr)"
                 "Vector2f" -> "vec2($expr)"
                 "Vector3f" -> "vec3($expr)"
                 "Vector4f" -> "vec4($expr)"
@@ -70,21 +71,21 @@ object MaterialGraph {
             }
             "Vector2f" -> when (dstType) {
                 "Bool" -> "($expr).x!=0.0"
-                "Float" -> "($expr).x"
+                "Float", "Double" -> "($expr).x"
                 "Vector3f" -> "vec3($expr,0.0)"
                 "Vector4f" -> "vec4($expr,0.0,1.0)"
                 else -> null
             }
             "Vector3f" -> when (dstType) {
                 "Bool" -> "($expr).x!=0.0"
-                "Float" -> "($expr).x"
+                "Float", "Double" -> "($expr).x"
                 "Vector2f" -> "($expr).xy"
                 "Vector4f" -> "vec4($expr,1.0)"
                 else -> null
             }
             "Vector4f" -> when (dstType) {
                 "Bool" -> "($expr).x!=0.0"
-                "Float" -> "($expr).x"
+                "Float", "Double" -> "($expr).x"
                 "Vector2f" -> "($expr).xy"
                 "Vector3f" -> "($expr).xyz"
                 "Texture" -> expr
@@ -92,7 +93,7 @@ object MaterialGraph {
             }
             "ITexture2D" -> when (dstType) {
                 "Bool" -> "texture($expr,uv).x!=0.0"
-                "Float" -> "texture($expr,uv).x"
+                "Float", "Double" -> "texture($expr,uv).x"
                 "Vector2f" -> "texture($expr,uv).xy"
                 "Vector3f" -> "texture($expr,uv).xyz"
                 "Vector4f" -> "texture($expr,uv)"
@@ -104,7 +105,7 @@ object MaterialGraph {
 
     val colorWithAlpha = DeferredLayerType(
         "Color", "finalColorA", 4,
-        DeferredLayerType.COLOR.defaultValueARGB.toARGB() or black
+        DeferredLayerType.COLOR.defaultWorkValue.toARGB() or black
     )
     val layers = arrayOf(
         colorWithAlpha,
