@@ -194,9 +194,8 @@ open class Window(
                 p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)
                 p.setPosSize(p.lx0, p.ly0, p.lx1 - p.lx0, p.ly1 - p.ly0)
                 needsLayout.removeIf { entry ->
-                    entry.anyInHierarchy { it == p }
+                    entry === p || entry.anyInHierarchy { it == p }
                 }
-                // needsLayout.removeAll(p.listOfAll.toSet())
                 addNeedsRedraw(p)
             }
         }

@@ -1,6 +1,5 @@
 package me.anno.utils.structures.lists
 
-import me.anno.io.zip.NextEntryIterator
 import java.util.function.Predicate
 import kotlin.math.min
 
@@ -124,15 +123,12 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun iterator(): MutableIterator<V> {
-        return object : NextEntryIterator<V>(), MutableIterator<V> {
+        return object : Iterator<V>, MutableIterator<V> {
             private var i = 0
-            override fun nextEntry(): V? {
-                @Suppress("unchecked_cast")
-                return data.getOrNull(i++) as? V
-            }
-
+            override fun next() = data[i++] as V
+            override fun hasNext() = i < size
             override fun remove() {
-                remove(data[i - 1])
+                this@LimitedList.remove(data[i - 1])
             }
         }
     }
