@@ -10,10 +10,8 @@ import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
 import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
 import me.anno.ecs.components.mesh.sdf.shapes.SDFShape
-import me.anno.ecs.prefab.Hierarchy
-import me.anno.ecs.prefab.PrefabCache
-import me.anno.ecs.prefab.PrefabInspector
-import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.prefab.*
+import me.anno.ecs.prefab.change.Path
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -39,6 +37,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
@@ -437,34 +436,37 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         }
 
     private fun onChangeTransform(entity: Entity) {
-        // save changes to file
         val root = entity.getRoot(Entity::class)
         val prefab = root.prefab
         val path = entity.prefabPath
-        if (prefab != null && path != null) {
-            val transform = entity.transform
-            prefab.setUnsafe(path, "position", transform.localPosition)
-            prefab.setUnsafe(path, "rotation", transform.localRotation)
-            prefab.setUnsafe(path, "scale", transform.localScale)
-        }
-        entity.invalidateAABBsCompletely()
-        entity.invalidateChildTransforms()
-        invalidateInspector()
+        val transform = entity.transform
+        onChangeTransform1(entity, prefab, path, transform.localPosition, transform.localRotation, transform.localScale)
     }
 
-    private fun onChangeTransform(entity: SDFComponent) {
-        // save changes to file
-        val root = entity.root
+    private fun onChangeTransform(sdf: SDFComponent) {
+        val root = sdf.root
         val prefab = root.prefab
-        val path = entity.prefabPath
-        if (prefab != null && path != null) {
-            prefab[path, "position"] = entity.position
-            prefab[path, "rotation"] = entity.rotation
-            prefab[path, "scale"] = entity.scale
+        val path = sdf.prefabPath
+        val entity = sdf.entity
+        onChangeTransform1(entity, prefab, path, sdf.position, sdf.rotation, sdf.scale)
+    }
+
+    private fun onChangeTransform1(
+        entity: Entity?, prefab: Prefab?, path: Path,
+        position: Any, rotation: Any, scale: Any
+    ) {
+        // save changes to file
+        if (prefab != null) {
+            prefab[path, "position"] = position
+            prefab[path, "rotation"] = rotation
+            prefab[path, "scale"] = scale
         }
-        // entity.invalidateAABBsCompletely()
-        // entity.invalidateChildTransforms()
+        if (entity != null) {
+            entity.invalidateAABBsCompletely()
+            entity.invalidateChildTransforms()
+        }
         invalidateInspector()
+        PrefabInspector.currentInspector?.onChange(false)
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {

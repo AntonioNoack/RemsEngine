@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.base.PrefabHelperWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -34,7 +35,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     // var prefab: PrefabSaveable? = null
     fun getOriginal(): PrefabSaveable? {
         val sampleInstance = prefab?.getSampleInstance() ?: return null
-        return Hierarchy.getInstanceAt(sampleInstance, prefabPath!!)
+        return Hierarchy.getInstanceAt(sampleInstance, prefabPath)
     }
 
     fun getOriginalOrDefault() = getOriginal() ?: getSuperInstance(className)
@@ -50,16 +51,24 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
                 this.prefab = prefab
                 this.prefabPath = Path.ROOT_PATH
                 setAllChildPaths()
+                collectAllChanges()
             }
             return prefab.source
         }
 
     /**
-     * only defined while building the game
+     * only defined while building the game;
+     *
+     * where a resource is originally coming from;
      * */
     @NotSerializedProperty
     var prefab: Prefab? = null
 
+    /**
+     * while loading, stores the path within the original prefab;
+     *
+     * after that, stores the path within the currently used prefab/scene
+     * */
     @NotSerializedProperty
     var prefabPath: Path = Path.ROOT_PATH
 
@@ -126,10 +135,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         if (parent != null) {
             parent.ensurePrefab()
         } else {
-            ref
-            // prefab is ensured :)
-            // todo now add all adds
-            setAllChildPaths()
+            ref // prefab is ensured :)
         }
     }
 
@@ -144,10 +150,12 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             (prefab.adds as MutableList).add(CAdd(prefabPath, type, child.className, nameId))
             // update all children within child as well
             child.setAllChildPaths()
+            // define all prefab.sets
+            PrefabHelperWriter(prefab).run(child)
         }
     }
 
-    fun setAllChildPaths() {
+    private fun setAllChildPaths() {
         for (type2 in listChildTypes()) {
             val children = getChildListByType(type2)
             for (ci in children.indices) {
@@ -155,6 +163,15 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
                 setChildPath(child2, ci, type2)
             }
         }
+    }
+
+    private fun collectAllChanges() {
+        // collect all changes, and save them to the prefab
+        val prefab = prefab!!
+        prefab.sets.clear()
+        prefab.adds = ArrayList()
+        PrefabHelperWriter(prefab)
+            .run(this)
     }
 
     open fun getOptionsByType(type: Char): List<Option>? = null
@@ -176,7 +193,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     fun <V : PrefabSaveable> getInClone(thing: V?, clone: PrefabSaveable): V? {
         thing ?: return null
-        val path = thing.prefabPath ?: return null
+        val path = thing.prefabPath
         val instance = Hierarchy.getInstanceAt(clone.root, path)
         @Suppress("unchecked_cast")
         return instance as V

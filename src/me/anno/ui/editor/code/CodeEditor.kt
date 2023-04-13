@@ -55,8 +55,8 @@ open class CodeEditor(style: Style) : Panel(style) {
     private val content = LineSequence()
 
     val history = object : StringHistory() {
-        override fun apply(v: String) {
-            setText(v, false, notify = true)
+        override fun apply(prev: String, curr: String) {
+            setText(curr, false, notify = true)
         }
     }
 

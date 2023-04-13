@@ -8,17 +8,20 @@ import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache
+import me.anno.io.Saveable
+import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 
-open class TypeValue(val type: GLSLType, open var value: Any) {
+open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
 
     companion object {
         private val LOGGER = LogManager.getLogger(TypeValue::class)
     }
 
     override fun toString() = "$type:$value"
+    override val className: String get() = "TypeValue"
 
     fun bind(shader: Shader, uniformName: String) {
         val location = when (type) {
@@ -125,6 +128,22 @@ open class TypeValue(val type: GLSLType, open var value: Any) {
             }
             else -> LOGGER.warn("Type $type is not yet supported")
         }
+    }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeEnum("type", type, true)
+        writer.writeSomething(this, "value", value, true)
+    }
+
+    override fun readInt(name: String, value: Int) {
+        if (name == "type") type = GLSLType.values.firstOrNull { it.id == value } ?: type
+        else super.readInt(name, value)
+    }
+
+    override fun readSomething(name: String, value: Any?) {
+        if (name == "value" && value != null) this.value = value
+        else super.readSomething(name, value)
     }
 
 }

@@ -114,7 +114,7 @@ class CAdd() : Change() {
             newInstance.name = nameId
         }
 
-        val path = instance.prefabPath!!.added(nameId, index, type)
+        val path = instance.prefabPath.added(nameId, index, type)
 
         newInstance.changePaths(prefab, path)
 
@@ -126,6 +126,24 @@ class CAdd() : Change() {
 
         instance.addChildByType(index, type, newInstance)
 
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is CAdd &&
+                other.type == type &&
+                other.path == path &&
+                other.clazzName == clazzName &&
+                other.prefab == prefab &&
+                other.nameId == nameId
+    }
+
+    override fun hashCode(): Int {
+        var hc = path.hashCode()
+        hc = hc * 31 + clazzName.hashCode()
+        hc = hc * 31 + prefab.hashCode()
+        hc = hc * 31 + nameId.hashCode()
+        hc = hc * 31 + type.hashCode()
+        return hc
     }
 
     override val className get() = "CAdd"

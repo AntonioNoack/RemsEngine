@@ -310,7 +310,7 @@ object Renderers {
                 };\n"
         val name = type.name
         val stage = ShaderStage(name, variables, shaderCode)
-            .add(ShaderLib.octNormalPacking)
+            .add(octNormalPacking)
         SimpleRenderer(name, stage)
     }, DeferredLayerType.values.size)
 

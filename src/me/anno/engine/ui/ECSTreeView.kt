@@ -55,17 +55,13 @@ class ECSTreeView(val library: EditorState, style: Style) :
         element as PrefabSaveable
         val prefab: Prefab
         val prefabPath: Path
+        if (element.root.prefab == null) element.root.ensurePrefab()
         when (child) {
             is Prefab -> {
                 prefab = child
                 prefabPath = Path.ROOT_PATH
             }
             is PrefabSaveable -> {
-                if (element.prefab == null) {
-                    // if prefab is null -> we can safely just add things
-                    element.addChildByType(index, type, child)
-                    return true
-                }
                 prefab = child.root.prefab!!
                 prefabPath = child.prefabPath
             }
@@ -94,11 +90,6 @@ class ECSTreeView(val library: EditorState, style: Style) :
     override fun removeChild(parent: ISaveable, child: ISaveable) {
         // todo somehow the window element cannot be removed
         if (parent is PrefabSaveable && child is PrefabSaveable) {
-            if(parent.prefab == null){
-                // just remove it
-                child.removeFromParent()
-                return
-            }
             parent.root.ensurePrefab()
             parent.ensurePrefab()
             child.ensurePrefab()
@@ -265,8 +256,8 @@ class ECSTreeView(val library: EditorState, style: Style) :
     override fun openAddMenu(parent: ISaveable) {
         parent as PrefabSaveable
         // temporary solution:
-        val prefab = parent.prefab!!
-        if (prefab.isWritable) {
+        val prefab = parent.prefab
+        if (prefab == null || prefab.isWritable) {
             // open add menu for often created entities: camera, light, nodes, ...
             // we could use which prefabs were most often created :)
             val types = parent.listChildTypes()

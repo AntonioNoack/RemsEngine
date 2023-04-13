@@ -3,7 +3,6 @@ package me.anno.tests.shader
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.shaders.TriplanarMaterial
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
@@ -18,7 +17,6 @@ fun main() {
         val mat = TriplanarMaterial()
         mat.diffuseMap = OS.pictures.getChild("uv-checker.jpg")
         mat.normalMap = OS.pictures.getChild("BricksNormal.png")
-        mat.prefabPath = Path.ROOT_PATH
         EditorState.prefabSource = mat.ref
         PrefabInspector.currentInspector = PrefabInspector(mat.ref)
         val list = CustomList(false, DefaultConfig.style)

@@ -537,7 +537,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             oldParent.invalidateCollisionMask()
         }
 
-        parent.internalChildren.add(index, this)
+        if (index < 0) parent.internalChildren.add(this)
+        else parent.internalChildren.add(index, this)
         this.parent = parent
 
         // transform
@@ -547,6 +548,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         invalidateAABBsCompletely()
 
         checkNeedsPhysics()
+
+        parent.setChildPath(this, index, 'e')
 
     }
 
@@ -600,22 +603,15 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     }
 
     fun addComponent(component: Component) {
-        internalComponents.add(component)
-        onAddComponent(component)
+        addComponent(-1, component)
     }
 
     fun addComponent(index: Int, component: Component) {
-        if (index >= internalComponents.size) {
-            internalComponents.add(component)
-        } else {
-            internalComponents.add(index, component)
-        }
-        onAddComponent(component)
-    }
-
-    private fun onAddComponent(component: Component) {
+        if (index < 0 || index >= internalComponents.size) internalComponents.add(component)
+        else internalComponents.add(index, component)
         onChangeComponent(component)
         component.entity = this
+        setChildPath(component, index, 'c')
     }
 
     fun onChangeComponent(component: Component) {

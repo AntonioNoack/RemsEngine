@@ -1,5 +1,7 @@
 package me.anno.io.base
 
+import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
@@ -205,9 +207,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
         force: Boolean = false
     ) {
         if (force || values?.isNotEmpty() == true) {
-            @Suppress("unchecked_cast")
-            writeObjectArray(self, name, if (values == null) emptyArray<Any>() as Array<V> else
-                Array<ISaveable>(values.size) { values[it] } as Array<V>, force)
+            writeNullableObjectList(self, name, values, force)
         }
     }
 
@@ -585,7 +585,11 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 bytes.close()
                 writeByteArray(name, bytes0.toByteArray())*/
             }
-            else -> throw RuntimeException("todo implement saving $name: $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?")
+            else -> {
+                val msg = "saving $name: $value of class ${value.javaClass}, maybe it needs to be me.anno.io.[I]Saveable?"
+                if (value !is Function<*>) throw RuntimeException("Todo implement $msg") // functions cannot easily be serialized
+                else LOGGER.warn("Ignored $msg")
+            }
         }
     }
 

@@ -31,6 +31,10 @@ class Prefab : Saveable {
 
     constructor(prefab: Prefab) : this(prefab.clazzName, prefab.source)
 
+    @NotSerializedProperty
+    var isWritable = true
+        private set
+
     var clazzName = ""
 
     val addCounts = CountMap<Pair<Char, Path>>()
@@ -48,17 +52,16 @@ class Prefab : Saveable {
     // or maybe even just add the changes, and merge them
     // (we don't need to override twice or more times)
 
+    @NotSerializedProperty
     var history: ChangeHistory? = null
+
+    @NotSerializedProperty
     var isValid: Boolean
         get() = _sampleInstance != null
         set(value) {
             if (value) throw IllegalArgumentException()
             invalidateInstance()
         }
-
-    @NotSerializedProperty
-    var isWritable = true
-        private set
 
     fun invalidateInstance() {
         if (source !is PrefabReadable || sets.isNotEmpty()) {
@@ -72,14 +75,11 @@ class Prefab : Saveable {
 
     fun sealFromModifications() {
         isWritable = false
-        // make adds and sets immutable?
     }
 
     fun ensureMutableLists() {
         if (adds !is ArrayList) adds = ArrayList(adds)
     }
-
-    fun getPrefabOrSource() = prefab.nullIfUndefined() ?: source
 
     fun countTotalChanges(async: Boolean, depth: Int = 20): Int {
         var sum = adds.size + sets.size
@@ -126,10 +126,7 @@ class Prefab : Saveable {
     }
 
     fun set(instance: PrefabSaveable, key: String, value: Any?) {
-        val pp = instance.prefabPath
-        if (pp != null) {
-            set(pp, key, value)
-        }
+        set(instance.prefabPath, key, value)
     }
 
     operator fun set(path: Path, name: String, value: Any?) {
@@ -349,20 +346,6 @@ class Prefab : Saveable {
         synchronized(this) {
             return if (!isValid) {
                 val instance = PrefabCache.createInstance(this, prefab, adds, sets, depth, clazzName)
-                if (false && Build.isDebug) {// a safety check, that shouldn't happen in a shipped program
-                    instance.forAll {
-                        if (it.prefab !== this) {
-                            val x0 = it.prefab
-                            val x1 = this
-                            LOGGER.warn(
-                                "Incorrectly created prefab @${it.className}!, " +
-                                        "Prefab[${x0?.clazzName},+${x0?.adds?.size},*${x0?.sets?.size}]@${System.identityHashCode(x0)} != " +
-                                        "Prefab[${x1.clazzName},+${x1.adds.size},*${x1.sets.size}]@${System.identityHashCode(x1)}"
-                            )
-                        }
-                    }
-                }
-                // assign super instance? we should really cache that...
                 _sampleInstance = instance
                 instance
             } else _sampleInstance!!
@@ -370,11 +353,7 @@ class Prefab : Saveable {
     }
 
     fun createInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
-        val clone = getSampleInstance(depth).clone()
-        /*clone.forAll {
-            if (it.prefab !== this) LOGGER.warn("Incorrectly created prefab! $source by ${it.prefab} != $this")
-        }*/
-        return clone
+        return getSampleInstance(depth).clone()
     }
 
     override val className get() = "Prefab"

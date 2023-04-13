@@ -3,7 +3,7 @@ package me.anno.io.find
 import me.anno.io.ISaveable
 
 /**
- * this is used within Rem's Studio to find which pointers are referenced within a safe file
+ * this is used within Rem's Studio to find, which pointers are referenced within a safe file
  * (to keep the file slightly smaller and more readable)
  * */
 @Suppress("unused")

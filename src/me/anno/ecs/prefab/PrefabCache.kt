@@ -70,7 +70,7 @@ object PrefabCache : CacheSection("Prefab") {
 
     fun createInstance(
         prefab: Prefab?, superPrefab: FileReference, adds: List<CAdd>?,
-        sets: KeyPairMap<Path, String, Any?>?, depth: Int, clazz: String
+        sets: KeyPairMap<Path, String, Any?>, depth: Int, clazz: String
     ): PrefabSaveable {
         // to do here is some kind of race condition taking place
         // without this println, or Thread.sleep(),
@@ -90,43 +90,12 @@ object PrefabCache : CacheSection("Prefab") {
                 throw e
             }
         }
-        sets?.forEach { k1, k2, v ->
+        sets.forEach { k1, k2, v ->
             try {
                 CSet.apply(instance, k1, k2, v)
             } catch (e: Exception) {
                 LOGGER.warn("Change '$k1' '$k2' '$v' failed")
                 throw e
-            }
-        }
-        // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
-        return instance
-    }
-
-    fun createInstance(superPrefab: FileReference, adds: List<CAdd>?, sets: List<CSet>?, depth: Int, clazz: String):
-            PrefabSaveable {
-        // LOGGER.info("creating instance from $superPrefab")
-        val instance = createSuperInstance(superPrefab, depth, clazz)
-        // val changes2 = (changes0 ?: emptyList()).groupBy { it.className }.map { "${it.value.size}x ${it.key}" }
-        // LOGGER.info("  creating entity instance from ${changes0?.size ?: 0} changes, $changes2")
-        if (adds != null) {
-            for ((index, change) in adds.withIndex()) {
-                try {
-                    change.apply(instance, depth - 1)
-                } catch (e: Exception) {
-                    LOGGER.warn("Change $index, $change failed")
-                    throw e
-                }
-            }
-        }
-        if (sets != null) {
-            for (index in sets.indices) {
-                val change = sets[index]
-                try {
-                    change.apply(instance, depth - 1)
-                } catch (e: Exception) {
-                    LOGGER.warn("Change $index, $change failed")
-                    throw e
-                }
             }
         }
         // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")

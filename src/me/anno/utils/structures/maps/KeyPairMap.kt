@@ -13,6 +13,24 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         size = 0
     }
 
+    fun addAll(other: KeyPairMap<KManifold, KFewOnly, Value>) {
+        for ((k1, v) in other.values) {
+            val base = values.getOrPut(k1) { PairArrayList(v.size) }
+            if (base.size == 0) {
+                for (i in 0 until v.size) {
+                    base.add(v.getA(i), v.getB(i))
+                }
+                size += base.size
+            } else {
+                for (i in 0 until v.size) {
+                    val a = v.getA(i)
+                    val b = v.getB(i)
+                    if (base.replaceOrAddMap(a, b)) size++
+                }
+            }
+        }
+    }
+
     operator fun get(
         k1: KManifold,
         k2: KFewOnly

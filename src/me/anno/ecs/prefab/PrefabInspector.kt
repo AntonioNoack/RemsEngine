@@ -54,26 +54,27 @@ class PrefabInspector(val reference: FileReference) {
         get() {
             val prefab = PrefabCache[reference] ?: throw NullPointerException("Missing prefab of $reference")
             prefab.ensureMutableLists()
+            val history = prefab.history ?: ChangeHistory().apply {
+                put(serialize(prefab))
+            }
+            history.prefab = prefab
+            prefab.history = history
             return prefab
         }
 
-    val history by lazy {
-        val prefab = prefab
-        prefab.history ?: ChangeHistory().apply {
-            put("[]")
-            prefab.history = this
-        }
-    }
+    val history get() = prefab.history!!
+
+    fun serialize(prefab: Prefab) =
+        TextWriter.toText(prefab.adds + prefab.sets.map { k1, k2, v -> CSet(k1, k2, v) }, workspace)
 
     val adds get() = prefab.adds as MutableList
-    val sets get() = prefab.sets // as MutableList
+    val sets get() = prefab.sets
 
-    // val changes = ArrayList()
     val root get() = prefab.getSampleInstance()
 
     private val savingTask = DelayedTask {
         addEvent {
-            history.put(TextWriter.toText(adds + sets.map { k1, k2, v -> CSet(k1, k2, v) }, StudioBase.workspace))
+            history.put(serialize(prefab))
             LOGGER.debug("Pushed new version to history")
         }
     }
@@ -86,7 +87,6 @@ class PrefabInspector(val reference: FileReference) {
     fun reset(path: Path?) {
         path ?: return
         if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
-        // if (sets.removeIf { it.path == path }) {
         if (sets.removeMajorIf { it == path }) {
             prefab.invalidateInstance()
             onChange(true)
@@ -130,7 +130,15 @@ class PrefabInspector(val reference: FileReference) {
 
         val path = instance.prefabPath
         instance.ensurePrefab()
-        list += TextPanel("$path@${instance.prefab?.source}, ${instance.className}@${hex32(System.identityHashCode(instance))}", style)
+        list += TextPanel(
+            "$path@${instance.prefab?.source}, ${instance.className}@${
+                hex32(
+                    System.identityHashCode(
+                        instance
+                    )
+                )
+            }", style
+        )
 
         // the index may not be set in the beginning
         fun getPath(): Path? {
@@ -370,8 +378,8 @@ class PrefabInspector(val reference: FileReference) {
 
                 override fun onAddComponent(component: Inspectable, index: Int) {
                     component as PrefabSaveable
-                    if (component.prefabPath == null) {
-                        val newPath = instance.prefabPath!!.added(Path.generateRandomId(), index, type)
+                    if (component.prefabPath == Path.ROOT_PATH) {
+                        val newPath = instance.prefabPath.added(Path.generateRandomId(), index, type)
                         Hierarchy.add(this@PrefabInspector.prefab, newPath, instance, component)
                     } else LOGGER.warn("Component had prefab path already")
                 }
@@ -396,8 +404,7 @@ class PrefabInspector(val reference: FileReference) {
 
     fun addNewChild(parent: PrefabSaveable, type: Char, prefab: Prefab): Path? {
         if (!checkDependencies(parent, prefab.source)) return null
-        val path = parent.prefabPath!!
-        return this.prefab.add(path, type, prefab.clazzName, Path.generateRandomId(), prefab.source)
+        return this.prefab.add(parent.prefabPath, type, prefab.clazzName, Path.generateRandomId(), prefab.source)
     }
 
     fun save() {
@@ -417,11 +424,11 @@ class PrefabInspector(val reference: FileReference) {
         val selected = collectSelected()
         // save -> changes last modified -> selection becomes invalid
         // remember selection, and apply it later (in maybe 500-1000ms)
-        TextWriter.save(prefab, reference, StudioBase.workspace)
+        TextWriter.save(prefab, reference, workspace)
         DelayedTask { addEvent { restoreSelected(selected) } }.update()
     }
 
-    override fun toString(): String = TextWriter.toText(prefab, StudioBase.workspace)
+    override fun toString(): String = TextWriter.toText(prefab, workspace)
 
     companion object {
 
