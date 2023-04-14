@@ -204,7 +204,6 @@ class Prefab : Saveable {
         ensureMutableLists()
         val adds = adds as MutableList
         if (insertIndex == -1) {
-            println("inserting at end")
             adds.add(change)
         } else {
             // find the correct insert index

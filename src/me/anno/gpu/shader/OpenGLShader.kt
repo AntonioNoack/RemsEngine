@@ -110,33 +110,25 @@ abstract class OpenGLShader(val name: String) : ICacheData {
                 glGetProgramInfoLog(shader)
             }
             if (log != null && !log.isBlank2()) {
-                val warning = StringBuilder( // estimate size to prevent unnecessary allocations
-                    shaderName.length + log.length + 6 + // intro line
-                            s0.length + s1.length +
-                            (countLines(s0) + countLines(s1)) * 6 // 4 for number, 2 for :+space
-                )
-                warning.append(log).append(" by ").append(shaderName).append("\n\n")
-                addText(warning, s0)
-                addText(warning, s1)
-                LOGGER.warn(warning)
-                /*LOGGER.warn( // more compact, but also needs .format(), which is costly in WASM
-                    "$log by $shaderName\n\n${
-                        (s0 + s1)
-                            .split('\n')
-                            .mapIndexed { index, line ->
-                                "${"%1\$3s".format(index + 1)}: $line"
-                            }.joinToString("\n")
-                    }"
-                )*/
-                /*if(!log.contains("deprecated", true)){
-                    throw RuntimeException()
-                }*/
+                LOGGER.warn(formatShader(shaderName, log, s0, s1))
             }
             if (!isShader) {
                 if (glGetProgrami(shader, GL_LINK_STATUS) == 0) {
                     throw IllegalStateException("Linking $shader failed")
                 }
             }
+        }
+
+        fun formatShader(shaderName: String, log: String, s0: String, s1: String): StringBuilder {
+            val warning = StringBuilder( // estimate size to prevent unnecessary allocations
+                shaderName.length + log.length + 6 + // intro line
+                        s0.length + s1.length +
+                        (countLines(s0) + countLines(s1)) * 6 // 4 for number, 2 for :+space
+            )
+            warning.append(log).append(" by ").append(shaderName).append("\n\n")
+            addText(warning, s0)
+            addText(warning, s1)
+            return warning
         }
 
         fun logShader(shaderName: String, vertex: String, fragment: String) {

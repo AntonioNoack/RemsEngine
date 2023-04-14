@@ -19,10 +19,7 @@ import me.anno.graph.render.compiler.ExpressionRenderer
 import me.anno.graph.render.compiler.ShaderExprNode
 import me.anno.graph.render.compiler.ShaderGraphNode
 import me.anno.graph.render.effects.ShapedBlurNode
-import me.anno.graph.render.scene.RenderLightsNode
-import me.anno.graph.render.scene.RenderSceneNode
-import me.anno.graph.render.scene.UVNode
-import me.anno.graph.render.scene.UViNode
+import me.anno.graph.render.scene.*
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.flow.ReturnNode
@@ -31,11 +28,11 @@ import me.anno.graph.ui.GraphEditor
 import me.anno.image.ImageScale
 import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
-import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.Panel
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.LOGGER
+import me.anno.utils.OS.documents
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 
 // todo scene processing
@@ -182,6 +179,8 @@ object RenderGraph {
         }
 
         fun finish(end: ExprReturnNode = ExprReturnNode()) = then(end).graph
+        fun finish(extraInputs: Map<String, Any?>, end: ExprReturnNode = ExprReturnNode()) =
+            then(end, extraInputs, emptyMap()).graph
 
     }
 
@@ -205,7 +204,13 @@ object RenderGraph {
     val lights = QuickPipeline()
         .then(RenderSceneNode())
         .then(RenderLightsNode(), mapOf("Light" to listOf("Color")))
-        .finish()
+        .finish(mapOf("Apply Tone Mapping" to true))
+
+    val combined = QuickPipeline()
+        .then(RenderSceneNode())
+        .then(RenderLightsNode())
+        .then(CombineLightsNode())
+        .finish(mapOf("Apply Tone Mapping" to true))
 
     fun draw(view: RenderView, graph: FlowGraph) {
         draw(view, view, graph)
@@ -221,6 +226,10 @@ object RenderGraph {
                     it.renderView = view
                 }
                 is RenderLightsNode -> {
+                    it.pipeline = view.pipeline
+                    it.renderView = view
+                }
+                is CombineLightsNode -> {
                     it.pipeline = view.pipeline
                     it.renderView = view
                 }
@@ -266,18 +275,13 @@ object RenderGraph {
                     registerCustomClass(sample)
             }
 
-            // todo lighting pass node
-            // todo combine light node
-            // todo sample sky (tex) node
-
             addChangeListener { _, isNodePositionChange ->
                 if (!isNodePositionChange) {
                     for (node in graph.nodes) {
                         when (node) {
                             is ShaderGraphNode -> node.invalidate()
                             is ExpressionRenderer -> node.invalidate()
-                            is RenderSceneNode -> node.invalidate()
-                            is RenderLightsNode -> node.invalidate()
+                            is RenderSceneNode0 -> node.invalidate()
                         }
                     }
                 }
@@ -302,14 +306,17 @@ object RenderGraph {
 
     }
 
+    // todo combine light node
+    // todo sample sky (tex) node
+    // todo bloom node
+    // todo depth of field node
+
     @JvmStatic
     fun main(args: Array<String>) {
 
-        // todo test render lights node
-
-        val graph = lights
+        val graph = combined
         val scene = Entity()
-        scene.add(MeshComponent(flatCube.front))
+        scene.add(MeshComponent(documents.getChild("monkey.obj")))
         scene.add(SkyBox())
         testUI {
 

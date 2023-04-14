@@ -373,9 +373,7 @@ object ShaderLib {
             flatNormal +
             "}"
 
-    val y2D = listOf(
-        Variable(GLSLType.V2F, "uv"),
-    )
+    val y2D = uvList
 
     val y3D = listOf(
         Variable(GLSLType.V2F, "uv"),

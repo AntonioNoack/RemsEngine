@@ -33,7 +33,7 @@ object ReverseDepth {
             "}\n" +
             "#endif\n"
 
-    val depthToPositionList = listOf(
+    val rawToDepthVars = listOf(
         Variable(GLSLType.V4F, "camRot"),
         Variable(GLSLType.V3F, "fovFactor")
     )

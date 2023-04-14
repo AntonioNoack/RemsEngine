@@ -41,7 +41,7 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
 
     fun write(name: String, value: Any?) {
         prefab[head, name] = value
-        println(" - set $head.$name = $value")
+        // println(" - set $head.$name = $value")
     }
 
     fun findType(parent: PrefabSaveable, instance: PrefabSaveable): Pair<Int, Char>? {
@@ -206,7 +206,7 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
                             value.prefab?.source ?: InvalidRef
                     )
                     (prefab.adds as MutableList).add(add)
-                    println(" - added $add")
+                    // println(" - added $add")
                 }
                 objectStack.add(parentsPath)
                 head = path

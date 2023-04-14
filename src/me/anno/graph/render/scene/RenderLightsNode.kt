@@ -2,7 +2,6 @@ package me.anno.graph.render.scene
 
 import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
@@ -14,25 +13,25 @@ import me.anno.gpu.pipeline.LightShaders.createMainFragmentStage
 import me.anno.gpu.pipeline.LightShaders.uvwStage
 import me.anno.gpu.pipeline.LightShaders.vertexI
 import me.anno.gpu.pipeline.LightShaders.vertexNI
-import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.ReverseDepth
+import me.anno.gpu.shader.ReverseDepth.depthToPosition
+import me.anno.gpu.shader.ReverseDepth.rawToDepth
+import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
 import me.anno.graph.render.Texture
 import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ReturnNode
-import me.anno.graph.types.flow.actions.ActionNode
-import me.anno.maths.Maths.hasFlag
 import me.anno.utils.types.Booleans.toInt
 
-class RenderLightsNode : ActionNode(
+class RenderLightsNode : RenderSceneNode0(
     "Render Lights",
     listOf(
         "Int", "Width",
@@ -40,7 +39,6 @@ class RenderLightsNode : ActionNode(
         "Int", "Samples",
         "Int", "Camera Index",
         // make them same order as outputs from RenderSceneNode
-        "Vector3f", "Color",
         "Vector3f", "Normal",
         "Float", "Metallic",
         "Float", "Roughness",
@@ -52,13 +50,9 @@ class RenderLightsNode : ActionNode(
 ) {
 
     val firstInputIndex = 5
-    val depthIndex = firstInputIndex + 6
+    val depthIndex = firstInputIndex + 5
 
-    lateinit var renderView: RenderView
-    lateinit var pipeline: Pipeline
-
-    var framebuffer: IFramebuffer? = null
-    var shader: Shader? = null
+    private var framebuffer: IFramebuffer? = null
 
     init {
         setInput(1, 256) // width
@@ -67,25 +61,16 @@ class RenderLightsNode : ActionNode(
         setInput(4, 0) // camera index
     }
 
-    fun invalidate() {
-        shader?.destroy()
-        shader = null
+    override fun invalidate() {
         framebuffer?.destroy()
-        for (it in shaders) it?.destroy()
+        for (it in shaders) it?.first?.destroy()
         shaders.fill(null)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        invalidate()
-    }
-
-    var boundShaders = 0L
-    val shaders = arrayOfNulls<Shader>(6) // current number of shaders
-    var typeValues: HashMap<String, TypeValue>? = null
-    fun getShader(type: LightType, isInstanced: Boolean): Shader {
+    private val shaders = arrayOfNulls<Pair<Shader, HashMap<String, TypeValue>>>(6) // current number of shaders
+    private fun getShader(type: LightType, isInstanced: Boolean): Shader {
         val id = type.ordinal.shl(1) + isInstanced.toInt()
-        val shader = shaders[id] ?: object : GraphCompiler(graph as FlowGraph) {
+        val shader1 = shaders[id] ?: object : GraphCompiler(graph as FlowGraph) {
 
             // not being used, as we only have an expression
             override fun handleReturnNode(node: ReturnNode) = throw NotImplementedError()
@@ -93,9 +78,8 @@ class RenderLightsNode : ActionNode(
             val shader: Shader
 
             init {
-                val sizes = intArrayOf(3, 3, 1, 1, 1, 1, 1)
+                val sizes = intArrayOf(3, 1, 1, 1, 1, 1)
                 val names = arrayOf(
-                    DeferredLayerType.COLOR,
                     DeferredLayerType.NORMAL,
                     DeferredLayerType.METALLIC,
                     DeferredLayerType.ROUGHNESS,
@@ -114,38 +98,36 @@ class RenderLightsNode : ActionNode(
                 defineLocalVars(builder)
                 val variables = typeValues.map { (k, v) -> Variable(v.type, k) } +
                         listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT))
-                val builder = ShaderBuilder("LightsNode")
+                val builder = ShaderBuilder(name)
                 builder.addVertex(if (isInstanced) vertexI else vertexNI)
                 builder.addFragment(uvwStage)
                 builder.addFragment(
                     ShaderStage(variables, expressions)
                         .add(extraFunctions.toString())
                 )
+                builder.addFragment(
+                    ShaderStage(
+                        listOf(
+                            Variable(GLSLType.V2F, "uv"),
+                            Variable(GLSLType.V1F, "finalDepth"),
+                            Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
+                        ) + rawToDepthVars,
+                        "finalPosition = depthToPosition(uv,finalDepth);\n"
+                    ).add(rawToDepth).add(depthToPosition)
+                )
                 builder.addFragment(createMainFragmentStage(type, isInstanced))
                 shader = builder.create()
-                shader.setTextureIndices(variables.filter {
-                    when (it.type) {
-                        GLSLType.S2D, GLSLType.S2DI, GLSLType.S2DU, GLSLType.S2DA, GLSLType.S3D, GLSLType.S2DMS,
-                        GLSLType.SCube -> true
-                        else -> false
-                    }
-                }.map { it.name })
             }
 
             override val currentShader: Shader get() = shader
 
-        }.shader
+        }.run { shader to typeValues }
 
-        shaders[id] = shader
+        shaders[id] = shader1
+        val (shader, typeValues) = shader1
         shader.use()
-        val flag = 1L shl id
-        if (!boundShaders.hasFlag(flag)) {
-            val tv = typeValues
-            if (tv != null) for ((k, v) in tv) {
-                v.bind(shader, k)
-            }
-            ReverseDepth.bindDepthToPosition(shader)
-            boundShaders = boundShaders or flag
+        for ((k, v) in typeValues) {
+            v.bind(shader, k)
         }
         return shader
     }
@@ -160,7 +142,8 @@ class RenderLightsNode : ActionNode(
         val rv = renderView
         if (framebuffer?.samples != samples) {
             framebuffer?.destroy()
-            framebuffer = Framebuffer("light", width, height, arrayOf(TargetType.FP16Target3), DepthBufferType.NONE)
+            framebuffer =
+                Framebuffer("light", width, height, samples, arrayOf(TargetType.FP16Target3), DepthBufferType.NONE)
         }
 
         val framebuffer = framebuffer!!
@@ -168,16 +151,13 @@ class RenderLightsNode : ActionNode(
 
         GFX.check()
 
-        val depthTexture0 = getInput(depthIndex) as? Texture ?: return
-        val depthTexture = depthTexture0.tex as? Texture2D ?: return
+        val depthTexture0 = getInput(depthIndex) as? Texture
+        val depthTexture = depthTexture0?.tex as? Texture2D ?: TextureLib.depthTexture
 
-        // mark all shaders as not-bound
-        boundShaders = 0L
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            val dst = framebuffer
             val stage = pipeline.lightStage
             // todo copy depth into framebuffer
-            dst.clearColor(0)
+            framebuffer.clearColor(0)
             stage.bind {
                 stage.draw(rv.cameraMatrix, rv.cameraPosition, rv.worldScale, ::getShader, depthTexture)
             }

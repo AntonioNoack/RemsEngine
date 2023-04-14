@@ -59,7 +59,7 @@ interface ExpressionRenderer {
                     defineLocalVars(builder)
                     val variables = typeValues.map { (k, v) -> Variable(v.type, k) } +
                             listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT)) +
-                            ReverseDepth.depthToPositionList
+                            ReverseDepth.rawToDepthVars
                     shader = Shader(
                         "ExpressionRenderer", ShaderLib.coordsList, ShaderLib.coordsVShader,
                         ShaderLib.uvList, variables, extraFunctions.toString() +

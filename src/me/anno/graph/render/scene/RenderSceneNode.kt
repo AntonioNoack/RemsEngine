@@ -1,20 +1,17 @@
 package me.anno.graph.render.scene
 
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
-import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.utils.LOGGER
 
-class RenderSceneNode : ActionNode(
+class RenderSceneNode : RenderSceneNode0(
     "Render Scene",
     listOf(
         "Int", "Width",
@@ -29,9 +26,6 @@ class RenderSceneNode : ActionNode(
     DeferredLayerType.values.map { listOf("Texture", it.name) }.flatten()
 ) {
 
-    lateinit var renderView: RenderView
-    lateinit var pipeline: Pipeline
-
     val enabledLayers = ArrayList<DeferredLayerType>()
     var framebuffer: IFramebuffer? = null
 
@@ -45,14 +39,9 @@ class RenderSceneNode : ActionNode(
         setInput(7, false) // apply tonemapping
     }
 
-    fun invalidate() {
+    override fun invalidate() {
         settings = null
         framebuffer?.destroy()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        invalidate()
     }
 
     private var settings: DeferredSettingsV2? = null

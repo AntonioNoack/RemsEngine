@@ -14,7 +14,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
 import me.anno.gpu.shader.ReverseDepth.depthToPosition
-import me.anno.gpu.shader.ReverseDepth.depthToPositionList
+import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
 import me.anno.gpu.shader.ReverseDepth.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
@@ -89,7 +89,7 @@ object ScreenSpaceReflections {
         functions.add(rawToDepth)
         functions.add(depthToPosition)
         functions.add(octNormalPacking)
-        variables.addAll(depthToPositionList)
+        variables.addAll(rawToDepthVars)
 
         return Shader(
             "ss-reflections", coordsList, coordsVShader, uvList, variables, "" +

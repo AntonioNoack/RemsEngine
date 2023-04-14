@@ -5,6 +5,7 @@ import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
 import me.anno.engine.pbr.PBRLibraryGLTF
+import me.anno.gpu.pipeline.LightShaders.translucencyNL
 
 object RendererLib {
 
@@ -66,7 +67,7 @@ object RendererLib {
             "           }\n" +
             // translucency; looks good and approximately correct
             // sheen is a fresnel effect, which adds light
-            "           NdotL = mix(NdotL, 0.23, finalTranslucency) + finalSheen;\n" +
+            "           NdotL = mix(NdotL, $translucencyNL, finalTranslucency) + finalSheen;\n" +
             "           diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
             "       }\n" +
             PBRLibraryGLTF.specularBRDFv2NoDivInlined2End +

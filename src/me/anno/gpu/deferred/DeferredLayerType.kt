@@ -154,7 +154,7 @@ open class DeferredLayerType(
 
         // todo this is special, integrate it somehow...
         val COLOR_EMISSIVE = DeferredLayerType(
-            "COLOR_EMISSIVE", "finalColorEmissive", 4,
+            "Color,Emissive", "finalColorEmissive", 4,
             BufferQuality.LOW_8, false, 0x007799ff, "", ""
         )
 
@@ -177,6 +177,7 @@ open class DeferredLayerType(
 
         val values = arrayListOf(
             COLOR,
+            ALPHA,
             EMISSIVE,
             NORMAL,
             TANGENT,
@@ -192,13 +193,9 @@ open class DeferredLayerType(
             SUBSURFACE,
             ANISOTROPIC,
             INDEX_OF_REFRACTION,
-            ID,
-            FLAGS,
             COLOR_EMISSIVE,
-            LIGHT_SUM,
             MOTION,
-            DEPTH,
-            ALPHA
+            DEPTH
         )
 
         // stencil?

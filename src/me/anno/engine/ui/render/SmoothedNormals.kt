@@ -10,7 +10,7 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
-import me.anno.gpu.shader.ReverseDepth.depthToPositionList
+import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
 import me.anno.gpu.shader.ReverseDepth.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
@@ -48,7 +48,7 @@ object SmoothedNormals {
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V1F, "radius"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT).apply { slot = it shr 1 },
-            ) + depthToPositionList, "" +
+            ) + rawToDepthVars, "" +
                     quatRot + rawToDepth +
                     octNormalPacking +
                     "void main() {\n" +
@@ -56,7 +56,7 @@ object SmoothedNormals {
                     "   vec4 base = texelFetch(baseTex,uvi,0);\n" +
                     "   float depth0 = rawToDepth(texelFetch(depthTex,uvi,0).x);\n" +
                     // we skip processing in the sky
-                    "   if(depth0 < 1e38) {\n" +
+                    "   if(depth0 < 1e34) {\n" +
                     "       ivec2 size = textureSize(normalTex,0);\n" +
                     "       int r = int(radius), w0 = int(radius*radius);\n" +
                     "       float invW0 = 1.0 / float(w0);\n" +

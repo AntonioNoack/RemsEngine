@@ -53,20 +53,12 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
     private val nonInstanced = LightData()
 
     fun bindDraw(source: IFramebuffer, cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
-        if (instanced.isNotEmpty() || nonInstanced.isNotEmpty()) {
-            GFXState.blendMode.use(blendMode) {
-                GFXState.depthMode.use(depthMode) {
-                    GFXState.depthMask.use(writeDepth) {
-                        GFXState.cullMode.use(cullMode) {
-                            source.bindTrulyNearestMS(0)
-                            draw(
-                                cameraMatrix, cameraPosition, worldScale,
-                                ::getShader, source.depthTexture as Texture2D,
-                            )
-                        }
-                    }
-                }
-            }
+        bind {
+            source.bindTrulyNearestMS(0)
+            draw(
+                cameraMatrix, cameraPosition, worldScale,
+                ::getShader, source.depthTexture as Texture2D,
+            )
         }
     }
 
