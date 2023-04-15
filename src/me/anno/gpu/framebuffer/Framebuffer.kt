@@ -243,16 +243,13 @@ class Framebuffer(
             val texture = Texture2D("$name-tex[$index]", w, h, samples)
             texture.autoUpdateMipmaps = autoUpdateMipmaps
             texture.create(targets[index])
+            texture.fb = this
             GFX.check()
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
             texture
         }
         GFX.check()
-        when (targets.size) {
-            0 -> glDrawBuffer(GL_NONE)
-            1 -> glDrawBuffer(GL_COLOR_ATTACHMENT0)
-            else -> glDrawBuffers(attachments[targets.size - 2])
-        }
+        drawBuffersN(targets.size)
         GFX.check()
         // cannot use depth-texture with color render buffers... why ever...
         val depthBufferType = if (usesCRBs && depthBufferType == DepthBufferType.TEXTURE)
@@ -281,6 +278,7 @@ class Framebuffer(
                 val depthTexture = Texture2D("$name-depth", w, h, samples)
                 depthTexture.autoUpdateMipmaps = autoUpdateMipmaps
                 depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
+                depthTexture.fb = this
                 glFramebufferTexture2D(
                     GL_FRAMEBUFFER,
                     GL_DEPTH_ATTACHMENT,
@@ -331,7 +329,8 @@ class Framebuffer(
         }
     }
 
-    fun blitTo(target: IFramebuffer) {
+    fun copyIfNeeded(dst: IFramebuffer) {
+
         if (!needsBlit) return
         needsBlit = false
 
@@ -345,15 +344,15 @@ class Framebuffer(
 
         // ensure that it exists
         // + bind it, it seems important
-        if (target is Framebuffer) target.ensureSize(w, h)
-        target.ensure()
+        if (dst is Framebuffer) dst.ensureSize(w, h)
+        dst.ensure()
 
         GFX.check()
 
-        if (pointer == 0 || (target.pointer == 0 && target != NullFramebuffer))
-            throw RuntimeException("Something went wrong $this -> $target")
+        if (pointer == 0 || (dst.pointer == 0 && dst != NullFramebuffer))
+            throw RuntimeException("Something went wrong $this -> $dst")
 
-        bindFramebuffer(GL_DRAW_FRAMEBUFFER, target.pointer)
+        bindFramebuffer(GL_DRAW_FRAMEBUFFER, dst.pointer)
         bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
 
         GFX.check()
@@ -404,6 +403,66 @@ class Framebuffer(
 
     }
 
+    fun copyTo(dst: IFramebuffer, mask: Int) {
+
+        GFX.check()
+
+        ensure()
+        dst.ensure()
+
+        bindFramebuffer(GL_DRAW_FRAMEBUFFER, dst.pointer)
+        bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
+
+        glBlitFramebuffer(
+            0, 0, w, h,
+            0, 0, dst.w, dst.h,
+            mask, GL_NEAREST
+        )
+
+        // restore the old binding
+        Frame.invalidate()
+        Frame.bind()
+
+        GFX.check()
+
+    }
+
+    fun copyColorTo(dst: Framebuffer, srcI: Int, dstI: Int, mask: Int) {
+
+        GFX.check()
+
+        ensure()
+        dst.ensure()
+
+        bindFramebuffer(GL_FRAMEBUFFER, pointer)
+        drawBuffers1(srcI)
+
+        bindFramebuffer(GL_FRAMEBUFFER, dst.pointer)
+        drawBuffers1(dstI)
+
+        bindFramebuffer(GL_DRAW_FRAMEBUFFER, dst.pointer)
+        bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
+
+        glBlitFramebuffer(
+            0, 0, w, h,
+            0, 0, dst.w, dst.h,
+            mask, GL_NEAREST
+        )
+
+        bindFramebuffer(GL_FRAMEBUFFER, pointer)
+        drawBuffersN(targets.size)
+
+        bindFramebuffer(GL_FRAMEBUFFER, dst.pointer)
+        drawBuffersN(dst.targets.size)
+
+        // restore the old binding
+        Frame.invalidate()
+        Frame.bind()
+
+        GFX.check()
+
+    }
+
     fun check() {
         val state = glCheckFramebufferStatus(GL_FRAMEBUFFER)
         if (state != GL_FRAMEBUFFER_COMPLETE) {
@@ -415,7 +474,7 @@ class Framebuffer(
         checkSession()
         if (withMultisampling) {
             val ssBuffer = ssBuffer!!
-            blitTo(ssBuffer)
+            copyIfNeeded(ssBuffer)
             ssBuffer.bindTextureI(index, offset, nearest, clamping)
         } else {
             textures[index].bind(offset, nearest, clamping)
@@ -426,7 +485,7 @@ class Framebuffer(
         GFX.check()
         if (withMultisampling) {
             val ssBuffer = ssBuffer!!
-            blitTo(ssBuffer)
+            copyIfNeeded(ssBuffer)
             ssBuffer.bindTextures(offset, nearest, clamping)
         } else {
             val textures = textures
@@ -453,7 +512,7 @@ class Framebuffer(
 
     fun resolve() {
         if (withMultisampling) {
-            blitTo(ssBuffer!!)
+            copyIfNeeded(ssBuffer!!)
             GFX.check()
         }
     }
@@ -522,7 +581,7 @@ class Framebuffer(
         checkSession()
         return if (withMultisampling) {
             val ssBuffer = ssBuffer!!
-            blitTo(ssBuffer)
+            copyIfNeeded(ssBuffer)
             ssBuffer.getTextureI(index)
         } else textures[index]
     }
@@ -539,6 +598,18 @@ class Framebuffer(
             glBindFramebuffer(target, pointer)
             Frame.lastPtr = pointer
         }
+
+        fun drawBuffers1(slot: Int) {
+            glDrawBuffer(if (slot < 0) GL_NONE else GL_COLOR_ATTACHMENT0 + slot)
+        }
+
+        fun drawBuffersN(size: Int) {
+            when (size) {
+                0, 1 -> drawBuffers1(size - 1)
+                else -> glDrawBuffers(attachments[size - 2])
+            }
+        }
+
     }
 
     override fun toString(): String =

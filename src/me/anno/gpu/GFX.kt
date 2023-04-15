@@ -327,7 +327,9 @@ object GFX {
     }
 
     @JvmStatic
-    fun copyNoAlpha(buffer: IFramebuffer) = copyNoAlpha(buffer.getTexture0())
+    fun copyNoAlpha(buffer: IFramebuffer) {
+        copyNoAlpha(buffer.getTexture0())
+    }
 
     @JvmStatic
     fun copyNoAlpha(buffer: ITexture2D) {

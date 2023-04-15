@@ -419,7 +419,7 @@ object Thumbs {
                     arrayOf(TargetType.UByteTarget4), DepthBufferType.NONE
                 )
                 renderTarget.needsBlit = true
-                renderTarget.blitTo(newBuffer)
+                renderTarget.copyIfNeeded(newBuffer)
                 val texture = newBuffer.textures[0]
                 newBuffer.destroyExceptTextures(false)
                 texture.rotation = if (flipY) flipYRot else null

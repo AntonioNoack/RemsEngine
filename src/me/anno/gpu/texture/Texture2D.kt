@@ -13,6 +13,7 @@ import me.anno.gpu.GFX.maxBoundTextures
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -57,6 +58,7 @@ open class Texture2D(
     }
 
     val samples = clamp(samples, 1, GFX.maxSamples)
+    var fb: Framebuffer? = null
 
     var internalFormat = 0
     var border = 0
@@ -1099,17 +1101,6 @@ open class Texture2D(
 
     fun isBoundToSlot(slot: Int): Boolean {
         return slot in boundTextures.indices && boundTextures[slot] == pointer
-    }
-
-    fun copyFrom(src: Texture2D) {
-        if (src.pointer == 0 || pointer == 0) throw IllegalArgumentException("Both textures need to be created for copyFrom()")
-        check()
-        invalidateBinding()
-        check()
-        bindTexture(target, pointer)
-        check()
-        glCopyTextureSubImage2D(src.pointer, 0, 0, 0, 0, 0, min(w, src.w), min(h, src.h))
-        check()
     }
 
     override fun wrapAsFramebuffer(): IFramebuffer {

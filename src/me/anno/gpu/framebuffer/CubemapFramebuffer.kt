@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
+import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
@@ -130,11 +131,7 @@ class CubemapFramebuffer(
             )
         }
         GFX.check()
-        when (targets.size) {
-            0 -> glDrawBuffer(GL_NONE)
-            1 -> glDrawBuffer(GL_COLOR_ATTACHMENT0)
-            else -> glDrawBuffers(textures.indices.map { it + GL_COLOR_ATTACHMENT0 }.toIntArray())
-        }
+        drawBuffersN(targets.size)
         GFX.check()
         when (depthBufferType) {
             DepthBufferType.NONE -> {
@@ -248,11 +245,7 @@ class CubemapFramebuffer(
             )
         }
         GFX.check()
-        when (targets.size) {
-            0 -> glDrawBuffer(GL_NONE)
-            1 -> glDrawBuffer(GL_COLOR_ATTACHMENT0)
-            else -> glDrawBuffers(textures.indices.map { it + GL_COLOR_ATTACHMENT0 }.toIntArray())
-        }
+        drawBuffersN(targets.size)
         GFX.check()
         if (depthBufferType == DepthBufferType.TEXTURE || depthBufferType == DepthBufferType.TEXTURE_16) {
             val depthTexture = depthTexture!!

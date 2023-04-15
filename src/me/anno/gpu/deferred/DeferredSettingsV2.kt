@@ -2,7 +2,6 @@ package me.anno.gpu.deferred
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.*
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.RandomEffect.randomFunc
 import me.anno.gpu.shader.Shader
@@ -128,9 +127,8 @@ data class DeferredSettingsV2(
     val settingsV1 = DeferredSettingsV1(layers2, fpLights)
     val targetTypes = Array(layers2.size) { layers2[it].type }
 
-    fun createBaseBuffer(): IFramebuffer {
+    fun createBaseBuffer(name: String = "DeferredBuffers-main"): IFramebuffer {
         val layers = layers2
-        val name = "DeferredBuffers-main"
         val depthBufferType = DepthBufferType.TEXTURE
         return if (layers.size <= GFX.maxColorAttachments) {
             Framebuffer(

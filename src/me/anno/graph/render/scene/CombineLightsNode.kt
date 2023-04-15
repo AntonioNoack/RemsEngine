@@ -1,19 +1,16 @@
 package me.anno.graph.render.scene
 
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely2
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.LightShaders.combineFStage
 import me.anno.gpu.pipeline.LightShaders.combineLighting1
 import me.anno.gpu.pipeline.LightShaders.combineVStage
-import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
@@ -26,7 +23,6 @@ import me.anno.graph.render.Texture
 import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ReturnNode
-import me.anno.graph.types.flow.actions.ActionNode
 
 class CombineLightsNode : RenderSceneNode0(
     "Combine Lights",
@@ -40,13 +36,11 @@ class CombineLightsNode : RenderSceneNode0(
         "Vector3f", "Color",
         "Vector3f", "Emissive",
         "Float", "Occlusion",
-        "Float", "Occlusion 2",
+        "Float", "Ambient Occlusion",
     ), listOf("Texture", "Color")
 ) {
 
     val firstInputIndex = 5
-
-    private var framebuffer: IFramebuffer? = null
 
     init {
         setInput(1, 256) // width
@@ -125,7 +119,10 @@ class CombineLightsNode : RenderSceneNode0(
         val rv = renderView
         if (framebuffer?.samples != samples) {
             framebuffer?.destroy()
-            framebuffer = Framebuffer("light", width, height, samples, arrayOf(TargetType.FP16Target3), DepthBufferType.NONE)
+            framebuffer = Framebuffer(
+                name, width, height, samples,
+                arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
+            )
         }
 
         val framebuffer = framebuffer!!

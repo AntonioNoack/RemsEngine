@@ -172,7 +172,7 @@ open class DeferredLayerType(
 
         val ALPHA = DeferredLayerType(
             "Opacity", "finalAlpha", 1, BufferQuality.LOW_8,
-            false, 0, "", ""
+            false, 0xff, "", ""
         )
 
         val values = arrayListOf(

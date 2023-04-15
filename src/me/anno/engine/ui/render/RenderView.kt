@@ -1307,9 +1307,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     private val depthMode
         get() = if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
         else if (reverseDepth) DepthMode.CLOSER else DepthMode.FORWARD_CLOSER
-    private val invDepthMode
-        get() = if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
-        else if (reverseDepth) DepthMode.FARTHER else DepthMode.FORWARD_FARTHER
 
     val clearColor = Vector4f()
 
@@ -1450,118 +1447,122 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     var drawGridWhenPlaying = false
     var drawGridWhenEditing = true
 
-    fun drawGizmos(drawGridLines: Boolean, drawDebug: Boolean = true) {
-
-        val world = getWorld()
-        // draw UI
-
-        // now works, after making the physics async :)
-        // maybe it just doesn't work with the physics debugging together
-        val drawAABBs = renderMode == RenderMode.SHOW_AABB
-
+    fun drawGizmos(
+        drawGridLines: Boolean,
+        drawDebug: Boolean = true,
+        drawAABBs: Boolean = renderMode == RenderMode.SHOW_AABB
+    ) {
         GFXState.blendMode.use(BlendMode.DEFAULT) {
             GFXState.depthMode.use(depthMode) {
-
-                stack.set(cameraMatrix)
-
-                controlScheme?.drawGizmos()
-
-                //val maximumCircleDistance = 200f
-                //val maxCircleLenSq = sq(maximumCircleDistance).toDouble()
-
-                var clickId = entityBaseClickId
-                //val scaleV = JomlPools.vec3d.create()
-
-                // much faster than depthTraversal, because we only need visible elements anyways
-                if (world != null) pipeline.traverse(world) { entity ->
-
-                    val transform = entity.transform
-                    val globalTransform = transform.globalTransform
-
-                    /*val doDrawCircle = camPosition.distanceSquared(
-                        globalTransform.m30,
-                        globalTransform.m31,
-                        globalTransform.m32
-                    ) < maxCircleLenSq*/
-
-                    val nextClickId = clickId++
-                    GFX.drawnId = nextClickId
-                    entity.clickId = nextClickId
-
-                    val stack = stack
-                    stack.pushMatrix()
-                    stack.mul4x3delta(globalTransform, cameraPosition, worldScale)
-
-                    // only draw the circle, if its size is larger than ~ a single pixel
-                    /*if (doDrawCircle) {
-                        scale = globalTransform.getScale(scaleV).dot(0.3, 0.3, 0.3)
-                        val ringColor = if (entity == EditorState.lastSelection) selectedColor else white4
-                        PlaneShapes.drawCircle(globalTransform, ringColor.toARGB())
-                        drawUICircle(stack, 0.5f / scale.toFloat(), 0.7f, ringColor)
-                    }*/
-
-                    val components = entity.components
-                    for (i in components.indices) {
-                        val component = components[i]
-                        if (component.isEnabled) {
-                            // mesh components already got their ID
-                            if (component !is MeshComponentBase && component !is MeshSpawner) {
-                                val componentClickId = clickId++
-                                component.clickId = componentClickId
-                                GFX.drawnId = componentClickId
-                            } else GFX.drawnId = component.clickId
-                            component.onDrawGUI(component.isSelectedIndirectly)
-                        }
-                    }
-
-                    stack.popMatrix()
-
-                    if (drawAABBs) {
-                        val aabb1 = entity.aabb
-                        val hit1 = aabb1.testLine(cameraPosition, mouseDirection, 1e10)
-                        drawAABB(aabb1, if (hit1) aabbColorHovered else aabbColorDefault)
-                        if (entity.hasRenderables) for (i in components.indices) {
-                            val component = components[i]
-                            if (component.isEnabled && component is MeshComponentBase) {
-                                val aabb2 = component.globalAABB
-                                val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
-                                drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
-                            }
-                        }
-                    }
-
-                    LineBuffer.drawIf1M(cameraMatrix)
-
-                }
-
-                if (world is Component) {
-                    if (world !is MeshComponentBase && world !is MeshSpawner) {
-                        // mesh components already got their ID
-                        val componentClickId = clickId++
-                        world.clickId = componentClickId
-                        GFX.drawnId = componentClickId
-                    } else GFX.drawnId = world.clickId
-                    world.onDrawGUI(world.isSelectedIndirectly)
-                }
-
-                // JomlPools.vec3d.sub(1)
-
-                if (drawGridLines) {
-                    if (if (playMode == PlayMode.EDITING) drawGridWhenEditing else drawGridWhenPlaying) {
-                        drawGrid(radius)
-                    }
-                }
-
-                if (drawDebug) {
-                    DebugRendering.drawDebug(this)
-                }
-                DebugShapes.removeExpired()
-
-                LineBuffer.finish(cameraMatrix)
-                PlaneShapes.finish()
-
+                val drawGrid = drawGridLines && if (playMode == PlayMode.EDITING)
+                    drawGridWhenEditing else drawGridWhenPlaying
+                drawGizmos1(drawGrid, drawDebug, drawAABBs)
             }
         }
+    }
+
+    fun drawGizmos1(
+        drawGrid: Boolean,
+        drawDebugShapes: Boolean,
+        drawAABBs: Boolean
+    ) {
+
+        val world = getWorld()
+        stack.set(cameraMatrix)
+
+        controlScheme?.drawGizmos()
+
+        //val maximumCircleDistance = 200f
+        //val maxCircleLenSq = sq(maximumCircleDistance).toDouble()
+
+        var clickId = entityBaseClickId
+        //val scaleV = JomlPools.vec3d.create()
+
+        // much faster than depthTraversal, because we only need visible elements anyways
+        if (world != null) pipeline.traverse(world) { entity ->
+
+            val transform = entity.transform
+            val globalTransform = transform.globalTransform
+
+            /*val doDrawCircle = camPosition.distanceSquared(
+                globalTransform.m30,
+                globalTransform.m31,
+                globalTransform.m32
+            ) < maxCircleLenSq*/
+
+            val nextClickId = clickId++
+            GFX.drawnId = nextClickId
+            entity.clickId = nextClickId
+
+            val stack = stack
+            stack.pushMatrix()
+            stack.mul4x3delta(globalTransform, cameraPosition, worldScale)
+
+            // only draw the circle, if its size is larger than ~ a single pixel
+            /*if (doDrawCircle) {
+                scale = globalTransform.getScale(scaleV).dot(0.3, 0.3, 0.3)
+                val ringColor = if (entity == EditorState.lastSelection) selectedColor else white4
+                PlaneShapes.drawCircle(globalTransform, ringColor.toARGB())
+                drawUICircle(stack, 0.5f / scale.toFloat(), 0.7f, ringColor)
+            }*/
+
+            val components = entity.components
+            for (i in components.indices) {
+                val component = components[i]
+                if (component.isEnabled) {
+                    // mesh components already got their ID
+                    if (component !is MeshComponentBase && component !is MeshSpawner) {
+                        val componentClickId = clickId++
+                        component.clickId = componentClickId
+                        GFX.drawnId = componentClickId
+                    } else GFX.drawnId = component.clickId
+                    component.onDrawGUI(component.isSelectedIndirectly)
+                }
+            }
+
+            stack.popMatrix()
+
+            if (drawAABBs) {
+                val aabb1 = entity.aabb
+                val hit1 = aabb1.testLine(cameraPosition, mouseDirection, 1e10)
+                drawAABB(aabb1, if (hit1) aabbColorHovered else aabbColorDefault)
+                if (entity.hasRenderables) for (i in components.indices) {
+                    val component = components[i]
+                    if (component.isEnabled && component is MeshComponentBase) {
+                        val aabb2 = component.globalAABB
+                        val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
+                        drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
+                    }
+                }
+            }
+
+            LineBuffer.drawIf1M(cameraMatrix)
+
+        }
+
+        if (world is Component) {
+            if (world !is MeshComponentBase && world !is MeshSpawner) {
+                // mesh components already got their ID
+                val componentClickId = clickId++
+                world.clickId = componentClickId
+                GFX.drawnId = componentClickId
+            } else GFX.drawnId = world.clickId
+            world.onDrawGUI(world.isSelectedIndirectly)
+        }
+
+        // JomlPools.vec3d.sub(1)
+
+        if (drawGrid) {
+            drawGrid(radius)
+        }
+
+        if (drawDebugShapes) {
+            DebugRendering.drawDebugShapes(this)
+        }
+        DebugShapes.removeExpired()
+
+        LineBuffer.finish(cameraMatrix)
+        PlaneShapes.finish()
 
     }
 

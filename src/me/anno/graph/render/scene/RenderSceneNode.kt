@@ -27,7 +27,6 @@ class RenderSceneNode : RenderSceneNode0(
 ) {
 
     val enabledLayers = ArrayList<DeferredLayerType>()
-    var framebuffer: IFramebuffer? = null
 
     init {
         setInput(1, 256) // width
@@ -80,7 +79,7 @@ class RenderSceneNode : RenderSceneNode0(
             this.settings = settings
             renderer = Renderer("tmp", settings)
             framebuffer?.destroy()
-            framebuffer = settings.createBaseBuffer()
+            framebuffer = settings.createBaseBuffer(name)
         }
 
         val renderView = renderView

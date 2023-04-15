@@ -120,8 +120,16 @@ class NodeInput : NodeConnector {
                 is ITexture2D -> Texture(value)
                 else -> null
             }
-            "ITexture2D" -> value as? ITexture2D
-            "Texture2D" -> value as? Texture2D
+            "ITexture2D" -> when (value) {
+                is Texture -> value.tex
+                is ITexture2D -> value
+                else -> null
+            }
+            "Texture2D" -> when (value) {
+                is Texture -> value.tex as? Texture2D
+                is Texture2D -> value
+                else -> null
+            }
             "Texture3D" -> value as? Texture3D
             else -> throw NotImplementedError("type $type needs to be implemented")
         }

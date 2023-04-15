@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -67,11 +68,7 @@ class Framebuffer3D(
             )
         }
         GFX.check()
-        when (targets.size) {
-            0 -> GL30C.glDrawBuffer(GL30C.GL_NONE)
-            1 -> GL30C.glDrawBuffer(GL30C.GL_COLOR_ATTACHMENT0)
-            else -> GL30C.glDrawBuffers(IntArray(numTextures) { GL30C.GL_COLOR_ATTACHMENT0 + it })
-        }
+        drawBuffersN(targets.size)
         GFX.check()
         when (depthBufferType) {
             DepthBufferType.NONE -> {
@@ -216,11 +213,7 @@ class Framebuffer3D(
             )
         }
         GFX.check()
-        when (targets.size) {
-            0 -> GL30.glDrawBuffer(GL30.GL_NONE)
-            1 -> GL30.glDrawBuffer(GL30.GL_COLOR_ATTACHMENT0)
-            else -> GL30.glDrawBuffers(textures.indices.map { it + GL30.GL_COLOR_ATTACHMENT0 }.toIntArray())
-        }
+        drawBuffersN(targets.size)
         GFX.check()
         if (depthBufferType == DepthBufferType.TEXTURE || depthBufferType == DepthBufferType.TEXTURE_16) {
             val depthTexture = depthTexture!!

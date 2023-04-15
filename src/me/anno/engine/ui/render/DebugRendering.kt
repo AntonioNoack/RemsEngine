@@ -93,7 +93,7 @@ object DebugRendering {
         }
     }
 
-    fun drawDebug(view: RenderView) {
+    fun drawDebugShapes(view: RenderView) {
         val worldScale = view.worldScale
         val points = DebugShapes.debugPoints
         val lines = DebugShapes.debugLines

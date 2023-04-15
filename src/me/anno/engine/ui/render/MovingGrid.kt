@@ -2,7 +2,9 @@ package me.anno.engine.ui.render
 
 import me.anno.config.DefaultConfig.defaultFont
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.engine.ui.LineShapes
+import me.anno.engine.ui.render.ECSShaderLib.simpleShader
 import me.anno.engine.ui.render.GridColors.colorX
 import me.anno.engine.ui.render.GridColors.colorY
 import me.anno.engine.ui.render.GridColors.colorZ
@@ -10,30 +12,19 @@ import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.M4x3Delta.mul4x3delta
-import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.maths.Maths
+import org.joml.Matrix4d
 import org.joml.Matrix4f
-import org.joml.Matrix4x3d
+import org.lwjgl.opengl.GL11C.GL_LINES
 import kotlin.math.*
 
 object MovingGrid {
 
     fun drawGrid(radius: Double) {
         LineBuffer.finish(RenderState.cameraMatrix)
-        GFXState.blendMode.use(BlendMode.ADD) {
-            if (RenderView.currentInstance?.renderMode != RenderMode.DEPTH) {
-                // don't write depth, we want to stack it
-                GFXState.depthMask.use(false) {
-                    drawGrid3(radius)
-                }
-            } else {
-                drawGrid3(radius)
-            }
+        GFXState.depthMask.use(false) {
+            drawGrid3(radius)
         }
     }
 
@@ -55,19 +46,17 @@ object MovingGrid {
             val dx = round(position.x / radius2) * radius2
             val dz = round(position.z / radius2) * radius2
 
-            transform.identity()
+            init()
                 .translate(dx, 0.0, dz)
                 .scale(radius2)
 
             alpha = 0.05f * alphas[i]
-            if (alpha > 1f / 255f) {
-                drawMesh(gridMesh)
+            drawMesh(gridMesh)
 
-                alpha *= 2f
-                val textSize = radius2 * 0.01
-                drawTextMesh(textSize, 1)
-                drawTextMesh(textSize, 5)
-            }
+            alpha *= 2f
+            val textSize = radius2 * 0.01
+            drawTextMesh(textSize, 1)
+            drawTextMesh(textSize, 5)
 
         }
 
@@ -77,17 +66,12 @@ object MovingGrid {
     }
 
     fun drawMesh(mesh: Mesh) {
-        val shader = ShaderLib.shader3D.value
+        val shader = simpleShader.value
         shader.use()
-        GFXx2D.disableAdvancedGraphicalFeatures(shader)
-        camera.set(RenderState.cameraMatrix)
-            .mul4x3delta(transform, RenderState.cameraPosition, RenderState.worldScale)
-        shader.m4x4("transform", camera)
-        shader.v3f("offset", 0f)
-        shader.v3f("finalNormal", 1f, 0f, 0f)
-        shader.v3f("finalEmissive", 0f, 0f, 0f)
-        shader.v4f("tint", alpha, alpha, alpha, 1f)
-        whiteTexture.bind(0)
+        val material = defaultMaterial
+        material.bind(shader)
+        shader.m4x4("transform", transform2.set(transform))
+        shader.v4f("diffuseBase", 1f, 1f, 1f, alpha)
         mesh.draw(shader, 0)
         GFX.check()
     }
@@ -96,8 +80,8 @@ object MovingGrid {
 
     val alphas = FloatArray(3)
     var alpha = 0f
-    val transform = Matrix4x3d()
-    val camera = Matrix4f()
+    val transform = Matrix4d()
+    val transform2 = Matrix4f()
 
     init {
 
@@ -105,7 +89,6 @@ object MovingGrid {
         val numPoints = numLines * 2
         var i = 0
         val positions = FloatArray(numPoints * 3)
-        val indices = IntArray(numPoints * 3)
 
         val di = 1f
         for (line in -100..+100) {
@@ -126,16 +109,8 @@ object MovingGrid {
             positions[i++] = +dj
         }
 
-        var j = 0
-        var k = 0
-        for (line in 0 until numLines) {
-            indices[j++] = k++
-            indices[j++] = k
-            indices[j++] = k++
-        }
-
         gridMesh.positions = positions
-        gridMesh.indices = indices
+        gridMesh.drawMode = GL_LINES
 
     }
 
@@ -150,12 +125,19 @@ object MovingGrid {
             val meshGroup = TextMeshGroup(font, text, 0f, false, debugPieces = false)
             meshGroup.createMesh()
         }
-        transform
-            .identity()
+        init()
             .translate(size, 0.0, -size * 0.02)
             .rotateX(-PI * 0.5)
             .scale(size)
         drawMesh(mesh)
+    }
+
+    fun init(): Matrix4d {
+        val pos = RenderState.cameraPosition
+        return transform
+            .set(RenderState.cameraMatrix)
+            .translate(-pos.x, -pos.y, -pos.z)
+            .scale(RenderState.worldScale)
     }
 
     fun getSuffix(baseSize: Double): String {

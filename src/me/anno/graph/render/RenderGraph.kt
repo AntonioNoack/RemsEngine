@@ -18,6 +18,7 @@ import me.anno.graph.NodeOutput
 import me.anno.graph.render.compiler.ExpressionRenderer
 import me.anno.graph.render.compiler.ShaderExprNode
 import me.anno.graph.render.compiler.ShaderGraphNode
+import me.anno.graph.render.effects.SSAONode
 import me.anno.graph.render.effects.ShapedBlurNode
 import me.anno.graph.render.scene.*
 import me.anno.graph.types.FlowGraph
@@ -74,6 +75,7 @@ object RenderGraph {
             { UViNode() },
             { ShapedBlurNode() },
             { RenderLightsNode() },
+            { GizmoNode() },
         ) + NodeLibrary.flowNodes.nodes,
     )
 
@@ -121,6 +123,10 @@ object RenderGraph {
             return then(node, emptyMap(), emptyMap())
         }
 
+        fun then1(node: Node, extraInputs: Map<String, Any?>): QuickPipeline {
+            return then(node, extraInputs, emptyMap())
+        }
+
         fun then(node: Node, extraOutputs: Map<String, List<String>>): QuickPipeline {
             return then(node, emptyMap(), extraOutputs)
         }
@@ -135,7 +141,7 @@ object RenderGraph {
             }
 
             // set node position
-            node.position.set(250.0 * graph.nodes.size, 0.0, 0.0)
+            node.position.set(300.0 * graph.nodes.size, 0.0, 0.0)
             node.graph = graph
             graph.nodes.add(node)
 
@@ -209,8 +215,10 @@ object RenderGraph {
     val combined = QuickPipeline()
         .then(RenderSceneNode())
         .then(RenderLightsNode())
-        .then(CombineLightsNode())
-        .finish(mapOf("Apply Tone Mapping" to true))
+        .then(SSAONode())
+        .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
+        .then1(GizmoNode(), mapOf("Samples" to 8))
+        .finish()
 
     fun draw(view: RenderView, graph: FlowGraph) {
         draw(view, view, graph)
@@ -220,19 +228,9 @@ object RenderGraph {
 
         val start = graph.nodes.firstInstanceOrNull<StartNode>()!!
         for (it in graph.nodes) {
-            when (it) {
-                is RenderSceneNode -> {
-                    it.pipeline = view.pipeline
-                    it.renderView = view
-                }
-                is RenderLightsNode -> {
-                    it.pipeline = view.pipeline
-                    it.renderView = view
-                }
-                is CombineLightsNode -> {
-                    it.pipeline = view.pipeline
-                    it.renderView = view
-                }
+            if (it is RenderSceneNode0) {
+                it.pipeline = view.pipeline
+                it.renderView = view
             }
         }
 
@@ -295,6 +293,7 @@ object RenderGraph {
         }
 
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+            // todo draw transparency-texture in background
             draw(rv, this, graph as FlowGraph)
             drawNodeConnections(x0, y0, x1, y1)
             drawChildren(x0, y0, x1, y1)
@@ -306,10 +305,10 @@ object RenderGraph {
 
     }
 
-    // todo combine light node
     // todo sample sky (tex) node
     // todo bloom node
     // todo depth of field node
+    // todo fxaa node
 
     @JvmStatic
     fun main(args: Array<String>) {

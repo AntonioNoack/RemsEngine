@@ -325,8 +325,7 @@ open class VideoCreator(
             fun writeFrame() {
                 getNextFrame { texture ->
                     useFrame(fb) {
-                        texture.bind(0)
-                        GFX.copyNoAlpha()
+                        GFX.copyNoAlpha(texture)
                     }
                     creator.writeFrame(fb, frameCount.toLong()) {
                         if (++frameCount <= numFrames) {

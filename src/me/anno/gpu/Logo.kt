@@ -10,16 +10,10 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.io.ISaveable
-import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.mesh.obj.SimpleOBJReader
-import me.anno.utils.Color.b01
-import me.anno.utils.Color.g01
-import me.anno.utils.Color.r01
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitUntilDefined
-import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import kotlin.math.min
 
@@ -89,7 +83,7 @@ fun drawLogo(width: Int, height: Int, destroy: Boolean): Boolean {
             useFrame(width, height, true, frame) {
                 success = drawLogo(shader)
             }
-            frame.blitTo(NullFramebuffer)
+            frame.copyIfNeeded(NullFramebuffer)
         } else drawLogo(shader)
     }
 

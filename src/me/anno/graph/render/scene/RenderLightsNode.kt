@@ -7,7 +7,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.LightShaders.createMainFragmentStage
 import me.anno.gpu.pipeline.LightShaders.uvwStage
@@ -51,8 +50,6 @@ class RenderLightsNode : RenderSceneNode0(
 
     val firstInputIndex = 5
     val depthIndex = firstInputIndex + 5
-
-    private var framebuffer: IFramebuffer? = null
 
     init {
         setInput(1, 256) // width
@@ -142,8 +139,10 @@ class RenderLightsNode : RenderSceneNode0(
         val rv = renderView
         if (framebuffer?.samples != samples) {
             framebuffer?.destroy()
-            framebuffer =
-                Framebuffer("light", width, height, samples, arrayOf(TargetType.FP16Target3), DepthBufferType.NONE)
+            framebuffer = Framebuffer(
+                name, width, height, samples,
+                arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
+            )
         }
 
         val framebuffer = framebuffer!!
