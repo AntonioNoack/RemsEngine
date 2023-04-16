@@ -35,7 +35,6 @@ import me.anno.utils.LOGGER
 import me.anno.utils.OS.documents
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 
-// todo scene processing
 // stage 0:
 //  scene, meshes
 //  filtering & adding to pipeline
@@ -317,6 +316,17 @@ object RenderGraph {
     }
 
     // todo sample sky (tex) node
+    // todo FSR 1 node
+    // todo "FSR 2 node" (a little more complicated, needs shaker)
+    // todo TAA node (needs shaker, too)
+    // todo when we have a Vulkan backend, add DLSS nodes
+    //  https://developer.nvidia.com/rtx/dlss/get-started#sdk-requirements
+
+    // todo vignette node
+    // todo motion blur node
+    // todo chromatic aberration node
+    // todo film grain node? film stripes node?
+    // todo anime outline node
 
     @JvmStatic
     fun main(args: Array<String>) {

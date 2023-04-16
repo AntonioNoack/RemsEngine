@@ -85,6 +85,7 @@ object ECSShaderLib {
                         Variable(GLSLType.V4F, "color"),
                         Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
                         Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+                        Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT),
                     ),
                     "" +
@@ -92,7 +93,8 @@ object ECSShaderLib {
                             "finalNormal = normalize(finalNormal);\n" +
                             "finalPosition = -finalNormal * 1e36;\n" + // 1e38 is max for float
                             "finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" +
-                            "finalColor = color.rgb;\n" +
+                            "finalColor = vec3(0.0);\n" +
+                            "finalEmissive = color.rgb;\n" +
                             "finalAlpha = color.a;\n"
                 )
             )
