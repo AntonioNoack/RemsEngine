@@ -8,6 +8,7 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.utils.Color.white4
 
@@ -43,9 +44,9 @@ class SSREffect : ToneMappedEffect() {
                 layers[DeferredLayerType.COLOR]!!.getTexture0(),
                 layers[DeferredLayerType.EMISSIVE]!!.getTexture0(),
                 layers[DeferredLayerType.METALLIC]!!.getTexture0(),
-                format.findMapping(DeferredLayerType.METALLIC)!!,
+                singleToVector[format.findMapping(DeferredLayerType.METALLIC)!!]!!,
                 layers[DeferredLayerType.ROUGHNESS]!!.getTexture0(),
-                format.findMapping(DeferredLayerType.ROUGHNESS)!!,
+                singleToVector[format.findMapping(DeferredLayerType.ROUGHNESS)!!]!!,
                 layers[DeferredLayerType.HDR_RESULT]!!.getTexture0(),
                 RenderState.cameraMatrix, ci?.pipeline?.skyBox,
                 ci?.pipeline?.bakedSkyBox?.getTexture0(), white4,

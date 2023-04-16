@@ -21,9 +21,9 @@ class GizmoNode : RenderSceneNode0(
         "Bool", "Grid",
         "Bool", "AABBs",
         "Bool", "Debug Shapes",
-        "Texture", "Color",
+        "Texture", "Illuminated",
         "Texture", "Depth",
-    ), listOf("Texture", "Color")
+    ), listOf("Texture", "Illuminated")
 ) {
 
     init {

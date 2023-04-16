@@ -33,6 +33,7 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import org.joml.Matrix4f
 import org.joml.Vector4f
+import kotlin.math.sin
 
 // https://lettier.github.io/3d-game-shaders-for-beginners/screen-space-reflection.html
 // https://github.com/lettier/3d-game-shaders-for-beginners/blob/master/demonstration/shaders/fragment/screen-space-reflection.frag
@@ -278,8 +279,8 @@ object ScreenSpaceReflections {
             buffer.depthTexture!!,
             normalTexture, deferred.zw(DeferredLayerType.NORMAL),
             colorTexture, emissiveTexture,
-            metallic, metallicMask,
-            roughness, roughnessMask,
+            metallic, singleToVector[metallicMask]!!,
+            roughness, singleToVector[roughnessMask]!!,
             illuminated, transform,
             skyBox, skyCubeMap, skyColor, strength,
             maskSharpness, wallThickness, fineSteps,
@@ -297,9 +298,9 @@ object ScreenSpaceReflections {
         color: ITexture2D,
         emissive: ITexture2D,
         metallic: ITexture2D,
-        metallicMask: String,
+        metallicMask: Vector4f,
         roughness: ITexture2D,
-        roughnessMask: String,
+        roughnessMask: Vector4f,
         illuminated: ITexture2D,
         transform: Matrix4f,
         skyBox: SkyBox?,
@@ -335,8 +336,8 @@ object ScreenSpaceReflections {
             shader.v1b("normalZW", normalZW)
             val n = GPUFiltering.TRULY_LINEAR
             val c = Clamping.CLAMP
-            shader.v4f("metallicMask", singleToVector[metallicMask]!!)
-            shader.v4f("roughnessMask", singleToVector[roughnessMask]!!)
+            shader.v4f("metallicMask",metallicMask)
+            shader.v4f("roughnessMask", roughnessMask)
             bindDepthToPosition(shader)
             illuminated.bind(shader, "finalIlluminated", n, c)
             roughness.bind(shader, "finalRoughness", n, c)

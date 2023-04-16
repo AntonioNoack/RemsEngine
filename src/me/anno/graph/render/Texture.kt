@@ -18,6 +18,8 @@ class Texture private constructor(
     constructor(v: Vector4f) : this(whiteTexture, "", null, v)
     constructor(tex: ITexture2D, mapping: String, encoding: DeferredLayerType?) : this(tex, mapping, encoding, white4)
 
+    val isDestroyed get() = tex is Texture2D && tex.isDestroyed
+
     override fun toString(): String {
         return if (tex == whiteTexture) if (color == white4) "white" else color.toHexColor()
         else {

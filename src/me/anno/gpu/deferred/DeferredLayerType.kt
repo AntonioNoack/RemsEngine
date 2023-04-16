@@ -171,13 +171,12 @@ open class DeferredLayerType(
         )
 
         val ALPHA = DeferredLayerType(
-            "Opacity", "finalAlpha", 1, BufferQuality.LOW_8,
+            "Alpha", "finalAlpha", 1, BufferQuality.LOW_8,
             false, 0xff, "", ""
         )
 
         val values = arrayListOf(
             COLOR,
-            ALPHA,
             EMISSIVE,
             NORMAL,
             TANGENT,
@@ -195,7 +194,8 @@ open class DeferredLayerType(
             INDEX_OF_REFRACTION,
             COLOR_EMISSIVE,
             MOTION,
-            DEPTH
+            DEPTH,
+            ALPHA,
         )
 
         // stencil?

@@ -4,7 +4,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Texture2D
@@ -23,7 +22,9 @@ class RenderSceneNode : RenderSceneNode0(
         "Boolean", "Apply ToneMapping",
     ),
     // list all available deferred layers
-    DeferredLayerType.values.map { listOf("Texture", it.name) }.flatten()
+    DeferredLayerType.values.map {
+        listOf("Texture", if (it.name == "Color") "Diffuse" else it.name)
+    }.flatten()
 ) {
 
     val enabledLayers = ArrayList<DeferredLayerType>()

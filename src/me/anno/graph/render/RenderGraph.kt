@@ -19,6 +19,7 @@ import me.anno.graph.render.compiler.ExpressionRenderer
 import me.anno.graph.render.compiler.ShaderExprNode
 import me.anno.graph.render.compiler.ShaderGraphNode
 import me.anno.graph.render.effects.SSAONode
+import me.anno.graph.render.effects.SSRNode
 import me.anno.graph.render.effects.ShapedBlurNode
 import me.anno.graph.render.scene.*
 import me.anno.graph.types.FlowGraph
@@ -76,6 +77,8 @@ object RenderGraph {
             { ShapedBlurNode() },
             { RenderLightsNode() },
             { GizmoNode() },
+            { SSAONode() },
+            { SSRNode() },
         ) + NodeLibrary.flowNodes.nodes,
     )
 
@@ -217,7 +220,16 @@ object RenderGraph {
         .then(RenderLightsNode())
         .then(SSAONode())
         .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
-        .then1(GizmoNode(), mapOf("Samples" to 8))
+        .then(GizmoNode(), mapOf("Samples" to 8), mapOf("Illuminated" to listOf("Color")))
+        .finish()
+
+    val combined1 = QuickPipeline()
+        .then(RenderSceneNode())
+        .then(RenderLightsNode())
+        .then(SSAONode())
+        .then(CombineLightsNode())
+        .then1(SSRNode(), mapOf("Apply Tone Mapping" to true))
+        .then(GizmoNode(), mapOf("Samples" to 8), mapOf("Illuminated" to listOf("Color")))
         .finish()
 
     fun draw(view: RenderView, graph: FlowGraph) {
@@ -313,9 +325,9 @@ object RenderGraph {
     @JvmStatic
     fun main(args: Array<String>) {
 
-        val graph = combined
+        val graph = combined1
         val scene = Entity()
-        scene.add(MeshComponent(documents.getChild("monkey.obj")))
+        scene.add(MeshComponent(documents.getChild("metal-roughness.glb")))
         scene.add(SkyBox())
         testUI {
 

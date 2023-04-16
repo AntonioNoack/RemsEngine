@@ -119,17 +119,17 @@ class NodeInput : NodeConnector {
                 is Texture -> value
                 is ITexture2D -> Texture(value)
                 else -> null
-            }
+            }.run { if (this != null && isDestroyed) null else this }
             "ITexture2D" -> when (value) {
                 is Texture -> value.tex
                 is ITexture2D -> value
                 else -> null
-            }
+            }.run { if (this is Texture2D && isDestroyed) null else this }
             "Texture2D" -> when (value) {
                 is Texture -> value.tex as? Texture2D
                 is Texture2D -> value
                 else -> null
-            }
+            }.run { if (this != null && isDestroyed) null else this }
             "Texture3D" -> value as? Texture3D
             else -> throw NotImplementedError("type $type needs to be implemented")
         }
