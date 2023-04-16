@@ -18,9 +18,7 @@ import me.anno.graph.NodeOutput
 import me.anno.graph.render.compiler.ExpressionRenderer
 import me.anno.graph.render.compiler.ShaderExprNode
 import me.anno.graph.render.compiler.ShaderGraphNode
-import me.anno.graph.render.effects.SSAONode
-import me.anno.graph.render.effects.SSRNode
-import me.anno.graph.render.effects.ShapedBlurNode
+import me.anno.graph.render.effects.*
 import me.anno.graph.render.scene.*
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
@@ -42,7 +40,7 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 //  scene, meshes
 //  filtering & adding to pipeline
 //  pipeline list with their settings
-// todo stage 3:
+// stage 3:
 //  applying effects & calculations
 // todo stage 4:
 //  primary & debug outputs; name -> enum in RenderView
@@ -60,10 +58,6 @@ object RenderGraph {
     //  - camera override / camera index
     //  - relative size (or maybe even more flexible by width x height)
 
-
-    // todo node to apply lights on deferred rendering
-    // is the same as SDR / HDR
-
     // todo highlight cpu/gpu computations (silver/gold)
 
     val library = NodeLibrary(
@@ -79,6 +73,8 @@ object RenderGraph {
             { GizmoNode() },
             { SSAONode() },
             { SSRNode() },
+            { BloomNode() },
+            { DepthOfFieldNode() },
         ) + NodeLibrary.flowNodes.nodes,
     )
 
@@ -228,7 +224,10 @@ object RenderGraph {
         .then(RenderLightsNode())
         .then(SSAONode())
         .then(CombineLightsNode())
-        .then1(SSRNode(), mapOf("Apply Tone Mapping" to true))
+        .then(SSRNode())
+        .then(DepthOfFieldNode())
+        .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+        .then(FXAANode())
         .then(GizmoNode(), mapOf("Samples" to 8), mapOf("Illuminated" to listOf("Color")))
         .finish()
 
@@ -318,9 +317,6 @@ object RenderGraph {
     }
 
     // todo sample sky (tex) node
-    // todo bloom node
-    // todo depth of field node
-    // todo fxaa node
 
     @JvmStatic
     fun main(args: Array<String>) {

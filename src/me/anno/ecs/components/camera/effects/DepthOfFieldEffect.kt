@@ -2,6 +2,7 @@ package me.anno.ecs.components.camera.effects
 
 import me.anno.ecs.annotations.Range
 import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
@@ -9,8 +10,8 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
 import me.anno.gpu.shader.ReverseDepth.rawToDepth
+import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -33,6 +34,8 @@ class DepthOfFieldEffect : CameraEffect() {
     @Range(0.0, 1.0)
     var spherical = 0f
 
+    var applyToneMapping = false
+
     override fun render(
         buffer: IFramebuffer,
         format: DeferredSettingsV2,
@@ -40,7 +43,7 @@ class DepthOfFieldEffect : CameraEffect() {
     ) {
         val color = layers[DeferredLayerType.SDR_RESULT]!!.getTexture0()
         val depth = layers[DeferredLayerType.DEPTH]!!.getTexture0()
-        val output = render(color, depth)
+        val output = render(color, depth, spherical, focusPoint, focusScale, maxBlurSize, radScale, applyToneMapping)
         write(layers, DeferredLayerType.SDR_RESULT, output)
     }
 
@@ -50,53 +53,58 @@ class DepthOfFieldEffect : CameraEffect() {
     override fun listOutputs() =
         listOf(DeferredLayerType.SDR_RESULT)
 
-    fun bindDepth(shader: Shader) {
-        val factor = 2f * spherical
-        shader.v3f(
-            "fovFactor",
-            factor * tan(RenderState.fovXRadians * 0.5f),
-            factor * tan(RenderState.fovYRadians * 0.5f),
-            RenderState.near
-        )
-    }
-
-    fun render(color: ITexture2D, depth: ITexture2D): IFramebuffer {
-        val coc = FBStack["coc", ceilDiv(color.w, 2), ceilDiv(color.h, 2), 4, false, 1, false]
-        useFrame(coc) {
-            val shader = cocShader
-            shader.use()
-            bindDepth(shader)
-            shader.v1f("focusPoint", focusPoint)
-            shader.v1f("focusScale", focusScale)
-            shader.v1f("maxBlurSize", maxBlurSize)
-            shader.v1f("radScale", radScale)
-            color.bind(shader, "colorTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
-            depth.bindTrulyNearest(shader, "depthTex")
-            flat01.draw(shader)
-        }
-        val buffer = FBStack["dof", color.w, color.h, 4, true, 1, false]
-        useFrame(buffer) {
-            val shader = dofShader
-            shader.use()
-            bindDepth(shader)
-            shader.v1f("focusPoint", focusPoint)
-            shader.v1f("focusScale", focusScale)
-            shader.v1f("maxBlurSize", maxBlurSize)
-            shader.v1f("radScale", radScale)
-            shader.v2f("pixelSize", 1f / color.w, 1f / color.h)
-            color.bindTrulyNearest(shader, "colorTex")
-            depth.bindTrulyNearest(shader, "depthTex")
-            coc.getTexture0().bind(shader, "cocTex", GPUFiltering.LINEAR, Clamping.CLAMP)
-            flat01.draw(shader)
-        }
-        return buffer
-    }
-
     override fun clone() = DepthOfFieldEffect()
 
     companion object {
 
-        val coc = "" +
+        fun bindDepth(shader: Shader, spherical: Float) {
+            val factor = 2f * spherical
+            shader.v3f(
+                "fovFactor",
+                factor * tan(RenderState.fovXRadians * 0.5f),
+                factor * tan(RenderState.fovYRadians * 0.5f),
+                RenderState.near
+            )
+        }
+
+        fun render(
+            color: ITexture2D, depth: ITexture2D, spherical: Float,
+            focusPoint: Float, focusScale: Float, maxBlurSize: Float, radScale: Float,
+            applyToneMapping: Boolean,
+        ): IFramebuffer {
+            val coc = FBStack["coc", ceilDiv(color.w, 2), ceilDiv(color.h, 2), 4, false, 1, false]
+            useFrame(coc) {
+                val shader = cocShader
+                shader.use()
+                bindDepth(shader, spherical)
+                shader.v1f("focusPoint", focusPoint)
+                shader.v1f("focusScale", focusScale)
+                shader.v1f("maxBlurSize", maxBlurSize)
+                shader.v1f("radScale", radScale)
+                color.bind(shader, "colorTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                depth.bindTrulyNearest(shader, "depthTex")
+                flat01.draw(shader)
+            }
+            val buffer = FBStack["dof", color.w, color.h, 4, true, 1, false]
+            useFrame(buffer) {
+                val shader = dofShader
+                shader.use()
+                bindDepth(shader, spherical)
+                shader.v1f("focusPoint", focusPoint)
+                shader.v1f("focusScale", focusScale)
+                shader.v1f("maxBlurSize", maxBlurSize)
+                shader.v1f("radScale", radScale)
+                shader.v1b("applyToneMapping", applyToneMapping)
+                shader.v2f("pixelSize", 1f / color.w, 1f / color.h)
+                color.bindTrulyNearest(shader, "colorTex")
+                depth.bindTrulyNearest(shader, "depthTex")
+                coc.getTexture0().bind(shader, "cocTex", GPUFiltering.LINEAR, Clamping.CLAMP)
+                flat01.draw(shader)
+            }
+            return buffer
+        }
+
+        const val coc = "" +
                 "float getBlurSize(float depth, vec2 uv) {\n" +
                 "   float len = length(vec3((uv-0.5)*fovFactor.xy, 1.0));\n" +
                 "   float coc = (1.0 / focusPoint - 1.0 / (depth * len)) * focusScale;\n" +
@@ -128,6 +136,7 @@ class DepthOfFieldEffect : CameraEffect() {
                 Variable(GLSLType.V1F, "focusPoint"),
                 Variable(GLSLType.V1F, "maxBlurSize"),
                 Variable(GLSLType.V1F, "radScale"),
+                Variable(GLSLType.V1B, "applyToneMapping"),
                 Variable(GLSLType.V2F, "pixelSize"),
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),
@@ -137,6 +146,7 @@ class DepthOfFieldEffect : CameraEffect() {
                     quatRot +
                     rawToDepth +
                     coc +
+                    tonemapGLSL +
                     "const float GOLDEN_ANGLE = 2.39996323;\n" +
                     "vec3 dof(vec2 uv, float centerDepth, float centerSize){\n" +
                     "   vec3 color = texture(colorTex, uv).rgb;\n" +
@@ -177,6 +187,7 @@ class DepthOfFieldEffect : CameraEffect() {
                     "   } else {\n" +
                     "       result = vec4(dof(uv,centerDepth,centerSize),1.0);\n" +
                     "   }\n" +
+                    "   if(applyToneMapping) result = tonemap(result);\n" +
                     "}\n"
         ).apply {
             setTextureIndices("cocTex", "depthTex", "colorTex")
