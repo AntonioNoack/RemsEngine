@@ -164,9 +164,9 @@ open class DeferredLayerType(
             BufferQuality.HIGH_32, true, 0, "depthToRaw", "rawToDepth"
         )
 
-        // make there should be an option for 2d motion vectors as well
+        // there should be an option for 2d motion vectors as well
         val MOTION = DeferredLayerType(
-            "Motion Vectors", "finalMotion", 3,
+            "Motion", "finalMotion", 3,
             BufferQuality.HIGH_16, true, 0, "", ""
         )
 

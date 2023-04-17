@@ -1,7 +1,6 @@
 package me.anno.gpu.texture
 
 import me.anno.cache.ICacheData
-import me.anno.gpu.DepthMode
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.utils.Color.black
 
@@ -158,7 +157,7 @@ object TextureLib {
 
     }
 
-    private val white = byteArrayOf(-1,-1,-1,-1)
+    private val white = byteArrayOf(-1, -1, -1, -1)
 
     val invisibleTexture = IndestructibleTexture2D("invisible", 1, 1, ByteArray(4))
     val invisibleTex3d = IndestructibleTexture3D("invisible", 1, 1, 1, ByteArray(4))

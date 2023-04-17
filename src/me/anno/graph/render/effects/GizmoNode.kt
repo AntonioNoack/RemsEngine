@@ -1,4 +1,4 @@
-package me.anno.graph.render.scene
+package me.anno.graph.render.effects
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
+import me.anno.graph.render.scene.RenderSceneNode0
 import org.lwjgl.opengl.GL30C.GL_COLOR_BUFFER_BIT
 import org.lwjgl.opengl.GL30C.GL_DEPTH_BUFFER_BIT
 

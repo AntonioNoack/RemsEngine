@@ -137,7 +137,6 @@ object MovingGrid {
         return transform
             .set(RenderState.cameraMatrix)
             .translate(-pos.x, -pos.y, -pos.z)
-            .scale(RenderState.worldScale)
     }
 
     fun getSuffix(baseSize: Double): String {

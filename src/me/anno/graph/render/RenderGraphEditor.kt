@@ -1,0 +1,63 @@
+package me.anno.graph.render
+
+import me.anno.config.DefaultConfig.style
+import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
+import me.anno.graph.Node
+import me.anno.graph.render.compiler.ExpressionRenderer
+import me.anno.graph.render.compiler.ShaderGraphNode
+import me.anno.graph.render.scene.RenderSceneNode0
+import me.anno.graph.types.FlowGraph
+import me.anno.graph.types.flow.StartNode
+import me.anno.graph.ui.GraphEditor
+import me.anno.io.ISaveable
+import me.anno.io.ISaveable.Companion.registerCustomClass
+
+class RenderGraphEditor(val rv: RenderView, graph: FlowGraph) : GraphEditor(graph, style) {
+
+    init {
+
+        library = RenderGraph.library
+        for (it in library.allNodes) {
+            val sample = it.first
+            if (sample.className !in ISaveable.objectTypeRegistry)
+                registerCustomClass(sample)
+        }
+
+        addChangeListener { _, isNodePositionChange ->
+            if (!isNodePositionChange) {
+                for (node in graph.nodes) {
+                    when (node) {
+                        is ShaderGraphNode -> node.invalidate()
+                        is ExpressionRenderer -> node.invalidate()
+                        is RenderSceneNode0 -> node.invalidate()
+                    }
+                }
+            }
+        }
+
+    }
+
+    var drawResultInBackground = true
+
+    override fun onUpdate() {
+        super.onUpdate()
+        invalidateDrawing() // for smooth rendering
+    }
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        if (drawResultInBackground) {
+            drawTransparentBackground(x, y, w, h)
+            RenderGraph.draw(rv, this, graph as FlowGraph)
+            drawNodeConnections(x0, y0, x1, y1)
+            drawChildren(x0, y0, x1, y1)
+            drawSelection(x0, y0, x1, y1)
+            drawScrollbars(x0, y0, x1, y1)
+        } else super.onDraw(x0, y0, x1, y1)
+    }
+
+    override fun canDeleteNode(node: Node): Boolean {
+        return node !is StartNode
+    }
+
+}

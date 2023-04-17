@@ -410,14 +410,20 @@ class Framebuffer(
         ensure()
         dst.ensure()
 
+        GFX.check()
+
         bindFramebuffer(GL_DRAW_FRAMEBUFFER, dst.pointer)
         bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
+
+        GFX.check()
 
         glBlitFramebuffer(
             0, 0, w, h,
             0, 0, dst.w, dst.h,
             mask, GL_NEAREST
         )
+
+        GFX.check()
 
         // restore the old binding
         Frame.invalidate()

@@ -33,11 +33,11 @@ class CombineLightsNode : RenderSceneNode0(
         "Bool", "Apply Tone Mapping",
         // make them same order as outputs from RenderSceneNode & RenderLightsNode
         "Vector3f", "Light",
-        "Vector3f", "Color",
+        "Vector3f", "Diffuse",
         "Vector3f", "Emissive",
         "Float", "Occlusion",
         "Float", "Ambient Occlusion",
-    ), listOf("Texture", "Color")
+    ), listOf("Texture", "Illuminated")
 ) {
 
     val firstInputIndex = 5
