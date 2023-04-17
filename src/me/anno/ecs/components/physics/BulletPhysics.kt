@@ -46,15 +46,11 @@ import javax.vecmath.Vector3d
 import kotlin.collections.set
 import kotlin.math.max
 
-class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
+open class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     // todo onPreEnable() // before all children
     // todo onPostEnable() // after all children
     // -> components can be registered before/after enable :)
-
-    constructor(base: BulletPhysics) : this() {
-        base.copyInto(this)
-    }
 
     // I use jBullet2, however I have modified it to use doubles for everything
     // this may be bad for performance, but it also allows our engine to run much larger worlds
@@ -74,7 +70,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     private val sampleWheels = ArrayList<WheelInfo>()
 
     @NotSerializedProperty
-    private var world: DiscreteDynamicsWorld? = null
+    var world: DiscreteDynamicsWorld? = null
 
     @NotSerializedProperty
     var raycastVehicles: HashMap<Entity, RaycastVehicle>? = null
@@ -236,9 +232,9 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 c["bulletInstance"] = constraint
                 world.addConstraint(constraint, c.disableCollisionsBetweenLinked)
                 if (oldInstance != null) {
-                    LOGGER.debug("* ${c.prefabPath ?: c.name.ifBlank { c.className }}")
+                    LOGGER.debug("* ${c.prefabPath}")
                 } else {
-                    LOGGER.debug("+ ${c.prefabPath ?: c.name.ifBlank { c.className }}")
+                    LOGGER.debug("+ ${c.prefabPath}")
                 }
             }
         } else {
@@ -264,7 +260,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             if (bi != null) {
                 it.bulletInstance = null
                 world.removeConstraint(bi)
-                LOGGER.debug("- ${it.prefabPath ?: it.name.ifBlank { it.className }}")
+                LOGGER.debug("- ${it.prefabPath}")
             }
             false
         }
@@ -275,7 +271,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 if (bi != null) {
                     world.removeConstraint(bi)
                     c.bulletInstance = null
-                    LOGGER.debug("- ${c.prefabPath ?: c.name.ifBlank { c.className }}")
+                    LOGGER.debug("- ${c.prefabPath}")
                 }
             }
         }
@@ -381,6 +377,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         val numManifolds = dispatcher.numManifolds
         val worldScale = RenderState.worldScale
         val cam = cameraPosition
+        val color = black or 0x777777
         for (i in 0 until numManifolds) {
             val contactManifold = dispatcher.getManifoldByIndexInternal(i) ?: break
             for (j in 0 until contactManifold.numContacts) {
@@ -394,7 +391,7 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                     (a.x + n.x - cam.x) * worldScale,
                     (a.y + n.y - cam.y) * worldScale,
                     (a.z + n.z - cam.z) * worldScale,
-                    0x777777
+                    color
                 )
             }
         }
@@ -533,8 +530,6 @@ class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         tmp.set(gravity.x, gravity.y, gravity.z)
         world?.setGravity(tmp)
     }
-
-    override fun clone() = BulletPhysics(this)
 
     override val className get() = "BulletPhysics"
 

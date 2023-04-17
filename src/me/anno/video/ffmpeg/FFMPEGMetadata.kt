@@ -22,6 +22,7 @@ import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToInt.getInt
 import me.anno.utils.types.AnyToLong.getLong
+import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.parseTime
 import me.saharnooby.qoi.QOIImage
 import net.sf.image4j.codec.ico.ICOReader
@@ -52,7 +53,9 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
     var videoFrameCount = 0
 
     override fun toString(): String {
-        return "FFMPEGMetadata(file: ${file.absolutePath.shorten(200)}, audio: $hasAudio, video: $hasVideo, $videoWidth x $videoHeight, $videoFrameCount)"
+        return "FFMPEGMetadata(file: ${file.absolutePath.shorten(200)}, audio: $hasAudio, video: ${
+            if (hasVideo) "[$videoWidth x $videoHeight, $videoFrameCount]" else "null"
+        }, duration: ${duration.formatTime(3)}), channels: $audioChannels"
     }
 
     init {

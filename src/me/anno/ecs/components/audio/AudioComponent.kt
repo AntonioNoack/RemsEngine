@@ -10,7 +10,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import kotlin.math.ceil
 
-class AudioComponent() : AudioComponentBase() {
+class AudioComponent : AudioComponentBase() {
 
     // todo autostart option
 

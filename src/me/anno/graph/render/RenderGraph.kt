@@ -182,8 +182,6 @@ object RenderGraph {
     // todo chromatic aberration node
     // todo film grain node? film stripes node?
 
-    // todo: physics demo: dominos like https://www.youtube.com/watch?v=YZxky260O-4
-
     @JvmStatic
     fun main(args: Array<String>) {
 

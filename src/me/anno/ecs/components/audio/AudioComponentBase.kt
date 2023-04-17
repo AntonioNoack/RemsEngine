@@ -189,9 +189,9 @@ abstract class AudioComponentBase : Component() {
         }
     var referenceDistance = 1f
         set(value) {
-            val f = max(referenceDistance, 0f)
-            if (field != value) {
-                field = value
+            val f = max(value, 0f)
+            if (field != f) {
+                field = f
                 if (stream0 != null) addTask("distance", 1) { updateDistanceModel() }
             }
         }
@@ -255,6 +255,7 @@ abstract class AudioComponentBase : Component() {
     fun updatePosition() {
         val transform = transform
         if (transform != null) {
+            transform.validate()
             val pos = transform.globalPosition
             val time = Engine.gameTime
             val deltaTime = time - lastTime
@@ -284,7 +285,7 @@ abstract class AudioComponentBase : Component() {
             // when the audio task is being run
             currCamPos.set(RenderState.cameraPosition)
             currCamDirY.set(RenderState.cameraDirectionUp)
-            currCamDirZ.set(RenderState.cameraDirection).add(currCamPos)
+            currCamDirZ.set(RenderState.cameraDirection)
 
             addTask("Update", 1) {
 
