@@ -5,7 +5,10 @@ import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.io.serialization.SerializedProperty
-import org.joml.*
+import org.joml.AABBd
+import org.joml.Matrix4x3d
+import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -13,6 +16,9 @@ class BoxCollider : Collider() {
 
     @SerializedProperty
     var halfExtends = Vector3d(1.0)
+
+    @SerializedProperty
+    var margin = 0.05
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val halfExtends = halfExtends
@@ -27,13 +33,15 @@ class BoxCollider : Collider() {
     }
 
     override fun createBulletShape(scale: Vector3d): CollisionShape {
-        return BoxShape(
+        val shape = BoxShape(
             javax.vecmath.Vector3d(
                 halfExtends.x * scale.x,
                 halfExtends.y * scale.y,
                 halfExtends.z * scale.z
             )
         )
+        shape.margin = margin
+        return shape
     }
 
     override fun drawShape() {

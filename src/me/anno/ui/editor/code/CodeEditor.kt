@@ -60,10 +60,6 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
     }
 
-    init {
-        history.put("")
-    }
-
     var language: Language = LuaLanguage()
 
     var theme = LanguageThemeLib.Twilight

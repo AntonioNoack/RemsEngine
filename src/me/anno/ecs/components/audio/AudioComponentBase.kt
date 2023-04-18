@@ -48,8 +48,8 @@ abstract class AudioComponentBase : Component() {
         val currCamDirZ = Vector3f()
         val currCamDirY = Vector3f()
 
-        enum class AttenuationModel {
-            LINEAR, INVERSE, EXPONENTIAL
+        enum class AttenuationModel(val id: Int) {
+            LINEAR(0), INVERSE(1), EXPONENTIAL(2)
         }
 
         fun updateGlobalDistanceModel() {
@@ -101,7 +101,7 @@ abstract class AudioComponentBase : Component() {
             }
         }
 
-    enum class PlayMode { ONCE, LOOP }
+    enum class PlayMode(val id: Int) { ONCE(0), LOOP(1) }
 
     // todo end offset? (pre-ending)
 

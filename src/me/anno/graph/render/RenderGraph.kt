@@ -70,6 +70,7 @@ object RenderGraph {
             { MotionBlurNode() },
             { OutlineNode() },
             { FXAANode() },
+            { ChromaticAberrationNode() },
             // { GodRaysNode() }, // not yet ready
 
         ) + NodeLibrary.flowNodes.nodes,
@@ -114,6 +115,7 @@ object RenderGraph {
         .then(SSRNode())
         .then(DepthOfFieldNode())
         // .then(GodRaysNode())
+        .then(ChromaticAberrationNode())
         .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
         .then(FXAANode())
         .then(GizmoNode(), mapOf("Samples" to 8), mapOf("Illuminated" to listOf("Color")))
@@ -179,13 +181,12 @@ object RenderGraph {
     //  https://developer.nvidia.com/rtx/dlss/get-started#sdk-requirements
 
     // todo vignette node
-    // todo chromatic aberration node
     // todo film grain node? film stripes node?
 
     @JvmStatic
     fun main(args: Array<String>) {
 
-        val graph = outlined
+        val graph = combined1
         val scene = Entity()
         scene.add(MeshComponent(documents.getChild("metal-roughness.glb")))
         scene.add(SkyBox())

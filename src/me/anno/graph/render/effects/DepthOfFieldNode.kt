@@ -4,6 +4,7 @@ import me.anno.ecs.components.camera.effects.DepthOfFieldEffect
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.actions.ActionNode
+import me.anno.maths.Maths.clamp
 
 class DepthOfFieldNode : ActionNode(
     "Depth of Field",
@@ -42,7 +43,8 @@ class DepthOfFieldNode : ActionNode(
 
         val result = DepthOfFieldEffect.render(
             color, depth, spherical, focusPoint, focusScale,
-            maxBlurSize, radScale, applyToneMapping
+            clamp(maxBlurSize, 1f, 20f),
+            clamp(radScale, 0.25f, 2f), applyToneMapping
         ).getTexture0()
         setOutput(Texture(result), 1)
 

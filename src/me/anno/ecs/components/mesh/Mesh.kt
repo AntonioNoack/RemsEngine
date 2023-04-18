@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
@@ -220,6 +221,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
      * */
     var drawMode = GL_TRIANGLES
 
+    @DebugProperty
     val aabb = AABBf()
 
     var ignoreStrayPointsInAABB = false

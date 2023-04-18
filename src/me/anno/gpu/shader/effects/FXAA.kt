@@ -131,6 +131,6 @@ object FXAA {
         flat01.draw(shader)
     }
 
-    var enableDebugControls = true
+    var enableDebugControls = false
 
 }

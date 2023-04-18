@@ -13,7 +13,7 @@ import me.anno.gpu.shader.builder.VariableMode
 object ECSShaderLib {
 
     val simpleShader = BaseShader(
-        "DebugLines", listOf(
+        "SimpleECS", listOf(
             Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform")
         ), "" +
@@ -28,7 +28,13 @@ object ECSShaderLib {
                 "   finalColor = diffuseBase.rgb;\n" +
                 "   finalAlpha = diffuseBase.a;\n" +
                 "}\n"
-    )
+    ).apply {
+        ignoreNameWarnings(
+            "normalStrength", "emissiveBase", "roughnessMinMax",
+            "metallicMinMax", "occlusionStrength", "finalTranslucency", "finalSheen",
+            "sheen", "finalClearCoat"
+        )
+    }
 
     val pbrModelShader = ECSMeshShader("model").ignoreNameWarnings(
         "finalSheen", "finalTranslucency", "metallicMinMax",

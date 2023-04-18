@@ -1,12 +1,18 @@
 package me.anno.tests.gfx
 
-import me.anno.image.ImageCPUCache
+import me.anno.config.DefaultConfig.style
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.utils.LOGGER
+import me.anno.ui.base.buttons.ImageButton
+import me.anno.ui.base.components.Padding
+import me.anno.ui.base.groups.PanelList2D
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 
 fun main() {
-    // works :)
-    val file = getReference("C:/Program Files (x86)/Steam/steam/games/635743783810874a3a293d01b478280eaef3da18.ico")
-    val image = ImageCPUCache[file, false]
-    LOGGER.info(image)
+    testUI3 {
+        val list = PanelList2D(style)
+        for (file in getReference("C:/Program Files (x86)/Steam/steam/games").listChildren() ?: emptyList()) {
+            list.add(ImageButton(file, 512, Padding.Zero, true, style))
+        }
+        list
+    }
 }

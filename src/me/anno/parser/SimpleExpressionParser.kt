@@ -572,8 +572,8 @@ object SimpleExpressionParser {
                 if ('^' in parts && parts.applyPower()) continue
                 if (('*' in parts || '/' in parts || '%' in parts) && parts.applyMultiplication()) continue
                 if (('+' in parts || '-' in parts)) {
-                    if (parts.applyAdditions()) continue
                     if (parts.joinSigns()) continue
+                    if (parts.applyAdditions()) continue
                 }
                 if (('<' in parts || '>' in parts || ">=" in parts || "<=" in parts) &&
                     parts.applyComparisons()

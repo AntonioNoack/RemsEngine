@@ -126,7 +126,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     open fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         val rigid = rigidBodies.remove(entity) ?: return
-        LOGGER.debug("- ${entity.prefabPath ?: entity.name.ifBlank { entity.className }}")
+        // LOGGER.debug("- ${entity.prefabPath}")
         nonStaticRigidBodies.remove(entity)
         worldRemoveRigidbody(rigid.body)
     }
@@ -165,7 +165,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
             // after creating and registering, so
             // it works for circular constraint dependencies
             onCreateRigidbody(entity, rigidBody, bodyWithScale)
-            LOGGER.debug("+ ${entity.prefabPath ?: entity.name.ifBlank { entity.className }}")
+            // LOGGER.debug("+ ${entity.prefabPath}")
         }
         return bodyWithScale?.body
     }

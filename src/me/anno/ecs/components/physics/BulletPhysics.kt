@@ -231,11 +231,6 @@ open class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 val constraint = c.createConstraint(body, otherBody, c.getTA(), c.getTB())
                 c["bulletInstance"] = constraint
                 world.addConstraint(constraint, c.disableCollisionsBetweenLinked)
-                if (oldInstance != null) {
-                    LOGGER.debug("* ${c.prefabPath}")
-                } else {
-                    LOGGER.debug("+ ${c.prefabPath}")
-                }
             }
         } else {
             LOGGER.warn("Cannot constrain two static bodies!, ${rigidbody.prefabPath} to ${other.prefabPath}")
@@ -260,7 +255,7 @@ open class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             if (bi != null) {
                 it.bulletInstance = null
                 world.removeConstraint(bi)
-                LOGGER.debug("- ${it.prefabPath}")
+                // LOGGER.debug("- ${it.prefabPath}")
             }
             false
         }
@@ -271,7 +266,7 @@ open class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 if (bi != null) {
                     world.removeConstraint(bi)
                     c.bulletInstance = null
-                    LOGGER.debug("- ${c.prefabPath}")
+                    // LOGGER.debug("- ${c.prefabPath}")
                 }
             }
         }
@@ -315,25 +310,7 @@ open class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     override fun convertTransformMatrix(rigidbody: RigidBody, scale: org.joml.Vector3d, dstTransform: Matrix4x3d) {
         val tmpTransform = Stack.borrowTrans()
         rigidbody.getWorldTransform(tmpTransform)
-        convertTransformMatrix(tmpTransform, scale, dstTransform)
-    }
-
-    fun convertTransformMatrix(worldTransform: Transform, scale: org.joml.Vector3d, dstTransform: Matrix4x3d) {
-
-        val basis = worldTransform.basis
-        val origin = worldTransform.origin
-        // bullet/javax uses normal ij indexing, while joml uses ji indexing
-        val sx = scale.x
-        val sy = scale.y
-        val sz = scale.z
-
-        dstTransform.set(
-            basis.m00 * sx, basis.m10 * sy, basis.m20 * sz,
-            basis.m01 * sx, basis.m11 * sy, basis.m21 * sz,
-            basis.m02 * sx, basis.m12 * sy, basis.m22 * sz,
-            origin.x, origin.y, origin.z
-        )
-
+        transformToMat4x3(tmpTransform, scale, dstTransform)
     }
 
     override fun updateWheels() {
@@ -349,7 +326,7 @@ open class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 val dstTransform = dst.globalTransform
                 // todo use correct scale
                 val tr = wheelInfos[i].worldTransform
-                convertTransformMatrix(tr, scale, dstTransform)
+                transformToMat4x3(tr, scale, dstTransform)
                 dst.setStateAndUpdate(me.anno.ecs.Transform.State.VALID_GLOBAL)
             }
         }
@@ -568,18 +545,38 @@ open class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             val sz = 1.0 / scale.z
             val t = Transform()
             val b = t.basis
+            // bullet/javax uses normal ij indexing, while joml uses ji indexing
             b.m00 = ourTransform.m00 * sx
-            b.m01 = ourTransform.m01 * sx
-            b.m02 = ourTransform.m02 * sx
-            b.m10 = ourTransform.m10 * sy
+            b.m10 = ourTransform.m01 * sx
+            b.m20 = ourTransform.m02 * sx
+            b.m01 = ourTransform.m10 * sy
             b.m11 = ourTransform.m11 * sy
-            b.m12 = ourTransform.m12 * sy
-            b.m20 = ourTransform.m20 * sz
-            b.m21 = ourTransform.m21 * sz
+            b.m21 = ourTransform.m12 * sy
+            b.m02 = ourTransform.m20 * sz
+            b.m12 = ourTransform.m21 * sz
             b.m22 = ourTransform.m22 * sz
             t.origin.set(ourTransform.m30, ourTransform.m31, ourTransform.m32)
             return t
         }
+
+        fun transformToMat4x3(worldTransform: Transform, scale: org.joml.Vector3d, dstTransform: Matrix4x3d) {
+
+            val basis = worldTransform.basis
+            val origin = worldTransform.origin
+            val sx = scale.x
+            val sy = scale.y
+            val sz = scale.z
+
+            // bullet/javax uses normal ij indexing, while joml uses ji indexing
+            dstTransform.set(
+                basis.m00 * sx, basis.m10 * sy, basis.m20 * sz,
+                basis.m01 * sx, basis.m11 * sy, basis.m21 * sz,
+                basis.m02 * sx, basis.m12 * sy, basis.m22 * sz,
+                origin.x, origin.y, origin.z
+            )
+
+        }
+
 
     }
 

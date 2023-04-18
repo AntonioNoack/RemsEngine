@@ -1,7 +1,19 @@
 package me.anno.tests.geometry
 
+import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.geometry.FibonacciSphere
+import me.anno.mesh.Shapes.smoothCube
 
 fun main() {
-    println(FibonacciSphere.create(12).joinToString())
+    val scene = Entity()
+    for (pt in FibonacciSphere.create(12)) {
+        val child = Entity()
+        child.position = child.position.set(pt)
+        child.scale = child.scale.set(0.03)
+        child.add(MeshComponent(smoothCube.front))
+        scene.add(child)
+    }
+    testSceneWithUI(scene)
 }

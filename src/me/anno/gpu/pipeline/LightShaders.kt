@@ -18,8 +18,8 @@ import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
 import me.anno.gpu.shader.ReverseDepth.depthToPosition
-import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
 import me.anno.gpu.shader.ReverseDepth.rawToDepth
+import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
@@ -181,7 +181,7 @@ object LightShaders {
             // then the ones for the shadows
             val textures = listOf("lightTex", "occlusionTex") + settingsV2.layers2.map { it.name }
             shader.ignoreNameWarnings(
-                "tint", "invLocalTransform",
+                "tint", "invLocalTransform", "camRot", "fovFactor",
                 "defLayer0", "defLayer1", "defLayer2", "defLayer3",
                 "defLayer4", "defLayer5", "defLayer6", "defLayer7"
             )

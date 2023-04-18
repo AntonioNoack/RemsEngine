@@ -13,6 +13,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths.pow
 import org.joml.Vector3d
 import kotlin.math.abs
 
@@ -421,15 +422,9 @@ open class Rigidbody : Component() {
         bulletInstance?.applyGravity()
     }
 
-    override fun onDrawGUI(all: Boolean) {// center of mass circle
+    override fun onDrawGUI(all: Boolean) {
         super.onDrawGUI(all)
-        /*val stack = RenderView.stack
-        stack.pushMatrix()
-        stack.translate(centerOfMass.x.toFloat(), centerOfMass.y.toFloat(), centerOfMass.z.toFloat())
-        Transform.drawUICircle(stack, 0.2f / scale.toFloat(), 0.7f, centerOfMassColor)
-        stack.popMatrix()*/
-        LineShapes.drawCircle(entity, 1.0, 0, 1, 0.0)
-        // PlaneShapes.drawCircle(entity!!, -1)
+        if (mass > 0.0) LineShapes.drawCircle(entity, pow(mass, 1.0 / 3.0), 0, 1, 0.0)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

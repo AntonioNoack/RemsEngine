@@ -5,7 +5,10 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
+import org.joml.AABBd
+import org.joml.Matrix4x3d
 import org.joml.Vector3d
 import kotlin.math.abs
 
@@ -21,6 +24,9 @@ open class BillboardTransformer : Component() {
     @Docs("base distance for scale calculations")
     var maxSizeDistance = 1000.0
 
+    // todo maybe remove then when everything works
+    var minDistance = 1e-31
+
     var tiltX = true
     var tiltY = true
     var tiltZ = true
@@ -30,14 +36,19 @@ open class BillboardTransformer : Component() {
 
     val dir = Vector3d()
 
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        aabb.all()
+        return true
+    }
+
     override fun onUpdate(): Int {
         super.onUpdate()
 
-        val transform = transform ?: return 16
+        val transform = transform ?: return 1
 
         dir.set(transform.globalPosition).sub(RenderState.cameraPosition)
 
-        val distance = abs(dir.dot(RenderState.cameraDirection))
+        val distance = max(minDistance, abs(dir.dot(RenderState.cameraDirection)))
         // remove non-forward components, so the billboard is parallel to the camera instead of looking at the camera
         dir.set(RenderState.cameraDirection).mul(distance)
 
@@ -64,18 +75,13 @@ open class BillboardTransformer : Component() {
             }
 
         if (rotation != null) {
-            if (useGlobalTransform) {
-                transform.globalRotation = rotation
-            } else {
-                transform.localRotation = rotation
-            }
+            if (useGlobalTransform) transform.globalRotation = rotation
+            else transform.localRotation = rotation
         }
 
-        if (useGlobalTransform) {
-            transform.globalScale = transform.globalScale.set(scale)
-        } else {
-            transform.localScale = transform.localScale.set(scale)
-        }
+        if (useGlobalTransform) transform.globalScale = transform.globalScale.set(scale)
+        else transform.localScale = transform.localScale.set(scale)
+
         transform.teleportUpdate()
         invalidateAABB()
 

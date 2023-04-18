@@ -1,7 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.input.ActionManager
+import me.anno.gpu.GFXBase
 import me.anno.language.Language
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
@@ -11,16 +11,16 @@ import me.anno.ui.editor.code.codemirror.LanguageThemeLib
 import me.anno.ui.input.EnumInput
 
 fun main() {
+    GFXBase.disableRenderDoc()
     TestStudio.testUI2 {
 
-        StudioBase.instance?.enableVSync = true
-        StudioBase.instance?.language = Language.German
+        val instance = StudioBase.instance
+        if (instance != null) {
+            instance.enableVSync = true
+            instance.language = Language.AmericanEnglish
+        }
 
         CodeEditor.registerActions()
-
-        // doesn't work somehow :/
-        ActionManager.register("EnumInput.arrowUp.t", "Up")
-        ActionManager.register("EnumInput.arrowDown.t", "Down")
 
         val editor = CodeEditor(DefaultConfig.style)
         editor.setText(

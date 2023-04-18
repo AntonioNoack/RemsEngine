@@ -189,7 +189,7 @@ class Transform() : Saveable() {
         get() = rot
         set(value) {
             rot.set(value)
-            localTransform.translationRotateScale(pos, value, sca)
+            localTransform.translationRotateScale(pos, rot, sca)
             invalidateGlobal()
         }
 
@@ -202,7 +202,7 @@ class Transform() : Saveable() {
         get() = sca
         set(value) {
             sca.set(value)
-            localTransform.translationRotateScale(pos, rot, value)
+            localTransform.translationRotateScale(pos, rot, sca)
             invalidateGlobal()
         }
 
@@ -244,22 +244,17 @@ class Transform() : Saveable() {
     var globalScale: Vector3d
         get() = globalTransform.getScale(JomlPools.vec3d.create())
         set(value) {
-            // todo test this
             // we have no correct, direct control over globalScale,
             // so we use tricks, and compute an ideal local scale instead
             val parent = parent
             localScale = if (parent != null) {
-                val m = parent.globalScale // returns a "copy"
-                m.set(1.0 / m.x, 1.0 / m.y, 1.0 / m.z) // invert
-                // we need to correct for the local rotation
-                // might be correct, am very unsure...
-                localRotation.transformInverse(m)
-                m.mul(value) // then apply this afterwards
+                val m = parent.globalScale // returns a stack-allocated vector
+                m.set(1.0 / m.x, 1.0 / m.y, 1.0 / m.z)
+                // todo rotate, if possible
+                //  only truly possible if localRotation is k * 90°s
+                m.mul(value)
                 m
-            } else {
-                // local = global
-                value
-            }
+            } else value
         }
 
     fun setGlobalRotation(yxz: Vector3d) {
