@@ -98,7 +98,9 @@ class RenderSceneNode : RenderSceneNode0(
 
         // todo there are special types for which we might need to apply lighting or combine other types
         //  e.g. for forward-rendering :)
-        for (layer in settings.layers) {
+        val layers = settings.layers
+        for (j in layers.indices) {
+            val layer = layers[j]
             val tex = framebuffer.getTextureI(layer.texIndex)
             if (tex is Texture2D && !tex.isCreated) {
                 LOGGER.warn("${layer.type} -> ${layer.texIndex} is missing")

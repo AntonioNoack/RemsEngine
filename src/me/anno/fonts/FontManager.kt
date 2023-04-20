@@ -129,8 +129,7 @@ object FontManager {
         val hl2 = limitHeight(font, text, wl2, hl)
 
         val fontName = font.name
-        val key = TextCacheKey(text, fontName, properties, wl2, hl2)
-        return getSize(key)
+        return getSize(TextCacheKey(text, fontName, properties, wl2, hl2))
 
     }
 

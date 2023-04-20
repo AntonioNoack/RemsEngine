@@ -233,8 +233,12 @@ interface ISaveable {
             return reflections.set(instance, name, value)
         }
 
-        class RegistryEntry(val sampleInstance: ISaveable, val generator: () -> ISaveable) {
-            fun generate() = generator()
+        class RegistryEntry(
+            val sampleInstance: ISaveable,
+            private val generator: (() -> ISaveable)? = null
+        ) {
+            private val clazz = sampleInstance.javaClass
+            fun generate(): ISaveable = generator?.invoke() ?: clazz.newInstance()
         }
 
         fun createOrNull(type: String): ISaveable? {
@@ -291,81 +295,74 @@ interface ISaveable {
         }
 
         @JvmStatic
-        fun registerCustomClass(className: String, constructor: () -> ISaveable) {
+        fun registerCustomClass(className: String, constructor: () -> ISaveable): RegistryEntry {
             val instance0 = constructor()
             checkInstance(instance0)
-            register(className, RegistryEntry(instance0, constructor))
+            return register(className, RegistryEntry(instance0, constructor))
         }
 
         @JvmStatic
-        fun registerCustomClass(instance0: ISaveable) {
-            checkInstance(instance0)
-            val className = instance0.className
-            if (instance0 is PrefabSaveable) {
-                register(className, RegistryEntry(instance0) { instance0.clone() })
+        fun registerCustomClass(sample: ISaveable): RegistryEntry {
+            checkInstance(sample)
+            val className = sample.className
+            return if (sample is PrefabSaveable) {
+                register(className, RegistryEntry(sample) { sample.clone() })
             } else {
-                val constructor = instance0.javaClass
-                register(className, RegistryEntry(instance0) { constructor.newInstance() })
+                register(className, RegistryEntry(sample))
             }
         }
 
         @JvmStatic
-        fun registerCustomClass(constructor: () -> ISaveable) {
+        fun registerCustomClass(constructor: () -> ISaveable): RegistryEntry {
             val instance0 = constructor()
             val className = instance0.className
-            register(className, RegistryEntry(instance0, constructor))
+            val entry = register(className, RegistryEntry(instance0, constructor))
             // dangerous to be done after
             // but this allows us to skip the full implementation of clone() everywhere
             checkInstance(instance0)
+            return entry
         }
 
         @JvmStatic
-        fun <V : ISaveable> registerCustomClass(clazz: Class<V>) {
+        fun <V : ISaveable> registerCustomClass(clazz: Class<V>): RegistryEntry {
             val constructor = clazz.getConstructor()
-            val instance0 = constructor.newInstance()
-            checkInstance(instance0)
-            val className = instance0.className
-            register(className, RegistryEntry(instance0) { constructor.newInstance() })
-        }
-
-        @JvmStatic
-        fun <V : ISaveable> registerCustomClass(clazz: KClass<V>) {
-            val clazz2 = clazz.java
-            val instance0 = try {
-                clazz2.newInstance()
+            val sample = try {
+                constructor.newInstance()
             } catch (e: InstantiationException) {
                 throw IllegalArgumentException("$clazz is missing constructor without parameters", e)
             }
-            checkInstance(instance0)
-            val className = instance0.className
-            register(className, RegistryEntry(instance0) { clazz2.newInstance() })
+            checkInstance(sample)
+            return register(sample.className, RegistryEntry(sample))
         }
 
         @JvmStatic
-        fun registerCustomClass(className: String, clazz: Class<ISaveable>) {
-            val constructor = clazz.getConstructor()
-            val instance0 = constructor.newInstance()
-            checkInstance(instance0)
-            register(className, RegistryEntry(instance0) { constructor.newInstance() })
+        fun <V : ISaveable> registerCustomClass(clazz: KClass<V>): RegistryEntry {
+            return registerCustomClass(clazz.java)
         }
 
-        private fun register(className: String, entry: RegistryEntry) {
+        @JvmStatic
+        fun registerCustomClass(className: String, clazz: Class<ISaveable>): RegistryEntry {
+            val constructor = clazz.getConstructor()
+            val sample = constructor.newInstance()
+            checkInstance(sample)
+            return register(className, RegistryEntry(sample))
+        }
+
+        private fun register(className: String, entry: RegistryEntry): RegistryEntry {
             val clazz = entry.sampleInstance::class
             val oldInstance = objectTypeRegistry[className]?.sampleInstance
             if (oldInstance != null && oldInstance::class != clazz) {
-                LOGGER.warn("Overriding registered class $className from type ${oldInstance::class} with $clazz")
+                LOGGER.warn(
+                    "Overriding registered class {} from type {} with {}",
+                    className, oldInstance::class, clazz
+                )
             }
             LOGGER.info("Registering {}", className)
             objectTypeRegistry[className] = entry
             objectTypeByClass[clazz] = entry
             objectTypeByClass[clazz.java] = entry
-            var clazz1: Class<*> = entry.sampleInstance.javaClass
-            while (true) {
-                superTypeRegistry[clazz1.simpleName] = clazz1 as Class<out ISaveable>
-                if (clazz1 == ISaveable::class.java) break
-                @Suppress("unchecked_cast")
-                clazz1 = clazz1.superclass ?: break
-            }
+            registerSuperClasses(entry.sampleInstance.javaClass)
+            return entry
         }
 
     }

@@ -212,7 +212,8 @@ object GFXx2D {
         val maxY = min(y + h + padding, GFX.viewportY + GFX.viewportHeight)
         if (minX < maxX && minY < maxY) {
             shader.v2i("srcOffset", minX - x, minY - y)
-            shader.v2i("dstOffset", minX - (fb?.offsetX ?: 0), minY - (fb?.offsetY ?: 0))
+            if (fb != null) shader.v2i("dstOffset", minX - fb.offsetX, minY - fb.offsetY)
+            else shader.v2i("dstOffset", minX, minY)
             shader.v2i("invokeSize", maxX - minX, maxY - minY)
             shader.runBySize(maxX - minX, maxY - minY)
         }

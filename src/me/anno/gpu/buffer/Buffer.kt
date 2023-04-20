@@ -21,11 +21,6 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
             elementCount = value
         }
 
-    fun lines(): Buffer {
-        drawMode = GL_LINES
-        return this
-    }
-
     var vao = -1
 
     private fun ensureVAO() {

@@ -43,7 +43,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
     override fun readObject(): ISaveable {
         assert(skipSpace(), '"')
         val firstProperty = readString()
-        assert(firstProperty == "class", "Expected first property to be 'class', was $firstProperty")
+        assert(firstProperty == "class", "Expected first property to be 'class', was '$firstProperty'")
         assert(skipSpace(), ':')
         assert(skipSpace(), '"')
         val clazz = readString()

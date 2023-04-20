@@ -11,10 +11,6 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.FirstPersonController
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.camera.control.ThirdPersonController
-import me.anno.ecs.components.camera.effects.BloomEffect
-import me.anno.ecs.components.camera.effects.OutlineEffect
-import me.anno.ecs.components.camera.effects.SSAOEffect
-import me.anno.ecs.components.camera.effects.SSREffect
 import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.collider.twod.CircleCollider
 import me.anno.ecs.components.collider.twod.RectCollider
@@ -104,10 +100,6 @@ object ECSRegistry {
         registerCustomClass(OrbitControls())
         registerCustomClass(FirstPersonController())
         registerCustomClass(ThirdPersonController())
-        registerCustomClass(BloomEffect())
-        registerCustomClass(SSAOEffect())
-        registerCustomClass(SSREffect())
-        registerCustomClass(OutlineEffect())
 
         // scripting
         registerCustomClass(ScriptComponent())

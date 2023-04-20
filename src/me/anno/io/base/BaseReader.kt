@@ -1,5 +1,6 @@
 package me.anno.io.base
 
+import me.anno.Build
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.utils.types.Strings.isBlank2
@@ -114,16 +115,21 @@ abstract class BaseReader {
         fun error(msg: String, appended: Any?): Nothing = throw InvalidFormatException("[BaseReader] $msg $appended")
 
         fun getNewClassInstance(className: String): ISaveable {
-            // from old Rem's Studio times
-            if (className.startsWith("AnimatedProperty<")) return getNewClassInstance("AnimatedProperty")
             val type = ISaveable.objectTypeRegistry[className]
-            if (type == null) println(
+            if (type == null) {
+                if (Build.isDebug) debugInfo(className)
+                throw UnknownClassException(className)
+            }
+            val instance = type.generate()!!
+            instance.onReadingStarted()
+            return instance
+        }
+
+        fun debugInfo(className: String) {
+            println(
                 "Looking for $className:${className.hashCode()}, " +
                         "available: ${ISaveable.objectTypeRegistry.keys.joinToString { "${it}:${it.hashCode()}:${if (it == className) 1 else 0}" }}"
             )
-            val instance = type?.generate() ?: throw UnknownClassException(className)
-            instance.onReadingStarted()
-            return instance
         }
 
     }

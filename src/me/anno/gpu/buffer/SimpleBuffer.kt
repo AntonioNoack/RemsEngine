@@ -12,10 +12,8 @@ open class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
             this(createArray(vertices, indices), name)
 
     init {
-        vertices.forEach {
-            put(it.x)
-            put(it.y)
-        }
+        val v = vertices
+        for (i in v.indices) put(v[i])
     }
 
     companion object {
@@ -96,6 +94,7 @@ open class SimpleBuffer(val vertices: Array<Vector2f>, name: String) :
                     Vector2f(2f, 0f)
                 ), intArrayOf(0, 1, 2), "coords"
             )
+
             override fun draw(shader: Shader) {
                 // this draws full-screen passes like blur using a single triangle
                 // if you dislike this behaviour, create your own buffer 😉

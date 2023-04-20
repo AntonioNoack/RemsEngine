@@ -60,7 +60,8 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
         val sx = (splitX * w).toInt()
         val sy = (splitY * h).toInt()
 
-        for (child in children) {
+        for (i in children.indices) {
+            val child = children[i]
             val aw = when (child.alignmentX) {
                 AxisAlignment.FILL -> w
                 AxisAlignment.MIN, AxisAlignment.MAX -> sx
@@ -90,8 +91,8 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
         val children = children
-        for (index in children.indices) {
-            val child = children[index]
+        for (i in children.indices) {
+            val child = children[i]
             val cx = x + child.alignmentX.getOffset(w, child.w)
             val cy = y + child.alignmentY.getOffset(h, child.h)
             child.setPosition(cx, cy)

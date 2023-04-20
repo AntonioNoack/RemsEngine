@@ -65,8 +65,9 @@ open class PureTextInputML(style: Style) :
         set(value) {
             if (field != value) {
                 field = value
-                for (p in actualChildren) {
-                    (p as? CorrectingTextInput ?: continue).enableSpellcheck = value
+                val children = actualChildren
+                for (i in children.indices) {
+                    (children[i] as? CorrectingTextInput ?: continue).enableSpellcheck = value
                 }
             }
         }
@@ -91,16 +92,18 @@ open class PureTextInputML(style: Style) :
     override var textColor
         get() = styleSample.textColor
         set(value) {
-            for (p in actualChildren) {
-                (p as TextStyleable).textColor = value
+            val children = actualChildren
+            for (i in children.indices) {
+                (children[i] as TextStyleable).textColor = value
             }
         }
 
     override var textSize: Float
         get() = styleSample.textSize
         set(value) {
-            for (p in actualChildren) {
-                (p as TextStyleable).textSize = value
+            val children = actualChildren
+            for (i in children.indices) {
+                (children[i] as TextStyleable).textSize = value
             }
         }
 
@@ -115,8 +118,9 @@ open class PureTextInputML(style: Style) :
     override var isItalic: Boolean
         get() = styleSample.isItalic
         set(value) {
-            for (p in actualChildren) {
-                (p as TextStyleable).isItalic = value
+            val children = actualChildren
+            for (i in children.indices) {
+                (children[i] as TextStyleable).isItalic = value
             }
         }
 

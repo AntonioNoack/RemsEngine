@@ -197,9 +197,13 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         if (GFXState.currentRenderer.deferredSettings != null &&
             stages.any2 { it.blendMode != null && it.size > 0 } &&
             GFXState.currentBuffer.numTextures >= 2
-        ) transparentPass.draw0(this)
-        else for (stage in stages) {
-            if (stage.size > 0) stage.bindDraw(this)
+        ) {
+            transparentPass.draw0(this)
+        } else {
+            for (i in stages.indices) {
+                val stage = stages[i]
+                if (stage.size > 0) stage.bindDraw(this)
+            }
         }
     }
 

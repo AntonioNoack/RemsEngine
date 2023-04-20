@@ -13,7 +13,7 @@ open class LittleEndianDataInputStream(val input: InputStream) : InputStream() {
     var putBack = -1
 
     fun putBack(char: Char) {
-        if (putBack >= 0) throw IllegalStateException()
+        if (putBack >= 0) throw IllegalStateException("Cannot put back twice")
         putBack = char.code
     }
 

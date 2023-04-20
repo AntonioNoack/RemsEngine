@@ -819,7 +819,8 @@ object UnityReader {
                     val components = node["Component"]
                     val prefab3 = (transform as? PrefabReadable)?.readPrefab()
                     if (components != null && prefab3 != null) {
-                        components.children?.forEach { listNode ->
+                        val children = components.children
+                        if (children != null) for (listNode in children) {
                             val childPath = decodePath(guid, listNode.children!!.first().value, project)
                             if (childPath is PrefabReadable) {
                                 val child = childPath.readPrefab()

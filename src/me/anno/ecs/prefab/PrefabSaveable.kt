@@ -274,7 +274,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             val knownComponents = ISaveable.getInstanceOf(clazz)
             return knownComponents.map {
                 Option(it.key.camelCaseToTitle(), "") {
-                    val comp = it.value.generator() as PrefabSaveable
+                    val comp = it.value.generate() as PrefabSaveable
                     comp.parent = parent
                     comp
                 }

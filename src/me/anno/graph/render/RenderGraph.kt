@@ -136,11 +136,13 @@ object RenderGraph {
 
     fun draw(view: RenderView, dst: Panel, graph: FlowGraph) {
 
-        val start = graph.nodes.firstInstanceOrNull<StartNode>()!!
-        for (it in graph.nodes) {
-            if (it is RenderSceneNode0) {
-                it.pipeline = view.pipeline
-                it.renderView = view
+        val nodes = graph.nodes
+        val start = nodes.firstInstanceOrNull<StartNode>()!!
+        for (i in nodes.indices) {
+            val node = nodes[i]
+            if (node is RenderSceneNode0) {
+                node.pipeline = view.pipeline
+                node.renderView = view
             }
         }
 

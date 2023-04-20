@@ -195,8 +195,16 @@ Shipping to Android is a bit more complicated:
 
 ### Web (HTML5, WASM, WebGL)
 
-Shipping to Web hasn't been published yet.<br>
-Contact me to get pre-release access 😊.<br>
+My JVM->WASM translation is a little slow at the moment, unfortunately. It's fast enough for simple games though.
+Lots of things haven't been implemented or are half-baked, so be cautious and don't expect too much (e.g., image loading is very limited currently)!
+
+Shipping to web:
+- download [JVM2WASM](https://github.com/AntonioNoack/JVM2WASM)
+- build your game, best as a panel-creating function, into a JAR (don't use sync IO)
+- bind that as the missing VideoStudio.jar in JVM2WASM
+- run JVM2WASM.kt to create the WASM file and index0.js bindings
+- if needed, implement missing or extra functions from Java
+
 First demo: [Snake Game](https://remsengine.phychi.com/jvm2wasm/snake/) from [tests](test/src/me/anno/tests/game/Snake.kt).
 
 ## Just Try/Use It

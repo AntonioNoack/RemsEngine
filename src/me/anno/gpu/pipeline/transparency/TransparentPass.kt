@@ -30,7 +30,9 @@ abstract class TransparentPass : ICacheData {
     }
 
     fun draw0(pipeline: Pipeline) {
-        for (stage in pipeline.stages) {
+        val stages = pipeline.stages
+        for (i in stages.indices) {
+            val stage = stages[i]
             if (stage.blendMode == null)
                 stage.bindDraw(pipeline)
         }
@@ -38,7 +40,9 @@ abstract class TransparentPass : ICacheData {
     }
 
     fun draw2(pipeline: Pipeline) {
-        for (stage in pipeline.stages) {
+        val stages = pipeline.stages
+        for (i in stages.indices) {
+            val stage = stages[i]
             if (stage.blendMode != null)
                 stage.drawColors(pipeline)
         }

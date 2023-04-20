@@ -58,7 +58,6 @@ object Bloom {
 
         shaderX.use()
         shaderX.v1f("offset", offset)
-        if(offset == 10f) throw IllegalStateException()
 
         val renderer = copyRenderer
 

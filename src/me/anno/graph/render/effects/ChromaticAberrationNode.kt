@@ -72,8 +72,8 @@ class ChromaticAberrationNode : ActionNode(
                     "void main(){\n" +
                     "   vec2 uv2 = params.xy * (uv * 2.0 - 1.0);\n" +
                     "   vec2 duv = params.z * sign(uv2) * pow(abs(uv2),vec2(params.w));\n" +
-                    "   vec2 green = texture(colorTex,uv).yw;\n" +
-                    "   result = vec4(texture(colorTex,uv-duv+rOffset).x,green.x,texture(colorTex,uv+duv+bOffset).z,green.y);\n" +
+                    "   vec2 ga = texture(colorTex,uv).ga;\n" +
+                    "   result = vec4(texture(colorTex,uv-duv+rOffset).r,ga.x,texture(colorTex,uv+duv+bOffset).b,ga.y);\n" +
                     "}\n"
         ).setTextureIndices("colorTex", "depthTex") as Shader
     }

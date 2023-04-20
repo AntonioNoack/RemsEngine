@@ -953,8 +953,10 @@ object ShaderLib {
             )), "" +
                     brightness +
                     "void main(){\n" +
-                    "#define IS_TINTED\n" + // todo remove
-                    "   vec3 mixing = texture(tex, uv).rgb * textColor.a;\n" +
+                    "#define IS_TINTED\n" +
+                    // the conditions are a black border implementation for WebGL; they could be skipped on desktop
+                    "   vec3 mixing = any(lessThan(uv.xy,vec2(0.0))) || any(greaterThan(uv.xy,vec2(1.0))) ? vec3(0.0) :\n" +
+                    "                 texture(tex, uv).rgb * textColor.a;\n" +
                     "   float mixingAlpha = brightness(mixing);\n" +
                     // theoretically, we only need to check the axis, which is affected by subpixel-rendering, e.g., x on my screen
                     "   if(position.x < 1.0 || position.y < 1.0 || position.x > windowSize.x - 1.0 || position.y > windowSize.y - 1.0)\n" +

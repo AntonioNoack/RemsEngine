@@ -5,21 +5,28 @@ import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
+import me.anno.utils.LOGGER
+import me.anno.utils.OS
 import org.lwjgl.opengl.GL33C.*
 
 object TextureHelper {
 
-    fun clamping(target: Int, type: Int, border: Int) {
-        glTexParameteri(target, GL_TEXTURE_WRAP_S, type)
-        glTexParameteri(target, GL_TEXTURE_WRAP_T, type)
+    fun clamping(target: Int, value0: Int, borderColor: Int) {
+        var value = value0
+        if (value == GL_CLAMP_TO_BORDER && OS.isWeb) {
+            LOGGER.warn("GL_CLAMP_TO_BORDER is not supported in WebGL; using GL_CLAMP_TO_EDGE")
+            value = GL_CLAMP_TO_EDGE
+        }
+        glTexParameteri(target, GL_TEXTURE_WRAP_S, value)
+        glTexParameteri(target, GL_TEXTURE_WRAP_T, value)
         if (target == GL_TEXTURE_3D || target == GL_TEXTURE_2D_ARRAY)
-            glTexParameteri(target, GL_TEXTURE_WRAP_R, type)
-        if (type == GL_CLAMP_TO_BORDER) {
+            glTexParameteri(target, GL_TEXTURE_WRAP_R, value)
+        if (value == GL_CLAMP_TO_BORDER) {
             val tmp = Texture2D.tmp4f
-            tmp[0] = border.r01()
-            tmp[1] = border.g01()
-            tmp[2] = border.b01()
-            tmp[3] = border.a01()
+            tmp[0] = borderColor.r01()
+            tmp[1] = borderColor.g01()
+            tmp[2] = borderColor.b01()
+            tmp[3] = borderColor.a01()
             glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, tmp)
         }
     }

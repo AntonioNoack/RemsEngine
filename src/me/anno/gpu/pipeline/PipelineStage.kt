@@ -205,7 +205,12 @@ class PipelineStage(
     // doesn't work yet, why ever
     var occlusionQueryPrepass = false
 
-    val size get() = nextInsertIndex + instances.sumOf { it.size() }
+    val size: Long
+        get() {
+            var sum = nextInsertIndex.toLong()
+            for (i in instances.indices) sum += instances[i].size()
+            return sum
+        }
 
     val instanced = InstancedStack.Impl()
     val instancedWithIdx = InstancedStack.ImplIdx()
@@ -627,8 +632,8 @@ class PipelineStage(
         lastMaterial.clear()
 
         // instanced rendering of all kinds
-        for (inst in instances) {
-            val (dt, dc) = inst.draw(pipeline, this, needsLightUpdateForEveryMesh, time, false)
+        for (i in instances.indices) {
+            val (dt, dc) = instances[i].draw(pipeline, this, needsLightUpdateForEveryMesh, time, false)
             drawnPrimitives += dt
             drawCalls += dc
         }
@@ -752,8 +757,8 @@ class PipelineStage(
         GFX.check()
 
         // draw instanced meshes
-        for (inst in instances) {
-            val (dt, dc) = inst.draw(pipeline, this, false, time, true)
+        for (i in instances.indices) {
+            val (dt, dc) = instances[i].draw(pipeline, this, false, time, true)
             drawnPrimitives += dt
             drawCalls += dc
         }
@@ -777,8 +782,8 @@ class PipelineStage(
 
         nextInsertIndex = 0
 
-        for (inst in instances) {
-            inst.clear()
+        for (i in instances.indices) {
+            instances[i].clear()
         }
 
     }

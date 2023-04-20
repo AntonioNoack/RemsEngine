@@ -242,7 +242,6 @@ open class Window(
             GFX.resetFBStack()
             Frame.reset()
 
-            val buffer = buffer
             GFX.useWindowXY(max(panel0.x, 0), max(panel0.y, 0), buffer) {
                 renderDefault {
                     sparseRedraw2(panel0, wasRedrawn)

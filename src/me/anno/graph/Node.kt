@@ -75,9 +75,12 @@ abstract class Node() : PrefabSaveable() {
         val output = outputs!![index]
         output.currValue = value
         val graph = graph
-        if (graph is FlowGraph) for (input in output.others) {
-            input as? NodeInput ?: continue
-            input.validate(value, graph)
+        if (graph is FlowGraph) {
+            val inputs = output.others
+            for (i in inputs.indices) {
+                val input = inputs[i] as? NodeInput ?: continue
+                input.validate(value, graph)
+            }
         }
     }
 

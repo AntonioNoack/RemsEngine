@@ -58,7 +58,8 @@ open class Texture2DArray(
         }
     }
 
-    private fun ensurePointer() {
+    // needs to be public for JVM2WASM
+    fun ensurePointer() {
         checkSession()
         if (pointer == 0) pointer = Texture2D.createTexture()
         if (pointer == 0) throw RuntimeException("Could not generate texture")

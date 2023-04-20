@@ -71,12 +71,10 @@ object DebugRendering {
     }
 
     fun showCameraRendering(view: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
-        val c0 = EditorState.selection
-            .filterIsInstance<Entity>()
-            .mapNotNull { e -> e.getComponentInChildren(Camera::class) }
-        val c1 = EditorState.selection.filterIsInstance<Camera>()
-        val camera = (c1 + c0).firstOrNull()
-        if (camera != null && !Input.isShiftDown) {
+        val camera = EditorState.selection
+            .firstOrNull { it is Camera } ?: EditorState.selection
+            .firstNotNullOfOrNull { e -> if (e is Entity) e.getComponentInChildren(Camera::class) else null }
+        if (camera is Camera && !Input.isShiftDown) {
             // todo this is incorrect for orthographic cameras, I think
             // calculate size of sub camera
             val w = (x1 - x0 + 1) / 3

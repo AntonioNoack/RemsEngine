@@ -226,7 +226,7 @@ object FBStack : CacheSection("FBStack") {
     @Suppress("JavaMapForEach")
     private fun resetFBStack() {
         synchronized(cache) {
-            cache.forEach { _, v ->
+            for (v in cache.values) {
                 val data = v.data
                 if (data is FBStackData) {
                     data.nextIndex = 0

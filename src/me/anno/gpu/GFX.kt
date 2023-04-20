@@ -358,12 +358,14 @@ object GFX {
         glThread = Thread.currentThread()
         LOGGER.info("OpenGL Version " + glGetString(GL_VERSION))
         LOGGER.info("GLSL Version " + glGetString(GL_SHADING_LANGUAGE_VERSION))
-        glVersion = glGetInteger(GL_MAJOR_VERSION) * 10 + glGetInteger(GL_MINOR_VERSION)
-        LOGGER.info("OpenGL Version Id $glVersion")
+        if (!OS.isWeb) {
+            // these are not defined in WebGL
+            glVersion = glGetInteger(GL_MAJOR_VERSION) * 10 + glGetInteger(GL_MINOR_VERSION)
+            LOGGER.info("OpenGL Version Id $glVersion")
+        }
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1) // OpenGL is evil ;), for optimizations, we might set it back
         val capabilities = GFXBase.capabilities
         supportsAnisotropicFiltering = capabilities?.GL_EXT_texture_filter_anisotropic ?: false
-        LOGGER.info("OpenGL supports NV mesh shader? ${capabilities?.GL_NV_mesh_shader}")
         LOGGER.info("OpenGL supports Anisotropic Filtering? $supportsAnisotropicFiltering")
         if (supportsAnisotropicFiltering) {
             val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)

@@ -45,9 +45,11 @@ open class FlowGraph : Graph() {
     }
 
     fun invalidate() {
-        for (node in nodes) {
-            for (input in node.inputs ?: continue) {
-                input.lastValidId = -1
+        for (ni in nodes.indices) {
+            val node = nodes[ni]
+            val inputs = node.inputs ?: continue
+            for (ii in inputs.indices) {
+                inputs[ii].lastValidId = -1
             }
         }
     }
@@ -60,22 +62,23 @@ open class FlowGraph : Graph() {
         val nextNodes = exec?.others ?: return startNode
         // LOGGER.debug("${startNode.className} -> ${nextNodes.map { it.className }}")
         var lastNode = startNode
-        for (nodeI in nextNodes) {
-            val nodeX = nodeI.node ?: continue
+        for (i in nextNodes.indices) {
+            val nodeX = nextNodes[i].node ?: continue
             lastNode = execute(nodeX)
         }
         return lastNode
     }
 
     fun executeConnectors(inputs: List<NodeConnector>) {
-        for (input in inputs) {
-            execute(input.node ?: continue)
+        for (i in inputs.indices) {
+            val node = inputs[i].node ?: continue
+            execute(node)
         }
     }
 
     fun executeNodes(inputs: List<Node>) {
-        for (input in inputs) {
-            execute(input)
+        for (i in inputs.indices) {
+            execute(inputs[i])
         }
     }
 

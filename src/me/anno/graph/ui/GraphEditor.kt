@@ -43,6 +43,7 @@ import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.Warning.unused
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
@@ -177,11 +178,12 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
 
     private fun ensureChildren() {
         val graph = graph ?: return
-        for (node in graph.nodes) {
-            getNodePanel(node)
+        val nodes = graph.nodes
+        for (i in nodes.indices) {
+            getNodePanel(nodes[i])
         }
-        if (nodeToPanel.size > graph.nodes.size) {
-            val set = graph.nodes.toSet()
+        if (nodeToPanel.size > nodes.size) {
+            val set = nodes.toSet()
             nodeToPanel.removeIf { it.key !in set }
         }
     }
@@ -263,7 +265,8 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
         super.calculateSize(w, h)
         ensureChildren()
         val cornerRadius = (scale * cornerRadius).toFloat()
-        for (nodePanel in children) {
+        for (i in children.indices) {
+            val nodePanel = children[i]
             nodePanel.backgroundRadius = cornerRadius
             nodePanel.calculateSize(w, h)
         }
@@ -282,7 +285,9 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
         var bottom = 0
         val xe = x + w
         val ye = y + h
-        for (node in graph.nodes) {
+        val nodes = graph.nodes
+        for (i in nodes.indices) {
+            val node = nodes[i]
             val panel = nodeToPanel[node] ?: continue
             val xi = coordsToWindowX(node.position.x).toInt() - panel.w / 2
             val yi = coordsToWindowY(node.position.y).toInt()// - panel.h / 2
@@ -318,7 +323,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
         // quickly solve that by making bringing it into focus
         mapMouseDown(x, y)
         if (!isDownOnScrollbarX && !isDownOnScrollbarY &&
-            children.none { it.isInFocus && it.contains(x, y) }
+            children.none2 { it.isInFocus && it.contains(x, y) }
         ) {
             val match = children.firstOrNull { it is NodePanel && it.getConnectorAt(x, y) != null }
             if (match != null) {
@@ -342,7 +347,8 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
         } else if (selectingStart != null && button.isLeft) {
             // select all panels within the border :)
             var first = true
-            for (child in children) {
+            for (i in children.indices) {
+                val child = children[i]
                 if (child is NodePanel && overlapsSelection(child)) {
                     child.requestFocus(first)
                     first = false
@@ -432,13 +438,19 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
         // it would make sense to implement multiple styles, so this could be used in a game in the future as well
         // -> split into multiple subroutines, so you can implement your own style :)
         val graph = graph ?: return
-        for (srcNode in graph.nodes) {
-            for ((outIndex, nodeOutput) in srcNode.outputs?.withIndex() ?: continue) {
+        val nodes = graph.nodes
+        for (i0 in nodes.indices) {
+            val srcNode = nodes[i0]
+            val outputs = srcNode.outputs
+            if (outputs != null) for (i1 in outputs.indices) {
+                val nodeOutput = outputs[i1]
                 val outPosition = nodeOutput.position
                 val outColor = getTypeColor(nodeOutput)
                 val px0 = coordsToWindowX(outPosition.x).toFloat()
                 val py0 = coordsToWindowY(outPosition.y).toFloat()
-                for (nodeInput in nodeOutput.others) {
+                val others = nodeOutput.others
+                for (i2 in others.indices) {
+                    val nodeInput = others[i2]
                     if (nodeInput is NodeInput) {
                         val pos = nodeInput.position
                         val inNode = nodeInput.node
@@ -447,7 +459,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
                         val px1 = coordsToWindowX(pos.x).toFloat()
                         val py1 = coordsToWindowY(pos.y).toFloat()
                         if (distance(px0, py0, px1, py1) > 1f) {
-                            drawNodeConnection(px0, py0, px1, py1, inIndex, outIndex, outColor, inColor, nodeInput.type)
+                            drawNodeConnection(px0, py0, px1, py1, inIndex, i1, outColor, inColor, nodeInput.type)
                         }
                     }
                 }

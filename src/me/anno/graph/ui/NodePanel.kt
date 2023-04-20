@@ -101,17 +101,15 @@ class NodePanel(
             val newFieldW = getSizeX(FontManager.getSize(font, con.name, -1, -1)) + baseTextSizeI4
             minW = if (newField != null) {
                 newField.calculateSize(w, minH)
-                max(
-                    minW, newFieldW + newField.minW + if (outputs != null && i < outputs.size) {
-                        getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1))
-                    } else 0
-                )
+                val extra = if (outputs != null && i < outputs.size) {
+                    getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1))
+                } else 0
+                max(minW, newFieldW + newField.minW + extra)
             } else {
-                max(
-                    minW, newFieldW + if (outputs != null && i < outputs.size) {
-                        getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1))
-                    } else 0
-                )
+                val extra = if (outputs != null && i < outputs.size) {
+                    getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1))
+                } else 0
+                max(minW, newFieldW + extra)
             }
         } else if (inputFields.isNotEmpty()) {
             // remove all input fields that are no longer needed
@@ -123,10 +121,8 @@ class NodePanel(
 
         if (outputs != null) {
             for (i in (inputs?.size ?: 0) until outputs.size) {
-                minW = max(
-                    minW, baseTextSizeI4 +
-                            getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1))
-                )
+                val extra = getSizeX(FontManager.getSize(font, outputs[i].name, -1, -1))
+                minW = max(minW, baseTextSizeI4 + extra)
             }
         }
 
