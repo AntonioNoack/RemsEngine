@@ -285,7 +285,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     private val scrollbars = ArrayList<Scrollbar>()
 
-    override val className get() = "CustomList"
+    override val className: String get() = "CustomList"
 
     companion object {
         private val LOGGER = LogManager.getLogger(CustomList::class)

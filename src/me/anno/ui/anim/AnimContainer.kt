@@ -134,6 +134,6 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
         dst.animations.addAll(animations.map { it.clone() })
     }
 
-    override val className get() = "AnimContainer"
+    override val className: String get() = "AnimContainer"
 
 }

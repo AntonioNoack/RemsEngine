@@ -16,7 +16,7 @@ class PureTestStudio(val createMainPanel: () -> Panel) : StudioBase(true, "Test"
 
     override fun createUI() {
         val ui = createMainPanel()
-        ui.setWeight2(1f)
+        ui.weight = 1f
         val windowStack = GFX.someWindow.windowStack
         windowStack.add(Window(ui, false, windowStack))
     }

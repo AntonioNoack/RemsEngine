@@ -96,7 +96,7 @@ open class FlowGraph : Graph() {
         return input.getValue()
     }
 
-    override val className get() = "FlowGraph"
+    override val className: String get() = "FlowGraph"
 
     companion object {
 

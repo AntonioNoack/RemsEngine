@@ -69,7 +69,7 @@ class SSREffect : ToneMappedEffect() {
         dst.fineSteps = fineSteps
     }
 
-    override val className get() = "SSREffect"
+    override val className: String get() = "SSREffect"
 
     companion object {
         val inputs = listOf(

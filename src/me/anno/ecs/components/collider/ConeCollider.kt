@@ -94,6 +94,6 @@ class ConeCollider : Collider() {
         dst.radius = radius
     }
 
-    override val className get() = "ConeCollider"
+    override val className: String get() = "ConeCollider"
 
 }

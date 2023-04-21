@@ -70,7 +70,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         dst.cutoff = cutoff
     }
 
-    override val className get() = "DirectionalLight"
+    override val className: String get() = "DirectionalLight"
 
     companion object {
 

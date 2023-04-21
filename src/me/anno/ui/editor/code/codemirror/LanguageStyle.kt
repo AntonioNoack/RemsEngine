@@ -75,5 +75,5 @@ open class LanguageStyle(
                 + bold.toInt(2) + italic.toInt(1)).hashCode()
     }
 
-    override val className get() = "LanguageStyle"
+    override val className: String get() = "LanguageStyle"
 }

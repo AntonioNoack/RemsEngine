@@ -29,7 +29,7 @@ interface AudioReadable {
         val dt = 1.0 / sampleRate
         var time = start
 
-        when (val channels = channels) {
+        when (channels) {
             1 -> {
                 for (i in 0 until bufferLength) {
                     shorts.put(sample(time, 0))

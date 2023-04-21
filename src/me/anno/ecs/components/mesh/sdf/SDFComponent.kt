@@ -28,6 +28,7 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes
+import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.structures.arrays.IntArrayList
@@ -471,13 +472,13 @@ open class SDFComponent : ProceduralMesh(), Renderable {
 
     override fun listChildTypes(): String = "pdx"
 
-    override fun getChildListByType(type: Char) = when (type) {
+    override fun getChildListByType(type: Char): List<PrefabSaveable> = when (type) {
         'p' -> positionMappers
         'd' -> distanceMappers
         else -> components
     }
 
-    override fun getTypeOf(child: PrefabSaveable) = when (child) {
+    override fun getTypeOf(child: PrefabSaveable): Char = when (child) {
         is PositionMapper -> 'p'
         is DistanceMapper -> 'd'
         else -> 'x'
@@ -832,7 +833,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         dst.relativeMeshMargin = relativeMeshMargin
     }
 
-    override val className get() = "SDFComponent"
+    override val className: String get() = "SDFComponent"
 
     companion object {
 

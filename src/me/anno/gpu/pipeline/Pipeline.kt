@@ -477,7 +477,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         }
     }
 
-    override val className get() = "Pipeline"
+    override val className: String get() = "Pipeline"
     override val approxSize get() = 10
     override fun isDefaultValue() = false
 

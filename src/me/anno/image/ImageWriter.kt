@@ -70,7 +70,7 @@ object ImageWriter {
         name: String,
         minPerThread: Int,
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Triple<Byte, Byte, Byte>
-    ) = writeRGBImageInt(w, h, name, minPerThread) { x, y, i ->
+    ): Unit = writeRGBImageInt(w, h, name, minPerThread) { x, y, i ->
         val (r, g, b) = getRGB(x, y, i)
         rgba(r, g, b, -1)
     }
@@ -94,8 +94,7 @@ object ImageWriter {
         name: String,
         minPerThread: Int,
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Int
-    ) = writeImageInt(w, h, false, name, minPerThread, getRGB)
-
+    ): Unit = writeImageInt(w, h, false, name, minPerThread, getRGB)
 
     @JvmStatic
     inline fun writeRGBAImageInt(
@@ -104,13 +103,13 @@ object ImageWriter {
         name: String,
         minPerThread: Int,
         crossinline getRGB: (x: Int, y: Int, i: Int) -> Int
-    ) = writeImageInt(w, h, true, name, minPerThread, getRGB)
+    ): Unit = writeImageInt(w, h, true, name, minPerThread, getRGB)
 
     @JvmStatic
     fun writeImageFloat(
         w: Int, h: Int, name: String,
         normalize: Boolean, values: FloatArray
-    ) = writeImageFloat(w, h, name, normalize, LinearColorMap.default, values)
+    ): Unit = writeImageFloat(w, h, name, normalize, LinearColorMap.default, values)
 
     @JvmStatic
     fun writeImageFloat(

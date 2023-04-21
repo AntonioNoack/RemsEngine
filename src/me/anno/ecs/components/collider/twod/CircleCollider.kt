@@ -52,6 +52,6 @@ class CircleCollider : Collider2d() {
         dst.radius = radius
     }
 
-    override val className get() = "CircleCollider"
+    override val className: String get() = "CircleCollider"
 
 }

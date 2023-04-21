@@ -27,6 +27,6 @@ class CameraState : Component() {
         dst.cameraBlendingProgress = cameraBlendingProgress
     }
 
-    override val className get() = "CameraStateComponent"
+    override val className: String get() = "CameraStateComponent"
 
 }

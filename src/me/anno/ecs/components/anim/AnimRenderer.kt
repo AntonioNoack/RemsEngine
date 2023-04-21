@@ -305,7 +305,7 @@ open class AnimRenderer : MeshComponent() {
         dst.currWeights.set(currWeights)
     }
 
-    override val className get() = "AnimRenderer"
+    override val className: String get() = "AnimRenderer"
 
     companion object {
 

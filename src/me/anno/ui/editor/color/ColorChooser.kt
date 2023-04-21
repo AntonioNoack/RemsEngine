@@ -106,7 +106,8 @@ open class ColorChooser(
     init {
         val spaceBox = PanelListX(style)
         this += spaceBox
-        spaceBox += colorSpaceInput.setWeight2(1f)
+        colorSpaceInput.weight = 1f
+        spaceBox += colorSpaceInput
         spaceBox += styleInput
         this += SpacerPanel(0, 2, style)
         this += hslBox
@@ -261,7 +262,7 @@ open class ColorChooser(
         dst.rgba.set(rgba)
     }
 
-    override val className get() = "ColorChooser"
+    override val className: String get() = "ColorChooser"
 
     companion object {
         private val LOGGER = LogManager.getLogger(ColorChooser::class)

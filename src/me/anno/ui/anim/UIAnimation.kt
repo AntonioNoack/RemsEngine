@@ -39,5 +39,5 @@ abstract class UIAnimation(
         TextWriter.toText(this, StudioBase.workspace), StudioBase.workspace
     )
 
-    override val className get() = "UIAnimation"
+    override val className: String get() = "UIAnimation"
 }

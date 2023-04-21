@@ -17,6 +17,6 @@ class DataFlowGraph : FlowGraph() {
         return outputs.map { it.getValue() }
     }
 
-    override val className get() = "DataFlowGraph"
+    override val className: String get() = "DataFlowGraph"
 
 }

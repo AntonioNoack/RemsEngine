@@ -160,7 +160,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         } else false
     }
 
-    override val className get() = "CustomContainer"
+    override val className: String get() = "CustomContainer"
 
     companion object {
 

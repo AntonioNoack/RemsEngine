@@ -95,6 +95,6 @@ class AutoTileableMaterial : Material() {
         dst.tileDir.set(tileDir)
     }
 
-    override val className get() = "AutoTileableMaterial"
+    override val className: String get() = "AutoTileableMaterial"
 
 }

@@ -35,7 +35,7 @@ open class PingPacket(magic: String = "PING") : Packet(magic) {
         }
     }
 
-    override val className get() = "PingPacket"
+    override val className: String get() = "PingPacket"
 
     override fun toString() = "PingPacket"
 

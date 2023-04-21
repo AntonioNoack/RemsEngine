@@ -10,6 +10,6 @@ open class ThirdPersonController : CameraController() {
         lastWarning = "hasn't been implemented yet"
     }
 
-    override val className get() = "ThirdPersonControls"
+    override val className: String get() = "ThirdPersonControls"
 
 }

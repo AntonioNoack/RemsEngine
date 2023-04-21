@@ -119,7 +119,7 @@ class VehicleWheel : Component() {
 
     @DebugProperty
     @NotSerializedProperty
-    val skidInfo get() = bulletInstance?.skidInfo ?: 0.0
+    val skidInfo: Double get() = bulletInstance?.skidInfo ?: 0.0
 
     override fun onDrawGUI(all: Boolean) {
         // todo draw steering and power, brake and such for debugging
@@ -176,6 +176,6 @@ class VehicleWheel : Component() {
         dst.frictionSlip = frictionSlip
     }
 
-    override val className get() = "VehicleWheel"
+    override val className: String get() = "VehicleWheel"
 
 }

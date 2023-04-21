@@ -30,7 +30,7 @@ class SDFSphere : SDFShape() {
         return length(pos.x, pos.y, pos.z) - 1f + pos.w
     }
 
-    override val className get() = "SDFSphere"
+    override val className: String get() = "SDFSphere"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

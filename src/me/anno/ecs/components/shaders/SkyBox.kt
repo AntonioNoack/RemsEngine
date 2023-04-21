@@ -15,6 +15,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -41,17 +42,17 @@ class SkyBox : MeshComponentBase() {
     }
 
     @SerializedProperty
-    var shader
+    var shader: BaseShader?
         get() = material.shader
         set(value) {
             material.shader = value
         }
 
     @NotSerializedProperty
-    val material = Material()
+    val material: Material = Material()
 
     @SerializedProperty
-    var sunRotation = Quaternionf()
+    var sunRotation: Quaternionf = Quaternionf()
         .rotateX((-45f).toRadians()) // 45° from zenith
         .rotateZ(90f.toRadians()) // 90° from sunset, so noon
         set(value) {
@@ -61,23 +62,23 @@ class SkyBox : MeshComponentBase() {
 
     @Docs("Property for automatic daylight cycle; set the z-euler property, when sunRotation has an x-euler value and vice-versa")
     @SerializedProperty
-    var sunSpeed = Quaternionf()
+    var sunSpeed: Quaternionf = Quaternionf()
 
     @Range(0.0, 1.0)
     @Group("Cirrus")
     @SerializedProperty
-    var cirrus = 0.4f
+    var cirrus: Float = 0.4f
 
     @Group("Cirrus")
     @SerializedProperty
-    var cirrusOffset = Vector3f()
+    var cirrusOffset: Vector3f = Vector3f()
         set(value) {
             field.set(value)
         }
 
     @Group("Cirrus")
     @SerializedProperty
-    var cirrusSpeed = Vector3f(0.005f, 0f, 0f)
+    var cirrusSpeed: Vector3f = Vector3f(0.005f, 0f, 0f)
         set(value) {
             field.set(value)
         }
@@ -85,11 +86,11 @@ class SkyBox : MeshComponentBase() {
     @Range(0.0, 1.0)
     @Group("Cumulus")
     @SerializedProperty
-    var cumulus = 0.8f
+    var cumulus: Float = 0.8f
 
     @Group("Cumulus")
     @SerializedProperty
-    var cumulusOffset = Vector3f()
+    var cumulusOffset: Vector3f = Vector3f()
         set(value) {
             field.set(value)
         }
@@ -232,7 +233,7 @@ class SkyBox : MeshComponentBase() {
         dst.sunSpeed.set(sunSpeed)
     }
 
-    override val className get() = "SkyBox"
+    override val className: String get() = "SkyBox"
 
     companion object {
 

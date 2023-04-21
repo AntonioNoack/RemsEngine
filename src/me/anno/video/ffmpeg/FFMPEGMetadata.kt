@@ -11,8 +11,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.io.files.WebRef
-import me.anno.io.json.JsonArray
-import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
 import me.anno.utils.OS
 import me.anno.utils.Warning.unused
@@ -142,8 +140,8 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
 
         // get and parse the data :)
         val data = JsonReader(process.inputStream.buffered()).readObject()
-        val streams = data["streams"] as? JsonArray ?: JsonArray()
-        val format = data["format"] as? JsonObject ?: JsonObject()
+        val streams = data["streams"] as? ArrayList<*> ?: ArrayList<Any?>()
+        val format = data["format"] as? HashMap<*, *> ?: HashMap<String, Any?>()
 
         // critical, not working 001.gif file data from ffprobe:
         // works in Windows, just not Linux
@@ -187,8 +185,8 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
         duration = format["duration"]?.toString()?.toDouble() ?: getDurationIfMissing(file)
 
         val audio = streams.firstOrNull {
-            (it as JsonObject)["codec_type"].toString().equals("audio", true)
-        } as? JsonObject
+            (it as HashMap<*, *>)["codec_type"].toString().equals("audio", true)
+        } as? HashMap<*, *>
 
         if (audio != null) {
             hasAudio = true
@@ -200,8 +198,8 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
         }
 
         val video = streams.firstOrNull {
-            (it as JsonObject)["codec_type"].toString().equals("video", true)
-        } as? JsonObject
+            (it as HashMap<*, *>)["codec_type"].toString().equals("video", true)
+        } as? HashMap<*, *>
 
         if (video != null) {
 

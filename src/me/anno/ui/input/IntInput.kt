@@ -206,6 +206,6 @@ open class IntInput(
         dst.savedDelta = savedDelta // ^^
     }
 
-    override val className get() = "IntInput"
+    override val className: String get() = "IntInput"
 
 }

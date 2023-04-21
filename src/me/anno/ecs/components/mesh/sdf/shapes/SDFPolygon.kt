@@ -70,7 +70,7 @@ class SDFPolygon : SDF2DShape() {
         dst.points = points
     }
 
-    override val className get() = "SDFPolygon"
+    override val className: String get() = "SDFPolygon"
 
     companion object {
         private const val sdPolygon = "" +

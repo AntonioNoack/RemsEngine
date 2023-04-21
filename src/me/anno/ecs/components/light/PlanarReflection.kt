@@ -217,7 +217,7 @@ class PlanarReflection : LightComponentBase() {
         dst.usesFP = usesFP
     }
 
-    override val className get() = "PlanarReflection"
+    override val className: String get() = "PlanarReflection"
 
     companion object {
 

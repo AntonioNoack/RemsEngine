@@ -17,7 +17,7 @@ class SDFStar : SDF2DShape() {
     private val params = Vector2f(5f, 0.5f)
 
     @Range(3.0, 2e9)
-    var points
+    var points: Int
         get() = params.x.toInt()
         set(value) {
             val v = value.toFloat()
@@ -28,7 +28,7 @@ class SDFStar : SDF2DShape() {
         }
 
     @Range(0.0, 1.0)
-    var indent
+    var indent: Float
         get() = params.y
         set(value) {
             if (params.y != value) {
@@ -97,7 +97,7 @@ class SDFStar : SDF2DShape() {
         dst.params.set(params)
     }
 
-    override val className get() = "SDFStar"
+    override val className: String get() = "SDFStar"
 
     companion object {
 

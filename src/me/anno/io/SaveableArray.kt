@@ -25,7 +25,7 @@ class SaveableArray() : Saveable(), MutableList<ISaveable> {
         writer.writeObjectList(null, "values", values, false)
     }
 
-    override val className get() = "SaveableArray"
+    override val className: String get() = "SaveableArray"
 
     override val size = values.size
 

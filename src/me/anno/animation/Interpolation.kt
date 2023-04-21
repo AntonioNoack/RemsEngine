@@ -65,14 +65,14 @@ enum class Interpolation(
         "Linear",
         "Straight curve segments, mix(a,b,clamp(t,0.0,1.0))", "linear"
     ) {
-        override fun getIn(x: Double) = clamp(x, 0.0, 1.0)
+        override fun getIn(x: Double): Double = clamp(x, 0.0, 1.0)
     },
     LINEAR_UNBOUNDED(
         2, "//",
         "Linear (unbounded)",
         "Straight curve segments, extending into infinity, mix(a,b,t)", "linearUnbounded"
     ) {
-        override fun getIn(x: Double) = x
+        override fun getIn(x: Double): Double = x
     },
 
     STEP(
@@ -80,7 +80,7 @@ enum class Interpolation(
         "Step",
         "First half is the first value, second half is the second value, t > 0.5 ? a : b", "step"
     ) {
-        override fun getIn(x: Double) = if (x < 0.5) 0.0 else 1.0
+        override fun getIn(x: Double): Double = if (x < 0.5) 0.0 else 1.0
     },
 
     SINE(
@@ -88,11 +88,11 @@ enum class Interpolation(
         "Sine",
         "Uses a cosine function, mix(a, b, (1-cos(pi*t))/2)", "sine"
     ) {
-        override fun getIn(x: Double) = 0.5 - cos(x * PI) * 0.5
+        override fun getIn(x: Double): Double = 0.5 - cos(x * PI) * 0.5
     },
 
     EASE_IN(5, ">", "Ease-In", "", "ease-in") {
-        override fun getReversedType() = EASE_OUT
+        override fun getReversedType(): Interpolation = EASE_OUT
         override fun getIn(x: Double): Double {
             val time = 1.0 - clamp(x, 0.0, 1.0)
             val expM2 = exp(-3.0)
@@ -101,13 +101,13 @@ enum class Interpolation(
     },
 
     EASE_OUT(6, "<", "Ease-Out", "", "ease-out") {
-        override fun getReversedType() = EASE_IN
-        override fun getOut(x: Double) = EASE_IN.getIn(x)
-        override fun getIn(x: Double) = EASE_IN.getOut(x)
+        override fun getReversedType(): Interpolation = EASE_IN
+        override fun getOut(x: Double): Double = EASE_IN.getIn(x)
+        override fun getIn(x: Double): Double = EASE_IN.getOut(x)
     },
 
     SWING(7, "#", "Swinging", "", "swing") {
-        override fun getReversedType() = SWING_REV
+        override fun getReversedType(): Interpolation = SWING_REV
         override fun getIn(x: Double): Double {
             val time = 1.0 - clamp(x, 0.0, 1.0)
             val expFactor = 7.0
@@ -120,107 +120,107 @@ enum class Interpolation(
         }
     },
     SWING_REV(8, "#'", "SwingingReverse", "", "swing-rev") {
-        override fun getIn(x: Double) = SWING.getOut(x)
-        override fun getOut(x: Double) = SWING.getIn(x)
-        override fun getReversedType() = SWING
+        override fun getIn(x: Double): Double = SWING.getOut(x)
+        override fun getOut(x: Double): Double = SWING.getIn(x)
+        override fun getReversedType(): Interpolation = SWING
     },
 
     // the following easing functions are implemented based on https://easings.net/#easeInQuart
     SINE_IN(10, "Si") {
-        override fun getReversedType() = SINE_OUT
-        override fun getOut(x: Double) = sin(x * PI * 0.5)
+        override fun getReversedType(): Interpolation = SINE_OUT
+        override fun getOut(x: Double): Double = sin(x * PI * 0.5)
     },
     SINE_OUT(11, "So") {
-        override fun getReversedType() = SINE_IN
-        override fun getIn(x: Double) = sin(x * PI * 0.5)
+        override fun getReversedType(): Interpolation = SINE_IN
+        override fun getIn(x: Double): Double = sin(x * PI * 0.5)
     },
     SINE_SYM(12, "Ss") {
-        override fun getIn(x: Double) = 0.5 - 0.5 * cos(x * PI)
+        override fun getIn(x: Double): Double = 0.5 - 0.5 * cos(x * PI)
     },
     QUAD_IN(20, "2i") {
-        override fun getReversedType() = QUAD_OUT
-        override fun getIn(x: Double) = x * x
+        override fun getReversedType(): Interpolation = QUAD_OUT
+        override fun getIn(x: Double): Double = x * x
     },
     QUAD_OUT(21, "2o") {
-        override fun getReversedType() = QUAD_IN
-        override fun getOut(x: Double) = x * x
+        override fun getReversedType(): Interpolation = QUAD_IN
+        override fun getOut(x: Double): Double = x * x
     },
     QUAD_SYM(22, "2s") {
-        override fun getIn(x: Double) = QUAD_IN.getInOut(x)
-        override fun getOut(x: Double) = QUAD_IN.getInOut(x)
+        override fun getIn(x: Double): Double = QUAD_IN.getInOut(x)
+        override fun getOut(x: Double): Double = QUAD_IN.getInOut(x)
     },
     CUBIC_IN(30, "3i") {
-        override fun getReversedType() = CUBIC_OUT
-        override fun getIn(x: Double) = x * x * x
+        override fun getReversedType(): Interpolation = CUBIC_OUT
+        override fun getIn(x: Double): Double = x * x * x
     },
     CUBIC_OUT(31, "3o") {
-        override fun getReversedType() = CUBIC_IN
-        override fun getOut(x: Double) = x * x * x
+        override fun getReversedType(): Interpolation = CUBIC_IN
+        override fun getOut(x: Double): Double = x * x * x
     },
     CUBIC_SYM(32, "3s") {
-        override fun getIn(x: Double) = CUBIC_IN.getInOut(x)
-        override fun getOut(x: Double) = CIRCLE_IN.getInOut(x)
+        override fun getIn(x: Double): Double = CUBIC_IN.getInOut(x)
+        override fun getOut(x: Double): Double = CIRCLE_IN.getInOut(x)
     },
     QUART_IN(40, "4i") {
-        override fun getReversedType() = QUART_OUT
+        override fun getReversedType(): Interpolation = QUART_OUT
         override fun getIn(x: Double): Double {
             val x2 = x * x
             return x2 * x2
         }
     },
     QUART_OUT(41, "4o") {
-        override fun getReversedType() = QUART_IN
-        override fun getIn(x: Double) = QUART_IN.getOut(x)
-        override fun getOut(x: Double) = QUART_IN.getIn(x)
+        override fun getReversedType(): Interpolation = QUART_IN
+        override fun getIn(x: Double): Double = QUART_IN.getOut(x)
+        override fun getOut(x: Double): Double = QUART_IN.getIn(x)
     },
     QUART_SYM(42, "4s") {
-        override fun getIn(x: Double) = QUART_IN.getInOut(x)
-        override fun getOut(x: Double) = QUART_IN.getInOut(x)
+        override fun getIn(x: Double): Double = QUART_IN.getInOut(x)
+        override fun getOut(x: Double): Double = QUART_IN.getInOut(x)
     },
     QUINT_IN(50, "5i") {
-        override fun getReversedType() = QUINT_OUT
+        override fun getReversedType(): Interpolation = QUINT_OUT
         override fun getIn(x: Double): Double {
             val x2 = x * x
             return x2 * x2 * x
         }
     },
     QUINT_OUT(51, "5o") {
-        override fun getIn(x: Double) = QUINT_IN.getOut(x)
-        override fun getOut(x: Double) = QUINT_IN.getIn(x)
-        override fun getReversedType() = QUINT_IN
+        override fun getIn(x: Double): Double = QUINT_IN.getOut(x)
+        override fun getOut(x: Double): Double = QUINT_IN.getIn(x)
+        override fun getReversedType(): Interpolation = QUINT_IN
     },
     QUINT_SYM(52, "5s") {
-        override fun getIn(x: Double) = QUINT_IN.getInOut(x)
-        override fun getOut(x: Double) = QUINT_IN.getInOut(x)
+        override fun getIn(x: Double): Double = QUINT_IN.getInOut(x)
+        override fun getOut(x: Double): Double = QUINT_IN.getInOut(x)
     },
     EXP_IN(60, "Xi") {
-        override fun getIn(x: Double) = pow(2.0, 10.0 * x - 10.0)
-        override fun getReversedType() = EXP_OUT
+        override fun getIn(x: Double): Double = pow(2.0, 10.0 * x - 10.0)
+        override fun getReversedType(): Interpolation = EXP_OUT
     },
     EXP_OUT(61, "Xo") {
-        override fun getIn(x: Double) = EXP_IN.getOut(x)
-        override fun getOut(x: Double) = EXP_IN.getIn(x)
-        override fun getReversedType() = EXP_IN
+        override fun getIn(x: Double): Double = EXP_IN.getOut(x)
+        override fun getOut(x: Double): Double = EXP_IN.getIn(x)
+        override fun getReversedType(): Interpolation = EXP_IN
     },
     EXP_SYM(62, "Xs") {
-        override fun getIn(x: Double) = EXP_IN.getInOut(x)
-        override fun getOut(x: Double) = EXP_IN.getInOut(x)
+        override fun getIn(x: Double): Double = EXP_IN.getInOut(x)
+        override fun getOut(x: Double): Double = EXP_IN.getInOut(x)
     },
     CIRCLE_IN(70, "Ci") {
-        override fun getIn(x: Double) = 1.0 - sqrt(max(1.0 - x * x, 0.0))
-        override fun getReversedType() = CIRCLE_OUT
+        override fun getIn(x: Double): Double = 1.0 - sqrt(max(1.0 - x * x, 0.0))
+        override fun getReversedType(): Interpolation = CIRCLE_OUT
     },
     CIRCLE_OUT(71, "Co") {
-        override fun getIn(x: Double) = CIRCLE_IN.getOut(x)
-        override fun getOut(x: Double) = CIRCLE_IN.getIn(x)
-        override fun getReversedType() = CIRCLE_IN
+        override fun getIn(x: Double): Double = CIRCLE_IN.getOut(x)
+        override fun getOut(x: Double): Double = CIRCLE_IN.getIn(x)
+        override fun getReversedType(): Interpolation = CIRCLE_IN
     },
     CIRCLE_SYM(72, "Cs") {
-        override fun getIn(x: Double) = CIRCLE_IN.getInOut(x)
-        override fun getOut(x: Double) = CIRCLE_IN.getInOut(x)
+        override fun getIn(x: Double): Double = CIRCLE_IN.getInOut(x)
+        override fun getOut(x: Double): Double = CIRCLE_IN.getInOut(x)
     },
     BACK_IN(80, "Bi") {
-        override fun getReversedType() = BACK_OUT
+        override fun getReversedType(): Interpolation = BACK_OUT
         override fun getIn(x: Double): Double {
             val c1 = 1.70158
             val c3 = c1 + 1.0
@@ -228,29 +228,29 @@ enum class Interpolation(
         }
     },
     BACK_OUT(81, "Bo") {
-        override fun getIn(x: Double) = BACK_IN.getOut(x)
-        override fun getOut(x: Double) = BACK_IN.getIn(x)
-        override fun getReversedType() = BACK_IN
+        override fun getIn(x: Double): Double = BACK_IN.getOut(x)
+        override fun getOut(x: Double): Double = BACK_IN.getIn(x)
+        override fun getReversedType(): Interpolation = BACK_IN
     },
     BACK_SYM(82, "Bs") {
-        override fun getIn(x: Double) = BACK_IN.getInOut(x)
-        override fun getOut(x: Double) = BACK_IN.getInOut(x)
+        override fun getIn(x: Double): Double = BACK_IN.getInOut(x)
+        override fun getOut(x: Double): Double = BACK_IN.getInOut(x)
     },
     ELASTIC_IN(90, "Ei") {
         private val magic = 2.0 * PI / 3.0
-        override fun getReversedType() = ELASTIC_OUT
+        override fun getReversedType(): Interpolation = ELASTIC_OUT
         override fun getIn(x: Double): Double {
             return -pow(2.0, 10.0 * x - 10.0) * sin((x * 10.0 - 10.75) * magic)
         }
     },
     ELASTIC_OUT(91, "Eo") {
-        override fun getIn(x: Double) = ELASTIC_IN.getOut(x)
-        override fun getOut(x: Double) = ELASTIC_IN.getIn(x)
-        override fun getReversedType() = ELASTIC_IN
+        override fun getIn(x: Double): Double = ELASTIC_IN.getOut(x)
+        override fun getOut(x: Double): Double = ELASTIC_IN.getIn(x)
+        override fun getReversedType(): Interpolation = ELASTIC_IN
     },
     ELASTIC_SYM(92, "Es") {
-        override fun getIn(x: Double) = ELASTIC_IN.getInOut(x)
-        override fun getOut(x: Double) = ELASTIC_IN.getInOut(x)
+        override fun getIn(x: Double): Double = ELASTIC_IN.getInOut(x)
+        override fun getOut(x: Double): Double = ELASTIC_IN.getInOut(x)
     },
     BOUNCE_IN(100, "Bi") {
         private val n1 = 7.5625
@@ -261,7 +261,7 @@ enum class Interpolation(
         private val invD1x25 = 2.5 / d1
         private val invD1x225 = 2.25 / d1
         private val invD1x265 = 2.65 / d1
-        override fun getReversedType() = BOUNCE_OUT
+        override fun getReversedType(): Interpolation = BOUNCE_OUT
         override fun getOut(x: Double): Double {
             return when {
                 x < invD1 -> n1 * x * x
@@ -281,14 +281,14 @@ enum class Interpolation(
         }
     },
     BOUNCE_OUT(101, "Bo") {
-        override fun getIn(x: Double) = BOUNCE_IN.getOut(x)
-        override fun getOut(x: Double) = BOUNCE_IN.getIn(x)
-        override fun getInOut(x: Double) = BOUNCE_IN.getInOut(x)
+        override fun getIn(x: Double): Double = BOUNCE_IN.getOut(x)
+        override fun getOut(x: Double): Double = BOUNCE_IN.getIn(x)
+        override fun getInOut(x: Double): Double = BOUNCE_IN.getInOut(x)
         override fun getReversedType(): Interpolation = BOUNCE_IN
     },
     BOUNCE_SYM(102, "Bs") {
-        override fun getIn(x: Double) = BOUNCE_IN.getInOut(x)
-        override fun getOut(x: Double) = BOUNCE_IN.getInOut(x)
+        override fun getIn(x: Double): Double = BOUNCE_IN.getInOut(x)
+        override fun getOut(x: Double): Double = BOUNCE_IN.getInOut(x)
     };
 
     constructor() : this(-1)
@@ -296,7 +296,7 @@ enum class Interpolation(
     constructor(code: Int, symbol: String) : this(code, symbol, "", "", "")
 
     val displayName get() = Dict[displayNameEn.ifEmpty { name.camelCaseToTitle() }, "dict.$dictSubPath"]
-    val description get() = Dict[descriptionEn, "dict.$dictSubPath.desc"]
+    val description get() = Dict[descriptionEn, "dict.${dictSubPath}.desc"]
 
     open fun getWeights(
         t0: Double,
@@ -369,13 +369,15 @@ enum class Interpolation(
 
         @JvmField
         val values2 = values()
+
         @JvmField
         val left = Vector4d(0.0, 1.0, 0.0, 0.0)
+
         @JvmField
         val right = Vector4d(0.0, 0.0, 1.0, 0.0)
 
         @JvmStatic
-        fun getType(code: Int) = values().firstOrNull { it.id == code } ?: SPLINE
+        fun getType(code: Int): Interpolation = values().firstOrNull { it.id == code } ?: SPLINE
 
     }
 

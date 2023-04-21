@@ -11,12 +11,12 @@ import kotlin.math.min
 class TriplanarMaterial : Material() {
 
     @Range(0.0, 1.0)
-    var sharpness = 0.7f
+    var sharpness: Float = 0.7f
 
     @Range(0.0, 1.0)
-    var blendPreferY = 0.675f
+    var blendPreferY: Float = 0.675f
 
-    var primaryTiling = Vector4f(1f, 1f, 0f, 0f)
+    var primaryTiling: Vector4f = Vector4f(1f, 1f, 0f, 0f)
 
     init {
         shader = TriplanarShader
@@ -40,6 +40,6 @@ class TriplanarMaterial : Material() {
         dst.primaryTiling.set(primaryTiling)
     }
 
-    override val className get() = "TriplanarMaterial"
+    override val className: String get() = "TriplanarMaterial"
 
 }

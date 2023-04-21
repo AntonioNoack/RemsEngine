@@ -60,7 +60,7 @@ open class ScriptComponent : Component() {
         dst.source = source
     }
 
-    override val className get() = "ScriptComponent"
+    override val className: String get() = "ScriptComponent"
 
     companion object {
 

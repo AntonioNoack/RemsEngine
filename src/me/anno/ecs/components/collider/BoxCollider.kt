@@ -91,6 +91,6 @@ class BoxCollider : Collider() {
 
     }
 
-    override val className get() = "BoxCollider"
+    override val className: String get() = "BoxCollider"
 
 }

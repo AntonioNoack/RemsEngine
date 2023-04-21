@@ -268,7 +268,7 @@ open class ColorInput(
         dst.setResetListener(contentView.resetListener)
     }
 
-    override val className get() = "ColorInput"
+    override val className: String get() = "ColorInput"
 
     companion object {
         // test the UI

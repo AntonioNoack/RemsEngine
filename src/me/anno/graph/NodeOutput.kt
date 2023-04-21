@@ -8,6 +8,6 @@ class NodeOutput : NodeConnector {
     constructor(type: String, node: Node, isCustom: Boolean) : super(type, node, isCustom)
     constructor(type: String, name: String, node: Node, isCustom: Boolean) : super(type, name, node, isCustom)
 
-    override val className get() = "NodeOutput"
+    override val className: String get() = "NodeOutput"
 
 }

@@ -20,7 +20,7 @@ class SDFRegular : SDFSmoothShape() {
         ICOSAHEDRON(2, 3, 13),
     }
 
-    var type = Type.OCTAHEDRON
+    var type: Type = Type.OCTAHEDRON
         set(value) {
             if (field != value) {
                 invalidateShader()
@@ -79,7 +79,7 @@ class SDFRegular : SDFSmoothShape() {
         return d - 1f
     }
 
-    override val className get() = "SDFRegular"
+    override val className: String get() = "SDFRegular"
 
     companion object {
 

@@ -14,6 +14,6 @@ open class PureTextInput(style: Style) : PureTextInputML(style.getChild("edit"))
         return clone
     }
 
-    override val className get() = "PureTextInput"
+    override val className: String get() = "PureTextInput"
 
 }

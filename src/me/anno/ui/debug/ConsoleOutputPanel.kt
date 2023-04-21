@@ -73,7 +73,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
         }
     }
 
-    override val className get() = "ConsoleOutputPanel"
+    override val className: String get() = "ConsoleOutputPanel"
 
     companion object {
 
@@ -112,7 +112,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             val rip = RuntimeInfoPanel(style)
             rip.alignmentX = AxisAlignment.MAX
             rip.makeBackgroundOpaque()
-            rip.setWeight2(1f)
+            rip.weight = 1f
             rip.tooltip = "Click to invoke garbage collector"
             rip.addLeftClickListener {
                 val runtime = Runtime.getRuntime()

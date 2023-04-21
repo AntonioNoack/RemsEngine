@@ -71,6 +71,6 @@ class SphereCollider : Collider() {
         drawSphere(entity, radius)
     }
 
-    override val className get() = "SphereCollider"
+    override val className: String get() = "SphereCollider"
 
 }

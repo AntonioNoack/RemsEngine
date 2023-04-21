@@ -38,6 +38,6 @@ class SplineControlPoint : Component() {
         dst.height = height
     }
 
-    override val className get() = "SplineControlPoint"
+    override val className: String get() = "SplineControlPoint"
 
 }

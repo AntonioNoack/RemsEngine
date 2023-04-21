@@ -312,6 +312,6 @@ class TriTerrain : Component(), CustomEditMode {
         // todo copy everything
     }
 
-    override val className get() = "TriTerrain"
+    override val className: String get() = "TriTerrain"
 
 }

@@ -63,7 +63,7 @@ open class SDFMesh : SDFSmoothShape() {
         dst.mesh = mesh
     }
 
-    override val className get() = "SDFMesh"
+    override val className: String get() = "SDFMesh"
 
     companion object {
         const val sdMesh = "" +

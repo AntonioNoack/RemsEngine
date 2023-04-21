@@ -622,7 +622,7 @@ open class SDFGroup : SDFComponent() {
         })
     }
 
-    override val className get() = "SDFGroup"
+    override val className: String get() = "SDFGroup"
 
     companion object {
 

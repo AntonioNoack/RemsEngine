@@ -6,23 +6,23 @@ import me.anno.utils.types.Floats.f2
 
 open class AudioTransfer(var l2l: Float, var r2r: Float, var l2r: Float, var r2l: Float) {
 
-    open fun l2l(f: Float, s: AudioTransfer) = mix(l2l, s.l2l, f)
-    open fun r2r(f: Float, s: AudioTransfer) = mix(r2r, s.r2r, f)
-    open fun l2r(f: Float, s: AudioTransfer) = mix(l2r, s.l2r, f)
-    open fun r2l(f: Float, s: AudioTransfer) = mix(r2l, s.r2l, f)
+    open fun l2l(f: Float, s: AudioTransfer): Float = mix(l2l, s.l2l, f)
+    open fun r2r(f: Float, s: AudioTransfer): Float = mix(r2r, s.r2r, f)
+    open fun l2r(f: Float, s: AudioTransfer): Float = mix(l2r, s.l2r, f)
+    open fun r2l(f: Float, s: AudioTransfer): Float = mix(r2l, s.r2l, f)
 
-    open fun getLeft(p: FloatPair, f: Float, s: AudioTransfer) = getLeft(p.first, p.second, f, s)
-    open fun getRight(p: FloatPair, f: Float, s: AudioTransfer) = getRight(p.first, p.second, f, s)
+    open fun getLeft(p: FloatPair, f: Float, s: AudioTransfer): Float = getLeft(p.first, p.second, f, s)
+    open fun getRight(p: FloatPair, f: Float, s: AudioTransfer): Float = getRight(p.first, p.second, f, s)
 
-    open fun getLeft(left: Float, right: Float, f: Float, s: AudioTransfer) =
+    open fun getLeft(left: Float, right: Float, f: Float, s: AudioTransfer): Float =
         left * l2l(f, s) + right * r2l(f, s)
 
-    open fun getRight(left: Float, right: Float, f: Float, s: AudioTransfer) =
+    open fun getRight(left: Float, right: Float, f: Float, s: AudioTransfer): Float =
         left * l2r(f, s) + right * r2r(f, s)
 
-    override fun toString() = "[${l2l.f2()} ${r2r.f2()} ${l2r.f2()} ${r2l.f2()}]"
+    override fun toString(): String = "[${l2l.f2()} ${r2r.f2()} ${l2r.f2()} ${r2l.f2()}]"
 
-    open fun multiply(s: Float) =
+    open fun multiply(s: Float): AudioTransfer =
         when{
             s == 1f -> this
             s < 0.0003f -> ZeroTransfer

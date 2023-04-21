@@ -215,7 +215,7 @@ class TreeViewPanel<V : Any>(
                         canBeMoved = false
                         break
                     }
-                    ancestor = ancestor.parent ?: break
+                    ancestor = getParent(ancestor) ?: break
                 }
                 if (canBeMoved) {
                     moveChange {
@@ -245,7 +245,7 @@ class TreeViewPanel<V : Any>(
     fun insertElement(relativeY: Float, hovered: V, clone: V, type: Char) {
         val success = if (relativeY < 0.33f) {
             // paste on top
-            if (hovered.parent != null) {
+            if (getParent(hovered) != null) {
                 treeView.addBefore(hovered, clone, type)
             } else {
                 insertElementLast(hovered, clone, type)
@@ -255,7 +255,7 @@ class TreeViewPanel<V : Any>(
             insertElementLast(hovered, clone, type)
         } else {
             // paste below
-            if (hovered.parent != null) {
+            if (getParent(hovered) != null) {
                 treeView.addAfter(hovered, clone, type)
             } else {
                 insertElementLast(hovered, clone, type)
@@ -274,17 +274,7 @@ class TreeViewPanel<V : Any>(
         }
     }
 
-    val V.parent: V? get() = treeView.getParent(this)
-
-    val V.listOfAll: Sequence<V>
-        get() {
-            return sequence {
-                yield(this@listOfAll)
-                for (it in treeView.getChildren(this@listOfAll)) {
-                    yieldAll(it.listOfAll)
-                }
-            }
-        }
+    fun getParent(self: V) = treeView.getParent(self)
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val transform = getElement()
@@ -337,6 +327,6 @@ class TreeViewPanel<V : Any>(
     // multiple values can be selected
     override fun getMultiSelectablePanel() = this
 
-    override val className get() = "TreeViewPanel"
+    override val className: String get() = "TreeViewPanel"
 
 }

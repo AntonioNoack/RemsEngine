@@ -113,7 +113,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
         }
 
     var cornerRadius = 24f
-    val baseTextSize get() = 20 * scale
+    val baseTextSize: Double get() = 20 * scale
 
     var scrollLeft = 0
     var scrollTop = 0
@@ -819,7 +819,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : MapPanel(style) {
 
     open fun canDeleteNode(node: Node): Boolean = true
 
-    override val className get() = "GraphEditor"
+    override val className: String get() = "GraphEditor"
 
     @Suppress("MayBeConstant")
     companion object {

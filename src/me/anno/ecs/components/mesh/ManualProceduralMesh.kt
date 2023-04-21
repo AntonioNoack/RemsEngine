@@ -6,6 +6,6 @@ class ManualProceduralMesh : ProceduralMesh() {
         // nothing to do...
     }
 
-    override val className get() = "ManualProceduralMesh"
+    override val className: String get() = "ManualProceduralMesh"
 
 }

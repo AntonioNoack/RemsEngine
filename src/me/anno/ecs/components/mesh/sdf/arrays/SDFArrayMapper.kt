@@ -215,7 +215,7 @@ class SDFArrayMapper : PositionMapper() {
         dst.cellSize = cellSize
     }
 
-    override val className get() = "SDFArray"
+    override val className: String get() = "SDFArray"
 
     companion object {
 

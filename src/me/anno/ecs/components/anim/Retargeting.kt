@@ -185,7 +185,7 @@ class Retargeting : NamedSaveable() {
         }
     }
 
-    override val className get() = "Retargeting"
+    override val className: String get() = "Retargeting"
     override val approxSize get() = 20
 
 }

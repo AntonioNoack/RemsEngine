@@ -121,6 +121,6 @@ class Camera : Component() {
         dst.clearColor.set(clearColor)
     }
 
-    override val className get() = "Camera"
+    override val className: String get() = "Camera"
 
 }

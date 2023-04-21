@@ -259,6 +259,6 @@ class SplineCrossing : ProceduralMesh() {
         return mesh
     }
 
-    override val className get() = "SplineCrossing"
+    override val className: String get() = "SplineCrossing"
 
 }

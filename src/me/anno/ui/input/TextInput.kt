@@ -23,7 +23,7 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
         setValue(v0 ?: "", false)
     }
 
-    val base = child as PureTextInput
+    val base: PureTextInput = child as PureTextInput
     private var isSelectedListener: (() -> Unit)? = null
 
     init {
@@ -142,6 +142,6 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
         dst.base.backgroundColor = base.backgroundColor
     }
 
-    override val className get() = "TextInput"
+    override val className: String get() = "TextInput"
 
 }

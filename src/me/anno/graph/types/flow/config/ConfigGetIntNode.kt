@@ -12,7 +12,7 @@ class ConfigGetIntNode(val config: StringMap = DefaultConfig) :
             getInput(1) as Int
     ]
 
-    override val className get() = "ConfigGetIntNode"
+    override val className: String get() = "ConfigGetIntNode"
 
     companion object {
         @JvmStatic

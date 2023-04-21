@@ -120,7 +120,7 @@ abstract class BaseReader {
                 if (Build.isDebug) debugInfo(className)
                 throw UnknownClassException(className)
             }
-            val instance = type.generate()!!
+            val instance = type.generate()
             instance.onReadingStarted()
             return instance
         }

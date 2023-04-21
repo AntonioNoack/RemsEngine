@@ -182,6 +182,6 @@ open class FloatInput(
         dst.setValue(lastValue, false)
     }
 
-    override val className get() = "FloatInput"
+    override val className: String get() = "FloatInput"
 
 }

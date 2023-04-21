@@ -1,6 +1,5 @@
 package me.anno.ui.input.components
 
-import me.anno.utils.Color.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures
@@ -13,6 +12,7 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing
@@ -43,7 +43,7 @@ class ColorField(
         this.h = constSize
     }
 
-    override val className get() = "ColorPaletteEntry"
+    override val className: String get() = "ColorPaletteEntry"
 
     var color
         get() = palette.getColor(paletteX, paletteY)
@@ -55,9 +55,7 @@ class ColorField(
 
     var changeListener: (ColorField, Int) -> Unit = { _, _ -> }
 
-    override fun getVisualState(): Any? {
-        return super.getVisualState() to Triple(isInFocus, isHovered, color)
-    }
+    override fun getVisualState() = color
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // draw border/background depending on hover/focus
@@ -145,6 +143,7 @@ class ColorField(
     companion object {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(ColorField::class)
+
         @JvmField
         val tiling = Vector4f(2f, 2f, 0f, 0f)
     }

@@ -40,6 +40,6 @@ class Vehicle : Rigidbody() {
         dst.frictionSlip = frictionSlip
     }
 
-    override val className get() = "Vehicle"
+    override val className: String get() = "Vehicle"
 
 }

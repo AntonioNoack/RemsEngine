@@ -23,13 +23,13 @@ import kotlin.math.min
 
 class SDFRandomRotation : SDFRandom() {
 
-    var minAngleDegrees = Vector3f(0f, -15f, 0f)
+    var minAngleDegrees: Vector3f = Vector3f(0f, -15f, 0f)
         set(value) {
             if (!dynamic && !globalDynamic) invalidateShader()
             else invalidateBounds()
             field.set(value)
         }
-    var maxAngleDegrees = Vector3f(0f, +15f, 0f)
+    var maxAngleDegrees: Vector3f = Vector3f(0f, +15f, 0f)
         set(value) {
             if (!dynamic && !globalDynamic) invalidateShader()
             else invalidateBounds()
@@ -108,7 +108,7 @@ class SDFRandomRotation : SDFRandom() {
         dst.maxAngleDegrees = maxAngleDegrees
     }
 
-    override val className get() = "SDFRandomRotation"
+    override val className: String get() = "SDFRandomRotation"
 
     companion object {
         @JvmStatic

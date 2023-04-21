@@ -108,15 +108,15 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         if (physics != null) rebuildPhysics(physics)
     }
 
-    val transform = Transform(this)
+    val transform: Transform = Transform(this)
 
     // assigned and tested for click checks
     @HideInInspector
     @NotSerializedProperty
-    var clickId = 0
+    var clickId: Int = 0
 
     @NotSerializedProperty
-    private val internalComponents = ArrayList<Component>(4)
+    private val internalComponents: ArrayList<Component> = ArrayList(4)
 
     @SerializedProperty
     val components: List<Component>
@@ -126,7 +126,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     // override var parent: Entity? = null
 
     @NotSerializedProperty
-    private val internalChildren = ArrayList<Entity>(4)
+    private val internalChildren: ArrayList<Entity> = ArrayList(4)
 
     @NotSerializedProperty
     override val children: List<Entity>
@@ -160,21 +160,21 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     // aabb cache for faster rendering and collision checks
     @DebugProperty
     @NotSerializedProperty
-    val aabb = AABBd()
+    val aabb: AABBd = AABBd()
 
     @DebugProperty
     @NotSerializedProperty
-    var hasValidAABB = false
+    var hasValidAABB: Boolean = false
 
     // is set by the engine
     @DebugProperty
     @NotSerializedProperty
-    var isPhysicsControlled = false
+    var isPhysicsControlled: Boolean = false
 
     // collision mask for faster collision checks
     @DebugProperty
     @NotSerializedProperty
-    var collisionMask = 0
+    var collisionMask: Int = 0
 
     @SerializedProperty
     var position: Vector3d
@@ -204,7 +204,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         }
 
     @NotSerializedProperty
-    val parentEntity
+    val parentEntity: Entity?
         get() = parent as? Entity
 
     /**
@@ -483,7 +483,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         (drawable as DrawableComponent).draw(stack, time, color, fragmentEffects)
     * */
 
-    override val className get() = "Entity"
+    override val className: String get() = "Entity"
 
     override fun isDefaultValue(): Boolean = false
 

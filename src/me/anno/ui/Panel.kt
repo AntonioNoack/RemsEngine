@@ -358,14 +358,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     /**
-     * weight used in layouts, that work with weights
-     * */
-    fun setWeight2(w: Float): Panel {
-        weight = w
-        return this
-    }
-
-    /**
      * add a layout constraint
      * may not be fulfilled by container
      * */
@@ -888,7 +880,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         writer.writeObject(this, "tooltipPanel", tooltipPanel)
     }
 
-    override val className get() = "Panel"
+    override val className: String get() = "Panel"
 
     companion object {
 

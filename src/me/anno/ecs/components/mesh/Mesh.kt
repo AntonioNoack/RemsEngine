@@ -281,7 +281,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         }
     }
 
-    override val className get() = "Mesh"
+    override val className: String get() = "Mesh"
     override val approxSize get() = 1
 
     fun calculateAABB() {

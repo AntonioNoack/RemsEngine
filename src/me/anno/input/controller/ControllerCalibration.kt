@@ -63,7 +63,7 @@ class ControllerCalibration() : Saveable() {
         }
     }
 
-    override val className get() = "ControllerCalibration"
+    override val className: String get() = "ControllerCalibration"
 
     companion object {
         // this probably is never called, right?

@@ -55,6 +55,6 @@ class POS2Packet : POS1Packet {
         }
     }
 
-    override val className get() = "POS2Packet"
+    override val className: String get() = "POS2Packet"
 
 }

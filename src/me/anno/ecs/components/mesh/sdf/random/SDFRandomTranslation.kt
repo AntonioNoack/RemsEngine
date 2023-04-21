@@ -19,13 +19,13 @@ import kotlin.math.abs
 
 class SDFRandomTranslation : SDFRandom() {
 
-    var minTranslation = Vector3f(0f, -1f, 0f)
+    var minTranslation: Vector3f = Vector3f(0f, -1f, 0f)
         set(value) {
             if (!dynamic && !globalDynamic) invalidateShader()
             else invalidateBounds()
             field.set(value)
         }
-    var maxTranslation = Vector3f(0f, +1f, 0f)
+    var maxTranslation: Vector3f = Vector3f(0f, +1f, 0f)
         set(value) {
             if (!dynamic && !globalDynamic) invalidateShader()
             else invalidateBounds()
@@ -78,7 +78,7 @@ class SDFRandomTranslation : SDFRandom() {
         dst.maxTranslation = maxTranslation
     }
 
-    override val className get() = "SDFRandomTranslation"
+    override val className: String get() = "SDFRandomTranslation"
 
     companion object {
         @JvmStatic

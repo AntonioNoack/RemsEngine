@@ -18,11 +18,11 @@ import kotlin.math.sqrt
 // center it, and the pyramid as well?
 open class SDFRoundCone : SDFShape() {
 
-    private val params = Vector3f(0.3f, 0f, 1f)
-    private val helpers = Vector2f()
+    private val params: Vector3f = Vector3f(0.3f, 0f, 1f)
+    private val helpers: Vector2f = Vector2f()
 
     @Range(0.0, 1e38)
-    var innerRadius
+    var innerRadius: Float
         get() = params.x
         set(value) {
             if (params.x != value) {
@@ -33,7 +33,7 @@ open class SDFRoundCone : SDFShape() {
         }
 
     @Range(0.0, 1e38)
-    var outerRadius
+    var outerRadius: Float
         get() = params.y
         set(value) {
             if (params.y != value) {
@@ -45,7 +45,7 @@ open class SDFRoundCone : SDFShape() {
 
     // must be >= inner radius, if == inner radius, we have a single sphere
     @Range(0.0, 1e38)
-    var height
+    var height: Float
         get() = params.z
         set(value) {
             if (params.z != value) {
@@ -118,7 +118,7 @@ open class SDFRoundCone : SDFShape() {
         dst.helpers.set(helpers)
     }
 
-    override val className get() = "SDFRoundCone"
+    override val className: String get() = "SDFRoundCone"
 
     companion object {
         // from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm, Inigo Quilez

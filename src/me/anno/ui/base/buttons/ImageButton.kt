@@ -76,6 +76,6 @@ class ImageButton(
         dst.isSquare = isSquare
     }
 
-    override val className get() = "ImageButton"
+    override val className: String get() = "ImageButton"
 
 }

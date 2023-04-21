@@ -807,7 +807,7 @@ open class FileExplorerEntry(
         println("${Tabs.spaces(tabDepth * 2 + 2)} ${getReferenceOrTimeout(path).name}")
     }
 
-    override val className get() = "FileEntry"
+    override val className: String get() = "FileEntry"
 
     companion object {
 

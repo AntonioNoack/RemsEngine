@@ -161,7 +161,8 @@ open class FloatVectorInput(
         val component = createComponent()
         component.inputPanel.tooltip = title
         component.setChangeListener { onChange() }
-        valueList += component.setWeight2(1f)
+        component.weight = 1f
+        valueList += component
         valueFields += component
         return component
     }
@@ -496,6 +497,6 @@ open class FloatVectorInput(
         dst.setValue(Vector4d(vxd, vyd, vzd, vwd), false)
     }
 
-    override val className get() = "FloatVectorInput"
+    override val className: String get() = "FloatVectorInput"
 
 }

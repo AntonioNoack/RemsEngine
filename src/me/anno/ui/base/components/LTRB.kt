@@ -49,6 +49,6 @@ open class LTRB(var left: Int, var top: Int, var right: Int, var bottom: Int) : 
         writer.writeInt("bottom", bottom)
     }
 
-    override val className get() = "LTRB"
+    override val className: String get() = "LTRB"
 
 }

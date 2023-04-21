@@ -70,6 +70,6 @@ open class ColorPalette(
         dst.onColorSelected = onColorSelected
     }
 
-    override val className get() = "ColorPalette"
+    override val className: String get() = "ColorPalette"
 
 }

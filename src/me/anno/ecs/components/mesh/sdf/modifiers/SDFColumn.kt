@@ -118,7 +118,7 @@ class SDFColumn : DistanceMapper() {
         }
     }
 
-    override val className get() = "SDFColumn"
+    override val className: String get() = "SDFColumn"
 
     companion object {
         // inspired by Greek Temple (https://www.shadertoy.com/view/ldScDh), by Inigo Quilez

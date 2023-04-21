@@ -48,6 +48,6 @@ class ConvexCollider : Collider() {
         dst.points = points
     }
 
-    override val className get() = "ConvexCollider"
+    override val className: String get() = "ConvexCollider"
 
 }

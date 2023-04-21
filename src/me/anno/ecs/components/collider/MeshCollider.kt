@@ -56,8 +56,8 @@ open class MeshCollider() : Collider() {
     val meshTriangles get() = mesh?.numPrimitives
 
     @DebugProperty
-    val meshAABB
-        get(): AABBf? {
+    val meshAABB: AABBf?
+        get() {
             val mesh = mesh
             mesh?.ensureBounds()
             return mesh?.aabb
@@ -388,7 +388,7 @@ open class MeshCollider() : Collider() {
         dst.meshTransform.set(meshTransform)
     }
 
-    override val className get() = "MeshCollider"
+    override val className: String get() = "MeshCollider"
 
     companion object {
         @JvmStatic

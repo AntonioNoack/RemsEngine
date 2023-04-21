@@ -19,5 +19,5 @@ class HueBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
         drawRect(x, y0, 1, y1 - y0, black)
     }
 
-    override val className get() = "HueBar"
+    override val className: String get() = "HueBar"
 }

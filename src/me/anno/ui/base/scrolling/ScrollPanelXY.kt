@@ -270,7 +270,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         return clone
     }
 
-    override val className get() = "ScrollPanelXY"
+    override val className: String get() = "ScrollPanelXY"
 
     companion object {
 

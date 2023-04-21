@@ -131,7 +131,7 @@ class SDFMirror() : PositionMapper() {
         dst.useBranch = useBranch
     }
 
-    override val className get() = "SDFMirror"
+    override val className: String get() = "SDFMirror"
 
     companion object {
         fun Planef.normalize3(): Planef {

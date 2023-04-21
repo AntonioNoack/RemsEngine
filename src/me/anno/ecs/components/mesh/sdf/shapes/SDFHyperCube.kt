@@ -92,7 +92,7 @@ open class SDFHyperCube : SDFSmoothShape() {
         dst.w = w
     }
 
-    override val className get() = "SDFHyperCube"
+    override val className: String get() = "SDFHyperCube"
 
     companion object {
 

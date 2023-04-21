@@ -8,8 +8,6 @@ import me.anno.installer.Installer
 import me.anno.io.Streams.listen
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.io.json.JsonArray
-import me.anno.io.json.JsonObject
 import me.anno.io.json.JsonReader
 import me.anno.language.Language
 import me.anno.studio.StudioBase
@@ -198,12 +196,12 @@ object Spellchecking : CacheSection("Spellchecking") {
                                 try {
                                     val suggestionsJson = JsonReader(suggestionsString).readArray()
                                     val suggestionsList = suggestionsJson.map { suggestion ->
-                                        suggestion as JsonObject
-                                        val start = getInt(suggestion["start"],0)
-                                        val end = getInt(suggestion["end"],0)
+                                        suggestion as HashMap<*, *>
+                                        val start = getInt(suggestion["start"], 0)
+                                        val end = getInt(suggestion["end"], 0)
                                         val message = suggestion["message"].toString()
                                         val shortMessage = suggestion["shortMessage"].toString()
-                                        val improvements = suggestion["suggestions"] as JsonArray
+                                        val improvements = suggestion["suggestions"] as ArrayList<*>
                                         val result = Suggestion(
                                             start, end, message, shortMessage,
                                             improvements.map { it as String }

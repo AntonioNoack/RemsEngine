@@ -193,7 +193,7 @@ class SDFArray2 : SDFGroupArray() {
         dst.cellSize = cellSize
     }
 
-    override val className get() = "SDFArray2"
+    override val className: String get() = "SDFArray2"
 
     companion object {
         @JvmStatic

@@ -9,6 +9,6 @@ open class FirstPersonController : CameraController() {
         lastWarning = "hasn't been implemented yet"
     }
 
-    override val className get() = "FirstPersonControls"
+    override val className: String get() = "FirstPersonControls"
 
 }

@@ -35,6 +35,6 @@ class CuboidMesh : ProceduralMesh() {
         dst.invalidateMesh()
     }
 
-    override val className get() = "CuboidMesh"
+    override val className: String get() = "CuboidMesh"
 
 }

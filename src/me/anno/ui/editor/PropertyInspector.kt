@@ -22,7 +22,6 @@ import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.ui.utils.WindowStack
-import me.anno.utils.structures.lists.Lists.size
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
@@ -102,7 +101,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         // is matching required? not really
         val newPanels = newValues.listOfAll.toList()
         val oldPanels = oldValues.listOfAll.toList()
-        val sps = searchPanel.listOfAll.size
+        val sps = searchPanel.listOfAll.count()
         val newSize = newPanels.size + sps
         val oldSize = oldPanels.size
         val newPanelIter = newPanels.iterator()
@@ -162,7 +161,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         invalidate()
     }
 
-    override val className get() = "PropertyInspector"
+    override val className: String get() = "PropertyInspector"
 
     companion object {
 

@@ -243,7 +243,7 @@ object ObjectMapper {
         return convertValue(JsonReader(value).readObject(), clazz)
     }
 
-    fun <V> convertValue(values: JsonObject, clazz: Class<V>): V {
+    fun <V> convertValue(values: HashMap<*, *>, clazz: Class<V>): V {
         val instance = clazz.getConstructor().newInstance()
         for (field in clazz.declaredFields) {
             if (!Modifier.isStatic(field.modifiers)) {
@@ -271,7 +271,7 @@ object ObjectMapper {
 
     fun getValue(type: Type, value: Any?): Any {
         return if (type.arrayDimension > 0) {
-            value as JsonArray
+            value as ArrayList<*>
             when (type.arrayDimension) {
                 1 -> {
                     when (val clazzName = type.name) {
@@ -311,7 +311,7 @@ object ObjectMapper {
                 "java.lang.Number" -> asDouble(value)
                 "java.lang.Boolean" -> asBool(value)
                 "java.util.List" -> {
-                    value as JsonArray
+                    value as ArrayList<*>
                     val val2 = ArrayList<Any>()
                     val contentType = type.generics[0]
                     for (it in value) {
@@ -320,18 +320,18 @@ object ObjectMapper {
                     val2
                 }
                 "java.util.Map" -> {
-                    value as JsonObject
+                    value as HashMap<*, *>
                     val val2 = HashMap<String, Any>()
                     val contentType = type.generics[1]
                     for ((key, val3) in value) {
-                        val2[key] = getValue(contentType, val3)
+                        val2[key as String] = getValue(contentType, val3)
                     }
                     val2
                 }
                 else -> {
                     // (type)
                     val clazz = getClass(type.name)
-                    convertValue(value as JsonObject, clazz)
+                    convertValue(value as HashMap<*, *>, clazz)
                 }
             }
         }

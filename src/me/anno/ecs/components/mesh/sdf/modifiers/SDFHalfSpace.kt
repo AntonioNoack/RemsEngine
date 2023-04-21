@@ -128,7 +128,7 @@ class SDFHalfSpace() : DistanceMapper() {
         dst.plane = plane
     }
 
-    override val className get() = "SDFHalfSpace"
+    override val className: String get() = "SDFHalfSpace"
 
     companion object {
 

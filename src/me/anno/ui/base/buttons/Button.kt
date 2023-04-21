@@ -58,6 +58,6 @@ open class Button(
         dst.isSquare = isSquare
     }
 
-    override val className get() = "Button"
+    override val className: String get() = "Button"
 
 }

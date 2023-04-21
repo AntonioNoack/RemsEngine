@@ -111,6 +111,6 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
         dst.relaxation = relaxation
     }
 
-    override val className get() = "HingeConstraint"
+    override val className: String get() = "HingeConstraint"
 
 }

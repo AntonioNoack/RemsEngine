@@ -243,7 +243,7 @@ class BoneByBoneAnimation() : Animation() {
         return anim
     }
 
-    override val className get() = "BoneByBoneAnimation"
+    override val className: String get() = "BoneByBoneAnimation"
 
     companion object {
 

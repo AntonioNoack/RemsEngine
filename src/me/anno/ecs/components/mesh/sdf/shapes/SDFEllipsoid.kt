@@ -57,7 +57,7 @@ open class SDFEllipsoid : SDFShape() {
         dst.halfAxes = halfAxes
     }
 
-    override val className get() = "SDFEllipsoid"
+    override val className: String get() = "SDFEllipsoid"
 
     companion object {
         // from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm, Inigo Quilez

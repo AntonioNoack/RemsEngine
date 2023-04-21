@@ -346,7 +346,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
         }
     }
 
-    override val className get() = "ECSTreeView"
+    override val className: String get() = "ECSTreeView"
 
     companion object {
         private val LOGGER = LogManager.getLogger(ECSTreeView::class)

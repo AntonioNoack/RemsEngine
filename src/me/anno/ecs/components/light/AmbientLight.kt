@@ -35,6 +35,6 @@ class AmbientLight : LightComponentBase() {
         dst.color = color
     }
 
-    override val className get() = "AmbientLight"
+    override val className: String get() = "AmbientLight"
 
 }

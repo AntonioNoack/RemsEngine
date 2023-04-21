@@ -49,7 +49,7 @@ open class QuickScriptComponent : Component() {
         dst.destroyScript = destroyScript
     }
 
-    override val className get() = "QuickScriptComponent"
+    override val className: String get() = "QuickScriptComponent"
 
     inline fun getFunction1(code: String, init: (scope: LuaValue) -> Unit): LuaValue {
         return getFunction(code) { globals ->

@@ -64,7 +64,7 @@ class EfficientBooleanArray(var size: Int) : Saveable() {
     }
 
     override fun isDefaultValue(): Boolean = false
-    override val className get() = "BoolArray"
+    override val className: String get() = "BoolArray"
     override val approxSize get() = 1
 
 }

@@ -39,6 +39,6 @@ open class HSVBox(
         return true
     }
 
-    override val className get() = "HSVBox"
+    override val className: String get() = "HSVBox"
 
 }

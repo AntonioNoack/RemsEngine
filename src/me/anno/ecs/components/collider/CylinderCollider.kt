@@ -100,6 +100,6 @@ class CylinderCollider : Collider() {
         dst.radius = radius
     }
 
-    override val className get() = "CylinderCollider"
+    override val className: String get() = "CylinderCollider"
 
 }

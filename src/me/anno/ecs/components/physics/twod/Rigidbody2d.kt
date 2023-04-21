@@ -104,7 +104,7 @@ class Rigidbody2d : Component() {
         box2dInstance?.applyAngularImpulse(impulse)
     }
 
-    val inertia get() = box2dInstance?.inertia
+    val inertia get(): Float? = box2dInstance?.inertia
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
@@ -119,6 +119,6 @@ class Rigidbody2d : Component() {
         dst.alwaysActive = alwaysActive
     }
 
-    override val className get() = "Rigidbody2d"
+    override val className: String get() = "Rigidbody2d"
 
 }

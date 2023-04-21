@@ -46,7 +46,7 @@ class WrapAlign(
         }
     }
 
-    override val className get() = "WrapAlign"
+    override val className: String get() = "WrapAlign"
 
     override fun clone() = WrapAlign(alignX, alignY)
 

@@ -146,7 +146,7 @@ class CAdd() : Change() {
         return hc
     }
 
-    override val className get() = "CAdd"
+    override val className: String get() = "CAdd"
     override val approxSize get() = 10
     override fun isDefaultValue(): Boolean = false
 

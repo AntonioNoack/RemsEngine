@@ -92,6 +92,6 @@ open class POS0Packet : Packet {
         }
     }
 
-    override val className get() = "POS0Packet"
+    override val className: String get() = "POS0Packet"
 
 }

@@ -562,6 +562,6 @@ class NodePanel(
 
     override fun getMultiSelectablePanel() = this
 
-    override val className get() = "NodePanel"
+    override val className: String get() = "NodePanel"
 
 }

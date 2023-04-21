@@ -4,8 +4,8 @@ import me.anno.utils.Tabs
 
 class XMLNode(val type: String) {
 
-    val properties = HashMap<String, String>()
-    val children = ArrayList<Any>()
+    val properties: HashMap<String, String> = HashMap()
+    val children: ArrayList<Any> = ArrayList()
 
     operator fun get(key: String): String? = properties[key]
     operator fun set(key: String, value: String?) {
@@ -13,7 +13,7 @@ class XMLNode(val type: String) {
         else properties[key] = value
     }
 
-    operator fun contains(key: String) = key in properties
+    operator fun contains(key: String): Boolean = key in properties
 
     fun toString(depth: Int): String {
         val tabs = Tabs.spaces(depth * 2)

@@ -92,7 +92,7 @@ open class SDFBoundingBox : SDFBox() {
         dst.dynamicThickness = dynamicThickness
     }
 
-    override val className get() = "SDFBoundingBox"
+    override val className: String get() = "SDFBoundingBox"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

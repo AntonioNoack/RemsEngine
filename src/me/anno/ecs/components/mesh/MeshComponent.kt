@@ -69,6 +69,6 @@ open class MeshComponent() : MeshComponentBase() {
         dst.mesh = mesh
     }
 
-    override val className get() = "MeshComponent"
+    override val className: String get() = "MeshComponent"
 
 }

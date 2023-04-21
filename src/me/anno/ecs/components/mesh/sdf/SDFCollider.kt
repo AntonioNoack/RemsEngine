@@ -134,6 +134,6 @@ class SDFCollider : Collider() {
         dst.margin = margin
     }
 
-    override val className get() = "SDFCollider"
+    override val className: String get() = "SDFCollider"
 
 }

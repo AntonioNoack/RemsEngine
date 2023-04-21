@@ -335,7 +335,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         return dst.size
     }
 
-    override val className get() = "LightPipelineStage"
+    override val className: String get() = "LightPipelineStage"
     override val approxSize get() = 5
 
 }

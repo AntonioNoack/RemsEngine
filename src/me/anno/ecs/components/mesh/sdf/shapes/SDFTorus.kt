@@ -14,7 +14,7 @@ class SDFTorus : SDFShape() {
 
     private val params = Vector2f(1f, 0.3f)
 
-    var totalRadius
+    var totalRadius: Float
         get() = params.x
         set(value) {
             if (params.x != value) {
@@ -24,7 +24,7 @@ class SDFTorus : SDFShape() {
             }
         }
 
-    var ringRadius
+    var ringRadius: Float
         get() = params.y
         set(value) {
             if (params.y != value) {
@@ -76,7 +76,7 @@ class SDFTorus : SDFShape() {
         dst.params.set(params)
     }
 
-    override val className get() = "SDFTorus"
+    override val className: String get() = "SDFTorus"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

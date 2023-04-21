@@ -156,7 +156,7 @@ open class FileExplorer(
                 }
             }
         }
-        searchBar.setWeight2(1f)
+        searchBar.weight = 1f
     }
 
     val history = History(initialLocation ?: documents)
@@ -737,7 +737,7 @@ open class FileExplorer(
     // multiple elements can be selected
     override fun getMultiSelectablePanel() = this
 
-    override val className get() = "FileExplorer"
+    override val className: String get() = "FileExplorer"
 
     companion object {
 

@@ -25,7 +25,7 @@ import org.joml.Vector4f
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class SDF2DShape : SDFShape() {
 
-    var axes = TwoDims.XY
+    var axes: TwoDims = TwoDims.XY
         set(value) {
             if (field != value) {
                 invalidateShader()
@@ -33,7 +33,7 @@ open class SDF2DShape : SDFShape() {
             }
         }
 
-    var rotary = false
+    var rotary: Boolean = false
         set(value) {
             if (field != value) {
                 invalidateShader()
@@ -102,9 +102,9 @@ open class SDF2DShape : SDFShape() {
         }
     }
 
-    fun boundX(min: Float, max: Float) = bound1(min, max, 0)
-    fun boundY(min: Float, max: Float) = bound1(min, max, 1)
-    fun boundZ(min: Float, max: Float) = bound1(min, max, 2)
+    fun boundX(min: Float, max: Float): Unit = bound1(min, max, 0)
+    fun boundY(min: Float, max: Float): Unit = bound1(min, max, 1)
+    fun boundZ(min: Float, max: Float): Unit = bound1(min, max, 2)
     fun bound1(min: Float, max: Float, axis: Int) {
         val mv = JomlPools.vec3f.create().set(0f)
         val xv = JomlPools.vec3f.create().set(0f)

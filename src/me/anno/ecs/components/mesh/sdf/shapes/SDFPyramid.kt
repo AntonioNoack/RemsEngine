@@ -18,9 +18,9 @@ import kotlin.math.sqrt
 @Suppress("unused")
 open class SDFPyramid : SDFShape() {
 
-    private val params = Vector2f(1f, 1f)
+    private val params: Vector2f = Vector2f(1f, 1f)
 
-    var height
+    var height: Float
         get() = params.y
         set(value) {
             if (params.y != value) {
@@ -31,7 +31,7 @@ open class SDFPyramid : SDFShape() {
         }
 
     @Range(0.0, 1e38)
-    var baseLength
+    var baseLength: Float
         get() = params.x * 2f
         set(value) {
             val v2 = value * 0.5f
@@ -97,7 +97,7 @@ open class SDFPyramid : SDFShape() {
         dst.params.set(params)
     }
 
-    override val className get() = "SDFPyramid"
+    override val className: String get() = "SDFPyramid"
 
     companion object {
         const val sdPyramid = "" +

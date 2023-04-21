@@ -102,7 +102,7 @@ class SDFHyperBBox : SDFHyperCube() {
         dst.dynamicThickness = dynamicThickness
     }
 
-    override val className get() = "SDFHyperBBox"
+    override val className: String get() = "SDFHyperBBox"
 
     companion object {
 

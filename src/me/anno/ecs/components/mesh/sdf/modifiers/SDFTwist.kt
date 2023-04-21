@@ -12,7 +12,7 @@ import org.joml.Vector4f
 
 class SDFTwist : PositionMapper() {
 
-    private val sourceParams = Vector4f(0f, 1f, 0f, 0f)
+    private val sourceParams: Vector4f = Vector4f(0f, 1f, 0f, 0f)
 
     // todo apply this transform to the bounding box somehow
 
@@ -20,7 +20,7 @@ class SDFTwist : PositionMapper() {
      * source for rotation
      * 4th component: phase offset
      * */
-    var source = Vector3f(0f, 1f, 0f)
+    var source: Vector3f = Vector3f(0f, 1f, 0f)
         set(value) {
             if (dynamicSource || globalDynamic) invalidateBounds()
             else invalidateShader()
@@ -32,7 +32,7 @@ class SDFTwist : PositionMapper() {
             calcSourceParams()
         }
 
-    var destination = Vector3f(0f, 1f, 0f)
+    var destination: Vector3f = Vector3f(0f, 1f, 0f)
         set(value) {
             if (dynamicDestination || globalDynamic) invalidateBounds()
             else invalidateShader()
@@ -43,7 +43,7 @@ class SDFTwist : PositionMapper() {
             }
         }
 
-    var strength = 1f
+    var strength: Float = 1f
         set(value) {
             if (field != value) {
                 if (dynamicSource || globalDynamic) invalidateBounds()
@@ -53,7 +53,7 @@ class SDFTwist : PositionMapper() {
             }
         }
 
-    var phaseOffset
+    var phaseOffset: Float
         get() = sourceParams.w
         set(value) {
             if (sourceParams.w != value) {
@@ -161,7 +161,7 @@ class SDFTwist : PositionMapper() {
         dst.dynamicDestination = dynamicDestination
     }
 
-    override val className get() = "SDFTwist"
+    override val className: String get() = "SDFTwist"
 
     companion object {
 

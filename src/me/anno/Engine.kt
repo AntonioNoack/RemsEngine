@@ -10,13 +10,16 @@ object Engine {
 
     @JvmField
     var rawDeltaTime = 0f
+
     @JvmField
     var deltaTime = 0f
+
     @JvmField
     var currentFPS = 60f
 
     @JvmField
     val startTime = System.nanoTime()
+
     @JvmStatic
     private var lastTime = startTime
 
@@ -27,34 +30,34 @@ object Engine {
      * time at this moment since the engine started; in nanoseconds
      * */
     @JvmStatic
-    val nanoTime get() = System.nanoTime() - startTime
+    val nanoTime get(): Long = System.nanoTime() - startTime
 
     /**
      * time of current frame; since the engine started; in nanoseconds
      * use gameTimeF for a float value
      * */
     @JvmStatic
-    var gameTime = lastTime - startTime
+    var gameTime: Long = lastTime - startTime
         private set
 
     @JvmStatic
-    var lastGameTime = 0L
+    var lastGameTime: Long = 0L
         private set
 
     @JvmStatic
-    var gameTimeF = 0f
+    var gameTimeF: Float = 0f
         private set
 
     @JvmStatic
-    var gameTimeD = 0.0
+    var gameTimeD: Double = 0.0
         private set
 
     @JvmStatic
-    var frameIndex = 0
+    var frameIndex: Int = 0
         private set
 
     @JvmStatic
-    var shutdown = false
+    var shutdown: Boolean = false
         private set
 
     @JvmStatic

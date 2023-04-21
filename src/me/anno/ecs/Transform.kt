@@ -25,7 +25,7 @@ class Transform() : Saveable() {
         invalidateForChildren()
     }
 
-    var state = State.VALID
+    var state: State = State.VALID
         private set(value) {
             field = value
             if (field != State.VALID) {
@@ -38,31 +38,31 @@ class Transform() : Saveable() {
         else parent?.invalidateForChildren() // keep behaviour linear
     }
 
-    val needsUpdate get() = state != State.VALID
+    val needsUpdate: Boolean get() = state != State.VALID
 
     var entity: Entity? = null
     var parentEntity: Entity? = null
     val parent get() = (entity?.parentEntity ?: parentEntity)?.transform
 
-    var lastUpdateTime = 0L
-    var lastDrawTime = 0L
-    var lastUpdateDt = 0L
+    var lastUpdateTime: Long = 0L
+    var lastDrawTime: Long = 0L
+    var lastUpdateDt: Long = 0L
 
     /** transform relative to center of the world; all transforms combined from root to this node */
-    val globalTransform = Matrix4x3d()
+    val globalTransform: Matrix4x3d = Matrix4x3d()
 
     /** transform relative to parent */
-    val localTransform = Matrix4x3d()
+    val localTransform: Matrix4x3d = Matrix4x3d()
 
     /** smoothly interpolated transform; global */
-    private val drawTransform = Matrix4x3d()
+    private val drawTransform: Matrix4x3d = Matrix4x3d()
 
     /** smoothly interpolated transform from the previous frame; global */
-    private val drawnTransform = Matrix4x3d()
+    private val drawnTransform: Matrix4x3d = Matrix4x3d()
 
-    private val pos = Vector3d()
-    private val rot = Quaterniond()
-    private val sca = Vector3d(1.0)
+    private val pos: Vector3d = Vector3d()
+    private val rot: Quaterniond = Quaterniond()
+    private val sca: Vector3d = Vector3d(1.0)
 
     fun teleportUpdate(time: Long = Engine.gameTime) {
         validate()
@@ -429,7 +429,7 @@ class Transform() : Saveable() {
         writer.writeMatrix4x3d("local", localTransform)
     }
 
-    override val className get() = "ECSTransform"
+    override val className: String get() = "ECSTransform"
     override val approxSize get() = 1
 
     override fun isDefaultValue() = false

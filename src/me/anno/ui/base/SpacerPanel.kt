@@ -38,6 +38,6 @@ open class SpacerPanel(
         dst.sizeY = sizeY
     }
 
-    override val className get() = "SpacerPanel"
+    override val className: String get() = "SpacerPanel"
 
 }

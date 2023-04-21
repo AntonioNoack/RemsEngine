@@ -98,6 +98,6 @@ class CapsuleCollider : Collider() {
         dst.radius = radius
     }
 
-    override val className get() = "CapsuleCollider"
+    override val className: String get() = "CapsuleCollider"
 
 }

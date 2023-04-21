@@ -19,6 +19,7 @@ import me.anno.maths.paths.PathFindingAccelerator
 import me.anno.tests.TestWorld
 import me.anno.mesh.Shapes
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.LOGGER
 import org.apache.logging.log4j.LogManager
 import java.util.*
@@ -168,7 +169,7 @@ fun main() {
     LogManager.disableLogger("BlenderControlsAddon")
 
     // visualize results in 3d
-    testUI {
+    testUI3 {
 
         ECSRegistry.init()
 
@@ -242,7 +243,6 @@ fun main() {
         updateCubes()
 
         val view = SceneView(EditorState, PlayMode.EDITING, style)
-        view.setWeight2(1f)
 
         fun raycastPoint(): Node? {
             val maxDistance = 1e3
@@ -321,7 +321,7 @@ fun main() {
             }
         })*/
 
-        view.setWeight2(1f)
+        view
 
     }
 

@@ -34,7 +34,7 @@ open class ScrollPanelX(
 
     init {
         child += WrapAlign(AxisAlignment.MIN, alignY)
-        setWeight2(minWeight)
+        weight = minWeight
     }
 
     @NotSerializedProperty
@@ -184,6 +184,6 @@ open class ScrollPanelX(
         return clone
     }
 
-    override val className get() = "ScrollPanelX"
+    override val className: String get() = "ScrollPanelX"
 
 }

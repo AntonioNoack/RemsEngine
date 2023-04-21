@@ -269,7 +269,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         else super.readLong(name, value)
     }
 
-    override val className get() = "AnimTextPanel"
+    override val className: String get() = "AnimTextPanel"
 
     companion object {
 

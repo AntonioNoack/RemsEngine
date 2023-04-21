@@ -211,6 +211,6 @@ class SliderConstraint() : Constraint<com.bulletphysics.dynamics.constraintsolve
         dst.angularSoftness.set(angularSoftness)
     }
 
-    override val className get() = "SliderConstraint"
+    override val className: String get() = "SliderConstraint"
 
 }

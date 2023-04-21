@@ -19,13 +19,13 @@ import kotlin.math.sqrt
 
 class SDFDoor : SDF2DShape() {
 
-    private var params = Vector2f(1f, 2f)
+    private var params: Vector2f = Vector2f(1f, 2f)
         set(value) {
             field.set(value)
         }
 
     @Range(0.0, 1e38)
-    var halfExtendsX
+    var halfExtendsX: Float
         get() = params.x
         set(value) {
             if (params.x != value) {
@@ -36,7 +36,7 @@ class SDFDoor : SDF2DShape() {
         }
 
     @Range(0.0, 1e38)
-    var bottomExtends
+    var bottomExtends: Float
         get() = params.y * .5f
         set(value) {
             val v2 = value * 2f
@@ -99,7 +99,7 @@ class SDFDoor : SDF2DShape() {
         dst.params.set(params)
     }
 
-    override val className get() = "SDFDoor"
+    override val className: String get() = "SDFDoor"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

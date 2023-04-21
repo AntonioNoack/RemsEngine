@@ -35,6 +35,6 @@ class StateMachine : ControlFlowGraph() {
         return newState
     }
 
-    override val className get() = "StateMachine"
+    override val className: String get() = "StateMachine"
 
 }

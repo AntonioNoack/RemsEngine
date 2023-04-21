@@ -24,10 +24,10 @@ data class TextCacheKey(
 
     constructor(text: String, font: Font) : this(text, font, GFX.maxTextureSize, GFX.maxTextureSize)
 
-    fun fontSize() = getAvgFontSize(fontSizeIndex())
-    fun fontSizeIndex() = properties.shr(3)
-    fun isItalic() = properties.and(4) != 0
-    fun isBold() = properties.and(2) != 0
+    fun fontSize(): Float = getAvgFontSize(fontSizeIndex())
+    fun fontSizeIndex(): Int = properties.shr(3)
+    fun isItalic(): Boolean = properties.and(4) != 0
+    fun isBold(): Boolean = properties.and(2) != 0
 
     // fun isSize() = properties.and(1) != 0
     fun createFont() = Font(fontName, getAvgFontSize(fontSizeIndex()), isBold(), isItalic())

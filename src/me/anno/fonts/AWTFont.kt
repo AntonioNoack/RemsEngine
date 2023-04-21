@@ -50,7 +50,7 @@ class AWTFont(val font: Font) {
 
     private fun getStringWidth(group: TextGroup) = group.offsets.last() - group.offsets.first()
 
-    private fun getGroup(text: CharSequence) = TextGroup(this, text, 0.0)
+    private fun getGroup(text: CharSequence): TextGroup = TextGroup(this, text, 0.0)
 
     /**
      * like gfx.drawText, however this method is respecting the ideal character distances,

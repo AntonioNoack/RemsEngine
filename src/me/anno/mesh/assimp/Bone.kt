@@ -62,7 +62,7 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
         offsetVector.set(inverseBindPose.m30, inverseBindPose.m31, inverseBindPose.m32)
     }
 
-    override val className get() = "Bone"
+    override val className: String get() = "Bone"
     override val approxSize get() = 1
 
     override fun readInt(name: String, value: Int) {

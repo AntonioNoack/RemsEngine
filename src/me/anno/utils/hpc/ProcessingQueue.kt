@@ -2,6 +2,7 @@ package me.anno.utils.hpc
 
 import me.anno.Engine.shutdown
 import me.anno.utils.ShutdownException
+import me.anno.utils.Sleep
 import me.anno.utils.Sleep.sleepShortly
 import org.apache.logging.log4j.LogManager
 import java.util.*
@@ -21,6 +22,11 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
     fun stop() {
         shouldStop = true
         hasBeenStarted = false
+    }
+
+    fun stopAndWait(canBeKilled: Boolean) {
+        Sleep.waitUntil(canBeKilled) { tasks.isEmpty() }
+        stop()
     }
 
     open fun start(name: String = this.name, force: Boolean = false) {

@@ -19,21 +19,21 @@ import kotlin.math.sqrt
 
 open class SDFTriangle : SDFShape() {
 
-    var a = Vector3f(1f, 0f, 0f)
+    var a: Vector3f = Vector3f(1f, 0f, 0f)
         set(value) {
             if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
 
-    var b = Vector3f(0f, 1f, 0f)
+    var b: Vector3f = Vector3f(0f, 1f, 0f)
         set(value) {
             if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
 
-    var c = Vector3f(0f, 0f, 1f)
+    var c: Vector3f = Vector3f(0f, 0f, 1f)
         set(value) {
             if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
@@ -140,7 +140,7 @@ open class SDFTriangle : SDFShape() {
         dst.c.set(c)
     }
 
-    override val className get() = "SDFTriangle"
+    override val className: String get() = "SDFTriangle"
 
     companion object {
         // https://iquilezles.org/www/articles/distfunctions/distfunctions.htm

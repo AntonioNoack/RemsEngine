@@ -20,6 +20,6 @@ open class LocalPlayer : Player() {
 
     }
 
-    override val className get() = "LocalPlayer"
+    override val className: String get() = "LocalPlayer"
 
 }

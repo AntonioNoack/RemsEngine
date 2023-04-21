@@ -31,7 +31,7 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
         dst.mode = mode
     }
 
-    override val className get() = "ColorBlindnessEffect"
+    override val className: String get() = "ColorBlindnessEffect"
 
     companion object {
 

@@ -62,6 +62,6 @@ class PointConstraint : Constraint<Point2PointConstraint>() {
         dst.tau = tau
     }
 
-    override val className get() = "PointConstraint"
+    override val className: String get() = "PointConstraint"
 
 }

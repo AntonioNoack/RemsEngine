@@ -73,6 +73,6 @@ class RectCollider : Collider2d() {
         dst.halfExtends.set(halfExtends)
     }
 
-    override val className get() = "RectCollider"
+    override val className: String get() = "RectCollider"
 
 }

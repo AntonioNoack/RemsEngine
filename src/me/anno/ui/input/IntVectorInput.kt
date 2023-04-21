@@ -105,7 +105,8 @@ open class IntVectorInput(
         val component = createComponent()
         component.inputPanel.tooltip = title
         component.setChangeListener { onChange() }
-        valueList += component.setWeight2(1f)
+        component.weight = 1f
+        valueList += component
         valueFields += component
         return component
     }
@@ -280,6 +281,6 @@ open class IntVectorInput(
         dst.setValue(vx, vy, vz, vw, false)
     }
 
-    override val className get() = "IntVectorInput"
+    override val className: String get() = "IntVectorInput"
 
 }

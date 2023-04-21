@@ -97,7 +97,7 @@ open class SDFDeathStar : SDFShape() {
         dst.params.set(params)
     }
 
-    override val className get() = "SDFDeathStar"
+    override val className: String get() = "SDFDeathStar"
 
     companion object {
         // from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm, Inigo Quilez

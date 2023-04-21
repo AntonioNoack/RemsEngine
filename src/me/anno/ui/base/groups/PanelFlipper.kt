@@ -168,6 +168,6 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
         dst.rightBounce = rightBounce
     }
 
-    override val className get() = "PanelFlipper"
+    override val className: String get() = "PanelFlipper"
 
 }

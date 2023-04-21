@@ -62,7 +62,7 @@ class SDFBlob : SDFShape() {
         return l - 1.5f - vx * cos(min(sqrt(1.01f - b / l) * (PIf * 4f), PIf))
     }
 
-    override val className get() = "SDFBlob"
+    override val className: String get() = "SDFBlob"
 
     companion object {
 

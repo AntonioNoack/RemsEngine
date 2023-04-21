@@ -106,7 +106,7 @@ fun main() {
             // baseShape.copy(mesh)
         }
     } else {
-        TestStudio.testUI {
+        TestStudio.testUI3 {
             val relativeDetail = 0.1
             val detailFactor = sq(relativeDetail)
             val oldPosition = Vector3d()
@@ -171,7 +171,6 @@ fun main() {
             }
             EditorState.prefabSource = proceduralMesh.ref
             SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
-                .setWeight2(1f)
         }
     }
 

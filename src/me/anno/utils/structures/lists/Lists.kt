@@ -172,9 +172,6 @@ object Lists {
     }
 
     @JvmStatic
-    val <V> Sequence<V>.size get() = count { true }
-
-    @JvmStatic
     fun <V> List<V>.getOrPrevious(index: Int) = if (index > 0) this[index - 1] else this.getOrNull(0)
 
     // before I knew there was any()

@@ -58,6 +58,6 @@ class Texture3DBTv2Material : Material() {
         return other === this
     }
 
-    override val className get() = "Texture3DBTv2Material"
+    override val className: String get() = "Texture3DBTv2Material"
 
 }

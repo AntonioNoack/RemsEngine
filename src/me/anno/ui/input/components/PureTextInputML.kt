@@ -175,7 +175,7 @@ open class PureTextInputML(style: Style) :
         while (lines.size > children.size) {// add new TextInput panels
             val panel = object : CorrectingTextInput(style) {
 
-                override val className get() = "PureTextInputML/CorrectingTextInput"
+                override val className: String get() = "PureTextInputML/CorrectingTextInput"
 
                 override val effectiveTextColor: Int
                     get() = if (isInputAllowed && isEnabled) super.effectiveTextColor else
@@ -783,6 +783,6 @@ open class PureTextInputML(style: Style) :
         dst.focusTextColor = focusTextColor
     }
 
-    override val className get() = "PureTextInputML"
+    override val className: String get() = "PureTextInputML"
 
 }

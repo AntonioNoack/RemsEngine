@@ -142,6 +142,6 @@ open class TextButton(
         dst.isSquare = isSquare
     }
 
-    override val className get() = "TextButton"
+    override val className: String get() = "TextButton"
 
 }

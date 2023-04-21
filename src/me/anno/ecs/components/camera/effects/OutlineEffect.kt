@@ -99,7 +99,7 @@ class OutlineEffect : CameraEffect() {
         }
     }
 
-    override val className get() = "OutlineEffect"
+    override val className: String get() = "OutlineEffect"
 
     companion object {
 

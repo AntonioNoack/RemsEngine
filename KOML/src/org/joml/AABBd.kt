@@ -17,13 +17,10 @@ class AABBd(
         set(base)
     }
 
-    override fun toString() = "($minX,$minY,$minZ)-($maxX,$maxY,$maxZ)"
+    override fun toString(): String = "($minX,$minY,$minZ)-($maxX,$maxY,$maxZ)"
 
-    fun setMin(v: Vector3d) =
-        setMin(v.x, v.y, v.z)
-
-    fun setMax(v: Vector3d) =
-        setMax(v.x, v.y, v.z)
+    fun setMin(v: Vector3d): AABBd = setMin(v.x, v.y, v.z)
+    fun setMax(v: Vector3d): AABBd = setMax(v.x, v.y, v.z)
 
     fun setMin(x: Double, y: Double, z: Double): AABBd {
         minX = x
@@ -134,18 +131,18 @@ class AABBd(
     fun testRay(px: Double, py: Double, pz: Double, dx: Double, dy: Double, dz: Double) =
         isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz)
 
-    fun isEmpty() = minX > maxX
+    fun isEmpty(): Boolean = minX > maxX
 
-    fun avgX() = (minX + maxX) * 0.5
-    fun avgY() = (minY + maxY) * 0.5
-    fun avgZ() = (minZ + maxZ) * 0.5
+    fun avgX(): Double = (minX + maxX) * 0.5
+    fun avgY(): Double = (minY + maxY) * 0.5
+    fun avgZ(): Double = (minZ + maxZ) * 0.5
 
-    fun deltaX() = maxX - minX
-    fun deltaY() = maxY - minY
-    fun deltaZ() = maxZ - minZ
-    fun volume() = deltaX() * deltaY() * deltaZ()
+    fun deltaX(): Double = maxX - minX
+    fun deltaY(): Double = maxY - minY
+    fun deltaZ(): Double = maxZ - minZ
+    fun volume(): Double = deltaX() * deltaY() * deltaZ()
 
-    fun print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
+    fun print(): String = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
 
     fun getMin2(dst: Vector3d = Vector3d()): Vector3d = dst.set(minX, minY, minZ)
     fun getMax2(dst: Vector3d = Vector3d()): Vector3d = dst.set(maxX, maxY, maxZ)
@@ -386,7 +383,7 @@ class AABBd(
         rayOrigin: Vector3d,
         invRayDirection: Vector3d,
         maxDistance: Double = Double.POSITIVE_INFINITY
-    ) = isRayIntersecting(
+    ): Boolean = isRayIntersecting(
         rayOrigin.x, rayOrigin.y, rayOrigin.z,
         invRayDirection.x, invRayDirection.y, invRayDirection.z,
         maxDistance

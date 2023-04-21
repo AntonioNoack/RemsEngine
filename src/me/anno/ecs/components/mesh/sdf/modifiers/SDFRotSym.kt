@@ -3,11 +3,11 @@ package me.anno.ecs.components.mesh.sdf.modifiers
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
-import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.ecs.components.mesh.sdf.VariableCounter
 import me.anno.ecs.components.mesh.sdf.modifiers.SDFTwist.Companion.twistFunc
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.clamp
@@ -23,20 +23,20 @@ import kotlin.math.roundToInt
 
 class SDFRotSym : PositionMapper() {
 
-    var rotation = Quaternionf()
+    var rotation: Quaternionf = Quaternionf()
         set(value) {
             field.set(value)
             field.normalize()
             invalidateBounds()
         }
 
-    var slices = 1f
+    var slices: Float = 1f
         set(value) {
             field = value
             invalidateBounds()
         }
 
-    var offset = Vector3f()
+    var offset: Vector3f = Vector3f()
         set(value) {
             field.set(value)
             invalidateBounds()
@@ -129,7 +129,7 @@ class SDFRotSym : PositionMapper() {
         dst.slices = slices
     }
 
-    override val className get() = "SDFRotSym"
+    override val className: String get() = "SDFRotSym"
 
     companion object {
 

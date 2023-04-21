@@ -118,6 +118,6 @@ class DecalMaterial : Material() {
         }
     }
 
-    override val className get() = "DecalMaterial"
+    override val className: String get() = "DecalMaterial"
 
 }

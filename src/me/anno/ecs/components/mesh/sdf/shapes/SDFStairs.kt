@@ -17,7 +17,7 @@ import kotlin.math.sqrt
 
 class SDFStairs : SDF2DShape() {
 
-    var stepSizeCount = Vector3f(0.2f, 0.2f, 5f)
+    var stepSizeCount: Vector3f = Vector3f(0.2f, 0.2f, 5f)
         set(value) {
             if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
@@ -91,7 +91,7 @@ class SDFStairs : SDF2DShape() {
         dst.stepSizeCount.set(stepSizeCount)
     }
 
-    override val className get() = "SDFStairs"
+    override val className: String get() = "SDFStairs"
 
     companion object {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez

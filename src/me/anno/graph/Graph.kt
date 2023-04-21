@@ -61,7 +61,7 @@ open class Graph : PrefabSaveable() {
         return ((srcType == "Flow") == (dstType == "Flow"))
     }
 
-    override val className get() = "Graph"
+    override val className: String get() = "Graph"
     override val approxSize get() = 1000
     override fun isDefaultValue(): Boolean = false
 

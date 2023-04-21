@@ -133,6 +133,6 @@ class BooleanInput(
         dst.isChecked = isChecked
     }
 
-    override val className get() = "BooleanInput"
+    override val className: String get() = "BooleanInput"
 
 }

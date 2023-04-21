@@ -27,5 +27,5 @@ class ConsoleOutputLine(val list: PanelList, msg: String, style: Style) : TextPa
         onSelectAll(x, y)
     }
 
-    override val className get() = "ConsoleOutputLine"
+    override val className: String get() = "ConsoleOutputLine"
 }

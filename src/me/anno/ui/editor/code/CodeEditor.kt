@@ -670,7 +670,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     override fun isKeyInput(): Boolean = true
     override fun acceptsChar(char: Int): Boolean = true
 
-    override val className get() = "CodeEditor"
+    override val className: String get() = "CodeEditor"
 
     companion object {
 

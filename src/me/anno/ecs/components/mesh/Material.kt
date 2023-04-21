@@ -311,7 +311,7 @@ open class Material : PrefabSaveable(), Renderable {
         dst.clamping = clamping
     }
 
-    override val className get() = "Material"
+    override val className: String get() = "Material"
 
     companion object {
 

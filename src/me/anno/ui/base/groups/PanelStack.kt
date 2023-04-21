@@ -48,6 +48,6 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         return clone
     }
 
-    override val className get() = "PanelStack"
+    override val className: String get() = "PanelStack"
 
 }

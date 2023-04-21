@@ -28,6 +28,6 @@ class BloomEffect : ToneMappedEffect() {
         dst.offset = offset
     }
 
-    override val className get() = "BloomEffect"
+    override val className: String get() = "BloomEffect"
 
 }

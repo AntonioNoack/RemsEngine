@@ -26,7 +26,7 @@ class Skeleton : PrefabSaveable(), Renderable {
 
     @Type("Map<String, Animation/Reference>")
     @SerializedProperty
-    var animations = HashMap<String, FileReference>()
+    var animations: HashMap<String, FileReference> = HashMap()
 
     @NotSerializedProperty
     private var previewMesh: Mesh? = null
@@ -118,7 +118,7 @@ class Skeleton : PrefabSaveable(), Renderable {
         dst.bones = ArrayList(bones)
     }
 
-    override val className get() = "Skeleton"
+    override val className: String get() = "Skeleton"
 
     companion object {
 

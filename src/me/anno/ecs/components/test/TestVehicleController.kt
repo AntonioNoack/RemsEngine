@@ -71,6 +71,6 @@ class TestVehicleController : Component(), ControlReceiver {
         dst.smoothing = smoothing
     }
 
-    override val className get() = "TestVehicleController"
+    override val className: String get() = "TestVehicleController"
 
 }

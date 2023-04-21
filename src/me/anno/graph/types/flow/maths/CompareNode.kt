@@ -104,7 +104,7 @@ class CompareNode(type: String = "?") :
         else super.readInt(name, value)
     }
 
-    override val className get() = "CompareNode"
+    override val className: String get() = "CompareNode"
 
     companion object {
         val values2 = Mode.values()
