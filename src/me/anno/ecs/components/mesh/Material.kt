@@ -5,6 +5,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.CullMode
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -72,8 +73,8 @@ open class Material : PrefabSaveable(), Renderable {
     @Range(0.0, 1.0)
     var translucency = 0f
 
-    // todo instead back/front/both?
-    var isDoubleSided = false
+    var cullMode = CullMode.FRONT
+    val isDoubleSided get() = cullMode == CullMode.BOTH
 
     // base * map
     @Range(0.0, 100.0)
@@ -306,7 +307,7 @@ open class Material : PrefabSaveable(), Renderable {
         dst.clearCoatMetallic = clearCoatMetallic
         dst.shader = shader
         dst.pipelineStage = pipelineStage
-        dst.isDoubleSided = isDoubleSided
+        dst.cullMode = cullMode
         dst.linearFiltering = linearFiltering
         dst.clamping = clamping
     }

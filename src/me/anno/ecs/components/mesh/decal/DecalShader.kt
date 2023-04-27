@@ -5,9 +5,9 @@ import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ReverseDepth.depthToPosition
-import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
-import me.anno.gpu.shader.ReverseDepth.rawToDepth
+import me.anno.gpu.shader.DepthTransforms.depthToPosition
+import me.anno.gpu.shader.DepthTransforms.depthVars
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -34,7 +34,7 @@ class DecalShader(val layers: ArrayList<DeferredLayerType>) : ECSMeshShader("dec
         return listOf(
             // inputs
             ShaderStage(
-                "inputs", rawToDepthVars + sett.layers2.map { layer ->
+                "inputs", depthVars + sett.layers2.map { layer ->
                     Variable(GLSLType.S2D, layer.name + "_in0")
                 } + listOf(
                     Variable(GLSLType.S2D, "depth_in0"),

@@ -12,10 +12,10 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
-import me.anno.gpu.shader.ReverseDepth.depthToPosition
-import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
-import me.anno.gpu.shader.ReverseDepth.rawToDepth
+import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.depthToPosition
+import me.anno.gpu.shader.DepthTransforms.depthVars
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -33,7 +33,6 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import org.joml.Matrix4f
 import org.joml.Vector4f
-import kotlin.math.sin
 
 // https://lettier.github.io/3d-game-shaders-for-beginners/screen-space-reflection.html
 // https://github.com/lettier/3d-game-shaders-for-beginners/blob/master/demonstration/shaders/fragment/screen-space-reflection.frag
@@ -90,7 +89,7 @@ object ScreenSpaceReflections {
         functions.add(rawToDepth)
         functions.add(depthToPosition)
         functions.add(octNormalPacking)
-        variables.addAll(rawToDepthVars)
+        variables.addAll(depthVars)
 
         return Shader(
             "ss-reflections", coordsList, coordsVShader, uvList, variables, "" +

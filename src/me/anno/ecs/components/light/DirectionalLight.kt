@@ -6,6 +6,8 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.input.Input
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.mesh.Shapes
 import me.anno.utils.types.Matrices.set2
 import org.joml.*
@@ -35,21 +37,25 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     override fun updateShadowMap(
         cascadeScale: Double,
         worldScale: Double,
-        cameraMatrix: Matrix4f,
+        dstCameraMatrix: Matrix4f,
+        dstCameraPosition: Vector3d,
+        dstCameraDirection: Vector3d,
         drawTransform: Matrix4x3d,
         pipeline: Pipeline,
         resolution: Int,
         position: Vector3d,
         rotation: Quaterniond
     ) {
-        cameraMatrix.set2(drawTransform).invert()
-        cameraMatrix.setTranslation(0f, 0f, 0f)
+        dstCameraMatrix.set2(drawTransform).invert()
+        dstCameraMatrix.setTranslation(0f, 0f, 0f)
         val sx = (1.0 / (cascadeScale * worldScale)).toFloat()
-        val sz = (1.0 / (worldScale)).toFloat()
+        val sz = (1.0 / (worldScale))
         // z must be mapped from [-1,1] to [0,1]
         // additionally it must be scaled to match the world size
-        cameraMatrix.scaleLocal(sx, sx, sz * 0.5f)
-        cameraMatrix.m32(0.5f)
+        dstCameraMatrix.scaleLocal(sx, sx, (sz * 0.5).toFloat())
+        dstCameraMatrix.m32(1f)
+        // offset camera position accordingly
+        dstCameraDirection.mulAdd(-sz, dstCameraPosition, dstCameraPosition)
         pipeline.frustum.defineOrthographic(drawTransform, resolution, position, rotation)
     }
 

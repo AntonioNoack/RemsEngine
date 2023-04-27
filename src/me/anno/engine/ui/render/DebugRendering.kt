@@ -55,15 +55,15 @@ object DebugRendering {
             if (texture is Texture2D && texture.isDestroyed) return
             when (texture) {
                 is CubemapTexture -> {
-                    DrawTextures.drawProjection(x, y, s * 3 / 2, s, texture, true, -1, false, isDepth)
+                    DrawTextures.drawProjection(x, y + h - s, s * 3 / 2, s, texture, true, -1, false, isDepth)
                 }
                 is ITexture2D -> {
                     if (Input.isShiftDown && light is PlanarReflection) {
                         DrawTextures.drawTexture(x, y + h, w, -h, texture, true, 0x33ffffff, null)
                     } else if (isDepth) {
-                        DrawTextures.drawDepthTexture(x, y + s, s, -s, texture)
+                        DrawTextures.drawDepthTexture(x, y + h, s, -s, texture)
                     } else {
-                        DrawTextures.drawTexture(x, y + s, s, -s, texture, true, -1, null)
+                        DrawTextures.drawTexture(x, y + h, s, -s, texture, true, -1, null)
                     }
                 }
             }

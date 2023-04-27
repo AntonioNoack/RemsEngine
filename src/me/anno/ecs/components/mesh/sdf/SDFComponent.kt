@@ -17,6 +17,7 @@ import me.anno.engine.raycast.Projection.projectRayToAABBFront
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.input.Input.setClipboardContent
@@ -28,7 +29,6 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes
-import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.structures.arrays.IntArrayList
@@ -270,6 +270,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
 
     override fun onUpdate(): Int {
         super.onUpdate()
+        if (shaderVersion == 0) generateShader()
         if (hasInvalidBounds) {
             hasInvalidBounds = false
             // recalculate bounds & recreate mesh
@@ -438,7 +439,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
     }
 
     override fun generateMesh(mesh: Mesh) {
-        updateMesh(mesh, true)
+        updateMesh(mesh, false)
     }
 
     fun updateMesh(mesh: Mesh, generateShader: Boolean) {
@@ -452,16 +453,24 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         )
         mesh.aabb.set(aabb)
         if (generateShader) {
-            shaderVersion++
-            val (overrides, shader) = SDFComposer.createECSShader(this)
-            material.shader = shader
-            material.shaderOverrides.clear()
-            material.shaderOverrides.putAll(overrides)
-            mesh.material = material.ref
+            generateShader()
         }
         mesh.inverseOutline = true
         mesh.invalidateGeometry()
         JomlPools.aabbf.sub(1)
+    }
+
+    fun generateShader() {
+        shaderVersion++
+        val (overrides, shader) = createShader()
+        material.shader = shader
+        material.shaderOverrides.clear()
+        material.shaderOverrides.putAll(overrides)
+        data.material = material.ref
+    }
+
+    open fun createShader(): Pair<Map<String, TypeValue>, BaseShader> {
+        return SDFComposer.createECSShader(this)
     }
 
     override fun getOptionsByType(type: Char) = when (type) {

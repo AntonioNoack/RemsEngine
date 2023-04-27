@@ -19,11 +19,11 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.texture.Texture2D
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.max
-import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
 import kotlin.math.pow
@@ -74,7 +74,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     ): Int {
         // todo if(entity == pipeline.sampleEntity) add floor/setup, so we can see the light
         pipeline.addLight(this, entity)
-        return clickId // not itself clickable
+        return super.fill(pipeline, entity, clickId)
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
@@ -100,8 +100,6 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     @NotSerializedProperty
     var shadowTextures: Array<IFramebuffer>? = null
 
-    var samples = 1
-
     var depthFunc = DepthMode.CLOSER
 
     fun ensureShadowBuffers() {
@@ -113,13 +111,11 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
             val shadowCascades = shadowTextures
             val targetSize = shadowMapCascades
             val resolution = shadowMapResolution
-            val samples = samples
-            if (shadowCascades == null ||
-                shadowCascades.size != targetSize ||
-                shadowCascades.first().samples != samples
+            if (shadowCascades == null || shadowCascades.size != targetSize ||
+                (shadowCascades.firstOrNull()?.depthTexture as? Texture2D)?.depthFunc != depthFunc
             ) {
-                if (shadowCascades != null) for (it in shadowCascades) {
-                    it.destroy()
+                if (shadowCascades != null) for (i in shadowCascades.indices) {
+                    shadowCascades[i].destroy()
                 }
                 // we currently use a depth bias of 0.005,
                 // which is equal to ~ 1/255,
@@ -128,7 +124,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 this.shadowTextures = Array(targetSize) {
                     if (isPointLight) {
                         CubemapFramebuffer(
-                            "ShadowCubemap[$it]", resolution, samples, 0,
+                            "ShadowCubemap[$it]", resolution, 1, 0,
                             false, depthBufferType
                         ).apply {
                             ensure()
@@ -136,7 +132,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                         }
                     } else {
                         Framebuffer(
-                            "Shadow[$it]", resolution, resolution, samples, 0,
+                            "Shadow[$it]", resolution, resolution, 1, 0,
                             false, depthBufferType
                         ).apply {
                             ensure()
@@ -171,7 +167,9 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     abstract fun updateShadowMap(
         cascadeScale: Double, worldScale: Double,
-        cameraMatrix: Matrix4f,
+        dstCameraMatrix: Matrix4f,
+        dstCameraPosition: Vector3d,
+        dstCameraDirection: Vector3d,
         drawTransform: Matrix4x3d, pipeline: Pipeline,
         resolution: Int, position: Vector3d, rotation: Quaterniond
     )
@@ -187,41 +185,43 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         val pipeline = pipeline
         pipeline.clear()
         val entity = entity!!
+        entity.validateTransform()
+
         val transform = entity.transform
         val drawTransform = transform.getDrawMatrix()
         val resolution = shadowMapResolution
         val global = transform.globalTransform
         val position = global.getTranslation(RenderState.cameraPosition)
-        val rotation = global.getUnnormalizedRotation(JomlPools.quat4d.create())
+        val rotation = global.getUnnormalizedRotation(RenderState.cameraRotation)
         val worldScale = SQRT3 / global.getScaleLength()
+        rotation.transform(RenderState.cameraDirection.set(0.0, 0.0, -1.0))
         RenderState.worldScale = worldScale
-        val cameraMatrix = RenderState.cameraMatrix
         val shadowTextures = shadowTextures
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
         val renderer = Renderer.nothingRenderer
-        val depthMode = DepthMode.CLOSER
-        for (i in 0 until shadowMapCascades) {
-            val cascadeScale = shadowMapPower.pow(-i.toDouble())
-            val texture = shadowTextures!![i]
-            updateShadowMap(
-                cascadeScale, worldScale,
-                cameraMatrix, drawTransform,
-                pipeline, resolution,
-                position, rotation
-            )
-            val root = entity.getRoot(Entity::class)
-            pipeline.fillDepth(root, position, worldScale)
-            GFXState.depthMode.use(depthMode) {
+        GFXState.depthMode.use(DepthMode.CLOSER) {
+            for (i in 0 until shadowMapCascades) {
+                val cascadeScale = shadowMapPower.pow(-i.toDouble())
+                val texture = shadowTextures!![i]
+                updateShadowMap(
+                    cascadeScale, worldScale,
+                    RenderState.cameraMatrix,
+                    RenderState.cameraPosition,
+                    RenderState.cameraDirection,
+                    drawTransform,
+                    pipeline, resolution,
+                    position, rotation
+                )
+                RenderState.calculateDirections()
+                val root = entity.getRoot(Entity::class)
+                pipeline.fillDepth(root, position, worldScale)
                 useFrame(resolution, resolution, true, texture, renderer) {
                     texture.clearDepth()
-                    pipeline.drawDepth()
+                    pipeline.defaultStage.drawColors(pipeline)
                 }
             }
         }
-
-        JomlPools.quat4d.sub(1)
-
     }
 
     /**
@@ -260,7 +260,11 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     companion object {
         @JvmStatic
         val pipeline by lazy {
-            Pipeline(DeferredSettingsV2(listOf(), 1, false))
+            Pipeline(DeferredSettingsV2(listOf(), 1, false)).apply {
+                defaultStage.maxNumberOfLights = 0
+                // all stages are the same
+                for (i in 0 until 15) stages.add(defaultStage)
+            }
         }
     }
 

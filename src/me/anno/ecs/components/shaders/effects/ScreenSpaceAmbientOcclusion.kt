@@ -11,10 +11,10 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
-import me.anno.gpu.shader.ReverseDepth.depthToPosition
-import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
-import me.anno.gpu.shader.ReverseDepth.rawToDepth
+import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.depthToPosition
+import me.anno.gpu.shader.DepthTransforms.depthVars
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
@@ -107,7 +107,7 @@ object ScreenSpaceAmbientOcclusion {
             Variable(GLSLType.S2D, "random4x4"),
             Variable(GLSLType.V1B, "normalZW"),
             Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT)
-        ) + rawToDepthVars, "" +
+        ) + depthVars, "" +
                 "float dot2(vec3 p){ return dot(p,p); }\n" +
                 quatRot +
                 rawToDepth + depthToPosition +

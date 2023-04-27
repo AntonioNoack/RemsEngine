@@ -10,6 +10,7 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.*
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
@@ -89,6 +90,8 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
     @NotSerializedProperty
     private var needsBoundsUpdate = true
+
+    var cullMode = CullMode.FRONT
 
     /**
      * call this function, when you have changed the geometry;
@@ -363,13 +366,13 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     }
 
     @NotSerializedProperty
-    private var buffer: StaticBuffer? = null
+    var buffer: StaticBuffer? = null
 
     @NotSerializedProperty
-    private var triBuffer: IndexBuffer? = null
+    var triBuffer: IndexBuffer? = null
 
     @NotSerializedProperty
-    private var lineBuffer: IndexBuffer? = null
+    var lineBuffer: IndexBuffer? = null
 
     @NotSerializedProperty
     var debugLineBuffer: IndexBuffer? = null

@@ -1,6 +1,5 @@
 package me.anno.ecs.components.light
 
-import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
@@ -19,9 +18,8 @@ class AmbientLight : LightComponentBase() {
         entity: Entity,
         clickId: Int
     ): Int {
-        lastDrawn = Engine.gameTime
         pipeline.ambient.add(color)
-        return clickId // not itself clickable
+        return super.fill(pipeline, entity, clickId)
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
+import me.anno.gpu.CullMode
 import me.anno.io.Streams.read0String
 import me.anno.io.Streams.readDoubleLE
 import me.anno.io.Streams.readFloatLE
@@ -271,7 +272,7 @@ object MitsubaReader {
                 val material = Material()
 
                 if (node["type"] == "twosided") {
-                    material.isDoubleSided = true
+                    material.cullMode = CullMode.BOTH
                 }
 
                 val type = self["type"]

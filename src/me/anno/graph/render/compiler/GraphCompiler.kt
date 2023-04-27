@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ReverseDepth.rawToDepth
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.octNormalPacking

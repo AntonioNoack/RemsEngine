@@ -135,7 +135,7 @@ class MainStage {
                 code.append("}\n")
             } else {
                 code.append("(int index, vec2 uv, float depth){\n")
-                code.append("float bias = 0.001;\n")
+                code.append("float bias = 0.005;\n")
                 code.append("vec3 uvw = vec3(uv*.5+.5,depth+bias);\n")
                 code.append("ivec2 size;float sum,du;\n")
                 if (isMoreThanOne) code.append("switch(index){\n")
@@ -152,7 +152,7 @@ class MainStage {
                                 "       sum += texture($nameIndex, uvw+du*vec3(i,j,0.0));\n" +
                                 "   }\n" +
                                 "}\n" +
-                                "return sum * 0.04;\n"
+                                "return 1.0 - sum * 0.04;\n"
                     )
                 }
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")

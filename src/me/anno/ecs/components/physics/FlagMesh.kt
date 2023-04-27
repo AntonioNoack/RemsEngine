@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.Framebuffer
@@ -55,7 +56,7 @@ class FlagMesh : MeshComponent() {
     val material = Material()
 
     init {
-        material.isDoubleSided = true
+        material.cullMode = CullMode.BOTH
         material.clamping = Clamping.CLAMP
         material.translucency = 0.7f
         material.shader = shader

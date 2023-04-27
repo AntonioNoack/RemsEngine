@@ -10,8 +10,8 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ReverseDepth.rawToDepth
-import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
+import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -119,7 +119,7 @@ class DepthOfFieldEffect : CameraEffect() {
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
-            ) + rawToDepthVars, "" +
+            ) + depthVars, "" +
                     rawToDepth +
                     coc +
                     "void main() {\n" +
@@ -142,7 +142,7 @@ class DepthOfFieldEffect : CameraEffect() {
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.S2D, "cocTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
-            ) + rawToDepthVars, "" +
+            ) + depthVars, "" +
                     quatRot +
                     rawToDepth +
                     coc +

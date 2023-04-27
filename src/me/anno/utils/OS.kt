@@ -5,7 +5,6 @@ import me.anno.utils.process.BetterProcessBuilder
 import me.anno.utils.types.Ints.toIntOrDefault
 import java.lang.management.ManagementFactory
 import java.util.*
-import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.concurrent.thread
 
 /**
@@ -17,16 +16,22 @@ object OS {
 
     @JvmField
     val data: String? = System.getProperty("os.name")
+
     @JvmField
     var isWindows = data != null && data.contains("windows", true)
+
     @JvmField
     var isWeb = data == "Linux Web"
+
     @JvmField
     var isLinux = !isWindows && !isWeb // ^^
+
     @JvmField
     var isMacOS = false // ^^
+
     @JvmField
     var isIPhoneOS = false // ^^
+
     @JvmField
     var isIPadOS = false // ^^
 
@@ -38,16 +43,22 @@ object OS {
 
     @JvmStatic
     val home by lazy { getReference(System.getProperty("user.home")) }
+
     @JvmStatic
     val downloads by lazy { getReference(home, "Downloads") }
+
     @JvmStatic
     val desktop by lazy { getReference(home, "Desktop") }
+
     @JvmStatic
     val documents by lazy { getReference(home, "Documents") }
+
     @JvmStatic
     val pictures by lazy { getReference(home, "Pictures") }
+
     @JvmStatic
     val videos by lazy { getReference(home, "Videos") }
+
     @JvmStatic
     val music by lazy { getReference(home, "Music") }
 

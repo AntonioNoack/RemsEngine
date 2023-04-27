@@ -15,9 +15,6 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -130,6 +127,7 @@ class PlanarReflection : LightComponentBase() {
         RenderState.cameraMatrix.set(cameraMatrix1)
         RenderState.cameraPosition.set(reflectedCameraPosition)
         RenderState.cameraDirection.reflect(mirrorNormal) // for sorting
+        RenderState.calculateDirections()
 
         // todo cut frustum into local area by bounding box
 

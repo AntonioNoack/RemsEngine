@@ -55,7 +55,9 @@ class PointLight : LightComponent(LightType.POINT) {
     override fun updateShadowMap(
         cascadeScale: Double,
         worldScale: Double,
-        cameraMatrix: Matrix4f,
+        dstCameraMatrix: Matrix4f,
+        dstCameraPosition: Vector3d,
+        dstCameraDirection: Vector3d,
         drawTransform: Matrix4x3d,
         pipeline: Pipeline,
         resolution: Int,

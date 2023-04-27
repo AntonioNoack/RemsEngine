@@ -9,6 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.debug.DebugShapes.debugTexts
 import me.anno.engine.debug.DebugText
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.CullMode
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3d
@@ -19,7 +20,7 @@ private fun createMesh(color: Int): Mesh {
     val material = Material()
     material.diffuseBase.set(0f, 0f, 0f, 1f)
     material.emissiveBase.set(color.toVecRGB().mul(3f))
-    material.isDoubleSided = true
+    material.cullMode = CullMode.BOTH
     mesh.material = material.ref
     return mesh
 }

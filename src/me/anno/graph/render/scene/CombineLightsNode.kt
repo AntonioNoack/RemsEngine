@@ -13,7 +13,7 @@ import me.anno.gpu.pipeline.LightShaders.combineLighting1
 import me.anno.gpu.pipeline.LightShaders.combineVStage
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
+import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -86,7 +86,7 @@ class CombineLightsNode : RenderSceneNode0(
                         listOf(
                             Variable(GLSLType.V2F, "uv"),
                             Variable(GLSLType.V4F, "result", VariableMode.OUT)
-                        ) + rawToDepthVars
+                        ) + depthVars
                 val builder = ShaderBuilder(name)
                 builder.addVertex(combineVStage)
                 builder.addFragment(ShaderStage(variables, expressions).add(extraFunctions.toString()))

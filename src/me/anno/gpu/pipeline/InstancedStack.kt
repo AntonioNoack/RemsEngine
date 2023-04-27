@@ -4,10 +4,10 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.animated
+import me.anno.gpu.GFXState.cullMode
 import me.anno.gpu.M4x3Delta
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBuffer
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferA
@@ -224,11 +224,9 @@ open class InstancedStack {
                     val t5 = System.nanoTime()
                     st45 += t5 - t4
 
-                    if (material.isDoubleSided) {
-                        GFXState.cullMode.use(CullMode.BOTH) {
-                            mesh.drawInstanced(shader, materialIndex, buffer)
-                        }
-                    } else mesh.drawInstanced(shader, materialIndex, buffer)
+                    cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
+                        mesh.drawInstanced(shader, materialIndex, buffer)
+                    }
                     drawCalls++
 
                     val t6 = System.nanoTime()
@@ -273,7 +271,7 @@ open class InstancedStack {
                 for ((mesh, list) in values) {
                     for ((material, values) in list) {
                         if (values.isNotEmpty()) {
-                            GFXState.cullMode.use(if (material.isDoubleSided) CullMode.BOTH else stage.cullMode) {
+                            cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
                                 drawCalls += Companion.draw(
                                     mesh, material, 0,
                                     pipeline, stage, needsLightUpdateForEveryMesh,

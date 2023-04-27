@@ -19,7 +19,7 @@ import me.anno.gpu.pipeline.LightShaders.lightInstanceBuffer
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShader
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShaderInstanced
 import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
-import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering

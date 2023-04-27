@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.engine.ECSRegistry
+import me.anno.gpu.CullMode
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.image.ImageCPUCache
@@ -181,7 +182,7 @@ object UnityReader {
     private fun readMaterial(node: YAMLNode, guid: String, prefab: Prefab, project: UnityProject) {
         val propertyMap = node["SavedProperties"]
         val isDoubleSided = node["DoubleSidedGI"]?.value != "0"
-        if (isDoubleSided) prefab.setProperty("isDoubleSided", true)
+        if (isDoubleSided) prefab.setProperty("cullMode", CullMode.BOTH)
         if (propertyMap != null) {
             val floats = propertyMap["Floats"]
             if (floats != null) {

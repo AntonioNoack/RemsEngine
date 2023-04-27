@@ -123,11 +123,9 @@ class InstancedStackI32(capacity: Int = 512) :
                 buffer.isUpToDate = false
                 buffer.ensureBufferWithoutResize()
                 // slightly optimized over PSR ^^, ~ 8-fold throughput
-                if (material.isDoubleSided) {
-                    GFXState.cullMode.use(CullMode.BOTH) {
-                        mesh.drawInstanced(shader, 0, buffer)
-                    }
-                } else mesh.drawInstanced(shader, 0, buffer)
+                GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
+                    mesh.drawInstanced(shader, 0, buffer)
+                }
                 drawCalls++
                 baseIndex = endIndex
 

@@ -14,9 +14,9 @@ import me.anno.gpu.pipeline.LightShaders.vertexI
 import me.anno.gpu.pipeline.LightShaders.vertexNI
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.ReverseDepth.depthToPosition
-import me.anno.gpu.shader.ReverseDepth.rawToDepth
-import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
+import me.anno.gpu.shader.DepthTransforms.depthToPosition
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
+import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -108,7 +108,7 @@ class RenderLightsNode : RenderSceneNode0(
                             Variable(GLSLType.V2F, "uv"),
                             Variable(GLSLType.V1F, "finalDepth"),
                             Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
-                        ) + rawToDepthVars,
+                        ) + depthVars,
                         "finalPosition = depthToPosition(uv,finalDepth);\n"
                     ).add(rawToDepth).add(depthToPosition)
                 )

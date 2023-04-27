@@ -1,6 +1,8 @@
 package me.anno.mesh
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.gpu.CullMode
+import me.anno.gpu.GFX
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.sign
@@ -78,28 +80,25 @@ object Shapes {
             front.positions = positions
             front.indices = indices
             front.normals = normals
-            back.positions = FloatArray(positions.size) { -positions[it] }
+            front.cullMode = CullMode.FRONT
+            back.positions = positions
             back.indices = indices
-            back.normals = if (normals != null) scale(normals, -1f) else null
-            val vertexCount = positions.size / 3
-            val bothIndices = if (indices != null) {
-                val bi = IntArray(indices.size * 2)
-                for (i in indices.indices) {
-                    val ii = indices[i]
-                    bi[i] = ii
-                    bi[i + indices.size] = ii + vertexCount
-                }
-                bi
-            } else null
-            val bothPositions = FloatArray(positions.size * 2)
-            for (i in positions.indices) {
-                val pi = positions[i]
-                bothPositions[i] = pi
-                bothPositions[i + positions.size] = -pi
+            back.normals = normals
+            back.cullMode = CullMode.BACK
+            both.positions = positions
+            both.indices = indices
+            both.normals = normals
+            both.cullMode = CullMode.BOTH
+            // save us a few allocations
+            if (GFX.isGFXThread()) {
+                front.ensureBuffer()
+                back.buffer = front.buffer
+                back.lineBuffer = front.lineBuffer
+                back.triBuffer = front.triBuffer
+                both.buffer = front.buffer
+                both.lineBuffer = front.lineBuffer
+                both.triBuffer = front.triBuffer
             }
-            both.positions = bothPositions
-            both.indices = bothIndices
-            both.normals = if (normals != null) normals + back.normals!! else null
         }
 
         fun withUVs(): FBBMesh {

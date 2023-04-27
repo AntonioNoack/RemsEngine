@@ -7,7 +7,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ReverseDepth
+import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
@@ -59,7 +59,7 @@ interface ExpressionRenderer {
                     defineLocalVars(builder)
                     val variables = typeValues.map { (k, v) -> Variable(v.type, k) } +
                             listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT)) +
-                            ReverseDepth.rawToDepthVars
+                            DepthTransforms.depthVars
                     shader = Shader(
                         "ExpressionRenderer", ShaderLib.coordsList, ShaderLib.coordsVShader,
                         ShaderLib.uvList, variables, extraFunctions.toString() +
@@ -119,7 +119,7 @@ interface ExpressionRenderer {
         GFXState.useFrame(w, h, true, buffer) {
             GFXState.renderPurely {
                 shader.use()
-                ReverseDepth.bindDepthToPosition(shader)
+                DepthTransforms.bindDepthToPosition(shader)
                 val tv = typeValues
                 if (tv != null) {
                     for ((k, v) in tv) {

@@ -613,11 +613,7 @@ class PipelineStage(
                     if (component is MeshComponentBase) component.randomTriangleId else 0
                 )
 
-                if (material.isDoubleSided) {
-                    GFXState.cullMode.use(CullMode.BOTH) {
-                        mesh.draw(shader, materialIndex)
-                    }
-                } else {
+                GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
                     mesh.draw(shader, materialIndex)
                 }
 
@@ -705,6 +701,7 @@ class PipelineStage(
         initShader(shader, pipeline)
 
         // draw non-instanced meshes
+        val cullMode = cullMode
         for (index in 0 until nextInsertIndex) {
 
             val request = drawRequests[index]
@@ -739,11 +736,7 @@ class PipelineStage(
             shaderColor(shader, "tint", -1)
             shader.v1i("hasVertexColors", mesh.hasVertexColors)
 
-            if (material.isDoubleSided) {
-                GFXState.cullMode.use(CullMode.BOTH) {
-                    mesh.drawDepth(shader)
-                }
-            } else {
+            GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
                 mesh.drawDepth(shader)
             }
 

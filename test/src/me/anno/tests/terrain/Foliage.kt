@@ -14,6 +14,7 @@ import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.*
+import me.anno.gpu.CullMode
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
@@ -270,12 +271,12 @@ fun main() {
 
         val grassTranslucency = 0.9f
         mesh0.material = Material().apply {
-            isDoubleSided = true
+            cullMode = CullMode.BOTH
             translucency = grassTranslucency
             shader = FoliageShader(maxDensity, terrainTexture, densitySource, emptyList(), mesh0, sv0.renderer)
         }.ref
         mesh1.material = Material().apply {
-            isDoubleSided = true
+            cullMode = CullMode.BOTH
             translucency = grassTranslucency
             shader = FoliageShader(maxDensity, terrainTexture, densitySource, listOf(mesh0), mesh1, sv0.renderer)
         }.ref

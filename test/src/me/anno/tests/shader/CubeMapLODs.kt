@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.CullMode
 import me.anno.utils.OS.documents
 
 fun main() {
@@ -14,7 +15,7 @@ fun main() {
     val scene = Entity()
     val mesh = MeshComponent(documents.getChild("MetallicSphere.glb"))
     mesh.materials = listOf(Material().apply {
-        isDoubleSided = true
+        cullMode = CullMode.BOTH
         metallicMinMax.set(1f)
         roughnessMinMax.set(0.5f)
     }.ref)

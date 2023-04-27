@@ -3,7 +3,6 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.StaticBuffer
@@ -83,11 +82,9 @@ class InstancedStackStatic(capacity: Int = 512) :
                         GFX.check()
 
                         shader.v4f("clickId", stack.clickIds[i])
-                        if (material.isDoubleSided) {
-                            GFXState.cullMode.use(CullMode.BOTH) {
-                                mesh.drawInstanced(shader, 0, stack.data[i])
-                            }
-                        } else mesh.drawInstanced(shader, 0, stack.data[i])
+                        GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
+                            mesh.drawInstanced(shader, 0, stack.data[i])
+                        }
                         drawnPrimitives += mesh.numPrimitives * stack.data[i].elementCount.toLong()
                         drawCalls++
 

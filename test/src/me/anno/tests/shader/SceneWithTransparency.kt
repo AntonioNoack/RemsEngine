@@ -61,17 +61,17 @@ fun main() {
                         "Piano_vetro", "sanjiaodisikeqiu_t", "08___Default_1001", "DefaultMaterial",
                         "glass", "material_0", "coat", "WINDSHIELD", "Material.003" -> {
                             material.pipelineStage = 1
-                            material.isDoubleSided = true
+                            material.cullMode = CullMode.BOTH
                             material.diffuseBase.w = 0.9f
                             material.metallicMinMax.y = 1f
                         }
                         "930_lights" -> {
                             material.pipelineStage = 1
-                            material.isDoubleSided = true
+                            material.cullMode = CullMode.BOTH
                             material.diffuseBase.w = 0.2f
                         }
                         "930_plastics" -> {
-                            material.isDoubleSided = true
+                            material.cullMode = CullMode.BOTH
                         }
                     }
                 }

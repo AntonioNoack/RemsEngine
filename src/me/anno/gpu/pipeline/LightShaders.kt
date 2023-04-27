@@ -16,10 +16,10 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
-import me.anno.gpu.shader.ReverseDepth.depthToPosition
-import me.anno.gpu.shader.ReverseDepth.rawToDepth
-import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
+import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.depthToPosition
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
+import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
@@ -274,7 +274,7 @@ object LightShaders {
                 Variable(GLSLType.V1F, "finalTranslucency"),
                 Variable(GLSLType.M4x3, "camSpaceToLightSpace"), // invLightMatrices[i]
                 Variable(GLSLType.V4F, "light", VariableMode.OUT)
-            ) + rawToDepthVars, "" +
+            ) + depthVars, "" +
                     // light calculation including shadows if !instanced
                     "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
                     "bool hasSpecular = finalMetallic > 0.0;\n" +
@@ -405,7 +405,7 @@ object LightShaders {
                 }
             }
             deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }
-            deferredInputs += rawToDepthVars
+            deferredInputs += depthVars
             builder.addFragment(
                 ShaderStage("deferred", deferredInputs, deferredCode.toString())
                     .add(rawToDepth)

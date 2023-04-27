@@ -7,7 +7,7 @@ import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.hasFlag

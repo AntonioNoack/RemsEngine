@@ -1,20 +1,23 @@
 package me.anno.ecs.components.mesh.sdf
 
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.mesh.TypeValueV2
-import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.appendUniform
 import me.anno.ecs.components.mesh.sdf.SDFComponent.Companion.defineUniform
 import me.anno.ecs.components.mesh.sdf.random.SDFRandomUV
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.ecs.components.mesh.sdf.shapes.SDFShape
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.ECSMeshShader.Companion.discardByCullingPlane
 import me.anno.engine.ui.render.RenderState
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.*
+import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.depthToPosition
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -77,6 +80,65 @@ object SDFComposer {
             "   return normalize(n);\n" +
             "}\n"
 
+    fun localCamPos(tree: SDFComponent, dst: Vector3f): Vector3f {
+        val dt = tree.transform?.getDrawMatrix()
+        if (dt != null) {
+            val pos = JomlPools.vec3d.create()
+            val dtInverse = JomlPools.mat4x3d.create()
+            dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
+            dtInverse.transformPosition(RenderState.cameraPosition, pos)
+            dst.set(pos)
+            JomlPools.vec3d.sub(1)
+            JomlPools.mat4x3d.sub(1)
+        }
+        return dst
+    }
+
+    fun localCamDir(tree: SDFComponent, dst: Vector3f): Vector3f {
+        if (RenderState.isPerspective) {
+            val dt = tree.transform?.getDrawMatrix()
+            if (dt != null) {
+                val pos = JomlPools.vec3d.create()
+                val dtInverse = JomlPools.mat4x3d.create()
+                dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
+                dtInverse.transformDirection(RenderState.cameraDirection, pos)
+                dst.set(pos).normalize()
+                JomlPools.vec3d.sub(1)
+                JomlPools.mat4x3d.sub(1)
+            }
+        }
+        return dst
+    }
+
+    fun distanceBounds(tree: SDFComponent, dst: Vector2f): Vector2f {
+        // find maximum in local space from current point to bounding box
+        // best within frustum
+        val dt = tree.transform?.getDrawMatrix()
+        if (dt != null) {
+            // compute first and second intersection with aabb
+            // transform camera position into local space
+            val localPos = JomlPools.vec3d.create()
+            val dtInverse = JomlPools.mat4x3d.create()
+            dt.invert(dtInverse)
+            dtInverse.transformPosition(RenderState.cameraPosition, localPos)
+            val bounds = tree.localAABB
+            val dx = (localPos.x - bounds.avgX()).toFloat()
+            val dy = (localPos.y - bounds.avgY()).toFloat()
+            val dz = (localPos.z - bounds.avgZ()).toFloat()
+            val bdx = bounds.deltaX().toFloat()
+            val bdy = bounds.deltaY().toFloat()
+            val bdz = bounds.deltaZ().toFloat()
+            val min = sdBox(dx, dy, dz, bdx * 0.5f, bdy * 0.5f, bdz * 0.5f)
+            val max = min + length(bdx, bdy, bdz) // to do max could be calculated more accurately
+            tree.camNear = min
+            tree.camFar = max
+            dst.set(max(0f, min), max)
+            JomlPools.vec3d.sub(1)
+            JomlPools.mat4x3d.sub(1)
+        }
+        return dst
+    }
+
     fun createECSShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, ECSMeshShader> {
         // done compute approximate bounds on cpu, so we can save computations
         // done traverse with larger step size on normals? normals don't use traversal
@@ -86,129 +148,60 @@ object SDFComposer {
         val shapeDependentShader = StringBuilder()
         val seeds = ArrayList<String>()
         tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions, seeds)
-        uniforms["localCamPos"] = TypeValueV3(GLSLType.V3F, Vector3f()) { dst ->
-            val dt = tree.transform?.getDrawMatrix()
-            if (dt != null) {
-                val pos = JomlPools.vec3d.create()
-                val dtInverse = JomlPools.mat4x3d.create()
-                dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
-                dtInverse.transformPosition(RenderState.cameraPosition, pos)
-                dst.set(pos)
-                JomlPools.vec3d.sub(1)
-                JomlPools.mat4x3d.sub(1)
-            }
-        }
-        uniforms["localCamDir"] = TypeValueV3(GLSLType.V3F, Vector3f()) { dst ->
-            if (RenderState.isPerspective) {
-                val dt = tree.transform?.getDrawMatrix()
-                if (dt != null) {
-                    val pos = JomlPools.vec3d.create()
-                    val dtInverse = JomlPools.mat4x3d.create()
-                    dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
-                    dtInverse.transformDirection(RenderState.cameraDirection, pos)
-                    dst.set(pos).normalize()
-                    JomlPools.vec3d.sub(1)
-                    JomlPools.mat4x3d.sub(1)
-                }
-            }
-        }
-        uniforms["sdfReliability"] = TypeValueV2(GLSLType.V1F) { tree.globalReliability }
-        uniforms["sdfNormalEpsilon"] = TypeValue(GLSLType.V1F) { tree.normalEpsilon }
-        uniforms["sdfMaxRelativeError"] = TypeValueV2(GLSLType.V1F) { tree.maxRelativeError }
-        uniforms["maxSteps"] = TypeValueV2(GLSLType.V1I) { tree.maxSteps }
-        uniforms["distanceBounds"] = TypeValueV3(GLSLType.V2F, Vector2f()) {
-            // find maximum in local space from current point to bounding box
-            // best within frustum
-            val dt = tree.transform?.getDrawMatrix()
-            if (dt != null) {
-                // compute first and second intersection with aabb
-                // transform camera position into local space
-                val pos = JomlPools.vec3d.create()
-                val dtInverse = JomlPools.mat4x3d.create()
-                dt.invert(dtInverse)
-                dtInverse.transformPosition(RenderState.cameraPosition, pos)
-                // val dir = RenderState.camDirection
-                val bounds = tree.localAABB
-                val dx = (pos.x - bounds.avgX()).toFloat()
-                val dy = (pos.y - bounds.avgY()).toFloat()
-                val dz = (pos.z - bounds.avgZ()).toFloat()
-                val bdx = bounds.deltaX().toFloat()
-                val bdy = bounds.deltaY().toFloat()
-                val bdz = bounds.deltaZ().toFloat()
-                val min = sdBox(dx, dy, dz, bdx * 0.5f, bdy * 0.5f, bdz * 0.5f)
-                val max = min + length(bdx, bdy, bdz)
-                tree.camNear = min
-                tree.camFar = max
-                it.set(max(0f, min), max)
-                JomlPools.vec3d.sub(1)
-                JomlPools.mat4x3d.sub(1)
-            }
-        }
-        uniforms["localMin"] = TypeValueV3(GLSLType.V3F, Vector3f()) {
-            val b = tree.localAABB
-            it.set(b.minX, b.minY, b.minZ)
-        }
-        uniforms["localMax"] = TypeValueV3(GLSLType.V3F, Vector3f()) {
-            val b = tree.localAABB
-            it.set(b.maxX, b.maxY, b.maxZ)
-        }
-        uniforms["perspectiveCamera"] = TypeValue(GLSLType.V1B) { RenderState.isPerspective }
-        uniforms["debugMode"] = TypeValue(GLSLType.V1I) { tree.debugMode.id }
-        uniforms["renderIds"] = TypeValue(GLSLType.V1B) { GFXState.currentRenderer == Renderer.idRenderer }
 
         val materials = tree.sdfMaterials.map { MaterialCache[it] }
-        val builder = StringBuilder(max(1, materials.size) * 128)
-
-        val needsSwitch = materials.size > 1
-        if (needsSwitch) builder
-            .append("switch(clamp(int(ray.y),0,")
-            .append(materials.lastIndex)
-            .append(")){\n")
-
-        // register all materials that use textures
-        val materialsUsingTextures = BitSet(materials.size)
-        if (materials.isNotEmpty()) {
-            tree.simpleTraversal(false) {
-                if (it is SDFComponent && it.positionMappers.any { pm -> pm is SDFRandomUV }) {
-                    it.simpleTraversal(false) { c ->
-                        if (c is SDFShape) {
-                            if (c.materialId < materialsUsingTextures.size())
-                                materialsUsingTextures.set(c.materialId)
-                        }
-                        false
-                    }
-                }
-                false
-            }
-        }
-
-        for (index in 0 until max(materials.size, 1)) {
-            if (needsSwitch) builder.append("case ").append(index).append(": {\n")
-            val material = materials.getOrNull(index) ?: defaultMaterial
-            // todo support shading functions, textures and material interpolation
-            // define all properties as uniforms, so they can be changed without recompilation
-            // todo this is pretty limited by the total number of textures :/
-            val canUseTextures = materialsUsingTextures[index]
-            val color = defineUniform(uniforms, material.diffuseBase)
-            if (canUseTextures && material.diffuseMap.exists) {
-                builder.append("vec4 color = texture(")
-                    .append(defineUniform(uniforms, GLSLType.S2D) { material.diffuseMap })
-                    .append(",finalUV) * ").append(color).append(";\n")
-                builder.append("finalColor = color.rgb;\n")
-                builder.append("finalAlpha = color.w;\n")
-            } else {
-                builder.append("finalColor = ").append(color).append(".rgb;\n")
-                builder.append("finalAlpha = ").append(color).append(".w;\n")
-            }
-            // todo create textures for these
-            builder.append("finalMetallic = ").appendUniform(uniforms, material.metallicMinMax).append(".y;\n")
-            builder.append("finalRoughness = ").appendUniform(uniforms, material.roughnessMinMax).append(".y;\n")
-            builder.append("finalEmissive = ").appendUniform(uniforms, material.emissiveBase).append(";\n")
-            if (needsSwitch) builder.append("break; }\n")
-        }
-        if (needsSwitch) builder.append("}\n")
+        val materialCode = buildMaterialCode(tree, materials, uniforms)
 
         val shader = object : ECSMeshShader("raycasting-${tree.hashCode()}") {
+
+            private val tmp3 = Vector3f()
+            private val tmp2 = Vector2f()
+            override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
+                super.bind(shader, renderer, instanced)
+
+                shader.v3f("localCamPos", localCamPos(tree, tmp3))
+                shader.v3f("localCamDir", localCamDir(tree, tmp3))
+                shader.v1f("sdfReliability", tree.globalReliability)
+                shader.v1f("sdfNormalEpsilon", tree.normalEpsilon)
+                shader.v1f("sdfMaxRelativeError", tree.maxRelativeError)
+
+                shader.v1i("maxSteps", tree.maxSteps)
+                shader.v2f("distanceBounds", distanceBounds(tree, tmp2))
+
+                val b = tree.localAABB
+                shader.v3f("localMin", tmp3.set(b.minX, b.minY, b.minZ))
+                shader.v3f("localMax", tmp3.set(b.maxX, b.maxY, b.maxZ))
+
+                shader.v1b("perspectiveCamera", RenderState.isPerspective)
+                shader.v1i("debugMode", tree.debugMode.id)
+                shader.v1b("renderIds", GFXState.currentRenderer == Renderer.idRenderer)
+
+                shader.v2f("renderSize", GFXState.currentBuffer.w.toFloat(), GFXState.currentBuffer.h.toFloat())
+
+                bindDepthToPosition(shader)
+
+            }
+
+            override fun createDepthShader(
+                isInstanced: Boolean,
+                isAnimated: Boolean,
+                limitedTransform: Boolean
+            ): Shader {
+                val builder1 = createBuilder()
+                builder1.addVertex(
+                    createVertexStages(
+                        isInstanced, isAnimated, colors = false,
+                        motionVectors = false, limitedTransform
+                    )
+                )
+                builder1.addFragment(createFragmentStages(isInstanced, isAnimated, motionVectors))
+                GFX.check()
+                val shader = builder1.create()
+                shader.glslVersion = glslVersion
+                GFX.check()
+                return shader
+            }
+
             override fun createFragmentStages(
                 isInstanced: Boolean,
                 isAnimated: Boolean,
@@ -234,6 +227,7 @@ object SDFComposer {
                     Variable(GLSLType.V1I, "ZERO"),
                     // input varyings
                     Variable(GLSLType.V3F, "finalPosition"),
+                    Variable(GLSLType.V3F, "localPosition"),
                     Variable(GLSLType.V2F, "roughnessMinMax"),
                     Variable(GLSLType.V2F, "metallicMinMax"),
                     Variable(GLSLType.V1F, "occlusionStrength"),
@@ -268,12 +262,15 @@ object SDFComposer {
                     Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
                     Variable(GLSLType.V1I, "drawMode"),
                     Variable(GLSLType.V1B, "renderIds"),
+                    Variable(GLSLType.V2F, "renderSize"),
                     // todo support bridges for uniform -> fragment1 -> fragment2 (inout)
                     Variable(GLSLType.V4F, "tint", VariableMode.OUT),
-                ) + uniforms.map { (k, v) -> Variable(v.type, k) }
+                ) + uniforms.map { (k, v) -> Variable(v.type, k) } + DepthTransforms.depthVars
 
                 val stage = ShaderStage(
                     "material", fragmentVariables, "" +
+
+                            // todo if transparency is enabled, trace through the model until the result is opaque
 
                             // compute ray position & direction in local coordinates
                             // trace ray
@@ -283,140 +280,190 @@ object SDFComposer {
                             // compute global depth
 
                             "if(!gl_FrontFacing) discard;\n" +
-                            "vec3 localDir, localPos;\n" +
-                            "if(perspectiveCamera){\n" +
-                            "   localDir = normalize(mat3x3(invLocalTransform) * finalPosition);\n" +
-                            "   localPos = localCamPos;\n" +
-                            "} else {\n" +
-                            // todo this is close, but not yet perfect...
-                            "   localDir = localCamDir;\n" +
-                            "   vec3 localHit = invLocalTransform * vec4(finalPosition, 1.0);\n" +
-                            "   localPos = localHit - localDir * dot(localDir, localHit - localCamPos);\n" +
-                            "}\n" +
-                            "vec4 ray = map(localPos,localDir,localPos,0.001);\n" + // 0.001 is a lie...
+                            "vec2 uv0 = gl_FragCoord.xy / renderSize;\n" +
+                            "vec3 localDir = normalize(mat3x3(invLocalTransform) * rawCameraDirection(uv0));\n" +
+                            "vec3 localPos = localPosition - localDir * max(0.0,dot(localPosition-localCamPos,localDir));\n" +
+                            "float tmpNear = 0.001;\n" +
+                            "vec4 ray = distanceBounds.x <= tmpNear ? map(localPos,localDir,localPos,tmpNear) : vec4(0.0);\n" +
                             "int steps;\n" +
                             "finalAlpha = 0.0;\n" +
-                            "if(ray.x >= 0.0){\n" + // not inside an object (that's ideal)
+                            "if(ray.x >= 0.0){\n" + // outside objects
                             "   ray = raycast(localPos, localDir, steps);\n" +
-                            "   if(debugMode != ${DebugMode.NUM_STEPS.id}){\n" +
-                            "       if(ray.y < 0.0 || (debugMode == ${DebugMode.SDF_ON_Y.id} && (localPos.y+ray.x*localDir.y)*sign(localDir.y) > 0.0)){\n" + // hit nothing -> sky or similar
-                            "           if(debugMode == ${DebugMode.SDF_ON_Y.id}){\n" +
-                            // check if & where ray hits y == 0
-                            "               float distance = -localPos.y / localDir.y;\n" +
-                            "               if(distance > 0.0){\n" +
-                            "                   vec3 localHit = localPos + distance * localDir;\n" +
-                            // check if localPos is within bounds -> only render the plane :)
-                            "                   if(all(greaterThan(localHit.xz,localMin.xz)) && all(lessThan(localHit.xz,localMax.xz))){\n" +
-                            "                       localHit.y = 0.0;\n" + // correct numerical issues
-                            "                       finalPosition = localTransform * vec4(localHit, 1.0);\n" +
-                            // "                   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
-                            "                       finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
-                            "                       vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
-                            "                       gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                            "                       distance = map(localPos,localDir,localHit,distance).x;\n" + // < 0.0 removed, because we show the shape there
-                            // waves like in Inigo Quilez demos, e.g. https://www.shadertoy.com/view/tt3yz7
-                            // show the inside as well? mmh...
-                            "                       vec3 col = vec3(0.9,0.6,0.3) * (1.0 - exp(-2.0*distance));\n" +
-                            // less amplitude, when filtering issues occur
-                            "                       float delta = 5.0 * length(vec2(dFdx(distance),dFdy(distance)));\n" +
-                            "                       col *= 0.8 + 0.2*cos(20.0*distance)*max(1.0-delta,0.0);\n" +
-                            "                       finalColor = col;\n" +
-                            "                       finalAlpha = 1.0;\n" +
-                            "                   } else discard;\n" +
-                            "               } else discard;\n" +
-                            "           } else discard;\n" +
-                            "       } else {\n" +
+                            "   if(debugMode == ${DebugMode.NUM_STEPS.id}){\n" +
+                            showNumberOfSteps +
+                            "   } else {\n" +
+                            "       if(debugMode == ${DebugMode.SDF_ON_Y.id} && (-localPos.y / localDir.y < ray.x || ray.y < -0.5)){\n" +
+                            sdfOnY +
+                            "       } else if(ray.y < 0.0){ discard; } else {\n" +
+                            // proper material calculation
                             "           vec3 localHit = localPos + ray.x * localDir;\n" +
-                            // check bounds
-                            //"           if(all(greaterThan(localHit,localMin)) && all(lessThan(localHit,localMax))){\n" +
                             "               vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
                             // todo normal could be guessed from depth aka dFdx(ray.x),dFdy(ray.x)
                             // todo calculate tangent from dFdx(uv) and dFdy(uv)
                             "               finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
-                            // convert localHit to global hit
-                            "               finalPosition = localTransform * vec4(localHit, 1.0);\n" +
-                            // respect reflection plane
-                            "               if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
-                            // calculate depth
-                            "               vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+                            "               finalPosition = localTransform * vec4(localHit, 1.0);\n" + // convert localHit to global hit
+                            discardByCullingPlane + // respect reflection plane
+                            "               vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" + // calculate depth
                             "               gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                            //"           } else discard;\n" + // to do instead of discarding, we should clamp the distance, and check the color there
                             // step by step define all material properties
                             "           finalUV = ray.zw;\n" +
-                            builder.toString() +
+                            materialCode +
                             "       }\n" +
-                            "   } else {\n" + // show number of steps
-                            "       if(ray.y < 0.0) ray.x = dot(distanceBounds,vec2(0.5));\n" + // avg as a guess
-                            "       vec3 localHit = localPos + ray.x * localDir;\n" +
-                            "       finalPosition = localTransform * vec4(localHit, 1.0);\n" +
-                            // "                   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
-                            "       vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
-                            "       finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
-                            "       vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
-                            "       gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                            // shading from https://www.shadertoy.com/view/WdVyDW
-                            "       const vec3 a = vec3(97, 130, 234) / vec3(255.0);\n" +
-                            "       const vec3 b = vec3(220, 94, 75) / vec3(255.0);\n" +
-                            "       const vec3 c = vec3(221, 220, 219) / vec3(255.0);\n" +
-                            "       float t = float(steps)/float(maxSteps);\n" +
-                            "       finalColor = vec3(0.0);\n" +
-                            "       finalEmissive = t < 0.5 ? mix(a, c, 2.0 * t) : mix(c, b, 2.0 * t - 1.0);\n" +
-                            "       finalEmissive *= 2.0;\n" + // only correct with current tonemapping...
-                            "       finalAlpha = 1.0;\n" +
                             "   }\n" +
-                            "} else {\n" +// inside an object
-
-                            /*"   finalColor = vec3(0.5);\n" +
-                            "   finalAlpha = 0.5;\n" +
-                            "   finalEmissive  = vec3(0.0);\n" +
-                            "   finalMetallic  = 0.0;\n" +
-                            "   finalRoughness = 1.0;\n" +
-
-                            // distance must be set to slightly above 0, so we have valid z values
-                            "   finalPosition = localTransform * vec4(localPos + localDir * 0.001, 1.0);\n" +
-                            "   finalNormal = vec3(0.0);\n" +
-
-                            // respect reflection plane
-                            "   if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n" +
-
-                            // calculate depth
-                            "   vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
-                            "   gl_FragDepth = newVertex.z/newVertex.w;\n" +*/
-                            // todo make this behaviour modifiable
-                            "   discard;\n" +
-
-                            "}\n" +
-
-                            // click ids of parts
-                            "if(renderIds){\n" +
-                            "   int intId = int(ray.y);\n" +
-                            "   tint = vec4(vec3(float(intId&255), float((intId>>8)&255), float((intId>>16)&255))/255.0, 1.0);\n" +
-                            "} else tint = vec4(1.0);\n"
+                            "} else discard;\n" + // inside an object
+                            partClickIds
 
                 )
-                stage.functions.ensureCapacity(stage.functions.size + functions.size + 1)
-                val builder2 =
-                    StringBuilder(100 + functions.sumOf { it.length } + shapeDependentShader.length + raycasting.length + normal.length)
-                builder2.append(sdfConstants)
-                for (func in functions) builder2.append(func)
-                builder2.append("vec4 map(vec3 ro, vec3 rd, vec3 pos0, float t){\n")
-                builder2.append("   vec4 res0; vec3 dir0 = rd; float sca0 = 1.0/t; vec2 uv = vec2(0.0);\n")
-                builder2.append(shapeDependentShader)
-                builder2.append("   return res0;\n}\n")
-                builder2.append(raycasting)
-                builder2.append(normal)
-                stage.add(builder2.toString())
+
+                functions.add(sdBox)
+                functions.add(rawToDepth)
+                functions.add(depthToPosition)
+                stage.add(build(functions, shapeDependentShader))
                 return listOf(stage)
             }
         }
         // why are those not ignored?
+        ignoreCommonNames(shader)
+        return uniforms to shader
+    }
+
+    fun ignoreCommonNames(shader: BaseShader) {
         shader.ignoreNameWarnings(
             "sheenNormalMap", "occlusionMap", "metallicMap", "roughnessMap",
             "emissiveMap", "normalMap", "diffuseMap", "diffuseBase", "emissiveBase", "drawMode", "applyToneMapping",
             "ambientLight"
         )
-        return uniforms to shader
     }
+
+    fun collectMaterialsUsingTextures(tree: SDFComponent, materials: List<Material?>): BitSet {
+        val flags = BitSet(materials.size)
+        if (materials.isNotEmpty()) {
+            tree.simpleTraversal(false) {
+                if (it is SDFComponent && it.positionMappers.any { pm -> pm is SDFRandomUV }) {
+                    it.simpleTraversal(false) { c ->
+                        if (c is SDFShape) {
+                            if (c.materialId < flags.size())
+                                flags.set(c.materialId)
+                        }
+                        false
+                    }
+                }
+                false
+            }
+        }
+        return flags
+    }
+
+
+    fun buildMaterialCode(
+        tree: SDFComponent, materials: List<Material?>,
+        uniforms: HashMap<String, TypeValue>
+    ): CharSequence {
+        val materialsUsingTextures = collectMaterialsUsingTextures(tree, materials)
+        return buildMaterialCode(materials, materialsUsingTextures, uniforms)
+    }
+
+    fun buildMaterialCode(
+        materials: List<Material?>, materialsUsingTextures: BitSet,
+        uniforms: HashMap<String, TypeValue>
+    ): CharSequence {
+        val builder = StringBuilder(max(1, materials.size) * 128)
+        val needsSwitch = materials.size > 1
+        if (needsSwitch) builder
+            .append("switch(clamp(int(ray.y),0,")
+            .append(materials.lastIndex)
+            .append(")){\n")
+        for (index in 0 until max(materials.size, 1)) {
+            if (needsSwitch) builder.append("case ").append(index).append(": {\n")
+            val material = materials.getOrNull(index) ?: defaultMaterial
+            // todo support shading functions, textures and material interpolation
+            // define all properties as uniforms, so they can be changed without recompilation
+            // todo this is pretty limited by the total number of textures :/
+            val canUseTextures = materialsUsingTextures[index]
+            val color = defineUniform(uniforms, material.diffuseBase)
+            if (canUseTextures && material.diffuseMap.exists) {
+                builder.append("vec4 color = texture(")
+                    .append(defineUniform(uniforms, GLSLType.S2D) { material.diffuseMap })
+                    .append(",finalUV) * ").append(color).append(";\n")
+                builder.append("finalColor = color.rgb;\n")
+                builder.append("finalAlpha = color.w;\n")
+            } else {
+                builder.append("finalColor = ").append(color).append(".rgb;\n")
+                builder.append("finalAlpha = ").append(color).append(".w;\n")
+            }
+            // todo create textures for these
+            builder.append("finalMetallic = ").appendUniform(uniforms, material.metallicMinMax).append(".y;\n")
+            builder.append("finalRoughness = ").appendUniform(uniforms, material.roughnessMinMax).append(".y;\n")
+            builder.append("finalEmissive = ").appendUniform(uniforms, material.emissiveBase).append(";\n")
+            if (needsSwitch) builder.append("break; }\n")
+        }
+        if (needsSwitch) builder.append("}\n")
+        return builder
+    }
+
+    fun build(functions: Collection<String>, shapeDependentShader: CharSequence): String {
+        val size0 = shapeDependentShader.length + raycasting.length + normal.length + sdfConstants.length
+        val size1 = 150 + functions.sumOf { it.length } + size0
+        val builder2 = StringBuilder(size1)
+        builder2.append(sdfConstants)
+        for (func in functions) builder2.append(func)
+        builder2.append("vec4 map(vec3 ro, vec3 rd, vec3 pos0, float t){\n")
+        builder2.append("   vec4 res0; vec3 dir0 = rd; float sca0 = 1.0/t; vec2 uv = vec2(0.0);\n")
+        builder2.append(shapeDependentShader)
+        builder2.append("   return res0;\n}\n")
+        builder2.append(raycasting)
+        builder2.append(normal)
+        return builder2.toString()
+    }
+
+    val partClickIds = "" +
+            "if(renderIds){\n" +
+            "   int intId = int(ray.y);\n" +
+            "   tint = vec4(vec3(float(intId&255), float((intId>>8)&255), float((intId>>16)&255))/255.0, 1.0);\n" +
+            "} else tint = vec4(1.0);\n"
+
+    val showNumberOfSteps = "" +
+            "if(ray.y < 0.0) ray.x = dot(distanceBounds,vec2(0.5));\n" + // avg as a guess
+            "vec3 localHit = localPos + ray.x * localDir;\n" +
+            "finalPosition = localTransform * vec4(localHit, 1.0);\n" +
+            //      discardByCullingPlane +
+            "vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
+            "finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
+            "vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+            "gl_FragDepth = newVertex.z/newVertex.w;\n" +
+            // shading from https://www.shadertoy.com/view/WdVyDW
+            "const vec3 a = vec3(97, 130, 234) / vec3(255.0);\n" +
+            "const vec3 b = vec3(220, 94, 75) / vec3(255.0);\n" +
+            "const vec3 c = vec3(221, 220, 219) / vec3(255.0);\n" +
+            "float t = float(steps)/float(maxSteps);\n" +
+            "finalEmissive = t < 0.5 ? mix(a, c, 2.0 * t) : mix(c, b, 2.0 * t - 1.0);\n" +
+            "finalColor = finalEmissive;\n" +
+            "finalEmissive *= 10.0;\n" + // only correct with current tonemapping...
+            "finalAlpha = 1.0;\n"
+
+    val sdfOnY = "" + // check if & where ray hits y == 0
+            "float distance = -localPos.y / localDir.y;\n" +
+            "if(distance > 0.0){\n" +
+            "    vec3 localHit = localPos + distance * localDir;\n" +
+            // check if localPos is within bounds -> only render the plane :)
+            "    if(all(greaterThan(localHit.xz,localMin.xz)) && all(lessThan(localHit.xz,localMax.xz))){\n" +
+            "        localHit.y = 0.0;\n" + // correct numerical issues
+            "        finalPosition = localTransform * vec4(localHit, 1.0);\n" +
+            discardByCullingPlane +
+            "        finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
+            "        vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+            "        gl_FragDepth = newVertex.z/newVertex.w;\n" +
+            "        distance = map(localPos,localDir,localHit,distance).x;\n" + // < 0.0 removed, because we show the shape there
+            // waves like in Inigo Quilez demos, e.g. https://www.shadertoy.com/view/tt3yz7
+            // show the inside as well? mmh...
+            "        vec3 col = vec3(0.9,0.6,0.3) * (1.0 - exp(-2.0*distance));\n" +
+            // less amplitude, when filtering issues occur
+            "        float delta = 5.0 * length(vec2(dFdx(distance),dFdy(distance)));\n" +
+            "        col *= 0.8 + 0.2*cos(20.0*distance)*max(1.0-delta,0.0);\n" +
+            "        finalColor = col;\n" +
+            "        finalAlpha = 1.0;\n" +
+            "    } else discard;\n" +
+            "} else discard;\n"
 
     fun createShaderToyShader(tree: SDFComponent): String {
 

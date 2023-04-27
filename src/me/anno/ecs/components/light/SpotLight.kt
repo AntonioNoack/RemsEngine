@@ -40,7 +40,9 @@ class SpotLight() : LightComponent(LightType.SPOT) {
     override fun updateShadowMap(
         cascadeScale: Double,
         worldScale: Double,
-        cameraMatrix: Matrix4f,
+        dstCameraMatrix: Matrix4f,
+        dstCameraPosition: Vector3d,
+        dstCameraDirection: Vector3d,
         drawTransform: Matrix4x3d,
         pipeline: Pipeline,
         resolution: Int,
@@ -50,8 +52,8 @@ class SpotLight() : LightComponent(LightType.SPOT) {
         val far = 1.0
         val coneAngle = coneAngle * cascadeScale
         val fovYRadians = 2.0 * atan(coneAngle)
-        setPerspective2(cameraMatrix, coneAngle.toFloat(), near.toFloat(), far.toFloat(), 0f, 0f)
-        cameraMatrix.rotate(Quaternionf(rotation).invert())
+        setPerspective2(dstCameraMatrix, coneAngle.toFloat(), near.toFloat(), far.toFloat(), 0f, 0f)
+        dstCameraMatrix.rotate(Quaternionf(rotation).invert())
         pipeline.frustum.definePerspective(
             near / worldScale, far / worldScale, fovYRadians, resolution, resolution,
             1.0, position, rotation

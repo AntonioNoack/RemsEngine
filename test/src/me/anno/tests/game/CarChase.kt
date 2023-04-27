@@ -18,6 +18,7 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
+import me.anno.gpu.CullMode
 import me.anno.gpu.GFXBase
 import me.anno.input.Input
 import me.anno.io.files.FileReference
@@ -92,7 +93,7 @@ fun createUI(): Panel {
     add(car1, carModelPlates)
     val glassMaterial = Material()
     glassMaterial.diffuseBase.w = 0.5f
-    glassMaterial.isDoubleSided = true
+    glassMaterial.cullMode = CullMode.BOTH
     add(car1, carModelGlass, listOf(glassMaterial.ref))
 
     car0.add(car1)

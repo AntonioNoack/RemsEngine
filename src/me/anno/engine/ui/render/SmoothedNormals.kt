@@ -9,9 +9,9 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ReverseDepth.bindDepthToPosition
-import me.anno.gpu.shader.ReverseDepth.rawToDepthVars
-import me.anno.gpu.shader.ReverseDepth.rawToDepth
+import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
+import me.anno.gpu.shader.DepthTransforms.depthVars
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
@@ -48,7 +48,7 @@ object SmoothedNormals {
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V1F, "radius"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT).apply { slot = it shr 1 },
-            ) + rawToDepthVars, "" +
+            ) + depthVars, "" +
                     quatRot + rawToDepth +
                     octNormalPacking +
                     "void main() {\n" +

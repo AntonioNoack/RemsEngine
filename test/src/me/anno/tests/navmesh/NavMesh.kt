@@ -13,6 +13,7 @@ import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.SceneView.Companion.testScene
+import me.anno.gpu.CullMode
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.ui.debug.TestStudio.Companion.testUI
@@ -119,7 +120,7 @@ fun main() {
         // visualize navmesh
         if (false) world.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
             material = Material().apply {
-                isDoubleSided = true
+                cullMode = CullMode.BOTH
                 diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)
             }.ref
             positions!!.apply {

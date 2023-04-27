@@ -27,7 +27,7 @@ object OpenInBrowser {
                     "epiphany", "firefox", "mozilla", "konqueror",
                     "netscape", "opera", "links", "lynx"
                 )
-                val cmd = StringBuffer()
+                val cmd = StringBuilder()
                 for (i in browsers.indices) if (i == 0) cmd.append(
                     "${browsers[i]} \"$url\""
                 ) else cmd.append(" || ${browsers[i]} \"$url\"")
