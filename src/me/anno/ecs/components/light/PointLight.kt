@@ -100,13 +100,18 @@ class PointLight : LightComponent(LightType.POINT) {
                 rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rotInvert)
                 cameraMatrix.rotate2(rot3)
+
+                // define camera position and rotation
+                val cameraRotation = rot3.invert(RenderState.cameraRotation)
+                RenderState.calculateDirections()
+
                 pipeline.clear()
                 pipeline.frustum.definePerspective(
                     near / worldScale, far / worldScale, deg90, resolution, resolution, 1.0,
-                    position, rot3.invert()
+                    position, cameraRotation
                 )
                 pipeline.fillDepth(root, position, worldScale)
-                pipeline.drawDepth()
+                pipeline.defaultStage.drawColors(pipeline)
             }
         }
 
@@ -161,8 +166,7 @@ class PointLight : LightComponent(LightType.POINT) {
                             "   float maxAbsComponent = max(max(abs(dir.x),abs(dir.y)),abs(dir.z));\n" +
                             "   float depthFromShader = near/maxAbsComponent;\n" +
                             // todo how can we get rid of this (1,-1,-1), what rotation is missing?
-                            "   float depthFromTex = texture_array_depth_shadowMapCubic(shadowMapIdx0, dir*vec3(+1,-1,-1), depthFromShader);\n" +
-                            "   lightColor *= 1.0 - depthFromTex;\n" +
+                            "   lightColor *= texture_array_depth_shadowMapCubic(shadowMapIdx0, dir*vec3(+1,-1,-1), depthFromShader);\n" +
                             "}\n"
                     else "") +
                     "effectiveDiffuse = lightColor * ${LightType.POINT.falloff};\n" +

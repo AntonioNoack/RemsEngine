@@ -132,8 +132,7 @@ class SpotLight() : LightComponent(LightType.SPOT) {
                             "   float near = data2.a;\n" +
                             "   float depthFromShader = -near/dir.z;\n" +
                             // do the shadow map function and compare
-                            "    float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader);\n" +
-                            "    lightColor *= 1.0 - depthFromTex;\n" +
+                            "    lightColor *= texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader);\n" +
                             "}\n"
                     else "") +
                     "effectiveDiffuse = lightColor * ${LightType.SPOT.falloff};\n" +

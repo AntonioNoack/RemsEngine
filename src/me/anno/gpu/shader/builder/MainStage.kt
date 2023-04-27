@@ -125,11 +125,25 @@ class MainStage {
                 code.append("(int index, vec3 uv, float depth){\n")
                 code.append("float bias = 0.005;\n")
                 code.append("vec4 uvw = vec4(uv,depth+bias);\n")
+                code.append("vec2 size; float du, sum=0.0; vec3 u; bool x,z; vec4 dx,dy;\n")
                 if (isMoreThanOne) code.append("switch(index){\n")
                 for (index in 0 until uniform.arraySize) {
                     val nameIndex = name + index.toString()
                     if (isMoreThanOne) code.append("case ").append(index).append(": ")
-                    code.append("return texture(").append(nameIndex).append(", uvw);\n")
+                    code.append("" +
+                            "size = textureSize($nameIndex,0); du=0.5/size.x;\n" +
+                            "u = abs(uvw.xyz);\n" +
+                            "x = u.x >= u.y && u.x > u.z;\n" +
+                            "z = !x && u.z >= u.y;\n" +
+                            // not ideal...
+                            "dx = x ? vec4(0,du,0,0) : vec4(du,0,0,0);\n" +
+                            "dy = z ? vec4(0,du,0,0) : vec4(0,0,du,0);\n" +
+                            "for(float j=-2.0;j<2.5;j++){\n" +
+                            "   for(float i=-2.0;i<2.5;i++){\n" +
+                            "       sum += texture($nameIndex, uvw+i*dx+j*dy);\n" +
+                            "   }\n" +
+                            "}\n" +
+                            "return sum*0.04;\n")
                 }
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
                 code.append("}\n")
@@ -152,7 +166,7 @@ class MainStage {
                                 "       sum += texture($nameIndex, uvw+du*vec3(i,j,0.0));\n" +
                                 "   }\n" +
                                 "}\n" +
-                                "return 1.0 - sum * 0.04;\n"
+                                "return sum*0.04;\n"
                     )
                 }
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")

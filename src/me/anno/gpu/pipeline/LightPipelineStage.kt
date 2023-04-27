@@ -216,9 +216,9 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                     val shader = getShader(type, true)
                     if (type == LightType.DIRECTIONAL) {
                         GFXState.depthMode.use(DepthMode.ALWAYS) {
-                            drawBatches(depthTexture, lights, type, size, shader)
+                            drawBatches(depthTexture, lights, type, shader)
                         }
-                    } else drawBatches(depthTexture, lights, type, size, shader)
+                    } else drawBatches(depthTexture, lights, type, shader)
                 }
             }
         }
@@ -232,10 +232,10 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
     fun drawBatches(
         depthTexture: Texture2D,
         lights: List<LightRequest<*>>,
-        type: LightType, size: Int,
-        shader: Shader
+        type: LightType, shader: Shader
     ) {
 
+        val size = lights.size
         val visualizeLightCount = visualizeLightCount
 
         val sample = lights[0].light
