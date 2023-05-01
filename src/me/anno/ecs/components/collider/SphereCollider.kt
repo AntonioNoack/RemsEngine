@@ -1,7 +1,5 @@
 package me.anno.ecs.components.collider
 
-import com.bulletphysics.collision.shapes.CollisionShape
-import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.io.serialization.SerializedProperty
@@ -47,10 +45,6 @@ class SphereCollider : Collider() {
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
         return deltaPos.length() - radius.toFloat()
-    }
-
-    override fun createBulletShape(scale: Vector3d): CollisionShape {
-        return SphereShape(radius * scale.dot(0.33, 0.34, 0.33))
     }
 
     override fun raycast(

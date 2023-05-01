@@ -1,9 +1,9 @@
-package me.anno.engine
+package me.anno.ecs.components.bullet
 
 import com.bulletphysics.linearmath.IDebugDraw
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.buffer.LineBuffer.putRelativeLine
+import me.anno.gpu.buffer.LineBuffer
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
@@ -89,7 +89,7 @@ class BulletDebugDraw : IDebugDraw() {
     }
 
     override fun drawLine(from: Vector3d, to: Vector3d, color: Vector3d) {
-        putRelativeLine(from, to, cam, worldScale, color.x, color.y, color.z)
+        LineBuffer.putRelativeLine(from, to, cam, worldScale, color.x, color.y, color.z)
         // Grid.drawLine(stack, toColor(color), toLocal(from), toLocal(to))
     }
 

@@ -1,10 +1,13 @@
-package me.anno.ecs.components.mesh.sdf
+package me.anno.ecs.components.bullet.sdf
 
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.collision.shapes.ConcaveShape
 import com.bulletphysics.collision.shapes.TriangleCallback
 import com.bulletphysics.linearmath.Transform
-import me.anno.maths.Maths.mix
+import me.anno.ecs.components.bullet.getAABB
+import me.anno.ecs.components.mesh.sdf.SDFCollider
+import me.anno.ecs.components.mesh.sdf.SDFComponent
+import me.anno.maths.Maths
 import me.anno.maths.geometry.MarchingCubes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
@@ -97,7 +100,10 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
                     val yf = y * ffy
                     for (x in 0 until fx) {
                         val xf = x * ffx
-                        pos.set(mix(min2.x, max2.x, xf), mix(min2.y, max2.y, yf), mix(min2.z, max2.z, zf), 0.0)
+                        pos.set(
+                            Maths.mix(min2.x, max2.x, xf),
+                            Maths.mix(min2.y, max2.y, yf),
+                            Maths.mix(min2.z, max2.z, zf), 0.0)
                         field[i++] = sdf.computeSDF(pos, seeds)
                         seeds.clear()
                     }

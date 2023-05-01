@@ -1,7 +1,5 @@
 package me.anno.ecs.components.collider
 
-import com.bulletphysics.collision.shapes.BoxShape
-import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.io.serialization.SerializedProperty
@@ -30,18 +28,6 @@ class BoxCollider : Collider() {
         deltaPos.absolute()
         deltaPos.sub(halfExtends.x.toFloat(), halfExtends.y.toFloat(), halfExtends.z.toFloat())
         return and3SDFs(deltaPos)
-    }
-
-    override fun createBulletShape(scale: Vector3d): CollisionShape {
-        val shape = BoxShape(
-            javax.vecmath.Vector3d(
-                halfExtends.x * scale.x,
-                halfExtends.y * scale.y,
-                halfExtends.z * scale.z
-            )
-        )
-        shape.margin = margin
-        return shape
     }
 
     override fun drawShape() {

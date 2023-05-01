@@ -1,7 +1,5 @@
 package me.anno.ecs.components.collider
 
-import com.bulletphysics.collision.shapes.CollisionShape
-import com.bulletphysics.collision.shapes.ConvexHullShape3
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.SerializedProperty
@@ -27,10 +25,6 @@ class ConvexCollider : Collider() {
             )
             aabb.union(globalTransform.transformPosition(tmp))
         }
-    }
-
-    override fun createBulletShape(scale: Vector3d): CollisionShape {
-        return ConvexHullShape3(points!!)
     }
 
     override fun drawShape() {

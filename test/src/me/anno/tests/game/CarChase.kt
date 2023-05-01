@@ -7,13 +7,12 @@ import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.physics.BulletPhysics
-import me.anno.ecs.components.physics.Rigidbody
-import me.anno.ecs.components.physics.Vehicle
-import me.anno.ecs.components.physics.VehicleWheel
+import me.anno.ecs.components.bullet.BulletPhysics
+import me.anno.ecs.components.bullet.Rigidbody
+import me.anno.ecs.components.bullet.Vehicle
+import me.anno.ecs.components.bullet.VehicleWheel
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.SkyBox
-import me.anno.ecs.components.test.TestVehicleController
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
@@ -23,6 +22,7 @@ import me.anno.gpu.GFXBase
 import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.tests.physics.TestVehicleController
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel

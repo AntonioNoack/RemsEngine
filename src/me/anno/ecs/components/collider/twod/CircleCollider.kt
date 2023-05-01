@@ -1,7 +1,5 @@
 package me.anno.ecs.components.collider.twod
 
-import com.bulletphysics.collision.shapes.CollisionShape
-import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawCircle
 import me.anno.io.serialization.SerializedProperty
@@ -31,10 +29,6 @@ class CircleCollider : Collider2d() {
         val shape = CircleShape()
         shape.radius = radius
         return shape
-    }
-
-    override fun createBulletShape(scale: Vector3d): CollisionShape {
-        return SphereShape(radius * scale.dot(0.33, 0.34, 0.33))
     }
 
     override fun drawShape() {

@@ -1,4 +1,4 @@
-package me.anno.ecs.components.physics.constraints
+package me.anno.ecs.components.bullet.constraints
 
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
@@ -7,8 +7,8 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
-import me.anno.ecs.components.physics.Rigidbody
+import me.anno.ecs.components.bullet.BulletPhysics.Companion.castB
+import me.anno.ecs.components.bullet.Rigidbody
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.NotSerializedProperty

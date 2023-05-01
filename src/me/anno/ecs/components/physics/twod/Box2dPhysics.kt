@@ -51,6 +51,12 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
     @NotSerializedProperty
     private val world = World(Vec2(gravity.x.toFloat(), gravity.y.toFloat()))
 
+    override fun invalidate(entity: Entity) {
+        val rb = entity.getComponent(Rigidbody2d::class, false)?.entity ?: return
+        if (printValidations) LOGGER.debug("invalidated ${System.identityHashCode(this)}")
+        invalidEntities.add(rb)
+    }
+
     override fun updateGravity() {
         world.gravity.set(gravity.x.toFloat(), gravity.y.toFloat())
     }

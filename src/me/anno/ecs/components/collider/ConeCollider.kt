@@ -1,9 +1,5 @@
 package me.anno.ecs.components.collider
 
-import com.bulletphysics.collision.shapes.CollisionShape
-import com.bulletphysics.collision.shapes.ConeShape
-import com.bulletphysics.collision.shapes.ConeShapeX
-import com.bulletphysics.collision.shapes.ConeShapeZ
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
@@ -67,14 +63,6 @@ class ConeCollider : Collider() {
         val s = max(k * (dist2D * h - dist1D * r), k * (dist1D - h))
         return sqrt(d) * sign(s) - roundness
 
-    }
-
-    override fun createBulletShape(scale: Vector3d): CollisionShape {
-        return when (axis) {
-            0 -> ConeShapeX(radius * scale.y, height * scale.x)
-            2 -> ConeShapeZ(radius * scale.x, height * scale.z)
-            else -> ConeShape(radius * scale.x, height * scale.y)
-        }
     }
 
     override fun drawShape() {

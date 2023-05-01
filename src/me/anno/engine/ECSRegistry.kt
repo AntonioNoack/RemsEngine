@@ -25,11 +25,6 @@ import me.anno.ecs.components.mesh.spline.SplineCrossing
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.ecs.components.mesh.terrain.TriTerrain
 import me.anno.ecs.components.navigation.NavMesh
-import me.anno.ecs.components.physics.BulletPhysics
-import me.anno.ecs.components.physics.Rigidbody
-import me.anno.ecs.components.physics.Vehicle
-import me.anno.ecs.components.physics.VehicleWheel
-import me.anno.ecs.components.physics.constraints.*
 import me.anno.ecs.components.physics.twod.Box2dPhysics
 import me.anno.ecs.components.physics.twod.Rigidbody2d
 import me.anno.ecs.components.player.LocalPlayer
@@ -42,7 +37,6 @@ import me.anno.ecs.components.shaders.CuboidMesh
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.components.shaders.TriplanarMaterial
 import me.anno.ecs.components.test.RaycastTestComponent
-import me.anno.ecs.components.test.TestVehicleController
 import me.anno.ecs.components.test.TypeTestComponent
 import me.anno.ecs.prefab.ChangeHistory
 import me.anno.ecs.prefab.Prefab
@@ -173,29 +167,18 @@ object ECSRegistry {
 
         // physics
         try {
-            // todo try to create an export without physics, and check everything still runs fine
-            registerCustomClass(BulletPhysics())
-            registerCustomClass(Rigidbody())
-            registerCustomClass(Vehicle())
-            registerCustomClass(VehicleWheel())
-
-            // todo test scene for all these constraints
-            // todo drag on physics to add forces/impulses
-            // physics constraints
-            registerCustomClass(PointConstraint())
-            registerCustomClass(GenericConstraint())
-            registerCustomClass(ConeTwistConstraint())
-            registerCustomClass(HingeConstraint())
-            registerCustomClass(SliderConstraint())
+            val clazz = this::class.java.classLoader
+                .loadClass("me.anno.ecs.components.physics.PhysicsRegistry")
+            clazz.getMethod("init").invoke(null)
         } catch (e: ClassNotFoundException) {
-            LOGGER.warn("Bullet was not found")
+            LOGGER.warn("Bullet was not found", e)
         }
 
         try {
             registerCustomClass(Box2dPhysics())
             registerCustomClass(Rigidbody2d())
         } catch (e: ClassNotFoundException) {
-            LOGGER.warn("Box2d was not found")
+            LOGGER.warn("Box2d was not found", e)
         }
 
         // utils
@@ -211,7 +194,6 @@ object ECSRegistry {
             // test classes
             registerCustomClass(TypeTestComponent())
             registerCustomClass(RaycastTestComponent())
-            registerCustomClass(TestVehicleController())
         }
     }
 

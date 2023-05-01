@@ -3,6 +3,7 @@ package me.anno.tests.collider
 import me.anno.Engine
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.collider.MeshCollider
+import me.anno.ecs.components.bullet.createBulletShape
 import me.anno.engine.ECSRegistry
 import me.anno.utils.OS
 import org.joml.Vector3d

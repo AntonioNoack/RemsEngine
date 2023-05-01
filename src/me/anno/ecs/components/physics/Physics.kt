@@ -93,7 +93,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         nonStaticRigidBodies.clear()
     }
 
-    fun invalidate(entity: Entity) {
+    open fun invalidate(entity: Entity) {
         if (printValidations) LOGGER.debug("invalidated ${System.identityHashCode(this)}")
         invalidEntities.add(entity)
     }

@@ -1,10 +1,10 @@
-package me.anno.ecs.components.physics.constraints
+package me.anno.ecs.components.bullet.constraints
 
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.Generic6DofConstraint
 import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
+import me.anno.ecs.components.bullet.BulletPhysics.Companion.castB
 import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.Vector3d
 import kotlin.math.PI

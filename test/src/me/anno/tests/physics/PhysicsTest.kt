@@ -2,8 +2,8 @@ package me.anno.tests.physics
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.SphereCollider
-import me.anno.ecs.components.physics.BulletPhysics
-import me.anno.ecs.components.physics.Rigidbody
+import me.anno.ecs.components.bullet.BulletPhysics
+import me.anno.ecs.components.bullet.Rigidbody
 
 fun main() {
 

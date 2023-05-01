@@ -1,4 +1,4 @@
-package me.anno.ecs.components.physics
+package me.anno.ecs.components.bullet
 
 import com.bulletphysics.collision.dispatch.CollisionObject.*
 import com.bulletphysics.dynamics.RigidBody
@@ -7,8 +7,8 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.*
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.physics.BulletPhysics.Companion.castB
-import me.anno.ecs.components.physics.constraints.Constraint
+import me.anno.ecs.components.bullet.BulletPhysics.Companion.castB
+import me.anno.ecs.components.bullet.constraints.Constraint
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.NotSerializedProperty

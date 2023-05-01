@@ -22,5 +22,6 @@
     <orderEntry type="module" module-name="PDF" />
     <orderEntry type="library" name="LWJGL-323" level="project" />
     <orderEntry type="library" name="junit.jupiter" level="project" />
+    <orderEntry type="module" module-name="Bullet" />
   </component>
 </module>

@@ -1,9 +1,5 @@
 package me.anno.ecs.components.collider
 
-import com.bulletphysics.collision.shapes.CollisionShape
-import com.bulletphysics.collision.shapes.CylinderShape
-import com.bulletphysics.collision.shapes.CylinderShapeX
-import com.bulletphysics.collision.shapes.CylinderShapeZ
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
@@ -51,20 +47,11 @@ class CylinderCollider : Collider() {
         return and2SDFs(deltaPos, roundness.toFloat())
     }
 
-    override fun createBulletShape(scale: Vector3d): CollisionShape {
-        return when (axis) {
-            0 -> CylinderShapeX(javax.vecmath.Vector3d(halfHeight * scale.x, radius * scale.y, radius * scale.z))
-            1 -> CylinderShape(javax.vecmath.Vector3d(radius * scale.x, halfHeight * scale.y, radius * scale.z))
-            2 -> CylinderShapeZ(javax.vecmath.Vector3d(radius * scale.x, radius * scale.y, halfHeight * scale.z))
-            else -> throw RuntimeException()
-        }
-    }
-
     override fun drawShape() {
         val h = halfHeight
         val r = radius
         val e = entity
-        when(axis){
+        when (axis) {
             0 -> {
                 LineShapes.drawLine(e, -h, -r, 0.0, +h, -r, 0.0)
                 LineShapes.drawLine(e, -h, +r, 0.0, +h, +r, 0.0)

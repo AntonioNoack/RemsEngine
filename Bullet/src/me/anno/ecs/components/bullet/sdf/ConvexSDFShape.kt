@@ -1,8 +1,11 @@
-package me.anno.ecs.components.mesh.sdf
+package me.anno.ecs.components.bullet.sdf
 
 import com.bulletphysics.collision.broadphase.BroadphaseNativeType
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.linearmath.Transform
+import me.anno.ecs.components.bullet.getAABB
+import me.anno.ecs.components.mesh.sdf.SDFCollider
+import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import kotlin.math.abs

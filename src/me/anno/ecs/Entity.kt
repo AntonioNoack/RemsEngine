@@ -7,11 +7,7 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.components.physics.BulletPhysics
 import me.anno.ecs.components.physics.Physics
-import me.anno.ecs.components.physics.Rigidbody
-import me.anno.ecs.components.physics.twod.Box2dPhysics
-import me.anno.ecs.components.physics.twod.Rigidbody2d
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.Renderable
@@ -235,9 +231,15 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     fun invalidatePhysics(force: Boolean) {
         if (force || hasPhysicsInfluence()) {
             // LOGGER.debug("inv physics: ${physics != null}, ${rigidbody != null}")
-            physics?.invalidate(rigidbody ?: return)
+            physics?.invalidate(this)
         }
     }
+
+    fun invalidateRigidbody() {
+        physics?.invalidate(this)
+    }
+
+    val physics get() = getRoot(Entity::class).getComponent(Physics::class, false)
 
     fun rebuildPhysics(physics: Physics<*, *>) {
         if (hasComponent(physics.rigidComponentClass)) {
@@ -562,28 +564,12 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         // physics
         if (allInHierarchy { it.isEnabled }) {
             // something can change
-            val physics = physics
-            if (physics != null) {
-                // if there is a rigidbody in the hierarchy, update it
-                val parentRigidbody = rigidbody
-                if (parentRigidbody != null) {
-                    // invalidate it
-                    physics.invalidate(parentRigidbody)
-                }
-            }
+            physics?.invalidate(this)
         }
     }
 
-    val physics get() = getRoot(Entity::class).getComponent(BulletPhysics::class, false)
-    val physics2d get() = getRoot(Entity::class).getComponent(Box2dPhysics::class, false)
-    val rigidbody: Entity? get() = getComponent(Rigidbody::class, false)?.entity
-    val rigidbodyComponent: Rigidbody? get() = getComponent(Rigidbody::class, false)
-    val rigidbody2d: Entity? get() = getComponent(Rigidbody2d::class, false)?.entity
-    val rigidbodyComponent2d: Rigidbody2d? get() = getComponent(Rigidbody2d::class, false)
-
-    fun invalidateRigidbody() {
-        physics?.invalidate(rigidbody ?: return)
-        physics2d?.invalidate(rigidbody2d ?: return)
+    fun Entity.invalidateRigidbody() {
+        physics?.invalidate(this)
     }
 
     override fun destroy() {

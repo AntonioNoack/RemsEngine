@@ -66,7 +66,7 @@ class Rigidbody2d : Component() {
 
     fun invalidatePhysics() {
         val entity = entity ?: return
-        entity.physics2d?.invalidate(entity)
+        entity.physics?.invalidate(entity)
     }
 
     fun applyForce(force: Vector2f) {

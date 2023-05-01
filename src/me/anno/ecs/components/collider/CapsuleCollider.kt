@@ -1,7 +1,5 @@
 package me.anno.ecs.components.collider
 
-import com.bulletphysics.collision.shapes.CapsuleShape
-import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
@@ -42,15 +40,6 @@ class CapsuleCollider : Collider() {
         deltaPos.absolute()
         deltaPos.setComponent(axis, max(deltaPos[axis] - halfExtends, 0f))
         return deltaPos.length() - radius.toFloat()
-    }
-
-    override fun createBulletShape(scale: Vector3d): CollisionShape {
-        return when (axis) {
-            0 -> CapsuleShape(radius * scale.y, halfHeight * scale.x * 2.0, axis) // x
-            1 -> CapsuleShape(radius * scale.x, halfHeight * scale.y * 2.0, axis) // y
-            2 -> CapsuleShape(radius * scale.x, halfHeight * scale.z * 2.0, axis) // z
-            else -> throw RuntimeException()
-        }
     }
 
     override fun drawShape() {

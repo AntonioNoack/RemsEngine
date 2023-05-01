@@ -63,37 +63,37 @@ object ScenePrefab : InnerLazyPrefabFile(
      * will be shared over the network, and available to all clients
      * should be written only to by the server, or for particle effects
      * */
-    fun getWorld(scene: me.anno.ecs.Entity) = scene.children[worldIndex]
+    fun getWorld(scene: Entity) = scene.children[worldIndex]
 
     /**
      * only enabled in scene editor
      * the base for all players
      * */
-    fun getPlayerPrefab(scene: me.anno.ecs.Entity) = scene.children[playerPrefabIndex]
+    fun getPlayerPrefab(scene: Entity) = scene.children[playerPrefabIndex]
 
     /**
      * e.g. for custom ui layouts,
      * will not be shared with the server
      * */
-    fun getLocallyShared(scene: me.anno.ecs.Entity) = scene.children[locallySharedIndex]
+    fun getLocallyShared(scene: Entity) = scene.children[locallySharedIndex]
 
     /**
      * a list of players,
      * can be created using the playerPrefab
      * players on this computer
      * */
-    fun getLocalPlayers(scene: me.anno.ecs.Entity) = scene.children[localPlayersIndex]
+    fun getLocalPlayers(scene: Entity) = scene.children[localPlayersIndex]
 
     /**
      * a list of players,
      * remote players, will be controlled by the server connection
      * if the server is local, it may be controlled by the remotely playing
      * */
-    fun getRemotePlayers(scene: me.anno.ecs.Entity) = scene.children[remotePlayersIndex]
+    fun getRemotePlayers(scene: Entity) = scene.children[remotePlayersIndex]
 
-    fun getPhysics(scene: me.anno.ecs.Entity) = scene.physics
+    fun getPhysics(scene: Entity) = scene.physics
 
-    fun createLocalPlayer(entity: me.anno.ecs.Entity, name: kotlin.String): me.anno.ecs.Entity {
+    fun createLocalPlayer(entity: Entity, name: String): Entity {
         val instance = getPlayerPrefab(entity).clone() as Entity
         instance.name = name
         instance.isEnabled = true
@@ -101,7 +101,7 @@ object ScenePrefab : InnerLazyPrefabFile(
         return instance
     }
 
-    fun createRemotePlayer(entity: me.anno.ecs.Entity, name: kotlin.String): me.anno.ecs.Entity {
+    fun createRemotePlayer(entity: Entity, name: String): Entity {
         val instance = getPlayerPrefab(entity).clone() as Entity
         instance.name = name
         instance.isEnabled = true
@@ -109,7 +109,7 @@ object ScenePrefab : InnerLazyPrefabFile(
         return instance
     }
 
-    fun removePlayer(entity: me.anno.ecs.Entity, player: me.anno.ecs.Entity) {
+    fun removePlayer(entity: Entity, player: Entity) {
         for (child in entity.children) {
             child.remove(player)
         }

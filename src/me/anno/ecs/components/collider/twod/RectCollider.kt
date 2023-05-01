@@ -1,7 +1,5 @@
 package me.anno.ecs.components.collider.twod
 
-import com.bulletphysics.collision.shapes.BoxShape
-import com.bulletphysics.collision.shapes.CollisionShape
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawRect
 import me.anno.maths.Maths
@@ -54,17 +52,6 @@ class RectCollider : Collider2d() {
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
         val halfExtends = halfExtends
         unionCube(globalTransform, aabb, tmp, halfExtends.x.toDouble(), halfExtends.y.toDouble(), 1.0)
-    }
-
-    override fun createBulletShape(scale: Vector3d): CollisionShape {
-        val halfExtends = halfExtends
-        return BoxShape(
-            javax.vecmath.Vector3d(
-                halfExtends.x * scale.x,
-                halfExtends.y * scale.y,
-                scale.z
-            )
-        )
     }
 
     override fun copyInto(dst: PrefabSaveable) {

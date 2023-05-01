@@ -1,31 +1,23 @@
 package me.anno.ecs.components.collider
 
-import com.bulletphysics.collision.shapes.*
-import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
-import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Matrices.isIdentity
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.thirdF
-import org.apache.logging.log4j.LogManager
 import org.joml.*
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlin.math.sqrt
 
 open class MeshCollider() : Collider() {
@@ -34,6 +26,7 @@ open class MeshCollider() : Collider() {
         meshFile = src
     }
 
+    @Suppress("unused")
     constructor(src: Mesh) : this(src.ref)
 
     @SerializedProperty
@@ -70,23 +63,7 @@ open class MeshCollider() : Collider() {
             mesh = MeshCache[value] ?: mesh
         }
 
-    @HideInInspector
-    @NotSerializedProperty
-    var hull: ShapeHull? = null
-
     var isValid = false
-
-    @DebugAction
-    fun validate() {
-        if (!isValid) {
-            val tmp = JomlPools.vec3d.create()
-            createBulletShape(tmp.set(1.0))
-            JomlPools.vec3d.sub(1)
-        }
-    }
-
-    @DebugProperty
-    val info = "hull: $hull, ${mesh?.positions?.size} positions"
 
     /**
      * returns +Inf, if not
@@ -229,131 +206,7 @@ open class MeshCollider() : Collider() {
         return if (neg) -distance else +distance
     }
 
-    override fun createBulletShape(scale: Vector3d): CollisionShape {
-
-        val mesh = mesh ?: return defaultShape
-
-        val positions = mesh.positions
-        if (positions == null) {
-            isValid = false
-            return defaultShape
-        }
-
-        isValid = true
-
-        val indices = mesh.indices
-
-        val meshTransform = meshTransform
-        cz.advel.stack.Stack.reset(false)
-
-        if (isConvex) {
-
-            // calculate convex hull
-            // simplify it maybe
-            val convex =
-                if (scale.x in 0.99..1.01 && scale.y in 0.99..1.01 && scale.z in 0.99..1.01 && meshTransform.isIdentity()) {
-                    ConvexHullShape3(positions)
-                } else {
-                    val tmp = Vector3f()
-                    val points = ArrayList<javax.vecmath.Vector3d>(positions.size / 3)
-                    for (i in positions.indices step 3) {
-                        tmp.set(positions[i], positions[i + 1], positions[i + 2])
-                        meshTransform.transformPosition(tmp)
-                        val x = tmp.x * scale.x
-                        val y = tmp.y * scale.y
-                        val z = tmp.z * scale.z
-                        points.add(javax.vecmath.Vector3d(x, y, z))
-                    }
-                    ConvexHullShape(points)
-                }
-            if (positions.size < 30 || !enableSimplifications) return convex
-
-            val hull = ShapeHull(convex)
-            hull.buildHull(convex.margin)
-            this.hull = hull
-
-            return ConvexHullShape(hull.vertexPointer)
-
-        } else {
-
-            this.hull = null
-
-            // we don't send the data to the gpu here, so we don't need to allocate directly
-            // this has the advantage, that the jvm will free the memory itself
-            val vertexCount = positions.size / 3
-            val indexCount = indices?.size ?: vertexCount
-            val indices3 = ByteBuffer.allocate(4 * indexCount)
-                .order(ByteOrder.nativeOrder())
-
-            val indices3i = indices3.asIntBuffer()
-            if (indices == null) {
-                // 0 1 2 3 4 5 6 7 8 ...
-                for (i in 0 until indexCount) {
-                    indices3i.put(i, i)
-                }
-            } else {
-                val illegalIndex = indices.indexOfFirst { it !in 0 until vertexCount }
-                if (illegalIndex >= 0) {
-                    LOGGER.warn(
-                        "Out of bounds index: ${indices[illegalIndex]} " +
-                                "at position $illegalIndex !in 0 until $vertexCount"
-                    )
-                }
-                indices3i.put(indices)
-            }
-            indices3i.flip()
-
-            val vertexBase = ByteBuffer
-                .allocate(4 * positions.size)
-                .order(ByteOrder.nativeOrder())
-
-            val fb = vertexBase.asFloatBuffer()
-            if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0 && meshTransform.isIdentity()) {
-                fb.put(positions)
-            } else {
-                val sx = scale.x.toFloat()
-                val sy = scale.y.toFloat()
-                val sz = scale.z.toFloat()
-                val tmp = Vector3f()
-                for (i in positions.indices step 3) {
-                    tmp.set(positions[i], positions[i + 1], positions[i + 2])
-                    meshTransform.transformPosition(tmp)
-                    fb.put(tmp.x * sx)
-                    fb.put(tmp.y * sy)
-                    fb.put(tmp.z * sz)
-                }
-            }
-            fb.flip()
-
-
-            val triangleCount = indexCount / 3
-            // int numTriangles, ByteBuffer triangleIndexBase, int triangleIndexStride, int numVertices, ByteBuffer vertexBase, int vertexStride
-            // we can use floats, because we have extended the underlying class
-            val smi = TriangleIndexVertexArray(
-                triangleCount, indices3, 12,
-                vertexCount, vertexBase, 12
-            )
-            return BvhTriangleMeshShape(smi, true, true)
-        }
-    }
-
     override fun drawShape() {
-        validate()
-        val hull = hull
-        if (isConvex && hull != null) {
-            val points = hull.vertexPointer
-            val indices = hull.indexPointer
-            // yellow
-            val color = 0xffffaa or (255 shl 24)
-            for (i in 0 until hull.numIndices() step 3) {
-                val a = points[indices[i]]
-                val b = points[indices[i + 1]]
-                val c = points[indices[i + 2]]
-                drawLine(entity, a, b, color)
-                drawLine(entity, b, c, color)
-                drawLine(entity, c, a, color)
-            }
-        }
         mesh?.forEachTriangle { a, b, c ->
             val color = -1
             drawLine(entity, a, b, color)
@@ -384,18 +237,9 @@ open class MeshCollider() : Collider() {
         dst.mesh = mesh // getInClone(mesh, clone)
         dst.meshFile = meshFile
         dst.isConvex = isConvex
-        dst.hull = hull
         dst.meshTransform.set(meshTransform)
     }
 
     override val className: String get() = "MeshCollider"
-
-    companion object {
-        @JvmStatic
-        private val LOGGER = LogManager.getLogger(MeshCollider::class)
-
-        @JvmField
-        val defaultShape = BoxShape(javax.vecmath.Vector3d(1.0, 1.0, 1.0))
-    }
 
 }

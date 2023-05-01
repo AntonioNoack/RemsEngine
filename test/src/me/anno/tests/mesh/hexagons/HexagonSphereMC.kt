@@ -9,7 +9,7 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.physics.BulletPhysics
+import me.anno.ecs.components.bullet.BulletPhysics
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode

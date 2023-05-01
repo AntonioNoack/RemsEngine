@@ -1,12 +1,8 @@
 package me.anno.ecs.components.collider
 
-import com.bulletphysics.collision.shapes.CollisionShape
-import com.bulletphysics.linearmath.Transform
-import me.anno.utils.Color.black
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.physics.BulletPhysics.Companion.mat4x3ToTransform
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
@@ -15,6 +11,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.SQRT1_2
+import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBd
 import org.joml.Matrix4x3d
@@ -198,16 +195,6 @@ abstract class Collider : CollidingComponent() {
         return outside + inside - roundness
     }
 
-    fun createBulletCollider(base: Entity, scale: Vector3d): Pair<Transform, CollisionShape> {
-        val transform0 = entity!!.fromLocalToOtherLocal(base)
-        // there may be extra scale hidden in there
-        val extraScale = transform0.getScale(Vector3d())
-        val totalScale = Vector3d(scale).mul(extraScale)
-        val shape = createBulletShape(totalScale)
-        val transform = mat4x3ToTransform(transform0, extraScale)
-        return transform to shape
-    }
-
     /**
      * gets the signed distance to the surface of the collider, in local coordinates
      * the coordinates will be lost
@@ -290,12 +277,10 @@ abstract class Collider : CollidingComponent() {
         return distance
     }
 
-    abstract fun createBulletShape(scale: Vector3d): CollisionShape
-
     // a collider needs to be drawn
     override fun onDrawGUI(all: Boolean) {
         if (all ||
-            entity?.physics?.showDebug == true ||
+            // entity?.physics?.showDebug == true ||
             RenderView.currentInstance?.renderMode == RenderMode.PHYSICS
         ) drawShape()
         // todo draw transformation gizmos for easy collider manipulation

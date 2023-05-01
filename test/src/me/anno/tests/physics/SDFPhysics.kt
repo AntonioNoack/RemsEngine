@@ -9,8 +9,9 @@ import me.anno.ecs.components.collider.SphereCollider
 import me.anno.ecs.components.mesh.sdf.SDFCollider
 import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
 import me.anno.ecs.components.mesh.sdf.shapes.SDFSphere
-import me.anno.ecs.components.physics.BulletPhysics
-import me.anno.ecs.components.physics.Rigidbody
+import me.anno.ecs.components.bullet.BulletPhysics
+import me.anno.ecs.components.bullet.Rigidbody
+import me.anno.ecs.components.bullet.createBulletShape
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.ui.debug.TestStudio.Companion.testUI

@@ -1,11 +1,14 @@
-package me.anno.ecs.components.chunks.spherical
+package me.anno.ecs.components.bullet
 
 import com.bulletphysics.collision.narrowphase.GjkEpaSolver
 import com.bulletphysics.collision.shapes.ConvexShape
 import com.bulletphysics.collision.shapes.TriangleShape
 import com.bulletphysics.linearmath.Transform
+import me.anno.ecs.components.chunks.spherical.Hexagon
+import me.anno.ecs.components.chunks.spherical.HexagonSphere
+import me.anno.ecs.components.chunks.spherical.HexagonTriangleQuery
 import me.anno.engine.debug.DebugLine
-import me.anno.engine.debug.DebugShapes.debugLines
+import me.anno.engine.debug.DebugShapes
 import me.anno.utils.Color.a
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles
@@ -156,9 +159,9 @@ class HexagonSpherePhysics(
 
     fun showTriangle(a: Vector3f, b: Vector3f, c: Vector3f, color: Int) {
         if (color.a() > 0) {
-            debugLines.add(DebugLine(org.joml.Vector3d(a), org.joml.Vector3d(b), color, 0f))
-            debugLines.add(DebugLine(org.joml.Vector3d(b), org.joml.Vector3d(c), color, 0f))
-            debugLines.add(DebugLine(org.joml.Vector3d(c), org.joml.Vector3d(a), color, 0f))
+            DebugShapes.debugLines.add(DebugLine(org.joml.Vector3d(a), org.joml.Vector3d(b), color, 0f))
+            DebugShapes.debugLines.add(DebugLine(org.joml.Vector3d(b), org.joml.Vector3d(c), color, 0f))
+            DebugShapes.debugLines.add(DebugLine(org.joml.Vector3d(c), org.joml.Vector3d(a), color, 0f))
         }
     }
 

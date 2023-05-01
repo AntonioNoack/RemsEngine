@@ -16,13 +16,12 @@ class ExtensionInfo(
     val dependencies: List<String>
 ) {
 
-    constructor(clazz: KClass<*>) :
-            this(
-                clazz.qualifiedName!!, InvalidRef,
-                clazz.simpleName!!, "", "", "",
-                0, 0, clazz.qualifiedName!!, instanceOf(clazz, Plugin::class),
-                0.0, emptyList()
-            )
+    constructor(clazz: KClass<*>) : this(
+        clazz.qualifiedName!!, InvalidRef,
+        clazz.simpleName!!, "", "", "",
+        0, 0, clazz.qualifiedName!!, instanceOf(clazz, Plugin::class),
+        0.0, emptyList()
+    )
 
     var clazz: KClass<*>? = null
 
