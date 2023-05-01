@@ -257,13 +257,6 @@ class Transform() : Saveable() {
             } else value
         }
 
-    fun setGlobalRotation(yxz: Vector3d) {
-        val tmp = JomlPools.quat4d.create()
-        tmp.rotateYXZ(yxz.y, yxz.x, yxz.z)
-        globalRotation = tmp
-        JomlPools.quat4d.sub(1)
-    }
-
     fun validate() {
         when (state) {
             // really update by time? idk... this is not the time when it was changed...

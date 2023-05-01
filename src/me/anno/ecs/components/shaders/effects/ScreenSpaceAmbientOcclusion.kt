@@ -291,7 +291,9 @@ object ScreenSpaceAmbientOcclusion {
         return renderPurely {
             val samples1 = min(samples, MAX_SAMPLES)
             val tmp = calculate(data, settingsV2, transform, radius, strength, samples1, enableBlur)
-            if (tmp == null) null else if (enableBlur) average(tmp).getTexture0() else tmp.getTexture0()
+            if (tmp == null) null
+            else if (enableBlur) average(tmp).getTexture0()
+            else tmp.getTexture0()
         }
     }
 

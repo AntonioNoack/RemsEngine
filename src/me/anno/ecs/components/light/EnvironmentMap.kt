@@ -151,7 +151,7 @@ class EnvironmentMap : LightComponentBase() {
                 RenderState.cameraMatrix.set(cameraMatrix)
                 RenderState.cameraPosition.set(position)
                 RenderState.cameraRotation.set(camRotInv)
-                RenderState.calculateDirections()
+                RenderState.calculateDirections(true)
 
                 // clear using sky
                 val ci = RenderView.currentInstance

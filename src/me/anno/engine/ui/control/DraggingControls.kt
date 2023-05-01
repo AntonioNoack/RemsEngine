@@ -37,7 +37,6 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
@@ -222,22 +221,25 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         }
     }
 
+    open fun resetCamera() {
+        // reset the camera
+        view.rotation.identity()
+        view.position.set(0.0)
+        view.radius = 50.0
+        view.near = 1e-3
+        view.far = 1e10
+        camera.fovOrthographic = 5f
+        camera.fovY = 90f
+        camera.isPerspective = true
+        rotationTarget.set(0.0)
+    }
+
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         when (action) {
             "SetMode(MOVE)" -> mode = Mode.TRANSLATING
             "SetMode(ROTATE)" -> mode = Mode.ROTATING
             "SetMode(SCALE)" -> mode = Mode.SCALING
-            "Cam0", "ResetCamera" -> {
-                // reset the camera
-                view.rotation.identity()
-                view.position.set(0.0)
-                view.radius = 50.0
-                view.near = 1e-3
-                view.far = 1e10
-                camera.fovOrthographic = 5f
-                camera.fovY = 90f
-                camera.isPerspective = true
-            }
+            "Cam0", "ResetCamera" -> resetCamera()
             "Cam5" -> {// switch between orthographic and perspective
                 // switch between ortho and perspective
                 camera.isPerspective = !camera.isPerspective

@@ -2,7 +2,6 @@ package me.anno.gpu.shader
 
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.shader.builder.Variable
-import me.anno.input.Input
 import me.anno.utils.pooling.JomlPools
 import kotlin.math.abs
 import kotlin.math.tan
@@ -52,11 +51,7 @@ object DepthTransforms {
             shader.v4f("d_camRot", dir.x.toFloat(), dir.y.toFloat(), dir.z.toFloat(), 1f)
             shader.v3f("d_fovFactor", 0f, 0f, -1f)
             // a matrix that transforms uv[-1,+1] x depth[0,1] into [left,right] x [top,bottom] x [near,far]
-            // todo test this
-            if (Input.isShiftDown)
-                shader.m4x3("d_orthoMat", JomlPools.mat4x3f.borrow().set(RenderState.cameraMatrixInv))
-            else
-                shader.m4x3("d_orthoMat", JomlPools.mat4x3f.borrow().set(RenderState.cameraMatrix))
+            shader.m4x3("d_orthoMat", JomlPools.mat4x3f.borrow().set(RenderState.cameraMatrixInv))
         } else {
             // perspective
             shader.v4f("d_camRot", RenderState.cameraRotation)

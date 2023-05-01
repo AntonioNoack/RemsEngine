@@ -339,7 +339,7 @@ object ShaderLib {
             "}\n" +
             "vec4 getTexture(sampler2D tex, vec2 uv){ return getTexture(tex, uv, textureDeltaUV); }\n"
 
-
+    // used in depth-renderer
     const val positionPostProcessing = "" +
             "   zDistance = gl_Position.w;\n"
 

@@ -6,7 +6,7 @@ import me.anno.network.TCPClient
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class POS2Packet : POS1Packet {
+open class POS2Packet : POS1Packet {
 
     constructor() : super("POS2")
     constructor(magic: String) : super(magic)

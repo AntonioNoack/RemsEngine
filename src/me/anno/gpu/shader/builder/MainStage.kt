@@ -47,9 +47,7 @@ class MainStage {
         val defined = HashSet(defined)
         defined.addAll(attributes)
 
-        val definedByPrevious = HashSet<Variable>(
-            previousDefined.filter { it !in defined }
-        )
+        val definedByPrevious = previousDefined.filter { it !in defined }.toHashSet()
 
         uniforms.clear()
         for (stage in stages) {

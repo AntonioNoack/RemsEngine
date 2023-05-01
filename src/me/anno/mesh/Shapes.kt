@@ -3,6 +3,7 @@ package me.anno.mesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
+import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.sign
@@ -211,14 +212,11 @@ object Shapes {
             // mmh, awkward request
             mesh.positions = FloatArray(0)
         } else {
-            var position = mesh.positions
             val base = if (withNormals) flatCube else smoothCube
             val base1 = if (front && back) base.both else if (front) base.front else base.back
             val base2 = base1.positions!!
-            if (position == null || position.size != base2.size) {
-                position = FloatArray(base2.size)
-                mesh.positions = position
-            }
+            val position = mesh.positions.resize(base2.size)
+            mesh.positions = position
             val sx = sizeX * 0.5f
             val sy = sizeY * 0.5f
             val sz = sizeZ * 0.5f
@@ -229,6 +227,7 @@ object Shapes {
             }
             mesh.indices = base1.indices
             mesh.normals = base1.normals
+            mesh.cullMode = base1.cullMode
         }
     }
 

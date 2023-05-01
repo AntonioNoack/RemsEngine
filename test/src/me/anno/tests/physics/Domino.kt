@@ -1,5 +1,6 @@
 package me.anno.tests.physics
 
+import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.collider.BoxCollider
@@ -9,10 +10,12 @@ import me.anno.ecs.components.physics.Rigidbody
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.GFXBase
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS.music
 import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
 import org.joml.Vector3f
 
@@ -21,6 +24,8 @@ import org.joml.Vector3f
 // done click to start it, maybe red domino or impulse, or falling ball :)
 //  somehow dragging while playing is supported :)
 fun main() {
+
+    // todo why are tons of bricks unstable?
 
     ECSRegistry.initMeshes()
     registerCustomClass(Rigidbody())
@@ -75,7 +80,9 @@ fun main() {
         }
     }.apply {
         // updateInEditMode = true
-        // fixedStep = 1.0 / 60.0
+        fixedStep = 1.0 / 10e3
+        maxSubSteps = 1000
+        synchronousPhysics = false // todo remove jitter from async physics...
     })
 
     val density = 1.0
@@ -95,6 +102,7 @@ fun main() {
         domino.add(Rigidbody().apply {
             mass = mass1
             friction = 0.9
+            restitution = 0.5
         })
         domino.add(BoxCollider().apply {
             halfExtends = halfExtends1
@@ -108,33 +116,37 @@ fun main() {
     val floorHalfSize = 20.0 * inch
     val floors = Entity("Floors")
     scene.add(floors)
-    for (z in -100..100) {
-        for (x in 0..1) {
-            val floor = Entity()
-            floor.add(Rigidbody().apply {
-                mass = 0.0
-                friction = 0.9
-            })
-            floor.add(BoxCollider().apply {
-                halfExtends.set(floorHalfSize)
-                margin = floorHalfSize / 100.0
-            })
-            floor.add(MeshComponent(flatCube.scaled(Vector3f(floorHalfSize.toFloat())).front))
-            floor.position = floor.position.set(2 * x * floorHalfSize, -floorHalfSize, 2 * z * floorHalfSize)
-            floors.add(floor)
-        }
+    val halfNumFloors = 5
+    for (z in -halfNumFloors..halfNumFloors) {
+        val floor = Entity()
+        floor.add(Rigidbody().apply {
+            mass = 0.0
+            friction = 0.9
+            restitution = 0.5
+        })
+        floor.add(BoxCollider().apply {
+            halfExtends.set(floorHalfSize)
+            margin = floorHalfSize / 100.0
+        })
+        floor.add(MeshComponent(flatCube.scaled(Vector3f(floorHalfSize.toFloat())).front))
+        floor.position = floor.position.set(0.0, -floorHalfSize, 2 * z * floorHalfSize)
+        floors.add(floor)
     }
 
     // todo starting structure, and image support like in video
 
     val spacing = height * 0.7f
-    for (i in -1000 until 1000) {
+    val di = ((floorHalfSize * (halfNumFloors * 2 + 1)) / spacing - 2).toInt()
+    for (i in -di until di) {
         add(0f, spacing * i)
     }
+    add(0f, spacing * di).apply {
+        rotation = rotation.rotateX((-20.0).toRadians())
+    }
 
-    // todo why are tons of bricks unstable?
-
+    GFXBase.disableRenderDoc()
     testSceneWithUI(scene) {
+        DefaultConfig["debug.ui.showRedraws"] = false
         it.renderer.renderMode = RenderMode.PHYSICS
     }
 }

@@ -693,10 +693,8 @@ object Thumbs {
             RenderState.cameraRotation.identity()
                 .rotateX((15.0).toRadians())// rotate it into a nice viewing angle
                 .rotateY((-25.0).toRadians())
-            RenderState.calculateDirections()
-
+            RenderState.calculateDirections(true)
             RenderState.fovYRadians = 1f
-            RenderState.isPerspective = true
         }
 
         defineRenderState()

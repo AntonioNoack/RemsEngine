@@ -274,7 +274,7 @@ open class SDFComponent : ProceduralMesh(), Renderable {
         if (hasInvalidBounds) {
             hasInvalidBounds = false
             // recalculate bounds & recreate mesh
-            updateMesh(data, false)
+            generateMesh(data)
             invalidateAABB()
         }
         val components = internalComponents
@@ -439,10 +439,6 @@ open class SDFComponent : ProceduralMesh(), Renderable {
     }
 
     override fun generateMesh(mesh: Mesh) {
-        updateMesh(mesh, false)
-    }
-
-    fun updateMesh(mesh: Mesh, generateShader: Boolean) {
         val aabb = JomlPools.aabbf.create()
         aabb.clear()
         calculateBounds(aabb)
@@ -452,9 +448,6 @@ open class SDFComponent : ProceduralMesh(), Renderable {
             withNormals = false, front = false, back = true,
         )
         mesh.aabb.set(aabb)
-        if (generateShader) {
-            generateShader()
-        }
         mesh.inverseOutline = true
         mesh.invalidateGeometry()
         JomlPools.aabbf.sub(1)

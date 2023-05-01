@@ -92,7 +92,7 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
         defaultRun(server, client) { server.shutdown }
     }
 
-    open fun clientRun(socket: Socket, client: TCPClient, shutdown: () -> Boolean) {
+    open fun clientRun(client: TCPClient, shutdown: () -> Boolean) {
         defaultRun(null, client, shutdown)
     }
 

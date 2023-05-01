@@ -24,8 +24,10 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
         }
     }
 
-    constructor(socket: Socket, protocol: Protocol, name: String) : this(socket, protocol, 0) {
+    constructor(socket: Socket, protocol: Protocol, name: String, uuid: String = name) :
+            this(socket, protocol, 0) {
         this.name = name
+        this.uuid = uuid
     }
 
     var name = ""
@@ -112,13 +114,15 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
                 }
             }
         } catch (e: SocketException) {
-            e.printStackTrace()
+            if (debug) e.printStackTrace()
         } catch (e: IOException) {
-            e.printStackTrace()
+            if (debug) e.printStackTrace()
         } finally {
             close()
         }
     }
+
+    var debug = false
 
     fun flush() {
         ensureConnection()
@@ -127,6 +131,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
         }
     }
 
+    @Suppress("unused")
     fun sendUDP(packet: Packet, protocol: Protocol, receive: Boolean) {
         sendUDP(null, protocol, packet, receive)
     }
@@ -155,7 +160,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
                 protocol.clientHandshake(socket, this)
             }) {
             isRunning = true
-            protocol.clientRun(socket, this, shutdown)
+            protocol.clientRun(this, shutdown)
         } else {
             close()
             throw SocketException("Handshake failed")

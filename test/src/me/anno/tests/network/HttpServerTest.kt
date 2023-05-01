@@ -52,7 +52,13 @@ fun main() {
                 logger.info("Sent $file")
             } else {
                 logger.warn("$path -> $file was not found, $args, $meta")
-                sendResponse(client, 404)
+                val msg = "<h1>404 - File Not Found!</h1>"
+                sendResponse(client, 404, "Not Found", mapOf(
+                    "Content-Length" to msg.length,
+                    "Content-Type" to "text/html",
+                    "Connection" to "close"
+                ))
+                client.dos.write(msg.toByteArray())
             }
         }
     })

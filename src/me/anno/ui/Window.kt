@@ -68,7 +68,7 @@ open class Window(
     // todo optimized way to request redraw-updates: e.g., for blinking cursors only a very small section actually changes
     private val needsRedraw = LimitedList<Panel>(16)
     private val needsLayout = LimitedList<Panel>(16)
-    private val needsLayoutTmp = LimitedList<Panel>(16)
+    private val needsTmp = LimitedList<Panel>(16)
 
     fun addNeedsRedraw(panel: Panel) {
         if (panel.canBeSeen) {
@@ -177,28 +177,38 @@ open class Window(
         return didSomething
     }
 
-    fun validateLayouts(dx: Int, dy: Int, windowW: Int, windowH: Int, panel: Panel) {
-        val needsLayout = needsLayoutTmp
+    fun processNeeds(list: LimitedList<Panel>, panel: Panel, full: () -> Unit, single: (Panel) -> Unit) {
+        val needsLayout = needsTmp
         needsLayout.clear()
-        needsLayout.addAll(this.needsLayout)
-        if (this.w != windowW || this.h != windowH || panel in needsLayout) {
-            this.w = windowW
-            this.h = windowH
-            calculateFullLayout(dx, dy, windowW, windowH)
-            needsRedraw.add(panel)
-            needsLayout.clear()
+        needsLayout.addAll(list)
+        list.clear()
+        if (panel in needsLayout) {
+            full()
         } else {
             while (needsLayout.isNotEmpty()) {
                 val p = needsLayout.minByOrNull { it.depth }!!
-                // recalculate layout
-                p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)
-                p.setPosSize(p.lx0, p.ly0, p.lx1 - p.lx0, p.ly1 - p.ly0)
+                single(p)
                 needsLayout.removeIf { entry ->
                     entry === p || entry.anyInHierarchy { it == p }
                 }
-                addNeedsRedraw(p)
             }
         }
+    }
+
+    fun validateLayouts(dx: Int, dy: Int, windowW: Int, windowH: Int, panel: Panel) {
+        if (this.w != windowW || this.h != windowH) {
+            this.w = windowW
+            this.h = windowH
+            needsLayout.add(panel)
+        }
+        processNeeds(needsLayout, panel, {
+            calculateFullLayout(dx, dy, windowW, windowH)
+            needsRedraw.add(panel)
+        }, { p ->
+            p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)
+            p.setPosSize(p.lx0, p.ly0, p.lx1 - p.lx0, p.ly1 - p.ly0)
+            addNeedsRedraw(p)
+        })
     }
 
     private fun fullRedraw(
@@ -268,25 +278,21 @@ open class Window(
 
         if (x1 > x0 && y1 > y0) {
 
-            if (panel0 in needsRedraw || // if the main panel is here, all needs to be redrawn anyway
-                needsRedraw.isFull() || // needs redraw is full = we didn't save everything that needs redrawing
-                // if we would need to redraw more pixels than the whole screen, just redraw it, doesn't matter
-                needsRedraw.sumOf {
+            if (needsRedraw.sumOf {
                     if (it != null) max((it.lx1 - it.lx0) * (it.ly1 - it.ly0), 0) else 0
-                } >= panel0.w * panel0.h
-            ) {
+                } >= panel0.w * panel0.h) {
+                needsRedraw.add(panel0)
+            }
 
+            processNeeds(needsRedraw, panel0, {
                 wasRedrawn += panel0
-
                 GFX.loadTexturesSync.clear()
                 GFX.loadTexturesSync.push(false)
-
                 if (buffer.w != x1 - x0 || buffer.h != y1 - y0) {
                     buffer.w = x1 - x0
                     buffer.h = y1 - y0
                     buffer.destroy()
                 }
-
                 // todo while the window is being rescaled, reuse the old fb
                 useFrame(
                     x0, y0, x1 - x0, y1 - y0,
@@ -296,40 +302,35 @@ open class Window(
                     panel0.canBeSeen = true
                     panel0.draw(x0, y0, x1, y1)
                 }
+            }, { panel ->
+                GFX.loadTexturesSync.clear()
+                GFX.loadTexturesSync.push(false)
+                calculateXY01(panel, x0, y0, x1, y1)
+                useFrame(
+                    panel.lx0, panel.ly0,
+                    panel.lx1 - panel.lx0,
+                    panel.ly1 - panel.ly0, buffer,
+                    Renderer.colorRenderer,
+                    panel::redraw
+                )
+                wasRedrawn += panel
+            })
+        }
+    }
 
-            } else {
-
-                while (needsRedraw.isNotEmpty()) {
-                    val panel1 = needsRedraw.minByOrNull { it.depth } ?: break
-                    val panel = panel1.getOverlayParent() ?: panel1
-                    GFX.loadTexturesSync.clear()
-                    GFX.loadTexturesSync.push(false)
-                    if (panel.canBeSeen) {
-                        val x2 = panel.lx0
-                        val y2 = panel.ly0
-                        val x3 = panel.lx1 - panel.lx0
-                        val y3 = panel.ly1 - panel.ly0
-                        useFrame(
-                            x2, y2, x3, y3, buffer,
-                            Renderer.colorRenderer,
-                            panel::redraw
-                        )
-                    }
-                    wasRedrawn += panel
-                    panel.forAll { child ->
-                        if (child is Panel)
-                            needsRedraw.remove(child)
-                    }
-                    // doesn't work somehow...
-                    /*needsRedraw.removeIf { pi ->
-                        pi === panel || pi.anyInHierarchy { it === panel }
-                    }*/
-                }
-
-            }
-
-            needsRedraw.clear()
-
+    fun calculateXY01(panel: Panel, x0: Int, y0: Int, x1: Int, y1: Int) {
+        val parent = panel.uiParent
+        if (parent != null) {
+            calculateXY01(parent, x0, y0, x1, y1)
+            panel.lx0 = max(panel.x, parent.lx0)
+            panel.ly0 = max(panel.y, parent.ly0)
+            panel.lx1 = min(panel.x + panel.w, parent.lx1)
+            panel.ly1 = min(panel.y + panel.h, parent.ly1)
+        } else {
+            panel.lx0 = max(panel.x, x0)
+            panel.ly0 = max(panel.y, y0)
+            panel.lx1 = min(panel.x + panel.w, x1)
+            panel.ly1 = min(panel.y + panel.h, y1)
         }
     }
 

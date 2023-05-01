@@ -22,6 +22,8 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
     val defaultSize = 100
     var scaleChildren = false
 
+    override val canDrawOverBorders: Boolean get() = true
+
     var childWidth: Int = style.getSize("childWidth", defaultSize)
         set(value) {
             if (field != value) {
@@ -143,7 +145,6 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
                 child.setPosSize(cx, cy, calcChildWidth, calcChildHeight)
             }
         }
-
     }
 
     override fun clone() = PanelList2D(this)

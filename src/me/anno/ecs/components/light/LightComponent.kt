@@ -26,6 +26,7 @@ import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.max
 import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
+import kotlin.math.abs
 import kotlin.math.pow
 
 abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
@@ -213,7 +214,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                     pipeline, resolution,
                     position, rotation
                 )
-                RenderState.calculateDirections()
+                val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
+                RenderState.calculateDirections(isPerspective)
                 val root = entity.getRoot(Entity::class)
                 pipeline.fillDepth(root, position, worldScale)
                 useFrame(resolution, resolution, true, texture, renderer) {

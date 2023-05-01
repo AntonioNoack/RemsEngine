@@ -1221,7 +1221,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val camRotInv = camRot.conjugate(rot1)
 
         cameraMatrix.rotate(JomlPools.quat4f.borrow().set(camRotInv))
-        cameraMatrix.invert(cameraMatrixInv)
 
         cameraRotation.set(camRot)
         cameraRotation.transform(cameraDirection.set(0.0, 0.0, -1.0)).normalize()
@@ -1238,7 +1237,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         }
 
         prevCamMatrix.set(lastCamMat)
-        prevCamMatrixInv.set(lastCamMatInv)
         prevCamPosition.set(lastCamPos)
         prevCamRotation.set(lastCamRot)
         prevWorldScale = lastWorldScale
@@ -1610,8 +1608,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     var isPerspective = true
 
     val cameraMatrix = Matrix4f()
-    val cameraMatrixInv = Matrix4f()
-
     val cameraPosition = Vector3d()
     val cameraDirection = Vector3d()
     val cameraRotation = Quaterniond()
@@ -1619,21 +1615,18 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     val prevCamRotation = Quaterniond()
     val prevCamMatrix = Matrix4f()
-    val prevCamMatrixInv = Matrix4f()
     val prevCamPosition = Vector3d()
     var prevWorldScale = worldScale
 
     private val lastCamPos = Vector3d()
     private val lastCamRot = Quaterniond()
     private val lastCamMat = Matrix4f()
-    private val lastCamMatInv = Matrix4f()
     private var lastWorldScale = worldScale
 
     fun updatePrevState() {
         lastCamPos.set(cameraPosition)
         lastCamRot.set(cameraRotation)
         lastCamMat.set(cameraMatrix)
-        lastCamMatInv.set(cameraMatrixInv)
         lastWorldScale = worldScale
     }
 
@@ -1643,16 +1636,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         RenderState.worldScale = worldScale
         RenderState.prevWorldScale = prevWorldScale
 
+        RenderState.cameraMatrix.set(cameraMatrix)
         RenderState.cameraPosition.set(cameraPosition)
         RenderState.cameraRotation.set(cameraRotation)
-        RenderState.calculateDirections()
-        RenderState.cameraDirection.set(cameraDirection)
-        RenderState.cameraMatrix.set(cameraMatrix)
+        RenderState.calculateDirections(isPerspective)
 
         RenderState.prevCameraMatrix.set(prevCamMatrix)
         RenderState.prevCameraPosition.set(prevCamPosition)
 
-        RenderState.isPerspective = isPerspective
         RenderState.fovXRadians = fovXRadians
         RenderState.fovYRadians = fovYRadians
         RenderState.near = scaledNear.toFloat()

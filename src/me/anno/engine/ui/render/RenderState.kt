@@ -22,14 +22,18 @@ object RenderState {
     val cameraDirectionUp = Vector3d() // = cameraRotation.transform([0,1,0])
     val cameraDirection = Vector3d() // = cameraRotation.transform([0,0,-1])
 
-    fun calculateDirections() {
-        cameraDirection.set(0.0, 0.0, -1.0)
+    fun calculateDirections(isPerspective: Boolean) {
+        cameraDirection
+            .set(0.0, 0.0, -1.0)
             .rotate(cameraRotation)
-        cameraDirectionRight.set(1.0, 0.0, 0.0)
+        cameraDirectionRight
+            .set(1.0, 0.0, 0.0)
             .rotate(cameraRotation)
-        cameraDirectionUp.set(0.0, 1.0, 0.0)
+        cameraDirectionUp
+            .set(0.0, 1.0, 0.0)
             .rotate(cameraRotation)
         cameraMatrix.invert(cameraMatrixInv)
+        this.isPerspective = isPerspective
     }
 
     val prevCameraMatrix = Matrix4f()
@@ -37,6 +41,7 @@ object RenderState {
     val prevCameraRotation = Quaterniond()
 
     var isPerspective = true
+        private set
     var fovXRadians = 1.57f
     var fovYRadians = 1.57f
     var reverseDepth = true

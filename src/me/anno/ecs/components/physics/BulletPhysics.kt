@@ -96,6 +96,7 @@ open class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         }
     }
 
+    private val inertia = Vector3d()
     override fun createRigidbody(entity: Entity, rigidBody: Rigidbody): BodyWithScale<RigidBody>? {
 
         val colliders = getValidComponents(entity, Collider::class)
@@ -110,7 +111,6 @@ open class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             val collider = createCollider(entity, colliders, scale)
 
             val mass = max(0.0, rigidBody.mass)
-            val inertia = Vector3d()
             if (mass > 0.0) collider.calculateLocalInertia(mass, inertia)
 
             val transform1 = mat4x3ToTransform(globalTransform, scale)
@@ -295,8 +295,11 @@ open class BulletPhysics() : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         super.step(dt, printSlack)
     }
 
+    var maxSubSteps = 16
+    var fixedStep = 1.0 / 120.0 // 0.0 for flexible steps
+
     override fun worldStepSimulation(step: Double) {
-        world?.stepSimulation(step, 1, step)
+        world?.stepSimulation(step, maxSubSteps, if (fixedStep <= 0.0) step else fixedStep)
     }
 
     override fun isActive(rigidbody: RigidBody): Boolean {

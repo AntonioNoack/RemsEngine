@@ -30,7 +30,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     inline fun sumOf(run: (V?) -> Int): Int {
         var accumulator = 0
         val data = data
-        for (i in 0 until size) {
+        for (i in 0 until min(size, data.size)) {
             accumulator += run(data[i] as V)
         }
         return accumulator
@@ -125,8 +125,9 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     override fun iterator(): MutableIterator<V> {
         return object : Iterator<V>, MutableIterator<V> {
             private var i = 0
+            private val size1 = min(size, data.size)
             override fun next() = data[i++] as V
-            override fun hasNext() = i < size
+            override fun hasNext() = i < size1
             override fun remove() {
                 this@LimitedList.remove(data[i - 1])
             }

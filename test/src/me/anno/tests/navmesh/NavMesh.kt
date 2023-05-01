@@ -98,8 +98,8 @@ fun main() {
         val agentMesh = MeshCache[agentMeshRef, false]!!
         agentMesh.calculateNormals(true)
         val agentBounds = agentMesh.ensureBounds()
-        val agentScale = 0.01f
-        val flagScale = 0.01f
+        val agentScale = 1f
+        val flagScale = 1f
 
         val navMesh1 = NavMesh()
         navMesh1.agentHeight = agentBounds.deltaY() * agentScale

@@ -181,6 +181,9 @@ open class Quaterniond {
         return dst.set(this)
     }
 
+    fun set(x: Float, y: Float, z: Float, w: Float): Quaterniond =
+        set(x.toDouble(), y.toDouble(), z.toDouble(), w.toDouble())
+
     fun set(x: Double, y: Double, z: Double, w: Double): Quaterniond {
         this.x = x
         this.y = y
@@ -189,8 +192,8 @@ open class Quaterniond {
         return this
     }
 
-    fun set(q: Quaterniond) = set(q.x, q.y, q.z, q.w)
-    fun set(q: Quaternionf) = set(q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble())
+    fun set(q: Quaterniond): Quaterniond = set(q.x, q.y, q.z, q.w)
+    fun set(q: Quaternionf): Quaterniond = set(q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble())
 
     fun set(src: DoubleArray, i: Int) = set(src[i], src[i + 1], src[i + 2], src[i + 3])
     fun get(dst: DoubleArray, i: Int) {

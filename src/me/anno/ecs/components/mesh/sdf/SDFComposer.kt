@@ -94,22 +94,6 @@ object SDFComposer {
         return dst
     }
 
-    fun localCamDir(tree: SDFComponent, dst: Vector3f): Vector3f {
-        if (RenderState.isPerspective) {
-            val dt = tree.transform?.getDrawMatrix()
-            if (dt != null) {
-                val pos = JomlPools.vec3d.create()
-                val dtInverse = JomlPools.mat4x3d.create()
-                dt.invert(dtInverse) // have we cached this inverse anywhere? would save .invert()
-                dtInverse.transformDirection(RenderState.cameraDirection, pos)
-                dst.set(pos).normalize()
-                JomlPools.vec3d.sub(1)
-                JomlPools.mat4x3d.sub(1)
-            }
-        }
-        return dst
-    }
-
     fun distanceBounds(tree: SDFComponent, dst: Vector2f): Vector2f {
         // find maximum in local space from current point to bounding box
         // best within frustum
@@ -146,129 +130,23 @@ object SDFComposer {
         val functions = LinkedHashSet<String>()
         val uniforms = HashMap<String, TypeValue>()
         val shapeDependentShader = StringBuilder()
-        val seeds = ArrayList<String>()
-        tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions, seeds)
+        tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions, ArrayList())
 
         val materials = tree.sdfMaterials.map { MaterialCache[it] }
         val materialCode = buildMaterialCode(tree, materials, uniforms)
 
-        val shader = object : ECSMeshShader("raycasting-${tree.hashCode()}") {
-
-            private val tmp3 = Vector3f()
-            private val tmp2 = Vector2f()
-            override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
-                super.bind(shader, renderer, instanced)
-
-                shader.v3f("localCamPos", localCamPos(tree, tmp3))
-                shader.v3f("localCamDir", localCamDir(tree, tmp3))
-                shader.v1f("sdfReliability", tree.globalReliability)
-                shader.v1f("sdfNormalEpsilon", tree.normalEpsilon)
-                shader.v1f("sdfMaxRelativeError", tree.maxRelativeError)
-
-                shader.v1i("maxSteps", tree.maxSteps)
-                shader.v2f("distanceBounds", distanceBounds(tree, tmp2))
-
-                val b = tree.localAABB
-                shader.v3f("localMin", tmp3.set(b.minX, b.minY, b.minZ))
-                shader.v3f("localMax", tmp3.set(b.maxX, b.maxY, b.maxZ))
-
-                shader.v1b("perspectiveCamera", RenderState.isPerspective)
-                shader.v1i("debugMode", tree.debugMode.id)
-                shader.v1b("renderIds", GFXState.currentRenderer == Renderer.idRenderer)
-
-                shader.v2f("renderSize", GFXState.currentBuffer.w.toFloat(), GFXState.currentBuffer.h.toFloat())
-
-                bindDepthToPosition(shader)
-
-            }
-
-            override fun createDepthShader(
-                isInstanced: Boolean,
-                isAnimated: Boolean,
-                limitedTransform: Boolean
-            ): Shader {
-                val builder1 = createBuilder()
-                builder1.addVertex(
-                    createVertexStages(
-                        isInstanced, isAnimated, colors = false,
-                        motionVectors = false, limitedTransform
-                    )
-                )
-                builder1.addFragment(createFragmentStages(isInstanced, isAnimated, motionVectors))
-                GFX.check()
-                val shader = builder1.create()
-                shader.glslVersion = glslVersion
-                GFX.check()
-                return shader
-            }
-
+        val shader = object : SDFShader(tree) {
             override fun createFragmentStages(
                 isInstanced: Boolean,
                 isAnimated: Boolean,
                 motionVectors: Boolean
             ): List<ShaderStage> {
                 // instancing is not supported
-                val fragmentVariables = listOf(
-                    Variable(GLSLType.M4x4, "transform"),
-                    Variable(GLSLType.M4x3, "localTransform"),
-                    Variable(GLSLType.M4x3, "invLocalTransform"),
-                    Variable(GLSLType.V3F, "localCamPos"),
-                    Variable(GLSLType.V3F, "localCamDir"),
-                    Variable(GLSLType.V1I, "maxSteps"),
-                    Variable(GLSLType.V2F, "distanceBounds"),
-                    Variable(GLSLType.V3F, "localMin"),
-                    Variable(GLSLType.V3F, "localMax"),
-                    Variable(GLSLType.V1I, "debugMode"), // 0 = default, 1 = #steps, 2 = sdf planes
-                    Variable(GLSLType.V1B, "perspectiveCamera"),
-                    Variable(GLSLType.V1F, "sdfReliability"),
-                    Variable(GLSLType.V1F, "sdfNormalEpsilon"),
-                    Variable(GLSLType.V1F, "sdfMaxRelativeError"),
-                    // is used to prevent inlining of huge functions
-                    Variable(GLSLType.V1I, "ZERO"),
-                    // input varyings
-                    Variable(GLSLType.V3F, "finalPosition"),
-                    Variable(GLSLType.V3F, "localPosition"),
-                    Variable(GLSLType.V2F, "roughnessMinMax"),
-                    Variable(GLSLType.V2F, "metallicMinMax"),
-                    Variable(GLSLType.V1F, "occlusionStrength"),
-                    // outputs
-                    Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-                    Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
-                    Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
-                    // Variable(GLSLType.V3F, "finalTangent", VariableMode.OUT),
-                    // Variable(GLSLType.V3F, "finalBitangent", VariableMode.OUT),
-                    Variable(GLSLType.V2F, "finalUV", VariableMode.OUT),
-                    Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
-                    Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
-                    Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
-                    // we could compute occlusion
-                    // disadvantage: we cannot prevent duplicate occlusion currently,
-                    // and it would be applied twice... (here + ssao)
-                    Variable(GLSLType.V1F, "finalSheen", VariableMode.OUT),
-                    // just passed from uniforms
-                    Variable(GLSLType.V1F, "finalTranslucency", VariableMode.INOUT),
-                    Variable(GLSLType.V4F, "finalClearCoat", VariableMode.INOUT),
-                    Variable(GLSLType.V2F, "finalClearCoatRoughMetallic", VariableMode.INOUT),
-                    // for reflections;
-                    // we could support multiple
-                    Variable(GLSLType.V1B, "hasReflectionPlane"),
-                    Variable(GLSLType.V3F, "reflectionPlaneNormal"),
-                    Variable(GLSLType.S2D, "reflectionPlane"),
-                    Variable(GLSLType.V4F, "reflectionCullingPlane"),
-                    Variable(GLSLType.V1F, "translucency"),
-                    Variable(GLSLType.V1F, "sheen"),
-                    Variable(GLSLType.V4F, "clearCoat"),
-                    Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
-                    Variable(GLSLType.V1I, "drawMode"),
-                    Variable(GLSLType.V1B, "renderIds"),
-                    Variable(GLSLType.V2F, "renderSize"),
-                    // todo support bridges for uniform -> fragment1 -> fragment2 (inout)
-                    Variable(GLSLType.V4F, "tint", VariableMode.OUT),
-                ) + uniforms.map { (k, v) -> Variable(v.type, k) } + DepthTransforms.depthVars
-
+                val fragmentVariables = fragmentVariables1 + uniforms.map { (k, v) -> Variable(v.type, k) }
                 val stage = ShaderStage(
-                    "material", fragmentVariables, "" +
+                    name, fragmentVariables, "" +
+
+                            // todo calculate motion vectors, if requested
 
                             // todo if transparency is enabled, trace through the model until the result is opaque
 
@@ -279,10 +157,13 @@ object SDFComposer {
                             // convert normals into global normals
                             // compute global depth
 
-                            "if(!gl_FrontFacing) discard;\n" +
                             "vec2 uv0 = gl_FragCoord.xy / renderSize;\n" +
                             "vec3 localDir = normalize(mat3x3(invLocalTransform) * rawCameraDirection(uv0));\n" +
+                            // todo why is this slightly incorrect if orthographic????
+                            //  (both cases wobble from the view of the point light)
                             "vec3 localPos = localPosition - localDir * max(0.0,dot(localPosition-localCamPos,localDir));\n" +
+                            "if(uv0.x > 0.5) localPos = invLocalTransform * vec4(depthToPosition(uv0,perspectiveCamera?0.0:1.0),1.0);\n" +
+                            // "vec4 ray = vec4(0,1,0,0);\n" +
                             "float tmpNear = 0.001;\n" +
                             "vec4 ray = distanceBounds.x <= tmpNear ? map(localPos,localDir,localPos,tmpNear) : vec4(0.0);\n" +
                             "int steps;\n" +
@@ -297,14 +178,14 @@ object SDFComposer {
                             "       } else if(ray.y < 0.0){ discard; } else {\n" +
                             // proper material calculation
                             "           vec3 localHit = localPos + ray.x * localDir;\n" +
-                            "               vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
+                            "           vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
                             // todo normal could be guessed from depth aka dFdx(ray.x),dFdy(ray.x)
                             // todo calculate tangent from dFdx(uv) and dFdy(uv)
-                            "               finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
-                            "               finalPosition = localTransform * vec4(localHit, 1.0);\n" + // convert localHit to global hit
+                            "           finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
+                            "           finalPosition = localTransform * vec4(localHit, 1.0);\n" + // convert localHit to global hit
                             discardByCullingPlane + // respect reflection plane
-                            "               vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" + // calculate depth
-                            "               gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                            "           vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" + // calculate depth
+                            "           gl_FragDepth = newVertex.z/newVertex.w;\n" +
                             // step by step define all material properties
                             "           finalUV = ray.zw;\n" +
                             materialCode +
@@ -312,7 +193,6 @@ object SDFComposer {
                             "   }\n" +
                             "} else discard;\n" + // inside an object
                             partClickIds
-
                 )
 
                 functions.add(sdBox)
@@ -325,6 +205,56 @@ object SDFComposer {
         // why are those not ignored?
         ignoreCommonNames(shader)
         return uniforms to shader
+    }
+
+    open class SDFShader(val tree: SDFComponent) : ECSMeshShader("raycasting-${tree.hashCode()}") {
+
+        private val tmp3 = Vector3f()
+        private val tmp2 = Vector2f()
+        override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
+            super.bind(shader, renderer, instanced)
+
+            shader.v3f("localCamPos", localCamPos(tree, tmp3))
+            shader.v1f("sdfReliability", tree.globalReliability)
+            shader.v1f("sdfNormalEpsilon", tree.normalEpsilon)
+            shader.v1f("sdfMaxRelativeError", tree.maxRelativeError)
+
+            shader.v1i("maxSteps", tree.maxSteps)
+            shader.v2f("distanceBounds", distanceBounds(tree, tmp2))
+
+            val b = tree.localAABB
+            shader.v3f("localMin", tmp3.set(b.minX, b.minY, b.minZ))
+            shader.v3f("localMax", tmp3.set(b.maxX, b.maxY, b.maxZ))
+
+            shader.v1b("perspectiveCamera", RenderState.isPerspective)
+            shader.v1i("debugMode", tree.debugMode.id)
+            shader.v1b("renderIds", GFXState.currentRenderer == Renderer.idRenderer)
+
+            shader.v2f("renderSize", GFXState.currentBuffer.w.toFloat(), GFXState.currentBuffer.h.toFloat())
+
+            bindDepthToPosition(shader)
+
+        }
+
+        override fun createDepthShader(
+            isInstanced: Boolean,
+            isAnimated: Boolean,
+            limitedTransform: Boolean
+        ): Shader {
+            val builder1 = createBuilder()
+            builder1.addVertex(
+                createVertexStages(
+                    isInstanced, isAnimated, colors = false,
+                    motionVectors = false, limitedTransform
+                )
+            )
+            builder1.addFragment(createFragmentStages(isInstanced, isAnimated, motionVectors))
+            GFX.check()
+            val shader = builder1.create()
+            shader.glslVersion = glslVersion
+            GFX.check()
+            return shader
+        }
     }
 
     fun ignoreCommonNames(shader: BaseShader) {
@@ -464,6 +394,56 @@ object SDFComposer {
             "        finalAlpha = 1.0;\n" +
             "    } else discard;\n" +
             "} else discard;\n"
+
+    val fragmentVariables1 = listOf(
+        Variable(GLSLType.M4x4, "transform"),
+        Variable(GLSLType.M4x3, "localTransform"),
+        Variable(GLSLType.M4x3, "invLocalTransform"),
+        Variable(GLSLType.V3F, "localCamPos"),
+        Variable(GLSLType.V1I, "maxSteps"),
+        Variable(GLSLType.V2F, "distanceBounds"),
+        Variable(GLSLType.V3F, "localMin"),
+        Variable(GLSLType.V3F, "localMax"),
+        Variable(GLSLType.V1I, "debugMode"),
+        Variable(GLSLType.V1B, "perspectiveCamera"),
+        Variable(GLSLType.V1F, "sdfReliability"),
+        Variable(GLSLType.V1F, "sdfNormalEpsilon"),
+        Variable(GLSLType.V1F, "sdfMaxRelativeError"),
+        // is used to prevent inlining of huge functions
+        Variable(GLSLType.V1I, "ZERO"),
+        // input varyings
+        Variable(GLSLType.V3F, "finalPosition", VariableMode.INOUT),
+        Variable(GLSLType.V3F, "localPosition", VariableMode.INOUT),
+        Variable(GLSLType.V2F, "roughnessMinMax"),
+        Variable(GLSLType.V2F, "metallicMinMax"),
+        Variable(GLSLType.V1F, "occlusionStrength"),
+        // outputs
+        Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+        Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+        Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
+        Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
+        Variable(GLSLType.V2F, "finalUV", VariableMode.OUT),
+        Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
+        Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
+        Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
+        // we could compute occlusion
+        // disadvantage: we cannot prevent duplicate occlusion currently,
+        // and it would be applied twice... (here + ssao)
+        Variable(GLSLType.V1F, "finalSheen", VariableMode.OUT),
+        // just passed from uniforms
+        Variable(GLSLType.V1F, "finalTranslucency", VariableMode.INOUT),
+        Variable(GLSLType.V4F, "finalClearCoat", VariableMode.INOUT),
+        Variable(GLSLType.V2F, "finalClearCoatRoughMetallic", VariableMode.INOUT),
+        // for reflections;
+        // we could support multiple
+        Variable(GLSLType.V1B, "hasReflectionPlane"),
+        Variable(GLSLType.V3F, "reflectionPlaneNormal"),
+        Variable(GLSLType.S2D, "reflectionPlane"),
+        Variable(GLSLType.V4F, "reflectionCullingPlane"),
+        Variable(GLSLType.V1B, "renderIds"),
+        Variable(GLSLType.V2F, "renderSize"),
+        Variable(GLSLType.V4F, "tint", VariableMode.OUT),
+    ) + DepthTransforms.depthVars
 
     fun createShaderToyShader(tree: SDFComponent): String {
 

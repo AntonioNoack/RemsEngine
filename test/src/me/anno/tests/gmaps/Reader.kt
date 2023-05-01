@@ -5,6 +5,8 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.GFX
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.ImageGPUCache
 import me.anno.image.raw.IntImage
@@ -19,11 +21,12 @@ import me.anno.utils.OS.downloads
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL13C.glCompressedTexImage2D
 import java.io.InputStream
 
 fun main() {
     // load all pck files
-    val folder = downloads
+    val folder = downloads.getChild("gmaps-decent")
     val meshes = ArrayList<Pair<Int, ByteArray>>()
     for (file in folder.listChildren()!!) {
         if (file.name.startsWith("gmaps") && file.lcExtension == "pck") {
@@ -64,6 +67,33 @@ fun unpack565(v: Int): Int {
     return r + g + b + black
 }
 
+class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : Image(w, h, 3, false) {
+    override fun getRGB(index: Int): Int {
+        throw NotImplementedError()
+    }
+
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+        if (!GFX.isGFXThread()) {
+            GFX.addGPUTask("CompressedTexture", width, height) {
+                createTexture(texture, true, checkRedundancy)
+            }
+        } else {
+            texture.beforeUpload(0, 0)
+            texture.bindBeforeUpload()
+            val tmp = Texture2D.bufferPool[data.size, false, false]
+            tmp.put(data).flip()
+            GFX.check()
+            glCompressedTexImage2D(texture.target, 0, format, width, height, 0, tmp)
+            GFX.check()
+            Texture2D.bufferPool.returnBuffer(tmp)
+            texture.internalFormat = format
+            texture.createdW = width
+            texture.createdH = height
+            texture.afterUpload(false, 4)
+        }
+    }
+}
+
 fun readImageFile(stream: InputStream): Image {
     val w = stream.readLE32()
     val h = stream.readLE32()
@@ -71,6 +101,7 @@ fun readImageFile(stream: InputStream): Image {
     val dataType = stream.readLE32()
     val length = stream.readLE32()
     val data = stream.readNBytes2(length, true)
+    if (true) return CompressedTexture(w, h, format, data)
     return when (format) {
         33776 -> {
             // COMPRESSED_RGB_S3TC_DXT1_EXT
@@ -242,40 +273,4 @@ fun idx(mesh: Mesh, elements: ShortArray) {
     // mesh.indices = elements.stripToIndexed()
     mesh.indices = IntArray(elements.size) { elements[it].toInt() and 0xffff }
     mesh.drawMode = GL_TRIANGLE_STRIP
-}
-
-fun ShortArray.stripToIndexed(): IntArray {
-    if (isEmpty()) return IntArray(0)
-    var numTriangles = 0
-    var a = this[0]
-    var b = this[1]
-    for (i in 2 until size) {
-        val c = this[i]
-        if (a != b && b != c && a != c) {
-            numTriangles++
-        }
-        a = b
-        b = c
-    }
-    val result = IntArray(numTriangles * 3)
-    a = this[0]
-    b = this[1]
-    var j = 0
-    for (i in 2 until size) {
-        // flip order every 2nd iteration
-        val c = this[i]
-        if (a != b && b != c && a != c) {
-            if (i.hasFlag(1)) {
-                result[j++] = b.toInt() and 65535
-                result[j++] = a.toInt() and 65535
-            } else {
-                result[j++] = a.toInt() and 65535
-                result[j++] = b.toInt() and 65535
-            }
-            result[j++] = c.toInt() and 65535
-        }
-        a = b
-        b = c
-    }
-    return result
 }

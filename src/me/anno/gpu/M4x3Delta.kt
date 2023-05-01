@@ -15,6 +15,7 @@ object M4x3Delta {
 
     @JvmField
     val buffer16: FloatBuffer = MemoryUtil.memAllocFloat(16)
+
     @JvmField
     val buffer16x256: FloatBuffer = MemoryUtil.memAllocFloat(16 * 256)
 

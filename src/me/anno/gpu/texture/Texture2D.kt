@@ -436,7 +436,7 @@ open class Texture2D(
         if (w * h > 1e4 && (t2 - t0) * 1e-9f > 0.01f) LOGGER.info("Used ${(t1 - t0) * 1e-9f}s + ${(t2 - t1) * 1e-9f}s to upload ${(w * h) / 1e6f} MPixel image to GPU")
     }*/
 
-    private fun beforeUpload(channels: Int, size: Int) {
+    fun beforeUpload(channels: Int, size: Int) {
         if (isDestroyed) throw RuntimeException("Texture is already destroyed, call reset() if you want to stream it")
         checkSize(channels, size)
         check()
@@ -451,7 +451,7 @@ open class Texture2D(
         bindBeforeUpload()
     }
 
-    private fun afterUpload(isHDR: Boolean, bytesPerPixel: Int) {
+    fun afterUpload(isHDR: Boolean, bytesPerPixel: Int) {
         locallyAllocated = allocate(locallyAllocated, w * h * bytesPerPixel.toLong())
         isCreated = true
         this.isHDR = isHDR
@@ -1045,7 +1045,7 @@ open class Texture2D(
 
     var hasMipmap = false
 
-    private fun bindBeforeUpload() {
+    fun bindBeforeUpload() {
         if (pointer == 0) throw RuntimeException("Pointer must be defined")
         invalidateBinding()
         bindTexture(target, pointer)

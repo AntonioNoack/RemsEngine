@@ -22,6 +22,7 @@ import me.anno.mesh.Shapes
 import me.anno.utils.types.Matrices.mul2
 import org.joml.*
 import org.lwjgl.opengl.GL11C.glScissor
+import kotlin.math.abs
 
 class PlanarReflection : LightComponentBase() {
 
@@ -127,7 +128,7 @@ class PlanarReflection : LightComponentBase() {
         RenderState.cameraMatrix.set(cameraMatrix1)
         RenderState.cameraPosition.set(reflectedCameraPosition)
         RenderState.cameraDirection.reflect(mirrorNormal) // for sorting
-        RenderState.calculateDirections()
+        RenderState.calculateDirections(abs(cameraMatrix0.m33) < 0.5f)
 
         // todo cut frustum into local area by bounding box
 

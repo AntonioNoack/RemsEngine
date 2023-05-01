@@ -132,7 +132,7 @@ open class Rigidbody : Component() {
         }
 
     @Docs(
-        "how much energy is absorbed in a collision; relative,\n" +
+        "How much energy is absorbed in a collision; relative,\n" +
                 "0 = perfectly bouncy, 1 = all energy absorbed (knead)"
     )
     @Range(0.0, 1.0)
@@ -243,7 +243,7 @@ open class Rigidbody : Component() {
             } else 0.0
         }
 
-    @Docs("angular velocity in global space")
+    @Docs("Angular velocity in global space")
     @DebugProperty
     var angularVelocity = Vector3d()
         get() {

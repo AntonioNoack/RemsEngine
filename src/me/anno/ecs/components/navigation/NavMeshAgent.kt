@@ -1,6 +1,7 @@
 package me.anno.ecs.components.navigation
 
 import me.anno.ecs.Component
+import me.anno.io.serialization.NotSerializedProperty
 import org.joml.Vector3f
 import org.recast4j.detour.DefaultQueryFilter
 import org.recast4j.detour.FindRandomPointResult
@@ -27,6 +28,7 @@ open class NavMeshAgent(
     val mask: Int
 ) : Component() {
 
+    @NotSerializedProperty
     var currRef: FindRandomPointResult
 
     val params = CrowdAgentParams()
