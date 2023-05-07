@@ -1,8 +1,8 @@
 package me.anno.tests.lua
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.script.QuickInputScriptComponent
-import me.anno.ecs.components.script.QuickScriptComponent
+import me.anno.lua.QuickInputScriptComponent
+import me.anno.lua.QuickScriptComponent
 
 fun main() {
 

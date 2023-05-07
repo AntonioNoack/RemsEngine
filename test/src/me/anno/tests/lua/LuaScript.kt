@@ -1,6 +1,6 @@
-package me.anno.tests
+package me.anno.tests.lua
 
-import me.anno.ecs.components.script.ScriptComponent
+import me.anno.lua.ScriptComponent
 
 fun main() {
     val globals = ScriptComponent.global.get()

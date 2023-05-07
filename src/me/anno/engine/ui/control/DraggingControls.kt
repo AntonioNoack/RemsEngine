@@ -4,12 +4,7 @@ import me.anno.animation.Type
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.sdf.SDFComponent
-import me.anno.ecs.components.mesh.sdf.SDFGroup
-import me.anno.ecs.components.mesh.sdf.modifiers.DistanceMapper
-import me.anno.ecs.components.mesh.sdf.modifiers.PositionMapper
-import me.anno.ecs.components.mesh.sdf.shapes.SDFShape
+import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.*
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.raycast.Raycast
@@ -28,8 +23,6 @@ import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.SQRT3
-import me.anno.maths.Maths.max
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.buttons.TextButton
@@ -43,11 +36,11 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FloatInput
 import me.anno.utils.Warning.unused
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.none2
-import me.anno.utils.types.Matrices.getScaleLength
-import me.anno.utils.types.Matrices.set2
 import org.apache.logging.log4j.LogManager
+import org.joml.Matrix4x3d
 import org.joml.Planed
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -282,6 +275,24 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         return true
     }
 
+    interface DCMovable {
+        fun move(
+            self: DraggingControls, camTransform: Matrix4x3d, offset: Vector3d, dir: Vector3d,
+            rotationAngle: Double, dx: Float, dy: Float
+        )
+    }
+
+    interface DCPaintable {
+        fun paint(self: DraggingControls, color: Material, file: FileReference)
+    }
+
+    interface DCDroppable {
+        fun drop(
+            self: DraggingControls, prefab: Prefab, hovEntity: Entity?, hovComponent: Component?,
+            dropPosition: Vector3d, results: MutableCollection<PrefabSaveable>
+        )
+    }
+
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (EditorState.control?.onMouseMoved(x, y, dx, dy) == true) return
         if (EditorState.editMode?.onEditMove(x, y, dx, dy) == true) return
@@ -331,17 +342,16 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 val ry = (y - (this.y + this.h * 0.5)) / h // [-.5,+.5]
                 val rotationAngle = rx * dy - ry * dx
 
-                val targets2 = selectedSDFs
+                val targets2 = selectedMovables
                 val targets3 = selectedEntities + targets2
                 // remove all targets of which there is a parent selected
                 targets3.filter { target ->
-                    val loh = target.listOfHierarchy.toHashSet()
+                    val loh = (target as? Hierarchical<*>)?.listOfHierarchy?.toHashSet() ?: emptySet()
                     targets3.none2 {
                         it !== target && it in loh
                     }
                 }
                 if (targets3.isNotEmpty()) {
-                    val sdfTransform = JomlPools.mat4x3f.create()
                     for (index in targets3.indices) {// for correct transformation when parent and child are selected together
                         when (val inst = targets3[index]) {
                             is Entity -> {
@@ -360,7 +370,6 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                                         val tmpQ = JomlPools.quat4d.borrow()
                                         tmpQ.identity().fromAxisAngleRad(dir.x, dir.y, dir.z, rotationAngle)
                                         global.rotate(tmpQ)// correct
-
                                     }
                                     Mode.SCALING -> {
                                         val scale = pow(2.0, (dx - dy).toDouble() / h)
@@ -372,67 +381,20 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                                 transform.teleportUpdate()
                                 onChangeTransform(inst)
                             }
-                            is SDFComponent -> {
-                                val global = inst.computeGlobalTransform(sdfTransform)
-                                when (mode) {
-                                    Mode.TRANSLATING -> {
-                                        val distance = camTransform.distance(global)
-                                        if (distance > 0.0) {
-                                            global.translateLocal(// correct
-                                                (offset.x * distance).toFloat(),
-                                                (offset.y * distance).toFloat(),
-                                                (offset.z * distance).toFloat()
-                                            )
-                                        }
-                                    }
-                                    Mode.ROTATING -> {
-                                        val tmpQ = JomlPools.quat4f.borrow()
-                                        tmpQ.identity().fromAxisAngleRad(
-                                            dir.x.toFloat(), dir.y.toFloat(), dir.z.toFloat(), rotationAngle.toFloat()
-                                        )
-                                        global.rotate(tmpQ)// correct
-                                    }
-                                    Mode.SCALING -> {
-                                        val scale = pow(2f, (dx - dy) / h)
-                                        global.scale(scale, scale, scale) // correct
-                                    }
-                                    else -> throw NotImplementedError()
-                                }
-                                val localTransform = JomlPools.mat4x3f.create()
-                                val parentGlobalTransform = when (val parent = inst.parent) {
-                                    is Entity -> JomlPools.mat4x3f.create().set2(parent.transform.globalTransform)
-                                    is SDFComponent -> parent.computeGlobalTransform(JomlPools.mat4x3f.create())
-                                    else -> null
-                                }
-                                if (parentGlobalTransform == null) localTransform.set(global)
-                                else localTransform.set(parentGlobalTransform).invert().mul(global)
-                                // we have no better / other choice
-                                if (!localTransform.isFinite) localTransform.identity()
-                                localTransform.getTranslation(inst.position)
-                                localTransform.getUnnormalizedRotation(inst.rotation)
-                                inst.scale = localTransform.getScaleLength() / SQRT3.toFloat()
-                                // trigger recompilation, if needed
-                                inst.position = inst.position
-                                inst.rotation = inst.rotation
-                                // return matrix to pool
-                                if (parentGlobalTransform != null) JomlPools.mat4x3f.sub(1)
-                                onChangeTransform(inst)
-                            }
+                            is DCMovable -> inst.move(this, camTransform, offset, dir, rotationAngle, dx, dy)
                         }
                     }
                     JomlPools.vec3d.sub(1)
-                    JomlPools.mat4x3f.sub(1)
                 }
             }
         }
     }
 
-    val selectedSDFs
+    val selectedMovables
         get() = library.selection.mapNotNull {
             when (it) {
-                is SDFComponent -> it
-                is PositionMapper -> it.parent as? SDFComponent
-                is DistanceMapper -> it.parent as? SDFComponent
+                is DCMovable -> it
+                is Hierarchical<*> -> it.parent as? DCMovable
                 else -> null
             }
         }
@@ -445,15 +407,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         onChangeTransform1(entity, prefab, path, transform.localPosition, transform.localRotation, transform.localScale)
     }
 
-    private fun onChangeTransform(sdf: SDFComponent) {
-        val root = sdf.root
-        val prefab = root.prefab
-        val path = sdf.prefabPath
-        val entity = sdf.entity
-        onChangeTransform1(entity, prefab, path, sdf.position, sdf.rotation, sdf.scale)
-    }
-
-    private fun onChangeTransform1(
+    fun onChangeTransform1(
         entity: Entity?, prefab: Prefab?, path: Path,
         position: Any, rotation: Any, scale: Any
     ) {
@@ -471,6 +425,20 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         PrefabInspector.currentInspector?.onChange(false)
     }
 
+    fun addToParent(
+        prefab: Prefab,
+        root: PrefabSaveable,
+        type: Char,
+        position: Any?,
+        results: MutableCollection<PrefabSaveable>
+    ) {
+        val ci = PrefabInspector.currentInspector!!
+        val path = ci.addNewChild(root, type, prefab)!!
+        if (position != null) ci.prefab[path, "position"] = position
+        val sample = Hierarchy.getInstanceAt(ci.root, path)
+        if (sample != null) results.add(sample)
+    }
+
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val hovered by lazy { // get hovered element
             view.resolveClick(x, y)
@@ -482,55 +450,31 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         for (file in files) {
             val prefab = PrefabCache[file] ?: continue
             val dropPosition = findDropPosition(file, Vector3d())
-            fun addToParent(root: PrefabSaveable, type: Char, position: Any?) {
-                val path = ci.addNewChild(root, type, prefab)!!
-                if (position != null) ci.prefab[path, "position"] = position
-                val sample = Hierarchy.getInstanceAt(ci.root, path)
-                if (sample != null) results.add(sample)
-            }
             when (val sampleInstance = prefab.getSampleInstance()) {
                 is Material -> {
-                    val sdfComponent = hovComponent as? SDFShape
-                    if (sdfComponent != null) {
-                        val materialId = sdfComponent.materialId
-                        val root = sdfComponent.getRoot(SDFComponent::class)
-                        val oldList = root.sdfMaterials
-                        if (materialId >= 0 && (materialId < oldList.size + 3)) {
-                            val newSize = max(materialId + 1, oldList.size)
-                            val newList = ArrayList<FileReference>(newSize)
-                            for (i in 0 until newSize) {
-                                newList.add(oldList.getOrNull(i) ?: InvalidRef)
-                            }
-                            newList[materialId] = file
-                            root.sdfMaterials = newList
-                            root.prefab?.set(root, "sdfMaterials", newList)
-                        } else {
-                            if (materialId >= 0) LOGGER.warn("Material id is unexpectedly large: $materialId > ${oldList.size} + 3")
-                            else LOGGER.warn("Invalid material id, must be non-negative")
-                        }
-                    } else {
-                        val meshComponent = hovComponent as? MeshComponent
-                        if (meshComponent != null) {
-                            val mesh = meshComponent.getMesh()
+                    when (hovComponent) {
+                        is DCPaintable -> hovComponent.paint(this, sampleInstance, file)
+                        is MeshComponentBase -> {
+                            val mesh = hovComponent.getMesh()
                             val numMaterials = mesh?.numMaterials ?: 1
                             if (numMaterials <= 1) {
                                 // assign material
-                                meshComponent.materials = listOf(file)
-                                meshComponent.prefab?.set(meshComponent, "materials", meshComponent.materials)
+                                hovComponent.materials = listOf(file)
+                                hovComponent.prefab?.set(hovComponent, "materials", hovComponent.materials)
                             } else {
                                 // ask for slot to place material
                                 Menu.openMenu(
                                     windowStack, NameDesc("Destination Slot for ${file.nameWithoutExtension}?"),
                                     (0 until numMaterials).map { i ->
                                         MenuOption(NameDesc("$i", "", "")) {
-                                            meshComponent.materials = Array(numMaterials) {
+                                            hovComponent.materials = Array(numMaterials) {
                                                 if (it == i) file
-                                                else meshComponent.materials.getOrNull(it) ?: InvalidRef
+                                                else hovComponent.materials.getOrNull(it) ?: InvalidRef
                                             }.toList()
-                                            meshComponent.prefab?.set(
-                                                meshComponent,
+                                            hovComponent.prefab?.set(
+                                                hovComponent,
                                                 "materials",
-                                                meshComponent.materials
+                                                hovComponent.materials
                                             )
                                         }
                                     }
@@ -539,6 +483,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                                 // todo find what material is used at that triangle :), maybe draw component ids + material ids for this
                             }
                         }
+                        else -> {}
                     }
                     // todo if the prefab is not writable, create a prefab for that mesh, and replace the mesh...
                     /*if (mesh != null) {
@@ -562,32 +507,10 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                     if (root is Entity) {
                         val position = Vector3d(sampleInstance.transform.localPosition)
                         position.add(dropPosition)
-                        addToParent(root, 'c', position)
+                        addToParent(prefab, root, 'c', position, results)
                     } else LOGGER.warn("Could not drop $file onto ${root?.className}")
                 }
-                is SDFComponent -> {
-                    if (hovComponent is SDFGroup) {
-                        // todo calculate position of hovComponent
-                        addToParent(hovComponent, 'c', dropPosition)
-                    } else if (hovEntity != null) {
-                        dropPosition.sub(hovEntity.transform.globalPosition)
-                        addToParent(hovEntity, 'c', dropPosition)
-                    } else {
-                        val root = library.selection.firstInstanceOrNull<SDFGroup>()
-                            ?: library.selection.firstInstanceOrNull<Entity>() ?: view.getWorld()
-                        when (root) {
-                            is Entity -> {
-                                dropPosition.sub(root.transform.globalPosition)
-                                addToParent(root, 'c', dropPosition)
-                            }
-                            is SDFGroup -> {
-                                // todo calculate position of root
-                                addToParent(root, 'c', dropPosition)
-                            }
-                            else -> LOGGER.warn("Don't know how to add SDFComponent")
-                        }
-                    }
-                }
+                is DCDroppable -> sampleInstance.drop(this, prefab, hovEntity, hovComponent, dropPosition, results)
                 is Component -> {
                     if (hovEntity != null) {
                         val path = ci.addNewChild(hovEntity, 'c', prefab)!!
@@ -595,7 +518,6 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                         if (sample != null) results.add(sample)
                     }
                 }
-                // todo general listener in the components, which listens for drag events? they could be useful for custom stuff...
                 else -> {
                     // todo try to add it to all available, hovered and selected instances
                 }

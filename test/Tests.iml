@@ -23,5 +23,7 @@
     <orderEntry type="library" name="LWJGL-323" level="project" />
     <orderEntry type="library" name="junit.jupiter" level="project" />
     <orderEntry type="module" module-name="Bullet" />
+    <orderEntry type="module" module-name="SDF" />
+    <orderEntry type="module" module-name="Lua" />
   </component>
 </module>

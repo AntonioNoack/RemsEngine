@@ -4,21 +4,17 @@ import com.bulletphysics.collision.shapes.*
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.ecs.Entity
+import me.anno.ecs.components.bullet.BulletPhysics.Companion.mat4x3ToTransform
 import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.collider.twod.CircleCollider
 import me.anno.ecs.components.collider.twod.RectCollider
-import me.anno.ecs.components.mesh.sdf.SDFCollider
-import me.anno.ecs.components.bullet.BulletPhysics.Companion.mat4x3ToTransform
-import me.anno.ecs.components.bullet.sdf.ConcaveSDFShape
-import me.anno.ecs.components.bullet.sdf.ConvexSDFShape
+import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.utils.LOGGER
 import me.anno.utils.types.Matrices.isIdentity
 import org.joml.Vector3d
 import org.joml.Vector3f
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.math.max
-import kotlin.math.min
 
 fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
 
@@ -162,16 +158,6 @@ fun BoxCollider.createBulletShape(scale: Vector3d): CollisionShape {
     return shape
 }
 
-fun SDFCollider.createBulletShape(scale: Vector3d): CollisionShape {
-    // todo scale is missing...
-    val sdf = sdf ?: return defaultShape
-    return if (isConvex) {
-        ConvexSDFShape(sdf, this)
-    } else {
-        ConcaveSDFShape(sdf, this)
-    }
-}
-
 fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
     return when (collider) {
         is MeshCollider -> collider.createBulletShape(scale)
@@ -192,7 +178,8 @@ fun createBulletShape(collider: Collider, scale: Vector3d): CollisionShape {
                 )
             )
         }
-        is SDFCollider -> collider.createBulletShape(scale)
+        is CustomBulletCollider -> collider.createBulletCollider(scale) as CollisionShape
+        // is SDFCollider -> collider.createBulletShape(scale)
         else -> defaultShape
     }
 }
@@ -209,35 +196,3 @@ fun createBulletCollider(collider: Collider, base: Entity, scale: Vector3d): Pai
 
 @JvmField
 val defaultShape = BoxShape(javax.vecmath.Vector3d(1.0, 1.0, 1.0))
-
-fun SDFCollider.getAABB(t: Transform, aabbMin: javax.vecmath.Vector3d, aabbMax: javax.vecmath.Vector3d) {
-
-    val sdf = sdf ?: return
-    val bounds = sdf.globalAABB
-
-    // if t is just scaling + translation, we could simplify this
-
-    aabbMin.set(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY)
-    aabbMax.set(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY)
-
-    val tmp = Stack.newVec()
-    val basis = t.basis
-    for (i in 0 until 8) {
-        tmp.set(
-            if (i.and(1) != 0) bounds.minX else bounds.maxX,
-            if (i.and(2) != 0) bounds.minY else bounds.maxY,
-            if (i.and(4) != 0) bounds.minZ else bounds.maxZ
-        )
-        basis.transform(tmp)
-        aabbMin.x = min(aabbMin.x, tmp.x)
-        aabbMin.y = min(aabbMin.y, tmp.y)
-        aabbMin.z = min(aabbMin.z, tmp.z)
-        aabbMax.x = max(aabbMax.x, tmp.x)
-        aabbMax.y = max(aabbMax.y, tmp.y)
-        aabbMax.z = max(aabbMax.z, tmp.z)
-    }
-
-    aabbMin.add(t.origin)
-    aabbMax.add(t.origin)
-    Stack.subVec(1)
-}

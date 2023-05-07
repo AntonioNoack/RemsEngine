@@ -7,9 +7,9 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.sdf.SDFComposer.sdfConstants
-import me.anno.ecs.components.mesh.sdf.modifiers.SDFNoise.Companion.generalNoise
-import me.anno.ecs.components.mesh.sdf.modifiers.SDFNoise.Companion.perlinNoise
+import me.anno.sdf.SDFComposer.sdfConstants
+import me.anno.sdf.modifiers.SDFNoise.Companion.generalNoise
+import me.anno.sdf.modifiers.SDFNoise.Companion.perlinNoise
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.EditorState

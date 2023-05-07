@@ -11,6 +11,7 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
+import me.anno.engine.ui.control.DraggingControls
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.Shader
@@ -134,6 +135,10 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
             this.clickId = clickId
             clickId + 1
         } else clickId
+    }
+
+    override fun findDrawnSubject(searchedId: Int): Any? {
+        return if (clickId == searchedId) this else null
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

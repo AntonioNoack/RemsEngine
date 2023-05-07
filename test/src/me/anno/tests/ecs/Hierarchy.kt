@@ -3,8 +3,8 @@ package me.anno.tests.ecs
 import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PointLight
-import me.anno.ecs.components.mesh.sdf.modifiers.SDFHalfSpace
-import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
+import me.anno.sdf.modifiers.SDFHalfSpace
+import me.anno.sdf.shapes.SDFBox
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache

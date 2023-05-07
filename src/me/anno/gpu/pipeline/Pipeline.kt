@@ -8,7 +8,6 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.sdf.SDFGroup
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
@@ -407,17 +406,9 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         val components = entity.components
         for (i in components.indices) {
             val c = components[i]
-            if (c.isEnabled) {
-                // this probably should be more generic...
-                if (c is MeshComponentBase) {
-                    // LOGGER.debug("[C] ${c.clickId.toString(16)} vs ${searchedId.toString(16)}")
-                    if (c.clickId == searchedId) return c
-                }
-                if (c is SDFGroup) {
-                    // also visit all children
-                    val found = findDrawnSubject(searchedId, c)
-                    if (found != null) return found
-                }
+            if (c.isEnabled && c is Renderable) {
+                val found = c.findDrawnSubject(searchedId)
+                if (found != null) return found
             }
         }
         val children = entity.children
@@ -426,22 +417,6 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
             if (child.isEnabled && frustum.isVisible(child.aabb)) {
                 val found = findDrawnSubject(searchedId, child)
                 if (found != null) return found
-            }
-        }
-        return null
-    }
-
-    fun findDrawnSubject(searchedId: Int, group: SDFGroup): Any? {
-        val children = group.children
-        for (i in children.indices) {
-            val child = children[i]
-            if (child.isEnabled) {
-                // LOGGER.debug("[S] ${child.clickId.toString(16)} vs ${searchedId.toString(16)}")
-                if (child.clickId == searchedId) return child
-                if (child is SDFGroup) {
-                    val found = findDrawnSubject(searchedId, child)
-                    if (found != null) return found
-                }
             }
         }
         return null

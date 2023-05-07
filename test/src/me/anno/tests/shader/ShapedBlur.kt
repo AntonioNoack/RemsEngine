@@ -1,6 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.ecs.components.mesh.sdf.shapes.SDFHeart
+import me.anno.sdf.shapes.SDFHeart
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
 import me.anno.gpu.shader.effects.ShapedBlur.decompress

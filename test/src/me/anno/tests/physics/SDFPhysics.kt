@@ -6,9 +6,9 @@ import com.bulletphysics.linearmath.Transform
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.SphereCollider
-import me.anno.ecs.components.mesh.sdf.SDFCollider
-import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
-import me.anno.ecs.components.mesh.sdf.shapes.SDFSphere
+import me.anno.sdf.SDFCollider
+import me.anno.sdf.shapes.SDFBox
+import me.anno.sdf.shapes.SDFSphere
 import me.anno.ecs.components.bullet.BulletPhysics
 import me.anno.ecs.components.bullet.Rigidbody
 import me.anno.ecs.components.bullet.createBulletShape
@@ -109,7 +109,7 @@ fun main() {
         val entity = Entity()
         entity.add(SDFBox())
         entity.add(shape1c)
-        val shape1 = shape1c.createBulletShape(Vector3d(1.0))
+        val shape1 = shape1c.createBulletCollider(Vector3d(1.0))
         print(shape0)
         print(shape1)
     }

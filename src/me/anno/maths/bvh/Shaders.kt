@@ -1,6 +1,5 @@
 package me.anno.maths.bvh
 
-import me.anno.ecs.components.mesh.sdf.shapes.SDFBoundingBox.Companion.boundingBoxSDF
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.Shader
@@ -124,6 +123,20 @@ val imageStore = "" +
         "vec3 oldColor = imageLoad(dst, uv).rgb;\n" +
         "color = mix(oldColor, color, alpha);\n" +
         "imageStore(dst, uv, vec4(color, 1.0));\n"
+
+const val boundingBoxSDF = "" +
+        "float sdBoundingBox(vec3 p, vec3 b, float e){\n" +
+        "        p = abs(p)-b;\n" +
+        "   vec3 q = abs(p+e)-e;\n" +
+        "   return min(min(\n" +
+        "       length(max(vec3(p.x,q.y,q.z),0.0))+min(max(p.x,max(q.y,q.z)),0.0),\n" +
+        "       length(max(vec3(q.x,p.y,q.z),0.0))+min(max(q.x,max(p.y,q.z)),0.0)),\n" +
+        "       length(max(vec3(q.x,q.y,p.z),0.0))+min(max(q.x,max(q.y,p.z)),0.0));\n" +
+        "}\n" +
+        "float sdBoundingBox(vec3 p, vec3 b, float e, float k){\n" +
+        "   k *= e;\n" + // smoothness delta is proportional to e
+        "   return sdBoundingBox(p,b-k,e-k)-k;\n" +
+        "}\n"
 
 val commonFunctions = glslIntersections + quatRot + loadMat4x3 + glslRandomGen + boundingBoxSDF + coloring
 

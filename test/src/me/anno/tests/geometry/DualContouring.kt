@@ -1,8 +1,8 @@
 package me.anno.tests.geometry
 
-import me.anno.ecs.components.mesh.sdf.SDFGroup
-import me.anno.ecs.components.mesh.sdf.shapes.SDFBox
-import me.anno.ecs.components.mesh.sdf.shapes.SDFSphere
+import me.anno.sdf.SDFGroup
+import me.anno.sdf.shapes.SDFBox
+import me.anno.sdf.shapes.SDFSphere
 import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths

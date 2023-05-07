@@ -1,6 +1,6 @@
 package me.anno.tests.collider
 
-import me.anno.ecs.components.mesh.sdf.shapes.SDFPolygon
+import me.anno.sdf.shapes.SDFPolygon
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools

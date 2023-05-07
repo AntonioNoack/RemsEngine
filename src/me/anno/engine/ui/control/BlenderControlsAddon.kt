@@ -2,7 +2,6 @@ package me.anno.engine.ui.control
 
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.sdf.SDFComponent
 import me.anno.engine.ui.EditorState
 import me.anno.input.Input.isShiftDown
 import me.anno.parser.SimpleExpressionParser
@@ -10,6 +9,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
+import org.joml.Vector3d
 import kotlin.math.pow
 
 // todo test this
@@ -112,11 +112,11 @@ class BlenderControlsAddon {
             for (child in EditorState.selection) {// probably needs sorting
                 when (child) {
                     is Entity -> {
-                        transform(child.transform, null, x, y, false)
+                        transform(child.transform, x, y, false)
                         child.invalidateChildTransforms()
                         child.transform.teleportUpdate()
                     }
-                    is SDFComponent -> transform(null, child, x, y, false)
+                    is BlenderCATransformable -> child.transform(this, x, y, false)
                 }
             }
             resetBlenderInput()
@@ -124,83 +124,70 @@ class BlenderControlsAddon {
         } else false
     }
 
-    fun transform(transform: Transform?, sdf: SDFComponent?, x: Float, y: Float, reset: Boolean) {
+    interface BlenderCATransformable {
+        fun transform(self: BlenderControlsAddon, x: Float, y: Float, reset: Boolean)
+    }
+
+    fun transform(transform: Transform, vec: Vector3d) {
+        when (local) {
+            LocalMode.LOCAL -> {
+                when (mode) {
+                    InputMode.MOVE -> transform.localPosition = transform.localPosition.add(vec)
+                    InputMode.ROTATE -> transform.localRotation = transform.localRotation.rotateYXZ(vec.y, vec.x, vec.z)
+                    InputMode.SCALE -> transform.localScale = transform.localScale.mul(vec)
+                    InputMode.NONE -> {}
+                }
+            }
+            LocalMode.GLOBAL -> {
+                when (mode) {
+                    InputMode.MOVE -> transform.globalPosition =
+                        transform.globalPosition
+                            .add(vec)
+                    InputMode.ROTATE -> transform.globalRotation =
+                        transform.globalRotation
+                            .rotateYXZ(vec.y, vec.x, vec.z)
+                    InputMode.SCALE -> transform.globalScale =
+                        transform.globalScale.mul(vec)
+                    InputMode.NONE -> {}
+                }
+            }
+            LocalMode.FREE -> {
+                // todo ... idk... screen space?
+                LOGGER.debug("todo: screen space transforms not yet implemented")
+            }
+        }
+    }
+
+    fun preTransform(value: Double?, x: Float, y: Float, vec: Vector3d) {
+        // default value
+        vec.set(if (mode == InputMode.SCALE) 1.0 else 0.0)
+        if (value != null) {
+            if (axisMask.and(1) != 0) vec.set(value)
+            if (axisMask.and(2) != 0) vec.set(value)
+            if (axisMask.and(4) != 0) vec.set(value)
+        }
+        if (axisMask == 0 || value == null) {
+            // todo use mouse delta for transform
+            // todo transform rotation/movement/scale into vec...
+            when (mode) {
+                InputMode.SCALE -> {
+                    val dx = x - transformStart.x
+                    vec.set(1.01.pow(dx.toDouble()))
+                }
+                else -> {
+                    LOGGER.debug("todo: transform mouse delta into movement / scale")
+                }
+            }
+        }
+    }
+
+    fun transform(transform: Transform?, x: Float, y: Float, reset: Boolean) {
         val mode = mode
         val value = SimpleExpressionParser.parseDouble(inputString)
         if (inputString.isBlank2() || value != null) {
             val vec = JomlPools.vec3d.create()
-            // default value
-            vec.set(if (mode == InputMode.SCALE) 1.0 else 0.0)
-            if (value != null) {
-                if (axisMask.and(1) != 0) vec.set(value)
-                if (axisMask.and(2) != 0) vec.set(value)
-                if (axisMask.and(4) != 0) vec.set(value)
-            }
-            if (axisMask == 0 || value == null) {
-                // todo use mouse delta for transform
-                // todo transform rotation/movement/scale into vec...
-                when (mode) {
-                    InputMode.SCALE -> {
-                        val dx = x - transformStart.x
-                        vec.set(1.01.pow(dx.toDouble()))
-                    }
-                    else -> {
-                        LOGGER.debug("todo: transform mouse delta into movement / scale")
-                    }
-                }
-            }
-            if (transform != null) {
-                when (local) {
-                    LocalMode.LOCAL -> {
-                        when (mode) {
-                            InputMode.MOVE -> transform.localPosition =
-                                transform.localPosition
-                                    .add(vec)
-                            InputMode.ROTATE -> transform.localRotation =
-                                transform.localRotation
-                                    .rotateYXZ(vec.y, vec.x, vec.z)
-                            InputMode.SCALE -> transform.localScale =
-                                transform.localScale.mul(vec)
-                            InputMode.NONE -> {}
-                        }
-                    }
-                    LocalMode.GLOBAL -> {
-                        when (mode) {
-                            InputMode.MOVE -> transform.globalPosition =
-                                transform.globalPosition
-                                    .add(vec)
-                            InputMode.ROTATE -> transform.globalRotation =
-                                transform.globalRotation
-                                    .rotateYXZ(vec.y, vec.x, vec.z)
-                            InputMode.SCALE -> transform.globalScale =
-                                transform.globalScale.mul(vec)
-                            InputMode.NONE -> {}
-                        }
-                    }
-                    LocalMode.FREE -> {
-                        // todo ... idk... screen space?
-                        LOGGER.debug("todo: screen space transforms not yet implemented")
-                    }
-                }
-            }
-            if (sdf != null) {
-                // to do support global transform?
-                when (mode) {
-                    InputMode.MOVE -> {
-                        sdf.position =
-                            sdf.position
-                                .add(vec.x.toFloat(), vec.y.toFloat(), vec.z.toFloat())
-                    }
-                    InputMode.ROTATE -> {
-                        sdf.rotation =
-                            sdf.rotation
-                                .rotateYXZ(vec.y.toFloat(), vec.x.toFloat(), vec.z.toFloat())
-                    }
-                    InputMode.SCALE -> sdf.scale =
-                        sdf.scale * (value ?: (vec.dot(1.0, 1.0, 1.0) / 3.0)).toFloat()
-                    else -> {}
-                }
-            }
+            preTransform(value, x, y, vec)
+            if (transform != null) transform(transform, vec)
             LOGGER.debug("todo: apply transform $mode x $vec")
             JomlPools.vec3d.sub(1)
             if (reset) resetBlenderInput()

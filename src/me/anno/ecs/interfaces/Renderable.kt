@@ -5,4 +5,5 @@ import me.anno.gpu.pipeline.Pipeline
 
 interface Renderable {
     fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int
+    fun findDrawnSubject(searchedId: Int): Any? = null
 }

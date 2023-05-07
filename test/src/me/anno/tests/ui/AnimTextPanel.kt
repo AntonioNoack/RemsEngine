@@ -2,10 +2,10 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFXBase
+import me.anno.lua.ui.LuaAnimTextPanel
 import me.anno.maths.Maths
 import me.anno.maths.noise.FullNoise
 import me.anno.ui.anim.AnimTextPanel
-import me.anno.ui.anim.LuaAnimTextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestStudio
 import me.anno.utils.Color
@@ -33,7 +33,8 @@ class AnimTextPanelTest(useLua: Boolean) : PanelListY(DefaultConfig.style) {
         })
         // test of a panel with a lua script :3
         // excellent for fast and quick development; bad for allocations and GC
-        if (useLua) add(LuaAnimTextPanel(
+        if (useLua) add(
+            LuaAnimTextPanel(
             "Lua Rainbow Text", "" +
                     "s = time*5+index/3\n" +
                     "translate(0,math.sin(s)*5)\n" +

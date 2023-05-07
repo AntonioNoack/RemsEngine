@@ -8,8 +8,8 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Coroutines" level="project" />
-    <orderEntry type="library" name="PDFBox" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="Engine" />
+    <orderEntry type="library" name="PDFBox" level="project" />
   </component>
 </module>

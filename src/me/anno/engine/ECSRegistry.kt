@@ -18,7 +18,6 @@ import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.decal.DecalMaterial
 import me.anno.ecs.components.mesh.decal.DecalMeshComponent
-import me.anno.ecs.components.mesh.sdf.SDFRegistry
 import me.anno.ecs.components.mesh.spline.PathProfile
 import me.anno.ecs.components.mesh.spline.SplineControlPoint
 import me.anno.ecs.components.mesh.spline.SplineCrossing
@@ -29,9 +28,6 @@ import me.anno.ecs.components.physics.twod.Box2dPhysics
 import me.anno.ecs.components.physics.twod.Rigidbody2d
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.player.RemotePlayer
-import me.anno.ecs.components.script.QuickInputScriptComponent
-import me.anno.ecs.components.script.QuickScriptComponent
-import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.components.shaders.AutoTileableMaterial
 import me.anno.ecs.components.shaders.CuboidMesh
 import me.anno.ecs.components.shaders.SkyBox
@@ -96,9 +92,15 @@ object ECSRegistry {
         registerCustomClass(ThirdPersonController())
 
         // scripting
-        registerCustomClass(ScriptComponent())
-        registerCustomClass(QuickScriptComponent())
-        registerCustomClass(QuickInputScriptComponent())
+        try {
+            val clazz = this::class.java.classLoader
+                .loadClass("me.anno.lua.LuaRegistry")
+            clazz.getMethod("init").invoke(null)
+        } catch (e: ClassNotFoundException) {
+            LOGGER.warn("Lua was not found", e)
+        } catch (e: NoClassDefFoundError) {
+            LOGGER.warn("Lua was not found", e)
+        }
 
         // ui, could be skipped for headless servers
         UIRegistry.init()
@@ -191,7 +193,16 @@ object ECSRegistry {
         registerCustomClass(ManualProceduralMesh())
         registerCustomClass(NavMesh())
 
-        SDFRegistry.init()
+        try {
+            val clazz = this::class.java.classLoader
+                .loadClass("me.anno.sdf.SDFRegistry")
+            clazz.getMethod("init").invoke(null)
+        } catch (e: ClassNotFoundException) {
+            LOGGER.warn("SDF module was not found", e)
+        } catch (e: NoClassDefFoundError) {
+            LOGGER.warn("SDF module was not found", e)
+        }
+
         NodeLibrary.init()
 
         if (Build.isDebug) {

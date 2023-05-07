@@ -24,7 +24,6 @@ import me.anno.ecs.annotations.Range.Companion.minUByte
 import me.anno.ecs.annotations.Range.Companion.minUInt
 import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
-import me.anno.ecs.components.script.ScriptComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
@@ -1018,7 +1017,7 @@ object ComponentUI {
                         } else return fi
                     }
                     // actual instance, needs to be local, linked via path
-                    // e.g. for physics constraints, events, or things like that
+                    // e.g., for physics constraints, events, or things like that
                     type0.endsWith("/PrefabSaveable", true) -> {
                         val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         value as PrefabSaveable?
@@ -1044,10 +1043,17 @@ object ComponentUI {
                                 setText(value.toString(), false)
                                 setOnChangeListener { ce, seq ->
                                     val code = seq.toString()
-                                    val func = ScriptComponent.getRawFunction(code)
-                                    ce.tooltip = if (func is LuaError) {
-                                        func.toString()
-                                    } else null
+                                    try {
+                                        val clazz = javaClass.classLoader.loadClass("me.anno.sdf.ScriptComponent")
+                                        val method = clazz.getMethod("getRawFunction", String::class.java)
+                                        val func = method.invoke(code)
+                                        ce.tooltip = if (func is LuaError) {
+                                            func.toString()
+                                        } else null
+                                    } catch (e: Exception){
+                                        LOGGER.warn("Lua not available?", e)
+                                        ce.tooltip = "$e"
+                                    }
                                     property.set(this, code)
                                 }
                             })

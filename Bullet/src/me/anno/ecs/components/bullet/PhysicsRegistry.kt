@@ -3,6 +3,7 @@ package me.anno.ecs.components.bullet
 import me.anno.ecs.components.bullet.constraints.*
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
+@Suppress("unused")
 object PhysicsRegistry {
     @JvmStatic
     fun init() {

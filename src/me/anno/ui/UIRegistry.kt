@@ -4,7 +4,6 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.ui.anim.AnimContainer
-import me.anno.ui.anim.LuaAnimTextPanel
 import me.anno.ui.anim.MoveAnimation
 import me.anno.ui.anim.ScaleAnimation
 import me.anno.ui.base.Font
@@ -54,7 +53,6 @@ object UIRegistry {
         registerCustomClass { AnimContainer(style) }
         registerCustomClass(MoveAnimation())
         registerCustomClass(ScaleAnimation())
-        registerCustomClass { LuaAnimTextPanel(style) }
 
         // ui content
         registerCustomClass { TextPanel(style) }
