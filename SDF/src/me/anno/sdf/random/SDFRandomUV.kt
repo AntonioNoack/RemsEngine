@@ -13,12 +13,13 @@ import me.anno.sdf.shapes.SDFSphere
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFXBase
+import me.anno.sdf.uv.UVMapper
 import me.anno.utils.OS.pictures
 import org.joml.Matrix2d
 import org.joml.Vector4f
 
 // notice: to disable color interpolation, disable linear filtering inside the material :)
-class SDFRandomUV : SDFRandom() {
+class SDFRandomUV : SDFRandom(), UVMapper {
 
     override fun buildShader(
         builder: StringBuilder,

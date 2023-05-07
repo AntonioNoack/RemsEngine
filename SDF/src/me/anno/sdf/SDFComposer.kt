@@ -22,6 +22,8 @@ import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.defineUniform
 import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.sdf.shapes.SDFShape
+import me.anno.sdf.uv.LinearUVMapper
+import me.anno.sdf.uv.UVMapper
 import me.anno.utils.pooling.JomlPools
 import org.joml.*
 import java.util.*
@@ -269,7 +271,7 @@ object SDFComposer {
         val flags = BitSet(materials.size)
         if (materials.isNotEmpty()) {
             tree.simpleTraversal(false) {
-                if (it is SDFComponent && it.positionMappers.any { pm -> pm is me.anno.sdf.random.SDFRandomUV }) {
+                if (it is SDFComponent && it.positionMappers.any { pm -> pm is UVMapper }) {
                     it.simpleTraversal(false) { c ->
                         if (c is SDFShape) {
                             if (c.materialId < flags.size())

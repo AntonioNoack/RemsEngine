@@ -1,23 +1,26 @@
 package me.anno.sdf.uv
 
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.sdf.SDFComponent
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.PositionMapper
 import me.anno.utils.structures.arrays.IntArrayList
+import org.joml.Quaternionf
+import org.joml.Vector3f
 import org.joml.Vector4f
 
-class LinearUVMapper : PositionMapper(), UVMapper {
+class UVSphereMapper : PositionMapper(), UVMapper {
 
-    var u = Vector4f(0.5f, 0f, 0f, -0.5f)
+    var center = Vector3f()
         set(value) {
             field.set(value)
             if (!(dynamic || SDFComponent.globalDynamic)) invalidateShader()
         }
 
-    var v = Vector4f(0f, -0.5f, 0f, 0.5f)
+    var rotation = Quaternionf()
         set(value) {
             field.set(value)
             if (!(dynamic || SDFComponent.globalDynamic)) invalidateShader()
@@ -39,22 +42,28 @@ class LinearUVMapper : PositionMapper(), UVMapper {
         functions: HashSet<String>,
         seeds: ArrayList<String>
     ): String? {
+        functions.add(quatRot)
+        functions.add(uvSphere)
         val dynamic = dynamic || SDFComponent.globalDynamic
-        if (dynamic) {
-            builder.append("uv=vec2(dot(")
-                .appendUniform(uniforms, u).append(",vec4(pos").append(posIndex).append(",1.0)),dot(")
-                .appendUniform(uniforms, v).append(",vec4(pos").append(posIndex).append(",1.0)));\n")
-        } else {
-            builder.append("uv=vec2(dot(")
-                .appendVec(u).append(",vec4(pos").append(posIndex).append(",1.0)),dot(")
-                .appendVec(v).append(",vec4(pos").append(posIndex).append(",1.0)));\n")
-        }
+        builder.append("uv=uvSphere(quatRot(pos").append(posIndex).append("-")
+        if (dynamic) builder.appendUniform(uniforms, center)
+        else builder.appendVec(center)
+        builder.append(",")
+        if (dynamic) builder.appendUniform(uniforms, rotation)
+        else builder.appendVec(rotation)
+        builder.append("));\n")
         return null
-
     }
 
     override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {}
 
     override val className: String
-        get() = "LinearUVMapper"
+        get() = "UVSphereMapper"
+
+    companion object {
+        private const val uvSphere = "" +
+                "vec2 uvSphere(vec3 pos){\n" +
+                "   return vec2(atan(pos.x,pos.z)*${0.5 / Math.PI},atan(length(pos.xz),pos.y)*${1.0 / Math.PI});\n" +
+                "}\n"
+    }
 }
