@@ -114,7 +114,9 @@ fun createUI(): Panel {
         meshTransform.scale(sca.x.toFloat(), sca.y.toFloat(), sca.z.toFloat())
     })
     // car0.add(BoxCollider().apply { halfExtends.set(1.0, 0.5, 2.5) })
-    car0.add(TestVehicleController())
+    val controller = TestVehicleController()
+    controller.controls = "wasd"
+    car0.add(controller)
 
     // add four wheels :)
     for (x in listOf(-1, +1)) {

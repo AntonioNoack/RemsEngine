@@ -80,6 +80,7 @@ object BlenderReader {
         normals2.addUnsafe(normals, v03, 3)
         normals2.addUnsafe(normals, v13, 3)
         normals2.addUnsafe(normals, v23, 3)
+        // println("$v0 $v1 $v2 $uv0 $uv1 $uv2 ${positions[v03]} ${normals[v03]}")
         val uv0x = uvs[uv0]
         uvs2.addUnsafe(uv0x.u)
         uvs2.addUnsafe(uv0x.v)
@@ -433,7 +434,7 @@ object BlenderReader {
                 val triCount = polygons.sumOf {
                     when (val size = it.loopSize) {
                         0 -> 0
-                        1, 2, 3 -> 1
+                        1, 2 -> 1
                         else -> size - 2
                     }
                 }

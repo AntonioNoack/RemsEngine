@@ -70,10 +70,9 @@ object TangentCalculator {
             val t1 = uvs[i12 + 1] - w0y
             val t2 = uvs[i22 + 1] - w0y
 
-            val r = 1f / (s1 * t2 - s2 * t1)
-
-            if (r.isFinite()) {
-
+            val area = s1 * t2 - s2 * t1
+            if (abs(area) > 1e-16f) {
+                val r = 1f / area
                 val sx = (t2 * x1 - t1 * x2) * r
                 val sy = (t2 * y1 - t1 * y2) * r
                 val sz = (t2 * z1 - t1 * z2) * r
@@ -92,31 +91,32 @@ object TangentCalculator {
         }
 
         val n = JomlPools.vec3f.create()
-        val t = JomlPools.vec3f.create()
+        val s = JomlPools.vec3f.create()
 
         // apply all the normals, smooth shading
         var j = 0
         for (i in normals.indices step 3) {
 
             n.set(normals[i], normals[i + 1], normals[i + 2])
-            t.set(tan1[j], tan1[j + 1], tan1[j + 2])
+            s.set(tan1[j], tan1[j + 1], tan1[j + 2]) // sx,sy,sz
 
             // Gram-Schmidt orthogonalize
-            val dot = n.dot(t)
-            val tx = t.x - n.x * dot
-            val ty = t.y - n.y * dot
-            val tz = t.z - n.z * dot
-            val r = 1f / sqrt(tx * tx + ty * ty + tz * tz)
+            val dot = n.dot(s)
+            val sx = s.x - n.x * dot
+            val sy = s.y - n.y * dot
+            val sz = s.z - n.z * dot
+            val r = 1f / sqrt(sx * sx + sy * sy + sz * sz)
             if (r.isFinite()) {
 
                 // theoretically normalize t, however we don't need the amplitude in the handedness, so do it later, when the sign is known
 
                 // n is no longer needed -> we can reuse it here
-                val hv = n.cross(tx, ty, tz).dot(tan2[j], tan2[j + 1], tan2[j + 2])
+                val hv = n.cross(sx, sy, sz)
+                    .dot(tan2[j], tan2[j + 1], tan2[j + 2])
 
-                tan1[j++] = tx * r
-                tan1[j++] = ty * r
-                tan1[j++] = tz * r
+                tan1[j++] = sx * r
+                tan1[j++] = sy * r
+                tan1[j++] = sz * r
                 tan1[j++] = sign(hv)
 
             } else j += 4// else there was no data -> don't calculate NaNs

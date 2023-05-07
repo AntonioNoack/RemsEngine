@@ -40,6 +40,7 @@
       <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-tinyexr-natives-windows.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl-tinyexr.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$USER_HOME$/Downloads/lwjgl-release-3.2.3-custom/lwjgl.jar" path-in-jar="/" />
+      <element id="module-output" name="Bullet" />
     </root>
   </artifact>
 </component>

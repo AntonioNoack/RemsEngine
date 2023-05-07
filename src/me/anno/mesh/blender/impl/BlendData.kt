@@ -112,31 +112,6 @@ open class BlendData(
         return str.toString()
     }
 
-    fun vec2f(name: String): Vector2f = vec2f(getOffset(name))
-    fun vec2f(offset: Int): Vector2f {
-        return Vector2f(
-            buffer.getFloat(position + offset),
-            buffer.getFloat(position + offset + 4),
-        )
-    }
-
-    fun vec3f(name: String) = vec3f(getOffset(name))
-    fun vec3f(offset: Int): Vector3f {
-        return Vector3f(
-            buffer.getFloat(position + offset),
-            buffer.getFloat(position + offset + 4),
-            buffer.getFloat(position + offset + 8)
-        )
-    }
-
-    fun vec3sNorm(offset: Int): Vector3f {
-        if (offset < 0f) return Vector3f()
-        val x = buffer.getShort(position + offset)
-        val y = buffer.getShort(position + offset + 2)
-        val z = buffer.getShort(position + offset + 4)
-        return Vector3f(x.toFloat(), y.toFloat(), z.toFloat()).div(32767f)
-    }
-
     fun pointer(offset: Int) = if (file.pointerSize == 4) int(offset).toLong() else long(offset)
 
     fun inside(name: String) = inside(dnaStruct.byName[name])

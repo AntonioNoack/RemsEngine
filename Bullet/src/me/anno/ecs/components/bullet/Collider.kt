@@ -20,7 +20,6 @@ import java.nio.ByteOrder
 import kotlin.math.max
 import kotlin.math.min
 
-
 fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
 
     val mesh = mesh ?: return defaultShape

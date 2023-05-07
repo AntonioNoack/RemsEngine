@@ -6,12 +6,14 @@ import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.SQRT3
+import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.Stack
 import me.anno.utils.types.Matrices.getScaleLength
 import org.apache.logging.log4j.LogManager
 import org.jbox2d.collision.shapes.CircleShape
 import org.jbox2d.collision.shapes.MassData
 import org.jbox2d.collision.shapes.PolygonShape
+import org.jbox2d.common.Settings
 import org.jbox2d.common.Vec2
 import org.jbox2d.dynamics.*
 import org.joml.Matrix4x3d
@@ -50,6 +52,10 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
     @NotSerializedProperty
     private val world = World(Vec2(gravity.x.toFloat(), gravity.y.toFloat()))
+    init {
+        Settings.maxTranslation = 1e6f
+        Settings.maxTranslationSquared = sq(Settings.maxTranslation)
+    }
 
     override fun invalidate(entity: Entity) {
         val rb = entity.getComponent(Rigidbody2d::class, false)?.entity ?: return

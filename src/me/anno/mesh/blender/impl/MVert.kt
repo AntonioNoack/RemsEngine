@@ -15,17 +15,8 @@ class MVert(file: BlenderFile, dnaStruct: DNAStruct, buffer: ByteBuffer, positio
     val y get() = float(coOffset + 4)
     val z get() = float(coOffset + 8)
 
-    val nx get() = float(noOffset) / 32767f
-    val ny get() = float(noOffset + 4) / 32767f
-    val nz get() = float(noOffset + 8) / 32767f
-
-    val pos get() = vec3f(coOffset)
-    val normal get() = vec3sNorm(noOffset)
-
-    // then there is a flag, and a weights-indicator
-
-    override fun toString(): String {
-        return "[$pos, $normal]"
-    }
+    val nx get() = short(noOffset) / 32767f
+    val ny get() = short(noOffset + 4) / 32767f
+    val nz get() = short(noOffset + 8) / 32767f
 
 }

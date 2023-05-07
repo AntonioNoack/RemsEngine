@@ -172,7 +172,7 @@ object BVHBuilder {
     ): BLASNode {
 
         val count = end - start
-        if (end - start <= maxNodeSize) { // create leaf
+        if (count <= maxNodeSize) { // create leaf
             val bounds = AABBf()
             for (i in start * 3 until end * 3) {
                 val ci = indices[i] * 3

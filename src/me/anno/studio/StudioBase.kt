@@ -151,6 +151,11 @@ abstract class StudioBase(
         runGraphics: Boolean = !OS.isWeb && !OS.isAndroid
     ) {
 
+        if (Engine.shutdown) {
+            LOGGER.warn("Restart isn't supported within the engine!")
+            return
+        }
+
         instance = this
 
         setupNames()

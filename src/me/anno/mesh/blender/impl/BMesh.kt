@@ -27,7 +27,7 @@ class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     val polygons = getQuickStructArray<MPoly>("*mpoly")
     val loops = getQuickStructArray<MLoop>("*mloop")
     val loopUVs = getQuickStructArray<MLoopUV>("*mloopuv")
-    val loopColor = getStructArray("*mloopcol")
+    val loopColor = getStructArray("*mloopcol") // todo support this
     // old
     // val mFaces = ptr("*mface")
     // val mtFaces = ptr("*mtface")
@@ -36,8 +36,8 @@ class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     val colors = getQuickStructArray<MLoopCol>("*mcol")
 
     // texture space (?)
-    val location get() = vec3f("loc[3]")
-    val size get() = vec3f("size[3]")
+    // val location get() = vec3f("loc[3]")
+    // val size get() = vec3f("size[3]")
 
     val vData get() = inside("vdata") as BCustomData
     val eData get() = inside("edata") as BCustomData

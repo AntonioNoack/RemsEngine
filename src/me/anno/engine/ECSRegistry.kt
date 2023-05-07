@@ -172,12 +172,16 @@ object ECSRegistry {
             clazz.getMethod("init").invoke(null)
         } catch (e: ClassNotFoundException) {
             LOGGER.warn("Bullet was not found", e)
+        } catch (e: NoClassDefFoundError) {
+            LOGGER.warn("Bullet was not found", e)
         }
 
         try {
             registerCustomClass(Box2dPhysics())
             registerCustomClass(Rigidbody2d())
         } catch (e: ClassNotFoundException) {
+            LOGGER.warn("Box2d was not found", e)
+        } catch (e: NoClassDefFoundError) {
             LOGGER.warn("Box2d was not found", e)
         }
 

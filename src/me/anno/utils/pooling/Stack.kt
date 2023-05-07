@@ -29,26 +29,27 @@ class Stack<V : Any>(private val createInstance: () -> V) {
     private class LocalStack<V : Any>(
         private val createInstance: () -> V
     ) {
-        var tmp: Array<Any?> = Array(64) { createInstance() }
+        var tmp: Array<Any?>? = null
         var index = 0
         var localFloor = 0
-        val capacity get() = tmp.size
+        val capacity get() = tmp?.size ?: 0
         fun ensure() {
-            if (index >= tmp.size) {
-                val newSize = tmp.size * 2
+            val tmp = tmp
+            if (tmp == null || index >= tmp.size) {
+                val newSize = if (tmp == null) 64 else tmp.size * 2
                 val tmp2 = arrayOfNulls<Any>(newSize)
-                System.arraycopy(tmp, 0, tmp2, 0, tmp.size)
-                for (i in tmp.size until newSize) {
+                if (tmp != null) System.arraycopy(tmp, 0, tmp2, 0, tmp.size)
+                for (i in (tmp?.size ?: 0) until newSize) {
                     tmp2[i] = createInstance()
                 }
-                tmp = tmp2
+                this.tmp = tmp2
             }
         }
 
         fun create(): V {
             ensure()
             @Suppress("unchecked_cast")
-            return tmp[index++] as V
+            return tmp!![index++] as V
         }
 
         fun borrow(): V {
@@ -56,7 +57,7 @@ class Stack<V : Any>(private val createInstance: () -> V) {
             // remove in final build
             if (index < localFloor) throw BufferUnderflowException()
             @Suppress("unchecked_cast")
-            return tmp[index] as V
+            return tmp!![index] as V
         }
 
         fun sub(delta: Int) {
@@ -74,7 +75,7 @@ class Stack<V : Any>(private val createInstance: () -> V) {
 
     fun reset() {
         val instance = storage.get()
-        if (instance.index > 0) LOGGER.warn("Missed to return ${instance.index}x ${instance.tmp[0]!!::class.simpleName}")
+        if (instance.index > 0) LOGGER.warn("Missed to return ${instance.index}x ${instance.tmp!![0]!!::class.simpleName}")
         instance.index = 0
     }
 

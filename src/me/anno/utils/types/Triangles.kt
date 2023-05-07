@@ -319,6 +319,18 @@ object Triangles {
     }
 
     /**
+     * calculates (b-a) x (c-a)
+     * without any allocations
+     * */
+    fun subCross(a: Vector2f, b: Vector2f, c: Vector2f): Float {
+        val x0 = b.x - a.x
+        val y0 = b.y - a.y
+        val x1 = c.x - a.x
+        val y1 = c.y - a.y
+        return x0 * y1 - y0 * x1
+    }
+
+    /**
      * calculates ((b-a) x (c-a)) * n
      * without any allocations
      * */

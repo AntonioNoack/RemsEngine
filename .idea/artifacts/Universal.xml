@@ -97,6 +97,7 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-openal-natives-linux-arm64.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows.jar" path-in-jar="/" />
       <element id="module-output" name="KOML" />
+      <element id="module-output" name="Bullet" />
     </root>
   </artifact>
 </component>

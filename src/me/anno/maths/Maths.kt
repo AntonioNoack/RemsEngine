@@ -186,6 +186,22 @@ object Maths {
         return exponent - 1023
     }
 
+    /**
+     * converts an angle from any radians into -pi to +pi
+     * */
+    @JvmStatic
+    fun angleDifference(v0: Float): Float {
+        return v0 - round(v0 / TAUf) * TAUf
+    }
+
+    /**
+     * converts an angle from any radians into -pi to +pi
+     * */
+    @JvmStatic
+    fun angleDifference(v0: Double): Double {
+        return v0 - round(v0 / TAU) * TAU
+    }
+
     @JvmStatic
     fun posMod(x: Int, y: Int) = if (x >= 0) x % y else (x % y) + y
 
