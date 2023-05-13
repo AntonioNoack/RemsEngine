@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.shader
 
 import me.anno.Engine
 import me.anno.ecs.components.mesh.Material

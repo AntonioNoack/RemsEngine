@@ -41,7 +41,7 @@ object TriplanarShader : ECSMeshShader("triplanar") {
                         "   blend.xz *= (1.0 - blend.y) / max(0.00001, blend.x + blend.z);\n" +
                         "} else {\n" +
                         "   blend = max(abs(finalNormal) - max(max(finalNormal.x,finalNormal.y),finalNormal.z) * sharpness, 0.0);\n" +
-                        "   blend /= max(0.00001, blend.x + blend.y + blend.z);\n" +
+                        "   blend /= blend.x + blend.y + blend.z;\n" +
                         "}\n" +
 
                         // todo local position option

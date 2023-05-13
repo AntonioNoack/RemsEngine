@@ -60,7 +60,7 @@ class DepthOfFieldEffect : CameraEffect() {
         fun bindDepth(shader: Shader, spherical: Float) {
             val factor = 2f * spherical
             shader.v3f(
-                "fovFactor",
+                "d_fovFactor",
                 factor * tan(RenderState.fovXRadians * 0.5f),
                 factor * tan(RenderState.fovYRadians * 0.5f),
                 RenderState.near
@@ -106,7 +106,7 @@ class DepthOfFieldEffect : CameraEffect() {
 
         const val coc = "" +
                 "float getBlurSize(float depth, vec2 uv) {\n" +
-                "   float len = length(vec3((uv-0.5)*fovFactor.xy, 1.0));\n" +
+                "   float len = length(vec3((uv-0.5)*d_fovFactor.xy, 1.0));\n" +
                 "   float coc = (1.0 / focusPoint - 1.0 / (depth * len)) * focusScale;\n" +
                 "   return min(abs(coc), 1.0);\n" +
                 "}"

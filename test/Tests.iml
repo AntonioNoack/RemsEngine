@@ -25,5 +25,6 @@
     <orderEntry type="module" module-name="Bullet" />
     <orderEntry type="module" module-name="SDF" />
     <orderEntry type="module" module-name="Lua" />
+    <orderEntry type="library" name="webp-imageio-0.1.6" level="project" />
   </component>
 </module>
