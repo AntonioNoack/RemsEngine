@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTex3d
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.max
 import org.joml.Vector3i
 
@@ -18,6 +19,7 @@ class Texture3DBTv2Material : Material() {
 
     var useSDF = false
 
+    @NotSerializedProperty
     var blocks: Texture3D? = null
         set(value) {
             field = value

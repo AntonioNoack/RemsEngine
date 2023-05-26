@@ -162,7 +162,7 @@ object DrawTexts {
             }
         }
 
-        if (!batched && shader is Shader) {
+        if (shader is Shader) {
             simpleBatch.finish()
         }
 

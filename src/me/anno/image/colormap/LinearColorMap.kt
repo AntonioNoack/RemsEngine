@@ -22,13 +22,6 @@ class LinearColorMap(
     var nanColor: Int
 ) : ColorMap, Saveable() {
 
-    constructor() : this(
-        0f, 1f,
-        Companion.negInfColor, Companion.minColor,
-        Companion.zeroColor, Companion.maxColor,
-        Companion.posInfColor, Companion.nanColor
-    )
-
     override var min: Float = min
         set(value) {
             field = value
@@ -63,10 +56,7 @@ class LinearColorMap(
     }
 
     override fun clone(min: Float, max: Float): ColorMap {
-        return LinearColorMap(
-            min, max,
-            negInfColor, this.minColor, zeroColor, this.maxColor, posInfColor, nanColor
-        )
+        return LinearColorMap(min, max, negInfColor, minColor, zeroColor, maxColor, posInfColor, nanColor)
     }
 
     override fun save(writer: BaseWriter) {

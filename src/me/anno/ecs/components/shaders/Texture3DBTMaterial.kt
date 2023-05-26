@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTex3d
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.max
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
@@ -18,6 +19,7 @@ class Texture3DBTMaterial : Material() {
 
     val size = Vector3i(1)
 
+    @NotSerializedProperty
     var blocks: Texture3D? = null
         set(value) {
             field = value

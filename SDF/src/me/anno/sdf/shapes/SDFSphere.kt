@@ -34,13 +34,12 @@ class SDFSphere : SDFShape() {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
         const val sdSphere = "" +
                 "float sdSphere(vec3 p, float s){ return length(p)-s; }\n" +
-                "float sddSphere(vec3 p, vec3 d, float s){ " +
-                "   vec3 q = p - dot(p, d) * d;\n" +
-                "   float f = dot(q,q);\n" +
-                "   float edge = s*s - f;\n" +
-                "   vec3 qp = q-p;\n" +
-                "   if(edge < 0.0 || dot(qp,d) <= 0.0) return 1e38;\n" +
-                "   return length(qp) - sqrt(edge);\n" +
+                "float sddSphere(vec3 p, vec3 d, float s){\n" +
+                "   float t = dot(p,d);\n" +
+                "   float q = dot(p,p)-s*s;\n" +
+                "   float disc = t*t-q;\n" +
+                "   if(disc < 0.0) return 1e38;\n" +
+                "   return -t - sqrt(disc);\n" +
                 "}\n" +
                 "float sdSphere2(vec3 p, vec3 d, float s){ float d0 = sdSphere(p,s); return d0 > 0.0 ? min(max(d0*2.0,0.03*s),sddSphere(p,d,s)) : d0; }\n"
     }

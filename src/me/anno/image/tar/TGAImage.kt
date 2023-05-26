@@ -12,6 +12,7 @@ import me.anno.image.Image
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readBE16
 import me.anno.io.Streams.readLE16
+import me.anno.utils.Color.black
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.InputStreams.skipN
@@ -634,12 +635,12 @@ class TGAImage(// bgra, even if the implementation calls it rgba
 
         @JvmStatic
         private fun bgra(b: Int, g: Int, r: Int, a: Int): Int {
-            return (r and 255 shl 16) or (g and 255 shl 8) or (b and 255) or (a and 255 shl 24)
+            return (r and 255 shl 16) or (g and 255 shl 8) or (b and 255) or (a shl 24)
         }
 
         @JvmStatic
         private fun bgr(b: Int, g: Int, r: Int): Int {
-            return (r and 255) shl 16 or (g and 255 shl 8) or (b and 255) or (255 shl 24)
+            return (r shl 16) or (g and 255 shl 8) or (b and 255) or black
         }
     }
 }
