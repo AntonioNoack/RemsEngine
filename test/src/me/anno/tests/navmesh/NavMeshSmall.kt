@@ -3,9 +3,9 @@ package me.anno.tests.navmesh
 import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.navigation.NavMesh
 import me.anno.ecs.components.navigation.NavMeshAgent
@@ -16,6 +16,7 @@ import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
+import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
 import org.joml.Vector3d
@@ -27,73 +28,19 @@ import kotlin.math.atan
 import kotlin.math.atan2
 import kotlin.math.max
 
-// walk along path
-class AgentController1(
-    meshData: MeshData,
-    navMesh: org.recast4j.detour.NavMesh,
-    query: NavMeshQuery,
-    filter: DefaultQueryFilter,
-    random: Random,
-    navMesh1: NavMesh,
-    crowd: Crowd,
-    val flag: Entity,
-    mask: Int
-) : NavMeshAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, mask) {
-
-    override fun findNextTarget() {
-        super.findNextTarget()
-        flag.teleportToGlobal(Vector3d(crowdAgent.targetPos))
-    }
-
-    private var upDownAngle = 0.0
-    private val raycastDir = Vector3d(0.0, -1.0, 0.0)
-    override fun onUpdate(): Int {
-        // move agent from src to dst
-        val entity = entity!!
-        val nextPos = crowdAgent.currentPosition
-        val distSq = crowdAgent.actualVelocity.lengthSquared()
-        if (!(distSq > 0f && crowdAgent.targetPos.distanceSquared(nextPos) >= 1f)) {
-            findNextTarget()
-        }
-        // project agent onto surface
-        val lp = entity.position
-        val start = Vector3d(nextPos)
-        start.y = lp.y + crowdAgent.params.height * 0.5
-        val dist = crowdAgent.params.height.toDouble()
-        val world = entity.parentEntity!!
-        val hr = Raycast.raycast(
-            world, start, raycastDir, 0.0, 0.0,
-            dist, Raycast.TRIANGLE_FRONT, mask
-        )
-        // DebugShapes.debugLines.add(DebugLine(start, Vector3d(raycastDir).mul(dist).add(start), -1))
-        val np = hr?.positionWS ?: Vector3d(nextPos)
-        val dt = Engine.deltaTime
-        np.lerp(lp, dtTo01(dt * 3.0))
-        upDownAngle = mix(upDownAngle, atan((lp.y - np.y) / max(np.distance(lp), 1e-308)), dtTo01(dt * 3.0))
-        entity.rotation = entity.rotation
-            .identity()
-            .rotateY(atan2(np.x - lp.x, np.z - lp.z))
-            .rotateX(upDownAngle)
-        entity.position = np
-        return 1
-    }
-
-
-}
-
 /**
  * test recast navmesh generation and usage
  * */
 fun main() {
     testUI {
 
+        StudioBase.instance?.enableVSync = false
         ECSRegistry.init()
 
         val mask = 1 shl 16
         val world = Entity("World")
         world.add(SkyBox())
 
-        // todo loaded normals for ghost look funky
         val agentMeshRef = documents.getChild("CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!
         agentMesh.calculateNormals(true)
@@ -141,7 +88,7 @@ fun main() {
 
         val flagMesh = documents.getChild("Flag.fbx")
         // todo agents should avoid each other
-        for (i in 0 until 250) {
+        for (i in 0 until 5) {
             val flag = Entity("Flag")
             flag.scale = Vector3d(flagScale.toDouble())
             flag.add(MeshComponent(flagMesh).apply { isInstanced = true })
@@ -151,7 +98,7 @@ fun main() {
                 scale = Vector3d(agentScale.toDouble())
                 add(MeshComponent(agentMeshRef).apply { isInstanced = true })
             })
-            agent.add(AgentController1(meshData, navMesh, query, filter, random, navMesh1, crowd, flag, mask))
+            agent.add(AgentController1a(meshData, navMesh, query, filter, random, navMesh1, crowd, flag, mask))
             world.add(agent)
         }
 

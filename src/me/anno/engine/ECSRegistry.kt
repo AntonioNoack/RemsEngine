@@ -170,7 +170,7 @@ object ECSRegistry {
         // physics
         try {
             val clazz = this::class.java.classLoader
-                .loadClass("me.anno.ecs.components.physics.PhysicsRegistry")
+                .loadClass("me.anno.ecs.components.bullet.PhysicsRegistry")
             clazz.getMethod("init").invoke(null)
         } catch (e: ClassNotFoundException) {
             LOGGER.warn("Bullet was not found", e)

@@ -6,7 +6,6 @@ import me.anno.network.Protocol
 import me.anno.network.Server
 import me.anno.network.TCPClient
 import me.anno.network.packets.MSGBroadcastPacket
-import me.anno.network.packets.POS0Packet
 import me.anno.network.packets.PingPacket
 import java.io.IOException
 import java.net.InetAddress
@@ -41,17 +40,17 @@ fun test1() {
     // so send 512 maybe 10 times to all clients
     // one of which won't read, because it's malicious
 
-    var ctr = 0
-
     class MSGPacket : MSGBroadcastPacket() {
-        override fun showMessage(client: TCPClient) {
-            println("msg[${++ctr}] (${client.name}): ${message.length}x")
+        override val canDropPacket: Boolean get() = false
+        override fun onReceive(server: Server?, client: TCPClient) {
+            super.onReceive(server, client)
+            println("received $message on ${if (server != null) "server" else "client"}")
         }
+        override fun showMessage(client: TCPClient) {}
     }
 
     val protocol = Protocol(1, NetworkProtocol.TCP)
     protocol.register(PingPacket())
-    protocol.register { POS0Packet() }
     protocol.register { MSGPacket() }
 
     val server = Server()
@@ -63,41 +62,43 @@ fun test1() {
     val local = InetAddress.getByName("localhost")
 
     // "connect" evil client
-    val evilSocket = TCPClient.createSocket(local, server.tcpPort, protocol)
-    val evilClient = TCPClient(evilSocket, protocol, "Evil")
-    evilClient.dos.writeInt(protocol.bigEndianMagic)
-    protocol.clientHandshake(evilSocket, evilClient)
-    evilClient.isRunning = true
-    thread(name = "Evil-Ping") {
-        // keep the connection alive
-        try {
-            while (!Engine.shutdown && !evilClient.isClosed) {
-                evilClient.sendTCP(PingPacket())
-                Thread.sleep(10)
+    if (false) {
+        val evilClient = TCPClient(local, server.tcpPort, protocol, "Evil")
+        evilClient.dos.writeInt(protocol.bigEndianMagic)
+        protocol.clientHandshake(evilClient.socket, evilClient)
+        evilClient.isRunning = true
+        thread(name = "Evil-Ping") {
+            // keep the connection alive
+            try {
+                while (!Engine.shutdown && !evilClient.isClosed) {
+                    evilClient.sendTCP(PingPacket())
+                    Thread.sleep(10)
+                }
+            } catch (_: IOException) {
             }
-        } catch (_: IOException) {
         }
+
+        println("connected evil")
     }
 
-    println("connected evil")
-
-    // connect friendly clients
-    val friendlySocket = TCPClient.createSocket(local, server.tcpPort, protocol)
-    val friendlyClient = TCPClient(friendlySocket, protocol, "Friendly")
+    // connect friendly client
+    val friendlyClient = TCPClient(local, server.tcpPort, protocol, "Friendly")
     friendlyClient.startClientSideAsync()
 
     println("connected friendly")
 
-    val longText = String(CharArray(1024 * 4) { 'a' })
-    val packet = MSGPacket().apply { message = longText }
-    // broadcast a few very long messages
-    for (i in 0 until 1000) {
-        friendlyClient.sendTCP(packet)
+    // broadcast a few messages
+    for (i in 0 until 10000) {
+        val packet = MSGPacket()
+        packet.message = "[$i]"
+        friendlyClient.sendTCP(packet, 50L)
     }
 
     println("sent messages")
 
-    Thread.sleep(1000L)
+    Thread.sleep(10000L)
+
+    println("closing server & engine")
 
     server.close()
 

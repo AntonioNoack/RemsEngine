@@ -2,6 +2,7 @@ package me.anno.network
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.network.Protocol.Companion.convertMagic
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager

@@ -1,4 +1,4 @@
-package me.anno.tests.kernel
+package me.anno.tests.maths
 
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache

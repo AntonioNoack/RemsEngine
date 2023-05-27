@@ -12,6 +12,7 @@ object SDFRegistry {
 
     // like on http://mercury.sexy/hg_sdf/
 
+    @JvmStatic
     fun init() {
         // shapes
         registerCustomClass(SDFBezierCurve())

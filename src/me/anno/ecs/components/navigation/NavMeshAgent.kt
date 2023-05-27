@@ -46,6 +46,8 @@ open class NavMeshAgent(
         params.height = navMesh1.agentHeight
         params.maxSpeed = speed
         params.maxAcceleration = 10f
+        params.collisionQueryRange = navMesh1.agentRadius * 2f
+        params.pathOptimizationRange = params.collisionQueryRange * 1.5f
         // other params?
         crowdAgent = crowd.addAgent(currRef.randomPt, params)
 
@@ -55,8 +57,9 @@ open class NavMeshAgent(
         val nextRef = query.findRandomPointWithinCircle(
             currRef.randomRef, crowdAgent.targetPos,
             200f, filter, random
-        ).result!!
-        crowdAgent.setTarget(nextRef.randomRef, nextRef.randomPt)
+        ).result
+        if (nextRef != null) crowdAgent.setTarget(nextRef.randomRef, nextRef.randomPt)
+        else lastWarning = "Cannot find random point within circle!"
     }
 
     override fun clone() = this

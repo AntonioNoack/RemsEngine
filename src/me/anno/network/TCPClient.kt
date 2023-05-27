@@ -1,5 +1,7 @@
 package me.anno.network
 
+import me.anno.Engine
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep.waitUntil
 import java.io.Closeable
 import java.io.DataInputStream
@@ -22,6 +24,12 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
                 Socket(address, port)
             }
         }
+    }
+
+    constructor(address: InetAddress, port: Int, protocol: Protocol, name: String, uuid: String = name) :
+            this(createSocket(address, port, protocol), protocol, 0) {
+        this.name = name
+        this.uuid = uuid
     }
 
     constructor(socket: Socket, protocol: Protocol, name: String, uuid: String = name) :
@@ -69,7 +77,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
 
     var packetLimit = 128
 
-    fun sendTCP(packet: Packet) {
+    fun sendTCP(packet: Packet, maxWaitTimeMillis: Long = 0L) {
         if (protocol.find(packet.bigEndianMagic) == null) throw UnregisteredPacketException(packet)
         if (!isClosed) {
             when {
@@ -81,12 +89,25 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
                     if (writingQueue.removeIf { it.canDropPacket }) {
                         writingQueue.add(packet)
                     } else {
-                        // all packets are important... this is awkward
-                        // should not happen with a well designed protocol,
-                        // or only if the client is malicious and not reading packets
-                        close()
-                        throw SocketException("There were too many waiting, important packets")
+                        val t0 = Engine.nanoTime
+                        val tMax = t0 + maxWaitTimeMillis * MILLIS_TO_NANOS
+                        while (true) {
+                            if (writingQueue.size < packetLimit) {
+                                writingQueue.add(packet)
+                                return
+                            }
+                            if (Engine.nanoTime > tMax) {
+                                // all packets are important... this is awkward
+                                // should not happen with a well-designed protocol,
+                                // or only if the client is malicious and not reading packets
+                                close()
+                                throw SocketException("There were too many waiting, important packets")
+                            } else Thread.sleep(1)
+                        }
                     }
+                }
+                else -> {
+                    println("dropped packet")
                 }
             }
         }

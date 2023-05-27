@@ -91,14 +91,6 @@ class NavMesh : Component() {
 
         val world = entity ?: return null
         val geometry = GeoProvider(world, collisionMask)
-        println("bounds: ${geometry.bounds}")
-        println(
-            "meshes: ${
-                geometry.meshes.joinToString {
-                    "${it.triangles.size} tris x ${it.vertices.size} vertices"
-                }
-            }"
-        )
 
         val config = RecastConfig(
             partitionType, cellSize, cellHeight, agentHeight, agentRadius,
@@ -106,33 +98,17 @@ class NavMesh : Component() {
             maxVerticesPerPoly, detailSampleDist, detailSampleMaxError, DefaultAreaModifications.GROUND
         )
 
-        println("agent: $agentRadius x $agentHeight")
-
-        println("bounds2: ${geometry.meshBoundsMin}, ${geometry.meshBoundsMax}")
         val builderConfig = RecastBuilderConfig(config, geometry.meshBoundsMin, geometry.meshBoundsMax)
 
         val built = RecastBuilder().build(geometry, builderConfig)
-        println("got results: ${built.tileX},${built.tileZ}")
-        println(built.mesh.run {
-            "${this.numVertices} verts, ${this.numPolygons} polys, ${this.bmin}..${this.bmax}, " +
-                    "${this.flags.size} flags, verts-values: ${this.vertices.size}"
-        })
-        println(built.meshDetail)
-        println(built.contourSet.run {
-            "contours: $width x $height, cs: $cellSize, ch: $cellHeight, ${contours.size} contours"
-        })
-        built.telemetry?.print()
-        println(built.compactHeightField.run {
-            "compactHeightField: cells[${index.size}]: ${index.indices.count { index[it] + 1 == endIndex[it] }} + ..." +
-                    "${this.width} x ${this.height}, ${this.borderSize} border, ${this.areas.size} areas, " +
-                    "${this.spans.size} spans"
-        })
 
-        built.compactHeightField.apply {
-            IntImage(width, height, IntArray(width * height) {
-                if (endIndex[it] > index[it]) spans[index[it]].y * 0x10101 else 0
-            }, false)
-                .write(desktop.getChild("compactHeight.png"))
+        if (false) {
+            built.telemetry?.print()
+            built.compactHeightField.apply {
+                IntImage(width, height, IntArray(width * height) {
+                    if (endIndex[it] > index[it]) spans[index[it]].y * 0x10101 else 0
+                }, false).write(desktop.getChild("compactHeight.png"))
+            }
         }
 
         val mesh = built.mesh
@@ -180,9 +156,7 @@ class NavMesh : Component() {
             p.detailVerticesCount = md.numVertices
             p.detailTris = md.triangles
             p.detailTriCount = md.numTriangles
-            println("det-vertices: ${p.detailVerticesCount}")
-            println("det-tris: ${p.detailTriCount}")
-        } else println("md is null")
+        }
         p.offMeshConVertices = floatArrayOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f)
         p.offMeshConRad = floatArrayOf(0.1f)
         p.offMeshConFlags = intArrayOf(12)
@@ -200,10 +174,6 @@ class NavMesh : Component() {
         p.cellHeight = cellHeight
         p.buildBvTree = true // */
 
-        println("vertices: ${mesh.numVertices}")
-        println("polys: ${mesh.numPolygons}")
-
-        println("building...")
         return NavMeshBuilder.createNavMeshData(p)
 
     }
