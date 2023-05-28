@@ -40,7 +40,7 @@ open class NavMeshAgent(
 
         val header = meshData.header!!
         val tileRef = navMesh.getTileRefAt(header.x, header.y, header.layer)
-        currRef = query.findRandomPointWithinCircle(tileRef, Vector3f(), 200f, filter, random).result!!
+        currRef = query.findRandomPointWithinCircle(tileRef, Vector3f(), 200f, filter, random)!!
 
         params.radius = navMesh1.agentRadius
         params.height = navMesh1.agentHeight
@@ -57,7 +57,7 @@ open class NavMeshAgent(
         val nextRef = query.findRandomPointWithinCircle(
             currRef.randomRef, crowdAgent.targetPos,
             200f, filter, random
-        ).result
+        )
         if (nextRef != null) crowdAgent.setTarget(nextRef.randomRef, nextRef.randomPt)
         else lastWarning = "Cannot find random point within circle!"
     }

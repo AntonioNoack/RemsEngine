@@ -15,6 +15,7 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Matrices.isIdentity
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.thirdF
 import org.joml.*
@@ -52,7 +53,7 @@ open class MeshCollider() : Collider() {
     val meshAABB: AABBf?
         get() {
             val mesh = mesh
-            mesh?.ensureBounds()
+            mesh?.getBounds()
             return mesh?.aabb
         }
 
@@ -77,7 +78,7 @@ open class MeshCollider() : Collider() {
     ): Float {
 
         val mesh = mesh ?: return Float.POSITIVE_INFINITY
-        if (!mesh.ensureBounds().testLine(start, direction))
+        if (!mesh.getBounds().testLine(start, direction))
             return Float.POSITIVE_INFINITY
 
         // test whether we intersect any triangle of this mesh
@@ -207,11 +208,25 @@ open class MeshCollider() : Collider() {
     }
 
     override fun drawShape() {
-        mesh?.forEachTriangle { a, b, c ->
-            val color = -1
-            drawLine(entity, a, b, color)
-            drawLine(entity, b, c, color)
-            drawLine(entity, c, a, color)
+        val mesh = mesh ?: return
+        val tr = meshTransform
+        if (tr.isIdentity()) {
+            mesh.forEachTriangle { a, b, c ->
+                val color = -1
+                drawLine(entity, a, b, color)
+                drawLine(entity, b, c, color)
+                drawLine(entity, c, a, color)
+            }
+        } else {
+            mesh.forEachTriangle { a, b, c ->
+                tr.transformPosition(a)
+                tr.transformPosition(b)
+                tr.transformPosition(c)
+                val color = -1
+                drawLine(entity, a, b, color)
+                drawLine(entity, b, c, color)
+                drawLine(entity, c, a, color)
+            }
         }
     }
 

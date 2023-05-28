@@ -176,7 +176,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         val local = localAABB
         local.clear()
         forEachMesh { mesh, _, transform ->
-            mesh.ensureBounds()
+            mesh.getBounds()
                 .transformUnion(transform.localTransform, local, local)
         }
 

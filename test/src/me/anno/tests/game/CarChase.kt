@@ -1,18 +1,20 @@
 package me.anno.tests.game
 
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.bullet.BulletPhysics
+import me.anno.ecs.components.bullet.Rigidbody
+import me.anno.ecs.components.bullet.Vehicle
+import me.anno.ecs.components.bullet.VehicleWheel
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.bullet.BulletPhysics
-import me.anno.ecs.components.bullet.Rigidbody
-import me.anno.ecs.components.bullet.Vehicle
-import me.anno.ecs.components.bullet.VehicleWheel
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.SkyBox
+import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
@@ -57,12 +59,14 @@ val heistPackage = getReference("E:/Assets/Unity/POLYGON_Heist_Unity_Package_201
 val carModel = getReference(heistPackage, "Model/SM_Veh_Car_Police_Heist_01.fbx")
 val carModelMain = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_01.json")
 val carModelFL = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_Wheel_fl.json")
-val carModelSteer = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_SteeringW.json") // todo add steering wheel
+val carModelSteer = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_SteeringW.json")
 val carModelGlass = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_Glass.json")
 val carModelPlates = getReference(carModel, "meshes/SM_Veh_Car_Police_Heist_Plates.json")
 val carModelMat = getReference(heistPackage, "Materials/PolygonHeist_Character_Material_01.mat")
 
 fun createUI(): Panel {
+
+    ECSRegistry.init()
 
     val list = NineTilePanel(style)
 
@@ -91,9 +95,13 @@ fun createUI(): Panel {
     }
     add(car1, carModelMain)
     add(car1, carModelPlates)
+
     val glassMaterial = Material()
-    glassMaterial.diffuseBase.w = 0.5f
+    glassMaterial.diffuseBase.w = 0.7f
     glassMaterial.cullMode = CullMode.BOTH
+    glassMaterial.pipelineStage = 1
+    glassMaterial.metallicMinMax.set(1f)
+    glassMaterial.roughnessMinMax.set(0.1f)
     add(car1, carModelGlass, listOf(glassMaterial.ref))
 
     car0.add(car1)
@@ -113,10 +121,29 @@ fun createUI(): Panel {
         val sca = car1.scale
         meshTransform.scale(sca.x.toFloat(), sca.y.toFloat(), sca.z.toFloat())
     })
-    // car0.add(BoxCollider().apply { halfExtends.set(1.0, 0.5, 2.5) })
     val controller = TestVehicleController()
     controller.controls = "wasd"
     car0.add(controller)
+
+    val steeringWheel = Entity()
+    val steeringWheelMesh = MeshComponent(carModelSteer)
+    steeringWheelMesh.materials = materialList
+    steeringWheel.add(steeringWheelMesh)
+    steeringWheel.add(object : Component() {
+        val q = Quaterniond()
+        val c = Vector3d()
+        override fun onUpdate(): Int {
+            val tr = steeringWheel.transform
+            val mesh = steeringWheelMesh.getMesh()!!.getBounds()
+            q.identity().rotateZ(-5.0 * controller.lastSteering)
+            c.set(mesh.avgX().toDouble(), mesh.avgY().toDouble(), mesh.avgZ().toDouble())
+            tr.setOffsetForLocalRotation(q, c)
+            tr.smoothUpdate()
+            return 1
+        }
+    })
+    car1.add(steeringWheel)
+
 
     // add four wheels :)
     for (x in listOf(-1, +1)) {
@@ -155,7 +182,6 @@ fun createUI(): Panel {
     sceneView.alignmentY = AxisAlignment.FILL
     sceneView.weight = 1f
     list.add(sceneView)
-
 
     val camEntity = Entity()
     val camBase = Entity()

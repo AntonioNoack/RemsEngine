@@ -85,7 +85,7 @@ fun meshToSeparatedVoxels(
     waitForTextures: Boolean
 ) {
 
-    val bounds = mesh.ensureBounds()
+    val bounds = mesh.getBounds()
     bounds.addMargin(max(bounds.deltaX(), max(bounds.deltaY(), bounds.deltaZ())) / max(blocksX, max(blocksY, blocksZ)))
 
     val transform = Matrix4f()
@@ -238,7 +238,7 @@ fun main() {
     val file = downloads.getChild("3d/DamagedHelmet.glb")
     val mesh = MeshCache[file]!!
 
-    val bounds = AABBf(mesh.ensureBounds())
+    val bounds = AABBf(mesh.getBounds())
     val resolution = 512
     // this does not work with very flat models! ->
     // maybe now...

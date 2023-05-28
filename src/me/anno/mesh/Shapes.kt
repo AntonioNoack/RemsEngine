@@ -103,7 +103,7 @@ object Shapes {
         }
 
         fun withUVs(): FBBMesh {
-            front.ensureBounds()
+            front.getBounds()
             val bounds = front.aabb
             val su = 1f / (bounds.maxX - bounds.minX)
             val sv = 1f / (bounds.maxY - bounds.minY)

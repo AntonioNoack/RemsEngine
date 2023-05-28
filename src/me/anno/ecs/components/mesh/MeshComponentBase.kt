@@ -11,7 +11,6 @@ import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
-import me.anno.engine.ui.control.DraggingControls
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.Shader
@@ -145,7 +144,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         ensureBuffer()
         val mesh = getMesh()
         if (mesh != null) {
-            val aabb2 = mesh.ensureBounds()
+            val aabb2 = mesh.getBounds()
             localAABB.set(aabb2)
             globalAABB.clear()
             fillSpace(mesh, globalTransform, globalAABB)
@@ -156,7 +155,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
     fun fillSpace(mesh: Mesh, transform: Matrix4x3d?, dst: AABBd) {
         // add aabb of that mesh with the transform
-        val bounds = mesh.ensureBounds()
+        val bounds = mesh.getBounds()
         if (transform != null) bounds.transformUnion(transform, dst)
         else dst.union(bounds)
     }

@@ -43,7 +43,9 @@ class AgentController1a(
 
     override fun findNextTarget() {
         super.findNextTarget()
-        flag.teleportToGlobal(Vector3d(crowdAgent.targetPos))
+        val tr = flag.transform
+        tr.globalPosition = tr.globalPosition.set(crowdAgent.targetPos)
+        tr.teleportUpdate()
     }
 
     private var upDownAngle = 0.0
@@ -86,7 +88,6 @@ class AgentController1a(
         return 1
     }
 
-
 }
 
 /**
@@ -105,7 +106,7 @@ fun main() {
         val agentMeshRef = documents.getChild("CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!
         agentMesh.calculateNormals(true)
-        val agentBounds = agentMesh.ensureBounds()
+        val agentBounds = agentMesh.getBounds()
         val agentScale = 1f
         val flagScale = 1f
 
@@ -142,13 +143,12 @@ fun main() {
 
         val query = NavMeshQuery(navMesh)
         val filter = DefaultQueryFilter()
-        val random = Random(System.nanoTime())
+        val random = Random(1234L)
 
         val config = CrowdConfig(navMesh1.agentRadius)
         val crowd = Crowd(config, navMesh)
 
         val flagMesh = documents.getChild("Flag.fbx")
-        // todo agents should avoid each other
         for (i in 0 until 500) {
             val flag = Entity("Flag")
             flag.scale = Vector3d(flagScale.toDouble())

@@ -171,7 +171,7 @@ object TerrainUtils {
 
     fun fillUVs(mesh: Mesh) {
         val pos = mesh.positions!!
-        val bs = mesh.ensureBounds()
+        val bs = mesh.getBounds()
         val uvs = mesh.uvs.resize(pos.size / 3 * 2)
         var j = 0
         val fx = +1f / bs.deltaX()

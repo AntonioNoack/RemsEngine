@@ -287,7 +287,7 @@ object NormalCalculator {
      * @param normalScale internal parameter for a deviation; shall be ~MinVertexDistance/3, or if unknown, ~MeshScale/100; must not be too small
      * */
     fun calculateSmoothNormals(mesh: Mesh, maxAllowedAngle: Float, largeLength: Float, normalScale: Float) {
-        mesh.ensureBounds()
+        mesh.getBounds()
         val llSq = largeLength * largeLength
         val maxD = length(cos(maxAllowedAngle) - 1f, sin(maxAllowedAngle))
         calculateSmoothNormals(mesh, normalScale) { a, b, c ->

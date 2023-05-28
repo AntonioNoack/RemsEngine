@@ -568,7 +568,7 @@ class PipelineStage(
                         receiveShadows != lastReceiveShadows
                     ) {
                         // upload all light data
-                        val aabb = tmpAABBd.set(mesh.ensureBounds()).transform(transform.getDrawMatrix())
+                        val aabb = tmpAABBd.set(mesh.getBounds()).transform(transform.getDrawMatrix())
                         setupLights(pipeline, shader, aabb, receiveShadows)
                         lastReceiveShadows = receiveShadows
                     }

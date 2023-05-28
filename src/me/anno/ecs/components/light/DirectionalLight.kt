@@ -6,8 +6,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.input.Input
-import me.anno.io.serialization.NotSerializedProperty
 import me.anno.mesh.Shapes
 import me.anno.utils.types.Matrices.set2
 import org.joml.*
@@ -28,7 +26,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
             aabb.all()
         } else {
             val mesh = getLightPrimitive()
-            mesh.ensureBounds()
+            mesh.getBounds()
             mesh.aabb.transformUnion(globalTransform, aabb)
         }
         return true

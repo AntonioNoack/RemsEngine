@@ -198,6 +198,15 @@ class Transform() : Saveable() {
         localRotation.set(Quaterniond().rotateY(y).rotateX(x).rotateZ(z))
     }
 
+    fun setOffsetForLocalRotation(rotation: Quaterniond, center: Vector3d){
+        localRotation = localRotation.identity()
+            .mul(rotation)
+        localPosition = localPosition
+            .set(-center.x, -center.y, -center.z)
+            .rotate(rotation)
+            .add(center)
+    }
+
     var localScale: Vector3d
         get() = sca
         set(value) {

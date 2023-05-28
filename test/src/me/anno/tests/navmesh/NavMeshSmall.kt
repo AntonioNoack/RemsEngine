@@ -8,14 +8,10 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.navigation.NavMesh
-import me.anno.ecs.components.navigation.NavMeshAgent
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ECSRegistry
-import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
-import me.anno.maths.Maths.dtTo01
-import me.anno.maths.Maths.mix
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
@@ -24,8 +20,6 @@ import org.recast4j.detour.*
 import org.recast4j.detour.crowd.Crowd
 import org.recast4j.detour.crowd.CrowdConfig
 import java.util.*
-import kotlin.math.atan
-import kotlin.math.atan2
 import kotlin.math.max
 
 /**
@@ -44,7 +38,7 @@ fun main() {
         val agentMeshRef = documents.getChild("CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!
         agentMesh.calculateNormals(true)
-        val agentBounds = agentMesh.ensureBounds()
+        val agentBounds = agentMesh.getBounds()
         val agentScale = 1f
         val flagScale = 1f
 
@@ -65,7 +59,7 @@ fun main() {
         navMesh1.data = meshData
 
         // visualize navmesh
-        if (false) world.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
+        world.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
             material = Material().apply {
                 cullMode = CullMode.BOTH
                 diffuseBase.set(0.2f, 1f, 0.2f, 0.5f)
@@ -81,13 +75,12 @@ fun main() {
 
         val query = NavMeshQuery(navMesh)
         val filter = DefaultQueryFilter()
-        val random = Random(System.nanoTime())
+        val random = Random(1234L)
 
         val config = CrowdConfig(navMesh1.agentRadius)
         val crowd = Crowd(config, navMesh)
 
         val flagMesh = documents.getChild("Flag.fbx")
-        // todo agents should avoid each other
         for (i in 0 until 5) {
             val flag = Entity("Flag")
             flag.scale = Vector3d(flagScale.toDouble())

@@ -663,7 +663,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     /** can be set to false to use tangents as an additional data channel; notice the RGB[-1,1] limit though */
     var checkTangents = true
 
-    fun ensureBounds(): AABBf {
+    fun getBounds(): AABBf {
         synchronized(this) {
             if (proceduralLength <= 0 && needsBoundsUpdate) {
                 needsBoundsUpdate = false
@@ -712,7 +712,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
     private fun updateMesh() {
 
-        ensureBounds()
+        getBounds()
 
         needsMeshUpdate = false
 
@@ -1104,7 +1104,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     fun getBounds(transform: Matrix4f, onlyFaces: Boolean): AABBf {
         val vf = Vector3f()
         val aabb = AABBf()
-        ensureBounds()
+        getBounds()
         forEachPoint(onlyFaces) { x, y, z ->
             aabb.union(transform.transformProject(vf.set(x, y, z)))
         }

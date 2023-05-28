@@ -12,7 +12,7 @@ import kotlin.math.max
 object MeshUtils {
 
     fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, mesh: Mesh, targetFrameUsage: Float = 0.95f) {
-        mesh.ensureBounds()
+        mesh.getBounds()
         centerMesh(stack, localStack, AABBd().set(mesh.aabb), { mesh.getBounds(it, false) }, targetFrameUsage)
     }
 

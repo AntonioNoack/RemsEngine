@@ -295,7 +295,7 @@ object Raycast {
         val localMaxDistance = localSrt.distance(localEnd)
 
         // test whether we intersect the aabb of this mesh
-        if (mesh.ensureBounds()
+        if (mesh.getBounds()
                 .testLine(localSrt, localDir, localRadiusAtOrigin, localRadiusPerUnit, localMaxDistance)
         ) {
 
@@ -468,7 +468,7 @@ object Raycast {
 
         // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
         // test whether we intersect the aabb of this mesh
-        if (mesh.ensureBounds().testLine(start, dir, distance)) {
+        if (mesh.getBounds().testLine(start, dir, distance)) {
             val localHitTmp = JomlPools.vec3f.create()
             val localNormalTmp = JomlPools.vec3f.create()
             val a = JomlPools.vec3f.create()

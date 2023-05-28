@@ -27,7 +27,7 @@ class Element(val name: String, val id: Int) {
     override fun toString() = name
 }
 
-val elements = arrayOfNulls<Element>(1024 * 64)
+val elements = arrayOfNulls<Element>(1000 * 80)
 
 fun readCached(path: String, id: String): String {
     val cf = cacheFolder.getChild("${path.hashCode()}-$id.bin")

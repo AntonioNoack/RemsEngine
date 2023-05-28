@@ -12,8 +12,8 @@ import me.anno.maths.Maths
 
 class TestVehicleController : Component(), ControlReceiver {
 
-    var force = 1.0
-    var steering = 0.5
+    var accelerationStrength = 1.0
+    var steeringStrength = 0.5
     var brake = 1.0
 
     var smoothing = 5.0
@@ -23,27 +23,27 @@ class TestVehicleController : Component(), ControlReceiver {
 
     @DebugProperty
     @NotSerializedProperty
-    private var lastForce = 0.0
+    var lastForce = 0.0
 
     @DebugProperty
     @NotSerializedProperty
-    private var lastSteering = 0.0
+    var lastSteering = 0.0
 
     @DebugProperty
     @NotSerializedProperty
-    private var lastBrake = 0.0
+    var lastBrake = 0.0
 
     override fun onPhysicsUpdate(): Boolean {
 
         val controls = controls.padEnd(4)
 
         var steeringSum = 0.0
-        if (Input.isKeyDown(controls[1])) steeringSum += steering
-        if (Input.isKeyDown(controls[3])) steeringSum -= steering
+        if (Input.isKeyDown(controls[1])) steeringSum += steeringStrength
+        if (Input.isKeyDown(controls[3])) steeringSum -= steeringStrength
 
         var forceSum = 0.0
-        if (Input.isKeyDown(controls[0])) forceSum += force
-        if (Input.isKeyDown(controls[2])) forceSum -= force
+        if (Input.isKeyDown(controls[0])) forceSum += accelerationStrength
+        if (Input.isKeyDown(controls[2])) forceSum -= accelerationStrength
 
         val brakeForcePerWheel = if (Input.isKeyDown(' ')) this.brake else 0.0
 
@@ -66,8 +66,8 @@ class TestVehicleController : Component(), ControlReceiver {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as TestVehicleController
-        dst.force = force
-        dst.steering = steering
+        dst.accelerationStrength = accelerationStrength
+        dst.steeringStrength = steeringStrength
         dst.brake = brake
         dst.smoothing = smoothing
     }

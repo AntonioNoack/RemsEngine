@@ -330,7 +330,7 @@ object GLTFWriter {
 
             writer.open(false)
 
-            mesh.ensureBounds()
+            mesh.getBounds()
             mesh.ensureNorTanUVs()
 
             val pos = mesh.positions!!
