@@ -7,7 +7,6 @@ import me.anno.io.ISaveable.Companion.registerCustomClass
 object PhysicsRegistry {
     @JvmStatic
     fun init() {
-        // todo try to create an export without physics, and check everything still runs fine
         registerCustomClass(BulletPhysics())
         registerCustomClass(Rigidbody())
         registerCustomClass(Vehicle())

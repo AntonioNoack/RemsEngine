@@ -1,5 +1,6 @@
 package me.anno.ecs.components.audio
 
+import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioFXCache
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
@@ -8,17 +9,20 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.video.ffmpeg.FFMPEGMetadata
+import kotlin.math.abs
 import kotlin.math.ceil
 
 class AudioComponent : AudioComponentBase() {
 
-    // todo autostart option
-
+    @Docs("Where the audio file to be used is located")
     var source: FileReference = InvalidRef
 
     // most tracks are short, so keep them in memory by default
     @Docs("Keeps the track in memory, so it can be started without delay")
     var keepInMemory = true
+
+    @Docs("Will start the audio as soon as it's available")
+    var autoStart = false
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
@@ -63,6 +67,9 @@ class AudioComponent : AudioComponentBase() {
         super.onUpdate()
         if (keepInMemory) {
             keepInMemory()
+        }
+        if (autoStart && !isPlaying && abs(startTime - Engine.nanoTime) > 1e9) {
+            start()
         }
         return 1
     }

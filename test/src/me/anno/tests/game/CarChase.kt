@@ -212,7 +212,7 @@ fun createUI(): Panel {
     orbitControls.useGlobalSpace = true // less nauseating, when car is rotated
     camEntity.add(orbitControls)
     camEntity.rotation = camEntity.rotation.rotateY(PI)
-    camEntity.position = camEntity.position.set(0.0, 1.0, 0.1)
+    camBase.position = camBase.position.set(0.4, 0.57, 0.15)
     camBase.add(camEntity)
     car0.add(camBase)
 

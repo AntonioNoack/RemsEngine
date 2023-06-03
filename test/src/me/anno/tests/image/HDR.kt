@@ -1,11 +1,12 @@
 package me.anno.tests.image
 
 import me.anno.image.hdr.HDRImage
-import me.anno.io.files.FileReference
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
+import me.anno.image.raw.IntImage
+import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.utils.Color.rgb
+import kotlin.math.sqrt
 
-fun main() {
+/*fun main() {
     // test HDR writer using the working HDR reader
     val ref = FileReference.getReference("C:/XAMPP/htdocs/DigitalCampus/images/environment/kloofendal_38d_partly_cloudy_2k.hdr")
     val correctInput = HDRImage(ref)
@@ -23,4 +24,29 @@ fun main() {
         }
     }
     println("Test passed")
+}*/
+
+fun main() {
+
+    val ref = getReference("C:/XAMPP/htdocs/uvbaker/env/scythian_tombs_2_4k.hdr")
+    val exposure = 1f
+
+    val src = HDRImage(ref)
+    val dst = IntImage(src.width, src.height, false)
+    val pixels = src.pixels
+    var j = 0
+    val max = 255.5f
+    for (i in 0 until src.width * src.height) {
+        val r = exposure * pixels[j++]
+        val g = exposure * pixels[j++]
+        val b = exposure * pixels[j++]
+        val rf = r / (1f + r)
+        val gf = g / (1f + g)
+        val bf = b / (1f + b)
+        val ri = (max * sqrt(rf)).toInt()
+        val gi = (max * sqrt(gf)).toInt()
+        val bi = (max * sqrt(bf)).toInt()
+        dst.data[i] = rgb(ri, gi, bi)
+    }
+    dst.write(ref.getSiblingWithExtension("png"))
 }

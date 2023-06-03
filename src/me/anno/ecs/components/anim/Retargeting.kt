@@ -7,8 +7,11 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.text.TextReader
+import me.anno.io.text.TextWriter
 import me.anno.mesh.assimp.Bone
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.downloads
@@ -35,14 +38,29 @@ class Retargeting : NamedSaveable() {
                 false
             ) { k12, _ ->
 
-                // todo database, which stores bone assignments for a project
+                // todo hash skeleton instead of skeleton path
+                val hash1 = srcSkeleton.hashCode
+                val hash2 = dstSkeleton.hashCode
+                // database, which stores bone assignments for a project
+                val config = "retargeting-$hash1-$hash2.json"
+                val config1 = ConfigBasics.getConfigFile(config)
+
+                val ret : Retargeting
+                if (config1.exists) {
+                    ret = TextReader.readFirstOrNull<Retargeting>(config1, InvalidRef, true)
+                        ?: Retargeting()
+                } else {
+                    ret = Retargeting()
+                    ret.srcSkeleton = k12.first
+                    ret.dstSkeleton = k12.second
+                    config1.getParent()?.tryMkdirs()
+                    config1.writeText(TextWriter.toText(ret, InvalidRef))
+                }
+
                 // todo automatic bone-assignment, if none is found
                 //  - use similar assignments, if some are found in the database
                 // todo merge skeletons, if they are very similar (names, positions, structure)
 
-                val ret = Retargeting()
-                ret.srcSkeleton = k12.first
-                ret.dstSkeleton = k12.second
                 CacheData(ret)
             } as CacheData<*>
             return data.value as Retargeting

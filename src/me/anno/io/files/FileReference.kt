@@ -641,6 +641,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return getParent()?.getChild(name) ?: InvalidRef
     }
 
+    fun getSiblingWithExtension(ext: String): FileReference {
+        return getParent()?.getChild("$nameWithoutExtension.$ext") ?: InvalidRef
+    }
+
     fun renameTo(newName: File) = renameTo(getReference(newName))
 
     @kotlin.jvm.Throws(IOException::class)

@@ -17,7 +17,6 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.fract
 import org.joml.Matrix4x3f
 
-// todo allow procedural animations; for that we'd need more knowledge about the model
 abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
     constructor() : super()

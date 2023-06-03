@@ -60,9 +60,13 @@ class Transform() : Saveable() {
     /** smoothly interpolated transform from the previous frame; global */
     private val drawnTransform: Matrix4x3d = Matrix4x3d()
 
-    private val pos: Vector3d = Vector3d()
-    private val rot: Quaterniond = Quaterniond()
-    private val sca: Vector3d = Vector3d(1.0)
+    private val pos = Vector3d()
+    private val rot = Quaterniond()
+    private val sca = Vector3d(1.0)
+
+    private val prepos = Vector3d()
+    private val prerot = Quaterniond()
+    private val presca = Vector3d(1.0)
 
     fun teleportUpdate(time: Long = Engine.gameTime) {
         validate()
@@ -87,27 +91,40 @@ class Transform() : Saveable() {
                 // needs to be changed, if the extrapolated time changes -> it changes if the physics engine is behind
                 // its target -> in the physics engine, we send the game time instead of the physics time,
                 // and this way, it's relatively guaranteed to be roughly within [0,1]
-                drawnTransform.set(drawTransform)
-                if (factor * extrapolatedTime < 1f) {
-                    drawTransform.lerp(globalTransform, (factor / extrapolatedTime).toDouble())
+                if (factor < extrapolatedTime) {
+                    drawnTransform.set(drawTransform)
+                    val f = (factor / extrapolatedTime).toDouble()
+                    prepos.lerp(pos, f)
+                    prerot.slerp(rot, f)
+                    presca.lerp(sca, f)
+                    val parent = parent
+                    if (parent != null) drawTransform.set(parent.getDrawnMatrix(time))
+                    else drawTransform.identity()
+                    drawTransform
+                        .translate(prepos)
+                        .rotate(prerot)
+                        .scale(presca)
                     // checkDrawTransform()
-                } else {
-                    drawTransform.set(globalTransform)
-                    // checkDrawTransform()
-                }
+                } else teleportVisuals()
             } else if (udt < 3 * lastUpdateDt) {
                 // transform is coming to rest:
                 // 3x longer than usual, we got no update
-                drawnTransform.set(drawTransform)
-                drawTransform.set(globalTransform)
+                teleportVisuals()
             } else {
                 // transform is stationary
                 lastUpdateDt = 0L
-                drawnTransform.set(drawTransform)
-                drawTransform.set(globalTransform)
+                teleportVisuals()
             }
         }
         return drawTransform
+    }
+
+    private fun teleportVisuals() {
+        drawnTransform.set(drawTransform)
+        drawTransform.set(globalTransform)
+        prepos.set(pos)
+        prerot.set(rot)
+        presca.set(sca)
     }
 
     private var needsStaticUpdate = true
@@ -198,7 +215,7 @@ class Transform() : Saveable() {
         localRotation.set(Quaterniond().rotateY(y).rotateX(x).rotateZ(z))
     }
 
-    fun setOffsetForLocalRotation(rotation: Quaterniond, center: Vector3d){
+    fun setOffsetForLocalRotation(rotation: Quaterniond, center: Vector3d) {
         localRotation = localRotation.identity()
             .mul(rotation)
         localPosition = localPosition

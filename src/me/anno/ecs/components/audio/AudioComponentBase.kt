@@ -22,8 +22,6 @@ import kotlin.math.max
 
 // todo there need to be multiple types: procedural & loaded
 
-// todo effects maybe? mmh... procedural audio!
-
 // todo what's the best way to combine audio for local multiplayer? we could use stereo a little for that :)
 // (should be disable-able)
 
@@ -123,7 +121,6 @@ abstract class AudioComponentBase : Component() {
             stream0?.stop()
             stream1?.stop()
             startTime = Engine.nanoTime - (startTime0 * 1e9).toLong()
-            // todo allow different methods of audio creation, e.g. procedural audio :3
             this as AudioComponent
             // todo wait for meta async
             val meta = FFMPEGMetadata.getMeta(source, false)

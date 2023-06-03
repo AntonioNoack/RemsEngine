@@ -39,6 +39,12 @@ import kotlin.math.sqrt
 
 object ScreenSpaceAmbientOcclusion {
 
+    // todo this can become extremely with complex geometry
+    // (40 fps on a RTX 3070 🤯, where a pure-color scene has 600 fps)
+    // todo why is pure color soo slow? 600 fps instead of 1200 fps in mode "without post-processing")
+    // why is this soo expensive on my RTX3070?
+    // memory limited...
+
     // todo option to calculate normals from depth for forward-ssao
 
     // could be set lower for older hardware, would need restart
