@@ -122,10 +122,17 @@ object Menu {
         window.destroy()
     }
 
-    fun openMenuComplex(
+    private fun styleComplexEntry(button: TextPanel, option: ComplexMenuEntry, padding: Int, hover: Boolean) {
+        button.tooltip = option.description
+        button.enableHoverColor = hover
+        button.padding.left = padding
+        button.padding.right = padding
+    }
+
+    fun openComplexMenu(
         windowStack: WindowStack,
         x: Int, y: Int, title: NameDesc,
-        options: List<ComplexMenuOption>
+        options: List<ComplexMenuEntry>
     ): Window? {
 
         if (options.isEmpty()) return null
@@ -137,7 +144,7 @@ object Menu {
         for (index in options.indices) {
             val option = options[index]
             val name = option.title
-            val action = option.action
+            val action = (option as? ComplexMenuOption)?.action
             when {
                 name == menuSeparator -> {
                     if (index != 0) {
@@ -145,7 +152,7 @@ object Menu {
                     }
                 }
 
-                option.isEnabled -> {
+                option.isEnabled && action != null -> {
                     val button = TextPanel(name, style)
                     button.addOnClickListener { _, _, mouseButton, long ->
                         if (action(mouseButton, long)) {
@@ -153,20 +160,25 @@ object Menu {
                             true
                         } else false
                     }
-                    button.tooltip = option.description
-                    button.enableHoverColor = true
-                    button.padding.left = padding
-                    button.padding.right = padding
+                    styleComplexEntry(button, option, padding, true)
+                    list += button
+                }
+
+                option.isEnabled && option is ComplexMenuGroup -> {
+                    lateinit var button: ComplexMenuGroupPanel
+                    button = ComplexMenuGroupPanel(option, { close(button) }, style)
+                    styleComplexEntry(button, option, padding, true)
                     list += button
                 }
 
                 else -> {
-                    val button = TextPanel(name, style)
+                    // disabled -> show it grayed-out
+                    // if action is a group, add a small arrow
+                    val name1 = if (option is ComplexMenuGroup) "$name →" else name
+                    val button = TextPanel(name1, style)
                     button.textColor = mixARGB(button.textColor, 0x77777777, 0.5f)
                     button.focusTextColor = button.textColor
-                    button.tooltip = option.description
-                    button.padding.left = padding
-                    button.padding.right = padding
+                    styleComplexEntry(button, option, padding, false)
                     list += button
                 }
             }
@@ -351,13 +363,13 @@ object Menu {
     }
 
     @Suppress("unused")
-    fun openMenuComplex(
+    fun openComplexMenu(
         windowStack: WindowStack,
         x: Float,
         y: Float,
         title: NameDesc,
-        options: List<ComplexMenuOption>
-    ) = openMenuComplex(windowStack, x.roundToInt(), y.roundToInt(), title, options)
+        options: List<ComplexMenuEntry>
+    ) = openComplexMenu(windowStack, x.roundToInt(), y.roundToInt(), title, options)
 
     fun openMenu(windowStack: WindowStack, options: List<MenuOption>) =
         openMenu(windowStack, NameDesc(), options)
@@ -376,7 +388,7 @@ object Menu {
     fun openMenu(
         windowStack: WindowStack,
         x: Float, y: Float, title: NameDesc, options: List<MenuOption>, delta: Int = 10
-    ) = openMenuComplex(windowStack, x.roundToInt() - delta, y.roundToInt() - delta, title,
+    ) = openComplexMenu(windowStack, x.roundToInt() - delta, y.roundToInt() - delta, title,
         options.map { option -> option.toComplex() })
 
 }

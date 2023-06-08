@@ -144,8 +144,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun onUpdate() {
         if (wasInFocus != isInFocus) {
             invalidateDrawing()
-            wasInFocus = isInFocus
         }
+        wasInFocus = isInFocus
+        wasHovered = isHovered
     }
 
     // the following is the last drawn size, clipped stuff clipped
@@ -225,6 +226,10 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     @DebugProperty
     @NotSerializedProperty
+    var wasInFocus = false
+
+    @DebugProperty
+    @NotSerializedProperty
     var isAnyChildInFocus = false
 
     @DebugProperty
@@ -233,7 +238,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     @DebugProperty
     @NotSerializedProperty
-    var wasInFocus = false
+    var wasHovered = false
 
     val rootPanel: Panel get() = uiParent?.rootPanel ?: this
 

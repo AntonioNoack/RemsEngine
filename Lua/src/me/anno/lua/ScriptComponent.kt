@@ -25,16 +25,7 @@ import org.luaj.vm2.lib.jse.JsePlatform
 // https://github.com/luaj/luaj
 open class ScriptComponent : Component() {
 
-    // todo TestComponent:
-    // todo record a piece of gameplay with exact input, and scene loading times
-    // todo and then a test condition;
-    // todo record it also as video
-    // todo when the condition fails, the code can be fixed, or the test adjusted to the new environment
-
-    // lua starts indexing at 1? I may need to think over whether to choose lua as basic scripting language 😂
-
-    // todo JavaScript from Java/Kotlin?
-    // todo or just our custom visual language? :)
+    // lua starts indexing at 1? I may need to reevaluate choosing lua as basic scripting language 😂
 
     var instructionLimit: Int = 1000
 

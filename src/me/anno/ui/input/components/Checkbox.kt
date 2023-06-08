@@ -39,7 +39,6 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
 
     private var resetListener: () -> Boolean? = { defaultValue }
     private var changeListener: ((Boolean) -> Unit)? = null
-    private var wasHovered = false
 
     override fun isOpaqueAt(x: Int, y: Int): Boolean {
         return true
@@ -53,14 +52,13 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
 
     private var lastImage = -1
     override fun onUpdate() {
-        super.onUpdate()
         val leImage = getImage(isChecked)
         val leImageState = leImage?.state ?: 0
         if (wasHovered != isHovered || leImageState != lastImage) {
-            wasHovered = isHovered
             lastImage = leImageState
             invalidateDrawing()
         }
+        super.onUpdate()
     }
 
     override fun setValue(value: Boolean, notify: Boolean): Checkbox {

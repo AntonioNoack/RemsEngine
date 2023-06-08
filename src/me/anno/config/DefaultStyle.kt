@@ -4,23 +4,18 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.mixARGB
 import me.anno.ui.style.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white
-import me.anno.utils.OS
 import java.awt.Toolkit
-import kotlin.system.exitProcess
 
-
-@Suppress("unused")
 object DefaultStyle {
 
     const val nearWhite = black or 0xdddddd
     const val lightGray = black or 0xcccccc
     const val midGray = black or 0xaaaaaa
     const val deepDark = black or 0x2b2b2b
-    val reallyDark = mixARGB(black, deepDark, 0.5f)
+    const val reallyDark = black or 0x151515
     const val flatDark = black or 0x3c3f41
     const val scrollGray = black or 0x595b5d
     const val iconGray = black or 0xafb1b3

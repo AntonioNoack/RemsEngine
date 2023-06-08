@@ -183,7 +183,8 @@ class WindowStack : Stack<Window>() {
         val windowStack = this
         val lastFullscreenIndex = max(windowStack.indexOfLast { it.isFullscreen }, 0)
         for (index in lastFullscreenIndex until windowStack.size) {
-            didSomething = windowStack[index].draw(dx, dy, windowW, windowH, sparseRedraw, didSomething, forceRedraw)
+            val window = windowStack.getOrNull(index) ?: break
+            didSomething = window.draw(dx, dy, windowW, windowH, sparseRedraw, didSomething, forceRedraw)
         }
         return didSomething
     }

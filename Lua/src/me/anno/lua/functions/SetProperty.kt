@@ -20,7 +20,10 @@ object SetProperty : ThreeArgFunction() {
         value.isnumber() -> value.todouble()
         value.isstring() -> value.tostring()
         value.isuserdata() -> value.touserdata()
-        value.istable() -> value.checktable() // not really a java type 😅
+        value.istable() -> {
+            val table = value.checktable() // not really a Java type -> create a Map from it :)
+            table.keys().associateWith { table[it] }
+        }
         value.isnil() -> null
         value.isfunction() -> value.checkfunction()
         value.isclosure() -> value.checkclosure()

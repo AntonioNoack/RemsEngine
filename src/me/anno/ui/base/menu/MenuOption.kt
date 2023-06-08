@@ -3,7 +3,7 @@ package me.anno.ui.base.menu
 import me.anno.input.MouseButton
 import me.anno.language.translation.NameDesc
 
-class MenuOption constructor(
+class MenuOption(
     val title: String,
     var description: String,
     val action: () -> Unit
