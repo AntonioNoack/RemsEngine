@@ -3,6 +3,8 @@ package me.anno.language.translation
 import me.anno.config.DefaultConfig
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.language.Language
+import me.anno.studio.StudioBase
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import org.apache.logging.log4j.LogManager
@@ -56,7 +58,7 @@ object Dict {
 
     fun getOptions(): List<LanguageOption> {
         val options = ArrayList<LanguageOption>()
-        val internalFiles = listOf("en.lang", "de.lang")
+        val internalFiles = listOf("en.lang", "es.lang", "fr.lang", "de.lang", "zh.lang")
         for (it in internalFiles) {
             try {
                 val data = getReference("res://lang/$it").readTextSync()
@@ -98,7 +100,7 @@ object Dict {
         load(getDefaultOption().data, true)
     }
 
-    fun selectLanguages(style: Style, changeListener: () -> Unit = {}): EnumInput {
+    fun selectLanguage(style: Style, changeListener: (LanguageOption) -> Unit = {}): EnumInput {
         // two folders, one in the config (lang), and one internally (assets/lang)
         // data, path, name
         val options = getOptions()
@@ -113,8 +115,11 @@ object Dict {
         input.setChangeListener { _, index, _ ->
             val option = options[index]
             DefaultConfig["ui.language"] = option.path
+            // load all translations
             load(option.data, true)
-            changeListener()
+            // update spellchecking language
+            StudioBase.instance?.language = Language.get(Dict["en-US", "lang.spellcheck"])
+            changeListener(option)
         }
         return input
     }

@@ -3,6 +3,7 @@ package me.anno.ui.base.menu
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.MouseButton
+import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mixARGB
@@ -21,8 +22,7 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
 import me.anno.ui.utils.WindowStack
-import java.util.*
-import kotlin.collections.ArrayList
+import me.anno.utils.strings.StringHelper.levenshtein
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -144,6 +144,7 @@ object Menu {
                         list += SpacerPanel(0, 1, style)
                     }
                 }
+
                 option.isEnabled -> {
                     val button = TextPanel(name, style)
                     button.addOnClickListener { _, _, mouseButton, long ->
@@ -158,6 +159,7 @@ object Menu {
                     button.padding.right = padding
                     list += button
                 }
+
                 else -> {
                     val button = TextPanel(name, style)
                     button.textColor = mixARGB(button.textColor, 0x77777777, 0.5f)
@@ -256,23 +258,51 @@ object Menu {
             list += SpacerPanel(0, 1, style)
         }
 
+        // todo for all options, create keyboard shortcuts (if possible), and underline them somehow
+
         // search panel
-        // todo when searching, sort results by relevance
         var searchPanel: TextInput? = null
-        if (panels.size >= DefaultConfig["ui.search.minItems", 5]) {
+        // while useful for keyboard-only controls, it looks quite stupid to have a searchbar for only two items
+        val needsSearch = panels.size >= DefaultConfig["ui.search.minItems", 5]
+        val originalOrder = HashMap<Panel, Int>()
+        if (needsSearch) {
             val startIndex = list.children.size + 1
             val suggestions = DefaultConfig["ui.search.spellcheck", true]
-            searchPanel = TextInput("Search", "", suggestions, style)
+            searchPanel = TextInput(Dict["Search", "ui.general.search"], "", suggestions, style)
             searchPanel.addChangeListener { searchTerm ->
                 val search = Search(searchTerm)
                 val children = list.children
-                for (i in startIndex until children.size) {
-                    val child = children[i]
-                    // check all text elements inside this panel for matches
-                    child.isVisible = child.any {
-                        it is TextPanel && (search.matches(it.text) || search.matches(it.tooltip))
+                if (search.isEmpty()) {
+                    // make everything visible
+                    for (i in startIndex until children.size) {
+                        children[i].isVisible = true
+                    }
+                    // restore original order
+                    children.sortBy { originalOrder[it] ?: -1 }
+                } else {
+                    for (i in startIndex until children.size) {
+                        val child = children[i]
+                        // check all text elements inside this panel for matches
+                        child.isVisible = child.any {
+                            it is TextPanel && (search.matches(it.text) || search.matches(it.tooltip))
+                        }
+                    }
+                    // sort results by relevance
+                    children.sortBy {
+                        val id = originalOrder[it] ?: -1
+                        if (id >= startIndex && it is TextPanel && it.isVisible) {
+                            // find best match using levenshtein distance (text similarity)
+                            val dist0 = searchTerm.levenshtein(it.text, true)
+                            val tt = it.tooltip
+                            val minDist = if (tt != null) {
+                                val dist1 = searchTerm.levenshtein(tt, true)
+                                min(dist0, dist1)
+                            } else dist0
+                            children.size + minDist
+                        } else id // invisible things can be put to the end
                     }
                 }
+                list.invalidateLayout()
             }
             searchPanel.setEnterListener {
                 val children = list.children
@@ -292,6 +322,11 @@ object Menu {
 
         for (panel in panels) {
             list += panel
+        }
+
+        val children = list.children
+        for (i in children.indices) {
+            originalOrder[children[i]] = i
         }
 
         val maxWidth = max(300, windowStack.width)

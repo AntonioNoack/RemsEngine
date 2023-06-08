@@ -1,0 +1,166 @@
+lang.name: 中国
+lang.spellcheck: zh-CN
+obj.piles.spawnRate:  新物体/秒
+obj.pants.spawnRate.desc: 每秒出现多少个新对象
+obj.particles: 粒子系统
+obj.audio: 音轨
+obj.video:  视频
+obj.image: 图像
+obj.imageSequence: 图像序列
+obj.folder:  文件夹
+obj.rectangle: 矩形
+obj.array: 序列
+obj.camera: 相机
+obj.camera.fov: 视野范围
+obj.camera.fov.desc: 摄像机看到的角度，单位为度，垂直方向
+obj.camera.toneMapping: 色调映射。
+obj.camera.toneMapping.desc: 将亮度的巨大差异映射到sRGB上。
+obj.camera.lut: 查找表
+obj.camera.lut.desc: 和UE4一样，通过Photoshop或Gimp对颜色进行通用控制。
+obj.camera.resetTransform: 重置变换。
+obj.camera.resetTransform.desc: 以防摄像机被错误地移动。
+obj.text: 文本
+obj.timer: 秒表
+obj.force.global: 全局力量
+obj.polygon: 多边形
+obj.circle: 圆形
+obj.effect.morphing: 效果: 变形
+obj.effect.coloring: 效果: 着色
+obj.force.global: 全局力量
+obj.force.lorentz: 洛伦兹力
+obj.force.lorentz.desc: 旋转粒子而不改变其速度
+obj.force.lorentz.noisy: 变化的洛伦兹力
+obj.force.lorentz.noisy.desc: 适合于随机、不规则的运动。
+obj.force.tornado: 龙卷风
+obj.force.tornado.desc: 使粒子旋转一圈。
+obj.force.betweenParticleGravity: 重力星系。
+obj.force.betweenParticleGravity.desc: 所有粒子之间的吸引力。
+obj.force.velocityFriction: 空气阻力
+obj.force.velocityFriction.desc: 粒子的速度越快，它的减速就越大。
+
+driver.add: 添加驱动
+driver.change: 改变驱动类型
+
+ui.customize.sceneView: 场景
+ui.customize.treeView: 树状视图
+ui.customize.inspector: 属性
+ui.customize.cuttingPanel: 切割面板
+ui.customize.timeline:  时间线
+ui.customize.graphEditor: 动画效果
+ui.customize.fileExplorer: 文件浏览器
+
+ui.general.close: 关闭
+ui.general.search: 搜索
+ui.general.apply: 应用
+ui.general.removeComponent: 删除组件
+ui.general.removeComponent.desc: 删除组件。
+
+ui.timePanel.setEndHere: 设置终点
+ui.timePanel.setEndHere.desc: 在这里设置这个项目的结束。
+ui.timePanel.jumpToStart: 跳到开头
+ui.timePanel.jumpToStart.desc: 设置时间光标到开始的位置
+ui.timePanel.jumpToEnd: 跳到终点
+ui.timePanel.jumpToEnd.desc: 设置时间光标到项目的结束处
+
+ui.recentProjects.title: 最近的项目
+ui.noticeProjects.title.desc: 你最近的项目
+ui.recentProjects.projectNotFound: %1, path not found
+ui.noticeProjects.fileNotFound: 找不到文件
+ui.recentProjects.open: 打开项目
+ui.recentProjects.open.desc: 在Rem's Studio中打开项目
+ui.project.new:  新项目
+ui.project.new.desc: 放置新的想法、景点或视频的地方
+ui.createNewProject: 创建项目
+ui.createNewProject.desc: 创建一个新项目
+ui.welcome.quickSettings.title: 场景。
+ui.input.language.title: 语言
+ui.input.enum.menuTitle: 设置%1
+ui.settings.gfxQuality: 图像质量
+ui.settings.gfxQuality.desc: 编辑器的渲染效果，越好越慢。
+ui.settings.vSync: 使用VSync。
+ui.settings.vSync.desc: 防止 "撕裂 "效果。
+ui.settings.showFPS: 显示FPS
+ui.settings.showFPS.desc: 显示每秒计算的帧数；为开发者提供更多信息
+
+ui.gfxSettings.low:  快速
+ui.gfxSettings.medium: 平衡的。
+ui.gfxSettings.high:  漂亮
+
+ui.top.config:  配置
+ui.top.project: 项目
+ui.top.select: 选择
+ui.top.render: 渲染
+ui.top.debug: 调试
+
+config.warning.needsReset.forMenu:  必须删除配置文件以启用此功能
+
+ui.sceneView.3dSwitch.desc: 禁用摄像机旋转；使用Ctrl键保持旋转。
+ui.sceneView.takeScreenshot.desc: 拍摄当前场景的照片。
+ui.sceneView.savedScreenshot:  图片保存为%1
+
+ui.graphEditor.interpolation.title: 插值。
+
+ui.sceneTabs.cannotCloseLast: 不能关闭最后一个标签。
+ui.cutting.splitHere:  在这里切割
+ui.cutting.splitHere.desc: 在此将元素分成两半。
+ui.object.addMask: 应用遮罩
+ui.objects.addMask.desc: 添加一个面具，可用于各种效果。
+ui.object.add: 添加子元素
+
+ui.treeView.dragCameraToView: 拖动到场景进行检查
+
+ui.input.color.colorSpace: 颜色空间。
+ui.input.color.colorSpace.desc: 哪些颜色在哪里，例如色轮。
+ui.input.color.vis.wheel: 色轮。
+ui.input.color.vis.circle: 色圈。
+ui.input.color.vis.box: 颜色框。
+
+ui.loadProject: 载入项目
+ui.newProject.pleaseChooseDir: 请选择一个文件夹!
+ui.option.prepend: 插入%1
+ui.file.invalidName: '%1'不是一个有效的文件名，请用不同的方式命名
+ui.newFolder:  创建文件夹
+ui.newFolder.desc: 创建一个新的子文件夹
+ui.newFolder.askName: 名称
+ui.newFolder.askName.desc: 这个文件夹应该叫什么？
+ui.newComponent: 创建组件
+ui.newComponent.desc: 创建一个新的文件夹组件
+ui.newComponent.askName: 名称
+ui.newComponent.askName.desc: 这个组件应该叫什么？
+
+ui.file.openInExplorer: 在资源管理器中打开。
+ui.file.openInExplorer: 在默认的文件资源管理器中打开该文件。
+obj.text.askLargeImport: 该文本有%1个字符，无论如何都要导入？
+ui.expectHistory: 检查历史
+ui.history.clickToUndo: 点击撤销。
+ui.newProject.defaultName: 新项目。
+ui.newProject.location: 存储位置
+
+ui.closeProgram: 退出%1？
+
+ui.warning.renderingInProgress: 已经在渲染了!
+ui.warning.renderingInProgress.desc: 如果你认为这是错的，请重新启动Rem's Studio。
+
+ui.debug.ramUsage: RAM %1 MiB
+
+ui.top.add: 添加
+ui.top.help:  帮助
+ui.top.project.settings: 设置
+ui.top.project.save: 保存
+ui.top.project.load: 载入:  加载
+ui.top.config.settings: 设置
+ui.top.config.style: 显示风格
+ui.top.config.language: 语言
+
+ui.project.folderNotEmpty: 文件夹不是空的
+ui.project.invalidFileName: 文件名不允许。
+ui.project.parentMissing: 未找到父文件夹
+ui.project.rootMissing: 没有找到驱动器
+
+ui.file.override: overwrite %1?
+ui.file.override.desc: 不可逆转地删除/替换旧文件
+
+ui.welcome.version: 版本%1
+ui.welcome.version.desc: 哪个版本正在这个窗口中运行？
+
+

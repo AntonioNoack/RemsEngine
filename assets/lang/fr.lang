@@ -1,0 +1,167 @@
+lang.name : Français
+lang.spellcheck : fr-FR
+obj.particles.spawnRate : Nouveaux objets / s
+obj.particles.spawnRate.desc : Combien de nouveaux objets apparaissent par seconde
+obj.particles : Système de particules
+obj.audio : Piste audio
+obj.video : Vidéo
+obj.image : Image
+obj.imageSequence : séquence d'images
+obj.dossier : dossier
+obj.rectangle : Rectangle
+obj.array : Séquence
+obj.camera : caméra
+obj.camera.fov : Champ de vision
+obj.camera.fov.desc : Combien la caméra voit, sous forme d'angle en degrés, verticalement
+obj.camera.toneMapping : Mappage des tons
+obj.camera.toneMapping.desc : Reproduit les grandes différences de luminosité sur sRGB
+obj.camera.lut : Tableau de correspondance
+obj.camera.lut.desc : Comme UE4, pour un contrôle universel des couleurs, via Photoshop ou Gimp
+obj.camera.resetTransform : Réinitialise la transformation
+obj.camera.resetTransform.desc : Si la caméra a été déplacée par erreur
+obj.text : Texte
+obj.timer : chronomètre
+obj.force.global : Force globale
+obj.polygon : Polygone
+obj.circle : cercle
+obj.effect.morphing : Effet : Déformation
+obj.effect.coloring : Effet : Colorer
+obj.force.global : Force globale
+obj.force.lorentz : Force de Lorentz
+obj.force.lorentz.desc : Fait tourner les particules sans modifier leur vitesse
+obj.force.lorentz.noisy : Force de Lorentz variable
+obj.force.lorentz.noisy.desc : Bon pour les mouvements aléatoires et irréguliers
+obj.force.tornado : Tornade
+obj.force.tornado.desc : Fait tourner les particules en cercle
+obj.force.betweenParticleGravity : Galaxie gravitationnelle
+obj.force.betweenParticleGravity.desc : Forces d'attraction entre toutes les particules
+obj.force.velocityFriction : Résistance de l'air
+obj.force.velocityFriction.desc : Plus une particule est rapide, plus elle est freinée.
+
+driver.add : Ajoute des pilotes
+driver.change : Change le type de pilote
+
+ui.customize.sceneView : Scène
+ui.customize.treeView : Vue arborescente
+ui.customize.inspector : Propriétés
+ui.customize.cuttingPanel : Panneau de coupe
+ui.customize.timeline : ligne de temps
+ui.customize.graphEditor : Animations
+ui.customize.fileExplorer : Explorateur de fichiers
+
+ui.general.close : Fermer
+ui.general.search : Recherche
+ui.general.apply : Appliquer
+ui.general.removeComponent : Supprimer un composant
+ui.general.removeComponent.desc : Le composant est supprimé
+
+ui.timePanel.setEndHere : Définir la fin
+ui.timePanel.setEndHere.desc : Fixe la fin de ce projet ici
+ui.timePanel.jumpToStart : Sauter au début
+ui.timePanel.jumpToStart.desc : Place le curseur temporel au début
+ui.timePanel.jumpToEnd : Sauter à la fin
+ui.timePanel.jumpToEnd.desc : Place le curseur temporel à la fin du projet
+
+ui.recentProjects.title : Projets récents
+ui.recentProjects.title.desc : Vos derniers projets
+ui.recentProjects.projectNotFound : %1, chemin introuvable
+ui.recentProjects.fileNotFound : Fichier introuvable
+ui.recentProjects.open : Ouvrir le projet
+ui.recentProjects.open.desc : Ouvre le projet dans Rem's Studio
+ui.project.new : Nouveau projet
+ui.project.new.desc : Espace pour de nouvelles idées, spots ou vidéos
+ui.createNewProject : Créer un projet
+ui.createNewProject.desc : Crée un nouveau projet
+ui.welcome.quickSettings.title : Réglages rapides
+ui.input.language.title : Langue
+ui.input.enum.menuTitle : Définir %1
+ui.settings.gfxQuality : Qualité graphique
+ui.settings.gfxQuality.desc : La beauté du rendu de l'éditeur ; plus c'est beau, plus c'est lent
+ui.settings.vSync : Utiliser VSync
+ui.settings.vSync.desc : Empêche l'effet de "tearing".
+ui.settings.showFPS : Afficher les FPS
+ui.settings.showFPS.desc : Affiche le nombre d'images par seconde calculées ; plutôt pour les développeurs
+
+ui.gfxSettings.low : Rapide
+ui.gfxSettings.medium : Équilibré
+ui.gfxSettings.high : Beau
+
+ui.top.config : Config
+ui.top.project : Projet
+ui.top.select : Sélection
+ui.top.render : Rendu
+ui.top.debug : Débogage
+
+config.warn.needsReset.forMenu : Le fichier de configuration doit être supprimé pour activer cette fonction.
+
+ui.sceneView.3dSwitch.desc : Désactive la rotation de la caméra ; utilise Ctrl pour maintenir la rotation
+ui.sceneView.takeScreenshot.desc : Prend une photo de la scène actuelle
+ui.sceneView.savedScreenshot : L'image a été enregistrée sous %1
+
+ui.graphEditor.interpolation.title : Interpolation
+
+ui.sceneTabs.cannotCloseLast : Le dernier onglet ne peut pas être fermé
+
+ui.cutting.splitHere : Couper ici
+ui.cutting.splitHere.desc : Divise l'élément en deux à ce moment-là
+ui.objects.addMask : Appliquer un masque
+ui.objects.addMask.desc : Ajoute un masque qui peut être utilisé pour les effets les plus divers
+ui.objects.add : Ajouter un enfant
+
+ui.treeView.dragCameraToView : glisser sur la scène pour inspecter
+
+ui.input.color.colorSpace : espace de couleur
+ui.input.color.colorSpace.desc : où se trouvent quelles couleurs, par ex. cercle chromatique
+ui.input.color.vis.wheel : Roue chromatique
+ui.input.color.vis.circle : cercle chromatique
+ui.input.color.vis.box : Boîte de couleurs
+
+ui.loadProject : Charger un projet
+ui.newProject.pleaseChooseDir : Veuillez choisir un dossier !
+ui.option.prepend : Insérer %1
+ui.file.invalidName : '%1' n'est pas un nom de fichier valide, nommez-le autrement !
+ui.newFolder : Créer un dossier
+ui.newFolder.desc : Crée un nouveau sous-dossier
+ui.newFolder.askName : Nom
+ui.newFolder.askName.desc : Quel doit être le nom du dossier ?
+ui.newComponent : Créer un composant
+ui.newComponent.desc : Crée un nouveau composant de dossier
+ui.newComponent.askName : Nom
+ui.newComponent.askName.desc : Quel doit être le nom du composant ?
+
+ui.file.openInExplorer : Ouvrir dans l'explorateur
+ui.file.openInExplorer : Ouvre le fichier dans l'explorateur de fichiers standard
+obj.text.askLargeImport : Le texte a %1 caractères, importer quand même ?
+ui.inspectHistory : Inspecter l'historique
+ui.history.clickToUndo : Cliquer pour restaurer
+ui.newProject.defaultName : Nouveau projet
+ui.newProject.location : Emplacement du projet
+
+ui.closeProgram : Quitter %1 ?
+
+ui.warn.renderingInProgress : Le rendu est déjà en cours !
+ui.warn.renderingInProgress.desc : Si tu penses que c'est faux, redémarre Rem's Studio.
+
+ui.debug.ramUsage : RAM %1 MiB
+
+ui.top.add : Ajouter
+ui.top.help : Aide
+ui.top.project.settings : Paramètres
+ui.top.project.save : Enregistrer
+ui.top.project.load : Charger
+ui.top.config.settings : Réglages
+ui.top.config.style : Présentation
+ui.top.config.language : Langue
+
+ui.project.folderNotEmpty : Le dossier n'est pas vide
+ui.project.invalidFileName : Le nom du fichier n'est pas autorisé
+ui.project.parentMissing : Le dossier parent n'a pas été trouvé
+ui.project.rootMissing : Lecteur introuvable
+
+ui.file.override : Écraser %1 ?
+ui.file.override.desc : Efface/remplace l'ancien fichier de manière irréversible
+
+ui.welcome.version : Version %1
+ui.welcome.version.desc : Quelle est la version en cours d'exécution dans cette fenêtre ?
+
+

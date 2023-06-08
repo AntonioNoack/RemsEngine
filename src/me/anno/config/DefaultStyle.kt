@@ -3,13 +3,15 @@ package me.anno.config
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.style.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white
 import me.anno.utils.OS
-import org.joml.Vector3f
-import org.joml.Vector4f
+import java.awt.Toolkit
+import kotlin.system.exitProcess
+
 
 @Suppress("unused")
 object DefaultStyle {
@@ -32,10 +34,7 @@ object DefaultStyle {
 
     init {
 
-        val fontSize = when {
-            OS.isAndroid -> 25
-            else -> 15
-        }
+        val fontSize = clamp(Toolkit.getDefaultToolkit().screenSize.height / 80, 15, 60)
 
         set("fontName", "Verdana")
         set("fontSize", fontSize)

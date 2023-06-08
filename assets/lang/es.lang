@@ -1,0 +1,167 @@
+lang.name: Español
+lang.spellcheck: es
+obj.particles.spawnRate: Nuevos objetos / s
+obj.particles.spawnRate.desc: Cuántos objetos nuevos aparecen por segundo
+obj.particles: Sistema de partículas
+obj.audio: Pista de audio
+obj.video: Video
+obj.image: Imagen
+obj.imageSequence: Secuencia de imágenes
+obj.folder: Carpeta
+obj.rectangle: Rectángulo
+obj.array: Secuencia
+obj.camera: Cámara
+obj.camera.fov: Campo de visión
+obj.camera.fov.desc: Cuanto ve la cámara, como un ángulo en grados, vertical
+obj.camera.toneMapping: Mapeado de tonos
+obj.camera.toneMapping.desc: Mapea grandes diferencias de brillo a sRGB
+obj.camera.lut: Tabla de consulta
+obj.camera.lut.desc: Como UE4, para un control universal sobre los colores, via Photoshop o Gimp
+obj.camera.resetTransform: Restablece la transformación
+obj.camera.resetTransform.desc: En caso de que la cámara se haya movido por error
+obj.text: Texto
+obj.timer: Cronómetro
+obj.force.global: Fuerza global
+obj.polygon: Polígono
+obj.circle: Círculo
+obj.effect.morphing: Efecto: Distorsión
+obj.effect.coloring: Efecto: Colorear
+obj.force.global: Fuerza global
+obj.force.lorentz: Fuerza Lorentz
+obj.force.lorentz.desc: Rota partículas sin cambiar su velocidad
+obj.force.lorentz.noisy: Fuerza Lorentz variable
+obj.force.lorentz.noisy.desc: Bueno para movimientos aleatorios e irregulares
+obj.force.tornado: Tornado
+obj.force.tornado.desc: Hace girar las partículas en círculo
+obj.force.betweenParticleGravity: Galaxia de gravedad
+obj.force.betweenParticleGravity.desc: Fuerzas de atracción entre todas las partículas
+obj.force.velocityFriction: Resistencia del aire
+obj.force.velocityFriction.desc: Cuanto más rápida es una partícula, más se desacelera
+
+driver.add: Añadir driver
+driver.change: Cambiar tipo de driver
+
+ui.customize.sceneView: Escena
+ui.customize.treeView: Vista de árbol
+ui.customize.inspector: Propiedades
+ui.customize.cuttingPanel: Panel de corte
+ui.customize.timeline: Timeline
+ui.customize.graphEditor: Animaciones
+ui.customize.fileExplorer: Explorador de archivos
+
+ui.general.close: Cerrar
+ui.general.search: Buscar
+ui.general.apply: Aplicar
+ui.general.removeComponent: Eliminar componente
+ui.general.removeComponent.desc: Elimina el componente
+
+ui.timePanel.setEndHere: Establecer Fin
+ui.timePanel.setEndHere.desc: Establece aquí el final de este proyecto
+ui.timePanel.jumpToStart: Salta al principio
+ui.timePanel.jumpToStart.desc: Establece el cursor de tiempo al inicio
+ui.timePanel.jumpToEnd: Salta al final
+ui.timePanel.jumpToEnd.desc: Establece el cursor de tiempo al final del proyecto
+
+ui.recentProjects.title: Proyectos recientes
+ui.recentProjects.title.desc: Tus proyectos recientes
+ui.recentProjects.projectNotFound: %1, ruta no encontrada
+ui.recentProjects.fileNotFound: Archivo no encontrado
+ui.recentProjects.open: Abrir proyecto
+ui.recentProjects.open.desc: Abrir proyecto en Rem's Studio
+ui.project.new: Nuevo proyecto
+ui.project.new.desc: Lugar para nuevas ideas, spots o vídeos
+ui.createNewProject: Crear proyecto
+ui.createNewProject.desc: Crear nuevo proyecto
+
+ui.welcome.quickSettings.title: Ajustes rápidos
+ui.input.language.title: Idioma
+ui.input.enum.menuTitle: Configurar %1
+ui.settings.gfxQuality: Calidad gráfica
+ui.settings.gfxQuality.desc: Calidad de renderizado del editor; más bonito es más lento
+ui.settings.vSync: Usar VSync
+ui.settings.vSync.desc: Evita el efecto "tearing
+ui.settings.showFPS: Mostrar FPS
+ui.settings.showFPS.desc: Muestra cuántos fotogramas por segundo se calcularon; más para desarrolladores
+
+ui.gfxSettings.low: Rápido
+ui.gfxSettings.medium: Equilibrado
+ui.gfxSettings.high: Bonito
+
+ui.top.config: Config
+ui.top.project: Proyecto
+ui.top.select: Selección
+ui.top.render: Renderizado
+ui.top.debug: depuración
+
+config.warn.needsReset.forMenu: El archivo de configuración debe ser borrado para habilitar esta función
+
+ui.sceneView.3dSwitch.desc: Desactiva la rotación de la cámara; usa Ctrl para mantener la rotación
+ui.sceneView.takeScreenshot.desc: Toma una foto de la escena actual
+ui.sceneView.savedScreenshot: Imagen guardada como %1
+
+ui.graphEditor.interpolation.title: Interpolación
+
+ui.sceneTabs.cannotCloseLast: No se puede cerrar la última pestaña
+
+ui.cutting.splitHere: Cortar aquí
+ui.cutting.splitHere.desc: Dividir el elemento en este punto en dos mitades
+ui.objects.addMask: Aplicar máscara
+ui.objects.addMask.desc: Añade una máscara que puede usarse para varios efectos
+ui.objects.add: Añade un hijo
+
+ui.treeView.dragCameraToView: Arrastrar a escena para inspección
+
+ui.input.color.colorSpace: espacio de color
+ui.input.color.colorSpace.desc: dónde están los colores, p.e. rueda de color
+ui.input.color.vis.wheel: rueda de colores
+ui.input.color.vis.circle: círculo cromático
+ui.input.color.vis.box: caja de color
+
+ui.loadProject: Cargar proyecto
+ui.newProject.pleaseChooseDir: Por favor, elige una carpeta
+ui.option.prepend: Insertar %1
+ui.file.invalidName: '%1' no es un nombre de archivo válido, ¡ponle otro nombre!
+ui.newFolder: Crear carpeta
+ui.newFolder.desc: Crear una nueva subcarpeta
+ui.newFolder.askName: Nombre
+ui.newFolder.askName.desc: ¿Cómo debe llamarse la carpeta?
+ui.newComponent: Crear componente
+ui.newComponent.desc: Crear nuevo componente de carpeta
+ui.newComponent.askName: Nombre
+ui.newComponent.askName.desc: ¿Cómo debe llamarse el componente?
+
+ui.file.openInExplorer: Abrir en el Explorador
+ui.file.openInExplorer: Abrir el archivo en el explorador de archivos por defecto
+obj.text.askLargeImport: El texto tiene %1 caracteres, ¿importar de todas formas?
+ui.inspectHistory: Inspeccionar el historial
+ui.history.clickToUndo: Haz click para deshacer
+ui.newProject.defaultName: Nuevo proyecto
+ui.newProject.location: Ubicación de almacenamiento
+
+ui.closeProgram: ¿Salir de %1?
+
+ui.warn.renderingInProgress: ¡Ya se está renderizando!
+ui.warn.renderingInProgress.desc: Si crees que esto está mal, reinicia Rem's Studio.
+
+ui.debug.ramUsage: RAM %1 MiB
+
+ui.top.add: Añadir
+ui.top.help: Ayuda
+ui.top.project.settings: Configuración
+ui.top.project.save: Guardar
+ui.top.project.load: Cargar
+ui.top.config.settings: Configuración
+
+ui.top.config.style: Apariencia
+ui.top.config.language: idioma
+
+ui.project.folderNotEmpty: La carpeta no está vacía
+ui.project.invalidFileName: El nombre del archivo no está permitido
+ui.project.parentMissing: No se encuentra la carpeta padre
+ui.project.rootMissing: No se ha encontrado la unidad de disco
+
+ui.file.override: ¿sobrescribir %1?
+ui.file.override.desc: Borra/sustituye el fichero antiguo irrevocablemente
+
+ui.welcome.version: Versión %1
+ui.welcome.version.desc: ¿Qué versión se está ejecutando en esta ventana?
