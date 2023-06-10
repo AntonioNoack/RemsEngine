@@ -12,7 +12,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.graph.ui.GraphEditor.Companion.yellow
+import me.anno.graph.ui.GraphPanel.Companion.yellow
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.maths.Maths.dtTo01

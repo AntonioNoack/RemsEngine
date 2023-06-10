@@ -176,7 +176,6 @@ open class FileExplorerEntry(
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        super.calculateSize(w, h)
         if (!listMode) {
             val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
             val size = min(minW, minH - titleSize)
@@ -184,7 +183,14 @@ open class FileExplorerEntry(
             minH = size + titleSize
             this.w = minW
             this.h = minH
-        } // else use default behaviour :)
+        } else {
+            val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
+            val size = titleSize * 5
+            minW = size
+            minH = titleSize
+            this.w = minW
+            this.h = minH
+        }
     }
 
     // is null

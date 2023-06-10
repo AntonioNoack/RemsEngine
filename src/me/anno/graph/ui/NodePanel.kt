@@ -42,7 +42,7 @@ import kotlin.math.*
 // todo can we add debug-clamps?: input and output overrides for debugging...
 class NodePanel(
     val node: Node,
-    val gp: GraphEditor,
+    val gp: GraphPanel,
     style: Style
 ) : PanelList(style) {
 
@@ -276,7 +276,7 @@ class NodePanel(
 
         if (node.color != 0) backgroundColor = node.color
 
-        val inFocus = isInFocus || gp.overlapsSelection(this)
+        val inFocus = isInFocus || (gp is GraphEditor && gp.overlapsSelection(this))
         drawBackground(inFocus, true, x0, y0, x1, y1)
 
         val backgroundColor = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
@@ -334,7 +334,7 @@ class NodePanel(
         val pxi = px.toInt()
         val pyi = py.toInt()
         val radius = baseTextSize * 0.4f
-        val dragged = gp.dragged
+        val dragged = (gp as? GraphEditor)?.dragged
         val canConnect = dragged == null || gp.graph?.canConnectTo(dragged, con) ?: true
         val radius2 = if (canConnect) mapClamped(
             length(px - mouseX, py - mouseY),
@@ -401,6 +401,7 @@ class NodePanel(
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+        if (gp !is GraphEditor) return super.onMouseDown(x, y, button)
         val con = getConnectorAt(x, y)
         isDragged = false
         when {
@@ -444,6 +445,7 @@ class NodePanel(
     }
 
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+        if (gp !is GraphEditor) return super.onMouseUp(x, y, button)
         val con0 = gp.dragged
         val con1 = (gp.getPanelAt(x.toInt(), y.toInt()) as? NodePanel)?.getConnectorAt(x, y)
         val window = window

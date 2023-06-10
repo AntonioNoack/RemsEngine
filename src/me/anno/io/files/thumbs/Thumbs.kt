@@ -339,7 +339,7 @@ object Thumbs {
         if (w == sw && h == sh) {
             saveNUpload(srcFile, checkRotation, dstFile, src, callback)
         } else {
-            val dst = src.resized(w, h)
+            val dst = src.resized(w, h, false)
             saveNUpload(srcFile, checkRotation, dstFile, dst, callback)
         }
     }
@@ -1046,7 +1046,7 @@ object Thumbs {
         } else {
             val (w, h) = scaleMax(sw, sh, size)
             if (w < 2 || h < 2) return
-            callback1(src.resized(w, h))
+            callback1(src.resized(w, h, false))
         }
     }
 
@@ -1074,7 +1074,7 @@ object Thumbs {
         } else {
             val (w, h) = scaleMax(sw, sh, size)
             if (w < 2 || h < 2) return
-            callback1(src.resized(w, h))
+            callback1(src.resized(w, h, false))
         }
     }
 

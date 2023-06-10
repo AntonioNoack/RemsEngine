@@ -16,6 +16,7 @@ import me.anno.ui.base.scrolling.ScrollbarX
 import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
 import org.joml.Vector2d
+import org.joml.Vector3d
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -34,8 +35,8 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     val centerX get() = x + w / 2
     val centerY get() = y + h / 2
 
-    var minScale = 0.001
-    var maxScale = 2.0
+    var minScale = 0.5
+    var maxScale = 1000.0
 
     // most implementations will do so
     override val canDrawOverBorders: Boolean get() = true
@@ -225,6 +226,13 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     private fun drawsOverY(lx0: Int, ly0: Int, lx1: Int = lx0 + 1, ly1: Int = ly0 + 1): Boolean {
         val sbWidth = interactionWidth + 2 * scrollbarPadding
         return hasScrollbarY && drawsOverY(this.lx0, this.ly0, this.lx1, this.ly1, sbWidth, lx0, ly0, lx1, ly1)
+    }
+
+    fun getCursorPosition(x: Float, y: Float, dst: Vector3d = Vector3d()): Vector3d {
+        dst.x = windowToCoordsX(x.toDouble())
+        dst.y = windowToCoordsY(y.toDouble())
+        dst.z = 0.0
+        return dst
     }
 
 }

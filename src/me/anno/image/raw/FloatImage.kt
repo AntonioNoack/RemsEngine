@@ -73,11 +73,31 @@ class FloatImage(
         var min = 0f
         var max = 0f
         for (v in data) {
-            if (v < min) min = v
-            if (v > max) max = v
+            if (v.isFinite()) {
+                if (v < min) min = v
+                if (v > max) max = v
+            }
         }
         if (min < 0f || max > 0f) {
             mul(1f / Maths.max(-min, max))
+        }
+        return this
+    }
+
+    fun normalize01(): FloatImage {
+        var min = Float.POSITIVE_INFINITY
+        var max = Float.NEGATIVE_INFINITY
+        for (v in data) {
+            if (v.isFinite()) {
+                if (v < min) min = v
+                if (v > max) max = v
+            }
+        }
+        if (min < max) {
+            val scale = 1f / (max - min)
+            for (i in data.indices) {
+                data[i] = (data[i] - min) * scale
+            }
         }
         return this
     }

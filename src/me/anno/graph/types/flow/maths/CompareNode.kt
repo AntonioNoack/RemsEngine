@@ -2,9 +2,11 @@ package me.anno.graph.types.flow.maths
 
 import me.anno.graph.types.flow.ValueNode
 import me.anno.graph.ui.GraphEditor
+import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 
@@ -79,13 +81,16 @@ class CompareNode(type: String = "?") :
         setOutput(c, 0)
     }
 
-    override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
-        super.createUI(g, list, style)
-        list += EnumInput("Type", true, compType.name, values2.map { NameDesc(it.niceName) }, style)
-            .setChangeListener { _, index, _ ->
+    override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
+        if (g is GraphEditor) {
+            list += EnumInput(
+                "Type", true, compType.name,
+                values2.map { NameDesc(it.niceName) }, style
+            ).setChangeListener { _, index, _ ->
                 compType = values2[index]
                 g.onChange(false)
             }
+        } else list.add(TextPanel("Type: ${compType.name}", style))
     }
 
     override fun save(writer: BaseWriter) {

@@ -1,6 +1,7 @@
 package me.anno.graph
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.graph.render.NodeGroup
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
@@ -10,12 +11,6 @@ import me.anno.io.text.TextWriter
 
 // todo for editing just copy them
 // todo for the final shader graph, maybe just use versions, e.g. v01, v02, and the user can select the base for their graph
-
-
-// todo graph panel: connect different types of nodes
-// todo edit properties inside the nodes
-// todo move the nodes around
-
 
 // todo shader graph = dependency & processing graph
 // todo render pipeline graph = dependency & processing graph
@@ -29,6 +24,7 @@ open class Graph : PrefabSaveable() {
     // nodes without connections
     // could be all nodes as well, wouldn't really hurt space, because we save pointers anyway
     val nodes = ArrayList<Node>()
+    val groups = ArrayList<NodeGroup>()
 
     fun add(node: Node): Node {
         node.graph?.remove(node)
@@ -44,6 +40,12 @@ open class Graph : PrefabSaveable() {
 
     fun addAll(nodes: List<Node>) {
         this.nodes.addAll(nodes)
+        for (node in nodes) node.graph = this
+    }
+
+    fun addAll(vararg nodes: Node) {
+        this.nodes.addAll(nodes)
+        for (node in nodes) node.graph = this
     }
 
     open fun canConnectTo(self: NodeConnector, other: NodeConnector): Boolean {
@@ -67,7 +69,8 @@ open class Graph : PrefabSaveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeObjectList(this, "nodes", nodes)
+        writer.writeObjectList(null, "nodes", nodes)
+        writer.writeObjectList(null, "groups", groups)
     }
 
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
@@ -75,6 +78,10 @@ open class Graph : PrefabSaveable() {
             "nodes" -> {
                 nodes.clear()
                 nodes.addAll(values.filterIsInstance<Node>())
+            }
+            "groups" -> {
+                groups.clear()
+                groups.addAll(values.filterIsInstance<NodeGroup>())
             }
             else -> super.readObjectArray(name, values)
         }

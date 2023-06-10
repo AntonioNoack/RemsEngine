@@ -6,8 +6,10 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.graph.ui.GraphEditor
+import me.anno.graph.ui.GraphPanel
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Sleep.waitUntil
@@ -23,18 +25,20 @@ class ShapedBlurNode : ActionNode(
         setInput(2, 1f)
     }
 
-    override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
-        super.createUI(g, list, style)
+    override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
         // ensure all types are loaded
-        waitUntil(true) { filters.isNotEmpty() }
-        list.add(
-            EnumInput(
-                "Type", "", type,
-                filters.keys.sorted().map { NameDesc(it) }, style
-            ).setChangeListener { value, _, _ ->
-                type = value
-            }
-        )
+        if (g is GraphEditor) {
+            waitUntil(true) { filters.isNotEmpty() }
+            list.add(
+                EnumInput(
+                    "Type", "", type,
+                    filters.keys.sorted().map { NameDesc(it) }, style
+                ).setChangeListener { value, _, _ ->
+                    type = value
+                    g.onChange(false)
+                }
+            )
+        } else list.add(TextPanel("Type: $type", style))
     }
 
     // todo serialize?

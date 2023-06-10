@@ -5,10 +5,12 @@ import me.anno.graph.EnumNode
 import me.anno.graph.render.MaterialGraph.kotlinToGLSL
 import me.anno.graph.types.flow.ValueNode
 import me.anno.graph.ui.GraphEditor
+import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.hasFlag
 import me.anno.ui.base.groups.PanelList
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
@@ -64,15 +66,17 @@ abstract class MathNode<V : Enum<V>>(
         }
     }
 
-    override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
-        super.createUI(g, list, style)
-        list += EnumInput(
-            "Type", true, type.name.upperSnakeCaseToTitle(),
-            data.values.map { NameDesc(it.name.upperSnakeCaseToTitle(), data.getGLSL(it), "") }, style
-        ).setChangeListener { _, index, _ ->
-            type = data.values[index]
-            g.onChange(false)
-        }
+    override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
+        val typeName = type.name.upperSnakeCaseToTitle()
+        if (g is GraphEditor) {
+            list += EnumInput(
+                "Type", true, typeName,
+                data.values.map { NameDesc(it.name.upperSnakeCaseToTitle(), data.getGLSL(it), "") }, style
+            ).setChangeListener { _, index, _ ->
+                type = data.values[index]
+                g.onChange(false)
+            }
+        } else list.add(TextPanel("Type: $typeName", style))
     }
 
     override fun save(writer: BaseWriter) {

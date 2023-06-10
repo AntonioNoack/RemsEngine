@@ -6,6 +6,7 @@ import me.anno.utils.types.Floats.f2x
 import org.hsluv.HSLuvColorSpace
 import org.joml.*
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.sqrt
 
 @Suppress("unused")
@@ -105,6 +106,7 @@ object Vectors {
      * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
      * */
     fun Vector3f.normalToQuaternion(dst: Quaternionf): Quaternionf {
+        // todo this works perfectly, but the y-angle shouldn't change :/
         // uses ~ 28 ns/e on R5 2600
         val x = x
         val y = y
@@ -135,6 +137,21 @@ object Vectors {
         } else { // down
             return dst.set(1f, 0f, 0f, 0f)
         }
+    }
+
+    /**
+     * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
+     * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)
+     * */
+    fun Vector3f.normalToQuaternion2(dst: Quaternionf): Quaternionf {
+        normalToQuaternion(dst)
+        // todo better formula?
+        val test = JomlPools.vec3f.borrow()
+        for(i in 0 until 4){
+            dst.transform(test.set(1f, 0f, 0f))
+            rotateY(atan2(test.z, test.x))
+        }
+        return dst
     }
 
     fun crossLength(pos: FloatArray, ai: Int, bi: Int, ci: Int): Float {

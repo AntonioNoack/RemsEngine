@@ -22,6 +22,7 @@ import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.graph.ui.GraphEditor
+import me.anno.graph.ui.GraphPanel
 import me.anno.maths.Maths.clamp
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
@@ -111,13 +112,15 @@ class ShaderGraphNode : ActionNode(
 
     var budget = 1000
 
-    override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
-        super.createUI(g, list, style)
-        list += TextButton("Edit", false, style)
-            // todo prevent the start node from being deletable
-            .addLeftClickListener {
+    override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
+        val button = TextButton("Edit", false, style)
+        // todo prevent the start node from being deletable
+        if (g is GraphEditor) {
+            button.addLeftClickListener {
                 g.push(graph1, library)
             }
+        } else button.isEnabled = false
+        list += button
     }
 
     class SGNReturn : ReturnNode(listOf("Vector4f", "Result"))

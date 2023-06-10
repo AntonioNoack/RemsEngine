@@ -1,8 +1,7 @@
 package me.anno.image.exr
 
 import me.anno.image.Image
-import me.anno.image.raw.FloatBufferImage2
-import me.anno.io.files.FileReference
+import me.anno.image.raw.CompositeFloatBufferImage
 import me.anno.utils.pooling.ByteBufferPool
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.BufferUtils
@@ -196,7 +195,7 @@ object EXRReader {
             floats = mapChannels(floats, channelNames, "rgba")
         }
 
-        return FloatBufferImage2(width, height, floats)
+        return CompositeFloatBufferImage(width, height, floats)
 
     }
 

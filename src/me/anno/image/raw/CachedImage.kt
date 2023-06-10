@@ -32,8 +32,8 @@ class CachedImage(val src: FileReference, w: Int, h: Int, numChannels: Int, hasA
         return base!!.createBufferedImage()
     }
 
-    override fun createBufferedImage(dstWidth: Int, dstHeight: Int): BufferedImage {
-        return base!!.createBufferedImage(dstWidth, dstHeight)
+    override fun createBufferedImage(dstWidth: Int, dstHeight: Int, allowUpscaling: Boolean): BufferedImage {
+        return base!!.createBufferedImage(dstWidth, dstHeight, allowUpscaling)
     }
 
     override fun createIntImage(): IntImage {

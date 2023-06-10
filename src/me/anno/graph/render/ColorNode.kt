@@ -1,7 +1,7 @@
 package me.anno.graph.render
 
 import me.anno.graph.types.flow.ValueNode
-import me.anno.graph.ui.GraphEditor
+import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.ColorInput
@@ -22,7 +22,7 @@ class ColorNode : ValueNode("Color", emptyList(), listOf("Vector4f", "Color", "I
     override fun compute() {
     }
 
-    override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
+    override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
         list += ColorInput(style, "Value", "", value, true)
             .setChangeListener { r, gr, b, a ->
                 value.set(r, gr, b, a)

@@ -9,7 +9,7 @@ import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.GFXx2D.drawCircle
-import me.anno.graph.ui.GraphEditor.Companion.lightBlueish
+import me.anno.graph.ui.GraphPanel.Companion.lightBlueish
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf

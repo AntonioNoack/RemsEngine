@@ -2,9 +2,8 @@ package me.anno.graph.render
 
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.CalculationNode
-import me.anno.graph.ui.GraphEditor
+import me.anno.graph.ui.GraphPanel
 import me.anno.image.ImageCPUCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -57,7 +56,7 @@ class TextureNode : CalculationNode(
         }
     }
 
-    override fun createUI(g: GraphEditor, list: PanelList, style: Style) {
+    override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
         list += FileInput("", style, file, emptyList())
             .setChangeListener {
                 file = it

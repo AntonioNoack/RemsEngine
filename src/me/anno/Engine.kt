@@ -90,6 +90,13 @@ object Engine {
     @JvmStatic
     fun requestShutdown() {
         shutdown = true
+
+        try {
+            javaClass.classLoader.loadClass("pl.edu.icm.jlargearrays.ConcurrencyUtils")
+                .getMethod("shutdownThreadPoolAndAwaitTermination")
+                .invoke(null)
+        } catch (ignored: Exception) { }
+
     }
 
 }

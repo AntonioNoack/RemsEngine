@@ -20,8 +20,8 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.graph.ui.GraphEditor.Companion.greenish
-import me.anno.graph.ui.GraphEditor.Companion.red
+import me.anno.graph.ui.GraphPanel.Companion.greenish
+import me.anno.graph.ui.GraphPanel.Companion.red
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference

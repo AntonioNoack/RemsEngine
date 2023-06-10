@@ -3,10 +3,9 @@ package me.anno.image.raw
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
 import java.nio.FloatBuffer
 
-class FloatBufferImage2(
+class CompositeFloatBufferImage(
     width: Int, height: Int,
     val channels: Array<FloatBuffer>,
     map: ColorMap = LinearColorMap.default
@@ -47,7 +46,7 @@ class FloatBufferImage2(
         }
     }
 
-    override fun normalize(): FloatBufferImage2 {
+    override fun normalize(): CompositeFloatBufferImage {
         var min = 0f
         var max = 0f
         for (channel in channels) {

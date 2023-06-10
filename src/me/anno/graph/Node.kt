@@ -3,6 +3,7 @@ package me.anno.graph
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.ui.GraphEditor
+import me.anno.graph.ui.GraphPanel
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
@@ -37,7 +38,7 @@ abstract class Node() : PrefabSaveable() {
     // make name final
     final override var name = ""
 
-    open fun createUI(g: GraphEditor, list: PanelList, style: Style) {}
+    open fun createUI(g: GraphPanel, list: PanelList, style: Style) {}
 
     val position = Vector3d()
 

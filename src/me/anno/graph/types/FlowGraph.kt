@@ -139,24 +139,23 @@ open class FlowGraph : Graph() {
             val forNode = ForNode()
             forNode.setInputs(listOf(null, 1L, 5L, 1L))
             initNode.connectTo(forNode)
-            val mulNode = MathL2Node().apply { type = IntMathsBinary.MUL }
+            val mulNode = MathL2Node()
+            mulNode.type = IntMathsBinary.MUL
             val getNode = GetLocalVariableNode("var", "?")
             forNode.connectTo(1, mulNode, 0)
             getNode.connectTo(0, mulNode, 1)
             val setNode = SetLocalVariableNode("var", null)
             forNode.connectTo(setNode)
             mulNode.connectTo(0, setNode, 2)
+            g.addAll(
+                initNode,
+                forNode,
+                mulNode,
+                getNode,
+                setNode
+            )
             g.execute(initNode)
             g.requestId()
-            g.addAll(
-                listOf(
-                    initNode,
-                    forNode,
-                    mulNode,
-                    getNode,
-                    setNode
-                )
-            )
             LOGGER.info(g.localVariables["var"])
             return g
         }

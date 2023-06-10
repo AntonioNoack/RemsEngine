@@ -81,10 +81,10 @@ fun testImage(file: FileReference) {
     val (w, h) = scaleMax(image.width, image.height, size)
     // test cpu loading
     if (file != file.dst()) file.dst().outputStream().use {
-        ImageIO.write(image.createBufferedImage(w, h), "png", it)
+        ImageIO.write(image.createBufferedImage(w, h, false), "png", it)
     }
     file.dst3().outputStream().use {
-        val smaller = image.createBufferedImage(w, h)
+        val smaller = image.createBufferedImage(w, h, false)
         ImageIO.write(smaller, "png", it)
     }
     // also write image to the gpu, and then get it back to test the uploading

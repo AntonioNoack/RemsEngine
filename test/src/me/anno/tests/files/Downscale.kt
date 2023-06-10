@@ -23,7 +23,7 @@ fun main() {
         val image = ImageCPUCache[child, false] ?: continue
         val (w, h) = scaleMax(image.width, image.height, 384)
         if (w < image.width && h < image.height) {
-            val downScaled = image.resized(w, h)
+            val downScaled = image.resized(w, h, false)
             val data = ext.map {
                 val c0 = ByteArrayOutputStream(1024)
                 downScaled.write(c0, it)

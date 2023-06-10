@@ -12,6 +12,7 @@ import me.anno.engine.ui.LineShapes.drawRect
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderState
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector2f
 import org.joml.Vector4f
 import kotlin.math.tan
@@ -71,7 +72,7 @@ class Camera : Component() {
         LineShapes.drawArrowZ(entity, 0.0, 1.0) // not showing up?
         if (isPerspective) {
             // draw camera symbol with all the properties
-            val dy = tan(fovY / 2f)
+            val dy = tan(fovY.toRadians() * 0.5f)
             val dx = dy * aspect
             val n00 = JomlPools.vec3f.create()
             val n01 = JomlPools.vec3f.create()
@@ -91,10 +92,11 @@ class Camera : Component() {
             f11.set(-dx * far, -dy * far, far)
             drawRect(entity, n00, n01, n11, n10, guiLineColor)
             drawRect(entity, f00, f01, f11, f10, guiLineColor)
+            n00.set(0f) // start lines from camera itself
             drawLine(entity, n00, f00, guiLineColor)
-            drawLine(entity, n01, f01, guiLineColor)
-            drawLine(entity, n10, f10, guiLineColor)
-            drawLine(entity, n11, f11, guiLineColor)
+            drawLine(entity, n00, f01, guiLineColor)
+            drawLine(entity, n00, f10, guiLineColor)
+            drawLine(entity, n00, f11, guiLineColor)
             JomlPools.vec3f.sub(8)
         } else {
             val sy = fovOrthographic / 2.0
