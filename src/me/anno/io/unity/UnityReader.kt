@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
@@ -59,25 +60,30 @@ object UnityReader {
     val assetExtension = ".json"
     val zeroAssetName = "0$assetExtension"
 
-    fun getUnityProject(file: FileReference, async: Boolean = false): UnityProject? {
+    fun getUnityProjectByRoot(root: FileReference, async: Boolean = false): UnityProject? {
+        if (root.isSomeKindOfDirectory) {
+            val children = root.listChildren() ?: return null
+            if (children.any {
+                    if (it.isDirectory) (it.listChildren() ?: emptyList())
+                        .any { c -> c.lcExtension == "meta" }
+                    else false
+                }) {
+                val data = UnityProjectCache.getEntry(
+                    root, unityProjectTimeout, async, ::loadUnityProject
+                ) as? CacheData<*>
+                return data?.value as? UnityProject
+            }// else invalid project
+        }
+        return null
+    }
+
+    fun getUnityProjectByChild(file: FileReference, async: Boolean = false): UnityProject? {
         if (file.isDirectory) {
             val children = file.listChildren() ?: return null
             if (children.any { it.lcExtension == "meta" }) {
                 val data = UnityProjectCache.getEntry(file, unityProjectTimeout, async) {
                     val root = file.getParent()!!
-                    if (root is UnityPackageFolder) {
-                        // LOGGER.info("Fastest indexing ever <3")
-                        // fastest indexing ever <3
-                        CacheData(root.project)
-                    } else {
-                        LOGGER.info("Indexing files $root")
-                        val project = UnityProject(root)
-                        project.register(root.getChild("Assets"))
-                        project.register(root.getChild("ProjectSettings"))
-                        project.register(root.getChild("UserSettings"))
-                        project.clock.total("Loading project ${root.name}")
-                        CacheData(project)
-                    }
+                    loadUnityProject(root)
                 } as? CacheData<*>
                 return data?.value as? UnityProject
             }// else invalid project
@@ -85,30 +91,60 @@ object UnityReader {
         return null
     }
 
+    private fun loadUnityProject(root: FileReference): CacheData<UnityProject> {
+        return if (root is UnityPackageFolder) {
+            // LOGGER.info("Fastest indexing ever <3")
+            // fastest indexing ever <3
+            CacheData(root.project)
+        } else {
+            LOGGER.info("Indexing files $root")
+            val project = UnityProject(root)
+            val hasAssetsFolder = project.register(root.getChild("Assets"))
+            project.register(root.getChild("ProjectSettings"))
+            project.register(root.getChild("UserSettings"))
+            if (!hasAssetsFolder) {
+                for (childFile in root.listChildren() ?: emptyList()) {
+                    project.register(childFile)
+                }
+            }
+            project.clock.total("Loading project ${root.name}")
+            CacheData(project)
+        }
+    }
+
     fun findUnityProject(file: FileReference): UnityProject? {
         // LOGGER.debug("$file, ${file.exists}, ${file.isDirectory}, ${file.listChildren()}, ${file.length()}")
         if (!file.exists) return null
-        val key = "/Assets/"
-        val abs = file.absolutePath
+        var abs = file.absolutePath
+        if (!abs.endsWith("/")) abs += "/"
         if (file.isDirectory) {
             val child = getReference(file, "Assets")
-            if (child.exists) return getUnityProject(child)
+            if (child.exists) return getUnityProjectByChild(child)
         }
-        if (abs.endsWith("/Assets")) {
-            return getUnityProject(file)
-        } else {
-            var endIndex = abs.lastIndex
-            while (true) {
-                val index = abs.lastIndexOf(key, endIndex)
-                // if there are multiple indices, try all, from back first
-                if (index > 0) {
-                    val file2 = getReference(abs.substring(0, index + key.length - 1))
-                    val project = getUnityProject(file2)
-                    if (project != null) return project
-                    endIndex = min(index - 1, endIndex - 3)// correct???
-                } else return null
+        val key = "/Assets/"
+        var endIndex = abs.lastIndex
+        while (true) {
+            val index = abs.lastIndexOf(key, endIndex)
+            // if there are multiple indices, try all, from back first
+            if (index > 0) {
+                val file2 = getReference(abs.substring(0, index + key.length - 1))
+                val project = getUnityProjectByChild(file2)
+                if (project != null) return project
+                endIndex = min(index - 1, endIndex - 3)// correct???
+            } else break
+        }
+        // wasn't found...
+        // try last zip/rar/tar location
+        val keys = listOf(".zip/", ".rar/", ".tar.gz/", ".tar/", ".gz/")
+        for (keyI in keys) {
+            val index = abs.lastIndexOf(keyI)
+            if (index >= 0) {
+                val root = getReference(abs.substring(0, index + keyI.length - 1))
+                val project = getUnityProjectByRoot(root)
+                if (project != null) return project
             }
         }
+        return null
     }
 
     private fun decodePath(guid0: String, path: YAMLNode?, project: UnityProject): FileReference {
@@ -982,6 +1018,7 @@ object UnityReader {
                 } else callback(null, e)
             }
         } else {
+            LOGGER.debug("Found unity project for $file: $project :)")
             val objects = project.getGuidFolder(file)
             val scene = objects.getChild("Scene.json")
             if (scene != InvalidRef) {
@@ -1141,6 +1178,10 @@ Transform:
 
     @JvmStatic
     fun main(args: Array<String>) {
+
+        testSceneWithUI(getReference("E:/Assets/Unity/POLYGON_Nature_Unity_2017_4.zip/PolygonNature/Prefabs/Plants/SM_Plant_01.prefab"))
+        return
+
 
         Prefab.maxPrefabDepth = 7
 

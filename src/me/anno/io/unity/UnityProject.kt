@@ -125,8 +125,8 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         }
     }
 
-    fun register(file: FileReference, maxDepth: Int = 10) {
-        if (!file.exists) return
+    fun register(file: FileReference, maxDepth: Int = 10): Boolean {
+        if (!file.exists) return false
         clock.update(
             {
                 "Loading project '${root.name}': ${yamlCache.size}, ${
@@ -137,8 +137,8 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
         )
         when {
             file.isDirectory -> {
-                if (maxDepth <= 0) return
-                for (child in file.listChildren() ?: return) {
+                if (maxDepth <= 0) return false
+                for (child in file.listChildren() ?: return false) {
                     register(child, maxDepth - 1)
                 }
             }
@@ -161,6 +161,11 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 }
             }
         }
+        return true
+    }
+
+    override fun toString(): String {
+        return "UnityProject[$root, ${files.size} files indexed]"
     }
 
     companion object {
