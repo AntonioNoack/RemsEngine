@@ -717,21 +717,25 @@ open class FileExplorer(
                 minEntrySize,
                 max(w - content2d.spacing * 2f - 1f, 20f)
             )
-            listMode = newEntrySize < minEntrySize
-            val esi = entrySize.toInt()
-            content2d.maxColumns = if (listMode) 1 else Int.MAX_VALUE
-            content2d.childWidth = if (listMode) max(w, 65536) else esi
-            favourites.invalidateLayout()
-            // define the aspect ratio by 2 lines of space for the name
-            val sample = content2d.firstOfAll { it is TextPanel } as? TextPanel
-            val sampleFont = sample?.font ?: style.getFont("text")
-            val textSize = sampleFont.sizeInt
-            content2d.childHeight = if (listMode) (textSize * 1.5f).roundToInt()
-            else esi + (textSize * 2.5f).roundToInt()
-            // scroll to hoverItemIndex, hoverFractionY
-            // todo restore that (?)
-            // content2d.scrollTo(hoveredItemIndex, hoverFractionY)
+            onUpdateEntrySize(newEntrySize)
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
+    }
+
+    fun onUpdateEntrySize(newEntrySize: Float = entrySize) {
+        listMode = newEntrySize < minEntrySize
+        val esi = entrySize.toInt()
+        content2d.maxColumns = if (listMode) 1 else Int.MAX_VALUE
+        content2d.childWidth = if (listMode) max(w, 65536) else esi
+        favourites.invalidateLayout()
+        // define the aspect ratio by 2 lines of space for the name
+        val sample = content2d.firstOfAll { it is TextPanel } as? TextPanel
+        val sampleFont = sample?.font ?: style.getFont("text")
+        val textSize = sampleFont.sizeInt
+        content2d.childHeight = if (listMode) (textSize * 1.5f).roundToInt()
+        else esi + (textSize * 2.5f).roundToInt()
+        // scroll to hoverItemIndex, hoverFractionY
+        // todo restore that (?)
+        // content2d.scrollTo(hoveredItemIndex, hoverFractionY)
     }
 
     // multiple elements can be selected

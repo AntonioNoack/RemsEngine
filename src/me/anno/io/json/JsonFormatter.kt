@@ -94,7 +94,7 @@ object JsonFormatter {
         }
     }
 
-    fun format(v: Any?, indentation: String = "  ", lineBreakLength: Int = 10): String {
+    fun format(v: Any?, indentation: String = "  ", lineBreakLength: Int = 50): String {
         return when (v) {
             is Map<*, *> -> format(v, indentation, lineBreakLength)
             is List<*> -> format(v, indentation, lineBreakLength)
@@ -102,13 +102,13 @@ object JsonFormatter {
         }
     }
 
-    fun format(v: Map<*, *>, indentation: String = "  ", lineBreakLength: Int = 10): String {
+    fun format(v: Map<*, *>, indentation: String = "  ", lineBreakLength: Int = 50): String {
         val builder = StringBuilder()
         append(v, builder)
         return format(builder.toString(), indentation, lineBreakLength)
     }
 
-    fun format(v: List<*>, indentation: String = "  ", lineBreakLength: Int = 10): String {
+    fun format(v: List<*>, indentation: String = "  ", lineBreakLength: Int = 50): String {
         val builder = StringBuilder()
         append(v, builder)
         return format(builder.toString(), indentation, lineBreakLength)

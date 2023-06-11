@@ -78,7 +78,11 @@ object DefaultConfig : StringMap() {
         // addImportMappings("Markdown", "md")
         addImportMappings("Audio", "mp3", "wav", "m4a", "ogg")
         addImportMappings("URL", "url", "lnk", "desktop")
-        addImportMappings("Container", "unitypackage", "zip", "7z", "tar", "gz", "xz", "rar", "bz2", "xar", "oar")
+        addImportMappings(
+            "Container", "unitypackage",
+            "zip", "7z", "tar", "gz", "xz", "rar", "bz2", "xar", "oar",
+            "npz" // numpy archive
+        )
         addImportMappings("Asset", *UnityReader.unityExtensions.toTypedArray())
         addImportMappings("Executable", "exe", "lib", "dll", "pyd", "jar")
 

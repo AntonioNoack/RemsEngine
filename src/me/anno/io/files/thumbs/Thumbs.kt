@@ -9,16 +9,14 @@ import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.anim.Skeleton.Companion.boneMeshVertices
 import me.anno.ecs.components.anim.Skeleton.Companion.generateSkeleton
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MaterialCache
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.shapes.Icosahedron
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
@@ -113,22 +111,21 @@ import me.anno.utils.structures.Iterators.firstOrNull
 import me.anno.utils.structures.Iterators.subList
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.utils.types.Matrices.set2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
 import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4fArrayList
-import org.joml.Matrix4x3f
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.thread
 import kotlin.math.*
+import kotlin.system.exitProcess
 
 /**
  * creates and caches small versions of image and video resources
@@ -543,18 +540,50 @@ object Thumbs {
         entity.validateAABBs()
         val bounds = entity.aabb
         renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
-            // todo calculate ideal transform like previously
             val rv = rv
+            val cam = rv.editorCamera
             if (!bounds.isEmpty() && bounds.volume().isFinite()) {
+                // todo why 500?
                 rv.radius = 500.0 * max(bounds.deltaX(), max(bounds.deltaY(), bounds.deltaZ()))
                 rv.position.set(bounds.avgX(), bounds.avgY(), bounds.avgZ())
+                rv.updateEditorCameraTransform()
+                // calculate ideal transform like previously
+                // for that, calculate bounds on screen, then rescale/recenter
+                val visualBounds = AABBf()
+                val tmp = Matrix4x3d()
+                val totalMatrix = Matrix4x3f()
+                val vec0 = Vector3f()
+                val cameraMatrix = Matrix4x3d(rv.editorCamera.transform!!.globalTransform).invert()
+                // todo why are some meshes still too small???
+                // camera transform incorrect?
+                fun addMesh(mesh: Mesh?, transform: Transform) {
+                    mesh ?: return
+                    // calculate transform
+                    val pos = mesh.positions ?: return
+                    val modelMatrix = transform.globalTransform
+                    totalMatrix.set2(cameraMatrix.mul(modelMatrix, tmp))
+                    // todo first check if bounds would be increasing the size
+                    for (i in pos.indices step 3) {
+                        totalMatrix.transformPosition(vec0.set(pos, i))
+                        val invZ = 1f / vec0.z
+                        visualBounds.union(vec0.x * invZ, vec0.y * invZ, invZ)
+                    }
+                }
+                entity.forAll {
+                    when (it) {
+                        is MeshComponent -> addMesh(it.getMesh(), it.transform ?: entity.transform)
+                        is MeshSpawner -> it.forEachMesh { mesh, _, transform ->
+                            addMesh(mesh, transform)
+                        }
+                    }
+                }
+                rv.radius /= 500.0 * max(visualBounds.deltaX(), visualBounds.deltaY())
             } else {
                 rv.radius = 1.0
                 rv.position.set(0.0)
             }
-            rv.near = rv.radius * 0.001
-            rv.far = rv.radius * 5.0
-            val cam = rv.editorCamera
+            rv.near = rv.radius * 0.01
+            rv.far = rv.radius * 2.0
             rv.updateEditorCameraTransform()
             rv.prepareDrawScene(size, size, 1f, cam, cam, 0f, false)
             // don't use EditorState
