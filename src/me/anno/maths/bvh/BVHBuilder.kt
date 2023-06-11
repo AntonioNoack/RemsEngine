@@ -6,6 +6,7 @@ import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
+import me.anno.maths.Maths.log2i
 import me.anno.utils.Clock
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.partition1
@@ -146,6 +147,45 @@ object BVHBuilder {
                             t0.centroid[dim].compareTo(t1.centroid[dim])
                         }
                     }
+                    SplitMethod.MEDIAN_APPROX -> {
+
+                        // don't sort, use statistical median
+                        fun sampleRandomly(): Float {
+                            val inst = objects[start + ((end - start) * Math.random()).toInt()]
+                            return inst.centroid[dim]
+                        }
+
+                        mid = (start + end) ushr 1
+
+                        val tries = count.toFloat().log2i() / 2
+                        for (ti in 0 until tries) {
+
+                            var pivot = 0f
+                            for (i in 0 until 5) pivot += sampleRandomly()
+                            pivot *= 0.2f
+
+                            var i = start - 1
+                            var j = end
+                            while (true) {
+                                do {
+                                    j--
+                                } while (objects[j].centroid[dim] < pivot)
+                                do {
+                                    i++
+                                } while (objects[i].centroid[dim] >= pivot)
+                                if (i < j) {
+                                    val tmp = objects[i]
+                                    objects[i] = objects[j]
+                                    objects[j] = tmp
+                                } else break
+                            }
+                            val relative = j - start
+                            if (relative > 0.25f * count && relative < 0.75f * count) { // >50% chance
+                                mid = j
+                                break
+                            }
+                        }
+                    }
                     SplitMethod.SURFACE_AREA_HEURISTIC -> throw NotImplementedError()
                     SplitMethod.HIERARCHICAL_LINEAR -> throw NotImplementedError()
                 }
@@ -227,6 +267,61 @@ object BVHBuilder {
                     }
                     //debug(positions, indices, start, mid)
                     //debug(positions, indices, mid, end)
+                }
+                SplitMethod.MEDIAN_APPROX -> {
+
+                    // don't sort, use statistical median
+
+                    fun eval(idx: Int): Float {
+                        val ai = indices[idx] * 3 + dim
+                        val bi = indices[idx + 1] * 3 + dim
+                        val ci = indices[idx + 2] * 3 + dim
+                        return positions[ai] + positions[bi] + positions[ci]
+                    }
+
+                    fun sampleRandomly(): Float {
+                        val idx = (start + ((end - start) * Math.random()).toInt())
+                        return eval(idx * 3)
+                    }
+
+                    mid = (start + end) ushr 1
+
+                    val tries = count.toFloat().log2i() / 2
+                    for (ti in 0 until tries) {
+
+                        var pivot = 0f
+                        for (i in 0 until 5) pivot += sampleRandomly()
+                        pivot *= 0.2f
+
+                        var i = start - 1
+                        var j = end
+                        while (true) {
+                            do {
+                                j--
+                            } while (j >= 0 && eval(j * 3) < pivot)
+                            do {
+                                i++
+                            } while (i < end && eval(i * 3) >= pivot)
+                            if (i < j) {
+                                val i3 = i * 3
+                                val j3 = j * 3
+                                val t0 = indices[i3]
+                                indices[i3] = indices[j3]
+                                indices[j3] = t0
+                                val t1 = indices[i3 + 1]
+                                indices[i3 + 1] = indices[j3 + 1]
+                                indices[j3 + 1] = t1
+                                val t2 = indices[i3 + 2]
+                                indices[i3 + 2] = indices[j3 + 2]
+                                indices[j3 + 2] = t2
+                            } else break
+                        }
+                        val relative = j - start
+                        if (relative > 0.25f * count && relative < 0.75f * count) { // >50% chance
+                            mid = j
+                            break
+                        }
+                    }
                 }
                 SplitMethod.SURFACE_AREA_HEURISTIC -> throw NotImplementedError()
                 SplitMethod.HIERARCHICAL_LINEAR -> throw NotImplementedError()

@@ -1,21 +1,13 @@
 package me.anno.ecs.components.mesh.decal
 
-import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.ECSMeshShader
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.Shader
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.hasFlag
-import me.anno.utils.OS.downloads
-import me.anno.utils.OS.pictures
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Floats.toRadians
-import java.util.*
 
 // decal pass:
 //  Input: pos, normal (we could pass in color theoretically, but idk)
@@ -24,28 +16,8 @@ import java.util.*
 class DecalMaterial : Material() {
 
     companion object {
-
         private val shaderLib = HashMap<Int, ECSMeshShader>()
         val sett get() = GFXState.currentRenderer.deferredSettings
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val decal = Entity("Decal")
-            decal.position = decal.position.set(-0.075, 0.09, 0.04)
-            decal.rotation = decal.rotation.rotateY((-35.0).toRadians())
-            decal.scale = decal.scale.set(0.025, 0.025, 0.01)
-            val decal2 = DecalMeshComponent()
-            decal.add(decal2)
-            val mat = decal2.material
-            mat.linearFiltering = false
-            mat.diffuseMap = getReference("res://icon.png")
-            mat.normalMap = pictures.getChild("normal bricks.png")
-            mat.writeNormal = true
-            val scene = Entity("Object")
-            scene.add(MeshComponent(downloads.getChild("3d/bunny.obj"))) // stanford bunny
-            scene.add(decal)
-            testSceneWithUI(scene)
-        }
     }
 
     // can we support this in forward rendering?

@@ -4,6 +4,9 @@ import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.BufferQuality
+import me.anno.gpu.framebuffer.TargetType.Companion.FP16Targets
+import me.anno.gpu.framebuffer.TargetType.Companion.FloatTargets
+import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
 import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 
@@ -181,31 +184,10 @@ object FBStack : CacheSection("FBStack") {
 
     fun getTargetType(channels: Int, quality: BufferQuality): TargetType {
         return when (quality) {
-            BufferQuality.LOW_8 -> {
-                when (channels) {
-                    1 -> TargetType.UByteTarget1
-                    2 -> TargetType.UByteTarget2
-                    3 -> TargetType.UByteTarget3
-                    else -> TargetType.UByteTarget4
-                }
-            }
-            BufferQuality.MEDIUM_12, BufferQuality.HIGH_16 -> {
-                when (channels) {
-                    1 -> TargetType.FP16Target1
-                    2 -> TargetType.FP16Target2
-                    3 -> TargetType.FP16Target3
-                    else -> TargetType.FP16Target4
-                }
-            }
-            BufferQuality.HIGH_32 -> {
-                when (channels) {
-                    1 -> TargetType.FloatTarget1
-                    2 -> TargetType.FloatTarget2
-                    3 -> TargetType.FloatTarget3
-                    else -> TargetType.FloatTarget4
-                }
-            }
-        }
+            BufferQuality.LOW_8 -> UByteTargets
+            BufferQuality.MEDIUM_12, BufferQuality.HIGH_16 -> FP16Targets
+            BufferQuality.HIGH_32 -> FloatTargets
+        }[channels - 1]
     }
 
     fun reset(w: Int, h: Int) {

@@ -6,6 +6,8 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.framebuffer.TargetType.Companion.FloatTargets
+import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.Shader
@@ -93,25 +95,10 @@ interface ExpressionRenderer {
         var buffer = buffer
         if (buffer == null || buffer.samples != samples || buffer.targets[0].channels != channels) {
             buffer?.destroy()
+            val target = (if (fp) FloatTargets else UByteTargets)[channels-1]
             buffer = Framebuffer(
                 name, w, h, samples,
-                arrayOf(
-                    if (fp) {
-                        when (channels) {
-                            1 -> TargetType.FloatTarget1
-                            2 -> TargetType.FloatTarget2
-                            3 -> TargetType.FloatTarget3
-                            else -> TargetType.FloatTarget4
-                        }
-                    } else {
-                        when (channels) {
-                            1 -> TargetType.UByteTarget1
-                            2 -> TargetType.UByteTarget2
-                            3 -> TargetType.UByteTarget3
-                            else -> TargetType.UByteTarget4
-                        }
-                    }
-                ), DepthBufferType.NONE
+                arrayOf(target), DepthBufferType.NONE
             )
             this.buffer = buffer
         }

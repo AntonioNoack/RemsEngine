@@ -756,19 +756,6 @@ open class FileExplorer(
         val forbiddenCharacters = forbiddenConfig.toHashSet()
 
         @JvmStatic
-        fun main(args: Array<String>) {
-            GFXBase.disableRenderDoc()
-            testUI {
-                ECSRegistry.init()
-                object : FileExplorer(null, style) {
-                    override fun getFolderOptions() = emptyList<FileExplorerOption>()
-                    override fun onDoubleClick(file: FileReference) {}
-                    override fun onPaste(x: Float, y: Float, data: String, type: String) {}
-                }
-            }
-        }
-
-        @JvmStatic
         fun invalidateFileExplorers(panel: Panel) {
             for (window in panel.windowStack) {
                 window.panel.forAll {

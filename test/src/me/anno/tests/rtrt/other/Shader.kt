@@ -1,4 +1,4 @@
-package me.anno.tests.rtrt
+package me.anno.tests.rtrt.other
 
 import me.anno.maths.Maths.pow
 import me.anno.utils.types.Floats.f3

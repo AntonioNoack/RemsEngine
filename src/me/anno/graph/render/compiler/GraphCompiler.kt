@@ -5,11 +5,13 @@ import me.anno.cache.instances.VideoCache
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
+import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.Node
@@ -19,6 +21,7 @@ import me.anno.graph.NodeOutput
 import me.anno.graph.render.*
 import me.anno.graph.render.MaterialGraph.convert
 import me.anno.graph.render.MaterialGraph.kotlinToGLSL
+import me.anno.graph.render.MaterialGraph.types
 import me.anno.graph.render.scene.TextureNode2
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ReturnNode
@@ -74,6 +77,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
     }
 
     val extraFunctions = StringBuilder()
+    val extraVariables = ArrayList<Variable>()
     val typeToFunc = HashMap<String, String?>() // key -> name
     val movies = HashMap<MovieNode, Pair<String, Boolean>>() // file -> name, linear
     val textures = HashMap<FileReference, Pair<String, Boolean>>() // file -> name, linear
@@ -84,6 +88,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
         typeToFunc["R2D"] = ""
         extraFunctions.append(octNormalPacking)
         extraFunctions.append(rawToDepth)
+        extraVariables.addAll(depthVars)
     }
 
     fun defineFunc(name: String, prefix: String, suffix: String?): String? {
@@ -97,14 +102,10 @@ abstract class GraphCompiler(val g: FlowGraph) {
             val tex = bn.getValue() as? Texture ?: return "Vector4f"
             val map = tex.mapping
             val enc = tex.encoding
-            return when (enc?.workDims ?: map.length) {
-                0 -> if (tex.tex == whiteTexture && tex.color == white4) "Float" else "Vector4f"
-                1 -> "Float"
-                2 -> "Vector2f"
-                3 -> "Vector3f"
-                4 -> "Vector4f"
-                else -> throw NotImplementedError()
-            }
+            val dim = enc?.workDims ?: map.length
+            return if (dim == 0) {
+                if (tex.tex == whiteTexture && tex.color == white4) "Float" else "Vector4f"
+            } else types[dim - 1]
         } else return an.type
     }
 

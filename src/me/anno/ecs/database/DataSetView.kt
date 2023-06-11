@@ -1,22 +1,18 @@
 package me.anno.ecs.database
 
-import me.anno.config.DefaultConfig.style
 import me.anno.engine.IProperty
 import me.anno.engine.ui.ComponentUI
-import me.anno.gpu.GFXBase
 import me.anno.io.ISaveable
-import me.anno.io.NamedSaveable
 import me.anno.io.serialization.CachedReflections
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.TablePanel
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.style.Style
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.types.Booleans.toInt
 
-class DatasetView(values: List<ISaveable>, reflections: CachedReflections, firstIndex: Int, style: Style) :
+class DataSetView(values: List<ISaveable>, reflections: CachedReflections, firstIndex: Int, style: Style) :
     TablePanel(reflections.serializedProperties.size + (firstIndex < Int.MAX_VALUE).toInt(), values.size + 1, style) {
 
     constructor(values: List<ISaveable>, firstIndex: Int, style: Style) :
@@ -70,27 +66,5 @@ class DatasetView(values: List<ISaveable>, reflections: CachedReflections, first
 
     // todo graph / statistical visualization of properties, e.g. damage to quickly find distribution, outliers,...
     // todo real database system like sqlite as backend
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            GFXBase.disableRenderDoc()
-            testUI3 {
-                val v = ArrayList<NamedSaveable>()
-                for (i in 0 until 5) {
-                    val n = NamedSaveable()
-                    n.name = "Entry $i"
-                    v.add(n)
-                }
-                DatasetView(v, 0, style).apply {
-                    // checking resizing
-                    // sizeX += 3
-                    // sizeX--
-                    // checking alignment
-                    alignmentX = AxisAlignment.FILL
-                }
-            }
-        }
-    }
 
 }

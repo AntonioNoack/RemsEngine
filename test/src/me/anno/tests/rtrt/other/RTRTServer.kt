@@ -1,4 +1,4 @@
-package me.anno.tests.rtrt
+package me.anno.tests.rtrt.other
 
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.io.Streams.writeLE32

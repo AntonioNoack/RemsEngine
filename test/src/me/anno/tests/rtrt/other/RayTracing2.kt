@@ -1,4 +1,4 @@
-package me.anno.tests.rtrt
+package me.anno.tests.rtrt.other
 
 // todo implement Vulkan Raytracing in C++ or Rust, and create bindings like OpenGL
 // todo we only need to implement a way for us to communicate

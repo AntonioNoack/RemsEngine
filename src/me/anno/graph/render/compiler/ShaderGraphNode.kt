@@ -5,7 +5,8 @@ import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
+import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -160,10 +161,11 @@ class ShaderGraphNode : ActionNode(
                 builder.clear()
                 defineLocalVars(builder)
                 val locals = builder.toString()
+                val fragmentVariables = typeValues.map { (k, v) -> Variable(v.type, k) } + extraVariables +
+                        listOf(Variable(GLSLType.V4F, "result1", VariableMode.OUT))
                 shader = Shader(
                     name, coordsList, coordsVShader, uvList,
-                    typeValues.map { (k, v) -> Variable(v.type, k) } +
-                            listOf(Variable(GLSLType.V4F, "result1", VariableMode.OUT)),
+                    fragmentVariables,
                     extraFunctions.toString() +
                             locals + body +
                             "void main(){\n" +
@@ -172,7 +174,6 @@ class ShaderGraphNode : ActionNode(
                             "   result1 = result;\n" +
                             "}\n"
                 )
-                println(shader.fragmentSource)
             }
 
             override val currentShader: Shader get() = shader
@@ -187,16 +188,10 @@ class ShaderGraphNode : ActionNode(
         var buffer = buffer
         if (buffer == null || buffer.w != w || buffer.h != h) {
             buffer?.destroy()
+            val target = UByteTargets[channels - 1]
             buffer = Framebuffer(
                 name, w, h, samples,
-                arrayOf(
-                    when (channels) {
-                        1 -> TargetType.UByteTarget1
-                        2 -> TargetType.UByteTarget2
-                        3 -> TargetType.UByteTarget3
-                        else -> TargetType.UByteTarget4
-                    }
-                ), DepthBufferType.NONE
+                arrayOf(target), DepthBufferType.NONE
             )
         }
         useFrame(buffer) {

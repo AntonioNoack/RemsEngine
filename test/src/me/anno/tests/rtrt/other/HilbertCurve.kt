@@ -1,4 +1,4 @@
-package me.anno.tests.rtrt
+package me.anno.tests.rtrt.other
 
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style

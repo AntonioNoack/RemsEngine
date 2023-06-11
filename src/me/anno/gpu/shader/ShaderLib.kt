@@ -444,6 +444,8 @@ object ShaderLib {
 
     // https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
     const val octNormalPacking = "" +
+            "\n#ifndef PACKING_NORMALS\n" +
+            "#define PACKING_NORMALS\n" +
             "vec2 PackNormal(vec3 n) {\n" +
             "   n /= max(1e-7, abs(n.x)+abs(n.y)+abs(n.z));\n" +
             "   if(n.z < 0.0) n.xy = (1.0-abs(n.yx)) * vec2(n.x >= 0.0 ? 1.0 : -1.0, n.y >= 0.0 ? 1.0 : -1.0);\n" +
@@ -455,7 +457,8 @@ object ShaderLib {
             "   vec3 n = vec3(f.xy, 1.0-abs(f.x)-abs(f.y));\n" +
             "   n.xy -= sign(n.xy) * max(-n.z,0.0);\n" +
             "   return normalize(n);\n" +
-            "}\n"
+            "}\n" +
+            "#endif\n"
 
     fun createSwizzleShader(swizzle: String): BaseShader {
         return createShader(

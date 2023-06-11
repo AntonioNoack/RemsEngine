@@ -2,12 +2,10 @@ package me.anno.ui.editor.code
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
-import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
@@ -18,22 +16,17 @@ import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mixARGB
-import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.LongScrollable
-import me.anno.ui.base.scrolling.ScrollPanelXY
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex4
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.OS.desktop
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.fp16ToFP32
 import me.anno.utils.types.InputStreams.readNBytes2
@@ -445,37 +438,6 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
                 CacheData(bytes)
             } as? CacheData<*>
             return data?.value as? ByteArray
-        }
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // GFXBase.disableRenderDoc()
-            testUI {
-                StudioBase.instance?.enableVSync = false
-                registerActions()
-                val list = PanelListX(style)
-                val files = listOf(
-                    desktop.getChild("SM_Prop_Gem_03.prefab"),
-                    desktop.getChild("SM_Env_Minetrack_Bridge_Broken_01.prefab"),
-                    desktop.getChild("Character_Ghost_01.prefab"),
-                    desktop.getChild("Character_Ghost_02.prefab"),
-                    desktop.getChild("FX_Sword_Fire.prefab")
-                )
-                for (file1 in files) {
-                    list.add(HexEditor(style).apply {
-                        file = file1
-                        compareTo.addAll(files)
-                        compareTo.remove(file1)
-                        showAddress = list.children.isEmpty()
-                    })
-                }
-                ScrollPanelXY(list, Padding.Zero, style)
-            }
-        }
-
-        @JvmStatic
-        fun registerActions() {
-            ActionManager.register("HexEditor.s.t.c", "Save")
         }
 
     }

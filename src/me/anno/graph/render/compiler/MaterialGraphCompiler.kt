@@ -189,7 +189,8 @@ class MaterialGraphCompiler(
         /////////////////////////////////////////////////////
         // adding last variables
 
-        usedVars.ensureCapacity(usedVars.size + typeValues.size)
+        usedVars.ensureCapacity(usedVars.size + typeValues.size + extraVariables.size)
+        usedVars.addAll(extraVariables)
         for ((k, v) in typeValues) {
             usedVars += Variable(v.type, k)
         }

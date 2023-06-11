@@ -12,6 +12,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.shader.*
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
+import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
@@ -446,7 +447,7 @@ object SDFComposer {
         Variable(GLSLType.V1B, "renderIds"),
         Variable(GLSLType.V2F, "renderSize"),
         Variable(GLSLType.V4F, "tint", VariableMode.OUT),
-    ) + DepthTransforms.depthVars
+    ) + depthVars
 
     fun createShaderToyShader(tree: SDFComponent): String {
 

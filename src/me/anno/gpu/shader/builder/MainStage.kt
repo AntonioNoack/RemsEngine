@@ -314,10 +314,10 @@ class MainStage {
                     defined += param
                 }
             }
-            code.append("// stage\n")
+            code.append("// stage ").append(stage.callName).append('\n')
             code.append(stage.body)
             if (!code.endsWith('\n')) code.append('\n')
-            code.append("// end of stage\n")
+            code.append("// end of stage ").append(stage.callName).append('\n')
             // expensive
             // inlining is better
             // maybe only because we had this large matrix as a param, but still, it was massively slower (30fps -> 7fps)

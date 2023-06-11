@@ -185,27 +185,4 @@ object RenderGraph {
     // todo vignette node
     // todo film grain node? film stripes node?
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-
-        val graph = combined1
-        val scene = Entity()
-        scene.add(MeshComponent(documents.getChild("metal-roughness.glb")))
-        scene.add(SkyBox())
-        testUI {
-
-            EditorState.prefabSource = scene.ref
-
-            val sv = SceneView(EditorState, PlayMode.EDITING, style)
-            val rv = sv.renderer
-            rv.position.set(0.0, 0.0, -5.0)
-            rv.updateEditorCameraTransform()
-
-            val list = CustomList(false, style)
-            list.add(sv, 1f)
-            list.add(RenderGraphEditor(rv, graph), 1f)
-            list
-        }
-    }
-
 }

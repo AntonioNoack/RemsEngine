@@ -93,7 +93,7 @@ class RenderLightsNode : RenderSceneNode0(
                         "$typeI $nameI=$exprI;\n"
                     }
                 defineLocalVars(builder)
-                val variables = typeValues.map { (k, v) -> Variable(v.type, k) } +
+                val variables = typeValues.map { (k, v) -> Variable(v.type, k) } + extraVariables +
                         listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT))
                 val builder = ShaderBuilder(name)
                 builder.addVertex(if (isInstanced) vertexI else vertexNI)

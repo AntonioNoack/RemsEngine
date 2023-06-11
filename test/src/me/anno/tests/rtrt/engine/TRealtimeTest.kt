@@ -1,8 +1,9 @@
-package me.anno.maths.bvh
+package me.anno.tests.rtrt.engine
 
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.ECSRegistry
 import me.anno.language.translation.NameDesc
+import me.anno.maths.bvh.TLASNode
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI3
@@ -16,8 +17,7 @@ import org.joml.Vector3f
 fun main() {
     ECSRegistry.init()
     val clock = Clock()
-    val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(16)
-    clock.stop("Loading & Generating TLAS", 0.0)
+    val (tlas, cameraPosition, cameraRotation, fovZFactor) = createSampleTLAS(16, clock)
     run(tlas, cameraPosition, cameraRotation, fovZFactor)
     LOGGER.debug("Finished")
 }

@@ -1,4 +1,4 @@
-package me.anno.maths.bvh
+package me.anno.tests.rtrt.engine
 
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache
@@ -10,12 +10,16 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
+import me.anno.maths.bvh.BVHBuilder
+import me.anno.maths.bvh.SplitMethod
+import me.anno.maths.bvh.TLASNode
+import me.anno.utils.Clock
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.tuples.Quad
 import org.joml.*
 
-fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Float> {
+fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Quaternionf, Float> {
 
     // create a scene, so maybe load Sponza, and then execute our renderer on TLAS
     @Suppress("SpellCheckingInspection")
@@ -36,6 +40,7 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
 
     val prefab = PrefabCache[source]!!
     val scene = prefab.createInstance() as Entity
+    clock.stop("Loading Mesh")
 
     scene.validateTransform()
     scene.validateAABBs()
@@ -69,8 +74,11 @@ fun createSampleTLAS(maxNodeSize: Int): Quad<TLASNode, Vector3f, Quaternionf, Fl
             }
         }
     }
+    clock.stop("Building Scene")
 
-    val tlas = BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, worldScale, SplitMethod.MEDIAN, maxNodeSize)
+    val tlas = BVHBuilder.buildTLAS(pipeline.defaultStage, cameraPosition, worldScale, SplitMethod.MEDIAN_APPROX, maxNodeSize)
+    clock.stop("Building BLAS")
+
     return Quad(tlas, Vector3f().set(cameraPosition), Quaternionf(cameraRotation), 0.2f)
 
 }

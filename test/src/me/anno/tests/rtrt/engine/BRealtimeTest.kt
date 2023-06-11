@@ -1,4 +1,4 @@
-package me.anno.maths.bvh
+package me.anno.tests.rtrt.engine
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
@@ -7,7 +7,7 @@ import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
+import me.anno.gpu.GFXBase.forceLoadRenderDoc
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
@@ -29,6 +29,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mixARGB
+import me.anno.maths.bvh.*
 import me.anno.maths.bvh.BLASNode.Companion.createBLASBuffer
 import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleBuffer
@@ -41,6 +42,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.utils.Clock
 import me.anno.utils.Color.toRGB
 import me.anno.utils.OS.documents
 import me.anno.utils.hpc.ProcessingGroup
@@ -56,23 +58,17 @@ import java.nio.ByteBuffer
 import java.nio.IntBuffer
 import kotlin.math.pow
 
-enum class DrawMode(val id: Int) {
-    NORMAL(0),
-    TLAS_DEPTH(1),
-    BLAS_DEPTH(2),
-    TRIS_DEPTH(3),
-    GLOBAL_ILLUMINATION(5),
-    SIMPLE_SHADOW(6),
-}
-
 var drawMode = DrawMode.NORMAL
 
 fun main() {
-    GFXBase.forceLoadRenderDoc()
+    val clock = Clock()
+    forceLoadRenderDoc()
     ECSRegistry.initMeshes()
     val meshSource = documents.getChild("monkey.obj")
     val mesh = MeshCache[meshSource]!!
-    val blas = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN, 8)!!
+    clock.stop("Loading mesh")
+    val blas = BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 8)!!
+    clock.stop("Building BLAS")
     main2(blas, Vector3f(), Quaternionf(), 1f)
 }
 

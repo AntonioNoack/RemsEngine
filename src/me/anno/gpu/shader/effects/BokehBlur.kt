@@ -1,11 +1,8 @@
 package me.anno.gpu.shader.effects
 
-import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
@@ -17,15 +14,10 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.ImageGPUCache
 import me.anno.image.ImageWriter
-import me.anno.input.Input
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
-import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.OS.desktop
-import me.anno.utils.OS.pictures
 import org.joml.Vector4f
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -272,32 +264,6 @@ object BokehBlur {
         filterTexture.destroy()
         compositionShader?.destroy()
         perChannelShader?.destroy()
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        testUI3 {
-            val dst = Framebuffer("tmp", 512, 512, 1, 1, false, DepthBufferType.NONE)
-            object : Panel(style) {
-                override fun onUpdate() {
-                    invalidateDrawing()
-                }
-
-                override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                    super.onDraw(x0, y0, x1, y1)
-                    if (Input.isShiftDown) return
-                    val src = ImageGPUCache[pictures.getChild("BricksColor.png"), false]!!
-                    if (Input.isShiftDown) {
-                        println("yes")
-                        //draw(src, dst, 0.05f, true)
-                        //drawTexture(x, y, w, h, dst.getTexture0())
-                    } else {
-                        println("no")
-                        drawTexture(x, y, w, h, src)
-                    }
-                }
-            }
-        }
     }
 
 }
