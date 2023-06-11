@@ -1,9 +1,7 @@
 package me.anno.ui.input
 
-import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -23,7 +21,6 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextStyleable
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.color.ColorChooser
 import me.anno.ui.editor.color.PreviewField
 import me.anno.ui.input.components.ColorPalette
@@ -269,14 +266,5 @@ open class ColorInput(
     }
 
     override val className: String get() = "ColorInput"
-
-    companion object {
-        // test the UI
-        @JvmStatic
-        fun main(args: Array<String>) {
-            GFXBase.disableRenderDoc()
-            testUI { ColorInput(style) }
-        }
-    }
 
 }

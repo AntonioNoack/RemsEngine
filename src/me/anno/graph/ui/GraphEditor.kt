@@ -1,14 +1,10 @@
 package me.anno.graph.ui
 
-import me.anno.config.DefaultConfig
-import me.anno.engine.ECSRegistry
 import me.anno.gpu.drawing.DrawRectangles.drawBorder
 import me.anno.graph.Graph
 import me.anno.graph.Node
 import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
-import me.anno.graph.render.NodeGroup
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.ui.NodePositionOptimization.calculateNodePositions
 import me.anno.input.Input
@@ -19,10 +15,8 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.max
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
-import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.style.Style
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
@@ -305,31 +299,5 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
     override fun canDeleteNode(node: Node) = true
 
     override val className: String get() = "GraphEditor"
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            ECSRegistry.init()
-            val graph = FlowGraph.testLocalVariables()
-            val group = NodeGroup()
-            group.members.addAll(graph.nodes.subList(0, 2))
-            group.extends.set(500.0, 500.0, 0.0)
-            graph.groups.add(group)
-            val editor = GraphEditor(graph, DefaultConfig.style)
-            val spy = SpyPanel {
-                // performance test for generating lots of text
-                val testTextPerformance = false
-                if (testTextPerformance) {
-                    editor.scale *= 1.02
-                    if (editor.scale > 10.0) {
-                        editor.scale = 1.0
-                    }
-                    editor.targetScale = editor.scale
-                    editor.invalidateLayout()
-                } else editor.invalidateDrawing() // for testing normal performance
-            }
-            testUI(listOf(spy, editor))
-        }
-    }
 
 }

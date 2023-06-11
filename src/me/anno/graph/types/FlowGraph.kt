@@ -111,6 +111,7 @@ open class FlowGraph : Graph() {
             n0.connectTo(n1, 0)
             n0.setInputs(listOf(1.0, 2.0))
             n1.setInput(1, 2.0)
+            g.addAll(n0, n1)
             LOGGER.info(g.computeNode1(n1))
             return g
         }
@@ -126,6 +127,7 @@ open class FlowGraph : Graph() {
             val endNode = PrintNode()
             endNode.setInputs(listOf(null, "Done"))
             forNode.connectTo(2, endNode, 0)
+            g.addAll(forNode, printNode, endNode)
             g.execute(forNode)
             return g
         }
@@ -160,12 +162,6 @@ open class FlowGraph : Graph() {
             return g
         }
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            testCalculation()
-            testLoopPrint()
-            testLocalVariables()
-        }
     }
 
 }

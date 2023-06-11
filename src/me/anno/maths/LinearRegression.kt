@@ -128,20 +128,6 @@ object LinearRegression {
         return solve(xt, y, regularisation)
     }
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        // todo the error must be much smaller!!!
-        val ys = intArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
-        val xs = intArrayOf(18, 17, 16, 15, 14, 13, 12, 11, 10, 9)
-        val pts = xs.withIndex()
-            .map { (idx, x) -> Vector2d(x.toDouble(), ys[idx].toDouble()) }
-            .toMutableList()
-        val poly = findPolynomialCoefficients(pts)!!
-        for (pt in pts) {
-            println("${pt.x}: ${pt.y} =?= ${evaluatePolynomial(pt.x, poly)}")
-        }
-    }
-
     fun evaluatePolynomial(x: Double, polynomial: DoubleArray): Double {
         var sum = 0.0
         var pol = 1.0

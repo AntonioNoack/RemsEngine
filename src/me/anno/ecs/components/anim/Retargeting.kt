@@ -14,6 +14,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.mesh.assimp.Bone
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
 import me.anno.utils.structures.tuples.LongPair
 import org.joml.Matrix4x3f
@@ -45,7 +46,9 @@ class Retargeting : NamedSaveable() {
                 val config = "retargeting-$hash1-$hash2.json"
                 val config1 = ConfigBasics.getConfigFile(config)
 
-                val ret : Retargeting
+                LOGGER.debug("Getting retargeting $k12")
+
+                val ret: Retargeting
                 if (config1.exists) {
                     ret = TextReader.readFirstOrNull<Retargeting>(config1, InvalidRef, true)
                         ?: Retargeting()
@@ -68,10 +71,11 @@ class Retargeting : NamedSaveable() {
 
         @JvmStatic
         fun main(args: Array<String>) {
+            // todo target stands still... were no bones mapped?
             testUI {
                 // fbx animation seems to be broken for the trooper... probably Assimps fault or incorrect decoding from our side
-                val testRetargeting = false
-                ECSRegistry.init()
+                val testRetargeting = true
+                ECSRegistry.initMeshes()
                 // find two human meshes with different skeletons
                 val file1 = downloads.getChild("3d/trooper gltf/scene.gltf")
                 val file2 = downloads.getChild("fbx/Walking.fbx")
@@ -117,12 +121,26 @@ class Retargeting : NamedSaveable() {
     }
 
     fun map2(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
-        val srcSkel = SkeletonCache[srcSkeleton]?.bones ?: return null
-        val dstSkel = SkeletonCache[dstSkeleton]?.bones ?: return null
+        val srcSkel = SkeletonCache[srcSkeleton]?.bones
+        val dstSkel = SkeletonCache[dstSkeleton]?.bones
+
+        if (srcSkel == null || dstSkel == null) {
+            LOGGER.warn(
+                "Mapping is null, because ${
+                    if (srcSkel == null && dstSkel == null) "both skels are null, '$srcSkeleton'/'$dstSkeleton'"
+                    else if (srcSkel == null) "src skel is null, '$srcSkeleton'/'$dstSkeleton'"
+                    else "dst skel is null, '$srcSkeleton'/'$dstSkeleton'"
+                }"
+            )
+            return null
+        }
+
+        dst.skeleton = dstSkeleton
         dst.frameCount = src.frameCount
         dst.boneCount = dstSkel.size
         dst.duration = src.duration
         dst.prepareBuffers()
+
         val srcBones = srcSkel.associateBy { it.name }
         val mapping = dstBoneMapping ?: return dst
         val tmpM = Matrix4x3f()

@@ -28,7 +28,7 @@ import kotlin.math.min
  * */
 class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
-    class AnimTexIndex(
+    private class AnimTexIndex(
         val anim: Animation,
         val start: Int,
         val length: Int,
@@ -49,18 +49,22 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             else null
         }
 
-    fun addAnimation(anim: Animation): AnimTexIndex {
-        val index = animationMap.getOrPut(anim) {
+    private fun addAnimation1(animation: Animation): AnimTexIndex {
+        val index = animationMap.getOrPut(animation) {
             val ni = nextStart
-            val v = AnimTexIndex(anim, ni, anim.numFrames, false)
-            animationList.add(v)
-            putNewAnim(anim)
-            v
+            val animTexIndex = AnimTexIndex(animation, ni, animation.numFrames, false)
+            animationList.add(animTexIndex)
+            putNewAnimation(animation)
+            animTexIndex
         }
         if (index.needsUpdate) {
-            updateAnim(anim, index.start)
+            updateAnimation(animation, index.start)
         }
         return index
+    }
+
+    fun addAnimation(animation: Animation) {
+        addAnimation1(animation)
     }
 
     fun invalidate(anim: Animation) {
@@ -69,23 +73,23 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     }
 
     fun getIndex(anim: Animation, index: Int): Int {
-        val animTexIndex = addAnimation(anim)
+        val animTexIndex = addAnimation1(anim)
         return animTexIndex.start + index
     }
 
     fun getIndex(anim: Animation, index: Float): Float {
-        val animTexIndex = addAnimation(anim)
+        val animTexIndex = addAnimation1(anim)
         return animTexIndex.start + index
     }
 
-    private fun putNewAnim(animation: Animation): Int {
+    private fun putNewAnimation(animation: Animation): Int {
         val numFrames = animation.numFrames + 1
-        updateAnim(animation, nextStart)
+        updateAnimation(animation, nextStart)
         nextStart += numFrames
         return numFrames
     }
 
-    private fun updateAnim(animation: Animation, start: Int): Int {
+    private fun updateAnimation(animation: Animation, start: Int): Int {
         val numFrames = animation.numFrames + 1
         ensureCapacity(start + numFrames)
         val textureType = TargetType.FloatTarget4
@@ -118,25 +122,25 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     }
 
     private fun fillData(
-        data: FloatBuffer,
-        anim: Animation
+        dst: FloatBuffer,
+        animation: Animation
     ) {
         val tmp = tmpMatrices
-        for (frameIndex in 0 until anim.numFrames) {
-            fillData(data, anim, tmp, frameIndex)
+        for (frameIndex in 0 until animation.numFrames) {
+            fillData(dst, animation, frameIndex, tmp)
         }
         // repeat last frame, so we can interpolate between last and first frame
-        fillData(data, anim, tmp, 0)
+        fillData(dst, animation, 0, tmp)
     }
 
     private fun fillData(
         data: FloatBuffer,
-        anim: Animation,
+        animation: Animation,
+        frameIndex: Int,
         tmp: Array<Matrix4x3f>,
-        frameIndex: Int
     ) {
         // get frame
-        val tmp1 = anim.getMappedMatricesSafely(frameIndex, tmp, skeleton.ref)
+        val tmp1 = animation.getMappedMatricesSafely(frameIndex, tmp, skeleton.ref)
         // put into texture
         val startPosition = data.position()
         for (i in 0 until min(skeleton.bones.size, tmp1.size)) {
@@ -163,7 +167,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
             }
             for (data in animationList) {
                 if (data.start < oldSize)
-                    updateAnim(data.anim, data.start)
+                    updateAnimation(data.anim, data.start)
             }
         }
     }

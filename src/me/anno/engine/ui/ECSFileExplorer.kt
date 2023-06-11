@@ -84,7 +84,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         val entry = content2d.children.firstOrNull { it.contains(x, y) } as? FileExplorerEntry
         val current = if (entry == null) folder else getReference(entry.path)
 
-        val projectFolder = RemsEngine.instance2!!.currentProject.location
+        val projectFolder = (StudioBase.instance as RemsEngine).currentProject.location
 
         if (current.absolutePath.startsWith(projectFolder.absolutePath)) {
             openMenu(windowStack, listOf(

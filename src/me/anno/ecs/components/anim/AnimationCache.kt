@@ -31,15 +31,17 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
     fun getMappedAnimation(animation: Animation, dstSkeleton: Skeleton): BoneByBoneAnimation {
         val s0 = animation.ref
         val s1 = dstSkeleton.ref
-        return animTexCache.getEntry(
+        val anim = animTexCache.getEntry(
             Pair(s0, s1), LongPair(s0.lastModified, s1.lastModified),
             timeout, false
         ) { _, _ ->
-            val retargeting = Retargeting.getRetargeting(animation.skeleton, dstSkeleton.ref)!!
+            val retargeting = Retargeting.getRetargeting(animation.skeleton, dstSkeleton.ref)
+                ?: throw NullPointerException("Missing retargeting from ${animation.skeleton} to ${dstSkeleton.ref}")
             val bbb = if (animation is BoneByBoneAnimation) animation
             else BoneByBoneAnimation(animation as ImportedAnimation)
             retargeting.map(bbb)
-        } as BoneByBoneAnimation
+        } as? BoneByBoneAnimation ?: throw NullPointerException("Mapping failed")
+        return anim
     }
 
 }

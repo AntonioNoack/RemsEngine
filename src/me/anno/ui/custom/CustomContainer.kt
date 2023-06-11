@@ -178,18 +178,6 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
             return x - (this.x + w - crossSize) in 0f..crossSize && y - this.y in 0f..crossSize
         }
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            GFXBase.disableRenderDoc()
-            testUI {
-                val options = UITypeLibrary(arrayListOf(
-                    Type("A") { TextPanel("A", style) },
-                    Type("B") { TextPanel("B", style) },
-                    Type("C") { TextPanel("C", style) }
-                ))
-                CustomContainer(options.createDefault(), options, style)
-            }
-        }
     }
 
 }

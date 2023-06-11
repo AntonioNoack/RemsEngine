@@ -265,8 +265,6 @@ open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
             PropertyInspector.invalidateUI(true)
         }
 
-        val instance2: RemsEngine? get() = instance as? RemsEngine
-
         @JvmStatic
         fun main(args: Array<String>?) {
             RemsEngine().run()

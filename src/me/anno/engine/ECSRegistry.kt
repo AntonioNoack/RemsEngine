@@ -66,6 +66,7 @@ object ECSRegistry {
         registerCustomClass(ImportedAnimation())
         registerCustomClass(BoneByBoneAnimation())
         registerCustomClass(Skeleton())
+        registerCustomClass(Retargeting())
     }
 
     @JvmStatic

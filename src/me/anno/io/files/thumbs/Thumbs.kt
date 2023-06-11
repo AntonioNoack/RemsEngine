@@ -125,7 +125,6 @@ import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.thread
 import kotlin.math.*
-import kotlin.system.exitProcess
 
 /**
  * creates and caches small versions of image and video resources
@@ -554,6 +553,7 @@ object Thumbs {
                 val totalMatrix = Matrix4x3f()
                 val vec0 = Vector3f()
                 val cameraMatrix = Matrix4x3d(rv.editorCamera.transform!!.globalTransform).invert()
+
                 // todo why are some meshes still too small???
                 // camera transform incorrect?
                 fun addMesh(mesh: Mesh?, transform: Transform) {

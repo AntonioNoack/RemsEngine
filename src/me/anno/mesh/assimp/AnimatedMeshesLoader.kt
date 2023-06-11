@@ -186,8 +186,17 @@ object AnimatedMeshesLoader {
         val meshList = loadMeshPrefabs(aiScene, materials, boneList, boneMap).toList()
         val meshes = createReferences(root, "meshes", meshList)
         val hasAnimations = aiScene.mNumAnimations() > 0
-        val hasSkeleton = boneList.isNotEmpty() && hasAnimations
+
+        if (hasAnimations || boneList.isNotEmpty()) {
+            compareBoneWithNodeNames(rootNode, boneMap)
+            findAllBones(aiScene, rootNode, boneList, boneMap)
+            fixBoneOrder(boneList, meshList)
+        }
+
+        val hasSkeleton = boneList.isNotEmpty()
         val hierarchy = buildScene(aiScene, meshes, hasSkeleton)
+
+        LOGGER.debug("$file, #anims: ${aiScene.mNumAnimations()}, #bones: ${boneList.size}")
 
         val metadata = loadMetadata(aiScene)
         val matrixFix = matrixFix(metadata, isFBX) // fbx is already 100x
@@ -199,15 +208,10 @@ object AnimatedMeshesLoader {
 
         // for (change in hierarchy.changes!!) LOGGER.info(change)
 
-        val animationReferences = if (hasSkeleton) {
+        val animationReferences = if (hasSkeleton || hasAnimations) {
 
             val skeleton = Prefab("Skeleton")
-            compareBoneWithNodeNames(rootNode, boneMap)
-            findAllBones(aiScene, rootNode, boneList, boneMap)
-            fixBoneOrder(boneList, meshList)
-
             skeleton.setProperty("bones", boneList.toTypedArray())
-
             val skeletonPath = root.createPrefabChild("Skeleton.json", skeleton)
 
             val nodeCache = createNodeCache(rootNode)
@@ -256,7 +260,7 @@ object AnimatedMeshesLoader {
 
         // override the empty scene with an animation
         // LOGGER.debug("Loaded $file, ${meshes.size} meshes + ${animationReferences.size} animations")
-        if (meshes.isEmpty() && hasAnimations) {
+        if (meshes.isEmpty() && animationReferences.isNotEmpty()) {
             val sample = animationReferences.maxByOrNull {
                 ((it as InnerPrefabFile).prefab.getSampleInstance() as Animation).numFrames
             }!!
@@ -564,6 +568,7 @@ object AnimatedMeshesLoader {
         val prefab = Prefab("ImportedAnimation")
         prefab[ROOT_PATH, "name"] = animName
         prefab[ROOT_PATH, "skeleton"] = skeletonPath
+        LOGGER.debug("Setting $animName.skeleton = $skeletonPath")
         prefab[ROOT_PATH, "duration"] = duration.toFloat()
         prefab[ROOT_PATH, "frames"] = createSkinningFrames(
             aiScene, rootNode, boneMap, numFrames, timeScale,

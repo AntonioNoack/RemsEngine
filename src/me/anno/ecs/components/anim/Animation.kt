@@ -72,7 +72,8 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         dstSkeleton: FileReference
     ): Array<Matrix4x3f>? {
         if (dstSkeleton == skeleton) return getMatrices(frameIndex, dst)
-        return getMappedAnimation(dstSkeleton).getMappedMatrices(frameIndex, dst, dstSkeleton)
+        val mapped = getMappedAnimation(dstSkeleton)
+        return mapped.getMappedMatrices(frameIndex, dst, dstSkeleton)
     }
 
     fun getMappedMatricesSafely(

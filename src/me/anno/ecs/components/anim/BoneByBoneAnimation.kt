@@ -194,18 +194,18 @@ class BoneByBoneAnimation() : Animation() {
         fromImported(anim)
     }
 
-    fun fromImported(anim: ImportedAnimation): BoneByBoneAnimation {
-        skeleton = anim.skeleton
+    fun fromImported(src: ImportedAnimation): BoneByBoneAnimation {
+        skeleton = src.skeleton
         val skel = SkeletonCache[skeleton]!!
         boneCount = skel.bones.size
-        frameCount = anim.frames.size
+        frameCount = src.frames.size
         val boneCount = skel.bones.size
         translations = FloatArray(boneCount * frameCount * 3)
         rotations = FloatArray(boneCount * frameCount * 4)
         val tmpV = Vector3f()
         val tmpQ = Quaternionf()
         val tmpM = Matrix4x3f()
-        val frames = anim.frames
+        val frames = src.frames
         val bones = skel.bones
         for (i in frames.indices) {
             val frame = frames[i]
@@ -223,13 +223,13 @@ class BoneByBoneAnimation() : Animation() {
     }
 
     @Suppress("unused")
-    fun toImported(anim: ImportedAnimation = ImportedAnimation()): ImportedAnimation {
-        anim.skeleton = skeleton
+    fun toImported(dst: ImportedAnimation = ImportedAnimation()): ImportedAnimation {
+        dst.skeleton = skeleton
         val skel = SkeletonCache[skeleton]!!
         val tmpPos = JomlPools.vec3f.borrow()
         val tmpRot = JomlPools.quat4f.borrow()
         val bones = skel.bones
-        anim.frames = Array(frameCount) { i ->
+        dst.frames = Array(frameCount) { i ->
             val matrices = Array(bones.size) { Matrix4x3f() }
             for (j in bones.indices) {
                 val bone = bones[j]
@@ -240,7 +240,7 @@ class BoneByBoneAnimation() : Animation() {
             }
             matrices
         }
-        return anim
+        return dst
     }
 
     override val className: String get() = "BoneByBoneAnimation"

@@ -1,6 +1,5 @@
 package me.anno.mesh.blender
 
-import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.fonts.mesh.Triangulation
@@ -10,7 +9,6 @@ import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCallback
 import me.anno.mesh.blender.impl.*
 import me.anno.utils.Clock
-import me.anno.utils.OS.documents
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Matrices.getScale2
@@ -29,12 +27,6 @@ import java.nio.ByteBuffer
  * create a test scene with different layouts, and check that everything is in the right place
  * */
 object BlenderReader {
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        val file = documents.getChild("Blender/VolumetricHair.blend")
-        MeshCache[file, false]!!
-    }
 
     private val LOGGER = LogManager.getLogger(BlenderReader::class)
 
