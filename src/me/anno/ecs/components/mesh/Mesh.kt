@@ -884,15 +884,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
         }
 
-        val materialIds = materialIds
-        val first = materialIds?.firstOrNull() ?: 0
-        val hasMultipleMaterials = materialIds != null && materialIds.any { it != first }
-        if (hasMultipleMaterials) {
-            createHelperMeshes(materialIds!!)
-        } else {
-            destroyHelperMeshes()
-            numMaterials = 1
-        }
+        updateHelperMeshes()
 
         // LOGGER.info("Flags($name): size: ${buffer.vertexCount}, colors? $hasColors, uvs? $hasUVs, bones? $hasBones")
 
@@ -903,6 +895,18 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
         invalidDebugLines = true
 
+    }
+
+    fun updateHelperMeshes() {
+        val materialIds = materialIds
+        val first = materialIds?.firstOrNull() ?: 0
+        val hasMultipleMaterials = materialIds != null && materialIds.any { it != first }
+        if (hasMultipleMaterials) {
+            createHelperMeshes(materialIds!!)
+        } else {
+            destroyHelperMeshes()
+            numMaterials = 1
+        }
     }
 
     fun ensureDebugLines() {

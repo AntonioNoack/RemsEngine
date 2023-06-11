@@ -3,6 +3,7 @@ package me.anno.engine.ui
 import me.anno.config.DefaultConfig
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView

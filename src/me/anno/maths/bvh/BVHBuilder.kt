@@ -70,7 +70,7 @@ object BVHBuilder {
                 }
             }
         }
-        scene.instanced.forEach { mesh, _, stack ->
+        scene.instanced.forEach { mesh, _, _, stack ->
             val blas = blasCache.getOrPut(mesh) {
                 buildBLAS(mesh, splitMethod, maxNodeSize)
             }

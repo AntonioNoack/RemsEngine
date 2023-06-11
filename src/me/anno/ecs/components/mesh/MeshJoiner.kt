@@ -1,13 +1,13 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Arrays.resize
 import org.joml.Matrix4x3f
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -27,7 +27,7 @@ abstract class MeshJoiner<V>(
 
     open fun getVertexColor(element: V): Int = -1
 
-    open fun getMaterial(element: V): FileReference = InvalidRef
+    open fun getMaterials(element: V): List<FileReference> = emptyList()
 
     open fun getBoneId(element: V): Byte = 0
 
@@ -53,17 +53,17 @@ abstract class MeshJoiner<V>(
         var numPositions = 0
         var numTriangles = 0
 
-        val firstMaterial = getMaterial(elements[0])
-        val hasUniqueMaterial = elements.all2 { getMaterial(it) == firstMaterial }
-        val materialToId: Map<FileReference, Int>?
+        val firstMaterial = getMaterials(elements[0])
+        val hasUniqueMaterial = firstMaterial.size < 2 && elements.all2 { getMaterials(it) == firstMaterial }
+        val materialToId: Map<FileReference, Int>
 
         if (hasUniqueMaterial) {
-            materialToId = null
-            dstMesh.materials = listOf(firstMaterial)
+            materialToId = emptyMap()
+            dstMesh.materials = firstMaterial
         } else {
             val uniqueMaterials = elements
-                .map { getMaterial(it) }
-                .toHashSet().toList()
+                .map { getMaterials(it) }
+                .flatten().toSet().toList()
             materialToId = uniqueMaterials.withIndex().associate { it.value to it.index }
             dstMesh.materials = uniqueMaterials
         }
@@ -193,9 +193,32 @@ abstract class MeshJoiner<V>(
                     dstIndices[j++] = baseIndex + k
                 }
             }
+
+            // apply material ids
             if (dstMaterialIds != null) {
-                val materialId = materialToId!![getMaterial(element)] ?: 0
-                dstMaterialIds.fill(materialId, j0 / 3, j / 3)
+                val materials = getMaterials(element)
+                val usedMaterials = min(materials.size, srcMesh.numMaterials)
+                val materialIds = IntArray(usedMaterials)
+                for (k in 0 until usedMaterials) {
+                    materialIds[k] = materialToId[materials[k]] ?: continue
+                }
+                if (materialIds.any { it != 0 }) {
+                    val k0 = j0 / 3
+                    val k1 = j / 3
+                    val srcIds = srcMesh.materialIds
+                    if (materialIds.min() == materialIds.max() || srcIds == null) {
+                        dstMaterialIds.fill(materialIds[0], k0, k1)
+                    } else {
+                        val k2 = k0 + srcIds.size
+                        for (k in k0 until min(k1, k2)) {
+                            val srcId = srcIds[k - k0]
+                            if (srcId in materialIds.indices) {
+                                dstMaterialIds[k] = materialIds[srcId]
+                            }
+                        }
+                        if (k2 < k1) dstMaterialIds.fill(materialIds[0], k2, k1)
+                    }
+                }
             }
         }
 
@@ -211,6 +234,7 @@ abstract class MeshJoiner<V>(
         dstMesh.boneWeights = dstBoneWeights
         dstMesh.boneIndices = dstBoneIndices
         dstMesh.materialIds = dstMaterialIds
+        dstMesh.numMaterials = max(materialToId.size, 1)
 
         return dstMesh
 

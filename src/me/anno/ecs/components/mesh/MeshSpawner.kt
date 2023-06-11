@@ -70,7 +70,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         done = done || forEachMeshGroup { mesh, material ->
             val material2 = material ?: Mesh.defaultMaterial
             val stage = pipeline.findStage(material2)
-            val stack = stage.instanced.getOrPut(mesh, material2) { mesh1, _ ->
+            val stack = stage.instanced.getOrPut(mesh, material2, 0) { mesh1, _, _ ->
                 if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
             }
             stack.autoClickId = this.clickId
@@ -81,7 +81,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         }
         validateLastStack()
         this.pipeline = pipeline
-        if (!done) forEachMesh { mesh, material, transform ->
+        if (!done) forEachMesh { mesh, materialOverride, transform ->
 
             mesh.ensureBuffer()
             transform.validate()
@@ -89,19 +89,23 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             // check visibility: first transform bounds into global space, then test them
             mesh.aabb.transformUnion(transform.globalTransform, tmpAABB)
             if (pipeline.frustum.contains(tmpAABB)) {
-                val material2 = material ?: Mesh.defaultMaterial
-                val stage = pipeline.findStage(material2)
-                if (mesh.proceduralLength <= 0) {
-                    val stack = stage.instanced.getOrPut(mesh, material2) { mesh1, _ ->
-                        if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
+                for (matIndex in 0 until mesh.numMaterials) {
+                    val materialI =
+                        materialOverride ?: MaterialCache[mesh.materials.getOrNull(matIndex)] ?: Mesh.defaultMaterial
+                    val stage = pipeline.findStage(materialI)
+                    if (mesh.proceduralLength <= 0) {
+                        val stack = stage.instanced.getOrPut(mesh, materialI, matIndex) { mesh1, _, _ ->
+                            if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
+                        }
+                        stage.addToStack(stack, null, transform, clickId)
+                    } else {
+                        if (Build.isDebug && mesh.numMaterials > 1) {
+                            LOGGER.warn("Procedural meshes cannot support multiple materials (in MeshSpawner)")
+                        }
+                        stage.add(this, mesh, entity, matIndex, clickId)
                     }
-                    stage.addToStack(stack, null, transform, clickId)
-                } else {
-                    if (Build.isDebug && mesh.numMaterials > 1) {
-                        LOGGER.warn("Procedural meshes cannot support multiple materials (in MeshSpawner)")
-                    }
-                    stage.add(this, mesh, entity, 0, clickId)
                 }
+
             }
         }
         this.pipeline = null

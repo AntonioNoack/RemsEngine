@@ -1,10 +1,8 @@
 package me.anno.io.files
 
 import me.anno.io.BufferedIO.useBuffered
-import me.anno.utils.LOGGER
 import java.io.*
 import java.net.URI
-import java.util.zip.ZipInputStream
 
 // internally in the JAR
 class BundledRef(
@@ -22,7 +20,7 @@ class BundledRef(
 
     override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
         // needs to be the same package
-        val stream = BundledRef::class.java.classLoader.getResourceAsStream(resName)
+        val stream = this.javaClass.classLoader.getResourceAsStream(resName)
         callback(stream?.useBuffered(), if (stream == null) FileNotFoundException(absolutePath) else null)
     }
 
@@ -30,7 +28,11 @@ class BundledRef(
         throw IllegalAccessException("Cannot write to internal files")
     }
 
-    override val exists: Boolean = true // mmh...
+    override val exists: Boolean
+        get() {
+            return this.javaClass.classLoader.getResourceAsStream(resName) != null
+        }
+
     override fun length(): Long {
         var length = 0L
         try {
@@ -97,9 +99,9 @@ class BundledRef(
 
     companion object {
 
-        fun parse(str: String): FileReference {
-            if (!str.startsWith(prefix, true)) throw IllegalArgumentException()
-            val mainName = str.substring(prefix.length)
+        fun parse(fullPath: String): FileReference {
+            if (!fullPath.startsWith(prefix, true)) throw IllegalArgumentException()
+            val resName = fullPath.substring(prefix.length)
             // surprisingly, this caused issues with language files
             /*if (mainName.indexOf('/') >= 0 && jarAsZip.isNotEmpty()) {
                 // find whether any prefix is good enough, like the search for the files
@@ -117,7 +119,20 @@ class BundledRef(
                 }
             }*/
             // is directory may be false...
-            return BundledRef(mainName, str, false)
+            return findExistingReference(resName, fullPath) ?: BundledRef(resName, fullPath, false)
+        }
+
+        private fun findExistingReference(resName: String, fullPath: String): FileReference? {
+            val ref = BundledRef(resName, fullPath, false)
+            if (ref.exists) return ref
+            val lastSlash = resName.lastIndexOf('/')
+            val hasSlash = lastSlash in 0 until resName.lastIndex
+            return if (hasSlash) {
+                findExistingReference(
+                    resName.substring(0, lastSlash),
+                    fullPath.substring(0, prefix.length + lastSlash)
+                )?.getChild(resName.substring(lastSlash + 1))
+            } else null
         }
 
         const val prefix = "res://"

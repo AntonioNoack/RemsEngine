@@ -18,7 +18,6 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.maths.Maths
-import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.structures.tuples.LongPair
 
@@ -40,7 +39,7 @@ open class InstancedStack {
 
     var autoClickId = 0
 
-    open fun add(transform: Transform, clickId: Int = autoClickId) {
+    open fun add(transform: Transform, clickId: Int) {
         if (size >= transforms.size) {
             // resize
             val newSize = transforms.size * 2
@@ -251,7 +250,7 @@ open class InstancedStack {
 
     }
 
-    class Impl(capacity: Int = 512) : KeyPairMap<Mesh, Material, InstancedStack>(capacity), DrawableStack {
+    class Impl(capacity: Int = 512) : KeyTripleMap<Mesh, Material, Int, InstancedStack>(capacity), DrawableStack {
 
         override fun size(): Long {
             return values.values.sumOf { it.size.toLong() }
@@ -269,11 +268,11 @@ open class InstancedStack {
             // draw instanced meshes
             GFXState.instanced.use(true) {
                 for ((mesh, list) in values) {
-                    for ((material, values) in list) {
+                    for ((material, materialIndex, values) in list) {
                         if (values.isNotEmpty()) {
                             cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
                                 drawCalls += Companion.draw(
-                                    mesh, material, 0,
+                                    mesh, material, materialIndex,
                                     pipeline, stage, needsLightUpdateForEveryMesh,
                                     time, values, depth
                                 )
@@ -288,7 +287,7 @@ open class InstancedStack {
 
         override fun clear() {
             for ((_, values) in values) {
-                for ((_, value) in values) {
+                for ((_, _, value) in values) {
                     value.clear()
                 }
             }
