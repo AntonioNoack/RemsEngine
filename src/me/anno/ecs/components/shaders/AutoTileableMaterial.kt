@@ -1,8 +1,6 @@
 package me.anno.ecs.components.shaders
 
-import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
@@ -11,16 +9,10 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.gradientXTex
 import me.anno.image.ImageCPUCache
 import me.anno.utils.pooling.JomlPools
-import org.joml.Quaternionf
-import org.joml.Vector2d
-import org.joml.Vector3d
 
-class AutoTileableMaterial : Material() {
+class AutoTileableMaterial : PlanarMaterialBase() {
 
     var anisotropic = true
-    var worldPosCenter = Vector3d()
-    var scale = Vector2d(1.0)
-    var tileDir = Quaternionf()
 
     init {
         shader = AutoTileableShader
@@ -28,40 +20,6 @@ class AutoTileableMaterial : Material() {
 
     override fun bind(shader: Shader) {
         super.bind(shader)
-        // world scale correction
-        val worldScale = RenderState.worldScale
-        val pos = RenderState.cameraPosition
-        shader.v3f(
-            "tileOffset",
-            ((worldPosCenter.x - pos.x) * worldScale).toFloat(),
-            ((worldPosCenter.y - pos.y) * worldScale).toFloat(),
-            ((worldPosCenter.z - pos.z) * worldScale).toFloat()
-        )
-
-        val dirU = JomlPools.vec3f.create()
-        val dirV = JomlPools.vec3f.create()
-
-        tileDir.transform(dirU.set(1.0, 0.0, 0.0))
-        tileDir.transform(dirV.set(0.0, 0.0, 1.0))
-
-        // calculate final scale + aspect ratio correction
-        val tex3 = getTex(diffuseMap)
-        val scaleX = 1.0 * (if (tex3 != null) tex3.h.toFloat() / tex3.w else 1f) / (scale.x * worldScale)
-        val scaleY = 1.0 / (scale.y * worldScale)
-
-        shader.v3f(
-            "tileDirU",
-            (dirU.x * scaleX).toFloat(),
-            (dirU.y * scaleX).toFloat(),
-            (dirU.z * scaleX).toFloat()
-        )
-
-        shader.v3f(
-            "tileDirV",
-            (dirV.x * scaleY).toFloat(),
-            (dirV.y * scaleY).toFloat(),
-            (dirV.z * scaleY).toFloat()
-        )
 
         shader.v1b("anisotropic", anisotropic)
 
@@ -90,9 +48,6 @@ class AutoTileableMaterial : Material() {
         super.copyInto(dst)
         dst as AutoTileableMaterial
         dst.anisotropic = anisotropic
-        dst.worldPosCenter.set(worldPosCenter)
-        dst.scale.set(scale)
-        dst.tileDir.set(tileDir)
     }
 
     override val className: String get() = "AutoTileableMaterial"

@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.Build
 import me.anno.io.BufferedIO.useBuffered
 import java.io.*
 import java.net.URI
@@ -20,7 +21,7 @@ class BundledRef(
 
     override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
         // needs to be the same package
-        val stream = this.javaClass.classLoader.getResourceAsStream(resName)
+        val stream = javaClass.classLoader.getResourceAsStream(resName)
         callback(stream?.useBuffered(), if (stream == null) FileNotFoundException(absolutePath) else null)
     }
 
@@ -28,10 +29,9 @@ class BundledRef(
         throw IllegalAccessException("Cannot write to internal files")
     }
 
-    override val exists: Boolean
-        get() {
-            return this.javaClass.classLoader.getResourceAsStream(resName) != null
-        }
+    override val exists by lazy {
+        javaClass.classLoader.getResourceAsStream(resName) != null
+    }
 
     override fun length(): Long {
         var length = 0L
@@ -100,6 +100,9 @@ class BundledRef(
     companion object {
 
         fun parse(fullPath: String): FileReference {
+            if (Build.isDebug) {
+                // todo redirect to asset folder for realtime reloads
+            }
             if (!fullPath.startsWith(prefix, true)) throw IllegalArgumentException()
             val resName = fullPath.substring(prefix.length)
             // surprisingly, this caused issues with language files

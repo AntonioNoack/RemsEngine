@@ -59,7 +59,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
     const val getTexture = "" +
             "vec4 sampleTile(sampler2D, vec2, vec2, vec2);\n" +
             "vec3 yuv2rgb(vec3);\n" +
-            "vec4 getTexture(sampler2D T, vec2 pos) {\n" +
+            "vec4 sampleAutoTileableTexture(sampler2D T, vec2 pos) {\n" +
             "   vec2 lattice = worldToLat*pos;\n" +
             "   vec2 cell = floor(lattice);\n" +
             "   vec2 uv = lattice - cell;\n" +
@@ -92,10 +92,11 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
         motionVectors: Boolean
     ): List<ShaderStage> {
         val vars = createFragmentVariables(isInstanced, isAnimated, motionVectors)
+            .filter { it.name != "uv" }.toMutableList()
         vars.add(Variable(GLSLType.V1B, "anisotropic"))
         vars.add(Variable(GLSLType.V3F, "tileOffset"))
-        vars.add(Variable(GLSLType.V3F, "tileDirU"))
-        vars.add(Variable(GLSLType.V3F, "tileDirV"))
+        vars.add(Variable(GLSLType.V3F, "tilingU"))
+        vars.add(Variable(GLSLType.V3F, "tilingV"))
         vars.add(Variable(GLSLType.V1B, "anisotropic"))
         vars.add(Variable(GLSLType.S2D, "invLUTTex"))
         vars.add(Variable(GLSLType.M2x2, "worldToLat"))
@@ -106,19 +107,25 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                 discardByCullingPlane +
                         // step by step define all material properties
                         "vec3 colorPos = finalPosition - tileOffset;\n" +
-                        "vec4 texDiffuseMap = getTexture(diffuseMap, vec2(dot(colorPos, tileDirU), dot(colorPos, tileDirV)));\n" +
-                        // "vec4 texDiffuseMap = getTexture(diffuseMap, uv);\n" +
+                        "vec2 uv = vec2(dot(colorPos, tilingU), sign(finalNormal.y) * dot(colorPos, tilingV));\n" +
+                        "vec4 texDiffuseMap = sampleAutoTileableTexture(diffuseMap, uv);\n" +
                         "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
                         "if(color.a < ${1f / 255f}) discard;\n" +
                         "finalColor = color.rgb;\n" +
                         "finalAlpha = color.a;\n" +
-                        // todo apply mapping to normal map, emissive, metallic and roughness as well
                         normalTanBitanCalculation +
-                        normalMapCalculation +
-                        emissiveCalculation +
-                        occlusionCalculation +
-                        metallicCalculation +
-                        roughnessCalculation +
+                        "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
+                        "if(abs(normalStrength.x) > 0.0){\n" +
+                        "   vec3 normalFromTex = sampleAutoTileableTexture(normalMap, uv).rgb * 2.0 - 1.0;\n" +
+                        "        normalFromTex = tbn * normalFromTex;\n" +
+                        // normalize?
+                        "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
+                        "}\n" +
+                        "finalEmissive  = sampleAutoTileableTexture(emissiveMap, uv).rgb * emissiveBase;\n" +
+                        "finalOcclusion = (1.0 - sampleAutoTileableTexture(occlusionMap, uv).r) * occlusionStrength;\n" +
+                        "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  sampleAutoTileableTexture(metallicMap,  uv).r), 0.0, 1.0);\n" +
+                        "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, sampleAutoTileableTexture(roughnessMap, uv).r), 0.0, 1.0);\n" +
+                        // todo sample other properties well, too
                         reflectionPlaneCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
