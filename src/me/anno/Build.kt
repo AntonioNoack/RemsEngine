@@ -1,5 +1,8 @@
 package me.anno
 
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
+
 object Build {
 
     @JvmStatic
@@ -18,6 +21,9 @@ object Build {
 
     @JvmStatic
     private var isLocked = false
+
+    @JvmStatic
+    var assetsFolder: FileReference = InvalidRef
 
     @JvmStatic
     @Suppress("unused")

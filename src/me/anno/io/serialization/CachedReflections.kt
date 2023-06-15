@@ -200,7 +200,8 @@ class CachedReflections(
             for (index in methods.indices) {
                 val getterMethod = methods[index]
                 val name = getterMethod.name
-                if (name.startsWith("get") &&
+                if (getterMethod.parameterCount == 0 &&
+                    name.startsWith("get") &&
                     '$' !in name &&
                     name.length > 3 &&
                     name[3] in 'A'..'Z'

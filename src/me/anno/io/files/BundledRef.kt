@@ -100,11 +100,14 @@ class BundledRef(
     companion object {
 
         fun parse(fullPath: String): FileReference {
-            if (Build.isDebug) {
-                // todo redirect to asset folder for realtime reloads
-            }
+
             if (!fullPath.startsWith(prefix, true)) throw IllegalArgumentException()
             val resName = fullPath.substring(prefix.length)
+
+            // if asset folder is declared, and the asset is located there, use it for realtime-reloading
+            val child = Build.assetsFolder.getChild(resName)
+            if (child.exists) return child
+
             // surprisingly, this caused issues with language files
             /*if (mainName.indexOf('/') >= 0 && jarAsZip.isNotEmpty()) {
                 // find whether any prefix is good enough, like the search for the files
