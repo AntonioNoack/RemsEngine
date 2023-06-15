@@ -1,11 +1,11 @@
 package me.anno.sdf.shapes
 
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.sdf.SDFComposer.dot2
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.sq
+import me.anno.sdf.SDFComposer.dot2
+import me.anno.sdf.VariableCounter
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Triangles.crossDot
@@ -83,52 +83,8 @@ open class SDFTriangle : SDFShape() {
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
-    // dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa)
-    private fun dot2Clamp(ba: Vector3f, pa: Vector3f): Float {
-        val clamp = clamp(ba.dot(pa) / ba.lengthSquared(), 0f, 1f)
-        val fx = ba.x * clamp - pa.x
-        val fy = ba.y * clamp - pa.y
-        val fz = ba.z * clamp - pa.z
-        return fx * fx + fy * fy + fz * fz
-    }
-
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
-
-        val cb = JomlPools.vec3f.create()
-        val ba = JomlPools.vec3f.create()
-        val ac = JomlPools.vec3f.create()
-
-        val pa = JomlPools.vec3f.create()
-        val pb = JomlPools.vec3f.create()
-        val pc = JomlPools.vec3f.create()
-
-        ba.set(b).sub(a)
-        cb.set(c).sub(b)
-        ac.set(a).sub(c)
-
-        pa.set(pos.x, pos.y, pos.z).sub(a)
-        pb.set(pos.x, pos.y, pos.z).sub(b)
-        pc.set(pos.x, pos.y, pos.z).sub(c)
-
-        val n = JomlPools.vec3f.create()
-        n.set(ba).cross(ac)
-
-        val term = if (
-            sign(crossDot(ba, n, pa)) +
-            sign(crossDot(cb, n, pb)) +
-            sign(crossDot(ac, n, pc)) < 2f
-        ) min(
-            min(
-                dot2Clamp(ba, pa),
-                dot2Clamp(cb, pb)
-            ),
-            dot2Clamp(ac, pc)
-        ) else {
-            sq(n.dot(pa)) / n.lengthSquared()
-        }
-
-        JomlPools.vec3f.sub(7)
-
+        val term = calculateDistSq(a, b, c, pos, false)
         return sqrt(term) + pos.w
     }
 
@@ -143,6 +99,63 @@ open class SDFTriangle : SDFShape() {
     override val className: String get() = "SDFTriangle"
 
     companion object {
+
+        fun calculateDistSq(
+            a: Vector3f, b: Vector3f, c: Vector3f,
+            ba: Vector3f, cb: Vector3f, ac: Vector3f,
+            pa: Vector3f, pb: Vector3f, pc: Vector3f,
+            pos: Vector4f, n: Vector3f,
+        ): Float {
+
+            b.sub(a, ba)
+            c.sub(b, cb)
+            a.sub(c, ac)
+
+            pa.set(pos.x, pos.y, pos.z).sub(a)
+            pb.set(pos.x, pos.y, pos.z).sub(b)
+            pc.set(pos.x, pos.y, pos.z).sub(c)
+
+            ba.cross(ac, n)
+
+            return if (
+                sign(crossDot(ba, n, pa)) +
+                sign(crossDot(cb, n, pb)) +
+                sign(crossDot(ac, n, pc)) < 2f
+            ) min(
+                min(
+                    dot2Clamp(ba, pa),
+                    dot2Clamp(cb, pb)
+                ),
+                dot2Clamp(ac, pc)
+            ) else {
+                sq(n.dot(pa)) / n.lengthSquared()
+            }
+        }
+
+        fun calculateDistSq(a: Vector3f, b: Vector3f, c: Vector3f, pos: Vector4f, signed: Boolean): Float {
+            val pool = JomlPools.vec3f
+            val cb = pool.create()
+            val ba = pool.create()
+            val ac = pool.create()
+            val pa = pool.create()
+            val pb = pool.create()
+            val pc = pool.create()
+            val n = pool.create()
+            var dist = calculateDistSq(a, b, c, ba, cb, ac, pa, pb, pc, pos, n)
+            if (signed && n.dot(pos.x, pos.y, pos.z) > 0f) dist = -dist
+            pool.sub(7)
+            return dist
+        }
+
+        // dot2(ba*clamp(dot(ba,pa)/dot2(ba),0.0,1.0)-pa)
+        fun dot2Clamp(ba: Vector3f, pa: Vector3f): Float {
+            val clamp = clamp(ba.dot(pa) / ba.lengthSquared(), 0f, 1f)
+            val fx = ba.x * clamp - pa.x
+            val fy = ba.y * clamp - pa.y
+            val fz = ba.z * clamp - pa.z
+            return fx * fx + fy * fy + fz * fz
+        }
+
         // https://iquilezles.org/www/articles/distfunctions/distfunctions.htm
         private const val udTriangle = "" +
                 "float udTriangle(vec3 p, vec3 a, vec3 b, vec3 c){\n" +

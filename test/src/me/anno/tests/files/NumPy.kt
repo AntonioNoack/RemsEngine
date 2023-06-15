@@ -10,7 +10,7 @@ fun main() {
     val data = NumPyReader.readNPZ(src)
     println(
         JsonFormatter.format(data.mapValues { (_, v) ->
-            if (v is Quad<*, *, *, *>) listOf(v.a, v.b, v.c, v.d)
+            if (v is Quad<*, *, *, *>) listOf(v.first, v.second, v.third, v.fourth)
             else v
         }, "\t", 500)
     )

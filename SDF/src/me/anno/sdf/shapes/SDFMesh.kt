@@ -2,13 +2,17 @@ package me.anno.sdf.shapes
 
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.sdf.VariableCounter
+import me.anno.sdf.shapes.SDFTriangle.Companion.calculateDistSq
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector4f
+import kotlin.math.abs
+import kotlin.math.sign
+import kotlin.math.sqrt
 
 // todo groups: bounding spheres / volumes
 
@@ -54,7 +58,18 @@ open class SDFMesh : SDFSmoothShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
-        TODO()
+        var minDistSq = Float.POSITIVE_INFINITY
+        val mesh = loadMesh() ?: return minDistSq
+        var absMinDistSq = minDistSq
+        mesh.forEachTriangle { a, b, c ->
+            val dist = calculateDistSq(a, b, c, pos, true)
+            val absDist = abs(dist)
+            if (absDist < absMinDistSq) {
+                absMinDistSq = absDist
+                minDistSq = dist
+            }
+        }
+        return sign(minDistSq) * sqrt(abs(minDistSq)) + pos.w
     }
 
     override fun copyInto(dst: PrefabSaveable) {

@@ -5,12 +5,10 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
-import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.zip.InnerFolder
 import me.anno.maths.Maths.convertABGR2ARGB
 import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
-import me.anno.utils.OS
 import me.anno.utils.structures.tuples.Quad
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Strings.isBlank2
@@ -365,7 +363,7 @@ class VOXReader {
             file.inputStream { it, exc ->
                 if (it != null) {
                     val reader = VOXReader().read(it)
-                    callback(readAsFolder(reader, file).a, null)
+                    callback(readAsFolder(reader, file).first, null)
                 } else callback(null, exc)
             }
         }
