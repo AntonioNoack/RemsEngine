@@ -98,6 +98,7 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows.jar" path-in-jar="/" />
       <element id="module-output" name="KOML" />
       <element id="module-output" name="Bullet" />
+      <element id="module-output" name="SDF" />
     </root>
   </artifact>
 </component>

@@ -7,6 +7,7 @@ import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
+import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
@@ -14,11 +15,15 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.style.Style
 import me.anno.utils.Sleep.waitUntil
 
-class ShapedBlurNode : ActionNode(
+class ShapedBlurNode() : ActionNode(
     "heart_5x32",
     listOf("Texture", "Input", "Float", "Scale"),
     listOf("Texture", "Blurred")
 ) {
+
+    constructor(type: String) : this() {
+        this.type = type
+    }
 
     init {
         setInput(1, whiteTexture)
@@ -41,12 +46,21 @@ class ShapedBlurNode : ActionNode(
         } else list.add(TextPanel("Type: $type", style))
     }
 
-    // todo serialize?
     var type = "heart_5x32"
         set(value) {
             field = value
             name = value
         }
+
+    override fun save(writer: BaseWriter) {
+        super.save(writer)
+        writer.writeString("type", type)
+    }
+
+    override fun readString(name: String, value: String?) {
+        if (name == "type" && value != null) type = value
+        else super.readString(name, value)
+    }
 
     override fun executeAction() {
         // todo a formula could be connected, and this would break the texture-thing...

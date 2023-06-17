@@ -43,8 +43,8 @@ class NodeInput : NodeConnector {
     }
 
     fun getValue(): Any? {
-        val graph = node?.graph as FlowGraph
-        if (graph.validId == lastValidId) return currValue
+        val graph = node?.graph as? FlowGraph
+        if (graph != null && graph.validId == lastValidId) return currValue
         val src = others.firstOrNull()
         val srcNode = src?.node
         if (srcNode is ValueNode) {
@@ -54,7 +54,7 @@ class NodeInput : NodeConnector {
         // ensure the value is matching
         // todo cast if required
         // todo warn if failed
-        lastValidId = graph.validId
+        if (graph != null) lastValidId = graph.validId
         val value = currValue
         currValue = when (type) {
             // ensures that the function gets the correct type

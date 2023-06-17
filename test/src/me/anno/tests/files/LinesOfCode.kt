@@ -40,9 +40,9 @@ fun main() {
 
     // count unique lines of code
     // count them by language (lcExtension)
-    // todo have a white and a blacklist
-    // todo have a tree view of everything, where you define them
-    // todo count inside zips inside zips :D
+    // to do have a white and a blacklist
+    // to do have a tree view of everything, where you define them
+    // to do count inside zips inside zips :D
     testUI3 {
         val notCollapsed = HashSet<FileReference>(1024)
         val root = FileRootRef
@@ -69,7 +69,6 @@ fun main() {
             override fun getChildren(element: FileReference) = element.listChildren() ?: emptyList()
             override fun isCollapsed(element: FileReference) = element !in notCollapsed
             override fun setCollapsed(element: FileReference, collapsed: Boolean) {
-                println("collapsed[$element] = $collapsed")
                 if (collapsed) notCollapsed.remove(element)
                 else notCollapsed.add(element)
             }

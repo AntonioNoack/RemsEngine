@@ -30,15 +30,9 @@ object HSMCShader : ECSMeshShader("hexagons") {
         if (ti >= 0) texture.bind(ti, GPUFiltering.NEAREST, Clamping.REPEAT)
     }
 
-    override fun createVertexStages(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        colors: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean
-    ): List<ShaderStage> {
-        val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
-        val variables = createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
+    override fun createVertexStages(flags: Int): List<ShaderStage> {
+        val defines = createDefines(flags)
+        val variables = createVertexVariables(flags)
             .filter {
                 when (it.name) {
                     "uvs", "tangents" -> false
@@ -72,21 +66,16 @@ object HSMCShader : ECSMeshShader("hexagons") {
         )
     }
 
-    override fun createFragmentStages(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): List<ShaderStage> {
+    override fun createFragmentStages(flags: Int): List<ShaderStage> {
         return listOf(ShaderStage(
             "material",
-            createFragmentVariables(isInstanced, isAnimated, motionVectors)
-                .filter {
-                    when (it.name) {
-                        "emissiveMap", "diffuseMap", "normalMap", "metallicMap",
-                        "roughnessMap" -> false
-                        else -> true
-                    }
-                } + listOf(
+            createFragmentVariables(flags).filter {
+                when (it.name) {
+                    "emissiveMap", "diffuseMap", "normalMap", "metallicMap",
+                    "roughnessMap" -> false
+                    else -> true
+                }
+            } + listOf(
                 Variable(GLSLType.S2DA, "diffuseMapStack"),
                 Variable(GLSLType.V3F, "localPosition"),
             ),

@@ -6,6 +6,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.maths.Maths.hasFlag
 
 /**
  * a material, that is defined by blocks (which may be empty);
@@ -21,18 +22,10 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
 
     // needs to be adjusted as well for accurate shadows
     // I hope this gets optimized well, because no material data is actually required...
-    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, limitedTransform: Boolean): Shader {
+    override fun createDepthShader(flags: Int): Shader {
         val builder = createBuilder()
-        builder.addVertex(
-            createVertexStages(
-                isInstanced,
-                isAnimated,
-                colors = false,
-                motionVectors = false,
-                limitedTransform
-            )
-        )
-        builder.addFragment(createFragmentStages(isInstanced, isAnimated, motionVectors = false))
+        builder.addVertex(createVertexStages(flags))
+        builder.addFragment(createFragmentStages(flags))
         GFX.check()
         val shader = builder.create()
         shader.glslVersion = glslVersion
@@ -54,12 +47,8 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                 "finalRoughness = 0.5;\n"
     }
 
-    override fun createFragmentVariables(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): ArrayList<Variable> {
-        val list = super.createFragmentVariables(isInstanced, isAnimated, motionVectors)
+    override fun createFragmentVariables(flags: Int): ArrayList<Variable> {
+        val list = super.createFragmentVariables(flags)
         list.addAll(
             listOf(
                 // input varyings
@@ -75,14 +64,10 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
         return list
     }
 
-    override fun createFragmentStages(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): List<ShaderStage> {
+    override fun createFragmentStages(flags: Int): List<ShaderStage> {
         return listOf(
             ShaderStage(
-                "block-traced shader", createFragmentVariables(isInstanced, isAnimated, motionVectors), "" +
+                "block-traced shader", createFragmentVariables(flags), "" +
                         // step by step define all material properties
                         "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
                         "vec3 bounds1 = vec3(bounds-1);\n" +
@@ -105,7 +90,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "vec3 dist3 = (dirSign*.5+.5 + blockPosition - localStart)/dir;\n" +
                         "vec3 invUStep = dirSign/dir;\n" +
                         "float nextDist, dist = 0.0;\n" +
-                        initProperties(isInstanced) +
+                        initProperties(flags.hasFlag(IS_INSTANCED)) +
                         "int lastNormal = dtf3.z == dtf ? 2 : dtf3.y == dtf ? 1 : 0, i;\n" +
                         "bool done = false;\n" +
                         "for(i=0;i<maxSteps;i++){\n" +
@@ -113,7 +98,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "   bool continueTracing = false;\n" +
                         "   bool setNormal = true;\n" +
                         "   float skippingDist = 0.0;\n" +
-                        processBlock(isInstanced) +
+                        processBlock(flags.hasFlag(IS_INSTANCED)) +
                         "   if(skippingDist >= 1.0){\n" +
                         // skip multiple blocks; and then recalculate all necessary stats
                         "       blockPosition = floor(localStart + dir * (dist + skippingDist));\n" +
@@ -135,7 +120,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "       dist = nextDist;\n" +
                         "   } else break;\n" + // hit something :)
                         "}\n" +
-                        onFinish(isInstanced) +
+                        onFinish(flags.hasFlag(IS_INSTANCED)) +
                         // compute normal
                         "vec3 localNormal = vec3(0.0);\n" +
                         "if(lastNormal == 0){ localNormal.x = -dirSign.x; } else\n" +
@@ -145,14 +130,14 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "finalTangent = finalBitangent = vec3(0.0);\n" +
                         "mat3x3 tbn = mat3x3(finalTangent,finalBitangent,finalNormal);\n" +
                         // correct depth
-                        modifyDepth(isInstanced) +
+                        modifyDepth(flags.hasFlag(IS_INSTANCED)) +
                         "vec3 localPos = localStart - halfBounds + dir * dist;\n" +
                         "finalPosition = localTransform * vec4(localPos, 1.0);\n" +
                         // must be used for correct mirror rendering
                         discardByCullingPlane +
                         "vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
                         "gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                        computeMaterialProperties(isInstanced) +
+                        computeMaterialProperties(flags.hasFlag(IS_INSTANCED)) +
                         reflectionPlaneCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +

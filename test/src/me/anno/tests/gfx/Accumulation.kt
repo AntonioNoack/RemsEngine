@@ -1,12 +1,12 @@
 package me.anno.tests.gfx
 
 import me.anno.Engine
-import me.anno.gpu.GFXBase
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Accumulation
+import org.junit.jupiter.api.Assertions
 
 fun main() {
 
@@ -16,8 +16,6 @@ fun main() {
     val buffer = ComputeBuffer(listOf(Attribute("v", AttributeType.UINT32, 1, true)), src.size)
     val tmp = ComputeBuffer(buffer.attributes, buffer.elementCount)
 
-    GFXBase.forceLoadRenderDoc()
-
     HiddenOpenGLContext.createOpenGL()
 
     // store it inside a shader buffer
@@ -26,6 +24,8 @@ fun main() {
     nio.asIntBuffer().put(src)
     nio.position(src.size * 4)
     buffer.ensureBuffer()
+
+    tmp.nioBuffer!!.position(src.size * 4)
     tmp.ensureBuffer()
 
     // accumulate the values
@@ -33,7 +33,9 @@ fun main() {
 
     // read data from buffer
     val data = dstBuffer.readDataI(0L, dst)
-    println("dst: ${data.joinToString()}")
+    for (i in src.indices) {
+        Assertions.assertEquals(((i + 1) * (i + 2)) / 2, data[i])
+    }
 
     Engine.requestShutdown()
 

@@ -7,12 +7,8 @@ import me.anno.gpu.shader.builder.Variable
 
 object TriplanarShader : ECSMeshShader("triplanar") {
 
-    override fun createFragmentVariables(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): ArrayList<Variable> {
-        val list = super.createFragmentVariables(isInstanced, isAnimated, motionVectors)
+    override fun createFragmentVariables(flags: Int): ArrayList<Variable> {
+        val list = super.createFragmentVariables(flags)
         list.add(Variable(GLSLType.V4F, "primaryTiling"))
         list.add(Variable(GLSLType.V1F, "sharpness"))
         list.add(Variable(GLSLType.V1F, "blendPreferY"))
@@ -21,15 +17,11 @@ object TriplanarShader : ECSMeshShader("triplanar") {
         return list
     }
 
-    override fun createFragmentStages(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): List<ShaderStage> {
+    override fun createFragmentStages(flags: Int): List<ShaderStage> {
         return listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(isInstanced, isAnimated, motionVectors),
+                createFragmentVariables(flags),
                 discardByCullingPlane +
                         // step by step define all material properties
                         normalTanBitanCalculation +

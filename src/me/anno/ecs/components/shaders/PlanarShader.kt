@@ -7,28 +7,19 @@ import me.anno.gpu.shader.builder.Variable
 
 object PlanarShader : ECSMeshShader("planar") {
 
-    override fun createFragmentVariables(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): ArrayList<Variable> {
-        val list = super.createFragmentVariables(isInstanced, isAnimated, motionVectors)
+    override fun createFragmentVariables(flags: Int): ArrayList<Variable> {
+        val list = super.createFragmentVariables(flags)
         list.add(Variable(GLSLType.V3F, "tilingU"))
         list.add(Variable(GLSLType.V3F, "tilingV"))
         list.add(Variable(GLSLType.V3F, "tileOffset"))
         return list
     }
 
-    override fun createFragmentStages(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): List<ShaderStage> {
-        super.createFragmentStages(isInstanced, isAnimated, motionVectors)
+    override fun createFragmentStages(flags: Int): List<ShaderStage> {
         return listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(isInstanced, isAnimated, motionVectors)
+                createFragmentVariables(flags)
                     .filter { it.name != "uv" },
                 discardByCullingPlane +
 

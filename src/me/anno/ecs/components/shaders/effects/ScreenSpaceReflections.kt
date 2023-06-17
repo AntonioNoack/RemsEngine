@@ -10,12 +10,13 @@ import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.BaseShader.Companion.NEEDS_COLORS
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -77,7 +78,7 @@ object ScreenSpaceReflections {
             if (shader != null) {
                 val overrides = material.shaderOverrides
                 variables.addAll(overrides.entries.map { Variable(it.value.type, it.key) })
-                val stages = shader.createFragmentStages(isInstanced = false, isAnimated = false, motionVectors = false)
+                val stages = shader.createFragmentStages(NEEDS_COLORS)
                 for (stage in stages) functions.addAll(stage.functions.map { it.body })
                 functions.add("vec4 getSkyColor1(vec3 pos, float roughness){ return vec4(getSkyColor(pos),1.0);\n }")
             } else functions.add(defaultSkyColor)
@@ -335,7 +336,7 @@ object ScreenSpaceReflections {
             shader.v1b("normalZW", normalZW)
             val n = GPUFiltering.TRULY_LINEAR
             val c = Clamping.CLAMP
-            shader.v4f("metallicMask",metallicMask)
+            shader.v4f("metallicMask", metallicMask)
             shader.v4f("roughnessMask", roughnessMask)
             bindDepthToPosition(shader)
             illuminated.bind(shader, "finalIlluminated", n, c)

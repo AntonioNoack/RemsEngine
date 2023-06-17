@@ -294,18 +294,18 @@ class PipelineStage(
             val pos = JomlPools.vec3d.borrow().set(aabb.avgX(), aabb.avgY(), aabb.avgZ())
             val mapBounds = JomlPools.aabbd.borrow()
             val map = if (minVolume.isFinite()) {
-                var candidates: Collection<EnvironmentMap> = pipeline.lightStage.environmentMaps
-                if (minVolume > 1e-308) candidates = candidates.filter {
-                    // only if environment map fills >= 50% of the AABB
-                    val volume = mapBounds
-                        .setMin(-1.0, -1.0, -1.0)
-                        .setMax(+1.0, +1.0, +1.0)
-                        .transform(it.transform!!.globalTransform)
-                        .intersectionVolume(aabb)
-                    volume >= minVolume
-                }
-                candidates.minByOrNull {
-                    it.transform!!.distanceSquaredGlobally(pos)
+                pipeline.lightStage.environmentMaps.minByOrNull {
+                    val isOk = if (minVolume > 1e-308) {
+                        // only if environment map fills >= 50% of the AABB
+                        val volume = mapBounds
+                            .setMin(-1.0, -1.0, -1.0)
+                            .setMax(+1.0, +1.0, +1.0)
+                            .transform(it.transform!!.globalTransform)
+                            .intersectionVolume(aabb)
+                        volume >= minVolume
+                    } else true
+                    if (isOk) it.transform!!.distanceSquaredGlobally(pos)
+                    else Double.POSITIVE_INFINITY
                 }
             } else null
             val bakedSkyBox = (map?.texture ?: pipeline.bakedSkyBox)?.getTexture0() ?: blackCube

@@ -44,25 +44,30 @@ open class BaseShader(
 
     private val flatShader = KeyPairMap<Renderer, Int, Shader>()
     private val deferredShaders = KeyPairMap<DeferredSettingsV2, Int, Shader>()
-    private val depthShader = Array(5) { lazy { createDepthShader(it.hasFlag(1), it.hasFlag(2), it.hasFlag(4)) } }
+    private val depthShader = Array(5) {
+        lazy {
+            createDepthShader(
+                it.hasFlag(1).toInt(IS_INSTANCED) +
+                        it.hasFlag(2).toInt(IS_ANIMATED) +
+                        it.hasFlag(4).toInt(USES_LIMITED_TRANSFORM)
+            )
+        }
+    }
 
     /** shader for rendering the depth, e.g., for pre-depth */
-    open fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, limitedTransform: Boolean): Shader {
+    open fun createDepthShader(flags: Int): Shader {
         if (vertexShader.isBlank2()) throw RuntimeException()
         var vertexShader = vertexShader
-        if (isInstanced) vertexShader = "#define INSTANCED\n$vertexShader"
-        if (isAnimated) vertexShader = "#define ANIMATED\n$vertexShader"
-        if (limitedTransform) vertexShader = "#define LIMITED_TRANSFORM\n$vertexShader"
+        if (flags.hasFlag(IS_INSTANCED)) vertexShader = "#define INSTANCED\n$vertexShader"
+        if (flags.hasFlag(IS_ANIMATED)) vertexShader = "#define ANIMATED\n$vertexShader"
+        if (flags.hasFlag(USES_LIMITED_TRANSFORM)) vertexShader = "#define LIMITED_TRANSFORM\n$vertexShader"
         return Shader(name, vertexVariables, vertexShader, varyings, fragmentVariables, "void main(){}")
     }
 
     /** shader for forward rendering */
     open fun createForwardShader(
+        flags: Int,
         postProcessing: ShaderStage?,
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean,
     ): Shader {
 
         var extraStage: ShaderStage? = null
@@ -85,14 +90,22 @@ open class BaseShader(
         val builder = ShaderBuilder(name)
 
         val vs = ShaderStage(vertexVariables, varyings, true, vertexShader)
-        if (isInstanced) vs.define("INSTANCED")
-        if (isAnimated) vs.define("ANIMATED")
-        if (motionVectors) vs.define("MOTION_VECTORS")
-
         val fs = ShaderStage(fragmentVariables, varyings, false, fragmentShader)
-        if (isInstanced) fs.define("INSTANCED")
-        if (isAnimated) fs.define("ANIMATED")
-        if (motionVectors) fs.define("MOTION_VECTORS")
+
+        if (flags.hasFlag(IS_INSTANCED)) {
+            vs.define("INSTANCED")
+            fs.define("INSTANCED")
+        }
+
+        if (flags.hasFlag(IS_ANIMATED)) {
+            vs.define("ANIMATED")
+            fs.define("ANIMATED")
+        }
+
+        if (flags.hasFlag(NEEDS_MOTION_VECTORS)) {
+            vs.define("MOTION_VECTORS")
+            fs.define("MOTION_VECTORS")
+        }
 
         builder.addVertex(vs)
         builder.addFragment(fs)
@@ -123,18 +136,17 @@ open class BaseShader(
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
                     flatShader.getOrPut(renderer, stateId) { r, stateId2 ->
-                        val shader = createForwardShader(
+                        createForwardShader(
+                            stateId2.hasFlag(1).toInt(IS_INSTANCED) +
+                                    stateId2.hasFlag(2).toInt(IS_ANIMATED) +
+                                    stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
+                                    stateId2.hasFlag(8).toInt(USES_LIMITED_TRANSFORM) +
+                                    NEEDS_COLORS,
                             r.getPostProcessing(),
-                            stateId2.hasFlag(1),
-                            stateId2.hasFlag(2),
-                            stateId2.hasFlag(4),
-                            stateId2.hasFlag(8)
                         )
-                        // LOGGER.info(shader.fragmentSource)
-                        shader
                     }
                 }
-                else -> createDeferredShader(deferred, stateId, renderer.getPostProcessing())
+                else -> createDeferredShaderById(deferred, stateId, renderer.getPostProcessing())
             }
             GFX.check()
             if (shader.use())
@@ -168,15 +180,12 @@ open class BaseShader(
     /** shader for deferred rendering */
     open fun createDeferredShader(
         deferred: DeferredSettingsV2,
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean,
+        flags: Int,
         postProcessing: ShaderStage?,
     ): Shader {
         val shader = deferred.createShader(
             name,
-            isInstanced,
+            flags.hasFlag(IS_INSTANCED),
             vertexVariables,
             vertexShader,
             varyings,
@@ -198,14 +207,19 @@ open class BaseShader(
         GFX.check()
     }
 
-    fun createDeferredShader(settings: DeferredSettingsV2, stateId: Int, postProcessing: ShaderStage?): Shader {
+    private fun createDeferredShaderById(
+        settings: DeferredSettingsV2,
+        stateId: Int,
+        postProcessing: ShaderStage?
+    ): Shader {
         return deferredShaders.getOrPut(settings, stateId) { settings2, stateId2 ->
             this.createDeferredShader(
                 settings2,
-                stateId2.hasFlag(1),
-                stateId2.hasFlag(2),
-                stateId2.hasFlag(4),
-                stateId2.hasFlag(8),
+                stateId2.hasFlag(1).toInt(IS_INSTANCED) +
+                        stateId2.hasFlag(2).toInt(IS_ANIMATED) +
+                        stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
+                        stateId2.hasFlag(8).toInt(USES_LIMITED_TRANSFORM) +
+                        NEEDS_COLORS,
                 postProcessing,
             )
         }
@@ -225,6 +239,16 @@ open class BaseShader(
     }
 
     companion object {
+
+        const val IS_INSTANCED = 1
+        const val IS_ANIMATED = 2
+        const val IS_DEFERRED = 4
+
+        const val NEEDS_COLORS = 8
+        const val NEEDS_MOTION_VECTORS = 16
+
+        const val USES_LIMITED_TRANSFORM = 32
+
         val motionVectors
             get(): Boolean {
                 val renderer = GFXState.currentRenderer

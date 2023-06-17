@@ -46,13 +46,7 @@ object ECSShaderLib {
     )
 
     val clearPbrModelShader = object : ECSMeshShader("clear") {
-        override fun createVertexStages(
-            isInstanced: Boolean,
-            isAnimated: Boolean,
-            colors: Boolean,
-            motionVectors: Boolean,
-            limitedTransform: Boolean
-        ): List<ShaderStage> {
+        override fun createVertexStages(flags: Int): List<ShaderStage> {
             return listOf(
                 ShaderStage(
                     "vertex", listOf(
@@ -75,11 +69,7 @@ object ECSShaderLib {
             )
         }
 
-        override fun createFragmentStages(
-            isInstanced: Boolean,
-            isAnimated: Boolean,
-            motionVectors: Boolean
-        ): List<ShaderStage> {
+        override fun createFragmentStages(flags: Int): List<ShaderStage> {
             return listOf(
                 ShaderStage(
                     "material",

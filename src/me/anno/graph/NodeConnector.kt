@@ -82,7 +82,13 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
             writer.writeBoolean("custom", true)
         }
         writer.writeObjectList(this, "others", others)
-        if (currValue != null) writer.writeSomething(this, "value", currValue, true)
+        if (currValue != null) {
+            try {
+                writer.writeSomething(this, "value", currValue, true)
+            } catch (ignored: RuntimeException) {
+                // may not be serializable
+            }
+        }
     }
 
     override fun readBoolean(name: String, value: Boolean) {

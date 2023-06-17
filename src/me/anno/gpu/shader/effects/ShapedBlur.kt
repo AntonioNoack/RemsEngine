@@ -3,7 +3,6 @@ package me.anno.gpu.shader.effects
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
@@ -12,16 +11,12 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.image.ImageGPUCache
 import me.anno.io.Streams.read0String
 import me.anno.io.Streams.readFloatLE
 import me.anno.io.Streams.readLE16
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.hasFlag
-import me.anno.utils.OS.desktop
-import me.anno.utils.OS.downloads
-import me.anno.utils.OS.pictures
 import me.anno.utils.types.InputStreams.readNBytes2
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -30,8 +25,6 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-// todo create this as an effect, and make the options into an enum-like :)
-// todo move compression into tests (not needed in builds)
 object ShapedBlur {
 
     val fileName = "libHPIFvSA.bin"
@@ -43,21 +36,6 @@ object ShapedBlur {
             if (it != null) map.putAll(loadFilters(it))
         }
         map
-    }
-
-    fun main() {
-        // load the custom shaders from their paper
-        // https://www.graphics.rwth-aachen.de/publication/03312/
-        // and save them in a compact form
-        // apply a shader for testing
-        HiddenOpenGLContext.createOpenGL()
-        val filters = loadFilters(downloads.getChild(fileName).inputStreamSync())
-        val name = "35_5x4"
-        val (shader, stages) = filters[name]!!.value
-        val source = pictures.getChild("blurTest.png")
-        val src = ImageGPUCache[source, false]!!
-        applyFilter(src, shader, stages, false)
-            .write(desktop.getChild("$name.png"))
     }
 
     fun loadFilters(input: InputStream): Map<String, Lazy<Pair<Shader, Int>>> {
@@ -86,7 +64,7 @@ object ShapedBlur {
             val target = if (i.hasFlag(1)) dst1 else dst0
             useFrame(target) {
                 shader.v1i("uPass", i)
-                shader.v2f("duv", scale0 / src.w, scale0 / src.h)
+                shader.v2f("duv", scale0 / src.w, -scale0 / src.h)
                 src.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
                 flat01.draw(shader)
                 src = target.getTextureI(0)

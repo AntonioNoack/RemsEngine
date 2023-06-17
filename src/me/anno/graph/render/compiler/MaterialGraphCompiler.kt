@@ -207,12 +207,8 @@ class MaterialGraphCompiler(
                 }
             }
 
-            override fun createFragmentStages(
-                isInstanced: Boolean,
-                isAnimated: Boolean,
-                motionVectors: Boolean
-            ): List<ShaderStage> {
-                val vars = usedVars + super.createFragmentVariables(isInstanced, isAnimated, motionVectors)
+            override fun createFragmentStages(flags: Int): List<ShaderStage> {
+                val vars = usedVars + super.createFragmentVariables(flags)
                 return listOf(
                     ShaderStage(
                         "calc", vars,

@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase.Companion.addEvent
 
-abstract class FileContentImporter<V> {
+open class FileContentImporter<V> {
 
     enum class SoftLinkMode {
         ASK,
@@ -12,18 +12,19 @@ abstract class FileContentImporter<V> {
         COPY_CONTENT
     }
 
-    abstract fun setName(element: V, name: String)
+    open fun setName(element: V, name: String) {}
 
-    abstract fun import(
+    open fun import(
         parent: V?,
         file: FileReference,
         useSoftLink: SoftLinkMode,
         doSelect: Boolean,
         depth: Int,
         callback: (V) -> Unit
-    )
+    ) {
+    }
 
-    abstract fun createNode(parent: V?): V
+    open fun createNode(parent: V?): V? = null
 
     fun addChildFromFile(
         parent: V?,
@@ -42,7 +43,7 @@ abstract class FileContentImporter<V> {
         callback: (V) -> Unit
     ) {
         if (file.isDirectory) {
-            val directory = createNode(parent)
+            val directory = createNode(parent) ?: return
             setName(directory, file.name)
             if (depth < DefaultConfig["import.depth.max", 3]) {
                 // isn't the import order more important than speed?

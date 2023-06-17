@@ -17,9 +17,7 @@ import me.anno.ui.base.scrolling.ScrollbarY
 import me.anno.ui.style.Style
 import org.joml.Vector2d
 import org.joml.Vector3d
-import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.floor
+import kotlin.math.*
 
 /** basis for simple 2d map controls with zoom-in/out and drag to move */
 abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, ScrollableY {
@@ -103,13 +101,19 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     }
 
     override fun onUpdate() {
+        val dtx = dtTo01(5.0 * deltaTime)
         if (abs(1.0 - targetScale / scale) > 0.01) {
-            scale = mix(scale, targetScale, dtTo01(5.0 * deltaTime))
+            scale = exp(mix(ln(scale), ln(targetScale), dtx))
             invalidateLayout()
         } else if (scale != targetScale) {
             scale = targetScale
             invalidateLayout()
-        } else super.onUpdate()
+        }
+        if (target.distanceSquared(center) > 1e-5) {
+            invalidateLayout()
+        }
+        center.lerp(target, dtx)
+        super.onUpdate()
     }
 
     override fun invalidateLayout() {
@@ -144,15 +148,15 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
-        val oldX = windowToCoordsX(x.toDouble())
-        val oldY = windowToCoordsY(y.toDouble())
+        // zoom in on the mouse pointer
+        val oldInv = 1.0 / targetScale
         val multiplier = Maths.pow(1.05, dy.toDouble())
         targetScale = Maths.clamp(targetScale * multiplier, minScale, maxScale)
-        val newX = windowToCoordsX(x.toDouble())
-        val newY = windowToCoordsY(y.toDouble())
-        // zoom in on the mouse pointer
-        center.add(oldX - newX, oldY - newY)
-        target.add(oldX - newX, oldY - newY)
+        val newInv = 1.0 / targetScale
+        val deltaScale = oldInv - newInv
+        val dxi = (x - centerX) * deltaScale
+        val dyi = (y - centerY) * deltaScale
+        target.add(dxi, dyi)
         invalidateLayout()
     }
 

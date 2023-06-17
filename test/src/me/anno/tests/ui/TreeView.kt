@@ -58,7 +58,7 @@ fun main() {
                 depth: Int,
                 callback: (Element) -> Unit
             ) {
-                TODO("Not yet implemented")
+                throw NotImplementedError()
             }
 
             override fun createNode(parent: Element?): Element {

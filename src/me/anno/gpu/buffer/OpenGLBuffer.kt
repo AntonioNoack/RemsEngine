@@ -71,7 +71,7 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         elementCount = max(elementCount, newLimit / stride)
         nio.position(0)
         nio.limit(elementCount * stride)
-        if (allowResize && newLimit <= locallyAllocated && (keepLarge || (newLimit >= locallyAllocated / 2 - 65536))) {
+        if (allowResize && locallyAllocated > 0 && newLimit <= locallyAllocated && (keepLarge || (newLimit >= locallyAllocated / 2 - 65536))) {
             // just keep the buffer
             glBufferSubData(type, 0, nio)
         } else {
@@ -241,7 +241,6 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         // monkey & stuff is invisible with vaos
         // because VAOs need default values (probably)
 
-        // todo change back to use it constantly, or to be configurable
         // todo this currently crashes the engine, why ever...
         var useVAOs // works on most meshes, but not all :/
             get() = false // Input.isShiftDown

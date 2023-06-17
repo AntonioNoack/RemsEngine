@@ -138,11 +138,7 @@ object SDFComposer {
         val materialCode = buildMaterialCode(tree, materials, uniforms)
 
         val shader = object : SDFShader(tree) {
-            override fun createFragmentStages(
-                isInstanced: Boolean,
-                isAnimated: Boolean,
-                motionVectors: Boolean
-            ): List<ShaderStage> {
+            override fun createFragmentStages(flags: Int): List<ShaderStage> {
                 // instancing is not supported
                 val fragmentVariables =
                     fragmentVariables1 + uniforms.map { (k, v) -> Variable(v.type, k) }
@@ -239,19 +235,10 @@ object SDFComposer {
 
         }
 
-        override fun createDepthShader(
-            isInstanced: Boolean,
-            isAnimated: Boolean,
-            limitedTransform: Boolean
-        ): Shader {
+        override fun createDepthShader(flags: Int): Shader {
             val builder1 = createBuilder()
-            builder1.addVertex(
-                createVertexStages(
-                    isInstanced, isAnimated, colors = false,
-                    motionVectors = false, limitedTransform
-                )
-            )
-            builder1.addFragment(createFragmentStages(isInstanced, isAnimated, motionVectors))
+            builder1.addVertex(createVertexStages(flags))
+            builder1.addFragment(createFragmentStages(flags))
             GFX.check()
             val shader = builder1.create()
             shader.glslVersion = glslVersion

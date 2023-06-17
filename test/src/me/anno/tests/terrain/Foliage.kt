@@ -7,9 +7,6 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.sdf.SDFComposer.sdfConstants
-import me.anno.sdf.modifiers.SDFNoise.Companion.generalNoise
-import me.anno.sdf.modifiers.SDFNoise.Companion.perlinNoise
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.EditorState
@@ -35,6 +32,9 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
 import me.anno.maths.noise.PerlinNoise
+import me.anno.sdf.SDFComposer.sdfConstants
+import me.anno.sdf.modifiers.SDFNoise.Companion.generalNoise
+import me.anno.sdf.modifiers.SDFNoise.Companion.perlinNoise
 import me.anno.studio.StudioBase
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI
@@ -58,32 +58,24 @@ class FoliageShader(
 
     var proceduralBudget = mesh.proceduralLength
 
-    override fun createVertexStages(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        colors: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean
-    ): List<ShaderStage> {
+    override fun createVertexStages(flags: Int): List<ShaderStage> {
         val animFunc = "" +
                 "float sdfVoronoi(vec3,vec2);\n" +
                 "float animCurve(vec2 uv0, float time){\n" +
                 "   return 0.3 * sin((uv0.x+uv0.y)*30.0 + 3.0*time + sdfVoronoi(vec3(uv0*30.0,0.5*time), vec2(2.0, 0.5)));\n" +
                 "}\n"
-        val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
-        val variables =
-            createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform) +
-                    listOf(
-                        Variable(GLSLType.S2D, "terrainTex"),
-                        Variable(GLSLType.S2D, "densityTex"),
-                        Variable(GLSLType.V1F, "camRotY"),
-                        Variable(GLSLType.V2F, "camPosXZ"),
-                        Variable(GLSLType.V1F, "fovQ"),
-                        Variable(GLSLType.V2F, "time"),
-                        Variable(GLSLType.V1F, "index0"),
-                        Variable(GLSLType.V1F, "invMaxDensity"),
-                        Variable(GLSLType.V1F, "temporalStabilityFactor")
-                    )
+        val defines = createDefines(flags)
+        val variables = createVertexVariables(flags) + listOf(
+            Variable(GLSLType.S2D, "terrainTex"),
+            Variable(GLSLType.S2D, "densityTex"),
+            Variable(GLSLType.V1F, "camRotY"),
+            Variable(GLSLType.V2F, "camPosXZ"),
+            Variable(GLSLType.V1F, "fovQ"),
+            Variable(GLSLType.V2F, "time"),
+            Variable(GLSLType.V1F, "index0"),
+            Variable(GLSLType.V1F, "invMaxDensity"),
+            Variable(GLSLType.V1F, "temporalStabilityFactor")
+        )
         return listOf(
             ShaderStage(
                 "vertex",

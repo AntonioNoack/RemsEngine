@@ -12,6 +12,7 @@ import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
 import kotlin.math.max
@@ -98,6 +99,21 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
                 "   }\n" +
                 "};\n"
+
+        val reflectionMapCalculation = "" +
+                "if(){\n" + // todo only in deferred mode, not needed otherwise
+                "   float factor = finalMetallic * (1.0 - finalRoughness);\n" +
+                "   if(factor > 0.0){\n" +
+                "       factor = sqrt(factor);\n" +
+                // todo why do I need to flip x here???
+                "       vec3 dir = vec3(-1,1,1) * reflect(V, finalNormal);\n" +
+                "       vec3 newEmissive = texture(reflectionMap, dir).rgb;\n" +
+                "       finalEmissive  = mix(finalEmissive, newEmissive, factor);\n" +
+                "       finalColor     = mix(finalColor, newColor, factor);\n" +
+                "       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +
+                "       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
+                "   }\n" +
+                "}\n"
 
         val normalMapCalculation = "" +
                 // bitangent: checked, correct transform
@@ -259,36 +275,25 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
     }
 
-    open fun createBase(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        colors: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean,
-        postProcessing: ShaderStage?
-    ): ShaderBuilder {
+    open fun createBase(flags: Int, postProcessing: ShaderStage?): ShaderBuilder {
         val builder = createBuilder()
-        builder.addVertex(createVertexStages(isInstanced, isAnimated, colors, motionVectors, limitedTransform))
+        builder.addVertex(
+            createVertexStages(flags)
+        )
         builder.addVertex(createRandomIdStage())
-        builder.addFragment(createFragmentStages(isInstanced, isAnimated, motionVectors))
+        builder.addFragment(createFragmentStages(flags))
         if (postProcessing != null) builder.addFragment(postProcessing)
         return builder
     }
 
-    open fun createVertexVariables(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        colors: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean,
-    ): ArrayList<Variable> {
+    open fun createVertexVariables(flags: Int): ArrayList<Variable> {
 
         val variables = ArrayList<Variable>(32)
         variables += Variable(GLSLType.V3F, "coords", VariableMode.ATTR)
 
         // uniforms
         variables += Variable(GLSLType.M4x4, "transform")
-        if (colors) {
+        if (flags.hasFlag(NEEDS_COLORS)) {
             variables += Variable(GLSLType.V1I, "hasVertexColors")
         }
 
@@ -297,7 +302,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         variables += Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
         variables += Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
 
-        if (colors) {
+        if (flags.hasFlag(NEEDS_COLORS)) {
             variables += Variable(GLSLType.V2F, "uvs", VariableMode.ATTR)
             variables += Variable(GLSLType.V2F, "uv", VariableMode.OUT)
 
@@ -317,7 +322,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             variables += Variable(GLSLType.V4F, "vertexColor3", VariableMode.OUT)
         }
 
-        if (limitedTransform) {
+        val isInstanced = flags.hasFlag(IS_INSTANCED)
+        val isAnimated = flags.hasFlag(IS_ANIMATED)
+        if (flags.hasFlag(USES_LIMITED_TRANSFORM)) {
             variables += Variable(GLSLType.V4F, "instancePosSize", VariableMode.ATTR)
             variables += Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR)
         } else if (isInstanced) {
@@ -325,7 +332,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             variables += Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR)
             variables += Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR)
             variables += Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR)
-            if (colors) {
+            if (flags.hasFlag(NEEDS_COLORS)) {
                 variables += Variable(GLSLType.V4F, "instanceTint", VariableMode.ATTR)
                 variables += Variable(GLSLType.V4F, "tint", VariableMode.OUT)
             }
@@ -387,30 +394,19 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return variables
     }
 
-    open fun createDefines(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        colors: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean
-    ): String {
+    open fun createDefines(flags: Int): String {
         return "" +
-                (if (isInstanced) "#define INSTANCED\n" else "") +
-                (if (isAnimated) "#define ANIMATED\n" else "") +
-                (if (colors) "#define COLORS\n" else "") +
-                (if (motionVectors) "#define MOTION_VECTORS\n" else "") +
-                (if (limitedTransform) "#define LIMITED_TRANSFORM\n" else "")
+                (if (flags.hasFlag(IS_INSTANCED)) "#define INSTANCED\n" else "") +
+                (if (flags.hasFlag(IS_ANIMATED)) "#define ANIMATED\n" else "") +
+                (if (flags.hasFlag(IS_DEFERRED)) "#define DEFERRED\n" else "") +
+                (if (flags.hasFlag(NEEDS_COLORS)) "#define COLORS\n" else "") +
+                (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) "#define MOTION_VECTORS\n" else "") +
+                (if (flags.hasFlag(USES_LIMITED_TRANSFORM)) "#define LIMITED_TRANSFORM\n" else "")
     }
 
-    open fun createVertexStages(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        colors: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean
-    ): List<ShaderStage> {
-        val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
-        val variables = createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
+    open fun createVertexStages(flags: Int): List<ShaderStage> {
+        val defines = createDefines(flags)
+        val variables = createVertexVariables(flags)
         val stage = ShaderStage(
             "vertex",
             variables, defines +
@@ -429,14 +425,12 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     motionVectorCode +
                     ShaderLib.positionPostProcessing
         )
-        if (isAnimated && useAnimTextures) stage.add(getAnimMatrix)
-        if (limitedTransform) stage.add(quatRot)
+        if (flags.hasFlag(IS_ANIMATED) && useAnimTextures) stage.add(getAnimMatrix)
+        if (flags.hasFlag(USES_LIMITED_TRANSFORM)) stage.add(quatRot)
         return listOf(stage)
     }
 
-    open fun createFragmentVariables(
-        isInstanced: Boolean, isAnimated: Boolean, motionVectors: Boolean
-    ): ArrayList<Variable> {
+    open fun createFragmentVariables(flags: Int): ArrayList<Variable> {
         val list = arrayListOf(
             // input textures
             Variable(GLSLType.S2D, "diffuseMap"),
@@ -487,7 +481,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
             Variable(GLSLType.V2F, "renderSize"),
         )
-        if (motionVectors) {
+        if (flags.hasFlag(NEEDS_MOTION_VECTORS)) {
             list += Variable(GLSLType.V4F, "currPosition")
             list += Variable(GLSLType.V4F, "prevPosition")
             list += Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT)
@@ -496,15 +490,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     }
 
     // just like the gltf pbr shader define all material properties
-    open fun createFragmentStages(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): List<ShaderStage> {
+    open fun createFragmentStages(flags: Int): List<ShaderStage> {
         return listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(isInstanced, isAnimated, motionVectors),
+                createFragmentVariables(flags),
                 discardByCullingPlane +
                         // step by step define all material properties
                         baseColorCalculation +
@@ -514,26 +504,19 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         occlusionCalculation +
                         metallicCalculation +
                         roughnessCalculation +
-                        reflectionPlaneCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
+                        reflectionPlaneCalculation +
+                        // reflectionMapCalculation +
                         (if (motionVectors) finalMotionCalculation else "")
             )
         )
     }
 
-    override fun createDepthShader(isInstanced: Boolean, isAnimated: Boolean, limitedTransform: Boolean): Shader {
+    override fun createDepthShader(flags: Int): Shader {
 
         val builder = createBuilder()
-        builder.addVertex(
-            createVertexStages(
-                isInstanced,
-                isAnimated,
-                colors = false,
-                motionVectors = false,
-                limitedTransform
-            )
-        )
+        builder.addVertex(createVertexStages(flags))
 
         // for the future, we could respect transparency from textures :)
         // base.addFragment(ShaderStage("material", emptyList(), ""))
@@ -546,40 +529,19 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     }
 
-    override fun createForwardShader(
-        postProcessing: ShaderStage?,
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean,
-    ): Shader {
-        val base = createBase(isInstanced, isAnimated, !motionVectors, motionVectors, limitedTransform, postProcessing)
-        val shader = base.create()
+    override fun createForwardShader(flags: Int, postProcessing: ShaderStage?): Shader {
+        val shader = createBase(flags, postProcessing).create()
         finish(shader)
         return shader
     }
 
-    override fun createDeferredShader(
-        deferred: DeferredSettingsV2,
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean,
-        postProcessing: ShaderStage?
-    ): Shader {
-
-        val base = createBase(
-            isInstanced, isAnimated,
-            deferred.layerTypes.size > 1 || !motionVectors,
-            motionVectors, limitedTransform, postProcessing
-        )
+    override fun createDeferredShader(deferred: DeferredSettingsV2, flags: Int, postProcessing: ShaderStage?): Shader {
+        val base = createBase(flags, postProcessing)
         base.outputs = deferred
-
         // build & finish
         val shader = base.create()
         finish(shader)
         return shader
-
     }
 
 }

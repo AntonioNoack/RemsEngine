@@ -19,17 +19,13 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class DecalShader(val layers: ArrayList<DeferredLayerType>) : ECSMeshShader("decal") {
-    override fun createFragmentStages(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): List<ShaderStage> {
-        val sett = sett ?: return super.createFragmentStages(isInstanced, isAnimated, motionVectors)
+    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+        val sett = sett ?: return super.createFragmentStages(flags)
         val loadPart2 = StringBuilder()
         for (layer in sett.layers) {
             layer.appendMapping(loadPart2, "_in2", "_in1", "_in0", "", null, null)
         }
-        val original = super.createFragmentStages(isInstanced, isAnimated, motionVectors)
+        val original = super.createFragmentStages(flags)
         // can a decal modify the depth? it shouldn't ...
         return listOf(
             // inputs
@@ -101,19 +97,8 @@ class DecalShader(val layers: ArrayList<DeferredLayerType>) : ECSMeshShader("dec
         return disabled
     }
 
-    override fun createDeferredShader(
-        deferred: DeferredSettingsV2,
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean,
-        limitedTransform: Boolean,
-        postProcessing: ShaderStage?
-    ): Shader {
-        val base = createBase(
-            isInstanced, isAnimated,
-            deferred.layerTypes.size > 1 || !motionVectors,
-            motionVectors, limitedTransform, postProcessing
-        )
+    override fun createDeferredShader(deferred: DeferredSettingsV2, flags: Int, postProcessing: ShaderStage?): Shader {
+        val base = createBase(flags, postProcessing)
         base.outputs = deferred
         base.disabledLayers = getDisabledLayers()
         // build & finish

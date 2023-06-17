@@ -16,15 +16,11 @@ fun main() {
         diffuseMap = pictures.getChild("Textures/grass.jpg")
         linearFiltering = false
         shader = object : ECSMeshShader("triangular-pixels") {
-            override fun createFragmentStages(
-                isInstanced: Boolean,
-                isAnimated: Boolean,
-                motionVectors: Boolean
-            ): List<ShaderStage> {
+            override fun createFragmentStages(flags: Int): List<ShaderStage> {
                 return listOf(
                     ShaderStage(
                         "material",
-                        createFragmentVariables(isInstanced, isAnimated, motionVectors),
+                        createFragmentVariables(flags),
                         discardByCullingPlane +
                                 // step by step define all material properties
                                 // baseColorCalculation +

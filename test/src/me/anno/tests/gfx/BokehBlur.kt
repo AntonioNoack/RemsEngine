@@ -1,34 +1,20 @@
 package me.anno.tests.gfx
 
-import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.shader.effects.BokehBlur
 import me.anno.image.ImageGPUCache
-import me.anno.input.Input
-import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio
-import me.anno.utils.OS
+import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
+import me.anno.utils.OS.pictures
+import kotlin.math.max
 
 fun main() {
-    TestStudio.testUI3 {
-        // todo test Bokeh blur
-        // val dst = Framebuffer("tmp", 512, 512, 1, 1, false, DepthBufferType.NONE)
-        object : Panel(DefaultConfig.style) {
-            override fun onUpdate() {
-                invalidateDrawing()
-            }
-
-            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                super.onDraw(x0, y0, x1, y1)
-                val src = ImageGPUCache[OS.pictures.getChild("BricksColor.png"), false]!!
-                if (Input.isShiftDown) {
-                    println("yes")
-                    //draw(src, dst, 0.05f, true)
-                    //drawTexture(x, y, w, h, dst.getTexture0())
-                } else {
-                    println("no")
-                    DrawTextures.drawTexture(x, y, w, h, src)
-                }
-            }
-        }
+    testDrawing {
+        val dst = FBStack["bokeh", it.w, it.h, 3, true, 1, false]
+        val src = ImageGPUCache[pictures.getChild("4k.jpg"), false]!!
+        val window = it.window!!
+        DrawTextures.drawTexture(it.x, it.y, it.w, it.h, src) // no idea why that's needed :/
+        BokehBlur.draw(src, dst, 0.1f * max(window.mouseX - it.x, 0f) / it.w, true)
+        DrawTextures.drawTexture(it.x, it.y, it.w, it.h, dst.getTexture0())
     }
 }

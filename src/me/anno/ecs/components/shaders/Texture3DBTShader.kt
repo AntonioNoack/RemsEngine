@@ -10,12 +10,8 @@ import me.anno.gpu.shader.builder.Variable
 @Suppress("unused")
 object Texture3DBTShader : BlockTracedShader("3dTex-rt") {
 
-    override fun createFragmentVariables(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): ArrayList<Variable> {
-        val base = super.createFragmentVariables(isInstanced, isAnimated, motionVectors)
+    override fun createFragmentVariables(flags: Int): ArrayList<Variable> {
+        val base = super.createFragmentVariables(flags)
         base += Variable(GLSLType.S3D, "blocksTexture")
         base += Variable(GLSLType.V3F, "color0")
         base += Variable(GLSLType.V3F, "color1")

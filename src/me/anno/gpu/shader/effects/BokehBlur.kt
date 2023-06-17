@@ -42,8 +42,6 @@ object BokehBlur {
         val w = min(srcTexture.w, target.w)
         val h = min(srcTexture.h, target.h)
 
-        println("$w x $h")
-
         if (compositionShader == null) init()
 
         renderPurely {
@@ -103,7 +101,7 @@ object BokehBlur {
         shader.v2f("stepVal", radius / w, radius / h)
         val radiusI = clamp(radius.roundToInt(), KERNEL_RADIUS, 64)
         shader.v1i("radius", radiusI)
-        shader.v1f("multiplier", sqrt(255f) * KERNEL_RADIUS.toFloat() / radiusI)
+        shader.v1f("multiplier", sqrt(20f) * KERNEL_RADIUS.toFloat() / radiusI)
     }
 
     fun init() {
@@ -137,8 +135,8 @@ object BokehBlur {
                     loop +
                     "       vec2 coords = uv + vec2(stepVal.x*f11,0.0);\n" +
                     "       float imageTexelR = dot(texture(image, coords), channelSelection);\n" +
-                    "       vec4 c0_c1 = getFilters(f01);\n" +
-                    "       sum += imageTexelR * c0_c1;\n" +
+                    "       imageTexelR = imageTexelR * imageTexelR;\n" + // srgb -> linear
+                    "       sum += imageTexelR * getFilters(f01);\n" +
                     "    }\n" +
                     "    gl_FragColor = sum * multiplier;\n" +
                     "}"
@@ -168,10 +166,7 @@ object BokehBlur {
 
                     "void main(){\n" +
 
-                    "   vec4 valR = vec4(0);\n" +
-                    "   vec4 valG = vec4(0);\n" +
-                    "   vec4 valB = vec4(0);\n" +
-                    "   vec4 valA = vec4(0);\n" +
+                    "   vec4 valR = vec4(0), valG = vec4(0),valB = vec4(0), valA = vec4(0);\n" +
 
                     loop +
 
@@ -201,7 +196,7 @@ object BokehBlur {
                     "   float gChannel = dot(valG, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
                     "   float bChannel = dot(valB, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
                     "   float aChannel = dot(valA, vec4(Kernel0Weights_RealX_ImY, Kernel1Weights_RealX_ImY));\n" +
-                    "   gl_FragColor = multiplier * vec4(rChannel, gChannel, bChannel, aChannel);\n" +
+                    "   gl_FragColor = sqrt(max(multiplier * vec4(rChannel, gChannel, bChannel, aChannel), vec4(0.0)));\n" +
 
                     "}"
         ).apply { setTextureIndices("filterTexture", "inputRed", "inputGreen", "inputBlue", "inputAlpha") }

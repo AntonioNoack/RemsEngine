@@ -86,13 +86,8 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             "   return vec4(yuv2rgb(yuv.xyz), yuv.a);\n" +
             "}\n"
 
-    override fun createFragmentStages(
-        isInstanced: Boolean,
-        isAnimated: Boolean,
-        motionVectors: Boolean
-    ): List<ShaderStage> {
-        val vars = createFragmentVariables(isInstanced, isAnimated, motionVectors)
-            .filter { it.name != "uv" }.toMutableList()
+    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+        val vars = createFragmentVariables(flags).filter { it.name != "uv" }.toMutableList()
         vars.add(Variable(GLSLType.V1B, "anisotropic"))
         vars.add(Variable(GLSLType.V3F, "tileOffset"))
         vars.add(Variable(GLSLType.V3F, "tilingU"))

@@ -24,6 +24,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
@@ -241,17 +242,11 @@ class SkyBox : MeshComponentBase() {
 
         open class SkyShader(name: String) : ECSMeshShader(name) {
 
-            override fun createVertexStages(
-                isInstanced: Boolean,
-                isAnimated: Boolean,
-                colors: Boolean,
-                motionVectors: Boolean,
-                limitedTransform: Boolean
-            ): List<ShaderStage> {
-                val defines = if (colors) "#define COLORS\n" else ""
+            override fun createVertexStages(flags: Int): List<ShaderStage> {
+                val defines = if (flags.hasFlag(NEEDS_COLORS)) "#define COLORS\n" else ""
                 return listOf(ShaderStage(
                     "vertex",
-                    createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform),
+                    createVertexVariables(flags),
                     "" +
                             defines +
                             "localPosition = 1e15 * sign(coords);\n" +
@@ -264,11 +259,7 @@ class SkyBox : MeshComponentBase() {
                 ))
             }
 
-            override fun createFragmentStages(
-                isInstanced: Boolean,
-                isAnimated: Boolean,
-                motionVectors: Boolean
-            ): List<ShaderStage> {
+            override fun createFragmentStages(flags: Int): List<ShaderStage> {
 
                 val funcNoise = "" +
                         "float hash(float);\n" +

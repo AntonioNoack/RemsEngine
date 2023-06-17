@@ -195,7 +195,7 @@ class Framebuffer(
             }
         }
 
-        // todo if this fine? might cost a lof ot performance...
+        // todo is this fine? might cost a lof ot performance...
         for (texture in textures) {
             texture.hasMipmap = false
             texture.filtering = GPUFiltering.TRULY_NEAREST

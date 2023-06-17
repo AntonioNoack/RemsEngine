@@ -7,12 +7,6 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
 import me.anno.ecs.components.mesh.*
-import me.anno.sdf.SDFComposer
-import me.anno.sdf.SDFGroup
-import me.anno.sdf.VariableCounter
-import me.anno.sdf.shapes.SDFBox
-import me.anno.sdf.shapes.SDFSphere
-import me.anno.sdf.shapes.SDFTorus
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderState
@@ -22,14 +16,20 @@ import me.anno.gpu.shader.*
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes
+import me.anno.sdf.SDFComposer
+import me.anno.sdf.SDFGroup
+import me.anno.sdf.VariableCounter
+import me.anno.sdf.shapes.SDFBox
+import me.anno.sdf.shapes.SDFSphere
+import me.anno.sdf.shapes.SDFTorus
 import me.anno.utils.OS.documents
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import org.joml.Vector3f
 import kotlin.math.*
 
 fun main() {
@@ -124,21 +124,13 @@ fun main() {
 
                 }
 
-                override fun createVertexStages(
-                    isInstanced: Boolean,
-                    isAnimated: Boolean,
-                    colors: Boolean,
-                    motionVectors: Boolean,
-                    limitedTransform: Boolean
-                ): List<ShaderStage> {
-                    val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
-                    val variables =
-                        createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform) +
-                                listOf(
-                                    Variable(GLSLType.M3x3, "displayTransform"),
-                                    Variable(GLSLType.V2F, "stripePowers"),
-                                    Variable(GLSLType.V2F, "distanceBounds", VariableMode.OUT)
-                                )
+                override fun createVertexStages(flags: Int): List<ShaderStage> {
+                    val defines = createDefines(flags)
+                    val variables = createVertexVariables(flags) + listOf(
+                        Variable(GLSLType.M3x3, "displayTransform"),
+                        Variable(GLSLType.V2F, "stripePowers"),
+                        Variable(GLSLType.V2F, "distanceBounds", VariableMode.OUT)
+                    )
                     val stage = ShaderStage(
                         "vertex",
                         variables, defines +
@@ -152,16 +144,12 @@ fun main() {
                                 "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
                                 ShaderLib.positionPostProcessing
                     )
-                    if (isAnimated && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
-                    if (limitedTransform) stage.add(ShaderLib.quatRot)
+                    if (flags.hasFlag(IS_ANIMATED) && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
+                    if (flags.hasFlag(USES_LIMITED_TRANSFORM)) stage.add(ShaderLib.quatRot)
                     return listOf(stage)
                 }
 
-                override fun createFragmentStages(
-                    isInstanced: Boolean,
-                    isAnimated: Boolean,
-                    motionVectors: Boolean
-                ): List<ShaderStage> {
+                override fun createFragmentStages(flags: Int): List<ShaderStage> {
                     // instancing is not supported
                     val fragmentVariables = SDFComposer.fragmentVariables1 +
                             uniforms.map { (k, v) -> Variable(v.type, k) } +
@@ -286,7 +274,7 @@ fun main() {
         })
         addChild(AmbientLight())
     })
-  scene.add(Entity("Point").apply {
+    scene.add(Entity("Point").apply {
         position = position.set(4.0, 2.0, 0.0)
         scale = scale.set(20.0)
         addChild(PointLight().apply {

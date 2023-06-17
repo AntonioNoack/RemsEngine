@@ -2,7 +2,6 @@ package me.anno.graph
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.types.FlowGraph
-import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -70,6 +69,10 @@ abstract class Node() : PrefabSaveable() {
             return true
         }
         return false
+    }
+
+    fun getOutput(index: Int): Any? {
+        return outputs?.getOrNull(index)?.currValue
     }
 
     fun setOutput(value: Any?, index: Int = 0) {

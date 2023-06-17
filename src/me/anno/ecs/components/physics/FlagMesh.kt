@@ -23,6 +23,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.maths.Maths
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.FullNoise
 import me.anno.utils.structures.maps.LazyMap
@@ -237,22 +238,15 @@ class FlagMesh : MeshComponent() {
         )
 
         val shader = object : ECSMeshShader("cloth") {
-            override fun createVertexStages(
-                isInstanced: Boolean,
-                isAnimated: Boolean,
-                colors: Boolean,
-                motionVectors: Boolean,
-                limitedTransform: Boolean
-            ): List<ShaderStage> {
-                val defines = createDefines(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
-                val variables =
-                    createVertexVariables(isInstanced, isAnimated, colors, motionVectors, limitedTransform)
-                        .filter { it.name != "coords" } + listOf(
-                        Variable(GLSLType.V2F, "duv"),
-                        Variable(GLSLType.V1F, "coordsFract"),
-                        Variable(GLSLType.S2D, "coords0Tex"),
-                        Variable(GLSLType.S2D, "coords1Tex")
-                    )
+            override fun createVertexStages(flags: Int): List<ShaderStage> {
+                val defines = createDefines(flags)
+                val variables = createVertexVariables(flags)
+                    .filter { it.name != "coords" } + listOf(
+                    Variable(GLSLType.V2F, "duv"),
+                    Variable(GLSLType.V1F, "coordsFract"),
+                    Variable(GLSLType.S2D, "coords0Tex"),
+                    Variable(GLSLType.S2D, "coords1Tex")
+                )
                 val stage = ShaderStage(
                     "vertex", variables, defines +
                             "vec3 coords = mix(texture(coords0Tex,uvs).rgb,texture(coords1Tex,uvs).rgb,coordsFract);\n" +
@@ -283,8 +277,8 @@ class FlagMesh : MeshComponent() {
                             motionVectorCode +
                             ShaderLib.positionPostProcessing
                 )
-                if (isAnimated && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
-                if (limitedTransform) stage.add(ShaderLib.quatRot)
+                if (flags.hasFlag(IS_ANIMATED) && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
+                if (flags.hasFlag(USES_LIMITED_TRANSFORM)) stage.add(ShaderLib.quatRot)
                 return listOf(stage)
             }
         }

@@ -181,11 +181,6 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                 if (lineThicknessBold < 0) lineThicknessBold = max(1, sqrt(window.h / 50f).roundToInt())
             }
         }
-        val dtx = min(Engine.deltaTime * 10f, 1f)
-        if (target.distanceSquared(center) > 1e-5) {
-            invalidateLayout()
-        }
-        center.lerp(target, dtx.toDouble())
     }
 
     override fun calculateSize(w: Int, h: Int) {

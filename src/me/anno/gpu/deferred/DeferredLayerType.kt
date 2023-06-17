@@ -92,7 +92,6 @@ open class DeferredLayerType(
             0x77ff77.toVecRGBA(), "PackNormal", "UnpackNormal"
         )
 
-        // todo do we need the tangent? it is calculated from uvs, so maybe for anisotropy...
         // high precision is required for curved metallic objects; otherwise we get banding
         val TANGENT = DeferredLayerType(
             "Tangent", "finalTangent",
