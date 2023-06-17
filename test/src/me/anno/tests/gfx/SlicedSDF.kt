@@ -97,8 +97,8 @@ fun main() {
             val uniforms = HashMap<String, TypeValue>()
             val shapeDependentShader = StringBuilder()
             buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions, ArrayList())
-            val materials = sdfMaterials.map { MaterialCache[it] }
-            val materialCode = SDFComposer.buildMaterialCode(tree, materials, uniforms)
+            // val materials = sdfMaterials.map { MaterialCache[it] }
+            // val materialCode = SDFComposer.buildMaterialCode(tree, materials, uniforms)
             val shader = object : SDFComposer.SDFShader(tree) {
                 override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
                     super.bind(shader, renderer, instanced)
@@ -116,7 +116,7 @@ fun main() {
 
                     val stripePower = totalPower / numStripes
 
-                    val distance = tree.transform!!.globalPosition.distance(RenderState.cameraPosition).toFloat()
+                    // val distance = tree.transform!!.globalPosition.distance(RenderState.cameraPosition).toFloat()
                     shader.v2f("stripePowers", minZ, stripePower)
                     shader.v1i("subSamples", 25)
 
@@ -133,7 +133,7 @@ fun main() {
                     )
                     val stage = ShaderStage(
                         "vertex",
-                        variables, defines +
+                        variables, defines.toString() +
                                 // calculate plane coordinates and z,dz for evaluation
                                 "distanceBounds.x = 0.0;//stripePowers.x * pow(2.0, 1.0 + stripePowers.y * float(gl_InstanceID));\n" +
                                 "distanceBounds.y = 1000.0;//distanceBounds.x * stripePowers.y;\n" +

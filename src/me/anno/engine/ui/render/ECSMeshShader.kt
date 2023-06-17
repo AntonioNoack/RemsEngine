@@ -85,13 +85,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "   float effect = dot(reflectionPlaneNormal,finalNormal) * sqrt((1.0 - finalRoughness) * finalMetallic);\n" +
                 "   float factor = min(effect, 1.0);\n" +
                 "   if(factor > 0.0){\n" +
-                "       vec3 newColor = vec3(0.0);\n" +
                 // todo distance to plane, and fading
                 // todo use normal for pseudo-refractive offset
                 "       vec2 uv7 = gl_FragCoord.xy/renderSize;\n" +
                 "       uv7.y = 1.0-uv7.y;\n" + // flipped on y-axis to save reprogramming of culling
                 "       vec3 specularColor = finalColor;\n" + // could be changed
                 // todo more samples from texture to reduce blocky look
+                "       vec3 newColor = vec3(0.0);\n" +
                 "       vec3 newEmissive = specularColor * textureLod(reflectionPlane, uv7, finalRoughness * 10.0).rgb;\n" +
                 "       finalEmissive  = mix(finalEmissive, newEmissive, factor);\n" +
                 "       finalColor     = mix(finalColor, newColor, factor);\n" +
@@ -101,19 +101,20 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "};\n"
 
         val reflectionMapCalculation = "" +
-                "if(){\n" + // todo only in deferred mode, not needed otherwise
+                "#ifdef DEFERRED\n" +
                 "   float factor = finalMetallic * (1.0 - finalRoughness);\n" +
                 "   if(factor > 0.0){\n" +
                 "       factor = sqrt(factor);\n" +
                 // todo why do I need to flip x here???
-                "       vec3 dir = vec3(-1,1,1) * reflect(V, finalNormal);\n" +
+                "       vec3 dir = vec3(-1,1,1) * reflect(V0, finalNormal);\n" +
+                "       vec3 newColor = vec3(0.0);\n" +
                 "       vec3 newEmissive = texture(reflectionMap, dir).rgb;\n" +
                 "       finalEmissive  = mix(finalEmissive, newEmissive, factor);\n" +
                 "       finalColor     = mix(finalColor, newColor, factor);\n" +
                 "       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +
                 "       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
                 "   }\n" +
-                "}\n"
+                "#endif\n"
 
         val normalMapCalculation = "" +
                 // bitangent: checked, correct transform
@@ -394,22 +395,12 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return variables
     }
 
-    open fun createDefines(flags: Int): String {
-        return "" +
-                (if (flags.hasFlag(IS_INSTANCED)) "#define INSTANCED\n" else "") +
-                (if (flags.hasFlag(IS_ANIMATED)) "#define ANIMATED\n" else "") +
-                (if (flags.hasFlag(IS_DEFERRED)) "#define DEFERRED\n" else "") +
-                (if (flags.hasFlag(NEEDS_COLORS)) "#define COLORS\n" else "") +
-                (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) "#define MOTION_VECTORS\n" else "") +
-                (if (flags.hasFlag(USES_LIMITED_TRANSFORM)) "#define LIMITED_TRANSFORM\n" else "")
-    }
-
     open fun createVertexStages(flags: Int): List<ShaderStage> {
         val defines = createDefines(flags)
         val variables = createVertexVariables(flags)
         val stage = ShaderStage(
             "vertex",
-            variables, defines +
+            variables, defines.toString() +
                     "localPosition = coords;\n" + // is output, so no declaration needed
                     motionVectorInit +
 
@@ -481,6 +472,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.V2F, "clearCoatRoughMetallic"),
             Variable(GLSLType.V2F, "renderSize"),
         )
+        if (flags.hasFlag(IS_DEFERRED)) {
+            list += Variable(GLSLType.SCube, "reflectionMap")
+        }
         if (flags.hasFlag(NEEDS_MOTION_VECTORS)) {
             list += Variable(GLSLType.V4F, "currPosition")
             list += Variable(GLSLType.V4F, "prevPosition")
@@ -491,11 +485,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     // just like the gltf pbr shader define all material properties
     open fun createFragmentStages(flags: Int): List<ShaderStage> {
+        println("flags for fragment stage")
         return listOf(
             ShaderStage(
                 "material",
                 createFragmentVariables(flags),
-                discardByCullingPlane +
+                createDefines(flags).toString() +
+                        discardByCullingPlane +
                         // step by step define all material properties
                         baseColorCalculation +
                         normalTanBitanCalculation +
@@ -507,7 +503,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         v0 + sheenCalculation +
                         clearCoatCalculation +
                         reflectionPlaneCalculation +
-                        // reflectionMapCalculation +
+                        reflectionMapCalculation +
                         (if (motionVectors) finalMotionCalculation else "")
             )
         )
@@ -541,6 +537,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         // build & finish
         val shader = base.create()
         finish(shader)
+        println(shader.vertexSource)
+        println(shader.fragmentSource)
         return shader
     }
 

@@ -44,8 +44,8 @@ class GlassPass : TransparentPass() {
                 1, false
             )
         ) {
-            override fun getPostProcessing(): ShaderStage {
-                val vars = pbrRenderer.getPostProcessing()!!.variables.filter { !it.isOutput }
+            override fun getPostProcessing(flags: Int): ShaderStage {
+                val vars = pbrRenderer.getPostProcessing(flags)!!.variables.filter { !it.isOutput }
                 return ShaderStage(
                     vars, "" +
                             RendererLib.lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight

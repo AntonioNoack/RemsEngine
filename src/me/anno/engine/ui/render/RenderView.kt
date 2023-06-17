@@ -709,8 +709,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         }
                         val result = ScreenSpaceReflections.compute(
                             buffer, illuminated.getTexture0(),
-                            deferred, cameraMatrix, pipeline.skyBox, pipeline.bakedSkyBox?.getTexture0(),
-                            Vector4f(clearColor.x, clearColor.y, clearColor.z, 1f), hdr
+                            deferred, cameraMatrix, hdr
                         )
                         drawTexture(x, y + h - 1, w, -h, result ?: buffer.getTexture0(), true, -1, null)
                         if (result == null) {
@@ -1004,8 +1003,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             // screen space reflections
             val ssReflections = ScreenSpaceReflections.compute(
                 buffer, illuminated.getTexture0(), deferred, cameraMatrix,
-                pipeline.skyBox, pipeline.bakedSkyBox?.getTexture0(),
-                Vector4f(clearColor.x, clearColor.y, clearColor.z, 1f), false
+                false
             ) ?: illuminated.getTexture0()
 
             useFrame(w, h, true, baseSameDepth) {

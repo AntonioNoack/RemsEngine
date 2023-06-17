@@ -79,7 +79,7 @@ class FoliageShader(
         return listOf(
             ShaderStage(
                 "vertex",
-                variables, defines +
+                variables, defines.toString() +
                         "float idXDensity = float(gl_InstanceID) * temporalStabilityFactor + index0;\n" +
                         "int   px0 = int(sqrt(idXDensity/fovQ));\n" +
                         "float pz0 = idXDensity - px0*(px0+1)*fovQ;\n" +

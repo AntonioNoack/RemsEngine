@@ -248,7 +248,7 @@ class FlagMesh : MeshComponent() {
                     Variable(GLSLType.S2D, "coords1Tex")
                 )
                 val stage = ShaderStage(
-                    "vertex", variables, defines +
+                    "vertex", variables, defines.toString() +
                             "vec3 coords = mix(texture(coords0Tex,uvs).rgb,texture(coords1Tex,uvs).rgb,coordsFract);\n" +
                             "localPosition = coords;\n" + // is output, so no declaration needed
                             motionVectorInit +

@@ -10,7 +10,6 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.utils.Color.white4
 
 class SSREffect : ToneMappedEffect() {
 
@@ -34,7 +33,6 @@ class SSREffect : ToneMappedEffect() {
         format: DeferredSettingsV2,
         layers: MutableMap<DeferredLayerType, IFramebuffer>
     ) {
-        val ci = RenderView.currentInstance
         write(
             layers, dstType,
             ScreenSpaceReflections.compute(
@@ -48,11 +46,8 @@ class SSREffect : ToneMappedEffect() {
                 layers[DeferredLayerType.ROUGHNESS]!!.getTexture0(),
                 singleToVector[format.findMapping(DeferredLayerType.ROUGHNESS)!!]!!,
                 layers[DeferredLayerType.HDR_RESULT]!!.getTexture0(),
-                RenderState.cameraMatrix, ci?.pipeline?.skyBox,
-                ci?.pipeline?.bakedSkyBox?.getTexture0(), white4,
-                strength,
-                maskSharpness,
-                wallThickness,
+                RenderState.cameraMatrix, strength,
+                maskSharpness, wallThickness,
                 fineSteps,
                 maxDistance,
                 applyToneMapping

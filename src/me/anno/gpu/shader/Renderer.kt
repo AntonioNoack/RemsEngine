@@ -25,7 +25,7 @@ import org.joml.Vector4f
  * */
 open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? = null) {
 
-    open fun getPostProcessing(): ShaderStage? = null
+    open fun getPostProcessing(flags: Int): ShaderStage? = null
 
     open fun uploadDefaultUniforms(shader: Shader) {}
 
@@ -52,9 +52,9 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
         return cache!!.getOrPut(index.shl(16) + spliceSize) {
             val settings = deferredSettings.split(index, spliceSize)
             object : Renderer("$name/$index/$spliceSize", settings) {
-                override fun getPostProcessing(): ShaderStage? = this@Renderer.getPostProcessing()
+                override fun getPostProcessing(flags: Int): ShaderStage? = this@Renderer.getPostProcessing(flags)
                 override fun uploadDefaultUniforms(shader: Shader) {
-                    this@Renderer.getPostProcessing()
+                    this@Renderer.uploadDefaultUniforms(shader)
                 }
             }
         }

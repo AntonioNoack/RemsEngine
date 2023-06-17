@@ -21,12 +21,12 @@ import kotlin.math.min
 
 object DeferredRenderer : SimpleRenderer(
     "deferred", DeferredSettingsV2(findLayers(), 1, true),
-    colorRenderer.getPostProcessing()!!
+    colorRenderer.getPostProcessing(0)!!
 )
 
 object DeferredRendererMSAA : SimpleRenderer(
     "deferredMSAA", DeferredSettingsV2(findLayers(), min(GFX.maxSamples, 8), true),
-    colorRenderer.getPostProcessing()!!
+    colorRenderer.getPostProcessing(0)!!
 )
 
 // todo while these should be matches to the program running them, the game should decide what it needs where

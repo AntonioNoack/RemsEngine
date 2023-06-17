@@ -145,7 +145,7 @@ fun main() {
 
             val renderer = SimpleRenderer(
                 "deferred", settings,
-                Renderer.colorRenderer.getPostProcessing()!!
+                Renderer.colorRenderer.getPostProcessing(0)!!
             )
 
             override fun onUpdate() {

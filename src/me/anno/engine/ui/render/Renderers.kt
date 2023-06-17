@@ -12,15 +12,20 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.shader.*
+import me.anno.gpu.shader.BaseShader.Companion.IS_DEFERRED
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.SimpleRenderer
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.pooling.JomlPools
@@ -83,7 +88,7 @@ object Renderers {
 
     @JvmField
     val pbrRenderer = object : Renderer("pbr") {
-        override fun getPostProcessing(): ShaderStage {
+        override fun getPostProcessing(flags: Int): ShaderStage? {
             return ShaderStage(
                 "pbr", listOf(
                     // rendering
@@ -133,7 +138,7 @@ object Renderers {
                         "#ifndef SKIP_LIGHTS\n" +
                         lightCode +
                         combineLightCode +
-                        skyMapCode +
+                        (if (flags.hasFlag(IS_DEFERRED)) "" else skyMapCode) +
                         "#endif\n" +
                         "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
                         "   finalResult = vec4(finalColor, finalAlpha);\n"
@@ -188,7 +193,7 @@ object Renderers {
             }
         }
 
-        override fun getPostProcessing(): ShaderStage {
+        override fun getPostProcessing(flags: Int): ShaderStage? {
             return ShaderStage(
                 "previewRenderer", listOf(
                     Variable(GLSLType.V4F, "lightData", previewLights.size),
@@ -244,7 +249,7 @@ object Renderers {
 
     @JvmField
     val simpleNormalRenderer = object : Renderer("simple-color") {
-        override fun getPostProcessing(): ShaderStage {
+        override fun getPostProcessing(flags: Int): ShaderStage {
             return ShaderStage(
                 "uiRenderer",
                 listOf(

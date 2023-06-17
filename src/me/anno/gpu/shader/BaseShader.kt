@@ -19,10 +19,10 @@ import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 
 /**
- * converts a shader with color, normal, tint and such into
- *  a) a clickable / depth-able shader
- *  b) a flat color shader
- *  c) a deferred shader
+ * converts a complex shader into
+ *  a) depth shader
+ *  b) forward shader
+ *  c) deferred shader with flexible targets
  * */
 open class BaseShader(
     val name: String,
@@ -58,9 +58,10 @@ open class BaseShader(
     open fun createDepthShader(flags: Int): Shader {
         if (vertexShader.isBlank2()) throw RuntimeException()
         var vertexShader = vertexShader
-        if (flags.hasFlag(IS_INSTANCED)) vertexShader = "#define INSTANCED\n$vertexShader"
-        if (flags.hasFlag(IS_ANIMATED)) vertexShader = "#define ANIMATED\n$vertexShader"
-        if (flags.hasFlag(USES_LIMITED_TRANSFORM)) vertexShader = "#define LIMITED_TRANSFORM\n$vertexShader"
+        val builder = StringBuilder()
+        createDefines(flags, builder)
+        builder.append(vertexShader)
+        vertexShader = builder.toString()
         return Shader(name, vertexVariables, vertexShader, varyings, fragmentVariables, "void main(){}")
     }
 
@@ -136,17 +137,15 @@ open class BaseShader(
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
                     flatShader.getOrPut(renderer, stateId) { r, stateId2 ->
-                        createForwardShader(
-                            stateId2.hasFlag(1).toInt(IS_INSTANCED) +
-                                    stateId2.hasFlag(2).toInt(IS_ANIMATED) +
-                                    stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
-                                    stateId2.hasFlag(8).toInt(USES_LIMITED_TRANSFORM) +
-                                    NEEDS_COLORS,
-                            r.getPostProcessing(),
-                        )
+                        val flags = stateId2.hasFlag(1).toInt(IS_INSTANCED) +
+                                stateId2.hasFlag(2).toInt(IS_ANIMATED) +
+                                stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
+                                stateId2.hasFlag(8).toInt(USES_LIMITED_TRANSFORM) +
+                                NEEDS_COLORS
+                        createForwardShader(flags, r.getPostProcessing(flags))
                     }
                 }
-                else -> createDeferredShaderById(deferred, stateId, renderer.getPostProcessing())
+                else -> createDeferredShaderById(deferred, stateId, renderer)
             }
             GFX.check()
             if (shader.use())
@@ -210,19 +209,27 @@ open class BaseShader(
     private fun createDeferredShaderById(
         settings: DeferredSettingsV2,
         stateId: Int,
-        postProcessing: ShaderStage?
+        renderer: Renderer
     ): Shader {
         return deferredShaders.getOrPut(settings, stateId) { settings2, stateId2 ->
-            this.createDeferredShader(
-                settings2,
-                stateId2.hasFlag(1).toInt(IS_INSTANCED) +
-                        stateId2.hasFlag(2).toInt(IS_ANIMATED) +
-                        stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
-                        stateId2.hasFlag(8).toInt(USES_LIMITED_TRANSFORM) +
-                        NEEDS_COLORS,
-                postProcessing,
-            )
+            val flags = stateId2.hasFlag(1).toInt(IS_INSTANCED) +
+                    stateId2.hasFlag(2).toInt(IS_ANIMATED) +
+                    stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
+                    stateId2.hasFlag(8).toInt(USES_LIMITED_TRANSFORM) +
+                    NEEDS_COLORS + IS_DEFERRED
+            val postProcessing = renderer.getPostProcessing(flags)
+            createDeferredShader(settings2, flags, postProcessing)
         }
+    }
+
+    open fun createDefines(flags: Int, dst: StringBuilder = StringBuilder()): StringBuilder {
+        if (flags.hasFlag(IS_INSTANCED)) dst.append("#define INSTANCED\n")
+        if (flags.hasFlag(IS_ANIMATED)) dst.append("#define ANIMATED\n")
+        if (flags.hasFlag(IS_DEFERRED)) dst.append("#define DEFERRED\n")
+        if (flags.hasFlag(NEEDS_COLORS)) dst.append("#define COLORS\n")
+        if (flags.hasFlag(NEEDS_MOTION_VECTORS)) dst.append("#define MOTION_VECTORS\n")
+        if (flags.hasFlag(USES_LIMITED_TRANSFORM)) dst.append("#define LIMITED_TRANSFORM\n")
+        return dst
     }
 
     override fun destroy() {

@@ -42,7 +42,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
         return listOf(
             ShaderStage(
                 "vertex",
-                variables, defines +
+                variables, defines.toString() +
                         "localPosition = coords;\n" + // is output, so no declaration needed
                         motionVectorInit +
                         instancedInitCode +

@@ -87,12 +87,6 @@ class SSRNode : RenderSceneNode0(
             this.framebuffer = framebuffer
         }
 
-        val rv = renderView
-        val pipe = rv.pipeline
-        val skyBox = pipe.skyBox
-        val skyCubeMap = pipe.bakedSkyBox?.getTexture0()
-        val skyColor = rv.clearColor
-
         val metallicT = metallic?.tex ?: whiteTexture
         val metallicM = if (metallicT != whiteTexture) singleToVector[metallic!!.mapping]!!
         else metallic?.color?.run { Vector4f(x, 0f, 0f, 0f) } ?: singleToVector["r"]!!
@@ -103,8 +97,8 @@ class SSRNode : RenderSceneNode0(
 
         val result = ScreenSpaceReflections.compute(
             depthT, normalT, normalZW, color, emissive, metallicT, metallicM, roughnessT, roughnessM,
-            illuminated, transform, skyBox, skyCubeMap, skyColor, strength, maskSharpness, wallThickness,
-            fineSteps, maxDistance, applyToneMapping, framebuffer
+            illuminated, transform, strength, maskSharpness, wallThickness, fineSteps, maxDistance, applyToneMapping,
+            framebuffer
         )
         setOutput(Texture(result.getTexture0()), 1)
 
