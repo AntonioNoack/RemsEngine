@@ -52,8 +52,10 @@ class CompositeFloatBufferImage(
         for (channel in channels) {
             for (i in 0 until channel.capacity()) {
                 val v = channel[i]
-                if (v < min) min = v
-                if (v > max) max = v
+                if (v.isFinite()) {
+                    if (v < min) min = v
+                    if (v > max) max = v
+                }
             }
         }
         if (min < 0f || max > 0f) {
@@ -62,6 +64,16 @@ class CompositeFloatBufferImage(
                 for (i in 0 until channel.capacity()) {
                     channel.put(i, channel[i] * div)
                 }
+            }
+        }
+        return this
+    }
+
+    override fun reinhard(): IFloatImage {
+        for (channel in channels) {
+            for (i in 0 until channel.capacity()) {
+                val ci = max(channel[i], 0f)
+                channel.put(i, ci / (1f + ci))
             }
         }
         return this

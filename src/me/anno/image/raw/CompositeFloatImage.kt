@@ -3,6 +3,7 @@ package me.anno.image.raw
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
+import kotlin.math.max
 
 @Suppress("unused")
 class CompositeFloatImage(
@@ -33,8 +34,10 @@ class CompositeFloatImage(
         var max = 0f
         for (channel in channels) {
             for (v in channel) {
-                if (v < min) min = v
-                if (v > max) max = v
+                if (v.isFinite()) {
+                    if (v < min) min = v
+                    if (v > max) max = v
+                }
             }
         }
         if (min < 0f || max > 0f) {
@@ -43,6 +46,16 @@ class CompositeFloatImage(
                 for (i in channel.indices) {
                     channel[i] *= div
                 }
+            }
+        }
+        return this
+    }
+
+    override fun reinhard(): IFloatImage {
+        for (channel in channels) {
+            for (i in channel.indices) {
+                val ci = max(channel[i], 0f)
+                channel[i] = ci / (1f + ci)
             }
         }
         return this

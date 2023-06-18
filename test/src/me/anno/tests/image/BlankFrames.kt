@@ -35,7 +35,7 @@ fun main() {
     VideoCreator.renderVideo(meta.videoWidth, meta.videoHeight, fps, dst, frameCount, fb, { _, callback ->
         thread(name = "frame$frameIndex") {
             val frame = BlankFrameDetector.getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!
-            GFX.addGPUTask("bfd", 1) {
+            GFX.addGPUTask("blank frame detection", 1) {
                 GFXState.useFrame(fb) {
                     val stack = Matrix4fArrayList()
                     stack.scale(meta.videoHeight / meta.videoWidth.toFloat(), -1f, 1f)

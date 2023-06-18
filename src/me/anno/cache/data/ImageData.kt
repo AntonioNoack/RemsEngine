@@ -78,7 +78,12 @@ class ImageData(file: FileReference) : ICacheData {
             texture.create(file.toString(), file.readImage(), true)
             this.texture = texture
         } else {
-            when (Signature.findNameSync(file)) {
+            val cpuImage = ImageCPUCache.getImageWithoutGenerator(file)
+            if (cpuImage != null) {
+                val texture = Texture2D("image-data", cpuImage.width, cpuImage.height, 1)
+                cpuImage.createTexture(texture, sync = true, checkRedundancy = true)
+                this.texture = texture
+            } else when (Signature.findNameSync(file)) {
                 "hdr" -> {
                     val img = HDRImage(file)
                     val w = img.width
@@ -116,7 +121,7 @@ class ImageData(file: FileReference) : ICacheData {
             getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
         }
         frame.waitToLoad()
-        GFX.addGPUTask("ImageData.useFFMPEG($file)", frame.w, frame.h) {
+        GFX.addGPUTask("ImageData.useFFMPEG", frame.w, frame.h) {
             frameToFramebuffer(frame, frame.w, frame.h, this)
         }
     }

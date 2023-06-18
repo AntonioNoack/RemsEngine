@@ -485,14 +485,8 @@ object ShaderLib {
         return Shader(
             "2d${swizzle.ifEmpty { ".rgba" }}", v2Dl, v2D, y2D, listOf(
                 Variable(GLSLType.S2D, "tex"),
-                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-            ), "" +
-                    "void main(){\n" +
-                    "   vec4 color = texture(tex, uv)$swizzle;\n" +
-                    "   finalColor = color.rgb;\n" +
-                    "   finalAlpha = color.a;\n" +
-                    "}"
+                Variable(GLSLType.V4F, "result", VariableMode.OUT),
+            ), "void main(){ result = texture(tex, uv)$swizzle; }"
         )
     }
 

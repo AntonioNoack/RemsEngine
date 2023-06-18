@@ -28,7 +28,7 @@ import me.anno.utils.Color.hex4
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.files.Files.formatFileSize
-import me.anno.utils.types.Floats.fp16ToFP32
+import me.anno.utils.types.Floats.float16ToFloat32
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.InputStreams.skipN
 import org.apache.logging.log4j.LogManager
@@ -403,7 +403,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         val prefix = if (le) "Little Endian" else "Big Endian"
         return when (data.size) {
             1 -> "U: $unsigned\nS: $signed\nB: ${bi.toString(2)}"
-            2 -> "$prefix\nU: $unsigned\nS: $signed\nFP16: ${fp16ToFP32(bi.toInt())}"
+            2 -> "$prefix\nU: $unsigned\nS: $signed\nFP16: ${float16ToFloat32(bi.toInt())}"
             4 -> "$prefix\nU: $unsigned\nS: $signed\nFP32: ${Float.fromBits(bi.toInt())}"
             8 -> "$prefix\nU: $unsigned\nS: $signed\nFP64: ${Double.fromBits(bi.toLong())}"
             else -> "$prefix\nU: $unsigned\nS: $signed"

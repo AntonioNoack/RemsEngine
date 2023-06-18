@@ -61,14 +61,24 @@ class FloatBufferImage(
         var max = 0f
         for (i in 0 until data.capacity()) {
             val v = data[i]
-            if (v < min) min = v
-            if (v > max) max = v
+            if (v.isFinite()) {
+                if (v < min) min = v
+                if (v > max) max = v
+            }
         }
         if (min < 0f || max > 0f) {
             val div = 1f / max(-min, max)
             for (i in 0 until data.capacity()) {
                 data.put(i, data[i] * div)
             }
+        }
+        return this
+    }
+
+    override fun reinhard(): IFloatImage {
+        for (i in 0 until data.capacity()) {
+            val ci = max(data[i], 0f)
+            data.put(i, ci / (1f + ci))
         }
         return this
     }

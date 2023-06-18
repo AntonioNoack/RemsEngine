@@ -22,6 +22,7 @@ import me.anno.image.ImageTransform
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
+import me.anno.utils.Color.toHexColor
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
@@ -42,8 +43,8 @@ import kotlin.concurrent.thread
 @Suppress("unused")
 open class Texture2D(
     val name: String,
-    override var w: Int,
-    override var h: Int,
+    final override var w: Int,
+    final override var h: Int,
     samples: Int
 ) : ICacheData, ITexture2D {
 

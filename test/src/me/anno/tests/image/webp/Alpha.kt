@@ -8,10 +8,8 @@ import me.anno.utils.OS.pictures
 fun main() {
     val src = pictures.getChild("atlas.webp")
     val image = ImageCPUCache[src, false]!!.createIntImage()
-    println(image.data.count { it.a() < 255 })
+    println("alpha-pixels: ${image.data.count { it.a() < 255 }}/${image.data.size}")
     for (file in pictures.getChild("Anime").listChildren()!!) {
-        if (file.lcExtension == "webp") {
-            Signature.findName(file) { println(it) }
-        }
+        Signature.findName(file) { println(it) }
     }
 }

@@ -120,15 +120,19 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         }
 
         fun formatShader(shaderName: String, log: String, s0: String, s1: String): StringBuilder {
-            val warning = StringBuilder( // estimate size to prevent unnecessary allocations
+            val dst = StringBuilder( // estimate size to prevent unnecessary allocations
                 shaderName.length + log.length + 6 + // intro line
                         s0.length + s1.length +
                         (countLines(s0) + countLines(s1)) * 6 // 4 for number, 2 for :+space
             )
-            warning.append(log).append(" by ").append(shaderName).append("\n\n")
-            addText(warning, s0)
-            addText(warning, s1)
-            return warning
+            if (log.isEmpty()) {
+                dst.append(shaderName).append(":\n")
+            } else {
+                dst.append(log).append(" by ").append(shaderName).append("\n\n")
+            }
+            addText(dst, s0)
+            addText(dst, s1)
+            return dst
         }
 
         fun logShader(shaderName: String, vertex: String, fragment: String) {

@@ -41,17 +41,12 @@ class VideoData(
 
     val frames = stream.frames
 
-    /*init {// LayerView was not keeping its resources loaded
-        if("128 per second" in file.name) LOGGER.debug("get video frames $file $w $h $index $bufferLength $fps")
-    }*/
-
     fun getFrame(localIndex: Int, needsToBeCreated: Boolean): GPUFrame? {
         val frame = frames.getOrNull(localIndex)
         return if (!needsToBeCreated || frame?.isCreated == true) frame else null
     }
 
     override fun destroy() {
-        //if("128 per second" in file.name) LOGGER.debug("destroy v frames $file $w $h $index $bufferLength $fps")
         stream.destroy()
     }
 
@@ -59,7 +54,7 @@ class VideoData(
         @JvmStatic
         private val LOGGER = LogManager.getLogger(VideoData::class)
 
-        // crashes once were common
+        // crashes once were common;
         // now that this is fixed,
         // we can use a larger buffer size like 128 instead of 16 frames
         // this is yuv (1 + 1/4 + 1/4 = 1.5) * 2 MB = 3 MB per frame

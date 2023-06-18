@@ -5,6 +5,7 @@ import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths
 import me.anno.utils.pooling.ByteBufferPool
 import java.nio.FloatBuffer
+import kotlin.math.max
 
 class FloatImage(
     width: Int, height: Int, channels: Int,
@@ -80,6 +81,14 @@ class FloatImage(
         }
         if (min < 0f || max > 0f) {
             mul(1f / Maths.max(-min, max))
+        }
+        return this
+    }
+
+    override fun reinhard(): IFloatImage {
+        for (i in data.indices) {
+            val ci = max(data[i], 0f)
+            data[i] = ci / (1f + ci)
         }
         return this
     }

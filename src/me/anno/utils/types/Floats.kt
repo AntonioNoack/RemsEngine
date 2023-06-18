@@ -165,7 +165,8 @@ object Floats {
     }
 
     // by x4u on https://stackoverflow.com/a/6162687/4979303
-    fun fp16ToFP32(bits: Int): Float {
+    // todo also add inverse function
+    fun float16ToFloat32(bits: Int): Float {
         var mant = bits and 0x03ff // 10 bits mantissa
         var exp = bits and 0x7c00 // 5 bits exponent
         if (exp == 0x7c00) exp = 0x3fc00 // NaN/Inf
