@@ -1,6 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.config.DefaultConfig
+import me.anno.input.Input.setClipboardContent
 import me.anno.input.MouseButton
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
@@ -17,6 +18,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.dragging.Draggable
+import me.anno.ui.editor.files.FileExplorer.Companion.copyPathDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.editInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
@@ -26,7 +28,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
-import java.io.IOException
 
 class FileInput(
     title: String, style: Style,
@@ -147,6 +148,7 @@ class FileInput(
                 MenuOption(openInExplorerDesc) { file.openInExplorer() },
                 MenuOption(openInStandardProgramDesc) { file.openInStandardProgram() },
                 MenuOption(editInStandardProgramDesc) { file.editInStandardProgram() },
+                MenuOption(copyPathDesc) { setClipboardContent(file.absolutePath) }
             ) + extraRightClickOptions.map {
                 MenuOption(it.nameDesc) { it.onClick(this, file) }
             })

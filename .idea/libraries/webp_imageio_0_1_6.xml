@@ -1,7 +1,7 @@
 <component name="libraryTable">
   <library name="webp-imageio-0.1.6">
     <CLASSES>
-      <root url="jar://$USER_HOME$/Downloads/lib/java/webp/webp-imageio-0.1.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/webp-imageio-0.1.6.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

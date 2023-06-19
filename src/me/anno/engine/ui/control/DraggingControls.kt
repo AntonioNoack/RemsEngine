@@ -340,7 +340,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 val dir = view.cameraDirection
                 val rx = (x - (this.x + this.w * 0.5)) / h
                 val ry = (y - (this.y + this.h * 0.5)) / h // [-.5,+.5]
-                val rotationAngle = rx * dy - ry * dx
+                val rotationAngle = 0.1f * (rx * dy - ry * dx)
 
                 val targets2 = selectedMovables
                 val targets3 = selectedEntities + targets2

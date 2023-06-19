@@ -1,0 +1,167 @@
+lang.name：日本
+lang.spellcheck: ja-JP
+obj.particles.spawnRate： 新しいオブジェクトの出現数/秒
+obj.particles.spawnRate.desc: 1秒間に何個の新しいオブジェクトが現れるか
+obj.particles: パーティクルシステム
+obj.audio: オーディオトラック
+obj.video： ビデオ
+obj.image: イメージ
+obj.imageSequence: イメージ・シーケンス
+obj.folder： フォルダー
+obj.rectangle: 長方形
+obj.array: シーケンス
+obj.camera: カメラ
+obj.camera.fov: 視野角
+obj.camera.fov.desc: カメラの視野の広さ、角度（度）、垂直方向
+obj.camera.toneMapping: トーンマッピング
+obj.camera.toneMapping.desc: 明るさの大きな違いをsRGBにマップする。
+obj.camera.lut: ルックアップテーブル
+obj.camera.lut.desc: UE4と同様、PhotoshopやGimpで色を自在にコントロールできます。
+obj.camera.resetTransform: トランスフォームをリセットします。
+obj.camera.resetTransform.desc: 誤ってカメラを移動させた場合に使用します。
+obj.text: テキスト
+obj.timer: ストップウォッチ
+obj.force.global: グローバルフォース
+obj.polygon: ポリゴン
+obj.circle: 円形
+obj.effect.morphing: 効果: 歪み
+obj.effect.coloring: 効果: 色付け
+obj.force.global: グローバルフォース
+obj.force.lorentz: ローレンツ力
+obj.force.lorentz.desc: 速度を変えずにパーティクルを回転させる。
+obj.force.lorentz.noisy: ローレンツ力を変化させる。
+obj.force.lorentz.noisy.desc: ランダムで不規則な動作に適しています。
+obj.force.tornado: 竜巻（トルネード
+obj.force.tornado.desc: パーティクルを円形に回転させる
+obj.force.betweenParticleGravity: 重力ギャラクシー
+obj.force.betweenParticleGravity.desc: すべてのパーティクルの間に引き合う力
+obj.force.velocityFriction：空気抵抗
+obj.force.velocityFriction.desc: 粒子が速くなればなるほど減速される
+
+driver.add: ドライバを追加する
+driver.change: ドライバーの種類を変更する
+
+ui.customize.sceneView: シーン
+ui.customize.treeView:ツリービュー
+ui.customize.inspector：プロパティ
+ui.customize.cuttingPanel：カッティングパネル
+ui.customize.timeline： タイムライン
+ui.customize.graphEditor:アニメーション
+ui.customize.fileExplorer: ファイルエクスプローラー
+
+ui.general.close: 閉じる
+ui.general.search: 検索
+ui.general.apply： 適用
+ui.general.removeComponent: コンポーネントの削除
+ui.general.removeComponent.desc: コンポーネントを削除する
+
+ui.timePanel.setEndHere: 終了の設定
+ui.timePanel.setEndHere.desc: プロジェクトの終了をここに設定する
+ui.timePanel.jumpToStart: 始まりにジャンプする
+ui.timePanel.jumpToStart.desc: 時間カーソルを開始位置にセットする
+ui.timePanel.jumpToEnd: 終了にジャンプする
+ui.timePanel.jumpToEnd.desc: 時間カーソルをプロジェクトの終わりに設定する
+
+ui.recentProjects.title：最近のプロジェクト
+ui.recentProjects.title.desc: あなたの最近のプロジェクト
+ui.recentProjects.projectNotFound: %1、パスが見つかりません。
+ui.recentProjects.fileNotFound: ファイルが見つかりません。
+ui.recentProjects.open: プロジェクトを開く
+ui.recentProjects.open.desc: Rem's Studioでプロジェクトを開く
+ui.project.new： 新しいプロジェクト
+ui.project.new.desc: 新しいアイデア、スポット、ビデオのための場所
+ui.createNewProject: プロジェクトを作成する。
+ui.createNewProject.desc: 新しいプロジェクトを作成する
+ui.welcome.quickSettings.title: クイック設定
+ui.input.language.title: 使用言語
+ui.input.enum.menuTitle: %1 を設定する
+ui.settings.gfxQuality: グラフィックの品質
+ui.settings.gfxQuality.desc: エディターがどの程度きれいに描画されるか、きれいなほど遅い
+ui.settings.vSync: VSyncを使用します。
+ui.settings.vSync.desc: 「ティアリング」効果を防ぐ。
+ui.settings.showFPS: FPSを表示する。
+ui.settings.showFPS.desc: 1秒間に何フレーム計算されたかを表示します。
+
+ui.gfxSettings.low： 高速
+ui.gfxSettings.medium: バランスが良い。
+ui.gfxSettings.high： いい感じ
+
+ui.top.config： 設定
+ui.top.project: プロジェクト
+ui.top.select: 選択肢
+ui.top.render: レンダリング
+ui.top.debug: デバッギング
+
+config.warn.needsReset.forMenu： この機能を有効にするには、設定ファイルを削除する必要があります。
+
+ui.sceneView.3dSwitch.desc: カメラの回転を無効にする、回転を維持するにはCtrlを使用する
+ui.sceneView.takeScreenshot.desc: 現在のシーンの写真を撮ります。
+ui.sceneView.savedScreenshot： 画像は%1として保存
+
+ui.graphEditor.interpolation.title: 補間を行う。
+
+ui.sceneTabs.cannotCloseLast: 最後のタブは閉じることができません。
+
+ui.cutting.splitHere： ここで切断
+ui.cutting.splitHere.desc: この位置の要素を半分に分割する。
+ui.objects.addMask: マスクを適用する
+ui.objects.addMask.desc: 様々な効果に使用できるマスクを追加する
+ui.objects.add: 子を追加する
+
+ui.treeView.dragCameraToView: 検査のためにシーンにドラッグする。
+
+ui.input.color.colorSpace: 色の空間
+ui.input.color.colorSpace.desc: どの色がどこにあるか、カラーホイールなど。
+ui.input.color.vis.wheel: カラーホイール
+ui.input.color.vis.circle: カラーサークル
+ui.input.color.vis.box：カラーボックス
+
+ui.loadProject: プロジェクトを読み込む
+ui.newProject.pleaseChooseDir: フォルダを選択してください！
+ui.option.prepend: %1 を挿入する。
+ui.file.invalidName: '%1'は有効なファイル名ではありません、別の名前を付けてください！
+ui.newFolder： フォルダーを作成する
+ui.newFolder.desc: 新しいサブフォルダを作成します。
+ui.newFolder.askName：名前
+ui.newFolder.askName.desc: フォルダの名前を教えてください。
+ui.newComponent: コンポーネントの作成
+ui.newComponent.desc: 新しいフォルダーコンポーネントを作成します。
+ui.newComponent.askName：名前
+ui.newComponent.askName.desc: コンポーネントを何と呼ぶか？
+
+ui.file.openInExplorer: エクスプローラーで開く
+ui.file.openInExplorer: ファイルをデフォルトのファイルエクスプローラーで開く
+obj.text.askLargeImport: テキストには%1文字があります、とにかくインポートしますか？
+ui.inspectHistory: 履歴を検査します。
+ui.history.clickToUndo: クリックして元に戻す
+ui.newProject.defaultName: 新しいプロジェクトです。
+ui.newProject.location：保存場所
+
+ui.closeProgram: 終了 %1?
+
+ui.warn.renderingInProgress: すでにレンダリング中です！
+ui.warn.renderingInProgress.desc: おかしいと思ったら、Rem's Studioを再起動してください。
+
+ui.debug.ramUsage: RAM %1 MiBです。
+
+ui.top.add: 追加
+ui.top.help： ヘルプ
+ui.top.project.settings: 設定
+ui.top.project.save：保存
+ui.top.project.load： ロード
+ui.top.config.settings：セッティング
+ui.top.config.style: 表示スタイル
+ui.top.config.language: 言語
+
+ui.project.folderNotEmpty: フォルダは空ではありません。
+ui.project.invalidFileName: ファイル名が許可されていない
+ui.project.parentMissing: 親フォルダが見つかりません。
+ui.project.rootMissing: ドライブが見つかりませんでした。
+
+ui.file.override: 上書き %1?
+ui.file.override.desc: 古いファイルを取り消し不能に削除/置き換える
+
+ui.welcome.version: バージョン %1。
+ui.welcome.version.desc: このウィンドウで動作しているのはどのバージョンですか？
+
+

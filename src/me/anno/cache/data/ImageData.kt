@@ -92,7 +92,7 @@ class ImageData(file: FileReference) : ICacheData {
                     img.createTexture(texture, sync = false, checkRedundancy = true)
                     this.texture = texture
                 }
-                "dds", "media", "webp" -> useFFMPEG(file)
+                "dds", "media" -> useFFMPEG(file)
                 else -> {
                     val image = ImageCPUCache[file, 50, false]
                     if (image != null) {
@@ -104,9 +104,8 @@ class ImageData(file: FileReference) : ICacheData {
                         when (val fileExtension = file.lcExtension) {
                             // "hdr" -> loadHDR(file)
                             "tga" -> loadTGA(file)
-                            // ImageIO says it can do webp, however it doesn't understand most pics...
+                            // webp wasn't working once upon a time on ImageIO? seems fine now :)
                             // tga was incomplete as well -> we're using our own solution
-                            "webp" -> useFFMPEG(file)
                             else -> tryGetImage0(file, fileExtension)
                         }
                     }
@@ -162,8 +161,7 @@ class ImageData(file: FileReference) : ICacheData {
             texture.rotation = getRotation(file)
             this.texture = texture
         } else {
-            LOGGER.warn("Could not load {}", file)
-            hasFailed = true
+            useFFMPEG(file)
         }
     }
 

@@ -51,8 +51,10 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
     var videoFrameCount = 0
 
     override fun toString(): String {
-        return "FFMPEGMetadata(file: ${file.absolutePath.shorten(200)}, audio: $hasAudio, video: ${
-            if (hasVideo) "[$videoWidth x $videoHeight, $videoFrameCount]" else "null"
+        return "FFMPEGMetadata(file: ${file.absolutePath.shorten(200)}, audio: ${
+            if(hasAudio) "[$audioSampleRate Hz, $audioChannels ch]" else "false"
+        }, video: ${
+            if (hasVideo) "[$videoWidth x $videoHeight, $videoFrameCount]" else "false"
         }, duration: ${duration.formatTime(3)}), channels: $audioChannels"
     }
 
@@ -83,7 +85,8 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
                     loadFFMPEG()
                 }
             }
-            "png", "jpg", "psd", "exr" -> {
+            "png", "jpg", "psd", "exr", "webp" -> {
+                // webp supports video, but if so, FFMPEG doesn't seem to support it -> whatever, use ImageIO :)
                 for (reader in ImageIO.getImageReadersBySuffix(signature1)) {
                     try {
                         file.inputStreamSync().use {

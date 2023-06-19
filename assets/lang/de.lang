@@ -1,7 +1,7 @@
 lang.name: Deutsch
 lang.spellcheck: de-DE
 obj.particles.spawnRate: Neue Objekte / s
-obj.particles.spawnRate.desc: Wieviele neue Objekte je Sekunde erscheinen
+obj.particles.spawnRate.desc: Wie viele neue Objekte je Sekunde erscheinen
 obj.particles: Partikelsystem
 obj.audio: Tonspur
 obj.video: Video
@@ -14,7 +14,7 @@ obj.camera: Kamera
 obj.camera.fov: Sichtfeld
 obj.camera.fov.desc: Wie viel die Kamera sieht, als Winkel in Grad, vertikal
 obj.camera.toneMapping: Tone Mapping
-obj.camera.toneMapping.desc: Bildet rießige Helligkeitsunterschiede auf sRGB ab
+obj.camera.toneMapping.desc: Bildet riesige Helligkeitsunterschiede auf sRGB ab
 obj.camera.lut: Look Up Table
 obj.camera.lut.desc: Wie UE4, für universelle Kontrolle über Farben, via Photoshop or Gimp
 obj.camera.resetTransform: Setze Transformation zurück
@@ -80,13 +80,13 @@ ui.settings.gfxQuality.desc: Wie schön der Editor gerendert wird; schöner ist 
 ui.settings.vSync: Nutze VSync
 ui.settings.vSync.desc: Verhindert den "Tearing"-Effekt
 ui.settings.showFPS: Zeige FPS
-ui.settings.showFPS.desc: Zeigt an, wieviele Bilder pro Sekunde berechnet wurden; eher für Entwickler
+ui.settings.showFPS.desc: Zeigt an, wie viele Bilder pro Sekunde berechnet wurden; eher für Entwickler
 
 ui.gfxSettings.low: Schnell
 ui.gfxSettings.medium: Ausgewogen
 ui.gfxSettings.high: Schön
 
-ui.top.config: Konfig
+ui.top.config: Konfiguration
 ui.top.project: Projekt
 ui.top.select: Auswahl
 ui.top.render: Rendering

@@ -1,0 +1,167 @@
+lang.name: русский
+lang.spellcheck: ru-RU
+obj.particles.spawnRate: Новые объекты / с
+obj.particles.spawnRate.desc: Сколько новых объектов появляется в секунду
+obj.particles: Система частиц
+obj.audio: Аудиодорожка
+obj.video: Видео
+obj.image: Изображение
+obj.imageSequence: Последовательность изображений
+obj.folder: Папка
+obj.rectangle: Прямоугольник
+obj.array: Последовательность
+obj.camera: Камера
+obj.camera.fov: Поле зрения
+obj.camera.fov.desc: Сколько видит камера, как угол в градусах, по вертикали
+obj.camera.toneMapping: Наложение тонов
+obj.camera.toneMapping.desc: Сопоставляет огромные различия в яркости с sRGB
+obj.camera.lut: Таблица просмотра
+obj.camera.lut.desc: Как и в UE4, для универсального управления цветами через Photoshop или Gimp.
+obj.camera.resetTransform: Сброс трансформации
+obj.camera.resetTransform.desc: В случае, если камера была перемещена по ошибке.
+obj.text: Текст
+obj.timer: Секундомер
+obj.force.global: Глобальная сила
+obj.polygon: Многоугольник
+obj.circle: Круг
+obj.effect.morphing: Эффект: Искажение
+obj.effect.coloring: Эффект: Раскрашивание
+obj.force.global: Глобальная сила
+obj.force.lorentz: Сила Лоренца
+obj.force.lorentz.desc: Вращает частицы без изменения их скорости
+obj.force.lorentz.noisy: Изменяющаяся сила Лоренца
+obj.force.lorentz.noisy.desc: Хорошо подходит для случайных, нерегулярных движений
+obj.force.tornado: Торнадо
+obj.force.tornado.desc: Вращает частицы по кругу
+obj.force.betweenParticleGravity: Гравитационная галактика
+obj.force.betweenParticleGravity.desc: Притягательные силы между всеми частицами
+obj.force.velocityFriction: Сопротивление воздуха
+obj.force.velocityFriction.desc: Чем быстрее частица, тем больше она замедляется.
+
+driver.add: Добавить драйвер
+driver.change: Изменить тип драйвера
+
+ui.customize.sceneView: Сцена
+ui.customize.treeView: Вид дерева
+ui.customize.inspector: Свойства
+ui.customize.cuttingPanel: панель резки
+ui.customize.timeline: Временная шкала
+ui.customize.graphEditor: Анимация
+ui.customize.fileExplorer: Проводник файлов
+
+ui.general.close: Закрыть
+ui.general.search: Поиск
+ui.general.apply: Применить
+ui.general.removeComponent: Удалить компонент
+ui.general.removeComponent.desc: Удалить компонент
+
+ui.timePanel.setEndHere: Установить конец
+ui.timePanel.setEndHere.desc: Установить конец этого проекта здесь
+ui.timePanel.jumpToStart: Перейти к началу
+ui.timePanel.jumpToStart.desc: Устанавливает курсор времени на начало
+ui.timePanel.jumpToEnd: Переход к концу
+ui.timePanel.jumpToEnd.desc: Устанавливает курсор времени на конец проекта
+
+ui.recentProjects.title: Последние проекты
+ui.recentProjects.title.desc: Ваши последние проекты
+ui.recentProjects.projectNotFound: %1, путь не найден
+ui.recentProjects.fileNotFound: файл не найден
+ui.recentProjects.open: Открыть проект
+ui.recentProjects.open.desc: Открыть проект в Rem's Studio
+ui.project.new: Новый проект
+ui.project.new.desc: Место для новых идей, роликов или видеороликов
+ui.createNewProject: Создать проект
+ui.createNewProject.desc: Создать новый проект
+ui.welcome.quickSettings.title: Быстрые настройки
+ui.input.language.title: Язык
+ui.input.enum.menuTitle: Установить %1
+ui.settings.gfxQuality: Качество графики
+ui.settings.gfxQuality.desc: Насколько красиво отрисовывается редактор; красивее - медленнее
+ui.settings.vSync: Использовать VSync
+ui.settings.vSync.desc: Предотвращает эффект "разрыва".
+ui.settings.showFPS: показывать FPS
+ui.settings.showFPS.desc: Показывает, сколько кадров в секунду было подсчитано; больше для разработчиков
+
+ui.gfxSettings.low: Быстрый
+ui.gfxSettings.medium: Сбалансированный
+ui.gfxSettings.high: Красивый
+
+ui.top.config: Конфигурация
+ui.top.project: Проект
+ui.top.select: Выбор
+ui.top.render: рендеринг
+ui.top.debug: отладка
+
+config.warn.needsReset.forMenu: Для включения этой функции необходимо удалить файл конфигурации
+
+ui.sceneView.3dSwitch.desc: Отключает поворот камеры; используйте Ctrl для сохранения вращения
+ui.sceneView.takeScreenshot.desc: Сделать снимок текущей сцены
+ui.sceneView.savedScreenshot: Изображение сохранено как %1
+
+ui.graphEditor.interpolation.title: Интерполяция
+
+ui.sceneTabs.cannotCloseLast: Последняя вкладка не может быть закрыта
+
+ui.cutting.splitHere: Разрезать здесь
+ui.cutting.splitHere.desc: Разделить элемент в этой точке на две половины
+ui.objects.addMask: Применить маску
+ui.objects.addMask.desc: Добавляет маску, которая может быть использована для различных эффектов
+ui.objects.add: Добавить дочерний элемент
+
+ui.treeView.dragCameraToView: перетащить на сцену для осмотра
+
+ui.input.color.colorSpace: Цветовое пространство
+ui.input.color.colorSpace.desc: Где какие цвета находятся, например, цветовое колесо
+ui.input.color.vis.wheel: цветовой круг
+ui.input.color.vis.circle: цветовой круг
+ui.input.color.vis.box: цветовая рамка
+
+ui.loadProject: загрузить проект
+ui.newProject.pleaseChooseDir: Пожалуйста, выберите папку!
+ui.option.prepend: Вставить %1
+ui.file.invalidName: '%1' не является допустимым именем файла, назовите его по-другому!
+ui.newFolder: Создать папку
+ui.newFolder.desc: Создать новую вложенную папку
+ui.newFolder.askName: имя
+ui.newFolder.askName.desc: Как должна называться папка?
+ui.newComponent: Создать компонент
+ui.newComponent.desc: Создать новый компонент папки
+ui.newComponent.askName: Имя
+ui.newComponent.askName.desc: Как должен называться компонент?
+
+ui.file.openInExplorer: Открыть в Проводнике
+ui.file.openInExplorer: Открыть файл в проводнике по умолчанию
+obj.text.askLargeImport: Текст имеет %1 символ, импортировать в любом случае?
+ui.inspectHistory: Просмотреть историю
+ui.history.clickToUndo: Нажмите, чтобы отменить действие.
+ui.newProject.defaultName: Новый проект
+ui.newProject.location: Место хранения
+
+ui.closeProgram: Выйти из %1?
+
+ui.warn.renderingInProgress: Уже идет рендеринг!
+ui.warn.renderingInProgress.desc: Если вы считаете, что это неправильно, перезапустите Rem's Studio.
+
+ui.debug.ramUsage: RAM %1 MiB
+
+ui.top.add: Добавить
+ui.top.help: Помощь
+ui.top.project.settings: настройки
+ui.top.project.save: Сохранить
+ui.top.project.load: Загрузить
+ui.top.config.settings: настройки
+ui.top.config.style: стиль отображения
+ui.top.config.language: язык
+
+ui.project.folderNotEmpty: папка не пуста
+ui.project.invalidFileName: имя файла недопустимо
+ui.project.parentMissing: родительская папка не найдена
+ui.project.rootMissing: диск не найден
+
+ui.file.override: перезаписать %1?
+ui.file.override.desc: безвозвратно удаляет/заменяет старый файл
+
+ui.welcome.version: Версия %1
+ui.welcome.version.desc: Какая версия запущена в этом окне?
+
+

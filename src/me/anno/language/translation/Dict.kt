@@ -58,7 +58,12 @@ object Dict {
 
     fun getOptions(): List<LanguageOption> {
         val options = ArrayList<LanguageOption>()
-        val internalFiles = listOf("en.lang", "es.lang", "fr.lang", "de.lang", "zh.lang")
+        val internalFiles = listOf(
+            "en.lang", "es.lang", "de.lang", "fr.lang", "it.lang",
+            "zh.lang", "ja.lang",
+            "el.lang",
+            "uk.lang", "ru.lang"
+        )
         for (it in internalFiles) {
             try {
                 val data = getReference("res://lang/$it").readTextSync()

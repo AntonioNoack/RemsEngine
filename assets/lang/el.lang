@@ -1,0 +1,167 @@
+lang.name: Ελληνικά
+lang.spellcheck: el-GR
+obj.particles.spawnRate: Νέα αντικείμενα/α
+obj.particles.spawnRate.desc: Πόσα νέα αντικείμενα εμφανίζονται ανά δευτερόλεπτο
+obj.particles: Σύστημα σωματιδίων
+obj.audio: Κομμάτι ήχου
+obj.video: βίντεο
+obj.image: Εικόνα
+obj.imageSequence: Ακολουθία εικόνας
+obj.folder: Ντοσιέ
+obj.rectangle: Ορθογώνιο
+obj.array: Ακολουθία
+obj.camera: Κάμερα
+obj.camera.fov: Πεδίο θέασης
+obj.camera.fov.desc: Πόσο βλέπει η κάμερα, ως γωνία σε μοίρες, κάθετη
+obj.camera.toneMapping: Χαρτογράφηση τόνων
+obj.camera.toneMapping.desc: Χαρτογραφεί τεράστιες διαφορές στη φωτεινότητα σε sRGB
+obj.camera.lut: Πίνακας αναζήτησης
+obj.camera.lut.desc: Όπως το UE4, για καθολικό έλεγχο των χρωμάτων, μέσω του Photoshop ή του Gimp
+obj.camera.resetTransform: Επαναφορά του μετασχηματισμού
+obj.camera.resetTransform.desc: Σε περίπτωση που η κάμερα μετακινήθηκε κατά λάθος
+obj.text: Κείμενο
+obj.timer: Χρονόμετρο
+obj.force.global: Παγκόσμια δύναμη
+obj.polygon: Πολύγωνο
+obj.circle: Κύκλος
+obj.effect.morphing: Επίδραση: Παραμόρφωση
+obj.effect.coloring: Επίδραση: Χρωματισμός
+obj.force.global: Παγκόσμια δύναμη
+obj.force.lorentz: Δύναμη Lorentz
+obj.force.lorentz.desc: Περιστρέφει σωματίδια χωρίς να αλλάζει η ταχύτητά τους
+obj.force.lorentz.noisy: Μεταβαλλόμενη δύναμη Lorentz
+obj.force.lorentz.noisy.desc: Καλή για τυχαίες, ακανόνιστες κινήσεις
+obj.force.tornado: Ανεμοστρόβιλος
+obj.force.tornado.desc: Περιστρέφει σωματίδια σε κύκλο
+obj.force.betweenParticleGravity: Γαλαξίας βαρύτητας
+obj.force.betweenParticleGravity.desc: Ελκτικές δυνάμεις μεταξύ όλων των σωματιδίων
+obj.force.velocityFriction: Αντίσταση του αέρα
+obj.force.velocityFriction.desc: Όσο πιο γρήγορα είναι ένα σωματίδιο, τόσο περισσότερο επιβραδύνεται
+
+driver.add: Προσθήκη οδηγού
+driver.change: Αλλαγή τύπου οδηγού
+
+ui.customize.sceneView: Σκηνή
+ui.customize.treeView: Προβολή δέντρου
+ui.customize.inspector: Ιδιότητες
+ui.customize.cuttingPanel: Πίνακας κοπής
+ui.customize.timeline: Χρονοδιάγραμμα
+ui.customize.graphEditor: Κινήσεις
+ui.customize.fileExplorer: Εξερεύνηση αρχείων
+
+ui.general.close: Κλείσιμο
+ui.general.search: Αναζήτηση
+ui.general.apply: Εφαρμόστε αλλαγές
+ui.general.removeComponent: Αφαίρεση στοιχείου
+ui.general.removeComponent.desc: Διαγραφή του στοιχείου
+
+ui.timePanel.setEndHere: Ορισμός τέλους
+ui.timePanel.setEndHere.desc: Ορισμός του τέλους αυτού του έργου εδώ
+ui.timePanel.jumpToStart: Μετάβαση στην αρχή
+ui.timePanel.jumpToStart.desc: Ορίζει τον δρομέα χρόνου στην αρχή
+ui.timePanel.jumpToEnd: Μετάβαση στο τέλος
+ui.timePanel.jumpToEnd.desc: Ορίζει τον δρομέα χρόνου στο τέλος του έργου.
+
+ui.recentProjects.title: Πρόσφατα έργα
+ui.recentProjects.title.desc: Τα πρόσφατα έργα σας
+ui.recentProjects.projectNotFound: %1, η διαδρομή δεν βρέθηκε
+ui.recentProjects.fileNotFound: το αρχείο δεν βρέθηκε
+ui.recentProjects.open: Άνοιγμα έργου
+ui.recentProjects.open.desc: Άνοιγμα έργου στο Rem's Studio
+ui.project.new: Νέο έργο
+ui.project.new.desc: Χώρος για νέες ιδέες, σποτ ή βίντεο
+ui.createNewProject: Δημιουργία έργου
+ui.createNewProject.desc: Δημιουργία νέου έργου
+ui.welcome.quickSettings.title: Γρήγορες ρυθμίσεις
+ui.input.language.title: Γλώσσα
+ui.input.enum.menuTitle: Ορισμός %1
+ui.settings.gfxQuality: Ποιότητα γραφικών
+ui.settings.gfxQuality.desc: Πόσο όμορφα αποδίδεται ο επεξεργαστής- το καλύτερο είναι πιο αργό.
+ui.settings.vSync: Χρήση VSync
+ui.settings.vSync.desc: Αποτρέπει το φαινόμενο του "σχισίματος".
+ui.settings.showFPS: Εμφάνιση FPS
+ui.settings.showFPS.desc: Εμφανίζει πόσα καρέ ανά δευτερόλεπτο υπολογίστηκαν- περισσότερο για τους προγραμματιστές
+
+ui.gfxSettings.low: Γρήγορη
+ui.gfxSettings.medium: Ισορροπημένο
+ui.gfxSettings.high: Nice
+
+ui.top.config: Διαμόρφωση
+ui.top.project: Έργο
+ui.top.select: Επιλογή
+ui.top.render: απόδοση
+ui.top.debug: αποσφαλμάτωση
+
+config.warn.needsReset.forMenu: Το αρχείο ρυθμίσεων πρέπει να διαγραφεί για να ενεργοποιηθεί αυτή η λειτουργία
+
+ui.sceneView.3dSwitch.desc: Απενεργοποιεί την περιστροφή της κάμερας- χρησιμοποιήστε το Ctrl για να διατηρήσετε την περιστροφή
+ui.sceneView.takeScreenshot.desc: Λήψη φωτογραφίας της τρέχουσας σκηνής
+ui.sceneView.savedScreenshot: Η εικόνα αποθηκεύτηκε ως %1
+
+ui.graphEditor.interpolation.title: Παρεμβολή
+
+ui.sceneTabs.cannotCloseLast: Η τελευταία καρτέλα δεν μπορεί να κλείσει
+
+ui.cutting.splitHere: Κοπή εδώ
+ui.cutting.splitHere.desc: Διαχωρισμός του στοιχείου σε αυτό το σημείο σε δύο μισά
+ui.objects.addMask: Εφαρμογή μάσκας
+ui.objects.addMask.desc: Προσθέτει μια μάσκα που μπορεί να χρησιμοποιηθεί για διάφορα εφέ
+ui.objects.add: Προσθήκη παιδιού
+
+ui.treeView.dragCameraToView: Σύρετε στη σκηνή για επιθεώρηση.
+
+ui.input.color.colorSpace: Χρωματικός χώρος
+ui.input.color.colorSpace.desc: Πού βρίσκονται τα χρώματα, π.χ. χρωματικός κύκλος
+ui.input.color.vis.wheel: Τροχός χρωμάτων
+ui.input.color.vis.circle: κύκλος χρώματος
+ui.input.color.vis.box: πλαίσιο χρώματος
+
+ui.loadProject: Φόρτωση έργου
+ui.newProject.pleaseChooseDir: Παρακαλώ επιλέξτε ένα φάκελο!
+ui.option.prepend: Εισαγωγή %1
+ui.file.invalidName: Το '%1' δεν είναι έγκυρο όνομα αρχείου, ονομάστε το διαφορετικά!
+ui.newFolder: Δημιουργία φακέλου
+ui.newFolder.desc: Δημιουργία νέου υποφακέλου
+ui.newFolder.askName: όνομα
+ui.newFolder.askName.desc: Πώς πρέπει να ονομάζεται ο φάκελος;
+ui.newComponent: Δημιουργία στοιχείου
+ui.newComponent.desc: Δημιουργία νέου συστατικού φακέλου
+ui.newComponent.askName: Όνομα
+ui.newComponent.askName.desc: Πώς πρέπει να ονομάζεται το στοιχείο;
+
+ui.file.openInExplorer: Άνοιγμα στην Εξερεύνηση
+ui.file.openInExplorer: Άνοιγμα του αρχείου στον προεπιλεγμένο εξερευνητή αρχείων
+obj.text.askLargeImport: Το κείμενο έχει %1 χαρακτήρες, να εισαχθεί ούτως ή άλλως;
+ui.inspectHistory: Επιθεώρηση του ιστορικού
+ui.history.clickToUndo: Κάντε κλικ για αναίρεση
+ui.newProject.defaultName: Νέο έργο
+ui.newProject.location: Θέση αποθήκευσης
+
+ui.closeProgram: Εξοδος %1?
+
+ui.warn.renderingInProgress: Ήδη εκτελείται η απόδοση!
+ui.warn.renderingInProgress.desc: Αν νομίζετε ότι αυτό είναι λάθος, επανεκκινήστε το Rem's Studio.
+
+ui.debug.ramUsage: RAM %1 MiB
+
+ui.top.add: Προσθήκη
+ui.top.help: Βοήθεια
+ui.top.project.settings: Ρυθμίσεις
+ui.top.project.save: Αποθήκευση
+ui.top.project.load: load
+ui.top.config.settings: ρυθμίσεις
+ui.top.config.style: στυλ εμφάνισης
+ui.top.config.language: γλώσσα
+
+ui.project.folderNotEmpty: ο φάκελος δεν είναι άδειος
+ui.project.invalidFileName: το όνομα του αρχείου δεν επιτρέπεται
+ui.project.parentMissing: ο φάκελος γονέα δεν βρέθηκε
+ui.project.rootMissing: η μονάδα δίσκου δεν βρέθηκε
+
+ui.file.override: αντικατάσταση %1?
+ui.file.override.desc: Διαγράφει/αντικαθιστά το παλιό αρχείο αμετάκλητα
+
+ui.welcome.version: Έκδοση %1
+ui.welcome.version.desc: Ποια έκδοση εκτελείται σε αυτό το παράθυρο
+
+

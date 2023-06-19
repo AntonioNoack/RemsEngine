@@ -5,15 +5,13 @@ import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS
 import org.joml.Vector3d
 
 fun main() {
 
-    // todo rendering in deferred mode must use them as well
-    // todo rename EnvironmentMap to ReflectionMap or ReflectionCubemap?
+    // rename EnvironmentMap to ReflectionMap or ReflectionCubemap?
 
     // test environment map
     ECSRegistry.init()
@@ -29,7 +27,6 @@ fun main() {
     })
     scene.add(MeshComponent(OS.documents.getChild("metal-roughness.glb")))
     scene.add(SkyBox())
-    testSceneWithUI(scene) {
-        it.renderer.renderMode = RenderMode.FORCE_NON_DEFERRED
-    }
+    testSceneWithUI(scene)
+
 }
