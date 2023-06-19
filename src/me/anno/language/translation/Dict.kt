@@ -10,6 +10,7 @@ import me.anno.ui.style.Style
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream
+import java.util.*
 
 object Dict {
 
@@ -96,9 +97,14 @@ object Dict {
 
     fun getDefaultOption(): LanguageOption {
         val options = getOptions()
-        val currentLanguagePath = DefaultConfig["ui.language", "internal/en.lang"]
+        val userLanguage = Locale.getDefault().language
+        val userLanguagePath = "res://lang/$userLanguage.lang"
+        val userLanguageIsSupported = getReference(userLanguagePath).exists
+        val defaultLang0 = "res://lang/en.lang"
+        val defaultLang = if (userLanguageIsSupported) userLanguagePath else defaultLang0
+        val currentLanguagePath = DefaultConfig["ui.language", defaultLang]
         return options.firstOrNull { it.path == currentLanguagePath }
-            ?: options.firstOrNull { it.path == "internal/en.lang" } ?: options.first()
+            ?: options.firstOrNull { it.path == defaultLang0 } ?: options.first()
     }
 
     fun loadDefault() {
