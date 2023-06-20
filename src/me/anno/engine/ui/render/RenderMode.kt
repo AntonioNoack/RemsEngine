@@ -37,7 +37,7 @@ class RenderMode(
 
         val DEFAULT = RenderMode("Default")
         val WITHOUT_POST_PROCESSING = RenderMode("Without Post-Processing")
-        val CLICK_IDS = RenderMode("ClickIds", RandomEffect)
+        val CLICK_IDS = RenderMode("ClickIds (Random)", RandomEffect)
         val DEPTH = RenderMode("Depth")
         val NO_DEPTH = RenderMode("No Depth")
         val FORCE_DEFERRED = RenderMode("Force Deferred")

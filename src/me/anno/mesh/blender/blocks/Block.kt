@@ -20,4 +20,8 @@ class Block(val header: BlockHeader, val positionInFile: Int) {
         return (address - header.address) in 0 until header.size
     }
 
+    override fun toString(): String {
+        return "Block@${positionInFile.toString(16)}"
+    }
+
 }

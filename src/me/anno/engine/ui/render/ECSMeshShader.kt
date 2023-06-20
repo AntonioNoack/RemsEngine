@@ -77,6 +77,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "   finalRoughness = mix(finalRoughness, finalClearCoatRoughMetallic.x, clearCoatEffect);\n" +
                 "   finalMetallic = mix(finalMetallic, finalClearCoatRoughMetallic.y, clearCoatEffect);\n" +
                 "   finalColor = mix(finalColor, finalClearCoat.rgb, clearCoatEffect);\n" +
+                "   finalAlpha = mix(finalAlpha, 1.0, clearCoatEffect);\n" +
                 "}\n"
 
         val reflectionPlaneCalculation = "" +
@@ -485,7 +486,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     // just like the gltf pbr shader define all material properties
     open fun createFragmentStages(flags: Int): List<ShaderStage> {
-        println("flags for fragment stage")
         return listOf(
             ShaderStage(
                 "material",
@@ -537,8 +537,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         // build & finish
         val shader = base.create()
         finish(shader)
-        println(shader.vertexSource)
-        println(shader.fragmentSource)
         return shader
     }
 

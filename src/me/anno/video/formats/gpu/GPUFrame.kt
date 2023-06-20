@@ -1,8 +1,12 @@
 package me.anno.video.formats.gpu
 
 import me.anno.cache.ICacheData
+import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -110,6 +114,26 @@ abstract class GPUFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
             data[i] = buffer[i]
         }
         image.write(file)
+    }
+
+    fun toTexture(): Texture2D {
+        GFX.checkIsGFXThread()
+        val tmp = Framebuffer("webp-temp", w, h, 1, 1, false, DepthBufferType.NONE)
+        lateinit var tex: Texture2D
+        GFXState.useFrame(tmp, Renderer.copyRenderer) {
+            GFXState.renderPurely {
+                val shader = get2DShader()
+                shader.use()
+                bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+                bindUVCorrection(shader)
+                GFX.flat01.draw(shader)
+                GFX.check()
+                tex = tmp.textures[0]
+            }
+        }
+        GFX.check()
+        tmp.destroyExceptTextures(false)
+        return tex
     }
 
     companion object {

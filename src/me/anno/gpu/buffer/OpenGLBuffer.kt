@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
@@ -241,12 +242,9 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         // monkey & stuff is invisible with vaos
         // because VAOs need default values (probably)
 
-        // todo this currently crashes the engine, why ever...
-        var useVAOs // works on most meshes, but not all :/
-            get() = false // Input.isShiftDown
-            set(_) {}
-
-        var renewVAOs = true
+        // todo working? looks like it
+        val useVAOs get() = false
+        val renewVAOs get() = true
 
         private var boundVAO = -1
         fun bindVAO(vao: Int) {

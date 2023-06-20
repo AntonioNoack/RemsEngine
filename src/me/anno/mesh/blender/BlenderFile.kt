@@ -198,6 +198,7 @@ class BlenderFile(val file: BinaryFile) {
     }
 
     fun create(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
+        if (address == 0L) return null
         val position = (address + block.dataOffset).toInt()
         val data = file.data
         return when (clazz) {

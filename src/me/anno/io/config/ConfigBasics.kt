@@ -20,7 +20,7 @@ object ConfigBasics {
     val cacheFolder get() = getReference(OS.home, ".cache/$projectName")
 
     fun getConfigFile(localFileName: String): FileReference {
-        return getReference(configFolder, localFileName)
+        return configFolder.getChild(localFileName)
     }
 
     fun save(file: FileReference, data: String): String {

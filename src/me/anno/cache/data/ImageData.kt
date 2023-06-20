@@ -48,24 +48,6 @@ class ImageData(file: FileReference) : ICacheData {
             // JPG, TIFF, PNG, JP2, PGF, MIFF, HDP, PSP and XC, AVI and MOV
             return findRotation(src)
         }
-
-        @JvmStatic
-        fun frameToFramebuffer(frame: GPUFrame, w: Int, h: Int, result: ImageData) {
-            val tmp = Framebuffer("webp-temp", w, h, 1, 1, false, DepthBufferType.NONE)
-            useFrame(tmp, copyRenderer) {
-                renderPurely {
-                    val shader = frame.get2DShader()
-                    shader.use()
-                    frame.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
-                    frame.bindUVCorrection(shader)
-                    GFX.flat01.draw(shader)
-                    GFX.check()
-                    result.texture = tmp.textures[0]
-                }
-            }
-            GFX.check()
-            tmp.destroyExceptTextures(false)
-        }
     }
 
     var texture: Texture2D? = null
@@ -121,7 +103,7 @@ class ImageData(file: FileReference) : ICacheData {
         }
         frame.waitToLoad()
         GFX.addGPUTask("ImageData.useFFMPEG", frame.w, frame.h) {
-            frameToFramebuffer(frame, frame.w, frame.h, this)
+            texture = frame.toTexture()
         }
     }
 

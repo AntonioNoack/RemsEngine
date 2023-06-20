@@ -741,12 +741,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         val hasBones = hasBones
         hasBonesInBuffer = hasBones
 
-        // todo missing attributes cause issues
-        // todo probably because the VAO state doesn't have information about color and such, and grabs null
-        // we could update all shaders to only use the given subset of attributes,
-        // but that would cause all shaders to require to know about the mesh,
-        // and currently that makes things messy...
-        // todo instead, we could allocate large buffers with default values for those... might be better...
         val hasColor0 = color0 != null && color0.isNotEmpty()
         val hasColor1 = color1 != null && color1.isNotEmpty()
         val hasColor2 = color2 != null && color2.isNotEmpty()
@@ -762,6 +756,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         attributes += if (hasHighPrecisionNormals) {
             Attribute("normals", AttributeType.FLOAT, 3)
         } else {
+            // todo normals could be oct-encoded
             Attribute("normals", AttributeType.SINT8_NORM, 4)
         }
 

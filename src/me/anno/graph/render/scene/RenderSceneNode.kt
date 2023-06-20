@@ -4,6 +4,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Texture2D
@@ -110,7 +112,11 @@ class RenderSceneNode : RenderSceneNode0(
             setOutput(Texture(tex, layer.mapping, layer.type), i)
         }
 
-        val tex = framebuffer.depthTexture!!
+        // get depth texture, and use it
+        val buf0 = (framebuffer as? Framebuffer)?.ssBuffer
+        val buf1 = (framebuffer as? MultiFramebuffer)?.targetsI?.first()?.ssBuffer
+        val buf2 = buf0 ?: buf1 ?: framebuffer
+        val tex = buf2.depthTexture!!
         val i = DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH) + 1
         setOutput(Texture(tex, "r", DeferredLayerType.DEPTH), i)
 

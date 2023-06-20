@@ -15,11 +15,11 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
-import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.DepthTransforms.depthVars
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.octNormalPacking

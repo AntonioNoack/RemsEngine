@@ -8,7 +8,10 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-object Cylinder {
+/**
+ * Generates cylinder meshes with optionally different materials for top, sides and bottom.
+ * */
+object CylinderModel {
 
     fun createMesh(
         us: Int = 10,

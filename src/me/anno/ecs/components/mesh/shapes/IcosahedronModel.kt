@@ -13,7 +13,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-object Icosahedron {
+object IcosahedronModel {
 
     // not sorted, because those numbers are from a Blender file
     val positions = floatArrayOf(

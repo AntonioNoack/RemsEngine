@@ -24,7 +24,15 @@ open class MeshComponent() : MeshComponentBase() {
         this.mesh = mesh
     }
 
+    constructor(mesh: FileReference, material: Material) : this(mesh, material.ref)
+    constructor(mesh: FileReference, material: FileReference) : this(mesh) {
+        super.materials = listOf(material)
+    }
+
     constructor(mesh: Mesh) : this(mesh.ref)
+    constructor(mesh: Mesh, material: Material) : this(mesh) {
+        super.materials = listOf(material.ref)
+    }
 
     @SerializedProperty
     @Type("Mesh/Reference")

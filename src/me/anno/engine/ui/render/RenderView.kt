@@ -64,6 +64,7 @@ import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
+import me.anno.gpu.shader.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
@@ -326,7 +327,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
             var renderer = when (renderMode) {
                 RenderMode.OVERDRAW -> overdrawRenderer
-                RenderMode.CLICK_IDS -> idRenderer
+                RenderMode.CLICK_IDS -> randomIdRenderer
                 RenderMode.FORCE_DEFERRED, RenderMode.SSAO, RenderMode.SS_REFLECTIONS -> {
                     useDeferredRendering = true
                     DeferredRenderer

@@ -4,6 +4,7 @@ import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.shader.RandomEffect.randomFunc
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -109,6 +110,27 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
                     Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
                 ), "if(finalAlpha < 0.01) discard; finalResult = tint;\n"
             )
+        ) {
+            override fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) {
+                val id = GFX.drawnId
+                shader.v4f(name, id.b01(), id.g01(), id.r01(), id.a01())
+            }
+        }
+
+        // todo randomness based on object position?
+        val randomIdRenderer = object : SimpleRenderer(
+            "randomId", ShaderStage(
+                listOf(
+                    Variable(GLSLType.V4F, "tint"),
+                    Variable(GLSLType.V1F, "finalAlpha"),
+                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
+                ), "if(finalAlpha < 0.01) discard;\n" +
+                        "float id = dot(tint,vec4(65536.0,256.0,1.0,1.0/256.0));\n" +
+                        "finalResult = vec4(\n" +
+                        "   GET_RANDOM(vec2(id,1.0)),\n" +
+                        "   GET_RANDOM(vec2(id,5.0)),\n" +
+                        "   GET_RANDOM(vec2(id,9.0)), 1.0);\n"
+            ).add(randomFunc)
         ) {
             override fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) {
                 val id = GFX.drawnId

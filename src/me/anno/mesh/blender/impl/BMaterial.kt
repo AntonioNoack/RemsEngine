@@ -12,12 +12,12 @@ class BMaterial(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position
 
     val id = inside("id") as BID
 
-    val r = float("r")
-    val g = float("g")
-    val b = float("b")
+    val r = float("r", 1f)
+    val g = float("g", 1f)
+    val b = float("b", 1f)
     val a = float("a", 1f) // or alpha?
 
-    val roughness = float("roughness")
+    val roughness = float("roughness", 1f)
     val metallic = float("metallic", 0f)
 
     val useNodes = byte(getOffset("use_nodes")) != 0.toByte()

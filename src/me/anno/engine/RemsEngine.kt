@@ -46,6 +46,11 @@ import org.joml.Matrix4f
 //  - branching maps & branching results
 //  - go into/out of/step
 
+// todo deferred MSAA and SSAO broke, why/when????
+//  - does it still work when using the render graph?
+
+// pick random x: grep 'x' -r . | shuf -n 1 | head -n 1
+
 // todo usable editing of materials: own color + indent + super material selector
 // todo + add & remove materials
 

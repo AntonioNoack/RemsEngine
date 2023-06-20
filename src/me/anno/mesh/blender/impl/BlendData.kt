@@ -5,8 +5,6 @@ import me.anno.mesh.blender.DNAField
 import me.anno.mesh.blender.DNAStruct
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
-import org.joml.Vector2f
-import org.joml.Vector3f
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -121,7 +119,7 @@ open class BlendData(
         val block = file.blockTable.getBlockAt(position)
         val address = block.header.address + (position - block.positionInFile) + field.offset
         val sameBlock = file.blockTable.getBlock(file, address)
-        if (sameBlock != block) throw IllegalStateException("$position -> $address -> other")
+        if (sameBlock != block) throw IllegalStateException("$position -> $address -> other, $sameBlock != $block")
         var className = field.type.name
         val type = file.dnaTypeByName[className]!!
         val struct: DNAStruct

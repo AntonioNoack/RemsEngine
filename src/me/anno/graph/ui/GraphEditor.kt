@@ -189,7 +189,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
         mapMouseUp()
     }
 
-    override fun shallMoveMap(): Boolean = Input.isLeftDown && dragged == null
+    override fun shallMoveMap(): Boolean = Input.isLeftDown && dragged == null && selectingStart == null
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (selectingStart != null) invalidateDrawing()

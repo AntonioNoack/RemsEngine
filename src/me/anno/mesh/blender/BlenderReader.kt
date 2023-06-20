@@ -3,6 +3,7 @@ package me.anno.mesh.blender
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.fonts.mesh.Triangulation
+import me.anno.gpu.CullMode
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerFolder
@@ -16,6 +17,7 @@ import me.anno.utils.types.Matrices.getTranslation2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.nio.ByteBuffer
+import kotlin.math.PI
 
 /**
  * extract the relevant information from a blender file:
@@ -23,10 +25,13 @@ import java.nio.ByteBuffer
  *  - todo skeletons
  *  - todo animations
  *  - done materials
- *  - todo scene hierarchy
+ *  - done scene hierarchy
  * create a test scene with different layouts, and check that everything is in the right place
  * */
 object BlenderReader {
+
+    // postTransform=false may not be setting positions / translations correctly
+    private const val postTransform = true
 
     private val LOGGER = LogManager.getLogger(BlenderReader::class)
 
@@ -38,7 +43,7 @@ object BlenderReader {
             : Pair<IntArray, Array<FileReference>> {
         val usedMaterials = BooleanArray(materials.size)
         for (i in 0 until polygons.size) {
-            usedMaterials[polygons[i].materialIndex.toUShort().toInt()] = true
+            usedMaterials[polygons[i].materialIndex.toInt() and 0xffff] = true
         }
         val numUsedMaterials = usedMaterials.count { it }
         val indexMapping = IntArray(materials.size) { -1 }
@@ -222,9 +227,6 @@ object BlenderReader {
         prefab.setProperty("positions", positions2.toFloatArray())
         prefab.setProperty("normals", normals2.toFloatArray())
         prefab.setProperty("uvs", uvs2.toFloatArray())
-        /*if (complexCtr > 0) {
-            LOGGER.info("Mesh had $complexCtr complex polygons")
-        }*/
     }
 
     fun collectIndices(
@@ -285,11 +287,7 @@ object BlenderReader {
                     val vec2Index = HashMap<Vector3f, Int>()
                     val vectors = Array(loopSize) {
                         val index = loopData[loopStart + it].v
-                        val vec = Vector3f(
-                            positions[index * 3],
-                            positions[index * 3 + 1],
-                            positions[index * 3 + 2]
-                        )
+                        val vec = Vector3f().set(positions, index * 3)
                         vec2Index[vec] = index
                         vec
                     }
@@ -314,43 +312,9 @@ object BlenderReader {
         }
     }
 
-    fun readAsFolder(ref: FileReference, nio: ByteBuffer): InnerFolder {
-
-        // todo 1: the normals are often awkward
-        // todo 2: find equivalent meshes, and replace them for speed
-        // todo 3: read positions, indices, and normals without instantiation
-
-        // transform: +x, +z, -y
-        // because we want y up, and Blender has z up
-
-        val clock = Clock()
-        clock.stop("read bytes")
-
-        clock.stop("put into other array")
-        val binaryFile = BinaryFile(nio)
-        val folder = InnerFolder(ref)
-        val file = BlenderFile(binaryFile)
-        clock.stop("read blender file")
-        // data.printTypes()
-
+    private fun readMaterials(file: BlenderFile, folder: InnerFolder, clock: Clock) {
         @Suppress("unchecked_cast")
         val materialsInFile = file.instances["Material"] as? List<BMaterial> ?: emptyList()
-
-        // find where the materials are referenced
-        /*file.searchReferencesByStructsAtPositions(
-            materialsInFile.map { it.position },
-            materialsInFile.map { it.id.name.substring(2) }
-        )
-
-        val meshes = file.instances["Mesh"] as? List<BMesh> ?: emptyList()
-        meshes.forEach { mesh ->
-            LOGGER.debug(mesh.id.name)
-            LOGGER.debug(mesh.materials?.joinToString())
-        }*/
-
-        // return folder
-
-
         if ("Material" in file.instances) {
             val matFolder = folder.createChild("materials", null) as InnerFolder
             for (i in materialsInFile.indices) {
@@ -367,94 +331,126 @@ object BlenderReader {
             }
         }
         clock.stop("read ${file.instances["Material"]?.size} materials")
-        if ("Mesh" in file.instances) {
-            val meshFolder = folder.createChild("meshes", null) as InnerFolder
-            for (mesh in file.instances["Mesh"]!!) {
-                mesh as BMesh
-                var name = mesh.id.name
-                if (name.startsWith("ME") && name.length > 2) name = name.substring(2)
-                val prefab = Prefab("Mesh")
-                val vertices = mesh.vertices ?: continue // how can there be meshes without vertices?
-                val positions = FloatArray(vertices.size * 3)
-                val normals = FloatArray(vertices.size * 3)
-                val materials = mesh.materials ?: emptyArray()
-                val polygons = mesh.polygons ?: BInstantList.emptyList()
-                val loopData = mesh.loops ?: BInstantList.emptyList()
+    }
 
-                // todo if there are multiple materials, collect the indices
+    private fun readMeshes(file: BlenderFile, folder: InnerFolder, clock: Clock) {
+        if ("Mesh" !in file.instances) return
+        val meshFolder = folder.createChild("meshes", null) as InnerFolder
+        for (mesh in file.instances["Mesh"]!!) {
+            mesh as BMesh
+            var name = mesh.id.name
+            if (name.startsWith("ME") && name.length > 2) name = name.substring(2)
+            val prefab = Prefab("Mesh")
+            val vertices = mesh.vertices ?: continue // how can there be meshes without vertices?
+            val positions = FloatArray(vertices.size * 3)
+            val normals = FloatArray(vertices.size * 3)
+            val materials = mesh.materials ?: emptyArray()
+            val polygons = mesh.polygons ?: BInstantList.emptyList()
+            val loopData = mesh.loops ?: BInstantList.emptyList()
 
-                // LOGGER.debug("mesh materials: $materials")
-                // LOGGER.debug("mesh $name: ${mesh.numVertices} vertices, ${mesh.numPolygons} polys with ${mesh.polygons?.sumOf { it.loopSize }} vertices")
-                // val mapping = mapMaterials(materialsInFile, polygons)
-                // LOGGER.debug("mat-mapping: [${mapping.first.joinToString()}], [${mapping.second.joinToString()}]")
-                // prefab.setProperty("materials", mapping.second)
-                prefab.setProperty("materials", materials.map { it as BMaterial?; it?.fileRef ?: InvalidRef })
-                // todo bone hierarchy,
-                // todo bone animations
-                // todo bone indices & weights (vertex groups)
-                // val layers = mesh.lData.layers ?: emptyArray()
-                // val uvLayers = layers.firstOrNull { it as BCustomDataLayer; it.type == 16 } as? BCustomDataLayer
-                // val weights = layers.firstOrNull { it as BCustomDataLayer; it.type == 17 } as? BCustomDataLayer
-                @Suppress("SpellCheckingInspection")
-                        /*
-                        * var layers = data.getLdata().getLayers();
-                        var uvs = layers.filter(map => map.getType() == 16)[0];
-                        if(uvs) uvs = uvs.getData();
-                        var wei = layers.filter(map => map.getType() == 17)[0];
-                        if(wei) wei = wei.getData();
-                        * */
-                val hasNormals = vertices.size > 0 && vertices[0].noOffset >= 0
-                for (i in 0 until vertices.size) {
-                    val v = vertices[i]
-                    val i3 = i * 3
-                    positions[i3] = v.x
-                    positions[i3 + 1] = +v.z
-                    positions[i3 + 2] = -v.y
-                    if (hasNormals) {
+            // todo if there are multiple materials, collect the indices
+
+            // LOGGER.debug("mesh materials: $materials")
+            // LOGGER.debug("mesh $name: ${mesh.numVertices} vertices, ${mesh.numPolygons} polys with ${mesh.polygons?.sumOf { it.loopSize }} vertices")
+            // val mapping = mapMaterials(materialsInFile, polygons)
+            // LOGGER.debug("mat-mapping: [${mapping.first.joinToString()}], [${mapping.second.joinToString()}]")
+            // prefab.setProperty("materials", mapping.second)
+            prefab.setProperty("materials", materials.map { it as BMaterial?; it?.fileRef ?: InvalidRef })
+            prefab.setProperty("cullMode", CullMode.BOTH)
+
+            // todo bone hierarchy,
+            // todo bone animations
+            // todo bone indices & weights (vertex groups)
+            // val layers = mesh.lData.layers ?: emptyArray()
+            // val uvLayers = layers.firstOrNull { it as BCustomDataLayer; it.type == 16 } as? BCustomDataLayer
+            // val weights = layers.firstOrNull { it as BCustomDataLayer; it.type == 17 } as? BCustomDataLayer
+            @Suppress("SpellCheckingInspection")
+                    /*
+                    * var layers = data.getLdata().getLayers();
+                    var uvs = layers.filter(map => map.getType() == 16)[0];
+                    if(uvs) uvs = uvs.getData();
+                    var wei = layers.filter(map => map.getType() == 17)[0];
+                    if(wei) wei = wei.getData();
+                    * */
+            val hasNormals = vertices.size > 0 && vertices[0].noOffset >= 0
+            if (postTransform) {
+                if (hasNormals) {
+                    for (i in 0 until vertices.size) {
+                        val v = vertices[i]
+                        val i3 = i * 3
+                        positions[i3] = v.x
+                        positions[i3 + 1] = v.y
+                        positions[i3 + 2] = v.z
+                        normals[i3] = v.nx
+                        normals[i3 + 1] = v.ny
+                        normals[i3 + 2] = v.nz
+                    }
+                } else {
+                    for (i in 0 until vertices.size) {
+                        val v = vertices[i]
+                        val i3 = i * 3
+                        positions[i3] = v.x
+                        positions[i3 + 1] = v.y
+                        positions[i3 + 2] = v.z
+                    }
+                }
+            } else {
+                if (hasNormals) {
+                    for (i in 0 until vertices.size) {
+                        val v = vertices[i]
+                        val i3 = i * 3
+                        positions[i3] = v.x
+                        positions[i3 + 1] = +v.z
+                        positions[i3 + 2] = -v.y
                         normals[i3] = v.nx
                         normals[i3 + 1] = +v.nz
                         normals[i3 + 2] = -v.ny
                     }
-                }
-                prefab.setProperty("positions", positions)
-                prefab.setProperty("normals", normals)
-                // LOGGER.debug("loop uvs: " + mesh.loopUVs?.size)
-                val uvs = mesh.loopUVs ?: BInstantList.emptyList()
-                // todo vertex colors
-                val hasUVs = uvs.any { it.u != 0f || it.v != 0f }
-                // LOGGER.debug("loop cols: " + mesh.loopColor?.size)
-                val triCount = polygons.sumOf {
-                    when (val size = it.loopSize) {
-                        0 -> 0
-                        1, 2 -> 1
-                        else -> size - 2
+                } else {
+                    for (i in 0 until vertices.size) {
+                        val v = vertices[i]
+                        val i3 = i * 3
+                        positions[i3] = v.x
+                        positions[i3 + 1] = +v.z
+                        positions[i3 + 2] = -v.y
                     }
                 }
-                if (hasUVs) {// non-indexed, because we don't support separate uv and position indices
-                    val materialIndices = if (materials.size > 1) IntArray(triCount) else null
-                    joinPositionsAndUVs(
-                        triCount * 3,
-                        positions,
-                        normals,
-                        polygons,
-                        loopData,
-                        uvs,
-                        materialIndices,
-                        prefab
-                    )
-                    if (materialIndices != null) prefab.setProperty("materialIds", materialIndices)
-                } else {
-                    val materialIndices = if (materials.size > 1) IntArray(triCount) else null
-                    collectIndices(positions, polygons, loopData, materialIndices, prefab)
-                    if (materialIndices != null) prefab.setProperty("materialIds", materialIndices)
-                }
-                prefab.sealFromModifications()
-                mesh.fileRef = meshFolder.createPrefabChild("$name.json", prefab)
             }
+            prefab.setProperty("positions", positions)
+            prefab.setProperty("normals", normals)
+            // LOGGER.debug("loop uvs: " + mesh.loopUVs?.size)
+            val uvs = mesh.loopUVs ?: BInstantList.emptyList()
+            // todo vertex colors
+            val hasUVs = uvs.any { it.u != 0f || it.v != 0f }
+            // LOGGER.debug("loop cols: " + mesh.loopColor?.size)
+            val triCount = polygons.sumOf {
+                when (val size = it.loopSize) {
+                    0 -> 0
+                    1, 2 -> 1
+                    else -> size - 2
+                }
+            }
+            if (hasUVs) {// non-indexed, because we don't support separate uv and position indices
+                val materialIndices = if (materials.size > 1) IntArray(triCount) else null
+                joinPositionsAndUVs(
+                    triCount * 3,
+                    positions, normals,
+                    polygons, loopData, uvs,
+                    materialIndices, prefab
+                )
+                if (materialIndices != null) prefab.setProperty("materialIds", materialIndices)
+            } else {
+                val materialIndices = if (materials.size > 1) IntArray(triCount) else null
+                collectIndices(positions, polygons, loopData, materialIndices, prefab)
+                if (materialIndices != null) prefab.setProperty("materialIds", materialIndices)
+            }
+            prefab.sealFromModifications()
+            mesh.fileRef = meshFolder.createPrefabChild("$name.json", prefab)
         }
         clock.stop("read meshes")
+    }
 
-        // extract the hierarchy, and create a Scene.json somehow
+    private fun extractHierarchy(file: BlenderFile): Prefab {
         val prefab = Prefab("Entity")
         if ("Object" in file.instances) {
 
@@ -475,20 +471,48 @@ object BlenderReader {
                     val name = bObject.id.name.substring(2)
                     val path = Path(Path.ROOT_PATH, name, index, 'e')
                     paths[bObject] = path
-                    createObject(prefab, bObject, path)
+                    createObject(prefab, bObject, path, false)
+                }
+                if (postTransform) {
+                    prefab[Path.ROOT_PATH, "rotation"] = Quaterniond().rotateX(-PI / 2)
                 }
             } else {
                 // there must be a root
                 paths[roots.first()] = Path.ROOT_PATH
-                createObject(prefab, roots.first(), Path.ROOT_PATH)
+                createObject(prefab, roots.first(), Path.ROOT_PATH, true)
             }
 
             for (obj in objects) {
                 obj as BObject
                 makeObject(prefab, obj, paths)
             }
-
         }
+        return prefab
+    }
+
+    fun readAsFolder(ref: FileReference, nio: ByteBuffer): InnerFolder {
+
+        // todo 1: the normals are often awkward
+        // todo 2: find equivalent meshes, and replace them for speed
+        // todo 3: read positions, indices, and normals without instantiation
+
+        // transform: +x, +z, -y
+        // because we want y up, and Blender has z up
+
+        val clock = Clock()
+        clock.stop("read bytes")
+
+        clock.stop("put into other array")
+        val binaryFile = BinaryFile(nio)
+        val folder = InnerFolder(ref)
+        val file = BlenderFile(binaryFile)
+        clock.stop("read blender file")
+        // data.printTypes()
+
+        readMaterials(file, folder, clock)
+        readMeshes(file, folder, clock)
+
+        val prefab = extractHierarchy(file)
         prefab.sealFromModifications()
         folder.createPrefabChild("Scene.json", prefab)
         clock.stop("read hierarchy")
@@ -501,12 +525,12 @@ object BlenderReader {
             val parent = makeObject(prefab, obj.parent!!, paths)
             val childIndex = prefab.adds.count { it.path == parent && it.type == 'e' }
             val path = Path(parent, name, childIndex, 'e')
-            createObject(prefab, obj, path)
+            createObject(prefab, obj, path, false)
             path
         }
     }
 
-    fun createObject(prefab: Prefab, obj: BObject, path: Path) {
+    fun createObject(prefab: Prefab, obj: BObject, path: Path, isRoot: Boolean) {
         if (path != Path.ROOT_PATH) {
             prefab.add(
                 path.parent ?: Path.ROOT_PATH,
@@ -520,28 +544,31 @@ object BlenderReader {
         val localMatrix = Matrix4f(parentMatrix).invert().mul(obj.finalWSMatrix)
         // if(path == Path.ROOT_PATH) localMatrix.rotateX(-PI.toFloat() * 0.5f)
         val translation = localMatrix.getTranslation2()
+        if (!postTransform) translation.set(translation.x, translation.z, -translation.y)
         if (translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0)
             prefab.setUnsafe(path, "position", translation)
         val rotation = localMatrix.getUnnormalizedRotation(Quaterniond())
+        if (!postTransform) rotation.set(rotation.x, rotation.z, -rotation.y, rotation.w)
+        if (isRoot && postTransform) rotation.rotateLocalX(-PI / 2) // todo correct?
         if (rotation.w != 1.0)
             prefab.setUnsafe(path, "rotation", rotation)
         val scale = localMatrix.getScale2()
+        if (!postTransform) scale.set(scale.x, scale.z, -scale.y)
         if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0)
             prefab.setUnsafe(path, "scale", scale)
-        // todo get names...
         when (BObject.objectTypeById[obj.type.toInt()]) {
             BObject.BObjectType.OB_EMPTY -> { // done
             }
             BObject.BObjectType.OB_MESH -> {
                 // add mesh component
-                val c = prefab.add(path, 'c', "MeshComponent")
+                val c = prefab.add(path, 'c', "MeshComponent", obj.id.name)
                 prefab.setUnsafe(c, "mesh", (obj.data as BMesh).fileRef)
                 // materials would be nice... but somehow they are always null
             }
             BObject.BObjectType.OB_CAMERA -> {
                 val cam = obj.data as? BCamera
                 if (cam != null) {
-                    val c = prefab.add(path, 'c', "Camera")
+                    val c = prefab.add(path, 'c', "Camera", obj.id.name)
                     prefab.setUnsafe(c, "near", cam.near.toDouble())
                     prefab.setUnsafe(c, "far", cam.far.toDouble())
                 }
@@ -558,7 +585,7 @@ object BlenderReader {
                     }
                     if (clazzName != null) {
                         // additional scale by brightness? probably would be a good idea
-                        val c = prefab.add(path, 'c', clazzName)
+                        val c = prefab.add(path, 'c', clazzName, obj.id.name)
                         val e = light.energy * 0.01f // 100 W is ~ our brightness
                         prefab.setUnsafe(c, "color", Vector3f(light.r, light.g, light.b).mul(e))
                         prefab.setUnsafe(c, "shadowMapCascades", light.cascadeCount)

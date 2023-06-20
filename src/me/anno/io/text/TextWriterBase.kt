@@ -224,21 +224,15 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         val hex = base36
         when {
             c0 == c1 && c2 == c3 && c4 == c5 && c6 == c7 -> {
-                when {
-                    c0 == c2 && c0 == c4 && c6 == 15 -> {// #g
-                        append(hex[c0])
-                    }
-                    c6 == 15 -> { // #rgb
-                        append(hex[c4])
-                        append(hex[c2])
-                        append(hex[c0])
-                    }
-                    else -> { // #argb
-                        append(hex[c6])
-                        append(hex[c4])
-                        append(hex[c2])
-                        append(hex[c0])
-                    }
+                if (c6 == 15) { // #rgb
+                    append(hex[c4])
+                    append(hex[c2])
+                    append(hex[c0])
+                } else { // #argb
+                    append(hex[c6])
+                    append(hex[c4])
+                    append(hex[c2])
+                    append(hex[c0])
                 }
             }
             c6 == 15 && c7 == 15 -> { // #rrggbb

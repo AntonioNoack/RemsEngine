@@ -27,7 +27,7 @@ class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     val polygons = getQuickStructArray<MPoly>("*mpoly")
     val loops = getQuickStructArray<MLoop>("*mloop")
     val loopUVs = getQuickStructArray<MLoopUV>("*mloopuv")
-    val loopColor = getStructArray("*mloopcol") // todo support this
+    val loopColor = getQuickStructArray<MLoopCol>("*mloopcol") // todo support this; correct type?
     // old
     // val mFaces = ptr("*mface")
     // val mtFaces = ptr("*mtface")

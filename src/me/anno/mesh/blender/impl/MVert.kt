@@ -16,7 +16,7 @@ class MVert(file: BlenderFile, dnaStruct: DNAStruct, buffer: ByteBuffer, positio
     val z get() = float(coOffset + 8)
 
     val nx get() = short(noOffset) / 32767f
-    val ny get() = short(noOffset + 4) / 32767f
-    val nz get() = short(noOffset + 8) / 32767f
+    val ny get() = short(noOffset + 2) / 32767f
+    val nz get() = short(noOffset + 4) / 32767f
 
 }

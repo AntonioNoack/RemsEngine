@@ -84,18 +84,19 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         val entry = content2d.children.firstOrNull { it.contains(x, y) } as? FileExplorerEntry
         val current = if (entry == null) folder else getReference(entry.path)
 
-        val projectFolder = (StudioBase.instance as RemsEngine).currentProject.location
+        val projectFolder = (StudioBase.instance as? RemsEngine)
+            ?.currentProject?.location ?: return
 
         if (current.absolutePath.startsWith(projectFolder.absolutePath)) {
             openMenu(windowStack, listOf(
                 MenuOption(NameDesc("Import")) {
                     import(current, files)
                 },
-               /* MenuOption(NameDesc("Copy-Import")) {
-                    // todo implement this: all resources must be copied, no trace shall remain
-                    // import(current, files)
-                    LOGGER.warn("Not yet implemented!")
-                },*/
+                /* MenuOption(NameDesc("Copy-Import")) {
+                     // todo implement this: all resources must be copied, no trace shall remain
+                     // import(current, files)
+                     LOGGER.warn("Not yet implemented!")
+                 },*/
                 MenuOption(NameDesc("Link To Index")) {
                     val firstParent = files.first().getParent()
                     val name = if (files.size == 1) files.first().nameWithoutExtension
@@ -105,7 +106,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
                     // http://www.lyberty.com/encyc/articles/tech/dot_url_format_-_an_unofficial_guide.html
                     newFile.writeText(
                         "[InternetShortcut]\r\n" +
-                                files.joinToString(","){"URL=file://${it.toLocalPath()}\r\n"}
+                                files.joinToString(",") { "URL=file://${it.toLocalPath()}\r\n" }
                     )
                     LOGGER.debug("Created url link file $newFile")
                 },

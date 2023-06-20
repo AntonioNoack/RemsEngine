@@ -45,10 +45,12 @@ open class Material : PrefabSaveable(), Renderable {
             }
         }
 
-    // todo create a standard for what which value means
-    // 0 = opaque
+    // 0 = OPAQUE_PASS
     // 1 = transparent
     // 2 = decal
+    /**
+     * for its values look at [me.anno.gpu.pipeline.PipelineStage]
+     * */
     @NotSerializedProperty
     var pipelineStage: Int = 0
 

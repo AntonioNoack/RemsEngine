@@ -266,6 +266,10 @@ class Framebuffer(
                     // println("set attached depth ptr to $texPointer")
                     texPointer
                 } else {
+                    if (da.depthTexture == null) {
+                        da.ensure()
+                        bindFramebuffer(GL_FRAMEBUFFER, pointer)
+                    }
                     val texPointer = da.depthTexture?.pointer
                         ?: throw IllegalStateException("Depth Attachment was not found in $name, $da.${da.depthTexture}")
                     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
