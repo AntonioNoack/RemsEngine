@@ -76,7 +76,6 @@ object AIFileIOImpl {
                 callbacks.address()
 
             } else 0L
-
         }, { _, aiFile ->
             if (debug) LOGGER.debug("close *${aiFile.toString(16)}\n")
             // close the stream
