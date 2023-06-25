@@ -20,6 +20,7 @@ import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
@@ -153,12 +154,12 @@ object LightShaders {
                         "ambientOcclusion = texture(occlusionTex,uv).x;\n" +
                         "finalLight = texture(lightTex,uv).rgb;\n"
             )
-            val deferredInputs = ArrayList<Variable>()
-            deferredInputs += Variable(GLSLType.V2F, "uv")
-            deferredInputs += Variable(GLSLType.S2D, "occlusionTex")
-            deferredInputs += Variable(GLSLType.S2D, "lightTex")
-            deferredInputs += Variable(GLSLType.V3F, "finalLight", VariableMode.OUT)
-            deferredInputs += Variable(GLSLType.V1F, "ambientOcclusion", VariableMode.OUT)
+            val deferredVariables = ArrayList<Variable>()
+            deferredVariables += Variable(GLSLType.V2F, "uv")
+            deferredVariables += Variable(GLSLType.S2D, "occlusionTex")
+            deferredVariables += Variable(GLSLType.S2D, "lightTex")
+            deferredVariables += Variable(GLSLType.V3F, "finalLight", VariableMode.OUT)
+            deferredVariables += Variable(GLSLType.V1F, "ambientOcclusion", VariableMode.OUT)
             val imported = HashSet<String>()
             val sampleVariableName = if (useMSAA) "gl_SampleID" else null
             val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
@@ -168,11 +169,15 @@ object LightShaders {
                 // and write the mapping
                 val glslName = layer.type.glslName
                 if (fragment.variables.any2 { it.name == glslName }) {
+                    val lType = layer.type
+                    deferredVariables.add(Variable(floats[lType.workDims - 1], lType.glslName, VariableMode.OUT))
                     layer.appendMapping(deferredCode, "", "Tmp", "", "uv", imported, sampleVariableName)
                 }
             }
-            deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }
-            builder.addFragment(ShaderStage("deferred", deferredInputs, deferredCode.toString()).add(octNormalPacking))
+            deferredVariables += imported.map { Variable(samplerType, it, VariableMode.IN) }
+            val deferredStage = ShaderStage("deferred", deferredVariables, deferredCode.toString())
+            deferredStage.add(octNormalPacking)
+            builder.addFragment(deferredStage)
             builder.addFragment(fragment)
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
             val shader = builder.create()
@@ -390,8 +395,8 @@ object LightShaders {
             val fragment = createMainFragmentStage(type, isInstanced)
             // deferred inputs: find deferred layers, which exist, and appear in the shader
             val deferredCode = StringBuilder()
-            val deferredInputs = ArrayList<Variable>()
-            deferredInputs += Variable(GLSLType.V2F, "uv")
+            val deferredVariables = ArrayList<Variable>()
+            deferredVariables += Variable(GLSLType.V2F, "uv")
             val imported = HashSet<String>()
             val sampleVariableName = if (useMSAA) "gl_SampleID" else null
             val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
@@ -401,18 +406,20 @@ object LightShaders {
                 // and write the mapping
                 val glslName = layer.type.glslName
                 if (fragment.variables.any2 { it.name == glslName }) {
+                    val lType = layer.type
+                    deferredVariables.add(Variable(floats[lType.workDims - 1], lType.glslName, VariableMode.OUT))
                     layer.appendMapping(deferredCode, "", "Tmp", "", "uv", imported, sampleVariableName)
                 }
             }
-            deferredInputs += imported.map { Variable(samplerType, it, VariableMode.IN) }
-            deferredInputs += depthVars
-            builder.addFragment(
-                ShaderStage("deferred", deferredInputs, deferredCode.toString())
-                    .add(rawToDepth)
-                    .add(depthToPosition)
-                    .add(quatRot)
-                    .add(octNormalPacking)
-            )
+            deferredVariables += imported.map { Variable(samplerType, it, VariableMode.IN) }
+            deferredVariables += depthVars
+            val deferredStage = ShaderStage("deferred", deferredVariables, deferredCode.toString())
+            deferredStage
+                .add(rawToDepth)
+                .add(depthToPosition)
+                .add(quatRot)
+                .add(octNormalPacking)
+            builder.addFragment(deferredStage)
             builder.addFragment(fragment)
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
             val shader = builder.create()

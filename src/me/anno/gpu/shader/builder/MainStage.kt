@@ -314,10 +314,10 @@ class MainStage {
                     defined += param
                 }
             }
-            code.append("// stage ").append(stage.callName).append('\n')
+            code.append("{// stage ").append(stage.callName).append('\n')
             code.append(stage.body)
             if (!code.endsWith('\n')) code.append('\n')
-            code.append("// end of stage ").append(stage.callName).append('\n')
+            code.append("}// end of stage ").append(stage.callName).append('\n')
             // expensive
             // inlining is better
             // maybe only because we had this large matrix as a param, but still, it was massively slower (30fps -> 7fps)
@@ -349,7 +349,8 @@ class MainStage {
                         code.append("BuildColor = vec4(1.0);\n")
                     }
                     outputSum == 4 && lastOutputs.size == 1 -> {
-                        code.append("BuildColor = ${lastOutputs[0].name};\n")
+                        code.append("BuildColor = ")
+                            .append(lastOutputs[0].name).append(";\n")
                     }
                     outputSum in 1..4 -> {
                         code.append("BuildColor = vec4(")

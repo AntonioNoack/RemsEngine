@@ -13,7 +13,7 @@ import org.joml.Vector3i
  * texture 3d - block traced material; with many-color and transparency support
  * */
 @Suppress("unused")
-class Texture3DBTv2Material : Material() {
+open class Texture3DBTv2Material : Material() {
 
     val size = Vector3i(1)
 

@@ -571,7 +571,7 @@ object Thumbs {
                 }
                 entity.forAll {
                     when (it) {
-                        is MeshComponent -> addMesh(it.getMesh(), it.transform ?: entity.transform)
+                        is MeshComponentBase -> addMesh(it.getMesh(), it.transform ?: entity.transform)
                         is MeshSpawner -> it.forEachMesh { mesh, _, transform ->
                             addMesh(mesh, transform)
                         }

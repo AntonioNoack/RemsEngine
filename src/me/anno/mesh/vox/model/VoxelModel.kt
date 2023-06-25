@@ -4,6 +4,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.Prefab
 import me.anno.mesh.vox.meshing.BakeMesh
 import me.anno.mesh.vox.meshing.BlockSide
+import me.anno.mesh.vox.meshing.IsSolid
 import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
@@ -70,22 +71,25 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
     }
 
     fun createMesh(
-        palette: IntArray,
-        outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?,
+        palette: IntArray?,
+        insideIsSolid: IsSolid?,
+        outsideIsSolid: IsSolid?,
         mesh: Mesh = Mesh()
-    ) = createMesh(palette, outsideIsSolid, allSides, mesh)
+    ) = createMesh(palette, insideIsSolid, outsideIsSolid, allSides, mesh)
 
     @Suppress("unused")
     fun createMesh(
-        palette: IntArray,
-        outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?,
+        palette: IntArray?,
+        insideIsSolid: IsSolid?,
+        outsideIsSolid: IsSolid?,
         side: BlockSide,
         mesh: Mesh = Mesh()
-    ) = createMesh(palette, outsideIsSolid, sideList[side.ordinal], mesh)
+    ) = createMesh(palette, insideIsSolid, outsideIsSolid, sideList[side.ordinal], mesh)
 
     fun createMesh(
-        palette: IntArray,
-        outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?,
+        palette: IntArray?,
+        insideIsSolid: IsSolid?,
+        outsideIsSolid: IsSolid?,
         sides: List<BlockSide>,
         mesh: Mesh = Mesh()
     ): Mesh {
@@ -114,7 +118,7 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         for (side in sides) {
             info.setNormal(side)
             // an estimate
-            removed += BakeMesh.bakeMesh(this, side, info, outsideIsSolid)
+            removed += BakeMesh.bakeMesh(this, side, info, insideIsSolid, outsideIsSolid)
         }
 
         if (printReduction && removed > 0) {
@@ -138,7 +142,7 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
     fun createMeshPrefab(palette: IntArray): Prefab {
 
-        val mesh = createMesh(palette, null)
+        val mesh = createMesh(palette, null, null)
         val prefab = Prefab("Mesh")
 
         prefab.setProperty("positions", mesh.positions)

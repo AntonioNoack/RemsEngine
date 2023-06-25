@@ -97,7 +97,7 @@ import org.joml.Matrix4f
 //  - Sims like game, just low-poly style
 //          simlish should be easy ^^
 
-open class RemsEngine : StudioBase(true, "Rem's Engine", "RemsEngine", 1) {
+open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
 
     lateinit var currentProject: GameEngineProject
 

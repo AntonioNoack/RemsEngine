@@ -12,10 +12,12 @@ import org.joml.Vector3f
 import org.joml.Vector3i
 
 /**
- * texture 3d - block traced material
+ * [Texture3D] - block traced material.
+ * This [Material] lerps between two colors.
+ * You can modify the materials to be more complex by writing your own [Texture3DBTShader]-like [Shader].
  * */
 @Suppress("unused")
-class Texture3DBTMaterial : Material() {
+open class Texture3DBTMaterial : Material() {
 
     val size = Vector3i(1)
 

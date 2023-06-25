@@ -7,28 +7,37 @@ import kotlin.math.max
 
 object BakeMesh {
 
-    // private val LOGGER = LogManager.getLogger(BakeMesh::class)
-
     fun bakeMesh(
         model: VoxelModel,
         side: BlockSide,
         dst: VoxelMeshBuildInfo,
-        outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?
+        insideIsSolid: IsSolid?,
+        outsideIsSolid: IsSolid?
     ): Float {
 
         val colors = IntArray(model.size)
         model.fill(dst.palette, colors)
 
         val isSolid = BooleanArray(model.size)
-        for (i in isSolid.indices) isSolid[i] = colors[i] != 0
-        val removed = removeSolidInnerBlocks(model, side, colors, isSolid, outsideIsSolid)
+        if (insideIsSolid != null) {
+            var i = 0
+            for (y in 0 until model.sizeY) {
+                for (x in 0 until model.sizeX) {
+                    for (z in 0 until model.sizeZ) {
+                        isSolid[i++] = insideIsSolid.test(x, y, z)
+                    }
+                }
+            }
+        } else {
+            for (i in isSolid.indices) isSolid[i] = colors[i] != 0
+        }
 
-        lateinit var blockSizes: IntArray
+        val removed = removeSolidInnerBlocks(model, side, colors, isSolid, outsideIsSolid)
 
         val size000 = 0
         val size111 = getSizeInfo(1, 1, 1, model)
 
-        blockSizes = IntArray(colors.size) {
+        val blockSizes = IntArray(colors.size) {
             val isEmpty = colors[it] == 0
             if (isEmpty) size000 else size111
         }
@@ -36,7 +45,6 @@ object BakeMesh {
         mergeBlocks(blockSizes, colors, model)
 
         val dz = model.getIndex(0, 0, 1)
-
         for (y in 0 until model.sizeY) {
             for (x in 0 until model.sizeX) {
                 var index = model.getIndex(x, y, 0)
@@ -81,7 +89,7 @@ object BakeMesh {
         blockSide: BlockSide,
         colors: IntArray,
         isSolid: BooleanArray,
-        outsideIsSolid: ((x: Int, y: Int, z: Int) -> Boolean)?
+        outsideIsSolid: IsSolid?
     ): Float {
         val dx = model.getIndex(1, 0, 0)
         val dy = model.getIndex(0, 1, 0)
@@ -129,7 +137,7 @@ object BakeMesh {
                     for (y in y0 until y1) {
                         for (z in z0 until z1) {
                             val index = model.getIndex(i0, y, z)
-                            if (colors[index] != 0 && outsideIsSolid(i1, y, z)) {
+                            if (colors[index] != 0 && outsideIsSolid.test(i1, y, z)) {
                                 colors[index] = 0
                             }
                         }
@@ -142,7 +150,7 @@ object BakeMesh {
                     for (x in x0 until x1) {
                         for (z in z0 until z1) {
                             val index = model.getIndex(x, i0, z)
-                            if (colors[index] != 0 && outsideIsSolid(x, i1, z)) {
+                            if (colors[index] != 0 && outsideIsSolid.test(x, i1, z)) {
                                 colors[index] = 0
                             }
                         }
@@ -155,7 +163,7 @@ object BakeMesh {
                     for (y in y0 until y1) {
                         for (x in x0 until x1) {
                             val index = model.getIndex(x, y, i0)
-                            if (colors[index] != 0 && outsideIsSolid(x, y, i1)) {
+                            if (colors[index] != 0 && outsideIsSolid.test(x, y, i1)) {
                                 colors[index] = 0
                             }
                         }

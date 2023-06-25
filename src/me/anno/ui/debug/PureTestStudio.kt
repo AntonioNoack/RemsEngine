@@ -12,7 +12,7 @@ import me.anno.ui.Window
 /**
  * engine runtime for testing; without console
  * */
-class PureTestStudio(val createMainPanel: () -> Panel) : StudioBase(true, "Test", 1) {
+class PureTestStudio(val createMainPanel: () -> Panel) : StudioBase("Test", 1, true) {
 
     override fun createUI() {
         val ui = createMainPanel()

@@ -26,5 +26,6 @@
     <orderEntry type="module" module-name="SDF" />
     <orderEntry type="module" module-name="Lua" />
     <orderEntry type="library" name="webp-imageio-0.1.6" level="project" />
+    <orderEntry type="library" name="OpenXR" level="project" />
   </component>
 </module>

@@ -129,6 +129,9 @@ object GFX {
     var maxUniforms = 0
 
     @JvmField
+    var maxAttributes = 8
+
+    @JvmField
     var maxColorAttachments = 1
 
     @JvmField
@@ -374,6 +377,7 @@ object GFX {
         maxVertexUniformComponents = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniformComponents = glGetInteger(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
         maxBoundTextures = glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS)
+        maxAttributes = glGetInteger(GL_MAX_VERTEX_ATTRIBS)
         maxUniforms = glGetInteger(GL_MAX_UNIFORM_LOCATIONS)
         maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
         maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
@@ -382,6 +386,7 @@ object GFX {
         if (glVersion >= 43) OcclusionQuery.target = GL_ANY_SAMPLES_PASSED_CONSERVATIVE
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")
         LOGGER.info("Max Uniforms: $maxUniforms")
+        LOGGER.info("Max Attributes: $maxAttributes")
         LOGGER.info("Max Color Attachments: $maxColorAttachments")
         LOGGER.info("Max Samples: $maxSamples")
         LOGGER.info("Max Texture Size: $maxTextureSize")

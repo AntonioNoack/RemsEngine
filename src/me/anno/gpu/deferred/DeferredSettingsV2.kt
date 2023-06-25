@@ -46,15 +46,9 @@ data class DeferredSettingsV2(
                     fragment.append(", ").append(uv).append(");\n")
                 }
             }
-            fragment.append(glslTypes[type.workDims - 1])
-            fragment.append(' ')
-            fragment.append(type.glslName).append(dstSuffix)
-            fragment.append(" = ")
-            fragment.append(type.dataToWork).append('(')
-            fragment.append(textureName).append(tmpSuffix)
-            fragment.append('.')
-            fragment.append(mapping)
-            fragment.append(");\n")
+            fragment.append(type.glslName).append(dstSuffix).append(" = ")
+                .append(type.dataToWork).append('(').append(textureName).append(tmpSuffix)
+                .append('.').append(mapping).append(");\n")
         }
 
         fun appendLayer(output: StringBuilder) {

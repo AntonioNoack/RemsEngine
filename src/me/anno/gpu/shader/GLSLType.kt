@@ -1,5 +1,6 @@
 package me.anno.gpu.shader
 
+@Suppress("unused")
 enum class GLSLType(val glslName: String, val id: Int, val components: Int, val isFlat: Boolean) {
 
     V1B("bool", 0, 1, true),

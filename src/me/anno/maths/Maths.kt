@@ -56,6 +56,9 @@ object Maths {
     fun sq(x: Int, y: Int) = x * x + y * y
 
     @JvmStatic
+    fun sq(x: Int, y: Int, z: Int) = x * x + y * y + z * z
+
+    @JvmStatic
     fun sq(x: Double, y: Double, z: Double) = x * x + y * y + z * z
 
     @JvmStatic

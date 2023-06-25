@@ -38,9 +38,10 @@ abstract class SDFGroupArray : SDFGroup() {
         }
 
     // must be > 0 to be useful
-    var overlap = Vector3f(1f)
+    var relativeOverlap = Vector3f(1f)
         set(value) {
-            field.set(value).max(0f, 0f, 0f)
+            field.set(value)
+                .max(0f, 0f, 0f)
         }
 
     override fun calculateBaseBounds(dst: AABBf) {
@@ -54,7 +55,7 @@ abstract class SDFGroupArray : SDFGroup() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as SDFGroupArray
-        dst.overlap = overlap
+        dst.relativeOverlap.set(relativeOverlap)
     }
 
     abstract fun defineLoopHead(
@@ -115,7 +116,8 @@ abstract class SDFGroupArray : SDFGroup() {
                 children.subList(0, modulatorIndex), false
             )
             // use this shortcut, if the query is outside the shape, or cells of the array are too small to be noticeable
-            builder.append("if(res").append(res1).append(".x>mcs").append(res1).append(" || mcs$res1*sca$posIndex1<0.003){\n")
+            builder.append("if(res").append(res1).append(".x>mcs").append(res1)
+                .append(" || mcs$res1*sca$posIndex1<0.003){\n")
             // fast path, where the mesh is skipped
             builder.append("res").append(dstIndex).append("=0.5*res").append(res1).append(";\n")
             builder.append("res").append(dstIndex).append(".x+=0.5*mcs").append(res1).append(";\n")

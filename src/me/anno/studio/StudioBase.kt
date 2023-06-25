@@ -48,15 +48,21 @@ import kotlin.math.roundToInt
  * manages audio, graphics, settings, game loop, ui
  * */
 abstract class StudioBase(
-    val needsAudio: Boolean,
     val title: String,
     val configName: String,
     val versionNumber: Int,
-    versionSuffix: String? = null
+    versionSuffix: String? = null,
+    val needsAudio: Boolean = true,
 ) {
 
-    constructor(needsAudio: Boolean, title: String, versionNumber: Int, versionSuffix: String? = null) :
-            this(needsAudio, title, filterAlphaNumeric(title), versionNumber, versionSuffix)
+    constructor(title: String, versionNumber: Int, versionSuffix: String?, needsAudio: Boolean) :
+            this(title, filterAlphaNumeric(title), versionNumber, versionSuffix, needsAudio)
+
+    constructor(title: String, configName: String, versionNumber: Int, needsAudio: Boolean) :
+            this(title, configName, versionNumber, null, needsAudio)
+
+    constructor(title: String, versionNumber: Int, needsAudio: Boolean) :
+            this(title, filterAlphaNumeric(title), versionNumber, null, needsAudio)
 
     init {
         LOGGER.info("Process ID: ${OS.getProcessID()}")

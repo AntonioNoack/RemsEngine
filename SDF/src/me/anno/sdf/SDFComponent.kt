@@ -143,9 +143,9 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
         }
 
     var globalDynamic
-        get() = SDFComponent.Companion.globalDynamic
+        get() = SDFComponent.globalDynamic
         set(value) {
-            SDFComponent.Companion.globalDynamic = value
+            SDFComponent.globalDynamic = value
         }
 
     @Group("Tracing")
@@ -242,11 +242,22 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
         entity: Entity,
         clickId: Int
     ): Int {
-        val mesh = getMesh()
         this.clickId = clickId
-        pipeline.addMesh(mesh, this, entity, gfxId)
+        ensureValidShader()
+        ensureValidBounds()
+        pipeline.addMesh(getMesh(), this, entity, gfxId)
         lastDrawn = Engine.gameTime
         return clickId + 1
+    }
+
+    override fun getMesh(): Mesh {
+        ensureValidBounds()
+        return super.getMesh()
+    }
+
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        ensureValidBounds()
+        return super.fillSpace(globalTransform, aabb)
     }
 
     @DebugAction
@@ -280,19 +291,27 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
 
     override fun onUpdate(): Int {
         super.onUpdate()
-        if (shaderVersion == 0) generateShader()
-        if (hasInvalidBounds) {
-            hasInvalidBounds = false
-            // recalculate bounds & recreate mesh
-            generateMesh(data)
-            invalidateAABB()
-        }
+        ensureValidShader()
+        ensureValidBounds()
         val components = internalComponents
         for (index in components.indices) {
             val child = components[index]
             if (child.isEnabled) child.callUpdate()
         }
         return 1
+    }
+
+    fun ensureValidShader() {
+        if (shaderVersion == 0) generateShader()
+    }
+
+    fun ensureValidBounds() {
+        if (hasInvalidBounds) {
+            hasInvalidBounds = false
+            // recalculate bounds & recreate mesh
+            generateMesh(data)
+            invalidateAABB()
+        }
     }
 
     override fun hasRaycastType(typeMask: Int): Boolean {

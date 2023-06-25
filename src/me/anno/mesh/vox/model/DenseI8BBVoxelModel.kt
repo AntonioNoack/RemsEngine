@@ -1,10 +1,13 @@
 package me.anno.mesh.vox.model
 
+import java.nio.ByteBuffer
+
 // a different implementation could use oct-trees
-open class DenseI8VoxelModel(sizeX: Int, sizeY: Int, sizeZ: Int, val data: ByteArray) : VoxelModel(sizeX, sizeY, sizeZ) {
+@Suppress("unused")
+open class DenseI8BBVoxelModel(sizeX: Int, sizeY: Int, sizeZ: Int, val data: ByteBuffer) : VoxelModel(sizeX, sizeY, sizeZ) {
 
     override fun fill(dst: IntArray) {
-        for(i in data.indices){
+        for (i in 0 until data.capacity()) {
             dst[i] = data[i].toInt().and(255)
         }
     }

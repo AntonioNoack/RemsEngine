@@ -3,6 +3,10 @@ package me.anno.sdf.arrays
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.shader.GLSLType
 import me.anno.sdf.SDFGroup
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.arrays.SDFArrayMapper.Companion.sdArray
@@ -11,10 +15,6 @@ import me.anno.sdf.random.SDFRandomRotation
 import me.anno.sdf.random.SDFRandomUV
 import me.anno.sdf.shapes.*
 import me.anno.sdf.uv.LinearUVMapper
-import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.shader.GLSLType
 import me.anno.utils.OS.pictures
 import me.anno.utils.types.Floats.toRadians
 import org.joml.AABBf
@@ -121,14 +121,14 @@ class SDFArray2 : SDFGroupArray() {
         functions.add(randLib)
         // for all dimensions:
         val axes = "xyz"
-        val overlap = defineUniform(uniforms, GLSLType.V3F, overlap)
+        val relativeOverlap = defineUniform(uniforms, GLSLType.V3F, relativeOverlap)
         val count = defineUniform(uniforms, GLSLType.V3I, count)
         val cellSize = defineUniform(uniforms, GLSLType.V3F, cellSize)
         val pp1 = nextVariableId.next()
         builder.append("vec3 l$pp1=vec3($count-1)*0.5+vec3(lessThanEqual($count,ivec3(0)))*1e38;\n")
         builder.append("vec3 h$pp1=vec3(").append(count).append("&1)*0.5;\n")
-        builder.append("vec3 min$pp1=mod2C(pos$posIndex0-$overlap,$cellSize,l$pp1,h$pp1);\n")
-        builder.append("vec3 max$pp1=mod2C(pos$posIndex0+$overlap,$cellSize,l$pp1,h$pp1);\n")
+        builder.append("vec3 min$pp1=mod2C(pos$posIndex0-$relativeOverlap*$cellSize,$cellSize,l$pp1,h$pp1);\n")
+        builder.append("vec3 max$pp1=mod2C(pos$posIndex0+$relativeOverlap*$cellSize,$cellSize,l$pp1,h$pp1);\n")
         builder.append("vec3 pos").append(pp1).append("=pos").append(posIndex0).append(";\n")
         builder.append("vec3 dir").append(pp1).append("=dir").append(posIndex0).append(";\n")
         val tmp1 = nextVariableId.next()
@@ -233,7 +233,7 @@ class SDFArray2 : SDFGroupArray() {
                     )
                     cellSize.set(10f, 2f, 5f)
                     count.set(1000)
-                    overlap.set(2.5f)
+                    relativeOverlap.set(2.5f / 10f, 2.5f / 2f, 2.5f / 5f)
                     // todo file input for sdfMaterials: add/create new materials (even if just temporary)
                     //  todo add option to then save them after creation
                     // todo try material for sphere

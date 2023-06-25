@@ -31,7 +31,7 @@ import me.anno.utils.types.Floats.toRadians
 import org.joml.*
 import kotlin.math.max
 
-class SkyBox : MeshComponentBase() {
+open class SkyBox : MeshComponentBase() {
 
     // todo make this a light, such that all things can be lighted from it
 

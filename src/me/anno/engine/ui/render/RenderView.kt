@@ -64,8 +64,8 @@ import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
-import me.anno.gpu.shader.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
+import me.anno.gpu.shader.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
 import me.anno.gpu.texture.ITexture2D
@@ -73,6 +73,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.RenderGraph
+import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
@@ -375,6 +376,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             ) {
                 val sky = pipeline.skyBox
                 if (sky != null) {
+                    if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
+                        this.renderMode = RenderMode.DEFAULT
+                    }
                     val bsb = pipeline.bakedSkyBox ?: CubemapFramebuffer(
                         "skyBox", 256, 1,
                         arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
@@ -397,11 +401,15 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             shader.v1i("hasVertexColors", 0)
                             sky.material.bind(shader)
                         }// else already set
+                        shader.v3f("worldPos", cameraPosition)
+                        shader.v4f("worldRot", cameraRotation)
+                        shader.v1f("worldScale", worldScale.toFloat())
                         sky.draw(shader, 0)
                     }
                     JomlPools.mat4f.sub(1)
                     JomlPools.quat4f.sub(1)
                     pipeline.bakedSkyBox = bsb
+                    this.renderMode = renderMode
                 } else {
                     pipeline.bakedSkyBox?.destroy()
                     pipeline.bakedSkyBox = null
@@ -426,7 +434,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val pbb = pushBetterBlending(true)
         if (world == null) {
             drawSimpleTextCharByChar(
-                x + w / 2, y + h / 2, 4, "Scene Not Found!", AxisAlignment.CENTER, AxisAlignment.CENTER
+                x + w / 2, y + h / 2, 4,
+                if (library.prefabSource == InvalidRef)
+                    "Undefined Scene!" else "Scene Not Found!",
+                AxisAlignment.CENTER, AxisAlignment.CENTER
             )
         }
 
@@ -1332,20 +1343,29 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     fun clearColorOrSky(cameraMatrix: Matrix4f, prevCamMatrix: Matrix4f = cameraMatrix) {
         GFXState.depthMode.use(DepthMode.ALWAYS) {
             val sky = pipeline.skyBox
+            val renderMode = renderMode
+            if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
+                this.renderMode = RenderMode.DEFAULT
+            }
             if (sky != null) {
                 val shader = (sky.shader ?: pbrModelShader).value
                 shader.use()
                 shader.v1i("hasVertexColors", 0)
                 shader.m4x4("transform", cameraMatrix)
+                shader.v3f("worldPos", cameraPosition)
+                shader.v4f("worldRot", cameraRotation)
+                shader.v1f("worldScale", worldScale.toFloat())
                 sky.material.bind(shader)
                 sky.draw(shader, 0)
                 lastWarning = null
             } else {
+                // todo why is sky dark when drawing lines???
                 // todo find cameras correctly
                 lastWarning = "No sky was found"
                 clearColor(editorCamera, editorCamera, cameraMatrix, prevCamMatrix, 0f, true)
             }
             GFXState.currentBuffer.clearDepth()
+            this.renderMode = renderMode
         }
     }
 

@@ -84,14 +84,15 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         // for proper rendering, we need to use the backsides, and therefore we project the ray from the back onto the front
                         "vec3 dirSign = sign(dir);\n" +
                         "vec3 dtf3 = (dirSign * halfBounds + localStart) / dir;\n" +
-                        "float dtf = min(min(dtf3.x, min(dtf3.y, dtf3.z)), 0.0);\n" +
+                        "float dtf1 = min(dtf3.x, min(dtf3.y, dtf3.z));\n" +
+                        "float dtf = min(dtf1, 0.0);\n" +
                         "localStart += -dtf * dir + halfBounds;\n" +
                         "vec3 blockPosition = clamp(floor(localStart), vec3(0.0), bounds1);\n" +
                         "vec3 dist3 = (dirSign*.5+.5 + blockPosition - localStart)/dir;\n" +
                         "vec3 invUStep = dirSign/dir;\n" +
                         "float nextDist, dist = 0.0;\n" +
                         initProperties(flags.hasFlag(IS_INSTANCED)) +
-                        "int lastNormal = dtf3.z == dtf ? 2 : dtf3.y == dtf ? 1 : 0, i;\n" +
+                        "int lastNormal = dtf3.z == dtf1 ? 2 : dtf3.y == dtf1 ? 1 : 0, i;\n" +
                         "bool done = false;\n" +
                         "for(i=0;i<maxSteps;i++){\n" +
                         "   nextDist = min(dist3.x, min(dist3.y, dist3.z));\n" +

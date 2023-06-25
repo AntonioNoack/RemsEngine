@@ -4,10 +4,11 @@ import me.anno.ecs.components.mesh.decal.DecalMaterial.Companion.sett
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -16,13 +17,28 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.structures.lists.Lists.any2
 import java.util.*
-import kotlin.collections.ArrayList
 
 class DecalShader(val layers: ArrayList<DeferredLayerType>) : ECSMeshShader("decal") {
     override fun createFragmentStages(flags: Int): List<ShaderStage> {
         val sett = sett ?: return super.createFragmentStages(flags)
         val loadPart2 = StringBuilder()
+        val variables = ArrayList(depthVars)
+        for (layer in sett.layers2) {
+            variables.add(Variable(GLSLType.S2D, layer.name + "_in0"))
+        }
+        variables.addAll(
+            listOf(
+                Variable(GLSLType.S2D, "depth_in0"),
+                Variable(GLSLType.M4x3, "invLocalTransform"),
+                Variable(GLSLType.V2F, "windowSize"),
+                Variable(GLSLType.V2F, "uv", VariableMode.OUT),
+                Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
+                Variable(GLSLType.V3F, "localPosition", VariableMode.OUT),
+                Variable(GLSLType.V1F, "alphaMultiplier", VariableMode.OUT),
+            )
+        )
         for (layer in sett.layers) {
+            variables.add(Variable(floats[layer.type.workDims - 1], "${layer.type.glslName}_in2", VariableMode.OUT))
             layer.appendMapping(loadPart2, "_in2", "_in1", "_in0", "", null, null)
         }
         val original = super.createFragmentStages(flags)
@@ -30,17 +46,7 @@ class DecalShader(val layers: ArrayList<DeferredLayerType>) : ECSMeshShader("dec
         return listOf(
             // inputs
             ShaderStage(
-                "inputs", depthVars + sett.layers2.map { layer ->
-                    Variable(GLSLType.S2D, layer.name + "_in0")
-                } + listOf(
-                    Variable(GLSLType.S2D, "depth_in0"),
-                    Variable(GLSLType.M4x3, "invLocalTransform"),
-                    Variable(GLSLType.V2F, "windowSize"),
-                    Variable(GLSLType.V2F, "uv", VariableMode.OUT),
-                    Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
-                    Variable(GLSLType.V3F, "localPosition", VariableMode.OUT),
-                    Variable(GLSLType.V1F, "alphaMultiplier", VariableMode.OUT),
-                ), "" +
+                "inputs", variables, "" +
                         "ivec2 uvz = ivec2(gl_FragCoord.xy);\n" +
                         // load all data
                         sett.layers2.joinToString("") {
