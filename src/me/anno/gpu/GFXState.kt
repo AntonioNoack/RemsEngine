@@ -133,7 +133,7 @@ object GFXState {
     /**
      * a flag for shaders whether their limited-transform version (faster for 10k+ instances) is used
      * */
-    val limitedTransform = object : SecureStack<Boolean>(false) {
+    val prsTransform = object : SecureStack<Boolean>(false) {
         override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
             // nothing changes on the OpenGL side,
             // just the shaders need to be modified

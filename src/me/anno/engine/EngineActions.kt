@@ -88,21 +88,21 @@ object EngineActions {
                 true
             },
             "Paste" to {
-                Input.paste(GFX.someWindow)
+                Input.paste(GFX.someWindow!!)
                 true
             },
             "Copy" to {
-                Input.copy(GFX.someWindow)
+                Input.copy(GFX.someWindow!!)
                 true
             },
             "Duplicate" to {
-                val window = GFX.someWindow
+                val window = GFX.someWindow!!
                 Input.copy(window)
                 Input.paste(window)
                 true
             },
             "Cut" to {
-                val window = GFX.someWindow
+                val window = GFX.someWindow!!
                 Input.copy(window)
                 Input.empty(window)
                 true
@@ -116,7 +116,7 @@ object EngineActions {
                 true
             },
             "SelectAll" to {
-                val ws = GFX.someWindow.windowStack
+                val ws = GFX.someWindow!!.windowStack
                 val inFocus0 = ws.inFocus0
                 inFocus0?.onSelectAll(ws.mouseX, ws.mouseY)
                 true

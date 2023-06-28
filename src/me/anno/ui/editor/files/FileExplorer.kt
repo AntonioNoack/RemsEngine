@@ -500,7 +500,7 @@ open class FileExplorer(
     }
 
     fun copyIntoCurrent(files: List<FileReference>) {
-        val progress = GFX.someWindow.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
+        val progress = GFX.someWindow!!.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
         for (file in files) {
             if (progress.isCancelled) break
             val newFile = findNextFile(folder, file, 1, '-', 1)
@@ -511,7 +511,7 @@ open class FileExplorer(
     }
 
     fun createLinksIntoCurrent(files: List<FileReference>) {
-        val progress = GFX.someWindow.addProgressBar("Creating Links", "Files", files.size.toDouble())
+        val progress = GFX.someWindow!!.addProgressBar("Creating Links", "Files", files.size.toDouble())
         var tmp: FileReference? = null
         loop@ for (file in files) {
             if (progress.isCancelled) break

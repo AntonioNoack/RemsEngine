@@ -89,7 +89,7 @@ object GFX {
      * window, that is in focus, or arbitrary window, if undefined
      * */
     @JvmStatic
-    val someWindow get() = focusedWindow ?: windows[0] // we also could choose the one closest to the mouse :)
+    val someWindow get() = focusedWindow ?: windows.firstOrNull() // we also could choose the one closest to the mouse :)
 
     @JvmStatic
     var idleFPS
@@ -245,7 +245,8 @@ object GFX {
     fun clip(x: Int, y: Int, w: Int, h: Int, render: () -> Unit) {
         // from the bottom to the top
         check()
-        if (w < 1 || h < 1) throw RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
+        if (w < 0 || h < 0) throw RuntimeException("w < 1 || h < 1 not allowed, got $w x $h")
+        if (w < 1 || h < 1) return
         // val height = RenderState.currentBuffer?.h ?: height
         // val realY = height - (y + h)
         useFrame(x, y, w, h) {

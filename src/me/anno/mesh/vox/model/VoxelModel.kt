@@ -70,28 +70,46 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         return i
     }
 
+    /**
+     * Creates an optimized triangle mesh in voxel shape.
+     *
+     * @param insideIsSolid whether a cell needs a wall as border; if null, color != 0 is solid
+     * @param outsideIsSolid whether a cell outside the box needs a wall as border; if null, all outside blocks get walls
+     * */
     fun createMesh(
         palette: IntArray?,
         insideIsSolid: IsSolid?,
         outsideIsSolid: IsSolid?,
-        mesh: Mesh = Mesh()
-    ) = createMesh(palette, insideIsSolid, outsideIsSolid, allSides, mesh)
+        dst: Mesh = Mesh()
+    ) = createMesh(palette, insideIsSolid, outsideIsSolid, allSides, dst)
 
+    /**
+     * Creates an optimized triangle mesh in voxel shape.
+     *
+     * @param insideIsSolid whether a cell needs a wall as border; if null, color != 0 is solid
+     * @param outsideIsSolid whether a cell outside the box needs a wall as border; if null, all outside blocks get walls
+     * */
     @Suppress("unused")
     fun createMesh(
         palette: IntArray?,
         insideIsSolid: IsSolid?,
         outsideIsSolid: IsSolid?,
         side: BlockSide,
-        mesh: Mesh = Mesh()
-    ) = createMesh(palette, insideIsSolid, outsideIsSolid, sideList[side.ordinal], mesh)
+        dst: Mesh = Mesh()
+    ) = createMesh(palette, insideIsSolid, outsideIsSolid, sideList[side.ordinal], dst)
 
+    /**
+     * Creates an optimized triangle mesh in voxel shape.
+     *
+     * @param insideIsSolid whether a cell needs a wall as border; if null, color != 0 is solid
+     * @param outsideIsSolid whether a cell outside the box needs a wall as border; if null, all outside blocks get walls
+     * */
     fun createMesh(
         palette: IntArray?,
         insideIsSolid: IsSolid?,
         outsideIsSolid: IsSolid?,
         sides: List<BlockSide>,
-        mesh: Mesh = Mesh()
+        dst: Mesh = Mesh()
     ): Mesh {
 
         // create a mesh
@@ -132,11 +150,11 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
             )
         }
 
-        mesh.positions = vertices.toFloatArray()
-        mesh.normals = normals.toFloatArray()
-        mesh.color0 = colors.toIntArray()
+        dst.positions = vertices.toFloatArray()
+        dst.normals = normals.toFloatArray()
+        dst.color0 = colors.toIntArray()
 
-        return mesh
+        return dst
 
     }
 

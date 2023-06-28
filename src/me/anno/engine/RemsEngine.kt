@@ -141,7 +141,7 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
             ECSSceneTabs.currentTab?.save()
         } catch (e: Exception) {
             e.printStackTrace()
-            Menu.msg(GFX.someWindow.windowStack, NameDesc(e.toString()))
+            Menu.msg((GFX.someWindow ?: return).windowStack, NameDesc(e.toString()))
         }
     }
 

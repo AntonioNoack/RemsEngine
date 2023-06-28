@@ -194,7 +194,7 @@ object DebugGPUStorage {
     }
 
     fun openMenu() {
-        val window = GFX.someWindow
+        val window = GFX.someWindow!!
         Menu.openMenu(window.windowStack, listOf(
             MenuOption(
                 NameDesc(
@@ -305,7 +305,7 @@ object DebugGPUStorage {
         list.childWidth *= 2
         list.childHeight *= 2
         fillList(list)
-        val window = GFX.someWindow
+        val window = GFX.someWindow!!
         Menu.openMenuByPanels(
             window.windowStack,
             window.mouseX.toInt(),
@@ -318,7 +318,7 @@ object DebugGPUStorage {
     private fun createListOfPanels(title: String, fillList: (PanelList) -> Unit) {
         val list = PanelListY(style)
         fillList(list)
-        val window = GFX.someWindow
+        val window = GFX.someWindow!!
         Menu.openMenuByPanels(
             window.windowStack,
             window.mouseX.toInt(),

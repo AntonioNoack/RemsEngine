@@ -389,6 +389,7 @@ class Transform() : Saveable() {
 
     @Suppress("unused")
     fun setLocalPosition(x: Double, y: Double, z: Double): Transform {
+        localTransform.setTranslation(x, y, z)
         localPosition.set(x, y, z)
         invalidateGlobal()
         return this
@@ -402,6 +403,7 @@ class Transform() : Saveable() {
     @Suppress("unused")
     fun setGlobalPosition(x: Double, y: Double, z: Double): Transform {
         globalPosition.set(x, y, z)
+        globalTransform.setTranslation(x, y, z)
         invalidateLocal()
         return this
     }
@@ -409,6 +411,7 @@ class Transform() : Saveable() {
     @Suppress("unused")
     fun translateLocal(dx: Double, dy: Double, dz: Double): Transform {
         localPosition.add(dx, dy, dz)
+        localTransform.setTranslation(localPosition)
         invalidateGlobal()
         return this
     }
@@ -416,6 +419,7 @@ class Transform() : Saveable() {
     @Suppress("unused")
     fun translateGlobal(dx: Double, dy: Double, dz: Double): Transform {
         globalPosition.add(dx, dy, dz)
+        globalTransform.setTranslation(globalPosition)
         invalidateLocal()
         return this
     }
@@ -423,23 +427,35 @@ class Transform() : Saveable() {
     @Suppress("unused")
     fun resetLocalRotation(): Transform {
         localRotation = localRotation.identity()
+        localTransform.identity()
+            .setTranslation(localPosition)
+            .scale(localScale)
+        invalidateGlobal()
         return this
     }
 
     fun rotateXLocal(angleRadians: Double): Transform {
         localRotation = localRotation.rotateX(angleRadians)
+        recalculateLocal()
         return this
     }
 
     fun rotateYLocal(angleRadians: Double): Transform {
         localRotation = localRotation.rotateY(angleRadians)
+        recalculateLocal()
         return this
     }
 
     @Suppress("unused")
     fun rotateZLocal(angleRadians: Double): Transform {
         localRotation = localRotation.rotateZ(angleRadians)
+        recalculateLocal()
         return this
+    }
+
+    private fun recalculateLocal(){
+        localTransform.translationRotateScale(localPosition, localRotation, localScale)
+        invalidateGlobal()
     }
 
     override fun save(writer: BaseWriter) {

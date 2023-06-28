@@ -32,7 +32,7 @@ class InstancedStackPSR(capacity: Int = 64) :
     ): LongPair {
         var drawnPrimitives = 0L
         var drawCalls = 0L
-        GFXState.limitedTransform.use(true) {
+        GFXState.prsTransform.use(true) {
             for ((mesh, list) in values) {
                 for ((material, values) in list) {
                     if (values.size > 0) {

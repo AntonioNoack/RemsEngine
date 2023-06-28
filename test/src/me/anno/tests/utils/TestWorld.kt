@@ -139,7 +139,7 @@ object TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         object : VoxelModel(sx, sy, sz) {
             override fun getBlock(x: Int, y: Int, z: Int) =
                 getElementAt(x0 + x, y0 + y, z0 + z).toInt()
-        }.createMesh(palette, { _, _, _ -> false }, mesh.data)
+        }.createMesh(palette, null, null, mesh.data)
         return mesh
     }
 

@@ -3,16 +3,14 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.m4x3delta
-import me.anno.maths.Maths
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongPair
 import org.joml.Matrix4x3d
-import org.joml.Matrix4x3f
+import kotlin.math.min
 
 class InstancedStackI32(capacity: Int = 512) :
     KeyPairMap<Mesh, Material, InstancedStackI32.Data>(capacity), DrawableStack {
@@ -40,13 +38,11 @@ class InstancedStackI32(capacity: Int = 512) :
     ): LongPair {
         var drawnPrimitives = 0L
         var drawCalls = 0L
-        GFXState.limitedTransform.use(true) {
-            for ((mesh, list) in values) {
-                for ((material, values) in list) {
-                    if (values.size > 0) {
-                        drawCalls += draw(stage, mesh, material, pipeline, values, depth)
-                        drawnPrimitives += mesh.numPrimitives * values.size.toLong()
-                    }
+        for ((mesh, list) in values) {
+            for ((material, values) in list) {
+                if (values.size > 0) {
+                    drawCalls += draw(stage, mesh, material, pipeline, values, depth)
+                    drawnPrimitives += mesh.numPrimitives * values.size.toLong()
                 }
             }
         }
@@ -93,6 +89,9 @@ class InstancedStackI32(capacity: Int = 512) :
         val buffer = PipelineStage.instancedBufferI32
         // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
         val nioBuffer = buffer.nioBuffer!!
+        nioBuffer.limit(nioBuffer.capacity())
+        val nioInt = nioBuffer.asIntBuffer()
+        nioInt.limit(nioInt.capacity())
         // fill the data
         val cameraPosition = RenderState.cameraPosition
         val worldScale = RenderState.worldScale
@@ -114,12 +113,12 @@ class InstancedStackI32(capacity: Int = 512) :
 
                 buffer.clear()
 
-                val endIndex = Maths.min(totalEndIndex, baseIndex + batchSize)
                 val data = instances.data
+                val endIndex = min(totalEndIndex, baseIndex + batchSize)
                 nioBuffer.position(0)
-                for (index in baseIndex until endIndex) {
-                    nioBuffer.putInt(data[index])
-                }
+                nioInt.position(0)
+                nioInt.put(data.array, baseIndex, endIndex - baseIndex)
+                nioBuffer.position(nioInt.position() shl 2)
                 buffer.isUpToDate = false
                 buffer.ensureBufferWithoutResize()
                 // slightly optimized over PSR ^^, ~ 8-fold throughput

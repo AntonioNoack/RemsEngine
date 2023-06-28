@@ -212,7 +212,7 @@ class WindowStack : Stack<Window>() {
 
         @JvmStatic
         fun createReloadWindow(panel: Panel, transparent: Boolean, fullscreen: Boolean, reload: () -> Unit): Window {
-            val window = GFX.someWindow
+            val window = GFX.someWindow!!
             return object : Window(
                 panel, transparent, fullscreen, window.windowStack,
                 if (fullscreen) 0 else window.mouseX.toInt(),

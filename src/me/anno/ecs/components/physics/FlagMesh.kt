@@ -278,7 +278,7 @@ class FlagMesh : MeshComponent() {
                             ShaderLib.positionPostProcessing
                 )
                 if (flags.hasFlag(IS_ANIMATED) && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
-                if (flags.hasFlag(USES_LIMITED_TRANSFORM)) stage.add(ShaderLib.quatRot)
+                if (flags.hasFlag(USES_PRS_TRANSFORM)) stage.add(ShaderLib.quatRot)
                 return listOf(stage)
             }
         }

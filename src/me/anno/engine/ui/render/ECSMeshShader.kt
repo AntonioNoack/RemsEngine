@@ -152,7 +152,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             "finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n"
 
         val applyTransformCode = "" +
-                "#ifdef LIMITED_TRANSFORM\n" +
+                "#ifdef PRS_TRANSFORM\n" +
                 "   finalPosition = quatRot(localPosition, instanceRot) * instancePosSize.w + instancePosSize.xyz;\n" +
                 "   #ifdef COLORS\n" +
                 // scale not needed, because scale is scalar in this case
@@ -190,7 +190,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val motionVectorCode = "" +
                 "#ifdef MOTION_VECTORS\n" +
                 "   currPosition = gl_Position;\n" +
-                "   #ifdef LIMITED_TRANSFORM\n" +
+                "   #ifdef PRS_TRANSFORM\n" +
                 "       prevPosition = prevTransform * vec4(finalPosition, 1.0);\n" +
                 "   #else\n" +
                 "       prevPosition = prevTransform * vec4(prevLocalTransform * vec4(prevLocalPosition, 1.0), 1.0);\n" +
@@ -326,7 +326,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val isInstanced = flags.hasFlag(IS_INSTANCED)
         val isAnimated = flags.hasFlag(IS_ANIMATED)
-        if (flags.hasFlag(USES_LIMITED_TRANSFORM)) {
+        if (flags.hasFlag(USES_PRS_TRANSFORM)) {
             variables += Variable(GLSLType.V4F, "instancePosSize", VariableMode.ATTR)
             variables += Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR)
         } else if (isInstanced) {
@@ -418,7 +418,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     ShaderLib.positionPostProcessing
         )
         if (flags.hasFlag(IS_ANIMATED) && useAnimTextures) stage.add(getAnimMatrix)
-        if (flags.hasFlag(USES_LIMITED_TRANSFORM)) stage.add(quatRot)
+        if (flags.hasFlag(USES_PRS_TRANSFORM)) stage.add(quatRot)
         return listOf(stage)
     }
 

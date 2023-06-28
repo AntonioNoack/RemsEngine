@@ -47,7 +47,7 @@ abstract class WelcomeUI {
 
     fun create(studio: StudioBase) {
 
-        val window = GFX.someWindow
+        val window = GFX.someWindow!!
         val windowStack = window.windowStack
 
         // manage and load recent projects
@@ -142,7 +142,7 @@ abstract class WelcomeUI {
 
     fun createRecentProjectsUI(studio: StudioBase, style: Style, recent: List<ProjectHeader>): Panel {
 
-        val window = GFX.someWindow
+        val window = GFX.someWindow!!
         val recentProjects = SettingCategory(
             "Recent Projects",
             "Your projects of the past",
@@ -235,7 +235,7 @@ abstract class WelcomeUI {
     private fun openProject2(name: String, folder: FileReference) {
         val p = loadProject(name.trim(), folder)
         StudioBase.addEvent {
-            GFX.someWindow.windowStack.clear()
+            GFX.someWindow!!.windowStack.clear()
             createProjectUI()
         }
         Projects.addToRecentProjects(p.first, p.second)
@@ -259,7 +259,7 @@ abstract class WelcomeUI {
             openProject(studio, nameInput.lastValue, file)
         } else {
             Menu.msg(
-                GFX.someWindow.windowStack, NameDesc(
+                GFX.someWindow!!.windowStack, NameDesc(
                     "Please choose a ${dirNameEn}!",
                     "", "ui.newProject.pleaseChooseDir"
                 )

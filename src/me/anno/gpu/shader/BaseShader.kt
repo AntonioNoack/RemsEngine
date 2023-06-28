@@ -49,7 +49,7 @@ open class BaseShader(
             createDepthShader(
                 it.hasFlag(1).toInt(IS_INSTANCED) +
                         it.hasFlag(2).toInt(IS_ANIMATED) +
-                        it.hasFlag(4).toInt(USES_LIMITED_TRANSFORM)
+                        it.hasFlag(4).toInt(USES_PRS_TRANSFORM)
             )
         }
     }
@@ -130,7 +130,7 @@ open class BaseShader(
             val renderer = GFXState.currentRenderer
             val instanced = GFXState.instanced.currentValue
             val animated = GFXState.animated.currentValue
-            val limited = GFXState.limitedTransform.currentValue
+            val limited = GFXState.prsTransform.currentValue
             val stateId = min(instanced.toInt() + animated.toInt(2) + motionVectors.toInt(4) + limited.toInt(8), 8)
             val shader = if (renderer == Renderer.nothingRenderer) {
                 depthShader[if (limited) 4 else stateId and 3].value
@@ -140,7 +140,7 @@ open class BaseShader(
                         val flags = stateId2.hasFlag(1).toInt(IS_INSTANCED) +
                                 stateId2.hasFlag(2).toInt(IS_ANIMATED) +
                                 stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
-                                stateId2.hasFlag(8).toInt(USES_LIMITED_TRANSFORM) +
+                                stateId2.hasFlag(8).toInt(USES_PRS_TRANSFORM) +
                                 NEEDS_COLORS
                         createForwardShader(flags, r.getPostProcessing(flags))
                     }
@@ -215,7 +215,7 @@ open class BaseShader(
             val flags = stateId2.hasFlag(1).toInt(IS_INSTANCED) +
                     stateId2.hasFlag(2).toInt(IS_ANIMATED) +
                     stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
-                    stateId2.hasFlag(8).toInt(USES_LIMITED_TRANSFORM) +
+                    stateId2.hasFlag(8).toInt(USES_PRS_TRANSFORM) +
                     NEEDS_COLORS + IS_DEFERRED
             val postProcessing = renderer.getPostProcessing(flags)
             createDeferredShader(settings2, flags, postProcessing)
@@ -228,7 +228,7 @@ open class BaseShader(
         if (flags.hasFlag(IS_DEFERRED)) dst.append("#define DEFERRED\n")
         if (flags.hasFlag(NEEDS_COLORS)) dst.append("#define COLORS\n")
         if (flags.hasFlag(NEEDS_MOTION_VECTORS)) dst.append("#define MOTION_VECTORS\n")
-        if (flags.hasFlag(USES_LIMITED_TRANSFORM)) dst.append("#define LIMITED_TRANSFORM\n")
+        if (flags.hasFlag(USES_PRS_TRANSFORM)) dst.append("#define PRS_TRANSFORM\n")
         return dst
     }
 
@@ -254,7 +254,11 @@ open class BaseShader(
         const val NEEDS_COLORS = 8
         const val NEEDS_MOTION_VECTORS = 16
 
-        const val USES_LIMITED_TRANSFORM = 32
+        /**
+         * an optimized transform, where only position, rotation, and uniform scale are supported;
+         * for instanced rendering without motion, and reduced memory-bandwidth usage
+         * */
+        const val USES_PRS_TRANSFORM = 32
 
         val motionVectors
             get(): Boolean {

@@ -2,6 +2,7 @@ package me.anno.ui.base.progress
 
 import me.anno.Engine
 import me.anno.gpu.GFX.clip
+import me.anno.gpu.GFX.clip2Save
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
@@ -17,10 +18,11 @@ import me.anno.utils.Color.black
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.cos
+import kotlin.math.min
 
 open class ProgressBar(
-    val name: String,
-    val unit: String,
+    var name: String,
+    var unit: String,
     var total: Double
 ) {
 
@@ -88,7 +90,11 @@ open class ProgressBar(
         }
     }
 
-    open fun draw(x: Int, y: Int, w: Int, h: Int, time: Long) {
+    open fun draw(
+        x: Int, y: Int, w: Int, h: Int,
+        x0: Int, y0: Int, x1: Int, y1: Int,
+        time: Long
+    ) {
         val dt = Maths.dtTo01((time - lastDraw) * 1e-9 * updateSpeed)
         lastDraw = time
         val percentage = progress / total
@@ -146,13 +152,23 @@ open class ProgressBar(
             val text = formatText()
             val xt = x + w.shr(1)
             val yt = y + (h - monospaceFont.sizeInt).shr(1)
-            clip(x, y, mid, h) {
+            clip2Save(
+                max(x0, x),
+                max(y0, y),
+                min(x1, x + mid),
+                min(y1, y + h)
+            ) {
                 drawSimpleTextCharByChar(
                     xt, yt, pad, text, rightColor, leftColor,
                     AxisAlignment.CENTER, AxisAlignment.MIN
                 )
             }
-            clip(x + mid, y, w - mid, h) {
+            clip2Save(
+                max(x0, x + mid),
+                max(y0, y),
+                min(x1, x + w - mid),
+                min(y1, y + h)
+            ) {
                 drawSimpleTextCharByChar(
                     xt, yt, pad, text, leftColor, rightColor,
                     AxisAlignment.CENTER, AxisAlignment.MIN

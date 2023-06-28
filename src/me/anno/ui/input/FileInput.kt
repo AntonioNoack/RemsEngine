@@ -29,7 +29,7 @@ import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 
-class FileInput(
+open class FileInput(
     title: String, style: Style,
     val f0: FileReference,
     var extraRightClickOptions: List<FileExplorerOption>,
@@ -144,6 +144,7 @@ class FileInput(
 
     override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
         when {
+            // todo paste option
             button.isRight -> openMenu(windowStack, listOf(
                 MenuOption(openInExplorerDesc) { file.openInExplorer() },
                 MenuOption(openInStandardProgramDesc) { file.openInStandardProgram() },

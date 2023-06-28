@@ -325,7 +325,13 @@ abstract class StudioBase(
             val time = Engine.nanoTime
             for (index in progressBars.indices) {
                 val bar = progressBars[index]
-                bar.draw(0, ph * index, w, ph, time)
+                val x = 0
+                val y = ph * index
+                bar.draw(
+                    x, y, w, ph,
+                    x, y, x + w, y + ph,
+                    time
+                )
             }
             val changed = progressBars.removeIf { it.canBeRemoved(time) }
             if (changed) {

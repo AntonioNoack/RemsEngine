@@ -21,7 +21,7 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase("Test", 1,
         ui.add(ConsoleOutputPanel.createConsoleWithStats(false, style))
         ui.addAll(createMainPanel())
         ui.weight = 1f
-        val windowStack = GFX.someWindow.windowStack
+        val windowStack = GFX.someWindow!!.windowStack
         windowStack.add(Window(ui, false, windowStack))
     }
 

@@ -180,8 +180,9 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         val local = localAABB
         local.clear()
         forEachMesh { mesh, _, transform ->
-            mesh.getBounds()
-                .transformUnion(transform.localTransform, local, local)
+            transform.validate()
+            val lt = transform.localTransform
+            mesh.getBounds().transformUnion(lt, local, local)
         }
 
         // calculate global aabb

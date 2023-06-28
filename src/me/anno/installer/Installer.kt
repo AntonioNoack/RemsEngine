@@ -1,8 +1,9 @@
 package me.anno.installer
 
+import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
+import me.anno.ui.base.progress.ProgressBar
 import me.anno.utils.OS
 import me.anno.utils.types.Strings.formatDownload
 import me.anno.utils.types.Strings.formatDownloadEnd
@@ -53,38 +54,15 @@ object Installer {
     fun download(fileName: String, dstFile: FileReference, withHttps: Boolean = true, callback: () -> Unit) {
         // change "files" to "files.phychi.com"?
         // create a temporary file, and rename, so we know that we finished the download :)
-        val tmp = getReference(dstFile.getParent(), dstFile.name + ".tmp")
+        val tmp = dstFile.getSibling(dstFile.name + ".tmp")
         thread(name = "Download $fileName") {
+            val window = GFX.focusedWindow ?: GFX.windows.firstOrNull()
+            val progress = window?.addProgressBar(fileName, "Bytes", Double.NaN)
             val protocol = if (withHttps) "https" else "http"
             val name = fileName.replace(" ", "%20")
             val totalURL = "${protocol}://remsstudio.phychi.com/download/${name}"
             try {
-                val con = URL(totalURL).openConnection() as HttpURLConnection
-                val input = con.inputStream.buffered()
-                dstFile.getParent()?.tryMkdirs()
-                val output = tmp.outputStream().buffered()
-                val totalLength = con.contentLength.toLong()
-                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                var time0 = System.nanoTime()
-                var length0 = 0L
-                var downloadedLength = 0L
-                while (true) {
-                    val length = input.read(buffer)
-                    if (length < 0) break
-                    length0 += length
-                    downloadedLength += length
-                    output.write(buffer, 0, length)
-                    val time1 = System.nanoTime()
-                    val dt = time1 - time0
-                    if (dt > SECONDS_TO_NANOS) {
-                        LOGGER.info(formatDownload(fileName, dt, length0, downloadedLength, totalLength))
-                        time0 = time1
-                        length0 = 0
-                    }
-                }
-                output.close()
-                tmp.renameTo(dstFile)
-                LOGGER.info(formatDownloadEnd(fileName, dstFile))
+                runDownload(URL(totalURL), fileName, dstFile, tmp, progress)
                 callback()
             } catch (e: SSLHandshakeException) {
                 if (withHttps) {
@@ -94,7 +72,69 @@ object Installer {
                     e.printStackTrace()
                 }
             } catch (e: IOException) {
+                progress?.cancel(false)
                 LOGGER.error("Tried to download $fileName from $totalURL to $dstFile, but failed! You can try to do it yourself.")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    @JvmStatic
+    private fun runDownload(
+        url: URL, fileName: String, dstFile: FileReference, tmp: FileReference,
+        progress: ProgressBar?,
+    ) {
+        val con = url.openConnection() as HttpURLConnection
+        val contentLength = con.contentLength
+        if (contentLength > 0L) progress?.total = con.contentLength.toDouble()
+        val input = con.inputStream.buffered()
+        dstFile.getParent()?.tryMkdirs()
+        val output = tmp.outputStream().buffered()
+        val totalLength = con.contentLength.toLong()
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var time0 = System.nanoTime()
+        var length0 = 0L
+        var downloadedLength = 0L
+        while (true) {
+            val length = input.read(buffer)
+            if (length < 0) break
+            length0 += length
+            downloadedLength += length
+            output.write(buffer, 0, length)
+            val time1 = System.nanoTime()
+            val dt = time1 - time0
+            progress?.progress = downloadedLength.toDouble()
+            if (dt > SECONDS_TO_NANOS) {
+                LOGGER.info(formatDownload(fileName, dt, length0, downloadedLength, totalLength))
+                time0 = time1
+                length0 = 0
+            }
+        }
+        output.close()
+        tmp.renameTo(dstFile)
+        progress?.finish(true)
+        LOGGER.info(formatDownloadEnd(fileName, dstFile))
+    }
+
+    @JvmStatic
+    fun download(
+        fileName: String,
+        srcFile: FileReference,
+        dstFile: FileReference,
+        callback: () -> Unit
+    ) {
+        // change "files" to "files.phychi.com"?
+        // create a temporary file, and rename, so we know that we finished the download :)
+        val tmp = dstFile.getSibling(dstFile.name + ".tmp")
+        thread(name = "Download $fileName") {
+            val window = GFX.focusedWindow ?: GFX.windows.firstOrNull()
+            val progress = window?.addProgressBar(fileName, "Bytes", Double.NaN)
+            try {
+                runDownload(URL(srcFile.absolutePath), fileName, dstFile, tmp, progress)
+                callback()
+            } catch (e: IOException) {
+                progress?.cancel(false)
+                LOGGER.error("Tried to download $fileName from $srcFile to $dstFile, but failed! You can try to do it yourself.")
                 e.printStackTrace()
             }
         }
