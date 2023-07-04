@@ -63,13 +63,13 @@ open class ColorInput(
             }
         }
 
-    fun getValue() = contentView.getColor()
-    override val lastValue: Vector4f get() = getValue()
+    override val value: Vector4f
+        get() = contentView.getColor()
 
-    override fun setValue(value: Vector4f, notify: Boolean): ColorInput {
-        previewField.color = value.toARGB()
+    override fun setValue(newValue: Vector4f, notify: Boolean): ColorInput {
+        previewField.color = newValue.toARGB()
         previewField.invalidateDrawing()
-        contentView.setRGBA(value, false)
+        contentView.setRGBA(newValue, false)
         return this
     }
 

@@ -17,7 +17,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.studio.Inspectable
-import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
@@ -366,11 +365,11 @@ class PrefabInspector(val reference: FileReference) {
                 }, style
             ) {
 
-                override val lastValue: List<Inspectable>
+                override val value: List<Inspectable>
                     get() = instance.getChildListByType(type)
 
-                override fun setValue(value: List<Inspectable>, notify: Boolean): Panel {
-                    if (value != lastValue) {
+                override fun setValue(newValue: List<Inspectable>, notify: Boolean): Panel {
+                    if (newValue != value) {
                         throw IllegalStateException("Cannot directly set the value of components[]!")
                     } // else done
                     return this

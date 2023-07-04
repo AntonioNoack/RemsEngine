@@ -67,6 +67,11 @@ class BetterProcessBuilder(
         return this
     }
 
+    fun addIf(argument: String, condition: Boolean): BetterProcessBuilder {
+        if (condition) args += argument
+        return this
+    }
+
     fun add(vararg argument: String): BetterProcessBuilder {
         args += argument
         return this
@@ -77,8 +82,8 @@ class BetterProcessBuilder(
         return this
     }
 
-    fun addAll(arguments: Array<out String>): BetterProcessBuilder {
-        args += arguments
+    fun addAllIf(arguments: Collection<String>, condition: Boolean): BetterProcessBuilder {
+        if (condition) args += arguments
         return this
     }
 

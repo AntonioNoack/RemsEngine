@@ -70,7 +70,7 @@ object OS {
     fun startProcess(vararg args: String) {
         thread(name = "Process $args") {
             val builder = BetterProcessBuilder(null, args.size, true)
-            builder.addAll(args)
+            builder.add(*args)
             builder.start()
         }
     }

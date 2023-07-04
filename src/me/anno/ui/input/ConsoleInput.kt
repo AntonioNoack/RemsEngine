@@ -31,10 +31,10 @@ class ConsoleInput(title: String, enableSuggestions: Boolean, style: Style) :
     }
 
     override fun onEnterKey(x: Float, y: Float) {
-        history.remove(lastValue)
-        history.add(lastValue)
+        history.remove(value)
+        history.add(value)
         resetIndex()
-        actionListener(lastValue)
+        actionListener(value)
     }
 
     fun resetIndex() {

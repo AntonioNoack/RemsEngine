@@ -50,7 +50,7 @@ class BooleanInput(
         this += WrapAlign.LeftTop
     }
 
-    override val lastValue: Boolean get() = checkView.lastValue
+    override val value: Boolean get() = checkView.value
 
     var isChecked: Boolean
         get() = checkView.isChecked
@@ -111,8 +111,8 @@ class BooleanInput(
         return this
     }
 
-    override fun setValue(value: Boolean, notify: Boolean): BooleanInput {
-        checkView.setValue(value, notify)
+    override fun setValue(newValue: Boolean, notify: Boolean): BooleanInput {
+        checkView.setValue(newValue, notify)
         return this
     }
 

@@ -90,7 +90,7 @@ object Menu {
         panel.placeholder = title.name
         panel.tooltip = title.desc
         panel.setEnterListener {
-            callback(panel.lastValue)
+            callback(panel.value)
             close(panel)
         }
         panel.addChangeListener {
@@ -99,7 +99,7 @@ object Menu {
         val submit = TextButton(actionName.name, false, style)
         submit.tooltip = actionName.desc
         submit.addLeftClickListener {
-            callback(panel.lastValue)
+            callback(panel.value)
             close(panel)
         }
 

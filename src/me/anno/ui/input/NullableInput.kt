@@ -30,7 +30,7 @@ class NullableInput<V>(val content: Panel, val property: IProperty<V>, style: St
                 content as InputPanel<Any?>
                 content.isEnabled = isNotNull
                 if (isNotNull) {
-                    content.setValue(content.lastValue, true)
+                    content.setValue(content.value, true)
                 } else {
                     property.set(content, null)
                 }
@@ -45,11 +45,11 @@ class NullableInput<V>(val content: Panel, val property: IProperty<V>, style: St
             (content as? InputPanel<*>)?.isInputAllowed = value
         }
 
-    override val lastValue: V
+    override val value: V
         get() = property.get()
 
-    override fun setValue(value: V, notify: Boolean): Panel {
-        property.set(this, value)
+    override fun setValue(newValue: V, notify: Boolean): Panel {
+        property.set(this, newValue)
         return this
     }
 

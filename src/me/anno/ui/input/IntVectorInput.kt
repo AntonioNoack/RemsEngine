@@ -70,7 +70,7 @@ open class IntVectorInput(
             }
         }
 
-    override val lastValue: Vector4i
+    override val value: Vector4i
         get() = Vector4i(vx.toInt(), vy.toInt(), vz.toInt(), vw.toInt())
 
     override var textColor: Int
@@ -181,10 +181,10 @@ open class IntVectorInput(
     val compZ = if (components > 2) addComponent("z") else null
     val compW = if (components > 3) addComponent("w") else null
 
-    val vx get() = compX.lastValue
-    val vy get() = compY?.lastValue ?: 0L
-    val vz get() = compZ?.lastValue ?: 0L
-    val vw get() = compW?.lastValue ?: 0L
+    val vx get() = compX.value
+    val vy get() = compY?.value ?: 0L
+    val vz get() = compZ?.value ?: 0L
+    val vw get() = compW?.value ?: 0L
 
     fun setValue(v: Vector2i, notify: Boolean) {
         compX.setValue(v.x, notify)
@@ -197,11 +197,11 @@ open class IntVectorInput(
         compZ?.setValue(v.z, notify)
     }
 
-    final override fun setValue(value: Vector4i, notify: Boolean): IntVectorInput {
-        compX.setValue(value.x, notify)
-        compY?.setValue(value.y, notify)
-        compZ?.setValue(value.z, notify)
-        compW?.setValue(value.w, notify)
+    final override fun setValue(newValue: Vector4i, notify: Boolean): IntVectorInput {
+        compX.setValue(newValue.x, notify)
+        compY?.setValue(newValue.y, notify)
+        compZ?.setValue(newValue.z, notify)
+        compW?.setValue(newValue.w, notify)
         return this
     }
 

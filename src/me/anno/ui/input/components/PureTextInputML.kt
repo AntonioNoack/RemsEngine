@@ -132,11 +132,11 @@ open class PureTextInputML(style: Style) :
             }
         }
 
-    override val lastValue: String
+    override val value: String
         get() = lastText
 
-    override fun setValue(value: String, notify: Boolean): PureTextInputML {
-        setText(value, notify)
+    override fun setValue(newValue: String, notify: Boolean): PureTextInputML {
+        setText(newValue, notify)
         return this
     }
 

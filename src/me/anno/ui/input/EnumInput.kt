@@ -83,7 +83,7 @@ open class EnumInput(
         super.onUpdate()
     }
 
-    override var lastValue =
+    override var value =
         options.firstOrNull { it.name == startValue }
             ?: options.firstOrNull { it.englishName == startValue }
             ?: options.first()
@@ -92,14 +92,14 @@ open class EnumInput(
         inputPanel.text = option.name
         inputPanel.tooltip = option.desc
         lastIndex = index
-        lastValue = option
+        value = option
         if (notify) changeListener(option.name, index, options)
         invalidateLayout() // layout, because the drawn length can change
     }
 
-    override fun setValue(value: NameDesc, notify: Boolean): EnumInput {
+    override fun setValue(newValue: NameDesc, notify: Boolean): EnumInput {
         // what if the index is not found?
-        setValue(value, options.indexOf(value), notify)
+        setValue(newValue, options.indexOf(newValue), notify)
         return this
     }
 

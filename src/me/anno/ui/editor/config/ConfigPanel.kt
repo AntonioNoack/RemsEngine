@@ -46,7 +46,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
             searchBar += TextButton(Dict["Apply", "ui.general.apply"], false, deep).addLeftClickListener {
                 createTopics()
                 lastTopic = "-"
-                applySearch(searchInput.lastValue)
+                applySearch(searchInput.value)
             }
         }
         searchBar += searchInput.apply {

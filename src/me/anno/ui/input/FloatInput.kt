@@ -23,18 +23,18 @@ open class FloatInput(
 
     constructor(style: Style) : this("", "", Type.FLOAT, style)
 
-    final override var lastValue: Double = getValue(type.defaultValue)
+    final override var value: Double = getValue(type.defaultValue)
     var changeListener: (value: Double) -> Unit = { }
 
     var allowInfinity = false
 
     init {
         // to do only override text, if the users presses enter (??)
-        setText(lastValue.toString(), false)
+        setText(value.toString(), false)
         inputPanel.addChangeListener {
             val newValue = parseValue(it)
             if (newValue != null) {
-                lastValue = newValue
+                value = newValue
                 changeListener(newValue)
             }
         }
@@ -88,9 +88,9 @@ open class FloatInput(
         val dy0 = dy * size
         val delta = dx0 - dy0
         // chose between exponential and linear curve, depending on the use-case
-        var value = lastValue
+        var value = value
         if (type.hasLinear || value == 0.0) value += delta * 0.1 * type.unitScale
-        if (type.hasExponential) value *= (if (lastValue < 0) 1.0 / 1.03 else 1.03).pow(delta * if (type.hasLinear) 1.0 else 3.0)
+        if (type.hasExponential) value *= (if (value < 0) 1.0 / 1.03 else 1.03).pow(delta * if (type.hasLinear) 1.0 else 3.0)
         setValueClamped(value, true)
     }
 
@@ -133,17 +133,17 @@ open class FloatInput(
 
     override fun onEmpty(x: Float, y: Float) {
         val newValue = getValue(type.defaultValue)
-        if (newValue != lastValue) {
+        if (newValue != value) {
             setValue(newValue, true)
         }
     }
 
-    override fun setValue(value: Double, notify: Boolean): FloatInput {
-        if (value != lastValue || !hasValue) {
+    override fun setValue(newValue: Double, notify: Boolean): FloatInput {
+        if (newValue != value || !hasValue) {
             hasValue = true
-            lastValue = value
-            setText(stringify(value), notify)
-            if (notify) changeListener(value)
+            value = newValue
+            setText(stringify(newValue), notify)
+            if (notify) changeListener(newValue)
             invalidateLayout()
         }
         return this
@@ -154,7 +154,7 @@ open class FloatInput(
             wasInFocus = true
         } else if (wasInFocus) {
             // apply the value, or reset if invalid
-            val value = parseValue(inputPanel.lastValue) ?: lastValue
+            val value = parseValue(inputPanel.value) ?: value
             setValue(value, true)
             wasInFocus = false
         }
@@ -163,7 +163,7 @@ open class FloatInput(
     override fun onEnterKey(x: Float, y: Float) {
         // evaluate the value, and write it back into the text field, e.g. for calculations
         hasValue = false
-        setValue(lastValue, true)
+        setValue(value, true)
     }
 
     override fun clone(): FloatInput {
@@ -179,7 +179,7 @@ open class FloatInput(
         dst.changeListener = changeListener
         dst.allowInfinity = allowInfinity
         dst.tooltip = tooltip
-        dst.setValue(lastValue, false)
+        dst.setValue(value, false)
     }
 
     override val className: String get() = "FloatInput"

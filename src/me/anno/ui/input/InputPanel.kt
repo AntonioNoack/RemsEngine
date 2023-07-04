@@ -8,8 +8,8 @@ interface InputPanel<V> {
 
     var isInputAllowed: Boolean
 
-    val lastValue: V
+    val value: V
 
-    fun setValue(value: V, notify: Boolean): Panel
+    fun setValue(newValue: V, notify: Boolean): Panel
 
 }

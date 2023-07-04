@@ -256,7 +256,7 @@ abstract class WelcomeUI {
 
     fun loadNewProject(studio: StudioBase, file: FileReference?, nameInput: TextInput) {
         if (file != null) {
-            openProject(studio, nameInput.lastValue, file)
+            openProject(studio, nameInput.value, file)
         } else {
             Menu.msg(
                 GFX.someWindow!!.windowStack, NameDesc(
@@ -337,7 +337,7 @@ abstract class WelcomeUI {
         nameInput = TextInput("Project Name", "", Dict["New Project", "ui.newProject.defaultName"], style)
         nameInput.setEnterListener { loadNewProject(studio, usableFile, nameInput) }
 
-        var lastName = nameInput.lastValue
+        var lastName = nameInput.value
         fileInput = FileInput(
             Dict["Project Location", "ui.newProject.location"], style,
             getReference(StudioBase.workspace, lastName), emptyList(),

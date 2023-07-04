@@ -47,13 +47,13 @@ open class URLInput(
             base.isInputAllowed = value
         }
 
-    override fun setValue(value: FileReference, notify: Boolean): URLInput {
-        base.setValue(value.absolutePath, false)
-        if (notify) changeListener(value)
+    override fun setValue(newValue: FileReference, notify: Boolean): URLInput {
+        base.setValue(newValue.absolutePath, false)
+        if (notify) changeListener(newValue)
         return this
     }
 
-    override val lastValue: FileReference get() = getReference(base.lastValue)
+    override val value: FileReference get() = getReference(base.value)
 
     var changeListener = { _: FileReference -> }
     fun setChangeListener(listener: (FileReference) -> Unit): URLInput {
@@ -72,7 +72,7 @@ open class URLInput(
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         return if (action == "DragStart") {
-            val lastValue = lastValue
+            val lastValue = value
             val title = lastValue.nameWithoutExtension
             val stringContent = lastValue.absolutePath
             StudioBase.dragged = Draggable(stringContent, "File", lastValue, title, style)
@@ -84,10 +84,10 @@ open class URLInput(
         when {
             // todo paste option
             button.isRight -> openMenu(windowStack, listOf(
-                MenuOption(openInStandardProgramDesc) { lastValue.openInStandardProgram() },
-                MenuOption(copyPathDesc) { setClipboardContent(lastValue.absolutePath) }
+                MenuOption(openInStandardProgramDesc) { value.openInStandardProgram() },
+                MenuOption(copyPathDesc) { setClipboardContent(value.absolutePath) }
             ) + extraRightClickOptions.map {
-                MenuOption(it.nameDesc) { it.onClick(this, lastValue) }
+                MenuOption(it.nameDesc) { it.onClick(this, value) }
             })
             else -> super.onMouseClicked(x, y, button, long)
         }

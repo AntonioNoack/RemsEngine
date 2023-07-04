@@ -102,9 +102,9 @@ open class FileInput(
         return this
     }*/
 
-    override fun setValue(value: FileReference, notify: Boolean): FileInput {
-        base.setValue(value.toString2(), false)
-        if (notify) changeListener(value)
+    override fun setValue(newValue: FileReference, notify: Boolean): FileInput {
+        base.setValue(newValue.toString2(), false)
+        if (notify) changeListener(newValue)
         return this
     }
 
@@ -113,10 +113,10 @@ open class FileInput(
     // toString().replace('\\', '/') // / is easier to type
 
     val file
-        get(): FileReference = if (base.lastValue == f0.absolutePath)
-            f0 else base.lastValue.toGlobalFile()
+        get(): FileReference = if (base.value == f0.absolutePath)
+            f0 else base.value.toGlobalFile()
 
-    override val lastValue: FileReference get() = file
+    override val value: FileReference get() = file
 
     var changeListener = { _: FileReference -> }
     fun setChangeListener(listener: (FileReference) -> Unit): FileInput {

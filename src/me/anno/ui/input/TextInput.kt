@@ -84,10 +84,10 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
         return this
     }
 
-    override val lastValue: String get() = base.lastValue
+    override val value: String get() = base.value
 
-    override fun setValue(value: String, notify: Boolean): TextInput {
-        base.setText(value, notify)
+    override fun setValue(newValue: String, notify: Boolean): TextInput {
+        base.setText(newValue, notify)
         return this
     }
 

@@ -141,7 +141,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
                 // no one to be notified
                 @Suppress("unused", "unchecked_cast")
                 (oldPanel as? InputPanel<Any?>)?.apply {
-                    oldPanel.setValue(newPanel.lastValue, false)
+                    oldPanel.setValue(newPanel.value, false)
                 }
             }
         }

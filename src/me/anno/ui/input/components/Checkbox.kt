@@ -35,7 +35,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
             }
         }
 
-    override val lastValue: Boolean get() = isChecked
+    override val value: Boolean get() = isChecked
 
     private var resetListener: () -> Boolean? = { defaultValue }
     private var changeListener: ((Boolean) -> Unit)? = null
@@ -61,8 +61,8 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         super.onUpdate()
     }
 
-    override fun setValue(value: Boolean, notify: Boolean): Checkbox {
-        if (isChecked != value) toggle(notify)
+    override fun setValue(newValue: Boolean, notify: Boolean): Checkbox {
+        if (isChecked != newValue) toggle(notify)
         return this
     }
 

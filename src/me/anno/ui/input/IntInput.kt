@@ -24,18 +24,18 @@ open class IntInput(
     inputPanel0: NumberInputComponent? = null
 ) : NumberInput<Long>(style, title, visibilityKey, type, inputPanel0) {
 
-    final override var lastValue: Long = getValue(type.defaultValue)
+    final override var value: Long = getValue(type.defaultValue)
     var changeListener: (value: Long) -> Unit = { }
 
     @NotSerializedProperty
     private var savedDelta = 0f
 
     init {
-        setText(lastValue.toString(), false)
+        setText(value.toString(), false)
         inputPanel.addChangeListener {
             val newValue = parseValue(it)
             if (newValue != null) {
-                lastValue = newValue
+                value = newValue
                 changeListener(newValue)
             }
         }
@@ -91,10 +91,10 @@ open class IntInput(
         savedDelta += delta * 0.5f * type.unitScale
         val actualDelta = round(savedDelta)
         savedDelta -= actualDelta
-        var value = lastValue
+        var value = value
         if (type.hasLinear) value += actualDelta.toLong()
         if (type.hasExponential) value = (value * pow(
-            if (lastValue < 0) 1f / 1.03f else 1.03f,
+            if (value < 0) 1f / 1.03f else 1.03f,
             delta * if (type.hasLinear) 1f else 3f
         )).roundToLong()
         when (val clamped = type.clamp(if (type.defaultValue is Int) value.toInt() else value)) {
@@ -147,8 +147,8 @@ open class IntInput(
 
     override fun onCharTyped(x: Float, y: Float, key: Int) {
         when (key) {
-            '+'.code -> setValueClamped(lastValue + 1, true)
-            '-'.code -> setValueClamped(lastValue - 1, true)
+            '+'.code -> setValueClamped(value + 1, true)
+            '-'.code -> setValueClamped(value - 1, true)
             else -> super.onCharTyped(x, y, key)
         }
     }
@@ -160,17 +160,17 @@ open class IntInput(
 
     override fun onEmpty(x: Float, y: Float) {
         val newValue = getValue(type.defaultValue)
-        if (newValue != lastValue) {
+        if (newValue != value) {
             setValue(newValue, true)
         }
     }
 
-    override fun setValue(value: Long, notify: Boolean): IntInput {
-        if (value != lastValue || !hasValue) {
+    override fun setValue(newValue: Long, notify: Boolean): IntInput {
+        if (newValue != value || !hasValue) {
             hasValue = true
-            lastValue = value
-            setText(stringify(value), notify)
-            if (notify) changeListener(value)
+            value = newValue
+            setText(stringify(newValue), notify)
+            if (notify) changeListener(newValue)
         }
         return this
     }
@@ -180,7 +180,7 @@ open class IntInput(
             wasInFocus = true
         } else if (wasInFocus) {
             // apply the value, or reset if invalid
-            val value = parseValue(inputPanel.lastValue) ?: lastValue
+            val value = parseValue(inputPanel.value) ?: value
             setValue(value, true)
             wasInFocus = false
         }
@@ -189,7 +189,7 @@ open class IntInput(
     override fun onEnterKey(x: Float, y: Float) {
         // evaluate the value, and write it back into the text field, e.g., for calculations
         hasValue = false
-        setValue(lastValue, true)
+        setValue(value, true)
     }
 
     override fun clone(): IntInput {

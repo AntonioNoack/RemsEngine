@@ -47,8 +47,8 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
         customY.setValue(val0.h, false)
         customX.weight = 1f
         customY.weight = 1f
-        customX.setChangeListener { update(it, customY.lastValue) }
-        customY.setChangeListener { update(customX.lastValue, it) }
+        customX.setChangeListener { update(it, customY.value) }
+        customY.setChangeListener { update(customX.value, it) }
         customInput += customX
         customInput += customY
         customInput.isVisible = false

@@ -125,12 +125,12 @@ open class FloatVectorInput(
             }
         }
 
-    override val lastValue: Vector4d
+    override val value: Vector4d
         get() = Vector4d(
-            compX.lastValue,
-            compY?.lastValue ?: 0.0,
-            compZ?.lastValue ?: 0.0,
-            compW?.lastValue ?: 0.0
+            compX.value,
+            compY?.value ?: 0.0,
+            compZ?.value ?: 0.0,
+            compW?.value ?: 0.0
         )
 
     override var textColor: Int
@@ -236,15 +236,15 @@ open class FloatVectorInput(
     val compZ = if (components > 2) addComponent("z") else null
     val compW = if (components > 3) addComponent("w") else null
 
-    val vx get() = compX.lastValue.toFloat()
-    val vy get() = compY?.lastValue?.toFloat() ?: 0f
-    val vz get() = compZ?.lastValue?.toFloat() ?: 0f
-    val vw get() = compW?.lastValue?.toFloat() ?: 0f
+    val vx get() = compX.value.toFloat()
+    val vy get() = compY?.value?.toFloat() ?: 0f
+    val vz get() = compZ?.value?.toFloat() ?: 0f
+    val vw get() = compW?.value?.toFloat() ?: 0f
 
-    val vxd get() = compX.lastValue
-    val vyd get() = compY?.lastValue ?: 0.0
-    val vzd get() = compZ?.lastValue ?: 0.0
-    val vwd get() = compW?.lastValue ?: 0.0
+    val vxd get() = compX.value
+    val vyd get() = compY?.value ?: 0.0
+    val vzd get() = compZ?.value ?: 0.0
+    val vwd get() = compW?.value ?: 0.0
 
     fun setValue(v: Vector2f, notify: Boolean) {
         compX.setValue(v.x, notify)
@@ -289,11 +289,11 @@ open class FloatVectorInput(
         compZ?.setValue(v.z, notify)
     }
 
-    final override fun setValue(value: Vector4d, notify: Boolean): FloatVectorInput {
-        compX.setValue(value.x, notify)
-        compY?.setValue(value.y, notify)
-        compZ?.setValue(value.z, notify)
-        compW?.setValue(value.w, notify)
+    final override fun setValue(newValue: Vector4d, notify: Boolean): FloatVectorInput {
+        compX.setValue(newValue.x, notify)
+        compY?.setValue(newValue.y, notify)
+        compZ?.setValue(newValue.z, notify)
+        compW?.setValue(newValue.w, notify)
         return this
     }
 
@@ -323,10 +323,10 @@ open class FloatVectorInput(
     fun onChange() {
         for (changeListener in changeListeners)
             changeListener(
-                compX.lastValue,
-                compY?.lastValue ?: 0.0,
-                compZ?.lastValue ?: 0.0,
-                compW?.lastValue ?: 0.0
+                compX.value,
+                compY?.value ?: 0.0,
+                compZ?.value ?: 0.0,
+                compW?.value ?: 0.0
             )
     }
 
