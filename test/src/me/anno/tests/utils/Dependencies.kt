@@ -195,8 +195,8 @@ fun main() {
                 drawCircle(x, y, radius, radius, 0f, 0f, 0f, circleColor)
                 // draw name into it
                 val rx = radius * 3f
-                if (x + rx > this.x && y + rx > this.y && x - rx < this.x + w && y - rx < this.y + h) {
-                    if (font.sizeInt in 5..(h / 3)) {
+                if (x + rx > this.x && y + rx > this.y && x - rx < this.x + width && y - rx < this.y + height) {
+                    if (font.sizeInt in 5..(height / 3)) {
                         drawText(
                             x.toInt(), y.toInt(), font, pck.name,
                             if (pck == hoveredPck) lightBlueish or black else textColor, backgroundColor.withAlpha(0),
@@ -229,8 +229,8 @@ fun main() {
                 hoveredPck = null
                 place(
                     root,
-                    x + w / 2 - (center.x * scale).toFloat(),
-                    y + h / 2 - (center.y * scale).toFloat(),
+                    x + width / 2 - (center.x * scale).toFloat(),
+                    y + height / 2 - (center.y * scale).toFloat(),
                     0f, size
                 )
                 val tc = textColor

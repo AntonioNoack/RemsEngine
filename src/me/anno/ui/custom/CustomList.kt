@@ -27,7 +27,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         window?.addNeedsLayout(this)
     }
 
-    val minSize get() = if (isY) 10f / h else 10f / w
+    val minSize get() = if (isY) 10f / height else 10f / width
 
     fun change(p: Panel, delta: Float, minSize: Float): Float {
         val target = p.weight + delta
@@ -50,7 +50,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     }
 
     fun move(index: Int, delta: Float) {
-        val w = delta / (if (isY) h else w)
+        val w = delta / (if (isY) height else width)
         var li = index
         val minSize = minSize
         var w0 = change(children[li--], +w, minSize)
@@ -121,11 +121,11 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
                         childSize, if (isY) {
                             child.calculateSize(w, childSize)
                             child.setPosSize(x, childPos, w, childSize)
-                            child.h
+                            child.height
                         } else {
                             child.calculateSize(childSize, h)
                             child.setPosSize(childPos, y, childSize, h)
-                            child.w
+                            child.width
                         }
                     )
                     childPos += spacing
@@ -140,7 +140,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     override fun setPosition(x: Int, y: Int) {
         this.x = x
         this.y = y
-        placeChildren(x, y, w, h, true)
+        placeChildren(x, y, width, height, true)
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
@@ -218,13 +218,13 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
             if (isY) {
                 scrollbar.x = x
                 scrollbar.y = child.y - spacing
-                scrollbar.w = w
-                scrollbar.h = spacing
+                scrollbar.width = width
+                scrollbar.height = spacing
             } else {
                 scrollbar.x = child.x - spacing
                 scrollbar.y = y
-                scrollbar.w = spacing
-                scrollbar.h = h
+                scrollbar.width = spacing
+                scrollbar.height = height
             }
             updateScrollbar(scrollbar, i)
             drawChild(scrollbar, x0, y0, x1, y1)
@@ -245,7 +245,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         if (isY) {
             x = this.x
             y = child.y - spacing
-            w = this.w
+            w = this.width
             h = spacing
             sbWidth = w
             sbHeight = sbSize
@@ -253,7 +253,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
             x = child.x - spacing
             y = this.y
             w = spacing
-            h = this.h
+            h = this.height
             sbWidth = sbSize
             sbHeight = h
         }

@@ -22,8 +22,8 @@ fun main() {
         NineTilePanel(style).apply {
             addLeftClickListener {
                 val window = window!!
-                splitX = (window.mouseX - x) / w * 0.5f
-                splitY = (window.mouseY - y) / h * 0.5f
+                splitX = (window.mouseX - x) / width * 0.5f
+                splitY = (window.mouseY - y) / height * 0.5f
             }
             backgroundColor = -1
             for (j in alignments.indices) {

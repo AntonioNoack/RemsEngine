@@ -41,7 +41,7 @@ class TriggerPanel(
         super.onDraw(x0, y0, x1, y1)
         // -1 = start, +1 = end
         val v01 = controller.getRawAxis(axis0) * .5f + .5f
-        val v0h = (v01 * h).toInt()
+        val v0h = (v01 * height).toInt()
         drawRect(x0, y + v0h, x1 - x0, 1, -1)
         // todo show bounds and dead spot
     }

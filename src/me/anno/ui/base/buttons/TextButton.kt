@@ -88,12 +88,12 @@ open class TextButton(
 
         drawBackground(x0, y0, x1, y1)
 
-        val widthLimit = if (breaksIntoMultiline) this.w else -1
+        val widthLimit = if (breaksIntoMultiline) this.width else -1
         val size = getTextSize(font, text, widthLimit, heightLimit)
         val textColor = textColor
         DrawTexts.drawText(
-            x + (w - getSizeX(size)) / 2,
-            y + (h - getSizeY(size)) / 2,
+            x + (width - getSizeX(size)) / 2,
+            y + (height - getSizeY(size)) / 2,
             font, text, textColor.withAlpha(
                 if (isEnabled && isInputAllowed) textColor.a()
                 else textColor.a() / 2
@@ -101,15 +101,15 @@ open class TextButton(
         )
 
         drawRect(
-            x + w - borderSize.right, y, borderSize.right, h,
+            x + width - borderSize.right, y, borderSize.right, height,
             getColor(isHovered, mouseDown, rightColor, leftColor)
         ) // right
         drawRect(
-            x, y + h - borderSize.bottom, w,
+            x, y + height - borderSize.bottom, width,
             borderSize.bottom, getColor(isHovered, mouseDown, bottomColor, topColor)
         ) // bottom
-        drawRect(x, y, borderSize.left, h, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
-        drawRect(x, y, w, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top
+        drawRect(x, y, borderSize.left, height, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
+        drawRect(x, y, width, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top
 
     }
 
@@ -119,7 +119,7 @@ open class TextButton(
     }
 
     fun click() {
-        onMouseClicked(x + w * 0.5f, y + h * 0.5f, MouseButton.LEFT, false)
+        onMouseClicked(x + width * 0.5f, y + height * 0.5f, MouseButton.LEFT, false)
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Int) {

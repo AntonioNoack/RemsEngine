@@ -188,7 +188,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     open fun drawText(color: Int = effectiveTextColor) {
         val textAlignment = textAlignment
         val offset = if (textAlignment == AxisAlignment.MIN) 0
-        else textAlignment.getOffset(w, getMaxWidth())
+        else textAlignment.getOffset(width, getMaxWidth())
         drawText(offset, 0, color)
     }
 
@@ -212,7 +212,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         return answer
     }
 
-    open val widthLimit get() = if (breaksIntoMultiline) w - padding.width else -1
+    open val widthLimit get() = if (breaksIntoMultiline) width - padding.width else -1
     open val heightLimit get() = -1
 
     override fun isOpaqueAt(x: Int, y: Int): Boolean {
@@ -240,8 +240,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         minW = max(1, getSizeX(size) + padding.width)
         minH = max(1, getSizeY(size) + padding.height)
         // todo remove this, when it is no longer needed
-        this.w = minW
-        this.h = minH
+        this.width = minW
+        this.height = minH
         if (inst) loadTexturesSync.pop()
     }
 

@@ -14,12 +14,12 @@ private constructor(var ratio: Float?, val getRatio: (() -> Float)?) : Constrain
 
     override fun apply(panel: Panel) {
         val targetAspectRatio = ratio ?: getRatio!!.invoke()
-        if (panel.w * targetAspectRatio > panel.h) {
+        if (panel.width * targetAspectRatio > panel.height) {
             // too wide -> less width
-            panel.w = min(panel.w, (panel.h / targetAspectRatio).roundToInt())
+            panel.width = min(panel.width, (panel.height / targetAspectRatio).roundToInt())
         } else {
             // too high -> less height
-            panel.h = min(panel.h, (panel.w * targetAspectRatio).roundToInt())
+            panel.height = min(panel.height, (panel.width * targetAspectRatio).roundToInt())
         }
     }
 

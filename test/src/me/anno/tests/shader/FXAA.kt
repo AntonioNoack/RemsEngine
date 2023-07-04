@@ -29,8 +29,8 @@ private fun testShader() {
     val transform = Matrix4f()
     var angle = 0f
     TestDrawPanel.testDrawing {
-        val w = it.w / 8
-        val h = it.h / 8
+        val w = it.width / 8
+        val h = it.height / 8
         transform.identity()
         transform.perspective(1f, w.toFloat() / h, 0.01f, 100f)
         transform.translate(0f, 0f, -5f)

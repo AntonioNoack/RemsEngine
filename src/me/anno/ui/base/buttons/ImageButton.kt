@@ -54,10 +54,10 @@ class ImageButton(
         renderDefault {
             icon.filtering = GPUFiltering.LINEAR
             icon.clamping = Clamping.CLAMP
-            val scale = ((w - padding.width).toFloat() / max(icon.width, icon.height))
+            val scale = ((width - padding.width).toFloat() / max(icon.width, icon.height))
             val iw = (icon.width * scale).roundToInt()
             val ih = (icon.height * scale).roundToInt()
-            DrawTextures.drawTexture(x + (w - iw) / 2, y + (h - ih) / 2, iw, ih, icon, tintColor, null)
+            DrawTextures.drawTexture(x + (width - iw) / 2, y + (height - ih) / 2, iw, ih, icon, tintColor, null)
         }
     }
 

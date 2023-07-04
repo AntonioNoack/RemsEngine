@@ -75,12 +75,12 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
             child.calculateSize(aw, ah)
             val mixX = child.alignmentX != AxisAlignment.FILL
             val mixY = child.alignmentY != AxisAlignment.FILL
-            child.w = if (mixX) mix(child.minW, aw, child.weight) else aw
-            child.h = if (mixY) mix(child.minH, ah, child.weight2) else ah
+            child.width = if (mixX) mix(child.minW, aw, child.weight) else aw
+            child.height = if (mixY) mix(child.minH, ah, child.weight2) else ah
             val sxi = child.alignmentX.id
             val syi = child.alignmentY.id + 4
-            minWHs[sxi] = max(minWHs[sxi], child.w)
-            minWHs[syi] = max(minWHs[syi], child.h)
+            minWHs[sxi] = max(minWHs[sxi], child.width)
+            minWHs[syi] = max(minWHs[syi], child.height)
         }
 
         minW = max(minWHs[3], max(minWHs[0], minWHs[2]) * 2 + minWHs[1])
@@ -93,8 +93,8 @@ open class NineTilePanel(style: Style) : PanelGroup(style) {
         val children = children
         for (i in children.indices) {
             val child = children[i]
-            val cx = x + child.alignmentX.getOffset(w, child.w)
-            val cy = y + child.alignmentY.getOffset(h, child.h)
+            val cx = x + child.alignmentX.getOffset(width, child.width)
+            val cy = y + child.alignmentY.getOffset(height, child.height)
             child.setPosition(cx, cy)
         }
     }

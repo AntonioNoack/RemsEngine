@@ -24,8 +24,8 @@ open class ScrollbarY(val scrollable: ScrollableY, style: Style) : Scrollbar(sty
         super.onDraw(x0, y0, x1, y1)
 
         val relativePosition = scrollable.scrollPositionY / scrollable.maxScrollPositionY
-        val barHeight = max(minSize.toDouble(), scrollable.relativeSizeY * h)
-        val barY = y + relativePosition * (h - barHeight)
+        val barHeight = max(minSize.toDouble(), scrollable.relativeSizeY * height)
+        val barY = y + relativePosition * (height - barHeight)
 
         val color = mulAlpha(scrollColor, scrollColorAlpha + activeAlpha * alpha)
         drawRect(x0, barY.toInt(), x1 - x0, barHeight.toInt(), color)

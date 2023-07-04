@@ -44,8 +44,8 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
             // assign child measurements to all visible children
             for (i in visibleIndex0 until visibleIndex1) {
                 val child2 = children[i]
-                child2.w = child.w
-                child2.h = child.h
+                child2.width = child.width
+                child2.height = child.height
                 child2.minW = child.minW
                 child2.minH = child.minH
             }
@@ -106,8 +106,8 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
 
             super.setPosition(x, y)
 
-            val availableW = w - padding.width
-            val availableH = h - padding.height
+            val availableW = width - padding.width
+            val availableH = height - padding.height
 
             var perWeight = 0f
             val sumWeight = sumWeight
@@ -128,7 +128,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                     val currentH = currentY - y
                     val remainingH = availableH - currentH
                     childH = min(childH, remainingH)
-                    if (child.w != availableW || child.h != childH) {
+                    if (child.width != availableW || child.height != childH) {
                         // update the children, if they need to be updated
                         child.calculateSize(availableW, childH)
                     }

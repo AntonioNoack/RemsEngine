@@ -22,7 +22,7 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
     }
 
     fun clear() {
-        drawBackground(x, y, x + w, y + h)
+        drawBackground(x, y, x + width, y + height)
     }
 
     override val canDrawOverBorders get() = true

@@ -2,10 +2,7 @@ package me.anno.ui.editor.files
 
 import me.anno.Engine
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultConfig.style
-import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
 import me.anno.input.Input
 import me.anno.input.Input.setClipboardContent
 import me.anno.io.files.FileFileRef
@@ -32,7 +29,6 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
 import me.anno.ui.input.TextInput
@@ -715,7 +711,7 @@ open class FileExplorer(
             entrySize = clamp(
                 newEntrySize,
                 minEntrySize,
-                max(w - content2d.spacing * 2f - 1f, 20f)
+                max(width - content2d.spacing * 2f - 1f, 20f)
             )
             onUpdateEntrySize(newEntrySize)
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
@@ -725,7 +721,7 @@ open class FileExplorer(
         listMode = newEntrySize < minEntrySize
         val esi = entrySize.toInt()
         content2d.maxColumns = if (listMode) 1 else Int.MAX_VALUE
-        content2d.childWidth = if (listMode) max(w, 65536) else esi
+        content2d.childWidth = if (listMode) max(width, 65536) else esi
         favourites.invalidateLayout()
         // define the aspect ratio by 2 lines of space for the name
         val sample = content2d.firstOfAll { it is TextPanel } as? TextPanel

@@ -129,8 +129,8 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             addressDigits = 0
             minW += spacing
         }
-        this.w = minW
-        this.h = minH
+        this.width = minW
+        this.height = minH
     }
 
     override val canDrawOverBorders get() = true

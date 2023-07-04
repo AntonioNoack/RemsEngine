@@ -18,9 +18,9 @@ fun main() {
 
         it.clear()
 
-        val sc = it.h / 10f
-        val dx = it.x + it.w / 2
-        val dy = it.y + it.h / 2
+        val sc = it.height / 10f
+        val dx = it.x + it.width / 2
+        val dy = it.y + it.height / 2
 
         val bg = it.backgroundColor
         val window = it.window!!

@@ -226,7 +226,7 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
                         transform.invert()
                     }
                     val window = GFX.activeWindow!!
-                    windowStack.updateTransform(window, transform, rv.x, rv.y, rv.w, rv.h, 0, 0, width, height)
+                    windowStack.updateTransform(window, transform, rv.x, rv.y, rv.width, rv.height, 0, 0, width, height)
                     windowStack.draw(0, 0, width, height, true, forceRedraw = true)
                     JomlPools.mat4f.sub(1)
                 }

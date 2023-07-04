@@ -47,7 +47,7 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph) : GraphEditor(grap
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (drawResultInBackground) {
-            drawTransparentBackground(x, y, w, h)
+            drawTransparentBackground(x, y, width, height)
             RenderGraph.draw(rv, this, graph as FlowGraph)
             drawNodeConnections(x0, y0, x1, y1)
             drawChildren(x0, y0, x1, y1)

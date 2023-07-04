@@ -38,8 +38,8 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
         GFX.loadTexturesSync.push(loadTextSync)
         val offset = when (alignmentX) {
             AxisAlignment.MIN -> 1
-            AxisAlignment.CENTER -> w / 2
-            AxisAlignment.MAX -> w - 1
+            AxisAlignment.CENTER -> width / 2
+            AxisAlignment.MAX -> width - 1
             else -> 1
         }
         DrawTexts.drawSimpleTextCharByChar(

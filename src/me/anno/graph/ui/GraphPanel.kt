@@ -87,8 +87,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
 
     override val maxScrollPositionX: Long get() = (scrollLeft + scrollRight).toLong()
     override val maxScrollPositionY: Long get() = (scrollTop + scrollBottom).toLong()
-    override val childSizeX: Long get() = w + maxScrollPositionX
-    override val childSizeY: Long get() = h + maxScrollPositionY
+    override val childSizeX: Long get() = width + maxScrollPositionX
+    override val childSizeY: Long get() = height + maxScrollPositionY
 
     fun centerOnNodes(scaleFactor: Float = 0.9f) {
         // todo not correct yet :/
@@ -107,7 +107,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         }
         if (!bounds.isEmpty()) {
             center.set(bounds.avgX(), bounds.avgY())
-            val factor = scaleFactor / max(bounds.deltaX() / w, bounds.deltaY() / h)
+            val factor = scaleFactor / max(bounds.deltaX() / width, bounds.deltaY() / height)
             if (factor.isFinite() && factor > 0.0) scale *= factor
         }
     }
@@ -205,19 +205,19 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         var right = 0
         var top = 0
         var bottom = 0
-        val xe = x + w
-        val ye = y + h
+        val xe = x + width
+        val ye = y + height
         val nodes = graph.nodes
         for (i in nodes.indices) {
             val node = nodes[i]
             val panel = nodeToPanel[node] ?: continue
-            val xi = coordsToWindowX(node.position.x).toInt() - panel.w / 2
+            val xi = coordsToWindowX(node.position.x).toInt() - panel.width / 2
             val yi = coordsToWindowY(node.position.y).toInt()// - panel.h / 2
             panel.setPosition(xi, yi)
             left = max(left, x - xi)
             top = max(top, y - yi)
-            right = max(right, (xi + panel.w) - xe)
-            bottom = max(bottom, (yi + panel.h) - ye)
+            right = max(right, (xi + panel.width) - xe)
+            bottom = max(bottom, (yi + panel.height) - ye)
         }
         scrollLeft = left
         scrollRight = right
@@ -238,14 +238,14 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     }
 
     open fun moveIfOnEdge(x: Float, y: Float) {
-        val maxSpeed = (w + h) / 6f // ~ 500px / s on FHD
+        val maxSpeed = (width + height) / 6f // ~ 500px / s on FHD
         var dx2 = x - centerX
         var dy2 = y - centerY
-        val border = max(w / 10f, 4f)
+        val border = max(width / 10f, 4f)
         val speed = maxSpeed * min(
             max(
-                max((this.x + border) - x, x - (this.x + this.w - border)),
-                max((this.y + border) - y, y - (this.y + this.h - border))
+                max((this.x + border) - x, x - (this.x + this.width - border)),
+                max((this.y + border) - y, y - (this.y + this.height - border))
             ) / border, 1f
         )
         val multiplier = speed * Engine.deltaTime / length(dx2, dy2)

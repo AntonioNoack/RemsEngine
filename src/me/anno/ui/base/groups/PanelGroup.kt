@@ -41,8 +41,8 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     fun drawChild(child: Panel, x0: Int, y0: Int, x1: Int, y1: Int): Boolean {
         val x02 = max(child.x, x0)
         val y02 = max(child.y, y0)
-        val x12 = min(child.x + child.w, x1)
-        val y12 = min(child.y + child.h, y1)
+        val x12 = min(child.x + child.width, x1)
+        val y12 = min(child.y + child.height, y1)
         return if (x12 > x02 && y12 > y02) {
             if (child.canDrawOverBorders) {
                 GFX.clip2(x02, y02, x12, y12) {

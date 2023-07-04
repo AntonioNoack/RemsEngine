@@ -274,7 +274,7 @@ fun main() {
 
         transform.invert(inverse)
         inverse.transformPosition(min.set(it.x.toFloat(), it.y.toFloat()))
-        inverse.transformPosition(max.set((it.x + it.w).toFloat(), (it.y + it.h).toFloat()))
+        inverse.transformPosition(max.set((it.x + it.width).toFloat(), (it.y + it.height).toFloat()))
 
         // draw graph
         val size = scale * 0.5f

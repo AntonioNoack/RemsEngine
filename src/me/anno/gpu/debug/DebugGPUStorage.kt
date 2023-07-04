@@ -65,9 +65,9 @@ object DebugGPUStorage {
         override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
             super.onDraw(x0, y0, x1, y1)
             if (isFine()) {
-                val (w, h) = scaleMaxPreview(getTexW(), getTexH(), w, h - fontSize)
-                val xi = x + (this.w - w) / 2
-                val yi = y + fontSize + (this.h - fontSize - h) / 2
+                val (w, h) = scaleMaxPreview(getTexW(), getTexH(), width, height - fontSize)
+                val xi = x + (this.width - w) / 2
+                val yi = y + fontSize + (this.height - fontSize - h) / 2
                 // transparency-showing background
                 DrawTextures.drawTransparentBackground(xi, yi, w, h)
                 drawTexture(xi, yi, w, h)

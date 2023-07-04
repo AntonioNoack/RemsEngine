@@ -888,7 +888,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
                 global.rotate(tmpQ)// correct
             }
             Mode.SCALING -> {
-                val scale = Maths.pow(2f, (dx - dy) / self.h)
+                val scale = Maths.pow(2f, (dx - dy) / self.height)
                 global.scale(scale, scale, scale) // correct
             }
             else -> throw NotImplementedError()

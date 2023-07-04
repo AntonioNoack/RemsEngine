@@ -92,7 +92,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
                 val posIndex = position.roundToInt()
                 for ((index, child) in children.withIndex()) {
                     if (index == posIndex) {
-                        child.setPosSize(x, y, w, h)
+                        child.setPosSize(x, y, width, height)
                     } else {
                         child.setPosSize(x, y, 0, 0)
                     }
@@ -100,14 +100,14 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
             }
             TransitionType.SWIPE_HORIZONTAL, TransitionType.ROTATE_HORIZONTAL -> {
                 for ((index, child) in children.withIndex()) {
-                    val offset = (w * (position - index)).roundToInt()
-                    child.setPosSize(x + offset, y, w, h)
+                    val offset = (width * (position - index)).roundToInt()
+                    child.setPosSize(x + offset, y, width, height)
                 }
             }
             TransitionType.SWIPE_VERTICAL, TransitionType.ROTATE_VERTICAL -> {
                 for ((index, child) in children.withIndex()) {
-                    val offset = (h * (position - index)).roundToInt()
-                    child.setPosSize(x, y + offset, w, h)
+                    val offset = (height * (position - index)).roundToInt()
+                    child.setPosSize(x, y + offset, width, height)
                 }
             }
         }
@@ -130,8 +130,8 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
         if ((Input.isLeftDown && useLeftMouseButton) || (Input.isRightDown && useRightMouseButton)) {
             val type = transitionType
             val ws = windowStack
-            val dt = (if (type.swipeXAxis) dx / min(w, ws.width) else 0f) +
-                    (if (type.swipeYAxis) dy / min(h, ws.height) else 0f)
+            val dt = (if (type.swipeXAxis) dx / min(width, ws.width) else 0f) +
+                    (if (type.swipeYAxis) dy / min(height, ws.height) else 0f)
             swipe(dt)
             if (!type.swipeXAxis || !type.swipeYAxis) {
                 super.onMouseMoved(x, y, if (type.swipeXAxis) 0f else dx, if (type.swipeYAxis) 0f else dy)

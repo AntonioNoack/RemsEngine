@@ -136,8 +136,8 @@ class NodePanel(
             minH += child.minH
         }
 
-        this.w = minW
-        this.h = minH
+        this.width = minW
+        this.height = minH
 
     }
 
@@ -149,8 +149,8 @@ class NodePanel(
         var yi = y + titleOffset
         for (i in 0 until customLayoutEndIndex) {
             val child = children[i]
-            child.minW = min(child.minW, w - textSize)
-            child.setPosSize(x + (w - child.minW).shr(1), yi, child.minW, child.minH)
+            child.minW = min(child.minW, width - textSize)
+            child.setPosSize(x + (width - child.minW).shr(1), yi, child.minW, child.minH)
             yi += child.minH
         }
         yi -= titleOffset
@@ -200,7 +200,7 @@ class NodePanel(
             yi += children[i].minH
         }
         placeConnectors(node.inputs, yi, gp.windowToCoordsX(this.x + baseTextSize))
-        placeConnectors(node.outputs, yi, gp.windowToCoordsX(this.x + this.w - baseTextSize))
+        placeConnectors(node.outputs, yi, gp.windowToCoordsX(this.x + this.width - baseTextSize))
     }
 
     var titleWidth = 0
@@ -234,11 +234,11 @@ class NodePanel(
             var cachedTexture = cachedTexture
             if (cachedTexture == null) {
                 // generate texture
-                cachedTexture = Framebuffer("NodePanel", w, h, TargetType.UByteTarget4, DepthBufferType.NONE)
+                cachedTexture = Framebuffer("NodePanel", width, height, TargetType.UByteTarget4, DepthBufferType.NONE)
                 useFrame(cachedTexture, ::doDrawAtZero)
                 this.cachedTexture = cachedTexture
-            } else if (cachedTexture.width * 2 + 3 < w) {// improve resolution
-                useFrame(w, h, true, cachedTexture) {
+            } else if (cachedTexture.width * 2 + 3 < width) {// improve resolution
+                useFrame(width, height, true, cachedTexture) {
                     cachedTexture!!.clearColor(gp.backgroundColor.withAlpha(0), false)
                     doDrawAtZero()
                 }
@@ -247,10 +247,10 @@ class NodePanel(
             // draw texture
             val texture = cachedTexture.getTexture0()
             texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
-            if (texture.width >= w) {
-                drawTexture(x, y + h, w, -h, texture)
+            if (texture.width >= width) {
+                drawTexture(x, y + height, width, -height, texture)
             } else {
-                FSR.upscale(texture, x, y, w, h, flipY = true, applyToneMapping = false)
+                FSR.upscale(texture, x, y, width, height, flipY = true, applyToneMapping = false)
             }
         } else {
             cachedTexture?.destroy()
@@ -268,7 +268,7 @@ class NodePanel(
         val ox = x
         val oy = y
         setPosition(0, 0)
-        doDraw(0, 0, w, h)
+        doDraw(0, 0, width, height)
         setPosition(ox, oy)
     }
 
@@ -288,8 +288,8 @@ class NodePanel(
         titleY1 = titleY0 + textSize
 
         titleWidth = drawText(
-            x + w.shr(1), titleY0, font, node.name, textColor,
-            backgroundColor, (w * 3).shr(2), -1, AxisAlignment.CENTER
+            x + width.shr(1), titleY0, font, node.name, textColor,
+            backgroundColor, (width * 3).shr(2), -1, AxisAlignment.CENTER
         )
 
         val window = window
@@ -307,7 +307,7 @@ class NodePanel(
         if (inputs != null) for (con in inputs) {
             var dx = dxTxt
             val panel = inputFields[con]
-            if (panel != null) dx += panel.w //+ baseTextSize.toInt()
+            if (panel != null) dx += panel.width //+ baseTextSize.toInt()
             drawConnector(con, baseTextSize, mouseX, mouseY, dx, dyTxt, font, textColor)
         }
         val outputs = node.outputs
@@ -484,7 +484,7 @@ class NodePanel(
                 gp.onChange(false)
             }
             con0 != null && (window == null ||
-                    distance(window.mouseDownX, window.mouseDownY, window.mouseX, window.mouseY) < w / 10f) -> {
+                    distance(window.mouseDownX, window.mouseDownY, window.mouseX, window.mouseY) < width / 10f) -> {
                 // loosen this connection
                 con0.disconnectAll()
                 gp.onChange(false)
@@ -544,7 +544,7 @@ class NodePanel(
         val xi = x.toInt()
         val yi = y.toInt()
         if (yi in titleY0 until titleY1 &&
-            abs(xi * 2 - (this.x * 2 + this.w)) < max(titleWidth, titleY1 - titleY0)
+            abs(xi * 2 - (this.x * 2 + this.width)) < max(titleWidth, titleY1 - titleY0)
         ) {
             askName(windowStack, xi, yi, NameDesc("Set Node Name"), node.name, NameDesc("OK"),
                 { textColor }, {

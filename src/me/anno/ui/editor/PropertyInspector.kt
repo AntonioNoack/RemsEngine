@@ -209,9 +209,9 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
                     val parent = uiParent
                     val win = GFX.activeWindow
                     sizeY = if (win != null && window != null && win.windowStack.contains(window)) {
-                        if (parent != null && x + w >= window.width - FrameTimings.width) {
+                        if (parent != null && x + width >= window.width - FrameTimings.width) {
                             if (StudioBase.instance?.showFPS == true) {
-                                max(1, window.y + min(parent.y + parent.h, window.height) + FrameTimings.height - win.height)
+                                max(1, window.y + min(parent.y + parent.height, window.height) + FrameTimings.height - win.height)
                             } else 1
                         } else 1
                     } else 1

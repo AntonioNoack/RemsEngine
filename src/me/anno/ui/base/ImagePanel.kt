@@ -62,9 +62,9 @@ abstract class ImagePanel(style: Style) : Panel(style) {
 
     private fun stretch(texture: ITexture2D): IntPair {
         return when (stretchMode) {
-            StretchModes.OVERFLOW -> ImageScale.scaleMin(texture.width, texture.height, w, h)
-            StretchModes.PADDING -> ImageScale.scaleMax(texture.width, texture.height, w, h)
-            else -> IntPair(w, h)
+            StretchModes.OVERFLOW -> ImageScale.scaleMin(texture.width, texture.height, width, height)
+            StretchModes.PADDING -> ImageScale.scaleMax(texture.width, texture.height, width, height)
+            else -> IntPair(width, height)
         }
     }
 
@@ -74,8 +74,8 @@ abstract class ImagePanel(style: Style) : Panel(style) {
         lih = (lih * zoom).toInt()
         if (flipX) liw = -liw
         if (flipY) lih = -lih
-        lix = x + (offsetX * zoom).roundToInt() + imageAlignmentX.getOffset(w, liw)
-        liy = y + (offsetY * zoom).roundToInt() + imageAlignmentY.getOffset(h, lih)
+        lix = x + (offsetX * zoom).roundToInt() + imageAlignmentX.getOffset(width, liw)
+        liy = y + (offsetY * zoom).roundToInt() + imageAlignmentY.getOffset(height, lih)
         this.liw = liw
         this.lih = lih
     }

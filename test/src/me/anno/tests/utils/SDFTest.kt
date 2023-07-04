@@ -133,15 +133,15 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
         if (Input.isKeyDown('q')) camPosition.y -= dt5
         if (Input.isKeyDown('e')) camPosition.y += dt5
         camRotation.transform(camPosition)
-        GFX.clip(it.x, it.y, it.w, it.h) {
+        GFX.clip(it.x, it.y, it.width, it.height) {
             it.clear()
             val shader = shaderBase.value
             shader.use()
-            shader.v2f("camScale", fovFactor * it.w.toFloat() / it.h, fovFactor)
+            shader.v2f("camScale", fovFactor * it.width.toFloat() / it.height, fovFactor)
             shader.v3f("camPosition", camPosition)
             shader.v2f("distanceBounds", 0.01f, 1e3f)
             shader.v1i("maxSteps", 100)
-            shader.v1f("sdfMaxRelativeError", fovFactor / it.h) // is this correct???
+            shader.v1f("sdfMaxRelativeError", fovFactor / it.height) // is this correct???
             shader.v1f("sdfReliability", 0.7f)
             shader.v1f("sdfNormalEpsilon", 0.005f)
             shader.v3f("sunDir", 0.7f, 0f, 0.5f)
@@ -172,8 +172,8 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
                 if (group2.dynamicRotation) group2.rotation.rotateY(-dt * 3f)
             }
             camRotation.identity()
-                .rotateY(it.mx / it.h * 2f)
-                .rotateX(it.my / it.h * 2f)
+                .rotateY(it.mx / it.height * 2f)
+                .rotateX(it.my / it.height * 2f)
             camMatrix.identity().rotate(camRotation)
             shader.m3x3("camMatrix", camMatrix)
             for ((key, value) in uniforms) {

@@ -74,8 +74,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     override var scrollHardnessX = 25.0
     override var scrollHardnessY = 25.0
 
-    override val maxScrollPositionX get() = max(0, child.minW + padding.width - w).toLong()
-    override val maxScrollPositionY get() = max(0, child.minH + padding.height - h).toLong()
+    override val maxScrollPositionX get() = max(0, child.minW + padding.width - width).toLong()
+    override val maxScrollPositionY get() = max(0, child.minH + padding.height - height).toLong()
 
     private val scrollbarX = ScrollbarX(this, style)
     private val scrollbarY = ScrollbarY(this, style)
@@ -149,8 +149,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
 
         val scrollX0 = scrollPositionX.toLong()
         val scrollY0 = scrollPositionY.toLong()
-        val scrollX1 = clamp(scrollX0, 0L, max(0, child.minW + padding.width - w).toLong()).toInt()
-        val scrollY1 = clamp(scrollY0, 0L, max(0, child.minH + padding.height - h).toLong()).toInt()
+        val scrollX1 = clamp(scrollX0, 0L, max(0, child.minW + padding.width - width).toLong()).toInt()
+        val scrollY1 = clamp(scrollY0, 0L, max(0, child.minH + padding.height - height).toLong()).toInt()
 
         child.setPosition(x + padding.left - scrollX1, y + padding.top - scrollY1)
 
@@ -167,16 +167,16 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             val scrollbarX = scrollbarX
             scrollbarX.x = x + scrollbarPadding
             scrollbarX.y = y1 - scrollbarHeight - scrollbarPadding
-            scrollbarX.w = w - 2 * scrollbarPadding
-            scrollbarX.h = scrollbarHeight
+            scrollbarX.width = width - 2 * scrollbarPadding
+            scrollbarX.height = scrollbarHeight
             drawChild(scrollbarX, x0, y0, x1, y1)
         }
         if (hasScrollbarY) {
             val scrollbarY = scrollbarY
             scrollbarY.x = x1 - scrollbarWidth - scrollbarPadding
             scrollbarY.y = y + scrollbarPadding
-            scrollbarY.w = scrollbarWidth
-            scrollbarY.h = h - 2 * scrollbarPadding
+            scrollbarY.width = scrollbarWidth
+            scrollbarY.height = height - 2 * scrollbarPadding
             drawChild(scrollbarY, x0, y0, x1, y1)
         }
     }

@@ -30,8 +30,8 @@ class PreviewField(private val refSize: Panel, val padding: Int, style: Style) :
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         var x2 = x + padding
         var y2 = y + padding
-        var x3 = x + w - 2 * padding
-        var y3 = y + h - 2 * padding
+        var x3 = x + width - 2 * padding
+        var y3 = y + height - 2 * padding
         if (color.a() != 255) {
             drawTransparentBackground(x2, y2, x3 - x2, y3 - y2)
         }

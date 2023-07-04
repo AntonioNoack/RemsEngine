@@ -43,7 +43,7 @@ fun main() {
     testDrawing {
         shader.use()
         shader.v1f("time", Engine.gameTimeF)
-        shader.v2f("uvScale", it.w.toFloat() / it.h, 1f)
+        shader.v2f("uvScale", it.width.toFloat() / it.height, 1f)
         flat01.draw(shader)
     }
 }

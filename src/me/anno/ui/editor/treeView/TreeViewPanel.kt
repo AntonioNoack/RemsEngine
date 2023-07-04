@@ -110,7 +110,7 @@ class TreeViewPanel<V : Any>(
             window.mouseYi in ly0..ly1 &&
             dragged is Draggable && isValidElement(dragged.getOriginal())
         ) {
-            clamp(((window.mouseY - this.y) / this.h * 3).toInt(), 0, 2)
+            clamp(((window.mouseY - this.y) / this.height * 3).toInt(), 0, 2)
         } else null
         if (this.showAddIndex != showAddIndex) invalidateDrawing()
         this.showAddIndex = showAddIndex
@@ -140,8 +140,8 @@ class TreeViewPanel<V : Any>(
             val lineColor = midGray
             when (showAddIndex) {
                 0 -> drawRect(x, y, lineWidth, 1, lineColor)
-                1 -> drawRect(x + indent, y + h - 1, lineWidth, 1, lineColor)
-                2 -> drawRect(x, y + h - 1, lineWidth, 1, lineColor)
+                1 -> drawRect(x + indent, y + height - 1, lineWidth, 1, lineColor)
+                2 -> drawRect(x, y + height - 1, lineWidth, 1, lineColor)
             }
         }
     }
@@ -199,7 +199,7 @@ class TreeViewPanel<V : Any>(
             LOGGER.warn("Prefab is not writable!")
         } else try {
 
-            val relativeY = (y - this.y) / this.h
+            val relativeY = (y - this.y) / this.height
 
             // todo find type somehow...
             val type1 = ' '

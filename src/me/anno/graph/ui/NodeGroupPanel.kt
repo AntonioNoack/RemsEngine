@@ -34,8 +34,8 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
         // enough height for all lines
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
 
-        this.w = minW
-        this.h = minH
+        this.width = minW
+        this.height = minH
 
     }
 
@@ -81,8 +81,8 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
         titleY1 = titleY0 + textSize
 
         titleWidth = DrawTexts.drawText(
-            x + w.shr(1), titleY0, font, group.name, textColor,
-            backgroundColor, (w * 3).shr(2), -1, AxisAlignment.CENTER
+            x + width.shr(1), titleY0, font, group.name, textColor,
+            backgroundColor, (width * 3).shr(2), -1, AxisAlignment.CENTER
         )
 
     }

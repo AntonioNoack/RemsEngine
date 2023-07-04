@@ -33,7 +33,7 @@ class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
         // drawRectGradient(x, y, w, h, backgroundColor.toVecRGBA(), Vector4f(1f))
         // colorShowTexture.bind(0, NearestMode.TRULY_NEAREST, ClampMode.REPEAT)
         // drawTexture(x, y, w, h, colorShowTexture, -1, Vector4f(w.toFloat() / h, 1f, 0f, 0f))
-        HSVBoxMain.drawColoredAlpha(x, y, w, h, chooser, w.toFloat() / h, 1f, true)
+        HSVBoxMain.drawColoredAlpha(x, y, width, height, chooser, width.toFloat() / height, 1f, true)
         drawRect(dragX, y0, 1, y1 - y0, black)
     }
 

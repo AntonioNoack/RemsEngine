@@ -110,8 +110,8 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
                 val w2 = getAvailableSizeX(x, y, w, h, child)
                 val h2 = getAvailableSizeY(x, y, w, h, child)
                 child.calculateSize(w2, h2)
-                child.w = min(w2, child.minW)
-                child.h = min(h2, child.minH)
+                child.width = min(w2, child.minW)
+                child.height = min(h2, child.minH)
             }
         }
         var sumW = 0
@@ -123,7 +123,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
             for (y in 0 until sizeY) {
                 val child = children[x + y * sizeX]
                 if (child === nothing) continue
-                maxW = max(maxW, child.w)
+                maxW = max(maxW, child.width)
             }
             sumW += maxW
             xs[x] = sumW
@@ -133,7 +133,7 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
             for (x in 0 until sizeX) {
                 val child = children[x + y * sizeX]
                 if (child === nothing) continue
-                maxH = max(maxH, child.h)
+                maxH = max(maxH, child.height)
             }
             sumH += maxH
             ys[y] = sumH
@@ -183,12 +183,12 @@ open class TablePanel(sizeX: Int, sizeY: Int, style: Style) : PanelGroup(style) 
         nothing.setPosSize(x, y, 0, 0)
         for (yi in 0 until sizeY) {
             val y0 = ys.getOrNull(yi - 1) ?: 0
-            val y1 = ys.getOrNull(yi) ?: h
+            val y1 = ys.getOrNull(yi) ?: height
             for (xi in 0 until sizeX) {
                 val child = children[xi + yi * sizeX]
                 if (child === nothing) continue
                 val x0 = xs.getOrNull(xi - 1) ?: 0
-                val x1 = xs.getOrNull(xi) ?: w
+                val x1 = xs.getOrNull(xi) ?: width
                 child.calculatePlacement(x + x0, y + y0, x1 - x0, y1 - y0)
                 child.setPosSize(child.minX, child.minY, child.minW, child.minH)
             }

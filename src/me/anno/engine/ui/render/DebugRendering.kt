@@ -38,8 +38,8 @@ object DebugRendering {
         if (light != null) {
             val x = view.x
             val y = view.y
-            val w = view.w
-            val h = view.h
+            val w = view.width
+            val h = view.height
             val s = min(w, h) / 3
             var texture: ITexture2D? = null
             var isDepth = false
@@ -87,7 +87,7 @@ object DebugRendering {
             DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
             // prepareDrawScene needs to be reset afterwards, because we seem to have a kind-of-bug somewhere
             val camera2 = view.editorCamera
-            view.prepareDrawScene(view.w, view.h, view.w.toFloat() / view.h, camera2, camera2, 0f, false)
+            view.prepareDrawScene(view.width, view.height, view.width.toFloat() / view.height, camera2, camera2, 0f, false)
         }
     }
 
@@ -128,8 +128,8 @@ object DebugRendering {
         LineBuffer.finish(m)
         val v = JomlPools.vec4f.borrow()
         // transform is only correct, if we use a temporary framebuffer!
-        val sx = +view.w * 0.5f
-        val sy = -view.h * 0.5f
+        val sx = +view.width * 0.5f
+        val sy = -view.height * 0.5f
         val x0 = +sx
         val y0 = -sy
         val betterBlending = GFXState.currentBuffer.getTargetType(0) == TargetType.UByteTarget4

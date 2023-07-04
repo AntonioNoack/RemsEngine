@@ -48,7 +48,7 @@ open class ScrollPanelX(
     override var targetScrollPositionX = 0.0
     override var scrollHardnessX = 25.0
 
-    override val maxScrollPositionX get() = max(0, child.minW + padding.width - w).toLong()
+    override val maxScrollPositionX get() = max(0, child.minW + padding.width - width).toLong()
     val scrollbar = ScrollbarX(this, style)
 
     val scrollbarHeight = style.getSize("scrollbarHeight", 8)
@@ -90,7 +90,7 @@ open class ScrollPanelX(
         val child = child
         val padding = padding
         val scroll0 = round(scrollPositionX).toLong()
-        val scroll = clamp(scroll0, 0L, max(0, child.minW + padding.width - w).toLong()).toInt()
+        val scroll = clamp(scroll0, 0L, max(0, child.minW + padding.width - width).toLong()).toInt()
         child.setPosition(x + padding.left - scroll, y + padding.top)
         if (child is LongScrollable) {
             child.setExtraScrolling(scroll0 - scroll, 0L)
@@ -136,8 +136,8 @@ open class ScrollPanelX(
         if (hasScrollbar) {
             scrollbar.x = x + scrollbarPadding
             scrollbar.y = y1 - scrollbarHeight - scrollbarPadding
-            scrollbar.w = w - 2 * scrollbarPadding
-            scrollbar.h = scrollbarHeight
+            scrollbar.width = width - 2 * scrollbarPadding
+            scrollbar.height = scrollbarHeight
             drawChild(scrollbar, x0, y0, x1, y1)
         }
     }

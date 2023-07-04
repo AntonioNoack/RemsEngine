@@ -39,8 +39,8 @@ class ColorField(
     override fun calculateSize(w: Int, h: Int) {
         minW = constSize
         minH = constSize
-        this.w = constSize
-        this.h = constSize
+        this.width = constSize
+        this.height = constSize
     }
 
     override val className: String get() = "ColorPaletteEntry"
@@ -61,10 +61,10 @@ class ColorField(
         // draw border/background depending on hover/focus
         val backgroundColor = if (isHovered) if (isInFocus) focusHoverColor else hoverColor
         else if (isInFocus) focusColor else backgroundColor
-        DrawRectangles.drawRect(x, y, w, h, backgroundColor)
+        DrawRectangles.drawRect(x, y, width, height, backgroundColor)
         TextureLib.colorShowTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
-        DrawTextures.drawTexture(x + 1, y + 1, w - 2, h - 2, TextureLib.colorShowTexture, -1, tiling)
-        DrawRectangles.drawRect(x + 1, y + 1, w - 2, h - 2, color)
+        DrawTextures.drawTexture(x + 1, y + 1, width - 2, height - 2, TextureLib.colorShowTexture, -1, tiling)
+        DrawRectangles.drawRect(x + 1, y + 1, width - 2, height - 2, color)
     }
 
     override fun onCopyRequested(x: Float, y: Float) = color.toHexColor()

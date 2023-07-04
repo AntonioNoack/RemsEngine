@@ -128,11 +128,11 @@ class Snake : Panel(style) {
 
         // draw field
         for (y in 0 until sy) {
-            val y2 = this.y + y * h / sy
-            val y3 = this.y + (y + 1) * h / sy - 2
+            val y2 = this.y + y * height / sy
+            val y3 = this.y + (y + 1) * height / sy - 2
             for (x in 0 until sx) {
-                val x2 = this.x + x * w / sx
-                val x3 = this.x + (x + 1) * w / sx - 2
+                val x2 = this.x + x * width / sx
+                val x3 = this.x + (x + 1) * width / sx - 2
                 val value = field[x + y * sx]
                 val color = when {
                     isSnake(value) -> -1
@@ -153,27 +153,27 @@ class Snake : Panel(style) {
             else -> null
         }
         if (snakeHeadChar != null) drawText(
-            this.x + (headX * w + w / 2) / sx, this.y + (headY * h + h / 2) / sy,
+            this.x + (headX * width + width / 2) / sx, this.y + (headY * height + height / 2) / sy,
             font, snakeHeadChar, black, -1, -1, -1,
             AxisAlignment.CENTER, AxisAlignment.CENTER
         )
 
         if (gameOver) {
             drawText(
-                x + w / 2, y + h / 2, font, "Game Over, Score: $snakeLength",
+                x + width / 2, y + height / 2, font, "Game Over, Score: $snakeLength",
                 -1, black, -1, -1,
                 AxisAlignment.CENTER, AxisAlignment.CENTER
             )
         } else if (dx == 0 && dy == 0) {
             // draw instructions
             drawText(
-                x + w / 2, y + h / 2, font, "Press WASD to control the snake",
+                x + width / 2, y + height / 2, font, "Press WASD to control the snake",
                 -1, black, -1, -1,
                 AxisAlignment.CENTER, AxisAlignment.CENTER
             )
         } else if (isPaused) {
             drawText(
-                x + w / 2, y + h / 2, font, "Press SPACE to continue",
+                x + width / 2, y + height / 2, font, "Press SPACE to continue",
                 -1, black, -1, -1,
                 AxisAlignment.CENTER, AxisAlignment.CENTER
             )

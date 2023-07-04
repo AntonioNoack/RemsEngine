@@ -54,11 +54,11 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
     }
 
-    val width = 200 * max(DefaultConfig.style.getSize("fontSize", 12), 12) / 12
-    val height = width / 4
+    val width1 = 200 * max(DefaultConfig.style.getSize("fontSize", 12), 12) / 12
+    val height1 = width1 / 4
 
-    private val texture = Texture2D("frameTimes", width, 1, 1)
-    private val floats = Texture2D.bufferPool[4 * width, false, false]
+    private val texture = Texture2D("frameTimes", width1, 1, 1)
+    private val floats = Texture2D.bufferPool[4 * width1, false, false]
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer()
 
@@ -82,8 +82,8 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
     val textColor = colors.textColor
 
     override fun calculateSize(w: Int, h: Int) {
-        minW = width
-        minH = height
+        minW = width1
+        minH = height1
     }
 
     val timeContainer = TimeContainer(width, textColor)
@@ -102,14 +102,14 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 return
             }
         }
-        val container = TimeContainer(width, color)
+        val container = TimeContainer(width1, color)
         containers.add(container)
         container.putValue(value)
     }
 
     fun draw() {
         canBeSeen = true
-        draw(x, y, x + w, y + h)
+        draw(x, y, x + width, y + height)
     }
 
     val withoutInterpolation get() = OS.isAndroid
@@ -140,7 +140,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
                 var lastX = x0
                 var lastBarHeight = 0
-                val scale = height / maxValue
+                val scale = height1 / maxValue
 
                 DrawRectangles.startBatch()
                 for (x in x0 until x1) {
@@ -175,8 +175,8 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 GFX.check()
                 val shader = shader.value
                 shader.use()
-                shader.v1f("height", height.toFloat())
-                GFXx2D.posSize(shader, x, y, w, h)
+                shader.v1f("height", height1.toFloat())
+                GFXx2D.posSize(shader, x, y, width, height)
                 shader.v4f("color", barColor)
                 shader.v4f("background", background)
                 GFXx2D.noTiling(shader)
@@ -193,7 +193,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
     // to reduce draw calls by bundling stacks of the same height
     fun drawLine(lastX: Int, nextX: Int, barHeight: Int, barColor: Int) {
         if (lastX < nextX) {
-            DrawRectangles.drawRect(lastX, y + height - barHeight, nextX - lastX, barHeight, barColor)
+            DrawRectangles.drawRect(lastX, y + height1 - barHeight, nextX - lastX, barHeight, barColor)
         }
     }
 
@@ -205,10 +205,10 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
     fun showFPS(window: OSWindow) {
 
-        val x0 = max(0, window.width - width)
-        val y0 = max(0, window.height - height)
+        val x0 = max(0, window.width - width1)
+        val y0 = max(0, window.height - height1)
 
-        setPosSize(x0, y0, width, height)
+        setPosSize(x0, y0, width1, height1)
         draw()
 
         val maxTime = timeContainer.maxValue

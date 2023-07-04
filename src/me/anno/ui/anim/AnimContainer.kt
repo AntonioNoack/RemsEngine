@@ -79,8 +79,8 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
         val child = child
         child.x = x + padding.left
         child.y = y + padding.top
-        child.w = w - padding.width
-        child.h = h - padding.height
+        child.width = width - padding.width
+        child.height = height - padding.height
         for (index in animations.indices) {
             val anim = animations[index]
             val strength = when (anim.eventType) {
@@ -97,9 +97,9 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
             val interpolated = interpolation.getIn(strength)
             anim.apply(this, child, interpolated)
         }
-        child.minW = child.w
-        child.minH = child.h
-        child.setPosSize(child.x, child.y, child.w, child.h)
+        child.minW = child.width
+        child.minH = child.height
+        child.setPosSize(child.x, child.y, child.width, child.height)
     }
 
     override fun calculateSize(w: Int, h: Int) {

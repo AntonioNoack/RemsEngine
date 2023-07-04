@@ -35,16 +35,16 @@ fun main() {
                 if (batch) DrawRectangles.startBatch()
                 val s = 3
                 for (y in y0 until y1 step s) {
-                    color.y = y.toFloat() / h
+                    color.y = y.toFloat() / height
                     for (x in x0 until x1 step s) {
-                        color.x = x.toFloat() / w
+                        color.x = x.toFloat() / width
                         DrawRectangles.drawRect(x, y, s, s, color.toARGB())
                     }
                 }
                 if (batch) DrawRectangles.finishBatch()
                 val size = DrawTexts.monospaceFont.sampleHeight
-                DrawTexts.drawSimpleTextCharByChar(x, y + h - size * 2, 2, if (batch) "Batch" else "Normal")
-                DrawTexts.drawSimpleTextCharByChar(x, y + h - size, 2, "${(y1 - y0) / s * (x1 - x0) / s}")
+                DrawTexts.drawSimpleTextCharByChar(x, y + height - size * 2, 2, if (batch) "Batch" else "Normal")
+                DrawTexts.drawSimpleTextCharByChar(x, y + height - size, 2, "${(y1 - y0) / s * (x1 - x0) / s}")
             }
         }
     }

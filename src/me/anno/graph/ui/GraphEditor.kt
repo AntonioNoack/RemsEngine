@@ -142,8 +142,8 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
         val y1 = window.mouseYi
         return max(x0, x1) >= child.x &&
                 max(y0, y1) >= child.y &&
-                min(x0, x1) <= child.x + child.w &&
-                min(y0, y1) <= child.y + child.h
+                min(x0, x1) <= child.x + child.width &&
+                min(y0, y1) <= child.y + child.height
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {

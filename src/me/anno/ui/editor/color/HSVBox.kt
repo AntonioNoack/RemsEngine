@@ -31,7 +31,7 @@ open class HSVBox(
         when (action) {
             "SelectColor" -> {
                 if (dragged == null) {
-                    onValueChanged((x - this.x) / w, 1f - (y - this.y) / h)
+                    onValueChanged((x - this.x) / width, 1f - (y - this.y) / height)
                 }
             }
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)

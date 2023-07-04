@@ -111,8 +111,8 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
 
     fun onSelectNext(prev: Panel, next: Panel) {
         // todo test this, correct sign?
-        (firstInHierarchy { it is ScrollableX } as? ScrollableX)?.scrollX((next.x + next.w / 2) - (prev.x + prev.w / 2))
-        (firstInHierarchy { it is ScrollableY } as? ScrollableY)?.scrollY((next.y + next.h / 2) - (prev.y + prev.h / 2))
+        (firstInHierarchy { it is ScrollableX } as? ScrollableX)?.scrollX((next.x + next.width / 2) - (prev.x + prev.width / 2))
+        (firstInHierarchy { it is ScrollableY } as? ScrollableY)?.scrollY((next.y + next.height / 2) - (prev.y + prev.height / 2))
     }
 
     override fun copyInto(dst: PrefabSaveable) {

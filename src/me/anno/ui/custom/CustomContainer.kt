@@ -1,8 +1,6 @@
 package me.anno.ui.custom
 
 import me.anno.config.DefaultConfig
-import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache
@@ -14,8 +12,6 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.style.Style
 import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
@@ -38,8 +34,8 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         child.calculateSize(w, h)
         minW = child.minW
         minH = child.minH
-        this.w = child.w
-        this.h = child.h
+        this.width = child.width
+        this.height = child.height
     }
 
     override fun setPosition(x: Int, y: Int) {
@@ -61,7 +57,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         super.onDraw(x0, y0, x1, y1)
         val icon = ImageGPUCache[crossPath, true] ?: whiteTexture
         val crossSize = getCrossSize(style).roundToInt()
-        drawTexture(x + w - (crossSize + 2), y + 2, crossSize, crossSize, icon, white, null)
+        drawTexture(x + width - (crossSize + 2), y + 2, crossSize, crossSize, icon, white, null)
     }
 
     private fun addBefore(index: Int, parent: CustomList) {
@@ -125,7 +121,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         options += MenuOption(NameDesc("Add Panel Below", "", "ui.customize.addBelow")) {
             addPanel(true, firstThis = false)
         }
-        openMenu(windowStack, x + w - 16, y, NameDesc("Customize UI", "", "ui.customize.title"), options)
+        openMenu(windowStack, x + width - 16, y, NameDesc("Customize UI", "", "ui.customize.title"), options)
     }
 
     private fun changeTo(panel: Panel) {
@@ -175,7 +171,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
         fun Panel.isCross(x: Float, y: Float): Boolean {
             val crossSize = getCrossSize(style) + 4f // +4f for 2*padding
-            return x - (this.x + w - crossSize) in 0f..crossSize && y - this.y in 0f..crossSize
+            return x - (this.x + width - crossSize) in 0f..crossSize && y - this.y in 0f..crossSize
         }
 
     }

@@ -172,8 +172,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         super.onDraw(x0, y0, x1, y1)
         // show the mode
         drawSimpleTextCharByChar(
-            x + w - 2 - DrawTexts.monospaceFont.sampleWidth,
-            y + h - 2 - DrawTexts.monospaceFont.sampleHeight,
+            x + width - 2 - DrawTexts.monospaceFont.sampleWidth,
+            y + height - 2 - DrawTexts.monospaceFont.sampleHeight,
             2, when (mode) {
                 Mode.TRANSLATING -> "T"
                 Mode.ROTATING -> "R"
@@ -306,7 +306,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             isSelected && Input.isMiddleDown -> {
                 // move camera
                 val fovYRadians = view.editorCamera.fovY
-                val speed = tan(fovYRadians * 0.5) * view.radius / h
+                val speed = tan(fovYRadians * 0.5) * view.radius / height
                 val camTransform = camera.transform!!
                 val globalCamTransform = camTransform.globalTransform
                 val offset = globalCamTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
@@ -329,7 +329,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 // for that transform dx,dy into global space,
                 // and then update the local space
                 val fovYRadians = view.editorCamera.fovY
-                val speed = tan(fovYRadians * 0.5) / h
+                val speed = tan(fovYRadians * 0.5) / height
                 val camTransform = camera.transform!!.globalTransform
                 val offset = JomlPools.vec3d.create()
                 offset.set(dx * speed, -dy * speed, 0.0)
@@ -338,8 +338,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 // rotate around the direction
                 // we could use the average mouse position as center; this probably would be easier
                 val dir = view.cameraDirection
-                val rx = (x - (this.x + this.w * 0.5)) / h
-                val ry = (y - (this.y + this.h * 0.5)) / h // [-.5,+.5]
+                val rx = (x - (this.x + this.width * 0.5)) / height
+                val ry = (y - (this.y + this.height * 0.5)) / height // [-.5,+.5]
                 val rotationAngle = 0.1f * (rx * dy - ry * dx)
 
                 val targets2 = selectedMovables
@@ -372,7 +372,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                                         global.rotate(tmpQ)// correct
                                     }
                                     Mode.SCALING -> {
-                                        val scale = pow(2.0, (dx - dy).toDouble() / h)
+                                        val scale = pow(2.0, (dx - dy).toDouble() / height)
                                         global.scale(scale, scale, scale) // correct
                                     }
                                     else -> throw NotImplementedError()

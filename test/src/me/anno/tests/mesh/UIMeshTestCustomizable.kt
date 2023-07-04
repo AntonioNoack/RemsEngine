@@ -54,13 +54,13 @@ class SimpleMeshTest(
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // super call is not needed, as we draw over the background
         // define camera
-        val wf = w.toFloat()
-        val hf = h.toFloat()
+        val wf = width.toFloat()
+        val hf = height.toFloat()
         val s = max(1f, wf / hf)
         val t = max(1f, hf / wf)
         RenderState.cameraMatrix.identity().ortho(-s, +s, -t, +t, -1f, 0f)
         pipeline.frustum.defineOrthographic(
-            2.0 * s, 2.0 * t, 2.0, h,
+            2.0 * s, 2.0 * t, 2.0, height,
             RenderState.cameraPosition,
             RenderState.cameraRotation
         )
@@ -71,14 +71,14 @@ class SimpleMeshTest(
         // render
         val samples = min(GFX.maxSamples, 8)
         val msaa = msaa && GFXState.currentBuffer.samples < samples
-        val buffer = if (msaa) FBStack["msaa", w, h, 4, BufferQuality.LOW_8, samples, false] else GFXState.currentBuffer
-        useFrame(x, y, w, h, buffer, renderer) {
+        val buffer = if (msaa) FBStack["msaa", width, height, 4, BufferQuality.LOW_8, samples, false] else GFXState.currentBuffer
+        useFrame(x, y, width, height, buffer, renderer) {
             buffer.clearColor(backgroundColor, depth = true)
             pipeline.draw()
         }
         if (msaa) {
             // if we changed the framebuffer, blit the result onto the target framebuffer
-            DrawTextures.drawTexture(x, y, w, h, buffer.getTexture0())
+            DrawTextures.drawTexture(x, y, width, height, buffer.getTexture0())
         }
     }
 }

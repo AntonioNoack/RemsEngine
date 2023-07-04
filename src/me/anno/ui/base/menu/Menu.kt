@@ -245,7 +245,7 @@ object Menu {
                         val safetyPadding = 10
                         window.x = clamp(
                             window.x + dx.roundToInt(),
-                            safetyPadding - window.panel.w,
+                            safetyPadding - window.panel.width,
                             windowStack.width - safetyPadding
                                     // extra width, where we'd just grab the scrollbar instead of the panel
                                     - container.interactionWidth
@@ -348,8 +348,8 @@ object Menu {
         container.calculateSize(maxWidth, maxHeight)
         container.setSize(min(container.minW, maxWidth), min(container.minH, maxHeight))
 
-        window.x = clamp(x, 0, max(windowStack.width - container.w, 0))
-        window.y = clamp(y, 0, max(windowStack.height - container.h, 0))
+        window.x = clamp(x, 0, max(windowStack.width - container.width, 0))
+        window.y = clamp(y, 0, max(windowStack.height - container.height, 0))
 
         container.forAllPanels { it.window = window }
 

@@ -17,16 +17,16 @@ class WrapAlign(
         alignX?.apply {
             // delta is the movement to the right;
             // therefore it must not be < 0
-            val delta = max(0, getOffset(panel.w, panel.minW))
+            val delta = max(0, getOffset(panel.width, panel.minW))
             panel.x = panel.x + delta
-            panel.w = min(panel.minW, panel.w)
+            panel.width = min(panel.minW, panel.width)
         }
         alignY?.apply {
             // delta is the movement to the bottom;
             // therefore it must not be < 0
-            val delta = max(0, getOffset(panel.h, panel.minH))
+            val delta = max(0, getOffset(panel.height, panel.minH))
             panel.y = panel.y + delta
-            panel.h = min(panel.minH, panel.h)
+            panel.height = min(panel.minH, panel.height)
         }
     }
 

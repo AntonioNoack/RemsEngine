@@ -24,23 +24,23 @@ open class ColorPalette(
     override fun calculateSize(w: Int, h: Int) {
         minW = w
         minH = minW * dimY / dimX
-        this.w = minW
-        this.h = minH
+        this.width = minW
+        this.height = minH
     }
 
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
         for (j in 0 until dimY) {
-            val y2 = y + j * h / dimY
-            val y3 = y + (j + 1) * h / dimY
+            val y2 = y + j * height / dimY
+            val y3 = y + (j + 1) * height / dimY
             for (i in 0 until dimX) {
-                val x2 = x + i * w / dimX
-                val x3 = x + (i + 1) * w / dimX
+                val x2 = x + i * width / dimX
+                val x3 = x + (i + 1) * width / dimX
                 val index = getIndex(i, j)
                 val child = children[index]
                 child.setPosition(x2, y2)
-                child.w = x3 - x2
-                child.h = y3 - y2
+                child.width = x3 - x2
+                child.height = y3 - y2
             }
         }
     }

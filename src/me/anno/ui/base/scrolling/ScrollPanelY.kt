@@ -67,7 +67,7 @@ open class ScrollPanelY(
         get() {
             val child = child
             val childH = if (child is LongScrollable) child.sizeY else child.minH.toLong()
-            return max(0, childH + padding.height - h)
+            return max(0, childH + padding.height - height)
         }
 
     override fun scrollY(delta: Double): Double {
@@ -100,7 +100,7 @@ open class ScrollPanelY(
         val child = child
         val padding = padding
         val scroll0 = round(scrollPositionY).toLong()
-        val scroll = clamp(scroll0, 0L, max(0, child.minH + padding.height - h).toLong()).toInt()
+        val scroll = clamp(scroll0, 0L, max(0, child.minH + padding.height - height).toLong()).toInt()
         child.setPosition(x + padding.left, y + padding.top - scroll)
         if (child is LongScrollable) {
             child.setExtraScrolling(0L, scroll0 - scroll)
@@ -136,8 +136,8 @@ open class ScrollPanelY(
             val scrollbar = scrollbar
             scrollbar.x = x1 - scrollbarWidth - scrollbarPadding
             scrollbar.y = y + scrollbarPadding
-            scrollbar.w = scrollbarWidth
-            scrollbar.h = h - 2 * scrollbarPadding
+            scrollbar.width = scrollbarWidth
+            scrollbar.height = height - 2 * scrollbarPadding
             drawChild(scrollbar, x0, y0, x1, y1)
         }
     }

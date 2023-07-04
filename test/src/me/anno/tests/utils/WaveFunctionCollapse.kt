@@ -70,8 +70,8 @@ fun main() {
                 val t0 = Engine.nanoTime
                 while (hasRemaining && Engine.nanoTime - t0 < 1e9 / 60)
                     hasRemaining = wfc.collapseStep(sizeX, sizeY, grid, random)
-                val x0i = x + w / 2
-                val y0i = y + h / 2
+                val x0i = x + width / 2
+                val y0i = y + height / 2
                 for (x in 0..sizeX) xs[x] = x0i + ((x * tileW - center.x) * scale).toInt()
                 for (y in 0..sizeY) ys[y] = y0i + ((y * tileH - center.y) * scale).toInt()
                 for (y in 0 until sizeY) {

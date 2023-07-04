@@ -34,7 +34,7 @@ fun main() {
     } else {
         // test progress bar panel
         val p = ProgressBarPanel("Sample", "", 1.0, 15, style)
-        val t = SpyPanel { p.progress = (Engine.gameTimeD * 5.0 / p.w) % 1.0 }
+        val t = SpyPanel { p.progress = (Engine.gameTimeD * 5.0 / p.width) % 1.0 }
         testUI2 { listOf(t, p) }
     }
 }

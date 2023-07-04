@@ -277,7 +277,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             camera0 = camera1
         }
 
-        var aspect = w.toFloat() / h
+        var aspect = width.toFloat() / height
 
         val layers = deferred.settingsV1.layers
         val size = when (renderMode) {
@@ -301,7 +301,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         clock.stop("initialization", 0.05)
 
-        prepareDrawScene(w, h, aspect, camera0, camera1, blending, true)
+        prepareDrawScene(width, height, aspect, camera0, camera1, blending, true)
 
         setRenderState()
 
@@ -434,7 +434,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val pbb = pushBetterBlending(true)
         if (world == null) {
             drawSimpleTextCharByChar(
-                x + w / 2, y + h / 2, 4,
+                x + width / 2, y + height / 2, 4,
                 if (library.prefabSource == InvalidRef)
                     "Undefined Scene!" else "Scene Not Found!",
                 AxisAlignment.CENTER, AxisAlignment.CENTER
@@ -467,7 +467,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             val drawCalls = PipelineStage.drawCalls - drawCalls0
             drawSimpleTextCharByChar(
                 x + DrawTexts.monospaceFont.sizeInt / 4,
-                y + h - 1 - DrawTexts.monospaceFont.sizeInt,
+                y + height - 1 - DrawTexts.monospaceFont.sizeInt,
                 0, if (drawCalls == 1L) "$drawnPrimitives tris, 1 draw call"
                 else "$drawnPrimitives tris, $drawCalls draw calls",
                 FrameTimings.textColor,
@@ -1075,7 +1075,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, buffer, idRenderer) {
             drawScene(
-                w, h, camera, camera, 0f, idRenderer, buffer,
+                width, height, camera, camera, 0f, idRenderer, buffer,
                 changeSize = false, hdr = false
             )
             drawGizmos(drawGridLines = false, drawDebug)
@@ -1087,7 +1087,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         val depths = Screenshots.getFP32RPixels(diameter, px2, py2, buffer, depthRenderer) {
             drawScene(
-                w, h, camera, camera, 0f, depthRenderer, buffer,
+                width, height, camera, camera, 0f, depthRenderer, buffer,
                 changeSize = false, hdr = false
             )
             drawGizmos(drawGridLines = false, drawDebug)
@@ -1590,8 +1590,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         cy: Float = window!!.mouseY,
         dst: Vector3d = Vector3d()
     ): Vector3d {
-        val rx = (cx - x) / w * 2.0 - 1.0
-        val ry = (cy - y) / h * 2.0 - 1.0
+        val rx = (cx - x) / width * 2.0 - 1.0
+        val ry = (cy - y) / height * 2.0 - 1.0
         return getRelativeMouseRayDirection(rx, -ry, dst)
     }
 
@@ -1601,7 +1601,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         dst: Vector3d = Vector3d()
     ): Vector3d {
         val tanHalfFoV = tan(fovYRadians * 0.5)
-        val aspectRatio = w.toFloat() / h
+        val aspectRatio = width.toFloat() / height
         val dir = dst.set(rx * tanHalfFoV * aspectRatio, ry * tanHalfFoV, -1.0)
         cameraRotation.transform(dir)
         dir.normalize()
@@ -1651,7 +1651,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     fun setRenderState() {
 
-        RenderState.aspectRatio = w.toFloat() / h
+        RenderState.aspectRatio = width.toFloat() / height
         RenderState.worldScale = worldScale
         RenderState.prevWorldScale = prevWorldScale
 

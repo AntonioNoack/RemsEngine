@@ -81,8 +81,8 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
     }
 
     override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        val rx = (x - this.x) / this.w
-        val ry = (y - this.y) / this.h
+        val rx = (x - this.x) / this.width
+        val ry = (y - this.y) / this.height
         when (chooser.visualisation) {
             ColorVisualisation.BOX -> {
             }
@@ -104,16 +104,16 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         chooser.drawColorBox(this, v0, du, dv, dh, true)
         // show the user, where he is
         fun drawSmallRect() {
-            val size = w / 8
+            val size = width / 8
             drawColoredAlpha(x + 1, y + 1, size, size, chooser, 3f, 3f, false)
         }
         when (val style = chooser.visualisation) {
             ColorVisualisation.WHEEL -> {
                 // "   vec2 uv2 = clamp((uv-0.5)*1.8+0.5, 0.0, 1.0);\n" +
-                val cx = x + w / 2
-                val cy = y + h / 2
-                val dx = w.toFloat()
-                val dy = h.toFloat()
+                val cx = x + width / 2
+                val cy = y + height / 2
+                val dx = width.toFloat()
+                val dy = height.toFloat()
                 val x = (cx + (chooser.saturation - 0.5f) * dx / 1.8f).roundToInt()
                 val y = (cy - (chooser.lightness - 0.5f) * dy / 1.8f).roundToInt()
                 drawCrossHair(x, y)
@@ -134,16 +134,16 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                 if (!chooser.withAlpha) drawSmallRect()
             }
             ColorVisualisation.BOX -> {
-                val x = this.x + (w * chooser.saturation).roundToInt()
-                val y = this.y + h - (h * chooser.lightness).roundToInt()
+                val x = this.x + (width * chooser.saturation).roundToInt()
+                val y = this.y + height - (height * chooser.lightness).roundToInt()
                 drawCrossHair(x, y)
             }
             ColorVisualisation.CIRCLE -> {
                 // show the point and bar
-                val w2 = w * style.ratio
+                val w2 = width * style.ratio
                 val cx = x + w2 / 2
-                val cy = y + h / 2
-                val dy = h.toFloat()
+                val cy = y + height / 2
+                val dy = height.toFloat()
                 val angle = ((chooser.hue - 0.5) * (2 * PI)).toFloat()
                 val sin = sin(angle)
                 val cos = cos(angle)
@@ -151,7 +151,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                 val x = (cx + cos * radius).roundToInt()
                 val y = (cy - sin * radius).roundToInt()
                 drawCrossHair(x, y)
-                val w3 = w - w2
+                val w3 = width - w2
                 // 0.515
                 drawRect(
                     this.x + (w2 * 0.510f / 0.5f).toInt(),

@@ -104,7 +104,7 @@ open class FunctionPanel(val function: Function1d, style: Style) : MapPanel(styl
     }
 
     fun drawNumbered2DLineGrid(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val s0 = log10(windowToCoordsDirY(h.toDouble()))
+        val s0 = log10(windowToCoordsDirY(height.toDouble()))
         val s1 = floor(s0)
         val s2 = 10.0.pow(s1)
         val sf = 1f - (s0 - s1).toFloat()

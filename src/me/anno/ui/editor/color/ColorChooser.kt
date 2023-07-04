@@ -160,7 +160,7 @@ open class ColorChooser(
 
     fun drawColorBox(element: Panel, d0: Vector3f, du: Vector3f, dv: Vector3f, dh: Float, mainBox: Boolean) {
         drawColorBox(
-            element.x, element.y, element.w, element.h,
+            element.x, element.y, element.width, element.height,
             d0, du, dv, dh,
             if (mainBox) visualisation else ColorVisualisation.BOX
         )

@@ -36,7 +36,17 @@ import kotlin.math.roundToInt
 
 open class Panel(val style: Style) : PrefabSaveable() {
 
-    // wished size and placement
+    /**
+     * Actual size and placement
+     * */
+    var x = 0
+    var y = 0
+    var width = 258
+    var height = 259
+
+    /**
+     * Wished size and placement
+     * */
     var minX = 0
     var minY = 0
     var minW = 1
@@ -209,11 +219,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     val layoutConstraints = ArrayList<Constraint>()
 
-    var w = 258
-    var h = 259
-    var x = 0
-    var y = 0
-
     // is updated by Window class
     // should make some computations easier :)
     @DebugProperty
@@ -299,7 +304,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
                 val radius = backgroundRadius
                 val backgroundRadiusCorners = backgroundRadiusCorners
                 drawRoundedRect(
-                    x + dx, y + dy, w - 2 * dx, h - 2 * dy,
+                    x + dx, y + dy, width - 2 * dx, height - 2 * dy,
                     if (backgroundRadiusCorners and CORNER_TOP_RIGHT != 0) radius else 0f,
                     if (backgroundRadiusCorners and CORNER_TOP_LEFT != 0) radius else 0f,
                     if (backgroundRadiusCorners and CORNER_BOTTOM_RIGHT != 0) radius else 0f,
@@ -311,8 +316,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
             } else {
                 val x2 = max(x0, x + dx)
                 val y2 = max(y0, y + dy)
-                val x3 = min(x1, x + w - dx)
-                val y3 = min(y1, y + h - dy)
+                val x3 = min(x1, x + width - dx)
+                val y3 = min(y1, y + height - dy)
                 drawRect(x2, y2, x3 - x2, y3 - y2, backgroundColor)
             }
         }
@@ -392,8 +397,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     open fun setSize(w: Int, h: Int) {
-        this.w = w
-        this.h = h
+        this.width = w
+        this.height = h
     }
 
     /**
@@ -403,8 +408,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
         minW = 1
         minH = 1
         // todo why is this required? this should not be needed
-        this.w = w
-        this.h = h
+        this.width = w
+        this.height = h
     }
 
     /**
@@ -590,7 +595,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         println(
             "${Tabs.spaces(tabDepth * 2)}$className(${(weight * 10).roundToInt()}, " +
                     "${if (isVisible) "v" else "_"}${if (isHovered) "h" else ""}${if (isInFocus) "F" else ""})) " +
-                    "$x-${x + w}, $y-${y + h} ($minW $minH) ${
+                    "$x-${x + width}, $y-${y + height} ($minW $minH) ${
                         if (tooltip == null) "" else "'${tooltip.shorten(20)}' "
                     }${getPrintSuffix()}"
         )
@@ -630,8 +635,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun scrollTo(x: Int, y: Int) {
         // find parent scroll lists, such that after scrolling, this panel has its center there
-        var dx = (this.x + this.w / 2) - x
-        var dy = (this.y + this.h / 2) - y
+        var dx = (this.x + this.width / 2) - x
+        var dy = (this.y + this.height / 2) - y
         var par = uiParent
         while (par != null && (dx != 0 || dy != 0)) {
             if (dx != 0 && par is ScrollableX) {
@@ -755,7 +760,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * does not consider overlap
      * */
     fun contains(x: Int, y: Int, margin: Int = 0) =
-        (x - this.x) in -margin until w + margin && (y - this.y) in -margin until h + margin
+        (x - this.x) in -margin until width + margin && (y - this.y) in -margin until height + margin
 
     /**
      * does this panel contain the coordinate (x,y)?
@@ -778,13 +783,13 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun isOpaqueAt(x: Int, y: Int): Boolean {
         return backgroundColor.a() >= minOpaqueAlpha && if (hasRoundedCorners) {
-            val cornerMasks = ((x - this.x) * 2 < this.w).toInt(2) + ((y - this.y) * 2 > this.h).toInt()
+            val cornerMasks = ((x - this.x) * 2 < this.width).toInt(2) + ((y - this.y) * 2 > this.height).toInt()
             if ((1 shl cornerMasks) and backgroundRadiusCorners != 0) {
-                val px = ((x - this.x) * 2 - this.w)
-                val py = ((y - this.y) * 2 - this.h)
+                val px = ((x - this.x) * 2 - this.width)
+                val py = ((y - this.y) * 2 - this.height)
                 val r = backgroundRadius * 2
-                val qx = abs(px) - this.w + r
-                val qy = abs(py) - this.h + r
+                val qx = abs(px) - this.width + r
+                val qy = abs(py) - this.height + r
                 // println("$x,$y -> $px,$py -> $qx,$qy -> ${length(max(qx, 0f),max(qy, 0f)) + min(0f, max(qx, qy)) - r}")
                 length(max(qx, 0f), max(qy, 0f)) + min(0f, max(qx, qy)) - r <= 0
             } else contains(x, y)
@@ -812,8 +817,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
         dst.minY = minY
         dst.x = x
         dst.y = y
-        dst.w = w
-        dst.h = h
+        dst.width = width
+        dst.height = height
         dst.tooltip = tooltip
         dst.tooltipPanel = dst.tooltipPanel // could create issues, should be found in parent or cloned
         dst.weight = weight
@@ -829,8 +834,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
         when (name) {
             "x" -> x = value
             "y" -> y = value
-            "w" -> w = value
-            "h" -> h = value
+            "w" -> width = value
+            "h" -> height = value
             "minW" -> minW = value
             "minH" -> minH = value
             "visibility" -> isVisible = value != 0
@@ -865,8 +870,8 @@ open class Panel(val style: Style) : PrefabSaveable() {
         super.save(writer)
         writer.writeInt("x", x)
         writer.writeInt("y", y)
-        writer.writeInt("w", w)
-        writer.writeInt("h", h)
+        writer.writeInt("w", width)
+        writer.writeInt("h", height)
         writer.writeInt("minW", minW)
         writer.writeInt("minH", minH)
         writer.writeEnum("alignmentX", alignmentX)

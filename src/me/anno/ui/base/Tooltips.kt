@@ -57,7 +57,7 @@ object Tooltips {
         }
         panel.setPosition(x, y)
         panel.setSize(panel.minW, panel.minH)
-        panel.draw(panel.x, panel.y, panel.x + panel.w, panel.y + panel.h)
+        panel.draw(panel.x, panel.y, panel.x + panel.width, panel.y + panel.height)
     }
 
     fun draw(window: OSWindow): Boolean {

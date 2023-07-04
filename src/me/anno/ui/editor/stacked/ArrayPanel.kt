@@ -60,7 +60,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
                 val child = children[index]
                 // draw button left to it
                 val y2 = max(child.y + buttonPadding, lastY)
-                val y3 = child.y + child.h - buttonPadding
+                val y3 = child.y + child.height - buttonPadding
                 if (y3 > y2 && y in y2 until y3) {
                     return index
                 }
@@ -88,7 +88,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
             // draw button left to it
             // todo nice button border & change appearance on hover/click...
             val y2 = max(child.y + buttonPadding, lastY)
-            val y3 = child.y + child.h - buttonPadding
+            val y3 = child.y + child.height - buttonPadding
             if (y3 > y2) {
                 drawRect(buttonX, y2, buttonW, y3 - y2, -1)
             }

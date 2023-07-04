@@ -158,7 +158,7 @@ open class Window(
 
         validateLayouts(dx, dy, windowW, windowH, panel)
 
-        if (panel.w > 0 && panel.h > 0) {
+        if (panel.width > 0 && panel.height > 0) {
 
             // overlays get missing...
             // this somehow needs to be circumvented...
@@ -224,8 +224,8 @@ open class Window(
             calculateFullLayout(x, y, w, h)
         }
 
-        val w2 = min(panel0.w, w - x)
-        val h2 = min(panel0.h, h - y)
+        val w2 = min(panel0.width, w - x)
+        val h2 = min(panel0.height, h - y)
         useFrame(panel0.x, panel0.y, w2, h2, Renderer.colorRenderer) {
             panel0.canBeSeen = true
             panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)
@@ -273,14 +273,14 @@ open class Window(
         val x0 = max(panel0.x, 0)
         val y0 = max(panel0.y, 0)
         // we don't need to draw more than is visible
-        val x1 = min(panel0.x + panel0.w, windowStack.width)
-        val y1 = min(panel0.y + panel0.h, windowStack.height)
+        val x1 = min(panel0.x + panel0.width, windowStack.width)
+        val y1 = min(panel0.y + panel0.height, windowStack.height)
 
         if (x1 > x0 && y1 > y0) {
 
             if (needsRedraw.sumOf {
                     if (it != null) max((it.lx1 - it.lx0) * (it.ly1 - it.ly0), 0) else 0
-                } >= panel0.w * panel0.h) {
+                } >= panel0.width * panel0.height) {
                 needsRedraw.add(panel0)
             }
 
@@ -324,13 +324,13 @@ open class Window(
             calculateXY01(parent, x0, y0, x1, y1)
             panel.lx0 = max(panel.x, parent.lx0)
             panel.ly0 = max(panel.y, parent.ly0)
-            panel.lx1 = min(panel.x + panel.w, parent.lx1)
-            panel.ly1 = min(panel.y + panel.h, parent.ly1)
+            panel.lx1 = min(panel.x + panel.width, parent.lx1)
+            panel.ly1 = min(panel.y + panel.height, parent.ly1)
         } else {
             panel.lx0 = max(panel.x, x0)
             panel.ly0 = max(panel.y, y0)
-            panel.lx1 = min(panel.x + panel.w, x1)
-            panel.ly1 = min(panel.y + panel.h, y1)
+            panel.lx1 = min(panel.x + panel.width, x1)
+            panel.ly1 = min(panel.y + panel.height, y1)
         }
     }
 
@@ -338,8 +338,8 @@ open class Window(
         val x0 = max(panel.x, 0)
         val y0 = max(panel.y, 0)
         // we don't need to draw more than is visible
-        val x1 = min(panel.x + panel.w, windowStack.width)
-        val y1 = min(panel.y + panel.h, windowStack.height)
+        val x1 = min(panel.x + panel.width, windowStack.width)
+        val y1 = min(panel.y + panel.height, windowStack.height)
         val tex = buffer.getTexture0()
         if (isTransparent) {
             renderDefault {

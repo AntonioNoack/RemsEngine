@@ -165,14 +165,14 @@ fun main() {
 
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
                 if (Input.isLeftDown || Input.isRightDown) {
-                    val speed = 10f / h
+                    val speed = 10f / height
                     rotation.x += dy * speed
                     rotation.y += dx * speed
                 }
             }
 
             override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
-                zoom *= pow(1e6f, -dy / h)
+                zoom *= pow(1e6f, -dy / height)
             }
 
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -211,7 +211,7 @@ fun main() {
                     val filter = GPUFiltering.TRULY_LINEAR
                     val clamp = Clamping.CLAMP
                     val dt = (frameIndex + 0.5f) / interFrames
-                    useFrame(w, h, true, accu) {
+                    useFrame(width, height, true, accu) {
                         depthMode.use(DepthMode.CLOSE) {
                             blendMode.use(BlendMode.PURE_ADD) {
 
@@ -221,12 +221,12 @@ fun main() {
                                 val shader = mixShader
                                 shader.use()
                                 data1.getTextureI(1).bind(shader, "motionTex", filter, clamp)
-                                shader.v2f("invSize", 1f / w, 1f / h)
-                                shader.v1i("width", w)
+                                shader.v2f("invSize", 1f / width, 1f / height)
+                                shader.v1i("width", width)
                                 shader.v1f("dt01", dt - 1f)
                                 data1.getTextureI(0).bind(shader, "colorTex", filter, clamp)
                                 data1.depthTexture!!.bind(shader, "depthTex", filter, clamp)
-                                ptBuffer.proceduralLength = w * h // one point per pixel
+                                ptBuffer.proceduralLength = width * height // one point per pixel
                                 ptBuffer.draw(shader, 0)
                             }
                         }
@@ -262,8 +262,8 @@ fun main() {
                     val aabb = scene.aabb
                     val sz = max(max(aabb.deltaX(), aabb.deltaY()), aabb.deltaZ()).toFloat()
                     val sx = sz * zoom
-                    val wf = w.toFloat()
-                    val hf = h.toFloat()
+                    val wf = width.toFloat()
+                    val hf = height.toFloat()
                     val s = sx * max(1f, wf / hf)
                     val t = sx * max(1f, hf / wf)
 
@@ -285,12 +285,12 @@ fun main() {
                         Matrix4x3d()
                             .rotate(cameraRotation)
                             .scale(s.toDouble(), t.toDouble(), sz.toDouble()),
-                        w, cameraPosition, cameraRotation
+                        width, cameraPosition, cameraRotation
                     )
                     scene.validateTransform()
                     pipeline.fill(scene)
 
-                    useFrame(w, h, true, data1, renderer) {
+                    useFrame(width, height, true, data1, renderer) {
                         data1.clearDepth()
                         clearColor(
                             cameraMatrix, prevCamMatrix,
@@ -302,7 +302,7 @@ fun main() {
                     }
 
                     // present the previous frame
-                    drawTexture(x, y + h, w, -h, data0.getTexture0(), true)
+                    drawTexture(x, y + height, width, -height, data0.getTexture0(), true)
 
                     // update
                     prevCamMatrix.set(cameraMatrix)

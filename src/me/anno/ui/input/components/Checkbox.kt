@@ -73,8 +73,8 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         val texture = getImage(isChecked) ?: whiteTexture
         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         drawTexture(
-            x + (w - size) / 2,
-            y + (h - size) / 2,
+            x + (width - size) / 2,
+            y + (height - size) / 2,
             size, size, texture, color, null
         )
     }

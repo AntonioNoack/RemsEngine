@@ -272,7 +272,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
         val selectedLineBGColor = theme.selectedLineBGColor or black
         val bg0 = max(x0, this.x + cn * charWidth + padding.left)
-        val bg1 = min(x1, this.x + this.w - padding.right)
+        val bg1 = min(x1, this.x + this.width - padding.right)
 
         // draw selected line background color
         if (cursor0 == cursor1) {
@@ -291,7 +291,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
         // draw selection background, which is wider than the text
         if (isInFocus && minCursor.y < maxCursor.y) {
-            drawRect(x + (cn + minCursor.x), y + minCursor.y * lineHeight, w, lineHeight, selectedBGColor)
+            drawRect(x + (cn + minCursor.x), y + minCursor.y * lineHeight, width, lineHeight, selectedBGColor)
             if (minCursor.y + 1 < maxCursor.y) {
                 drawRect(
                     bg0, y + (minCursor.y + 1) * lineHeight, bg1 - bg0,
@@ -343,7 +343,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
 
         // line after 80 chars
-        drawRect(x + recommendedLineLengthLimit * charWidth, y, 1, h - padding.height, selectedLineBGColor)
+        drawRect(x + recommendedLineLengthLimit * charWidth, y, 1, height - padding.height, selectedLineBGColor)
 
         content.forEachChar(vx0, vy0, vx1, vy1) { charIndex, lineIndex, indexInLine, char ->
             // draw character

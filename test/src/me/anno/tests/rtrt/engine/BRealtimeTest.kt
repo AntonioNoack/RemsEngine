@@ -249,13 +249,13 @@ fun createCPUPanel(
 
         // render cpu side
         // render at lower resolution because of performance
-        val w = it.w / scale
-        val h = it.h / scale
+        val w = it.width / scale
+        val h = it.height / scale
 
         val parent = it.uiParent!!
-        val cx = Math.random().toFloat() - 0.5f + (parent.w * 0.5f - it.x) / scale
-        val cy = Math.random().toFloat() - 0.5f + (parent.h * 0.5f) / scale
-        val fovZ = -parent.h * fovZFactor / scale
+        val cx = Math.random().toFloat() - 0.5f + (parent.width * 0.5f - it.x) / scale
+        val cy = Math.random().toFloat() - 0.5f + (parent.height * 0.5f) / scale
+        val fovZ = -parent.height * fovZFactor / scale
 
         // if camera was moved, set frameIndex back to zero
         if (lastDrawMode != drawMode ||
@@ -342,10 +342,10 @@ fun createCPUPanel(
 
         nextFrame()
 
-        DrawTextures.drawTexture(it.x, it.y, it.w, it.h, cpuTexture, true, -1, null)
+        DrawTextures.drawTexture(it.x, it.y, it.width, it.height, cpuTexture, true, -1, null)
         DrawTexts.drawSimpleTextCharByChar(
             it.x + 4,
-            it.y + it.h - 50,
+            it.y + it.height - 50,
             2,
             "$cpuSpeed ns/e, $cpuFPS fps, $frameIndex spp"
         )
@@ -391,8 +391,8 @@ fun createGPUPanel(
 
         it.clone()
 
-        val w = it.w / scale
-        val h = it.h / scale
+        val w = it.width / scale
+        val h = it.height / scale
 
         // if camera was moved, set frameIndex back to zero
         if (lastDrawMode != drawMode ||
@@ -416,9 +416,9 @@ fun createGPUPanel(
         }
 
         val parent = it.uiParent!!
-        val cx = Math.random().toFloat() - 0.5f + (parent.w * 0.5f - it.x) / scale
-        val cy = Math.random().toFloat() - 0.5f + (parent.h * 0.5f) / scale - 1 // why ever -1 is needed...
-        val fovZ = -parent.h * fovZFactor / scale
+        val cx = Math.random().toFloat() - 0.5f + (parent.width * 0.5f - it.x) / scale
+        val cy = Math.random().toFloat() - 0.5f + (parent.height * 0.5f) / scale - 1 // why ever -1 is needed...
+        val fovZ = -parent.height * fovZFactor / scale
 
         shader.use()
         shader.v2i("size", w, h)
@@ -450,7 +450,7 @@ fun createGPUPanel(
         flat01.draw(drawShader)
 
         val gpuFPS = SECONDS_TO_NANOS / max(1, clockNanos.average)
-        DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.h - 50, 2, "$prefix: $gpuFPS fps, $frameIndex spp")
+        DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.height - 50, 2, "$prefix: $gpuFPS fps, $frameIndex spp")
 
     }
 

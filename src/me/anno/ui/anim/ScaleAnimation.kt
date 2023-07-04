@@ -24,9 +24,9 @@ class ScaleAnimation(
         val padding = parent.padding
         val inv = 1f - strength
         child.x += (padding.width * centerX * inv).toInt() - padding.left
-        child.w += (padding.width * strength).toInt()
+        child.width += (padding.width * strength).toInt()
         child.y += (padding.height * centerY * inv).toInt() - padding.top
-        child.h += (padding.height * strength).toInt()
+        child.height += (padding.height * strength).toInt()
     }
 
     override fun readFloat(name: String, value: Float) {

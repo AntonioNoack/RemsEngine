@@ -84,7 +84,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
                 val tab = dragged!!.getOriginal() as ECSSceneTab
                 if (!tab.contains(x, y)) {
                     val oldIndex = tab.indexInParent
-                    val newIndex = children2.map { it.x + it.w / 2 }.count { it < x }
+                    val newIndex = children2.map { it.x + it.width / 2 }.count { it < x }
                     // LOGGER.info("$oldIndex -> $newIndex, $x ${children2.map { it.x + it.w/2 }}")
                     if (oldIndex < newIndex) {
                         children2.add(newIndex, tab)

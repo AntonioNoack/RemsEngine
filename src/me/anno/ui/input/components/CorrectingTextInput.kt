@@ -46,7 +46,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
                 val s = suggestions[si]
                 val startX = x0 + getXOffset(s.start)
                 val endX = x0 + getXOffset(s.end)
-                val theY = this.y + this.h - padding.bottom - 1
+                val theY = this.y + this.height - padding.bottom - 1
                 // wavy line
                 val color = 0xffff00 or black
                 drawSquiggles1(startX, endX, theY, 3, color)

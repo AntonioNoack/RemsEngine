@@ -30,8 +30,8 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
 
     val isZooming get() = targetScale != scale
 
-    val centerX get() = x + w / 2
-    val centerY get() = y + h / 2
+    val centerX get() = x + width / 2
+    val centerY get() = y + height / 2
 
     var minScale = 0.5
     var maxScale = 1000.0
@@ -57,8 +57,8 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
     fun coordsToWindowX(cx: Float) = coordsToWindowX(cx.toDouble()).toFloat()
     fun coordsToWindowY(cy: Float) = coordsToWindowY(cy.toDouble()).toFloat()
 
-    override val childSizeX: Long get() = w.toLong()
-    override val childSizeY: Long get() = h.toLong()
+    override val childSizeX: Long get() = width.toLong()
+    override val childSizeY: Long get() = height.toLong()
 
     private val hasScrollbarX get() = maxScrollPositionX > 0
     private val hasScrollbarY get() = maxScrollPositionY > 0
@@ -192,13 +192,13 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         val scrollbarX = scrollbarX
         scrollbarX.x = x + scrollbarPadding
         scrollbarX.y = y1 - scrollbarHeight - scrollbarPadding
-        scrollbarX.w = w - 2 * scrollbarPadding
-        scrollbarX.h = scrollbarHeight
+        scrollbarX.width = width - 2 * scrollbarPadding
+        scrollbarX.height = scrollbarHeight
         val scrollbarY = scrollbarY
         scrollbarY.x = x1 - scrollbarWidth - scrollbarPadding
         scrollbarY.y = y + scrollbarPadding
-        scrollbarY.w = scrollbarWidth
-        scrollbarY.h = h - 2 * scrollbarPadding
+        scrollbarY.width = scrollbarWidth
+        scrollbarY.height = height - 2 * scrollbarPadding
     }
 
     fun drawScrollbars(x0: Int, y0: Int, x1: Int, y1: Int) {

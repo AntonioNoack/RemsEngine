@@ -138,8 +138,8 @@ object RenderGraph {
 
         graph.invalidate()
 
-        start.setOutput(dst.w, 1)
-        start.setOutput(dst.h, 2)
+        start.setOutput(dst.width, 1)
+        start.setOutput(dst.height, 2)
 
         val endNode = try {
             graph.execute(start) as? ExprReturnNode
@@ -156,9 +156,9 @@ object RenderGraph {
         }
 
         val texture = endNode.render(true)
-        val (w, h) = ImageScale.scaleMax(texture.width, texture.height, dst.w, dst.h)
-        val x = dst.x + (dst.w - w) / 2
-        val y = dst.y + (dst.h - h) / 2
+        val (w, h) = ImageScale.scaleMax(texture.width, texture.height, dst.width, dst.height)
+        val x = dst.x + (dst.width - w) / 2
+        val y = dst.y + (dst.height - h) / 2
         val applyToneMapping = endNode.getInput(6) == true
         drawTexture(x, y + h, w, -h, texture, false, -1, null, applyToneMapping)
 

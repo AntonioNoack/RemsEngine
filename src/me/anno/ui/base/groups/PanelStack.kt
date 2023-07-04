@@ -25,8 +25,8 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
 
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
-        val w = w
-        val h = h
+        val w = width
+        val h = height
         val children = children
         for (index in children.indices) {
             children[index].setPosSize(x, y, w, h)

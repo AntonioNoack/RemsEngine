@@ -221,8 +221,8 @@ fun test3() {
                         val ang = entity.transform.globalRotation.getEulerAnglesYXZ(tmp).z
                         // calculate anchorWS from mouse position
                         val scale = scale.toFloat()
-                        val mouseX = (mouse.x - (x + w / 2)) / scale + center.x
-                        val mouseY = (mouse.y - (y + h / 2)) / scale + center.y
+                        val mouseX = (mouse.x - (x + this.width / 2)) / scale + center.x
+                        val mouseY = (mouse.y - (y + this.height / 2)) / scale + center.y
                         // calculate global position of anchor target from anchorLS
                         val targetX = pos.x + cos(ang) * anchorLS.x
                         val targetY = pos.y + sin(ang) * anchorLS.y
@@ -264,8 +264,8 @@ fun test3() {
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.onDraw(x0, y0, x1, y1)
 
-                val x0i = x + w / 2 - (center.x * scale).toFloat()
-                val y0i = y + h / 2 - (center.y * scale).toFloat()
+                val x0i = x + this.width / 2 - (center.x * scale).toFloat()
+                val y0i = y + this.height / 2 - (center.y * scale).toFloat()
                 val scale = scale.toFloat()
 
                 val bg = backgroundColor

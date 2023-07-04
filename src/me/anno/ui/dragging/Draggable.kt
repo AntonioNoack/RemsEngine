@@ -35,11 +35,11 @@ class Draggable(
 
     override fun draw(x: Int, y: Int) {
         ui.setPosition(x, y)
-        ui.draw(x, y, x + ui.w, y + ui.h)
+        ui.draw(x, y, x + ui.width, y + ui.height)
     }
 
     override fun getSize(w: Int, h: Int): IntPair {
-        return IntPair(ui.w, ui.h)
+        return IntPair(ui.width, ui.height)
     }
 
     override fun getContent(): String = content

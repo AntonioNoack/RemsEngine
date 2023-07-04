@@ -35,8 +35,8 @@ fun main() {
         val main = TestDrawPanel {
             it.clear()
             val padding = 10f
-            val sx = it.w - 2f * padding
-            val sy = it.h - 2f * padding
+            val sx = it.width - 2f * padding
+            val sy = it.height - 2f * padding
             val x = it.x + padding
             val y = it.y + padding
             val t0 = hilbert(fract(0, n), 15)

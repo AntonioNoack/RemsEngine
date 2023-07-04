@@ -405,8 +405,8 @@ fun main() {
 
             fun drawWay(way: Way, minLon: Float, minLat: Float, maxLon: Float, maxLat: Float, color: Int) {
                 if (way.minLon < maxLon && way.minLat < maxLat && way.maxLon > minLon && way.maxLat > minLat && // within bounds
-                    ((way.maxLon - way.minLon) * w > minSize * (maxLon - minLon) || // larger than minimum size
-                            (way.maxLat - way.minLat) * h > minSize * (maxLat - minLat))
+                    ((way.maxLon - way.minLon) * width > minSize * (maxLon - minLon) || // larger than minimum size
+                            (way.maxLat - way.minLat) * height > minSize * (maxLat - minLat))
                 ) {
                     val nds = way.nodes
                     val nd0 = nds[0]

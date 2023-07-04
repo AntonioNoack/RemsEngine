@@ -97,8 +97,8 @@ open class SettingCategory(
         }
 
     override fun calculateSize(w: Int, h: Int) {
-        this.w = w
-        this.h = h
+        this.width = w
+        this.height = h
         if (isEmpty) {
             minW = 0
             minH = 0

@@ -96,9 +96,9 @@ abstract class CalibrationPanel(
         invalidateDrawing()
     }
 
-    private var size = min(w, h)
-    private var cx = x + w / 2
-    private var cy = y + h / 2
+    private var size = min(width, height)
+    private var cx = x + width / 2
+    private var cy = y + height / 2
 
     private fun getX(x: Float) = (cx + x * size * 0.5f).toInt()
     private fun getY(y: Float) = (cy + y * size * 0.5f).toInt()
@@ -148,9 +148,9 @@ abstract class CalibrationPanel(
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
 
-        size = min(w, h)
-        cx = x + w / 2
-        cy = y + h / 2
+        size = min(width, height)
+        cx = x + width / 2
+        cy = y + height / 2
 
 
     }

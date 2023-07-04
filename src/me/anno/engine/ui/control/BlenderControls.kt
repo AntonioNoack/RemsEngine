@@ -119,7 +119,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             )
 
             if (mode == Mode.SCALING) {
-                direction.safeNormalize(length(deltaX, deltaY).toDouble() / h)
+                direction.safeNormalize(length(deltaX, deltaY).toDouble() / height)
             }
 
             when (axis) {

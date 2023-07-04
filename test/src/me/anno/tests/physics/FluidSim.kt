@@ -281,14 +281,14 @@ fun main() {
 
             // depending on mode/x, draw all states
             val y0 = it.y
-            val y1 = it.y + it.h
+            val y1 = it.y + it.height
             val visuals = listOf(curl, divergence, pressure.read, velocity.read)
             for (i in visuals.indices) {
                 val tex = visuals[i]
-                val x0 = it.x + i * it.w / visuals.size
-                val x1 = it.x + (i + 1) * it.w / visuals.size
+                val x0 = it.x + i * it.width / visuals.size
+                val x1 = it.x + (i + 1) * it.width / visuals.size
                 clip(x0, y0, x1 - x0, y1 - y0) {
-                    drawTexture(it.x, it.y, it.w, it.h, tex.getTexture0())
+                    drawTexture(it.x, it.y, it.width, it.height, tex.getTexture0())
                 }
             }
 

@@ -181,15 +181,15 @@ open class FileExplorerEntry(
             val size = min(minW, minH - titleSize)
             minW = size
             minH = size + titleSize
-            this.w = minW
-            this.h = minH
+            this.width = minW
+            this.height = minH
         } else {
             val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
             val size = titleSize * 5
             minW = size
             minH = titleSize
-            this.w = minW
-            this.h = minH
+            this.width = minW
+            this.height = minH
         }
     }
 
@@ -255,8 +255,8 @@ open class FileExplorerEntry(
                 val meta = getMeta(path, true)
                 this.meta = meta
                 if (meta != null) {
-                    val w = w
-                    val h = h
+                    val w = width
+                    val h = height
                     previewFPS = min(meta.videoFPS, 120.0)
                     maxFrameIndex = max(1, (previewFPS * meta.videoDuration).toInt())
                     time = 0.0
@@ -312,7 +312,7 @@ open class FileExplorerEntry(
 
     private fun getImage(): Any? {
         val ref1 = ref1 ?: return null
-        val thumb = Thumbs.getThumbnail(ref1, w, true)
+        val thumb = Thumbs.getThumbnail(ref1, width, true)
         return thumb ?: getDefaultIcon()
     }
 
@@ -450,7 +450,7 @@ open class FileExplorerEntry(
         } else drawDefaultIcon(x0, y0, x1, y1)
 
         // show video progress on playback, e.g. hh:mm:ss/hh:mm:ss
-        if (h >= 3 * titlePanel.font.sizeInt) {
+        if (height >= 3 * titlePanel.font.sizeInt) {
             val meta = getMeta(path, true)
             if (meta != null) {
 
@@ -608,8 +608,8 @@ open class FileExplorerEntry(
 
         val x = x
         val y = y
-        val w = w
-        val h = h
+        val w = width
+        val h = height
 
         padding = h / 16
 
@@ -626,14 +626,14 @@ open class FileExplorerEntry(
 
             lines = 1
 
-            titlePanel.w = w
+            titlePanel.width = w
             titlePanel.minW = w
             titlePanel.calculateSize(w, h)
             titlePanel.backgroundColor = backgroundColor and 0xffffff
             titlePanel.x = x + padding
             titlePanel.y = max(y0, (h - titlePanel.minH) / 2)
-            titlePanel.w = w
-            titlePanel.h = titlePanel.minH
+            titlePanel.width = w
+            titlePanel.height = titlePanel.minH
             titlePanel.drawText()
 
         } else {
@@ -669,15 +669,15 @@ open class FileExplorerEntry(
      * draws the title
      * */
     private fun drawText(x0: Int, y0: Int, x1: Int, y1: Int) {
-        titlePanel.w = x1 - x0
+        titlePanel.width = x1 - x0
         titlePanel.minW = x1 - x0
         titlePanel.calculateSize(x1 - x0, y1 - y0)
         titlePanel.backgroundColor = backgroundColor and 0xffffff
         val deltaX = ((x1 - x0) - titlePanel.minW) / 2 // centering the text
         titlePanel.x = x0 + max(0, deltaX)
         titlePanel.y = max(y0, (y0 + y1 - titlePanel.minH) / 2)
-        titlePanel.w = x1 - x0
-        titlePanel.h = titlePanel.minH
+        titlePanel.width = x1 - x0
+        titlePanel.height = titlePanel.minH
         // the title might overlap with the image,
         // and this can cause badly-readable text,
         // so use better text rendering, if possible

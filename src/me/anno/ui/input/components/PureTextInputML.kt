@@ -158,7 +158,7 @@ open class PureTextInputML(style: Style) :
     private val endCursor get() = CursorPosition(lines.last().size, lines.lastIndex)
     private val joinedText get() = lines.joinToString("\n") { list -> list.joinChars() }
     private val actualChildren = (child as PanelListY).children
-    private val scrollbarStartY get() = if (minW > w) actualChildren.last().run { y + h - 3 } else y + h
+    private val scrollbarStartY get() = if (minW > width) actualChildren.last().run { y + height - 3 } else y + height
     private val wasJustChanged get() = abs(Engine.gameTime - lastChangeTime) < 200_000_000
     val styleSample get() = actualChildren[0] as TextPanel
 
@@ -270,7 +270,7 @@ open class PureTextInputML(style: Style) :
                         panel2.x + minCursorX + panel2.padding.left,
                         panel2.y + padding,
                         maxCursorX - minCursorX,
-                        panel2.h - 2 * padding,
+                        panel2.height - 2 * padding,
                         textColor and 0x3fffffff
                     ) // marker
                 } else {
@@ -279,8 +279,8 @@ open class PureTextInputML(style: Style) :
                     drawRect(
                         x + panel2.padding.left + minCursorX,
                         minPanel.y + padding,
-                        w - panel2.padding.width - minCursorX,
-                        minPanel.h - padding,
+                        width - panel2.padding.width - minCursorX,
+                        minPanel.height - padding,
                         textColor and 0x3fffffff
                     )
 
@@ -288,9 +288,9 @@ open class PureTextInputML(style: Style) :
                     if (minCursor.y + 1 < maxCursor.y) {
                         drawRect(
                             x + panel2.padding.left,
-                            minPanel.y + minPanel.h,
-                            w - panel2.padding.width,
-                            maxPanel.y - minPanel.y - minPanel.h,
+                            minPanel.y + minPanel.height,
+                            width - panel2.padding.width,
+                            maxPanel.y - minPanel.y - minPanel.height,
                             textColor and 0x3fffffff
                         )
                     }
@@ -301,7 +301,7 @@ open class PureTextInputML(style: Style) :
                         x + panel2.padding.left,
                         maxPanel.y,
                         endX - x,
-                        maxPanel.h - padding,
+                        maxPanel.height - padding,
                         textColor and 0x3fffffff
                     )
 
@@ -310,7 +310,7 @@ open class PureTextInputML(style: Style) :
                     panel2.x + cursorX2 + panel2.padding.left - 1,
                     panel2.y + padding,
                     2,
-                    panel2.h - 2 * padding,
+                    panel2.height - 2 * padding,
                     textColor
                 )
                 // cursor 1
@@ -319,7 +319,7 @@ open class PureTextInputML(style: Style) :
                 panel1.x + cursorX1 + panel1.padding.left - 1,
                 panel1.y + padding,
                 2,
-                panel1.h - 2 * padding,
+                panel1.height - 2 * padding,
                 textColor
             )
             // cursor 2
