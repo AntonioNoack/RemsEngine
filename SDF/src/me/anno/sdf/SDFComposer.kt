@@ -23,7 +23,6 @@ import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.defineUniform
 import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.sdf.shapes.SDFShape
-import me.anno.sdf.uv.LinearUVMapper
 import me.anno.sdf.uv.UVMapper
 import me.anno.utils.pooling.JomlPools
 import org.joml.*
@@ -229,7 +228,7 @@ object SDFComposer {
             shader.v1i("debugMode", tree.debugMode.id)
             shader.v1b("renderIds", GFXState.currentRenderer == Renderer.idRenderer)
 
-            shader.v2f("renderSize", GFXState.currentBuffer.w.toFloat(), GFXState.currentBuffer.h.toFloat())
+            shader.v2f("renderSize", GFXState.currentBuffer.width.toFloat(), GFXState.currentBuffer.height.toFloat())
 
             bindDepthToPosition(shader)
 

@@ -32,7 +32,7 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
         //   aabb + 2x 4x3 matrix + child id -> 32 floats
         val pixelsPerNode = PIXELS_PER_TLAS_NODE
         val texture = createTexture("tlas", numNodes, pixelsPerNode)
-        val buffer = Texture2D.bufferPool[texture.w * texture.h * 16, false, false]
+        val buffer = Texture2D.bufferPool[texture.width * texture.height * 16, false, false]
         val data = buffer.asFloatBuffer()
         var i = 0
 

@@ -50,7 +50,7 @@ open class OpaqueImage(val src: Image) :
                             buffer.put(data)
                         }
                         ByteImage.Format.BGRA -> {
-                            for (i in 0 until texture.w * texture.h * 4 step 4) {
+                            for (i in 0 until texture.width * texture.height * 4 step 4) {
                                 buffer.put(data[i + 2]) // r
                                 buffer.put(data[i + 1]) // g
                                 buffer.put(data[i]) // b
@@ -59,7 +59,7 @@ open class OpaqueImage(val src: Image) :
                         }
                         ByteImage.Format.ARGB -> {
                             // must convert from it to rgba
-                            for (i in 0 until texture.w * texture.h * 4 step 4) {
+                            for (i in 0 until texture.width * texture.height * 4 step 4) {
                                 buffer.put(data[i + 1]) // r
                                 buffer.put(data[i + 2]) // g
                                 buffer.put(data[i + 3]) // b

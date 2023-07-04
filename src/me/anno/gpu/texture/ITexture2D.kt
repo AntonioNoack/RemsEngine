@@ -9,8 +9,8 @@ import me.anno.io.files.FileReference
 
 interface ITexture2D : ICacheData {
 
-    var w: Int
-    var h: Int
+    var width: Int
+    var height: Int
 
     val isHDR: Boolean
 
@@ -40,8 +40,8 @@ interface ITexture2D : ICacheData {
     fun wrapAsFramebuffer(): IFramebuffer
 
     fun createImage(flipY: Boolean, withAlpha: Boolean): IntImage {
-        return VRAMToRAM.createImage(w, h, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, _, _ ->
-            VRAMToRAM.drawTexturePure(-x2, -y2, w, h, this, !withAlpha)
+        return VRAMToRAM.createImage(width, height, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, _, _ ->
+            VRAMToRAM.drawTexturePure(-x2, -y2, width, height, this, !withAlpha)
         }
     }
 

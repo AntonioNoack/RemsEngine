@@ -66,10 +66,10 @@ class FlagMesh : MeshComponent() {
 
     private fun createTargets(key: IntPair, initial: FloatArray) {
 
-        tex0.w = key.first
-        tex0.h = key.second
-        tex1.w = key.first
-        tex1.h = key.second
+        tex0.width = key.first
+        tex0.height = key.second
+        tex1.width = key.first
+        tex1.height = key.second
 
         // upload initial data
         tex0.destroy()
@@ -136,7 +136,7 @@ class FlagMesh : MeshComponent() {
         // todo allow custom meshes, and project onto them
         val w = resolutionX
         val h = resolutionY
-        if (tex0.w != w || tex0.h != h || tex0.pointer == 0 || tex1.pointer == 0) {
+        if (tex0.width != w || tex0.height != h || tex0.pointer == 0 || tex1.pointer == 0) {
             val key = IntPair(w, h)
             val data = meshCache[key]
             createTargets(key, data.positions!!)

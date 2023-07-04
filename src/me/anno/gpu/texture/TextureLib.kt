@@ -26,7 +26,7 @@ object TextureLib {
                 isDestroyed = false
                 when (creationData) {
                     is ByteArray -> {
-                        if (creationData.size == w * h) {
+                        if (creationData.size == width * height) {
                             createMonochrome(creationData, false)
                         } else {
                             createRGBA(creationData, false)

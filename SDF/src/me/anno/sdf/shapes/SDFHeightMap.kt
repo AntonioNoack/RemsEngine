@@ -145,8 +145,8 @@ class SDFHeightMap : SDFShape() {
         val scale = defineUniform(uniforms, GLSLType.V3F) {
             val img = ImageGPUCache[source, true]
             if (img != null) Vector3f(
-                max(1f, img.h.toFloat() / img.w.toFloat()),
-                max(1f, img.w.toFloat() / img.h.toFloat()),
+                max(1f, img.height.toFloat() / img.width.toFloat()),
+                max(1f, img.width.toFloat() / img.height.toFloat()),
                 1f / maxHeight
             ) else Vector3f(1f, 1f, 1f / maxHeight)
         }
@@ -165,11 +165,11 @@ class SDFHeightMap : SDFShape() {
         if (img == null) {
             dx = 1f
             dy = 1f
-        } else if (img.w > img.h) {
+        } else if (img.width > img.height) {
             dx = 1f
-            dy = img.h.toFloat() / img.w.toFloat()
+            dy = img.height.toFloat() / img.width.toFloat()
         } else {
-            dx = img.w.toFloat() / img.h.toFloat()
+            dx = img.width.toFloat() / img.height.toFloat()
             dy = 1f
         }
         dst.setMin(-dx, 0f, -dy)

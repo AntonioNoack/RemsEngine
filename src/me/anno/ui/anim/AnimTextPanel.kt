@@ -168,12 +168,12 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                     val texture = FontManager.getTexture(key)
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                         texture.bindTrulyNearest(0)
-                        val x2 = fx + (charWidth - texture.w) / 2
+                        val x2 = fx + (charWidth - texture.width) / 2
                         if (resetTransform) transform.set(backup)
-                        val color2 = animate(time, index, x2 + texture.w / 2f, y2 + texture.h / 2f)
+                        val color2 = animate(time, index, x2 + texture.width / 2f, y2 + texture.height / 2f)
                         if (color2.a() > 0) {
                             shader.m4x4("transform", transform)
-                            GFXx2D.posSize(shader, x2, y2, texture.w, texture.h)
+                            GFXx2D.posSize(shader, x2, y2, texture.width, texture.height)
                             if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
                             shader.v4f("textColor", color2)
                             GFX.flat01.draw(shader)
@@ -215,12 +215,12 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                     val texture = FontManager.getTexture(txt)
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
-                        val x2 = fx + (w - texture.w) / 2
+                        val x2 = fx + (w - texture.width) / 2
                         if (resetTransform) transform.set(backup)
-                        val color2 = animate(time, index, x2 + texture.w / 2f, y2 + texture.h / 2f)
+                        val color2 = animate(time, index, x2 + texture.width / 2f, y2 + texture.height / 2f)
                         if (color2.a() > 0) {
                             shader.m4x4("transform", transform)
-                            GFXx2D.posSize(shader, x2, y2, texture.w.toFloat(), texture.h.toFloat())
+                            GFXx2D.posSize(shader, x2, y2, texture.width.toFloat(), texture.height.toFloat())
                             if (disableSubpixels) shader.v4f("backgroundColor", color2 and 0xffffff)
                             shader.v4f("textColor", color2)
                             GFX.flat01.draw(shader)

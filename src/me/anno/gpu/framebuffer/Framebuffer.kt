@@ -16,7 +16,7 @@ import org.lwjgl.opengl.GL32C.GL_TEXTURE_2D_MULTISAMPLE
 
 class Framebuffer(
     override var name: String,
-    override var w: Int, override var h: Int,
+    override var width: Int, override var height: Int,
     samples: Int, val targets: Array<TargetType>,
     val depthBufferType: DepthBufferType
 ) : IFramebuffer {
@@ -48,7 +48,7 @@ class Framebuffer(
         depthBufferType: DepthBufferType = DepthBufferType.NONE
     ) : this(name, w, h, 1, arrayOf(target), depthBufferType)
 
-    fun clone() = Framebuffer(name, w, h, samples, targets, depthBufferType)
+    fun clone() = Framebuffer(name, width, height, samples, targets, depthBufferType)
 
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
     override val numTextures: Int = targets.size
@@ -62,12 +62,12 @@ class Framebuffer(
      * */
     override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer {
         return if (targetCount <= GFX.maxColorAttachments) {
-            val buffer = Framebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            val buffer = Framebuffer(name, width, height, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this
             buffer.ssBuffer?.depthAttachment = ssBuffer
             buffer
         } else {
-            val buffer = MultiFramebuffer(name, w, h, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            val buffer = MultiFramebuffer(name, width, height, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
             for (it in buffer.targetsI) {
                 it.depthAttachment = this
                 it.ssBuffer?.depthAttachment = ssBuffer
@@ -85,12 +85,12 @@ class Framebuffer(
         if (depthBufferType != DepthBufferType.TEXTURE && depthBufferType != DepthBufferType.TEXTURE_16)
             throw IllegalStateException("Cannot attach depth to framebuffer without depth texture")
         return if (targets.size <= GFX.maxColorAttachments) {
-            val buffer = Framebuffer(name, w, h, samples, targets, DepthBufferType.ATTACHMENT)
+            val buffer = Framebuffer(name, width, height, samples, targets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this
             buffer.ssBuffer?.depthAttachment = ssBuffer
             buffer
         } else {
-            val buffer = MultiFramebuffer(name, w, h, samples, targets, DepthBufferType.ATTACHMENT)
+            val buffer = MultiFramebuffer(name, width, height, samples, targets, DepthBufferType.ATTACHMENT)
             for (it in buffer.targetsI) {
                 it.depthAttachment = this
                 it.ssBuffer?.depthAttachment = ssBuffer
@@ -118,7 +118,7 @@ class Framebuffer(
 
     val withMultisampling get() = samples > 1
     var ssBuffer = if (withMultisampling)
-        Framebuffer("$name.ss", w, h, 1, targets, depthBufferType) else null
+        Framebuffer("$name.ss", width, height, 1, targets, depthBufferType) else null
 
     override var pointer = 0
     var session = 0
@@ -169,8 +169,8 @@ class Framebuffer(
                 destroy()
                 wasDestroyed = true
             }
-            if ((w != da.w || h != da.h)) {
-                throw IllegalStateException("Depth is not matching dimensions, $w x $h vs ${da.w} x ${da.h}")
+            if ((width != da.width || height != da.height)) {
+                throw IllegalStateException("Depth is not matching dimensions, $width x $height vs ${da.width} x ${da.height}")
             }
         }
 
@@ -206,9 +206,9 @@ class Framebuffer(
     }
 
     private fun ensureSize(newWidth: Int, newHeight: Int) {
-        if (newWidth != w || newHeight != h) {
-            w = newWidth
-            h = newHeight
+        if (newWidth != width || newHeight != height) {
+            width = newWidth
+            height = newHeight
             GFX.check()
             destroy()
             GFX.check()
@@ -230,8 +230,8 @@ class Framebuffer(
         if (Build.isDebug) DebugGPUStorage.fbs.add(this)
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
-        val w = w
-        val h = h
+        val w = width
+        val h = height
         if (w * h < 1) throw RuntimeException("Invalid framebuffer size $w x $h")
         GFX.check()
         if (usesCRBs) {
@@ -243,7 +243,7 @@ class Framebuffer(
             val texture = Texture2D("$name-tex[$index]", w, h, samples)
             texture.autoUpdateMipmaps = autoUpdateMipmaps
             texture.create(targets[index])
-            texture.fb = this
+            texture.owner = this
             GFX.check()
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
             texture
@@ -282,7 +282,7 @@ class Framebuffer(
                 val depthTexture = Texture2D("$name-depth", w, h, samples)
                 depthTexture.autoUpdateMipmaps = autoUpdateMipmaps
                 depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
-                depthTexture.fb = this
+                depthTexture.owner = this
                 glFramebufferTexture2D(
                     GL_FRAMEBUFFER,
                     GL_DEPTH_ATTACHMENT,
@@ -308,13 +308,13 @@ class Framebuffer(
     ): Int {
         val renderBuffer = glGenRenderbuffers()
         glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        if (withMultisampling) glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, format, w, h)
-        else glRenderbufferStorage(GL_RENDERBUFFER, format, w, h)
+        if (withMultisampling) glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, format, width, height)
+        else glRenderbufferStorage(GL_RENDERBUFFER, format, width, height)
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, renderBuffer)
         GFX.check()
         renderBufferAllocated = Texture2D.allocate(
             renderBufferAllocated,
-            renderBufferAllocated + w * h * bytesPerPixel.toLong() * samples
+            renderBufferAllocated + width * height * bytesPerPixel.toLong() * samples
         )
         return renderBuffer
     }
@@ -338,8 +338,8 @@ class Framebuffer(
         if (!needsBlit) return
         needsBlit = false
 
-        val w = w
-        val h = h
+        val w = width
+        val h = height
 
         GFX.check()
 
@@ -422,8 +422,8 @@ class Framebuffer(
         GFX.check()
 
         glBlitFramebuffer(
-            0, 0, w, h,
-            0, 0, dst.w, dst.h,
+            0, 0, width, height,
+            0, 0, dst.width, dst.height,
             mask, GL_NEAREST
         )
 
@@ -454,8 +454,8 @@ class Framebuffer(
         bindFramebuffer(GL_READ_FRAMEBUFFER, pointer)
 
         glBlitFramebuffer(
-            0, 0, w, h,
-            0, 0, dst.w, dst.h,
+            0, 0, width, height,
+            0, 0, dst.width, dst.height,
             mask, GL_NEAREST
         )
 
@@ -623,6 +623,6 @@ class Framebuffer(
     }
 
     override fun toString(): String =
-        "FB[n=$name, i=$pointer, w=$w h=$h s=$samples t=${targets.joinToString()} d=$depthBufferType]"
+        "FB[n=$name, i=$pointer, w=$width h=$height s=$samples t=${targets.joinToString()} d=$depthBufferType]"
 
 }

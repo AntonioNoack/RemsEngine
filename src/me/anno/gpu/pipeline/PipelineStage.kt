@@ -248,7 +248,7 @@ class PipelineStage(
     fun setupPlanarReflection(pipeline: Pipeline, shader: Shader, aabb: AABBd) {
 
         shader.v4f("reflectionCullingPlane", pipeline.reflectionCullingPlane)
-        shader.v2f("renderSize", GFXState.currentBuffer.w.toFloat(), GFXState.currentBuffer.h.toFloat())
+        shader.v2f("renderSize", GFXState.currentBuffer.width.toFloat(), GFXState.currentBuffer.height.toFloat())
 
         val ti = shader.getTextureIndex("reflectionPlane")
         if (ti < 0 || pipeline.planarReflections.isEmpty()) {

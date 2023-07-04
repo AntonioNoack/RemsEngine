@@ -68,17 +68,17 @@ fun main() {
                 "}"
     ).apply { setTextureIndices("tex0", "tex1") }
 
-    val numPixels = source.w * source.h
+    val numPixels = source.width * source.height
     val points = ArrayList<Vector2f>()
     val useFSR = true
 
     renderPurely {
-        val reconstructed = FBStack["full", source.w, source.h, 3, false, 1, false]
-        val difference = FBStack["diff", source.w, source.h, 3, false, 1, false]
+        val reconstructed = FBStack["full", source.width, source.height, 3, false, 1, false]
+        val difference = FBStack["diff", source.width, source.height, 3, false, 1, false]
         val filtering = GPUFiltering.LINEAR
         for (scale in scales) {
-            val sw = (source.w / scale).roundToInt()
-            val sh = (source.h / scale).roundToInt()
+            val sw = (source.width / scale).roundToInt()
+            val sh = (source.height / scale).roundToInt()
             val scaledDown = FBStack["scaled", sw, sh, 3, false, 1, false]
             useFrame(scaledDown) {
                 source.bind(0, filtering, Clamping.CLAMP)
@@ -88,7 +88,7 @@ fun main() {
                 useFrame(reconstructed) {
                     FSR.upscale(
                         scaledDown.getTexture0(),
-                        0, 0, reconstructed.w, reconstructed.h,
+                        0, 0, reconstructed.width, reconstructed.height,
                         true, applyToneMapping = false
                     )
                     scaledDown.bindTexture0(0, filtering, Clamping.CLAMP)

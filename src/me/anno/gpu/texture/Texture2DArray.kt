@@ -27,8 +27,8 @@ import java.nio.FloatBuffer
 // is this correct?
 open class Texture2DArray(
     var name: String,
-    override var w: Int,
-    override var h: Int,
+    override var width: Int,
+    override var height: Int,
     var d: Int
 ) : ICacheData, ITexture2D {
 
@@ -78,7 +78,7 @@ open class Texture2DArray(
     private fun afterUpload(internalFormat: Int, bpp: Int, hdr: Boolean) {
         isCreated = true
         this.internalFormat = internalFormat
-        locallyAllocated = allocate(locallyAllocated, w.toLong() * h.toLong() * d.toLong() * bpp)
+        locallyAllocated = allocate(locallyAllocated, width.toLong() * height.toLong() * d.toLong() * bpp)
         filtering(filtering)
         clamping(clamping)
         isHDR = hdr
@@ -91,15 +91,15 @@ open class Texture2DArray(
 
     @Suppress("unused")
     fun createRGBA8() {
-        beforeUpload(w * 4)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+        beforeUpload(width * 4)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
         afterUpload(GL_RGBA8, 4, false)
     }
 
     @Suppress("unused")
     fun createRGBAFP32() {
-        beforeUpload(w * 16)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
+        beforeUpload(width * 16)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, width, height, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
         afterUpload(GL_RGBA32F, 16, true)
     }
 
@@ -129,7 +129,7 @@ open class Texture2DArray(
 
     fun create(images: Array<Image>, sync: Boolean) {
         // todo we could detect monochrome and such :)
-        val intData = IntArray(w * h * d)
+        val intData = IntArray(width * height * d)
         var i0 = 0
         for (image in images) {
             val data = image.createIntImage().data
@@ -152,39 +152,39 @@ open class Texture2DArray(
             }
         }
         if (sync) createRGBA8(intData)
-        else GFX.addGPUTask("Texture3D.create()", w, h * d) {
+        else GFX.addGPUTask("Texture3D.create()", width, height * d) {
             createRGBA8(intData)
         }
     }
 
     fun createRGBA8(data: IntArray) {
-        beforeUpload(w * 4)
-        glTexImage3D(target, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        beforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
     }
 
     @Suppress("unused")
     fun createRGB8(data: IntArray) {
-        beforeUpload(w * 4)
-        glTexImage3D(target, 0, GL_RGB8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        beforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGB8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGB8, 3, false)
     }
 
     fun createBGRA8(data: ByteBuffer) {
-        beforeUpload(w * 4)
-        glTexImage3D(target, 0, GL_RGBA8, w, h, d, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
+        beforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
     }
 
     @Suppress("unused")
     fun createBGR8(data: ByteBuffer) {
-        beforeUpload(w * 4)
-        glTexImage3D(target, 0, GL_RGB8, w, h, d, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
+        beforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGB8, width, height, d, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGB8, 4, false)
     }
 
     fun createMonochrome(data: ByteArray) {
-        if (w * h * d != data.size) throw RuntimeException("incorrect size!")
+        if (width * height * d != data.size) throw RuntimeException("incorrect size!")
         val byteBuffer = bufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
@@ -194,8 +194,8 @@ open class Texture2DArray(
     }
 
     fun createMonochrome(getValue: (x: Int, y: Int, z: Int) -> Byte) {
-        val w = w
-        val h = h
+        val w = width
+        val h = height
         val d = d
         val size = w * h * d
         val byteBuffer = bufferPool[size, false, false]
@@ -212,8 +212,8 @@ open class Texture2DArray(
     }
 
     fun createRGBA8(getValue: (x: Int, y: Int, z: Int) -> Int) {
-        val w = w
-        val h = h
+        val w = width
+        val h = height
         val d = d
         val size = 4 * w * h * d
         val byteBuffer = bufferPool[size, false, false]
@@ -230,16 +230,16 @@ open class Texture2DArray(
     }
 
     fun createMonochrome(data: ByteBuffer) {
-        if (w * h * d != data.remaining()) throw RuntimeException("incorrect size!")
-        beforeUpload(w)
-        glTexImage3D(target, 0, GL_R8, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE, data)
+        if (width * height * d != data.remaining()) throw RuntimeException("incorrect size!")
+        beforeUpload(width)
+        glTexImage3D(target, 0, GL_R8, width, height, d, 0, GL_RED, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_R8, 1, false)
     }
 
     fun create(type: TargetType, data: ByteArray? = null) {
         // might be incorrect for RGB!!
-        if (data != null && type.bytesPerPixel != 3 && w * h * d * type.bytesPerPixel != data.size)
-            throw RuntimeException("incorrect size!, got ${data.size}, expected $w * $h * $d * ${type.bytesPerPixel} bpp")
+        if (data != null && type.bytesPerPixel != 3 && width * height * d * type.bytesPerPixel != data.size)
+            throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $d * ${type.bytesPerPixel} bpp")
         val byteBuffer = if (data != null) {
             val byteBuffer = bufferPool[data.size, false, false]
             byteBuffer.position(0)
@@ -247,9 +247,9 @@ open class Texture2DArray(
             byteBuffer.position(0)
             byteBuffer
         } else null
-        beforeUpload(w)
+        beforeUpload(width)
         glTexImage3D(
-            target, 0, type.internalFormat, w, h, d, 0,
+            target, 0, type.internalFormat, width, height, d, 0,
             type.uploadFormat, type.fillType, byteBuffer
         )
         bufferPool.returnBuffer(byteBuffer)
@@ -257,7 +257,7 @@ open class Texture2DArray(
     }
 
     fun createRGBA(data: FloatArray) {
-        if (w * h * d * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $w * $h * $d * 4 bpp")
+        if (width * height * d * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $d * 4 bpp")
         val byteBuffer = bufferPool[data.size * 4, false, false]
         byteBuffer.order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
@@ -269,28 +269,28 @@ open class Texture2DArray(
 
     fun createRGBA(floatBuffer: FloatBuffer, byteBuffer: ByteBuffer) {
         // rgba32f as internal format is extremely important... otherwise the value is cropped
-        beforeUpload(w * 16)
-        glTexImage3D(target, 0, GL_RGBA32F, w, h, d, 0, GL_RGBA, GL_FLOAT, floatBuffer)
+        beforeUpload(width * 16)
+        glTexImage3D(target, 0, GL_RGBA32F, width, height, d, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         bufferPool.returnBuffer(byteBuffer)
         afterUpload(GL_RGBA32F, 16, true)
     }
 
     fun createRGBA(data: ByteArray) {
-        if (w * h * d * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $w * $h * $d * 4 bpp")
+        if (width * height * d * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $d * 4 bpp")
         val byteBuffer = bufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.flip()
-        beforeUpload(w * 4)
-        glTexImage3D(target, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
+        beforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
         afterUpload(GL_RGBA8, 4, false)
     }
 
     fun createRGBA(data: ByteBuffer) {
-        if (w * h * d * 4 != data.remaining()) throw RuntimeException("incorrect size!, got ${data.remaining()}, expected $w * $h * $d * 4 bpp")
-        beforeUpload(w * 4)
-        glTexImage3D(target, 0, GL_RGBA8, w, h, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        if (width * height * d * 4 != data.remaining()) throw RuntimeException("incorrect size!, got ${data.remaining()}, expected $width * $height * $d * 4 bpp")
+        beforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
     }
 
@@ -303,7 +303,7 @@ open class Texture2DArray(
     var autoUpdateMipmaps = true
 
     fun filtering(filtering: GPUFiltering) {
-        if (!hasMipmap && filtering.needsMipmap && (w > 1 || h > 1)) {
+        if (!hasMipmap && filtering.needsMipmap && (width > 1 || height > 1)) {
             glGenerateMipmap(target)
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {
@@ -372,13 +372,13 @@ open class Texture2DArray(
     }
 
     override fun createImage(flipY: Boolean, withAlpha: Boolean) =
-        VRAMToRAM.createImage(w * d, h, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->
+        VRAMToRAM.createImage(width * d, height, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->
             drawSlice(x2, y2, w2, withAlpha)
         }
 
     private fun drawSlice(x2: Int, y2: Int, w2: Int, withAlpha: Boolean) {
-        val z0 = x2 / w
-        val z1 = (x2 + w2 - 1) / w
+        val z0 = x2 / width
+        val z1 = (x2 + w2 - 1) / width
         drawSlice(x2, y2, z0 / maxOf(1f, d - 1f), withAlpha)
         if (z1 > z0) {
             // todo we have to draw two slices
@@ -393,7 +393,7 @@ open class Texture2DArray(
         // we could use an easier shader here
         val shader = FlatShaders.flatShaderTexture3D.value
         shader.use()
-        GFXx2D.posSize(shader, x, GFX.viewportHeight - y, w, -h)
+        GFXx2D.posSize(shader, x, GFX.viewportHeight - y, width, -height)
         GFXx2D.defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", -1)
         shader.v1i("alphaMode", 1 - withAlpha.toInt())

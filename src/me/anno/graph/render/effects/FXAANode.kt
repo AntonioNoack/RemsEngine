@@ -23,8 +23,8 @@ class FXAANode : ActionNode(
     override fun executeAction() {
         val threshold = getInput(1) as Float
         val color = ((getInput(2) as? Texture)?.tex as? Texture2D) ?: return
-        val framebuffer = FBStack[name, color.w, color.h, 4, false, 1, false]
-        useFrame(color.w, color.h, true, framebuffer, copyRenderer) {
+        val framebuffer = FBStack[name, color.width, color.height, 4, false, 1, false]
+        useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
             FXAA.render(color, threshold)
         }
         val result = framebuffer.getTexture0()

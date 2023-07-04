@@ -26,7 +26,7 @@ open class Texture3DBTMaterial : Material() {
         set(value) {
             field = value
             if (value != null) {
-                size.set(value.w, value.h, value.d)
+                size.set(value.width, value.height, value.depth)
             }
         }
 

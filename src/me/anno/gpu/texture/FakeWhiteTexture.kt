@@ -2,7 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.gpu.texture.TextureLib.bindWhite
 
-class FakeWhiteTexture(override var w: Int, override var h: Int) : ITexture2D {
+class FakeWhiteTexture(override var width: Int, override var height: Int) : ITexture2D {
     override val isHDR = false
 
     override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping) = bindWhite(index)

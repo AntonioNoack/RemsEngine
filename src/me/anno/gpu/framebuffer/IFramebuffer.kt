@@ -25,8 +25,8 @@ interface IFramebuffer {
 
     val pointer: Int
 
-    val w: Int
-    val h: Int
+    val width: Int
+    val height: Int
 
     val samples: Int
 

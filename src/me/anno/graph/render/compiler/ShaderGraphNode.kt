@@ -6,7 +6,6 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
-import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -186,7 +185,7 @@ class ShaderGraphNode : ActionNode(
         val channels = clamp(getInput(3) as Int, 1, 4)
         val samples = getInput(4) as Int
         var buffer = buffer
-        if (buffer == null || buffer.w != w || buffer.h != h) {
+        if (buffer == null || buffer.width != w || buffer.height != h) {
             buffer?.destroy()
             val target = UByteTargets[channels - 1]
             buffer = Framebuffer(

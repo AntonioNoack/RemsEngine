@@ -143,7 +143,7 @@ class WeightedBlended : TransparentPass() {
         val perTargetBlending = true // GFX.glVersion >= 40 && !Input.isControlDown // todo with per-target-blending doesn't work :/
         val renderer = if (perTargetBlending) Renderer0 else Renderer1
 
-        useFrame(b0.w, b0.h, true, tmp, renderer) {
+        useFrame(b0.width, b0.height, true, tmp, renderer) {
             if (perTargetBlending) tmp.clearColor(clear0)
             else tmp.clearColor(black)
             GFXState.depthMode.use(DepthMode.CLOSER) {

@@ -184,10 +184,10 @@ val skipDistanceShader = ComputeShader(
 fun calculateSkipDistances(data: Texture3D) {
     val shader = skipDistanceShader
     shader.use()
-    shader.v3i("size", data.w, data.h, data.d)
+    shader.v3i("size", data.width, data.height, data.depth)
     shader.bindTexture(0, data, ComputeTextureMode.READ_WRITE)
-    for (i in 0 until min(max(max(data.w, data.h), data.d) / 2, 255)) {
-        shader.runBySize(data.w, data.h, data.d)
+    for (i in 0 until min(max(max(data.width, data.height), data.depth) / 2, 255)) {
+        shader.runBySize(data.width, data.height, data.depth)
         // is this correct / needed? idk...
         // glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT)
     }
@@ -218,7 +218,7 @@ fun mergeChannels(
     dataXZY: Framebuffer3D,
     dst: Texture3D = dataXYZ.getTexture0()
 ): Texture3D = mergeChannels(
-    dataXYZ.w, dataXYZ.h, dataXYZ.d,
+    dataXYZ.width, dataXYZ.height, dataXYZ.d,
     dataXYZ.getTexture0(), dataZYX.getTexture0(), dataXZY.getTexture0(), dst
 )
 
@@ -295,7 +295,7 @@ fun main() {
         val renderer = attributeRenderers[DeferredLayerType.COLOR]
 
         val data = meshToVoxels(mesh, renderer, blocksX, blocksY, blocksZ, true)
-        val mesh1 = smoothCube.scaled(Vector3f(data.w / 2f, data.h / 2f, data.d / 2f)).back
+        val mesh1 = smoothCube.scaled(Vector3f(data.width / 2f, data.height / 2f, data.depth / 2f)).back
         val comp = MeshComponent(mesh1)
         val mat = Texture3DBTv2Material()
 

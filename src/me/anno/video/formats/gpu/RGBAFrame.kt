@@ -9,7 +9,7 @@ import java.io.InputStream
 class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
 
     override fun load(input: InputStream) {
-        val s0 = w * h
+        val s0 = width * height
         val data = Texture2D.bufferPool[s0 * 4, false, false]
         data.position(0)
         for (i in 0 until s0) {
@@ -28,7 +28,7 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
         }
         data.flip()
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask("RGBA", w, h) {
+        GFX.addGPUTask("RGBA", width, height) {
             rgb.createRGBA(data, true)
             creationLimiter.release()
         }

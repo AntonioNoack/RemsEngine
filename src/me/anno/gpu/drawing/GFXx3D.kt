@@ -266,7 +266,7 @@ object GFXx3D {
         val shader0 = texture.get3DShader()
         val shader = shader0.value
         shader.use()
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
+        shader3DUniforms(shader, stack, texture.width, texture.height, color, tiling, filtering, uvProjection)
         disableAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
@@ -281,7 +281,7 @@ object GFXx3D {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().value
         shader.use()
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, filtering, uvProjection)
+        shader3DUniforms(shader, stack, texture.width, texture.height, color, tiling, filtering, uvProjection)
         defineAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
@@ -296,7 +296,7 @@ object GFXx3D {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
         val shader = texture.get3DShader().value
         shader.use()
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, tiling, uvProjection)
+        shader3DUniforms(shader, stack, texture.width, texture.height, color, tiling, uvProjection)
         defineAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
@@ -307,12 +307,12 @@ object GFXx3D {
     fun draw3D(
         stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f?,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
-    ) = draw3D(stack, texture, texture.w, texture.h, color, filtering, clamping, tiling, uvProjection)
+    ) = draw3D(stack, texture, texture.width, texture.height, color, filtering, clamping, tiling, uvProjection)
 
     fun draw3D(
         stack: Matrix4fArrayList, texture: Texture2D, color: Int,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
-    ) = draw3D(stack, texture, texture.w, texture.h, color, filtering, clamping, tiling, uvProjection)
+    ) = draw3D(stack, texture, texture.width, texture.height, color, filtering, clamping, tiling, uvProjection)
 
     fun draw3D(
         stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4f?,

@@ -332,8 +332,8 @@ fun createCPUPanel(
                 cpuSpeed = dt / (w * h * frameIndex.toLong())
                 cpuFPS = SECONDS_TO_NANOS * frameIndex / dt
                 GFX.addGPUTask("brt-cpu", 1) {
-                    cpuTexture.w = w
-                    cpuTexture.h = h
+                    cpuTexture.width = w
+                    cpuTexture.height = h
                     cpuTexture.createRGBA(ints, false)
                     isRendering = false
                 }
@@ -406,9 +406,9 @@ fun createGPUPanel(
             clockNanos.scaleWeight()
         }
 
-        if (avgBuffer.w != w || avgBuffer.h != h) {
-            avgBuffer.w = w
-            avgBuffer.h = h
+        if (avgBuffer.width != w || avgBuffer.height != h) {
+            avgBuffer.width = w
+            avgBuffer.height = h
             avgBuffer.destroy()
             avgBuffer.create()
             frameIndex = 0
@@ -489,7 +489,7 @@ fun createGPUPanel(
                     if (tlasNodes1 != null) shader.bindBuffer(3, tlasNodes1)
                     shader.bindTexture(4, avgTexture as Texture2D, ComputeTextureMode.READ_WRITE)
                     clockNanos.start()
-                    shader.runBySize(avgBuffer.w, avgBuffer.h)
+                    shader.runBySize(avgBuffer.width, avgBuffer.height)
                     clockNanos.stop()
                     frameIndex++
                 }
@@ -524,7 +524,7 @@ fun createGPUPanel(
                     if (tlasNodes != null) shader.bindTexture(2, tlasNodes, ComputeTextureMode.READ)
                     shader.bindTexture(3, avgTexture as Texture2D, ComputeTextureMode.READ_WRITE)
                     clockNanos.start()
-                    shader.runBySize(avgBuffer.w, avgBuffer.h)
+                    shader.runBySize(avgBuffer.width, avgBuffer.height)
                     clockNanos.stop()
                     frameIndex++
                 }

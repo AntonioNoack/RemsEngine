@@ -22,8 +22,8 @@ fun main() {
 
     val size = 3
 
-    val ow = texture.w * size
-    val oh = texture.h * size
+    val ow = texture.width * size
+    val oh = texture.height * size
 
     val upscaled = FBStack["", ow, oh, 4, false, 1, false]
     GFXState.useFrame(upscaled) { FSR.upscale(texture, 0, 0, ow, oh, true, applyToneMapping = false) }

@@ -154,14 +154,14 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
     }
 
     override fun Framebuffer.next(): Framebuffer {
-        return FBStack["pf", w, h, 3, true, 1, false]
+        return FBStack["pf", width, height, 3, true, 1, false]
     }
 
     fun Framebuffer.dx(dx: Int, dy: Int, dst: Framebuffer): Framebuffer {
         useFrame(dst) {
             val shader = dxShader
             shader.use()
-            shader.v2f("delta", dx / (w - 1f), dy / (h - 1f))
+            shader.v2f("delta", dx / (width - 1f), dy / (height - 1f))
             bindTrulyNearest(0)
             flat01.draw(shader)
         }
@@ -179,7 +179,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
     private fun Framebuffer.blur(sigma: Float, dx: Int, dy: Int, dst: Framebuffer, shader: Shader): Framebuffer {
         useFrame(dst) {
             shader.use()
-            shader.v2f("delta", dx.toFloat() / w, dy.toFloat() / h)
+            shader.v2f("delta", dx.toFloat() / width, dy.toFloat() / height)
             shader.v1f("sigma", sigma)
             shader.v1i("steps", (sigma * 3f).roundToInt())
             bindTrulyNearest(0)
@@ -238,10 +238,10 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
         useFrame(dst) {
             val shader = iterationShader
             shader.use()
-            shader.v2f("dx1", 1f / src.w, 0f)
-            shader.v2f("dy1", 0f, 1f / src.h)
-            shader.v2f("dx2", 2f / src.w, 0f)
-            shader.v2f("dy2", 0f, 2f / src.h)
+            shader.v2f("dx1", 1f / src.width, 0f)
+            shader.v2f("dy1", 0f, 1f / src.height)
+            shader.v2f("dx2", 2f / src.width, 0f)
+            shader.v2f("dy2", 0f, 2f / src.height)
             src.bindTrulyNearest(0)
             dx.bindTrulyNearest(1)
             dy.bindTrulyNearest(2)
@@ -274,7 +274,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
 
     override fun Framebuffer.renderVideo(iterations: Int, dst: FileReference, run: (Long) -> Framebuffer) {
         var ctr = 0L
-        VideoCreator.renderVideo(w, h, 5.0, dst, iterations.toLong(), false, { callback ->
+        VideoCreator.renderVideo(width, height, 5.0, dst, iterations.toLong(), false, { callback ->
             val result = run(ctr++)
             callback(result.getTexture0() as Texture2D)
         }, null)

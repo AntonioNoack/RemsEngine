@@ -57,14 +57,14 @@ object ShapedBlur {
 
     fun applyFilter(src0: ITexture2D, shader: Shader, stages: Int, fp: Boolean, scale0: Float = 1f): ITexture2D {
         var src: ITexture2D = src0
-        val dst0 = FBStack["d0", src.w, src.h, 4, fp, 1, false]
-        val dst1 = FBStack["d1", src.w, src.h, 4, fp, 1, false]
+        val dst0 = FBStack["d0", src.width, src.height, 4, fp, 1, false]
+        val dst1 = FBStack["d1", src.width, src.height, 4, fp, 1, false]
         shader.use()
         for (i in 0 until stages) {
             val target = if (i.hasFlag(1)) dst1 else dst0
             useFrame(target) {
                 shader.v1i("uPass", i)
-                shader.v2f("duv", scale0 / src.w, -scale0 / src.h)
+                shader.v2f("duv", scale0 / src.width, -scale0 / src.height)
                 src.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
                 flat01.draw(shader)
                 src = target.getTextureI(0)

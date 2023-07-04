@@ -83,7 +83,7 @@ object DrawTexts {
         texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
         if (shader is Shader) {
             simpleBatch.start()
-            posSize(shader, 0f, 0f, texture.w.toFloat(), texture.h.toFloat())
+            posSize(shader, 0f, 0f, texture.width.toFloat(), texture.height.toFloat())
         }
         return x
     }
@@ -127,13 +127,13 @@ object DrawTexts {
             texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
             if (shader is Shader) {
                 simpleBatch.start()
-                posSize(shader, 0f, 0f, texture.w.toFloat(), texture.h.toFloat())
+                posSize(shader, 0f, 0f, texture.width.toFloat(), texture.height.toFloat())
             }
             shader
         } else null
 
         val y2 = y + dy0 + padding - 1
-        var x2 = x + dx0 + padding + (charWidth - texture.w) / 2
+        var x2 = x + dx0 + padding + (charWidth - texture.width) / 2
 
         if (shader !is ComputeShader) {
             val posY = 1f - (y2 - GFX.viewportY).toFloat() / GFX.viewportHeight
@@ -155,7 +155,7 @@ object DrawTexts {
                 val code = char.code - 33
                 if (code in simpleChars.indices) {
                     shader.v1f("uvZ", code.toFloat())
-                    posSizeDraw(shader, x2, y2, texture.w, texture.h, 1)
+                    posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
                     GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
                 }
                 x2 += charWidth
@@ -242,7 +242,7 @@ object DrawTexts {
                 if (!Character.isWhitespace(codepoint)) {
                     val txt = String(Character.toChars(codepoint))
                     val texture = FontManager.getTexture(font, txt, -1, -1)
-                    if (texture != null) draw(shader, texture, fx + (charWidth - texture.w) / 2, y2, txt)
+                    if (texture != null) draw(shader, texture, fx + (charWidth - texture.width) / 2, y2, txt)
                 }
                 fx += charWidth
             }
@@ -277,7 +277,7 @@ object DrawTexts {
                     val texture = FontManager.getTexture(font, txt, -1, -1)
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                         texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-                        val x2 = fx + (w - texture.w).shr(1)
+                        val x2 = fx + (w - texture.width).shr(1)
                         draw(shader, texture, x2, y2, txt)
                     }
                 } else index++
@@ -347,7 +347,7 @@ object DrawTexts {
 
             val texture = FontManager.getTexture(key)
             if (texture != null) {
-                draw(shader, texture, x + dx + (wx - texture.w).shr(1), y2, txt)
+                draw(shader, texture, x + dx + (wx - texture.width).shr(1), y2, txt)
             }
 
             wx
@@ -373,7 +373,7 @@ object DrawTexts {
 
             val texture = FontManager.getTexture(key)
             if (texture != null) {
-                draw(shader, texture, fx + (w - texture.w) .shr(1), y2, text)
+                draw(shader, texture, fx + (w - texture.width) .shr(1), y2, text)
             }
 
             wx
@@ -391,11 +391,11 @@ object DrawTexts {
             texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
             shader.use()
             if (shader is Shader) {
-                posSize(shader, x2, y2, texture.w, texture.h)
+                posSize(shader, x2, y2, texture.width, texture.height)
                 flat01.draw(shader)
             } else {
                 shader as ComputeShader
-                posSizeDraw(shader, x2, y2, texture.w, texture.h, 1)
+                posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
                 GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             }
         } else {
@@ -439,8 +439,8 @@ object DrawTexts {
         alignX: AxisAlignment = AxisAlignment.MIN,
         alignY: AxisAlignment = AxisAlignment.MIN
     ): Int {
-        val w = texture.w
-        val h = texture.h
+        val w = texture.width
+        val h = texture.height
         // done if pixel is on the border of the drawn rectangle, make it grayscale, so we see no color seams
         if (texture !is Texture2D || texture.isCreated) {
             GFX.check()

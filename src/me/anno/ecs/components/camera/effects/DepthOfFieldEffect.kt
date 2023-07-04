@@ -72,7 +72,7 @@ class DepthOfFieldEffect : CameraEffect() {
             focusPoint: Float, focusScale: Float, maxBlurSize: Float, radScale: Float,
             applyToneMapping: Boolean,
         ): IFramebuffer {
-            val coc = FBStack["coc", ceilDiv(color.w, 2), ceilDiv(color.h, 2), 4, false, 1, false]
+            val coc = FBStack["coc", ceilDiv(color.width, 2), ceilDiv(color.height, 2), 4, false, 1, false]
             useFrame(coc) {
                 val shader = cocShader
                 shader.use()
@@ -85,7 +85,7 @@ class DepthOfFieldEffect : CameraEffect() {
                 depth.bindTrulyNearest(shader, "depthTex")
                 flat01.draw(shader)
             }
-            val buffer = FBStack["dof", color.w, color.h, 4, true, 1, false]
+            val buffer = FBStack["dof", color.width, color.height, 4, true, 1, false]
             useFrame(buffer) {
                 val shader = dofShader
                 shader.use()
@@ -95,7 +95,7 @@ class DepthOfFieldEffect : CameraEffect() {
                 shader.v1f("maxBlurSize", maxBlurSize)
                 shader.v1f("radScale", radScale)
                 shader.v1b("applyToneMapping", applyToneMapping)
-                shader.v2f("pixelSize", 1f / color.w, 1f / color.h)
+                shader.v2f("pixelSize", 1f / color.width, 1f / color.height)
                 color.bindTrulyNearest(shader, "colorTex")
                 depth.bindTrulyNearest(shader, "depthTex")
                 coc.getTexture0().bind(shader, "cocTex", GPUFiltering.LINEAR, Clamping.CLAMP)

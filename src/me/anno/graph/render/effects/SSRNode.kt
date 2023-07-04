@@ -81,7 +81,7 @@ class SSRNode : RenderSceneNode0(
         val transform = RenderState.cameraMatrix
 
         var framebuffer = framebuffer
-        if (framebuffer == null || framebuffer.w != width || framebuffer.h != height) {
+        if (framebuffer == null || framebuffer.width != width || framebuffer.height != height) {
             framebuffer?.destroy()
             framebuffer = Framebuffer(name, width, height, 1, arrayOf(TargetType.FP16Target3), DepthBufferType.NONE)
             this.framebuffer = framebuffer

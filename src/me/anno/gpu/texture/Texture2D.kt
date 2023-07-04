@@ -41,8 +41,8 @@ import kotlin.concurrent.thread
 @Suppress("unused")
 open class Texture2D(
     val name: String,
-    final override var w: Int,
-    final override var h: Int,
+    final override var width: Int,
+    final override var height: Int,
     samples: Int
 ) : ICacheData, ITexture2D {
 
@@ -57,12 +57,12 @@ open class Texture2D(
     }
 
     val samples = clamp(samples, 1, GFX.maxSamples)
-    var fb: Framebuffer? = null
+    var owner: Framebuffer? = null
 
     var internalFormat = 0
     var border = 0
 
-    override fun toString() = "Tex2D(\"$name\", $w $h $samples)"
+    override fun toString() = "Tex2D(\"$name\", $width $height $samples)"
 
     private val withMultisampling = samples > 1
 
@@ -85,9 +85,9 @@ open class Texture2D(
     }
 
     fun resize(w: Int, h: Int, type: TargetType) {
-        if (w != this.w || h != this.h) {
-            this.w = w
-            this.h = h
+        if (w != this.width || h != this.height) {
+            this.width = w
+            this.height = h
             destroy() // needed?
             reset()
             create(type)
@@ -111,8 +111,8 @@ open class Texture2D(
     override var isHDR = false
 
     fun setSize(width: Int, height: Int) {
-        w = width
-        h = height
+        this.width = width
+        this.height = height
     }
 
     fun swizzleMonochrome() {
@@ -179,8 +179,8 @@ open class Texture2D(
             return
         }
         bindBeforeUpload()
-        val w = w
-        val h = h
+        val w = width
+        val h = height
         val target = target
         if (w * h <= 0) throw IllegalArgumentException("Cannot create empty texture")
         check()
@@ -281,10 +281,10 @@ open class Texture2D(
     }
 
     fun create(name: String, image: Image, checkRedundancy: Boolean) {
-        w = image.width
-        h = image.height
+        width = image.width
+        height = image.height
         if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
-        val requiredBudget = textureBudgetUsed + w * h
+        val requiredBudget = textureBudgetUsed + width * height
         if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || !isGFXThread()) {
             create(image, false, checkRedundancy)
         } else {
@@ -295,15 +295,15 @@ open class Texture2D(
 
     fun setSize1x1() {
         // a warning, because you might not expect your image to be empty, and wonder why its size is 1x1
-        LOGGER.warn("Reduced \"$name\" from $w x $h to 1x1, because it was mono-colored")
-        w = 1
-        h = 1
+        LOGGER.warn("Reduced \"$name\" from $width x $height to 1x1, because it was mono-colored")
+        width = 1
+        height = 1
     }
 
     fun create(image: Image, sync: Boolean, checkRedundancy: Boolean) {
         if (sync && isGFXThread()) {
             image.createTexture(this, true, checkRedundancy)
-        } else if (isGFXThread() && (w * h > 10_000)) {// large -> avoid the load and create it async
+        } else if (isGFXThread() && (width * height > 10_000)) {// large -> avoid the load and create it async
             thread(name = name) {
                 image.createTexture(this, false, checkRedundancy)
             }
@@ -314,8 +314,8 @@ open class Texture2D(
 
     fun create(image: BufferedImage, sync: Boolean, checkRedundancy: Boolean): (() -> Unit)? {
 
-        w = image.width
-        h = image.height
+        width = image.width
+        height = image.height
         isCreated = false
 
         // use the type to correctly create the image
@@ -378,7 +378,7 @@ open class Texture2D(
                 }
             }
             else -> {
-                val data = image.getRGB(0, 0, w, h, intArrayPool[w * h, false, false], 0, w)
+                val data = image.getRGB(0, 0, width, height, intArrayPool[width * height, false, false], 0, width)
                 val hasAlpha = image.hasAlphaChannel()
                 if (!hasAlpha) {
                     // ensure opacity
@@ -451,7 +451,7 @@ open class Texture2D(
     }
 
     fun afterUpload(isHDR: Boolean, bytesPerPixel: Int) {
-        locallyAllocated = allocate(locallyAllocated, w * h * bytesPerPixel.toLong())
+        locallyAllocated = allocate(locallyAllocated, width * height * bytesPerPixel.toLong())
         isCreated = true
         this.isHDR = isHDR
         filtering(filtering)
@@ -461,9 +461,9 @@ open class Texture2D(
     }
 
     fun checkRedundancy(data: IntArray): IntArray {
-        if (w * h <= 1) return data
+        if (width * height <= 1) return data
         val c0 = data[0]
-        for (i in 1 until w * h) {
+        for (i in 1 until width * height) {
             if (c0 != data[i]) return data
         }
         setSize1x1()
@@ -471,9 +471,9 @@ open class Texture2D(
     }
 
     fun checkRedundancy(data: IntBuffer) {
-        if (w * h <= 1) return
+        if (width * height <= 1) return
         val c0 = data[0]
-        for (i in 1 until w * h) {
+        for (i in 1 until width * height) {
             if (c0 != data[i]) return
         }
         setSize1x1()
@@ -483,7 +483,7 @@ open class Texture2D(
     fun checkRedundancyMonochrome(data: ByteBuffer) {
         if (data.capacity() <= 1) return
         val c0 = data[0]
-        for (i in 1 until w * h) {
+        for (i in 1 until width * height) {
             if (c0 != data[i]) return
         }
         setSize1x1()
@@ -493,7 +493,7 @@ open class Texture2D(
     fun checkRedundancyMonochrome(data: FloatArray): FloatArray {
         if (data.isEmpty()) return data
         val c0 = data[0]
-        for (i in 1 until w * h) {
+        for (i in 1 until width * height) {
             if (c0 != data[i]) return data
         }
         setSize1x1()
@@ -503,7 +503,7 @@ open class Texture2D(
     fun checkRedundancyMonochrome(data: FloatBuffer) {
         if (data.capacity() < 1) return
         val c0 = data[0]
-        for (i in 1 until w * h) {
+        for (i in 1 until width * height) {
             if (c0 != data[i]) return
         }
         setSize1x1()
@@ -513,7 +513,7 @@ open class Texture2D(
     fun checkRedundancyMonochrome(data: ByteArray): ByteArray {
         if (data.isEmpty()) return data
         val c0 = data[0]
-        for (i in 1 until w * h) {
+        for (i in 1 until width * height) {
             if (c0 != data[i]) return data
         }
         setSize1x1()
@@ -526,7 +526,7 @@ open class Texture2D(
         val c1 = data[1]
         val c2 = data[2]
         val c3 = data[3]
-        for (i in 4 until w * h * 4 step 4) {
+        for (i in 4 until width * height * 4 step 4) {
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return data
         }
         setSize1x1()
@@ -538,7 +538,7 @@ open class Texture2D(
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
-        for (i in 3 until w * h * 3 step 3) {
+        for (i in 3 until width * height * 3 step 3) {
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return data
         }
         setSize1x1()
@@ -550,7 +550,7 @@ open class Texture2D(
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
-        for (i in 3 until w * h * 3 step 3) {
+        for (i in 3 until width * height * 3 step 3) {
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return
         }
         setSize1x1()
@@ -563,7 +563,7 @@ open class Texture2D(
         val c1 = data[1]
         val c2 = data[2]
         val c3 = data[3]
-        for (i in 4 until w * h * 4 step 4) {
+        for (i in 4 until width * height * 4 step 4) {
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
         }
         setSize1x1()
@@ -576,7 +576,7 @@ open class Texture2D(
         val c1 = data[1]
         val c2 = data[2]
         val c3 = data[3]
-        for (i in 4 until w * h * 4 step 4) {
+        for (i in 4 until width * height * 4 step 4) {
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return data
         }
         setSize1x1()
@@ -589,7 +589,7 @@ open class Texture2D(
         val c1 = data[1]
         val c2 = data[2]
         val c3 = data[3]
-        for (i in 4 until w * h * 4 step 4) {
+        for (i in 4 until width * height * 4 step 4) {
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
         }
         setSize1x1()
@@ -600,7 +600,7 @@ open class Texture2D(
         if (data.size < 2) return data
         val c0 = data[0]
         val c1 = data[1]
-        for (i in 2 until w * h * 2 step 2) {
+        for (i in 2 until width * height * 2 step 2) {
             if (c0 != data[i] || c1 != data[i + 1]) return data
         }
         setSize1x1()
@@ -611,7 +611,7 @@ open class Texture2D(
         if (data.size < 2) return data
         val c0 = data[0]
         val c1 = data[1]
-        for (i in 2 until w * h * 2 step 2) {
+        for (i in 2 until width * height * 2 step 2) {
             if (c0 != data[i] || c1 != data[i + 1]) return data
         }
         setSize1x1()
@@ -623,7 +623,7 @@ open class Texture2D(
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
-        for (i in 3 until w * h * 3 step 3) {
+        for (i in 3 until width * height * 3 step 3) {
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2])
                 return data
         }
@@ -636,7 +636,7 @@ open class Texture2D(
         val c0 = data[0]
         val c1 = data[1]
         val c2 = data[2]
-        for (i in 3 until w * h * 3 step 3) {
+        for (i in 3 until width * height * 3 step 3) {
             if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2])
                 return
         }
@@ -651,11 +651,11 @@ open class Texture2D(
         val c2 = data[2]
         val c3 = data[3]
         if (rgbOnly) {
-            for (i in 4 until w * h * 4 step 4) {
+            for (i in 4 until width * height * 4 step 4) {
                 if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2]) return
             }
         } else {
-            for (i in 4 until w * h * 4 step 4) {
+            for (i in 4 until width * height * 4 step 4) {
                 if (c0 != data[i] || c1 != data[i + 1] || c2 != data[i + 2] || c3 != data[i + 3]) return
             }
         }
@@ -668,7 +668,7 @@ open class Texture2D(
         if (data.capacity() < 2) return
         val c0 = data[0]
         val c1 = data[1]
-        for (i in 2 until w * h * 2 step 2) {
+        for (i in 2 until width * height * 2 step 2) {
             if (c0 != data[i] || c1 != data[i + 1]) return
         }
         setSize1x1()
@@ -678,7 +678,7 @@ open class Texture2D(
     fun createBGRA(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        setWriteAlignment(4 * w)
+        setWriteAlignment(4 * width)
         // uses bgra instead of rgba to save the swizzle
         texImage2D(GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4)
@@ -689,7 +689,7 @@ open class Texture2D(
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
         // would work without swizzle, but I am not sure, that this is legal,
         // because the number of channels from the input and internal format differ
-        setWriteAlignment(4 * w)
+        setWriteAlignment(4 * width)
         texImage2D(GL_RGB8, GL_BGRA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 3)
     }
@@ -697,7 +697,7 @@ open class Texture2D(
     fun createRGB(data: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(3, data.size)
         val floats2 = if (checkRedundancy) checkRedundancyRGB(data) else data
-        setWriteAlignment(12 * w)
+        setWriteAlignment(12 * width)
         texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, floats2)
         afterUpload(true, 12)
     }
@@ -705,7 +705,7 @@ open class Texture2D(
     fun createRGB(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(3, data.capacity())
         if (checkRedundancy) checkRedundancyRGB(data)
-        setWriteAlignment(12 * w)
+        setWriteAlignment(12 * width)
         texImage2D(GL_RGB32F, GL_RGB, GL_FLOAT, data)
         afterUpload(true, 12)
     }
@@ -715,7 +715,7 @@ open class Texture2D(
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
         val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
-        setWriteAlignment(3 * w)
+        setWriteAlignment(3 * width)
         texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 3)
@@ -725,7 +725,7 @@ open class Texture2D(
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancy(data)
         if (data.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
-        setWriteAlignment(4 * w)
+        setWriteAlignment(4 * width)
         texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4)
     }
@@ -736,7 +736,7 @@ open class Texture2D(
     fun createRGBA(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         if (checkRedundancy) checkRedundancy(data)
-        setWriteAlignment(4 * w)
+        setWriteAlignment(4 * width)
         texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4)
     }
@@ -745,7 +745,7 @@ open class Texture2D(
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancy(data)
         if (data.order() != ByteOrder.nativeOrder()) throw RuntimeException("Byte order must be native!")
-        setWriteAlignment(4 * w)
+        setWriteAlignment(4 * width)
         texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(false, 4)
     }
@@ -756,7 +756,7 @@ open class Texture2D(
     fun createRGB(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        setWriteAlignment(4 * w)
+        setWriteAlignment(4 * width)
         texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4)
     }
@@ -767,8 +767,8 @@ open class Texture2D(
         dataI: Buffer,
         data1: ByteBuffer?
     ) {
-        val width = w
-        val height = h
+        val width = width
+        val height = height
         val tiles = Maths.max(Maths.roundDiv(height, Maths.max(1, (1024) / width)), 1)
         val useTiles = tiles >= 4 && dataI.capacity() > 16
         if (useTiles) {
@@ -846,7 +846,7 @@ open class Texture2D(
     fun createMonochrome(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyMonochrome(data)
-        setWriteAlignment(4 * w)
+        setWriteAlignment(4 * width)
         texImage2D(GL_R32F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4)
     }
@@ -858,7 +858,7 @@ open class Texture2D(
     fun createMonochrome(data: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancyMonochrome(data) else data
-        setWriteAlignment(4 * w)
+        setWriteAlignment(4 * width)
         texImage2D(GL_R32F, GL_RED, GL_FLOAT, data2)
         afterUpload(true, 4)
     }
@@ -869,7 +869,7 @@ open class Texture2D(
     fun createMonochromeFP16(data: FloatBuffer, checkRedundancy: Boolean) {
         beforeUpload(1, data.remaining())
         if (checkRedundancy) checkRedundancyMonochrome(data)
-        setWriteAlignment(4 * w)
+        setWriteAlignment(4 * width)
         texImage2D(GL_R16F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4)
     }
@@ -904,7 +904,7 @@ open class Texture2D(
 
     fun createRGBA(data: FloatArray, checkRedundancy: Boolean) {
         beforeUpload(4, data.size)
-        val data2 = if (checkRedundancy && w * h > 1) checkRedundancyRGBA(data) else data
+        val data2 = if (checkRedundancy && width * height > 1) checkRedundancyRGBA(data) else data
         val byteBuffer = bufferPool[data2.size * 4, false, false]
         byteBuffer.asFloatBuffer().put(data2)
         // rgba32f as internal format is extremely important... otherwise the value is cropped
@@ -916,7 +916,7 @@ open class Texture2D(
     fun createRGBA(data: FloatBuffer, buffer: ByteBuffer, checkRedundancy: Boolean) {
 
         beforeUpload(4, data.capacity())
-        if (checkRedundancy && w * h > 1) checkRedundancyRGBA(data)
+        if (checkRedundancy && width * height > 1) checkRedundancyRGBA(data)
 
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         texImage2D(TargetType.FloatTarget4, buffer)
@@ -956,7 +956,7 @@ open class Texture2D(
         checkSize(4, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
         val buffer = bufferPool[data2.size, false, false]
-        for (i in 0 until w * h * 4 step 4) {
+        for (i in 0 until width * height * 4 step 4) {
             buffer.put(data2[i + 1]) // r
             buffer.put(data2[i + 2]) // g
             buffer.put(data2[i + 3]) // b
@@ -979,7 +979,7 @@ open class Texture2D(
         beforeUpload(3, data.remaining())
         if (checkRedundancy) checkRedundancy(data, true)
         // texImage2D(TargetType.UByteTarget3, buffer)
-        setWriteAlignment(3 * w)
+        setWriteAlignment(3 * width)
         texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, data)
         bufferPool.returnBuffer(data)
         afterUpload(false, 3)
@@ -1014,7 +1014,7 @@ open class Texture2D(
             // they don't accept the command to be what they are either
             return
         }
-        if (!hasMipmap && filtering.needsMipmap && (w > 1 || h > 1)) {
+        if (!hasMipmap && filtering.needsMipmap && (width > 1 || height > 1)) {
             glGenerateMipmap(target)
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {
@@ -1090,8 +1090,8 @@ open class Texture2D(
     }
 
     private fun checkSize(channels: Int, size: Int) {
-        if (size < w * h * channels) throw IllegalArgumentException("Incorrect size, $w*$h*$channels vs ${size}!")
-        if (size > w * h * channels) LOGGER.warn("$size != $w*$h*$channels")
+        if (size < width * height * channels) throw IllegalArgumentException("Incorrect size, $width*$height*$channels vs ${size}!")
+        if (size > width * height * channels) LOGGER.warn("$size != $width*$height*$channels")
     }
 
     fun reset() {
@@ -1106,8 +1106,8 @@ open class Texture2D(
         return object : IFramebuffer {
             override val name: String get() = this@Texture2D.name
             override val pointer: Int get() = -1
-            override val w: Int get() = this@Texture2D.w
-            override val h: Int get() = this@Texture2D.h
+            override val width: Int get() = this@Texture2D.width
+            override val height: Int get() = this@Texture2D.height
             override val samples: Int get() = this@Texture2D.samples
             override val numTextures: Int get() = 1
             override fun ensure() {}

@@ -55,8 +55,8 @@ class GizmoNode : RenderSceneNode0(
         val colorT = ((getInput(7) as? Texture)?.tex as? Texture2D)
         val depthT = ((getInput(8) as? Texture)?.tex as? Texture2D)
 
-        val color = colorT?.fb
-        val depth = depthT?.fb
+        val color = colorT?.owner
+        val depth = depthT?.owner
 
         val rv = renderView
         if (framebuffer?.samples != samples) {

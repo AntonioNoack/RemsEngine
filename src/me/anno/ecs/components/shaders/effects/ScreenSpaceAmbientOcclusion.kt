@@ -233,8 +233,8 @@ object ScreenSpaceAmbientOcclusion {
 
         // resolution can be halved to improve performance
         val scale = DefaultConfig["gpu.ssao.scale", 1f]
-        val fw = (depth.w * scale).roundToInt()
-        val fh = (depth.h * scale).roundToInt()
+        val fw = (depth.width * scale).roundToInt()
+        val fh = (depth.height * scale).roundToInt()
 
         val dst = FBStack["ssao-1st", fw, fh, 1, false, 1, false]
         useFrame(dst, copyRenderer) {
@@ -270,8 +270,8 @@ object ScreenSpaceAmbientOcclusion {
 
     private fun average(data: Framebuffer): Framebuffer {
         if (!DefaultConfig["gpu.ssao.blur", true]) return data
-        val w = data.w
-        val h = data.h
+        val w = data.width
+        val h = data.height
         val dst = FBStack["ssao-2nd", w, h, 1, false, 1, false]
         useFrame(dst, Renderer.copyRenderer) {
             GFX.check()

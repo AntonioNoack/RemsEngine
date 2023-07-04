@@ -45,7 +45,7 @@ fun testVideo(image: FileReference) {
         VideoCache.clear()
         val gpu = VideoCache.getFrame(src, 1, 0, 0, 1, 1.0, 50_000L, false, needsToBeCreated = true)
             ?: throw NullPointerException("Missing $src")
-        if (gpu.w != w || gpu.h != h) throw IllegalStateException()
+        if (gpu.width != w || gpu.height != h) throw IllegalStateException()
         useFrame(dst1) {
             dst1.clearColor(0)
             drawTexture(gpu)

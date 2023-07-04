@@ -156,7 +156,7 @@ object FSR {
 
     fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int, flipY: Boolean, applyToneMapping: Boolean) {
         source.bindTrulyNearest(0)
-        upscale(source.w, source.h, x, y, w, h, flipY, applyToneMapping)
+        upscale(source.width, source.height, x, y, w, h, flipY, applyToneMapping)
     }
 
     fun upscale(
@@ -164,7 +164,7 @@ object FSR {
         flipY: Boolean, backgroundColor: Int, applyToneMapping: Boolean
     ) {
         source.bindTrulyNearest(0)
-        upscale(source.w, source.h, x, y, w, h, flipY, backgroundColor, applyToneMapping)
+        upscale(source.width, source.height, x, y, w, h, flipY, backgroundColor, applyToneMapping)
     }
 
     fun sharpen(sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {

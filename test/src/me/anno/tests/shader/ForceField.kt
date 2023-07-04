@@ -81,7 +81,7 @@ fun main() {
                 var depth = findDepthTexture(GFXState.framebuffer.currentValue)
                 if (depth == null) println("no depth was found!")
                 if (Input.isShiftDown && depth is Framebuffer) {
-                    val tmp = FBStack["depth", depth.w, depth.h, 1, true, 1, true]
+                    val tmp = FBStack["depth", depth.width, depth.height, 1, true, 1, true]
                     depth.copyTo(tmp, GL_DEPTH_BUFFER_BIT)
                     depth = tmp
                 }

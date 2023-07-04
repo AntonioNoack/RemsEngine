@@ -48,7 +48,7 @@ class MotionBlurNode : ActionNode(
         val color = ((getInput(3) as? Texture)?.tex as? Texture2D) ?: missingTexture
         val motion = ((getInput(4) as? Texture)?.tex as? Texture2D) ?: blackTexture
 
-        useFrame(color.w, color.h, true, framebuffer, copyRenderer) {
+        useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
             val shader = shader
             shader.use()
             GFX.check()

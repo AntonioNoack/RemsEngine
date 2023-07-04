@@ -213,13 +213,13 @@ class FSR2v2 : ICacheData {
         pw: Int, ph: Int,
     ) {
 
-        val rw = color.w
-        val rh = color.h
+        val rw = color.width
+        val rh = color.height
         lastScaleX = pw.toFloat() / rw
         lastScaleY = ph.toFloat() / rh
         if (previousDepth.pointer == 0) {
-            previousDepth.w = rw
-            previousDepth.h = rh
+            previousDepth.width = rw
+            previousDepth.height = rh
         }
         previousDepth.ensure()
         data1.ensure()
@@ -235,8 +235,8 @@ class FSR2v2 : ICacheData {
             normal.bindTrulyNearest(2)
             motion.bindTrulyNearest(3)
             data1.bindTextures(4, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-            shader.v2i("displaySizeI", data1.w, data1.h)
-            shader.v2f("displaySizeF", data1.w.toFloat(), data1.h.toFloat())
+            shader.v2i("displaySizeI", data1.width, data1.height)
+            shader.v2f("displaySizeF", data1.width.toFloat(), data1.height.toFloat())
             shader.v1f("sharpness", 3f * lastScaleX * lastScaleY) // a guess
             shader.v1f("maxWeight", 5f)
             flat01.draw(shader)

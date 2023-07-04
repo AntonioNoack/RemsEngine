@@ -23,8 +23,8 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
 
     private val deepStyle = style.getChild("deep")
     private val customInput = PanelListX(deepStyle)
-    private val customX = IntInput("Width","", 0, deepStyle)
-    private val customY = IntInput("Height","", 0, deepStyle)
+    private val customX = IntInput("Width", "", 0, deepStyle)
+    private val customY = IntInput("Height", "", 0, deepStyle)
 
     init {
         this += typeInput
@@ -43,8 +43,8 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
                     }
                 }
             }
-        customX.setValue(val0.w, false)
-        customY.setValue(val0.h, false)
+        customX.setValue(val0.width, false)
+        customY.setValue(val0.height, false)
         customX.weight = 1f
         customY.weight = 1f
         customX.setChangeListener { update(it, customY.value) }
@@ -64,9 +64,9 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
         defaultResolution = Resolution(w, h)
     }
 
-    class Resolution(val w: Int, val h: Int) : Comparable<Resolution> {
-        override fun toString() = "${w}x$h"
-        private val sortValue = w * (h + 1)
+    class Resolution(val width: Int, val height: Int) : Comparable<Resolution> {
+        override fun toString() = "${width}x$height"
+        private val sortValue = width * (height + 1)
         override fun compareTo(other: Resolution): Int = sortValue.compareTo(other.sortValue)
     }
 
@@ -100,9 +100,11 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
         }
 
         const val configNamespace = "rendering.resolutions"
+
         @JvmField
         var defaultResolution =
             DefaultConfig["$configNamespace.default", ""].parseResolution() ?: Resolution(1920, 1080)
+
         @JvmField
         val defaultResolutions =
             DefaultConfig["$configNamespace.defaultValues", ""]

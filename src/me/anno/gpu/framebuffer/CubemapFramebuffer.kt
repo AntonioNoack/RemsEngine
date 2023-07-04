@@ -42,8 +42,8 @@ class CubemapFramebuffer(
     override var depthTexture: CubemapTexture? = null
     var depthAttachment: CubemapFramebuffer? = null
 
-    override val w: Int get() = size
-    override val h: Int get() = size
+    override val width: Int get() = size
+    override val height: Int get() = size
     override val numTextures: Int = targets.size
 
     lateinit var textures: Array<CubemapTexture>

@@ -293,7 +293,7 @@ open class FileExplorerEntry(
         val w = x1 - x0
         val h = y1 - y0
         // if aspect ratio is extreme, use a different scale
-        var (iw, ih) = scaleMaxPreview(image.w, image.h, abs(w), abs(h), 5)
+        var (iw, ih) = scaleMaxPreview(image.width, image.height, abs(w), abs(h), 5)
         iw *= w.sign
         ih *= h.sign
         val isHDR = image.isHDR
@@ -301,7 +301,7 @@ open class FileExplorerEntry(
         val x = x0 + (w - iw) / 2
         val y = y0 + (h - ih) / 2
         if (image is Texture2D) image.filtering = GPUFiltering.LINEAR
-        if (iw > image.w && ih > image.h) {// maybe use fsr only, when scaling < 4x
+        if (iw > image.width && ih > image.height) {// maybe use fsr only, when scaling < 4x
             FSR.upscale(image, x, y, iw, ih, false, backgroundColor, isHDR)// ^^
         } else {
             drawTexture(x, y, iw, ih, image, -1, null, isHDR)

@@ -14,20 +14,20 @@ import java.io.InputStream
 class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
 
     // this is correct, confirmed by example
-    private val w2 get() = (w + 1) / 2
-    private val h2 get() = (h + 1) / 2
+    private val w2 get() = (width + 1) / 2
+    private val h2 get() = (height + 1) / 2
 
-    private val y = Texture2D("i420-y-frame", w, h, 1)
+    private val y = Texture2D("i420-y-frame", width, height, 1)
     private val uv = Texture2D("i420-uv-frame", w2, h2, 1)
 
     override fun load(input: InputStream) {
-        val s0 = w * h
+        val s0 = width * height
         val s1 = w2 * h2
         // load and create y plane
         val yData = input.readNBytes2(s0, bufferPool)
         blankDetector.putChannel(yData, 0)
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask("I420-Y", w, h) {
+        GFX.addGPUTask("I420-Y", width, height) {
             y.createMonochrome(yData, true)
             creationLimiter.release()
         }

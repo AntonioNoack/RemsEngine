@@ -14,16 +14,16 @@ import java.io.InputStream
 // this seems to work, and to be correct
 class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
 
-    private val y = Texture2D("i444-y-frame", w, h, 1)
-    private val uv = Texture2D("i444-uv-frame", w, h, 1)
+    private val y = Texture2D("i444-y-frame", width, height, 1)
+    private val uv = Texture2D("i444-uv-frame", width, height, 1)
 
     override fun load(input: InputStream) {
         println("loading frame")
-        val s0 = w * h
+        val s0 = width * height
         val yData = input.readNBytes2(s0, Texture2D.bufferPool)
         blankDetector.putChannel(yData, 0)
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask("I444-Y", w, h) {
+        GFX.addGPUTask("I444-Y", width, height) {
             y.createMonochrome(yData, true)
             creationLimiter.release()
         }
@@ -35,7 +35,7 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
         val interlaced = interlaceReplace(uData, vData)
         // create the uv texture
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask("I444-UV", w, h) {
+        GFX.addGPUTask("I444-UV", width, height) {
             println("processing task")
             uv.createRG(interlaced, true)
             creationLimiter.release()

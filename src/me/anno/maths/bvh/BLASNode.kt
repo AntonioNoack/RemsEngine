@@ -40,7 +40,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             val numTriangles = buffers.sumOf { it.indices.size / 3 }
             val texture = createTexture("triangles", numTriangles, PIXELS_PER_TRIANGLE)
             val bytesPerPixel = 16
-            val buffer = Texture2D.bufferPool[texture.w * texture.h * bytesPerPixel, false, false]
+            val buffer = Texture2D.bufferPool[texture.width * texture.height * bytesPerPixel, false, false]
             val data = buffer.asFloatBuffer()
             // write triangle into memory
             var pixelIndex = 0
@@ -147,7 +147,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             val pixelsPerNode = PIXELS_PER_BLAS_NODE
             val numNodes = BLASs.sumOf { it.countNodes() }
             val texture = createTexture("blas", numNodes, pixelsPerNode)
-            val buffer = Texture2D.bufferPool[texture.w * texture.h * 16, false, false]
+            val buffer = Texture2D.bufferPool[texture.width * texture.height * 16, false, false]
             val data = buffer.asFloatBuffer()
 
             var i = 0

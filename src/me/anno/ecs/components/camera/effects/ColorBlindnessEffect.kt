@@ -36,7 +36,7 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
     companion object {
 
         fun render(input: ITexture2D, strength: Float, mode: Mode): IFramebuffer {
-            val buffer = FBStack["colorblind", input.w, input.h, 4, false, 1, false]
+            val buffer = FBStack["colorblind", input.width, input.height, 4, false, 1, false]
             GFXState.useFrame(buffer) {
                 val shader = shader
                 shader.use()

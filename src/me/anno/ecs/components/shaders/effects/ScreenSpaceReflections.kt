@@ -210,7 +210,7 @@ object ScreenSpaceReflections {
         deferred: DeferredSettingsV2,
         transform: Matrix4f,
         applyToneMapping: Boolean,
-        dst: Framebuffer = FBStack["ss-reflections", buffer.w, buffer.h, 4, true, 1, false]
+        dst: Framebuffer = FBStack["ss-reflections", buffer.width, buffer.height, 4, true, 1, false]
     ) = compute(
         buffer, illuminated, deferred, transform,
         1f, 1f, 0.2f,
@@ -231,7 +231,7 @@ object ScreenSpaceReflections {
         fineSteps: Int = 10, // 10 are enough, if there are only rough surfaces
         maxDistance: Float = 8f,
         applyToneMapping: Boolean,
-        dst: Framebuffer = FBStack["ss-reflections", buffer.w, buffer.h, 4, true, 1, false]
+        dst: Framebuffer = FBStack["ss-reflections", buffer.width, buffer.height, 4, true, 1, false]
     ): ITexture2D? {
         // metallic may be on r, g, b, or a
         val metallicLayer = deferred.findLayer(DeferredLayerType.METALLIC) ?: return null
@@ -276,7 +276,7 @@ object ScreenSpaceReflections {
         fineSteps: Int = 10, // 10 are enough, if there are only rough surfaces
         maxDistance: Float = 8f,
         applyToneMapping: Boolean,
-        dst: IFramebuffer = FBStack["ss-reflections", depth.w, depth.h, 4, true, 1, false]
+        dst: IFramebuffer = FBStack["ss-reflections", depth.width, depth.height, 4, true, 1, false]
     ): IFramebuffer {
         // metallic may be on r, g, b, or a
         useFrame(dst, Renderer.copyRenderer) {

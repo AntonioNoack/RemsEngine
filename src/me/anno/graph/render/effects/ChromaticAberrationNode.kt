@@ -45,13 +45,13 @@ class ChromaticAberrationNode : ActionNode(
             val rOffset = getInput(3) as Vector2f
             val bOffset = getInput(4) as Vector2f
             val fp = color.isHDR
-            val result = FBStack[name, color.w, color.h, 3, fp, 1, false]
+            val result = FBStack[name, color.width, color.height, 3, fp, 1, false]
             useFrame(result, copyRenderer) {
                 val shader = shader
                 shader.use()
                 shader.v2f("rOffset", rOffset)
                 shader.v2f("bOffset", bOffset)
-                shader.v4f("params", color.w.toFloat() / color.h, 1f, strength, power)
+                shader.v4f("params", color.width.toFloat() / color.height, 1f, strength, power)
                 color.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
                 flat01.draw(shader)
             }

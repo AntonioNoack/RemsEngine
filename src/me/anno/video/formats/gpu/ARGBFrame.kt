@@ -15,7 +15,7 @@ class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 0) {
     private val rgba = Texture2D("rgba", w, h, 1)
 
     override fun load(input: InputStream) {
-        val s0 = w * h * 4
+        val s0 = width * height * 4
         val data = input.readNBytes2(s0, Texture2D.bufferPool)
 
         // change from argb to rgba
@@ -32,7 +32,7 @@ class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 0) {
 
         blankDetector.putRGBA(data)
         acquire(true, creationLimiter)
-        GFX.addGPUTask("RGBA", w, h) {
+        GFX.addGPUTask("RGBA", width, height) {
             rgba.createRGBA(data, true)
             creationLimiter.release()
         }

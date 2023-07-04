@@ -23,8 +23,8 @@ class Texture private constructor(
     override fun toString(): String {
         return if (tex == whiteTexture) if (color == white4) "white" else color.toHexColor()
         else {
-            val base = if (tex is Texture2D) "${tex.w}x${tex.h}@${tex.pointer}"
-            else "${tex.w}x${tex.h}}"
+            val base = if (tex is Texture2D) "${tex.width}x${tex.height}@${tex.pointer}"
+            else "${tex.width}x${tex.height}}"
             val hasMap = mapping.isNotEmpty()
             val hasEnc = encoding != null && encoding.dataToWork.isNotEmpty()
             when {

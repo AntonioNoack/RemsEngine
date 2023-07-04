@@ -72,7 +72,7 @@ class DecalMaterial : Material() {
                 buff.getTextureI(index).bindTrulyNearest(shader, layers[index].name + "_in0")
             }
         }
-        shader.v2f("windowSize", buff.w.toFloat(), buff.h.toFloat())
+        shader.v2f("windowSize", buff.width.toFloat(), buff.height.toFloat())
         buff.depthTexture?.bindTrulyNearest(shader, "depth_in0")
     }
 

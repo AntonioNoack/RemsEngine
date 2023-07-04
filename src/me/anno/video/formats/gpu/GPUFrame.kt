@@ -21,10 +21,10 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
 
-abstract class GPUFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
+abstract class GPUFrame(var width: Int, var height: Int, val code: Int) : ICacheData {
 
     init {
-        if (w < 1 || h < 1) throw IllegalArgumentException("Cannot create empty frames")
+        if (width < 1 || height < 1) throw IllegalArgumentException("Cannot create empty frames")
     }
 
     val isCreated: Boolean get() = getTextures().all { it.isCreated && !it.isDestroyed }
@@ -32,12 +32,8 @@ abstract class GPUFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
 
     val blankDetector = BlankFrameDetector()
 
-    fun isBlankFrame(
-        f0: GPUFrame, f4: GPUFrame, outlierThreshold: Float = 1f
-    ): Boolean {
-        return blankDetector.isBlankFrame(
-            f0.blankDetector, f4.blankDetector, outlierThreshold
-        )
+    fun isBlankFrame(f0: GPUFrame, f4: GPUFrame, outlierThreshold: Float = 1f): Boolean {
+        return blankDetector.isBlankFrame(f0.blankDetector, f4.blankDetector, outlierThreshold)
     }
 
     abstract fun get3DShader(): BaseShader
@@ -101,8 +97,8 @@ abstract class GPUFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
     }
 
     open fun bindUVCorrection(shader: Shader) {
-        val w = w
-        val h = h
+        val w = width
+        val h = height
         shader.v2f("uvCorrection", w.toFloat() / ((w + 1) / 2 * 2), h.toFloat() / ((h + 1) / 2 * 2))
     }
 
@@ -118,7 +114,7 @@ abstract class GPUFrame(var w: Int, var h: Int, val code: Int) : ICacheData {
 
     fun toTexture(): Texture2D {
         GFX.checkIsGFXThread()
-        val tmp = Framebuffer("webp-temp", w, h, 1, 1, false, DepthBufferType.NONE)
+        val tmp = Framebuffer("webp-temp", width, height, 1, 1, false, DepthBufferType.NONE)
         lateinit var tex: Texture2D
         GFXState.useFrame(tmp, Renderer.copyRenderer) {
             GFXState.renderPurely {

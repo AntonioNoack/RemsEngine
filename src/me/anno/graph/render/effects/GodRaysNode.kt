@@ -1,6 +1,5 @@
 package me.anno.graph.render.effects
 
-import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer
@@ -55,7 +54,7 @@ class GodRaysNode : ActionNode(
         val color = ((getInput(5) as? Texture)?.tex as? Texture2D) ?: return
         val depth = ((getInput(6) as? Texture)?.tex as? Texture2D) ?: return
 
-        useFrame(color.w, color.h, true, framebuffer, copyRenderer) {
+        useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
             val shader = shader
             shader.use()
             GFX.check()

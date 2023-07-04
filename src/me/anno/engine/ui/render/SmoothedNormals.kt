@@ -95,7 +95,7 @@ object SmoothedNormals {
         val depth = frame.depthTexture ?: return false
 
         // input = output, so copy normal to avoid data races
-        val tmp = FBStack["tmpNormal", frame.w, frame.h, TargetType.FP16Target3, 1, false]
+        val tmp = FBStack["tmpNormal", frame.width, frame.height, TargetType.FP16Target3, 1, false]
         val flag = settings.zw(DeferredLayerType.NORMAL).toInt()
         renderPurely2 {
             useFrame(tmp) {

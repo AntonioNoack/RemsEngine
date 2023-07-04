@@ -105,14 +105,14 @@ object Reduction {
         GFX.check()
 
         var srcTexture = texture
-        while (srcTexture.w > reduction || srcTexture.h > reduction) {
+        while (srcTexture.width > reduction || srcTexture.height > reduction) {
 
             // reduce
             shader.use()
             shader.v1f("scale", 1f)
 
-            val w = ceilDiv(srcTexture.w, reduction)
-            val h = ceilDiv(srcTexture.h, reduction)
+            val w = ceilDiv(srcTexture.width, reduction)
+            val h = ceilDiv(srcTexture.height, reduction)
 
             val dstFramebuffer = FBStack["reduction", w, h, TargetType.FloatTarget4, 1, false]
             useFrame(dstFramebuffer, Renderer.copyRenderer) {
@@ -145,7 +145,7 @@ object Reduction {
         val impl = op.kotlinImpl
 
         // performance shouldn't matter, because IO between CPU and GPU will be SLOW
-        val remainingPixels = srcTexture.w * srcTexture.h
+        val remainingPixels = srcTexture.width * srcTexture.height
         dst.set(op.startValue)
         val tmp = JomlPools.vec4f.create()
         for (i in 0 until remainingPixels) {
@@ -156,7 +156,7 @@ object Reduction {
         JomlPools.vec4f.sub(1)
 
         if (op.normalize) {
-            dst.div((texture.w * texture.h).toFloat())
+            dst.div((texture.width * texture.height).toFloat())
         }
 
         return dst
@@ -201,17 +201,17 @@ object Reduction {
         GFX.check()
 
         var srcTexture = texture
-        while (srcTexture.w > 1 || srcTexture.h > 1) {
+        while (srcTexture.width > 1 || srcTexture.height > 1) {
 
             // reduce
             shader.use()
 
-            val w = ceilDiv(srcTexture.w, reduction)
-            val h = ceilDiv(srcTexture.h, reduction)
+            val w = ceilDiv(srcTexture.width, reduction)
+            val h = ceilDiv(srcTexture.height, reduction)
 
             var scale = 1f
             val dstFramebuffer = if (w == 1 && h == 1) {
-                if (op.normalize) scale = 1f / (texture.w * texture.h)
+                if (op.normalize) scale = 1f / (texture.width * texture.height)
                 dst
             } else FBStack["reduction", w, h, TargetType.FloatTarget4, 1, false]
 

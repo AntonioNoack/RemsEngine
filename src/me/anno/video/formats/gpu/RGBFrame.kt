@@ -15,7 +15,7 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, -1) {
     val rgb = Texture2D("rgb-frame", w, h, 1)
 
     override fun load(input: InputStream) {
-        val s0 = w * h
+        val s0 = width * height
         val data = Texture2D.bufferPool[s0 * 4, false, false]
         data.position(0)
         for (i in 0 until s0) {
@@ -34,7 +34,7 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, -1) {
         data.flip()
         blankDetector.putRGBA(data)
         Sleep.acquire(true, creationLimiter)
-        GFX.addGPUTask("RGB", w, h) {
+        GFX.addGPUTask("RGB", width, height) {
             rgb.createRGB(data, true)
             creationLimiter.release()
         }

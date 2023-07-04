@@ -237,7 +237,7 @@ class NodePanel(
                 cachedTexture = Framebuffer("NodePanel", w, h, TargetType.UByteTarget4, DepthBufferType.NONE)
                 useFrame(cachedTexture, ::doDrawAtZero)
                 this.cachedTexture = cachedTexture
-            } else if (cachedTexture.w * 2 + 3 < w) {// improve resolution
+            } else if (cachedTexture.width * 2 + 3 < w) {// improve resolution
                 useFrame(w, h, true, cachedTexture) {
                     cachedTexture!!.clearColor(gp.backgroundColor.withAlpha(0), false)
                     doDrawAtZero()
@@ -247,7 +247,7 @@ class NodePanel(
             // draw texture
             val texture = cachedTexture.getTexture0()
             texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
-            if (texture.w >= w) {
+            if (texture.width >= w) {
                 drawTexture(x, y + h, w, -h, texture)
             } else {
                 FSR.upscale(texture, x, y, w, h, flipY = true, applyToneMapping = false)

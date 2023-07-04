@@ -66,16 +66,18 @@ object FlatShaders {
             Variable(GLSLType.V1B, "inXDirection"),
         ), "" +
                 ShaderLib.yuv2rgb +
-                "uniform vec4 lColor, rColor;\n" +
-                "uniform bool inXDirection;\n" +
                 "void main(){\n" +
                 "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
                 "   color = (inXDirection ? coords.x : coords.y) < 0.5 ? lColor : rColor;\n" +
                 "   color = color * color;\n" + // srgb -> linear
                 "   uv = mix(uvs.xy, uvs.zw, coords);\n" +
-                "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V4F, "color")), listOf(), "" +
-                "uniform int code;\n" +
-                "uniform sampler2D tex0,tex1;\n" +
+                "}", listOf(
+            Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V4F, "color")
+        ), listOf(
+            Variable(GLSLType.V1I, "code"),
+            Variable(GLSLType.S2D, "tex0"),
+            Variable(GLSLType.S2D, "tex1"),
+        ), "" +
                 ShaderLib.yuv2rgb +
                 "void main(){\n" +
                 "   vec4 texColor;\n" +

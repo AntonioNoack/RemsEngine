@@ -59,7 +59,7 @@ open class FileInput(
         button.apply {
             addLeftClickListener {
                 if (isInputAllowed) {
-                    var file2 = file
+                    var file2 = value
                     while (file2 != InvalidRef && !file2.exists) {
                         val file3 = file2.getParent() ?: InvalidRef
                         if (file3 == InvalidRef || file3 == file2 || file3.exists) {
@@ -108,15 +108,12 @@ open class FileInput(
         return this
     }
 
-    // private fun File.toString2() = toLocalPath()
     private fun FileReference.toString2() = toLocalPath()
     // toString().replace('\\', '/') // / is easier to type
 
-    val file
-        get(): FileReference = if (base.value == f0.absolutePath)
+    override val value: FileReference
+        get() = if (base.value == f0.absolutePath)
             f0 else base.value.toGlobalFile()
-
-    override val value: FileReference get() = file
 
     var changeListener = { _: FileReference -> }
     fun setChangeListener(listener: (FileReference) -> Unit): FileInput {
@@ -135,9 +132,10 @@ open class FileInput(
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
         return if (action == "DragStart") {
-            val title = file.nameWithoutExtension
-            val stringContent = file.absolutePath
-            StudioBase.dragged = Draggable(stringContent, "File", file, title, style)
+            val value = value
+            val title = value.nameWithoutExtension
+            val stringContent = value.absolutePath
+            StudioBase.dragged = Draggable(stringContent, "File", value, title, style)
             true
         } else super.onGotAction(x, y, dx, dy, action, isContinuous)
     }
@@ -146,12 +144,12 @@ open class FileInput(
         when {
             // todo paste option
             button.isRight -> openMenu(windowStack, listOf(
-                MenuOption(openInExplorerDesc) { file.openInExplorer() },
-                MenuOption(openInStandardProgramDesc) { file.openInStandardProgram() },
-                MenuOption(editInStandardProgramDesc) { file.editInStandardProgram() },
-                MenuOption(copyPathDesc) { setClipboardContent(file.absolutePath) }
+                MenuOption(openInExplorerDesc) { value.openInExplorer() },
+                MenuOption(openInStandardProgramDesc) { value.openInStandardProgram() },
+                MenuOption(editInStandardProgramDesc) { value.editInStandardProgram() },
+                MenuOption(copyPathDesc) { setClipboardContent(value.absolutePath) }
             ) + extraRightClickOptions.map {
-                MenuOption(it.nameDesc) { it.onClick(this, file) }
+                MenuOption(it.nameDesc) { it.onClick(this, value) }
             })
             else -> super.onMouseClicked(x, y, button, long)
         }
@@ -176,7 +174,7 @@ open class FileInput(
         // only if the image is not the default one
         val stdSize = 64
         val size = stdSize - stdSize / 20 // 1/20th is padding
-        val file = file
+        val file = value
         Thumbs.getThumbnail(file, size, true) ?: return null
         // could be cached...
         val entry = object : FileExplorerEntry(false, file, style) {

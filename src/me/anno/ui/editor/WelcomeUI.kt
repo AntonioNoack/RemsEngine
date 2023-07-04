@@ -293,7 +293,7 @@ abstract class WelcomeUI {
                 return fileNameIsOk(parent ?: return true)
             }
 
-            val file = fileInput.file
+            val file = fileInput.value
             var state = "ok"
             var msg = ""
             when {
@@ -348,8 +348,8 @@ abstract class WelcomeUI {
 
         nameInput.addChangeListener {
             val newName = if (it.isBlank2()) "-" else it.trim()
-            if (lastName == fileInput.file.name) {
-                fileInput.setText(getReference(fileInput.file.getParent(), newName).toString(), false)
+            if (lastName == fileInput.value.name) {
+                fileInput.setText(getReference(fileInput.value.getParent(), newName).toString(), false)
                 updateFileInputColor()
             }
             lastName = newName

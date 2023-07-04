@@ -33,13 +33,13 @@ class ImageButton(
     }
 
     override fun getVisualState(): Any? = icon
-    override fun getLayoutState(): Any? = icon?.w
+    override fun getLayoutState(): Any? = icon?.width
 
     override fun calculateSize(w: Int, h: Int) {
         val icon = icon ?: return
         minW = ((size + padding.width) * guiScale).toInt()
         minH = if (isSquare) ((size) * guiScale + padding.height).toInt() else {
-            ((icon.h * size / icon.w) * guiScale + padding.height).toInt()
+            ((icon.height * size / icon.width) * guiScale + padding.height).toInt()
         }
     }
 
@@ -54,9 +54,9 @@ class ImageButton(
         renderDefault {
             icon.filtering = GPUFiltering.LINEAR
             icon.clamping = Clamping.CLAMP
-            val scale = ((w - padding.width).toFloat() / max(icon.w, icon.h))
-            val iw = (icon.w * scale).roundToInt()
-            val ih = (icon.h * scale).roundToInt()
+            val scale = ((w - padding.width).toFloat() / max(icon.width, icon.height))
+            val iw = (icon.width * scale).roundToInt()
+            val ih = (icon.height * scale).roundToInt()
             DrawTextures.drawTexture(x + (w - iw) / 2, y + (h - ih) / 2, iw, ih, icon, tintColor, null)
         }
     }

@@ -35,7 +35,7 @@ open class PlanarMaterialBase : Material() {
 
         // calculate final scale + aspect ratio correction
         val tex3 = getTex(texture)
-        val scaleX = (if (tex3 != null) tex3.h.toDouble() / tex3.w else 1.0) / (scale.x * worldScale)
+        val scaleX = (if (tex3 != null) tex3.height.toDouble() / tex3.width else 1.0) / (scale.x * worldScale)
         val scaleY = 1.0 / (scale.y * worldScale)
 
         val dirU = JomlPools.vec3f.create()

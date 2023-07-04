@@ -1,13 +1,6 @@
 package me.anno.graph.render
 
-import me.anno.config.DefaultConfig.style
-import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.SkyBox
-import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.graph.render.compiler.ShaderExprNode
@@ -20,10 +13,7 @@ import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
 import me.anno.image.ImageScale
 import me.anno.ui.Panel
-import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.LOGGER
-import me.anno.utils.OS.documents
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.joml.Vector4f
 
@@ -166,7 +156,7 @@ object RenderGraph {
         }
 
         val texture = endNode.render(true)
-        val (w, h) = ImageScale.scaleMax(texture.w, texture.h, dst.w, dst.h)
+        val (w, h) = ImageScale.scaleMax(texture.width, texture.height, dst.w, dst.h)
         val x = dst.x + (dst.w - w) / 2
         val y = dst.y + (dst.h - h) / 2
         val applyToneMapping = endNode.getInput(6) == true

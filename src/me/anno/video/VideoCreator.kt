@@ -33,7 +33,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 open class VideoCreator(
-    val w: Int, val h: Int,
+    val width: Int, val height: Int,
     val fps: Double,
     val totalFrameCount: Long,
     val balance: FFMPEGEncodingBalance,
@@ -43,7 +43,7 @@ open class VideoCreator(
 ) {
 
     init {
-        if (w % 2 != 0 || h % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
+        if (width % 2 != 0 || height % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
     }
 
     val startTime = Engine.gameTime
@@ -76,7 +76,7 @@ open class VideoCreator(
 
         val args = arrayListOf(
             "-f", "rawvideo",
-            "-s", "${w}x${h}",
+            "-s", "${width}x${height}",
             "-r", fpsString,
             "-pix_fmt", rawFormat,
             // completely wrong:
@@ -133,7 +133,7 @@ open class VideoCreator(
         LOGGER.info("Total frame count: $totalFrameCount")
     }
 
-    private val pixelByteCount = w * h * 3
+    private val pixelByteCount = width * height * 3
 
     private val buffer1 = ByteBufferPool.allocateDirect(pixelByteCount)
     private val buffer2 = ByteBufferPool.allocateDirect(pixelByteCount)
@@ -142,15 +142,15 @@ open class VideoCreator(
 
         GFX.check()
 
-        if (frame.w != w || frame.h != h) throw IllegalArgumentException("Resolution does not match!")
+        if (frame.width != width || frame.height != height) throw IllegalArgumentException("Resolution does not match!")
         frame.bindDirectly()
         Frame.invalidate()
 
         val buffer = if (frameIndex % 2 == 0L) buffer1 else buffer2
 
         buffer.position(0)
-        setReadAlignment(w * 3)
-        glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, buffer)
+        setReadAlignment(width * 3)
+        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         buffer.position(0)
 
         GFX.check()
@@ -171,19 +171,19 @@ open class VideoCreator(
     }
 
     fun writeFrame(frame: Image) {
-        if (frame.width != w || frame.height != h) throw IllegalArgumentException("Resolution does not match!")
+        if (frame.width != width || frame.height != height) throw IllegalArgumentException("Resolution does not match!")
         val output = videoOut
         synchronized(output) {
             if (frame is GPUImage) {
                 val img = frame.createIntImage().data
-                for (i in 0 until w * h) {
+                for (i in 0 until width * height) {
                     val color = img[i]
                     output.write(color.shr(16))
                     output.write(color.shr(8))
                     output.write(color)
                 }
-            } else for (y in 0 until h) {
-                for (x in 0 until w) {
+            } else for (y in 0 until height) {
+                for (x in 0 until width) {
                     val color = frame.getRGB(x, y)
                     output.write(color.shr(16))
                     output.write(color.shr(8))

@@ -59,7 +59,7 @@ class OutlineEffect : CameraEffect() {
         if (radius >= 0 && numGroups > 0) {
             val color = layers[DeferredLayerType.SDR_RESULT]!!.getTexture0()
             val ids = layers[DeferredLayerType.ID]!!.getTexture0()
-            val result = FBStack["outline", color.w, color.h, 4, BufferQuality.LOW_8, 1, false]
+            val result = FBStack["outline", color.width, color.height, 4, BufferQuality.LOW_8, 1, false]
             renderPurely {
                 val shader = shader
                 shader.use()

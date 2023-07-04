@@ -65,8 +65,8 @@ class MultiFramebuffer(
 
     override val numTextures: Int = targets.size
 
-    override val w: Int get() = targetsI[0].w
-    override val h: Int get() = targetsI[0].h
+    override val width: Int get() = targetsI[0].width
+    override val height: Int get() = targetsI[0].height
 
     override val pointer: Int
         get() = throw RuntimeException("Cannot bind directly")

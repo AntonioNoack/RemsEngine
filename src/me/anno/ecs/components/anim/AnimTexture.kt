@@ -96,14 +96,14 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         if (internalTexture.isCreated) {
             // extend texture
             // 4 for sizeof(float), 4 for rgba
-            val buffer = Texture2D.bufferPool[internalTexture.w * internalTexture.h * 4 * 4, false, false]
+            val buffer = Texture2D.bufferPool[internalTexture.width * internalTexture.height * 4 * 4, false, false]
             val data = buffer.asFloatBuffer()
             fillData(data, animation)
             data.position(0)
             internalTexture.overridePartially(
                 buffer,
                 0, 0, start,
-                internalTexture.w,
+                internalTexture.width,
                 numFrames,
                 textureType
             )
@@ -111,7 +111,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         } else {
             if (start != 0) throw IllegalStateException("Internal texture hasn't been created, but start isn't zero, $start")
             // create new texture
-            val buffer = Texture2D.bufferPool[internalTexture.w * internalTexture.h * 4 * 4, false, false]
+            val buffer = Texture2D.bufferPool[internalTexture.width * internalTexture.height * 4 * 4, false, false]
             val data = buffer.asFloatBuffer()
             fillData(data)
             data.position(0)
@@ -157,13 +157,13 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
     }
 
     fun ensureCapacity(size: Int) {
-        val oldSize = internalTexture.h
+        val oldSize = internalTexture.height
         if (oldSize < size) {
             internalTexture.destroy()
             internalTexture.reset()
             // increase by larger steps
-            while (internalTexture.h < size) {
-                internalTexture.h *= 2
+            while (internalTexture.height < size) {
+                internalTexture.height *= 2
             }
             for (data in animationList) {
                 if (data.start < oldSize)

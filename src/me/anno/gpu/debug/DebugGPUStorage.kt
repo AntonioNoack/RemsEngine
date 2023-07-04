@@ -90,10 +90,10 @@ object DebugGPUStorage {
     }
 
     class TexturePanel(name: String, val tex: Texture2D, val flipY: Boolean) :
-        TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
+        TexturePanelBase("$name, ${tex.width} x ${tex.height}") {
 
-        override fun getTexW(): Int = tex.w
-        override fun getTexH(): Int = tex.h
+        override fun getTexW(): Int = tex.width
+        override fun getTexH(): Int = tex.height
         override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
@@ -116,15 +116,15 @@ object DebugGPUStorage {
         }
 
         override fun getTooltipText(x: Float, y: Float) =
-            "${tex.w} x ${tex.h} x ${tex.samples}, ${GFX.getName(tex.internalFormat)}"
+            "${tex.width} x ${tex.height} x ${tex.samples}, ${GFX.getName(tex.internalFormat)}"
 
     }
 
     class TexturePanel3D(name: String, val tex: Texture3D) :
-        TexturePanelBase("$name, ${tex.w} x ${tex.h} x ${tex.d}") {
+        TexturePanelBase("$name, ${tex.width} x ${tex.height} x ${tex.depth}") {
 
-        override fun getTexW(): Int = tex.w
-        override fun getTexH(): Int = tex.h
+        override fun getTexW(): Int = tex.width
+        override fun getTexH(): Int = tex.height
         override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
         val isDepth get() = isDepthFormat(tex.internalFormat)
 
@@ -149,10 +149,10 @@ object DebugGPUStorage {
     }
 
     class TexturePanel2DA(name: String, val tex: Texture2DArray) :
-        TexturePanelBase("$name, ${tex.w} x ${tex.h} x ${tex.d}") {
+        TexturePanelBase("$name, ${tex.width} x ${tex.height} x ${tex.d}") {
 
-        override fun getTexW(): Int = tex.w
-        override fun getTexH(): Int = tex.h
+        override fun getTexW(): Int = tex.width
+        override fun getTexH(): Int = tex.height
         override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
         val isDepth get() = isDepthFormat(tex.internalFormat)
 
@@ -180,10 +180,10 @@ object DebugGPUStorage {
 
     }
 
-    class TexturePanel3DC(name: String, val tex: CubemapTexture) : TexturePanelBase("$name, ${tex.w} x ${tex.h}") {
+    class TexturePanel3DC(name: String, val tex: CubemapTexture) : TexturePanelBase("$name, ${tex.width} x ${tex.height}") {
 
-        override fun getTexW(): Int = tex.w * 2 // 360°
-        override fun getTexH(): Int = tex.w // 180°
+        override fun getTexW(): Int = tex.width * 2 // 360°
+        override fun getTexH(): Int = tex.width // 180°
         override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
         val isDepth get() = isDepthFormat(tex.internalFormat)
 
@@ -205,8 +205,8 @@ object DebugGPUStorage {
             ) {
                 create2DListOfPanels("Texture2Ds") { list ->
                     for (tex in tex2d.sortedWith { a, b ->
-                        val sa = a.w * a.h
-                        val sb = b.w * b.h
+                        val sa = a.width * a.height
+                        val sb = b.width * b.height
                         sa.compareTo(sb).ifSame {
                             a.name.compareTo(b.name)
                         }
@@ -224,7 +224,7 @@ object DebugGPUStorage {
             ) {
                 // todo test this
                 create2DListOfPanels("Texture3Ds") { list ->
-                    for (tex in tex3d.sortedBy { it.w * it.h * it.d }) {
+                    for (tex in tex3d.sortedBy { it.width * it.height * it.depth }) {
                         list.add(TexturePanel3D(tex.name, tex))
                     }
                 }
@@ -237,7 +237,7 @@ object DebugGPUStorage {
                 )
             ) {
                 create2DListOfPanels("Texture2D[]s") { list ->
-                    for (tex in tex2da.sortedBy { it.w * it.h * it.d }) {
+                    for (tex in tex2da.sortedBy { it.width * it.height * it.d }) {
                         list.add(TexturePanel2DA(tex.name, tex))
                     }
                 }
@@ -250,7 +250,7 @@ object DebugGPUStorage {
                 )
             ) {
                 create2DListOfPanels("CubemapTextures") { list ->
-                    for (tex in tex3dCs.sortedBy { it.w }) {
+                    for (tex in tex3dCs.sortedBy { it.width }) {
                         list.add(TexturePanel3DC("", tex))
                     }
                 }
@@ -263,7 +263,7 @@ object DebugGPUStorage {
                 )
             ) {
                 create2DListOfPanels("Framebuffers") { list ->
-                    for (fb in fbs.sortedBy { it.w * it.h }) {
+                    for (fb in fbs.sortedBy { it.width * it.height }) {
                         for (tex in fb.textures) {
                             list.add(TexturePanel(tex.name, tex, true))
                         }

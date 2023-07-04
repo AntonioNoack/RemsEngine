@@ -498,7 +498,7 @@ class AWTFont(val font: Font) {
         texture: Texture2D, portableImages: Boolean, textColor: Int, backgroundColor: Int,
         extraPadding: Int, result: List<StringPart>
     ) {
-        val image = BufferedImage(texture.w, texture.h, 1)
+        val image = BufferedImage(texture.width, texture.height, 1)
         // for (i in width-10 until width) image.setRGB(i, 0, 0xff0000)
 
         val gfx = image.graphics as Graphics2D
@@ -533,7 +533,7 @@ class AWTFont(val font: Font) {
         backgroundColor: Int,
         extraPadding: Int
     ) {
-        val image = BufferedImage(texture.w, texture.h * texture.d, 1)
+        val image = BufferedImage(texture.width, texture.height * texture.d, 1)
         val gfx = image.graphics as Graphics2D
         gfx.prepareGraphics(font, portableImages)
         if (backgroundColor != 0) {
@@ -546,7 +546,7 @@ class AWTFont(val font: Font) {
         }
         gfx.color = Color(textColor)
         var y = fontMetrics.ascent.toFloat()
-        val dy = texture.h.toFloat()
+        val dy = texture.height.toFloat()
         for (yi in simpleChars.indices) {
             gfx.drawString(simpleChars[yi], 0f, y)
             y += dy

@@ -12,8 +12,8 @@ import org.lwjgl.opengl.GL30C
 
 class Framebuffer3D(
     override var name: String,
-    override var w: Int,
-    override var h: Int,
+    override var width: Int,
+    override var height: Int,
     val d: Int,
     val targets: Array<TargetType>,
     val depthBufferType: DepthBufferType
@@ -42,8 +42,8 @@ class Framebuffer3D(
         // if (Build.isDebug) DebugGPUStorage.fbs.add(this)
         Framebuffer.bindFramebuffer(GL30C.GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
-        val w = w
-        val h = h
+        val w = width
+        val h = height
         val d = d
         if (w * h * d < 1) throw RuntimeException("Invalid framebuffer size $w x $h x $d")
         GFX.check()
@@ -135,7 +135,7 @@ class Framebuffer3D(
     }
 
     override fun bindDirectly() {
-        bindDirectly(w, h)
+        bindDirectly(width, height)
     }
 
     override fun bindDirectly(w: Int, h: Int) {

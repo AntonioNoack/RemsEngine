@@ -39,8 +39,8 @@ object BokehBlur {
 
     fun draw(srcTexture: Texture2D, target: Framebuffer, relativeToH: Float, fp: Boolean) {
 
-        val w = min(srcTexture.w, target.w)
-        val h = min(srcTexture.h, target.h)
+        val w = min(srcTexture.width, target.width)
+        val h = min(srcTexture.height, target.height)
 
         if (compositionShader == null) init()
 

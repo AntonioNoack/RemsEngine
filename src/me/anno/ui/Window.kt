@@ -80,8 +80,8 @@ open class Window(
         needsLayout.add(panel)
     }
 
-    var w = -1
-    var h = -1
+    var width = -1
+    var height = -1
 
     // the graphics may want to draw directly on the panel in 3D, so we need a depth texture
     // we could use multiple samples, but for performance reasons, let's not do that, when it's not explicitly requested
@@ -196,9 +196,9 @@ open class Window(
     }
 
     fun validateLayouts(dx: Int, dy: Int, windowW: Int, windowH: Int, panel: Panel) {
-        if (this.w != windowW || this.h != windowH) {
-            this.w = windowW
-            this.h = windowH
+        if (this.width != windowW || this.height != windowH) {
+            this.width = windowW
+            this.height = windowH
             needsLayout.add(panel)
         }
         processNeeds(needsLayout, panel, {
@@ -288,9 +288,9 @@ open class Window(
                 wasRedrawn += panel0
                 GFX.loadTexturesSync.clear()
                 GFX.loadTexturesSync.push(false)
-                if (buffer.w != x1 - x0 || buffer.h != y1 - y0) {
-                    buffer.w = x1 - x0
-                    buffer.h = y1 - y0
+                if (buffer.width != x1 - x0 || buffer.height != y1 - y0) {
+                    buffer.width = x1 - x0
+                    buffer.height = y1 - y0
                     buffer.destroy()
                 }
                 // todo while the window is being rescaled, reuse the old fb

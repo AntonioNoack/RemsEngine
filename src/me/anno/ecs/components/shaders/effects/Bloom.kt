@@ -49,8 +49,8 @@ object Bloom {
 
     private fun forwardPass(source: ITexture2D, offset: Float): Int {
 
-        var wi = source.w
-        var hi = source.h
+        var wi = source.width
+        var hi = source.height
         var previous = source
 
         var shaderX = forwardShader0
@@ -208,7 +208,7 @@ object Bloom {
 
     fun bloom2(
         source: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean,
-        dst: IFramebuffer = FBStack["bloom", source.w, source.h,
+        dst: IFramebuffer = FBStack["bloom", source.width, source.height,
                 if (applyToneMapping) TargetType.UByteTarget4 else TargetType.FP16Target4, 1, false]
     ): IFramebuffer {
         useFrame(dst) {

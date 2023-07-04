@@ -50,13 +50,13 @@ object Frame {
         var w = w0
         var h = h0
         if (w0 < 0 || h0 < 0) {// auto
-            w = framebuffer.w
-            h = framebuffer.h
+            w = framebuffer.width
+            h = framebuffer.height
         }
 
         val ptr = framebuffer.pointer
         if (ptr != lastPtr || lastX != x || lastY != y || lastW != w || lastH != h ||
-            (changeSize && framebuffer != NullFramebuffer && (framebuffer.w != w || framebuffer.h != h))
+            (changeSize && framebuffer != NullFramebuffer && (framebuffer.width != w || framebuffer.height != h))
         ) {
 
             if (changeSize) {
@@ -75,8 +75,8 @@ object Frame {
             val localX = x - offsetX
             val localY = y - offsetY
 
-            val availableWidth = framebuffer.w
-            val availableHeight = framebuffer.h
+            val availableWidth = framebuffer.width
+            val availableHeight = framebuffer.height
 
             GFX.viewportX = x
             GFX.viewportY = y
@@ -122,7 +122,7 @@ object Frame {
 
     fun isFullscreen(): Boolean {
         val fb = GFXState.currentBuffer
-        return lastX == 0 && lastY == 0 && fb.w == lastW && fb.h == lastH
+        return lastX == 0 && lastY == 0 && fb.width == lastW && fb.height == lastH
     }
 
 }

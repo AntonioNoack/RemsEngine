@@ -30,7 +30,7 @@ object RandomEffect : ColorMapEffect() {
     )
 
     override fun render(color: ITexture2D): IFramebuffer {
-        val target = FBStack["random", color.w, color.h, 4, false, 1, false]
+        val target = FBStack["random", color.width, color.height, 4, false, 1, false]
         useFrame(target) {
             val shader = randomShader
             shader.use()

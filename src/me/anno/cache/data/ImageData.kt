@@ -4,13 +4,7 @@ import me.anno.cache.ICacheData
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXState.renderPurely
-import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.Renderer.Companion.copyRenderer
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
@@ -24,7 +18,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.utils.types.Strings.getImportType
-import me.anno.video.formats.gpu.GPUFrame
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
@@ -102,7 +95,7 @@ class ImageData(file: FileReference) : ICacheData {
             getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
         }
         frame.waitToLoad()
-        GFX.addGPUTask("ImageData.useFFMPEG", frame.w, frame.h) {
+        GFX.addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {
             texture = frame.toTexture()
         }
     }

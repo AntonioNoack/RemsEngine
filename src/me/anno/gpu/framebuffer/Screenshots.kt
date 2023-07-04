@@ -38,13 +38,13 @@ object Screenshots {
         type: Int,
         drawScene: () -> Unit
     ): Any {
-        val localYOpenGL = fb.h - ly
-        GFXState.useFrame(fb.w, fb.h, true, fb, renderer) {
+        val localYOpenGL = fb.height - ly
+        GFXState.useFrame(fb.width, fb.height, true, fb, renderer) {
             val radius = diameter shr 1
-            val x0 = clamp(lx - radius, 0, fb.w)
-            val y0 = clamp(localYOpenGL - radius, 0, fb.h)
-            val x1 = clamp(lx + radius + 1, 0, fb.w)
-            val y1 = clamp(localYOpenGL + radius + 1, 0, fb.h)
+            val x0 = clamp(lx - radius, 0, fb.width)
+            val y0 = clamp(localYOpenGL - radius, 0, fb.height)
+            val x1 = clamp(lx + radius + 1, 0, fb.width)
+            val y1 = clamp(localYOpenGL + radius + 1, 0, fb.height)
             if (x1 > x0 && y1 > y0) {
                 Frame.bind()
                 // draw only the clicked area
@@ -59,7 +59,7 @@ object Screenshots {
                         else -> throw IllegalArgumentException()
                     }
                 }
-            } else LOGGER.warn("Selected region was empty: $lx,$ly in 0,0 .. ${fb.w},${fb.h} +/- $radius")
+            } else LOGGER.warn("Selected region was empty: $lx,$ly in 0,0 .. ${fb.width},${fb.height} +/- $radius")
         }
         return buffer
     }

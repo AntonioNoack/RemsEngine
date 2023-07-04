@@ -62,8 +62,8 @@ abstract class ImagePanel(style: Style) : Panel(style) {
 
     private fun stretch(texture: ITexture2D): IntPair {
         return when (stretchMode) {
-            StretchModes.OVERFLOW -> ImageScale.scaleMin(texture.w, texture.h, w, h)
-            StretchModes.PADDING -> ImageScale.scaleMax(texture.w, texture.h, w, h)
+            StretchModes.OVERFLOW -> ImageScale.scaleMin(texture.width, texture.height, w, h)
+            StretchModes.PADDING -> ImageScale.scaleMax(texture.width, texture.height, w, h)
             else -> IntPair(w, h)
         }
     }

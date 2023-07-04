@@ -32,7 +32,7 @@ object SVGxGFX {
     ): Shader {
         val shader = ShaderLib.shader3DSVG.value
         shader.use()
-        shader3DUniforms(shader, stack, texture.w, texture.h, color, null, filtering, null)
+        shader3DUniforms(shader, stack, texture.width, texture.height, color, null, filtering, null)
         texture.bind(0, filtering, clamping)
         if (tiling == null) {
             defineAdvancedGraphicalFeatures(shader)

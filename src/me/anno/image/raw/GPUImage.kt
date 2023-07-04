@@ -5,7 +5,7 @@ import me.anno.image.Image
 import me.anno.io.files.FileReference
 
 class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boolean, val hasOwnership: Boolean) :
-    Image(texture.w, texture.h, numChannels, hasAlphaChannel) {
+    Image(texture.width, texture.height, numChannels, hasAlphaChannel) {
 
     override fun getRGB(index: Int): Int {
         throw RuntimeException("GPUImage.getRGB() is not implemented")

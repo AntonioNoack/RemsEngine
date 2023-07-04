@@ -62,7 +62,7 @@ class ColorPicker(
         super.onDraw(x0, y0, x1, y1)
         // only show the lens, when it makes sense
         val red = 0xffff shl 16
-        if (pixelScale > ceilDiv(abs(lih), max(1, gpuTexture.h))) {
+        if (pixelScale > ceilDiv(abs(lih), max(1, gpuTexture.height))) {
             val width = pixelCount * (pixelScale + pixelSpacing) - pixelSpacing
             val totalWidth = width + generalPadding * 2
             val (mouseX, mouseY) = getMouseCoordinates()
@@ -95,12 +95,12 @@ class ColorPicker(
         } else {
             // show red border around pixel at cursor
             var (mouseX, mouseY) = getMouseCoordinates()
-            if (flipX) mouseX = gpuTexture.w - 1 - mouseX
-            if (flipY) mouseY = gpuTexture.h - 1 - mouseY
-            val x2 = lix + mouseX * liw / gpuTexture.w
-            val y2 = liy + mouseY * lih / gpuTexture.h
-            val x3 = lix + (mouseX + 1) * liw / gpuTexture.w
-            val y3 = liy + (mouseY + 1) * lih / gpuTexture.h
+            if (flipX) mouseX = gpuTexture.width - 1 - mouseX
+            if (flipY) mouseY = gpuTexture.height - 1 - mouseY
+            val x2 = lix + mouseX * liw / gpuTexture.width
+            val y2 = liy + mouseY * lih / gpuTexture.height
+            val x3 = lix + (mouseX + 1) * liw / gpuTexture.width
+            val y3 = liy + (mouseY + 1) * lih / gpuTexture.height
             DrawRectangles.drawBorder(min(x2, x3), min(y2, y3), abs(x3 - x2), abs(y3 - y2), red, 2)
         }
     }

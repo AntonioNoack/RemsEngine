@@ -231,7 +231,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             Signature("media", 0, 0xFF, 0xFB),// mp3
             Signature("media", 0, 0xFF, 0xF3),// mp3
             Signature("media", 0, 0xFF, 0xF2),// mp3
-            Signature("media", 0, "OggS"),// ogg
+            Signature("media", 0, "OggS"),// ogg, opus
             Signature("media", 0, "RIFF"),// can be a lot of stuff, e.g., wav, avi
             Signature("media", 0, "FLV"),// flv
             Signature("media", 0, 0x47),// mpeg stream

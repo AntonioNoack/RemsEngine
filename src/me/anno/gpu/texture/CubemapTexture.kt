@@ -37,13 +37,13 @@ open class CubemapTexture(
 
     override var isHDR = false
 
-    override var w: Int
+    override var width: Int
         get() = size
         set(value) {
             size = value
         }
 
-    override var h: Int
+    override var height: Int
         get() = size
         set(_) {}
 

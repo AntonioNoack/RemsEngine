@@ -525,11 +525,11 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         h = max(h, 1)
 
         val s0 = w * h
-        val s1 = buffer.w * buffer.h
+        val s1 = buffer.width * buffer.height
         val mayChangeSize = mayChangeSize || (w * h < 1024) || min(s0, s1) * 2 <= max(s0, s1)
         if (!mayChangeSize) {
-            w = buffer.w
-            h = buffer.h
+            w = buffer.width
+            h = buffer.height
         }
 
         var dstBuffer = buffer
@@ -1052,7 +1052,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         }
 
         // anti-aliasing
-        val dstBuffer = FBStack["RenderView-dst", buffer.w, buffer.h, 4, false, 1, false]
+        val dstBuffer = FBStack["RenderView-dst", buffer.width, buffer.height, 4, false, 1, false]
         useFrame(w, h, true, dstBuffer) {
             FXAA.render(baseSameDepth.getTexture0())
         }
@@ -1443,7 +1443,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     }
 
     fun drawSceneLights(deferred: IFramebuffer, dst: IFramebuffer) {
-        useFrame(deferred.w, deferred.h, true, dst, copyRenderer) {
+        useFrame(deferred.width, deferred.height, true, dst, copyRenderer) {
             dst.clearColor(0)
             pipeline.lightStage.bindDraw(deferred, cameraMatrix, cameraPosition, worldScale)
         }

@@ -76,7 +76,7 @@ object DefaultConfig : StringMap() {
         addImportMappings("Mesh", "obj", "mtl", "fbx", "dae", "gltf", "glb", "md2", "md5mesh", "vox")
         // not yet supported
         // addImportMappings("Markdown", "md")
-        addImportMappings("Audio", "mp3", "wav", "m4a", "ogg")
+        addImportMappings("Audio", "mp3", "wav", "m4a", "ogg", "opus")
         addImportMappings("URL", "url", "lnk", "desktop")
         addImportMappings(
             "Container", "unitypackage",

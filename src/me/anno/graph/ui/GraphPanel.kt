@@ -177,8 +177,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         if (lineThickness < 0 || lineThicknessBold < 0) {
             val window = window
             if (window != null) {
-                if (lineThickness < 0) lineThickness = max(1, sqrt(window.h / 120f).roundToInt())
-                if (lineThicknessBold < 0) lineThicknessBold = max(1, sqrt(window.h / 50f).roundToInt())
+                if (lineThickness < 0) lineThickness = max(1, sqrt(window.height / 120f).roundToInt())
+                if (lineThicknessBold < 0) lineThicknessBold = max(1, sqrt(window.height / 50f).roundToInt())
             }
         }
     }

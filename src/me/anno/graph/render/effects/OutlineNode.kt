@@ -67,8 +67,8 @@ class OutlineNode : ActionNode(
             return
         }
 
-        val w = max(max(illuminated.w, color.w), max(normal.w, depth.w))
-        val h = max(max(illuminated.h, color.h), max(normal.h, depth.h))
+        val w = max(max(illuminated.width, color.width), max(normal.width, depth.width))
+        val h = max(max(illuminated.height, color.height), max(normal.height, depth.height))
         useFrame(w, h, true, framebuffer, copyRenderer) {
             val shader = shader
             shader.use()
