@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -223,6 +224,7 @@ open class BaseShader(
     }
 
     open fun createDefines(flags: Int, dst: StringBuilder = StringBuilder()): StringBuilder {
+        dst.append(matMul)
         if (flags.hasFlag(IS_INSTANCED)) dst.append("#define INSTANCED\n")
         if (flags.hasFlag(IS_ANIMATED)) dst.append("#define ANIMATED\n")
         if (flags.hasFlag(IS_DEFERRED)) dst.append("#define DEFERRED\n")

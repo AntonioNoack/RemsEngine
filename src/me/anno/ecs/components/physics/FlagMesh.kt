@@ -273,7 +273,7 @@ class FlagMesh : MeshComponent() {
 
                             applyTransformCode +
                             colorInitCode +
-                            "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                            "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                             motionVectorCode +
                             ShaderLib.positionPostProcessing
                 )

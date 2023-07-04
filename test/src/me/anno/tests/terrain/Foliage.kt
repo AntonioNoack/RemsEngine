@@ -117,7 +117,7 @@ class FoliageShader(
                         "   vertexColor3 = vec4(1.0);\n" +
                         "   uv = uvs;\n" +
                         "#endif\n" +
-                        "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                        "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                         motionVectorCode +
                         ShaderLib.positionPostProcessing
             ).add(animFunc).add(quatRot).add(noiseFunc).add(sdfConstants).add(generalNoise).add(perlinNoise)

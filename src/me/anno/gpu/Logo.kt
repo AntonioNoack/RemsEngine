@@ -19,7 +19,7 @@ import kotlin.math.min
 
 // can be set by the application
 var logoBackgroundColor = 0
-var logoIconColor = 0x212256
+var logoIconColor = 0xff212256.toInt()
 
 val logoSrc = FileReference.getReference("res://icon.obj")
 
@@ -35,9 +35,7 @@ val shader by lazy {
         ), "void main(){ gl_FragColor = logoColor; }"
     )
 
-    shader.use()
     shader.ignoreNameWarnings("normals", "uvs", "tangents", "colors")
-
     shader
 
 }

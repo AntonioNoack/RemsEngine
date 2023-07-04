@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="OpenXR">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-openxr-natives-linux-arm32.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-openxr-natives-linux-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-openxr-natives-linux.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-openxr-natives-windows-arm64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-openxr-natives-windows-x86.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-openxr-natives-windows.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-openxr.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/lwjgl-openxr-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

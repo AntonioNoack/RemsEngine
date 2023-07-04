@@ -3,6 +3,13 @@ package me.anno.tests.utils
 import me.anno.Engine
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.gpu.GFX
+import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.builder.Variable
+import me.anno.image.ImageWriter
+import me.anno.input.Input
 import me.anno.sdf.SDFComponent
 import me.anno.sdf.SDFComposer
 import me.anno.sdf.SDFGroup
@@ -11,11 +18,6 @@ import me.anno.sdf.arrays.SDFArrayMapper
 import me.anno.sdf.arrays.SDFHexGrid
 import me.anno.sdf.modifiers.*
 import me.anno.sdf.shapes.*
-import me.anno.gpu.GFX
-import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.shader.ShaderLib
-import me.anno.image.ImageWriter
-import me.anno.input.Input
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.utils.Color.rgba
 import me.anno.utils.pooling.JomlPools
@@ -71,17 +73,23 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
         ShaderLib.coordsList,
         ShaderLib.coordsVShader,
         ShaderLib.uvList,
-        listOf(),
+        listOf(
+            Variable(GLSLType.M3x3, "camMatrix"),
+            Variable(GLSLType.V2F, "camScale"),
+            Variable(GLSLType.V3F, "camPosition"),
+            Variable(GLSLType.V2F, "distanceBounds"),
+            Variable(GLSLType.V3F, "sunDir"),
+            Variable(GLSLType.V1I, "maxSteps"),
+            Variable(GLSLType.V1F, "sdfReliability"),
+            Variable(GLSLType.V1F, "sdfNormalEpsilon"),
+            // [0,1.5], can be 1.0 in most cases; higher = faster convergence
+            Variable(GLSLType.V1F, "sdfMaxRelativeError"),
+            // near, far, reversedZ
+            Variable(GLSLType.V3F, "depthParams"),
+        ) + uniforms.entries.map { (k, v) ->
+            Variable(v.type, k)
+        },
         "" +
-                uniforms.entries.joinToString("") { (k, v) -> "uniform ${v.type.glslName} $k;\n" } +
-                "uniform mat3 camMatrix;\n" +
-                "uniform vec2 camScale;\n" +
-                "uniform vec3 camPosition;\n" +
-                "uniform vec2 distanceBounds;\n" +
-                "uniform vec3 sunDir;\n" +
-                "uniform int maxSteps;\n" +
-                "uniform float sdfReliability, sdfNormalEpsilon, sdfMaxRelativeError;\n" + // [0,1.5], can be 1.0 in most cases; higher = faster convergence
-                "uniform vec3 depthParams;\n" + // near, far, reversedZ
                 "#define Infinity 1e20\n" +
                 functions.joinToString("") +
                 "vec4 map(in vec3 pos0){\n" +

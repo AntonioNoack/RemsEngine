@@ -31,7 +31,7 @@ object DepthTransforms {
             "   return quatRot(vec3((uv-0.5)*d_fovFactor.xy, -1.0), d_camRot);\n" +
             "}\n" +
             "vec3 depthToPosition(vec2 uv, float depth){\n" + // position is in camera space, so camera is at zero
-            "   if(d_fovFactor.z < 0.0) return d_orthoMat * vec4(uv*2.0-1.0,depth,1.0);\n" + // orthographic
+            "   if(d_fovFactor.z < 0.0) return matMul(d_orthoMat, vec4(uv*2.0-1.0,depth,1.0));\n" + // orthographic
             "   return rawCameraDirection(uv) * depth;\n" +
             "}\n" +
             "vec3 rawDepthToPosition(vec2 uv, float rawDepth){ return depthToPosition(uv, rawToDepth(rawDepth)); }\n" +

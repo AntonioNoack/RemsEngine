@@ -274,7 +274,7 @@ object GFXBase {
     }
 
     @JvmField
-    var lastCurrent = 0L
+    var numLogoFrames = 2
 
     @JvmStatic
     fun runRenderLoop0(window0: OSWindow) {
@@ -284,9 +284,10 @@ object GFXBase {
         window0.forceUpdateVsync()
         tick.stop("Make context current + vsync")
         prepareForRendering(tick)
-        val zeroFrames = 2
-        for (i in 0 until zeroFrames) {
-            drawLogo(window0.width, window0.height, i == zeroFrames - 1)
+        GFX.setFrameNullSize(window0)
+        val logoFrames = numLogoFrames
+        for (i in 0 until logoFrames) {
+            drawLogo(window0.width, window0.height, i == logoFrames - 1)
             GFX.check()
             GLFW.glfwSwapBuffers(window0.pointer)
             val err = glGetError()

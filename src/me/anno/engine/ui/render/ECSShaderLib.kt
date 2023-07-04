@@ -16,8 +16,7 @@ object ECSShaderLib {
         "SimpleECS", listOf(
             Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform")
-        ), "" +
-                "void main() { gl_Position = transform * vec4(coords, 1.0); }", emptyList(), listOf(
+        ), "void main() { gl_Position = matMul(transform, vec4(coords, 1.0)); }", emptyList(), listOf(
             Variable(GLSLType.V4F, "diffuseBase"),
             Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
@@ -61,9 +60,9 @@ object ECSShaderLib {
                         Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
                     ), "" +
                             "finalNormal = isOrtho ? normalOverride : -coords;\n" +
-                            "currPosition = transform * vec4(coords, 1.0);\n" +
+                            "currPosition = matMul(transform, vec4(coords, 1.0));\n" +
                             "gl_Position = isOrtho ? vec4(coords.xy, 0.0, 1.0) : currPosition;\n" +
-                            "prevPosition = isOrtho ? currPosition : (prevTransform * vec4(coords, 1.0));\n" +
+                            "prevPosition = isOrtho ? currPosition : matMul(prevTransform, vec4(coords, 1.0));\n" +
                             ShaderLib.positionPostProcessing
                 ).add(ShaderLib.octNormalPacking)
             )

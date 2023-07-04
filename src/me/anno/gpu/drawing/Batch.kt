@@ -23,6 +23,8 @@ abstract class Batch(val base: StaticBuffer, attributes: List<Attribute>, val ba
         }
     }
 
+    val attributes get() = buffer.attributes
+
     val data get() = buffer.nioBuffer!!
 
     fun next() {

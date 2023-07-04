@@ -524,11 +524,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     @kotlin.jvm.Throws(IOException::class)
     open fun writeBytes(bytes: ByteBuffer) {
         val byte2 = ByteArray(bytes.remaining())
-        bytes.get(byte2)
-        // readBytes() may potentially be awfully slow
-        if (!exists || length() != byte2.size.toLong()/* || !readBytes().contentEquals(byte2)*/) {
-            writeBytes(byte2)
-        }
+        val pos = bytes.position()
+        bytes.get(byte2).position(pos)
+        writeBytes(byte2)
     }
 
     @kotlin.jvm.Throws(IOException::class)

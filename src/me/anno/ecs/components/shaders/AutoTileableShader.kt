@@ -112,7 +112,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
                         "if(abs(normalStrength.x) > 0.0){\n" +
                         "   vec3 normalFromTex = sampleAutoTileableTexture(normalMap, uv).rgb * 2.0 - 1.0;\n" +
-                        "        normalFromTex = tbn * normalFromTex;\n" +
+                        "        normalFromTex = matMul(tbn, normalFromTex);\n" +
                         // normalize?
                         "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
                         "}\n" +

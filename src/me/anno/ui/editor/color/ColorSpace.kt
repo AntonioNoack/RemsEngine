@@ -1,7 +1,6 @@
 package me.anno.ui.editor.color
 
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.OpenGLShader.Companion.attribute
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -9,7 +8,6 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
-import me.anno.ui.editor.color.spaces.Oklab
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.collections.set
@@ -32,20 +30,14 @@ abstract class ColorSpace(
         val oldShader = shaders[type]
         if (oldShader != null) return oldShader
         val vertexShader = "" +
-                "uniform vec4 posSize;\n" +
-                "uniform mat4 transform;\n" +
                 "void main(){\n" +
-                "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.-1., 0.0, 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.-1., 0.0, 1.0));\n" +
                 "   uv = coords;\n" +
                 "}"
         val varyingShader = listOf(Variable(GLSLType.V2F, "uv"))
         val fragmentShader = when (type) {
             ColorVisualisation.WHEEL -> {
-                "" +
-                        "uniform vec2 ringSL;\n" +
-                        "uniform vec3 v0, du, dv;\n" +
-                        "uniform float sharpness;\n" +
-                        glsl.value +
+                glsl.value +
                         "void main(){\n" +
                         "   vec2 nuv = uv*2.0-1.0;\n" + // normalized uv
                         "   float dst = dot(nuv,nuv);\n" +
@@ -65,9 +57,7 @@ abstract class ColorSpace(
                         "}"
             }
             ColorVisualisation.CIRCLE -> {
-                "" +
-                        "uniform float lightness, sharpness;\n" +
-                        glsl.value +
+                glsl.value +
                         "void main(){\n" +
                         "   vec3 rgb;\n" +
                         "   float alpha = 1.0;\n" +
@@ -97,9 +87,7 @@ abstract class ColorSpace(
                         "}"
             }
             ColorVisualisation.BOX -> {
-                "" +
-                        "uniform vec3 v0, du, dv;\n" +
-                        glsl.value +
+                glsl.value +
                         "void main(){\n" +
                         "   vec3 hsl = v0 + du * uv.x + dv * uv.y;\n" +
                         "   vec3 rgb = spaceToRGB(hsl);\n" +
@@ -109,10 +97,21 @@ abstract class ColorSpace(
         }
         val newShader = Shader(
             "$naming-${type.naming}",
-            listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR)),
+            listOf(
+                Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
+                Variable(GLSLType.V4F, "posSize"),
+                Variable(GLSLType.M4x4, "transform")
+            ),
             vertexShader,
             varyingShader,
-            listOf(),
+            listOf(
+                Variable(GLSLType.V2F, "ringSL"),
+                Variable(GLSLType.V3F, "v0"),
+                Variable(GLSLType.V3F, "du"),
+                Variable(GLSLType.V3F, "dv"),
+                Variable(GLSLType.V1F, "sharpness"),
+                Variable(GLSLType.V1F, "lightness")
+            ),
             fragmentShader
         )
         shaders[type] = newShader

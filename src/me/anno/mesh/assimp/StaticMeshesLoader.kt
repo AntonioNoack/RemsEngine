@@ -168,11 +168,39 @@ object StaticMeshesLoader {
         val childCount = aiNode.mNumChildren()
         if (childCount > 0) {
             val children = aiNode.mChildren()!!
-            for (i in 0 until childCount) {
-                val childNode = AINode.createSafe(children[i]) ?: continue
-                val childName = childNode.mName().dataString()
-                val childPath = prefab.add(path, 'e', "Entity", childName)
-                buildScene(aiScene, sceneMeshes, hasSkeleton, childNode, prefab, childPath)
+            if (childCount > 16) {
+                val usedNames = HashMap<String, Int>(childCount)
+                for (i in 0 until childCount) {
+                    val childNode = AINode.createSafe(children[i]) ?: continue
+                    var childName = childNode.mName().dataString()
+                    while (true) {
+                        val oldIdx = usedNames[childName] ?: 0
+                        usedNames[childName] = oldIdx + 1
+                        if (oldIdx > 0) childName += "-$oldIdx"
+                        else break
+                    }
+                    val childPath = prefab.add(path, 'e', "Entity", childName)
+                    buildScene(aiScene, sceneMeshes, hasSkeleton, childNode, prefab, childPath)
+                }
+            } else if (childCount > 1) {
+                val usedNames = ArrayList<String>(childCount)
+                for (i in 0 until childCount) {
+                    val childNode = AINode.createSafe(children[i]) ?: continue
+                    var childName = childNode.mName().dataString()
+                    while (childName in usedNames) {
+                        childName += "-"
+                    }
+                    usedNames.add(childName)
+                    val childPath = prefab.add(path, 'e', "Entity", childName)
+                    buildScene(aiScene, sceneMeshes, hasSkeleton, childNode, prefab, childPath)
+                }
+            } else {
+                val childNode = AINode.createSafe(children[0])
+                if (childNode != null) {
+                    val childName = childNode.mName().dataString()
+                    val childPath = prefab.add(path, 'e', "Entity", childName)
+                    buildScene(aiScene, sceneMeshes, hasSkeleton, childNode, prefab, childPath)
+                }
             }
         }
 

@@ -40,7 +40,7 @@ object GFXx3D {
                 "   vec3 localPos0 = coords + offset;\n" +
                 "   vec2 pseudoUV2 = getForceFieldUVs(localPos0.xy*.5+.5);\n" +
                 "   finalPosition = ${ShaderLib.hasForceFieldUVs} ? vec3(pseudoUV2*2.0-1.0, coords.z + offset.z) : localPos0;\n" +
-                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 ShaderLib.flatNormal +
                 ShaderLib.positionPostProcessing +
                 "   vertexId = gl_VertexID;\n" +
@@ -68,7 +68,7 @@ object GFXx3D {
                 "   float angle = mix(circleParams.y, circleParams.z, coords.x);\n" +
                 "   vec2 betterUV = vec2(cos(angle), -sin(angle)) * (1.0 - circleParams.x * coords.y);\n" +
                 "   finalPosition = vec3(betterUV, 0.0);\n" +
-                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 ShaderLib.flatNormal +
                 ShaderLib.positionPostProcessing +
                 "}", ShaderLib.y3D, listOf(
@@ -85,10 +85,12 @@ object GFXx3D {
     )
 
     val shader3DBoxBlur = Shader(
-        "3d-blur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(), "" +
-                "uniform sampler2D tex;\n" +
-                "uniform vec2 stepSize;\n" +
-                "uniform int steps;\n" +
+        "3d-blur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+        listOf(
+            Variable(GLSLType.S2D, "tex"),
+            Variable(GLSLType.V2F, "stepSize"),
+            Variable(GLSLType.V1I, "steps")
+        ), "" +
                 "void main(){\n" +
                 "   vec4 color;\n" +
                 "   if(steps < 2){\n" +

@@ -15,8 +15,6 @@ import me.anno.utils.OS
 
 object FSR {
 
-    private val vertex = ShaderLib.simpleVertexShader
-
     val code = lazy {
         val defines = ResourceHelper.loadText("shader/fsr1/ffx_a.h")
         val functions = ResourceHelper.loadText("shader/fsr1/ffx_fsr1.h")
@@ -29,7 +27,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", coordsList, vertex, uvList, emptyList(), "" +
+            "upscale", coordsList, ShaderLib.simpleVertexShader, uvList, emptyList(), "" +
                     "uniform vec2 dstWH;\n" +
                     "uniform vec3 background;\n" +
                     "uniform sampler2D source;\n" +
@@ -89,7 +87,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", coordsList, vertex, uvList, emptyList(), "" +
+            "upscale", coordsList, ShaderLib.simpleVertexShader, uvList, emptyList(), "" +
                     "out vec4 glFragColor;\n" +
                     "uniform vec2 dstWH;\n" +
                     "uniform float sharpness;\n" +

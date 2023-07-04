@@ -23,6 +23,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -227,7 +228,7 @@ object LightShaders {
                 "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "} else {\n" +
                 "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
-                "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4(matMul(localTransform, vec4(coords, 1.0)), 1.0));\n" +
                 "}\n" +
                 "camSpaceToLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2,invInsTrans3);\n" +
                 "uvw = gl_Position.xyw;\n"
@@ -245,7 +246,7 @@ object LightShaders {
                 "if(cutoff <= 0.0){\n" +
                 "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "} else {\n" +
-                "   gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4(matMul(localTransform, vec4(coords, 1.0))), 1.0);\n" +
                 "}\n" +
                 "uvw = gl_Position.xyw;\n"
     )
@@ -289,8 +290,8 @@ object LightShaders {
                     "int shadowMapIdx1 = int(data2.g);\n" +
                     // light properties, which are typically inside the loop
                     "vec3 lightColor = data0.rgb;\n" +
-                    "vec3 dir = camSpaceToLightSpace * vec4(finalPosition, 1.0);\n" +
-                    "vec3 localNormal = normalize(mat3x3(camSpaceToLightSpace) * finalNormal);\n" +
+                    "vec3 dir = matMul(camSpaceToLightSpace, vec4(finalPosition, 1.0));\n" +
+                    "vec3 localNormal = normalize(matMul(mat3x3(camSpaceToLightSpace), finalNormal));\n" +
                     "float NdotL = 0.0;\n" + // normal dot light
                     "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS = vec3(0.0);\n" +
                     coreFragment +
@@ -329,7 +330,7 @@ object LightShaders {
                 "   if(fullscreen){\n" +
                 "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "   } else {\n" +
-                "      gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                "      gl_Position = matMul(transform, vec4(matMul(localTransform, vec4(coords, 1.0)), 1.0));\n" +
                 "   }\n" +
                 "}\n", emptyList(), listOf(
             Variable(GLSLType.V1F, "countPerPixel"),
@@ -355,7 +356,7 @@ object LightShaders {
                 "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "   } else {\n" +
                 "       mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
-                "      gl_Position = transform * vec4(localTransform * vec4(coords, 1.0), 1.0);\n" +
+                "      gl_Position = matMul(transform, vec4(matMul(localTransform, vec4(coords, 1.0)), 1.0));\n" +
                 "   }\n" +
                 "}", emptyList(), listOf(
             Variable(GLSLType.V1F, "countPerPixel"),

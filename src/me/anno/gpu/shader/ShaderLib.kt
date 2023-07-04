@@ -22,6 +22,19 @@ import kotlin.math.sqrt
 @Suppress("MemberVisibilityCanBePrivate", "unused")
 object ShaderLib {
 
+    /**
+     * This function is intended for shaders to be used for matrix-vector multiplication.
+     * It makes writing a DirectX backend easier.
+     * */
+    const val matMul = "" +
+            "#ifndef matMul\n" +
+            "   #ifdef HLSL\n" +
+            "       #define matMul(a,b) mul(a,b)\n" +
+            "   #else\n" +
+            "       #define matMul(a,b) (a)*(b)\n" +
+            "   #endif\n" +
+            "#endif\n"
+
     val y = Vector4f(0.299f, 0.587f, 0.114f, 0f)
     val u = Vector4f(-0.169f, -0.331f, 0.500f, 0.5f)
     val v = Vector4f(0.500f, -0.419f, -0.081f, 0.5f)
@@ -59,7 +72,7 @@ object ShaderLib {
             "uniform vec4 tiling;\n" +
             "uniform mat4 transform;\n" +
             "void main(){\n" +
-            "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.5, 1.0);\n" +
+            "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.5, 1.0));\n" +
             "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "}"
 
@@ -84,7 +97,7 @@ object ShaderLib {
 
     const val simpleVertexShaderV2 = "" +
             "void main(){\n" +
-            "   gl_Position = transform * vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.5, 1.0);\n" +
+            "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.5, 1.0));\n" +
             "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "}"
 
@@ -366,7 +379,7 @@ object ShaderLib {
     const val v3D = "" +
             "void main(){\n" +
             "   finalPosition = coords;\n" +
-            "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+            "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
             positionPostProcessing +
             "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "   uvw = coords;\n" +
@@ -407,7 +420,7 @@ object ShaderLib {
     val v3DMasked = "" +
             "void main(){\n" +
             "   finalPosition = vec3(coords*2.0-1.0, 0.0);\n" +
-            "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+            "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
             "   uv = gl_Position.xyw;\n" +
             positionPostProcessing +
             "}"
@@ -436,7 +449,7 @@ object ShaderLib {
             "   vec2 betterUV = coords.xy;\n" +
             "   betterUV *= mix(1.0, attr1.r, inset);\n" +
             "   finalPosition = vec3(betterUV, coords.z);\n" +
-            "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+            "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
             flatNormal +
             positionPostProcessing +
             "   uv = attr1.yx;\n" +
@@ -512,7 +525,7 @@ object ShaderLib {
         val vSVG = "" +
                 "void main(){\n" +
                 "   finalPosition = aLocalPosition;\n" +
-                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 flatNormal +
                 positionPostProcessing +
                 "   color0 = aColor0;\n" +
@@ -631,20 +644,20 @@ object ShaderLib {
                         "jointMat += jointTransforms[indices.z] * weights.z;\n" +
                         "jointMat += jointTransforms[indices.w] * weights.w;\n"
                         ) +
-                "       finalPosition = jointMat * vec4(coords, 1.0);\n" +
-                "       normal = mat3x3(jointMat) * normals;\n" +
-                "       tangent = vec4(mat3x3(jointMat) * tangents.xyz, tangents.w);\n" +
+                "       finalPosition = matMul(jointMat, vec4(coords, 1.0));\n" +
+                "       normal = matMul(mat3x3(jointMat), normals);\n" +
+                "       tangent = vec4(matMul(mat3x3(jointMat), tangents.xyz), tangents.w);\n" +
                 "   } else {\n" +
                 "       finalPosition = coords;\n" +
                 "       normal = normals;\n" +
                 "       tangent = tangents;\n" +
                 "   }\n" +
-                "   normal = mat3x3(localTransform) * normal;\n" +
-                "   tangent.xyz = mat3x3(localTransform) * tangent.xyz;\n" +
-                "   finalPosition = localTransform * vec4(finalPosition, 1.0);\n" +
+                "   normal = matMul(mat3x3(localTransform), normal);\n" +
+                "   tangent.xyz = matMul(mat3x3(localTransform), tangent.xyz);\n" +
+                "   finalPosition = matMul(localTransform, vec4(finalPosition, 1.0));\n" +
                 // normal only needs to be normalized, if we show the normal
                 "   normal = normalize(normal);\n" + // here? nah ^^
-                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 "   uv = uvs;\n" +
                 // "   weight = weights;\n" +
                 "   vertexColor0 = colors;\n" +
@@ -788,10 +801,13 @@ object ShaderLib {
     ).apply { setTextureIndices("texY", "texUV") }
 
     val lineShader3D = BaseShader(
-        "3d-lines", listOf(Variable(GLSLType.V3F, "coords", VariableMode.ATTR)),
-        "uniform mat4 transform;\n" +
+        "3d-lines", listOf(
+            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+            Variable(GLSLType.M4x4, "transform")
+        ),
+        "" +
                 "void main(){" +
-                "   gl_Position = transform * vec4(coords, 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4(coords, 1.0));\n" +
                 positionPostProcessing +
                 "}", listOf(Variable(GLSLType.V1F, "zDistance")),
         listOf(
@@ -819,7 +835,7 @@ object ShaderLib {
                 "   vec2 localPos0 = coords.xy * scale + offset;\n" +
                 "   vec2 pseudoUV2 = getForceFieldUVs(localPos0*.5+.5);\n" +
                 "   finalPosition = vec3($hasForceFieldUVs ? pseudoUV2*2.0-1.0 : localPos0, 0);\n" +
-                "   gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 positionPostProcessing +
                 "}", y3D, listOf(
             Variable(GLSLType.S2D, "tex"),
@@ -867,14 +883,16 @@ object ShaderLib {
     )
 
     val textShader = BaseShader(
-        "textShader", coordsList,
+        "textShader", coordsList + listOf(
+            Variable(GLSLType.V4F, "posSize"),
+            // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
+            Variable(GLSLType.M4x4, "transform"),
+            Variable(GLSLType.V2F, "windowSize"),
+        ),
         "" +
-                "uniform vec4 posSize;\n" +
-                "uniform mat4 transform;\n" + // not really supported, since subpixel layouts would be violated for non-integer translations, scales, skews or perspective
-                "uniform vec2 windowSize;\n" +
                 "void main(){\n" +
                 "   vec2 localPos = posSize.xy + coords * posSize.zw;\n" +
-                "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4(localPos*2.0-1.0, 0.0, 1.0));\n" +
                 "   position = localPos * windowSize;\n" +
                 "   uv = coords;\n" +
                 "}",
@@ -885,10 +903,11 @@ object ShaderLib {
         listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+            Variable(GLSLType.V4F, "textColor"),
+            Variable(GLSLType.V4F, "backgroundColor"),
+            Variable(GLSLType.V2F, "windowSize"),
+            Variable(GLSLType.S2D, "tex")
         ), "" +
-                "uniform vec4 textColor, backgroundColor;\n" +
-                "uniform vec2 windowSize;\n" +
-                "uniform sampler2D tex;\n" +
                 brightness +
                 "void main(){\n" +
                 "   float mixing = brightness(texture(tex, uv).rgb) * textColor.a;\n" +
@@ -916,7 +935,7 @@ object ShaderLib {
                 "" +
                         "void main(){\n" +
                         "   vec2 localPos = coords * posSize.zw + instData.xy;\n" +
-                        "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
+                        "   gl_Position = matMul(transform, vec4(localPos*2.0-1.0, 0.0, 1.0));\n" +
                         "   position = localPos * windowSize;\n" +
                         "   textColor = color0;\n" +
                         "   backgroundColor = color1;\n" +
@@ -926,7 +945,7 @@ object ShaderLib {
                 "" +
                         "void main(){\n" +
                         "   vec2 localPos = coords * posSize.zw + posSize.xy;\n" +
-                        "   gl_Position = transform * vec4(localPos*2.0-1.0, 0.0, 1.0);\n" +
+                        "   gl_Position = matMul(transform, vec4(localPos*2.0-1.0, 0.0, 1.0));\n" +
                         "   position = localPos * windowSize;\n" +
                         "   uv = coords;\n" +
                         "}"

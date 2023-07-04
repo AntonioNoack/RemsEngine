@@ -40,7 +40,7 @@ object LineBuffer {
             Variable(GLSLType.M4x4, "transform")
         ), "" +
                 "void main(){" +
-                "   gl_Position = transform * vec4(position, 1.0);\n" +
+                "   gl_Position = matMul(transform, vec4(position, 1.0));\n" +
                 "   vColor = color;\n" +
                 "}", listOf(Variable(GLSLType.V4F, "vColor")), listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),

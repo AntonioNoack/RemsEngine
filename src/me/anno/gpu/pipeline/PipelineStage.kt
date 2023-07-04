@@ -99,10 +99,10 @@ class PipelineStage(
                 Attribute("instanceTrans1", 3),
                 Attribute("instanceTrans2", 3),
                 Attribute("instanceTrans3", 3),
-                Attribute("prevInstanceTrans0", 3),
-                Attribute("prevInstanceTrans1", 3),
-                Attribute("prevInstanceTrans2", 3),
-                Attribute("prevInstanceTrans3", 3),
+                Attribute("instancePrevTrans0", 3),
+                Attribute("instancePrevTrans1", 3),
+                Attribute("instancePrevTrans2", 3),
+                Attribute("instancePrevTrans3", 3),
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
@@ -112,10 +112,11 @@ class PipelineStage(
                 Attribute("instanceTrans1", 3),
                 Attribute("instanceTrans2", 3),
                 Attribute("instanceTrans3", 3),
-                Attribute("prevInstanceTrans0", 3),
-                Attribute("prevInstanceTrans1", 3),
-                Attribute("prevInstanceTrans2", 3),
-                Attribute("prevInstanceTrans3", 3),
+                Attribute("instancePrevTrans0", 3),
+                Attribute("instancePrevTrans1", 3),
+                Attribute("instancePrevTrans2", 3),
+                Attribute("instancePrevTrans3", 3),
+                // todo somehow add instance-prefix
                 Attribute("animWeights", 4),
                 Attribute("animIndices", 4),
                 Attribute("prevAnimWeights", 4),

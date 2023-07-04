@@ -136,10 +136,10 @@ object ScreenSpaceAmbientOcclusion {
                 "       float occlusion = 0.0;\n" +
                 "       for(int i=0;i<numSamples;i++){\n" +
                 // "sample" seems to be a reserved keyword for the emulator
-                "           vec3 position = tbn * texelFetch(sampleKernel, ivec2(i,0), 0).xyz * radius + origin;\n" +
+                "           vec3 position = matMul(tbn, texelFetch(sampleKernel, ivec2(i,0), 0).xyz) * radius + origin;\n" +
                 "           float sampleTheoDepth = dot2(position);\n" +
                 // project sample position... mmmh...
-                "           vec4 offset = transform * vec4(position, 1.0);\n" +
+                "           vec4 offset = matMul(transform, vec4(position, 1.0));\n" +
                 "           offset.xy /= offset.w;\n" +
                 "           offset.xy = offset.xy * 0.5 + 0.5;\n" +
                 "           bool isInside = offset.x >= 0.0 && offset.x <= 1.0 && offset.y >= 0.0 && offset.y <= 1.0;\n" +

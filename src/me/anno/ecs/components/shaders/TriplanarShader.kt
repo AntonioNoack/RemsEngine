@@ -88,7 +88,7 @@ object TriplanarShader : ECSMeshShader("triplanar") {
                         // to do support sheen normal (?), how important is that?
                         /*"   if(finalSheen * normalStrength.y > 0.0){\n" +
                         "      vec3 normalFromTex = texture(sheenNormalMap, uv).rgb * 2.0 - 1.0;\n" +
-                        "           normalFromTex = tbn * normalFromTex;\n" +
+                        "           normalFromTex = matMul(tbn, normalFromTex);\n" +
                         // original or transformed "finalNormal"? mmh...
                         // transformed probably is better
                         "      sheenNormal = mix(finalNormal, normalFromTex, normalStrength.y);\n" +

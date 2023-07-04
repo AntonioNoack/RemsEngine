@@ -22,18 +22,20 @@ object DrawRectangles {
 
     val batch = object : Batch(
         flat01, listOf(
-            Attribute("posSize", AttributeType.FLOAT, 4),
-            Attribute("color", AttributeType.FLOAT, 4),
+            Attribute("instancePosSize", AttributeType.FLOAT, 4),
+            Attribute("instanceColor", AttributeType.FLOAT, 4),
         )
     ) {
         private val flatShaderBatching = BaseShader(
-            "flatShader", ShaderLib.coordsList + listOf(
-                Variable(GLSLType.V4F, "posSize", VariableMode.ATTR),
-                Variable(GLSLType.V4F, "color", VariableMode.ATTR),
+            "rectShader", ShaderLib.coordsList + listOf(
+                Variable(GLSLType.V4F, attributes[0].name, VariableMode.ATTR),
+                Variable(GLSLType.V4F, attributes[1].name, VariableMode.ATTR),
                 Variable(GLSLType.M4x4, "transform")
-            ), "void main(){\n" +
-                    "   gl_Position = transform * vec4(posSize.xy + coords * posSize.zw, 0.0, 1.0);\n" +
-                    "   color1 = color;\n" +
+            ), "" +
+                    "void main(){\n" +
+                    "   vec4 posSize = instancePosSize;\n" +
+                    "   gl_Position = matMul(transform, vec4(posSize.xy + coords * posSize.zw, 0.0, 1.0));\n" +
+                    "   color1 = instanceColor;\n" +
                     "}", listOf(Variable(GLSLType.V4F, "color1")), emptyList(), "" +
                     "void main(){\n" +
                     "   gl_FragColor = color1;\n" +

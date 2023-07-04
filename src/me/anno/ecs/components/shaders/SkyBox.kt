@@ -18,6 +18,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -247,14 +248,13 @@ open class SkyBox : MeshComponentBase() {
                 return listOf(ShaderStage(
                     "vertex",
                     createVertexVariables(flags),
-                    "" +
-                            defines +
+                    defines +
                             "localPosition = 1e15 * sign(coords);\n" +
                             "finalPosition = localPosition;\n" +
                             "#ifdef COLORS\n" +
                             "   normal = -sign(coords);\n" +
                             "#endif\n" +
-                            "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                            "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                             ShaderLib.positionPostProcessing
                 ))
             }

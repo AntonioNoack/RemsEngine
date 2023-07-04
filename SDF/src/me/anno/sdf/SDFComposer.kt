@@ -157,11 +157,11 @@ object SDFComposer {
                             // compute global depth
 
                             "vec2 uv0 = gl_FragCoord.xy / renderSize;\n" +
-                            "vec3 localDir = normalize(mat3x3(invLocalTransform) * rawCameraDirection(uv0));\n" +
+                            "vec3 localDir = normalize(matMul(mat3x3(invLocalTransform), rawCameraDirection(uv0)));\n" +
                             // todo why is this slightly incorrect if orthographic????
                             //  (both cases wobble from the view of the point light)
                             "vec3 localPos = localPosition - localDir * max(0.0,dot(localPosition-localCamPos,localDir));\n" +
-                            "if(uv0.x > 0.5) localPos = invLocalTransform * vec4(depthToPosition(uv0,perspectiveCamera?0.0:1.0),1.0);\n" +
+                            "if(uv0.x > 0.5) localPos = matMul(invLocalTransform, vec4(depthToPosition(uv0,perspectiveCamera?0.0:1.0),1.0));\n" +
                             // "vec4 ray = vec4(0,1,0,0);\n" +
                             "float tmpNear = 0.001;\n" +
                             "vec4 ray = distanceBounds.x <= tmpNear ? map(localPos,localDir,localPos,tmpNear) : vec4(0.0);\n" +
@@ -180,10 +180,10 @@ object SDFComposer {
                             "           vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
                             // todo normal could be guessed from depth aka dFdx(ray.x),dFdy(ray.x)
                             // todo calculate tangent from dFdx(uv) and dFdy(uv)
-                            "           finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
-                            "           finalPosition = localTransform * vec4(localHit, 1.0);\n" + // convert localHit to global hit
+                            "           finalNormal = normalize(matMul(mat3x3(localTransform), localNormal));\n" +
+                            "           finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" + // convert localHit to global hit
                             discardByCullingPlane + // respect reflection plane
-                            "           vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" + // calculate depth
+                            "           vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
                             "           gl_FragDepth = newVertex.z/newVertex.w;\n" +
                             // step by step define all material properties
                             "           finalUV = ray.zw;\n" +
@@ -346,11 +346,11 @@ object SDFComposer {
     val showNumberOfSteps = "" +
             "if(ray.y < 0.0) ray.x = dot(distanceBounds,vec2(0.5));\n" + // avg as a guess
             "vec3 localHit = localPos + ray.x * localDir;\n" +
-            "finalPosition = localTransform * vec4(localHit, 1.0);\n" +
+            "finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" +
             //      discardByCullingPlane +
             "vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
-            "finalNormal = normalize(mat3x3(localTransform) * localNormal);\n" +
-            "vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+            "finalNormal = normalize(matMul(mat3x3(localTransform), localNormal));\n" +
+            "vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" +
             "gl_FragDepth = newVertex.z/newVertex.w;\n" +
             // shading from https://www.shadertoy.com/view/WdVyDW
             "const vec3 a = vec3(97, 130, 234) / vec3(255.0);\n" +
@@ -369,10 +369,10 @@ object SDFComposer {
             // check if localPos is within bounds -> only render the plane :)
             "    if(all(greaterThan(localHit.xz,localMin.xz)) && all(lessThan(localHit.xz,localMax.xz))){\n" +
             "        localHit.y = 0.0;\n" + // correct numerical issues
-            "        finalPosition = localTransform * vec4(localHit, 1.0);\n" +
+            "        finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" +
             discardByCullingPlane +
             "        finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
-            "        vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" +
+            "        vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" +
             "        gl_FragDepth = newVertex.z/newVertex.w;\n" +
             "        distance = map(localPos,localDir,localHit,distance).x;\n" + // < 0.0 removed, because we show the shape there
             // waves like in Inigo Quilez demos, e.g. https://www.shadertoy.com/view/tt3yz7

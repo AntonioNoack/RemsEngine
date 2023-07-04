@@ -59,7 +59,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "   vec3 sheenNormal = finalNormal;\n" +
                 "   if(finalSheen * normalStrength.y > 0.0){\n" +
                 "      vec3 normalFromTex = texture(sheenNormalMap, uv).rgb * 2.0 - 1.0;\n" +
-                "           normalFromTex = tbn * normalFromTex;\n" +
+                "           normalFromTex = matMul(tbn, normalFromTex);\n" +
                 // original or transformed "finalNormal"? mmh...
                 // transformed probably is better
                 "      sheenNormal = mix(finalNormal, normalFromTex, normalStrength.y);\n" +
@@ -124,7 +124,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
                 "if(abs(normalStrength.x) > 0.0){\n" +
                 "   vec3 normalFromTex = texture(normalMap, uv).rgb * 2.0 - 1.0;\n" +
-                "        normalFromTex = tbn * normalFromTex;\n" +
+                "        normalFromTex = matMul(tbn, normalFromTex);\n" +
                 // normalize?
                 "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
                 "}\n"
@@ -160,10 +160,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "       tangent.xyz = quatRot(tangent.xyz, instanceRot);\n" +
                 "   #endif\n" + // colors
                 "#else\n" +
-                "   finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
+                "   finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
                 "   #ifdef COLORS\n" +
-                "       normal = normalize(mat3x3(localTransform) * normal);\n" +
-                "       tangent.xyz = normalize(mat3x3(localTransform) * tangent.xyz);\n" +
+                "       normal = normalize(matMul(mat3x3(localTransform), normal));\n" +
+                "       tangent.xyz = normalize(matMul(mat3x3(localTransform), tangent.xyz));\n" +
                 "   #endif\n" + // colors
                 "#endif\n"
 
@@ -191,9 +191,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "#ifdef MOTION_VECTORS\n" +
                 "   currPosition = gl_Position;\n" +
                 "   #ifdef PRS_TRANSFORM\n" +
-                "       prevPosition = prevTransform * vec4(finalPosition, 1.0);\n" +
+                "       prevPosition = matMul(prevTransform, vec4(finalPosition, 1.0));\n" +
                 "   #else\n" +
-                "       prevPosition = prevTransform * vec4(prevLocalTransform * vec4(prevLocalPosition, 1.0), 1.0);\n" +
+                "       prevPosition = matMul(prevTransform, vec4(matMul(prevLocalTransform, vec4(prevLocalPosition, 1.0)), 1.0));\n" +
                 "   #endif\n" +
                 "#endif\n"
 
@@ -201,7 +201,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "#ifdef INSTANCED\n" +
                 "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
                 "   #ifdef MOTION_VECTORS\n" +
-                "       mat4x3 prevLocalTransform = mat4x3(prevInstanceTrans0,prevInstanceTrans1,prevInstanceTrans2,prevInstanceTrans3);\n" +
+                "       mat4x3 prevLocalTransform = mat4x3(instancePrevTrans0,instancePrevTrans1,instancePrevTrans2,instancePrevTrans3);\n" +
                 "   #endif\n" +
                 "   #ifdef COLORS\n" +
                 "       tint = instanceTint;\n" +
@@ -213,13 +213,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "   if(hasAnimation){\n" +
                 "       mat4x3 jointMat;\n" +
                 animationCode() +
-                "       localPosition = jointMat * vec4(coords, 1.0);\n" +
+                "       localPosition = matMul(jointMat, vec4(coords, 1.0));\n" +
                 "       #ifdef MOTION_VECTORS\n" +
                 animationCode2() +
                 "       #endif\n" +
                 "       #ifdef COLORS\n" +
-                "           normal = mat3x3(jointMat) * normals;\n" +
-                "           tangent = vec4(mat3x3(jointMat) * tangents.xyz, tangents.w);\n" +
+                "           normal = matMul(mat3x3(jointMat), normals);\n" +
+                "           tangent = vec4(matMul(mat3x3(jointMat), tangents.xyz), tangents.w);\n" +
                 "       #endif\n" +
                 "   } else {\n" +
                 "#endif\n" // animated
@@ -250,7 +250,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "jointMat2 += getAnimMatrix(indices.y,prevAnimIndices,prevAnimWeights) * weights.y;\n" +
                     "jointMat2 += getAnimMatrix(indices.z,prevAnimIndices,prevAnimWeights) * weights.z;\n" +
                     "jointMat2 += getAnimMatrix(indices.w,prevAnimIndices,prevAnimWeights) * weights.w;\n" +
-                    "prevLocalPosition = jointMat2 * vec4(coords, 1.0);\n"
+                    "prevLocalPosition = matMul(jointMat2, vec4(coords, 1.0);)\n"
         } else {
             "prevLocalPosition = localPosition;\n"
         }
@@ -377,10 +377,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         if (motionVectors) {
             variables += Variable(GLSLType.M4x4, "prevTransform")
             if (isInstanced) {
-                variables += Variable(GLSLType.V3F, "prevInstanceTrans0", VariableMode.ATTR)
-                variables += Variable(GLSLType.V3F, "prevInstanceTrans1", VariableMode.ATTR)
-                variables += Variable(GLSLType.V3F, "prevInstanceTrans2", VariableMode.ATTR)
-                variables += Variable(GLSLType.V3F, "prevInstanceTrans3", VariableMode.ATTR)
+                variables += Variable(GLSLType.V3F, "instancePrevTrans0", VariableMode.ATTR)
+                variables += Variable(GLSLType.V3F, "instancePrevTrans1", VariableMode.ATTR)
+                variables += Variable(GLSLType.V3F, "instancePrevTrans2", VariableMode.ATTR)
+                variables += Variable(GLSLType.V3F, "instancePrevTrans3", VariableMode.ATTR)
             } else {
                 variables += Variable(GLSLType.M4x3, "prevLocalTransform")
             }
@@ -413,7 +413,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
                     applyTransformCode +
                     colorInitCode +
-                    "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                    "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                     motionVectorCode +
                     ShaderLib.positionPostProcessing
         )

@@ -53,7 +53,7 @@ object DrawCurves {
                     "   uv = p1x + rot90(normalize(pi1-pi0)) * coords.y * extrusion;\n" +
                     "   p0 = pi0;c0 = ci0;\n" +
                     "   p1 = pi1;c1 = ci1;\n" +
-                    "   gl_Position = transform * vec4((posSize.xy + uv * posSize.zw)*2.0-1.0, 0.0, 1.0);\n" +
+                    "   gl_Position = matMul(transform, vec4((posSize.xy + uv * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
                     "}",
             listOf(
                 Variable(GLSLType.V2F, "uv"),
@@ -134,7 +134,7 @@ object DrawCurves {
                     "   vec2 p1 = point(t);\n" +
                     "   vec2 p2 = point(t + dt);\n" +
                     "   uv = p1 + rot90(normalize(p2-p0)) * coords.y * extrusion;\n" +
-                    "   gl_Position = transform * vec4((posSize.xy + uv * posSize.zw)*2.0-1.0, 0.0, 1.0);\n" +
+                    "   gl_Position = matMul(transform, vec4((posSize.xy + uv * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
                     "}", listOf(Variable(GLSLType.V2F, "uv"), Variable(GLSLType.V1F, "t")),
             listOf(
                 Variable(GLSLType.V4F, "backgroundColor"),

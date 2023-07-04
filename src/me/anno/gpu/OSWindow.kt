@@ -4,7 +4,6 @@ import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
-import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.Window
 import me.anno.ui.base.progress.ProgressBar
@@ -23,6 +22,7 @@ open class OSWindow(var title: String) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(OSWindow::class)
+        private var lastCurrentContext = 0L
     }
 
     var pointer = 0L
@@ -275,8 +275,8 @@ open class OSWindow(var title: String) {
 
     fun makeCurrent(): Boolean {
         GFX.activeWindow = this
-        if (pointer != GFXBase.lastCurrent && pointer != 0L) {
-            GFXBase.lastCurrent = pointer
+        if (pointer != lastCurrentContext && pointer != 0L) {
+            lastCurrentContext = pointer
             GLFW.glfwMakeContextCurrent(pointer)
         }
         return pointer != 0L

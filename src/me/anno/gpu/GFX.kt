@@ -89,7 +89,8 @@ object GFX {
      * window, that is in focus, or arbitrary window, if undefined
      * */
     @JvmStatic
-    val someWindow get() = focusedWindow ?: windows.firstOrNull() // we also could choose the one closest to the mouse :)
+    val someWindow
+        get() = focusedWindow ?: windows.firstOrNull() // we also could choose the one closest to the mouse :)
 
     @JvmStatic
     var idleFPS
@@ -489,19 +490,19 @@ object GFX {
 
     @JvmStatic
     fun setFrameNullSize(width: Int, height: Int) {
-        GFXState.apply {
-            // this should be the state for the default framebuffer
-            xs[0] = 0
-            ys[0] = 0
-            ws[0] = width
-            hs[0] = height
-            changeSizes[0] = false
-            Frame.invalidate()
-            viewportX = 0
-            viewportY = 0
-            viewportWidth = width
-            viewportHeight = height
-        }
+
+        // this should be the state for the default framebuffer
+        GFXState.xs[0] = 0
+        GFXState.ys[0] = 0
+        GFXState.ws[0] = width
+        GFXState.hs[0] = height
+        GFXState.changeSizes[0] = false
+
+        Frame.invalidate()
+        viewportX = 0
+        viewportY = 0
+        viewportWidth = width
+        viewportHeight = height
     }
 
     @JvmStatic

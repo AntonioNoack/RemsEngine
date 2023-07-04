@@ -3,6 +3,7 @@ package me.anno.gpu.shader
 import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderCache
+import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.builder.Varying
@@ -89,6 +90,7 @@ open class Shader(
             builder.append("precision highp sampler2DArray;\n")
         if (vertexVariables.any2 { it.type == GLSLType.S3D })
             builder.append("precision highp sampler3D;\n")
+        builder.append(matMul)
 
         for (v in vertexVariables) {
             val prefix = when (v.inOutMode) {
@@ -125,6 +127,7 @@ open class Shader(
             builder.append("precision highp sampler2DArray;\n")
         if (varyings.any2 { it.type == GLSLType.S3D } || fragmentVariables.any2 { it.type == GLSLType.S3D })
             builder.append("precision highp sampler3D;\n")
+        builder.append(matMul)
 
         for (v in varyings) {
             builder.append(v.modifiers)

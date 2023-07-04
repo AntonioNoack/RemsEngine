@@ -236,8 +236,8 @@ object RayTracing {
             "               vec4 d12 = LOAD_PIXEL(tlasNodes, ivec2(nodeX+4u,nodeY));\n" +
             "               mat4x3 worldToLocal = loadMat4x3(d10,d11,d12);\n" +
             // transform ray into local coordinates
-            "               vec3 localPos = worldToLocal * vec4(worldPos, 1.0);\n" +
-            "               vec3 localDir0 = mat3x3(worldToLocal) * worldDir;\n" +
+            "               vec3 localPos = matMul(worldToLocal, vec4(worldPos, 1.0));\n" +
+            "               vec3 localDir0 = matMul(mat3x3(worldToLocal), worldDir);\n" +
             "               vec3 localDir = normalize(localDir0);\n" +
             // transform world distance into local coordinates
             "               float localDistance = worldDistance * length(localDir0);\n" +
@@ -251,11 +251,11 @@ object RayTracing {
             "                   mat4x3 localToWorld = loadMat4x3(d20,d21,d22);\n" +
             // transform result into global coordinates
             // theoretically we could get z-fighting here
-            "                   float worldDistance1 = localDistance * length(mat3x3(localToWorld) * localDir);\n" +
+            "                   float worldDistance1 = localDistance * length(matMul(mat3x3(localToWorld), localDir));\n" +
             "                   if(worldDistance1 < worldDistance){\n" + // could be false by numerical errors
             // transform hit normal into world coordinates
             "                       worldDistance = worldDistance1;\n" +
-            "                       worldNormal = mat3x3(localToWorld) * localNormal;\n" +
+            "                       worldNormal = matMul(mat3x3(localToWorld), localNormal);\n" +
             "                   }\n" +
             "               }\n" + // end of blas; get next tlas node
             "               if(stackIndex < 1u) break;\n" +

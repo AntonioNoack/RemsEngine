@@ -11,6 +11,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -53,7 +54,7 @@ class DecalShader(val layers: ArrayList<DeferredLayerType>) : ECSMeshShader("dec
                             "vec4 ${it.name}_in1 = texelFetch(${it.name}_in0, uvz, 0);\n"
                         } + loadPart2.toString() +
                         "finalPosition = rawDepthToPosition(gl_FragCoord.xy/windowSize, texelFetch(depth_in0, uvz, 0).x);\n" +
-                        "localPosition = invLocalTransform * vec4(finalPosition, 1.0);\n" +
+                        "localPosition = matMul(invLocalTransform, vec4(finalPosition, 1.0));\n" +
                         "uv = localPosition.xy * vec2(0.5,-0.5) + 0.5;\n" +
                         // automatic blending on edges? alpha should be zero there anyway
                         "alphaMultiplier = abs(uv.x-0.5) < 0.5 && abs(uv.y-0.5) < 0.5 ? max(1.0-abs(localPosition.z), 0.0) : 0.0;\n" +

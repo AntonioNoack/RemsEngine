@@ -6,10 +6,12 @@ import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
-import me.anno.ecs.components.mesh.*
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.shader.*
@@ -137,11 +139,11 @@ fun main() {
                                 // calculate plane coordinates and z,dz for evaluation
                                 "distanceBounds.x = 0.0;//stripePowers.x * pow(2.0, 1.0 + stripePowers.y * float(gl_InstanceID));\n" +
                                 "distanceBounds.y = 1000.0;//distanceBounds.x * stripePowers.y;\n" +
-                                "localPosition = coords;//displayTransform * vec3(coords.xy, 0.0);\n" +
+                                "localPosition = coords;// matMul(displayTransform, vec3(coords.xy, 0.0));\n" +
                                 motionVectorInit +
                                 normalInitCode +
                                 applyTransformCode +
-                                "gl_Position = transform * vec4(finalPosition, 1.0);\n" +
+                                "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                                 ShaderLib.positionPostProcessing
                     )
                     if (flags.hasFlag(IS_ANIMATED) && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
@@ -160,9 +162,9 @@ fun main() {
                     val stage = ShaderStage(
                         name, fragmentVariables, "" +
                                 "vec2 uv0 = gl_FragCoord.xy / renderSize;\n" +
-                                "vec3 localDir = normalize(mat3x3(invLocalTransform) * rawCameraDirection(uv0));\n" +
+                                "vec3 localDir = normalize(matMul(mat3x3(invLocalTransform), rawCameraDirection(uv0)));\n" +
                                 "vec3 localPos = localPosition - localDir * max(0.0,dot(localPosition-localCamPos,localDir));\n" +
-                                "if(uv0.x > 0.5) localPos = invLocalTransform * vec4(depthToPosition(uv0,perspectiveCamera?0.0:1.0),1.0);\n" +
+                                "if(uv0.x > 0.5) localPos = matMul(invLocalTransform, vec4(depthToPosition(uv0,perspectiveCamera?0.0:1.0),1.0));\n" +
                                 // trace the section from distanceBounds.x to distanceBounds.y, and accumulate volume density
                                 "vec3 emissive = vec3(0.0);\n" +
                                 "vec3 color = vec3(0.0);\n" +
@@ -175,7 +177,7 @@ fun main() {
                                 "if(ray.x > distanceBounds.y) discard;\n" +
                                 "vec3 localHit = localPos + ray.x * localDir;\n" +
                                 "vec3 localNormal1 = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
-                                "finalNormal = normalize(mat3x3(localTransform) * localNormal1);\n" +
+                                "finalNormal = normalize(matMul(mat3x3(localTransform), localNormal1));\n" +
 
                                 // todo use depth texture to find the distance to the background
                                 // todo if we're out of bounds, just skip this entirely
@@ -223,9 +225,9 @@ fun main() {
                                 "finalTranslucency = 1.0;\n" + // because it's gas
                                 // depth and position calculation for light calculations
                                 "localPosition = localPos + litZ * localDir;\n" +
-                                "finalPosition = localTransform * vec4(localPosition, 1.0);\n" +
+                                "finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
                                 // depth calculation isn't really necessary and could be skipped
-                                "vec4 newVertex = transform * vec4(finalPosition, 1.0);\n" + // calculate depth
+                                "vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
                                 "gl_FragDepth = newVertex.z/newVertex.w;\n"
                     )
                     functions.add(SDFBox.sdBox)
