@@ -90,6 +90,13 @@ open class ProgressBar(
         }
     }
 
+    var isFinished
+        get() = finishTime == 0L
+        set(value) {
+            if (value) finish(true)
+            else finishTime = 0L
+        }
+
     open fun draw(
         x: Int, y: Int, w: Int, h: Int,
         x0: Int, y0: Int, x1: Int, y1: Int,
@@ -97,8 +104,11 @@ open class ProgressBar(
     ) {
         val dt = Maths.dtTo01((time - lastDraw) * 1e-9 * updateSpeed)
         lastDraw = time
-        val percentage = progress / total
+        var percentage = progress / total
         lastDrawnUpdate = mix(lastDrawnUpdate, percentage, dt)
+
+        // when it's finished, we know it's 100%
+        if(isFinished && percentage.isNaN()) percentage = 1.0
 
         // todo animation with shifted stripes?
         val pad = 1

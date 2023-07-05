@@ -73,6 +73,7 @@ import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
+import kotlin.concurrent.thread
 import kotlin.math.*
 
 // todo right click to get all meta information? (properties panel in windows)
@@ -804,6 +805,36 @@ open class FileExplorerEntry(
         } else listOf(getReferenceOrTimeout(path))
         Input.copyFiles(files)
         return null
+    }
+
+    override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
+        val thisFile = ref1s
+        val canPasteInto = thisFile.isDirectory
+        val canReplace = files.size == 1 && !canPasteInto
+        when {
+            canReplace -> explorer!!.pasteFiles(
+                files, explorer.folder, listOf(
+                    MenuOption(NameDesc("Replace")) {
+                        thread(name = "replacing file") {
+                            val progress = GFX.someWindow!!.addProgressBar(
+                                "Replacing",
+                                "Bytes",
+                                files.sumOf { it.length() }.toDouble()
+                            )
+                            thisFile.writeFile(
+                                files.first(),
+                                { progress.progress += it },
+                                { it?.printStackTrace() })
+                            thisFile.invalidate()
+                            invalidateDrawing()
+                            progress.finish()
+                        }
+                    },
+                )
+            )
+            canPasteInto -> explorer!!.pasteFiles(files, thisFile)
+            else -> super.onPasteFiles(x, y, files)
+        }
     }
 
     override fun getMultiSelectablePanel() = this

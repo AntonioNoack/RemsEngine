@@ -14,10 +14,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.ImageWriter
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
-import me.anno.utils.OS.desktop
 import org.joml.Vector4f
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -249,9 +247,6 @@ object BokehBlur {
         }
 
         filterTexture.createRGBA(kernelTexture, false)
-        ImageWriter.writeImageFloat(4, KERNEL_COUNT, "kernel0", true, kernel0)
-        ImageWriter.writeImageFloat(4, KERNEL_COUNT, "kernel1", true, kernel1)
-        filterTexture.write(desktop.getChild("filter.png"))
 
     }
 

@@ -468,45 +468,63 @@ open class FileExplorer(
     }
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
-        // create links? or truly copy them?
-        // or just switch?
-        if (files.size > 1) {
-            copyIntoCurrent(files)
-        } else {
-            openMenu(windowStack, listOf(
-                MenuOption(NameDesc("Switch To")) {
-                    switchTo(files.first())
-                },
-                MenuOption(NameDesc("Switch To Folder")) {
-                    switchTo(files.first())
-                }.setEnabled(!files.first().isDirectory),
-                MenuOption(NameDesc("Copy")) {
-                    thread(name = "copying files") {
-                        copyIntoCurrent(files)
-                    }
-                },
-                MenuOption(NameDesc("Create Links")) {
-                    thread(name = "creating links") {
-                        createLinksIntoCurrent(files)
-                    }
-                },
-                MenuOption(NameDesc("Cancel")) {}
-            ))
-        }
+        pasteFiles(files, folder)
     }
 
-    fun copyIntoCurrent(files: List<FileReference>) {
+    fun pasteFiles(files: List<FileReference>, folder: FileReference, extraOptions: List<MenuOption> = emptyList()) {
+        // create links? or truly copy them?
+        // or just switch?
+        openMenu(windowStack, listOf(
+            MenuOption(NameDesc("Move")) {
+                thread(name = "moving files") {
+                    moveInto(files, folder)
+                }
+            },
+            MenuOption(NameDesc("Copy")) {
+                thread(name = "copying files") {
+                    copyInto(files, folder)
+                }
+            },
+            MenuOption(NameDesc("Switch To")) {
+                switchTo(files.first())
+            }.setEnabled(files.size == 1),
+            MenuOption(NameDesc("Switch To Folder")) {
+                switchTo(files.first())
+            }.setEnabled(files.size == 1 && !files.first().isDirectory),
+            MenuOption(NameDesc("Create Links")) {
+                thread(name = "creating links") {
+                    createLinksInto(files, folder)
+                }
+            }
+        ) + extraOptions + listOf(
+            MenuOption(NameDesc("Cancel")) {}
+        ))
+    }
+
+    fun copyInto(files: List<FileReference>, folder: FileReference) {
         val progress = GFX.someWindow!!.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
-        for (file in files) {
+        for (srcFile in files) {
             if (progress.isCancelled) break
-            val newFile = findNextFile(folder, file, 1, '-', 1)
-            newFile.writeFile(file, { progress.progress += it }, { it?.printStackTrace() })
+            val dstFile = findNextFile(folder, srcFile, 1, '-', 1)
+            dstFile.writeFile(srcFile, { progress.progress += it }, { it?.printStackTrace() })
         }
         progress.finish()
         invalidate()
     }
 
-    fun createLinksIntoCurrent(files: List<FileReference>) {
+    fun moveInto(files: List<FileReference>, folder: FileReference) {
+        val progress = GFX.someWindow!!.addProgressBar("Copying", "Bytes", files.sumOf { it.length() }.toDouble())
+        for (srcFile in files) {
+            if (progress.isCancelled) break
+            if (folder == srcFile.getParent()) continue
+            val dstFile = findNextFile(folder, srcFile, 1, '-', 1)
+            srcFile.renameTo(dstFile)
+        }
+        progress.finish()
+        invalidate()
+    }
+
+    fun createLinksInto(files: List<FileReference>, folder: FileReference) {
         val progress = GFX.someWindow!!.addProgressBar("Creating Links", "Files", files.size.toDouble())
         var tmp: FileReference? = null
         loop@ for (file in files) {
