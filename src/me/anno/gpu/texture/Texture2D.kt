@@ -130,8 +130,10 @@ open class Texture2D(
         if (pointer == 0) {
             check()
             pointer = createTexture()
-            if (pointer != 0 && Build.isDebug) synchronized(DebugGPUStorage.tex2d) {
-                DebugGPUStorage.tex2d.add(this)
+            if (pointer != 0 && Build.isDebug) {
+                synchronized(DebugGPUStorage.tex2d) {
+                    DebugGPUStorage.tex2d.add(this)
+                }
             }
             // many textures can be created by the console log and the fps viewer constantly xD
             // maybe we should use allocation free versions there xD
@@ -457,6 +459,10 @@ open class Texture2D(
         filtering(filtering)
         clamping(clamping ?: Clamping.REPEAT)
         check()
+        if (Build.isDebug) {
+            glObjectLabel(GL_TEXTURE, pointer, name)
+            check()
+        }
         if (isDestroyed) destroy()
     }
 
@@ -1038,7 +1044,7 @@ open class Texture2D(
                 field = value
                 bindBeforeUpload()
                 glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE)
-                glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.v)
+                glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
             }
         }
 

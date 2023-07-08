@@ -98,8 +98,8 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
         }
 
         val numNodes = nodeId
-        val baseBuffer = ComputeBuffer(tlasAttr0, numNodes)
-        val transformBuffer = ComputeBuffer(tlasAttr1, numLeafs)
+        val baseBuffer = ComputeBuffer("TLAS-base", tlasAttr0, numNodes)
+        val transformBuffer = ComputeBuffer("TLAS-trans", tlasAttr1, numLeafs)
         val baseData = baseBuffer.nioBuffer!!
         val transformData = transformBuffer.nioBuffer!!
         val f0 = baseData.asFloatBuffer()
@@ -162,7 +162,7 @@ abstract class TLASNode(bounds: AABBf) : BVHNode(bounds) {
         }
         baseData.position(f0.position() * 4)
         transformData.position(f1.position() * 4)
-        return Pair(baseBuffer,transformBuffer)
+        return Pair(baseBuffer, transformBuffer)
     }
 
     companion object {

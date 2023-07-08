@@ -2,7 +2,7 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.buffer.SimpleBuffer.Companion.circleBuffer
+import me.anno.gpu.buffer.SimpleBuffer.Companion.circle
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01CubeX10
 import me.anno.gpu.buffer.StaticBuffer
@@ -462,7 +462,7 @@ object GFXx3D {
         defineAdvancedGraphicalFeatures(shader)
         shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
         circleParams(innerRadius, startDegrees, endDegrees, shader)
-        circleBuffer.draw(shader)
+        circle.draw(shader)
         GFX.check()
     }
 

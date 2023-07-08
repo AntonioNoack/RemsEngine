@@ -121,11 +121,7 @@ fun processBuffer(buffer: AIVector3D.Buffer): StaticBuffer {
     // like Unity, only load stuff in software, if we need it?
     // first load into GPU for rendering
 
-    val buffer2 = StaticBuffer(
-        listOf(
-            Attribute("", 3)
-        ), buffer.remaining()
-    )
+    val buffer2 = StaticBuffer("assimp", listOf(Attribute("attr", 3)), buffer.remaining())
     buffer2.pointer = glGenBuffers()
     bindBuffer(GL_ARRAY_BUFFER, buffer2.pointer)
     nglBufferData(// very efficient upload

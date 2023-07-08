@@ -9,10 +9,10 @@ import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.none2
 import org.lwjgl.opengl.GL33C.*
 
-abstract class Buffer(attributes: List<Attribute>, usage: Int) :
-    OpenGLBuffer(GL_ARRAY_BUFFER, attributes, usage), Drawable {
+abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
+    OpenGLBuffer(name, GL_ARRAY_BUFFER, attributes, usage), Drawable {
 
-    constructor(attributes: List<Attribute>) : this(attributes, GL_STATIC_DRAW)
+    constructor(name: String, attributes: List<Attribute>) : this(name, attributes, GL_STATIC_DRAW)
 
     var drawMode = GL_TRIANGLES
     var drawLength
@@ -78,8 +78,11 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
         GFX.check()
         // todo cache vao by shader? typically, we only need 4-8 shaders for a single mesh
         // todo alternatively, we could specify the location in the shader
-        if (vao <= 0 || shader !== lastShader || !useVAOs) createVAO(shader)
-        else bindVAO(vao)
+        if (vao <= 0 || shader !== lastShader || !useVAOs) {
+            createVAO(shader)
+        } else {
+            bindVAO(vao)
+        }
         lastShader = shader
         GFX.check()
     }
@@ -98,7 +101,9 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
             baseAttributes = attributes
             instanceAttributes = instanceData?.attributes
             createVAO(shader, instanceData)
-        } else bindVAO(vao)
+        } else {
+            bindVAO(vao)
+        }
         GFX.check()
     }
 
@@ -203,7 +208,7 @@ abstract class Buffer(attributes: List<Attribute>, usage: Int) :
     companion object {
 
         @JvmStatic
-        fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean ): Boolean {
+        fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
             val index = shader.getAttributeLocation(attr.name)
             return if (index > -1) {

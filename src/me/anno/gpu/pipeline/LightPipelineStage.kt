@@ -3,6 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.*
+import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
@@ -89,6 +90,10 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         shader.v1f("countPerPixel", countPerPixel)
         depthTexture.bindTrulyNearest(shader, "depthTex")
         shader.m4x4("transform", cameraMatrix)
+        shader.v1f("worldScale", RenderState.worldScale)
+        shader.v3f("camPos", RenderState.cameraPosition)
+        val target = GFXState.currentBuffer
+        shader.v2f("invScreenSize", 1f / target.width, 1f / target.height)
         bindNullDepthTextures(shader)
         bindDepthToPosition(shader)
     }

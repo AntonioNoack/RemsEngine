@@ -7,11 +7,11 @@ import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.opengl.GL31C.*
 import java.nio.ByteOrder
 
-open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
-    Buffer(attributes, usage) {
+open class StaticBuffer(name: String, attributes: List<Attribute>, var vertexCount: Int, usage: Int = GL_STATIC_DRAW) :
+    Buffer(name, attributes, usage) {
 
-    constructor(points: List<List<Float>>, attributes: List<Attribute>, vertices: IntArray) :
-            this(attributes, vertices.size) {
+    constructor(name: String, points: List<List<Float>>, attributes: List<Attribute>, vertices: IntArray) :
+            this(name, attributes, vertices.size) {
         for (v in vertices) {
             for (p in points[v]) {
                 put(p)
@@ -19,8 +19,8 @@ open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage
         }
     }
 
-    constructor(points: FloatArray, vertices: IntArray, attributes: List<Attribute>) :
-            this(attributes, vertices.size) {
+    constructor(name: String, points: FloatArray, vertices: IntArray, attributes: List<Attribute>) :
+            this(name, attributes, vertices.size) {
         val dimPerPoint = attributes.sumOf { it.components }
         for (v in vertices) {
             val baseIndex = v * dimPerPoint
@@ -30,8 +30,8 @@ open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage
         }
     }
 
-    constructor(floats: FloatArray, attributes: List<Attribute>) :
-            this(attributes, floats.size / attributes.sumOf { it.components }) {
+    constructor(name: String, floats: FloatArray, attributes: List<Attribute>) :
+            this(name, attributes, floats.size / attributes.sumOf { it.components }) {
         put(floats)
     }
 
@@ -81,6 +81,7 @@ open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage
     companion object {
 
         private val nullBuffer = StaticBuffer(
+            "null",
             listOf(Attribute("nothing0", AttributeType.UINT8_NORM, 4)),
             4
         ).apply {
@@ -109,11 +110,14 @@ open class StaticBuffer(attributes: List<Attribute>, var vertexCount: Int, usage
             }
         }
 
-        fun join(buffers: List<StaticBuffer>): StaticBuffer? {
+        fun join(
+            buffers: List<StaticBuffer>,
+            newName: String = buffers.joinToString("-") { it.name }
+        ): StaticBuffer? {
             if (buffers.isEmpty()) return null
             val vertexCount = buffers.sumOf { it.vertexCount }
             val sample = buffers.first()
-            val joint = StaticBuffer(sample.attributes, vertexCount)
+            val joint = StaticBuffer(newName, sample.attributes, vertexCount)
             for (buffer in buffers) joint.put(buffer)
             return joint
         }

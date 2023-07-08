@@ -88,9 +88,9 @@ object GFXState {
     val depthMode = object : SecureStack<DepthMode>(DepthMode.ALWAYS) {
         override fun onChangeValue(newValue: DepthMode, oldValue: DepthMode) {
             GFX.check()
-            if (newValue.v != 0) {
+            if (newValue.id != 0) {
                 glEnable(GL_DEPTH_TEST)
-                glDepthFunc(newValue.v)
+                glDepthFunc(newValue.id)
                 val reversedDepth = newValue.reversedDepth
                 if (supportsClipControl) {
                     glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)

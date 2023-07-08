@@ -329,11 +329,12 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             var renderer = when (renderMode) {
                 RenderMode.OVERDRAW -> overdrawRenderer
                 RenderMode.CLICK_IDS -> randomIdRenderer
-                RenderMode.FORCE_DEFERRED, RenderMode.SSAO, RenderMode.SS_REFLECTIONS -> {
+                RenderMode.FORCE_DEFERRED, RenderMode.SSAO,
+                RenderMode.SS_REFLECTIONS -> {
                     useDeferredRendering = true
                     DeferredRenderer
                 }
-                RenderMode.MSAA_DEFERRED -> {
+                RenderMode.MSAA_DEFERRED, RenderMode.SSAO_MS, RenderMode.LIGHT_SUM_MS -> {
                     useDeferredRendering = true
                     DeferredRendererMSAA
                 }
@@ -365,7 +366,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 renderMode == RenderMode.MSAA_X8 ||
                         renderMode == RenderMode.LINES_MSAA ||
                         renderMode == RenderMode.FSR_MSAA_X4 -> base8Buffer
-                renderMode == RenderMode.MSAA_DEFERRED -> baseNBuffer8
+                renderMode == RenderMode.MSAA_DEFERRED ||
+                        renderMode == RenderMode.SSAO_MS ||
+                        renderMode == RenderMode.LIGHT_SUM_MS -> baseNBuffer8
                 renderer == DeferredRenderer -> baseNBuffer1
                 else -> base1Buffer
             }
@@ -645,7 +648,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         drawTexture(x, y + h, w, -h, baseSameDepth1.getTexture0())
                         return
                     }
-                    renderMode == RenderMode.LIGHT_SUM -> {
+                    renderMode == RenderMode.LIGHT_SUM || renderMode == RenderMode.LIGHT_SUM_MS -> {
                         drawScene(
                             w, h, camera0, camera1,
                             blending, renderer, buffer,
@@ -655,7 +658,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
                         drawSceneLights(buffer, lightBuffer)
                         drawGizmos(lightBuffer, true)
-                        drawTexture(x, y + h - 1, w, -h, lightBuffer.getTexture0(), true, -1, null)
+                        drawTexture(
+                            x, y + h - 1, w, -h, lightBuffer.getTexture0(),
+                            true, -1, null, true
+                        )
                         return
                     }
                     renderMode == RenderMode.LIGHT_COUNT -> {
@@ -680,7 +686,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         pipeline.lightStage.visualizeLightCount = false
                         return
                     }
-                    renderMode == RenderMode.SSAO -> {
+                    renderMode == RenderMode.SSAO || renderMode == RenderMode.SSAO_MS -> {
                         // 0.1f as radius seems pretty ideal with our world scale :)
                         drawScene(
                             w, h, camera0, camera1,

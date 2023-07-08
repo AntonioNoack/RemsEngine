@@ -55,7 +55,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
         fun init(mesh: Mesh) {
             val buffer = mesh.buffer!!
-            triBuffer = IndexBuffer(buffer, indices)
+            triBuffer = IndexBuffer("helper", buffer, indices)
             triBuffer?.drawMode = mesh.drawMode
 
             lineIndices = lineIndices ?: FindLines.findLines(mesh, indices, mesh.positions)
@@ -775,7 +775,8 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             attributes += Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true)
         }
 
-        val buffer = replaceBuffer(attributes, vertexCount, buffer)
+        val name = refOrNull?.absolutePath ?: name.ifEmpty { "Mesh" }
+        val buffer = replaceBuffer(name, attributes, vertexCount, buffer)
         buffer.drawMode = drawMode
         this.buffer = buffer
 
@@ -1158,9 +1159,10 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         const val MAX_WEIGHTS = 4
 
         private fun replaceBuffer(
+            name: String,
             attributes: List<Attribute>,
             vertexCount: Int,
-            oldValue: StaticBuffer?
+            oldValue: StaticBuffer?,
         ): StaticBuffer {
             if (oldValue != null) {
                 // offsets are compared, so they need to be consistent
@@ -1173,7 +1175,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                     oldValue.destroy()
                 }
             }
-            return StaticBuffer(attributes, vertexCount)
+            return StaticBuffer(name, attributes, vertexCount)
         }
 
         private fun replaceBuffer(base: Buffer, indices: IntArray?, oldValue: IndexBuffer?): IndexBuffer? {
@@ -1184,7 +1186,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         return oldValue
                     } else oldValue.destroy()
                 }
-                IndexBuffer(base, indices)
+                IndexBuffer(base.name, base, indices)
             } else {
                 oldValue?.destroy()
                 null

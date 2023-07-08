@@ -15,6 +15,7 @@ import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
@@ -23,7 +24,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -35,7 +35,7 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL15C
+import org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW
 
 object LightShaders {
 
@@ -78,10 +78,18 @@ object LightShaders {
     // performance: the same
     */
 
-    val lightInstanceBuffer =
-        StaticBuffer(lightInstancedAttributes, PipelineStage.instancedBatchSize, GL15C.GL_DYNAMIC_DRAW)
-    val lightCountInstanceBuffer =
-        StaticBuffer(lightCountInstancedAttributes, PipelineStage.instancedBatchSize, GL15C.GL_DYNAMIC_DRAW)
+    val lightInstanceBuffer = StaticBuffer(
+        "lights",
+        lightInstancedAttributes,
+        instancedBatchSize,
+        GL_DYNAMIC_DRAW
+    )
+    val lightCountInstanceBuffer = StaticBuffer(
+        "lightInstances",
+        lightCountInstancedAttributes,
+        instancedBatchSize,
+        GL_DYNAMIC_DRAW
+    )
 
     val useMSAA get() = GFXState.currentBuffer.samples > 1
 
@@ -144,26 +152,32 @@ object LightShaders {
         val code = if (useMSAA) -1 else -2
         return shaderCache.getOrPut(settingsV2 to code) {
 
-            val builder = ShaderBuilder("post")
+            val builder = ShaderBuilder("CombineLights")
             builder.addVertex(combineVStage)
             val fragment = combineFStage
             // deferred inputs
             // find deferred layers, which exist, and appear in the shader
             val deferredCode = StringBuilder()
             deferredCode.append(
-                "" +
-                        "ambientOcclusion = texture(occlusionTex,uv).x;\n" +
-                        "finalLight = texture(lightTex,uv).rgb;\n"
+                if (useMSAA) {
+                    "" +
+                            "ambientOcclusion = texture(occlusionTex,uv).x;\n" +
+                            "finalLight = texelFetch(lightTex,ivec2(uv*textureSize(lightTex)),0).rgb;\n"
+                } else {
+                    "" +
+                            "ambientOcclusion = texture(occlusionTex,uv).x;\n" +
+                            "finalLight = texture(lightTex,uv).rgb;\n"
+                }
             )
+            val sampleVariableName = if (useMSAA) "gl_SampleID" else null
+            val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
             val deferredVariables = ArrayList<Variable>()
             deferredVariables += Variable(GLSLType.V2F, "uv")
             deferredVariables += Variable(GLSLType.S2D, "occlusionTex")
-            deferredVariables += Variable(GLSLType.S2D, "lightTex")
+            deferredVariables += Variable(samplerType, "lightTex")
             deferredVariables += Variable(GLSLType.V3F, "finalLight", VariableMode.OUT)
             deferredVariables += Variable(GLSLType.V1F, "ambientOcclusion", VariableMode.OUT)
             val imported = HashSet<String>()
-            val sampleVariableName = if (useMSAA) "gl_SampleID" else null
-            val samplerType = if (useMSAA) GLSLType.S2DMS else GLSLType.S2D
             for (layer in settingsV2.layers) {
                 // if this layer is present,
                 // then define the output,
@@ -228,7 +242,8 @@ object LightShaders {
                 "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "} else {\n" +
                 "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
-                "   gl_Position = matMul(transform, vec4(matMul(localTransform, vec4(coords, 1.0)), 1.0));\n" +
+                "   vec3 globalPos = matMul(localTransform, vec4(coords, 1.0));\n" +
+                "   gl_Position = matMul(transform, vec4(globalPos, 1.0));\n" +
                 "}\n" +
                 "camSpaceToLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2,invInsTrans3);\n" +
                 "uvw = gl_Position.xyw;\n"
@@ -246,7 +261,8 @@ object LightShaders {
                 "if(cutoff <= 0.0){\n" +
                 "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "} else {\n" +
-                "   gl_Position = matMul(transform, vec4(matMul(localTransform, vec4(coords, 1.0))), 1.0);\n" +
+                "   vec3 globalPos = matMul(localTransform, vec4(coords, 1.0));\n" +
+                "   gl_Position = matMul(transform, vec4(globalPos, 1.0));\n" +
                 "}\n" +
                 "uvw = gl_Position.xyw;\n"
     )
@@ -279,8 +295,11 @@ object LightShaders {
                 Variable(GLSLType.V1F, "finalSheen"),
                 Variable(GLSLType.V1F, "finalTranslucency"),
                 Variable(GLSLType.M4x3, "camSpaceToLightSpace"), // invLightMatrices[i]
+                Variable(GLSLType.V3F, "camPos"),
+                Variable(GLSLType.V1F, "worldScale"),
                 Variable(GLSLType.V4F, "light", VariableMode.OUT)
             ) + depthVars, "" +
+                    // todo not correct yet for deferred rendering, probably because depth is multi-sampled
                     // light calculation including shadows if !instanced
                     "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
                     "bool hasSpecular = finalMetallic > 0.0;\n" +
@@ -293,7 +312,7 @@ object LightShaders {
                     "vec3 dir = matMul(camSpaceToLightSpace, vec4(finalPosition, 1.0));\n" +
                     "vec3 localNormal = normalize(matMul(mat3x3(camSpaceToLightSpace), finalNormal));\n" +
                     "float NdotL = 0.0;\n" + // normal dot light
-                    "vec3 effectiveDiffuse, effectiveSpecular, lightPosition, lightDirWS = vec3(0.0);\n" +
+                    "vec3 effectiveDiffuse, effectiveSpecular, lightDirWS = vec3(0.0);\n" +
                     coreFragment +
                     "if(hasSpecular && NdotL > 0.0001 && NdotV > 0.0001){\n" +
                     "   vec3 H = normalize(V + lightDirWS);\n" +
@@ -388,9 +407,13 @@ object LightShaders {
                     "uv2depth",
                     listOf(
                         Variable(GLSLType.V2F, "uv"),
-                        Variable(GLSLType.S2D, "depthTex"),
+                        Variable(if (useMSAA) GLSLType.S2DMS else GLSLType.S2D, "depthTex"),
                         Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
-                    ), "finalPosition = rawDepthToPosition(uv,texture(depthTex,uv).x);\n"
+                    ), if (useMSAA) {
+                        "finalPosition = rawDepthToPosition(uv,texelFetch(depthTex,ivec2(uv*textureSize(depthTex)),gl_SampleID).x);\n"
+                    } else {
+                        "finalPosition = rawDepthToPosition(uv,texture(depthTex,uv).x);\n"
+                    }
                 )
             )
             val fragment = createMainFragmentStage(type, isInstanced)
@@ -434,7 +457,8 @@ object LightShaders {
                 "tint", "invLocalTransform", "colors",
                 "tangents", "uvs", "normals", "isDirectional",
                 "defLayer0", "defLayer1", "defLayer2", "defLayer3", "defLayer4",
-                "receiveShadows", "countPerPixel"
+                "receiveShadows", "countPerPixel", "worldScale", "camPos", "invScreenSize",
+                "fullscreen", "prevLocalTransform", "data1"
             )
             shader.setTextureIndices(textures)
             shader

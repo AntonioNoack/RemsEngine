@@ -19,9 +19,9 @@ import org.apache.logging.log4j.LogManager
 
 class Prefab : Saveable {
 
-    constructor() : super()
+    constructor() : this("Entity")
 
-    constructor(clazzName: String) : this() {
+    constructor(clazzName: String) {
         this.clazzName = clazzName
     }
 

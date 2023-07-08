@@ -8,11 +8,8 @@ import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL31C.*
 import org.lwjgl.system.MemoryUtil
 
-class IndexBuffer(
-    val base: Buffer,
-    indices: IntArray,
-    usage: Int = GL_STATIC_DRAW
-) : OpenGLBuffer(GL_ELEMENT_ARRAY_BUFFER, int32Attrs, usage), Drawable {
+class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int = GL_STATIC_DRAW) :
+    OpenGLBuffer(name, GL_ELEMENT_ARRAY_BUFFER, int32Attrs, usage), Drawable {
 
     var indices: IntArray = indices
         set(value) {
@@ -158,7 +155,9 @@ class IndexBuffer(
             instanceAttributes = instanceData?.attributes
             lastInstanceBuffer = instanceData
             createVAO(shader, instanceData)
-        } else bindVAO(vao)
+        } else {
+            bindVAO(vao)
+        }
         GFX.check()
     }
 

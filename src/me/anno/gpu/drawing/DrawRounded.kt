@@ -22,7 +22,7 @@ object DrawRounded {
     private fun corner(mx: Boolean, my: Boolean): StaticBuffer {
 
         val sides = 50
-        val buffer = StaticBuffer(cornerAttr, 3 * sides)
+        val buffer = StaticBuffer("corners", cornerAttr, 3 * sides)
         fun put(x: Float, y: Float) {
             buffer.put(if (mx) 1 - x else x, if (my) 1 - y else y)
         }

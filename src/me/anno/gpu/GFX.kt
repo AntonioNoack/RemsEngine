@@ -103,6 +103,9 @@ object GFX {
     var supportsAnisotropicFiltering = false
 
     @JvmField
+    var supportsDepthTextures = false
+
+    @JvmField
     var anisotropy = 1f
 
     @JvmField
@@ -376,6 +379,7 @@ object GFX {
             val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
+        supportsDepthTextures = capabilities != null
         maxVertexUniformComponents = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniformComponents = glGetInteger(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
         maxBoundTextures = glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS)

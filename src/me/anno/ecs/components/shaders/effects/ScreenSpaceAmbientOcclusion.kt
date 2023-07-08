@@ -14,7 +14,6 @@ import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -26,7 +25,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -99,65 +98,75 @@ object ScreenSpaceAmbientOcclusion {
     private var random4x4: Texture2D? = null
 
     // 2 passes: occlusion factor, then blurring
-    private val occlusionShader = Shader(
-        "ssao",
-        coordsList, coordsVShader, uvList, listOf(
-            Variable(GLSLType.V1F, "radius"),
-            Variable(GLSLType.V1F, "strength"),
-            Variable(GLSLType.V1F, "skipRadiusSq"),
-            Variable(GLSLType.V1I, "numSamples"),
-            Variable(GLSLType.V1I, "mask"),
-            Variable(GLSLType.M4x4, "transform"),
-            Variable(GLSLType.S2D, "sampleKernel"),
-            Variable(GLSLType.S2D, "finalDepth"),
-            Variable(GLSLType.S2D, "finalNormal"),
-            Variable(GLSLType.S2D, "random4x4"),
-            Variable(GLSLType.V1B, "normalZW"),
-            Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT)
-        ) + depthVars, "" +
-                "float dot2(vec3 p){ return dot(p,p); }\n" +
-                quatRot +
-                rawToDepth + depthToPosition +
-                octNormalPacking +
-                "void main(){\n" +
-                "   vec3 origin = rawDepthToPosition(uv, texture(finalDepth, uv).x);\n" +
-                "   if(dot2(origin) > skipRadiusSq){\n" + // sky and such can be skipped automatically
-                "       glFragColor = vec4(0.0);\n" +
-                "   } else {\n" +
-                "       vec4 normalData = texture(finalNormal, uv);\n" +
-                "       vec3 normal = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
-                // reverse back sides, e.g., for plants
-                // could be done by the material as well...
-                "       if(dot(origin,normal) > 0.0) normal = -normal;\n" +
-                "       vec3 randomVector = texelFetch(random4x4, ivec2(gl_FragCoord.xy) & mask, 0).xyz * 2.0 - 1.0;\n" +
-                "       vec3 tangent = normalize(randomVector - normal * dot(normal, randomVector));\n" +
-                "       vec3 bitangent = cross(normal, tangent);\n" +
-                "       mat3 tbn = mat3(tangent, bitangent, normal);\n" +
-                "       float occlusion = 0.0;\n" +
-                "       for(int i=0;i<numSamples;i++){\n" +
-                // "sample" seems to be a reserved keyword for the emulator
-                "           vec3 position = matMul(tbn, texelFetch(sampleKernel, ivec2(i,0), 0).xyz) * radius + origin;\n" +
-                "           float sampleTheoDepth = dot2(position);\n" +
-                // project sample position... mmmh...
-                "           vec4 offset = matMul(transform, vec4(position, 1.0));\n" +
-                "           offset.xy /= offset.w;\n" +
-                "           offset.xy = offset.xy * 0.5 + 0.5;\n" +
-                "           bool isInside = offset.x >= 0.0 && offset.x <= 1.0 && offset.y >= 0.0 && offset.y <= 1.0;\n" +
-                // theoretically, the tutorial also contained this condition, but somehow it
-                // introduces a radius (when radius = 1), where occlusion appears exclusively
-                // && abs(originDepth - sampleDepth) < radius
-                // without it, the result looks approx. the same :)
-                "           if(isInside){\n" +
-                "               float sampleDepth = dot2(rawDepthToPosition(offset.xy, texture(finalDepth, offset.xy).x));\n" +
-                "               occlusion += step(0.0, sampleTheoDepth-sampleDepth);\n" +
-                "           }\n" +
-                "       }\n" +
-                "       glFragColor = vec4(clamp(strength * occlusion/float(numSamples), 0.0, 1.0));\n" +
-                "   }" +
-                "}"
-    ).apply {
-        glslVersion = 330
-        setTextureIndices("finalDepth", "finalNormal", "random4x4", "sampleKernel")
+    private val occlusionShader = createOcclusionShader(false)
+    private val occlusionShaderMS = createOcclusionShader(true)
+
+    private fun createOcclusionShader(ms: Boolean): Shader {
+        val srcType = if (ms) GLSLType.S2DMS else GLSLType.S2D
+        return Shader(
+            "ssao",
+            coordsList, coordsVShader, uvList, listOf(
+                Variable(GLSLType.V1F, "radius"),
+                Variable(GLSLType.V1F, "strength"),
+                Variable(GLSLType.V1F, "skipRadiusSq"),
+                Variable(GLSLType.V1I, "numSamples"),
+                Variable(GLSLType.V1I, "mask"),
+                Variable(GLSLType.M4x4, "transform"),
+                Variable(GLSLType.S2D, "sampleKernel"),
+                Variable(srcType, "finalDepth"),
+                Variable(srcType, "finalNormal"),
+                Variable(GLSLType.S2D, "random4x4"),
+                Variable(GLSLType.V1B, "normalZW"),
+                Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT)
+            ) + depthVars, "" +
+                    "float dot2(vec3 p){ return dot(p,p); }\n" +
+                    quatRot +
+                    rawToDepth +
+                    depthToPosition +
+                    octNormalPacking +
+                    "void main(){\n" +
+                    (if (ms) "" +
+                            "   vec2 texSizeI = vec2(textureSize(finalDepth));\n" +
+                            "   #define getPixel(tex,uv) texelFetch(tex,ivec2(clamp(uv,vec2(0.0),vec2(0.99999))*texSizeI),0)\n"
+                    else "  #define getPixel(tex,uv) texture(tex,uv)\n") +
+                    "   vec3 origin = rawDepthToPosition(uv, getPixel(finalDepth, uv).x);\n" +
+                    "   if(dot2(origin) > skipRadiusSq){\n" + // sky and such can be skipped automatically
+                    "       glFragColor = vec4(0.0);\n" +
+                    "   } else {\n" +
+                    "       vec4 normalData = getPixel(finalNormal, uv);\n" +
+                    "       vec3 normal = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
+                    // reverse back sides, e.g., for plants
+                    // could be done by the material as well...
+                    "       if(dot(origin,normal) > 0.0) normal = -normal;\n" +
+                    "       vec3 randomVector = texelFetch(random4x4, ivec2(gl_FragCoord.xy) & mask, 0).xyz * 2.0 - 1.0;\n" +
+                    "       vec3 tangent = normalize(randomVector - normal * dot(normal, randomVector));\n" +
+                    "       vec3 bitangent = cross(normal, tangent);\n" +
+                    "       mat3 tbn = mat3(tangent, bitangent, normal);\n" +
+                    "       float occlusion = 0.0;\n" +
+                    "       for(int i=0;i<numSamples;i++){\n" +
+                    // "sample" seems to be a reserved keyword for the emulator
+                    "           vec3 position = matMul(tbn, texelFetch(sampleKernel, ivec2(i,0), 0).xyz) * radius + origin;\n" +
+                    "           float sampleTheoDepth = dot2(position);\n" +
+                    // project sample position... mmmh...
+                    "           vec4 offset = matMul(transform, vec4(position, 1.0));\n" +
+                    "           offset.xy /= offset.w;\n" +
+                    "           offset.xy = offset.xy * 0.5 + 0.5;\n" +
+                    "           bool isInside = offset.x >= 0.0 && offset.x <= 1.0 && offset.y >= 0.0 && offset.y <= 1.0;\n" +
+                    // theoretically, the tutorial also contained this condition, but somehow it
+                    // introduces a radius (when radius = 1), where occlusion appears exclusively
+                    // && abs(originDepth - sampleDepth) < radius
+                    // without it, the result looks approx. the same :)
+                    "           if(isInside){\n" +
+                    "               float sampleDepth = dot2(rawDepthToPosition(offset.xy, getPixel(finalDepth, offset.xy).x));\n" +
+                    "               occlusion += step(0.0, sampleTheoDepth-sampleDepth);\n" +
+                    "           }\n" +
+                    "       }\n" +
+                    "       glFragColor = vec4(clamp(strength * occlusion/float(numSamples), 0.0, 1.0));\n" +
+                    "   }" +
+                    "}"
+        ).apply {
+            glslVersion = 330
+        }
     }
 
     private val blurShader = Shader(
@@ -239,7 +248,7 @@ object ScreenSpaceAmbientOcclusion {
         val dst = FBStack["ssao-1st", fw, fh, 1, false, 1, false]
         useFrame(dst, copyRenderer) {
             GFX.check()
-            val shader = occlusionShader
+            val shader = if (depth is Texture2D && depth.samples > 1) occlusionShaderMS else occlusionShader
             shader.use()
             bindDepthToPosition(shader)
             // bind all textures
@@ -248,10 +257,10 @@ object ScreenSpaceAmbientOcclusion {
                 generateSampleKernel(samples)
                 lastSamples = samples
             }
-            sampleKernel.bindTrulyNearest(3)
-            random4x4.bindTrulyNearest(2)
-            normal.bindTrulyNearest(1)
-            depth.bindTrulyNearest(0)
+            sampleKernel.bindTrulyNearest(shader, "sampleKernel")
+            random4x4.bindTrulyNearest(shader, "random4x4")
+            normal.bindTrulyNearest(shader, "finalNormal")
+            depth.bindTrulyNearest(shader, "finalDepth")
             // define all uniforms
             shader.v1f("radius", radius)
             shader.v1f("skipRadiusSq", sq(radius * 20f))
@@ -273,7 +282,7 @@ object ScreenSpaceAmbientOcclusion {
         val w = data.width
         val h = data.height
         val dst = FBStack["ssao-2nd", w, h, 1, false, 1, false]
-        useFrame(dst, Renderer.copyRenderer) {
+        useFrame(dst, copyRenderer) {
             GFX.check()
             val shader = blurShader
             shader.use()
@@ -294,7 +303,7 @@ object ScreenSpaceAmbientOcclusion {
         samples: Int,
         enableBlur: Boolean,
     ): ITexture2D? {
-        if (strength <= 0f) return whiteTexture
+        if (strength <= 0f) return blackTexture
         return renderPurely {
             val samples1 = min(samples, MAX_SAMPLES)
             val tmp = calculate(data, settingsV2, transform, radius, strength, samples1, enableBlur)

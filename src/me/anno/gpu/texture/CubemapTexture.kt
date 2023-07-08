@@ -229,7 +229,7 @@ open class CubemapTexture(
                 field = value
                 bindBeforeUpload()
                 glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE)
-                glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.v)
+                glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
             }
         }
 

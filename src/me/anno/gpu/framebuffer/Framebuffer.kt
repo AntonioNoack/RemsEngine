@@ -13,6 +13,7 @@ import me.anno.utils.OS
 import org.lwjgl.opengl.GL13C.GL_MULTISAMPLE
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL32C.GL_TEXTURE_2D_MULTISAMPLE
+import org.lwjgl.opengl.GL43C.glObjectLabel
 
 class Framebuffer(
     override var name: String,
@@ -67,7 +68,8 @@ class Framebuffer(
             buffer.ssBuffer?.depthAttachment = ssBuffer
             buffer
         } else {
-            val buffer = MultiFramebuffer(name, width, height, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
+            val buffer =
+                MultiFramebuffer(name, width, height, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
             for (it in buffer.targetsI) {
                 it.depthAttachment = this
                 it.ssBuffer?.depthAttachment = ssBuffer
@@ -123,7 +125,7 @@ class Framebuffer(
     override var pointer = 0
     var session = 0
 
-    var internalDepthTexture = 0
+    var internalDepthRenderbuffer = 0
     override var depthTexture: Texture2D? = null
 
     lateinit var textures: Array<Texture2D>
@@ -164,7 +166,7 @@ class Framebuffer(
         val da = if (depthBufferType == DepthBufferType.ATTACHMENT) depthAttachment else null
         var wasDestroyed = false
         if (da != null) {
-            val dtp = da.depthTexture?.pointer ?: da.internalDepthTexture
+            val dtp = da.depthTexture?.pointer ?: da.internalDepthRenderbuffer
             if (dtp != depthAttachedPtr) {
                 destroy()
                 wasDestroyed = true
@@ -177,7 +179,7 @@ class Framebuffer(
         ensure()
 
         if (da != null) {
-            val dtp = da.depthTexture?.pointer ?: da.internalDepthTexture
+            val dtp = da.depthTexture?.pointer ?: da.internalDepthRenderbuffer
             if (dtp != depthAttachedPtr) {
                 throw IllegalStateException(
                     "Depth attachment could not be recreated! ${da.pointer}, ${da.depthTexture!!.pointer} != $depthAttachedPtr, " +
@@ -227,7 +229,9 @@ class Framebuffer(
         val pointer = glGenFramebuffers()
         if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL framebuffer")
         session = GFXState.session
-        if (Build.isDebug) DebugGPUStorage.fbs.add(this)
+        if (Build.isDebug) {
+            DebugGPUStorage.fbs.add(this)
+        }
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
         val w = width
@@ -252,16 +256,18 @@ class Framebuffer(
         drawBuffersN(targets.size)
         GFX.check()
         // cannot use depth-texture with color render buffers... why ever...
-        val depthBufferType = if (usesCRBs && depthBufferType == DepthBufferType.TEXTURE)
-            DepthBufferType.INTERNAL else depthBufferType
+        val depthBufferType0 = depthBufferType
+        val depthBufferType = if (usesCRBs && (depthBufferType0 == DepthBufferType.TEXTURE ||
+                    depthBufferType0 == DepthBufferType.TEXTURE_16)
+        ) DepthBufferType.INTERNAL else depthBufferType0
         depthAttachedPtr = 0
-        when (depthBufferType) {
+        when (depthBufferType0) {
             DepthBufferType.NONE -> {
             }
             DepthBufferType.ATTACHMENT -> {
                 val da = depthAttachment ?: throw IllegalStateException("Depth Attachment was not found in $name, null")
-                depthAttachedPtr = if (da.usesCRBs && da.internalDepthTexture != 0) {
-                    val texPointer = da.internalDepthTexture
+                depthAttachedPtr = if (da.usesCRBs && da.internalDepthRenderbuffer != 0) {
+                    val texPointer = da.internalDepthRenderbuffer
                     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, texPointer)
                     // println("set attached depth ptr to $texPointer")
                     texPointer
@@ -277,24 +283,34 @@ class Framebuffer(
                     texPointer
                 }
             }
-            DepthBufferType.INTERNAL -> createDepthBuffer()
+            DepthBufferType.INTERNAL -> {
+                internalDepthRenderbuffer = createRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
+            }
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                val depthTexture = Texture2D("$name-depth", w, h, samples)
-                depthTexture.autoUpdateMipmaps = autoUpdateMipmaps
-                depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
-                depthTexture.owner = this
-                glFramebufferTexture2D(
-                    GL_FRAMEBUFFER,
-                    GL_DEPTH_ATTACHMENT,
-                    depthTexture.target,
-                    depthTexture.pointer,
-                    0
-                )
-                this.depthTexture = depthTexture
+                if (GFX.supportsDepthTextures && !usesCRBs) {
+                    val depthTexture = Texture2D("$name-depth", w, h, samples)
+                    depthTexture.autoUpdateMipmaps = autoUpdateMipmaps
+                    depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
+                    depthTexture.owner = this
+                    glFramebufferTexture2D(
+                        GL_FRAMEBUFFER,
+                        GL_DEPTH_ATTACHMENT,
+                        depthTexture.target,
+                        depthTexture.pointer,
+                        0
+                    )
+                    this.depthTexture = depthTexture
+                } else {
+                    // 4 is worst-case assumed
+                    internalDepthRenderbuffer = createRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
+                }
             }
         }
         GFX.check()
         check()
+        if (Build.isDebug) {
+            glObjectLabel(GL_FRAMEBUFFER, pointer, name)
+        }
         this.pointer = pointer
     }
 
@@ -323,15 +339,6 @@ class Framebuffer(
         attachment: Int = GL_COLOR_ATTACHMENT0,
         targetType: TargetType,
     ): Int = createRenderbuffer(attachment, targetType.internalFormat, targetType.bytesPerPixel)
-
-    fun createDepthBuffer() {
-        internalDepthTexture = when (depthBufferType) {
-            // these texture types MUST be the same as for the texture creation process
-            DepthBufferType.TEXTURE -> createRenderbuffer(GL_DEPTH_ATTACHMENT, TargetType.DEPTH32F)
-            DepthBufferType.TEXTURE_16 -> createRenderbuffer(GL_DEPTH_ATTACHMENT, TargetType.DEPTH16)
-            else -> createRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4) // 4 is worst-case assumed
-        }
-    }
 
     fun copyIfNeeded(dst: IFramebuffer) {
 
@@ -553,10 +560,10 @@ class Framebuffer(
     }
 
     fun destroyInternalDepth() {
-        if (internalDepthTexture > 0) {
-            glDeleteRenderbuffers(internalDepthTexture)
+        if (internalDepthRenderbuffer > 0) {
+            glDeleteRenderbuffers(internalDepthRenderbuffer)
             renderBufferAllocated = Texture2D.allocate(renderBufferAllocated, 0L)
-            internalDepthTexture = 0
+            internalDepthRenderbuffer = 0
         }
     }
 

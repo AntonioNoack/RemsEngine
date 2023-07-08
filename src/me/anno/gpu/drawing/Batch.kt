@@ -5,7 +5,7 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.shader.Shader
 import org.lwjgl.opengl.GL20C
 
-abstract class Batch(val base: StaticBuffer, attributes: List<Attribute>, val batchSize: Int = 65536) {
+abstract class Batch(name: String, val base: StaticBuffer, attributes: List<Attribute>, val batchSize: Int = 65536) {
 
     var active = false
         private set
@@ -14,9 +14,7 @@ abstract class Batch(val base: StaticBuffer, attributes: List<Attribute>, val ba
 
     private var batchCount = 0
     private val buffer by lazy {
-        StaticBuffer(
-            attributes, batchSize, GL20C.GL_DYNAMIC_DRAW
-        ).apply {
+        StaticBuffer(name, attributes, batchSize, GL20C.GL_DYNAMIC_DRAW).apply {
             createNioBuffer()
             nioBuffer!!.position(batchSize * stride)
             ensureBuffer() // maximum size :)

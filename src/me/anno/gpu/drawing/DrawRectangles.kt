@@ -21,7 +21,7 @@ object DrawRectangles {
     // to do support textures for batching with Map<Texture, Buffer>()?
 
     val batch = object : Batch(
-        flat01, listOf(
+        "rectBatch", flat01, listOf(
             Attribute("instancePosSize", AttributeType.FLOAT, 4),
             Attribute("instanceColor", AttributeType.FLOAT, 4),
         )

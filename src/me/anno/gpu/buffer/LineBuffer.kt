@@ -63,7 +63,7 @@ object LineBuffer {
 
     // whenever this is updated, nioBuffer in buffer needs to be updated as well
 
-    private val buffer = StaticBuffer(attributes, 65536, GL_STREAM_DRAW)
+    private val buffer = StaticBuffer("lines", attributes, 65536, GL_STREAM_DRAW)
     const val lineSize = 2 * (3 * 4 + 4)
 
     init {

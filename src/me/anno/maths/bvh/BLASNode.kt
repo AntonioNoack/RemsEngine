@@ -96,7 +96,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             val buffers = BLASs.map { it.findGeometryData() } // positions without index
             // RGB is not supported by compute shaders (why ever...), so use RGBA
             val numTriangles = buffers.sumOf { it.indices.size / 3 }
-            val buffer = ComputeBuffer(triangleAttr, numTriangles * 3)
+            val buffer = ComputeBuffer("BLAS", triangleAttr, numTriangles * 3)
             // write triangle into memory
             var triangleIndex = 0
             for (index in BLASs.indices) {
@@ -218,7 +218,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             // for both types just use 8x4 = 32 bytes
             // we will find a place for markers about the type :)
             val numNodes = BLASs.sumOf { it.countNodes() }
-            val texture = ComputeBuffer(blasAttr, numNodes)
+            val data = ComputeBuffer("BLAS", blasAttr, numNodes)
 
             var i = 0
             var nextId = 0
@@ -247,22 +247,22 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
                     }
 
                     val bounds = it.bounds
-                    texture.put(bounds.minX)
-                    texture.put(bounds.minY)
-                    texture.put(bounds.minZ)
-                    texture.put(Float.fromBits(v0))
+                    data.put(bounds.minX)
+                    data.put(bounds.minY)
+                    data.put(bounds.minZ)
+                    data.put(Float.fromBits(v0))
 
-                    texture.put(bounds.maxX)
-                    texture.put(bounds.maxY)
-                    texture.put(bounds.maxZ)
-                    texture.put(Float.fromBits(v1))
+                    data.put(bounds.maxX)
+                    data.put(bounds.maxY)
+                    data.put(bounds.maxZ)
+                    data.put(Float.fromBits(v1))
 
                     i += 8
 
                 }
             }
 
-            return texture
+            return data
 
         }
 

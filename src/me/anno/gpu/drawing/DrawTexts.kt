@@ -54,7 +54,7 @@ object DrawTexts {
     }
 
     val simpleBatch = object : Batch(
-        flat01, listOf(
+        "simpleTextBatch", flat01, listOf(
             Attribute("instData", 3),
             Attribute("color0", AttributeType.UINT8_NORM, 4),
             Attribute("color1", AttributeType.UINT8_NORM, 4),
@@ -373,7 +373,7 @@ object DrawTexts {
 
             val texture = FontManager.getTexture(key)
             if (texture != null) {
-                draw(shader, texture, fx + (w - texture.width) .shr(1), y2, text)
+                draw(shader, texture, fx + (w - texture.width).shr(1), y2, text)
             }
 
             wx

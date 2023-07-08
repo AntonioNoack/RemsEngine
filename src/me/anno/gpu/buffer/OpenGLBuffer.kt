@@ -6,7 +6,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute.Companion.computeOffsets
 import me.anno.gpu.debug.DebugGPUStorage
-import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
@@ -15,14 +14,16 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL43C.GL_BUFFER
+import org.lwjgl.opengl.GL43C.glObjectLabel
 import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val usage: Int) :
+abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: List<Attribute>, val usage: Int) :
     ICacheData {
 
-    constructor(type: Int, attributes: List<Attribute>) : this(type, attributes, GL_STATIC_DRAW)
+    constructor(name: String, type: Int, attributes: List<Attribute>) : this(name, type, attributes, GL_STATIC_DRAW)
 
     val stride = computeOffsets(attributes)
 
@@ -35,9 +36,6 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
 
     var locallyAllocated = 0L
     var elementCount = 0
-
-    fun getName() = getName(0)
-    fun getName(index: Int) = attributes[index].name
 
     fun checkSession() {
         if (session != GFXState.session) {
@@ -83,7 +81,11 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
         GFX.check()
         isUpToDate = true
 
-        DebugGPUStorage.buffers.add(this)
+        if (Build.isDebug) {
+            DebugGPUStorage.buffers.add(this)
+            glObjectLabel(GL_BUFFER, pointer, name)
+            GFX.check()
+        }
 
     }
 
@@ -244,7 +246,7 @@ abstract class OpenGLBuffer(val type: Int, var attributes: List<Attribute>, val 
 
         // todo working? looks like it
         val useVAOs get() = false
-        val renewVAOs get() = true
+        val renewVAOs get() = false
 
         private var boundVAO = -1
         fun bindVAO(vao: Int) {

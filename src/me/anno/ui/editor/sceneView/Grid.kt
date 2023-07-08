@@ -30,9 +30,9 @@ object Grid {
     val zAxisColor = style.getColor("grid.axis.z.color", 0x7777ff or black)
 
     private val attr = listOf(Attribute("coords", 3))
-    val gridBuffer = StaticBuffer(attr, 201 * 4)
-    val lineBuffer = StaticBuffer(attr, 2)
-    val sphereBuffer = StaticBuffer(attr, 3 * 64 * 2)
+    val gridBuffer = StaticBuffer("grid", attr, 201 * 4)
+    val lineBuffer = StaticBuffer("gridLines", attr, 2)
+    val sphereBuffer = StaticBuffer("gridSphere", attr, 3 * 64 * 2)
 
     init {
 

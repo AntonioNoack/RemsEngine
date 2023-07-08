@@ -46,9 +46,9 @@ class HSLogic(val world: HexagonSphereMCWorld) {
         updateStructure(hex, yi, idx)
     }
 
-    val structureData = ComputeBuffer(dataLayout, 1024)
-    var stateData0 = ComputeBuffer(stateLayout, 1024)
-    var stateData1 = ComputeBuffer(stateLayout, 1024)
+    val structureData = ComputeBuffer("structure", dataLayout, 1024)
+    var stateData0 = ComputeBuffer("state0", stateLayout, 1024)
+    var stateData1 = ComputeBuffer("state1", stateLayout, 1024)
 
     init {
         uploadState()

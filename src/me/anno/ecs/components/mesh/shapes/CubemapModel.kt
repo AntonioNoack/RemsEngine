@@ -8,8 +8,10 @@ object CubemapModel {
 
     @JvmStatic
     private val xAxis = Vector3f(1f, 0f, 0f)
+
     @JvmStatic
     private val yAxis = Vector3f(0f, 1f, 0f)
+
     @JvmStatic
     private val zAxis = Vector3f(0f, 0f, 1f)
 
@@ -24,7 +26,7 @@ object CubemapModel {
 
     @JvmStatic
     val cubemapModel = StaticBuffer(
-        listOf(
+        "cubemap", listOf(
             Attribute("coords", 3),
             Attribute("attr1", 2)
         ), 6 * 6
@@ -60,7 +62,7 @@ object CubemapModel {
 
     @JvmStatic
     val cubemapLineModel = StaticBuffer(
-        listOf(
+        "cubemapLines", listOf(
             Attribute("coords", 3),
             Attribute("attr1", 2)
         ), 6 * 6 * 2

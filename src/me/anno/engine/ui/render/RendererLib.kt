@@ -34,13 +34,13 @@ object RendererLib {
             "   vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
             "   bool hasSpecular = dot(specularColor,vec3(1.0)) > 0.001;\n" +
             "   bool hasDiffuse = dot(diffuseColor,vec3(1.0)) > 0.001;\n" +
-            "   vec3 lightPosition, lightDirWS, localNormal, effectiveSpecular, effectiveDiffuse;\n" +
+            "   vec3 lightDirWS, localNormal, effectiveSpecular, effectiveDiffuse;\n" +
             "   float NdotL = 0.0;\n" + // normal dot light
             "   if(hasDiffuse || hasSpecular){\n" +
             PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start +
             "       for(int i=0;i<numberOfLights;i++){\n" +
             "           mat4x3 camSpaceToLightSpace = invLightMatrices[i];\n" +
-            "           vec3 dir = matMul(invLightMatrices[i], vec4(finalPosition,1.0));\n" + // local coordinates for falloff
+            "           vec3 dir = matMul(camSpaceToLightSpace, vec4(finalPosition,1.0));\n" + // local coordinates for falloff
             // "       if(!hasSpecular && dot(dir,dir) >= 1.0) continue;\n" +
             "           vec4 data0 = lightData0[i];\n" + // color, type
             "           vec4 data1 = lightData1[i];\n" + // point: position, radius, spot: position, angle

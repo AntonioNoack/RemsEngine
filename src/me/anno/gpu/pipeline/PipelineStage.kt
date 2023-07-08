@@ -72,7 +72,7 @@ class PipelineStage(
         const val instancedBatchSize = 1024 * 16
 
         val instancedBuffer = StaticBuffer(
-            listOf(
+            "instanced", listOf(
                 Attribute("instanceTrans0", 3),
                 Attribute("instanceTrans1", 3),
                 Attribute("instanceTrans2", 3),
@@ -82,7 +82,7 @@ class PipelineStage(
         )
 
         val instancedBufferA = StaticBuffer(
-            listOf(
+            "instancedA", listOf(
                 Attribute("instanceTrans0", 3),
                 Attribute("instanceTrans1", 3),
                 Attribute("instanceTrans2", 3),
@@ -94,7 +94,7 @@ class PipelineStage(
         )
 
         val instancedBufferM = StaticBuffer(
-            listOf(
+            "instancedM", listOf(
                 Attribute("instanceTrans0", 3),
                 Attribute("instanceTrans1", 3),
                 Attribute("instanceTrans2", 3),
@@ -107,7 +107,7 @@ class PipelineStage(
         )
 
         val instancedBufferMA = StaticBuffer(
-            listOf(
+            "instancedMA", listOf(
                 Attribute("instanceTrans0", 3),
                 Attribute("instanceTrans1", 3),
                 Attribute("instanceTrans2", 3),
@@ -125,7 +125,7 @@ class PipelineStage(
         )
 
         val instancedBufferSlim = StaticBuffer(
-            listOf(
+            "instancedSlim", listOf(
                 Attribute("instancePosSize", 4),
                 Attribute("instanceRot", 4),
             ),
@@ -133,7 +133,7 @@ class PipelineStage(
         )
 
         val instancedBufferI32 = StaticBuffer(
-            listOf(
+            "instancedI32", listOf(
                 Attribute("instanceI32", AttributeType.SINT32, 1, true)
             ), instancedBatchSize * 16, GL_DYNAMIC_DRAW
         )

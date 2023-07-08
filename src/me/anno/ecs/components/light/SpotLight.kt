@@ -111,8 +111,7 @@ class SpotLight() : LightComponent(LightType.SPOT) {
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +
                     (if (cutoffContinue != null) "if(dir.z >= 0.0) $cutoffContinue;\n" else "") + // backside
-                    "lightPosition = data1.rgb;\n" +
-                    "lightDirWS = normalize(lightPosition - finalPosition);\n" +
+                    "lightDirWS = normalize(-dir);\n" +
                     "NdotL = dot(lightDirWS, finalNormal);\n" +
                     "float coneAngle = data1.a;\n" +
                     "vec2 shadowDir = dir.xy/(-dir.z * coneAngle);\n" +

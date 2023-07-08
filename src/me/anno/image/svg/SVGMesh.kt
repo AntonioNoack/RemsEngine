@@ -188,7 +188,7 @@ class SVGMesh {
         val scale = 2f / h
         val totalPointCount = curves.sumOf { it.triangles.size }
         if (totalPointCount > 0) {
-            val buffer = StaticBuffer(attr, totalPointCount)
+            val buffer = StaticBuffer("SVG", attr, totalPointCount)
             this.buffer = buffer
             val formula = Formula()
             val c0 = Vector4f()

@@ -1,9 +1,6 @@
 package me.anno.engine.ui.render
 
-import me.anno.ecs.components.camera.effects.CameraEffect
-import me.anno.ecs.components.camera.effects.ColorBlindnessEffect
-import me.anno.ecs.components.camera.effects.DepthOfFieldEffect
-import me.anno.ecs.components.camera.effects.OutlineEffect
+import me.anno.ecs.components.camera.effects.*
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.deferred.DeferredLayerType
@@ -69,9 +66,11 @@ class RenderMode(
 
         // ALPHA, // currently not defined
         val LIGHT_SUM = RenderMode("Light Sum") // todo implement dust-light-spilling for impressive fog
+        val LIGHT_SUM_MS = RenderMode("Light Sum MSAAx8")
         val LIGHT_COUNT = RenderMode("Light Count")
 
         val SSAO = RenderMode("SSAO")
+        val SSAO_MS = RenderMode("SSAO MSAAx8")
         val SS_REFLECTIONS = RenderMode("SS-Reflections")
 
         val INVERSE_DEPTH = RenderMode("Inverse Depth")
@@ -117,6 +116,8 @@ class RenderMode(
 
         val DEPTH_OF_FIELD = RenderMode("Depth Of Field", DepthOfFieldEffect())
         val SMOOTH_NORMALS = RenderMode("Smooth Normals")
+
+        val DEPTH_TEST = RenderMode("Depth Test", DepthTest())
 
     }
 

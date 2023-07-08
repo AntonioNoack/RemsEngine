@@ -261,7 +261,7 @@ class TextMesh(
             triangles += outer.triangles
         }
 
-        buffer = StaticBuffer(attributes, triangles.size)
+        buffer = StaticBuffer("TextMesh", attributes, triangles.size)
 
         for (it in outerFragments) {
             minX = min(minX, it.minX)

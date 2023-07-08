@@ -13,8 +13,8 @@ fun main() {
     val src = IntArray(100) { it + 1 }
     val dst = IntArray(src.size)
 
-    val buffer = ComputeBuffer(listOf(Attribute("v", AttributeType.UINT32, 1, true)), src.size)
-    val tmp = ComputeBuffer(buffer.attributes, buffer.elementCount)
+    val buffer = ComputeBuffer("values", listOf(Attribute("v", AttributeType.UINT32, 1, true)), src.size)
+    val tmp = ComputeBuffer("tmp", buffer.attributes, buffer.elementCount)
 
     HiddenOpenGLContext.createOpenGL()
 

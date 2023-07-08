@@ -11,6 +11,8 @@ import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL20.*
+import org.lwjgl.opengl.GL43C.GL_PROGRAM
+import org.lwjgl.opengl.GL43C.glObjectLabel
 
 // todo locations for the varyings: for debugging with RenderDoc
 
@@ -64,7 +66,14 @@ open class Shader(
 
         // LOGGER.debug("$shaderName\nGEOMETRY:\n$geometry\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
 
-        val varyings = varyings.map { Varying(if (it.isFlat || it.type.isFlat) "flat" else "", it.type, it.name) }
+        val varyings = varyings.map {
+            Varying(
+                if (it.isFlat || it.type.isFlat ||
+                    it.type.glslName.startsWith("mat") // matrix interpolation is not supported properly on my RTX3070. Although the value should be constant, the matrix is not.
+                ) "flat" else "",
+                it.type, it.name
+            )
+        }
 
         if (glslVersion < 330 && fragmentVariables.any2 { it.isOutput })
             glslVersion = 330 // needed for layout(location=x) qualifier
@@ -253,6 +262,10 @@ open class Shader(
             fragmentSource = ""
         }
 
+        if (Build.isDebug) {
+            glObjectLabel(GL_PROGRAM, pointer, name)
+        }
+
     }
 
     fun getAttributeLocation(name: String): Int {
@@ -273,7 +286,7 @@ open class Shader(
     }
 
     fun printCode() {
-        LOGGER.warn(formatShader(name, "", vertexSource, fragmentSource))
+        LOGGER.warn(formatShader(name, "", vertexShader, fragmentShader))
     }
 
 }

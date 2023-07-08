@@ -40,7 +40,7 @@ class TextMeshGroup(
         val characters = alignment.buffers
         val b0 = characters[codepoints.first()]!!
         val vertexCount = codepoints.sumOf { characters[it]!!.vertexCount }
-        val dst = StaticBuffer(b0.attributes, vertexCount)
+        val dst = StaticBuffer("TextMeshGroup", b0.attributes, vertexCount)
         val components = b0.attributes.sumOf { it.components }
         for (index in codepoints.indices) {
             val codepoint = codepoints[index]

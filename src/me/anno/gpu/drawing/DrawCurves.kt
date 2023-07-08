@@ -18,7 +18,7 @@ import kotlin.math.hypot
 object DrawCurves {
 
     val lineBatch = object : Batch(
-        flat11x2, listOf(
+        "lineBatch", flat11x2, listOf(
             Attribute("pi0", 2),
             Attribute("pi1", 2),
             Attribute("ci0", AttributeType.UINT8_NORM, 4),

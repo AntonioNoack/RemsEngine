@@ -137,16 +137,16 @@ class PointLight : LightComponent(LightType.POINT) {
 
     companion object {
 
-        private const val cutoff = 0.1
-        const val falloff = "max(0.0, 1.0/(1.0+9.0*dot(dir,dir)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
+        val falloff = kotlin.run {
+            val cutoff = 0.1
+            "max(0.0, 1.0/(1.0+9.0*dot(dir,dir)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
+        }
 
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean, hasLightRadius: Boolean): String {
             return "" +
-                    (if (cutoffContinue != null) "if(dot(dir,dir)>1.0) $cutoffContinue;\n"
-                    else "") + // outside
-                    "lightPosition = data1.rgb;\n" +
+                    (if (cutoffContinue != null) "if(dot(dir,dir)>1.0) $cutoffContinue;\n" else "") + // outside
                     // when light radius > 0, then adjust the light direction such that it looks as if the light was a sphere
-                    "lightDirWS = normalize(lightPosition - finalPosition);\n" +
+                    "lightDirWS = normalize(-dir);\n" +
                     (if (hasLightRadius) "" +
                             "#define lightRadius data1.a\n" +
                             "if(lightRadius > 0.0){\n" +
@@ -155,7 +155,7 @@ class PointLight : LightComponent(LightType.POINT) {
                             // should be more visible in the specular case...
                             // in the ideal case, we move the light such that it best aligns the sphere...
                             "   vec3 idealLightDirWS = normalize(reflect(finalPosition, finalNormal));\n" +
-                            "   lightDirWS = normalize(mix(lightDirWS, idealLightDirWS, clamp(lightRadius/(length(lightPosition-finalPosition)),0.0,1.0)));\n" +
+                            "   lightDirWS = normalize(mix(lightDirWS, idealLightDirWS, clamp(lightRadius/(length(dir)),0.0,1.0)));\n" +
                             "}\n" else "") +
                     "NdotL = dot(lightDirWS, finalNormal);\n" +
                     // shadow maps
@@ -173,7 +173,7 @@ class PointLight : LightComponent(LightType.POINT) {
                     // "dir *= 0.2;\n" + // less falloff by a factor of 5,
                     // because specular light is more directed and therefore reached farther
                     // nice in theory, but practically, we would need a larger cube for that
-                    "effectiveSpecular = effectiveDiffuse;//lightColor * ${LightType.POINT.falloff};\n"
+                    "effectiveSpecular = effectiveDiffuse;\n"
         }
 
     }

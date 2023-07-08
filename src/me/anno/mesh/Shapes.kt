@@ -55,9 +55,20 @@ object Shapes {
      * @param indices mesh indices for indexed meshes, may be null
      * @param normals mesh normals, or null for flat shading
      * */
-    class FBBMesh(val positions: FloatArray, val indices: IntArray?, val normals: FloatArray? = null) {
+    class FBBMesh(
+        name: String,
+        val positions: FloatArray,
+        val indices: IntArray?,
+        val normals: FloatArray? = null
+    ) {
 
-        constructor(base: FBBMesh, scale: Float) : this(scale(base.positions, abs(scale)), base.indices, base.normals) {
+        constructor(base: FBBMesh, scale: Float) : this(base.front.name, base, scale)
+        constructor(name: String, base: FBBMesh, scale: Float) : this(
+            name,
+            scale(base.positions, abs(scale)),
+            base.indices,
+            base.normals
+        ) {
             front.uvs = base.front.uvs
             back.uvs = base.back.uvs
             both.uvs = base.both.uvs
@@ -69,7 +80,7 @@ object Shapes {
         fun scaled(scale: Vector3f) = linear(Vector3f(), scale)
 
         fun linear(offset: Vector3f, scale: Vector3f) =
-            FBBMesh(linear(positions, offset, scale), indices)
+            FBBMesh(front.name, linear(positions, offset, scale), indices)
 
         val front = Mesh()
         val back = Mesh()
@@ -78,14 +89,17 @@ object Shapes {
         init {
             val indices = indices
             val positions = positions
+            front.name = name
             front.positions = positions
             front.indices = indices
             front.normals = normals
             front.cullMode = CullMode.FRONT
+            back.name = name
             back.positions = positions
             back.indices = indices
             back.normals = normals
             back.cullMode = CullMode.BACK
+            both.name = name
             both.positions = positions
             both.indices = indices
             both.normals = normals
@@ -122,7 +136,7 @@ object Shapes {
     }
 
     val flat11 = FBBMesh(
-        floatArrayOf(
+        "flat11", floatArrayOf(
             -1f, -1f, 0f,
             +1f, -1f, 0f,
             -1f, +1f, 0f,
@@ -135,7 +149,7 @@ object Shapes {
      * smoothly shaded
      * */
     val smoothCube = FBBMesh(
-        floatArrayOf(
+        "smoothCube", floatArrayOf(
             -1f, -1f, -1f,
             -1f, -1f, +1f,
             -1f, +1f, -1f,
@@ -154,7 +168,7 @@ object Shapes {
         )
     )
 
-    val flatCube = FBBMesh(unpack(smoothCube.front), null)
+    val flatCube = FBBMesh("flatCube", unpack(smoothCube.front), null)
 
     /**
      * cube with half extends 1, full extends 2; front only
@@ -171,16 +185,16 @@ object Shapes {
      * cube with half extends 0.5, full extends 1;
      * shaded smoothly
      * */
-    val cube05Smooth = FBBMesh(smoothCube, 0.5f)
+    val cube05Smooth = FBBMesh("cube05Smooth", smoothCube, 0.5f)
 
     /**
      * cube with half extends 0.5, full extends 1;
      * shaded flat
      * */
-    val cube05Flat = FBBMesh(flatCube, 0.5f)
+    val cube05Flat = FBBMesh("cube05Flat", flatCube, 0.5f)
 
     val tetrahedron = FBBMesh(
-        floatArrayOf(
+        "tetrahedron", floatArrayOf(
             0f, 1f, 0f,
             1f, 0f, 0f,
             0f, 0f, 1f,
@@ -194,7 +208,7 @@ object Shapes {
     )
 
     // 1.226f * 1.414f = scale to cover a sphere, guesses in Blender
-    val sphereCoveringTetrahedron = FBBMesh(tetrahedron, 1.226f * 1.414f)
+    val sphereCoveringTetrahedron = FBBMesh("coveringTetrahedron", tetrahedron, 1.226f * 1.414f)
 
     fun createCube(
         mesh: Mesh,

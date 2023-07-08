@@ -48,7 +48,7 @@ class DepthOfFieldEffect : CameraEffect() {
     }
 
     override fun listInputs() =
-        listOf(DeferredLayerType.HDR_RESULT, DeferredLayerType.DEPTH, DeferredLayerType.POSITION)
+        listOf(DeferredLayerType.SDR_RESULT, DeferredLayerType.DEPTH)
 
     override fun listOutputs() =
         listOf(DeferredLayerType.SDR_RESULT)
