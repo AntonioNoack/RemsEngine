@@ -113,7 +113,7 @@ class SpotLight() : LightComponent(LightType.SPOT) {
                     (if (cutoffContinue != null) "if(dir.z >= 0.0) $cutoffContinue;\n" else "") + // backside
                     "lightDirWS = normalize(-dir);\n" +
                     "NdotL = dot(lightDirWS, finalNormal);\n" +
-                    "float coneAngle = data1.a;\n" +
+                    "float coneAngle = data1;\n" +
                     "vec2 shadowDir = dir.xy/(-dir.z * coneAngle);\n" +
                     "float ringFalloff = dot(shadowDir,shadowDir);\n" +
                     (if (cutoffContinue != null) "if(ringFalloff > 1.0) $cutoffContinue;\n" else "") + // outside of light

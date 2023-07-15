@@ -123,7 +123,7 @@ object RayTracing2 {
             "                   if(worldDistance1 < worldDistance){\n" + // could be false by numerical errors
             // transform hit normal into world coordinates
             "                       worldDistance = worldDistance1;\n" +
-            "                       worldNormal = matMul(mat3x3(localToWorld), localNormal);\n" +
+            "                       worldNormal = matMul(localToWorld, vec4(localNormal,0.0));\n" +
             "                   }\n" +
             "               }\n" + // end of blas; get next tlas node
             "               if(stackIndex < 1u) break;\n" +

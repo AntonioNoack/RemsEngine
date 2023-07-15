@@ -15,6 +15,9 @@ import java.math.BigInteger
 import kotlin.math.*
 
 // where should we move this class?
+/**
+ * Panel, which draws a numeric function as a graph, and lets the user navigate like on a map.
+ * */
 open class FunctionPanel(val function: Function1d, style: Style) : MapPanel(style) {
 
     fun interface Function1d {

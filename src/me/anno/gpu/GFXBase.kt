@@ -343,8 +343,15 @@ object GFXBase {
             runRenderLoop()
         }
 
+        var lastTime = System.nanoTime()
         while (!windows.all2 { it.shouldClose } && !shutdown) {
             updateWindows()
+            val currTime = System.nanoTime()
+            lastTime = if (currTime - lastTime < 1_000_000) {
+                // reduce load on CPU if the method call is very lightweight
+                Thread.sleep(1)
+                System.nanoTime()
+            } else currTime
         }
 
     }

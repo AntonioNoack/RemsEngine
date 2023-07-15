@@ -7,6 +7,9 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 import me.anno.utils.structures.tuples.IntPair
 
+/**
+ * Standard implementation for IDraggable
+ * */
 class Draggable(
     private val content: String,
     private val contentType: String,

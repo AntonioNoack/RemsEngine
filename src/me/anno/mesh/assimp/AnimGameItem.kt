@@ -225,7 +225,6 @@ class AnimGameItem(
                     if (mesh?.positions != null) {
                         mesh.checkCompleteness()
                         mesh.ensureBuffer()
-                        shader.v1i("hasVertexColors", mesh.hasVertexColors)
                         val materialOverrides = comp.materials
                         val materials = mesh.materials
                         // LOGGER.info("drawing mesh with material $materialOverrides x $materials")
@@ -233,6 +232,7 @@ class AnimGameItem(
                             val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
                             val m1 = m0 ?: materials.getOrNull(index)
                             val material = MaterialCache[m1, Mesh.defaultMaterial]
+                            shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
                             material.bind(shader)
                             mesh.draw(shader, index)
                         }
@@ -247,7 +247,7 @@ class AnimGameItem(
                     if (mesh?.positions != null) {
                         mesh.checkCompleteness()
                         mesh.ensureBuffer()
-                        shader.v1i("hasVertexColors", mesh.hasVertexColors)
+                        shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
                         for (i in 0 until mesh.numMaterials) {
                             mesh.draw(shader, i)
                         }
@@ -280,11 +280,12 @@ class AnimGameItem(
                                 tmp.set(localTransform).invert()
                                 shader.m4x3("invLocalTransform", tmp)
                             }
-                            shader.v1i("hasVertexColors", mesh.hasVertexColors)
                             val materials = mesh.materials
                             for (index in 0 until mesh.numMaterials) {
-                                val material1 =
-                                    material ?: MaterialCache[materials.getOrNull(index), Mesh.defaultMaterial]
+                                val matI = materials.getOrNull(index)
+                                val material1 = material ?: MaterialCache[matI, Mesh.defaultMaterial]
+                                val hasVCs = if (material1.enableVertexColors) mesh.hasVertexColors else 0
+                                shader.v1i("hasVertexColors", hasVCs)
                                 material1.bind(shader)
                                 mesh.draw(shader, index)
                             }

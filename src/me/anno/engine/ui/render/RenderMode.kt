@@ -9,6 +9,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
 import me.anno.graph.types.FlowGraph
 
+// todo remove all specific implementations with RenderGraphs, as far as possible
 // todo all-metallic / all-rough/smooth render modes
 @Suppress("unused")
 class RenderMode(
@@ -66,7 +67,7 @@ class RenderMode(
 
         // ALPHA, // currently not defined
         val LIGHT_SUM = RenderMode("Light Sum") // todo implement dust-light-spilling for impressive fog
-        val LIGHT_SUM_MS = RenderMode("Light Sum MSAAx8")
+        val LIGHT_SUM_MSAA = RenderMode("Light Sum MSAAx8")
         val LIGHT_COUNT = RenderMode("Light Count")
 
         val SSAO = RenderMode("SSAO")

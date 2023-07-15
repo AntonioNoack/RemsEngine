@@ -21,7 +21,7 @@ object OnEdgeCalculator {
             val hash = min.shl(32) or max
             val previousIndex = sides.put(hash, index)
             if (previousIndex != null) {
-                // it was already included -> this side a an edge
+                // it was already included -> this side is an edge
                 dst[previousIndex] = false
                 dst[index] = false
             }

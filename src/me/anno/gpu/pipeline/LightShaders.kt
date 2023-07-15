@@ -51,8 +51,8 @@ object LightShaders {
         Attribute("invInsTrans2", 3),
         Attribute("invInsTrans3", 3),
         // light properties like type, color, cone angle
-        Attribute("lightData0", 4),
-        Attribute("lightData1", 4),
+        Attribute("lightData0", 3),
+        Attribute("lightData1", 1),
         Attribute("shadowData", 4)
         // instanced rendering does not support shadows -> no shadow data / as a uniform
     )
@@ -223,8 +223,8 @@ object LightShaders {
             Variable(GLSLType.V3F, "invInsTrans1", VariableMode.ATTR),
             Variable(GLSLType.V3F, "invInsTrans2", VariableMode.ATTR),
             Variable(GLSLType.V3F, "invInsTrans3", VariableMode.ATTR),
-            Variable(GLSLType.V4F, "lightData0", VariableMode.ATTR),
-            Variable(GLSLType.V4F, "lightData1", VariableMode.ATTR),
+            Variable(GLSLType.V3F, "lightData0", VariableMode.ATTR),
+            Variable(GLSLType.V1F, "lightData1", VariableMode.ATTR),
             Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V1B, "isDirectional"),
@@ -234,8 +234,8 @@ object LightShaders {
             Variable(GLSLType.M4x3, "camSpaceToLightSpace", VariableMode.OUT),
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT),
         ), "" +
-                "data0 = lightData0;\n" +
-                "data1 = lightData1;\n" +
+                "data0 = vec4(lightData0,0.0);\n" +
+                "data1 = vec4(lightData1);\n" +
                 "data2 = shadowData;\n" +
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                 "if(isDirectional && data2.a <= 0.0){\n" +
@@ -310,7 +310,7 @@ object LightShaders {
                     // light properties, which are typically inside the loop
                     "vec3 lightColor = data0.rgb;\n" +
                     "vec3 dir = matMul(camSpaceToLightSpace, vec4(finalPosition, 1.0));\n" +
-                    "vec3 localNormal = normalize(matMul(mat3x3(camSpaceToLightSpace), finalNormal));\n" +
+                    "vec3 localNormal = normalize(matMul(camSpaceToLightSpace, vec4(finalNormal, 0.0)));\n" +
                     "float NdotL = 0.0;\n" + // normal dot light
                     "vec3 effectiveDiffuse, effectiveSpecular, lightDirWS = vec3(0.0);\n" +
                     coreFragment +
@@ -323,12 +323,12 @@ object LightShaders {
                     "}\n" +
                     // translucency; looks good and approximately correct
                     // sheen is a fresnel effect, which adds light at the edge, e.g., for clothing
-                    "NdotL = mix(NdotL, $translucencyNL, finalTranslucency) + finalSheen;\n" +
+                    // "NdotL = mix(NdotL, $translucencyNL, finalTranslucency) + finalSheen;\n" +
                     "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
                     // ~65k is the limit, after that only Infinity
                     // todo car sample's light on windows looks clamped... who is clamping it?
                     "vec3 color = mix(diffuseLight, specularLight, finalMetallic);\n" +
-                    "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n"
+                    "light = vec4(1.0);//vec4(clamp(color, 0.0, 16e3), 1.0);\n"
         )
         fragment.add(quatRot)
         return fragment

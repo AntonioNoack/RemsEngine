@@ -108,8 +108,7 @@ abstract class WelcomeUI {
         quickSettings += BooleanInput(
             "Show FPS",
             "Shows how many frames were rendered per second, for monitoring stutters", "ui.settings.showFPS",
-            studio.showFPS, false,
-            style
+            studio.showFPS, false, style
         ).setChangeListener { DefaultConfig["debug.ui.showFPS"] = it }
 
         val fontSize = style.getSize("fontSize", 15)

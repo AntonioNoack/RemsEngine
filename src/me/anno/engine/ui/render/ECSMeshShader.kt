@@ -162,8 +162,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "#else\n" +
                 "   finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
                 "   #ifdef COLORS\n" +
-                "       normal = normalize(matMul(mat3x3(localTransform), normal));\n" +
-                "       tangent.xyz = normalize(matMul(mat3x3(localTransform), tangent.xyz));\n" +
+                "       normal = normalize(matMul(localTransform, vec4(normal,0.0)));\n" +
+                "       tangent.xyz = normalize(matMul(localTransform, vec4(tangent.xyz,0.0)));\n" +
                 "   #endif\n" + // colors
                 "#endif\n"
 
@@ -218,8 +218,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 animationCode2() +
                 "       #endif\n" +
                 "       #ifdef COLORS\n" +
-                "           normal = matMul(mat3x3(jointMat), normals);\n" +
-                "           tangent = vec4(matMul(mat3x3(jointMat), tangents.xyz), tangents.w);\n" +
+                "           normal = matMul(jointMat, vec4(normals,0.0));\n" +
+                "           tangent = vec4(matMul(jointMat, vec4(tangents.xyz,0.0)), tangents.w);\n" +
                 "       #endif\n" +
                 "   } else {\n" +
                 "#endif\n" // animated

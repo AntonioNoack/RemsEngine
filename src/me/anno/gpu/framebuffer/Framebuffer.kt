@@ -276,9 +276,14 @@ class Framebuffer(
                         da.ensure()
                         bindFramebuffer(GL_FRAMEBUFFER, pointer)
                     }
-                    val texPointer = da.depthTexture?.pointer
-                        ?: throw IllegalStateException("Depth Attachment was not found in $name, $da.${da.depthTexture}")
-                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
+                    var texPointer = da.depthTexture?.pointer
+                    if (texPointer == null) {
+                        texPointer = internalDepthRenderbuffer
+                        if (texPointer == 0) throw IllegalStateException("Depth Attachment was not found in $name, $da.${da.depthTexture}")
+                        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, texPointer)
+                    } else {
+                        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
+                    }
                     // println("set attached depth ptr to $texPointer")
                     texPointer
                 }

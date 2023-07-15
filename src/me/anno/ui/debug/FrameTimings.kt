@@ -22,8 +22,13 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
 import java.nio.ByteOrder
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
+/**
+ * Displays a set of graphs, where each graph is defined by its color.
+ * By default, this class is only used for frame times, but it also can show simulation timings and such.
+ * */
 object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
     class TimeContainer(val width: Int, val color: Int) : Comparable<TimeContainer> {
@@ -78,16 +83,15 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 "}"
     )
 
-    val colors = TextPanel("", style)
-    val textColor = colors.textColor
+    var textColor = TextPanel("", style).textColor
 
     override fun calculateSize(w: Int, h: Int) {
         minW = width1
         minH = height1
     }
 
-    val timeContainer = TimeContainer(width, textColor)
-    val containers = arrayListOf(timeContainer)
+    private val timeContainer = TimeContainer(width, textColor)
+    private val containers = arrayListOf(timeContainer)
 
     fun putTime(value: Float) {
         putValue(value, textColor)
@@ -131,7 +135,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
             val nextIndex = container.nextIndex
             val values = container.values
             val barColor = container.color
-            val width = width
+            val width = min(width, values.size)
             val indexOffset = nextIndex - 1 + width
 
             if (withoutInterpolation) {

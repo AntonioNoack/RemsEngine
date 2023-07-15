@@ -284,12 +284,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                     nioBuffer.putFloat(color.x)
                     nioBuffer.putFloat(color.y)
                     nioBuffer.putFloat(color.z)
-                    nioBuffer.putFloat(0f) // type, not used
-                    // put data1/xyz: world position
-                    nioBuffer.putFloat(((m.m30 - cameraPosition.x) * worldScale).toFloat())
-                    nioBuffer.putFloat(((m.m31 - cameraPosition.y) * worldScale).toFloat())
-                    nioBuffer.putFloat(((m.m32 - cameraPosition.z) * worldScale).toFloat())
-                    // put data1/a: custom property
+                    // put data1: type-dependant property
                     nioBuffer.putFloat(light.getShaderV0(m, worldScale))
                     // put data2:
                     nioBuffer.putFloat(0f)

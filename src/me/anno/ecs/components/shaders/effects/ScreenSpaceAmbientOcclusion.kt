@@ -128,7 +128,7 @@ object ScreenSpaceAmbientOcclusion {
                     (if (ms) "" +
                             "   vec2 texSizeI = vec2(textureSize(finalDepth));\n" +
                             "   #define getPixel(tex,uv) texelFetch(tex,ivec2(clamp(uv,vec2(0.0),vec2(0.99999))*texSizeI),0)\n"
-                    else "  #define getPixel(tex,uv) texture(tex,uv)\n") +
+                    else "#define getPixel(tex,uv) textureLod(tex,uv,0.0)\n") +
                     "   vec3 origin = rawDepthToPosition(uv, getPixel(finalDepth, uv).x);\n" +
                     "   if(dot2(origin) > skipRadiusSq){\n" + // sky and such can be skipped automatically
                     "       glFragColor = vec4(0.0);\n" +
@@ -143,6 +143,7 @@ object ScreenSpaceAmbientOcclusion {
                     "       vec3 bitangent = cross(normal, tangent);\n" +
                     "       mat3 tbn = mat3(tangent, bitangent, normal);\n" +
                     "       float occlusion = 0.0;\n" +
+                    "       // [loop]\n" + // hlsl instruction
                     "       for(int i=0;i<numSamples;i++){\n" +
                     // "sample" seems to be a reserved keyword for the emulator
                     "           vec3 position = matMul(tbn, texelFetch(sampleKernel, ivec2(i,0), 0).xyz) * radius + origin;\n" +
@@ -176,6 +177,18 @@ object ScreenSpaceAmbientOcclusion {
             Variable(GLSLType.S2D, "source"),
             Variable(GLSLType.V2F, "delta")
         ), "" +
+                "#ifdef HLSL\n" +
+                // we could use the actual gather method...
+                "vec4 gather(vec2 uv) {\n" +
+                "   vec2 delta1 = delta * 0.5;\n" +
+                "   return vec4(\n" +
+                "       textureLod(source,uv,0.0).x,\n" +
+                "       textureLod(source,uv+vec2(delta1.x,0.0),0.0).x,\n" +
+                "       textureLod(source,uv+vec2(0.0,delta1.y),0.0).x,\n" +
+                "       textureLod(source,uv+delta1,0.0).x\n" +
+                "   );\n" +
+                "}\n" +
+                "#endif\n" +
                 "void main(){\n" +
                 "   float sum1;\n" +
                 if (OS.isWeb) {
@@ -190,11 +203,19 @@ object ScreenSpaceAmbientOcclusion {
                     "" +
                             "   vec2 uv0 = uv-delta;\n" +
                             "   vec2 uv1 = uv+delta;\n" +
-                            "   vec4 sum = \n" + // avg over 4x4 area
+                            "#ifdef HLSL\n" +
+                            "   vec4 sum = \n" + // sum over 4x4 area
+                            "       gather(vec2(uv0.x,uv0.y)) +\n" +
+                            "       gather(vec2(uv1.x,uv0.y)) +\n" +
+                            "       gather(vec2(uv0.x,uv1.y)) +\n" +
+                            "       gather(vec2(uv1.x,uv1.y));\n" +
+                            "#else\n" +
+                            "   vec4 sum = \n" + // sum over 4x4 area
                             "       textureGather(source,vec2(uv0.x,uv0.y),0) +\n" +
                             "       textureGather(source,vec2(uv1.x,uv0.y),0) +\n" +
                             "       textureGather(source,vec2(uv0.x,uv1.y),0) +\n" +
                             "       textureGather(source,vec2(uv1.x,uv1.y),0);\n" +
+                            "#endif\n" +
                             "   sum1 = (sum.x+sum.y+sum.z+sum.w);\n"
                 } +
                 "   glFragColor = vec4(sum1 * ${1.0 / 16.0});\n" +

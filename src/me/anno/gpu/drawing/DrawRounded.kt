@@ -67,9 +67,9 @@ object DrawRounded {
                 "void main(){\n" +
                 "   vec2 uv2 = (uv-0.5)*size2;\n" +
                 "   float sdf = sdRoundedBox(uv2, size2*0.5, radius);\n" +
-                "   float delta = smoothness * dFdx(uv2.x);\n" +
-                "   float f0 = clamp((sdf+outlineThickness)/delta+0.5, 0.0, 1.0);\n" +
-                "   float f1 = clamp((sdf)/delta+0.5, 0.0, 1.0);\n" +
+                "   float invDelta = 1.0 / (smoothness * dFdx(uv2.x));\n" +
+                "   float f0 = clamp((sdf+outlineThickness)*invDelta+0.5, 0.0, 1.0);\n" +
+                "   float f1 = clamp((sdf)*invDelta+0.5, 0.0, 1.0);\n" +
                 "   vec4 color = mix(centerColor, outlineColor, f0);\n" +
                 "   color = mix(color, vec4(mix(color.rgb, backgroundColor.rgb, backgroundColor.a), backgroundColor.a), f1);\n" +
                 "   if(color.a <= 0.004) discard;\n" +

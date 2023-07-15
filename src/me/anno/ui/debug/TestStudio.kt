@@ -14,7 +14,7 @@ import me.anno.ui.base.groups.PanelListY
 /**
  * engine runtime for testing
  * */
-class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase("Test", 1,true) {
+class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase("Test", 1, true) {
 
     override fun createUI() {
         val ui = PanelListY(style)
@@ -22,7 +22,9 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase("Test", 1,
         ui.addAll(createMainPanel())
         ui.weight = 1f
         val windowStack = GFX.someWindow!!.windowStack
-        windowStack.add(Window(ui, false, windowStack))
+        val window = Window(ui, false, windowStack)
+        window.drawDirectly = true
+        windowStack.add(window)
     }
 
     override fun loadConfig() {

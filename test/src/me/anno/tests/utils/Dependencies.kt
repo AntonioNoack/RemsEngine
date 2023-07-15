@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.config.DefaultConfig.style
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
@@ -221,6 +222,11 @@ fun main() {
             }
 
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+
+                // enable compute-shader-based rendering, which looks better
+                // only possible on separate framebuffer
+                GFX.someWindow!!.windowStack.first().drawDirectly = false
+
                 super.onDraw(x0, y0, x1, y1)
                 var x = x
                 var y = y

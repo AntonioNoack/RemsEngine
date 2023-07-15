@@ -300,16 +300,16 @@ open class Panel(val style: Style) : PrefabSaveable() {
         ) {
             if (hasRoundedCorners) {
                 val uip = uiParent
-                val bg = if (uip == null) 0 else uip.backgroundColor and 0xffffff
-                val radius = backgroundRadius
+                val bg = if (uip == null) black else uip.backgroundColor and 0xffffff
+                val th = backgroundOutlineThickness
+                val radius = backgroundRadius + th
                 val backgroundRadiusCorners = backgroundRadiusCorners
                 drawRoundedRect(
                     x + dx, y + dy, width - 2 * dx, height - 2 * dy,
-                    if (backgroundRadiusCorners and CORNER_TOP_RIGHT != 0) radius else 0f,
-                    if (backgroundRadiusCorners and CORNER_TOP_LEFT != 0) radius else 0f,
-                    if (backgroundRadiusCorners and CORNER_BOTTOM_RIGHT != 0) radius else 0f,
-                    if (backgroundRadiusCorners and CORNER_BOTTOM_LEFT != 0) radius else 0f,
-                    backgroundOutlineThickness,
+                    if (backgroundRadiusCorners and CORNER_TOP_RIGHT != 0) radius else th,
+                    if (backgroundRadiusCorners and CORNER_TOP_LEFT != 0) radius else th,
+                    if (backgroundRadiusCorners and CORNER_BOTTOM_RIGHT != 0) radius else th,
+                    if (backgroundRadiusCorners and CORNER_BOTTOM_LEFT != 0) radius else th, th,
                     backgroundColor, backgroundOutlineColor, bg,
                     1f
                 )

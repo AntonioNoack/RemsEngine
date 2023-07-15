@@ -115,6 +115,7 @@ open class Texture2D(
         this.height = height
     }
 
+    @Deprecated("This feature is problematic, because it doesn't exist on mobile. Use /grayscale.png in your file path instead.")
     fun swizzleMonochrome() {
         swizzle(GL_RED, GL_RED, GL_RED, GL_ONE)
     }
@@ -220,6 +221,7 @@ open class Texture2D(
                 check()
             }
             this.internalFormat = internalFormat
+            // todo do we keep this, or do we strive for consistency?
             when (internalFormat) {
                 GL_R8, GL_R8I, GL_R8UI,
                 GL_R16F, GL_R16I, GL_R16UI,

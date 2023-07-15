@@ -1,9 +1,9 @@
 package me.anno.tests.ecs
 
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.FileReference
 import me.anno.ui.editor.color.spaces.HSLuv
@@ -14,7 +14,6 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.cos
-import kotlin.math.max
 import kotlin.math.sin
 
 /**
@@ -92,8 +91,9 @@ fun main() {
     ///////////////////////
 
     val lights = addE(world, "Lights")
+    addC(lights, "SkyBox")
     val ambient = addC(lights, "AmbientLight")
-    set(ambient, "color", Vector3f(0.1f))
+    set(ambient, "color", Vector3f(0.25f))
 
     val sun = addE(lights, "Sun")
     set(sun, "scale", Vector3d(50.0))
@@ -134,19 +134,20 @@ fun main() {
     set(dlp, "shadowMapCascades", 1)
     set(dlp, "color", Vector3f(70f))*/
 
+    // todo why appear the outest rights brightest???
     if (true) {
         val ringOfLights = addE(lights, "Ring Of Lights")
-        val superRings = 35
+        val superRings = 38
         val elementSize = 10.0
         val lightLevel = 20f
-        val numColors = 3
+        val numColors = 6
         val colors = Array(numColors) {
             val angle = it / numColors.toFloat()
             HSLuv.toRGB(Vector3f(angle, 1f, 0.7f)).mul(lightLevel)
         }
         val scale = Vector3d(elementSize)
         for (j in 0 until superRings) {
-            val superRing = if (superRings > 1) addE(ringOfLights, "Ring[$j]") else ringOfLights
+            val superRing = addE(ringOfLights, "Ring[$j]")
             val radius = 50.0 * (1.0 + j * 0.1)
             val ringLightCount = (radius * 0.5).toInt()
             for (i in 0 until ringLightCount) {
@@ -223,8 +224,21 @@ fun main() {
     set(floorBody, "mass", 0.0) // static
     val floorCollider = addC(floor, "BoxCollider")
     set(floorCollider, "halfExtends", Vector3d(1.0))
-    val floorMesh = addC(floor, "MeshComponent")
-    set(floorMesh, "mesh", cubePath)
+    val floorMesh1E = addE(floor, "Metallic")
+    set(floorMesh1E, "position", Vector3d(0.5, 0.0, 0.0))
+    set(floorMesh1E, "scale", Vector3d(0.5, 1.0, 1.0))
+    val floorMesh2E = addE(floor, "Rough")
+    set(floorMesh2E, "position", Vector3d(-0.5, 0.0, 0.0))
+    set(floorMesh2E, "scale", Vector3d(0.5, 1.0, 1.0))
+    val floorMesh1 = addC(floorMesh1E, "MeshComponent")
+    set(floorMesh1, "mesh", cubePath)
+    // todo why is the ssr-reflectivity so low?
+    set(floorMesh1, "materials", listOf(Material().apply {
+        metallicMinMax.set(1f)
+        roughnessMinMax.set(0.2f)
+    }.ref))
+    val floorMesh2 = addC(floorMesh2E, "MeshComponent")
+    set(floorMesh2, "mesh", cubePath)
 
     clock.stop("floor")
 

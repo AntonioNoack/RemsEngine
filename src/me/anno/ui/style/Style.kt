@@ -7,6 +7,9 @@ import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
 import org.apache.logging.log4j.LogManager
 
+/**
+ * Advanced map for Panel styling; properties will be inherited from its parent.
+ * */
 class Style(val prefix: String?, val suffix: String?) {
 
     var values = StringMap()

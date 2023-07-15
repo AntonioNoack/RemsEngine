@@ -645,15 +645,15 @@ object ShaderLib {
                         "jointMat += jointTransforms[indices.w] * weights.w;\n"
                         ) +
                 "       finalPosition = matMul(jointMat, vec4(coords, 1.0));\n" +
-                "       normal = matMul(mat3x3(jointMat), normals);\n" +
-                "       tangent = vec4(matMul(mat3x3(jointMat), tangents.xyz), tangents.w);\n" +
+                "       normal = matMul(jointMat, vec4(normals, 0.0));\n" +
+                "       tangent = vec4(matMul(jointMat, vec4(tangents.xyz, 0.0)), tangents.w);\n" +
                 "   } else {\n" +
                 "       finalPosition = coords;\n" +
                 "       normal = normals;\n" +
                 "       tangent = tangents;\n" +
                 "   }\n" +
-                "   normal = matMul(mat3x3(localTransform), normal);\n" +
-                "   tangent.xyz = matMul(mat3x3(localTransform), tangent.xyz);\n" +
+                "   normal = matMul(localTransform, vec4(normal,0.0));\n" +
+                "   tangent.xyz = matMul(localTransform, vec4(tangent.xyz,0.0));\n" +
                 "   finalPosition = matMul(localTransform, vec4(finalPosition, 1.0));\n" +
                 // normal only needs to be normalized, if we show the normal
                 "   normal = normalize(normal);\n" + // here? nah ^^

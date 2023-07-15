@@ -120,10 +120,6 @@ object RenderGraph {
         .then(FXAANode(), mapOf("Illuminated" to listOf("Color")))
         .finish()
 
-    fun draw(view: RenderView, graph: FlowGraph) {
-        draw(view, view, graph)
-    }
-
     fun draw(view: RenderView, dst: Panel, graph: FlowGraph) {
 
         val nodes = graph.nodes
@@ -169,7 +165,7 @@ object RenderGraph {
     // FSR 1 node
     // todo "FSR 2 node" (a little more complicated, needs shaker)
     // todo TAA node (needs shaker, too)
-    // todo when we have a Vulkan backend, add DLSS nodes
+    // todo when we have a Vulkan/DX11/DX12 backend, add DLSS nodes
     //  https://developer.nvidia.com/rtx/dlss/get-started#sdk-requirements
 
     // todo vignette node

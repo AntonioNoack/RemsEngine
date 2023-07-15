@@ -607,7 +607,7 @@ class PipelineStage(
                 }
 
                 shaderColor(shader, "tint", -1)
-                shader.v1i("hasVertexColors", mesh.hasVertexColors)
+                shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
                 val component = request.component
                 shader.v2i(
                     "randomIdData",
@@ -736,7 +736,7 @@ class PipelineStage(
             }
 
             shaderColor(shader, "tint", -1)
-            shader.v1i("hasVertexColors", mesh.hasVertexColors)
+            shader.v1i("hasVertexColors", if(material.enableVertexColors) mesh.hasVertexColors else 0)
 
             GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
                 mesh.drawDepth(shader)

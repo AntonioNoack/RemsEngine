@@ -162,7 +162,7 @@ fun main() {
                     val stage = ShaderStage(
                         name, fragmentVariables, "" +
                                 "vec2 uv0 = gl_FragCoord.xy / renderSize;\n" +
-                                "vec3 localDir = normalize(matMul(mat3x3(invLocalTransform), rawCameraDirection(uv0)));\n" +
+                                "vec3 localDir = normalize(matMul(invLocalTransform, vec4(rawCameraDirection(uv0),0.0)));\n" +
                                 "vec3 localPos = localPosition - localDir * max(0.0,dot(localPosition-localCamPos,localDir));\n" +
                                 "if(uv0.x > 0.5) localPos = matMul(invLocalTransform, vec4(depthToPosition(uv0,perspectiveCamera?0.0:1.0),1.0));\n" +
                                 // trace the section from distanceBounds.x to distanceBounds.y, and accumulate volume density
@@ -177,7 +177,7 @@ fun main() {
                                 "if(ray.x > distanceBounds.y) discard;\n" +
                                 "vec3 localHit = localPos + ray.x * localDir;\n" +
                                 "vec3 localNormal1 = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
-                                "finalNormal = normalize(matMul(mat3x3(localTransform), localNormal1));\n" +
+                                "finalNormal = normalize(matMul(localTransform, vec4(localNormal1, 0.0)));\n" +
 
                                 // todo use depth texture to find the distance to the background
                                 // todo if we're out of bounds, just skip this entirely

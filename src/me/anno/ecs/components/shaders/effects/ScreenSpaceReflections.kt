@@ -94,8 +94,9 @@ object ScreenSpaceReflections {
 
                     "   ivec2 texSizeI = textureSize(finalDepth, 0);\n" +
                     "   vec2  texSize  = vec2(texSizeI);\n" +
+                    "   ivec2 uvi = clamp(ivec2(uv*texSize),ivec2(0,0),texSizeI-1);\n" +
 
-                    "   vec3 positionFrom     = rawDepthToPosition(uv,texture(finalDepth,uv).r);\n" +
+                    "   vec3 positionFrom     = rawDepthToPosition(uv,texelFetch(finalDepth,uvi,0).r);\n" +
 
                     "   vec4 normalData = texture(finalNormal, uv);\n" +
                     "   vec3 normal           = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
@@ -133,7 +134,7 @@ object ScreenSpaceReflections {
                     "   for (int i = 0; i <= maxLinearSteps; i++){\n" +
 
                     "       dstUV     += increment;\n" +
-                    "       positionTo = rawDepthToPosition(dstUV,texture(finalDepth, dstUV).r);\n" +
+                    "       positionTo = rawDepthToPosition(dstUV,texelFetch(finalDepth,ivec2(dstUV*texSize),0).r);\n" +
 
                     "       fraction1 = useX ? (dstUV.x - uv.x) / deltaXY.x : (dstUV.y - uv.y) / deltaXY.y;\n" +
 
@@ -150,8 +151,8 @@ object ScreenSpaceReflections {
                     "   }\n" +
 
                     // "   vec4 skyAtPivot = getSkyColor1(pivot, roughness);\n" +
-                    "   vec4 baseEmission = vec4(texture(finalEmissive, uv).rgb, 0.0);\n" +
-                    "   vec4 baseColor = vec4(texture(finalColor, uv).rgb, 1.0);\n" +
+                    "   vec4 baseEmission = vec4(texelFetch(finalEmissive,uvi,0).rgb, 0.0);\n" +
+                    "   vec4 baseColor = vec4(texelFetch(finalColor,uvi,0).rgb, 1.0);\n" +
                     "   if(hit0 == 0) {\n" +
                     "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     "       return;\n" +
@@ -167,7 +168,7 @@ object ScreenSpaceReflections {
                     "       float fractionI = mix(fraction0, fraction1, float(i)/float(steps));\n" +
 
                     "       dstUV      = mix(uv, endUV, fractionI);\n" +
-                    "       positionTo = rawDepthToPosition(dstUV,texture(finalDepth,dstUV).r);\n" +
+                    "       positionTo = rawDepthToPosition(dstUV,texelFetch(finalDepth,ivec2(dstUV*texSize),0).r);\n" +
 
                     "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, fractionI);\n" +
                     "       depth        = viewDistance - length(positionTo);\n" +
@@ -195,7 +196,7 @@ object ScreenSpaceReflections {
                     "       * min(10.0 * (0.5 - abs(bestUV.y - 0.5)), 1.0);\n" +
 
                     // reflected position * base color of mirror (for golden reflections)
-                    "   vec3 color1 = texture(finalIlluminated, bestUV).rgb;\n" +
+                    "   vec3 color1 = texelFetch(finalIlluminated,ivec2(bestUV*texSize),0).rgb;\n" +
                     "   color0 = mix(color0, color1, min(visibility * reflectivity * strength, 1.0));\n" +
                     "   fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     "}\n"

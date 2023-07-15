@@ -148,7 +148,7 @@ class PointLight : LightComponent(LightType.POINT) {
                     // when light radius > 0, then adjust the light direction such that it looks as if the light was a sphere
                     "lightDirWS = normalize(-dir);\n" +
                     (if (hasLightRadius) "" +
-                            "#define lightRadius data1.a\n" +
+                            "#define lightRadius data1.x\n" +
                             "if(lightRadius > 0.0){\n" +
                             // todo effect is much more visible in the diffuse part
                             // it's fine for small increased, but we wouldn't really use them...

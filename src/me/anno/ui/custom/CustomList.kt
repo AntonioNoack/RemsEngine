@@ -16,6 +16,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+/**
+ * Horizontal/Vertical (isY) list, where the user can decide the width/height of each element,
+ * so they can focus on what is most important to them.
+ * */
 open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     init {

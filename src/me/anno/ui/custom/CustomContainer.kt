@@ -17,6 +17,9 @@ import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
 
+/**
+ * Container element, where the child can be selected from a predefined list (library) of panels.
+ * */
 class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) :
     PanelContainer(default, Padding(0), style) {
 
@@ -132,7 +135,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         val prefix = "ChangeType("
         if (action.startsWith(prefix)) {
             val typeName = action.substring(prefix.length, action.lastIndex)
-            val type = library.types[typeName]
+            val type = library.getType(typeName)
             if (type != null) {
                 changeTo(type.constructor())
             } else {

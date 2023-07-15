@@ -12,8 +12,6 @@ import me.anno.utils.types.Strings.isBlank2
 
 /**
  * Checkbox with title
- * in a Transform child class, all inputs should be created using the VI function, if possible,
- * because it forces the programmer to set a tool tip text
  * */
 class BooleanInput(
     title: String,

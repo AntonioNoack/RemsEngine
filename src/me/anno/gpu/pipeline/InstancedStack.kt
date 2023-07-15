@@ -96,7 +96,7 @@ open class InstancedStack {
                 material.bind(shader)
                 GFX.shaderColor(shader, "tint", -1)
                 shader.v1b("hasAnimation", useAnimations)
-                shader.v1i("hasVertexColors", mesh.hasVertexColors)
+                shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
                 shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
                 if (useAnimations) {
                     (instances as InstancedAnimStack).animTexture!!

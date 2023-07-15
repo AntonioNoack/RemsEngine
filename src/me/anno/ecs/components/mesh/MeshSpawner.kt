@@ -30,11 +30,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * until the first one of them returns true;
      * if you need different behaviour, just override this method :)
      * */
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
+    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
         lastDrawn = Engine.gameTime
         this.clickId = clickId
         var done = forEachInstancedGroup { mesh, material, group, overrides ->

@@ -308,7 +308,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         clock.stop("preparing", 0.05)
 
         val renderGraph = renderMode.renderGraph
-        if (renderGraph == null) {
+        if (renderGraph != null) {
+            // some things are just too easy ^^
+            RenderGraph.draw(this, this, renderGraph)
+        } else {
 
             stage0.blendMode = if (renderMode == RenderMode.OVERDRAW) BlendMode.ADD else null
             stage0.sorting = Sorting.FRONT_TO_BACK
@@ -334,7 +337,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     useDeferredRendering = true
                     DeferredRenderer
                 }
-                RenderMode.MSAA_DEFERRED, RenderMode.SSAO_MS, RenderMode.LIGHT_SUM_MS -> {
+                RenderMode.MSAA_DEFERRED, RenderMode.SSAO_MS, RenderMode.LIGHT_SUM_MSAA -> {
                     useDeferredRendering = true
                     DeferredRendererMSAA
                 }
@@ -363,12 +366,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
             // multi-sampled buffer
             val buffer = when {
+                // msaa, single target
                 renderMode == RenderMode.MSAA_X8 ||
                         renderMode == RenderMode.LINES_MSAA ||
                         renderMode == RenderMode.FSR_MSAA_X4 -> base8Buffer
-                renderMode == RenderMode.MSAA_DEFERRED ||
-                        renderMode == RenderMode.SSAO_MS ||
-                        renderMode == RenderMode.LIGHT_SUM_MS -> baseNBuffer8
+                // msaa, multi target
+                renderer == DeferredRendererMSAA -> baseNBuffer8
+                // aliased, multi-target
                 renderer == DeferredRenderer -> baseNBuffer1
                 else -> base1Buffer
             }
@@ -404,9 +408,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             shader.v1i("hasVertexColors", 0)
                             sky.material.bind(shader)
                         }// else already set
-                        shader.v3f("worldPos", cameraPosition)
-                        shader.v4f("worldRot", cameraRotation)
-                        shader.v1f("worldScale", worldScale.toFloat())
+                        shader.v3f("camPos", cameraPosition)
+                        shader.v4f("camRot", cameraRotation)
+                        shader.v1f("camScale", worldScale.toFloat())
                         sky.draw(shader, 0)
                     }
                     JomlPools.mat4f.sub(1)
@@ -429,9 +433,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 useDeferredRendering,
                 size, cols, rows, layers.size
             )
-        } else {
-            // some things are just too easy ^^
-            RenderGraph.draw(this, renderGraph)
         }
 
         val pbb = pushBetterBlending(true)
@@ -648,7 +649,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         drawTexture(x, y + h, w, -h, baseSameDepth1.getTexture0())
                         return
                     }
-                    renderMode == RenderMode.LIGHT_SUM || renderMode == RenderMode.LIGHT_SUM_MS -> {
+                    renderMode == RenderMode.LIGHT_SUM || renderMode == RenderMode.LIGHT_SUM_MSAA -> {
                         drawScene(
                             w, h, camera0, camera1,
                             blending, renderer, buffer,
@@ -1358,8 +1359,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 shader.use()
                 shader.v1i("hasVertexColors", 0)
                 shader.m4x4("transform", cameraMatrix)
-                shader.v3f("worldPos", cameraPosition)
-                shader.v4f("worldRot", cameraRotation)
+                shader.v3f("camPos", cameraPosition)
+                shader.v4f("camRot", cameraRotation)
                 shader.v1f("worldScale", worldScale.toFloat())
                 sky.material.bind(shader)
                 sky.draw(shader, 0)

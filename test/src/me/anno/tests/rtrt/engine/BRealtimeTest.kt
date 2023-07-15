@@ -422,8 +422,8 @@ fun createGPUPanel(
 
         shader.use()
         shader.v2i("size", w, h)
-        shader.v3f("worldPos", cameraPosition)
-        shader.v4f("worldRot", cameraRotation)
+        shader.v3f("camPos", cameraPosition)
+        shader.v4f("camRot", cameraRotation)
         shader.v3f("cameraOffset", cx, cy, fovZ)
         shader.v3f("sky0", sky0)
         shader.v3f("sky1", sky1)

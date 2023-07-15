@@ -106,6 +106,9 @@ object GFX {
     var supportsDepthTextures = false
 
     @JvmField
+    var supportsComputeShaders = false
+
+    @JvmField
     var anisotropy = 1f
 
     @JvmField
@@ -379,7 +382,9 @@ object GFX {
             val max = glGetFloat(EXTTextureFilterAnisotropic.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
             anisotropy = min(max, DefaultConfig["gpu.filtering.anisotropic.max", 16f])
         }
+        // some of these checks should be set by the platform after calling this, because some conditions may be unknown to lwjgl
         supportsDepthTextures = capabilities != null
+        supportsComputeShaders = if (OS.isWeb) false else capabilities?.GL_ARB_compute_shader == true || glVersion >= 43
         maxVertexUniformComponents = glGetInteger(GL_MAX_VERTEX_UNIFORM_COMPONENTS)
         maxFragmentUniformComponents = glGetInteger(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS)
         maxBoundTextures = glGetInteger(GL_MAX_TEXTURE_IMAGE_UNITS)

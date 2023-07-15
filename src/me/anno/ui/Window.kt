@@ -92,6 +92,14 @@ open class Window(
         false, DepthBufferType.TEXTURE_16
     )
 
+    /**
+     * Option to skip the background buffer, and directly draw;
+     * probably slightly more efficient, and usable for most UI solutions;
+     *
+     * disables caching of drawn components, and always redraws everything
+     * */
+    var drawDirectly = false
+
     init {
         panel.window = this
     }
@@ -159,15 +167,15 @@ open class Window(
         validateLayouts(dx, dy, windowW, windowH, panel)
 
         if (panel.width > 0 && panel.height > 0) {
-
-            // overlays get missing...
-            // this somehow needs to be circumvented...
             when {
+                drawDirectly -> {
+                    fullRedraw(dx, dy, windowW, windowH, panel)
+                    didSomething = true
+                }
                 sparseRedraw -> {
                     didSomething = sparseRedraw(panel, didSomething, forceRedraw)
                 }
                 didSomething || forceRedraw -> {
-                    needsRedraw.clear()
                     fullRedraw(dx, dy, windowW, windowH, panel)
                     didSomething = true
                 }
@@ -217,6 +225,8 @@ open class Window(
         panel0: Panel
     ) {
 
+        needsRedraw.clear()
+
         GFX.loadTexturesSync.clear()
         GFX.loadTexturesSync.push(false)
 
@@ -226,11 +236,17 @@ open class Window(
 
         val w2 = min(panel0.width, w - x)
         val h2 = min(panel0.height, h - y)
-        useFrame(panel0.x, panel0.y, w2, h2, Renderer.colorRenderer) {
-            panel0.canBeSeen = true
-            panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)
+        panel0.canBeSeen = true
+        if (drawDirectly) {
+            useFrame(panel0.x, panel0.y, w2, h2, Renderer.colorRenderer) {
+                panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)
+            }
+        } else {
+            useFrame(panel0.x, panel0.y, w2, h2, buffer, Renderer.colorRenderer) {
+                panel0.draw(panel0.x, panel0.y, panel0.x + w2, panel0.y + h2)
+            }
+            drawCachedImage(panel0, wasRedrawn)
         }
-
     }
 
     private val wasRedrawn = ArrayList<Panel>()

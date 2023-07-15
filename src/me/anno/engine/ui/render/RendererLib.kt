@@ -43,12 +43,12 @@ object RendererLib {
             "           vec3 dir = matMul(camSpaceToLightSpace, vec4(finalPosition,1.0));\n" + // local coordinates for falloff
             // "       if(!hasSpecular && dot(dir,dir) >= 1.0) continue;\n" +
             "           vec4 data0 = lightData0[i];\n" + // color, type
-            "           vec4 data1 = lightData1[i];\n" + // point: position, radius, spot: position, angle
+            "           float data1 = lightData1[i];\n" + // point: radius, spot: angle
             "           vec4 data2 = shadowData[i];\n" +
             "           vec3 lightColor = data0.rgb;\n" +
             "           int lightType = int(data0.a);\n" +
             "           lightDirWS = effectiveDiffuse = effectiveSpecular = vec3(0.0);\n" + // making Nvidia GPUs happy
-            "           localNormal = normalize(matMul(mat3x3(camSpaceToLightSpace), finalNormal));\n" +
+            "           localNormal = normalize(matMul(camSpaceToLightSpace, vec4(finalNormal,0.0)));\n" +
             "           int shadowMapIdx0 = int(data2.r);\n" +
             "           int shadowMapIdx1 = int(data2.g);\n" +
             // local coordinates of the point in the light "cone"

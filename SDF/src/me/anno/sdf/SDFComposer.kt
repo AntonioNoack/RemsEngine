@@ -156,7 +156,7 @@ object SDFComposer {
                             // compute global depth
 
                             "vec2 uv0 = gl_FragCoord.xy / renderSize;\n" +
-                            "vec3 localDir = normalize(matMul(mat3x3(invLocalTransform), rawCameraDirection(uv0)));\n" +
+                            "vec3 localDir = normalize(matMul(invLocalTransform, vec4(rawCameraDirection(uv0),0.0)));\n" +
                             // todo why is this slightly incorrect if orthographic????
                             //  (both cases wobble from the view of the point light)
                             "vec3 localPos = localPosition - localDir * max(0.0,dot(localPosition-localCamPos,localDir));\n" +
@@ -179,7 +179,7 @@ object SDFComposer {
                             "           vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
                             // todo normal could be guessed from depth aka dFdx(ray.x),dFdy(ray.x)
                             // todo calculate tangent from dFdx(uv) and dFdy(uv)
-                            "           finalNormal = normalize(matMul(mat3x3(localTransform), localNormal));\n" +
+                            "           finalNormal = normalize(matMul(localTransform, vec4(localNormal,0.0)));\n" +
                             "           finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" + // convert localHit to global hit
                             discardByCullingPlane + // respect reflection plane
                             "           vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
@@ -348,7 +348,7 @@ object SDFComposer {
             "finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" +
             //      discardByCullingPlane +
             "vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
-            "finalNormal = normalize(matMul(mat3x3(localTransform), localNormal));\n" +
+            "finalNormal = normalize(matMul(localTransform, vec4(localNormal,0.0)));\n" +
             "vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" +
             "gl_FragDepth = newVertex.z/newVertex.w;\n" +
             // shading from https://www.shadertoy.com/view/WdVyDW

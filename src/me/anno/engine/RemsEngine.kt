@@ -184,7 +184,7 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
 
             override fun createProjectUI() {
 
-                val windowStack = GFX.windows.first().windowStack
+                val windowStack = GFX.someWindow!!.windowStack
                 val style = style
                 val list = PanelListY(style)
                 val options = OptionBar(style)
@@ -211,7 +211,8 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
                 list.add(editUI)
 
                 list.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
-                windowStack.push(list)
+                val window = windowStack.push(list)
+                window.drawDirectly = true // we draw the scene constantly anyway
             }
 
             override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {

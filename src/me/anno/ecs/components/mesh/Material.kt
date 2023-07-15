@@ -145,7 +145,6 @@ open class Material : PrefabSaveable(), Renderable {
     @Range(1.0, 5.0)
     var indexOfRefraction = 1f
 
-    // todo respect this property
     // (useful for Synty meshes, which sometimes have awkward vertex colors)
     @SerializedProperty
     var enableVertexColors = true

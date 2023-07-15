@@ -184,7 +184,7 @@ object DrawTexts {
 
     fun canUseComputeShader(): Boolean {
         if (!enableComputeRendering) return false
-        if (OS.isWeb) return false
+        if (!GFX.supportsComputeShaders) return false
         if (GFXState.currentBuffer == NullFramebuffer) return false
         return transform.isIdentity()
     }

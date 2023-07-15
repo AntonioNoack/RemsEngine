@@ -191,7 +191,6 @@ object ECSRegistry {
         // utils
         // currently a small thing, hopefully will become important and huge <3
         registerCustomClass(TriTerrain())
-        registerCustomClass(ManualProceduralMesh())
         registerCustomClass(NavMesh())
 
         try {

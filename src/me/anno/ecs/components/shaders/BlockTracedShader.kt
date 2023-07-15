@@ -72,14 +72,14 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
                         "vec3 bounds1 = vec3(bounds-1);\n" +
                         // start our ray on the surface of the cube: we don't need to project the ray onto the box
-                        "vec3 dir = normalize(matMul(mat3x3(invLocalTransform), finalPosition));\n" +
+                        "vec3 dir = normalize(matMul(invLocalTransform, vec4(finalPosition, 0.0)));\n" +
                         // "vec3 dir = normalize(finalPosition);\n" +
                         // prevent divisions by zero
                         "if(abs(dir.x) < 1e-7) dir.x = 1e-7;\n" +
                         "if(abs(dir.y) < 1e-7) dir.y = 1e-7;\n" +
                         "if(abs(dir.z) < 1e-7) dir.z = 1e-7;\n" +
                         // could be a uniform, too (if perspective is projection, not ortho)
-                        "vec3 localStart = -matMul(mat3x3(invLocalTransform), vec3(localTransform[3][0],localTransform[3][1],localTransform[3][2]));\n" +
+                        "vec3 localStart = -matMul(invLocalTransform, vec4(localTransform[3][0],localTransform[3][1],localTransform[3][2],0.0));\n" +
                         // start from camera, and project onto front sides
                         // for proper rendering, we need to use the backsides, and therefore we project the ray from the back onto the front
                         "vec3 dirSign = sign(dir);\n" +
@@ -127,7 +127,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "if(lastNormal == 0){ localNormal.x = -dirSign.x; } else\n" +
                         "if(lastNormal == 1){ localNormal.y = -dirSign.y; }\n" +
                         "else {               localNormal.z = -dirSign.z; }\n" +
-                        "finalNormal = normalize(matMul(mat3x3(localTransform), localNormal));\n" +
+                        "finalNormal = normalize(matMul(localTransform, vec4(localNormal,0.0)));\n" +
                         "finalTangent = finalBitangent = vec3(0.0);\n" +
                         "mat3x3 tbn = mat3x3(finalTangent,finalBitangent,finalNormal);\n" +
                         // correct depth

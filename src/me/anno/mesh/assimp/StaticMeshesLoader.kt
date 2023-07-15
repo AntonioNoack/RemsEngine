@@ -96,10 +96,14 @@ object StaticMeshesLoader {
                 val store = aiCreatePropertyStore()!!
                 aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
                 val fileIO = AIFileIOImpl.create(file, file.getParent()!!)
-                aiImportFileExWithProperties(file.name, flags, fileIO, store)
-                    ?: aiImportFileFromMemoryWithProperties( // the first method threw "bad allocation" somehow 🤷‍♂️
-                        file.readByteBufferSync(true), flags, null as ByteBuffer?, store
-                    )
+                try {
+                    aiImportFileExWithProperties(file.name, flags, fileIO, store)
+                } catch (e: NullPointerException) {
+                    e.printStackTrace()
+                    null
+                } ?: aiImportFileFromMemoryWithProperties( // the first method threw "bad allocation" somehow 🤷‍♂️
+                    file.readByteBufferSync(true), flags, null as ByteBuffer?, store
+                )
             }
             // should be sync as well
             if (obj == null) throw IOException("Error loading model $file, ${aiGetErrorString()}")

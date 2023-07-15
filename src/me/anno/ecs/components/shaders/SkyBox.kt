@@ -222,16 +222,16 @@ open class SkyBox : MeshComponentBase() {
         super.copyInto(dst)
         dst as SkyBox
         dst.shader = shader
-        dst.sunRotation = sunRotation
-        dst.sunBaseDir = sunBaseDir
+        dst.sunRotation.set(sunRotation)
+        dst.sunBaseDir.set(sunBaseDir)
         dst.cirrus = cirrus
         dst.cumulus = cumulus
-        dst.cumulusSpeed = cumulusSpeed
-        dst.cumulusOffset = cumulusOffset
-        dst.cirrusSpeed = cirrusSpeed
-        dst.cirrusOffset = cirrusOffset
-        dst.nadir = nadir
-        dst.worldRotation = worldRotation
+        dst.cumulusSpeed.set(cumulusSpeed)
+        dst.cumulusOffset.set( cumulusOffset)
+        dst.cirrusSpeed.set(cirrusSpeed)
+        dst.cirrusOffset.set(cirrusOffset)
+        dst.nadir.set(nadir)
+        dst.worldRotation.set(worldRotation)
         dst.sunSpeed.set(sunSpeed)
     }
 

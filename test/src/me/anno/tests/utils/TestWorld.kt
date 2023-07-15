@@ -1,8 +1,8 @@
 package me.anno.tests.utils
 
-import me.anno.utils.Color.black
 import me.anno.ecs.components.chunks.cartesian.ByteArrayChunkSystem
-import me.anno.ecs.components.mesh.ManualProceduralMesh
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.CuboidMesh
 import me.anno.ecs.components.shaders.Texture3DBTMaterial
 import me.anno.ecs.components.shaders.Texture3DBTv2Material
@@ -11,6 +11,7 @@ import me.anno.gpu.texture.Texture3D
 import me.anno.maths.noise.FullNoise
 import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.vox.model.VoxelModel
+import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.structures.maps.Maps.flatten
 
@@ -134,13 +135,13 @@ object TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         return mesh
     }
 
-    fun createTriangleMesh(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): ManualProceduralMesh {
-        val mesh = ManualProceduralMesh()
+    fun createTriangleMesh(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): MeshComponent {
+        val mesh = Mesh()
         object : VoxelModel(sx, sy, sz) {
             override fun getBlock(x: Int, y: Int, z: Int) =
                 getElementAt(x0 + x, y0 + y, z0 + z).toInt()
-        }.createMesh(palette, null, null, mesh.data)
-        return mesh
+        }.createMesh(palette, null, null, mesh)
+        return MeshComponent(mesh)
     }
 
 }

@@ -12,13 +12,16 @@ import me.anno.ui.Window
 /**
  * engine runtime for testing; without console
  * */
+@Suppress("unused")
 class PureTestStudio(val createMainPanel: () -> Panel) : StudioBase("Test", 1, true) {
 
     override fun createUI() {
         val ui = createMainPanel()
         ui.weight = 1f
         val windowStack = GFX.someWindow!!.windowStack
-        windowStack.add(Window(ui, false, windowStack))
+        val window = Window(ui, false, windowStack)
+        window.drawDirectly = true
+        windowStack.add(window)
     }
 
     override fun loadConfig() {
