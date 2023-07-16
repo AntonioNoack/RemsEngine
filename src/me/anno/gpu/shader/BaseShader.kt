@@ -120,7 +120,6 @@ open class BaseShader(
         shader1.setTextureIndices(textures)
         shader1.ignoreNameWarnings(ignoredNameWarnings)
         shader1.use()
-        shader1.v4f("tint", 1f)
         return shader1
 
     }

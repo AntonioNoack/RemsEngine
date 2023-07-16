@@ -31,7 +31,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
     fun clear() {
         LOGGER.warn("Clearing cache {}", name)
-        GFX.checkIsGFXThread()
         synchronized(cache) {
             for (it in cache.values) it.destroy()
             cache.clear()

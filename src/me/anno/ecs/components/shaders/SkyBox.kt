@@ -249,7 +249,7 @@ open class SkyBox : MeshComponentBase() {
                     "vertex",
                     createVertexVariables(flags),
                     defines +
-                            "localPosition = 1e15 * sign(coords);\n" +
+                            "localPosition = coords;\n" +
                             "finalPosition = localPosition;\n" +
                             "#ifdef COLORS\n" +
                             "   normal = -sign(coords);\n" +

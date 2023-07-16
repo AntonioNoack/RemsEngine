@@ -101,10 +101,16 @@ class ShaderBuilder(val name: String) {
         val fragCode = fragment.createCode(true, outputs, disabledLayers, bridgeVariables)
         val varying = (vertex.imported + vertex.exported).toList()
             .filter { it !in bridgeVariables } + bridgeVariables.values
-        val shader = Shader(
+        val shader = object : Shader(
             name, attributes + vertex.uniforms, vertCode,
             varying, fragment.uniforms.toList(), fragCode
-        )
+        ) {
+            override fun compile() {
+                super.compile()
+                use()
+                v4f("tint", -1)
+            }
+        }
         shader.glslVersion = max(330, max(glslVersion, shader.glslVersion))
         val textureIndices = ArrayList<String>()
         collectTextureIndices(textureIndices, vertex.uniforms)
