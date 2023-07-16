@@ -211,8 +211,8 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
                 list.add(editUI)
 
                 list.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
-                val window = windowStack.push(list)
-                window.drawDirectly = true // we draw the scene constantly anyway
+                windowStack.push(list)
+                // could be drawDirectly, but the text quality of triangle- and draw count suffers from it
             }
 
             override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {

@@ -195,10 +195,10 @@ class AWTFont(val font: Font) {
         val texture = Texture2DArray("awtAtlas", width, height, simpleChars.size)
         val prio = GFX.isGFXThread()
         if (prio) {
-            createImage(texture, portableImages, textColor, backgroundColor, extraPadding)
+            createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
         } else {
             GFX.addGPUTask("awtAtlas", width, height) {
-                createImage(texture, portableImages, textColor, backgroundColor, extraPadding)
+                createASCIITexture(texture, portableImages, textColor, backgroundColor, extraPadding)
             }
         }
 
@@ -526,7 +526,7 @@ class AWTFont(val font: Font) {
         texture.create(image, sync = true, checkRedundancy = false)?.invoke()
     }
 
-    private fun createImage(
+    private fun createASCIITexture(
         texture: Texture2DArray,
         portableImages: Boolean,
         textColor: Int,
@@ -548,7 +548,9 @@ class AWTFont(val font: Font) {
         var y = fontMetrics.ascent.toFloat()
         val dy = texture.height.toFloat()
         for (yi in simpleChars.indices) {
-            gfx.drawString(simpleChars[yi], 0f, y)
+            // not necessary on desktop, but improves quality on Android, because mono somehow is not mono :)
+            val width = TextLayout(simpleChars[yi], gfx.font, renderContext).bounds.maxX.toFloat()
+            gfx.drawString(simpleChars[yi], (texture.width - width) * 0.5f, y)
             y += dy
         }
         gfx.dispose()

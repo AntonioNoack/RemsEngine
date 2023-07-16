@@ -124,7 +124,9 @@ abstract class WelcomeUI {
         /*scroll.backgroundRadius = 20f
         welcome.backgroundRadius = scroll.backgroundRadius*/
 
-        windowStack.push(createBackground(style))
+        val bgPanel = createBackground(style)
+        val bgWindow = windowStack.push(bgPanel)
+        bgWindow.drawDirectly = true
 
         val mainWindow = Window(scroll, isTransparent = true, isFullscreen = false, windowStack, 0, 0)
         mainWindow.cannotClose()

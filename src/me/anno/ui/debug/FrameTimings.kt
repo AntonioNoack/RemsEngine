@@ -90,7 +90,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         minH = height1
     }
 
-    private val timeContainer = TimeContainer(width, textColor)
+    private val timeContainer = TimeContainer(width1, textColor)
     private val containers = arrayListOf(timeContainer)
 
     fun putTime(value: Float) {
@@ -135,7 +135,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
             val nextIndex = container.nextIndex
             val values = container.values
             val barColor = container.color
-            val width = min(width, values.size)
+            val width = values.size
             val indexOffset = nextIndex - 1 + width
 
             if (withoutInterpolation) {

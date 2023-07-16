@@ -186,7 +186,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     }
 
     private val uniformLocations = HashMap<String, Int>()
-    private val uniformCache = FloatArray(UniformCacheSizeX4) { Float.NaN }
+    private val uniformCache = FloatArray(UniformCacheSizeX4)
     var textureNames: List<String> = emptyList()
 
     abstract fun compile()
@@ -209,7 +209,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     fun updateSession() {
         session = GFXState.session
         uniformLocations.clear()
-        uniformCache.fill(Float.NaN)
+        uniformCache.fill(0f)
     }
 
     @Suppress("unused")
