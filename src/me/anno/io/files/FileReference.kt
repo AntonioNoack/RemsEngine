@@ -322,10 +322,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    val hashCode = absolutePath.hashCode()
+    private val _hashCode = absolutePath.hashCode()
 
-    val hasValidName = !absolutePath.isBlank2()
-    fun hasValidName() = hasValidName
+    private val _hasValidName = !absolutePath.isBlank2()
+    fun hasValidName() = _hasValidName
 
     var isHidden =
         name.startsWith('.') || (lcExtension == "meta" && "/Assets/" in absolutePath) // hidden file in Linux, or file in unity package
@@ -475,7 +475,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     @kotlin.jvm.Throws(IOException::class)
     fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit, callback: (Exception?) -> Unit) {
-        outputStream().use { output ->
+        outputStream().use { output: OutputStream ->
             file.inputStream { input, exc ->
                 if (input != null) {
                     val buffer = ByteArray(2048)
@@ -700,11 +700,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     abstract fun toUri(): URI
 
     override fun equals(other: Any?): Boolean {
-        return other is FileReference && other.hashCode == hashCode && other.absolutePath == absolutePath
+        return other is FileReference && other._hashCode == _hashCode && other.absolutePath == absolutePath
     }
 
     override fun hashCode(): Int {
-        return hashCode
+        return _hashCode
     }
 
     override fun toString(): String {

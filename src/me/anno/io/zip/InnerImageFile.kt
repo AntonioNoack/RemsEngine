@@ -6,6 +6,7 @@ import me.anno.image.bmp.BMPWriter
 import me.anno.image.bmp.BMPWriter.createBMP
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
 
@@ -54,11 +55,11 @@ class InnerImageFile(
     }
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(bytes.inputStream(), null)
+        callback(inputStreamSync(), null)
     }
 
     override fun inputStreamSync(): InputStream {
-        return bytes.inputStream()
+        return ByteArrayInputStream(bytes)
     }
 
 }

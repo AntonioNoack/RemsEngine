@@ -13,13 +13,15 @@ interface SignatureFile {
         fun setDataAndSignature(file: InnerFile, getInputStream: () -> InputStream) {
             if (!file.isDirectory) {
                 file as SignatureFile
+                val bufferedIn = getInputStream().buffered()
                 if (file.size in 1..InnerFolderCache.sizeLimit) {
-                    file.data = getInputStream().buffered().use { it.readBytes() }
+                    file.data = bufferedIn.readBytes()
                     file.signature = Signature.find(file.data!!)
                 } else {
-                    val bytes = getInputStream().buffered().use { it.readNBytes2(Signature.sampleSize, false) }
+                    val bytes = bufferedIn.readNBytes2(Signature.sampleSize, false)
                     file.signature = Signature.find(bytes)
                 }
+                bufferedIn.close()
             }
         }
     }

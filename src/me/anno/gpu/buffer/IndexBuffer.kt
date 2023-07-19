@@ -76,7 +76,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
                 val buffer = ByteBufferPool.allocate(indices.size)
                 for (i in indices) buffer.put(i.toByte())
                 buffer.flip()
-                GL30.glBufferData(GL30.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
+                GL30C.glBufferData(GL30C.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
             }*/
             maxIndex < 65536 -> {
                 elementsType = GL_UNSIGNED_SHORT

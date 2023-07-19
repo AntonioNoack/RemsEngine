@@ -12,10 +12,10 @@ data class TextSegmentKey(
     fun equals(isBold: Boolean, isItalic: Boolean, text: CharSequence, charSpacing: Float) =
         isBold == this.isBold && isItalic == this.isItalic && text == this.text && charSpacing == this.charSpacing
 
-    val hashCode = generateHashCode()
+    private val _hashCode = generateHashCode()
 
     override fun hashCode(): Int {
-        return hashCode
+        return _hashCode
     }
 
     private fun generateHashCode(): Int {
@@ -32,7 +32,7 @@ data class TextSegmentKey(
         if (this === other) return true
         if (other !is TextSegmentKey) return false
 
-        if (hashCode != other.hashCode) return false
+        if (_hashCode != other._hashCode) return false
         val font2 = other.font
         if (font.name != font2.name) return false
         if (font.size != font2.size) return false

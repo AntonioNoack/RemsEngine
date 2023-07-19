@@ -29,7 +29,7 @@ fun main() {
     testUI {
 
         StudioBase.instance?.enableVSync = false
-        ECSRegistry.init()
+        ECSRegistry.initMeshes()
 
         val mask = 1 shl 16
         val world = Entity("World")

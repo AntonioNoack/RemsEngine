@@ -11,7 +11,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.util.zip.ZipException
 
-class InnerFile7z(
+class Inner7zFile(
     absolutePath: String,
     val zipFile: FileReference,
     val getZipStream: () -> SevenZFile,
@@ -100,7 +100,7 @@ class InnerFile7z(
                 if (entry.isDirectory) {
                     InnerFolder("$zipFileLocation/$path", path, registry[parent]!!)
                 } else {
-                    InnerFile7z("$zipFileLocation/$path", zipFile, getStream, path, registry[parent]!!)
+                    Inner7zFile("$zipFileLocation/$path", zipFile, getStream, path, registry[parent]!!)
                 }
             }
             file.lastModified = entry.lastModifiedDate?.time ?: 0L

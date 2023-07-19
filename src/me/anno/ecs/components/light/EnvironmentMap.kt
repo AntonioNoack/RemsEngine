@@ -54,7 +54,7 @@ class EnvironmentMap : LightComponentBase() {
     @NotSerializedProperty
     var texture: CubemapFramebuffer? = null
 
-    var needsUpdate = true
+    var needsUpdate1 = true
     var autoUpdate = true
 
     var samples = 1
@@ -85,11 +85,11 @@ class EnvironmentMap : LightComponentBase() {
                 max(1, resolution), samples, arrayOf(TargetType.FP16Target3),
                 DepthBufferType.TEXTURE_16
             )
-            needsUpdate = true
+            needsUpdate1 = true
         }
         val texture = texture
-        if (texture != null && (needsUpdate || autoUpdate)) {
-            needsUpdate = false
+        if (texture != null && (needsUpdate1 || autoUpdate)) {
+            needsUpdate1 = false
             drawBuffer(texture)
         }
         return true

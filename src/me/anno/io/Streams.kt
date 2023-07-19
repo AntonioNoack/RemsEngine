@@ -3,10 +3,7 @@ package me.anno.io
 import me.anno.Engine
 import me.anno.io.base.InvalidFormatException
 import me.anno.utils.Sleep.sleepShortly
-import java.io.EOFException
-import java.io.InputStream
-import java.io.OutputStream
-import java.io.Reader
+import java.io.*
 import kotlin.concurrent.thread
 
 @Suppress("unused")
@@ -43,7 +40,7 @@ object Streams {
     fun InputStream.listen(name: String, callback: (String) -> Unit) {
         thread(name = name) {
             // some streams always return 0 for available() :(
-            bufferedReader().use { reader ->
+            bufferedReader().use { reader: BufferedReader ->
                 while (!Engine.shutdown) {
                     callback(reader.readLine() ?: break)
                 }
@@ -58,12 +55,15 @@ object Streams {
     }
 
     @JvmStatic
-    fun InputStream.readText() = String(readBytes())
+    fun InputStream.readText(): String {
+        val bytes = readBytes()
+        return String(bytes)
+    }
 
     @JvmStatic
     fun InputStream.copy(other: OutputStream) {
-        use { input ->
-            other.use { output ->
+        use { input: InputStream ->
+            other.use { output: OutputStream ->
                 input.copyTo(output)
             }
         }
@@ -211,8 +211,8 @@ object Streams {
      * read a zero-terminated string, as they are commonly used in C
      * */
     @JvmStatic
-    fun OutputStream.write0String(data: String) {
-        write(data.toByteArray())
+    fun OutputStream.write0String(str: String) {
+        write(str.toByteArray())
         write(0)
     }
 

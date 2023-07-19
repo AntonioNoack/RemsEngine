@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.Engine
 import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -199,9 +200,49 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         ) {
             transparentPass.draw0(this)
         } else {
+            val sky = skyBox
+            var hasDrawnSky = sky == null
             for (i in stages.indices) {
                 val stage = stages[i]
-                if (stage.size > 0) stage.bindDraw(this)
+                if (stage.blendMode != null && !hasDrawnSky) {
+                    drawSky(sky!!, defaultStage)
+                    hasDrawnSky = true
+                }
+                if (stage.size > 0) {
+                    stage.bindDraw(this)
+                }
+            }
+            if (!hasDrawnSky) {
+                drawSky(sky!!, defaultStage)
+            }
+        }
+    }
+
+    fun drawSky(sky: SkyBox, stage: PipelineStage) {
+        GFXState.depthMode.use(stage.depthMode) {
+            GFXState.depthMask.use(false) {
+                GFXState.blendMode.use(null) {
+                    val mesh = sky.getMesh()
+                    mesh.ensureBuffer()
+                    val allAABB = JomlPools.aabbd.create()
+                    allAABB.all()
+                    for (i in 0 until mesh.numMaterials) {
+                        val material = MaterialCache[sky.materials.getOrNull(i)] ?: defaultMaterial
+                        val shader = (material.shader ?: pbrModelShader).value
+                        shader.use()
+                        stage.initShader(shader, this)
+                        stage.bindRandomness(shader)
+                        stage.setupLights(this, shader, allAABB, false)
+                        PipelineStage.setupLocalTransform(shader, sky.transform!!, Engine.gameTime)
+                        shader.v1b("hasAnimation", false)
+                        GFX.shaderColor(shader, "tint", -1)
+                        shader.v1i("hasVertexColors", 0)
+                        shader.v2i("randomIdData", 6, sky.randomTriangleId)
+                        material.bind(shader)
+                        mesh.draw(shader, i)
+                    }
+                    JomlPools.aabbd.sub(1)
+                }
             }
         }
     }

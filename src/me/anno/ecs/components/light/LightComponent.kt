@@ -65,7 +65,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     val hasShadow get() = shadowMapCascades > 0
 
-    var needsUpdate = true
+    var needsUpdate1 = true
     var autoUpdate = true
 
     override fun fill(
@@ -86,7 +86,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     }
 
     open fun invalidateShadows() {
-        needsUpdate = true
+        needsUpdate1 = true
     }
 
     override fun onDrawGUI(all: Boolean) {
@@ -155,8 +155,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     override fun onVisibleUpdate(): Boolean {
         return if (hasShadow) {
-            if (autoUpdate || needsUpdate) {
-                needsUpdate = false
+            if (autoUpdate || needsUpdate1) {
+                needsUpdate1 = false
                 ensureShadowBuffers()
                 if (hasShadow) {
                     updateShadowMaps()
@@ -244,7 +244,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         dst.shadowMapPower = shadowMapPower
         dst.shadowMapResolution = shadowMapResolution
         dst.color = color
-        dst.needsUpdate = true
+        dst.needsUpdate1 = true
         dst.autoUpdate = autoUpdate
     }
 

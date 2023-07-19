@@ -14,11 +14,9 @@ import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.gpu.GFXState
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.matMul
+import me.anno.gpu.shader.*
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -154,6 +152,9 @@ open class SkyBox : MeshComponentBase() {
         material.shaderOverrides["sunDir"] = TypeValueV3(GLSLType.V3F, Vector3f()) {
             it.set(sunBaseDir).rotate(sunRotation)
         }
+        material.shaderOverrides["reversedDepth"] = TypeValue(GLSLType.V1B, {
+            GFXState.depthMode.currentValue.reversedDepth
+        })
         materials = listOf(material.ref)
     }
 
@@ -177,7 +178,8 @@ open class SkyBox : MeshComponentBase() {
     ): Int {
         lastDrawn = Engine.gameTime
         pipeline.skyBox = this
-        return super.fill(pipeline, entity, clickId)
+        this.clickId = clickId
+        return clickId + 1
     }
 
     override fun onUpdate(): Int {
@@ -227,7 +229,7 @@ open class SkyBox : MeshComponentBase() {
         dst.cirrus = cirrus
         dst.cumulus = cumulus
         dst.cumulusSpeed.set(cumulusSpeed)
-        dst.cumulusOffset.set( cumulusOffset)
+        dst.cumulusOffset.set(cumulusOffset)
         dst.cirrusSpeed.set(cirrusSpeed)
         dst.cirrusOffset.set(cirrusOffset)
         dst.nadir.set(nadir)
@@ -245,18 +247,22 @@ open class SkyBox : MeshComponentBase() {
 
             override fun createVertexStages(flags: Int): List<ShaderStage> {
                 val defines = if (flags.hasFlag(NEEDS_COLORS)) "#define COLORS\n" else ""
-                return listOf(ShaderStage(
-                    "vertex",
-                    createVertexVariables(flags),
-                    defines +
-                            "localPosition = coords;\n" +
-                            "finalPosition = localPosition;\n" +
-                            "#ifdef COLORS\n" +
-                            "   normal = -sign(coords);\n" +
-                            "#endif\n" +
-                            "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                            ShaderLib.positionPostProcessing
-                ))
+                return listOf(
+                    ShaderStage(
+                        "vertex",
+                        createVertexVariables(flags) +
+                                listOf(Variable(GLSLType.V1B, "reversedDepth")),
+                        defines +
+                                "localPosition = coords;\n" +
+                                "finalPosition = localPosition;\n" +
+                                "#ifdef COLORS\n" +
+                                "   normal = -coords;\n" +
+                                "#endif\n" +
+                                "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
+                                "gl_Position.z = (reversedDepth ? 1e-36 : 0.9999995) * gl_Position.w;\n" +
+                                ShaderLib.positionPostProcessing
+                    )
+                )
             }
 
             override fun createFragmentStages(flags: Int): List<ShaderStage> {
@@ -358,20 +364,20 @@ open class SkyBox : MeshComponentBase() {
                         "vec3 extinction = mix(clamp(day_extinction, 0.0, 1.0), night_extinction, -sunDir.y * 0.2 + 0.5);\n" +
                         "vec3 color = rayleigh * mie * extinction;\n" +
 
-                        // Cirrus Clouds
-                        "vec3 pxz = sphericalSky ? pos0 : vec3(pos.xz / max(pos.y, 0.001), 0.0);\n" +
-                        "float density = smoothstep(1.0 - cirrus, 1.0, fbm(pxz * 2.0 + cirrusOffset)) * 0.3;\n" +
-                        "color = mix(color, extinction * 4.0, density * max(pos.y, 0.0));\n" +
-
-                        // Cumulus Clouds
-                        "for (int i = 0; i < 3; i++){\n" +
-                        "  float density = smoothstep(1.0 - cumulus, 1.0, fbm((0.7 + float(i) * 0.01) * pxz + cumulusOffset));\n" +
-                        "  color = mix(color, extinction * density * 5.0, min(density, 1.0) * max(pos.y, 0.0));\n" +
-                        "}\n" +
-
                         // falloff towards downwards
                         "if(pos0.y < 0.0){\n" +
                         "   color = mix(nadir.rgb, color, exp(pos0.y * nadir.w));\n" +
+                        "} else if(pos.y > 0.0){\n" +
+                        // Cirrus Clouds
+                        "   vec3 pxz = sphericalSky ? pos0 : vec3(pos.xz / max(pos.y, 0.001), 0.0);\n" +
+                        "   float density = smoothstep(1.0 - cirrus, 1.0, fbm(pxz * 2.0 + cirrusOffset)) * 0.3;\n" +
+                        "   color = mix(color, extinction * 4.0, density * max(pos.y, 0.0));\n" +
+
+                        // Cumulus Clouds
+                        "   for (int i = 0; i < 3; i++){\n" +
+                        "     float density = smoothstep(1.0 - cumulus, 1.0, fbm((0.7 + float(i) * 0.01) * pxz + cumulusOffset));\n" +
+                        "     color = mix(color, extinction * density * 5.0, min(density, 1.0) * max(pos.y, 0.0));\n" +
+                        "   }\n" +
                         "}\n" +
                         "return color;\n" +
                         "}"

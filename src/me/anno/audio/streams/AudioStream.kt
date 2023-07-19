@@ -7,7 +7,6 @@ import me.anno.utils.pooling.ByteBufferPool
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.ShortBuffer
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 abstract class AudioStream(
@@ -61,7 +60,7 @@ abstract class AudioStream(
 
     open fun frameIndexToTime(index: Long): Double = (index * bufferSize * speed) / playbackSampleRate
 
-    var isWaitingForBuffer = AtomicBoolean(false)
+    var isWaitingForBuffer = false
 
     var isPlaying = false
 
@@ -69,7 +68,7 @@ abstract class AudioStream(
 
     fun requestNextBuffer(bufferIndex: Long, session: Int) {
 
-        isWaitingForBuffer.set(true)
+        isWaitingForBuffer = true
         taskQueue += {// load all data async
 
             val bufferSize = bufferSize

@@ -7,7 +7,7 @@ import java.io.InputStream
 
 class CountingInputStream(src: InputStream) : FilterInputStream(src) {
 
-    var count = 0
+    var count = 0L
         private set
 
     override fun read(): Int {

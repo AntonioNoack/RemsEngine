@@ -4,20 +4,21 @@ import me.anno.io.files.FileReference
 import me.anno.io.json.JsonReader
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.InputStreams.skipN
+import java.io.InputStream
 
 object GLTFMaterialExtractor {
 
     data class PBRMaterialData(val metallic: Float, val roughness: Float)
 
     fun extract(file: FileReference): Map<String, PBRMaterialData>? {
-        val materialList = file.inputStreamSync().use {
+        val materialList = file.inputStreamSync().use { input: InputStream ->
             // first check whether it is binary glTF;
             // binary glTF has a 20 byte header, and then follows the structure data as JSON, and then the (unused) binary data
-            val first = it.read()
-            if (first == 'g'.code && it.read() == 'l'.code && it.read() == 'T'.code && it.read() == 'F'.code)
-                it.skipN(16) // version, lengths, content-type (json)
+            val first = input.read()
+            if (first == 'g'.code && input.read() == 'l'.code && input.read() == 'T'.code && input.read() == 'F'.code)
+                input.skipN(16) // version, lengths, content-type (json)
             val readOpeningBracket = first != '{'.code
-            JsonReader(it).readObject(readOpeningBracket) { name ->
+            JsonReader(input).readObject(readOpeningBracket) { name ->
                 when (name) {
                     "materials", "name", "pbrMetallicRoughness",
                     "baseColorTexture", "index", "metallicFactor",

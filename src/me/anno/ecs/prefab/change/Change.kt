@@ -4,16 +4,11 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.ISaveable
-import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
-import org.apache.logging.log4j.LogManager
 import java.text.ParseException
 
-abstract class Change : Saveable(), Cloneable {
+abstract class Change : Saveable() {
 
     var path: Path = ROOT_PATH
 
@@ -29,7 +24,7 @@ abstract class Change : Saveable(), Cloneable {
     /**
      * shallow copy
      * */
-    public abstract override fun clone(): Change
+    abstract fun clone(): Change
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

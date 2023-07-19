@@ -52,7 +52,7 @@ object StringHelper {
 
     @JvmStatic
     fun CharSequence.smallCaps(): String {
-        val result = StringBuffer(length)
+        val result = StringBuilder(length)
         for (c in this) result.append(c.smallCaps())
         return result.toString()
     }
@@ -63,7 +63,7 @@ object StringHelper {
     @JvmStatic
     @Suppress("unused")
     fun CharSequence.normalCaps(): String {
-        val result = StringBuffer(length)
+        val result = StringBuilder(length)
         for (c in this) result.append(c.normalCaps())
         return result.toString()
     }

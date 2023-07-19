@@ -70,12 +70,9 @@ object ObjectMapper {
 
     fun asText(value: Any?) = value.toString()
 
-    fun writeJsonString(output: OutputStream, str: String) {
-        output.write(
-            str
-                .replace("\"", "\\\"")
-                .toByteArray()
-        )
+    fun writeJsonString(output: OutputStream, str0: String) {
+        val str = str0.replace("\"", "\\\"")
+        output.write(str)
     }
 
     fun OutputStream.write(c: Char) {

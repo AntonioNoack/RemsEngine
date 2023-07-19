@@ -4,6 +4,7 @@ import me.anno.image.Image
 import me.anno.io.files.FileReference
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_BYTE_GRAY
+import java.io.OutputStream
 import javax.imageio.ImageIO
 
 fun BufferedImage.toImage(): Image {
@@ -31,7 +32,7 @@ fun BufferedImage.toImage(): Image {
 
 fun BufferedImage.write(dst: FileReference) {
     val format = dst.lcExtension
-    dst.outputStream().use { out ->
+    dst.outputStream().use { out: OutputStream ->
         ImageIO.write(this, format, out)
     }
 }

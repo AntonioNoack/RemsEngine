@@ -1,6 +1,6 @@
 package me.anno.cache
 
-open class AsyncCacheData<V>(val destroy: Boolean = true) : ICacheData {
+open class AsyncCacheData<V> : ICacheData {
 
     var hasValue = false
     var hasBeenDestroyed = false

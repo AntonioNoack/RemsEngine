@@ -90,9 +90,9 @@ class AudioFileStreamOpenAL(
         if (!isPlaying) return
         checkSession()
         val queued = queued.get()
-        if (!isWaitingForBuffer.get() && queued > 0) checkProcessed()
+        if (!isWaitingForBuffer && queued > 0) checkProcessed()
         // keep 2 on reserve
-        if (queued < processed + cachedBuffers && !isWaitingForBuffer.get()) {
+        if (queued < processed + cachedBuffers && !isWaitingForBuffer) {
             // request a buffer
             // only one at a time
             val index = startIndex + this.queued.getAndIncrement()
@@ -167,7 +167,7 @@ class AudioFileStreamOpenAL(
                 alSource.play()
                 ALBase.check()
 
-                isWaitingForBuffer.set(false)
+                isWaitingForBuffer = false
                 ALBase.check()
 
             }

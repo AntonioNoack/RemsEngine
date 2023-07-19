@@ -40,7 +40,7 @@ import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL43C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE
 import org.lwjgl.opengl.GL43C.GL_MAX_UNIFORM_LOCATIONS
 import org.lwjgl.opengl.GL45C.GL_CONTEXT_LOST
-import org.lwjgl.opengl.GL46
+import org.lwjgl.opengl.GL46C
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
@@ -640,7 +640,7 @@ object GFX {
 
     @JvmStatic
     fun discoverOpenGLNames() {
-        discoverOpenGLNames(GL46::class)
+        discoverOpenGLNames(GL46C::class)
     }
 
     @JvmStatic

@@ -81,7 +81,7 @@ class WindowsShortcut {
     constructor()
 
     constructor(file: FileReference) {
-        file.inputStreamSync().use { input ->
+        file.inputStreamSync().use { input: InputStream ->
             parseLink(input.readNBytes2(maxLength, false))
         }
     }
@@ -184,7 +184,7 @@ class WindowsShortcut {
         @JvmStatic
         fun isPotentialValidLink(file: FileReference): Boolean {
             if (file.lcExtension != "lnk" || file.isDirectory || file.length() < 0x64) return false
-            file.inputStreamSync().use { fis -> return isMagicPresent(fis.readNBytes2(32, false)) }
+            return file.inputStreamSync().use { fis: InputStream -> isMagicPresent(fis.readNBytes2(32, false)) }
         }
 
         @JvmStatic

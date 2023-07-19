@@ -20,7 +20,7 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
         world.validateAABBs()
     }
 
-    val meshes = ArrayList<TriMesh>()
+    val meshes1 = ArrayList<TriMesh>()
     val bounds = AABBf()
 
     init {
@@ -51,10 +51,10 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
             }
             src = dst
         }
-        meshes.add(TriMesh(src, faces))
+        meshes1.add(TriMesh(src, faces))
     }
 
-    override fun meshes() = meshes
+    override fun meshes() = meshes1
 
     // those are extra
     override fun convexVolumes() = emptyList<ConvexVolume>()

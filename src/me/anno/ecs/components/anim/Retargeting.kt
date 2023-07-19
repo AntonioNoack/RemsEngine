@@ -40,8 +40,8 @@ class Retargeting : NamedSaveable() {
             ) { k12, _ ->
 
                 // todo hash skeleton instead of skeleton path
-                val hash1 = srcSkeleton.hashCode
-                val hash2 = dstSkeleton.hashCode
+                val hash1 = srcSkeleton.hashCode()
+                val hash2 = dstSkeleton.hashCode()
                 // database, which stores bone assignments for a project
                 val config = "retargeting-$hash1-$hash2.json"
                 val config1 = ConfigBasics.getConfigFile(config)

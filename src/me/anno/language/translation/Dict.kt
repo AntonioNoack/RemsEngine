@@ -1,6 +1,7 @@
 package me.anno.language.translation
 
 import me.anno.config.DefaultConfig
+import me.anno.io.Streams.readText
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.Language
@@ -17,7 +18,7 @@ object Dict {
     private var values = HashMap<String, String>()
 
     fun load(input: InputStream, clear: Boolean) {
-        val text = String(input.readBytes())
+        val text = input.readText()
         load(text, clear)
     }
 
@@ -37,7 +38,7 @@ object Dict {
 
     @Suppress("unused")
     fun getLanguageName(input: InputStream): String? {
-        val text = String(input.readBytes())
+        val text = input.readText()
         return getLanguageName(text)
     }
 

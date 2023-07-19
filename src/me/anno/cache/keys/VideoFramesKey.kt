@@ -15,9 +15,8 @@ data class VideoFramesKey(
         return "${file.absolutePath.shorten(200)}, ${scale}x, $bufferIndex*$frameLength @${fps}fps"
     }
 
-    val hashCode = generateHashCode()
-
-    override fun hashCode(): Int = hashCode
+    private val _hashCode = generateHashCode()
+    override fun hashCode(): Int = _hashCode
 
     private fun generateHashCode(): Int {
         var result = file.hashCode()
@@ -31,7 +30,7 @@ data class VideoFramesKey(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is VideoFramesKey) return false
-        if (hashCode != other.hashCode) return false
+        if (_hashCode != other._hashCode) return false
         if (scale != other.scale) return false
         if (bufferIndex != other.bufferIndex) return false
         if (frameLength != other.frameLength) return false

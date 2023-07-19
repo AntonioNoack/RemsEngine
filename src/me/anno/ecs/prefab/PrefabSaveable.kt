@@ -20,7 +20,7 @@ import me.anno.utils.structures.Hierarchical
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 
-abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable, Cloneable {
+abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
 
     @SerializedProperty
     override var isEnabled = true
@@ -202,8 +202,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     open fun getIndexOf(child: PrefabSaveable): Int = getChildListByType(getTypeOf(child)).indexOf(child)
     open fun getTypeOf(child: PrefabSaveable): Char = ' '
 
-    public override fun clone(): PrefabSaveable {
-        val clone = javaClass.newInstance()
+    open fun clone(): PrefabSaveable {
+        val clone = this.javaClass.newInstance()
         copyInto(clone)
         return clone
     }

@@ -2,6 +2,7 @@ package me.anno.io.zip
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
 
@@ -33,15 +34,16 @@ class InnerLazyByteFile(
     }
 
     override fun readTextSync(): String {
-        return String(content.value)
+        val bytes = content.value
+        return String(bytes)
     }
 
     override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
-        callback(String(content.value), null)
+        callback(readTextSync(), null)
     }
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(content.value.inputStream(), null)
+        callback(ByteArrayInputStream(content.value), null)
     }
 
 }

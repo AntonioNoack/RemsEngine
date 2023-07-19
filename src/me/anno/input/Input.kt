@@ -44,6 +44,7 @@ import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.UnsupportedFlavorException
 import java.awt.image.RenderedImage
 import java.io.File
+import java.io.OutputStream
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
@@ -734,7 +735,7 @@ object Input {
             val folder = instance!!.getPersistentStorage()
             val file0 = folder.getChild("PastedImage.png")
             val file1 = findNextFile(file0, 3, '-', 1)
-            file1.outputStream().use { ImageIO.write(data, "png", it) }
+            file1.outputStream().use { out: OutputStream -> ImageIO.write(data, "png", out) }
             LOGGER.info("Pasted image of size ${data.width} x ${data.height}, placed into $file1")
             return listOf(file1)
         } catch (_: UnsupportedFlavorException) {
@@ -799,7 +800,7 @@ object Input {
             val folder = instance!!.getPersistentStorage()
             val file0 = folder.getChild("PastedImage.png")
             val file1 = findNextFile(file0, 3, '-', 1)
-            file1.outputStream().use { ImageIO.write(image, "png", it) }
+            file1.outputStream().use { out: OutputStream -> ImageIO.write(image, "png", out) }
             LOGGER.info("Pasted image of size ${image.width} x ${image.height}, placed into $file1")
             panel.onPasteFiles(window.mouseX, window.mouseY, listOf(file1))
             return

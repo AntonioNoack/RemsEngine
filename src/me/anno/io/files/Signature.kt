@@ -5,6 +5,7 @@ import me.anno.image.gimp.GimpImage
 import me.anno.io.zip.SignatureFile
 import me.anno.utils.Color.hex8
 import me.anno.utils.structures.lists.Lists.firstOrNull2
+import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.math.min
 
@@ -159,7 +160,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
                     // how much do we read? 🤔
                     // some formats are easy, others require more effort
                     // maybe we could read them piece by piece...
-                    file.inputStreamSync().use { input ->
+                    file.inputStreamSync().use { input: InputStream ->
                         find(ByteArray(sampleSize) { input.read().toByte() })
                     }
                 }

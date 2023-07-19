@@ -3,6 +3,7 @@ package me.anno.io.zip
 import me.anno.io.EmptyInputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -57,10 +58,10 @@ abstract class InnerFile(
     }
 
     override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
-        val data = data
+        val bytes = data
         when {
             size <= 0 -> callback(EmptyInputStream, null)
-            data != null -> callback(data.inputStream(), null)
+            bytes != null -> callback(ByteArrayInputStream(bytes), null)
             else -> getInputStream(callback)
         }
     }

@@ -13,7 +13,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL43C.GL_BUFFER
 import org.lwjgl.opengl.GL43C.glObjectLabel
 import java.nio.ByteBuffer

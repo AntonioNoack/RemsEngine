@@ -49,7 +49,7 @@ class PointLight : LightComponent(LightType.POINT) {
     override fun getShaderV2() = near.toFloat()
 
     override fun invalidateShadows() {
-        needsUpdate = true
+        needsUpdate1 = true
     }
 
     override fun updateShadowMap(

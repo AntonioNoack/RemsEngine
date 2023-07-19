@@ -36,7 +36,7 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
             }
             out.close()
         }
-        process.inputStream.buffered().use { input ->
+        process.inputStream.buffered().use { input: InputStream ->
 
             val frameCount = (sampleRate * length).toInt()
             input.mark(1)

@@ -195,20 +195,20 @@ class Framebuffer3D(
             for (slice in 0 until d) {
                 // update all attachments, updating the framebuffer texture targets
                 updateAttachments(slice)
-                val status = GL30.glCheckFramebufferStatus(GL30.GL_DRAW_FRAMEBUFFER)
-                if (status != GL30.GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
+                val status = GL30C.glCheckFramebufferStatus(GL30C.GL_DRAW_FRAMEBUFFER)
+                if (status != GL30C.GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
                 render(slice)
             }
         }
     }
 
     fun updateAttachments(layer: Int) {
-        val target = GL30.GL_TEXTURE_3D
+        val target = GL30C.GL_TEXTURE_3D
         val textures = textures
         for (index in textures.indices) {
             val texture = textures[index]
-            GL30.glFramebufferTexture3D(
-                GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0 + index,
+            GL30C.glFramebufferTexture3D(
+                GL30C.GL_FRAMEBUFFER, GL30C.GL_COLOR_ATTACHMENT0 + index,
                 target, texture.pointer, 0, layer
             )
         }
@@ -217,8 +217,8 @@ class Framebuffer3D(
         GFX.check()
         if (depthBufferType == DepthBufferType.TEXTURE || depthBufferType == DepthBufferType.TEXTURE_16) {
             val depthTexture = depthTexture!!
-            GL30.glFramebufferTexture3D(
-                GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT,
+            GL30C.glFramebufferTexture3D(
+                GL30C.GL_FRAMEBUFFER, GL30C.GL_DEPTH_ATTACHMENT,
                 target, depthTexture.pointer, 0, layer
             )
         }

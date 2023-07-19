@@ -130,7 +130,7 @@ object PathFinding {
         var previousFromEnd: Node? = null
         val result = try {
             while (queue.isNotEmpty()) {
-                val from = queue.poll()
+                val from = queue.poll()!!
                 // LOGGER.debug("Checking $from at ${cache[from]}")
                 if (!earlyExit && from == end) {
                     // LOGGER.debug("Found end, remaining: ${queue.map { "$it at ${cache[it]}" }}")
@@ -234,7 +234,7 @@ object PathFinding {
         var previousFromEnd: Node? = null
         val result = try {
             while (queue.isNotEmpty()) {
-                val from = queue.poll()
+                val from = queue.poll()!!
                 // LOGGER.debug("Checking $from at ${cache[from]}")
                 if (!earlyExit && isEnd(from)) {
                     // LOGGER.debug("Found end, remaining: ${queue.map { "$it at ${cache[it]}" }}")

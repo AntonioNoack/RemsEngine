@@ -43,7 +43,7 @@ object Utils {
             i = swapInteger(i)
         }
         val sb = StringBuilder()
-        sb.append(Integer.toHexString(i))
+        sb.append(i.toString(16))
         if (sb.length % 2 != 0) {
             sb.insert(0, '0')
         }

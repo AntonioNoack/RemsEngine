@@ -58,23 +58,11 @@ open class Matrix4d {
     }
 
     constructor(
-        m00: Double,
-        m01: Double,
-        m02: Double,
-        m03: Double,
-        m10: Double,
-        m11: Double,
-        m12: Double,
-        m13: Double,
-        m20: Double,
-        m21: Double,
-        m22: Double,
-        m23: Double,
-        m30: Double,
-        m31: Double,
-        m32: Double,
-        m33: Double
-    ) {
+        m00: Double, m01: Double, m02: Double, m03: Double,
+        m10: Double, m11: Double, m12: Double, m13: Double,
+        m20: Double, m21: Double, m22: Double, m23: Double,
+        m30: Double, m31: Double, m32: Double, m33: Double
+    ): super() {
         this.m00 = m00
         this.m01 = m01
         this.m02 = m02

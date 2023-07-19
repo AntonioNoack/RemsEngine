@@ -231,13 +231,17 @@ class PipelineStage(
     )
 
     fun bindDraw(pipeline: Pipeline) {
+        bind { drawColors(pipeline) }
+    }
+
+    fun bind(draw: () -> Unit) {
         Texture2D.unbindAllTextures()
         GFXState.blendMode.use(blendMode) {
             GFXState.depthMode.use(depthMode) {
                 GFXState.depthMask.use(writeDepth) {
                     GFXState.cullMode.use(cullMode) {
                         GFX.check()
-                        drawColors(pipeline)
+                        draw()
                         GFX.check()
                     }
                 }
@@ -736,7 +740,7 @@ class PipelineStage(
             }
 
             shaderColor(shader, "tint", -1)
-            shader.v1i("hasVertexColors", if(material.enableVertexColors) mesh.hasVertexColors else 0)
+            shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
 
             GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
                 mesh.drawDepth(shader)

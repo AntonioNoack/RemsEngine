@@ -130,13 +130,8 @@ class PrefabInspector(val reference: FileReference) {
         val path = instance.prefabPath
         instance.ensurePrefab()
         list += TextPanel(
-            "$path@${instance.prefab?.source}, ${instance.className}@${
-                hex32(
-                    System.identityHashCode(
-                        instance
-                    )
-                )
-            }", style
+            "$path@${instance.prefab?.source}, " +
+                    "${instance.className}@${hex32(System.identityHashCode(instance))}", style
         )
 
         // the index may not be set in the beginning

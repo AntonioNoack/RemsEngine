@@ -50,9 +50,11 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
     var videoHeight = 0
     var videoFrameCount = 0
 
+    var ready = true
+
     override fun toString(): String {
         return "FFMPEGMetadata(file: ${file.absolutePath.shorten(200)}, audio: ${
-            if(hasAudio) "[$audioSampleRate Hz, $audioChannels ch]" else "false"
+            if (hasAudio) "[$audioSampleRate Hz, $audioChannels ch]" else "false"
         }, video: ${
             if (hasVideo) "[$videoWidth x $videoHeight, $videoFrameCount]" else "false"
         }, duration: ${duration.formatTime(3)}), channels: $audioChannels"
@@ -74,10 +76,23 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
         } else when (val signature1 = signature ?: Signature.findNameSync(file)) {
             "gimp" -> {
                 // Gimp files are a special case, which is not covered by FFMPEG
-                setImage(file.inputStreamSync().use { GimpImage.findSize(it) })
+                ready = false
+                file.inputStream { it, exc ->
+                    if (it != null) {
+                        setImage(GimpImage.findSize(it))
+                    } else exc?.printStackTrace()
+                    ready = true
+                }
             }
-            "qoi" -> {// we have a simple reader, so use it :)
-                setImage(file.inputStreamSync().use { QOIImage.findSize(it) })
+            "qoi" -> {
+                // we have a simple reader, so use it :)
+                ready = false
+                file.inputStream { it, exc ->
+                    if (it != null) {
+                        setImage(QOIImage.findSize(it))
+                    } else exc?.printStackTrace()
+                    ready = true
+                }
             }
             // only load ffmpeg for ffmpeg files
             "gif", "media", "dds" -> {

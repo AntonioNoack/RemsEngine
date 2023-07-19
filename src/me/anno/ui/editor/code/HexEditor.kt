@@ -79,7 +79,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
 
     fun saveChanges(clear: Boolean) {
         if (changes.isEmpty()) return
-        RandomAccessFile(file.absolutePath, "w").use { raf ->
+        RandomAccessFile(file.absolutePath, "w").use { raf: RandomAccessFile ->
             for (sequence in changes) {
                 raf.seek(sequence.offset) // Go to byte at offset position 5.
                 raf.write(sequence.bytes) // Write byte 70 (overwrites original byte at this offset).

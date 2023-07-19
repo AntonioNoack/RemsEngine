@@ -12,6 +12,7 @@ import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.control.PlayControls
 import me.anno.engine.ui.scenetabs.ECSSceneTab
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListY
@@ -70,7 +71,10 @@ class SceneView(
         }
 
         fun testSceneWithUI(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null) {
-            testUI { testScene(scene, init) }
+            testUI {
+                GFX.someWindow?.windowStack?.firstOrNull()?.drawDirectly = false
+                testScene(scene, init)
+            }
         }
 
         @Suppress("unused")

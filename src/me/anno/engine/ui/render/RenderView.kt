@@ -1422,7 +1422,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 }
             }
 
-            clearColor(previousCamera, currentCamera, blending, hdr)
+            if (pipeline.skyBox == null) {
+                clearColor(previousCamera, currentCamera, blending, hdr)
+            }
+
             GFX.check()
             pipeline.draw()
             GFX.check()

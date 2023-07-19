@@ -11,7 +11,6 @@ import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.clamp
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
@@ -38,9 +37,9 @@ object AudioFXCache : CacheSection("AudioFX0") {
         val repeat: LoopingState,
     ) {
 
-        val hashCode = calculateHashCode()
+        private val _hashCode = calculateHashCode()
         override fun hashCode(): Int {
-            return hashCode
+            return _hashCode
         }
 
         fun withDelta(deltaIndex: Int): PipelineKey {
@@ -61,7 +60,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
 
             if (other !is PipelineKey) return false
 
-            if (hashCode != other.hashCode) return false
+            if (_hashCode != other._hashCode) return false
             if (bufferSize != other.bufferSize) return false
             if (time0 != other.time0) return false
             if (time1 != other.time1) return false
@@ -212,9 +211,9 @@ object AudioFXCache : CacheSection("AudioFX0") {
             return other.i0 == i0 && other.i1 == i1 && other.identifier == identifier
         }
 
-        val hashCode = 31 * (31 * i0.hashCode() + i1.hashCode()) + identifier.hashCode()
+        private val _hashCode = 31 * (31 * i0.hashCode() + i1.hashCode()) + identifier.hashCode()
         override fun hashCode(): Int {
-            return hashCode
+            return _hashCode
         }
 
     }

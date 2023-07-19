@@ -33,7 +33,7 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
             val v = tmpChar.toChar()
             tmpChar = -1
             when (v) {
-                '\n' ,'\r', '\t', ' ' -> {
+                '\n', '\r', '\t', ' ' -> {
                 }
                 else -> return v
             }
@@ -91,7 +91,9 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
 
         fun read(file: FileReference, workspace: FileReference, safely: Boolean): List<ISaveable> {
             // buffered is very important and delivers an improvement of 5x
-            return file.inputStreamSync().use { read(it, workspace, file.absolutePath, safely) }
+            return file.inputStreamSync().use { input: InputStream ->
+                read(input, workspace, file.absolutePath, safely)
+            }
         }
 
         fun read(data: InputStream, workspace: FileReference, safely: Boolean): List<ISaveable> {

@@ -120,6 +120,7 @@ import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.awt.image.BufferedImage
+import java.io.InputStream
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
 import javax.swing.filechooser.FileSystemView
@@ -1332,7 +1333,7 @@ object Thumbs {
                         "tga" -> {
                             srcFile.inputStream { it, exc ->
                                 if (it != null) {
-                                    val src = it.use { TGAImage.read(it, false) }
+                                    val src = it.use { input: InputStream -> TGAImage.read(input, false) }
                                     findScale(src, srcFile, size, callback) { dst ->
                                         saveNUpload(srcFile, false, dstFile, dst, callback)
                                     }

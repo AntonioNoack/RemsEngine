@@ -228,7 +228,7 @@ abstract class Node() : PrefabSaveable() {
     override fun clone(): Node {
         // not ideal, but probably good enough for now and manual graph creation
         if (!isConnected()) {
-            val clone = javaClass.newInstance()
+            val clone = this.javaClass.newInstance()
             copyInto(clone)
             return clone
         }

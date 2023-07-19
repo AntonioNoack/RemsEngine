@@ -129,7 +129,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         if (string == null) {
             output.writeInt(-1)
         } else {
-            val known = knownStrings.getOrDefault(string, -1)
+            val known = knownStrings[string] ?: -1
             if (known >= 0) {
                 output.writeInt(known)
             } else {
@@ -147,7 +147,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     private fun writeAttributeStart(name: String, type: Int) {
         val nameType = NameType(name, type.toChar())
-        val id = currentNameTypes.getOrDefault(nameType, -1)
+        val id = currentNameTypes[nameType] ?: -1
         if (id >= 0) {
             // known -> short cut
             output.writeInt(id)

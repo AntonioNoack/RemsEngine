@@ -11,7 +11,7 @@ import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.lists.Lists.pop
 import me.anno.utils.types.InputStreams.readNBytes2
-import org.apache.commons.compress.utils.CountingInputStream
+import net.sf.image4j.io.CountingInputStream
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -24,7 +24,7 @@ object FBX6000 {
         stream.consumeMagic("Kaydara FBX Binary")
 
         fun InputStream.skipN(n: Int) {
-            print("// [FBX6000] ? [${stream.bytesRead}]")
+            print("// [FBX6000] ? [${stream.count}]")
             for (i in 0 until n) {
                 print(" ")
                 print(read())
@@ -79,7 +79,7 @@ object FBX6000 {
                         list.add(map)
                         stack.add(map)
                         var needsNewObject = false
-                        while (stream.bytesRead < endOfBlock) {
+                        while (stream.count < endOfBlock) {
                             if (needsNewObject) {
                                 val map2 = HashMap<String, ArrayList<Any>>()
                                 list.add(map2)

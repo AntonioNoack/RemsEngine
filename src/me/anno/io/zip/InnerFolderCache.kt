@@ -10,8 +10,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.io.unity.UnityReader
-import me.anno.io.zip.InnerFile7z.Companion.createZipRegistry7z
-import me.anno.io.zip.InnerFile7z.Companion.fileFromStream7z
+import me.anno.io.zip.Inner7zFile.Companion.createZipRegistry7z
+import me.anno.io.zip.Inner7zFile.Companion.fileFromStream7z
 import me.anno.io.zip.InnerRarFile.Companion.createZipRegistryRar
 import me.anno.io.zip.InnerRarFile.Companion.fileFromStreamRar
 import me.anno.io.zip.InnerTarFile.Companion.readAsGZip

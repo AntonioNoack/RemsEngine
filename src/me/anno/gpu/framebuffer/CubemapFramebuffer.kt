@@ -11,7 +11,7 @@ import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
 import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL13C
-import org.lwjgl.opengl.GL30.*
+import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL30C
 
 class CubemapFramebuffer(

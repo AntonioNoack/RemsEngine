@@ -48,7 +48,7 @@ open class InnerLazyPrefabFile(
     }
 
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-        callback(text.byteInputStream(), null)
+        callback(inputStreamSync(), null)
     }
 
     override fun readPrefab(): Prefab {

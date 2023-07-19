@@ -37,9 +37,9 @@ object ICOReader {
         // Make sure we're at the right file offset!
         val targetOffset = entry.fileOffset
         if (input1.count < targetOffset)
-            input1.skip((targetOffset - input1.count).toLong())
+            input1.skip(targetOffset - input1.count)
         val fileOffset = input1.count
-        if (fileOffset != targetOffset) {
+        if (fileOffset != targetOffset.toLong()) {
             throw IOException(
                 "Cannot read image #$i starting at unexpected file offset, " +
                         "0x${fileOffset.toString(16)} != 0x${entry.fileOffset.toString(16)}."
@@ -272,9 +272,9 @@ object ICOReader {
                     val pngBytes = packPNGBytes(input1, bestLayer.sizeInBytes)
                     for (reader in ImageIO.getImageReadersBySuffix("png")) {
                         val stream = ByteArrayInputStream(pngBytes)
-                        stream.use {
+                        return stream.use {
                             reader.input = ImageIO.createImageInputStream(it)
-                            return IntPair(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
+                            IntPair(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
                         }
                     }
                     IntPair(0, 0)
