@@ -19,7 +19,10 @@ import me.anno.gpu.shader.Renderer
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
+import me.anno.io.config.ConfigBasics.cacheFolder
+import me.anno.io.config.ConfigBasics.configFolder
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.Language
 import me.anno.language.translation.Dict
@@ -151,6 +154,8 @@ abstract class StudioBase(
     open fun setupNames() {
         GFX.windows.firstOrNull()?.title = title
         projectName = configName
+        configFolder = getReference(OS.home, ".config/$configName")
+        cacheFolder = getReference(OS.home, ".cache/$configName")
     }
 
     open fun run(runGraphics: Boolean = !OS.isWeb && !OS.isAndroid) {

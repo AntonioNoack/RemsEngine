@@ -6,7 +6,6 @@ package me.anno.gpu
 
 import me.anno.Build.isDebug
 import me.anno.Engine
-import me.anno.Engine.projectName
 import me.anno.Engine.shutdown
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.addGPUTask
@@ -213,7 +212,7 @@ object GFXBase {
             val width = instance.width
             val height = instance.height
             val sharedWindow = windows.firstOrNull { it.pointer != 0L }?.pointer ?: 0L
-            val window = GLFW.glfwCreateWindow(width, height, projectName, 0L, sharedWindow)
+            val window = GLFW.glfwCreateWindow(width, height, instance.title, 0L, sharedWindow)
             instance.pointer = window
             if (window == 0L) throw RuntimeException("Failed to create the GLFW window")
             windows.add(instance)
@@ -437,7 +436,7 @@ object GFXBase {
             addGPUTask("close-request", 1) {
                 ask(
                     ws, NameDesc("Close %1?", "", "ui.closeProgram")
-                        .with("%1", projectName)
+                        .with("%1", window.title)
                 ) {
                     window.shouldClose = true
                     GLFW.glfwSetWindowShouldClose(window.pointer, true)

@@ -1,6 +1,5 @@
 package me.anno.io.config
 
-import me.anno.Engine.projectName
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -8,7 +7,7 @@ import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.utils.StringMap
-import me.anno.utils.OS
+import me.anno.utils.OS.home
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
@@ -16,8 +15,8 @@ object ConfigBasics {
 
     private val LOGGER = LogManager.getLogger(ConfigBasics::class)
 
-    val configFolder get() = getReference(OS.home, ".config/$projectName")
-    val cacheFolder get() = getReference(OS.home, ".cache/$projectName")
+    var configFolder = getReference(home, ".config/RemsEngine")
+    var cacheFolder = configFolder
 
     fun getConfigFile(localFileName: String): FileReference {
         return configFolder.getChild(localFileName)

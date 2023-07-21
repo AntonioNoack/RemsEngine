@@ -175,9 +175,7 @@ open class StringMap(
         }
     }
 
-    open fun onSyncAccess() {
-
-    }
+    open fun onSyncAccess() {}
 
     private fun parseFile(str0: String): File {
         var str = str0
