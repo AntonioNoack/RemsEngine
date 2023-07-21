@@ -32,12 +32,12 @@ data class TextCacheKey(
     // fun isSize() = properties.and(1) != 0
     fun createFont() = Font(fontName, getAvgFontSize(fontSizeIndex()), isBold(), isItalic())
 
-    var hashCode = generateHashCode()
-    override fun hashCode() = hashCode
+    private var _hashCode = generateHashCode()
+    override fun hashCode() = _hashCode
 
     @Suppress("unused")
     fun updateHashCode() {
-        hashCode = generateHashCode()
+        _hashCode = generateHashCode()
     }
 
     fun generateHashCode(): Int {
@@ -58,7 +58,7 @@ data class TextCacheKey(
 
         other as TextCacheKey
 
-        if (hashCode != other.hashCode) return false
+        if (_hashCode != other._hashCode) return false
         if (text != other.text) return false
         if (fontName != other.fontName) return false
         if (properties != other.properties) return false

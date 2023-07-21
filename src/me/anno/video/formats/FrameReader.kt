@@ -43,10 +43,10 @@ abstract class FrameReader<FrameType>(
             waitForMetadata()
             if (codec.isNotEmpty() && codec != invalidCodec) {
                 val input = process.inputStream
-                input.use {
-                    readFrame(input)
+                input.use { input1: InputStream ->
+                    readFrame(input1)
                     if (!isFinished) for (i in 1 until frameCount) {
-                        readFrame(input)
+                        readFrame(input1)
                         if (isFinished) break
                     }
                 }

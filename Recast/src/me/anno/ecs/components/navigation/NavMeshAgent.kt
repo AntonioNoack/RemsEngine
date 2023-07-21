@@ -12,11 +12,6 @@ import org.recast4j.detour.crowd.CrowdAgent
 import org.recast4j.detour.crowd.CrowdAgentParams
 import java.util.*
 
-// todo if null, find first best nav mesh
-// todo given the mesh, find a good path
-// todo find path towards target
-// todo functions for jumps and links and such...
-
 open class NavMeshAgent(
     meshData: MeshData,
     navMesh: org.recast4j.detour.NavMesh,

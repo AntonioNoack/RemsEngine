@@ -27,5 +27,6 @@
     <orderEntry type="module" module-name="Lua" />
     <orderEntry type="library" name="webp-imageio-0.1.6" level="project" />
     <orderEntry type="library" name="OpenXR" level="project" />
+    <orderEntry type="module" module-name="Recast" />
   </component>
 </module>

@@ -115,33 +115,7 @@ class NavMesh : Component() {
         for (i in 0 until mesh.numPolygons) {
             mesh.flags[i] = 1
         }
-        // val i0 = IntArray(0)
-        // val f0 = FloatArray(0)
         val md = built.meshDetail
-        /*val p = NavMeshDataCreateParams(
-            mesh.vertices,
-            mesh.numVertices,
-            mesh.polygons,
-            mesh.flags,
-            mesh.areaIds,
-            mesh.numPolygons,
-            mesh.maxVerticesPerPolygon,
-            md?.subMeshes ?: i0,
-            md?.vertices ?: f0,
-            md?.numVertices ?: 0,
-            md?.triangles ?: i0,
-            md?.numTriangles ?: 0,
-            floatArrayOf(0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f),
-            floatArrayOf(0.1f),
-            intArrayOf(12),
-            intArrayOf(2),
-            intArrayOf(1),
-            intArrayOf(0x4567), 1,
-            0, 0, 0, 0,
-            mesh.bmin, mesh.bmax,
-            agentHeight, agentRadius, agentMaxClimb,
-            cellSize, cellHeight, true
-        ) // */
         val p = NavMeshDataCreateParams()
         p.vertices = mesh.vertices
         p.vertCount = mesh.numVertices
