@@ -207,6 +207,14 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
 
     companion object {
 
+        private val attrTypesOpenGL = intArrayOf(
+            GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE,
+            GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT,
+            GL_BYTE, GL_SHORT, GL_INT,
+            GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT,
+            GL_BYTE, GL_SHORT, GL_INT
+        )
+
         @JvmStatic
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
@@ -214,9 +222,9 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
             return if (index > -1) {
                 val t = attr.type
                 if (attr.isNativeInt) {
-                    glVertexAttribIPointer(index, attr.components, t.glType, attr.stride, attr.offset)
+                    glVertexAttribIPointer(index, attr.components, attrTypesOpenGL[t.ordinal], attr.stride, attr.offset)
                 } else {
-                    glVertexAttribPointer(index, attr.components, t.glType, t.normalized, attr.stride, attr.offset)
+                    glVertexAttribPointer(index, attr.components, attrTypesOpenGL[t.ordinal], t.normalized, attr.stride, attr.offset)
                 }
                 glVertexAttribDivisor(index, instanceDivisor)
                 glEnableVertexAttribArray(index)

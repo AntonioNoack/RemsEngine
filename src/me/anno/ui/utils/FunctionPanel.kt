@@ -18,13 +18,10 @@ import kotlin.math.*
 /**
  * Panel, which draws a numeric function as a graph, and lets the user navigate like on a map.
  * */
-open class FunctionPanel(val function: Function1d, style: Style) : MapPanel(style) {
+open class FunctionPanel(val functions: Array<Pair<Function1d, Int>>, style: Style) : MapPanel(style) {
 
-    fun interface Function1d {
-        fun calc(x: Double): Double
-    }
+    constructor(function: Function1d, style: Style): this(arrayOf(function to -1), style)
 
-    var lineColor = -1
     var lineThickness = 1f
     var functionName: String? = "f"
 
@@ -102,7 +99,9 @@ open class FunctionPanel(val function: Function1d, style: Style) : MapPanel(styl
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         drawNumbered2DLineGrid(x0, y0, x1, y1)
-        drawCurve(x0, y0, x1, y1, function, lineColor, lineThickness)
+        for ((function, lineColor) in functions) {
+            drawCurve(x0, y0, x1, y1, function, lineColor, lineThickness)
+        }
         showValueAtCursor()
     }
 
@@ -124,7 +123,7 @@ open class FunctionPanel(val function: Function1d, style: Style) : MapPanel(styl
         if (window != null && funcName != null) {
             val mx = window.mouseX.toDouble()
             val vx = windowToCoordsX(mx)
-            val vy = function.calc(vx)
+            val vy = functions.map { (func, _) -> func.calc(vx) }
             drawSimpleTextCharByChar(
                 x, y, 2,
                 "$funcName($vx): $vy"

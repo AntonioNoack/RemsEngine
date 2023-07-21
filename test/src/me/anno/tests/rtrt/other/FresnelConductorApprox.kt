@@ -1,8 +1,12 @@
 package me.anno.tests.rtrt.other
 
+import me.anno.config.DefaultConfig.style
+import me.anno.graph.ui.GraphPanel.Companion.greenish
 import me.anno.maths.Maths.pow
-import me.anno.utils.types.Floats.f3
-import me.anno.utils.types.Floats.step
+import me.anno.ui.debug.TestStudio.Companion.testUI3
+import me.anno.ui.utils.Function1d
+import me.anno.ui.utils.FunctionPanel
+import me.anno.utils.Color.black
 import kotlin.math.max
 import kotlin.math.sqrt
 
@@ -33,10 +37,17 @@ fun fresnelConductorExact(cosThetaI: Float, eta: Float, k: Float): Float {
     return 0.5f * (Rp2 + Rs2);
 }
 
+fun fresnelConductorApprox(w: Float): Float {
+    return 0.04f + 0.96f * pow(1f - w, 5f)
+}
+
 fun main() {
     // > the approximate behaviour is
     // mix((1-x)^5, 1, 0.96)
-    for (w in 0f..1f step 0.01f) {
-        println(fresnelConductorExact(w, 1.5f, 0f).f3() + " vs ${(0.04f + 0.96f * pow(1f - w, 5f)).f3()}")
+    testUI3("FresnelConductor") {
+        FunctionPanel(arrayOf(
+            Function1d { fresnelConductorApprox(it.toFloat()).toDouble() } to -1,
+            Function1d { fresnelConductorExact(it.toFloat(), 1.5f, 0f).toDouble() } to (greenish or black)
+        ), style)
     }
 }

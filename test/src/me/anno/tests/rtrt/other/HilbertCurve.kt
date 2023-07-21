@@ -12,12 +12,13 @@ import org.joml.Vector2f
 fun hilbert(f: Int, j: Int): Vector2f {
     val p = Vector2f(0.5f)
     for (i in 0 until j) {
-        val t: Int = f shr 2 * i and 3
         p.mul(0.5f)
-        if (t == 0) p.set(p.y, p.x)
-        else if (t == 1) p.y += 0.5f
-        else if (t == 2) p.add(0.5f, 0.5f)
-        else p.set(1f - p.y, 0.5f - p.x)
+        when (f shr 2 * i and 3) {
+            0 -> p.set(p.y, p.x)
+            1 -> p.y += 0.5f
+            2 -> p.add(0.5f, 0.5f)
+            3 -> p.set(1f - p.y, 0.5f - p.x)
+        }
     }
     return p
 }
@@ -53,6 +54,7 @@ fun main() {
                 t0.set(t1)
             }
         }
+        main.weight = 1f
         listOf(input, main)
     }
 }

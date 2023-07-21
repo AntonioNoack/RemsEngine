@@ -7,6 +7,4 @@ fun main(){
 
     // todo try to start as easily as possible...
 
-    
-
 }
