@@ -2,7 +2,6 @@ package me.anno.image.svg
 
 import me.anno.utils.structures.lists.Lists.indexOf2
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Matrices.skew
 import org.joml.Matrix3x2f
 import org.joml.Matrix4d
 import java.util.*

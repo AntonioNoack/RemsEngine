@@ -468,9 +468,9 @@ open class Matrix4x3f {
             dst.set(right)
         } else if (right.properties() and 4 != 0) {
             dst.set(this)
-        } else {
-            if (properties and 8 != 0) mulTranslation(right, dst) else mulGeneric(right, dst)
-        }
+        } else if (properties and 8 != 0) {
+            mulTranslation(right, dst)
+        } else mulGeneric(right, dst)
     }
 
     private fun mulGeneric(right: Matrix4x3f, dst: Matrix4x3f): Matrix4x3f {
@@ -511,6 +511,49 @@ open class Matrix4x3f {
             )
     }
 
+    private fun mulGeneric(
+        r00: Float, r01: Float, r02: Float,
+        r10: Float, r11: Float, r12: Float,
+        r20: Float, r21: Float, r22: Float,
+        r30: Float, r31: Float, r32: Float,
+        dst: Matrix4x3f
+    ): Matrix4x3f {
+        val m00 = m00
+        val m01 = m01
+        val m02 = m02
+        val m10 = m10
+        val m11 = m11
+        val m12 = m12
+        val m20 = m20
+        val m21 = m21
+        val m22 = m22
+        val rm00 = r00
+        val rm01 = r01
+        val rm02 = r02
+        val rm10 = r10
+        val rm11 = r11
+        val rm12 = r12
+        val rm20 = r20
+        val rm21 = r21
+        val rm22 = r22
+        val rm30 = r30
+        val rm31 = r31
+        val rm32 = r32
+        return dst._m00(JomlMath.fma(m00, rm00, JomlMath.fma(m10, rm01, m20 * rm02)))
+            ._m01(JomlMath.fma(m01, rm00, JomlMath.fma(m11, rm01, m21 * rm02)))._m02(
+                JomlMath.fma(m02, rm00, JomlMath.fma(m12, rm01, m22 * rm02))
+            )._m10(JomlMath.fma(m00, rm10, JomlMath.fma(m10, rm11, m20 * rm12)))._m11(
+                JomlMath.fma(m01, rm10, JomlMath.fma(m11, rm11, m21 * rm12))
+            )._m12(JomlMath.fma(m02, rm10, JomlMath.fma(m12, rm11, m22 * rm12)))._m20(
+                JomlMath.fma(m00, rm20, JomlMath.fma(m10, rm21, m20 * rm22))
+            )._m21(JomlMath.fma(m01, rm20, JomlMath.fma(m11, rm21, m21 * rm22)))._m22(
+                JomlMath.fma(m02, rm20, JomlMath.fma(m12, rm21, m22 * rm22))
+            )._m30(JomlMath.fma(m00, rm30, JomlMath.fma(m10, rm31, JomlMath.fma(m20, rm32, m30))))._m31(
+                JomlMath.fma(m01, rm30, JomlMath.fma(m11, rm31, JomlMath.fma(m21, rm32, m31)))
+            )._m32(JomlMath.fma(m02, rm30, JomlMath.fma(m12, rm31, JomlMath.fma(m22, rm32, m32))))
+            ._properties(0)
+    }
+
     fun mulTranslation(right: Matrix4x3f, dst: Matrix4x3f): Matrix4x3f {
         return dst._m00(right.m00)._m01(right.m01)._m02(right.m02)._m10(right.m10)._m11(right.m11)._m12(right.m12)
             ._m20(right.m20)._m21(right.m21)._m22(right.m22)._m30(right.m30 + m30)._m31(right.m31 + m31)
@@ -549,16 +592,8 @@ open class Matrix4x3f {
 
     @JvmOverloads
     fun mul3x3(
-        rm00: Float,
-        rm01: Float,
-        rm02: Float,
-        rm10: Float,
-        rm11: Float,
-        rm12: Float,
-        rm20: Float,
-        rm21: Float,
-        rm22: Float,
-        dst: Matrix4x3f = this
+        rm00: Float, rm01: Float, rm02: Float, rm10: Float, rm11: Float, rm12: Float,
+        rm20: Float, rm21: Float, rm22: Float, dst: Matrix4x3f = this
     ): Matrix4x3f {
         val m00 = m00
         val m01 = m01
@@ -581,6 +616,24 @@ open class Matrix4x3f {
             )._m30(
                 m30
             )._m31(m31)._m32(m32)._properties(0)
+    }
+
+    fun mul(src: Matrix4x3d, dst: Matrix4x3f = this): Matrix4x3f {
+        return mulGeneric(
+            src.m00.toFloat(),
+            src.m01.toFloat(),
+            src.m02.toFloat(),
+            src.m10.toFloat(),
+            src.m11.toFloat(),
+            src.m12.toFloat(),
+            src.m20.toFloat(),
+            src.m21.toFloat(),
+            src.m22.toFloat(),
+            src.m30.toFloat(),
+            src.m31.toFloat(),
+            src.m32.toFloat(),
+            dst
+        )
     }
 
     @JvmOverloads
@@ -652,18 +705,8 @@ open class Matrix4x3f {
     }
 
     fun set(
-        m00: Float,
-        m01: Float,
-        m02: Float,
-        m10: Float,
-        m11: Float,
-        m12: Float,
-        m20: Float,
-        m21: Float,
-        m22: Float,
-        m30: Float,
-        m31: Float,
-        m32: Float
+        m00: Float, m01: Float, m02: Float, m10: Float, m11: Float, m12: Float,
+        m20: Float, m21: Float, m22: Float, m30: Float, m31: Float, m32: Float
     ): Matrix4x3f {
         this.m00 = m00
         this.m01 = m01
@@ -678,6 +721,15 @@ open class Matrix4x3f {
         this.m31 = m31
         this.m32 = m32
         return determineProperties()
+    }
+
+    fun set(src: Matrix4x3d): Matrix4x3f {
+        return set(
+            src.m00.toFloat(), src.m01.toFloat(), src.m02.toFloat(),
+            src.m10.toFloat(), src.m11.toFloat(), src.m12.toFloat(),
+            src.m20.toFloat(), src.m21.toFloat(), src.m22.toFloat(),
+            src.m30.toFloat(), src.m31.toFloat(), src.m32.toFloat()
+        )
     }
 
     /*@JvmOverloads
@@ -896,6 +948,32 @@ open class Matrix4x3f {
         dst.y = sqrt(m10 * m10 + m11 * m11 + m12 * m12)
         dst.z = sqrt(m20 * m20 + m21 * m21 + m22 * m22)
         return dst
+    }
+
+    fun getScale(dst: Vector3d): Vector3d {
+        val m00 = m00.toDouble()
+        val m01 = m01.toDouble()
+        val m02 = m02.toDouble()
+        val m10 = m10.toDouble()
+        val m11 = m11.toDouble()
+        val m12 = m12.toDouble()
+        val m20 = m20.toDouble()
+        val m21 = m21.toDouble()
+        val m22 = m22.toDouble()
+        dst.x = sqrt(m00 * m00 + m01 * m01 + m02 * m02)
+        dst.y = sqrt(m10 * m10 + m11 * m11 + m12 * m12)
+        dst.z = sqrt(m20 * m20 + m21 * m21 + m22 * m22)
+        return dst
+    }
+
+    fun getScaleLength(): Float {
+        return sqrt(getScaleLengthSquared())
+    }
+
+    fun getScaleLengthSquared(): Float {
+        return m00 * m00 + m01 * m01 + m02 * m02 +
+                    m10 * m10 + m11 * m11 + m12 * m12 +
+                    m20 * m20 + m21 * m21 + m22 * m22
     }
 
     override fun toString() =
@@ -4897,6 +4975,10 @@ open class Matrix4x3f {
         get() = JomlMath.isFinite(m00) && JomlMath.isFinite(m01) && JomlMath.isFinite(m02) && JomlMath.isFinite(m10) &&
                 JomlMath.isFinite(m11) && JomlMath.isFinite(m12) && JomlMath.isFinite(m20) && JomlMath.isFinite(m21) &&
                 JomlMath.isFinite(m22) && JomlMath.isFinite(m30) && JomlMath.isFinite(m31) && JomlMath.isFinite(m32)
+
+    fun isIdentity(): Boolean {
+        return properties.and(PROPERTY_IDENTITY) != 0
+    }
 
     companion object {
         const val PROPERTY_IDENTITY = 4

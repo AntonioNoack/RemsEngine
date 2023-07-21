@@ -12,7 +12,6 @@ import me.anno.engine.ui.LineShapes
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
-import me.anno.utils.types.Matrices.getScaleLength
 import javax.vecmath.Vector3d
 import kotlin.math.abs
 

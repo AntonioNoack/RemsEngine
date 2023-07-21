@@ -8,7 +8,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.Stack
-import me.anno.utils.types.Matrices.getScaleLength
 import org.apache.logging.log4j.LogManager
 import org.jbox2d.collision.shapes.CircleShape
 import org.jbox2d.collision.shapes.MassData

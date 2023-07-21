@@ -2,7 +2,7 @@ package me.anno.gpu
 
 /**
  * todo abstract away all rendering into this interface
- *  - lots of work :/
+ *  - lots of work :/ -> maybe it's easier to implement our subset of used OpenGL in other APIs
  * */
 interface GraphicsAPI {
 

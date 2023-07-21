@@ -19,7 +19,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.mesh.Shapes
-import me.anno.utils.types.Matrices.mul2
 import org.joml.*
 import org.lwjgl.opengl.GL11C.glScissor
 import kotlin.math.abs
@@ -121,7 +120,7 @@ class PlanarReflection : LightComponentBase() {
         )
 
         mirrorMatrix.setTranslation(0.0, 0.0, 0.0)
-        val cameraMatrix1 = tmp0M.set(cameraMatrix0).mul2(mirrorMatrix)
+        val cameraMatrix1 = tmp0M.set(cameraMatrix0).mul(mirrorMatrix)
             .scaleLocal(1f, -1f, 1f) // flip y, so we don't need to turn around the cull-mode
 
         // set render state

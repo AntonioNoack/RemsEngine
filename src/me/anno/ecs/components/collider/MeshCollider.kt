@@ -15,7 +15,6 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Matrices.isIdentity
 import me.anno.utils.types.Triangles
 import me.anno.utils.types.Triangles.thirdF
 import org.joml.*

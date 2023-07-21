@@ -7,7 +7,6 @@ import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.mesh.Shapes
-import me.anno.utils.types.Matrices.set2
 import org.joml.*
 
 class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
@@ -44,7 +43,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         position: Vector3d,
         rotation: Quaterniond
     ) {
-        dstCameraMatrix.set2(drawTransform).invert()
+        dstCameraMatrix.set(drawTransform).invert()
         dstCameraMatrix.setTranslation(0f, 0f, 0f)
         val sx = (1.0 / (cascadeScale * worldScale)).toFloat()
         val sz = (1.0 / (worldScale))

@@ -12,8 +12,6 @@ import me.anno.mesh.blender.impl.*
 import me.anno.utils.Clock
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
-import me.anno.utils.types.Matrices.getScale2
-import me.anno.utils.types.Matrices.getTranslation2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.nio.ByteBuffer
@@ -543,7 +541,7 @@ object BlenderReader {
         val parentMatrix = obj.parent?.finalWSMatrix ?: Matrix4f()
         val localMatrix = Matrix4f(parentMatrix).invert().mul(obj.finalWSMatrix)
         // if(path == Path.ROOT_PATH) localMatrix.rotateX(-PI.toFloat() * 0.5f)
-        val translation = localMatrix.getTranslation2()
+        val translation = localMatrix.getTranslation(Vector3d())
         if (!postTransform) translation.set(translation.x, translation.z, -translation.y)
         if (translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0)
             prefab.setUnsafe(path, "position", translation)
@@ -552,7 +550,7 @@ object BlenderReader {
         if (isRoot && postTransform) rotation.rotateLocalX(-PI / 2) // todo correct?
         if (rotation.w != 1.0)
             prefab.setUnsafe(path, "rotation", rotation)
-        val scale = localMatrix.getScale2()
+        val scale = localMatrix.getScale(Vector3d())
         if (!postTransform) scale.set(scale.x, scale.z, -scale.y)
         if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0)
             prefab.setUnsafe(path, "scale", scale)

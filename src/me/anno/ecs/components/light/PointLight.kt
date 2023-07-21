@@ -19,8 +19,6 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Matrices.getScaleLength
-import me.anno.utils.types.Matrices.rotate2
 import org.joml.*
 import kotlin.math.PI
 
@@ -99,7 +97,7 @@ class PointLight : LightComponent(LightType.POINT) {
                 setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
                 rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rotInvert)
-                cameraMatrix.rotate2(rot3)
+                cameraMatrix.rotate(rot3)
 
                 // define camera position and rotation
                 val cameraRotation = rot3.invert(RenderState.cameraRotation)

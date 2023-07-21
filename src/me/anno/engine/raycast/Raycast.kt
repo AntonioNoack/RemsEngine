@@ -9,7 +9,6 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Matrices.getScaleLength
 import me.anno.utils.types.Triangles.computeConeInterpolation
 import me.anno.utils.types.Triangles.rayTriangleIntersection
 import org.joml.*

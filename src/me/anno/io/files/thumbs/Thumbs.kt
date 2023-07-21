@@ -111,7 +111,6 @@ import me.anno.utils.structures.Iterators.firstOrNull
 import me.anno.utils.structures.Iterators.subList
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.InputStreams.readNBytes2
-import me.anno.utils.types.Matrices.set2
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
@@ -562,7 +561,7 @@ object Thumbs {
                     // calculate transform
                     val pos = mesh.positions ?: return
                     val modelMatrix = transform.globalTransform
-                    totalMatrix.set2(cameraMatrix.mul(modelMatrix, tmp))
+                    totalMatrix.set(cameraMatrix.mul(modelMatrix, tmp))
                     // todo first check if bounds would be increasing the size
                     for (i in pos.indices step 3) {
                         totalMatrix.transformPosition(vec0.set(pos, i))

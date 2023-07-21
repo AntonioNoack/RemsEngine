@@ -18,7 +18,6 @@ import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Matrices.set2
 import org.joml.*
 import kotlin.math.PI
 
@@ -93,7 +92,7 @@ object Gizmos {
         if (shader["invLocalTransform"] >= 0) {
             val tmp = JomlPools.mat4x3d.borrow()
             tmp.set(localTransform).invert()
-            val tmp2 = JomlPools.mat4x3f.borrow().set2(tmp)
+            val tmp2 = JomlPools.mat4x3f.borrow().set(tmp)
             shader.m4x3("invLocalTransform", tmp2)
         }
         shader.v1f("worldScale", worldScale)

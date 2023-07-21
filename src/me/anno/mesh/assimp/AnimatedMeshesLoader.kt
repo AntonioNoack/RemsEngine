@@ -35,7 +35,6 @@ import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
-import me.anno.utils.types.Matrices.isIdentity
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.assimp.*

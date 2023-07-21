@@ -50,18 +50,10 @@ open class Matrix4x3d {
     }
 
     constructor(
-        m00: Double,
-        m01: Double,
-        m02: Double,
-        m10: Double,
-        m11: Double,
-        m12: Double,
-        m20: Double,
-        m21: Double,
-        m22: Double,
-        m30: Double,
-        m31: Double,
-        m32: Double
+        m00: Double, m01: Double, m02: Double,
+        m10: Double, m11: Double, m12: Double,
+        m20: Double, m21: Double, m22: Double,
+        m30: Double, m31: Double, m32: Double
     ) {
         this.m00 = m00
         this.m01 = m01
@@ -1021,6 +1013,23 @@ open class Matrix4x3d {
         dst.y = sqrt(m10 * m10 + m11 * m11 + m12 * m12)
         dst.z = sqrt(m20 * m20 + m21 * m21 + m22 * m22)
         return dst
+    }
+
+    fun getScaleLengthSquared(): Double {
+        return m00 * m00 + m01 * m01 + m02 * m02 +
+                m10 * m10 + m11 * m11 + m12 * m12 +
+                m20 * m20 + m21 * m21 + m22 * m22
+    }
+
+    fun getScaleLength(): Double {
+        return sqrt(getScaleLengthSquared())
+    }
+
+    fun distanceSquared(center: Vector3d): Double {
+        val dx = center.x - m30
+        val dy = center.y - m31
+        val dz = center.z - m32
+        return dx * dx + dy * dy + dz * dz
     }
 
     override fun toString() =
@@ -5461,6 +5470,10 @@ open class Matrix4x3d {
 
     fun distance(other: Matrix4x3f): Double {
         return sqrt(distanceSquared(other))
+    }
+
+    fun isIdentity(): Boolean {
+        return (properties and 4) != 0
     }
 
 }

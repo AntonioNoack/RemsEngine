@@ -345,6 +345,15 @@ open class Matrix4f {
             ._properties(m.properties())
     }
 
+    fun set(other: Matrix4x3d): Matrix4f {
+        return set(
+            other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), 0f,
+            other.m10.toFloat(), other.m11.toFloat(), other.m12.toFloat(), 0f,
+            other.m20.toFloat(), other.m21.toFloat(), other.m22.toFloat(), 0f,
+            other.m30.toFloat(), other.m31.toFloat(), other.m32.toFloat(), 1f
+        )
+    }
+
     fun setTransposed(m: Matrix4f): Matrix4f {
         return if (m.properties() and 4 != 0) identity() else setTransposedInternal(m)
     }
@@ -530,67 +539,41 @@ open class Matrix4f {
 
     @JvmOverloads
     fun mul(
-        r00: Float,
-        r01: Float,
-        r02: Float,
-        r03: Float,
-        r10: Float,
-        r11: Float,
-        r12: Float,
-        r13: Float,
-        r20: Float,
-        r21: Float,
-        r22: Float,
-        r23: Float,
-        r30: Float,
-        r31: Float,
-        r32: Float,
-        r33: Float,
+        r00: Float, r01: Float, r02: Float, r03: Float, r10: Float, r11: Float, r12: Float, r13: Float,
+        r20: Float, r21: Float, r22: Float, r23: Float, r30: Float, r31: Float, r32: Float, r33: Float,
         dst: Matrix4f = this
     ): Matrix4f {
         return if (properties and 4 != 0) {
             dst.set(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33)
         } else {
             if (properties and 2 != 0) mulAffineL(
-                r00,
-                r01,
-                r02,
-                r03,
-                r10,
-                r11,
-                r12,
-                r13,
-                r20,
-                r21,
-                r22,
-                r23,
-                r30,
-                r31,
-                r32,
-                r33,
-                dst
+                r00, r01, r02, r03, r10, r11, r12, r13,
+                r20, r21, r22, r23, r30, r31, r32, r33, dst
             ) else this.mulGeneric(r00, r01, r02, r03, r10, r11, r12, r13, r20, r21, r22, r23, r30, r31, r32, r33, dst)
         }
     }
 
+    fun mul(other: Matrix4d): Matrix4f {
+        return mul(
+            other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), other.m03.toFloat(),
+            other.m10.toFloat(), other.m11.toFloat(), other.m12.toFloat(), other.m13.toFloat(),
+            other.m20.toFloat(), other.m21.toFloat(), other.m22.toFloat(), other.m23.toFloat(),
+            other.m30.toFloat(), other.m31.toFloat(), other.m32.toFloat(), other.m33.toFloat()
+        )
+    }
+
+    fun mul(other: Matrix4x3d): Matrix4f {
+        return mul(
+            other.m00.toFloat(), other.m01.toFloat(), other.m02.toFloat(), 0f,
+            other.m10.toFloat(), other.m11.toFloat(), other.m12.toFloat(), 0f,
+            other.m20.toFloat(), other.m21.toFloat(), other.m22.toFloat(), 0f,
+            other.m30.toFloat(), other.m31.toFloat(), other.m32.toFloat(), 1f
+        )
+    }
+
     private fun mulAffineL(
-        r00: Float,
-        r01: Float,
-        r02: Float,
-        r03: Float,
-        r10: Float,
-        r11: Float,
-        r12: Float,
-        r13: Float,
-        r20: Float,
-        r21: Float,
-        r22: Float,
-        r23: Float,
-        r30: Float,
-        r31: Float,
-        r32: Float,
-        r33: Float,
-        dst: Matrix4f
+        r00: Float, r01: Float, r02: Float, r03: Float, r10: Float, r11: Float, r12: Float, r13: Float,
+        r20: Float, r21: Float, r22: Float, r23: Float, r30: Float, r31: Float, r32: Float, r33: Float, dst: Matrix4f
     ): Matrix4f {
         val nm00 = JomlMath.fma(m00, r00, JomlMath.fma(m10, r01, JomlMath.fma(m20, r02, m30 * r03)))
         val nm01 = JomlMath.fma(m01, r00, JomlMath.fma(m11, r01, JomlMath.fma(m21, r02, m31 * r03)))
@@ -609,23 +592,8 @@ open class Matrix4f {
     }
 
     private fun mulGeneric(
-        r00: Float,
-        r01: Float,
-        r02: Float,
-        r03: Float,
-        r10: Float,
-        r11: Float,
-        r12: Float,
-        r13: Float,
-        r20: Float,
-        r21: Float,
-        r22: Float,
-        r23: Float,
-        r30: Float,
-        r31: Float,
-        r32: Float,
-        r33: Float,
-        dst: Matrix4f
+        r00: Float, r01: Float, r02: Float, r03: Float, r10: Float, r11: Float, r12: Float, r13: Float,
+        r20: Float, r21: Float, r22: Float, r23: Float, r30: Float, r31: Float, r32: Float, r33: Float, dst: Matrix4f
     ): Matrix4f {
         val nm00 = JomlMath.fma(m00, r00, JomlMath.fma(m10, r01, JomlMath.fma(m20, r02, m30 * r03)))
         val nm01 = JomlMath.fma(m01, r00, JomlMath.fma(m11, r01, JomlMath.fma(m21, r02, m31 * r03)))
@@ -649,48 +617,18 @@ open class Matrix4f {
 
     @JvmOverloads
     fun mul3x3(
-        r00: Float,
-        r01: Float,
-        r02: Float,
-        r10: Float,
-        r11: Float,
-        r12: Float,
-        r20: Float,
-        r21: Float,
-        r22: Float,
-        dst: Matrix4f = this
+        r00: Float, r01: Float, r02: Float, r10: Float, r11: Float, r12: Float,
+        r20: Float, r21: Float, r22: Float, dst: Matrix4f = this
     ): Matrix4f {
         return if (properties and 4 != 0) dst.set(
-            r00,
-            r01,
-            r02,
-            0f,
-            r10,
-            r11,
-            r12,
-            0f,
-            r20,
-            r21,
-            r22,
-            0f,
-            0f,
-            0f,
-            0f,
-            1f
+            r00, r01, r02, 0f, r10, r11, r12, 0f,
+            r20, r21, r22, 0f, 0f, 0f, 0f, 1f
         ) else mulGeneric3x3(r00, r01, r02, r10, r11, r12, r20, r21, r22, dst)
     }
 
     private fun mulGeneric3x3(
-        r00: Float,
-        r01: Float,
-        r02: Float,
-        r10: Float,
-        r11: Float,
-        r12: Float,
-        r20: Float,
-        r21: Float,
-        r22: Float,
-        dst: Matrix4f
+        r00: Float, r01: Float, r02: Float, r10: Float, r11: Float, r12: Float,
+        r20: Float, r21: Float, r22: Float, dst: Matrix4f
     ): Matrix4f {
         val nm00 = JomlMath.fma(m00, r00, JomlMath.fma(m10, r01, m20 * r02))
         val nm01 = JomlMath.fma(m01, r00, JomlMath.fma(m11, r01, m21 * r02))
@@ -1474,7 +1412,30 @@ open class Matrix4f {
         return dst
     }
 
+    fun getTranslation(dst: Vector3d): Vector3d {
+        dst.x = m30.toDouble()
+        dst.y = m31.toDouble()
+        dst.z = m32.toDouble()
+        return dst
+    }
+
     fun getScale(dst: Vector3f): Vector3f {
+        dst.x = sqrt(m00 * m00 + m01 * m01 + m02 * m02)
+        dst.y = sqrt(m10 * m10 + m11 * m11 + m12 * m12)
+        dst.z = sqrt(m20 * m20 + m21 * m21 + m22 * m22)
+        return dst
+    }
+
+    fun getScale(dst: Vector3d): Vector3d {
+        val m00 = m00.toDouble()
+        val m01 = m01.toDouble()
+        val m02 = m02.toDouble()
+        val m10 = m10.toDouble()
+        val m11 = m11.toDouble()
+        val m12 = m12.toDouble()
+        val m20 = m20.toDouble()
+        val m21 = m21.toDouble()
+        val m22 = m22.toDouble()
         dst.x = sqrt(m00 * m00 + m01 * m01 + m02 * m02)
         dst.y = sqrt(m10 * m10 + m11 * m11 + m12 * m12)
         dst.z = sqrt(m20 * m20 + m21 * m21 + m22 * m22)
@@ -1740,21 +1701,25 @@ open class Matrix4f {
     }
 
     fun rotation(quat: Quaternionf): Matrix4f {
-        val w2 = quat.w * quat.w
-        val x2 = quat.x * quat.x
-        val y2 = quat.y * quat.y
-        val z2 = quat.z * quat.z
-        val zw = quat.z * quat.w
+        return rotationQ(quat.x, quat.y, quat.z, quat.w)
+    }
+
+    fun rotationQ(qx: Float, qy: Float, qz: Float, qw: Float): Matrix4f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
         val dzw = zw + zw
-        val xy = quat.x * quat.y
+        val xy = qx * qy
         val dxy = xy + xy
-        val xz = quat.x * quat.z
+        val xz = qx * qz
         val dxz = xz + xz
-        val yw = quat.y * quat.w
+        val yw = qy * qw
         val dyw = yw + yw
-        val yz = quat.y * quat.z
+        val yz = qy * qz
         val dyz = yz + yz
-        val xw = quat.x * quat.w
+        val xw = qx * qw
         val dxw = xw + xw
         identity()
         return _m00(w2 + x2 - z2 - y2)._m01(dxy + dzw)._m02(dxz - dyw)._m10(-dzw + dxy)._m11(y2 - z2 + w2 - x2)
@@ -2040,8 +2005,8 @@ open class Matrix4f {
         return v.mul(this)
     }
 
-    fun transform(v: Vector4f, dst: Vector4f?): Vector4f {
-        return v.mul(this, dst!!)
+    fun transform(v: Vector4f, dst: Vector4f): Vector4f {
+        return v.mul(this, dst)
     }
 
     fun transform(x: Float, y: Float, z: Float, w: Float, dst: Vector4f): Vector4f {
@@ -2052,8 +2017,8 @@ open class Matrix4f {
         return v.mulTranspose(this)
     }
 
-    fun transformTranspose(v: Vector4f, dst: Vector4f?): Vector4f {
-        return v.mulTranspose(this, dst!!)
+    fun transformTranspose(v: Vector4f, dst: Vector4f): Vector4f {
+        return v.mulTranspose(this, dst)
     }
 
     fun transformTranspose(x: Float, y: Float, z: Float, w: Float, dst: Vector4f): Vector4f {
@@ -2064,16 +2029,16 @@ open class Matrix4f {
         return v.mulProject(this)
     }
 
-    fun transformProject(v: Vector4f, dst: Vector4f?): Vector4f {
-        return v.mulProject(this, dst!!)
+    fun transformProject(v: Vector4f, dst: Vector4f): Vector4f {
+        return v.mulProject(this, dst)
     }
 
     fun transformProject(x: Float, y: Float, z: Float, w: Float, dst: Vector4f): Vector4f {
         return dst.set(x, y, z, w).mulProject(this)
     }
 
-    fun transformProject(v: Vector4f, dst: Vector3f?): Vector3f {
-        return v.mulProject(this, dst!!)
+    fun transformProject(v: Vector4f, dst: Vector3f): Vector3f {
+        return v.mulProject(this, dst)
     }
 
     fun transformProject(x: Float, y: Float, z: Float, w: Float, dst: Vector3f): Vector3f {
@@ -2084,8 +2049,8 @@ open class Matrix4f {
         return v.mulProject(this)
     }
 
-    fun transformProject(v: Vector3f, dst: Vector3f?): Vector3f {
-        return v.mulProject(this, dst!!)
+    fun transformProject(v: Vector3f, dst: Vector3f): Vector3f {
+        return v.mulProject(this, dst)
     }
 
     fun transformProject(x: Float, y: Float, z: Float, dst: Vector3f): Vector3f {
@@ -4540,31 +4505,39 @@ open class Matrix4f {
 
     @JvmOverloads
     fun rotate(quat: Quaternionf, dst: Matrix4f = this): Matrix4f {
+        return rotateQ(quat.x, quat.y, quat.z, quat.w, dst)
+    }
+
+    fun rotateQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix4f = this): Matrix4f {
         return if (properties and 4 != 0) {
-            dst.rotation(quat)
+            dst.rotationQ(qx, qy, qz, qw)
         } else if (properties and 8 != 0) {
-            this.rotateTranslation(quat, dst)
-        } else {
-            if (properties and 2 != 0) this.rotateAffine(quat, dst) else this.rotateGeneric(quat, dst)
-        }
+            this.rotateTranslationQ(qx, qy, qz, qw, dst)
+        } else if (properties and 2 != 0) {
+            this.rotateAffineQ(qx, qy, qz, qw, dst)
+        } else this.rotateGenericQ(qx, qy, qz, qw, dst)
     }
 
     private fun rotateGeneric(quat: Quaternionf, dst: Matrix4f): Matrix4f {
-        val w2 = quat.w * quat.w
-        val x2 = quat.x * quat.x
-        val y2 = quat.y * quat.y
-        val z2 = quat.z * quat.z
-        val zw = quat.z * quat.w
+        return rotateGenericQ(quat.x, quat.y, quat.z, quat.w, dst)
+    }
+
+    private fun rotateGenericQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix4f): Matrix4f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
         val dzw = zw + zw
-        val xy = quat.x * quat.y
+        val xy = qx * qy
         val dxy = xy + xy
-        val xz = quat.x * quat.z
+        val xz = qx * qz
         val dxz = xz + xz
-        val yw = quat.y * quat.w
+        val yw = qy * qw
         val dyw = yw + yw
-        val yz = quat.y * quat.z
+        val yz = qy * qz
         val dyz = yz + yz
-        val xw = quat.x * quat.w
+        val xw = qx * qw
         val dxw = xw + xw
         val rm00 = w2 + x2 - z2 - y2
         val rm01 = dxy + dzw
@@ -4593,21 +4566,25 @@ open class Matrix4f {
 
     @JvmOverloads
     fun rotateAffine(quat: Quaternionf, dst: Matrix4f = this): Matrix4f {
-        val w2 = quat.w * quat.w
-        val x2 = quat.x * quat.x
-        val y2 = quat.y * quat.y
-        val z2 = quat.z * quat.z
-        val zw = quat.z * quat.w
+        return rotateAffineQ(quat.x, quat.y, quat.z, quat.w, dst)
+    }
+
+    fun rotateAffineQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix4f = this): Matrix4f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
         val dzw = zw + zw
-        val xy = quat.x * quat.y
+        val xy = qx * qy
         val dxy = xy + xy
-        val xz = quat.x * quat.z
+        val xz = qx * qz
         val dxz = xz + xz
-        val yw = quat.y * quat.w
+        val yw = qy * qw
         val dyw = yw + yw
-        val yz = quat.y * quat.z
+        val yz = qy * qz
         val dyz = yz + yz
-        val xw = quat.x * quat.w
+        val xw = qx * qw
         val dxw = xw + xw
         val rm00 = w2 + x2 - z2 - y2
         val rm01 = dxy + dzw
@@ -4632,21 +4609,25 @@ open class Matrix4f {
     }
 
     fun rotateTranslation(quat: Quaternionf, dst: Matrix4f): Matrix4f {
-        val w2 = quat.w * quat.w
-        val x2 = quat.x * quat.x
-        val y2 = quat.y * quat.y
-        val z2 = quat.z * quat.z
-        val zw = quat.z * quat.w
+        return rotateTranslation(quat.x, quat.y, quat.z, quat.w, dst)
+    }
+
+    fun rotateTranslationQ(qx: Float, qy: Float, qz: Float, qw: Float, dst: Matrix4f): Matrix4f {
+        val w2 = qw * qw
+        val x2 = qx * qx
+        val y2 = qy * qy
+        val z2 = qz * qz
+        val zw = qz * qw
         val dzw = zw + zw
-        val xy = quat.x * quat.y
+        val xy = qx * qy
         val dxy = xy + xy
-        val xz = quat.x * quat.z
+        val xz = qx * qz
         val dxz = xz + xz
-        val yw = quat.y * quat.w
+        val yw = qy * qw
         val dyw = yw + yw
-        val yz = quat.y * quat.z
+        val yz = qy * qz
         val dyz = yz + yz
-        val xw = quat.x * quat.w
+        val xw = qx * qw
         val dxw = xw + xw
         val rm00 = w2 + x2 - z2 - y2
         val rm01 = dxy + dzw
@@ -5083,11 +5064,26 @@ open class Matrix4f {
         winX: Float,
         winY: Float,
         viewport: IntArray,
-        origindst: Vector3f,
-        dirdst: Vector3f
+        origindst: Vector3f?,
+        dirdst: Vector3f?
     ): Matrix4f {
-        val ndcX = (winX - viewport[0].toFloat()) / viewport[2].toFloat() * 2f - 1f
-        val ndcY = (winY - viewport[1].toFloat()) / viewport[3].toFloat() * 2f - 1f
+        return unprojectInvRay(
+            winX, winY,
+            viewport[0].toFloat(), viewport[1].toFloat(),
+            viewport[2].toFloat(), viewport[3].toFloat(),
+            origindst, dirdst
+        )
+    }
+
+    fun unprojectInvRay(
+        winX: Float, winY: Float,
+        windowX: Float, windowY: Float,
+        windowW: Float, windowH: Float,
+        origindst: Vector3f?,
+        dirdst: Vector3f?
+    ): Matrix4f {
+        val ndcX = (winX - windowX) / windowW * 2f - 1f
+        val ndcY = (winY - windowY) / windowH * 2f - 1f
         val px = m00 * ndcX + m10 * ndcY + m30
         val py = m01 * ndcX + m11 * ndcY + m31
         val pz = m02 * ndcX + m12 * ndcY + m32
@@ -5099,12 +5095,16 @@ open class Matrix4f {
         val x0 = px * invW0
         val y0 = py * invW0
         val z0 = pz * invW0
-        origindst.x = nearX
-        origindst.y = nearY
-        origindst.z = nearZ
-        dirdst.x = x0 - nearX
-        dirdst.y = y0 - nearY
-        dirdst.z = z0 - nearZ
+        if (origindst != null) {
+            origindst.x = nearX
+            origindst.y = nearY
+            origindst.z = nearZ
+        }
+        if (dirdst != null) {
+            dirdst.x = x0 - nearX
+            dirdst.y = y0 - nearY
+            dirdst.z = z0 - nearZ
+        }
         return this
     }
 
@@ -5965,86 +5965,27 @@ open class Matrix4f {
         return result
     }
 
-    override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other !is Matrix4f) {
-            false
-        } else {
-            if ((m00) != (other.m00)) {
-                false
-            } else if ((m01) != (other.m01)) {
-                false
-            } else if ((m02) != (other.m02)) {
-                false
-            } else if ((m03) != (other.m03)) {
-                false
-            } else if ((m10) != (other.m10)) {
-                false
-            } else if ((m11) != (other.m11)) {
-                false
-            } else if ((m12) != (other.m12)) {
-                false
-            } else if ((m13) != (other.m13)) {
-                false
-            } else if ((m20) != (other.m20)) {
-                false
-            } else if ((m21) != (other.m21)) {
-                false
-            } else if ((m22) != (other.m22)) {
-                false
-            } else if ((m23) != (other.m23)) {
-                false
-            } else if ((m30) != (other.m30)) {
-                false
-            } else if ((m31) != (other.m31)) {
-                false
-            } else if ((m32) != (other.m32)) {
-                false
-            } else {
-                (m33) == (other.m33)
-            }
-        }
+    override fun equals(m: Any?): Boolean {
+        if (this === m) return true
+        return (m is Matrix4f &&
+                m00 == m.m00 && m01 == m.m01 && m02 == m.m02 && m03 == m.m03 &&
+                m10 == m.m10 && m11 == m.m11 && m12 == m.m12 && m13 == m.m13 &&
+                m20 == m.m20 && m21 == m.m21 && m22 == m.m22 && m23 == m.m23 &&
+                m30 == m.m30 && m31 == m.m31 && m32 == m.m32 && m33 == m.m33
+                )
     }
 
     fun equals(m: Matrix4f?, delta: Float): Boolean {
-        return if (this === m) {
-            true
-        } else if (m == null) {
-            false
-        } else if (!Runtime.equals(m00, m.m00, delta)) {
-            false
-        } else if (!Runtime.equals(m01, m.m01, delta)) {
-            false
-        } else if (!Runtime.equals(m02, m.m02, delta)) {
-            false
-        } else if (!Runtime.equals(m03, m.m03, delta)) {
-            false
-        } else if (!Runtime.equals(m10, m.m10, delta)) {
-            false
-        } else if (!Runtime.equals(m11, m.m11, delta)) {
-            false
-        } else if (!Runtime.equals(m12, m.m12, delta)) {
-            false
-        } else if (!Runtime.equals(m13, m.m13, delta)) {
-            false
-        } else if (!Runtime.equals(m20, m.m20, delta)) {
-            false
-        } else if (!Runtime.equals(m21, m.m21, delta)) {
-            false
-        } else if (!Runtime.equals(m22, m.m22, delta)) {
-            false
-        } else if (!Runtime.equals(m23, m.m23, delta)) {
-            false
-        } else if (!Runtime.equals(m30, m.m30, delta)) {
-            false
-        } else if (!Runtime.equals(m31, m.m31, delta)) {
-            false
-        } else if (!Runtime.equals(m32, m.m32, delta)) {
-            false
-        } else {
-            Runtime.equals(m33, m.m33, delta)
-        }
+        if (this === m) return true
+        return m != null &&
+                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
+                Runtime.equals(m02, m.m02, delta) && Runtime.equals(m03, m.m03, delta) &&
+                Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta) &&
+                Runtime.equals(m12, m.m12, delta) && Runtime.equals(m13, m.m13, delta) &&
+                Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta) &&
+                Runtime.equals(m22, m.m22, delta) && Runtime.equals(m23, m.m23, delta) &&
+                Runtime.equals(m30, m.m30, delta) && Runtime.equals(m31, m.m31, delta) &&
+                Runtime.equals(m32, m.m32, delta) && Runtime.equals(m33, m.m33, delta)
     }
 
     @JvmOverloads
@@ -6757,8 +6698,8 @@ open class Matrix4f {
         return this.withLookAtUp(up.x, up.y, up.z, this)
     }
 
-    fun withLookAtUp(up: Vector3f, dst: Matrix4f?): Matrix4f {
-        return this.withLookAtUp(up.x, up.y, up.z)
+    fun withLookAtUp(up: Vector3f, dst: Matrix4f = this): Matrix4f {
+        return this.withLookAtUp(up.x, up.y, up.z, dst)
     }
 
     @JvmOverloads
@@ -7322,6 +7263,30 @@ open class Matrix4f {
         ) && JomlMath.isFinite(m30) && JomlMath.isFinite(m31) && JomlMath.isFinite(m32) && JomlMath.isFinite(
             m33
         )
+
+    fun skew(v: Vector2f) {
+        mul3x3(// works
+            1f, v.y, 0f,
+            v.x, 1f, 0f,
+            0f, 0f, 1f
+        )
+    }
+
+    fun skew(x: Float, y: Float) {
+        mul3x3(// works
+            1f, y, 0f,
+            x, 1f, 0f,
+            0f, 0f, 1f
+        )
+    }
+
+    fun isIdentity(): Boolean {
+        return properties.and(PROPERTY_IDENTITY) != 0
+    }
+
+    fun rotate(q: Quaterniond): Matrix4f {
+        return rotateQ(q.x.toFloat(), q.y.toFloat(), q.z.toFloat(), q.w.toFloat())
+    }
 
     companion object {
         const val PROPERTY_IDENTITY = 4

@@ -21,7 +21,6 @@ import me.anno.maths.Maths
 import me.anno.mesh.MeshData
 import me.anno.mesh.MeshUtils
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Matrices.mul2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.system.MemoryUtil
@@ -65,7 +64,7 @@ class AnimGameItem(
                     mesh.getBounds()
 
                     // join the matrices for 2x better performance than without
-                    jointMatrix.set(transform).mul2(global)
+                    jointMatrix.set(transform).mul(global)
 
                     // if aabb u transform(mesh.aabb) == aabb, then skip this sub-mesh
                     mesh.aabb.transformProjectUnion(jointMatrix, testAABB.set(aabb))
@@ -273,7 +272,7 @@ class AnimGameItem(
                             transform.validate()
                             localTransform
                                 .set(localTransform0)
-                                .mul2(transform.getDrawMatrix())
+                                .mul(transform.getDrawMatrix())
                             shader.m4x3("localTransform", localTransform)
                             if (shader["invLocalTransform"] >= 0) {
                                 val tmp = JomlPools.mat4x3f.borrow()
@@ -304,7 +303,7 @@ class AnimGameItem(
                             transform.validate()
                             localTransform
                                 .set(localTransform0)
-                                .mul2(transform.getDrawMatrix())
+                                .mul(transform.getDrawMatrix())
                             shader.m4x3("localTransform", localTransform)
                             if (shader["invLocalTransform"] >= 0) {
                                 val tmp = JomlPools.mat4x3f.borrow()

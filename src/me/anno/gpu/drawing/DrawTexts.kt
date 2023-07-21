@@ -26,7 +26,6 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
-import me.anno.utils.types.Matrices.isIdentity
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL45C

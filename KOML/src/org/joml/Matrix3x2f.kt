@@ -26,11 +26,11 @@ open class Matrix3x2f {
     }
 
     constructor(mat: Matrix3x2f) {
-        setMatrix3x2fc(mat)
+        set(mat)
     }
 
     constructor(mat: Matrix2f) {
-        setMatrix2fc(mat)
+        set(mat)
     }
 
     constructor(m00: Float, m01: Float, m10: Float, m11: Float, m20: Float, m21: Float) {
@@ -73,29 +73,21 @@ open class Matrix3x2f {
     }
 
     fun set(m: Matrix3x2f): Matrix3x2f {
-        setMatrix3x2fc(m)
+        m00 = m.m00
+        m01 = m.m01
+        m10 = m.m10
+        m11 = m.m11
+        m20 = m.m20
+        m21 = m.m21
         return this
-    }
-
-    private fun setMatrix3x2fc(mat: Matrix3x2f) {
-        m00 = mat.m00
-        m01 = mat.m01
-        m10 = mat.m10
-        m11 = mat.m11
-        m20 = mat.m20
-        m21 = mat.m21
     }
 
     fun set(m: Matrix2f): Matrix3x2f {
-        setMatrix2fc(m)
+        m00 = m.m00
+        m01 = m.m01
+        m10 = m.m10
+        m11 = m.m11
         return this
-    }
-
-    private fun setMatrix2fc(mat: Matrix2f) {
-        m00 = mat.m00
-        m01 = mat.m01
-        m10 = mat.m10
-        m11 = mat.m11
     }
 
     fun putInto(arr: FloatBuffer): FloatBuffer {
@@ -106,13 +98,22 @@ open class Matrix3x2f {
     }
 
     @JvmOverloads
-    fun mul(right: Matrix3x2f, dest: Matrix3x2f = this): Matrix3x2f {
-        val nm00 = m00 * right.m00 + m10 * right.m01
-        val nm01 = m01 * right.m00 + m11 * right.m01
-        val nm10 = m00 * right.m10 + m10 * right.m11
-        val nm11 = m01 * right.m10 + m11 * right.m11
-        val nm20 = m00 * right.m20 + m10 * right.m21 + m20
-        val nm21 = m01 * right.m20 + m11 * right.m21 + m21
+    fun mul(right: Matrix3x2f, dst: Matrix3x2f = this): Matrix3x2f {
+        return mul(right.m00, right.m01, right.m10, right.m11, right.m20, right.m21, dst)
+    }
+
+    fun mul(
+        r00: Float, r01: Float,
+        r10: Float, r11: Float,
+        r20: Float, r21: Float,
+        dest: Matrix3x2f = this
+    ): Matrix3x2f {
+        val nm00 = m00 * r00 + m10 * r01
+        val nm01 = m01 * r00 + m11 * r01
+        val nm10 = m00 * r10 + m10 * r11
+        val nm11 = m01 * r10 + m11 * r11
+        val nm20 = m00 * r20 + m10 * r21 + m20
+        val nm21 = m01 * r20 + m11 * r21 + m21
         dest.m00 = nm00
         dest.m01 = nm01
         dest.m10 = nm10
@@ -794,4 +795,8 @@ open class Matrix3x2f {
 
     val isFinite: Boolean
         get() = isFinite(m00) && isFinite(m01) && isFinite(m10) && isFinite(m11) && isFinite(m20) && isFinite(m21)
+
+    fun skew(x: Float, y: Float): Matrix3x2f {
+        return mul(1f, y, 0f, x, 1f, 0f)
+    }
 }

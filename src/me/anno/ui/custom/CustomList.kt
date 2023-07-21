@@ -9,7 +9,6 @@ import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
 import me.anno.ui.style.Style
-import me.anno.utils.bugs.SumOf
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max
@@ -110,7 +109,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         } else {
             val minWeight = 0.0001f
             val available = (if (isY) h else w) - (children.size - 1) * spacing
-            val sumWeight = SumOf.sumOf(children) { max(minWeight, it.weight) }
+            val sumWeight = children.sumOf { max(minWeight, it.weight).toDouble() }.toFloat()
             val weightScale = 1f / sumWeight
             var childPos = if (isY) y else x
             val children = children

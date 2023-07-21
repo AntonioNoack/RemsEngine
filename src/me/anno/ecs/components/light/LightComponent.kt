@@ -24,7 +24,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.max
-import me.anno.utils.types.Matrices.getScaleLength
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.pow

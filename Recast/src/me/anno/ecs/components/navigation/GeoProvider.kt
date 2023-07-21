@@ -5,7 +5,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Matrices.set2
 import org.joml.AABBf
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
@@ -37,10 +36,10 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
         val faces = mesh.indices ?: IntArray(src.size / 3) { it }
         // apply transform onto mesh
         val gt = it.transform?.globalTransform
-        if (gt != null && gt.properties().and(Matrix4x3f.PROPERTY_IDENTITY) == 0) {
+        if (gt != null && !gt.isIdentity()) {
             val dst = FloatArray(src.size)
             val vec = JomlPools.vec3f.borrow()
-            val mat = JomlPools.mat4x3f.borrow().set2(gt)
+            val mat = JomlPools.mat4x3f.borrow().set(gt)
             for (i in dst.indices step 3) {
                 vec.set(src[i], src[i + 1], src[i + 2])
                 mat.transformPosition(vec)

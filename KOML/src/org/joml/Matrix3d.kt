@@ -344,16 +344,26 @@ open class Matrix3d {
     }
 
     @JvmOverloads
-    fun mul(right: Matrix3d, dest: Matrix3d = this): Matrix3d {
-        val nm00 = JomlMath.fma(m00 * right.m00, JomlMath.fma(m10 * right.m01, m20 * right.m02))
-        val nm01 = JomlMath.fma(m01 * right.m00, JomlMath.fma(m11 * right.m01, m21 * right.m02))
-        val nm02 = JomlMath.fma(m02 * right.m00, JomlMath.fma(m12 * right.m01, m22 * right.m02))
-        val nm10 = JomlMath.fma(m00 * right.m10, JomlMath.fma(m10 * right.m11, m20 * right.m12))
-        val nm11 = JomlMath.fma(m01 * right.m10, JomlMath.fma(m11 * right.m11, m21 * right.m12))
-        val nm12 = JomlMath.fma(m02 * right.m10, JomlMath.fma(m12 * right.m11, m22 * right.m12))
-        val nm20 = JomlMath.fma(m00 * right.m20, JomlMath.fma(m10 * right.m21, m20 * right.m22))
-        val nm21 = JomlMath.fma(m01 * right.m20, JomlMath.fma(m11 * right.m21, m21 * right.m22))
-        val nm22 = JomlMath.fma(m02 * right.m20, JomlMath.fma(m12 * right.m21, m22 * right.m22))
+    fun mul(right: Matrix3d, dst: Matrix3d = this): Matrix3d {
+        return mul(
+            right.m00, right.m01, right.m02, right.m10, right.m11, right.m12,
+            right.m20, right.m21, right.m22, dst
+        )
+    }
+
+    fun mul(
+        r00: Double, r01: Double, r02: Double, r10: Double, r11: Double, r12: Double,
+        r20: Double, r21: Double, r22: Double, dest: Matrix3d = this
+    ): Matrix3d {
+        val nm00 = JomlMath.fma(m00 * r00, JomlMath.fma(m10 * r01, m20 * r02))
+        val nm01 = JomlMath.fma(m01 * r00, JomlMath.fma(m11 * r01, m21 * r02))
+        val nm02 = JomlMath.fma(m02 * r00, JomlMath.fma(m12 * r01, m22 * r02))
+        val nm10 = JomlMath.fma(m00 * r10, JomlMath.fma(m10 * r11, m20 * r12))
+        val nm11 = JomlMath.fma(m01 * r10, JomlMath.fma(m11 * r11, m21 * r12))
+        val nm12 = JomlMath.fma(m02 * r10, JomlMath.fma(m12 * r11, m22 * r12))
+        val nm20 = JomlMath.fma(m00 * r20, JomlMath.fma(m10 * r21, m20 * r22))
+        val nm21 = JomlMath.fma(m01 * r20, JomlMath.fma(m11 * r21, m21 * r22))
+        val nm22 = JomlMath.fma(m02 * r20, JomlMath.fma(m12 * r21, m22 * r22))
         dest.m00 = nm00
         dest.m01 = nm01
         dest.m02 = nm02
@@ -364,6 +374,14 @@ open class Matrix3d {
         dest.m21 = nm21
         dest.m22 = nm22
         return dest
+    }
+
+    fun mul(other: Matrix4d): Matrix3d {
+        return mul(
+            other.m00, other.m01, other.m02,
+            other.m10, other.m11, other.m12,
+            other.m20, other.m21, other.m22
+        )
     }
 
     @JvmOverloads

@@ -40,8 +40,6 @@ import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
-import me.anno.utils.types.Matrices.getScaleLength
-import me.anno.utils.types.Matrices.set2
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
 import kotlin.math.abs
@@ -270,8 +268,9 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
 
     fun computeGlobalTransform(dst: Matrix4x3f): Matrix4x3f {
         when (val parent = parent) {
-            is Entity -> dst.set2(parent.transform.globalTransform)
+            is Entity -> dst.set(parent.transform.globalTransform)
             is SDFGroup -> parent.computeGlobalTransform(dst)
+            else -> dst.identity()
             // else idk
         }
         dst.translate(position)
@@ -894,13 +893,11 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
             else -> throw NotImplementedError()
         }
         val localTransform = JomlPools.mat4x3f.create()
-        val parentGlobalTransform = when (val parent = inst.parent) {
-            is Entity -> JomlPools.mat4x3f.create().set2(parent.transform.globalTransform)
-            is SDFComponent -> parent.computeGlobalTransform(JomlPools.mat4x3f.create())
-            else -> null
+        when (val parent = inst.parent) {
+            is Entity -> localTransform.set(parent.transform.globalTransform).invert().mul(global)
+            is SDFComponent -> parent.computeGlobalTransform(localTransform).invert().mul(global)
+            else -> localTransform.set(global)
         }
-        if (parentGlobalTransform == null) localTransform.set(global)
-        else localTransform.set(parentGlobalTransform).invert().mul(global)
         // we have no better / other choice
         if (!localTransform.isFinite) localTransform.identity()
         localTransform.getTranslation(inst.position)
@@ -909,8 +906,6 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
         // trigger recompilation, if needed
         inst.position = inst.position
         inst.rotation = inst.rotation
-        // return matrix to pool
-        if (parentGlobalTransform != null) JomlPools.mat4x3f.sub(1)
         val root = inst.root
         val prefab = root.prefab
         val path = inst.prefabPath

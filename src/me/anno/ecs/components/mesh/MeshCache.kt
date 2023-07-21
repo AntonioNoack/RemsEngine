@@ -11,7 +11,6 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.structures.lists.Lists.any2
-import me.anno.utils.types.Matrices.set2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 
@@ -100,7 +99,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
             override fun getMaterials(element: Triple<Mesh, Transform?, List<FileReference>>) = element.third
             override fun getTransform(element: Triple<Mesh, Transform?, List<FileReference>>, dst: Matrix4x3f) {
                 val transform = element.second
-                if (transform != null) dst.set2(transform.globalTransform)
+                if (transform != null) dst.set(transform.globalTransform)
                 else dst.identity()
             }
         }.join(Mesh(), meshes)

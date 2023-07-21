@@ -28,7 +28,6 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Matrices.rotate2
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
@@ -135,7 +134,7 @@ class EnvironmentMap : LightComponentBase() {
                 rotateForCubemap(camRot.identity(), side)
                 camRot.invert(camRotInv)
 
-                cameraMatrix.rotate2(camRot)
+                cameraMatrix.rotate(camRot)
 
                 pipeline.clear()
                 pipeline.frustum.definePerspective(

@@ -10,7 +10,6 @@ import me.anno.ecs.components.collider.twod.CircleCollider
 import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.physics.CustomBulletCollider
 import me.anno.utils.LOGGER
-import me.anno.utils.types.Matrices.isIdentity
 import org.joml.Vector3d
 import org.joml.Vector3f
 import java.nio.ByteBuffer

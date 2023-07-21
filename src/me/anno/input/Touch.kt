@@ -3,7 +3,6 @@ package me.anno.input
 import me.anno.Engine
 import me.anno.maths.Maths.length
 import me.anno.ui.utils.WindowStack
-import me.anno.utils.bugs.SumOf
 import org.joml.Vector3f
 import kotlin.math.max
 
@@ -56,30 +55,28 @@ class Touch(var x: Float, var y: Float) {
             return when (val size = touches.size) {
                 0, 1 -> 1f
                 else -> {
-                    val cx = SumOf.sumOf(touches.values) { it.x } / size
-                    val cy = SumOf.sumOf(touches.values) { it.y } / size
-                    val clx = SumOf.sumOf(touches.values) { it.lastX } / size
-                    val cly = SumOf.sumOf(touches.values) { it.lastY } / size
-                    val d0 = SumOf.sumOf(touches.values) { length(it.x - cx, it.y - cy) } / size
-                    val d1 = SumOf.sumOf(touches.values) { length(it.lastX - clx, it.lastY - cly) } / size
-                    if (d0 > 0f && d1 > 0f)
-                        d0 / d1
-                    else 0f
+                    val cx = touches.values.sumOf { it.x.toDouble() } / size
+                    val cy = touches.values.sumOf { it.y.toDouble() } / size
+                    val clx = touches.values.sumOf { it.lastX.toDouble() } / size
+                    val cly = touches.values.sumOf { it.lastY.toDouble() } / size
+                    val d0 = touches.values.sumOf { length(it.x - cx, it.y - cy) } / size
+                    val d1 = touches.values.sumOf { length(it.lastX - clx, it.lastY - cly) } / size
+                    if (d0 > 0f && d1 > 0f) (d0 / d1).toFloat() else 0f
                 }
             }
         }
 
         @JvmStatic
-        fun sumDeltaX(): Float = SumOf.sumOf(touches.values) { it.x - it.lastX }
+        fun sumDeltaX(): Float = touches.values.sumOf { (it.x - it.lastX).toDouble() }.toFloat()
 
         @JvmStatic
-        fun sumDeltaY(): Float = SumOf.sumOf(touches.values) { it.y - it.lastY }
+        fun sumDeltaY(): Float = touches.values.sumOf { (it.y - it.lastY).toDouble() }.toFloat()
 
         @JvmStatic
-        fun avgDeltaX(): Float = SumOf.sumOf(touches.values) { it.x - it.lastX } / max(1, touches.size)
+        fun avgDeltaX(): Float = sumDeltaX() / max(1, touches.size)
 
         @JvmStatic
-        fun avgDeltaY(): Float = SumOf.sumOf(touches.values) { it.y - it.lastY } / max(1, touches.size)
+        fun avgDeltaY(): Float = sumDeltaY() / max(1, touches.size)
 
         @JvmStatic
         fun getTouchPosition(ws: WindowStack, touchId: Int, dst: Vector3f = Vector3f()): Vector3f {

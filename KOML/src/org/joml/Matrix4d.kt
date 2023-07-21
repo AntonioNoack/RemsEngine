@@ -652,48 +652,19 @@ open class Matrix4d {
 
     @JvmOverloads
     fun mul3x3(
-        r00: Double,
-        r01: Double,
-        r02: Double,
-        r10: Double,
-        r11: Double,
-        r12: Double,
-        r20: Double,
-        r21: Double,
-        r22: Double,
+        r00: Double, r01: Double, r02: Double,
+        r10: Double, r11: Double, r12: Double,
+        r20: Double, r21: Double, r22: Double,
         dest: Matrix4d = this
     ): Matrix4d {
-        return if (properties and 4 != 0) dest.set(
-            r00,
-            r01,
-            r02,
-            0.0,
-            r10,
-            r11,
-            r12,
-            0.0,
-            r20,
-            r21,
-            r22,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            1.0
-        ) else mulGeneric3x3(r00, r01, r02, r10, r11, r12, r20, r21, r22, dest)
+        return if (properties and 4 != 0)
+            dest.set(r00, r01, r02, 0.0, r10, r11, r12, 0.0, r20, r21, r22, 0.0, 0.0, 0.0, 0.0, 1.0)
+        else mulGeneric3x3(r00, r01, r02, r10, r11, r12, r20, r21, r22, dest)
     }
 
     private fun mulGeneric3x3(
-        r00: Double,
-        r01: Double,
-        r02: Double,
-        r10: Double,
-        r11: Double,
-        r12: Double,
-        r20: Double,
-        r21: Double,
-        r22: Double,
-        dest: Matrix4d
+        r00: Double, r01: Double, r02: Double, r10: Double, r11: Double, r12: Double,
+        r20: Double, r21: Double, r22: Double, dest: Matrix4d
     ): Matrix4d {
         val nm00 = JomlMath.fma(m00, r00, JomlMath.fma(m10, r01, m20 * r02))
         val nm01 = JomlMath.fma(m01, r00, JomlMath.fma(m11, r01, m21 * r02))
@@ -8267,6 +8238,14 @@ open class Matrix4d {
         )
         translate(-pos.x, -pos.y, -pos.z)
         return this
+    }
+
+    fun skew(x: Double, y: Double): Matrix4d {
+        return mul3x3(// works
+            1.0, y, 0.0,
+            x, 1.0, 0.0,
+            0.0, 0.0, 1.0
+        )
     }
 
     companion object {

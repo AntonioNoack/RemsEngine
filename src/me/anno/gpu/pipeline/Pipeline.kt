@@ -38,7 +38,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.SmallestKList
-import me.anno.utils.types.Matrices.distanceSquared
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Vector3d
