@@ -23,7 +23,6 @@ import me.anno.ecs.components.mesh.spline.SplineControlPoint
 import me.anno.ecs.components.mesh.spline.SplineCrossing
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.ecs.components.mesh.terrain.TriTerrain
-import me.anno.ecs.components.navigation.NavMesh
 import me.anno.ecs.components.physics.twod.Box2dPhysics
 import me.anno.ecs.components.physics.twod.Rigidbody2d
 import me.anno.ecs.components.player.LocalPlayer
@@ -191,7 +190,15 @@ object ECSRegistry {
         // utils
         // currently a small thing, hopefully will become important and huge <3
         registerCustomClass(TriTerrain())
-        registerCustomClass(NavMesh())
+        try {
+            val clazz = this::class.java.classLoader
+                .loadClass("me.anno.ecs.components.navigation.NavMesh")
+            registerCustomClass(clazz.getConstructor().newInstance() as ISaveable)
+        } catch (e: ClassNotFoundException) {
+            LOGGER.warn("SDF module was not found", e)
+        } catch (e: NoClassDefFoundError) {
+            LOGGER.warn("SDF module was not found", e)
+        }
 
         try {
             val clazz = this::class.java.classLoader
