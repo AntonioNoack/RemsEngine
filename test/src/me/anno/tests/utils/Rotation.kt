@@ -1,7 +1,5 @@
 import me.anno.maths.Maths.mix
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
-import me.anno.utils.types.Quaternions.toQuaternionDegrees
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import java.util.*

@@ -2123,6 +2123,15 @@ open class Quaterniond {
         }
     }
 
+    fun toEulerAnglesDegrees(dst: Vector3d = Vector3d()): Vector3d {
+        val toDegrees = 180.0 / PI
+        return getEulerAnglesYXZ(dst).mul(toDegrees)
+    }
+
+    fun mul(q: Quaternionf): Quaterniond {// why ever this function is missing :annoyed:
+        return mul(q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble())
+    }
+
     companion object {
         @JvmStatic
         fun slerp(qs: Array<Quaterniond>, weights: DoubleArray, dst: Quaterniond): Quaterniond {

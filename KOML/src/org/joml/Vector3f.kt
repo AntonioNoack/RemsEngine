@@ -848,6 +848,14 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     fun makePerpendicular(other: Vector3f): Vector3f =
         other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other
 
+    fun toQuaternionDegrees(dst: Quaternionf = Quaternionf()): Quaternionf {
+        val fromDegrees = (PI / 180.0).toFloat()
+        val x = x * fromDegrees
+        val y = y * fromDegrees
+        val z = z * fromDegrees
+        return dst.identity().rotateYXZ(y, x, z)
+    }
+
     companion object {
         @JvmStatic
         fun lengthSquared(x: Float, y: Float, z: Float): Float {

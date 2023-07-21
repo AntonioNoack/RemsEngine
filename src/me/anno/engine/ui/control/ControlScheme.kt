@@ -32,11 +32,11 @@ import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Floats.toRadians
-import me.anno.utils.types.Quaternions.fromDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sign
 import kotlin.math.sin
@@ -299,6 +299,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
     open fun moveCamera(dx: Double, dy: Double, dz: Double) {
         val normXZ = !Input.isShiftDown // todo use UI toggle instead
         val r = rotationTarget
+        val fromDegrees = PI / 180
         val y = r.y * fromDegrees
         if (normXZ) {
             val c = cos(y)

@@ -11,6 +11,8 @@ import kotlin.math.sqrt
 
 @Suppress("unused")
 object Vectors {
+    
+    // todo move some functions to KOML
 
     fun avg(a: Vector2f, b: Vector2f): Vector2f = Vector2f(a).add(b).mul(0.5f)
     fun avg(a: Vector2d, b: Vector2d): Vector2d = Vector2d(a).add(b).mul(0.5)
@@ -28,7 +30,6 @@ object Vectors {
     fun avg(a: Vector3d, b: Vector3d, c: Vector3d) =
         Vector3d((a.x + b.x + c.x) / 3.0, (a.y + b.y + c.y) / 3.0, (a.z + b.z + c.z) / 3.0)
 
-    // todo move them into their respective files in KOML
     fun Matrix4f.print() = "" +
             "[($m00 $m10 $m20 $m30)\n" +
             " ($m01 $m11 $m21 $m31)\n" +

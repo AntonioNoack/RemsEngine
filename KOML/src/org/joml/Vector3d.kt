@@ -1004,6 +1004,14 @@ open class Vector3d {
     fun makePerpendicular(other: Vector3d): Vector3d =
         other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other
 
+    fun toQuaternionDegrees(dst: Quaterniond = Quaterniond()): Quaterniond {
+        val fromDegrees = PI / 180.0
+        val x = x * fromDegrees
+        val y = y * fromDegrees
+        val z = z * fromDegrees
+        return dst.identity().rotateYXZ(y, x, z)
+    }
+
     companion object {
         @JvmStatic
         fun lengthSquared(x: Double, y: Double, z: Double) = x * x + y * y + z * z

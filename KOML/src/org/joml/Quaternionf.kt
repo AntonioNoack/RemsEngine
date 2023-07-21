@@ -2171,31 +2171,19 @@ open class Quaternionf {
         get() = JomlMath.isFinite(x) && JomlMath.isFinite(y) && JomlMath.isFinite(z) && JomlMath.isFinite(w)
 
     fun equals(q: Quaternionf?, delta: Float): Boolean {
-        return if (this === q) {
-            true
-        } else if (q == null) {
-            false
-        } else if (!Runtime.equals(x, q.x, delta)) {
-            false
-        } else if (!Runtime.equals(y, q.y, delta)) {
-            false
-        } else if (!Runtime.equals(z, q.z, delta)) {
-            false
-        } else {
-            Runtime.equals(w, q.w, delta)
-        }
+        if (this === q) return true
+        return q != null &&
+                Runtime.equals(x, q.x, delta) && Runtime.equals(y, q.y, delta) &&
+                Runtime.equals(z, q.z, delta) && Runtime.equals(w, q.w, delta)
     }
 
-    fun equals(x: Float, y: Float, z: Float, w: Float): Boolean {
-        return if ((this.x) != (x)) {
-            false
-        } else if ((this.y) != (y)) {
-            false
-        } else if ((this.z) != (z)) {
-            false
-        } else {
-            (this.w) == (w)
-        }
+    fun equals(vx: Float, vy: Float, vz: Float, vw: Float): Boolean {
+        return x == vx && y == vy && z == vz && w == vw
+    }
+
+    fun toEulerAnglesDegrees(dst: Vector3f = Vector3f()): Vector3f {
+        val toDegrees = (180.0 / PI).toFloat()
+        return getEulerAnglesYXZ(dst).mul(toDegrees)
     }
 
     companion object {

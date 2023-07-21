@@ -17,7 +17,6 @@ import me.anno.ui.style.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToDouble.getDouble
-import me.anno.utils.types.Quaternions.toEulerAnglesDegrees
 import org.joml.*
 import kotlin.math.max
 
