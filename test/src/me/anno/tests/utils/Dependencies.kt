@@ -244,11 +244,11 @@ fun main() {
                 // draw all connections
                 val pck = hoveredPck
                 if (pck != null) {
-                    DrawCurves.lineBatch.start()
+                    val v = DrawCurves.lineBatch.start()
                     for ((dep, _) in pck.dependencies2) {
                         drawLine(pck.px, pck.py, backgroundColor, dep.px, dep.py, tc, 1f, bc, true)
                     }
-                    DrawCurves.lineBatch.finish()
+                    DrawCurves.lineBatch.finish(v)
                 }
                 // draw circles with names
                 val pbb = DrawTexts.pushBetterBlending(true)

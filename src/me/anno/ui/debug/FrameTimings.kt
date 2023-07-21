@@ -22,7 +22,6 @@ import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
 import java.nio.ByteOrder
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -146,7 +145,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 var lastBarHeight = 0
                 val scale = height1 / maxValue
 
-                DrawRectangles.startBatch()
+                val b = DrawRectangles.startBatch()
                 for (x in x0 until x1) {
                     val i = x - this.x
                     val v = values[(indexOffset + i) % width]
@@ -159,7 +158,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 }
 
                 drawLine(lastX, x1, lastBarHeight, barColor)
-                DrawRectangles.finishBatch()
+                DrawRectangles.finishBatch(b)
 
             } else {
 

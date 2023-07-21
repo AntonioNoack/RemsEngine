@@ -32,7 +32,7 @@ fun main() {
             val color = Vector4f(0f, 0f, 0f, 1f)
 
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                if (batch) DrawRectangles.startBatch()
+                val v = if (batch) DrawRectangles.startBatch() else 0
                 val s = 3
                 for (y in y0 until y1 step s) {
                     color.y = y.toFloat() / height
@@ -41,7 +41,7 @@ fun main() {
                         DrawRectangles.drawRect(x, y, s, s, color.toARGB())
                     }
                 }
-                if (batch) DrawRectangles.finishBatch()
+                if (batch) DrawRectangles.finishBatch(v)
                 val size = DrawTexts.monospaceFont.sampleHeight
                 DrawTexts.drawSimpleTextCharByChar(x, y + height - size * 2, 2, if (batch) "Batch" else "Normal")
                 DrawTexts.drawSimpleTextCharByChar(x, y + height - size, 2, "${(y1 - y0) / s * (x1 - x0) / s}")

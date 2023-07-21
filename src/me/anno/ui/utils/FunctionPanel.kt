@@ -20,7 +20,7 @@ import kotlin.math.*
  * */
 open class FunctionPanel(val functions: Array<Pair<Function1d, Int>>, style: Style) : MapPanel(style) {
 
-    constructor(function: Function1d, style: Style): this(arrayOf(function to -1), style)
+    constructor(function: Function1d, style: Style) : this(arrayOf(function to -1), style)
 
     var lineThickness = 1f
     var functionName: String? = "f"
@@ -135,8 +135,7 @@ open class FunctionPanel(val functions: Array<Pair<Function1d, Int>>, style: Sty
         val bgColor = backgroundColor
         var lx = 0f
         var ly = 0f
-        val batch = !lineBatch.active
-        if (batch) lineBatch.start()
+        val v = lineBatch.start()
         val thHalf = lineThickness * 0.5f
         val minY = y0 - thHalf
         val maxY = y1 + thHalf
@@ -153,7 +152,7 @@ open class FunctionPanel(val functions: Array<Pair<Function1d, Int>>, style: Sty
             lx = xf
             ly = yf
         }
-        if (batch) lineBatch.finish()
+        lineBatch.finish(v)
     }
 
 }

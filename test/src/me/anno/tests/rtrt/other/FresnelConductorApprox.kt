@@ -25,16 +25,16 @@ fun fresnelConductorExact(cosThetaI: Float, eta: Float, k: Float): Float {
     val a = sqrt(max(0.5f * (a2pb2 + temp1), 0f))
 
     val term1 = a2pb2 + cosThetaI2
-    val term2 = 2 * a * cosThetaI;
+    val term2 = 2 * a * cosThetaI
 
-    val Rs2 = (term1 - term2) / (term1 + term2);
+    val Rs2 = (term1 - term2) / (term1 + term2)
 
     val term3 = a2pb2 * cosThetaI2 + sinThetaI4
-    val term4 = term2 * sinThetaI2;
+    val term4 = term2 * sinThetaI2
 
-    val Rp2 = Rs2 * (term3 - term4) / (term3 + term4);
+    val Rp2 = Rs2 * (term3 - term4) / (term3 + term4)
 
-    return 0.5f * (Rp2 + Rs2);
+    return 0.5f * (Rp2 + Rs2)
 }
 
 fun fresnelConductorApprox(w: Float): Float {

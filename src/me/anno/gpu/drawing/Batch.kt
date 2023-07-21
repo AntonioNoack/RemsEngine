@@ -31,9 +31,10 @@ abstract class Batch(name: String, val base: StaticBuffer, attributes: List<Attr
         }
     }
 
-    fun start() {
-        if (active) throw IllegalStateException("Already batching")
+    fun start(): Int {
+        if (active) return 1
         active = true
+        return 0
     }
 
     private fun draw() {
@@ -48,12 +49,14 @@ abstract class Batch(name: String, val base: StaticBuffer, attributes: List<Attr
         batchCount = 0
     }
 
-    fun finish() {
-        if (batchCount > 0) {
-            draw()
+    fun finish(v: Int) {
+        if (v == 0) {
+            if (batchCount > 0) {
+                draw()
+            }
+            active = false
+            shader = null
         }
-        active = false
-        shader = null
     }
 
     abstract fun bindShader(): Shader

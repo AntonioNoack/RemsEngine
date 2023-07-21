@@ -278,7 +278,7 @@ fun test3() {
                 val window = window
                 if (window != null) mouse.set(window.mouseX, window.mouseY)
 
-                DrawCurves.lineBatch.start()
+                val v = DrawCurves.lineBatch.start()
                 world.validateTransform()
                 world.forAll { entity ->
                     if (entity is Entity) entity.anyComponent(Collider2d::class) { collider ->
@@ -347,7 +347,7 @@ fun test3() {
                     }
                 }
 
-                DrawCurves.lineBatch.finish()
+                DrawCurves.lineBatch.finish(v)
 
             }
         }

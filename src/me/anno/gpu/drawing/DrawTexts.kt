@@ -26,7 +26,6 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
-import me.anno.utils.OS
 import me.anno.utils.types.Matrices.isIdentity
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -75,22 +74,23 @@ object DrawTexts {
         alignX, alignY
     )
 
-    fun startSimpleBatch(): Boolean {
+    fun startSimpleBatch(): Int {
         val font = monospaceFont
         val x = pushBetterBlending(false)
         val shader = chooseShader(-1, -1, 1)
         val texture = FontManager.getASCIITexture(font)
         texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
-        if (shader is Shader) {
-            simpleBatch.start()
+        val v = if (shader is Shader) {
+            val v = simpleBatch.start()
             posSize(shader, 0f, 0f, texture.width.toFloat(), texture.height.toFloat())
-        }
-        return x
+            v
+        } else 0
+        return if (x) v else v.inv()
     }
 
-    fun finishSimpleBatch(x: Boolean) {
-        simpleBatch.finish()
-        popBetterBlending(x)
+    fun finishSimpleBatch(v: Int) {
+        simpleBatch.finish(if (v < 0) v.inv() else v)
+        popBetterBlending(v < 0)
     }
 
     fun drawSimpleTextCharByChar(
@@ -122,11 +122,12 @@ object DrawTexts {
         val background = backgroundColor and 0xffffff
 
         val texture = FontManager.getASCIITexture(font)
+        var v = 0
         val shader = if (!batched) {
             val shader = chooseShader(textColor, background, 1)
             texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
             if (shader is Shader) {
-                simpleBatch.start()
+                v = simpleBatch.start()
                 posSize(shader, 0f, 0f, texture.width.toFloat(), texture.height.toFloat())
             }
             shader
@@ -163,7 +164,7 @@ object DrawTexts {
         }
 
         if (shader is Shader) {
-            simpleBatch.finish()
+            simpleBatch.finish(v)
         }
 
         return width

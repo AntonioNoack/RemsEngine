@@ -76,9 +76,10 @@ object DrawRectangles {
         batch.next()
     }
 
-    fun startBatch() {
-        batch.start()
+    fun startBatch(): Int {
+        val v = batch.start()
         updateBatchCoords()
+        return v
     }
 
     fun updateBatchCoords() {
@@ -88,8 +89,8 @@ object DrawRectangles {
         dy = +1f - GFX.viewportY * sy
     }
 
-    fun finishBatch() {
-        batch.finish()
+    fun finishBatch(v: Int) {
+        batch.finish(v)
     }
 
     fun drawRect(x: Int, y: Int, w: Int, h: Int, color: Vector4f) {

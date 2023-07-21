@@ -191,7 +191,7 @@ object DrawCurves {
             val data = lineBatch.data
             data.putFloat(x0).putFloat(y0)
             data.putFloat(x1).putFloat(y1)
-            data.putRGBA(c0).putRGBA(c1).putRGBA(background)
+            data.putRGBA(c0).putRGBA(c1).putRGBA(background and 0xffffff)
             data.putFloat(thickness).putFloat(smoothness).putFloat(if (flatEnds) 1f else 0f)
             lineBatch.next()
         } else {
@@ -201,7 +201,7 @@ object DrawCurves {
             GFXx2D.posSize(shader, 0f, 0f, 1f, 1f)
             shader.v4fSq("c0", c0)
             shader.v4fSq("c1", c1)
-            shader.v4f("backgroundColor", background)
+            shader.v3f("backgroundColor", background and 0xffffff)
             shader.v1f("thickness", thickness)
             shader.v1f("smoothness", smoothness)
             shader.v2f("p0", x0, y0)
