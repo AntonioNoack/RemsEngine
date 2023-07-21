@@ -153,9 +153,7 @@ abstract class StudioBase(
         projectName = configName
     }
 
-    open fun run(
-        runGraphics: Boolean = !OS.isWeb && !OS.isAndroid
-    ) {
+    open fun run(runGraphics: Boolean = !OS.isWeb && !OS.isAndroid) {
 
         if (Engine.shutdown) {
             LOGGER.warn("Restart isn't supported within the engine!")
@@ -177,7 +175,7 @@ abstract class StudioBase(
         tick("config")
 
         if (runGraphics) {
-            GFXBase.run()
+            GFXBase.run(title)
         }
 
     }

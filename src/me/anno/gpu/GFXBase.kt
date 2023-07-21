@@ -137,14 +137,14 @@ object GFXBase {
     }
 
     @JvmStatic
-    fun run() {
+    fun run(title: String) {
         try {
 
             loadRenderDoc()
 
             val clock = initLWJGL()
 
-            val window0 = createWindow(OSWindow(projectName), clock)
+            val window0 = createWindow(OSWindow(title), clock)
 
             runLoops(window0)
 
