@@ -13,6 +13,7 @@ import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL43C.*
 import java.io.IOException
+import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
@@ -84,7 +85,8 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
                 }
             }
             glDeleteProgram(program)
-            return compile(key)
+            fillFileContents(key, getFile(uuid), {}, {})
+            return weakCache[key]!!
         }
 
         postPossibleError(name, program, false, "<bin>")
@@ -185,11 +187,11 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
             return
         }
 
-        dst.outputStream().use {
-            it.write(magicStr)
-            it.writeLE32(length)
-            it.writeLE32(format)
-            val tmp = DeflaterOutputStream(it)
+        dst.outputStream().use { out: OutputStream ->
+            out.write(magicStr)
+            out.writeLE32(length)
+            out.writeLE32(format)
+            val tmp = DeflaterOutputStream(out)
             var i = 0
             while (i < length) {
                 val len = min(dataI.size, length - i)

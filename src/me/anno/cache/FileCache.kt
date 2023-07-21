@@ -34,11 +34,14 @@ abstract class FileCache<Key, Value>(val configFileName: String, val configFolde
     open fun isKeyValid(key: Key): Boolean = true
     abstract fun load(key: Key, src: FileReference?): Value
 
+    fun getFile(key: Key) = getFile(getUniqueFilename(key))
+    fun getFile(uniqueFileName: String) = cacheFolder.getChild(uniqueFileName)
+
     fun generateFile(key: Key): CacheData<Value?> {
         init()
         return if (isKeyValid(key)) {
             val uuid = getUniqueFilename(key)
-            val dst = cacheFolder.getChild(uuid)
+            val dst = getFile(uuid)
             val data = CacheData<Value?>(null)
             if (!dst.exists) {
                 val tmp = cacheFolder.getChild(
@@ -46,7 +49,7 @@ abstract class FileCache<Key, Value>(val configFileName: String, val configFolde
                     else dst.nameWithoutExtension + ".tmp.${dst.extension}"
                 )
                 fillFileContents(key, tmp, {
-                    postCreateProxy(uuid, tmp, dst)
+                    renameTmpToDst(uuid, tmp, dst)
                     data.value = load(key, dst)
                 }, {
                     it?.printStackTrace()
@@ -67,7 +70,7 @@ abstract class FileCache<Key, Value>(val configFileName: String, val configFolde
         info.saveMaybe(configFileName)
     }
 
-    fun postCreateProxy(uuid: String, tmp: FileReference, dst: FileReference): Boolean {
+    fun renameTmpToDst(uuid: String, tmp: FileReference, dst: FileReference): Boolean {
         LastModifiedCache.invalidate(tmp)
         if (tmp.exists) {
             LastModifiedCache.invalidate(dst)
@@ -85,9 +88,6 @@ abstract class FileCache<Key, Value>(val configFileName: String, val configFolde
         return false
     }
 
-    /**
-     * scales video down 4x
-     * */
     abstract fun fillFileContents(
         key: Key, dst: FileReference,
         onSuccess: () -> Unit,
