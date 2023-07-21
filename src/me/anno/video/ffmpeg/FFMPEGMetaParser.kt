@@ -2,7 +2,6 @@ package me.anno.video.ffmpeg
 
 import me.anno.Engine
 import me.anno.io.utils.StringMap
-import me.anno.utils.Warning.warn
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.indexOf2
 import me.anno.utils.types.Strings.isBlank2
@@ -178,8 +177,7 @@ class FFMPEGMetaParser : StringMap() {
                                 stream.sourceLength = duration
                                 // ("duration: $duration")
                             } catch (e: Exception) {
-                                e.message?.apply { warn(this) }
-                                e.printStackTrace()
+                                LOGGER.warn(e)
                             }
                         }
                     }

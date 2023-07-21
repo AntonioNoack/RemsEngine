@@ -659,23 +659,8 @@ open class Quaterniond {
         return this.transformInverse(vec.x, vec.y, vec.z, dst)
     }
 
-    fun transform(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
-        val xx = this.x * this.x
-        val yy = this.y * this.y
-        val zz = this.z * this.z
-        val ww = w * w
-        val xy = this.x * this.y
-        val xz = this.x * this.z
-        val yz = this.y * this.z
-        val xw = this.x * w
-        val zw = this.z * w
-        val yw = this.y * w
-        val k = 1.0 / (xx + yy + zz + ww)
-        return dst.set(
-            JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2.0 * (xy - zw) * k, y, 2.0 * (xz + yw) * k * z)),
-            JomlMath.fma(2.0 * (xy + zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2.0 * (yz - xw) * k * z)),
-            JomlMath.fma(2.0 * (xz - yw) * k, x, JomlMath.fma(2.0 * (yz + xw) * k, y, (zz - xx - yy + ww) * k * z))
-        )
+    fun transform(vx: Double, vy: Double, vz: Double, dst: Vector3d): Vector3d {
+        return transform(x, y, z, w, vx, vy, vz, dst)
     }
 
     fun transformInverse(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
@@ -2133,6 +2118,30 @@ open class Quaterniond {
     }
 
     companion object {
+
+        @JvmStatic
+        fun transform(
+            tx: Double, ty: Double, tz: Double, tw: Double,
+            x: Double, y: Double, z: Double, dst: Vector3d
+        ): Vector3d {
+            val xx = tx * tx
+            val yy = ty * ty
+            val zz = tz * tz
+            val ww = tw * tw
+            val xy = tx * ty
+            val xz = tx * tz
+            val yz = ty * tz
+            val xw = tx * tw
+            val zw = tz * tw
+            val yw = ty * tw
+            val k = 1.0 / (xx + yy + zz + ww)
+            return dst.set(
+                JomlMath.fma((xx - yy - zz + ww) * k, x, JomlMath.fma(2.0 * (xy - zw) * k, y, 2.0 * (xz + yw) * k * z)),
+                JomlMath.fma(2.0 * (xy + zw) * k, x, JomlMath.fma((yy - xx - zz + ww) * k, y, 2.0 * (yz - xw) * k * z)),
+                JomlMath.fma(2.0 * (xz - yw) * k, x, JomlMath.fma(2.0 * (yz + xw) * k, y, (zz - xx - yy + ww) * k * z))
+            )
+        }
+
         @JvmStatic
         fun slerp(qs: Array<Quaterniond>, weights: DoubleArray, dst: Quaterniond): Quaterniond {
             dst.set(qs[0])

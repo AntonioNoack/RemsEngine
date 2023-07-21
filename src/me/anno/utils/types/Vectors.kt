@@ -98,10 +98,6 @@ object Vectors {
         return this
     }
 
-    // missing from Joml :/
-    fun Vector3d.rotate2(q: Quaternionf): Vector3d =
-        rotate(JomlPools.quat4d.borrow().set(q))
-
     /**
      * converts this normal to a quaternion such that vec3(0,1,0).rot(q) is equal to this vector;
      * identical to Matrix3f(.., this, ..).getNormalizedRotation(dst)

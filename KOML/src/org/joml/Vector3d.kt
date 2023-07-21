@@ -1012,6 +1012,13 @@ open class Vector3d {
         return dst.identity().rotateYXZ(y, x, z)
     }
 
+    fun rotate(q: Quaternionf): Vector3d {
+        return Quaterniond.transform(
+            q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble(),
+            x, y, z, this
+        )
+    }
+
     companion object {
         @JvmStatic
         fun lengthSquared(x: Double, y: Double, z: Double) = x * x + y * y + z * z
