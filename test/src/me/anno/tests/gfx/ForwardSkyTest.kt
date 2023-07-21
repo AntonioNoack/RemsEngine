@@ -13,7 +13,7 @@ fun main() {
     scene.add(MeshComponent(OS.downloads.getChild("3d/DamagedHelmet.glb")))
     scene.add(MeshComponent(OS.documents.getChild("metal-roughness.glb")))
     scene.add(SkyBox())
-    testSceneWithUI(scene) {
+    testSceneWithUI("Forward Sky", scene) {
         it.renderer.renderMode = RenderMode.FORCE_NON_DEFERRED
     }
 }

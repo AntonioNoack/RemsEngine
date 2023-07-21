@@ -42,7 +42,7 @@ fun main() {
                 "   result = vec4(c,c,c,1);\n" +
                 "}"
     )
-    testDrawing {
+    testDrawing("Snow") {
         shader.use()
         shader.v1f("time", Engine.gameTimeF)
         shader.v2f("uvScale", it.width.toFloat() / it.height, 1f)

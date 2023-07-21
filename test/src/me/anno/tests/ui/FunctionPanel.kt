@@ -8,7 +8,7 @@ import kotlin.math.sin
 
 fun main() {
     disableRenderDoc()
-    testUI3 {
+    testUI3("Function Panel") {
         FunctionPanel({ x -> sin(x * x) / x }, style)
     }
 }

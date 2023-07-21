@@ -31,7 +31,7 @@ fun main() {
     val mesh = MeshComponent(flatCube.scaled(Vector3f(size).mul(0.5f)).back.ref)
     mesh.materials = listOf(material.ref)
 
-    testSceneWithUI(mesh) {
+    testSceneWithUI("3DRTTex", mesh) {
         StudioBase.instance?.enableVSync = true
         val data = Texture3D("density", size.x, size.y, size.z)
         data.createMonochrome(densities)

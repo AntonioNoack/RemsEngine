@@ -72,7 +72,7 @@ class Retargeting : NamedSaveable() {
         @JvmStatic
         fun main(args: Array<String>) {
             // todo target stands still... were no bones mapped?
-            testUI {
+            testUI("Retargeting") {
                 // fbx animation seems to be broken for the trooper... probably Assimps fault or incorrect decoding from our side
                 val testRetargeting = true
                 ECSRegistry.initMeshes()

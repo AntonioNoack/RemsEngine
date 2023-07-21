@@ -1,14 +1,12 @@
 package me.anno.sdf.shapes
 
-import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector3f
@@ -74,13 +72,6 @@ open class SDFBox : SDFSmoothShape() {
     override val className: String get() = "SDFBox"
 
     companion object {
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            testSceneWithUI(Entity().apply {
-                addChild(SDFBox())
-            })
-        }
 
         fun sdBox(px: Float, py: Float, pz: Float, hx: Float, hy: Float, hz: Float): Float {
             val qx = abs(px) - hx

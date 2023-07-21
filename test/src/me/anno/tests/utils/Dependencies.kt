@@ -150,7 +150,7 @@ fun main() {
     // traverse graph, and open/close children
     // draw each node as a circle
     GFXBase.disableRenderDoc()
-    testUI3 {
+    testUI3("Dependencies") {
         object : MapPanel(style) {
 
             val textColor = -1

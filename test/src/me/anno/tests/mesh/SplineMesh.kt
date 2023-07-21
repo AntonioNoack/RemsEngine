@@ -22,7 +22,7 @@ fun main() {
     // test interpolation with 1 and 2 intermediate points
     // interpolation with 1 point: just a line, and therefore useless
 
-    testUI {
+    testUI("SplineMesh") {
         ECSRegistry.init()
 
         val world = Entity("World")

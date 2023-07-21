@@ -96,15 +96,6 @@ open class SDFHyperCube : SDFSmoothShape() {
 
     companion object {
 
-        @JvmStatic
-        fun main(args: Array<String>) {
-            testUI {
-                val e = SDFHyperCube()
-                registerCustomClass(e)
-                testScene(Entity().apply { add(e) })
-            }
-        }
-
         const val hyperProjection = "" +
                 // rotate point from 3d into 4d
                 "vec4 invProject(vec3 p3, float w, vec3 r){\n" +

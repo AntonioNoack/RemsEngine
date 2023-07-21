@@ -34,7 +34,7 @@ fun main() {
         position = position.set(0.0, 0.3, 0.0)
         scale = scale.set(0.1)
     })
-    testSceneWithUI(scene) {
+    testSceneWithUI("Planar Reflections", scene) {
         // doesn't have ssao yet
         it.renderer.renderMode = RenderMode.FORCE_NON_DEFERRED
     }

@@ -28,7 +28,7 @@ fun fract(i: Int, n: Int): Int {
 
 fun main() {
     GFXBase.disableRenderDoc()
-    testUI2 {
+    testUI2("Hilbert Curve") {
         var n = 4096
         val input = IntInput("", "", n, Type.LONG_PLUS, style)
             .setChangeListener { n = it.toInt() }

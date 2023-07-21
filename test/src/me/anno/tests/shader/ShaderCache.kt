@@ -6,7 +6,7 @@ import me.anno.gpu.GFXBase
 import me.anno.gpu.ShaderCache
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.ui.Panel
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 
 private fun compileCachedShaders() {
     GFX.checkIsGFXThread()
@@ -39,7 +39,7 @@ fun main() {
     // glProgramBinary() doesn't work with RenderDoc :/
     if (true) {
         GFXBase.disableRenderDoc()
-        TestStudio.testUI3 {
+        testUI3("ShaderCache") {
             compileCachedShaders()
             Panel(DefaultConfig.style)
         }

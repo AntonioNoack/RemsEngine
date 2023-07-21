@@ -31,5 +31,5 @@ fun main() {
         playMode = AudioComponentBase.PlayMode.LOOP
         start()
     })
-    testSceneWithUI(scene)
+    testSceneWithUI("ECSAudio", scene)
 }

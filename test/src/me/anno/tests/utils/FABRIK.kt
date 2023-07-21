@@ -14,7 +14,7 @@ fun main() {
     chain.addConsecutiveBone(Vec3f(0f, 1f, 0f), 1f)
     chain.addConsecutiveBone(Vec3f(0f, 1f, 0f), 1f)
 
-    testDrawing {
+    testDrawing("FABRIK") {
 
         it.clear()
 

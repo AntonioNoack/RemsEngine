@@ -27,6 +27,6 @@ fun main() {
     })
     scene.add(MeshComponent(OS.documents.getChild("metal-roughness.glb")))
     scene.add(SkyBox())
-    testSceneWithUI(scene)
+    testSceneWithUI("EnvironmentMap", scene)
 
 }

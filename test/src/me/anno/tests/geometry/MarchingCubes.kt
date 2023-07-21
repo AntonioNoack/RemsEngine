@@ -72,7 +72,7 @@ fun main() {
         }
     }
 
-    ProceduralMesh.testProceduralMesh { mesh ->
+    ProceduralMesh.testProceduralMesh("MarchingCubes") { mesh ->
         val points = MarchingCubes.march(
             w, h, d, values, 0f,
             AABBf(0f, 0f, 0f, w - 1f, h - 1f, d - 1f),

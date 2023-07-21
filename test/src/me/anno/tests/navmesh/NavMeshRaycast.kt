@@ -94,7 +94,7 @@ class AgentController1a(
  * test recast navmesh generation and usage
  * */
 fun main() {
-    testUI {
+    testUI("NavMeshRaycast") {
 
         StudioBase.instance?.enableVSync = false
         ECSRegistry.init()

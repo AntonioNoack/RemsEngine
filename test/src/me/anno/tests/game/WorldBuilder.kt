@@ -53,7 +53,7 @@ fun createTestTerrain(): MeshComponent {
 }
 
 fun main() {
-    testUI3 {
+    testUI3("World Builder") {
 
         ECSRegistry.init()
 

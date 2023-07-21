@@ -13,7 +13,7 @@ import me.anno.utils.OS
 
 fun main() {
     disableRenderDoc()
-    testUI {
+    testUI("Hex Editor") {
         StudioBase.instance?.enableVSync = false
         ActionManager.register("HexEditor.s.t.c", "Save")
         val list = PanelListX(DefaultConfig.style)

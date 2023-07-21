@@ -7,5 +7,5 @@ import me.anno.ui.input.ColorInput
 
 fun main() {
     GFXBase.disableRenderDoc()
-    testUI(ColorInput(style))
+    testUI("Color Input", ColorInput(style))
 }

@@ -14,7 +14,7 @@ import kotlin.concurrent.thread
 fun main() {
     GFXBase.disableRenderDoc()
     if (true) {
-        testUI {
+        testUI("Progress Bar") {
             var offset = 0f
             // testing indeterminate mode
             GFX.someWindow!!.addProgressBar("Something", "Bytes", Double.NaN).progress = 123456789.0
@@ -35,6 +35,6 @@ fun main() {
         // test progress bar panel
         val p = ProgressBarPanel("Sample", "", 1.0, 15, style)
         val t = SpyPanel { p.progress = (Engine.gameTimeD * 5.0 / p.width) % 1.0 }
-        testUI2 { listOf(t, p) }
+        testUI2("Progress Bar") { listOf(t, p) }
     }
 }

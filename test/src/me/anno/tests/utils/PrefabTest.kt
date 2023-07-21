@@ -32,7 +32,7 @@ fun main() {
 
     // broken text input
     // testSceneWithUI(sample)
-    testUI {
+    testUI("PrefabTest") {
         StudioBase.instance?.enableVSync = true
         sample.prefabPath = Path.ROOT_PATH
         EditorState.prefabSource = sample.ref

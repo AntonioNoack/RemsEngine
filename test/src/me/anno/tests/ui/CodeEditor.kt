@@ -6,13 +6,14 @@ import me.anno.language.Language
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI2
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.code.codemirror.LanguageThemeLib
 import me.anno.ui.input.EnumInput
 
 fun main() {
     GFXBase.disableRenderDoc()
-    TestStudio.testUI2 {
+    testUI2("Code Editor") {
 
         val instance = StudioBase.instance
         if (instance != null) {

@@ -23,5 +23,5 @@ fun main() {
     val scene = Entity("Object")
     scene.add(MeshComponent(OS.downloads.getChild("3d/bunny.obj"))) // stanford bunny
     scene.add(decal)
-    testSceneWithUI(scene)
+    testSceneWithUI("Decals", scene)
 }

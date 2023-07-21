@@ -168,7 +168,7 @@ fun main() {
     LogManager.disableLogger("BlenderControlsAddon")
 
     // visualize results in 3d
-    testUI3 {
+    testUI3("PathFindingAccTest") {
 
         ECSRegistry.init()
 

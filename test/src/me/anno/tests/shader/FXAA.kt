@@ -12,7 +12,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.image.ImageWriter
 import me.anno.input.Input
 import me.anno.maths.Maths
-import me.anno.ui.debug.TestDrawPanel
+import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix2f
 import org.joml.Matrix4f
@@ -28,7 +28,7 @@ fun main() {
 private fun testShader() {
     val transform = Matrix4f()
     var angle = 0f
-    TestDrawPanel.testDrawing {
+    testDrawing("FXAA Test") {
         val w = it.width / 8
         val h = it.height / 8
         transform.identity()

@@ -4,12 +4,12 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFXBase
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.downloads
 
 fun main() { // small test for custom fonts; works :)
     GFXBase.disableRenderDoc()
-    TestStudio.testUI {
+    testUI("Custom Fonts") {
         val panel = TextPanel("This is some sample text", DefaultConfig.style)
         panel.font = Font(downloads.getChild("fonts/kids-alphabet.zip/KidsAlphabet.ttf"), 50f)
         panel

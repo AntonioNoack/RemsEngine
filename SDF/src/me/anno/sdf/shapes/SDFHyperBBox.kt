@@ -1,22 +1,18 @@
 package me.anno.sdf.shapes
 
-import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.shader.GLSLType
-import me.anno.io.ISaveable
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
-import me.anno.ui.debug.TestStudio
+import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
 
-class SDFHyperBBox : SDFHyperCube() {
+class SDFHyperBBox() : SDFHyperCube() {
 
     var dynamicThickness = false
         set(value) {
@@ -105,16 +101,6 @@ class SDFHyperBBox : SDFHyperCube() {
     override val className: String get() = "SDFHyperBBox"
 
     companion object {
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            TestStudio.testUI {
-                val e = SDFHyperBBox()
-                ISaveable.registerCustomClass(e)
-                SceneView.testScene(Entity().apply { add(e) })
-            }
-        }
-
         const val boundingBoxSDF4 = "" +
                 "float sdBoundingBox4(vec3 k, vec3 r, float w, vec4 b, float e){\n" +
                 "   vec4 p = invProject(k,w,r);\n" +

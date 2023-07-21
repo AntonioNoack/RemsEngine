@@ -20,7 +20,7 @@ fun main() {
         linearFiltering = false
         clamping = Clamping.CLAMP
     }
-    testSceneWithUI(Entity().apply {
+    testSceneWithUI("Billboards", Entity().apply {
         add(Entity().apply {
             add(MeshComponent(Shapes.flat11.front).apply {
                 materials = listOf(material.ref)

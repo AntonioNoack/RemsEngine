@@ -62,16 +62,16 @@ class SceneView(
 
     companion object {
 
-        fun testSceneWithUI(source: FileReference, init: ((SceneView) -> Unit)? = null) {
-            testUI { testScene(source, init) }
+        fun testSceneWithUI(title: String, source: FileReference, init: ((SceneView) -> Unit)? = null) {
+            testUI(title) { testScene(source, init) }
         }
 
-        fun testSceneWithUI(prefab: Prefab, init: ((SceneView) -> Unit)? = null) {
-            testSceneWithUI(prefab.createInstance(), init)
+        fun testSceneWithUI(title: String, prefab: Prefab, init: ((SceneView) -> Unit)? = null) {
+            testSceneWithUI(title, prefab.createInstance(), init)
         }
 
-        fun testSceneWithUI(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null) {
-            testUI {
+        fun testSceneWithUI(title: String, scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null) {
+            testUI(title) {
                 GFX.someWindow?.windowStack?.firstOrNull()?.drawDirectly = false
                 testScene(scene, init)
             }

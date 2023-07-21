@@ -8,7 +8,7 @@ import me.anno.ui.input.FloatInput
 
 fun main() {
     GFXBase.disableRenderDoc()
-    testUI {
+    testUI("Number") {
         FloatInput("Number", 0f, Type.FLOAT, style)
     }
 }

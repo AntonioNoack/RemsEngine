@@ -14,7 +14,7 @@ import me.anno.ui.base.groups.PanelListY
 /**
  * engine runtime for testing
  * */
-class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase("Test", 1, true) {
+class TestStudio(title: String, val createMainPanel: () -> List<Panel>) : StudioBase(title, "Test", 1, true) {
 
     override fun createUI() {
         val ui = PanelListY(style)
@@ -46,8 +46,8 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase("Test", 1,
          * with a single panel; full gfx capabilities,
          * no audio
          * */
-        fun testUI(createMainPanel: () -> Panel) {
-            TestStudio { listOf(createMainPanel()) }.run()
+        fun testUI(title: String, createMainPanel: () -> Panel) {
+            TestStudio(title) { listOf(createMainPanel()) }.run()
         }
 
         /**
@@ -55,8 +55,8 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase("Test", 1,
          * with a single panel; full gfx capabilities,
          * no audio
          * */
-        fun testUI(mainPanel: Panel) {
-            TestStudio { listOf(mainPanel) }.run()
+        fun testUI(title: String, mainPanel: Panel) {
+            TestStudio(title) { listOf(mainPanel) }.run()
         }
 
         /**
@@ -64,8 +64,8 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase("Test", 1,
          * with a single panel; full gfx capabilities,
          * no audio
          * */
-        fun testUI(mainPanels: List<Panel>) {
-            TestStudio { mainPanels }.run()
+        fun testUI(title: String, mainPanels: List<Panel>) {
+            TestStudio(title) { mainPanels }.run()
         }
 
         /**
@@ -73,15 +73,15 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase("Test", 1,
          * with a single panel; full gfx capabilities,
          * no audio
          * */
-        fun testUI2(createMainPanel: () -> List<Panel>) {
-            TestStudio(createMainPanel).run()
+        fun testUI2(title: String, createMainPanel: () -> List<Panel>) {
+            TestStudio(title, createMainPanel).run()
         }
 
         /**
          * like testUI, just with automatic weight of 1
          * */
-        fun testUI3(createMainPanel: () -> Panel) {
-            TestStudio {
+        fun testUI3(title: String, createMainPanel: () -> Panel) {
+            TestStudio(title) {
                 val p = createMainPanel()
                 p.weight = 1f
                 listOf(p)
@@ -91,8 +91,8 @@ class TestStudio(val createMainPanel: () -> List<Panel>) : StudioBase("Test", 1,
         /**
          * like testUI, just with automatic weight of 1
          * */
-        fun testUI3(mainPanel: Panel) {
-            TestStudio {
+        fun testUI3(title: String, mainPanel: Panel) {
+            TestStudio(title) {
                 mainPanel.weight = 1f
                 listOf(mainPanel)
             }.run()

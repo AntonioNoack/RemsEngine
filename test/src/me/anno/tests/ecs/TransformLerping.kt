@@ -18,5 +18,5 @@ fun main() {
         }
     })
     scene.add(child)
-    testSceneWithUI(scene)
+    testSceneWithUI("Transform Lerping", scene)
 }

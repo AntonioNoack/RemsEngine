@@ -34,7 +34,7 @@ val protocol = Protocol("TEST", NetworkProtocol.TCP).apply {
 
 fun main() {
     GFXBase.disableRenderDoc()
-    testUI3 {
+    testUI3("ServerClientWorld") {
         StudioBase.instance?.enableVSync = true
         DefaultConfig["debug.ui.showRedraws"] = true
         // todo scrolling breaks when any client joins... why???

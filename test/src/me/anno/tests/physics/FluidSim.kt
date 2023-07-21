@@ -191,7 +191,7 @@ fun main() {
         pressure.read.clearColor(-1)
     }
 
-    testDrawing {
+    testDrawing("Fluid Sim") {
 
         init.value
 

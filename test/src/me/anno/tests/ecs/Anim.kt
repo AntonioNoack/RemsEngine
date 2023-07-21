@@ -17,7 +17,7 @@ fun main() {
     println(org.lwjgl.assimp.Assimp.aiGetVersionMinor())
     println(org.lwjgl.assimp.Assimp.aiGetVersionRevision())
 
-    testUI3 {
+    testUI3("AnimTest") {
         // to do downgrade LWJGL again, or upgrade, if available
         ECSRegistry.init()
         FileExplorer(downloads.getChild("3d/Driving.fbx"), style)

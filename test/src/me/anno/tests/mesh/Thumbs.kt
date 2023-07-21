@@ -7,7 +7,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.OS
 
 fun main() {
-    testUI3 {
+    testUI3("Thumbs") {
         ECSRegistry.initMeshes()
         val explorer = ECSFileExplorer(OS.documents.getChild("Donut.fbx"), DefaultConfig.style)
         explorer.entrySize = 256f

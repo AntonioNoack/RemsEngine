@@ -12,7 +12,7 @@ import me.anno.utils.Color.black
 
 fun main() {
     GFXBase.disableRenderDoc()
-    testUI3 {
+    testUI3("NineTilePanel") {
         val alignments = arrayOf(
             AxisAlignment.MIN,
             AxisAlignment.CENTER,

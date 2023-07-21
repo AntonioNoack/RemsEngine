@@ -217,5 +217,5 @@ class Snake : Panel(style) {
 
 fun main() {
     GFXBase.disableRenderDoc()
-    testUI3 { Snake() }
+    testUI3("Snake") { Snake() }
 }

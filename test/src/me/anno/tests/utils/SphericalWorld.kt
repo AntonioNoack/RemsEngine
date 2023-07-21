@@ -100,13 +100,13 @@ fun main() {
         for (triangle in sphereWorld.triangles) {
             iterate(triangle, 0)
         }
-        testProceduralMesh { mesh ->
+        testProceduralMesh("SphericalWorld") { mesh ->
             meshBuilder.join(mesh, elements)
             // todo on click raycast & find triangle & place tree there
             // baseShape.copy(mesh)
         }
     } else {
-        TestStudio.testUI3 {
+        TestStudio.testUI3("SphericalWorld") {
             val relativeDetail = 0.1
             val detailFactor = sq(relativeDetail)
             val oldPosition = Vector3d()

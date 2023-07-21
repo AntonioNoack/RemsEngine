@@ -14,5 +14,5 @@ fun main() {
         val mesh = createFaceMesh(Mesh(), sphere.queryChunk(i, 0, 0))
         scene.add(Entity(MeshComponent(mesh)))
     }
-    testSceneWithUI(scene)
+    testSceneWithUI("HexSphere Chunked", scene)
 }

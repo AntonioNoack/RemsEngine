@@ -287,7 +287,7 @@ fun main() {
     // other optimization: use r/g/b in transparent pixels to encode distance to the closest wall -> massive speed up to traversal :)
 
     // draw using dense voxels
-    testUI {
+    testUI("MeshToVoxels") {
 
         // to measure performance
         StudioBase.instance?.enableVSync = false

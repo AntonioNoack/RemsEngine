@@ -296,8 +296,6 @@ fun main() {
         set(sphere, "scale", Vector3d(size))
     }*/
 
-    testSceneWithUI(prefab) {
-        it.renderer.worldScale
-    }
+    testSceneWithUI("Lights", prefab)
 
 }

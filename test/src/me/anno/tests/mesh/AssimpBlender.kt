@@ -12,7 +12,7 @@ fun main() {
         if (child.lcExtension == "blend")
             try {
                 AnimatedMeshesLoader.readAsFolder(child)
-                testSceneWithUI(child)
+                testSceneWithUI("Assimp/Blender", child)
                 return
             } catch (ignored: Exception) {
 

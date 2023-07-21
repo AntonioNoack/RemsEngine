@@ -71,7 +71,8 @@ class SimpleMeshTest(
         // render
         val samples = min(GFX.maxSamples, 8)
         val msaa = msaa && GFXState.currentBuffer.samples < samples
-        val buffer = if (msaa) FBStack["msaa", width, height, 4, BufferQuality.LOW_8, samples, false] else GFXState.currentBuffer
+        val buffer =
+            if (msaa) FBStack["msaa", width, height, 4, BufferQuality.LOW_8, samples, false] else GFXState.currentBuffer
         useFrame(x, y, width, height, buffer, renderer) {
             buffer.clearColor(backgroundColor, depth = true)
             pipeline.draw()
@@ -86,5 +87,5 @@ class SimpleMeshTest(
 fun main() {
     // the main method is extracted, so it can be easily ported to web
     // a better method may come in the future
-    testUI3 { SimpleMeshTest(true, attributeRenderers[DeferredLayerType.COLOR]) }
+    testUI3("UIMesh") { SimpleMeshTest(true, attributeRenderers[DeferredLayerType.COLOR]) }
 }

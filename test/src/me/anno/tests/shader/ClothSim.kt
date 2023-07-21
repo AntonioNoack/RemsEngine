@@ -11,5 +11,5 @@ import me.anno.utils.OS
 fun main() {
     val flag = FlagMesh()
     flag.material.diffuseMap = OS.pictures.getChild("4k.jpg")
-    testSceneWithUI(flag)
+    testSceneWithUI("FlagMeshSim", flag)
 }

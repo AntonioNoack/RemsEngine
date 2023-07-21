@@ -26,7 +26,7 @@ import kotlin.math.max
  * test recast navmesh generation and usage
  * */
 fun main() {
-    testUI {
+    testUI("NavMeshSmall") {
 
         StudioBase.instance?.enableVSync = false
         ECSRegistry.initMeshes()

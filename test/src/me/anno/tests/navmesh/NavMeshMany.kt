@@ -75,7 +75,7 @@ class AgentController1b(
  * test recast navmesh generation and usage
  * */
 fun main() {
-    testUI {
+    testUI("NavMeshMany") {
 
         StudioBase.instance?.enableVSync = false
         ECSRegistry.init()

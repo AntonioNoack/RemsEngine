@@ -90,6 +90,6 @@ fun main() {
         }
     }
 
-    testSceneWithUI(Entity(spawner))
+    testSceneWithUI("I32 Spawner", Entity(spawner))
 
 }

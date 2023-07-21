@@ -9,7 +9,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI2
 import me.anno.ui.input.IntInput
 import java.util.*
 import kotlin.math.max
@@ -66,7 +66,7 @@ fun main() {
         }
     }
     recalculate()
-    TestStudio.testUI2 {
+    testUI2("Hexagon Chunks/2") {
         listOf(
             SceneView.testScene(scene),
             PanelListX(style).apply {

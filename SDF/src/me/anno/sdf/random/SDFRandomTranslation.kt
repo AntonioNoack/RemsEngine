@@ -1,17 +1,11 @@
 package me.anno.sdf.random
 
-import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.sdf.VariableCounter
-import me.anno.sdf.arrays.SDFArrayMapper
-import me.anno.sdf.shapes.SDFBox
-import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFXBase
 import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -79,26 +73,5 @@ class SDFRandomTranslation : SDFRandom() {
     }
 
     override val className: String get() = "SDFRandomTranslation"
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            ECSRegistry.init()
-
-            val entity = Entity()
-
-            val array = SDFArrayMapper()
-            array.cellSize.set(2f)
-            array.count.set(10, 1, 10)
-
-            val shape = SDFBox()
-            shape.addChild(array)
-            shape.addChild(SDFRandomTranslation())
-            entity.addChild(shape)
-
-            GFXBase.disableRenderDoc()
-            testSceneWithUI(entity)
-        }
-    }
 
 }

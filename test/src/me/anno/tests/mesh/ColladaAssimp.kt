@@ -1,6 +1,6 @@
 package me.anno.tests.mesh
 
-import me.anno.engine.ui.render.SceneView
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.utils.OS
 
@@ -12,7 +12,7 @@ fun main() {
         if (child.lcExtension == "dae")
             try {
                 AnimatedMeshesLoader.readAsFolder(child)
-                SceneView.testSceneWithUI(child)
+                testSceneWithUI("Assimp/Collada", child)
                 return
             } catch (ignored: Exception) {
                 ignored.printStackTrace()

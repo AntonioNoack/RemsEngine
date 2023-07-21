@@ -10,7 +10,7 @@ import me.anno.input.MouseButton
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.sq
 import me.anno.ui.base.groups.MapPanel
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.black
 import org.joml.Vector2f
 import kotlin.math.cos
@@ -23,7 +23,7 @@ fun main() {
         Vector2f(cos(a), sin(a)).mul(300f)
     }
     val local = Array(np) { Vector2f() }
-    TestStudio.testUI3 {
+    testUI3("Draw Curves") {
         object : MapPanel(style) {
 
             var selected: Vector2f? = null

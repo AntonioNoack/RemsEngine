@@ -24,6 +24,6 @@ fun main() {
 
     // complex way:
     addEvent { scene.start() }
-    testSceneWithUI(scene)
+    testSceneWithUI("Procedural Audio", scene)
 
 }

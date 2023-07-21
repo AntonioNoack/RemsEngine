@@ -56,7 +56,7 @@ fun main() {
     val grid = wfc.collapseInit(sizeX, sizeY)
     val texToImage = LazyMap({ key: Image -> Texture2D(key, false) }, wfc.types.size)
     var hasRemaining = true
-    testUI3 {
+    testUI3("WaveFunctionCollapse") {
         object : MapPanel(style) {
             init {
                 minScale = 1.0 / 16.0

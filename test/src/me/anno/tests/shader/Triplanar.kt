@@ -8,5 +8,5 @@ fun main() {
     val mat = TriplanarMaterial()
     mat.diffuseMap = pictures.getChild("uv-checker.jpg")
     mat.normalMap = pictures.getChild("BricksNormal.png")
-    testSceneWithUI(mat)
+    testSceneWithUI("Triplanar Material", mat)
 }

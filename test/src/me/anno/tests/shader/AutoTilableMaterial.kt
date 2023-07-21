@@ -2,8 +2,6 @@ package me.anno.tests.shader
 
 import me.anno.ecs.components.shaders.AutoTileableMaterial
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.maths.Maths.erf
-import me.anno.maths.Maths.erfInv
 import me.anno.utils.OS.pictures
 
 fun main() {
@@ -13,5 +11,5 @@ fun main() {
     }*/
     val material = AutoTileableMaterial()
     material.diffuseMap = pictures.getChild("textures/grass.jpg")
-    testSceneWithUI(material)
+    testSceneWithUI("AutoTileable Material", material)
 }

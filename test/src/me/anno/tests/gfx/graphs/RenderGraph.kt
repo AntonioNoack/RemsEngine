@@ -10,7 +10,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.graph.render.RenderGraph
 import me.anno.graph.render.RenderGraphEditor
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS
 
 fun main() {
@@ -18,7 +18,7 @@ fun main() {
     val scene = Entity()
     scene.add(MeshComponent(OS.documents.getChild("metal-roughness.glb")))
     scene.add(SkyBox())
-    TestStudio.testUI {
+    testUI("RenderGraph") {
 
         EditorState.prefabSource = scene.ref
 

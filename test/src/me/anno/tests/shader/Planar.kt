@@ -8,5 +8,5 @@ fun main() {
     val mat = PlanarMaterial()
     mat.diffuseMap = pictures.getChild("BricksColor.jpg")
     mat.normalMap = pictures.getChild("BricksNormal.png")
-    testSceneWithUI(mat)
+    testSceneWithUI("Planar Material", mat)
 }

@@ -8,7 +8,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 
 fun main() {
-    testUI3 {
+    testUI3("Scrollbar Overdraw") {
         StudioBase.instance?.enableVSync = true
         val main = ScrollPanelY(style)
         val list = main.child as PanelList

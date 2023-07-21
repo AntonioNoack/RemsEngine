@@ -174,7 +174,7 @@ fun main() {
 
     physics.gravity /= sphere.n
 
-    testSceneWithUI(scene) {
+    testSceneWithUI("HexagonSphere Physics", scene) {
         // override controller
         it.renderer.playMode = PlayMode.PLAYING // remove grid
         it.renderer.enableOrbiting = false

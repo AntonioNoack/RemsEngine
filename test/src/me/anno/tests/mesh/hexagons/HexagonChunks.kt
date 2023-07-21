@@ -62,7 +62,7 @@ fun main() {
         }
         entity.add(triangle)
     }
-    testSceneWithUI(entity)
+    testSceneWithUI("Hexagon Chunks", entity)
 }
 
 fun createHexSphere(n: Int): Pair<ArrayList<Hexagon>, Float> {

@@ -79,7 +79,7 @@ fun main() {
         }
         false
     }
-    testSceneWithUI(scene) {
+    testSceneWithUI("Scene with Transparency", scene) {
         // it.renderer.renderMode = RenderMode.FORCE_NON_DEFERRED
         it.renderer.pipeline.defaultStage.sorting = Sorting.BACK_TO_FRONT
         it.renderer.pipeline.transparentPass = GlassPass()

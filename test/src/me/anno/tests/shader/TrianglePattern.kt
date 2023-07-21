@@ -47,5 +47,5 @@ fun main() {
             }
         }
     }.ref)
-    testSceneWithUI(mesh)
+    testSceneWithUI("Triangle Pattern", mesh)
 }

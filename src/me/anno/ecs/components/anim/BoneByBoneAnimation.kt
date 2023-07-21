@@ -377,7 +377,7 @@ class BoneByBoneAnimation() : Animation() {
                 }
             }
 
-            testSceneWithUI(mesh) {
+            testSceneWithUI("BoneByBoneAnimation", mesh) {
                 DefaultConfig["debug.renderdoc.enabled"] = true
                 StudioBase.instance?.enableVSync = true
             }

@@ -18,7 +18,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
  * test ui with button that changes size when being hovered
  * */
 fun main() {
-    testUI {
+    testUI("AnimTest") {
         DefaultConfig["debug.renderdoc.enabled"] = false
         DefaultConfig["debug.ui.showRedraws"] = false
         val list = PanelListY(style)

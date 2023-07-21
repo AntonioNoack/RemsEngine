@@ -330,7 +330,7 @@ fun main() {
         readOSM1(data.inputStream(), tags)
     }*/
 
-    testUI3 {
+    testUI3("OSMap") {
         object : MapPanel(style) {
 
             init {

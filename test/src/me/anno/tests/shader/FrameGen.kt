@@ -57,7 +57,7 @@ fun main() {
     // val path = getReference("E:/Assets/Sources/POLYGON_War_Pack_Source_Files.zip/POLYGON_War_Demo_Scene.fbx/Scene.json") // fps increases
     val path = downloads.getChild("3d/DamagedHelmet.glb") // fps decreases
     val scene = PrefabCache[path]!!.getSampleInstance() as Entity
-    testUI3 {
+    testUI3("FrameGen") {
         DefaultConfig["debug.renderdoc.enabled"] = true
         StudioBase.instance?.enableVSync = false
         var interFrames = 2

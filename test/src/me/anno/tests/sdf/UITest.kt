@@ -35,6 +35,6 @@ fun main() {
         addChild(UVSphereMapper())
     })
 
-    testSceneWithUI(scene)
+    testSceneWithUI("SDFUI", scene)
 
 }

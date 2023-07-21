@@ -8,7 +8,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI
 
 fun main() {
-    testUI {
+    testUI("List Stresstest X") {
         StudioBase.instance?.enableVSync = false
         val n = 100_000
         val list = PanelListX(style)

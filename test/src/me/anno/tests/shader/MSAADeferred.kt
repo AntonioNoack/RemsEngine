@@ -11,7 +11,7 @@ fun main() {
     val scene = Entity()
     scene.add(SkyBox())
     scene.add(MeshComponent(downloads.getChild("3d/DamagedHelmet.glb")))
-    testSceneWithUI(scene) {
+    testSceneWithUI("MSAADeferred", scene) {
         it.renderer.renderMode = RenderMode.MSAA_DEFERRED
     }
 }

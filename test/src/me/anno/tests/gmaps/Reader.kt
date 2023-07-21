@@ -57,7 +57,7 @@ fun main() {
             entity.add(mesh)
     }
     // draw mesh data :)
-    testSceneWithUI(entity)
+    testSceneWithUI("GMaps Reader", entity)
 }
 
 fun unpack565(v: Int): Int {

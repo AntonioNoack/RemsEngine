@@ -10,7 +10,7 @@ import me.anno.ui.editor.files.FileExplorerOption
 
 fun main() {
     disableRenderDoc()
-    testUI {
+    testUI("File Explorer") {
         ECSRegistry.init()
         object : FileExplorer(null, DefaultConfig.style) {
             override fun getFolderOptions() = emptyList<FileExplorerOption>()

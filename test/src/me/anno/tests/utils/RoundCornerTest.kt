@@ -17,7 +17,7 @@ fun main() {
     panel.height = 60
     panel.backgroundRadius = 15f
     panel.backgroundRadiusCorners = CORNER_TOP_LEFT
-    testDrawing {
+    testDrawing("Round Corners") {
         for (y in 0 until panel.height + panel.y * 2) {
             for (x in 0 until panel.width + panel.x * 2) {
                 val c = -panel.isOpaqueAt(x, y).toInt()

@@ -583,7 +583,7 @@ fun main2(
     fovZFactor: Float
 ) {
     LogManager.disableLogger("WorkSplitter")
-    testUI3 {
+    testUI3("BLAS - Realtime") {
 
         val main = PanelListY(style)
         val controls = createControls(cameraPosition, cameraRotation, bvh, main)

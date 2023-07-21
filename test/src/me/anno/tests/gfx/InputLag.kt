@@ -36,7 +36,7 @@ fun main() {
     val vsync = true
     val delayNanos = (0.95 * 1e9 / measuredFps).toLong()
     var lastTime = Engine.nanoTime
-    testDrawing {
+    testDrawing("InputLag") {
         // with Vsync: 3 frames input lag (red ring)
         // without vsync (at 2000 fps): still 33ms lag (yellow ring)
         // without vsync, with glFinish() after glfwSwapBuffers(): 16-25ms lag (between green and yellow)

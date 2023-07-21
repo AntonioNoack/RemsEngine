@@ -4,11 +4,6 @@ import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.sdf.DebugMode
-import me.anno.sdf.SDFGroup.Companion.sdMax
-import me.anno.sdf.SDFGroup.Companion.smoothMinCubic
-import me.anno.sdf.VariableCounter
-import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
@@ -29,6 +24,11 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
+import me.anno.sdf.DebugMode
+import me.anno.sdf.SDFGroup.Companion.sdMax
+import me.anno.sdf.SDFGroup.Companion.smoothMinCubic
+import me.anno.sdf.VariableCounter
+import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.utils.Color.black
 import me.anno.utils.OS.pictures
 import org.joml.AABBf
@@ -39,20 +39,6 @@ import kotlin.math.max
 class SDFHeightMap : SDFShape() {
 
     companion object {
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // todo define a sample with bricks (SDFArray2)
-            testSceneWithUI(Entity().apply {
-                addChild(SDFHeightMap().apply {
-                    maxSteps = 50
-                    localReliability = 0.5f
-                    source = pictures.getChild("Maps/Bricks.png")
-                    maxHeight = 0.1f
-                    debugMode = DebugMode.NUM_STEPS
-                })
-            })
-        }
 
         // different ways: 2d / 1d
         // walk along path, and find the closest hit

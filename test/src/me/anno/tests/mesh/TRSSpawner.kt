@@ -46,5 +46,5 @@ fun main() {
             } else false
         }
     }
-    testSceneWithUI(spawner)
+    testSceneWithUI("TRSSpawner", spawner)
 }

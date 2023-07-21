@@ -28,5 +28,5 @@ fun main() {
             editor.invalidateLayout()
         } else editor.invalidateDrawing() // for testing normal performance
     }
-    testUI(listOf(spy, editor))
+    testUI("Graph Editor", listOf(spy, editor))
 }

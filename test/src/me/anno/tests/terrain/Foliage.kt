@@ -245,7 +245,7 @@ fun main() {
         add(MeshComponent(terrainMesh))
     })
 
-    testUI {
+    testUI("Foliage") {
 
         val scene2 = scene.ref
         EditorState.prefabSource = scene2

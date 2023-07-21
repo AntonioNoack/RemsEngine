@@ -7,7 +7,7 @@ import me.anno.ui.editor.files.FileExplorer
 import me.anno.utils.OS.downloads
 
 fun main() {
-    testUI {
+    testUI("Vox") {
         ECSRegistry.init()
         FileExplorer(downloads.getChild("MagicaVoxel/vox"), style)
     }

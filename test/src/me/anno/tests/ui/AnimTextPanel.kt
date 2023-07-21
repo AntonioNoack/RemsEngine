@@ -7,7 +7,7 @@ import me.anno.maths.Maths
 import me.anno.maths.noise.FullNoise
 import me.anno.ui.anim.AnimTextPanel
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.Color
 import me.anno.utils.Color.withAlpha
 import kotlin.math.min
@@ -35,12 +35,12 @@ class AnimTextPanelTest(useLua: Boolean) : PanelListY(DefaultConfig.style) {
         // excellent for fast and quick development; bad for allocations and GC
         if (useLua) add(
             LuaAnimTextPanel(
-            "Lua Rainbow Text", "" +
-                    "s = time*5+index/3\n" +
-                    "translate(0,math.sin(s)*5)\n" +
-                    "rotate(math.sin(s)*0.1)\n" +
-                    "return hsluv(time*2-index/2)", DefaultConfig.style
-        ).apply { this.font = font })
+                "Lua Rainbow Text", "" +
+                        "s = time*5+index/3\n" +
+                        "translate(0,math.sin(s)*5)\n" +
+                        "rotate(math.sin(s)*0.1)\n" +
+                        "return hsluv(time*2-index/2)", DefaultConfig.style
+            ).apply { this.font = font })
         add(AnimTextPanel.SimpleAnimTextPanel("Growing Text", DefaultConfig.style) { p, time, index, _, _ ->
             p.font = font
             val growTime = 0.4f
@@ -122,7 +122,7 @@ class AnimTextPanelTest(useLua: Boolean) : PanelListY(DefaultConfig.style) {
 fun main() {
     // inspired by https://www.youtube.com/watch?v=3QXGM84ZfSw
     GFXBase.disableRenderDoc()
-    TestStudio.testUI {
+    testUI("AnimTextPanel") {
         AnimTextPanelTest(true)
     }
 }

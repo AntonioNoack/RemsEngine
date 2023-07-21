@@ -15,5 +15,5 @@ fun main() {
         child.add(MeshComponent(smoothCube.front))
         scene.add(child)
     }
-    testSceneWithUI(scene)
+    testSceneWithUI("FibonacciSphere", scene)
 }

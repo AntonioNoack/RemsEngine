@@ -255,7 +255,7 @@ fun main() {
     //Engine.requestShutdown()
     //return
 
-    TestStudio.testUI {
+    TestStudio.testUI("Unity") {
         object : FileExplorer(testScene, DefaultConfig.style) {
 
             override fun getFolderOptions(): List<FileExplorerOption> = emptyList()

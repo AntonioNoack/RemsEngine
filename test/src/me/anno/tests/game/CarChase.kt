@@ -233,5 +233,5 @@ fun createUI(): Panel {
 fun main() {
     // todo bug: why are meshes and materials not automatically reloading?
     GFXBase.disableRenderDoc()
-    testUI3 { createUI() }
+    testUI3("CarChase") { createUI() }
 }

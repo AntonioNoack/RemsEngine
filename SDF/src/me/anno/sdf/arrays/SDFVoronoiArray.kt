@@ -1,25 +1,18 @@
 package me.anno.sdf.arrays
 
-import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.shader.GLSLType
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.fract
+import me.anno.maths.Maths.sq
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.defineUniform
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.PositionMapper
 import me.anno.sdf.random.SDFRandom.Companion.randLib
-import me.anno.sdf.random.SDFRandomUV
-import me.anno.sdf.shapes.SDFCone
-import me.anno.sdf.shapes.SDFPlane
-import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.shader.GLSLType
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.sq
-import me.anno.utils.OS.pictures
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.types.Booleans.toInt
@@ -392,33 +385,6 @@ class SDFVoronoiArray : PositionMapper() {
     override val className: String get() = "SDFVoronoiArray"
 
     companion object {
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            // build nice, small forest :)
-            testSceneWithUI(Entity().apply {
-                // ground
-                addChild(SDFPlane().apply {
-                    sdfMaterials = listOf(Material().apply {
-                        diffuseBase.set(0.3f, 0.5f, 0.3f, 1f)
-                    }.ref)
-                })
-                // trees
-                addChild(SDFCone().apply {
-                    addChild(SDFVoronoiArray().apply {
-                        min.set(-1e3f)
-                        max.set(+1e3f)
-                    })
-                    addChild(SDFRandomUV())
-                    radius = 0.4f
-                    sdfMaterials = listOf(Material().apply {
-                        // add texture with random shades of green :)
-                        // https://www.wallpaperup.com/259563/green_landscapes_nature_trees_grass_parks.html
-                        diffuseMap = pictures.getChild("RemsStudio/8c841f59b8dedb0b63abcac91cb82392-1000.jpg")
-                    }.ref)
-                })
-            })
-        }
 
         // inspired by https://www.shadertoy.com/view/ldl3W8, Inigo Quilez
         const val sdVoronoi = "" +

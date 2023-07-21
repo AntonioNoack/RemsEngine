@@ -20,7 +20,7 @@ fun main() {
     val meshes = readBinaryFBX6000AsMeshes(source.inputStreamSync())
     val entity = Entity()
     for (mesh in meshes) entity.add(MeshComponent(mesh))
-    testSceneWithUI(entity)
+    testSceneWithUI("Assimp/FBX6.1", entity)
 }
 
 fun shorten(v: Any?): Any? {

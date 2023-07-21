@@ -10,7 +10,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
 
 fun main() {
     disableRenderDoc()
-    testUI {
+    testUI("Custom Container") {
         val options = UITypeLibrary(arrayListOf(
             Type("A") { TextPanel("A", DefaultConfig.style) },
             Type("B") { TextPanel("B", DefaultConfig.style) },

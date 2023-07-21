@@ -33,5 +33,5 @@ fun createEasyMeshUI(meshRef: FileReference = getReference("res://mesh/arrowX.ob
 fun main() {
     // the main method is extracted, so it can be easily ported to web
     // a better method may come in the future
-    testUI3(::createEasyMeshUI)
+    testUI3("Easy Mesh UI", ::createEasyMeshUI)
 }

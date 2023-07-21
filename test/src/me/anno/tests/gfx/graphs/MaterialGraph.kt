@@ -53,7 +53,7 @@ fun main(){
 
     compile()
     // show resulting material as preview
-    TestStudio.testUI {
+    TestStudio.testUI("MaterialGraph") {
         val ui = CustomList(false, DefaultConfig.style)
         val ge = object : GraphEditor(g, DefaultConfig.style) {
             override fun canDeleteNode(node: Node): Boolean {

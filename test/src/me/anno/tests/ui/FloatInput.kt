@@ -12,5 +12,5 @@ fun main() {
     // fi.isInputAllowed = false
     // todo this should change the text color as well...
     fi.isEnabled = false
-    testUI(fi)
+    testUI("Float Input", fi)
 }

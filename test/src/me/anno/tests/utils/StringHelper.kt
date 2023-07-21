@@ -16,7 +16,7 @@ fun main() {
         val ai = a.substring(i)
         for (j in b.indices) {
             val bi = b.substring(j)
-            ai.levenshtein(bi,true)
+            ai.levenshtein(bi, true)
         }
     }
     println("abc".distance("abcdef"))
@@ -27,6 +27,7 @@ fun main() {
     GFXBase.disableRenderDoc()
     println("polyGeneLubricants".smallCaps())
     testUI(
+        "String Rendering/Smallcaps",
         listOf(
             TextPanel("polyGeneLubricants", style),
             TextPanel("polyGeneLubricants".smallCaps(), style)

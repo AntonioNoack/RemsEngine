@@ -193,7 +193,7 @@ fun test3() {
     // todo add chains between stuff?
     // todo spawn new points?
 
-    testUI3 {
+    testUI3("Box2d") {
         object : MapPanel(style) {
 
             init {

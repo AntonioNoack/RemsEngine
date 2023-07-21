@@ -3,10 +3,10 @@ package me.anno.tests.physics
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.audio.AudioComponent
-import me.anno.ecs.components.collider.BoxCollider
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.bullet.BulletPhysics
 import me.anno.ecs.components.bullet.Rigidbody
+import me.anno.ecs.components.collider.BoxCollider
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -145,7 +145,7 @@ fun main() {
     }
 
     GFXBase.disableRenderDoc()
-    testSceneWithUI(scene) {
+    testSceneWithUI("Dominos", scene) {
         DefaultConfig["debug.ui.showRedraws"] = false
         it.renderer.renderMode = RenderMode.PHYSICS
     }

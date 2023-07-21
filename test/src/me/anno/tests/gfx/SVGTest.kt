@@ -25,7 +25,7 @@ import org.joml.Matrix4fArrayList
 fun main() {
 
     GFXBase.forceLoadRenderDoc()
-    testUI3 {
+    testUI3("SVG") {
 
         // val srcFile = downloads.getChild("2d/tiger.svg")
         val srcFile = downloads.getChild("2d/gradientSample2.svg")

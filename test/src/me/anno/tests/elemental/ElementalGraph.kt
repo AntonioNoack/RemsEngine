@@ -251,7 +251,7 @@ fun main() {
         HSLuv.toRGB(Vector3f(it.toFloat() / numColors, 1f, 0.7f)).toRGB()
     }*/
 
-    testDrawing {
+    testDrawing("Elemental Graph") {
 
         it.allowLeft = true
 

@@ -39,5 +39,5 @@ fun main() {
             entity.add(child)
         }
     }
-    testSceneWithUI(entity)
+    testSceneWithUI("Octahedron Decode", entity)
 }

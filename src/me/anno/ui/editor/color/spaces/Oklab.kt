@@ -93,5 +93,5 @@ fun main() {
     mesh.positions = positions
     mesh.color0 = colors
     mesh.drawMode = GL_POINTS
-    testSceneWithUI(mesh)
+    testSceneWithUI("Oklab", mesh)
 }

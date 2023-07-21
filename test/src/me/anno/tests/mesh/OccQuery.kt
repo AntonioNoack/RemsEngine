@@ -11,5 +11,5 @@ fun main() {
     val mesh = MeshComponent(documents.getChild("sphere.obj"))
     mesh.occlusionQuery = OcclusionQuery(16, 16)
     scene.add(mesh)
-    testSceneWithUI(scene)
+    testSceneWithUI("Occlusion Query", scene)
 }

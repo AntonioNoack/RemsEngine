@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.terrain.TerrainUtils.generateRegularQuadHeigh
 import me.anno.maths.noise.PerlinNoise
 
 fun main() {
-    testProceduralMesh { mesh ->
+    testProceduralMesh("Terrain") { mesh ->
         val width = 256
         val height = 256
         val s = 4f / width

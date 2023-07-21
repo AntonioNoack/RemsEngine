@@ -19,6 +19,7 @@ import me.anno.sdf.arrays.SDFHexGrid
 import me.anno.sdf.modifiers.*
 import me.anno.sdf.shapes.*
 import me.anno.ui.debug.TestDrawPanel
+import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.rgba
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
@@ -120,7 +121,7 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
     println(shaderBase.fragmentShader)
     val camRotation = Quaternionf()
     val camMatrix = Matrix3f()
-    TestDrawPanel.testDrawing {
+    testDrawing("SDFs on GPU") {
         val dt = Engine.deltaTime
         val dt5 = 5f * dt
         val time = Engine.gameTimeF

@@ -42,7 +42,7 @@ fun main() {
         }, { _, _, _, dst -> dst.set(0f, 1f, 0f) }, { -1 })
     mesh.calculateNormals(true)
     scene.add(MeshComponent(mesh))
-    testSceneWithUI(scene) {
+    testSceneWithUI("Terrain", scene) {
         it.editControls = object : ControlScheme(it.renderer) {
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
                 if (Input.isLeftDown && (dx != 0f || dy != 0f)) {

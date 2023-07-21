@@ -21,5 +21,5 @@ fun main() {
     }.ref)
     scene.add(mesh)
     scene.add(SkyBox())
-    testSceneWithUI(scene)
+    testSceneWithUI("CubeMap LODs", scene)
 }

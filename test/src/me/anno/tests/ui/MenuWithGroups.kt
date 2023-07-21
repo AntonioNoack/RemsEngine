@@ -9,13 +9,13 @@ import me.anno.ui.base.menu.ComplexMenuGroup
 import me.anno.ui.base.menu.ComplexMenuOption
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.debug.TestStudio
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 
 /**
  * a test for menus with multiple layers (groups)
  * */
 fun main() {
-    TestStudio.testUI3 {
+    testUI3("Menu With Groups") {
         val list = PanelListY(DefaultConfig.style)
         fun option(name: String): ComplexMenuOption {
             return ComplexMenuOption(name, "", true) { _, _ ->

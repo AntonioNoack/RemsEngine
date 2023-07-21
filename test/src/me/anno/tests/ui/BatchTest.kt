@@ -11,7 +11,7 @@ import me.anno.utils.Color.toARGB
 import org.joml.Vector4f
 
 fun main() {
-    testUI3 {
+    testUI3("Batch Test") {
         StudioBase.instance?.apply {
             enableVSync = false
             showFPS = true

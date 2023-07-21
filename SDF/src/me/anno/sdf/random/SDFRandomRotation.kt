@@ -1,17 +1,11 @@
 package me.anno.sdf.random
 
-import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.sdf.VariableCounter
-import me.anno.sdf.arrays.SDFArrayMapper
-import me.anno.sdf.shapes.SDFBox
-import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFXBase
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.piF180d
 import me.anno.utils.types.Floats.toRadians
@@ -109,30 +103,5 @@ class SDFRandomRotation : SDFRandom() {
     }
 
     override val className: String get() = "SDFRandomRotation"
-
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            ECSRegistry.init()
-
-            val entity = Entity()
-
-            val array = SDFArrayMapper()
-            array.cellSize.set(2f)
-            array.count.set(10, 1, 10)
-
-            val rot = SDFRandomRotation()
-            rot.minAngleDegrees.set(-2f, 0f, -2f)
-            rot.maxAngleDegrees.set(+2f, 0f, +2f)
-
-            val shape = SDFBox()
-            shape.addChild(array)
-            shape.addChild(rot)
-            entity.addChild(shape)
-
-            GFXBase.disableRenderDoc()
-            testSceneWithUI(entity)
-        }
-    }
 
 }

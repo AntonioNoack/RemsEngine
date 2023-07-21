@@ -14,7 +14,7 @@ import kotlin.math.sin
  * */
 fun main() {
     GFXBase.disableRenderDoc()
-    testUI {
+    testUI("MultiWindow Shared/2") {
         addEvent {
             for (title in listOf("your", "grace", "is welcome")) {
                 val ui = PanelListY(style)

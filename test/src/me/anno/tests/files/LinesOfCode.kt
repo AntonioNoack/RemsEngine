@@ -43,7 +43,7 @@ fun main() {
     // to do have a white and a blacklist
     // to do have a tree view of everything, where you define them
     // to do count inside zips inside zips :D
-    testUI3 {
+    testUI3("Lines Of Code") {
         val notCollapsed = HashSet<FileReference>(1024)
         val root = FileRootRef
         notCollapsed.add(root)

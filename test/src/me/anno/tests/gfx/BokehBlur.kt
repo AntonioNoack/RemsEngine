@@ -9,7 +9,7 @@ import me.anno.utils.OS.pictures
 import kotlin.math.max
 
 fun main() {
-    testDrawing {
+    testDrawing("Bokeh Blur") {
         val dst = FBStack["bokeh", it.width, it.height, 3, true, 1, false]
         val src = ImageGPUCache[pictures.getChild("4k.jpg"), false]!!
         val window = it.window!!

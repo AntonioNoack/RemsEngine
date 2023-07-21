@@ -335,7 +335,7 @@ fun main() {
         scaled.scale = scaled.scale.set(1.0001)
         entity.add(scaled)
     }
-    testUI2 {
+    testUI2("Hexagon Sphere") {
         EditorState.prefabSource = entity.ref
         val main = SceneView(EditorState, PlayMode.EDITING, style)
         main.weight = 1f

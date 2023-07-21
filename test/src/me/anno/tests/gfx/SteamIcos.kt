@@ -10,7 +10,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI3
 
 fun main() {
     disableRenderDoc()
-    testUI3 {
+    testUI3("SteamIcons") {
         val list = PanelList2D(style)
         val folder = getReference("C:/Program Files (x86)/Steam/steam/games")
         for (file in folder.listChildren()!!) {

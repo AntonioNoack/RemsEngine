@@ -16,7 +16,7 @@ import me.anno.utils.OS.downloads
 
 fun main() {
     val scene = downloads.getChild("ogldev-source/crytek_sponza/sponza.obj")
-    testUI3 {
+    testUI3("Depth Of Field") {
         EditorState.prefabSource = scene
         val sceneView = SceneView(EditorState, PlayMode.EDITING, style)
         sceneView.renderer.renderMode = RenderMode.DEPTH_OF_FIELD

@@ -135,5 +135,5 @@ fun main() {
         position = position.set(-1.3, 1.0, 0.0)
     })
     scene.add(SkyBox())
-    testSceneWithUI(scene)
+    testSceneWithUI("Force Field", scene)
 }

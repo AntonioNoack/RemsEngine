@@ -6,5 +6,5 @@ import me.anno.io.files.FileReference.Companion.getReference
 
 fun main() {
     ECSRegistry.initMeshes()
-    testSceneWithUI(getReference("E:/Documents/Blender/AnalyseGM.blend"))
+    testSceneWithUI("Broken Blender Files", getReference("E:/Documents/Blender/AnalyseGM.blend"))
 }

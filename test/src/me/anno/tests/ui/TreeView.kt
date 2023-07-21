@@ -43,7 +43,7 @@ fun main() {
     val selected = HashSet<Element>()
 
     GFXBase.disableRenderDoc()
-    testUI3 {
+    testUI3("Tree View") {
         object : TreeView<Element>(listOf(root), object : FileContentImporter<Element>() {
 
             override fun setName(element: Element, name: String) {

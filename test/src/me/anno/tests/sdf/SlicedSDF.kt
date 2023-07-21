@@ -1,4 +1,4 @@
-package me.anno.tests.gfx
+package me.anno.tests.sdf
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.AnimTexture
@@ -299,5 +299,5 @@ fun main() {
             coneAngle = 0.57
         })
     })
-    testSceneWithUI(scene)
+    testSceneWithUI("Sliced SDF", scene)
 }

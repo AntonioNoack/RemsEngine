@@ -10,7 +10,7 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 
 fun main() {
-    testUI3 {
+    testUI3("Blender Thumbnails") {
         val src = getReference("E:/Documents/Blender")
         val panel = CustomList(false, style)
         panel.add(ECSFileExplorer(src, style))

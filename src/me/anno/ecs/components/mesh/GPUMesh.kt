@@ -38,12 +38,13 @@ class GPUMesh : MeshComponentBase() {
 
     companion object {
 
+        // todo move to tests
         @JvmStatic
         fun main(args: Array<String>) {
             val scene = Entity()
             scene.add(SkyBox())
             scene.add(GPUMesh())
-            testSceneWithUI(scene)
+            testSceneWithUI("GPUMesh", scene)
         }
     }
 

@@ -16,5 +16,5 @@ fun main() {
     sample.add(Entity("Child 4")) // added after taking reference
     sample.add(Entity("Child 5")) // added after taking reference
     sample.add(Entity("Child 6")) // added after taking reference
-    testSceneWithUI(ref)
+    testSceneWithUI("ECSTreeView", ref)
 }

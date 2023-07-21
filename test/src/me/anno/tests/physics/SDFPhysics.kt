@@ -57,7 +57,7 @@ fun main() {
         scene.add(projectile2)
         scene.add(SkyBox()) // beauty ^^
 
-        testUI {
+        testUI("SDF Physics") {
             testScene(scene)
         }
     }

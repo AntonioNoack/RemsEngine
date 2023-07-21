@@ -324,7 +324,7 @@ fun main() {
     scene.add(ambient)
     scene.add(sunEntity)
 
-    testSceneWithUI(scene) {
+    testSceneWithUI("HexSphere MC", scene) {
         if (false) {
             it.renderer.playMode = PlayMode.PLAYING // remove grid
             it.renderer.enableOrbiting = false
