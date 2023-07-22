@@ -85,7 +85,7 @@ class MaterialGraphCompiler(
                 if (!first) builder.append(", ")
                 builder
                     .append("inout ")
-                    .append(DeferredSettingsV2.glslTypes[l.workDims - 1])
+                    .append(GLSLType.floats[l.workDims - 1])
                     .append(" ").append(l.glslName)
                 first = false
             }

@@ -1,6 +1,6 @@
 package me.anno.gpu.deferred
 
-import me.anno.gpu.deferred.DeferredSettingsV2.Companion.glslTypes
+import me.anno.gpu.shader.GLSLType
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.structures.maps.LazyMap
 import org.joml.Vector4f
@@ -38,7 +38,7 @@ open class DeferredLayerType(
             this(name, glslName, dimensions, BufferQuality.LOW_8, false, defaultValueARGB, "", "")
 
     fun appendDefinition(fragment: StringBuilder) {
-        fragment.append(glslTypes[workDims - 1])
+        fragment.append(GLSLType.floats[workDims - 1])
         fragment.append(' ')
         fragment.append(glslName)
     }

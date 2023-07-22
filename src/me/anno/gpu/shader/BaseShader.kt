@@ -85,14 +85,10 @@ open class BaseShader(
             )
         }
 
-
-        // todo add IS_TINTED to all RemsStudio shaders, if applicable
-        // val hasTint = "vec4 tint;" in fragmentShader || "tint" in varyings.map { it.name }
-
         val builder = ShaderBuilder(name)
 
-        val vs = ShaderStage(vertexVariables, varyings, true, vertexShader)
-        val fs = ShaderStage(fragmentVariables, varyings, false, fragmentShader)
+        val vs = ShaderStage("forward-v", vertexVariables, varyings, true, vertexShader)
+        val fs = ShaderStage("forward-f", fragmentVariables, varyings, false, fragmentShader)
 
         if (flags.hasFlag(IS_INSTANCED)) {
             vs.define("INSTANCED")

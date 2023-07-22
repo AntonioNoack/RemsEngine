@@ -17,6 +17,8 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph) : GraphEditor(grap
 
     init {
 
+        minScale = 0.01
+
         library = RenderGraph.library
         for (it in library.allNodes) {
             val sample = it.first

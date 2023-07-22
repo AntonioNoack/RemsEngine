@@ -96,7 +96,7 @@ class WeightedBlended : TransparentPass() {
                             Variable(GLSLType.V4F, "result1", VariableMode.OUT)
                         )
                 return ShaderStage(
-                    vars, "" +
+                    "wb-0", vars, "" +
                             lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
                             combineLightCode +
                             skyMapCode + blendWeight +
@@ -115,7 +115,7 @@ class WeightedBlended : TransparentPass() {
                             Variable(GLSLType.V4F, "result1", VariableMode.OUT)
                         )
                 return ShaderStage(
-                    vars, "" +
+                    "wb-1", vars, "" +
                             lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
                             combineLightCode +
                             skyMapCode + blendWeight +
@@ -140,7 +140,8 @@ class WeightedBlended : TransparentPass() {
         val l1 = s0.findLayer(DeferredLayerType.EMISSIVE)!!
 
         val tmp = getFB(targets)
-        val perTargetBlending = true // GFX.glVersion >= 40 && !Input.isControlDown // todo with per-target-blending doesn't work :/
+        val perTargetBlending =
+            true // GFX.glVersion >= 40 && !Input.isControlDown // todo with per-target-blending doesn't work :/
         val renderer = if (perTargetBlending) Renderer0 else Renderer1
 
         useFrame(b0.width, b0.height, true, tmp, renderer) {

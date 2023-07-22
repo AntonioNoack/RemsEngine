@@ -27,7 +27,7 @@ object Outlines {
 
     val whiteRenderer = SimpleRenderer(
         "white", ShaderStage(
-            listOf(
+            "white", listOf(
                 Variable(GLSLType.V1F, "zDistance"),
                 Variable(GLSLType.V1F, "finalAlpha"),
                 Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)

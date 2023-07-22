@@ -2,7 +2,6 @@ package me.anno.gpu.deferred
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.*
-import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.RandomEffect.randomFunc
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -151,8 +150,8 @@ data class DeferredSettingsV2(
     ): Shader {
         val vertex = if (instanced) "#define INSTANCED;\n$vertexShader" else vertexShader
         val builder = ShaderBuilder(shaderName, this)
-        builder.addVertex(ShaderStage(vertexVariables + varyings, vertex))
-        builder.addFragment(ShaderStage(fragmentVariables + varyings, fragmentShader))
+        builder.addVertex(ShaderStage("def-vs", vertexVariables + varyings, vertex))
+        builder.addFragment(ShaderStage("def-fs", fragmentVariables + varyings, fragmentShader))
         builder.addFragment(postProcessing)
         val shader = builder.create()
         shader.setTextureIndices(textures)
@@ -239,16 +238,12 @@ data class DeferredSettingsV2(
     }
 
     companion object {
-
-        val glslTypes = floats
-
         val singleToVector = mapOf(
             "r" to Vector4f(1f, 0f, 0f, 0f),
             "g" to Vector4f(0f, 1f, 0f, 0f),
             "b" to Vector4f(0f, 0f, 1f, 0f),
             "a" to Vector4f(0f, 0f, 0f, 1f)
         )
-
     }
 
 }

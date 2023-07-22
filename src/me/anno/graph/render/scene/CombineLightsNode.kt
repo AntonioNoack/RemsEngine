@@ -11,9 +11,9 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.LightShaders.combineFStage
 import me.anno.gpu.pipeline.LightShaders.combineLighting1
 import me.anno.gpu.pipeline.LightShaders.combineVStage
+import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -89,7 +89,10 @@ class CombineLightsNode : RenderSceneNode0(
                         ) + depthVars
                 val builder = ShaderBuilder(name)
                 builder.addVertex(combineVStage)
-                builder.addFragment(ShaderStage(variables, expressions).add(extraFunctions.toString()))
+                builder.addFragment(
+                    ShaderStage("combineLightsExpr", variables, expressions)
+                        .add(extraFunctions.toString())
+                )
                 builder.addFragment(combineFStage)
                 shader = builder.create()
             }

@@ -6,12 +6,9 @@ class ShaderStage(
     var body: String
 ) {
 
-    constructor(variables: List<Variable>, body: String) :
-            this("main1", variables, body)
-
-    constructor(variables: List<Variable>, varyings: List<Variable>, vertex: Boolean, body: String) :
+    constructor(callName: String,variables: List<Variable>, varyings: List<Variable>, vertex: Boolean, body: String) :
             this(
-                "main2",
+                callName,
                 variables + varyings.map { Variable(it, if (vertex) VariableMode.OUT else VariableMode.IN) },
                 extractMain(body)
             ) {

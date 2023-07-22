@@ -1,4 +1,4 @@
-package me.anno.tests.gfx
+package me.anno.tests.gfx.graphs
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.Material

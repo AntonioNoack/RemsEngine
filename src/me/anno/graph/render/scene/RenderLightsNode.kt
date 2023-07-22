@@ -12,11 +12,11 @@ import me.anno.gpu.pipeline.LightShaders.createMainFragmentStage
 import me.anno.gpu.pipeline.LightShaders.uvwStage
 import me.anno.gpu.pipeline.LightShaders.vertexI
 import me.anno.gpu.pipeline.LightShaders.vertexNI
+import me.anno.gpu.shader.DepthTransforms.depthToPosition
+import me.anno.gpu.shader.DepthTransforms.depthVars
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.DepthTransforms.depthToPosition
-import me.anno.gpu.shader.DepthTransforms.rawToDepth
-import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -86,25 +86,29 @@ class RenderLightsNode : RenderSceneNode0(
                 )
                 val expressions = sizes.indices
                     .joinToString("") { i ->
-                        val sizeI = sizes[i]
-                        val typeI = GLSLType.floats[sizeI - 1].glslName
                         val nameI = names[i].glslName
                         val exprI = expr(inputs!![firstInputIndex + i])
-                        "$typeI $nameI=$exprI;\n"
+                        "$nameI = $exprI;\n"
                     }
                 defineLocalVars(builder)
-                val variables = typeValues.map { (k, v) -> Variable(v.type, k) } + extraVariables +
+                val variables = sizes.indices.map { i ->
+                    val sizeI = sizes[i]
+                    val typeI = GLSLType.floats[sizeI - 1]
+                    val nameI = names[i].glslName
+                    Variable(typeI, nameI, VariableMode.OUT)
+                } + typeValues.map { (k, v) -> Variable(v.type, k) } +
+                        extraVariables +
                         listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT))
                 val builder = ShaderBuilder(name)
                 builder.addVertex(if (isInstanced) vertexI else vertexNI)
                 builder.addFragment(uvwStage)
                 builder.addFragment(
-                    ShaderStage(variables, expressions)
+                    ShaderStage("rlight-f0", variables, expressions)
                         .add(extraFunctions.toString())
                 )
                 builder.addFragment(
                     ShaderStage(
-                        listOf(
+                        "rlight-f1", listOf(
                             Variable(GLSLType.V2F, "uv"),
                             Variable(GLSLType.V1F, "finalDepth"),
                             Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)

@@ -267,7 +267,7 @@ object Renderers {
     @JvmField
     val attributeRenderers = LazyMap({ type: DeferredLayerType ->
         val variables = listOf(
-            Variable(DeferredSettingsV2.glslTypes[type.workDims - 1], type.glslName, VariableMode.IN),
+            Variable(GLSLType.floats[type.workDims - 1], type.glslName, VariableMode.IN),
             Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
         )
         val shaderCode = when (type) {
@@ -300,7 +300,7 @@ object Renderers {
     @JvmField
     val rawAttributeRenderers = LazyMap({ type: DeferredLayerType ->
         val variables = listOf(
-            Variable(DeferredSettingsV2.glslTypes[type.workDims - 1], type.glslName, VariableMode.IN),
+            Variable(GLSLType.floats[type.workDims - 1], type.glslName, VariableMode.IN),
             Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
         )
         val shaderCode = "" +

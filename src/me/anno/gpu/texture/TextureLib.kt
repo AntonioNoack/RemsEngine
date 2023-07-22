@@ -177,12 +177,6 @@ object TextureLib {
     val missingTexture = IndestructibleTexture2D("missing", 2, 2,
         IntArray(4) { (if (it in 1..2) 0 else 0xff00ff) or black })
 
-    // todo is this still used? if not, remove it
-    @Suppress("ClassName")
-    object nullTexture : ICacheData {
-        override fun destroy() {}
-    }
-
     fun bindWhite(index: Int): Boolean {
         return whiteTexture.bind(index, whiteTexture.filtering, whiteTexture.clamping ?: Clamping.CLAMP)
     }

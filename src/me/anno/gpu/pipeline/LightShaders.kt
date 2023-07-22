@@ -126,11 +126,12 @@ object LightShaders {
     }
 
     val combineVStage = ShaderStage(
+        "combineLight-v",
         coordsList + Variable(GLSLType.V2F, "uv", VariableMode.OUT),
         "gl_Position = vec4(coords*2.0-1.0,0.5,1.0); uv = coords;\n"
     )
     val combineFStage = ShaderStage(
-        listOf(
+        "combineLight-f", listOf(
             Variable(GLSLType.V3F, "finalColor"),
             Variable(GLSLType.V3F, "finalEmissive"),
             Variable(GLSLType.V1F, "finalOcclusion"),
