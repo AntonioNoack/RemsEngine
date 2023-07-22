@@ -58,7 +58,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val icon = ImageGPUCache[crossPath, 360_000L, true] ?: whiteTexture
+        val icon = ImageGPUCache[crossPath, 360_000L, false] ?: whiteTexture
         val crossSize = getCrossSize(style).roundToInt()
         drawTexture(x + width - (crossSize + 2), y + 2, crossSize, crossSize, icon, white, null)
     }

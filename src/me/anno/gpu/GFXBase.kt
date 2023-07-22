@@ -12,6 +12,7 @@ import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GFX.getErrorTypeName
+import me.anno.gpu.Logo.drawLogo
 import me.anno.gpu.debug.LWJGLDebugCallback
 import me.anno.gpu.debug.OpenGLDebug.getDebugSeverityName
 import me.anno.gpu.debug.OpenGLDebug.getDebugSourceName

@@ -77,7 +77,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
         shader.potentiallyUse()
         GFX.check()
         // todo cache vao by shader? typically, we only need 4-8 shaders for a single mesh
-        // todo alternatively, we could specify the location in the shader
+        //  alternatively, we could specify the location in the shader
         if (vao <= 0 || shader !== lastShader || !useVAOs) {
             createVAO(shader)
         } else {

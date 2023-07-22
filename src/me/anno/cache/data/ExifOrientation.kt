@@ -3,6 +3,7 @@ package me.anno.cache.data
 import me.anno.image.ImageTransform
 import me.anno.io.files.FileReference
 import me.anno.utils.types.Buffers.skip
+import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.imageio.ImageIO
@@ -10,19 +11,20 @@ import javax.imageio.ImageReader
 import javax.imageio.metadata.IIOMetadataNode
 
 fun findRotation(src: FileReference): ImageTransform? {
-    src.inputStreamSync().use {
-        val input = ImageIO.createImageInputStream(it)
+    return src.inputStreamSync().use { input0: InputStream ->
+        val input = ImageIO.createImageInputStream(input0)
+        var rot: ImageTransform? = null
         for (reader in ImageIO.getImageReaders(input)) {
             try {
                 reader.input = input
-                val rot = getExifOrientation(reader, 0)
-                if (rot != null) return rot
+                rot = getExifOrientation(reader, 0)
+                if (rot != null) break
             } catch (_: Exception) {
             } finally {
                 reader.dispose()
             }
         }
-        return null
+        rot
     }
 }
 

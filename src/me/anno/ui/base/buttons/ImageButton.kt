@@ -36,11 +36,11 @@ class ImageButton(
     override fun getLayoutState(): Any? = icon?.width
 
     override fun calculateSize(w: Int, h: Int) {
-        val icon = icon ?: return
+        val icon = ImageGPUCache[path, 10_000, false]
         minW = ((size + padding.width) * guiScale).toInt()
-        minH = if (isSquare) ((size) * guiScale + padding.height).toInt() else {
+        minH = if (icon != null && !isSquare) {
             ((icon.height * size / icon.width) * guiScale + padding.height).toInt()
-        }
+        } else ((size) * guiScale + padding.height).toInt()
     }
 
     override fun onUpdate() {
@@ -50,7 +50,7 @@ class ImageButton(
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
-        val icon = icon ?: return
+        val icon = ImageGPUCache[path, 10_000, false] ?: return
         renderDefault {
             icon.filtering = GPUFiltering.LINEAR
             icon.clamping = Clamping.CLAMP
@@ -77,5 +77,9 @@ class ImageButton(
     }
 
     override val className: String get() = "ImageButton"
+
+    companion object {
+        val timeout = 300_000L
+    }
 
 }

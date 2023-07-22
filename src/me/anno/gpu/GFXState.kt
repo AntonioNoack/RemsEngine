@@ -143,11 +143,18 @@ object GFXState {
     val cullMode = object : SecureStack<CullMode>(CullMode.BOTH) {
         override fun onChangeValue(newValue: CullMode, oldValue: CullMode) {
             GFX.check()
-            if (newValue != CullMode.BOTH) {
-                glEnable(GL_CULL_FACE)
-                glCullFace(newValue.opengl)
-            } else {
-                glDisable(GL_CULL_FACE)
+            when (newValue) {
+                CullMode.BOTH -> {
+                    glDisable(GL_CULL_FACE)
+                }
+                CullMode.FRONT -> {
+                    glEnable(GL_CULL_FACE)
+                    glCullFace(GL_FRONT)
+                }
+                CullMode.BACK -> {
+                    glEnable(GL_CULL_FACE)
+                    glCullFace(GL_BACK)
+                }
             }
         }
     }

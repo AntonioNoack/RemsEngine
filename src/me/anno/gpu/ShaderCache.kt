@@ -13,6 +13,7 @@ import me.anno.utils.types.InputStreams.readNBytes2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL43C.*
 import java.io.IOException
+import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -105,15 +106,15 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         // create a new program
         if (src != null && src.exists) {
             try {
-                src.inputStreamSync().use {
+                src.inputStreamSync().use { input: InputStream ->
 
                     for (i in magicStr.indices) {
-                        if (it.read() != magicStr[i].toInt())
+                        if (input.read() != magicStr[i].toInt())
                             throw IOException("Incorrect magic")
                     }
-                    val length = it.readLE32()
-                    val format = it.readLE32()
-                    val tmp = InflaterInputStream(it)
+                    val length = input.readLE32()
+                    val format = input.readLE32()
+                    val tmp = InflaterInputStream(input)
                     val data = ByteBuffer.allocateDirect(length)
                     tmp.readNBytes2(length, data, true)
                     tmp.close()

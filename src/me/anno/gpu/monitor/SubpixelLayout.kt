@@ -50,10 +50,6 @@ object SubpixelLayout {
             gfx.drawString(".", 3, height * 4 / 5)
             gfx.dispose()
 
-            /*FileReference.getReference(OS.desktop, "dot.png").outputStream().use {
-                ImageIO.write(image, "png", it)
-            }*/
-
             val rs = Vector3i()
             val gs = Vector3i()
             val bs = Vector3i()
@@ -79,7 +75,7 @@ object SubpixelLayout {
                 b.sub(mean)
                 LOGGER.info("Subpixel arrangement: $r, $g, $b")
             }
-        }// else todo implement for web
+        }
     }
 
 }

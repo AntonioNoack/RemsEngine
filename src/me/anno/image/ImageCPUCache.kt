@@ -50,11 +50,11 @@ object ImageCPUCache : CacheSection("BufferedImages") {
         signature: String,
         streamReader: (InputStream) -> Image?
     ) {
-        byteReaders[signature] = { it.inputStream().use(streamReader) }
-        fileReaders[signature] = { it, c ->
-            it.inputStream { input, e ->
-                c(input?.use {
-                    streamReader(it)
+        byteReaders[signature] = { bytes -> bytes.inputStream().use(streamReader) }
+        fileReaders[signature] = { fileRef, c ->
+            fileRef.inputStream { input, e ->
+                c(input?.use { input1 ->
+                    streamReader(input1)
                 }, e)
             }
         }

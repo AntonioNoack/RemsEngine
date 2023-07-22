@@ -46,8 +46,8 @@ import org.joml.Vector4d
 import java.util.*
 
 /**
- * collects meshes for sorting (transparency, overdraw), and for instanced rendering
- * todo instead of a pipeline, maybe the best would be a render graph...
+ * Collects meshes for different passes (opaque, transparency, decals, ...), and for instanced rendering;
+ * Makes rendering multiple points of view much cheaper (e.g., for stereo vision for VR)
  * */
 class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
 

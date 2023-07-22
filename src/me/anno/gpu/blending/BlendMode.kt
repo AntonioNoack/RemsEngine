@@ -43,7 +43,7 @@ class BlendMode(
             if (lastFunc != func || lastFuncAlpha != funcAlpha) {
                 lastFunc = func
                 lastFuncAlpha = funcAlpha
-                glBlendEquationSeparate(func.mode, funcAlpha.mode)
+                glBlendEquationSeparate(blendFuncModes[func.ordinal], blendFuncModes[funcAlpha.ordinal])
             }
             if (lastMode !== this && (func.hasParams || funcAlpha.hasParams)) {
                 glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
@@ -53,12 +53,12 @@ class BlendMode(
     }
 
     fun forceApply() {
-        glBlendEquationSeparate(func.mode, funcAlpha.mode)
+        glBlendEquationSeparate(blendFuncModes[func.ordinal], blendFuncModes[funcAlpha.ordinal])
         glBlendFuncSeparate(src, dst, srcAlpha, dstAlpha)
     }
 
     fun forceApply(i: Int) {
-        glBlendEquationSeparatei(i, func.mode, funcAlpha.mode)
+        glBlendEquationSeparatei(i, blendFuncModes[func.ordinal], blendFuncModes[funcAlpha.ordinal])
         glBlendFuncSeparatei(i, src, dst, srcAlpha, dstAlpha)
     }
 
@@ -80,6 +80,8 @@ class BlendMode(
         var lastFunc: BlendFunc? = null
         var lastFuncAlpha: BlendFunc? = null
         var lastMode: BlendMode? = null
+
+        val blendFuncModes = intArrayOf(GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_FUNC_REVERSE_SUBTRACT, GL_MIN, GL_MAX)
 
         /*
         DEFAULT("Default", 0, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA),

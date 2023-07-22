@@ -28,7 +28,6 @@ import java.awt.Polygon
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.util.*
-import javax.imageio.ImageIO
 import kotlin.math.*
 
 @Suppress("unused")
@@ -50,17 +49,13 @@ object ImageWriter {
     @JvmStatic
     fun writeImage(name: String, img: BufferedImage) {
         val file = getFile(name)
-        file.outputStream().use {
-            ImageIO.write(img, if (name.endsWith(".jpg")) "jpg" else "png", it)
-        }
+        val pixels = img.getRGB(0, 0, img.width, img.height, null, 0, img.width)
+        IntImage(img.width, img.height, pixels, true).write(file)
     }
 
     @JvmStatic
     fun writeImage(name: String, img: Image) {
-        val file = getFile(name)
-        file.outputStream().use {
-            img.write(getFile(name))
-        }
+        img.write(getFile(name))
     }
 
     @JvmStatic
