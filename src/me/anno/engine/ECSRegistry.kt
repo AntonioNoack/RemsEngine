@@ -23,8 +23,6 @@ import me.anno.ecs.components.mesh.spline.SplineControlPoint
 import me.anno.ecs.components.mesh.spline.SplineCrossing
 import me.anno.ecs.components.mesh.spline.SplineMesh
 import me.anno.ecs.components.mesh.terrain.TriTerrain
-import me.anno.ecs.components.physics.twod.Box2dPhysics
-import me.anno.ecs.components.physics.twod.Rigidbody2d
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.player.RemotePlayer
 import me.anno.ecs.components.shaders.AutoTileableMaterial
@@ -170,7 +168,7 @@ object ECSRegistry {
         // physics
         try {
             val clazz = this::class.java.classLoader
-                .loadClass("me.anno.ecs.components.bullet.PhysicsRegistry")
+                .loadClass("me.anno.bullet.PhysicsRegistry")
             clazz.getMethod("init").invoke(null)
         } catch (e: ClassNotFoundException) {
             LOGGER.warn("Bullet was not found", e)
@@ -178,27 +176,14 @@ object ECSRegistry {
             LOGGER.warn("Bullet was not found", e)
         }
 
-        try {
-            registerCustomClass(Box2dPhysics())
-            registerCustomClass(Rigidbody2d())
-        } catch (e: ClassNotFoundException) {
-            LOGGER.warn("Box2d was not found", e)
-        } catch (e: NoClassDefFoundError) {
-            LOGGER.warn("Box2d was not found", e)
-        }
+        // box2d
+        registerIfAvailable("me.anno.box2d.Box2dPhysics", "Box2d")
+        registerIfAvailable("me.anno.box2d.Rigidbody2d", null)
 
         // utils
         // currently a small thing, hopefully will become important and huge <3
         registerCustomClass(TriTerrain())
-        try {
-            val clazz = this::class.java.classLoader
-                .loadClass("me.anno.ecs.components.navigation.NavMesh")
-            registerCustomClass(clazz.getConstructor().newInstance() as ISaveable)
-        } catch (e: ClassNotFoundException) {
-            LOGGER.warn("Recast module was not found", e)
-        } catch (e: NoClassDefFoundError) {
-            LOGGER.warn("Recast module was not found", e)
-        }
+        registerIfAvailable("me.anno.ecs.components.navigation.NavMesh", "Recast")
 
         try {
             val clazz = this::class.java.classLoader
@@ -217,6 +202,21 @@ object ECSRegistry {
             registerCustomClass(TypeTestComponent())
             registerCustomClass(RaycastTestComponent())
         }
+    }
+
+    fun registerIfAvailable(clazzName: String, moduleName: String?) {
+        try {
+            val clazz = this::class.java.classLoader.loadClass(clazzName)
+            registerCustomClass(clazz.getConstructor().newInstance() as ISaveable)
+        } catch (e: ClassNotFoundException) {
+            warnIfUnavailable(moduleName, e)
+        } catch (e: NoClassDefFoundError) {
+            warnIfUnavailable(moduleName, e)
+        }
+    }
+
+    private fun warnIfUnavailable(moduleName: String?, e: Throwable) {
+        if (moduleName != null) LOGGER.warn("$moduleName module was not found", e)
     }
 
     @JvmStatic

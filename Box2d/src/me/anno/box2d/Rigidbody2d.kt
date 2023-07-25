@@ -1,4 +1,4 @@
-package me.anno.ecs.components.physics.twod
+package me.anno.box2d
 
 import me.anno.ecs.Component
 import me.anno.ecs.prefab.PrefabSaveable

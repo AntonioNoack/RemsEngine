@@ -1,14 +1,14 @@
 package me.anno.tests.physics
 
 import me.anno.Engine
+import me.anno.box2d.Box2dPhysics
+import me.anno.box2d.Rigidbody2d
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.twod.CircleCollider
 import me.anno.ecs.components.collider.twod.Collider2d
 import me.anno.ecs.components.collider.twod.RectCollider
-import me.anno.ecs.components.physics.twod.Box2dPhysics
-import me.anno.ecs.components.physics.twod.Rigidbody2d
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawCubicBezier
 import me.anno.gpu.drawing.DrawCurves.drawLine
@@ -206,7 +206,8 @@ fun test3() {
             val dragButton = 0 // left
             val moveButton = 1 // right
 
-            override fun shallMoveMap() = (Input.isKeyDown(dragButton) && hovered == null) || Input.isKeyDown(moveButton)
+            override fun shallMoveMap() =
+                (Input.isKeyDown(dragButton) && hovered == null) || Input.isKeyDown(moveButton)
 
             override fun onUpdate() {
                 super.onUpdate()

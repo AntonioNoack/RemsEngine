@@ -1,9 +1,9 @@
 package me.anno.tests.physics
 
 import me.anno.Engine
+import me.anno.bullet.VehicleWheel
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugProperty
-import me.anno.ecs.components.bullet.VehicleWheel
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input

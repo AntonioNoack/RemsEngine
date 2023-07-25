@@ -1,12 +1,12 @@
 package me.anno.tests.game
 
+import me.anno.bullet.BulletPhysics
+import me.anno.bullet.Rigidbody
+import me.anno.bullet.Vehicle
+import me.anno.bullet.VehicleWheel
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.bullet.BulletPhysics
-import me.anno.ecs.components.bullet.Rigidbody
-import me.anno.ecs.components.bullet.Vehicle
-import me.anno.ecs.components.bullet.VehicleWheel
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.collider.MeshCollider

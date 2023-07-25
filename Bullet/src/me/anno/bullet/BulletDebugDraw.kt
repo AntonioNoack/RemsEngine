@@ -1,4 +1,4 @@
-package me.anno.ecs.components.bullet
+package me.anno.bullet
 
 import com.bulletphysics.linearmath.IDebugDraw
 import me.anno.engine.ui.LineShapes

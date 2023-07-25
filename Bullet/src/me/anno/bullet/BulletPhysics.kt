@@ -1,4 +1,4 @@
-package me.anno.ecs.components.bullet
+package me.anno.bullet
 
 import com.bulletphysics.BulletGlobals
 import com.bulletphysics.collision.broadphase.DbvtBroadphase
@@ -18,12 +18,12 @@ import com.bulletphysics.dynamics.vehicle.WheelInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
+import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
-import me.anno.ecs.components.bullet.constraints.Constraint
 import me.anno.ecs.components.physics.events.FallenOutOfWorld
 import me.anno.engine.ui.render.DrawAABB
 import me.anno.engine.ui.render.RenderMode

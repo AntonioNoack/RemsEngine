@@ -5,10 +5,10 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo
 import com.bulletphysics.linearmath.DefaultMotionState
 import com.bulletphysics.linearmath.Transform
+import me.anno.bullet.BulletPhysics
+import me.anno.bullet.Rigidbody
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
-import me.anno.ecs.components.bullet.BulletPhysics
-import me.anno.ecs.components.bullet.Rigidbody
 import me.anno.maths.Maths
 import javax.vecmath.Vector3d
 

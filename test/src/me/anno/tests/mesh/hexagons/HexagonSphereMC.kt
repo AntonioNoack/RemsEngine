@@ -1,5 +1,6 @@
 package me.anno.tests.mesh.hexagons
 
+import me.anno.bullet.BulletPhysics
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.chunks.spherical.Hexagon
@@ -9,7 +10,6 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.bullet.BulletPhysics
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode

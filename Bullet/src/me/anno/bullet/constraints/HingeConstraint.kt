@@ -1,4 +1,4 @@
-package me.anno.ecs.components.bullet.constraints
+package me.anno.bullet.constraints
 
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform

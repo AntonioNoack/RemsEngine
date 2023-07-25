@@ -1,4 +1,4 @@
-package me.anno.ecs.components.bullet
+package me.anno.bullet
 
 import com.bulletphysics.collision.narrowphase.GjkEpaSolver
 import com.bulletphysics.collision.shapes.ConvexShape

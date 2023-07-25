@@ -1,4 +1,4 @@
-package me.anno.ecs.components.physics.twod
+package me.anno.box2d
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.twod.Collider2d

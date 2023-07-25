@@ -1,10 +1,10 @@
-package me.anno.ecs.components.bullet
+package me.anno.bullet
 
 import com.bulletphysics.collision.shapes.*
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
 import me.anno.ecs.Entity
-import me.anno.ecs.components.bullet.BulletPhysics.Companion.mat4x3ToTransform
+import me.anno.bullet.BulletPhysics.Companion.mat4x3ToTransform
 import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.collider.twod.CircleCollider
 import me.anno.ecs.components.collider.twod.RectCollider

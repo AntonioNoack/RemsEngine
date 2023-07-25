@@ -2,10 +2,10 @@ package me.anno.tests.mesh.hexagons
 
 import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.Engine
+import me.anno.bullet.HexagonSpherePhysics
 import me.anno.ecs.Entity
 import me.anno.ecs.components.chunks.spherical.Hexagon
 import me.anno.ecs.components.chunks.spherical.HexagonSphere
-import me.anno.ecs.components.bullet.HexagonSpherePhysics
 import me.anno.ecs.components.chunks.spherical.HexagonTriangleQuery
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent

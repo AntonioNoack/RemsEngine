@@ -1,6 +1,6 @@
-package me.anno.ecs.components.bullet
+package me.anno.bullet
 
-import me.anno.ecs.components.bullet.constraints.*
+import me.anno.bullet.constraints.*
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
 @Suppress("unused")

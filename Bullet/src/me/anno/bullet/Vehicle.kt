@@ -1,4 +1,4 @@
-package me.anno.ecs.components.bullet
+package me.anno.bullet
 
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
