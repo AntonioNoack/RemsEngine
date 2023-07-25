@@ -252,7 +252,7 @@ open class InstancedStack {
 
     class Impl(capacity: Int = 512) : KeyTripleMap<Mesh, Material, Int, InstancedStack>(capacity), DrawableStack {
 
-        override fun size(): Long {
+        override fun size1(): Long {
             return values.values.sumOf { it.size.toLong() }
         }
 
@@ -332,7 +332,7 @@ open class InstancedStack {
             }
         }
 
-        override fun size(): Long {
+        override fun size1(): Long {
             return values.values.sumOf { it.size.toLong() }
         }
 

@@ -3,7 +3,7 @@ package me.anno.gpu.shader
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.ComputeBuffer
 import org.joml.Vector3i
-import org.lwjgl.opengl.GL42C
+import org.lwjgl.opengl.GL42C.*
 import kotlin.math.min
 
 /**
@@ -72,7 +72,7 @@ object Accumulation {
                 shader.v1i("step", step)
                 shader.bindBuffer(0, src)
                 shader.bindBuffer(1, dst)
-                GL42C.glMemoryBarrier(GL42C.GL_UNIFORM_BARRIER_BIT)
+                glMemoryBarrier(GL_UNIFORM_BARRIER_BIT)
                 shader.runBySize(buffer.elementCount, 1, 1)
                 val tmp1 = src
                 src = dst

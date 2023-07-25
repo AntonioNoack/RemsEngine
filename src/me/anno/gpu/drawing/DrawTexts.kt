@@ -27,6 +27,7 @@ import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL45C
 import kotlin.math.min
@@ -238,9 +239,9 @@ object DrawTexts {
             GFX.loadTexturesSync.push(true)
 
             var fx = x + dx
-            for (codepoint in text.codePoints()) {
-                if (!Character.isWhitespace(codepoint)) {
-                    val txt = String(Character.toChars(codepoint))
+            for (char in text.codePoints()) {
+                if (!Character.isWhitespace(char)) {
+                    val txt = char.joinChars().toString()
                     val texture = FontManager.getTexture(font, txt, -1, -1)
                     if (texture != null) draw(shader, texture, fx + (charWidth - texture.width) / 2, y2, txt)
                 }
@@ -267,9 +268,9 @@ object DrawTexts {
             var index = 0
             val offsets = group.offsets
             val y2 = y + dyi
-            for (codepoint in text.codePoints()) {
-                if (!Character.isWhitespace(codepoint)) {
-                    val txt = String(Character.toChars(codepoint))
+            for (char in text.codePoints()) {
+                if (!Character.isWhitespace(char)) {
+                    val txt = char.joinChars().toString()
                     val o0 = offsets[index++].toInt()
                     val o1 = offsets[index].toInt()
                     val fx = x + dxi + o0

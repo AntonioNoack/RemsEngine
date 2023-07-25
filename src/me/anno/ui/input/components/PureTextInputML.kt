@@ -399,7 +399,7 @@ open class PureTextInputML(style: Style) :
 
     fun addKey(codePoint: Int) = insert(codePoint, true)
 
-    fun insert(insertion: String) {
+    fun insert(insertion: CharSequence) {
         if (insertion.isNotEmpty()) {
             lastChangeTime = Engine.gameTime
             for (cp in insertion.codePoints()) {
@@ -409,8 +409,8 @@ open class PureTextInputML(style: Style) :
         }
     }
 
-    fun insert(keyCode: Int) {
-        insert(String(Character.toChars(keyCode)))
+    fun insert(char: Int) {
+        insert(char.joinChars())
     }
 
     fun update(notify: Boolean) {

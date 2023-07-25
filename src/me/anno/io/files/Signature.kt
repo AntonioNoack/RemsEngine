@@ -139,8 +139,8 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
                     // maybe we could read them piece by piece...
                     file.inputStream(sampleSize.toLong()) { it, _ ->
                         if (it != null) {
-                            val bytes = it.use {
-                                ByteArray(sampleSize) { _ -> it.read().toByte() }
+                            val bytes = it.use { input: InputStream ->
+                                ByteArray(sampleSize) { input.read().toByte() }
                             }
                             callback(find(bytes))
                         } else callback(null)

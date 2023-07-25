@@ -209,11 +209,6 @@ abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: Lis
         isUpToDate = false
     }
 
-    fun putDouble(d: Double) {
-        nioBuffer!!.putDouble(d)
-        isUpToDate = false
-    }
-
     override fun destroy() {
         if (Build.isDebug) DebugGPUStorage.buffers.remove(this)
         val buffer = pointer

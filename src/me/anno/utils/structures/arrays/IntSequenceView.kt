@@ -1,5 +1,7 @@
 package me.anno.utils.structures.arrays
 
+import me.anno.utils.types.Strings.joinChars0
+
 class IntSequenceView(val base: IntSequence, val i0: Int, val i1: Int) : IntSequence {
 
     override val length: Int = i1 - i0
@@ -17,7 +19,8 @@ class IntSequenceView(val base: IntSequence, val i0: Int, val i1: Int) : IntSequ
         val builder = StringBuilder(length)
         // could be optimized
         for (index in i0 until i1) {
-            builder.append(Character.toChars(base[index]))
+            val char = base[index]
+            builder.append(char.joinChars0())
         }
         return builder.toString()
     }

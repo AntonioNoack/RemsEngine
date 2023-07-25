@@ -3,6 +3,7 @@ package me.anno.utils.strings
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
+import me.anno.utils.types.Strings.joinChars0
 import kotlin.math.roundToInt
 import kotlin.streams.toList
 
@@ -128,7 +129,7 @@ object StringMixer {
             val shuffleEnd = (g * aChars.size).roundToInt()
             for (i in aChars.indices) {
                 val code = if (shuffled[i] < shuffleEnd) aChars[i] else bChars[i]
-                str.append(Character.toChars(code))
+                str.append(code.joinChars0())
             }
             return str.toString()
         } else {

@@ -763,13 +763,6 @@ open class FileExplorer(
         private val LOGGER = LogManager.getLogger(FileExplorer::class)
 
         @JvmStatic
-        private val forbiddenConfig =
-            DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32) { it.toChar() })
-
-        @JvmField
-        val forbiddenCharacters = forbiddenConfig.toHashSet()
-
-        @JvmStatic
         fun invalidateFileExplorers(panel: Panel) {
             for (window in panel.windowStack) {
                 window.panel.forAll {

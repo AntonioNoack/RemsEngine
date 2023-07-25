@@ -70,10 +70,9 @@ class AWTFont(val font: Font) {
         // maybe we could implement detecting, which sections need int positions, and which don't...
         if (text.containsSpecialChar()) {
             var index = 0
-            for (codepoint in text.codePoints()) {
-                // println("  drawing $codepoint = '${String(Character.toChars(codepoint))}' at ${x + group2.offsets[index].toFloat()}, $y")
+            for (char in text.codePoints()) {
                 gfx.drawString(
-                    String(Character.toChars(codepoint)),
+                    char.joinChars().toString(),
                     x + group2.offsets[index].toFloat(), y
                 )
                 index++

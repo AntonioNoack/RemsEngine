@@ -37,24 +37,22 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
             out.close()
         }
         process.inputStream.buffered().use { input: InputStream ->
-
             val frameCount = (sampleRate * length).toInt()
             input.mark(1)
-            if (input.read() < 0) { // EOF
+            if (input.read() >= 0) {
+                input.reset()
+                val buffer = SoundBuffer()
+                try {
+                    val (bytes, shorts, stereo) = readRAW(input, channels, frameCount)
+                    buffer.loadRaw16(
+                        shorts, bytes, sampleRate,
+                        if (stereo) AL_FORMAT_STEREO16 else AL_FORMAT_MONO16
+                    )
+                    soundBuffer = buffer
+                } catch (ignored: ShutdownException) {
+                }
+            } else {// EOF
                 isEmpty = true
-                return//@thread
-            }
-            input.reset()
-
-            val buffer = SoundBuffer()
-            try {
-                val (bytes, shorts, stereo) = readRAW(input, channels, frameCount)
-                buffer.loadRaw16(
-                    shorts, bytes, sampleRate,
-                    if (stereo) AL_FORMAT_STEREO16 else AL_FORMAT_MONO16
-                )
-                soundBuffer = buffer
-            } catch (ignored: ShutdownException) {
             }
         }
     }

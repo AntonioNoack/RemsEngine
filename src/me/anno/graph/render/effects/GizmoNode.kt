@@ -10,8 +10,7 @@ import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderSceneNode0
-import org.lwjgl.opengl.GL30C.GL_COLOR_BUFFER_BIT
-import org.lwjgl.opengl.GL30C.GL_DEPTH_BUFFER_BIT
+import org.lwjgl.opengl.GL30C.*
 
 class GizmoNode : RenderSceneNode0(
     "Gizmos",

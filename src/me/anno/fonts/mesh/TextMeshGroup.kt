@@ -5,6 +5,7 @@ import me.anno.fonts.AWTFont
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.utils.types.Strings.joinChars
 import kotlin.math.min
 
 /**
@@ -26,7 +27,7 @@ class TextMeshGroup(
         synchronized(buffers) {
             for (char in codepoints) {
                 if (buffers[char] == null) {
-                    buffers[char] = TextMesh(font, String(Character.toChars(char)), debugPieces).buffer
+                    buffers[char] = TextMesh(font, char.joinChars().toString(), debugPieces).buffer
                 }
             }
         }

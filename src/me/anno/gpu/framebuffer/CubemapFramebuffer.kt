@@ -9,10 +9,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
-import org.lwjgl.opengl.GL11C
-import org.lwjgl.opengl.GL13C
 import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL30C
 
 class CubemapFramebuffer(
     override var name: String, var size: Int,
@@ -90,7 +87,7 @@ class CubemapFramebuffer(
         if (pointer == 0) create()
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
-        GL11C.glDisable(GL13C.GL_MULTISAMPLE)
+        glDisable(GL_MULTISAMPLE)
     }
 
     private fun checkSize(newSize: Int) {
@@ -151,7 +148,7 @@ class CubemapFramebuffer(
                 val target = GL_TEXTURE_CUBE_MAP_POSITIVE_X
                 val texPointer = depthAttachment?.depthTexture?.pointer
                     ?: throw IllegalStateException("Depth Attachment was not found in $name, ${depthAttachment}.${depthAttachment?.depthTexture}")
-                GL30C.glFramebufferTexture2D(GL30C.GL_FRAMEBUFFER, GL30C.GL_DEPTH_ATTACHMENT, target, texPointer, 0)
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
                 // throw IllegalArgumentException("attachment depth not yet supported for cubemaps")
             }
         }

@@ -10,10 +10,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
 import me.anno.utils.OS
-import org.lwjgl.opengl.GL13C.GL_MULTISAMPLE
-import org.lwjgl.opengl.GL30C.*
-import org.lwjgl.opengl.GL32C.GL_TEXTURE_2D_MULTISAMPLE
-import org.lwjgl.opengl.GL43C.glObjectLabel
+import org.lwjgl.opengl.GL43C.*
 
 class Framebuffer(
     override var name: String,

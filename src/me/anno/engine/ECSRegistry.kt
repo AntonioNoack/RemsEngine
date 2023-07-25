@@ -195,9 +195,9 @@ object ECSRegistry {
                 .loadClass("me.anno.ecs.components.navigation.NavMesh")
             registerCustomClass(clazz.getConstructor().newInstance() as ISaveable)
         } catch (e: ClassNotFoundException) {
-            LOGGER.warn("SDF module was not found", e)
+            LOGGER.warn("Recast module was not found", e)
         } catch (e: NoClassDefFoundError) {
-            LOGGER.warn("SDF module was not found", e)
+            LOGGER.warn("Recast module was not found", e)
         }
 
         try {

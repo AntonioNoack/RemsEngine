@@ -20,7 +20,7 @@ object JomlMath {
                     res.append('+')
                     continue
                 }
-                if (Character.isDigit(c) && eIndex == i - 1) {
+                if (c.isDigit() && eIndex == i - 1) {
                     res.append('+')
                 }
             }

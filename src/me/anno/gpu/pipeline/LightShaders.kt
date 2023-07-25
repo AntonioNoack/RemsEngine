@@ -51,7 +51,7 @@ object LightShaders {
         Attribute("invInsTrans2", 3),
         Attribute("invInsTrans3", 3),
         // light properties like type, color, cone angle
-        Attribute("lightData0", 3),
+        Attribute("lightData0", 4),
         Attribute("lightData1", 1),
         Attribute("shadowData", 4)
         // instanced rendering does not support shadows -> no shadow data / as a uniform
@@ -235,7 +235,7 @@ object LightShaders {
             Variable(GLSLType.M4x3, "camSpaceToLightSpace", VariableMode.OUT),
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT),
         ), "" +
-                "data0 = vec4(lightData0,0.0);\n" +
+                "data0 = vec4(lightData0.rgb,0.0);\n" +
                 "data1 = vec4(lightData1);\n" +
                 "data2 = shadowData;\n" +
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere

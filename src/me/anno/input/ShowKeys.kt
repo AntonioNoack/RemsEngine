@@ -12,6 +12,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.ui.base.text.TextPanel
+import me.anno.utils.types.Strings.joinChars
 import org.lwjgl.glfw.GLFW
 import java.util.function.BiConsumer
 
@@ -45,9 +46,9 @@ object ShowKeys {
         var name = findName()
         fun findName(): String {
             // this can be incorrect as long as we don't know the correct mapping
-            val text1 = KeyMap.inputMap[state]
-            val text2 = if (text1 != null && text1 != 32 && text1 != 9 && text1 != 10) // space, \n, \r
-                String(Character.toChars(text1)) else null
+            val char = KeyMap.inputMap[state]
+            val text2 = if (char != null && char != 32 && char != 9 && char != 10) // space, \n, \r
+                char.joinChars().toString() else null
             val text0 = KeyCombination.keyMapping.reverse[keyCode]
             return text2 ?: text0 ?: keyCode.toString()
         }

@@ -290,7 +290,7 @@ class HDRImage : Image {
         // more than just 1, and more like 5
         var typicalBrightness = 5f
 
-        fun writeHDR(w: Int, h: Int, pixels: FloatArray, out0: OutputStream?) {
+        fun writeHDR(w: Int, h: Int, pixels: FloatArray, out0: OutputStream) {
             val out = DataOutputStream(out0)
             out.writeBytes(HDR_MAGIC)
             // metadata, which seems to be required

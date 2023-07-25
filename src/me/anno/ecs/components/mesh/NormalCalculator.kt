@@ -192,9 +192,9 @@ object NormalCalculator {
                     this(x, y, z, 0f, 0f, 0, 0, 0, 0, 0, 0, 0f, 0f, 0f, 0f)
 
             // I would use a data class, if they were mutable...
-            var hashCode = 0
+            private var _hashCode = 0
             override fun hashCode(): Int {
-                if (hashCode != 0) return hashCode
+                if (_hashCode != 0) return _hashCode
                 var hashCode = x.hashCode() * 31
                 hashCode = hashCode * 31 + y.hashCode()
                 hashCode = hashCode * 31 + z.hashCode()
@@ -210,7 +210,7 @@ object NormalCalculator {
                 hashCode = hashCode * 31 + w1.hashCode()
                 hashCode = hashCode * 31 + w2.hashCode()
                 hashCode = hashCode * 31 + w3.hashCode()
-                this.hashCode = hashCode
+                this._hashCode = hashCode
                 return hashCode
             }
 

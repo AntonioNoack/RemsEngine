@@ -1,6 +1,6 @@
 package me.anno.gpu.query
 
-import org.lwjgl.opengl.GL15C.GL_SAMPLES_PASSED
+import org.lwjgl.opengl.GL15C.*
 
 class OcclusionQuery(var minSamples: Int = 16, everyNthFrame: Int = 4) : GPUQuery(Companion.target, everyNthFrame) {
 

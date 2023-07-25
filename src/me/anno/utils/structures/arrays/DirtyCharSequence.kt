@@ -1,5 +1,8 @@
 package me.anno.utils.structures.arrays
 
+import me.anno.utils.types.Strings.joinChars
+import me.anno.utils.types.Strings.joinChars0
+
 /**
  * a [CharSequence], which does no proper character conversion; it is meant for
  * coloring programming code only, and should not be used for String generation
@@ -20,7 +23,8 @@ class DirtyCharSequence(val base: IntSequence, val i0: Int = 0, val i1: Int = ba
         val builder = StringBuilder(length)
         // could be optimized
         for (index in i0 until i1) {
-            builder.append(Character.toChars(base[index]))
+            val char = base[index]
+            builder.append(char.joinChars0())
         }
         return builder.toString()
     }

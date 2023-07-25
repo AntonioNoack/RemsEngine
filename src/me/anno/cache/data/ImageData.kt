@@ -101,7 +101,7 @@ class ImageData(file: FileReference) : ICacheData {
     }
 
     fun loadTGA(file: FileReference) {
-        val img = file.inputStreamSync().use { stream ->
+        val img = file.inputStreamSync().use { stream: InputStream ->
             TGAImage.read(stream, false)
         }
         val texture = Texture2D("image-data", img.width, img.height, 1)

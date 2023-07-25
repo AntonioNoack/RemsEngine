@@ -8,6 +8,7 @@ import me.anno.gpu.GFX.isFinalRendering
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.ImageGPUCache
 import me.anno.utils.hpc.ProcessingQueue
+import me.anno.utils.types.Strings.joinChars
 import me.anno.video.MissingFrameException
 
 /**
@@ -59,7 +60,7 @@ class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
             val offset = (offsets[index] * baseScale).toFloat()
             val key = SDFCharKey(font, codePoint, roundCorners)
             val cacheData = ImageGPUCache.getEntry(key, sdfTimeout, queue) { key2 ->
-                val charAsText = String(Character.toChars(key2.codePoint))
+                val charAsText = key2.codePoint.joinChars()
                 val texture = SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
                 CacheData(texture)
             } as? CacheData<*>

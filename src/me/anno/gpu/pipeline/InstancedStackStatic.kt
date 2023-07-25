@@ -28,7 +28,7 @@ class InstancedStackStatic(capacity: Int = 512) :
 
     }
 
-    override fun size(): Long {
+    override fun size1(): Long {
         return values.values.sumOf { it.size.toLong() }
     }
 

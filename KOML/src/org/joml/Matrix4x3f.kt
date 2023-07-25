@@ -306,7 +306,7 @@ open class Matrix4x3f {
         m30 = m.m30
         m31 = m.m31
         m32 = m.m32
-        properties = m.properties() and 28
+        properties = m.properties and 28
         return this
     }
 

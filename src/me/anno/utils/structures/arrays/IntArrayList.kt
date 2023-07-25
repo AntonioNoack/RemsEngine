@@ -1,5 +1,7 @@
 package me.anno.utils.structures.arrays
 
+import me.anno.utils.types.Strings.joinChars
+import me.anno.utils.types.Strings.joinChars0
 import kotlin.math.max
 import kotlin.math.min
 
@@ -113,7 +115,8 @@ class IntArrayList(val capacity: Int) : List<Int> {
         val builder = StringBuilder(endIndex - startIndex)
         // could be optimized
         for (index in startIndex until endIndex) {
-            builder.append(Character.toChars(get(index)))
+            val char = get(index)
+            builder.append(char.joinChars0())
         }
         return builder
     }

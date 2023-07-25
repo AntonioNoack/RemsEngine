@@ -272,8 +272,8 @@ object ICOReader {
                     val pngBytes = packPNGBytes(input1, bestLayer.sizeInBytes)
                     for (reader in ImageIO.getImageReadersBySuffix("png")) {
                         val stream = ByteArrayInputStream(pngBytes)
-                        return stream.use {
-                            reader.input = ImageIO.createImageInputStream(it)
+                        return stream.use { input: InputStream ->
+                            reader.input = ImageIO.createImageInputStream(input)
                             IntPair(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
                         }
                     }

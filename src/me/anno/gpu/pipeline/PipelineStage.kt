@@ -210,7 +210,7 @@ class PipelineStage(
     val size: Long
         get() {
             var sum = nextInsertIndex.toLong()
-            for (i in instances.indices) sum += instances[i].size()
+            for (i in instances.indices) sum += instances[i].size1()
             return sum
         }
 

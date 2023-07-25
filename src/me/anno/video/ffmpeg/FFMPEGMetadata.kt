@@ -26,6 +26,7 @@ import me.saharnooby.qoi.QOIImage
 import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
+import java.io.InputStream
 import javax.imageio.ImageIO
 import kotlin.math.ceil
 import kotlin.math.roundToInt
@@ -104,8 +105,8 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
                 // webp supports video, but if so, FFMPEG doesn't seem to support it -> whatever, use ImageIO :)
                 for (reader in ImageIO.getImageReadersBySuffix(signature1)) {
                     try {
-                        file.inputStreamSync().use {
-                            reader.input = ImageIO.createImageInputStream(it)
+                        file.inputStreamSync().use { input: InputStream ->
+                            reader.input = ImageIO.createImageInputStream(input)
                             setImage(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
                         }
                         break
@@ -115,11 +116,11 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
                     }
                 }
             }
-            "ico" -> setImage(file.inputStreamSync().use { ICOReader.findSize(it) })
+            "ico" -> setImage(file.inputStreamSync().use { input: InputStream -> ICOReader.findSize(input) })
             "", null -> {
                 when (file.lcExtension) {
-                    "tga" -> setImage(file.inputStreamSync().use { TGAImage.findSize(it) })
-                    "ico" -> setImage(file.inputStreamSync().use { ICOReader.findSize(it) })
+                    "tga" -> setImage(file.inputStreamSync().use { stream: InputStream -> TGAImage.findSize(stream) })
+                    "ico" -> setImage(file.inputStreamSync().use { stream: InputStream -> ICOReader.findSize(stream) })
                     // else unknown
                     else -> LOGGER.debug("${file.absolutePath.shorten(200)} has unknown extension and signature: '$signature1'")
                 }
@@ -268,7 +269,8 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
         val process = builder.start()
 
         // get and parse the data :)
-        val data = String(process.inputStream.readBytes())
+        val bytes = process.inputStream.readBytes()
+        val data = String(bytes)
         if (data.isEmpty()) return 0.0
         else LOGGER.info("Duration, because missing: $data")
         val time = data.split("time=")[1].split(" ")[0]

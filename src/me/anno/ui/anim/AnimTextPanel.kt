@@ -24,6 +24,7 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.toRGB
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.utils.types.Strings.joinChars
 import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.streams.toList
@@ -84,8 +85,8 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         .map { line -> line.cpList() }
 
     fun String.cpList() = Pair(this,
-        codePoints().toList().map {
-            TextCacheKey(String(Character.toChars(it)), font)
+        codePoints().toList().map { char ->
+            TextCacheKey(char.joinChars().toString(), font)
         })
 
     var textGroup: TextGroup? = null

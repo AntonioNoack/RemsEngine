@@ -1,9 +1,16 @@
 package me.anno.ui.editor.files
 
+import me.anno.config.DefaultConfig
+
+private val forbiddenConfig =
+    DefaultConfig["files.forbiddenCharacters", "<>:\"/\\|?*"] + String(CharArray(32) { it.toChar() })
+
+private val forbiddenCharacters = forbiddenConfig.toHashSet()
+
 // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
 // could be disabled for Linux only users
 fun String.toAllowedFilename(): String? {
-    var name = filter { it !in FileExplorer.forbiddenCharacters }
+    var name = filter { it !in forbiddenCharacters }
     name = name.trim()
     while (name.startsWith(".")) {
         name = name.substring(1).trim()

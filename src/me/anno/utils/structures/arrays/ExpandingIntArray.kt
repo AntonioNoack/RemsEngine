@@ -4,6 +4,8 @@ import me.anno.cache.ICacheData
 import me.anno.utils.LOGGER
 import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.search.BinarySearch
+import me.anno.utils.types.Strings.joinChars
+import me.anno.utils.types.Strings.joinChars0
 import kotlin.math.max
 import kotlin.math.min
 
@@ -110,7 +112,8 @@ open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) 
         val builder = StringBuilder(endIndex - startIndex)
         // could be optimized
         for (index in startIndex until endIndex) {
-            builder.append(Character.toChars(get(index)))
+            val char = get(index)
+            builder.append(char.joinChars0())
         }
         return builder
     }

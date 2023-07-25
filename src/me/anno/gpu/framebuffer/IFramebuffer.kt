@@ -14,8 +14,7 @@ import me.anno.utils.Color.r01
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL11C.*
-import org.lwjgl.opengl.GL30C.glClearBufferfv
+import org.lwjgl.opengl.GL30C.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 

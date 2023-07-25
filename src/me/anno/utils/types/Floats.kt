@@ -173,7 +173,7 @@ object Floats {
         else if (exp != 0) {// normalized value
             exp += 0x1c000 // exp - 15 + 127
             if (mant == 0 && exp > 0x1c400) // smooth transition
-                return java.lang.Float.intBitsToFloat(bits and 0x8000 shl 16 or (exp shl 13) or 0x3ff)
+                return Float.fromBits(bits and 0x8000 shl 16 or (exp shl 13) or 0x3ff)
         } else if (mant != 0) {// && exp==0 -> subnormal
             exp = 0x1c400 // make it normal
             do {

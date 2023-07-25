@@ -27,16 +27,16 @@ object CRC64 {
      * Calculate the CRC64 of the given [InputStream] until the end of the
      * stream has been reached.
      *
-     * @param `in` the stream will be closed automatically
+     * @param input the stream will be closed automatically
      * @return new [CRC64] instance initialized to the [InputStream]'s CRC value
      * @throws IOException in case the [InputStream.read] method fails
      */
     fun fromInputStream(input: InputStream): Long {
-        return input.use {
+        return input.use { input1: InputStream ->
             var crc = 0L
             val buffer = ByteArray(65536)
             while (true) {
-                val length = input.read()
+                val length = input1.read()
                 if (length == -1) break
                 crc = update(buffer, length, crc)
             }

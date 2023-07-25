@@ -4,6 +4,7 @@ import me.anno.fonts.AWTFont
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.maths.Maths
 import me.anno.utils.structures.maps.KeyPairMap
+import me.anno.utils.types.Strings.joinChars
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 
@@ -32,14 +33,13 @@ class AlignmentGroup(
                 return lengthWithoutSpaces + spacesLength
             }
             val bounds = TextLayout(str, font.font, ctx).bounds
-            // println("[TextLayout, '$str', ${font.size2D}, ${font.size}, ${font.name}] ${bounds.minX} .. ${bounds.maxX}")
-            return bounds.maxX// - bounds.minX
+            return bounds.maxX
         }
 
         fun getCharLength(char: Int): Double {
             var value = characterLengthCache[char]
             if (value != null) return value
-            value = getLength(String(Character.toChars(char)))
+            value = getLength(char.joinChars().toString())
             characterLengthCache[char] = value
             return value
         }
@@ -48,7 +48,7 @@ class AlignmentGroup(
             var offset = map[previous, current]
             if (offset != null) return offset
             val bLength = getCharLength(current)
-            val abLength = getLength(String(Character.toChars(previous) + Character.toChars(current)))
+            val abLength = getLength(previous.joinChars().toString() + current.joinChars().toString())
             offset = abLength - bLength
             map[previous, current] = offset
             return offset

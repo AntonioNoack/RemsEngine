@@ -195,28 +195,23 @@ open class OSWindow(var title: String) {
 
     open fun addCallbacks() {
         val window = pointer
-        keyCallback = GLFW.glfwSetKeyCallback(window, object : GLFWKeyCallback() {
-            override fun invoke(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
-                if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_RELEASE)
-                    GLFW.glfwSetWindowShouldClose(window, true)
-            }
-        })
-        fsCallback = GLFW.glfwSetFramebufferSizeCallback(window, object : GLFWFramebufferSizeCallback() {
-            override fun invoke(window1: Long, w: Int, h: Int) {
-                if (w > 0 && h > 0) {
-                    addEvent {
-                        if (w != width || h != height) {
-                            width = w
-                            height = h
-                            framesSinceLastInteraction = 0
-                        }
-                        Unit
+        keyCallback = GLFW.glfwSetKeyCallback(window) { window1, key, _, action, _ ->
+            if (key == GLFW.GLFW_KEY_ESCAPE && action == GLFW.GLFW_RELEASE)
+                GLFW.glfwSetWindowShouldClose(window1, true)
+        }
+        fsCallback = GLFW.glfwSetFramebufferSizeCallback(window) { _, w, h ->
+            if (w > 0 && h > 0) {
+                addEvent {
+                    if (w != width || h != height) {
+                        width = w
+                        height = h
+                        framesSinceLastInteraction = 0
                     }
                 }
             }
-        })
-        GLFW.glfwSetWindowFocusCallback(window) { _: Long, isInFocus0: Boolean -> isInFocus = isInFocus0 }
-        GLFW.glfwSetWindowIconifyCallback(window) { _: Long, isMinimized0: Boolean ->
+        }
+        GLFW.glfwSetWindowFocusCallback(window) { _, isInFocus0 -> isInFocus = isInFocus0 }
+        GLFW.glfwSetWindowIconifyCallback(window) { _, isMinimized0 ->
             isMinimized = isMinimized0
             // just be sure in case the OS/glfw don't send it
             if (isMinimized0) needsRefresh = true

@@ -1168,10 +1168,10 @@ object Thumbs {
             }
         }
         register("jpg") { srcFile, dstFile, size, callback ->
-            JPGThumbnails.extractThumbnail(srcFile) { data2 ->
-                if (data2 != null) {
+            JPGThumbnails.extractThumbnail(srcFile) { bytes ->
+                if (bytes != null) {
                     try {
-                        val image = ImageIO.read(data2.inputStream())
+                        val image = ImageIO.read(bytes.inputStream())
                         transformNSaveNUpload(srcFile, true, image.toImage(), dstFile, size, callback)
                     } catch (e: Exception) {
                         generateImage(srcFile, dstFile, size, callback)

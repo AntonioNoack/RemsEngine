@@ -23,15 +23,21 @@ import kotlin.math.pow
 object Strings {
 
     @JvmStatic
+    fun Int.joinChars0(): CharArray {
+        val char = this
+        return Character.toChars(char)
+    }
+
+    @JvmStatic
     fun Int.joinChars(): CharSequence {
-        return String(Character.toChars(this))
+        return String(joinChars0())
     }
 
     @JvmStatic
     fun List<Int>.joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
         val builder = StringBuilder(endIndex - startIndex)
         for (i in startIndex until endIndex) {
-            builder.append(Character.toChars(get(i)))
+            builder.append(get(i).joinChars0())
         }
         return builder
     }
@@ -40,9 +46,9 @@ object Strings {
     fun List<Int>.joinChars(startIndex: Int = 0, endIndex: Int = size, filter: (Int) -> Boolean): CharSequence {
         val builder = StringBuilder(endIndex - startIndex)
         for (i in startIndex until endIndex) {
-            val c = get(i)
-            if (filter(c)) {
-                builder.append(Character.toChars(c))
+            val char = get(i)
+            if (filter(char)) {
+                builder.append(char.joinChars0())
             }
         }
         return builder

@@ -229,9 +229,9 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
     fun devNull(name: String, stream: InputStream) {
         thread(name = "devNull-$name") {
             try {
-                stream.use {
+                stream.use { stream1: InputStream ->
                     waitUntil(true) {// wait until we are done
-                        stream.available() > 0 && stream.read() < 0
+                        stream1.available() > 0 && stream1.read() < 0
                     }
                 }
             } catch (_: ShutdownException) {

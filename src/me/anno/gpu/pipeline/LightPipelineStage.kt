@@ -284,6 +284,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                     nioBuffer.putFloat(color.x)
                     nioBuffer.putFloat(color.y)
                     nioBuffer.putFloat(color.z)
+                    nioBuffer.putInt(light.lightType.id)
                     // put data1: type-dependant property
                     nioBuffer.putFloat(light.getShaderV0(m, worldScale))
                     // put data2:
