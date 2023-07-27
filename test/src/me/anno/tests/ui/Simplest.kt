@@ -5,7 +5,7 @@ import me.anno.ui.debug.TestDrawPanel
 import me.anno.utils.Color.withAlpha
 
 fun main() {
-    testPureUI {
+    testPureUI("Simplest") {
         TestDrawPanel {
             it.backgroundRadius = 50f
             it.backgroundOutlineColor = (-1).withAlpha(0.7f)

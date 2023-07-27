@@ -128,20 +128,22 @@ class MainStage {
                 for (index in 0 until uniform.arraySize) {
                     val nameIndex = name + index.toString()
                     if (isMoreThanOne) code.append("case ").append(index).append(": ")
-                    code.append("" +
-                            "size = textureSize($nameIndex,0); du=0.5/size.x;\n" +
-                            "u = abs(uvw.xyz);\n" +
-                            "x = u.x >= u.y && u.x > u.z;\n" +
-                            "z = !x && u.z >= u.y;\n" +
-                            // not ideal...
-                            "dx = x ? vec4(0,du,0,0) : vec4(du,0,0,0);\n" +
-                            "dy = z ? vec4(0,du,0,0) : vec4(0,0,du,0);\n" +
-                            "for(float j=-2.0;j<2.5;j++){\n" +
-                            "   for(float i=-2.0;i<2.5;i++){\n" +
-                            "       sum += texture($nameIndex, uvw+i*dx+j*dy);\n" +
-                            "   }\n" +
-                            "}\n" +
-                            "return sum*0.04;\n")
+                    code.append(
+                        "" +
+                                "size = textureSize($nameIndex,0); du=0.5/size.x;\n" +
+                                "u = abs(uvw.xyz);\n" +
+                                "x = u.x >= u.y && u.x > u.z;\n" +
+                                "z = !x && u.z >= u.y;\n" +
+                                // not ideal...
+                                "dx = x ? vec4(0,du,0,0) : vec4(du,0,0,0);\n" +
+                                "dy = z ? vec4(0,du,0,0) : vec4(0,0,du,0);\n" +
+                                "for(float j=-2.0;j<2.5;j++){\n" +
+                                "   for(float i=-2.0;i<2.5;i++){\n" +
+                                "       sum += texture($nameIndex, uvw+i*dx+j*dy);\n" +
+                                "   }\n" +
+                                "}\n" +
+                                "return sum*0.04;\n"
+                    )
                 }
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
                 code.append("}\n")
@@ -289,7 +291,7 @@ class MainStage {
             }
         } else {
             for ((local, _) in bridgeVariables1) {
-                local.declare(code, null)
+                local.declare(code, null, true)
                 defined += local
             }
         }
@@ -302,19 +304,21 @@ class MainStage {
             // if this function defines a variable, which has been undefined before, define it
             for (param in params.sortedBy { it.type }) {
                 if (param.isOutput && param !in defined) {
-                    param.declare0(code, null)
                     // write default value if name matches deferred layer
                     // if the shader works properly, it is overridden anyway
                     val dlt = DeferredLayerType.byName[param.name]
                     if (dlt != null && dlt.workDims == param.type.components) {
+                        param.declare0(code, null)
                         code.append('=')
                         dlt.appendDefaultValue(code)
+                        code.append(";\n")
+                    } else {
+                        param.declare(code, null, true)
                     }
-                    code.append(";\n")
                     defined += param
                 }
             }
-            code.append("{// stage ").append(stage.callName).append('\n')
+            code.append("if(true){// stage ").append(stage.callName).append('\n')
             code.append(stage.body)
             if (!code.endsWith('\n')) code.append('\n')
             code.append("}// end of stage ").append(stage.callName).append('\n')
@@ -348,10 +352,12 @@ class MainStage {
                     outputSum == 0 -> {
                         code.append("BuildColor = vec4(1.0);\n")
                     }
+
                     outputSum == 4 && lastOutputs.size == 1 -> {
                         code.append("BuildColor = ")
                             .append(lastOutputs[0].name).append(";\n")
                     }
+
                     outputSum in 1..4 -> {
                         code.append("BuildColor = vec4(")
                         for (i in lastOutputs.indices) {
@@ -363,12 +369,12 @@ class MainStage {
                         }
                         code.append(");\n")
                     }
+
                     else -> {
                         code.append("BuildColor = vec4(finalColor, finalAlpha);\n")
                     }
                 }
             } else {
-
                 val layerTypes = outputs.layerTypes
                 for (type in layerTypes) {
                     // only needed if output is not disabled

@@ -93,6 +93,9 @@ object GFXBase {
     var usesRenderDoc = false
 
     @JvmField
+    var useSeparateGLFWThread = true
+
+    @JvmField
     val robot = try {
         Robot()
     } catch (e: AWTException) {
@@ -164,12 +167,12 @@ object GFXBase {
                     windows.clear()
                 }
             }
-            if (debugMsgCallback != null) debugMsgCallback!!.free()
+            debugMsgCallback?.free()
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             GLFW.glfwTerminate()
-            errorCallback!!.free()
+            errorCallback?.free()
         }
     }
 
@@ -338,22 +341,37 @@ object GFXBase {
         Thread.currentThread().name = "GLFW"
 
         // Start new thread to have the OpenGL context current in and that does the rendering.
-        thread(name = "OpenGL") {
+        if (useSeparateGLFWThread) {
+
+            thread(name = "OpenGL") {
+                runRenderLoop0(window0)
+                runRenderLoop()
+            }
+
+            var lastTime = System.nanoTime()
+            while (!windows.all2 { it.shouldClose } && !shutdown) {
+                updateWindows()
+                val currTime = System.nanoTime()
+                lastTime = if (currTime - lastTime < 1_000_000) {
+                    // reduce load on CPU if the method call is very lightweight
+                    Thread.sleep(1)
+                    System.nanoTime()
+                } else currTime
+            }
+        } else {
+
             runRenderLoop0(window0)
-            runRenderLoop()
-        }
 
-        var lastTime = System.nanoTime()
-        while (!windows.all2 { it.shouldClose } && !shutdown) {
-            updateWindows()
-            val currTime = System.nanoTime()
-            lastTime = if (currTime - lastTime < 1_000_000) {
-                // reduce load on CPU if the method call is very lightweight
-                Thread.sleep(1)
-                System.nanoTime()
-            } else currTime
-        }
+            // run render loop incl. updating windows
+            lastTime = System.nanoTime()
+            while (!destroyed && !shutdown && !windows.all2 { it.shouldClose }) {
+                Engine.updateTime()
+                updateWindows()
+                renderFrame()
+            }
+            StudioBase.instance?.onShutdown()
 
+        }
     }
 
     @JvmField

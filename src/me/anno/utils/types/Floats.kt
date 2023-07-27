@@ -134,8 +134,10 @@ object Floats {
 
     @JvmStatic
     private val f1Symbols = DecimalFormatSymbols(Locale.ENGLISH)
+
     @JvmStatic
     private val f1 = DecimalFormat("0.0", f1Symbols).apply { maximumFractionDigits = 1 }
+
     @JvmStatic
     private val f1s = DecimalFormat(" 0.0;-0.0", f1Symbols).apply { maximumFractionDigits = 1 }
 
@@ -165,7 +167,7 @@ object Floats {
     }
 
     // by x4u on https://stackoverflow.com/a/6162687/4979303
-    // todo also add inverse function
+    @JvmStatic
     fun float16ToFloat32(bits: Int): Float {
         var mant = bits and 0x03ff // 10 bits mantissa
         var exp = bits and 0x7c00 // 5 bits exponent
@@ -173,7 +175,7 @@ object Floats {
         else if (exp != 0) {// normalized value
             exp += 0x1c000 // exp - 15 + 127
             if (mant == 0 && exp > 0x1c400) // smooth transition
-                return Float.fromBits(bits and 0x8000 shl 16 or (exp shl 13) or 0x3ff)
+                return Float.fromBits((bits and 0x8000).shl(16) or (exp shl 13) or 0x3ff)
         } else if (mant != 0) {// && exp==0 -> subnormal
             exp = 0x1c400 // make it normal
             do {
@@ -183,9 +185,33 @@ object Floats {
             mant = mant and 0x3ff // discard subnormal bit
         } // else +/-0 -> +/-0
         return Float.fromBits( // combine all parts
-            bits and 0x8000 shl 16 // sign  << ( 31 - 15 )
-                    or (exp or mant shl 13)  // value << ( 23 - 10 )
+            (bits and 0x8000).shl(16) // sign  << ( 31 - 15 )
+                    or ((exp or mant) shl 13)  // value << ( 23 - 10 )
         )
+    }
+
+    @Suppress("unused")
+    @JvmStatic
+    fun float32ToFloat16(value: Float): Int {
+        val fp32 = value.toRawBits()
+        val sign = (fp32.ushr(16)).and(0x8000) // sign only
+        var v = (fp32 and 0x7fffffff) + 0x1000 // rounded value
+        return if (v >= 0x47800000) { // might be or become NaN/Inf; avoid Inf due to rounding
+            if (fp32 and 0x7fffffff >= 0x47800000) { // is or must become NaN/Inf
+                if (v < 0x7f800000) sign.or(0x7c00) // remains +/-Inf or NaN
+                else sign.or(0x7c00).or(fp32.and(0x007fffff).ushr(13)) // make it +/-Inf
+                // keep NaN (and Inf) bits
+            } else sign.or(0x7bff) // unrounded not quite Inf
+        } else if (v >= 0x38800000) { // remains normalized value
+            sign or (v - 0x38000000 ushr 13) // exp - 127 + 15
+        } else if (v < 0x33000000) { // too small for subnormal
+            sign // becomes +/-0
+        } else {
+            v = fp32 and 0x7fffffff ushr 23 // tmp exp for subnormal calc
+            sign or ((fp32 and 0x7fffff or 0x800000) +// add subnormal bit
+                    (0x800000.ushr(v - 102)) // round depending on cut off
+                    ushr (126 - v)) // div by 2^(1-(exp-127+15)) and >> 13 | exp=0
+        }
     }
 
 }

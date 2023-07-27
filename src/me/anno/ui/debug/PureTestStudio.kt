@@ -13,7 +13,7 @@ import me.anno.ui.Window
  * engine runtime for testing; without console
  * */
 @Suppress("unused")
-class PureTestStudio(val createMainPanel: () -> Panel) : StudioBase("Test", 1, true) {
+class PureTestStudio(title: String, val createMainPanel: () -> Panel) : StudioBase(title, 1, true) {
 
     override fun createUI() {
         val ui = createMainPanel()
@@ -42,8 +42,8 @@ class PureTestStudio(val createMainPanel: () -> Panel) : StudioBase("Test", 1, t
          * with a single panel; full gfx capabilities,
          * no audio
          * */
-        fun testPureUI(createMainPanel: () -> Panel) {
-            PureTestStudio(createMainPanel).run()
+        fun testPureUI(title: String, createMainPanel: () -> Panel) {
+            PureTestStudio(title, createMainPanel).run()
         }
 
         /**
@@ -51,8 +51,8 @@ class PureTestStudio(val createMainPanel: () -> Panel) : StudioBase("Test", 1, t
          * with a single panel; full gfx capabilities,
          * no audio
          * */
-        fun testPureUI(mainPanel: Panel) {
-            PureTestStudio { mainPanel }.run()
+        fun testPureUI(title: String, mainPanel: Panel) {
+            PureTestStudio(title) { mainPanel }.run()
         }
 
     }

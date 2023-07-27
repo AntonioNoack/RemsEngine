@@ -20,7 +20,8 @@ import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
-import java.nio.ByteOrder
+import me.anno.utils.pooling.ByteBufferPool
+import me.anno.utils.types.Floats.float32ToFloat16
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -62,9 +63,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
     val height1 = width1 / 4
 
     private val texture = Texture2D("frameTimes", width1, 1, 1)
-    private val floats = Texture2D.bufferPool[4 * width1, false, false]
-        .order(ByteOrder.nativeOrder())
-        .asFloatBuffer()
+    private val fp16s = ByteBufferPool.allocateDirect(2 * width1).asShortBuffer()
 
     private val shader = BaseShader(
         "frameTimes",
@@ -170,10 +169,10 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
                 for (x in x0 until x1) {
                     val i = x - this.x
                     val v = values[(indexOffset + i) % width]
-                    floats.put(x - x0, max(v * scale, 0f))
+                    fp16s.put(x - x0, float32ToFloat16(max(v * scale, 0f)).toShort())
                 }
 
-                texture.createMonochromeFP16(floats, false)
+                texture.createMonochromeFP16(fp16s, false)
 
                 GFX.check()
                 val shader = shader.value

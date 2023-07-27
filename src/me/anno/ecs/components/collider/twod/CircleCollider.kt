@@ -5,7 +5,6 @@ import me.anno.engine.ui.LineShapes.drawCircle
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import org.jbox2d.collision.shapes.CircleShape
-import org.jbox2d.collision.shapes.Shape
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -17,18 +16,11 @@ class CircleCollider : Collider2d() {
     var radius = 1f
         set(value) {
             field = value
-            // could we update this at runtime? would need to update mass & inertia
-            invalidateRigidbody()
+            (box2dInstance?.shape as? CircleShape)?.radius = value
         }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
         return length(deltaPos.x, deltaPos.y) - radius
-    }
-
-    override fun createBox2dShape(): Shape {
-        val shape = CircleShape()
-        shape.radius = radius
-        return shape
     }
 
     override fun drawShape() {

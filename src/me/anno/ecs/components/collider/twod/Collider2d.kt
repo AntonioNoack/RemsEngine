@@ -1,15 +1,14 @@
 package me.anno.ecs.components.collider.twod
 
-import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import org.jbox2d.collision.shapes.Shape
 import org.jbox2d.dynamics.Fixture
-import org.joml.Matrix4x3d
+
+// todo remove box2d Fixture dependency... how can we move it? :/
 
 // todo colliders by meshes in 2d,
 // todo colliders by points in 2d
@@ -52,12 +51,6 @@ abstract class Collider2d : Collider() {
             box2dInstance?.restitution = restitution
         }
 
-    fun createBox2dCollider(base: Entity): Pair<Matrix4x3d, Shape> {
-        val transform0 = entity!!.fromLocalToOtherLocal(base)
-        val shape = createBox2dShape()
-        return transform0 to shape
-    }
-
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as Collider2d
@@ -65,7 +58,5 @@ abstract class Collider2d : Collider() {
         dst.friction = friction
         dst.restitution = restitution
     }
-
-    abstract fun createBox2dShape(): Shape
 
 }

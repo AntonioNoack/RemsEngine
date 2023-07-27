@@ -5,7 +5,6 @@ import me.anno.engine.ui.LineShapes.drawRect
 import me.anno.maths.Maths
 import me.anno.utils.pooling.JomlPools
 import org.jbox2d.collision.shapes.PolygonShape
-import org.jbox2d.collision.shapes.Shape
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -16,8 +15,7 @@ class RectCollider : Collider2d() {
     var halfExtends = Vector2f(1f)
         set(value) {
             field.set(value)
-            (box2dInstance?.shape as? PolygonShape)
-                ?.setAsBox(value.x, value.y)
+            (box2dInstance?.shape as? PolygonShape)?.setAsBox(value.x, value.y)
         }
 
     override fun getSignedDistance(deltaPos: Vector3f): Float {
@@ -30,23 +28,17 @@ class RectCollider : Collider2d() {
         return outer + inner
     }
 
-    override fun createBox2dShape(): Shape {
-        val shape = PolygonShape()
-        val halfExtends = halfExtends
-        shape.setAsBox(halfExtends.x, halfExtends.y)
-        return shape
-    }
-
     override fun drawShape() {
         val halfExtends = halfExtends
         val x = halfExtends.x
         val y = halfExtends.y
-        val p0 = JomlPools.vec3f.create().set(+x, +y, 0f)
-        val p1 = JomlPools.vec3f.create().set(+x, -y, 0f)
-        val p2 = JomlPools.vec3f.create().set(-x, -y, 0f)
-        val p3 = JomlPools.vec3f.create().set(-x, +y, 0f)
+        val v3 = JomlPools.vec3f
+        val p0 = v3.create().set(+x, +y, 0f)
+        val p1 = v3.create().set(+x, -y, 0f)
+        val p2 = v3.create().set(-x, -y, 0f)
+        val p3 = v3.create().set(-x, +y, 0f)
         drawRect(entity, p0, p1, p2, p3)
-        JomlPools.vec3f.sub(4)
+        v3.sub(4)
     }
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {

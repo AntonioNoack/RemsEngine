@@ -107,7 +107,7 @@ open class Shader(
                 VariableMode.IN, VariableMode.INOUT -> "uniform"
                 VariableMode.OUT -> "out"
             }
-            v.declare(builder, prefix)
+            v.declare(builder, prefix, false)
         }
         for (v in varyings) {
             builder.append(v.modifiers)
@@ -163,7 +163,7 @@ open class Shader(
                     "out"
                 }
             }
-            v.declare(builder, prefix)
+            v.declare(builder, prefix, false)
         }
 
         val base = if ((outCtr == 0 && "out " !in fragmentShader) && glslVersion == DefaultGLSLVersion &&

@@ -7,5 +7,5 @@ import me.anno.ui.debug.PureTestStudio.Companion.testPureUI
 
 fun main() {
     GFXBase.disableRenderDoc()
-    testPureUI(Panel(style))
+    testPureUI("FPSPanelSpeed", Panel(style))
 }

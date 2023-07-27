@@ -1,7 +1,9 @@
 package me.anno.box2d
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.collider.twod.CircleCollider
 import me.anno.ecs.components.collider.twod.Collider2d
+import me.anno.ecs.components.collider.twod.RectCollider
 import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
 import me.anno.io.serialization.NotSerializedProperty
@@ -51,6 +53,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
     @NotSerializedProperty
     private val world = World(Vec2(gravity.x.toFloat(), gravity.y.toFloat()))
+
     init {
         Settings.maxTranslation = 1e6f
         Settings.maxTranslationSquared = sq(Settings.maxTranslation)
@@ -82,7 +85,21 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
             var mass = 0f
             val shapes = Array(colliders.size) {
                 val collider = colliders[it]
-                val (trans, shape) = collider.createBox2dCollider(entity)
+                val trans = collider.entity!!.fromLocalToOtherLocal(entity)
+                val shape = when (collider) {
+                    is CircleCollider -> {
+                        val shape = CircleShape()
+                        shape.radius = collider.radius
+                        shape
+                    }
+                    is RectCollider -> {
+                        val shape = PolygonShape()
+                        val halfExtends = collider.halfExtends
+                        shape.setAsBox(halfExtends.x, halfExtends.y)
+                        shape
+                    }
+                    else -> throw NotImplementedError()
+                }
                 when (shape) {
                     is CircleShape -> {
                         shape.m_p.set(trans.m30.toFloat(), trans.m31.toFloat())

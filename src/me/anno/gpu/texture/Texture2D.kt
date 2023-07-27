@@ -150,7 +150,7 @@ open class Texture2D(
     fun setAlignmentAndBuffer(w: Int, dataFormat: Int, dataType: Int, unbind: Boolean) {
         val typeSize = when (dataType) {
             GL_UNSIGNED_BYTE, GL_BYTE -> 1
-            GL_UNSIGNED_SHORT, GL_SHORT -> 2
+            GL_UNSIGNED_SHORT, GL_SHORT, GL_HALF_FLOAT -> 2
             GL_UNSIGNED_INT, GL_INT, GL_FLOAT -> 4
             GL_DOUBLE -> 8
             else -> {
@@ -509,6 +509,16 @@ open class Texture2D(
     }
 
     fun checkRedundancyMonochrome(data: FloatBuffer) {
+        if (data.capacity() < 1) return
+        val c0 = data[0]
+        for (i in 1 until width * height) {
+            if (c0 != data[i]) return
+        }
+        setSize1x1()
+        data.limit(1)
+    }
+
+    fun checkRedundancyMonochrome(data: ShortBuffer) {
         if (data.capacity() < 1) return
         val c0 = data[0]
         for (i in 1 until width * height) {
@@ -880,6 +890,17 @@ open class Texture2D(
         setWriteAlignment(4 * width)
         texImage2D(GL_R16F, GL_RED, GL_FLOAT, data)
         afterUpload(true, 4)
+    }
+
+    /**
+     * creates a monochrome float16 image on the GPU
+     * */
+    fun createMonochromeFP16(data: ShortBuffer, checkRedundancy: Boolean) {
+        beforeUpload(1, data.remaining())
+        if (checkRedundancy) checkRedundancyMonochrome(data)
+        setWriteAlignment(2 * width)
+        texImage2D(GL_R16F, GL_RED, GL_HALF_FLOAT, data)
+        afterUpload(true, 2)
     }
 
     fun createBGR(data: ByteArray, checkRedundancy: Boolean) {
