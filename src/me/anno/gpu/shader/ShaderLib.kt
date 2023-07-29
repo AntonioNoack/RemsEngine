@@ -136,9 +136,9 @@ object ShaderLib {
             "    float w = 6.0 - x - y - z;\n" +
             "    return vec4(x, y, z, w) * (1.0/6.0);\n" +
             "}\n" +
-            "vec4 textureBicubic(sampler2D sampler, vec2 texCoords){\n" +
+            "vec4 textureBicubic(sampler2D tex, vec2 texCoords){\n" +
 
-            "   vec2 texSize = vec2(textureSize(sampler, 0));\n" +
+            "   vec2 texSize = vec2(textureSize(tex, 0));\n" +
             "   vec2 invTexSize = 1.0 / texSize;\n" +
 
             "   texCoords = texCoords * texSize - 0.5;\n" +
@@ -156,10 +156,10 @@ object ShaderLib {
 
             "    offset *= invTexSize.xxyy;\n" +
 
-            "    vec4 sample0 = texture(sampler, offset.xz);\n" +
-            "    vec4 sample1 = texture(sampler, offset.yz);\n" +
-            "    vec4 sample2 = texture(sampler, offset.xw);\n" +
-            "    vec4 sample3 = texture(sampler, offset.yw);\n" +
+            "    vec4 sample0 = texture(tex, offset.xz);\n" +
+            "    vec4 sample1 = texture(tex, offset.yz);\n" +
+            "    vec4 sample2 = texture(tex, offset.xw);\n" +
+            "    vec4 sample3 = texture(tex, offset.yw);\n" +
             "    float sx = s.x / (s.x + s.y);\n" +
             "    float sy = s.z / (s.z + s.w);\n" +
             "    return mix(mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);\n" +

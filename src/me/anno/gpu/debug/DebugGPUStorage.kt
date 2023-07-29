@@ -86,6 +86,7 @@ object DebugGPUStorage {
         GL_DEPTH32F_STENCIL8,
         GL_DEPTH_COMPONENT32,
         GL_DEPTH_COMPONENT32F -> true
+
         else -> false
     }
 
@@ -180,7 +181,8 @@ object DebugGPUStorage {
 
     }
 
-    class TexturePanel3DC(name: String, val tex: CubemapTexture) : TexturePanelBase("$name, ${tex.width} x ${tex.height}") {
+    class TexturePanel3DC(name: String, val tex: CubemapTexture) :
+        TexturePanelBase("$name, ${tex.width} x ${tex.height}") {
 
         override fun getTexW(): Int = tex.width * 2 // 360°
         override fun getTexH(): Int = tex.width // 180°
@@ -195,7 +197,7 @@ object DebugGPUStorage {
 
     fun openMenu() {
         val window = GFX.someWindow!!
-        Menu.openMenu(window.windowStack, listOf(
+        val window1 = Menu.openMenu(window.windowStack, listOf(
             MenuOption(
                 NameDesc(
                     "Texture2Ds (${tex2d.size}, ${
@@ -297,6 +299,7 @@ object DebugGPUStorage {
                 }
             }
         ))
+        window1?.drawDirectly = true
     }
 
     private fun create2DListOfPanels(title: String, fillList: (PanelList) -> Unit) {
@@ -306,26 +309,28 @@ object DebugGPUStorage {
         list.childHeight *= 2
         fillList(list)
         val window = GFX.someWindow!!
-        Menu.openMenuByPanels(
+        val window1 = Menu.openMenuByPanels(
             window.windowStack,
             window.mouseX.toInt(),
             window.mouseY.toInt(),
             NameDesc(title),
             listOf(list)
         )
+        window1?.drawDirectly = true
     }
 
     private fun createListOfPanels(title: String, fillList: (PanelList) -> Unit) {
         val list = PanelListY(style)
         fillList(list)
         val window = GFX.someWindow!!
-        Menu.openMenuByPanels(
+        val window1 = Menu.openMenuByPanels(
             window.windowStack,
             window.mouseX.toInt(),
             window.mouseY.toInt(),
             NameDesc(title),
             listOf(list)
         )
+        window1?.drawDirectly = true
     }
 
 }

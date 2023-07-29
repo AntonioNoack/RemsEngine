@@ -55,8 +55,8 @@
 // Used FP16 normal range for testing with +4096 32-bit step size for sampling error.
 // So these match up well with the half approximations.
 //==============================================================================================================================
- float APrxLoRcpF1(float a){return AF1_AU1(AU1_(0x7ef07ebb)-AU1_AF1(a));}
- float APrxMedRcpF1(float a){float b=AF1_AU1(AU1_(0x7ef19fff)-AU1_AF1(a));return b*(-b*a+float(2.0));}
- float APrxLoRsqF1(float a){return AF1_AU1(AU1_(0x5f347d74)-(AU1_AF1(a)>>AU1_(1)));}
+ float APrxLoRcpF1(float a){return AF1_AU1((0x7ef07ebbu)-AU1_AF1(a));}
+ float APrxMedRcpF1(float a){float b=AF1_AU1((0x7ef19fffu)-AU1_AF1(a));return b*(-b*a+float(2.0));}
+ float APrxLoRsqF1(float a){return AF1_AU1((0x5f347d74u)-(AU1_AF1(a)>>(1u)));}
 //------------------------------------------------------------------------------------------------------------------------------
- vec3 APrxMedRcpF3(vec3 a){vec3 b=AF3_AU3(AU3_(0x7ef19fff)-AU3_AF3(a));return b*(-b*a+AF3_(2.0));}
+ vec3 APrxMedRcpF3(vec3 a){vec3 b=AF3_AU3(AU3_(0x7ef19fffu)-AU3_AF3(a));return b*(-b*a+AF3_(2.0));}

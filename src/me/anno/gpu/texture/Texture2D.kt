@@ -339,6 +339,7 @@ open class Texture2D(
                     }
                 }
             }
+
             BufferedImage.TYPE_INT_RGB -> {
                 buffer as DataBufferInt
                 val data = buffer.data
@@ -353,6 +354,7 @@ open class Texture2D(
                     }
                 }
             }
+
             BufferedImage.TYPE_INT_BGR -> {
                 buffer as DataBufferInt
                 val data = buffer.data
@@ -367,6 +369,7 @@ open class Texture2D(
                     }
                 }
             }
+
             BufferedImage.TYPE_BYTE_GRAY -> {
                 buffer as DataBufferByte
                 val data = buffer.data
@@ -381,6 +384,7 @@ open class Texture2D(
                     }
                 }
             }
+
             else -> {
                 val data = image.getRGB(0, 0, width, height, intArrayPool[width * height, false, false], 0, width)
                 val hasAlpha = image.hasAlphaChannel()
@@ -696,20 +700,21 @@ open class Texture2D(
     fun createBGRA(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
+        switchRGB2BGR(data2)
         setWriteAlignment(4 * width)
-        // uses bgra instead of rgba to save the swizzle
-        texImage2D(GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE, data2)
+        texImage2D(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 4)
+        switchRGB2BGR(data2)
     }
 
     fun createBGR(data: IntArray, checkRedundancy: Boolean) {
         beforeUpload(1, data.size)
         val data2 = if (checkRedundancy) checkRedundancy(data) else data
-        // would work without swizzle, but I am not sure, that this is legal,
-        // because the number of channels from the input and internal format differ
+        switchRGB2BGR(data2)
         setWriteAlignment(4 * width)
-        texImage2D(GL_RGB8, GL_BGRA, GL_UNSIGNED_BYTE, data2)
+        texImage2D(GL_RGB8, GL_RGBA, GL_UNSIGNED_BYTE, data2)
         afterUpload(false, 3)
+        switchRGB2BGR(data2)
     }
 
     fun createRGB(data: FloatArray, checkRedundancy: Boolean) {
@@ -908,7 +913,8 @@ open class Texture2D(
         val data2 = if (checkRedundancy) checkRedundancyRGB(data) else data
         val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
-        texImage2D(GL_RGBA8, GL_BGR, GL_UNSIGNED_BYTE, buffer)
+        switchRGB2BGR3(buffer)
+        texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 3)
     }
@@ -916,7 +922,8 @@ open class Texture2D(
     fun createBGR(data: ByteBuffer, checkRedundancy: Boolean) {
         beforeUpload(3, data.remaining())
         if (checkRedundancy) checkRedundancyRGB(data)
-        texImage2D(GL_RGBA8, GL_BGR, GL_UNSIGNED_BYTE, data)
+        switchRGB2BGR3(data)
+        texImage2D(GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, data)
         bufferPool.returnBuffer(data)
         afterUpload(false, 3)
     }
@@ -943,15 +950,11 @@ open class Texture2D(
     }
 
     fun createRGBA(data: FloatBuffer, buffer: ByteBuffer, checkRedundancy: Boolean) {
-
         beforeUpload(4, data.capacity())
         if (checkRedundancy && width * height > 1) checkRedundancyRGBA(data)
-
         // rgba32f as internal format is extremely important... otherwise the value is cropped
         texImage2D(TargetType.FloatTarget4, buffer)
-
         afterUpload(true, 16)
-
     }
 
     fun createBGRA(data: ByteArray, checkRedundancy: Boolean) {
@@ -960,7 +963,8 @@ open class Texture2D(
         val buffer = bufferPool[data2.size, false, false]
         buffer.put(data2).flip()
         beforeUpload(4, buffer.remaining())
-        texImage2D(GL_RGBA, GL_BGRA, GL_UNSIGNED_BYTE, buffer)
+        switchRGB2BGR4(buffer)
+        texImage2D(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 4)
     }
@@ -968,7 +972,8 @@ open class Texture2D(
     fun createBGRA(buffer: ByteBuffer, checkRedundancy: Boolean) {
         if (checkRedundancy) checkRedundancy(buffer)
         beforeUpload(4, buffer.remaining())
-        texImage2D(GL_RGBA, GL_BGRA, GL_UNSIGNED_BYTE, buffer)
+        switchRGB2BGR4(buffer)
+        texImage2D(GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
         bufferPool.returnBuffer(buffer)
         afterUpload(false, 4)
     }
@@ -1338,6 +1343,28 @@ open class Texture2D(
                 val ag = v.and(agMask)
                 val b = v.and(0xff)
                 values.put(i, ag or r or b.shl(16))
+            }
+        }
+
+        @JvmStatic
+        fun switchRGB2BGR3(values: ByteBuffer) {
+            // convert rgb to bgr
+            val pos = values.position()
+            for (i in pos until pos + values.remaining() step 3) {
+                val tmp = values[i]
+                values.put(i, values[i + 2])
+                values.put(i + 2, tmp)
+            }
+        }
+
+        @JvmStatic
+        fun switchRGB2BGR4(values: ByteBuffer) {
+            // convert rgba to bgra
+            val pos = values.position()
+            for (i in pos until pos + values.remaining() step 4) {
+                val tmp = values[i]
+                values.put(i, values[i + 2])
+                values.put(i + 2, tmp)
             }
         }
 

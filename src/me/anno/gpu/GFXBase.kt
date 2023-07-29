@@ -26,6 +26,7 @@ import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.input.InputPanel
@@ -452,7 +453,7 @@ object GFXBase {
             GLFW.glfwSetWindowShouldClose(window.pointer, true)
         } else {
             GLFW.glfwSetWindowShouldClose(window.pointer, false)
-            addGPUTask("close-request", 1) {
+            addEvent {
                 ask(
                     ws, NameDesc("Close %1?", "", "ui.closeProgram")
                         .with("%1", window.title)

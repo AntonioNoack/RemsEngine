@@ -40,32 +40,34 @@ object FSR {
                     "uniform vec2 texelOffset;\n" +
                     "uniform bool applyToneMapping;\n" +
                     "#define FSR_EASU_F 1\n" +
-                    if (OS.isWeb) {
-                        "void FsrEasuLoad(vec2 p, out vec4 r, out vec4 g, out vec4 b){\n" +
-                                "   vec2 dx = vec2(con1.x,0.0);\n" +
-                                "   vec2 dy = vec2(0.0,con1.y);\n" +
-                                "   vec2 dxy = con1.xy;\n" +
-                                "   vec4 x00 = texture(source,p);\n" +
-                                "   vec3 y00 = mix(background, x00.rgb, x00.aaa);\n" +
-                                "   vec4 x01 = texture(source,p+dy);\n" +
-                                "   vec3 y01 = mix(background, x01.rgb, x01.aaa);\n" +
-                                "   vec4 x10 = texture(source,p+dx);\n" +
-                                "   vec3 y10 = mix(background, x10.rgb, x10.aaa);\n" +
-                                "   vec4 x11 = texture(source,p+dxy);\n" +
-                                "   vec3 y11 = mix(background, x11.rgb, x11.aaa);\n" +
-                                // this is the order of textureGather: https://registry.khronos.org/OpenGL-Refpages/gl4/html/textureGather.xhtml
-                                "   r = vec4(y01.r,y11.r,y10.r,y00.r);\n" +
-                                "   g = vec4(y01.g,y11.g,y10.g,y00.g);\n" +
-                                "   b = vec4(y01.b,y11.b,y10.b,y00.b);\n" +
-                                "}\n"
-                    } else {
-                        "void FsrEasuLoad(vec2 p, out vec4 r, out vec4 g, out vec4 b){\n" +
-                                "   vec4 alpha = textureGather(source,p,3);\n" +
-                                "   r = mix(background.rrrr, textureGather(source,p,0), alpha);\n" +
-                                "   g = mix(background.gggg, textureGather(source,p,1), alpha);\n" +
-                                "   b = mix(background.bbbb, textureGather(source,p,2), alpha);\n" +
-                                "}\n"
-                    } +
+                    (if (OS.isWeb) "#define HLSL\n" else "") +
+                    "#ifdef HLSL\n" +
+                    "void FsrEasuLoad(vec2 p, out vec4 r, out vec4 g, out vec4 b){\n" +
+                    "   vec2 dx = vec2(con1.x,0.0);\n" +
+                    "   vec2 dy = vec2(0.0,con1.y);\n" +
+                    "   vec2 dxy = con1.xy;\n" +
+                    "   vec4 x00 = texture(source,p);\n" +
+                    "   vec3 y00 = mix(background, x00.rgb, x00.aaa);\n" +
+                    "   vec4 x01 = texture(source,p+dy);\n" +
+                    "   vec3 y01 = mix(background, x01.rgb, x01.aaa);\n" +
+                    "   vec4 x10 = texture(source,p+dx);\n" +
+                    "   vec3 y10 = mix(background, x10.rgb, x10.aaa);\n" +
+                    "   vec4 x11 = texture(source,p+dxy);\n" +
+                    "   vec3 y11 = mix(background, x11.rgb, x11.aaa);\n" +
+                    // this is the order of textureGather: https://registry.khronos.org/OpenGL-Refpages/gl4/html/textureGather.xhtml
+                    "   r = vec4(y01.r,y11.r,y10.r,y00.r);\n" +
+                    "   g = vec4(y01.g,y11.g,y10.g,y00.g);\n" +
+                    "   b = vec4(y01.b,y11.b,y10.b,y00.b);\n" +
+                    "}\n" +
+                    "#else\n" +
+                    "void FsrEasuLoad(vec2 p, out vec4 r, out vec4 g, out vec4 b){\n" +
+                    "   vec4 alpha = textureGather(source,p,3);\n" +
+                    "   r = mix(background.rrrr, textureGather(source,p,0), alpha);\n" +
+                    "   g = mix(background.gggg, textureGather(source,p,1), alpha);\n" +
+                    "   b = mix(background.bbbb, textureGather(source,p,2), alpha);\n" +
+                    "}\n" +
+                    "#endif\n"
+                    +
                     functions +
                     noiseFunc + // needed for tone mapping
                     tonemapGLSL +

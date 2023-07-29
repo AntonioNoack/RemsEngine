@@ -27,9 +27,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+/**
+ * Utility for opening menus, like asking the user questions, or him selecting values for an enum from a dropdown.
+ * */
 object Menu {
-
-    // todo sub menus
 
     var paddingX = 10
     var paddingY = 10
@@ -40,22 +41,29 @@ object Menu {
     val menuSeparator1 = MenuOption(NameDesc(menuSeparator, "", "")) {}
 
     fun msg(windowStack: WindowStack, title: NameDesc) {
-        openMenu(windowStack, listOf(MenuOption(title) {}))
+        val window = openMenu(windowStack, listOf(MenuOption(title) {}))
+        window?.drawDirectly = true
     }
 
-    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit) =
-        openMenu(windowStack, question, listOf(
+    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit): Window? {
+        val window = openMenu(windowStack, question, listOf(
             MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
             MenuOption(NameDesc("No", "", "ui.no")) {}
         ))
+        window?.drawDirectly = true
+        return window
+    }
 
-    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit, onNo: () -> Unit) =
-        openMenu(
+    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit, onNo: () -> Unit) : Window? {
+        val window = openMenu(
             windowStack, question, listOf(
                 MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
                 MenuOption(NameDesc("No", "", "ui.no"), onNo)
             )
         )
+        window?.drawDirectly = true
+        return window
+    }
 
     fun askName(
         windowStack: WindowStack,
@@ -112,6 +120,7 @@ object Menu {
 
         val window = openMenuByPanels(windowStack, x, y, title, listOf(panel, buttons))!!
         panel.requestFocus()
+        window.drawDirectly = true
         return window
 
     }

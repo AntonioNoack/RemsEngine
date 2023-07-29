@@ -214,7 +214,7 @@ open class OSWindow(var title: String) {
         GLFW.glfwSetWindowIconifyCallback(window) { _, isMinimized0 ->
             isMinimized = isMinimized0
             // just be sure in case the OS/glfw don't send it
-            if (isMinimized0) needsRefresh = true
+            if (!isMinimized0) needsRefresh = true
         }
         GLFW.glfwSetWindowRefreshCallback(window) { needsRefresh = true }
 
