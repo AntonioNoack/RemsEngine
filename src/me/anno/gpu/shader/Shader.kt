@@ -93,8 +93,8 @@ open class Shader(
         }
 
         // todo only set them, if not already specified
-        builder.append("precision mediump float;\n")
-        builder.append("precision mediump int;\n")
+        builder.append("precision highp float;\n")
+        builder.append("precision highp int;\n")
         if (vertexVariables.any2 { it.type == GLSLType.S2DA })
             builder.append("precision highp sampler2DArray;\n")
         if (vertexVariables.any2 { it.type == GLSLType.S3D })
@@ -130,8 +130,8 @@ open class Shader(
             builder.append(extension).append('\n')
         }
 
-        builder.append("precision mediump float;\n")
-        builder.append("precision mediump int;\n")
+        builder.append("precision highp float;\n")
+        builder.append("precision highp int;\n")
         if (varyings.any2 { it.type == GLSLType.S2DA } || fragmentVariables.any2 { it.type == GLSLType.S2DA })
             builder.append("precision highp sampler2DArray;\n")
         if (varyings.any2 { it.type == GLSLType.S3D } || fragmentVariables.any2 { it.type == GLSLType.S3D })
