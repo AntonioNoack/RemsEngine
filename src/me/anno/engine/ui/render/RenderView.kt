@@ -676,7 +676,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
                         pipeline.lightStage.visualizeLightCount = true
                         drawSceneLights(buffer, lightBuffer)
-                        drawGizmos(lightBuffer, false)
+                        drawGizmos(lightBuffer, true)
                         // todo special shader to better differentiate the values than black-white
                         // (1 is extremely dark, nearly black)
                         drawTexture(

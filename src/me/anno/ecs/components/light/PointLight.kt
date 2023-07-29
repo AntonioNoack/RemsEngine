@@ -167,7 +167,7 @@ class PointLight : LightComponent(LightType.POINT) {
                             "   lightColor *= texture_array_depth_shadowMapCubic(shadowMapIdx0, dir*vec3(+1,-1,-1), depthFromShader);\n" +
                             "}\n"
                     else "") +
-                    "effectiveDiffuse = lightColor * ${LightType.POINT.falloff};\n" +
+                    "effectiveDiffuse = lightColor * $falloff;\n" +
                     // "dir *= 0.2;\n" + // less falloff by a factor of 5,
                     // because specular light is more directed and therefore reached farther
                     // nice in theory, but practically, we would need a larger cube for that

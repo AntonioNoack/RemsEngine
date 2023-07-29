@@ -153,7 +153,7 @@ data class DeferredSettingsV2(
         builder.addVertex(ShaderStage("def-vs", vertexVariables + varyings, vertex))
         builder.addFragment(ShaderStage("def-fs", fragmentVariables + varyings, fragmentShader))
         builder.addFragment(postProcessing)
-        val shader = builder.create()
+        val shader = builder.create(null)
         shader.setTextureIndices(textures)
         return shader
     }

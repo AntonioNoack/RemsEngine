@@ -117,7 +117,7 @@ class RenderLightsNode : RenderSceneNode0(
                     ).add(rawToDepth).add(depthToPosition)
                 )
                 builder.addFragment(createMainFragmentStage(type, isInstanced))
-                shader = builder.create()
+                shader = builder.create("rln${type.ordinal}-${isInstanced.toInt()}")
             }
 
             override val currentShader: Shader get() = shader

@@ -111,12 +111,9 @@ open class BaseShader(
         builder.addFragment(postProcessing)
         // builder.addFragment(ColorAlphaStage.createShaderStage())
 
-        val shader1 = builder.create()
-        shader1.glslVersion = max(shader1.glslVersion, 330)
-        shader1.setTextureIndices(textures)
-        shader1.ignoreNameWarnings(ignoredNameWarnings)
-        shader1.use()
-        return shader1
+        val shader = builder.create("fwd$flags")
+        finish(shader, 330)
+        return shader
 
     }
 
@@ -144,9 +141,10 @@ open class BaseShader(
                 else -> createDeferredShaderById(deferred, stateId, renderer)
             }
             GFX.check()
-            if (shader.use())
+            if (shader.use()) {
                 bind(shader, renderer, instanced)
-            GFX.check()
+                GFX.check()
+            }
             return shader
         }
 
@@ -193,8 +191,8 @@ open class BaseShader(
         return shader
     }
 
-    fun finish(shader: Shader) {
-        shader.glslVersion = glslVersion
+    fun finish(shader: Shader, minVersion: Int = 0) {
+        shader.glslVersion = max(glslVersion, minVersion)
         shader.use()
         shader.setTextureIndices(textures)
         shader.ignoreNameWarnings(ignoredNameWarnings)

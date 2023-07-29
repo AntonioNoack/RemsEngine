@@ -1,10 +1,10 @@
 package me.anno.ecs.components.light
 
-import me.anno.ecs.components.light.PointLight.Companion.falloff
+import me.anno.gpu.shader.GLSLType
 
-enum class LightType(val id: Int, val falloff: String, val shadowMapType: ShadowMapType) {
-    DIRECTIONAL(0, "max(0.0, dir.z)", ShadowMapType.PLANE),
-    SPOT(1, falloff, ShadowMapType.PLANE),
-    POINT(2, falloff, ShadowMapType.CUBEMAP);
+enum class LightType(val id: Int, val shadowMapType: GLSLType) {
+    DIRECTIONAL(0, GLSLType.S2DShadow),
+    SPOT(1, GLSLType.S2DShadow),
+    POINT(2, GLSLType.SCubeShadow);
     // environment map could be another type -> not really, as its result needs to be normalized, and replaced with the sky, if none is nearby
 }

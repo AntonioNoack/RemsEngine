@@ -109,7 +109,7 @@ class DecalShader(val layers: ArrayList<DeferredLayerType>) : ECSMeshShader("dec
         base.outputs = deferred
         base.disabledLayers = getDisabledLayers()
         // build & finish
-        val shader = base.create()
+        val shader = base.create("dcl$flags")
         finish(shader)
         return shader
     }

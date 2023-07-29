@@ -112,6 +112,7 @@ object FlatShaders {
                 "   if(alphaMode == 0) col *= texture(tex, uv);\n" +
                 "   else if(alphaMode == 1) col.rgb *= texture(tex, uv).rgb;\n" +
                 "   else col.rgb *= texture(tex, uv).a;\n" +
+                "   if(!(col.x >= -1e38 && col.x <= 1e38)) col = vec4(1.0,0.0,1.0,1.0);\n" +
                 "   if(applyToneMapping) col = tonemap(col);\n" +
                 "   gl_FragColor = col;\n" +
                 "}"

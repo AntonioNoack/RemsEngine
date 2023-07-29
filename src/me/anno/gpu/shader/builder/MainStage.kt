@@ -318,7 +318,7 @@ class MainStage {
                     defined += param
                 }
             }
-            code.append("if(true){// stage ").append(stage.callName).append('\n')
+            code.append("{// stage ").append(stage.callName).append('\n')
             code.append(stage.body)
             if (!code.endsWith('\n')) code.append('\n')
             code.append("}// end of stage ").append(stage.callName).append('\n')

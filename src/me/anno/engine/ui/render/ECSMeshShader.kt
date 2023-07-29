@@ -518,7 +518,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         // base.addFragment(ShaderStage("material", emptyList(), ""))
 
         GFX.check()
-        val shader = builder.create()
+        val shader = builder.create("dth$flags")
         shader.glslVersion = glslVersion
         GFX.check()
         return shader
@@ -526,7 +526,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     }
 
     override fun createForwardShader(flags: Int, postProcessing: ShaderStage?): Shader {
-        val shader = createBase(flags, postProcessing).create()
+        val shader = createBase(flags, postProcessing).create("fwd$flags")
         finish(shader)
         return shader
     }
@@ -535,7 +535,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val base = createBase(flags, postProcessing)
         base.outputs = deferred
         // build & finish
-        val shader = base.create()
+        val shader = base.create("def$flags")
         finish(shader)
         return shader
     }

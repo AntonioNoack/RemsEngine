@@ -196,7 +196,7 @@ object LightShaders {
             builder.addFragment(deferredStage)
             builder.addFragment(fragment)
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
-            val shader = builder.create()
+            val shader = builder.create("cmb")
             // find all textures
             // first the ones for the deferred data
             // then the ones for the shadows
@@ -230,13 +230,13 @@ object LightShaders {
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V1B, "isDirectional"),
             Variable(GLSLType.V4F, "data0", VariableMode.OUT),
-            Variable(GLSLType.V4F, "data1", VariableMode.OUT),
+            Variable(GLSLType.V1F, "data1", VariableMode.OUT),
             Variable(GLSLType.V4F, "data2", VariableMode.OUT),
             Variable(GLSLType.M4x3, "camSpaceToLightSpace", VariableMode.OUT),
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT),
         ), "" +
                 "data0 = vec4(lightData0.rgb,0.0);\n" +
-                "data1 = vec4(lightData1);\n" +
+                "data1 = lightData1;\n" +
                 "data2 = shadowData;\n" +
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                 "if(isDirectional && data2.a <= 0.0){\n" +
@@ -281,7 +281,7 @@ object LightShaders {
         val fragment = ShaderStage(
             "f", listOf(
                 Variable(GLSLType.V4F, "data0"),
-                Variable(GLSLType.V4F, "data1"),
+                Variable(GLSLType.V1F, "data1"),
                 Variable(GLSLType.V4F, "data2"), // only if with shadows
                 // light maps for shadows
                 // - spotlights, directional lights
@@ -324,12 +324,12 @@ object LightShaders {
                     "}\n" +
                     // translucency; looks good and approximately correct
                     // sheen is a fresnel effect, which adds light at the edge, e.g., for clothing
-                    // "NdotL = mix(NdotL, $translucencyNL, finalTranslucency) + finalSheen;\n" +
+                    "NdotL = mix(NdotL, $translucencyNL, finalTranslucency) + finalSheen;\n" +
                     "diffuseLight += effectiveDiffuse * clamp(NdotL, 0.0, 1.0);\n" +
                     // ~65k is the limit, after that only Infinity
                     // todo car sample's light on windows looks clamped... who is clamping it?
                     "vec3 color = mix(diffuseLight, specularLight, finalMetallic);\n" +
-                    "light = vec4(1.0);//vec4(clamp(color, 0.0, 16e3), 1.0);\n"
+                    "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n"
         )
         fragment.add(quatRot)
         return fragment
@@ -447,7 +447,7 @@ object LightShaders {
             builder.addFragment(deferredStage)
             builder.addFragment(fragment)
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
-            val shader = builder.create()
+            val shader = builder.create("lht${type.ordinal}")
             // find all textures
             // first the ones for the deferred data
             // then the ones for the shadows

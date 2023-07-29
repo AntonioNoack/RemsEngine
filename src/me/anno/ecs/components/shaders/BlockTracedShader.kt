@@ -27,7 +27,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
         builder.addVertex(createVertexStages(flags))
         builder.addFragment(createFragmentStages(flags))
         GFX.check()
-        val shader = builder.create()
+        val shader = builder.create("dth")
         shader.glslVersion = glslVersion
         GFX.check()
         return shader

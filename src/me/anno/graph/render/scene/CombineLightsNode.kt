@@ -94,7 +94,7 @@ class CombineLightsNode : RenderSceneNode0(
                         .add(extraFunctions.toString())
                 )
                 builder.addFragment(combineFStage)
-                shader = builder.create()
+                shader = builder.create("cmb")
             }
 
             override val currentShader: Shader get() = shader

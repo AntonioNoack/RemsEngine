@@ -23,8 +23,6 @@ fun main() {
 
     ECSRegistry.init()
 
-    // todo light shader is broken: depth is not respecting depth correctly
-
     val clock = Clock()
 
     val prefab = Prefab()
@@ -134,13 +132,14 @@ fun main() {
     set(dlp, "shadowMapCascades", 1)
     set(dlp, "color", Vector3f(70f))*/
 
-    // todo why appear the outest rights brightest???
+    // todo why appear the outest rings brightest???
     if (true) {
         val ringOfLights = addE(lights, "Ring Of Lights")
         val superRings = 38
         val elementSize = 10.0
         val lightLevel = 20f
-        val numColors = 6
+        val numColors = 3
+        val colorRepetitions = 3
         val colors = Array(numColors) {
             val angle = it / numColors.toFloat()
             HSLuv.toRGB(Vector3f(angle, 1f, 0.7f)).mul(lightLevel)
@@ -157,7 +156,7 @@ fun main() {
                 set(light, "position", position)
                 set(light, "scale", scale)
                 val c = addC(light, "PointLight", "PL$i")
-                set(c, "color", colors[(numColors * 3 * i / ringLightCount) % numColors])
+                set(c, "color", colors[(numColors * colorRepetitions * i / ringLightCount) % numColors])
             }
         }
     }

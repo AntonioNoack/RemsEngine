@@ -161,14 +161,8 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                 // type is ignored by the shader -> just use 1
                 shader.v4f("data0", light.color, 1f)
 
-                // data1: camera position, shader specific value (cone angle / size)
-                shader.v4f(
-                    "data1",
-                    ((m.m30 - cameraPosition.x) * worldScale).toFloat(),
-                    ((m.m31 - cameraPosition.y) * worldScale).toFloat(),
-                    ((m.m32 - cameraPosition.z) * worldScale).toFloat(),
-                    light.getShaderV0(m, worldScale)
-                )
+                // data1: shader specific value (cone angle / size)
+                shader.v1f("data1", light.getShaderV0(m, worldScale))
 
                 shader.v1f("cutoff", if (light is DirectionalLight) light.cutoff else 1f)
 

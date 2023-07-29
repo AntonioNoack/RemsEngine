@@ -286,7 +286,7 @@ open class Shader(
     }
 
     fun printCode() {
-        LOGGER.warn(formatShader(name, "", vertexShader, fragmentShader))
+        LOGGER.warn(formatShader(name, "", vertexSource, fragmentSource))
     }
 
 }

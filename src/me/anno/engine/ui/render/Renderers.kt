@@ -259,7 +259,8 @@ object Renderers {
                     Variable(GLSLType.V3F, "finalEmissive"),
                     Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                 ),
-                "finalResult = vec4((finalColor * (0.6 - 0.4 * normalize(finalNormal).x)) + finalEmissive, finalAlpha);\n"
+                // must not be normalized, or be careful to not divide by zero!
+                "finalResult = vec4((finalColor * (0.6 - 0.4 * finalNormal.x)) + finalEmissive, finalAlpha);\n"
             )
         }
     }

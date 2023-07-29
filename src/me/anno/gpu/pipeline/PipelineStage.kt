@@ -376,24 +376,16 @@ class PipelineStage(
                 // additional, whether we have a texture, and maybe other data
                 val lightTypes = shader["lightData1"]
                 if (lightTypes >= 0) {
-
-                    buffer.limit(4 * numberOfLights)
-                    val cameraPosition = RenderState.cameraPosition
+                    buffer.limit(numberOfLights)
                     val worldScale = RenderState.worldScale
                     for (i in 0 until numberOfLights) {
-
                         val lightI = lights[i]!!
                         val light = lightI.light
                         val m = lightI.transform.getDrawMatrix(time)
-
-                        buffer.put(((m.m30 - cameraPosition.x) * worldScale).toFloat())
-                        buffer.put(((m.m31 - cameraPosition.y) * worldScale).toFloat())
-                        buffer.put(((m.m32 - cameraPosition.z) * worldScale).toFloat())
                         buffer.put(light.getShaderV0(m, worldScale))
-
                     }
                     buffer.flip()
-                    shader.v4Array(lightTypes, buffer)
+                    shader.v1Array(lightTypes, buffer)
                 }
                 val shadowData = shader["shadowData"]
                 if (shadowData >= 0) {
@@ -460,10 +452,8 @@ class PipelineStage(
                     buffer.position(0)
                     shader.v4Array(shadowData, buffer)
                 }
-
             }
         }
-
     }
 
     fun initShader(shader: Shader, pipeline: Pipeline) {

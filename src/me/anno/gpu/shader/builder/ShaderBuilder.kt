@@ -63,7 +63,7 @@ class ShaderBuilder(val name: String) {
         }
     }
 
-    fun create(): Shader {
+    fun create(suffix: String? = null): Shader {
 
         // combine the code
         // find imports
@@ -102,7 +102,7 @@ class ShaderBuilder(val name: String) {
         val varying = (vertex.imported + vertex.exported).toList()
             .filter { it !in bridgeVariables } + bridgeVariables.values
         val shader = object : Shader(
-            name, attributes + vertex.uniforms, vertCode,
+            if (suffix == null) name else "$name-$suffix", attributes + vertex.uniforms, vertCode,
             varying, fragment.uniforms.toList(), fragCode
         ) {
             override fun compile() {

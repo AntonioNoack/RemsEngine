@@ -1,6 +1,7 @@
 package me.anno.ecs.components.light
 
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.light.PointLight.Companion.falloff
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawArrowZ
@@ -134,11 +135,12 @@ class SpotLight() : LightComponent(LightType.SPOT) {
                             "    lightColor *= texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader);\n" +
                             "}\n"
                     else "") +
-                    "effectiveDiffuse = lightColor * ${LightType.SPOT.falloff};\n" +
+                    "float falloff = $falloff;\n" +
+                    "effectiveDiffuse = lightColor * falloff;\n" +
                     // "dir *= 0.2;\n" + // less falloff by a factor of 5,
                     // because specular light is more directed and therefore reached farther
                     // nice in theory, but practically, we would to render need a larger cube
-                    "effectiveSpecular = effectiveDiffuse;//lightColor * ${LightType.SPOT.falloff};\n"
+                    "effectiveSpecular = effectiveDiffuse;//lightColor * falloff;\n"
         }
 
     }
