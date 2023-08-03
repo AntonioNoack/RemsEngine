@@ -90,7 +90,7 @@ class BlenderFile(val file: BinaryFile) {
 
     val types: Array<DNAType> = Array(typeNames.size) { i ->
         val typeLength = file.readShort().toUShort().toInt()
-        DNAType(typeNames[i], typeLength, pointerSize)
+        DNAType(typeNames[i], typeLength)
     }
 
     val dnaTypeByName = types.associateBy { it.name }
@@ -111,7 +111,7 @@ class BlenderFile(val file: BinaryFile) {
             val nameIndex = s.fieldsAsTypeName[j2 + 1].toUShort().toInt()
             DNAField(j, names[nameIndex], types[typeIndex])
         }
-        DNAStruct(i, type, fields)
+        DNAStruct(i, type, fields, pointerSize)
     }
 
     val structByName = structs.associateBy { it.type.name }
