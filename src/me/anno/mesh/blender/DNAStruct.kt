@@ -3,7 +3,8 @@ package me.anno.mesh.blender
 class DNAStruct(
     val index: Int,
     val type: DNAType,
-    val fields: Array<DNAField>
+    val fields: Array<DNAField>,
+    pointerSize: Int
 ) {
 
     init {
@@ -14,7 +15,7 @@ class DNAStruct(
             val isArray = sn.endsWith("]")
             val arraySizeOr1 = if (isArray) parseArraySize(sn.substring(sn.indexOf('[') + 1, sn.lastIndex)) else 1
 
-            val size = if (field.isPointer) field.type.pointerSize * arraySizeOr1 else arraySizeOr1 * field.type.size
+            val size = arraySizeOr1 * (if (field.isPointer) pointerSize else field.type.size)
 
             field.offset = pointer
             field.arraySizeOr1 = arraySizeOr1
