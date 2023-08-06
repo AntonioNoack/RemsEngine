@@ -83,7 +83,7 @@ object DebugRendering {
             val renderer = Renderers.pbrRenderer
             // todo is tone mapping used? adjust parameter for drawScene
             view.prepareDrawScene(w, h, w.toFloat() / h, camera, camera, 0f, false)
-            view.drawScene(w, h, camera, camera, 1f, renderer, buffer, true, false)
+            view.drawScene(w, h, renderer, buffer, true, false)
             DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
             // prepareDrawScene needs to be reset afterwards, because we seem to have a kind-of-bug somewhere
             val camera2 = view.editorCamera

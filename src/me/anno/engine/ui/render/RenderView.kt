@@ -23,7 +23,6 @@ import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun
 import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
-import me.anno.engine.ui.render.ECSShaderLib.clearPbrModelShader
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Outlines.drawOutline
@@ -34,12 +33,10 @@ import me.anno.engine.ui.render.Renderers.overdrawRenderer
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
-import me.anno.engine.ui.render.Renderers.tonemapInvKt
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.clip2
-import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.mul4x3delta
@@ -78,7 +75,6 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.roundDiv
-import me.anno.mesh.Shapes
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
@@ -226,7 +222,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         cameraNode.transform.localRotation = rotation
         cameraNode.transform.teleportUpdate()
         cameraNode.validateTransform()
-
     }
 
     override fun onUpdate() {
@@ -418,7 +413,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 JomlPools.quat4f.sub(1)
                 pipeline.bakedSkyBox = bsb
                 this.renderMode = renderMode
-
             } else {
                 pipeline.bakedSkyBox?.destroy()
                 pipeline.bakedSkyBox = null
@@ -480,7 +474,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         updatePrevState()
         // clock.total("drawing the scene", 0.1)
-
     }
 
     // be more conservative with framebuffer size changes,
@@ -551,15 +544,17 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 when {
                     renderMode == RenderMode.FSR2_X8 || renderMode == RenderMode.FSR2_X2 -> {
                         drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
-                            changeSize = true,
-                            hdr = true
+                            w, h, renderer, buffer,
+                            changeSize = true, hdr = true
                         )
                         val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, true]
                         drawScene(
-                            w, h, camera0, camera1, blending, rawAttributeRenderers[DeferredLayerType.MOTION],
-                            motion, changeSize = false, hdr = true
+                            w,
+                            h,
+                            rawAttributeRenderers[DeferredLayerType.MOTION],
+                            motion,
+                            changeSize = false,
+                            hdr = true
                         )
 
                         val lightBuffer = lightNBuffer1
@@ -613,10 +608,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     renderMode == RenderMode.DEPTH -> {
                         val depth = FBStack["depth", w, h, 1, false, 1, true]
                         drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, depth,
-                            changeSize = true,
-                            hdr = false
+                            w, h, renderer, depth,
+                            changeSize = true, hdr = false
                         )
                         drawGizmos(depth, true)
                         drawDepthTexture(x, y, w, h, depth.depthTexture!!)
@@ -624,8 +617,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     }
                     renderMode == RenderMode.SMOOTH_NORMALS -> {
                         drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
+                            w, h, renderer, buffer,
                             changeSize = true, hdr = true
                         )
                         // smooth normals before light, so light is influenced by it
@@ -649,10 +641,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     }
                     renderMode == RenderMode.LIGHT_SUM || renderMode == RenderMode.LIGHT_SUM_MSAA -> {
                         drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
-                            changeSize = true,
-                            hdr = false
+                            w, h, renderer, buffer,
+                            changeSize = true, hdr = false
                         )
                         val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
                         drawSceneLights(buffer, lightBuffer)
@@ -666,8 +656,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     renderMode == RenderMode.LIGHT_COUNT -> {
                         // draw scene for depth
                         drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
+                            w, h,
+                            renderer, buffer,
                             changeSize = true,
                             hdr = false // doesn't matter
                         )
@@ -688,10 +678,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     renderMode == RenderMode.SSAO || renderMode == RenderMode.SSAO_MS -> {
                         // 0.1f as radius seems pretty ideal with our world scale :)
                         drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
-                            changeSize = true,
-                            hdr = false
+                            w, h, renderer, buffer,
+                            changeSize = true, hdr = false
                         )
                         drawGizmos(buffer, true)
                         val strength = max(ssao.strength, 0.01f)
@@ -706,10 +694,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     renderMode == RenderMode.SS_REFLECTIONS -> {
                         val hdr = useBloom
                         drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
-                            changeSize = true,
-                            hdr = hdr
+                            w, h, renderer, buffer,
+                            changeSize = true, hdr = hdr
                         )
                         drawGizmos(buffer, true)
                         val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
@@ -740,12 +726,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     }
                     renderMode == RenderMode.ALL_DEFERRED_BUFFERS -> {
 
-                        drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
-                            changeSize = true,
-                            hdr = false
-                        )
+                        drawScene(w, h, renderer, buffer, changeSize = true, hdr = false)
                         drawGizmos(buffer, true)
 
                         val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
@@ -780,19 +761,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                                 drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture)
                             }
                             drawSimpleTextCharByChar(x02, y02, 2, name)
-
                         }
                         popBetterBlending(pbb)
                         return
                     }
                     renderMode == RenderMode.ALL_DEFERRED_LAYERS -> {
 
-                        drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
-                            changeSize = true,
-                            hdr = false
-                        )
+                        drawScene(w, h, renderer, buffer, changeSize = true, hdr = false)
                         drawGizmos(buffer, true)
                         drawSceneLights(buffer, lightNBuffer1)
 
@@ -850,7 +825,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                                 (x02 + x12) / 2, (y02 + y12) / 2, 2,
                                 name, AxisAlignment.CENTER, AxisAlignment.CENTER
                             )
-
                         }
                         popBetterBlending(pbb)
                         return
@@ -869,10 +843,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     }
                     else -> {
                         drawScene(
-                            w, h, camera0, camera1,
-                            blending, renderer, buffer,
-                            changeSize = true,
-                            hdr = false
+                            w, h, renderer, buffer,
+                            changeSize = true, hdr = false
                         )
                         drawGizmos(buffer, true)
                         drawTexture(x, y + h, w, -h, buffer.getTexture0(), true, -1, null)
@@ -883,12 +855,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             }
 
             renderMode.dlt != null -> {
-                drawScene(
-                    w, h, camera0, camera1,
-                    blending, renderer, buffer,
-                    changeSize = true,
-                    hdr = true
-                )
+                drawScene(w, h, renderer, buffer, changeSize = true, hdr = true)
                 drawGizmos(buffer, true)
                 isHDR = renderMode.dlt.highDynamicRange
             }
@@ -897,12 +864,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 // supports bloom
                 // todo support SSR via calculated normals
                 val tmp = FBStack["scene", w, h, 4, true, buffer.samples, true]
-                drawScene(
-                    w, h, camera0, camera1,
-                    blending, renderer, tmp,
-                    changeSize = true,
-                    hdr = true
-                )
+                drawScene(w, h, renderer, tmp, changeSize = true, hdr = true)
                 drawGizmos(tmp, true)
                 useFrame(w, h, true, dstBuffer) {
                     Bloom.bloom(tmp.getTexture0(), bloomOffset, bloomStrength, true)
@@ -912,12 +874,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             else -> {
                 val hdr = useFSR || renderMode.effect != null
                 isHDR = hdr
-                drawScene(
-                    w, h, camera0, camera1,
-                    blending, renderer, buffer,
-                    changeSize = true,
-                    hdr
-                )
+                drawScene(w, h, renderer, buffer, changeSize = true, hdr)
                 drawGizmos(buffer, true)
             }
         }
@@ -951,10 +908,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             }
                         }
                         val ids = FBStack["ids", w, h, 4, true, buffer.samples, true]
-                        drawScene(
-                            w, h, camera0, camera1, blending,
-                            idRenderer, ids, changeSize = false, hdr = false
-                        )
+                        drawScene(w, h, idRenderer, ids, changeSize = false, hdr = false)
                         hashMapOf(
                             DeferredLayerType.SDR_RESULT to dstBuffer,
                             DeferredLayerType.ID to ids
@@ -994,13 +948,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         pipeline.deferred = deferredSettings
 
-        drawScene(
-            w, h, camera0, camera1,
-            blending, renderer, buffer,
-            changeSize = true,
-            hdr = true
-        )
-
+        drawScene(w, h, renderer, buffer, changeSize = true, hdr = true)
         drawSceneLights(buffer, lightBuffer)
 
         val ssaoStrength = ssao.strength
@@ -1039,7 +987,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 drawGizmos(true)
                 drawSelected()
             }
-
         } else {
 
             useFrame(w, h, true, baseSameDepth) {
@@ -1056,7 +1003,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 drawSelected()
 
             }
-
         }
 
         // anti-aliasing
@@ -1082,10 +1028,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val world = getWorld()
 
         val ids = Screenshots.getU8RGBAPixels(diameter, px2, py2, buffer, idRenderer) {
-            drawScene(
-                width, height, camera, camera, 0f, idRenderer, buffer,
-                changeSize = false, hdr = false
-            )
+            drawScene(width, height, idRenderer, buffer, changeSize = false, hdr = false)
             drawGizmos(drawGridLines = false, drawDebug)
         }
 
@@ -1094,10 +1037,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         }
 
         val depths = Screenshots.getFP32RPixels(diameter, px2, py2, buffer, depthRenderer) {
-            drawScene(
-                width, height, camera, camera, 0f, depthRenderer, buffer,
-                changeSize = false, hdr = false
-            )
+            drawScene(width, height, depthRenderer, buffer, changeSize = false, hdr = false)
             drawGizmos(drawGridLines = false, drawDebug)
         }
 
@@ -1109,7 +1049,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         // LOGGER.info(ids2.joinToString())
         // LOGGER.info(clickedId in ids2)
         return Pair(clicked as? Entity, clicked as? Component)
-
     }
 
     fun getWorld(): PrefabSaveable? {
@@ -1262,7 +1201,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         currentInstance = this
 
         definePipeline(width, height, aspectRatio, fov, world)
-
     }
 
     fun updateWorld(world: PrefabSaveable?) {
@@ -1353,9 +1291,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     fun drawScene(
         w: Int, h: Int,
-        currentCamera: Camera,
-        previousCamera: Camera,
-        blending: Float,
         renderer: Renderer,
         dst: IFramebuffer,
         changeSize: Boolean,
@@ -1402,7 +1337,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             GFX.check()
 
         }
-
     }
 
     private fun drawSelected() {
@@ -1560,7 +1494,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         LineBuffer.finish(cameraMatrix)
         PlaneShapes.finish()
-
     }
 
     /**
@@ -1649,7 +1582,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         RenderState.fovYRadians = fovYRadians
         RenderState.near = scaledNear.toFloat()
         RenderState.far = scaledFar.toFloat()
-
     }
 
     override val className: String get() = "RenderView"
@@ -1682,50 +1614,5 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 defaultSun.fill(pipeline, defaultSunEntity, 0)
             }
         }
-
-        fun clearColor(
-            cameraMatrix: Matrix4f, prevCamMatrix: Matrix4f,
-            cameraRotation: Quaterniond, prevCameraRotation: Quaterniond,
-            cameraDirection: Vector3d,
-            isPerspective: Boolean,
-            clearColor: Vector4f
-        ) {
-            GFXState.blendMode.use(null) {
-                GFXState.depthMode.use(DepthMode.ALWAYS) {
-                    // don't write depth, only all buffers
-                    GFXState.depthMask.use(false) {
-                        // draw a huge cube with default values for all buffers
-                        val shader = clearPbrModelShader.value
-                        shader.use()
-                        if (isPerspective) {
-                            shader.m4x4("transform", cameraMatrix)
-                            shader.m4x4("prevTransform", prevCamMatrix)
-                            shader.v1b("isOrtho", false)
-                        } else {
-                            // this buffer can be very small in orthographic case, because the camera matrix contains scale, which it shouldn't;
-                            // aspect ratio shouldn't matter, because it's orthographic = the same direction and position at infinity anyway
-                            val tmpQ = JomlPools.quat4f.borrow()
-                            val tmp1 = JomlPools.mat4f.borrow()
-                            val tmp3 = JomlPools.vec3f.borrow()
-                            tmp1
-                                .identity()
-                                .rotate(tmpQ.set(cameraRotation))
-                            shader.m4x4("transform", tmp1)
-                            tmp1
-                                .identity()
-                                .rotate(tmpQ.set(prevCameraRotation))
-                            shader.m4x4("prevTransform", tmp1)
-                            shader.v3f("normalOverride", tmp3.set(cameraDirection))
-                            shader.v1b("isOrtho", true)
-                        }
-                        shader.v4f("color", clearColor.x, clearColor.y, clearColor.z, 1f)
-                        shaderColor(shader, "tint", -1)
-                        Shapes.smoothCube.back.drawMeshPurely(shader)
-                    }
-                }
-            }
-        }
-
     }
-
 }

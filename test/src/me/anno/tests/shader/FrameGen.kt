@@ -9,7 +9,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.RenderView.Companion.clearColor
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
@@ -40,7 +39,6 @@ import me.anno.utils.OS.downloads
 import org.joml.Matrix4x3d
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import org.joml.Vector4f
 import org.lwjgl.opengl.GL11.GL_POINT_SMOOTH
 import org.lwjgl.opengl.GL11C.*
 import kotlin.math.max
@@ -292,12 +290,6 @@ fun main() {
 
                     useFrame(width, height, true, data1, renderer) {
                         data1.clearDepth()
-                        clearColor(
-                            cameraMatrix, prevCamMatrix,
-                            cameraRotation, prevCamRotation,
-                            cameraDirection, false,
-                            Vector4f(0.2f, 0.3f, 0.3f, 1f)
-                        )
                         pipeline.draw()
                     }
 
