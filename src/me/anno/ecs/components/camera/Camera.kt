@@ -2,7 +2,6 @@ package me.anno.ecs.components.camera
 
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
-import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.Collider.Companion.guiLineColor
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
@@ -14,7 +13,6 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector2f
-import org.joml.Vector4f
 import kotlin.math.tan
 
 // like the studio camera,
@@ -36,9 +34,6 @@ class Camera : Component() {
      * the fov when orthographic, in base units
      * */
     var fovOrthographic = 5f
-
-    @Type("Color4")
-    var clearColor = Vector4f(0.1f, 0.2f, 0.3f, 1f)
 
     val bloomStrength = 0.5f
     val bloomOffset = 25f
@@ -120,7 +115,6 @@ class Camera : Component() {
         dst.near = near
         dst.far = far
         dst.fovY = fovY
-        dst.clearColor.set(clearColor)
     }
 
     override val className: String get() = "Camera"

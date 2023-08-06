@@ -142,31 +142,55 @@ class PipelineStage(
 
         fun setupLocalTransform(
             shader: Shader,
-            transform: Transform,
+            transform: Transform?,
             time: Long
         ) {
+            if (transform != null) {
+                val localTransform = transform.getDrawMatrix(time)
+                tmp4x3.set4x3Delta(localTransform)
+                shader.m4x3("localTransform", tmp4x3)
 
-            val localTransform = transform.getDrawMatrix(time)
-            tmp4x3.set4x3Delta(localTransform)
-            shader.m4x3("localTransform", tmp4x3)
+                val ilt = shader["invLocalTransform"]
+                if (ilt >= 0) {
+                    shader.m4x3(ilt, tmp4x3.invert())
+                }
 
-            val ilt = shader["invLocalTransform"]
-            if (ilt >= 0) {
-                shader.m4x3(ilt, tmp4x3.invert())
+                shader.v1f("worldScale", RenderState.worldScale)
+
+                val oldTransform = shader["prevLocalTransform"]
+                if (oldTransform >= 0) {
+                    val prevWorldScale = RenderState.prevWorldScale
+                    shader.m4x3delta(
+                        oldTransform, transform.getDrawnMatrix(time),
+                        RenderState.prevCameraPosition, prevWorldScale
+                    )
+                    shader.v1f("prevWorldScale", prevWorldScale)
+                }
+            } else {
+
+                val localTransform = JomlPools.mat4x3d.create().identity()
+                tmp4x3.set4x3Delta(localTransform)
+                shader.m4x3("localTransform", tmp4x3)
+
+                val ilt = shader["invLocalTransform"]
+                if (ilt >= 0) {
+                    shader.m4x3(ilt, tmp4x3.invert())
+                }
+
+                shader.v1f("worldScale", RenderState.worldScale)
+
+                val oldTransform = shader["prevLocalTransform"]
+                if (oldTransform >= 0) {
+                    val prevWorldScale = RenderState.prevWorldScale
+                    shader.m4x3delta(
+                        oldTransform, localTransform.identity(),
+                        RenderState.prevCameraPosition, prevWorldScale
+                    )
+                    shader.v1f("prevWorldScale", prevWorldScale)
+                }
+
+                JomlPools.mat4x3d.sub(1)
             }
-
-            shader.v1f("worldScale", RenderState.worldScale)
-
-            val oldTransform = shader["prevLocalTransform"]
-            if (oldTransform >= 0) {
-                val prevWorldScale = RenderState.prevWorldScale
-                shader.m4x3delta(
-                    oldTransform, transform.getDrawnMatrix(time),
-                    RenderState.prevCameraPosition, prevWorldScale
-                )
-                shader.v1f("prevWorldScale", prevWorldScale)
-            }
-
         }
 
     }
@@ -487,6 +511,7 @@ class PipelineStage(
         if (!Input.isKeyDown('l')) when (sorting) {
             Sorting.NO_SORTING -> {
             }
+
             Sorting.FRONT_TO_BACK -> {
                 drawRequests.sortWith { a, b ->
                     val ma = a.revDistance(dir)
@@ -494,6 +519,7 @@ class PipelineStage(
                     mb.compareTo(ma)
                 }
             }
+
             Sorting.BACK_TO_FRONT -> {
                 drawRequests.sortWith { a, b ->
                     val ma = a.revDistance(dir)
@@ -654,14 +680,17 @@ class PipelineStage(
                         m = 0f
                         n = 1f / ((1L shl 8) - 1f)
                     }
+
                     GL_R16, GL_RG16, GL_RGB16, GL_RGBA16 -> {
                         m = 0f
                         n = 1f / ((1L shl 16) - 1f)
                     }
+
                     GL_R32I, GL_RG32I, GL_RGB32I, GL_RGBA32I -> {
                         m = 0f
                         n = 1f / ((1L shl 32) - 1f)
                     }
+
                     GL_R16F, GL_RG16F, GL_RGB16F, GL_RGBA16F -> {
                         m = 1f / 2048f // 11 bits of mantissa
                         n = 0f

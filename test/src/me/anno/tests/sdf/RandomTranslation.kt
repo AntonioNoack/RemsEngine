@@ -1,6 +1,5 @@
 package me.anno.tests.sdf
 
-import me.anno.ecs.Entity
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFXBase
@@ -12,8 +11,6 @@ fun main() {
 
     ECSRegistry.init()
 
-    val entity = Entity()
-
     val array = SDFArrayMapper()
     array.cellSize.set(2f)
     array.count.set(10, 1, 10)
@@ -21,8 +18,7 @@ fun main() {
     val shape = SDFBox()
     shape.addChild(array)
     shape.addChild(SDFRandomTranslation())
-    entity.addChild(shape)
 
     GFXBase.disableRenderDoc()
-    testSceneWithUI("SDFRandomTranslation", entity)
+    testSceneWithUI("SDFRandomTranslation", shape)
 }

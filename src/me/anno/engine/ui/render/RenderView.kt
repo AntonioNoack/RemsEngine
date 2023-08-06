@@ -323,6 +323,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 RenderMode.GHOSTING_DEBUG, RenderMode.INVERSE_DEPTH, RenderMode.WITHOUT_POST_PROCESSING,
                 RenderMode.LINES, RenderMode.LINES_MSAA, RenderMode.FRONT_BACK, RenderMode.UV,
                 RenderMode.SHOW_TRIANGLES, RenderMode.MSAA_X8 -> false
+
                 else -> true
             }
 
@@ -381,46 +382,43 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 pipeline.lightStage.environmentMaps.isNotEmpty() ||
                 (renderMode.dlt == null && renderMode.effect == null)
             ) {
+
                 val sky = pipeline.skyBox
-                if (sky != null) {
-                    if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
-                        this.renderMode = RenderMode.DEFAULT
-                    }
-                    val bsb = pipeline.bakedSkyBox ?: CubemapFramebuffer(
-                        "skyBox", 256, 1,
-                        arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
-                    )
-                    val cameraMatrix = JomlPools.mat4f.create()
-                    val skyRot = JomlPools.quat4f.create()
-                    bsb.draw(rawAttributeRenderers[DeferredLayerType.EMISSIVE]) { side ->
-                        // draw sky
-                        // could be optimized to draw a single triangle instead of a full cube for each side
-                        rotateForCubemap(skyRot.identity(), side)
-                        val shader = (sky.shader ?: pbrModelShader).value
-                        shader.use()
-                        Perspective.setPerspective(
-                            cameraMatrix, PIf * 0.5f, 1f,
-                            0.1f, 10f, 0f, 0f
-                        )
-                        cameraMatrix.rotate(skyRot)
-                        shader.m4x4("transform", cameraMatrix)
-                        if (side == 0) {
-                            shader.v1i("hasVertexColors", 0)
-                            sky.material.bind(shader)
-                        }// else already set
-                        shader.v3f("camPos", cameraPosition)
-                        shader.v4f("camRot", cameraRotation)
-                        shader.v1f("camScale", worldScale.toFloat())
-                        sky.draw(shader, 0)
-                    }
-                    JomlPools.mat4f.sub(1)
-                    JomlPools.quat4f.sub(1)
-                    pipeline.bakedSkyBox = bsb
-                    this.renderMode = renderMode
-                } else {
-                    pipeline.bakedSkyBox?.destroy()
-                    pipeline.bakedSkyBox = null
+                if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
+                    this.renderMode = RenderMode.DEFAULT
                 }
+                val bsb = pipeline.bakedSkyBox ?: CubemapFramebuffer(
+                    "skyBox", 256, 1,
+                    arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
+                )
+                val cameraMatrix = JomlPools.mat4f.create()
+                val skyRot = JomlPools.quat4f.create()
+                bsb.draw(rawAttributeRenderers[DeferredLayerType.EMISSIVE]) { side ->
+                    // draw sky
+                    // could be optimized to draw a single triangle instead of a full cube for each side
+                    rotateForCubemap(skyRot.identity(), side)
+                    val shader = (sky.shader ?: pbrModelShader).value
+                    shader.use()
+                    Perspective.setPerspective(
+                        cameraMatrix, PIf * 0.5f, 1f,
+                        0.1f, 10f, 0f, 0f
+                    )
+                    cameraMatrix.rotate(skyRot)
+                    shader.m4x4("transform", cameraMatrix)
+                    if (side == 0) {
+                        shader.v1i("hasVertexColors", 0)
+                        sky.material.bind(shader)
+                    }// else already set
+                    shader.v3f("camPos", cameraPosition)
+                    shader.v4f("camRot", cameraRotation)
+                    shader.v1f("camScale", worldScale.toFloat())
+                    sky.draw(shader, 0)
+                }
+                JomlPools.mat4f.sub(1)
+                JomlPools.quat4f.sub(1)
+                pipeline.bakedSkyBox = bsb
+                this.renderMode = renderMode
+
             } else {
                 pipeline.bakedSkyBox?.destroy()
                 pipeline.bakedSkyBox = null
@@ -883,6 +881,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 }
                 clock.stop("presenting deferred buffers", 0.1)
             }
+
             renderMode.dlt != null -> {
                 drawScene(
                     w, h, camera0, camera1,
@@ -893,6 +892,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 drawGizmos(buffer, true)
                 isHDR = renderMode.dlt.highDynamicRange
             }
+
             useBloom -> {
                 // supports bloom
                 // todo support SSR via calculated normals
@@ -908,6 +908,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     Bloom.bloom(tmp.getTexture0(), bloomOffset, bloomStrength, true)
                 }
             }
+
             else -> {
                 val hdr = useFSR || renderMode.effect != null
                 isHDR = hdr
@@ -1270,6 +1271,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 world.update()
                 world.validateTransform()
             }
+
             is Component -> {
                 world.onUpdate()
             }
@@ -1325,54 +1327,27 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     val clearColor = Vector4f()
 
-    fun clearColor(
-        previousCamera: Camera, camera: Camera,
-        blending: Float, hdr: Boolean
-    ) = clearColor(previousCamera, camera, cameraMatrix, prevCamMatrix, blending, hdr)
-
-    fun clearColor(
-        previousCamera: Camera, camera: Camera,
-        cameraMatrix: Matrix4f, prevCamMatrix: Matrix4f,
-        blending: Float, hdr: Boolean
-    ) {
-        val c = clearColor
-        c.set(previousCamera.clearColor).lerp(camera.clearColor, blending)
-        // inverse tonemapping
-        if (hdr) tonemapInvKt(c)
-        clearColor(
-            cameraMatrix, prevCamMatrix,
-            cameraRotation, prevCamRotation,
-            cameraDirection,
-            isPerspective, clearColor
-        )
-    }
-
-    fun clearColorOrSky(cameraMatrix: Matrix4f, prevCamMatrix: Matrix4f = cameraMatrix) {
+    fun clearColorOrSky(cameraMatrix: Matrix4f) {
         GFXState.depthMode.use(DepthMode.ALWAYS) {
             val sky = pipeline.skyBox
-            val renderMode = renderMode
-            if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
+            val renderMode1 = renderMode
+            if (renderMode1 == RenderMode.LINES || renderMode1 == RenderMode.LINES_MSAA) {
                 this.renderMode = RenderMode.DEFAULT
             }
-            if (sky != null) {
-                val shader = (sky.shader ?: pbrModelShader).value
-                shader.use()
-                shader.v1i("hasVertexColors", 0)
-                shader.m4x4("transform", cameraMatrix)
-                shader.v3f("camPos", cameraPosition)
-                shader.v4f("camRot", cameraRotation)
-                shader.v1f("worldScale", worldScale.toFloat())
-                sky.material.bind(shader)
-                sky.draw(shader, 0)
-                lastWarning = null
-            } else {
-                // todo why is sky dark when drawing lines???
-                // todo find cameras correctly
-                lastWarning = "No sky was found"
-                clearColor(editorCamera, editorCamera, cameraMatrix, prevCamMatrix, 0f, true)
-            }
+
+            val shader = (sky.shader ?: pbrModelShader).value
+            shader.use()
+            shader.v1i("hasVertexColors", 0)
+            shader.m4x4("transform", cameraMatrix)
+            shader.v3f("camPos", cameraPosition)
+            shader.v4f("camRot", cameraRotation)
+            shader.v1f("worldScale", worldScale.toFloat())
+            sky.material.bind(shader)
+            sky.draw(shader, 0)
+            lastWarning = null
+
             GFXState.currentBuffer.clearDepth()
-            this.renderMode = renderMode
+            this.renderMode = renderMode1
         }
     }
 
@@ -1422,10 +1397,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 }
             }
 
-            if (pipeline.skyBox == null) {
-                clearColor(previousCamera, currentCamera, blending, hdr)
-            }
-
             GFX.check()
             pipeline.draw()
             GFX.check()
@@ -1446,6 +1417,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         val mesh = selected.getMesh() ?: continue
                         drawOutline(selected, mesh)
                     }
+
                     is Component -> drawOutline(selected.entity ?: continue)
                 }
             }

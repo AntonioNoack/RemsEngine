@@ -7,16 +7,11 @@ import me.anno.ecs.annotations.Group
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.raycast.RayHit
-import me.anno.engine.ui.render.ECSMeshShader
-import me.anno.gpu.GFXState
-import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.shader.*
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -24,32 +19,14 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.hasFlag
-import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
-import org.joml.*
+import org.joml.Quaternionf
+import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.max
 
-open class SkyBox : MeshComponentBase() {
-
-    // todo make this a light, such that all things can be lighted from it
-
-    // todo override raytracing for clicking: if ray goes far enough, let it click us
-
-    init {
-        castShadows = false
-        receiveShadows = false
-    }
-
-    @SerializedProperty
-    var shader: BaseShader?
-        get() = material.shader
-        set(value) {
-            material.shader = value
-        }
-
-    @NotSerializedProperty
-    val material: Material = Material()
+open class SkyBox : SkyBoxBase() {
 
     @SerializedProperty
     var sunRotation: Quaternionf = Quaternionf()
@@ -132,12 +109,6 @@ open class SkyBox : MeshComponentBase() {
         }
 
     @SerializedProperty
-    var worldRotation = Quaternionf()
-        set(value) {
-            field.set(value)
-        }
-
-    @SerializedProperty
     var spherical = false
 
     init {
@@ -147,39 +118,10 @@ open class SkyBox : MeshComponentBase() {
         material.shaderOverrides["nadir"] = TypeValue(GLSLType.V4F, nadir)
         material.shaderOverrides["cirrusOffset"] = TypeValue(GLSLType.V3F, cirrusOffset)
         material.shaderOverrides["cumulusOffset"] = TypeValue(GLSLType.V3F, cumulusOffset)
-        material.shaderOverrides["worldRot"] = TypeValue(GLSLType.V4F, worldRotation)
         material.shaderOverrides["sphericalSky"] = TypeValue(GLSLType.V1B) { spherical }
         material.shaderOverrides["sunDir"] = TypeValueV3(GLSLType.V3F, Vector3f()) {
             it.set(sunBaseDir).rotate(sunRotation)
         }
-        material.shaderOverrides["reversedDepth"] = TypeValue(GLSLType.V1B, {
-            GFXState.depthMode.currentValue.reversedDepth
-        })
-        materials = listOf(material.ref)
-    }
-
-    override fun hasRaycastType(typeMask: Int) = false
-    override fun raycast(
-        entity: Entity,
-        start: Vector3d,
-        direction: Vector3d,
-        end: Vector3d,
-        radiusAtOrigin: Double,
-        radiusPerUnit: Double,
-        typeMask: Int,
-        includeDisabled: Boolean,
-        result: RayHit
-    ) = false
-
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
-        lastDrawn = Engine.gameTime
-        pipeline.skyBox = this
-        this.clickId = clickId
-        return clickId + 1
     }
 
     override fun onUpdate(): Int {
@@ -188,18 +130,6 @@ open class SkyBox : MeshComponentBase() {
         cumulusSpeed.mulAdd(dt, cumulusOffset, cumulusOffset)
         sunRotation.mul(JomlPools.quat4f.borrow().identity().slerp(sunSpeed, dt))
         return 1
-    }
-
-    override fun getMesh() = mesh
-
-    init {
-        globalAABB.all()
-        localAABB.all()
-    }
-
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        aabb.all() // skybox is visible everywhere
-        return true
     }
 
     fun applyOntoSun(sun: Entity, sun1: DirectionalLight, brightness: Float) {
@@ -223,7 +153,6 @@ open class SkyBox : MeshComponentBase() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as SkyBox
-        dst.shader = shader
         dst.sunRotation.set(sunRotation)
         dst.sunBaseDir.set(sunBaseDir)
         dst.cirrus = cirrus
@@ -233,7 +162,6 @@ open class SkyBox : MeshComponentBase() {
         dst.cirrusSpeed.set(cirrusSpeed)
         dst.cirrusOffset.set(cirrusOffset)
         dst.nadir.set(nadir)
-        dst.worldRotation.set(worldRotation)
         dst.sunSpeed.set(sunSpeed)
     }
 
@@ -241,9 +169,7 @@ open class SkyBox : MeshComponentBase() {
 
     companion object {
 
-        val mesh = Shapes.smoothCube.back
-
-        open class SkyShader(name: String) : ECSMeshShader(name) {
+        open class SkyShader(name: String) : SkyBoxBase.Companion.SkyShaderBase(name) {
 
             override fun createVertexStages(flags: Int): List<ShaderStage> {
                 val defines = if (flags.hasFlag(NEEDS_COLORS)) "#define COLORS\n" else ""
@@ -305,9 +231,6 @@ open class SkyBox : MeshComponentBase() {
                         Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
-                        Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-                        Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
-                        Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
                         Variable(GLSLType.V3F, "sunDir"),
                         Variable(GLSLType.V1F, "cirrus"), // 0.4
                         Variable(GLSLType.V1F, "cumulus"), // 0.8
@@ -320,8 +243,6 @@ open class SkyBox : MeshComponentBase() {
                             // sky no longer properly defined for y > 0
                             "finalNormal = normalize(-normal);\n" +
                             "finalColor = vec3(0.0);\n" +
-                            "finalAlpha = 1.0;\n" +
-                            "finalRoughness = 1.0;\n" +
                             "finalEmissive = getSkyColor(quatRot(finalNormal, worldRot));\n" +
                             "finalNormal = -finalNormal;\n" +
                             "finalPosition = finalNormal * 1e20;\n"
@@ -334,7 +255,7 @@ open class SkyBox : MeshComponentBase() {
                 return listOf(stage)
             }
 
-            open fun getSkyColor(): String {
+            override fun getSkyColor(): String {
                 // https://github.com/shff/opengl_sky/blob/master/main.c
                 return "" +
                         "float fbm(vec3); float fbm(vec2);\n" + // imports

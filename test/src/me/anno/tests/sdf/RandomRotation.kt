@@ -1,6 +1,5 @@
 package me.anno.tests.sdf
 
-import me.anno.ecs.Entity
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFXBase
@@ -10,8 +9,6 @@ import me.anno.sdf.shapes.SDFBox
 
 fun main() {
     ECSRegistry.init()
-
-    val entity = Entity()
 
     val array = SDFArrayMapper()
     array.cellSize.set(2f)
@@ -24,8 +21,7 @@ fun main() {
     val shape = SDFBox()
     shape.addChild(array)
     shape.addChild(rot)
-    entity.addChild(shape)
 
     GFXBase.disableRenderDoc()
-    testSceneWithUI("SDF Random Rotation", entity)
+    testSceneWithUI("SDF Random Rotation", shape)
 }

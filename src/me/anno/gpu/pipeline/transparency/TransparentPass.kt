@@ -36,8 +36,7 @@ abstract class TransparentPass : ICacheData {
             if (stage.blendMode == null)
                 stage.bindDraw(pipeline)
         }
-        val sky = pipeline.skyBox
-        if (sky != null) pipeline.drawSky(sky, pipeline.defaultStage)
+        pipeline.drawSky(pipeline.skyBox, pipeline.defaultStage)
         draw1(pipeline)
     }
 

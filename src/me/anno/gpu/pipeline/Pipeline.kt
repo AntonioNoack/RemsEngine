@@ -9,7 +9,8 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.SkyBoxBase
+import me.anno.ecs.components.shaders.SkyBoxBase.Companion.defaultSky
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -84,7 +85,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
 
     val ambient = Vector3f()
 
-    var skyBox: SkyBox? = null
+    var skyBox: SkyBoxBase = defaultSky
     var bakedSkyBox: CubemapFramebuffer? = null
 
     val planarReflections = ArrayList<PlanarReflection>()
@@ -200,11 +201,11 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
             transparentPass.draw0(this)
         } else {
             val sky = skyBox
-            var hasDrawnSky = sky == null
+            var hasDrawnSky = false
             for (i in stages.indices) {
                 val stage = stages[i]
                 if (stage.blendMode != null && !hasDrawnSky) {
-                    drawSky(sky!!, defaultStage)
+                    drawSky(sky, defaultStage)
                     hasDrawnSky = true
                 }
                 if (stage.size > 0) {
@@ -212,12 +213,12 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
                 }
             }
             if (!hasDrawnSky) {
-                drawSky(sky!!, defaultStage)
+                drawSky(sky, defaultStage)
             }
         }
     }
 
-    fun drawSky(sky: SkyBox, stage: PipelineStage) {
+    fun drawSky(sky: SkyBoxBase, stage: PipelineStage) {
         GFXState.depthMode.use(stage.depthMode) {
             GFXState.depthMask.use(false) {
                 GFXState.blendMode.use(null) {
@@ -232,7 +233,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
                         stage.initShader(shader, this)
                         stage.bindRandomness(shader)
                         stage.setupLights(this, shader, allAABB, false)
-                        PipelineStage.setupLocalTransform(shader, sky.transform!!, Engine.gameTime)
+                        PipelineStage.setupLocalTransform(shader, sky.transform, Engine.gameTime)
                         shader.v1b("hasAnimation", false)
                         GFX.shaderColor(shader, "tint", -1)
                         shader.v1i("hasVertexColors", 0)
