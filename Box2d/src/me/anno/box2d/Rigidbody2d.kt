@@ -36,7 +36,6 @@ class Rigidbody2d : Component() {
             box2dInstance?.angularDamping = value
         }
 
-    // todo when editing this, why is the value of angular damping changed as well???
     var angularVelocity = 0f
         get() {
             val bi = box2dInstance

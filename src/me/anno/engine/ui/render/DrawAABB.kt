@@ -86,8 +86,8 @@ object DrawAABB {
         if (transform == null) return drawAABB(aabb, color)
 
         val pos = RenderState.cameraPosition
-        val min = transform.transformPosition(aabb.getMin2(JomlPools.vec3d.create()))
-        val max = transform.transformPosition(aabb.getMax2(JomlPools.vec3d.create()))
+        val min = transform.transformPosition(aabb.getMin(JomlPools.vec3d.create()))
+        val max = transform.transformPosition(aabb.getMax(JomlPools.vec3d.create()))
 
         min.sub(pos).mul(worldScale)
         max.sub(pos).mul(worldScale)

@@ -106,8 +106,8 @@ class AABBf(
 
     fun print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
 
-    fun getMin2(dst: Vector3f = Vector3f()): Vector3f = dst.set(minX, minY, minZ)
-    fun getMax2(dst: Vector3f = Vector3f()): Vector3f = dst.set(maxX, maxY, maxZ)
+    fun getMin(dst: Vector3f = Vector3f()): Vector3f = dst.set(minX, minY, minZ)
+    fun getMax(dst: Vector3f = Vector3f()): Vector3f = dst.set(maxX, maxY, maxZ)
 
     // crazy... why was this not in the library???
     fun set(o: AABBf): AABBf {

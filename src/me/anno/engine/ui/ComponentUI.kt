@@ -742,22 +742,22 @@ object ComponentUI {
             "AABBf" -> {
                 value as AABBf
                 default as AABBf
-                val typeMin = Type.VEC3.withDefault(default.getMin2())
+                val typeMin = Type.VEC3.withDefault(default.getMin())
                 val pane = TitledListY(title, visibilityKey, style)
-                pane.add(FloatVectorInput("", visibilityKey, value.getMin2(), typeMin, style).apply {
+                pane.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
-                    askForReset(property) { setValue((it as AABBf).getMin2(), false) }
+                    askForReset(property) { setValue((it as AABBf).getMin(), false) }
                     addChangeListener { x, y, z, _ ->
                         value.setMin(x.toFloat(), y.toFloat(), z.toFloat())
                         property.set(this, value)
                     }
                 })
-                val typeMax = Type.VEC3D.withDefault(default.getMax2())
-                pane.add(FloatVectorInput("", visibilityKey, value.getMax2(), typeMax, style).apply {
+                val typeMax = Type.VEC3D.withDefault(default.getMax())
+                pane.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
-                    askForReset(property) { setValue((it as AABBf).getMax2(), false) }
+                    askForReset(property) { setValue((it as AABBf).getMax(), false) }
                     addChangeListener { x, y, z, _ ->
                         value.setMax(x.toFloat(), y.toFloat(), z.toFloat())
                         property.set(this, value)
@@ -768,22 +768,22 @@ object ComponentUI {
             "AABBd" -> {
                 value as AABBd
                 default as AABBd
-                val typeMin = Type.VEC3D.withDefault(default.getMin2())
+                val typeMin = Type.VEC3D.withDefault(default.getMin())
                 val pane = TitledListY(title, visibilityKey, style)
-                pane.add(FloatVectorInput("", visibilityKey, value.getMin2(), typeMin, style).apply {
+                pane.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
-                    askForReset(property) { setValue((it as AABBd).getMin2(), false) }
+                    askForReset(property) { setValue((it as AABBd).getMin(), false) }
                     addChangeListener { x, y, z, _ ->
                         value.setMin(x, y, z)
                         property.set(this, value)
                     }
                 })
-                val typeMax = Type.VEC3D.withDefault(default.getMax2())
-                pane.add(FloatVectorInput("", visibilityKey, value.getMax2(), typeMax, style).apply {
+                val typeMax = Type.VEC3D.withDefault(default.getMax())
+                pane.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
-                    askForReset(property) { setValue((it as AABBd).getMax2(), false) }
+                    askForReset(property) { setValue((it as AABBd).getMax(), false) }
                     addChangeListener { x, y, z, _ ->
                         value.setMax(x, y, z)
                         property.set(this, value)
@@ -1015,12 +1015,12 @@ object ComponentUI {
                         } else return fi
                     }
                     // actual instance, needs to be local, linked via path
-                    // e.g., for physics constraints, events, or things like that
+                    // e.g., for physics constraints, events or things like that
                     type0.endsWith("/PrefabSaveable", true) -> {
                         val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         value as PrefabSaveable?
                         // todo find the class somehow...
-                        val clazz = ISaveable.getClass(type1)!!
+                        val clazz = ISaveable.getClass(type1) ?: throw IllegalStateException("Missing class $type1")
                         return PrefabSaveableInput(title, clazz, value, style)
                             .apply {
                                 property.init(this)

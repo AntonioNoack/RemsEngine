@@ -92,6 +92,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
      * 9 = 10x larger than normal;
      * the best value depends on your modifiers & such
      * */
+    @Docs("How much larger the underlying mesh needs to be to cover this sdf mesh; scale(1+rmm)")
     var relativeMeshMargin = 0f
         set(value) {
             if (field != value) {

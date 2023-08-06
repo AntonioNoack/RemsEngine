@@ -164,7 +164,7 @@ fun main() {
                                 "vec2 uv0 = gl_FragCoord.xy / renderSize;\n" +
                                 "vec3 localDir = normalize(matMul(invLocalTransform, vec4(rawCameraDirection(uv0),0.0)));\n" +
                                 "vec3 localPos = localPosition - localDir * max(0.0,dot(localPosition-localCamPos,localDir));\n" +
-                                "if(uv0.x > 0.5) localPos = matMul(invLocalTransform, vec4(depthToPosition(uv0,perspectiveCamera?0.0:1.0),1.0));\n" +
+                                "localPos = matMul(invLocalTransform, vec4(depthToPosition(uv0,perspectiveCamera?0.0:1.0),1.0));\n" +
                                 // trace the section from distanceBounds.x to distanceBounds.y, and accumulate volume density
                                 "vec3 emissive = vec3(0.0);\n" +
                                 "vec3 color = vec3(0.0);\n" +

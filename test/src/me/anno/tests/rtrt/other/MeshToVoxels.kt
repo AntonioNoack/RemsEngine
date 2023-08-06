@@ -1,4 +1,4 @@
-package me.anno.tests.rtrt
+package me.anno.tests.rtrt.other
 
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.MeshCache

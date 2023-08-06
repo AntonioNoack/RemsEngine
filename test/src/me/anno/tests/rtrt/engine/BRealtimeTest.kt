@@ -6,6 +6,7 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.OrbitControls
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
+import me.anno.engine.raycast.RayHit
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase.forceLoadRenderDoc
 import me.anno.gpu.GFXState.blendMode
@@ -59,6 +60,12 @@ import java.nio.IntBuffer
 import kotlin.math.pow
 
 var drawMode = DrawMode.NORMAL
+
+val localResult = ThreadLocal2 { RayHit() }
+const val sky0 = 0x2f5293
+const val sky1 = 0x5c729b
+const val sky0BGR = 0x93522f
+const val sky1BGR = 0x9b725c
 
 fun main() {
     val clock = Clock()

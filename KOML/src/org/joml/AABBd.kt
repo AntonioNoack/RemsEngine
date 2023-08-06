@@ -144,8 +144,11 @@ class AABBd(
 
     fun print(): String = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
 
-    fun getMin2(dst: Vector3d = Vector3d()): Vector3d = dst.set(minX, minY, minZ)
-    fun getMax2(dst: Vector3d = Vector3d()): Vector3d = dst.set(maxX, maxY, maxZ)
+    fun getMin(dst: Vector3d = Vector3d()): Vector3d = dst.set(minX, minY, minZ)
+    fun getMax(dst: Vector3d = Vector3d()): Vector3d = dst.set(maxX, maxY, maxZ)
+
+    fun getMin(dst: Vector3f): Vector3f = dst.set(minX, minY, minZ)
+    fun getMax(dst: Vector3f): Vector3f = dst.set(maxX, maxY, maxZ)
 
     fun set(o: AABBd): AABBd {
         minX = o.minX

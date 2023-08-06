@@ -51,6 +51,6 @@ fun main() {
         }
     }
 
-    RemsEngine.main(emptyArray())
+    RemsEngine().run()
 
 }

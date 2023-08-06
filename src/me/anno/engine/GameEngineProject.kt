@@ -15,14 +15,12 @@ import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.utils.hpc.ProcessingQueue
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
 class GameEngineProject() : NamedSaveable() {
 
     companion object {
-        private val assetIndexQueue = ProcessingQueue("AssetIndex")
         private val LOGGER = LogManager.getLogger(GameEngineProject::class)
         fun readOrCreate(location: FileReference?): GameEngineProject? {
             location ?: return null
@@ -111,7 +109,7 @@ class GameEngineProject() : NamedSaveable() {
             LOGGER.debug("Set scene to $lastScene")
         }
 
-        val lastSceneRef = getReference(lastScene)
+        val lastSceneRef = lastScene!!.toGlobalFile(location)
         if (!lastSceneRef.exists) {
             val prefab = Prefab("Entity", ScenePrefab)
             lastSceneRef.writeText(TextWriter.toText(prefab, InvalidRef))
@@ -124,7 +122,7 @@ class GameEngineProject() : NamedSaveable() {
         // may be changed by ECSSceneTabs otherwise
         val lastScene = lastScene
         // open all tabs
-        for (tab in openTabs) {
+        for (tab in openTabs.toList()) {
             try {
                 ECSSceneTabs.open(getReference(tab), PlayMode.EDITING, false)
             } catch (e: Exception) {
@@ -154,6 +152,7 @@ class GameEngineProject() : NamedSaveable() {
                     "png", "jpg", "gimp", "blend", "gltf", "dae", "md2", "exr", "qoi",
                     "media", "vox", "fbx", "obj", "webp", "dds", "hdr", "ico", "pdf",
                     "ttf", "woff1", "woff2", "gif", "bmp" -> assetIndex.add(file)
+
                     else -> {
                         if (depth >= 0 && file.isSomeKindOfDirectory) {
                             val children = file.listChildren()
@@ -204,6 +203,7 @@ class GameEngineProject() : NamedSaveable() {
                 openTabs.clear()
                 openTabs.addAll(values)
             }
+
             else -> super.readStringArray(name, values)
         }
     }
@@ -212,8 +212,9 @@ class GameEngineProject() : NamedSaveable() {
         when (name) {
             "openTabs" -> {
                 openTabs.clear()
-                openTabs.addAll(values.filter { it.exists }.map { it.absolutePath })
+                openTabs.addAll(values.filter { it.exists }.map { it.toLocalPath(location) })
             }
+
             else -> super.readFileArray(name, values)
         }
     }

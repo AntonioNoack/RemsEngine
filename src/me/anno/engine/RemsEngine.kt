@@ -270,12 +270,6 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
             }
             PropertyInspector.invalidateUI(true)
         }
-
-        @JvmStatic
-        fun main(args: Array<String>?) {
-            RemsEngine().run()
-        }
-
     }
 
 }

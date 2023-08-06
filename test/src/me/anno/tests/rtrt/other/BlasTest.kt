@@ -1,4 +1,4 @@
-package me.anno.tests.rtrt
+package me.anno.tests.rtrt.other
 
 import org.joml.AABBf
 import org.joml.Vector3f

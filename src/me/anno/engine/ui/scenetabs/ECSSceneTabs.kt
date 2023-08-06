@@ -136,8 +136,9 @@ object ECSSceneTabs : ScrollPanelX(style) {
         // add tab to project
         val project = project
         if (project != null) {
-            if (project.openTabs.add(tab.file.absolutePath) || project.lastScene != tab.file.absolutePath) {
-                project.lastScene = tab.file.absolutePath
+            val tabLocal = tab.file.toLocalPath(project.location)
+            if (project.openTabs.add(tabLocal) || project.lastScene != tabLocal) {
+                project.lastScene = tabLocal
                 project.invalidate()
             }
         }
@@ -159,33 +160,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
         currentTab?.inspector?.onChange(major) // probably correct ^^
         EditorState.prefabSource = prefab.source
     }
-
-    /*fun createWorld(item: ISaveable, src: FileReference): Entity {
-        // todo if there is no lights at all, we should all them "virtually", temporarily
-        return when (item) {
-            is Entity -> item
-            is Mesh -> {
-                val entity = Entity()
-                entity.add(MeshComponent(src))
-                entity
-            }
-            is Material -> {
-                val entity = Entity()
-                val mesh = Thumbs.sphereMesh.clone()
-                mesh.materials = listOf(src)
-                entity.add(mesh)
-                entity
-            }
-            // todo if light, also add some objects for visualization
-            is Component -> {
-                val entity = item.entity ?: Entity()
-                entity.add(item)
-                entity
-            }
-            // todo display skeleton, animations, lights and such
-            else -> throw RuntimeException("Cannot open ${item.className} in scene")
-        }
-    }*/
 
     fun close(sceneTab: ECSSceneTab, setNextActive: Boolean) {
         if (currentTab === sceneTab) {

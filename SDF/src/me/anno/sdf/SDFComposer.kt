@@ -9,11 +9,14 @@ import me.anno.engine.ui.render.ECSMeshShader.Companion.discardByCullingPlane
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.shader.*
+import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -99,28 +102,27 @@ object SDFComposer {
         // find maximum in local space from current point to bounding box
         // best within frustum
         val dt = tree.transform?.getDrawMatrix()
-        if (dt != null) {
-            // compute first and second intersection with aabb
-            // transform camera position into local space
-            val localPos = JomlPools.vec3d.create()
-            val dtInverse = JomlPools.mat4x3d.create()
-            dt.invert(dtInverse)
-            dtInverse.transformPosition(RenderState.cameraPosition, localPos)
-            val bounds = tree.localAABB
-            val dx = (localPos.x - bounds.avgX()).toFloat()
-            val dy = (localPos.y - bounds.avgY()).toFloat()
-            val dz = (localPos.z - bounds.avgZ()).toFloat()
-            val bdx = bounds.deltaX().toFloat()
-            val bdy = bounds.deltaY().toFloat()
-            val bdz = bounds.deltaZ().toFloat()
-            val min = sdBox(dx, dy, dz, bdx * 0.5f, bdy * 0.5f, bdz * 0.5f)
-            val max = min + length(bdx, bdy, bdz) // to do max could be calculated more accurately
-            tree.camNear = min
-            tree.camFar = max
-            dst.set(max(0f, min), max)
-            JomlPools.vec3d.sub(1)
-            JomlPools.mat4x3d.sub(1)
-        }
+        // compute first and second intersection with aabb
+        // transform camera position into local space
+        val localPos = JomlPools.vec3d.create()
+        val dtInverse = JomlPools.mat4x3d.create()
+        if (dt != null) dt.invert(dtInverse)
+        else dtInverse.identity()
+        dtInverse.transformPosition(RenderState.cameraPosition, localPos)
+        val bounds = tree.localAABB
+        val dx = (localPos.x - bounds.avgX()).toFloat()
+        val dy = (localPos.y - bounds.avgY()).toFloat()
+        val dz = (localPos.z - bounds.avgZ()).toFloat()
+        val bdx = bounds.deltaX().toFloat()
+        val bdy = bounds.deltaY().toFloat()
+        val bdz = bounds.deltaZ().toFloat()
+        val min = sdBox(dx, dy, dz, bdx * 0.5f, bdy * 0.5f, bdz * 0.5f)
+        val max = min + length(bdx, bdy, bdz) // to do max could be calculated more accurately
+        tree.camNear = min
+        tree.camFar = max
+        dst.set(max(0f, min), max)
+        JomlPools.vec3d.sub(1)
+        JomlPools.mat4x3d.sub(1)
         return dst
     }
 
@@ -160,7 +162,7 @@ object SDFComposer {
                             // todo why is this slightly incorrect if orthographic????
                             //  (both cases wobble from the view of the point light)
                             "vec3 localPos = localPosition - localDir * max(0.0,dot(localPosition-localCamPos,localDir));\n" +
-                            "if(uv0.x > 0.5) localPos = matMul(invLocalTransform, vec4(depthToPosition(uv0,perspectiveCamera?0.0:1.0),1.0));\n" +
+                            "localPos = matMul(invLocalTransform, vec4(depthToPosition(uv0,perspectiveCamera?0.0:1.0),1.0));\n" +
                             // "vec4 ray = vec4(0,1,0,0);\n" +
                             "float tmpNear = 0.001;\n" +
                             "vec4 ray = distanceBounds.x <= tmpNear ? map(localPos,localDir,localPos,tmpNear) : vec4(0.0);\n" +
@@ -171,7 +173,11 @@ object SDFComposer {
                             "   if(debugMode == ${DebugMode.NUM_STEPS.id}){\n" +
                             showNumberOfSteps +
                             "   } else {\n" +
-                            "       if(debugMode == ${DebugMode.SDF_ON_Y.id} && (-localPos.y / localDir.y < ray.x || ray.y < -0.5)){\n" +
+                            "       float distOnY = -localPos.y / localDir.y;\n" +
+                            "       vec3 localHit = localPos + distOnY * localDir;\n" +
+                            "       bool inPlane = all(greaterThan(localHit.xz,localMin.xz)) && all(lessThan(localHit.xz,localMax.xz));\n" +
+                            // in this mode, just adding a plane might be best
+                            "       if(debugMode == ${DebugMode.SDF_ON_Y.id} && ((distOnY > 0.0 && distOnY < ray.x) || ray.y < 0.0) && inPlane){\n" +
                             sdfOnY +
                             "       } else if(ray.y < 0.0){ discard; } else {\n" +
                             // proper material calculation
@@ -221,8 +227,9 @@ object SDFComposer {
             shader.v2f("distanceBounds", distanceBounds(tree, tmp2))
 
             val b = tree.localAABB
-            shader.v3f("localMin", tmp3.set(b.minX, b.minY, b.minZ))
-            shader.v3f("localMax", tmp3.set(b.maxX, b.maxY, b.maxZ))
+            val s = 1f + tree.relativeMeshMargin
+            shader.v3f("localMin", b.getMin(tmp3).mul(s))
+            shader.v3f("localMax", b.getMax(tmp3).mul(s))
 
             shader.v1b("perspectiveCamera", RenderState.isPerspective)
             shader.v1i("debugMode", tree.debugMode.id)
@@ -362,18 +369,15 @@ object SDFComposer {
             "finalAlpha = 1.0;\n"
 
     val sdfOnY = "" + // check if & where ray hits y == 0
-            "float distance = -localPos.y / localDir.y;\n" +
-            "if(distance > 0.0){\n" +
-            "    vec3 localHit = localPos + distance * localDir;\n" +
+            "if(distOnY > 0.0){\n" +
             // check if localPos is within bounds -> only render the plane :)
-            "    if(all(greaterThan(localHit.xz,localMin.xz)) && all(lessThan(localHit.xz,localMax.xz))){\n" +
             "        localHit.y = 0.0;\n" + // correct numerical issues
             "        finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" +
             discardByCullingPlane +
             "        finalNormal = vec3(0.0, -sign(localDir.y), 0.0);\n" +
             "        vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" +
             "        gl_FragDepth = newVertex.z/newVertex.w;\n" +
-            "        distance = map(localPos,localDir,localHit,distance).x;\n" + // < 0.0 removed, because we show the shape there
+            "        float distance = map(localPos,vec3(0.0),localHit,distOnY).x;\n" + // < 0.0 removed, because we show the shape there
             // waves like in Inigo Quilez demos, e.g. https://www.shadertoy.com/view/tt3yz7
             // show the inside as well? mmh...
             "        vec3 col = vec3(0.9,0.6,0.3) * (1.0 - exp(-2.0*distance));\n" +
@@ -382,7 +386,6 @@ object SDFComposer {
             "        col *= 0.8 + 0.2*cos(20.0*distance)*max(1.0-delta,0.0);\n" +
             "        finalColor = col;\n" +
             "        finalAlpha = 1.0;\n" +
-            "    } else discard;\n" +
             "} else discard;\n"
 
     val fragmentVariables1 = listOf(

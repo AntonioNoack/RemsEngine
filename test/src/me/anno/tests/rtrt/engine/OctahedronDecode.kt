@@ -25,14 +25,16 @@ fun main() {
     }
 
     val entity = Entity()
-    val s = 25
+    val s = 75
     val meshFile = documents.getChild("cube.obj")
     for (y in 0 until s) {
         val yf = y / (s - 1f)
         for (x in 0 until s) {
             val xf = x / (s - 1f)
             val child = Entity()
-            child.add(MeshComponent(meshFile))
+            val meshComp = MeshComponent(meshFile)
+            meshComp.isInstanced = true
+            child.add(meshComp)
             child.position = child.position
                 .set(decode(Vector2f(xf, yf)))
             child.scale = child.scale.set(1.0 / s)
