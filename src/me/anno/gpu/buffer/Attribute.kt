@@ -6,7 +6,6 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
 
     constructor(name: String, components: Int) : this(name, AttributeType.FLOAT, components, false)
 
-    val glslType get() = types[if (isNativeInt) 4 + components else components]
     val byteSize = components * type.byteSize
     var offset = 0L
     var stride = 0
@@ -51,8 +50,6 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
             }
             return stride
         }
-
     }
-
 }
 

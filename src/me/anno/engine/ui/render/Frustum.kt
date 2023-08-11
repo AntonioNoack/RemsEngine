@@ -1,6 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.gpu.buffer.LineBuffer
+import me.anno.input.Input
 import me.anno.maths.Maths.sq
 import me.anno.utils.Color.black
 import org.joml.*
@@ -52,7 +53,6 @@ class Frustum {
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.identity()
             .rotate(cameraRotation)
-
     }
 
     fun defineOrthographic(
@@ -65,34 +65,33 @@ class Frustum {
         cameraRotation: Quaterniond
     ) {
 
-        val sizeX = sizeY * aspectRatio
+        val ws = RenderState.worldScale
+        val sy = sizeY / ws
+        val sx = sy * aspectRatio
 
-        val objectSizeThreshold = minObjectSizePixels * sizeX / resolution
+        val objectSizeThreshold = minObjectSizePixels * sx / resolution
         sizeThreshold = /* detailFactor * */ sq(objectSizeThreshold)
 
         val positions = positions
         val normals = normals
-        positions[0].set(+sizeX, 0.0, 0.0)
+        positions[0].set(+sx, 0.0, 0.0)
         normals[0].set(+1.0, 0.0, 0.0)
-        positions[1].set(-sizeX, 0.0, 0.0)
+        positions[1].set(-sx, 0.0, 0.0)
         normals[1].set(-1.0, 0.0, 0.0)
 
-        positions[2].set(0.0, +sizeY, 0.0)
+        positions[2].set(0.0, +sy, 0.0)
         normals[2].set(0.0, +1.0, 0.0)
-        positions[3].set(0.0, -sizeY, 0.0)
+        positions[3].set(0.0, -sy, 0.0)
         normals[3].set(0.0, -1.0, 0.0)
 
-        positions[4].set(0.0, 0.0, +near)
-        normals[4].set(0.0, 0.0, -1.0)
-        positions[5].set(0.0, 0.0, +far)
-        normals[5].set(0.0, 0.0, +1.0)
+        positions[4].set(0.0, 0.0, -near)
+        normals[4].set(0.0, 0.0, +1.0)
+        positions[5].set(0.0, 0.0, -far)
+        normals[5].set(0.0, 0.0, -1.0)
 
-        transform(cameraPosition, cameraRotation)
+        transform2(cameraPosition, cameraRotation)
 
         isPerspective = false
-
-        // todo code this properly
-        setToEverything(cameraPosition, cameraRotation)
 
     }
 
@@ -102,6 +101,20 @@ class Frustum {
         val planes = planes
         for (i in 0 until 6) {
             val position = positions[i].add(cameraPosition)
+            val normal = cameraRotation.transform(normals[i])
+            val distance = position.dot(normal)
+            planes[i].set(normal, -distance)
+        }
+        this.cameraPosition.set(cameraPosition)
+        this.cameraRotation.set(cameraRotation)
+    }
+
+    fun transform2(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
+        val positions = positions
+        val normals = normals
+        val planes = planes
+        for (i in 0 until 6) {
+            val position = cameraRotation.transform(positions[i]).add(cameraPosition)
             val normal = cameraRotation.transform(normals[i])
             val distance = position.dot(normal)
             planes[i].set(normal, -distance)
@@ -139,7 +152,7 @@ class Frustum {
         positions[5].set(0.0, 0.0, +sizeZ)
         normals[5].set(0.0, 0.0, +1.0)
 
-        transform(cameraPosition, cameraRotation)
+        transform2(cameraPosition, cameraRotation)
 
         isPerspective = false
     }
@@ -179,7 +192,6 @@ class Frustum {
 
         this.cameraPosition.set(cameraPosition)
         this.cameraRotation.set(cameraRotation)
-
     }
 
     fun definePerspective(
@@ -240,17 +252,14 @@ class Frustum {
         transform(cameraPosition, cameraRotation)
 
         isPerspective = true
-
     }
 
-    fun showPlanes(worldScale: Double) {
+    fun showPlanes() {
         for (i in 0 until 6) {
             val length = 10.0
             val s = 1.0
             val p = positions[i]
             val n = normals[i]
-            RenderState.cameraPosition.set(cameraPosition)
-            RenderState.worldScale = worldScale
             val color = 0x00ff00 or black
             LineBuffer.putRelativeLine(p, Vector3d(n).normalize(length).add(p), color)
             LineBuffer.putRelativeLine(Vector3d(p).add(-s, 0.0, 0.0), Vector3d(p).add(+s, 0.0, 0.0), color)
@@ -305,7 +314,6 @@ class Frustum {
             val guessedDistance = sq(min(-mx, xx), min(-my, xy), min(-mz, xz)) // distance²
             val relativeSizeGuess = guessedSize / guessedDistance // (bounds / distance)²
             return relativeSizeGuess > sizeThreshold
-
         } else {
             val guessedSize = calculateArea(cameraRotation, aabb.deltaX(), aabb.deltaY(), aabb.deltaZ()) // area
             return guessedSize > sizeThreshold
@@ -367,5 +375,4 @@ class Frustum {
 
     fun isVisible(aabb: AABBd) =
         contains(aabb) && hasEffectiveSize(aabb)
-
 }

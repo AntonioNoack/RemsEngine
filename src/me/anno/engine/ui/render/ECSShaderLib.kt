@@ -5,9 +5,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 
-// todo automatic texture mapping and indices
-// todo use shader stages for that everywhere
-
 object ECSShaderLib {
 
     val simpleShader = BaseShader(

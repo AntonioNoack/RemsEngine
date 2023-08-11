@@ -495,6 +495,8 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
 
     fun angleCos(v: Vector3f) = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
 
+    fun angleCos(vx: Float, vy: Float, vz: Float) = dot(vx, vy, vz) / sqrt(lengthSquared() * lengthSquared(vx, vy, vz))
+
     fun angle(v: Vector3f): Float {
         var cos = angleCos(v)
         cos = min(cos, 1f)
@@ -857,6 +859,13 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     }
 
     companion object {
+
+        @JvmStatic
+        fun angleCos(ax: Float, ay: Float, az: Float, bx: Float, by: Float, bz: Float): Float {
+            val dot = ax * bx + ay * by + az * bz
+            return dot / sqrt(lengthSquared(ax, ay, az) * lengthSquared(bx, by, bz))
+        }
+
         @JvmStatic
         fun lengthSquared(x: Float, y: Float, z: Float): Float {
             return x * x + y * y + z * z

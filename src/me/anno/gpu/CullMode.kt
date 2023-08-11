@@ -1,5 +1,7 @@
 package me.anno.gpu
 
+import me.anno.io.serialization.SerializedProperty
+
 enum class CullMode {
 
     /**
@@ -17,8 +19,7 @@ enum class CullMode {
      * */
     FRONT;
 
-    // for serialization
-    // todo are getters supported?
+    @SerializedProperty
     val id get() = ordinal - 1
 
     operator fun times(mode: CullMode): CullMode {

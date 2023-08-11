@@ -5,11 +5,8 @@ class FontKey(var name: String, var sizeIndex: Int, var bold: Boolean, var itali
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is FontKey) return false
-        if (name != other.name) return false
-        if (sizeIndex != other.sizeIndex) return false
-        if (bold != other.bold) return false
-        if (italic != other.italic) return false
-        return true
+        return name == other.name && sizeIndex == other.sizeIndex &&
+                bold == other.bold && italic == other.italic
     }
 
     override fun hashCode(): Int {
@@ -19,5 +16,4 @@ class FontKey(var name: String, var sizeIndex: Int, var bold: Boolean, var itali
         result = 31 * result + italic.hashCode()
         return result
     }
-
 }

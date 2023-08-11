@@ -514,7 +514,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
                 } // else if is force saving, then this won't work, because of the weak generics in Java :/
             }
             is Map<*, *> -> {// mmh, mediocre solution
-                val map = StringMap()
+                val map = StringMap(value.size)
                 for ((k, v) in value) {
                     map[k.toString()] = v
                 }

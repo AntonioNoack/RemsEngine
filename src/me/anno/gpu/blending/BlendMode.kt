@@ -97,7 +97,8 @@ class BlendMode(
         val PURE_ADD = BlendMode(NameDesc("Pure Add", "", "gpu.blendMode.addPure"), "Pure Add")
             .set(GL_ONE, GL_ONE)
 
-        val PURE_MUL = BlendMode(NameDesc("Pure Add", "", "gpu.blendMode.addPure"), "Pure Add")
+        @Suppress("unused")
+        val PURE_MUL = BlendMode(NameDesc("Pure Mul", "", "gpu.blendMode.addMul"), "Pure Mul")
             .set(GL_DST_COLOR, GL_ZERO)
 
         /*val ADD_MASK = BlendMode("Sub Mask", "Sub Mask")

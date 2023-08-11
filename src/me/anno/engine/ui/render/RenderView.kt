@@ -1220,6 +1220,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         width: Int, height: Int, aspectRatio: Float,
         fov: Float, world: PrefabSaveable?
     ) {
+
         pipeline.clear()
         if (isPerspective) {
             pipeline.frustum.definePerspective(
@@ -1233,6 +1234,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 cameraPosition, cameraRotation
             )
         }
+
         pipeline.disableReflectionCullingPlane()
         pipeline.ignoredEntity = null
         pipeline.resetClickId()

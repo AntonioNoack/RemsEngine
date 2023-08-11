@@ -1,7 +1,6 @@
 package me.anno.fonts
 
 import me.anno.utils.Color.hex32
-import java.awt.font.TextLayout
 import kotlin.math.max
 
 class PartResult(
@@ -20,5 +19,4 @@ class PartResult(
             hex32(System.identityHashCode(this))
         }{w=$width,h=$height,lc=$lineCount,p=[${parts.joinToString()}]}"
     }
-
 }

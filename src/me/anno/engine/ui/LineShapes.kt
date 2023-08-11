@@ -3,7 +3,11 @@ package me.anno.engine.ui
 import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
+import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.max
+import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4x3d
 import org.joml.Vector3d
@@ -60,7 +64,6 @@ object LineShapes {
             // frame
             putRelativeLine(positions[i], positions[(i + 1) and 3], color)
         }
-
     }
 
     fun drawArrowZ(from: Vector3d, to: Vector3d, color: Int = Collider.guiLineColor) {
@@ -96,7 +99,6 @@ object LineShapes {
         }
 
         JomlPools.vec3d.sub(3)
-
     }
 
     fun drawArrowZ(entity: Entity?, z0: Double, z1: Double, color: Int = Collider.guiLineColor) {
@@ -156,7 +158,6 @@ object LineShapes {
         putRelativeLine(positions[0], positions[1], color)
         putRelativeLine(positions[2], positions[3], color)
         putRelativeLine(positions[4], positions[5], color)
-
     }
 
 
@@ -246,7 +247,6 @@ object LineShapes {
         putRelativeLine(positions[0], positions[1], color)
         putRelativeLine(positions[2], positions[3], color)
         putRelativeLine(positions[4], positions[5], color)
-
     }
 
     fun drawPoint(
@@ -449,4 +449,87 @@ object LineShapes {
         }
     }
 
+    fun drawCone(
+        entity: Entity?,
+        start: Vector3f,
+        end: Vector3f,
+        radiusAtOrigin: Float,
+        radiusPerUnit: Float,
+        centralColor: Int = Collider.guiLineColor,
+        outerRayColor: Int = Collider.guiLineColor,
+        circleColor: Int = Collider.guiLineColor
+    ) {
+
+        // only correct if the scale is uniform
+
+        val transform = getDrawMatrix(entity)
+        val positions = tmpVec3d
+        val p0 = positions[0].set(start)
+        val p1 = positions[1].set(end)
+
+        if (transform != null) {
+            transform.transformPosition(p0)
+            transform.transformPosition(p1)
+        }
+
+        // find the two axes orthogonal to end-start
+        val tmp = positions[2]
+        val sysX = positions[3]
+        val sysY = positions[4]
+        tmp.set(p1).sub(p0).findSystem(sysX, sysY)
+
+        // draw central line
+        putRelativeLine(p0, p1, centralColor)
+
+        val r0 = radiusAtOrigin.toDouble()
+        val r1 = radiusAtOrigin.toDouble() + radiusPerUnit * p1.distance(p0)
+
+        val cp = RenderState.cameraPosition
+        val ws = RenderState.worldScale
+
+        // draw borderlines
+        val numBorderLines = 8
+        for (i in 0 until numBorderLines) {
+            val angle = i * TAU / numBorderLines
+            val c = cos(angle)
+            val s = sin(angle)
+            val c0 = c * r0
+            val c1 = c * r1
+            val s0 = s * r0
+            val s1 = s * r1
+            putRelativeLine(
+                p0.x + c0 * sysX.x + s0 * sysY.x, p0.y + c0 * sysX.y + s0 * sysY.y, p0.z + c0 * sysX.z + s0 * sysY.z,
+                p1.x + c1 * sysX.x + s1 * sysY.x, p1.y + c1 * sysX.y + s1 * sysY.y, p1.z + c1 * sysX.z + s1 * sysY.z,
+                cp, ws, outerRayColor
+            )
+        }
+
+        // todo draw 2 rings every power of 10, plus start, plus end
+        // todo or for every sth...
+
+        fun drawRing(fraction: Double) {
+
+            p0.lerp(p1, fraction, tmp)
+            val radius = mix(r0, r1, fraction)
+            if (radius == 0.0) return
+
+            val segments = 8
+            val di = 5
+            for (i in 0 until segments) {
+                val angle = i * PI * 2.0 / segments
+                val position = positions[di + i]
+                position.set(tmp)
+                sysX.mulAdd(cos(angle) * radius, position, position)
+                sysY.mulAdd(sin(angle) * radius, position, position)
+            }
+            var j = segments - 1
+            for (i in 0 until segments) {
+                putRelativeLine(positions[di + i], positions[di + j], circleColor)
+                j = i
+            }
+        }
+
+        drawRing(0.0)
+        drawRing(1.0)
+    }
 }

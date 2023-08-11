@@ -45,6 +45,7 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4d
 import java.util.*
+import kotlin.math.max
 
 /**
  * Collects meshes for different passes (opaque, transparency, decals, ...), and for instanced rendering;
@@ -225,6 +226,8 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
                     val mesh = sky.getMesh()
                     mesh.ensureBuffer()
                     val allAABB = JomlPools.aabbd.create()
+                    val scale = if (RenderState.isPerspective) 1f
+                    else 2f * max(RenderState.fovXRadians, RenderState.fovYRadians)
                     allAABB.all()
                     for (i in 0 until mesh.numMaterials) {
                         val material = MaterialCache[sky.materials.getOrNull(i)] ?: defaultMaterial
@@ -238,6 +241,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
                         GFX.shaderColor(shader, "tint", -1)
                         shader.v1i("hasVertexColors", 0)
                         shader.v2i("randomIdData", 6, sky.randomTriangleId)
+                        shader.v1f("meshScale", scale)
                         material.bind(shader)
                         mesh.draw(shader, i)
                     }
@@ -245,16 +249,6 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
                 }
             }
         }
-    }
-
-    /**
-     * drawing only the depth of a scene;
-     * for light-shadows or pre-depth
-     * */
-    fun drawDepth() {
-        GFX.check()
-        defaultStage.drawDepths(this)
-        GFX.check()
     }
 
     fun clear() {
@@ -503,5 +497,4 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         val sampleMeshComponent = MeshComponent()
         val sampleMesh = Thumbs.sphereMesh
     }
-
 }

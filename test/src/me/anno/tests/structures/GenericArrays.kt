@@ -1,4 +1,4 @@
-package me.anno.tests
+package me.anno.tests.structures
 
 import me.anno.io.Saveable
 import me.anno.io.files.InvalidRef

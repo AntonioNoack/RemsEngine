@@ -6,12 +6,7 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.ui.base.Font
 import me.anno.utils.types.Booleans.toInt
 
-data class TextCacheKey(
-    val text: CharSequence,
-    val fontName: String,
-    val properties: Int,
-    val limits: Int
-) {
+data class TextCacheKey(val text: CharSequence, val fontName: String, val properties: Int, val limits: Int) {
 
     constructor(text: CharSequence, fontName: String, properties: Int, widthLimit: Int, heightLimit: Int) :
             this(text, fontName, properties, GFXx2D.getSize(widthLimit, heightLimit)) {
@@ -53,18 +48,9 @@ data class TextCacheKey(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null) return false
-        if (this::class != other::class) return false
-
-        other as TextCacheKey
-
-        if (_hashCode != other._hashCode) return false
-        if (text != other.text) return false
-        if (fontName != other.fontName) return false
-        if (properties != other.properties) return false
-        if (limits != other.limits) return false
-
-        return true
+        if (other !is TextCacheKey) return false
+        return _hashCode == other._hashCode && text == other.text && fontName == other.fontName &&
+                properties == other.properties && limits == other.limits
     }
 
     override fun toString(): String = "$fontName, $properties, $widthLimit, $heightLimit, '$text'"
@@ -78,5 +64,4 @@ data class TextCacheKey(
             return fontSizeIndex * 8 + isItalic.toInt(4) + isBold.toInt(2)
         }
     }
-
 }

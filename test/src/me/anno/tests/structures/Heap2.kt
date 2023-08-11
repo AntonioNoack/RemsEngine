@@ -1,6 +1,8 @@
-package me.anno.tests
+package me.anno.tests.structures
 
+import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.heap.MinHeap
+import org.junit.jupiter.api.Assertions
 
 fun main() {
 
@@ -16,8 +18,10 @@ fun main() {
     minHeap.add(22)
     minHeap.add(9)
 
+    val list = ExpandingIntArray(16)
     while (minHeap.isNotEmpty()) {
-        println("Extracted " + minHeap.remove())
+        list.add(minHeap.remove())
     }
 
+    Assertions.assertEquals(list.toString(), "[3,5,6,9,10,17,19,22,84]")
 }

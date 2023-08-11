@@ -1,5 +1,6 @@
 package org.joml
 
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -90,8 +91,11 @@ class AABBf(
                 minZ <= other.maxZ
     }
 
-    fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float) =
-        isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz)
+    fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float): Boolean =
+        isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz, Float.POSITIVE_INFINITY)
+
+    fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float, th: Float): Boolean =
+        isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz, th, Float.POSITIVE_INFINITY)
 
     fun isEmpty() = minX > maxX
 
@@ -540,16 +544,96 @@ class AABBf(
                 distanceSquared(start) <= start.distanceSquared(end)
     }
 
+    val centerX get() = (minX + maxX) * 0.5f
+    val centerY get() = (minY + maxY) * 0.5f
+    val centerZ get() = (minZ + maxZ) * 0.5f
+
     fun testLine(
         start: Vector3f,
         end: Vector3f,
         radiusAtOrigin: Float,
         radiusPerUnit: Float
     ): Boolean {
+
         if (isEmpty()) return false
-        // todo respect extra radius & move ray towards aabb
-        return testRay(start.x, start.y, start.z, end.x - start.x, end.y - start.y, end.z - start.z) &&
-                distanceSquared(start) <= start.distanceSquared(end)
+        if (radiusAtOrigin == 0f && radiusPerUnit == 0f) return testLine(start, end)
+
+        val dx = end.x - start.x
+        val dy = end.y - start.y
+        val dz = end.z - start.z
+
+        val tanAngleSqPlusOne = radiusPerUnit * radiusPerUnit + 1f
+        // return pointCone(Vector3f(centerX, centerY, centerZ), Vector3f(dx, dy, dz).normalize(), tanAngleSqPlusOne)
+
+        // from https://github.com/mosra/magnum/blob/master/src/Magnum/Math/Intersection.h#L570-L610
+        val offset = radiusAtOrigin / radiusPerUnit
+        val maxDistSq = start.distanceSquared(end)
+        if (offset * offset < maxDistSq) {
+            // todo remove dynamic allocations (replace with stack)
+
+            // move the cone forward/back
+            // to do minimum distance is needed for this offset
+            val mixF = -offset / sqrt(maxDistSq)
+            val sx = start.x + dx * mixF
+            val sy = start.y + dy * mixF
+            val sz = start.z + dz * mixF
+
+            val cx0 = centerX - sx
+            val cy0 = centerY - sy
+            val cz0 = centerZ - sz
+            val dir = Vector3f(dx, dy, dz).normalize()
+            val extends = Vector3f(deltaX(), deltaY(), deltaZ()).mul(0.5f)
+            val ai01 = arrayOf(Vector3f(), Vector3f())
+            for (axis in 0 until 3) {
+
+                val z = axis
+                val x = (axis + 1) % 3
+                val y = (axis + 2) % 3
+
+                val cz = if (z == 0) cx0 else if (z == 1) cy0 else cz0
+                val exz = extends[z]
+                val cnz = dir[z] // could be zero
+                if (abs(cnz) < 1e-15f) continue
+
+                val t0 = (cz - exz) / cnz
+                val t1 = (cz + exz) / cnz
+
+                dir.mul(t0, ai01[0])
+                dir.mul(t1, ai01[1])
+
+                val exx = extends[x]
+                val exy = extends[y]
+                for (closestPoint in ai01) {
+                    val cpx = closestPoint[x]
+                    val cx = if (x == 0) cx0 else if (x == 1) cy0 else cz0
+                    closestPoint[x] = if (cpx - cx > exx) cx + exx
+                    else if (cpx - cx < -exx) cx - exx
+                    else cx /* Else: normal intersects within x bounds */
+
+                    val cpy = closestPoint[y]
+                    val cy = if (y == 0) cx0 else if (y == 1) cy0 else cz0
+                    closestPoint[y] = if (cpy - cy > exy) cy + exy
+                    else if (cpy - cy < -exy) cy - exy
+                    else cy /* Else: normal intersects within Y bounds */
+
+                    /* Found a point in cone and aabb */
+                    if (closestPoint.distanceSquared(sx, sy, sz) < maxDistSq &&
+                        pointCone(closestPoint, dir, tanAngleSqPlusOne)
+                    ) return true
+                }
+            }
+            return false
+        } else {
+            // respect extra radius & move ray towards aabb
+            val th = radiusAtPoint(start, radiusAtOrigin, radiusPerUnit, dx, dy, dz)
+            return testRay(start.x, start.y, start.z, dx, dy, dz, th) &&
+                    distanceSquared(start) <= start.distanceSquared(end)
+        }
+    }
+
+    private fun pointCone(point: Vector3f, coneNormal: Vector3f, tanAngleSqPlusOne: Float): Boolean {
+        val lenA = coneNormal.dot(point)
+        return lenA >= 0f && point.lengthSquared() <= lenA * lenA * tanAngleSqPlusOne
     }
 
     fun testLine(
@@ -560,20 +644,32 @@ class AABBf(
         maxDistance: Float,
     ): Boolean {
         if (isEmpty()) return false
-        /*
-        // todo respect extra radius & move ray towards aabb
-        // todo or general aabb-cone intersection
-        for (i in 0 until 8) {
-            val ox = if (i.and(1) != 0) aabb.minX else aabb.maxX
-            val oy = if (i.and(2) != 0) aabb.minY else aabb.maxY
-            val oz = if (i.and(4) != 0) aabb.minZ else aabb.maxZ
-        }
-        val c = clamp(linePointTFactor(start, dir, ox, oy, oz), 0f, maxDistance)
-        val sx = start.x + c * dir.x
-        val sy = start.y + c * dir.y
-        val sz = start.z + c * dir.z*/
-        return testRay(start.x, start.y, start.z, dir.x, dir.y, dir.z) &&
+        val dx = dir.x
+        val dy = dir.x
+        val dz = dir.z
+        val th = radiusAtPoint(start, radiusAtOrigin, radiusPerUnit, dx, dy, dz)
+        return testRay(start.x, start.y, start.z, dx, dy, dz, th) &&
                 distanceSquared(start) <= maxDistance * maxDistance
+    }
+
+    private fun radiusAtPoint(
+        start: Vector3f,
+        radiusAtOrigin: Float,
+        radiusPerUnit: Float,
+        dx: Float, dy: Float, dz: Float
+    ): Float {
+        var radiusAtPoint = max(radiusAtOrigin, 0f)
+        if (radiusPerUnit != 0f) {
+            // should be the maximum/minimum depending on whether the cone gets thicker or thinner
+            // we use the box center for simplicity for now
+            val cx = (minX + maxX) * 0.5f - start.x
+            val cy = (minY + maxY) * 0.5f - start.y
+            val cz = (minZ + maxZ) * 0.5f - start.z
+            val cos01 = max(Vector3f.angleCos(dx, dy, dz, cx, cy, cz), 0f)
+            val radiusPointDist = cos01 * Vector3f.length(dx, dy, dz)
+            radiusAtPoint = max(radiusAtOrigin + radiusPointDist * radiusPerUnit, 0f)
+        }
+        return radiusAtPoint
     }
 
     fun scale(sx: Float, sy: Float = sx, sz: Float = sx) {
@@ -628,7 +724,7 @@ class AABBf(
     fun isRayIntersecting(
         rayOrigin: Vector3f,
         invRayDirection: Vector3f,
-        maxDistance: Float = Float.POSITIVE_INFINITY
+        maxDistance: Float
     ) = isRayIntersecting(
         rayOrigin.x, rayOrigin.y, rayOrigin.z,
         invRayDirection.x, invRayDirection.y, invRayDirection.z,
@@ -638,7 +734,7 @@ class AABBf(
     fun isRayIntersecting(
         rx: Float, ry: Float, rz: Float,
         rdx: Float, rdy: Float, rdz: Float,
-        maxDistance: Float = Float.POSITIVE_INFINITY
+        maxDistance: Float
     ): Boolean {
         val sx0 = (minX - rx) * rdx
         val sy0 = (minY - ry) * rdy
@@ -646,6 +742,28 @@ class AABBf(
         val sx1 = (maxX - rx) * rdx
         val sy1 = (maxY - ry) * rdy
         val sz1 = (maxZ - rz) * rdz
+        val nearX = min(sx0, sx1)
+        val farX = max(sx0, sx1)
+        val nearY = min(sy0, sy1)
+        val farY = max(sy0, sy1)
+        val nearZ = min(sz0, sz1)
+        val farZ = max(sz0, sz1)
+        val far = min(farX, min(farY, farZ))
+        val near = max(max(nearX, max(nearY, nearZ)), 0f)
+        return far >= near && near < maxDistance
+    }
+
+    fun isRayIntersecting(
+        rx: Float, ry: Float, rz: Float,
+        rdx: Float, rdy: Float, rdz: Float,
+        th: Float, maxDistance: Float
+    ): Boolean {
+        val sx0 = (minX - th - rx) * rdx
+        val sy0 = (minY - th - ry) * rdy
+        val sz0 = (minZ - th - rz) * rdz
+        val sx1 = (maxX + th - rx) * rdx
+        val sy1 = (maxY + th - ry) * rdy
+        val sz1 = (maxZ + th - rz) * rdz
         val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
         val nearY = min(sy0, sy1)
@@ -680,5 +798,4 @@ class AABBf(
         val near = max(max(nearX, max(nearY, nearZ)), 0f)
         return if (far >= near) near else Float.POSITIVE_INFINITY
     }
-
 }
