@@ -198,7 +198,7 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
                 val parentsPath = path.parent ?: Path.ROOT_PATH
                 val nameId = path.nameId
                 if (value.prefabPath != Path.ROOT_PATH && prefab.adds.none2 { it.path == parentsPath && it.nameId == nameId }) {
-                    val (_, type) = findType(value.parent!!, value) ?: Pair(-1, ' ')
+                    val type = findType(value.parent!!, value)?.second ?: ' '
                     val add = CAdd(
                         parentsPath, type, value.className, nameId,
                         if (value.prefab === prefab) InvalidRef else

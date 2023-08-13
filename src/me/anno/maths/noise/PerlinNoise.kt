@@ -11,6 +11,8 @@ import kotlin.random.Random
  * @param falloff how much each detail level is weaker; [0,1)
  * @param min minimum output value
  * @param max maximum output value
+ *
+ * todo get-gradient functions
  * */
 class PerlinNoise(
     seed: Long,

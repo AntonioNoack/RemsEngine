@@ -106,7 +106,7 @@ fun main() {
         })
         domino.add(BoxCollider().apply {
             halfExtends = halfExtends1
-            margin = thickness / 10.0
+            margin = 0.0
         })
         domino.position = domino.position.set(x.toDouble(), halfExtends1.y, z.toDouble())
         dominos.add(domino)
@@ -126,7 +126,7 @@ fun main() {
         })
         floor.add(BoxCollider().apply {
             halfExtends.set(floorHalfSize)
-            margin = floorHalfSize / 100.0
+            margin = 0.0
         })
         floor.add(MeshComponent(flatCube.scaled(Vector3f(floorHalfSize.toFloat())).front))
         floor.position = floor.position.set(0.0, -floorHalfSize, 2 * z * floorHalfSize)

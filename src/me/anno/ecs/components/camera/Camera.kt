@@ -4,6 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.components.collider.Collider.Companion.guiLineColor
 import me.anno.ecs.components.player.LocalPlayer.Companion.currentLocalPlayer
+import me.anno.ecs.components.player.Player
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.LineShapes.drawLine
@@ -51,6 +52,10 @@ class Camera : Component() {
     // function to blend to the next one
     fun use(blendingTime: Float) {
         val player = currentLocalPlayer!!
+        use(player, blendingTime)
+    }
+
+    fun use(player: Player, blendingTime: Float = 1f) {
         val state = player.cameraState
         // only if not already set as target
         if (state.currentCamera != this) {
@@ -118,5 +123,4 @@ class Camera : Component() {
     }
 
     override val className: String get() = "Camera"
-
 }

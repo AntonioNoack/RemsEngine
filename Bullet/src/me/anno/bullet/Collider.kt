@@ -3,8 +3,8 @@ package me.anno.bullet
 import com.bulletphysics.collision.shapes.*
 import com.bulletphysics.linearmath.Transform
 import cz.advel.stack.Stack
-import me.anno.ecs.Entity
 import me.anno.bullet.BulletPhysics.Companion.mat4x3ToTransform
+import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.collider.twod.CircleCollider
 import me.anno.ecs.components.collider.twod.RectCollider
@@ -56,8 +56,9 @@ fun MeshCollider.createBulletShape(scale: Vector3d): CollisionShape {
 
         val hull = ShapeHull(convex)
         hull.buildHull(convex.margin)
-        return ConvexHullShape(hull.vertexPointer)
-
+        val shape = ConvexHullShape(hull.vertexPointer)
+        shape.margin = margin
+        return shape
     } else {
 
         // we don't send the data to the gpu here, so we don't need to allocate directly

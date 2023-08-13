@@ -177,7 +177,10 @@ open class SkyBox : SkyBoxBase() {
                     ShaderStage(
                         "vertex",
                         createVertexVariables(flags) +
-                                listOf(Variable(GLSLType.V1B, "reversedDepth")),
+                                listOf(
+                                    Variable(GLSLType.V1B, "reversedDepth"),
+                                    Variable(GLSLType.V1B, "isPerspective")
+                                ),
                         defines +
                                 "localPosition = coords;\n" +
                                 "finalPosition = localPosition;\n" +
@@ -185,7 +188,7 @@ open class SkyBox : SkyBoxBase() {
                                 "   normal = -coords;\n" +
                                 "#endif\n" +
                                 "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                                "gl_Position.z = (reversedDepth ? 1e-36 : 0.9999995) * gl_Position.w;\n" +
+                                "if(isPerspective) gl_Position.z = (reversedDepth ? 1e-36 : 0.9999995) * gl_Position.w;\n" +
                                 ShaderLib.positionPostProcessing
                     )
                 )
@@ -314,7 +317,5 @@ open class SkyBox : SkyBoxBase() {
                     "forceFieldColorCount", "forceFieldUVCount",
                 )
             }
-
     }
-
 }

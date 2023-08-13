@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
@@ -18,7 +19,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes
 import org.joml.*
 
@@ -59,9 +59,9 @@ open class SkyBoxBase : MeshComponentBase() {
         material.shader = defaultShaderBase
         material.shaderOverrides["skyColor"] = TypeValue(GLSLType.V3F, skyColor)
         material.shaderOverrides["worldRot"] = TypeValue(GLSLType.V4F, worldRotation)
-        material.shaderOverrides["reversedDepth"] = TypeValue(GLSLType.V1B, {
-            GFXState.depthMode.currentValue.reversedDepth
-        })
+        material.shaderOverrides["reversedDepth"] =
+            TypeValue(GLSLType.V1B, { GFXState.depthMode.currentValue.reversedDepth })
+        material.shaderOverrides["isPerspective"] = TypeValue(GLSLType.V1B, { RenderState.isPerspective })
         materials = listOf(material.ref)
     }
 
@@ -126,6 +126,7 @@ open class SkyBoxBase : MeshComponentBase() {
                                 listOf(
                                     Variable(GLSLType.V1F, "meshScale"),
                                     Variable(GLSLType.V1B, "reversedDepth"),
+                                    Variable(GLSLType.V1B, "isPerspective"),
                                     Variable(GLSLType.V4F, "currPosition", VariableMode.OUT),
                                     Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
                                 ),
@@ -140,7 +141,7 @@ open class SkyBoxBase : MeshComponentBase() {
                                 "   currPosition = gl_Position;\n" +
                                 "   prevPosition = matMul(prevTransform, vec4(finalPosition, 1.0));\n" +
                                 "#endif\n" +
-                                "gl_Position.z = (reversedDepth ? 1e-36 : 0.9999995) * gl_Position.w;\n" +
+                                "if(isPerspective) gl_Position.z = (reversedDepth ? 1e-36 : 0.9999995) * gl_Position.w;\n" +
                                 ShaderLib.positionPostProcessing
                     )
                 )

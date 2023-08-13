@@ -398,18 +398,17 @@ open class Rigidbody : Component() {
         applyImpulse(relativePosition.x, relativePosition.y, relativePosition.z, impulse.x, impulse.y, impulse.z)
 
     /**
-     * applies an impulse of torque, e.g. rotating something with a hit
+     * applies an impulse of torque, e.g., rotating something with a hit
      * must be called onPhysicsUpdate()
      * */
     fun applyTorqueImpulse(x: Double, y: Double, z: Double) {
         val impulse = Stack.borrowVec() // is reused by method
         impulse.set(x, y, z)
         bulletInstance?.applyTorqueImpulse(impulse)
-        Stack.subVec(1)
     }
 
     /**
-     * applies an impulse of torque, e.g. rotating something with a hit
+     * applies an impulse of torque, e.g., rotating something with a hit
      * must be called onPhysicsUpdate()
      * */
     fun applyTorqueImpulse(impulse: Vector3d) = applyTorqueImpulse(impulse.x, impulse.y, impulse.z)

@@ -35,6 +35,9 @@ open class MeshCollider() : Collider() {
     @SerializedProperty
     var enableSimplifications = true
 
+    @SerializedProperty
+    var margin = 0.04
+
     @Type("Mesh/PrefabSaveable")
     var mesh: Mesh? = null
         get() {
@@ -251,6 +254,7 @@ open class MeshCollider() : Collider() {
         dst.mesh = mesh // getInClone(mesh, clone)
         dst.meshFile = meshFile
         dst.isConvex = isConvex
+        dst.margin = margin
         dst.meshTransform.set(meshTransform)
     }
 
