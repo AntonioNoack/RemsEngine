@@ -22,6 +22,7 @@ import me.anno.maths.bvh.RayTracing2.bufferStructs
 import me.anno.maths.bvh.RayTracing2.glslBLASIntersection2
 import me.anno.maths.bvh.RayTracing2.glslTLASIntersection2
 import me.anno.maths.bvh.TLASNode
+import me.anno.sdf.shapes.SDFBoundingBox
 import me.anno.utils.LOGGER
 import me.anno.utils.structures.tuples.Quad
 import org.joml.Vector2i
@@ -126,19 +127,7 @@ val imageStore = "" +
         "color = mix(oldColor, color, alpha);\n" +
         "imageStore(dst, uv, vec4(color, 1.0));\n"
 
-const val boundingBoxSDF = "" +
-        "float sdBoundingBox(vec3 p, vec3 b, float e){\n" +
-        "        p = abs(p)-b;\n" +
-        "   vec3 q = abs(p+e)-e;\n" +
-        "   return min(min(\n" +
-        "       length(max(vec3(p.x,q.y,q.z),0.0))+min(max(p.x,max(q.y,q.z)),0.0),\n" +
-        "       length(max(vec3(q.x,p.y,q.z),0.0))+min(max(q.x,max(p.y,q.z)),0.0)),\n" +
-        "       length(max(vec3(q.x,q.y,p.z),0.0))+min(max(q.x,max(q.y,p.z)),0.0));\n" +
-        "}\n" +
-        "float sdBoundingBox(vec3 p, vec3 b, float e, float k){\n" +
-        "   k *= e;\n" + // smoothness delta is proportional to e
-        "   return sdBoundingBox(p,b-k,e-k)-k;\n" +
-        "}\n"
+val boundingBoxSDF = SDFBoundingBox.boundingBoxSDF
 
 val commonFunctions = glslIntersections + quatRot + loadMat4x3 + glslRandomGen + boundingBoxSDF + coloring
 

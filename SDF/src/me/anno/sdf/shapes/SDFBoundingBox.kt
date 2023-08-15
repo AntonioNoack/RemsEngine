@@ -54,12 +54,7 @@ open class SDFBoundingBox : SDFBox() {
         val dynamicThickness = dynamicThickness || globalDynamic
         if (dynamicThickness) builder.appendUniform(uniforms, GLSLType.V1F) { thickness }
         else builder.append(thickness)
-        val dynamicSmoothness = dynamicSmoothness || globalDynamic
-        if (dynamicSmoothness || smoothness > 0f) {
-            builder.append(',')
-            if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
-            else builder.append(smoothness)
-        }
+        appendSmoothnessParameter(builder, uniforms)
         builder.append(')')
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
