@@ -60,12 +60,7 @@ open class SDFCylinder : SDFSmoothShape() {
         val dynamicSize = dynamicSize || globalDynamic
         if (dynamicSize) builder.appendUniform(uniforms, params)
         else builder.appendVec(params)
-        val dynamicSmoothness = dynamicSmoothness || globalDynamic
-        if (dynamicSmoothness || smoothness > 0f) {
-            builder.append(',')
-            if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
-            else builder.append(smoothness)
-        }
+        appendSmoothnessParameter(builder, uniforms)
         builder.append(')')
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }

@@ -1,7 +1,9 @@
 package me.anno.sdf.shapes
 
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.shader.GLSLType
 
 abstract class SDFSmoothShape : SDFShape() {
 
@@ -23,11 +25,19 @@ abstract class SDFSmoothShape : SDFShape() {
             }
         }
 
+    fun appendSmoothnessParameter(builder: StringBuilder, uniforms: HashMap<String, TypeValue>) {
+        val dynamicSmoothness = dynamicSmoothness || globalDynamic
+        if (dynamicSmoothness || smoothness > 0f) {
+            builder.append(',')
+            if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
+            else builder.append(smoothness)
+        }
+    }
+
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as SDFSmoothShape
         dst.smoothness = smoothness
         dst.dynamicSmoothness = dynamicSmoothness
     }
-
 }

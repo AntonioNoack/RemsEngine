@@ -11,7 +11,7 @@ package me.anno
 // x², then x/(1+x) is ok, and nearly x for the most part :)
 
 // todo Android Build
-// todo pack large modules like Zip/Rar/PDF/EXR into mods
+// todo pack large modules like Zip/Rar/EXR into mod(ule)s
 // todo SDF Physics
 
 // done Unity Raytracing
@@ -26,4 +26,3 @@ package me.anno
 // todo support most svg files as meshes
 // to do load svg animations?
 
-// todo sub-menus
