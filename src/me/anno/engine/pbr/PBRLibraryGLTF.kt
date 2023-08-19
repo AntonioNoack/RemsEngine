@@ -13,8 +13,8 @@ object PBRLibraryGLTF {
     // to do: good idea, but unfortunately in forward mode, finalNormal won't wary as much on 1px thin lines, because it may consist of many triangles -> true delta unknown to the shader
     val angularCorrection = "" +
             "vec3 curvature = max(abs(dFdx(finalNormal)), abs(dFdy(finalNormal)));\n" +
-            "finalRoughness = 1.0 - (1.0 - finalRoughness) * max(0.0, 1.0 - length(curvature));\n" +
-            "finalRoughness = max(finalRoughness, 0.01);\n"
+            "float roughness = 1.0 - (1.0 - finalRoughness) * max(0.0, 1.0 - length(curvature));\n" +
+            "roughness = max(roughness, 0.01);\n"
 
     val maxDivisor = 1e-5 // preventing divisions by zero
 
@@ -22,9 +22,9 @@ object PBRLibraryGLTF {
     // alpha, Dx, rp1, k, 1-k
     val specularBRDFv2NoDivInlined2Start = "" +
             angularCorrection +
-            "float alpha = finalRoughness * finalRoughness;\n" +
+            "float alpha = roughness * roughness;\n" +
             "float Dx = alpha * alpha, DxM1 = Dx - 1.0;\n" +
-            "float rp1 = finalRoughness + 1.0;\n" +
+            "float rp1 = roughness + 1.0;\n" +
             "float k = clamp(rp1 * rp1, 1.0, 4.0) * 0.125, invK = 1.0-k;\n" +
             "vec3 invSpecularColor = 1.0 - specularColor;\n" +
             "float DxPi4 = Dx * ${0.25 / PI};\n"
@@ -62,9 +62,9 @@ object PBRLibraryGLTF {
     // they have missing color, when H || V, so when you look perpendicular onto the surface
     val specularBRDFv2NoColorStart = "" +
             angularCorrection +
-            "float alpha = finalRoughness * finalRoughness;\n" +
+            "float alpha = roughness * roughness;\n" +
             "float Dx = alpha * alpha, DxM1 = Dx - 1.0;\n" +
-            "float rp1 = finalRoughness + 1.0;\n" +
+            "float rp1 = roughness + 1.0;\n" +
             "float k = rp1 * rp1 * 0.125, invK = 1.0-k;\n" +
             "float DxPi4 = Dx * ${0.25 / PI};\n"
 
