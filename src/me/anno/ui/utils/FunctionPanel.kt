@@ -18,9 +18,9 @@ import kotlin.math.*
 /**
  * Panel, which draws a numeric function as a graph, and lets the user navigate like on a map.
  * */
-open class FunctionPanel(val functions: Array<Pair<Function1d, Int>>, style: Style) : MapPanel(style) {
+open class FunctionPanel(val functions: List<Pair<Function1d, Int>>, style: Style) : MapPanel(style) {
 
-    constructor(function: Function1d, style: Style) : this(arrayOf(function to -1), style)
+    constructor(function: Function1d, style: Style) : this(listOf(function to -1), style)
 
     var lineThickness = 1f
     var functionName: String? = "f"

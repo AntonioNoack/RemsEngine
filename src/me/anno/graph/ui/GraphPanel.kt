@@ -572,7 +572,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     }
 
     open fun getTypeColor(con: NodeConnector): Int {
-        return typeColors.getOrDefault(con.type, blue) or black
+        return typeColors.getOrDefault(con.type, blue)
     }
 
     fun onChange(isNodePositionChange: Boolean) {
@@ -598,16 +598,16 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
 
         private val LOGGER = LogManager.getLogger(GraphPanel::class.java)
 
-        val greenish = 0x1cdeaa
-        val yellowGreenish = 0x9cf841
-        val red = 0xa90505
-        val yellow = 0xf8c522
-        val blueish = 0x707fb0
-        val orange = 0xfc7100
-        val pink = 0xdf199a
-        val softYellow = 0xebe496
-        val lightBlueish = 0x819ef3
-        val blue = 0x00a7f2
+        val greenish = 0x1cdeaa or black
+        val yellowGreenish = 0x9cf841 or black
+        val red = 0xa90505 or black
+        val yellow = 0xf8c522 or black
+        val blueish = 0x707fb0 or black
+        val orange = 0xfc7100 or black
+        val pink = 0xdf199a or black
+        val softYellow = 0xebe496 or black
+        val lightBlueish = 0x819ef3 or black
+        val blue = 0x00a7f2 or black
 
         val typeColors = hashMapOf(
             "Int" to greenish,

@@ -122,7 +122,7 @@ class PerlinNoise(
     }
 
     fun getGradient(x: Float): Float {
-        var sum = offset
+        var sum = 0f
         val generators = levels!!
         val factors = factors
         var vx = x * scale.x
@@ -130,7 +130,7 @@ class PerlinNoise(
             sum += factors[i] * generators[i].getGradient(vx)
             vx *= 2f
         }
-        return sum
+        return sum * scale.x
     }
 
     operator fun get(x: Float, y: Float): Float {
@@ -159,6 +159,7 @@ class PerlinNoise(
             vx *= 2f
             vy *= 2f
         }
+        dst.mul(scale.x, scale.y)
         return dst
     }
 
@@ -178,7 +179,7 @@ class PerlinNoise(
         return sum
     }
 
-    fun getGradient(x: Float, y: Float, z: Float, tmp: Vector3f, dst: Vector3f): Vector3f{
+    fun getGradient(x: Float, y: Float, z: Float, tmp: Vector3f, dst: Vector3f): Vector3f {
         dst.set(0f)
         val generators = levels!!
         val factors = factors
@@ -192,6 +193,7 @@ class PerlinNoise(
             vy *= 2f
             vz *= 2f
         }
+        dst.mul(scale.x, scale.y, scale.z)
         return dst
     }
 
@@ -229,6 +231,7 @@ class PerlinNoise(
             vz *= 2f
             vw *= 2f
         }
+        dst.mul(scale)
         return dst
     }
 
@@ -245,7 +248,7 @@ class PerlinNoise(
     }
 
     fun getSmoothGradient(x: Float): Float {
-        var sum = offset
+        var sum = 0f
         val generators = levels!!
         val factors = factors
         var vx = x * scale.x
@@ -253,7 +256,7 @@ class PerlinNoise(
             sum += factors[i] * generators[i].getSmoothGradient(vx)
             vx *= 2f
         }
-        return sum
+        return sum * scale.x
     }
 
     fun getSmooth(x: Float, y: Float): Float {
@@ -284,6 +287,7 @@ class PerlinNoise(
             vx *= 2f
             vy *= 2f
         }
+        dst.mul(scale.x, scale.y)
         return sum
     }
 
@@ -321,5 +325,4 @@ class PerlinNoise(
         }
         return sum
     }
-
 }
