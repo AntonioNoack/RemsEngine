@@ -256,7 +256,6 @@ class PerlinNoise(
         return sum
     }
 
-    // todo smooth gradients for 2d,3d,4d
     fun getSmooth(x: Float, y: Float): Float {
         var sum = offset
         val generators = levels!!
@@ -271,6 +270,24 @@ class PerlinNoise(
         return sum
     }
 
+    fun getSmoothGradient(x: Float, y: Float, tmp: Vector2f, dst: Vector2f): Float {
+        var sum = offset
+        val generators = levels!!
+        val factors = factors
+        var vx = x * scale.x
+        var vy = y * scale.y
+        dst.set(0f)
+        for (i in factors.indices) {
+            val fac = factors[i]
+            sum += fac * generators[i].getSmoothGradient(vx, vy, tmp)
+            tmp.mulAdd(fac, dst, dst)
+            vx *= 2f
+            vy *= 2f
+        }
+        return sum
+    }
+
+    // todo smooth gradients for 3d,4d
     fun getSmooth(x: Float, y: Float, z: Float): Float {
         var sum = offset
         val generators = levels!!

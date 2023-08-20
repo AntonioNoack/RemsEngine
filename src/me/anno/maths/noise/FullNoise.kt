@@ -187,22 +187,42 @@ class FullNoise(val seed: Long) {
         return getSmooth(x.toDouble(), y.toDouble()).toFloat()
     }
 
-    // todo smooth gradient
     fun getSmooth(x: Double, y: Double): Double {
+        return getSmoothGradient(x, y, null)
+    }
+
+    fun getSmoothGradient(x: Float, y: Float, dst: Vector2f): Float {
+        val tmp = JomlPools.vec2d.borrow()
+        val v = getSmoothGradient(x.toDouble(), y.toDouble(), tmp)
+        dst.set(tmp)
+        return v.toFloat()
+    }
+
+    fun getSmoothGradient(x: Double, y: Double, dst: Vector2d?): Double {
         val xi = floor(x)
         val yi = floor(y)
         val ix = xi.toInt()
         val iy = yi.toInt()
         val xf = smoothStepUnsafe(x - xi)
         val yf = smoothStepUnsafe(y - yi)
-        val v00 = get(ix, iy)
-        val v01 = get(ix, iy + 1)
-        val v10 = get(ix + 1, iy)
-        val v11 = get(ix + 1, iy + 1)
+        val v00 = get(ix, iy).toDouble()
+        val v01 = get(ix, iy + 1).toDouble()
+        val v10 = get(ix + 1, iy).toDouble()
+        val v11 = get(ix + 1, iy + 1).toDouble()
         val yg = 1.0 - yf
-        val v0 = v00 * yg + v01 * yf
-        val v1 = v10 * yg + v11 * yf
-        return v0 * (1.0 - xf) + v1 * xf
+        val v0x = v00 * yg + v01 * yf
+        val v1x = v10 * yg + v11 * yf
+        if (dst != null) {
+            val xff = smoothStepGradientUnsafe(x - xi)
+            val yff = smoothStepGradientUnsafe(y - yi)
+            val xg = 1.0 - xf
+            val v0y = v00 * xg + v10 * xf
+            val v1y = v01 * xg + v11 * xf
+            val dx = (v1x - v0x) * xff
+            val dy = (v1y - v0y) * yff
+            dst.set(dx, dy)
+        }
+        return v0x * (1.0 - xf) + v1x * xf
     }
 
     operator fun get(x: Float, y: Float, z: Float): Float {
