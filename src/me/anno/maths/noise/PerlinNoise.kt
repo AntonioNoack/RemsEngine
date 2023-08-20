@@ -1,5 +1,7 @@
 package me.anno.maths.noise
 
+import org.joml.Vector2f
+import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.random.Random
 
@@ -11,8 +13,6 @@ import kotlin.random.Random
  * @param falloff how much each detail level is weaker; [0,1)
  * @param min minimum output value
  * @param max maximum output value
- *
- * todo get-gradient functions
  * */
 class PerlinNoise(
     seed: Long,
@@ -121,6 +121,18 @@ class PerlinNoise(
         return sum
     }
 
+    fun getGradient(x: Float): Float {
+        var sum = offset
+        val generators = levels!!
+        val factors = factors
+        var vx = x * scale.x
+        for (i in factors.indices) {
+            sum += factors[i] * generators[i].getGradient(vx)
+            vx *= 2f
+        }
+        return sum
+    }
+
     operator fun get(x: Float, y: Float): Float {
         var sum = offset
         val generators = levels!!
@@ -133,6 +145,21 @@ class PerlinNoise(
             vy *= 2f
         }
         return sum
+    }
+
+    fun getGradient(x: Float, y: Float, tmp: Vector2f, dst: Vector2f): Vector2f {
+        dst.set(0f)
+        val generators = levels!!
+        val factors = factors
+        var vx = x * scale.x
+        var vy = y * scale.y
+        for (i in factors.indices) {
+            generators[i].getGradient(vx, vy, tmp)
+            tmp.mulAdd(factors[i], dst, dst)
+            vx *= 2f
+            vy *= 2f
+        }
+        return dst
     }
 
     operator fun get(x: Float, y: Float, z: Float): Float {
@@ -149,6 +176,23 @@ class PerlinNoise(
             vz *= 2f
         }
         return sum
+    }
+
+    fun getGradient(x: Float, y: Float, z: Float, tmp: Vector3f, dst: Vector3f): Vector3f{
+        dst.set(0f)
+        val generators = levels!!
+        val factors = factors
+        var vx = x * scale.x
+        var vy = y * scale.y
+        var vz = z * scale.z
+        for (i in factors.indices) {
+            generators[i].getGradient(vx, vy, vz, tmp)
+            tmp.mulAdd(factors[i], dst, dst)
+            vx *= 2f
+            vy *= 2f
+            vz *= 2f
+        }
+        return dst
     }
 
     operator fun get(x: Float, y: Float, z: Float, w: Float): Float {
@@ -169,6 +213,25 @@ class PerlinNoise(
         return sum
     }
 
+    fun getGradient(x: Float, y: Float, z: Float, w: Float, tmp: Vector4f, dst: Vector4f): Vector4f {
+        dst.set(0f)
+        val generators = levels!!
+        val factors = factors
+        var vx = x * scale.x
+        var vy = y * scale.y
+        var vz = z * scale.z
+        var vw = w * scale.w
+        for (i in factors.indices) {
+            generators[i].getGradient(vx, vy, vz, vw, tmp)
+            tmp.mulAdd(factors[i], dst, dst)
+            vx *= 2f
+            vy *= 2f
+            vz *= 2f
+            vw *= 2f
+        }
+        return dst
+    }
+
     fun getSmooth(x: Float): Float {
         var sum = offset
         val generators = levels!!
@@ -181,6 +244,19 @@ class PerlinNoise(
         return sum
     }
 
+    fun getSmoothGradient(x: Float): Float {
+        var sum = offset
+        val generators = levels!!
+        val factors = factors
+        var vx = x * scale.x
+        for (i in factors.indices) {
+            sum += factors[i] * generators[i].getSmoothGradient(vx)
+            vx *= 2f
+        }
+        return sum
+    }
+
+    // todo smooth gradients for 2d,3d,4d
     fun getSmooth(x: Float, y: Float): Float {
         var sum = offset
         val generators = levels!!

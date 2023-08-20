@@ -38,12 +38,13 @@ object ShaderLib {
     val y = Vector4f(0.299f, 0.587f, 0.114f, 0f)
     val u = Vector4f(-0.169f, -0.331f, 0.500f, 0.5f)
     val v = Vector4f(0.500f, -0.419f, -0.081f, 0.5f)
-    val m = Matrix4x3f(
+    val mi = Matrix4x3f(
         y.x, u.x, v.x,
         y.y, u.y, v.y,
         y.z, u.z, v.z,
         y.w, u.w, v.w,
-    ).invert()
+    )
+    val m = mi.invert(Matrix4x3f())
 
     lateinit var shader3DSVG: BaseShader
     lateinit var shaderAssimp: BaseShader
@@ -203,13 +204,8 @@ object ShaderLib {
             "}\n"
 
     val yuv2rgb = "" +
-            "vec3 yuv2rgb(vec3 yuv){" +
-            /*"   yuv -= vec3(${16f / 255f}, 0.5, 0.5);\n" +
-            "   return vec3(" +
-            "       dot(yuv, vec3( 1.164,  0.000,  1.596))," +
-            "       dot(yuv, vec3( 1.164, -0.392, -0.813))," +
-            "       dot(yuv, vec3( 1.164,  2.017,  0.000)));\n" +*/
-            "   return vec3(" +
+            "vec3 yuv2rgb(vec3 yuv){\n" +
+            "   return vec3(\n" +
             "       dot(yuv, vec3(${m.m00}, ${m.m10}, ${m.m20}))+${m.m30},\n" +
             "       dot(yuv, vec3(${m.m01}, ${m.m11}, ${m.m21}))+${m.m31},\n" +
             "       dot(yuv, vec3(${m.m02}, ${m.m12}, ${m.m22}))+${m.m32}\n" +

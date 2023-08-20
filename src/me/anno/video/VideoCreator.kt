@@ -6,7 +6,10 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.ShaderLib.m
+import me.anno.gpu.shader.ShaderLib.mi
+import me.anno.gpu.shader.ShaderLib.u
+import me.anno.gpu.shader.ShaderLib.v
+import me.anno.gpu.shader.ShaderLib.y
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.Image
@@ -22,8 +25,6 @@ import me.anno.video.ffmpeg.FFMPEGEncodingType
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.logOutput
 import me.anno.video.ffmpeg.FFMPEGUtils.processOutput
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4x3f
-import org.joml.Vector4f
 import org.lwjgl.opengl.GL11C.*
 import java.io.IOException
 import java.io.OutputStream
@@ -198,25 +199,26 @@ open class VideoCreator(
         var i = 0
         if (writeYuv) {
             val n = pixelByteCount
-            val tmp = Vector4f()
             val tm = byteArrayBuffer
             val f = 1f / 255f
             val direct = false
-            val q = Matrix4x3f(m).invert()
             while (i < n) {
-                val r = data[i].toInt().and(255)
-                val g = data[i + 1].toInt().and(255)
-                val b = data[i + 2].toInt().and(255)
-                tmp.set(r * f, g * f, b * f, 1f)
-                q.transform(tmp)
+                val r = data[i].toInt().and(255) * f
+                val g = data[i + 1].toInt().and(255) * f
+                val b = data[i + 2].toInt().and(255) * f
+
+                val y = clamp(y.dot(r, g, b, 1f).roundToInt(), 0, 255)
+                val u = clamp(u.dot(r, g, b, 1f).roundToInt(), 0, 255)
+                val v = clamp(v.dot(r, g, b, 1f).roundToInt(), 0, 255)
+
                 if (direct) {
-                    output.write(clamp(tmp.x.roundToInt(), 0, 255))
-                    output.write(clamp(tmp.y.roundToInt(), 0, 255))
-                    output.write(clamp(tmp.z.roundToInt(), 0, 255))
+                    output.write(y)
+                    output.write(u)
+                    output.write(v)
                 } else {
-                    tm[i] = clamp(tmp.x.roundToInt(), 0, 255).toByte()
-                    tm[i + 1] = clamp(tmp.y.roundToInt(), 0, 255).toByte()
-                    tm[i + 2] = clamp(tmp.z.roundToInt(), 0, 255).toByte()
+                    tm[i] = y.toByte()
+                    tm[i + 1] = u.toByte()
+                    tm[i + 2] = v.toByte()
                 }
                 i += 3
             }
@@ -237,7 +239,6 @@ open class VideoCreator(
                 i += di
             }
         }
-
     }
 
     var wasClosed = false
@@ -375,7 +376,5 @@ open class VideoCreator(
             }
             creator.close()
         }
-
     }
-
 }

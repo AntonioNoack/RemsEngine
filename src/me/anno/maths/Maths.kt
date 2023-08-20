@@ -1,6 +1,8 @@
 package me.anno.maths
 
-import org.joml.*
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -138,6 +140,24 @@ object Maths {
     @JvmStatic
     fun smoothStepUnsafe(x: Float): Float {
         return x * x * (3f - 2f * x)
+    }
+
+    @JvmStatic
+    fun smoothStepUnsafe(x: Double): Double {
+        return x * x * (3.0 - 2.0 * x)
+    }
+
+
+    @JvmStatic
+    fun smoothStepGradientUnsafe(x: Float): Float {
+        val k = x - 0.5f
+        return 1.5f - k * k * 6f
+    }
+
+    @JvmStatic
+    fun smoothStepGradientUnsafe(x: Double): Double {
+        val k = x - 0.5
+        return 1.5 - k * k * 6.0
     }
 
     @JvmStatic
@@ -760,5 +780,4 @@ object Maths {
 
     @JvmStatic
     fun dErf(x: Float) = 2f * exp(-x * x) * INV_SQRT_PIf
-
 }

@@ -1,10 +1,7 @@
 package me.anno.maths
 
-import me.anno.utils.LOGGER
 import me.anno.utils.types.Floats.f5s
 import kotlin.math.abs
-import kotlin.math.ln
-import kotlin.math.log2
 import kotlin.math.sqrt
 
 /**
@@ -284,5 +281,4 @@ object LinearAlgebra {
             str.clear()
         }
     }
-
 }

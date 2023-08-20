@@ -1,6 +1,5 @@
 package me.anno.maths.patterns
 
-import me.anno.image.ImageWriter
 import me.anno.maths.Maths.sq
 import org.joml.Vector3i
 import kotlin.math.PI
@@ -94,6 +93,4 @@ object SpiralPattern {
         }
         return result
     }
-
-
 }

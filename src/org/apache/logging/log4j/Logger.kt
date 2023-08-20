@@ -26,6 +26,7 @@ interface Logger {
     fun fine(msg: String, e: Throwable) = info(msg, e)
     fun debug(msg: String)
     fun debug(msg: String, e: Throwable)
+    fun debug(msg: String, vararg obj: Any?)
     fun finer(msg: String) = info(msg)
     fun finer(msg: String, e: Throwable) = info(msg, e)
     fun finest(msg: String) = info(msg)

@@ -7,7 +7,7 @@ but they always had much in common, so I decided to write my own engine.
 - usable in my favourite IDE: Intellij Idea
 - completely Open Source
 - no fees
-- hopefully in the future fewer annoyances with skeletons than Unreal Engine
+- fewer annoyances with skeletons than Unreal Engine 4
 - support for all kinds of formats
 - working/loading from inside compressed folders
 - I get to learn even more about game engines <3
@@ -115,8 +115,8 @@ graph TB
 - export to Windows/Linux (currently manual)
 - usable Gizmos 😅
 - fully supported Lua scripting
-  - [LuaAnimTextPanel](src/me/anno/ui/anim/LuaAnimTextPanel.kt)
-  - [QuickScriptComponent](src/me/anno/ecs/components/script/QuickScriptComponent.kt)
+  - [LuaAnimTextPanel](Lua/src/me/anno/lua/ui/LuaAnimTextPanel.kt)
+  - [QuickScriptComponent](Lua/src/me/anno/lua/QuickScriptComponent.kt)
 
 ## Maybe Later Features
 - automatic export to Web
@@ -167,7 +167,8 @@ You can find most examples in the "tests" folder. In total, there are more than 
 - Linux, Windows by default
 - MacOS should be simple as long as Java is working there
 - [Android](https://github.com/AntonioNoack/RemsEngine-Android)
-- Web (WASM) WIP, not published yet;
+- [Web (WASM) v1, currently very slow and limited](https://github.com/AntonioNoack/JVM2WASM); v2 is in work, not yet published;
+- [DirectX11 backend](https://github.com/AntonioNoack/JDirectX11), not perfect yet
 
 ## Build It
 

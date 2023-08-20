@@ -210,6 +210,10 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         else debug(o.toString(), throwable)
     }
 
+    override fun debug(msg: String, vararg obj: Any?) {
+        debug(interleave(msg, obj))
+    }
+
     override fun trace(o: Any?) {
         error(o)
     }

@@ -207,7 +207,6 @@ object StaticMeshesLoader {
                 }
             }
         }
-
     }
 
     fun buildScene(aiScene: AIScene, sceneMeshes: List<FileReference>, hasSkeleton: Boolean): Prefab {
@@ -258,7 +257,6 @@ object StaticMeshesLoader {
             aiFaces.get(j, aiFace)
             val buffer = aiFace.mIndices()
             val i = j * 3
-            @Suppress("SpellCheckingInspection")
             when (buffer.remaining()) {
                 1 -> {
                     // a point
@@ -322,9 +320,15 @@ object StaticMeshesLoader {
             val transparent = getColor(aiMaterial, color, AI_MATKEY_COLOR_TRANSPARENT)
             val reflective = getColor(aiMaterial, color, AI_MATKEY_COLOR_REFLECTIVE)
             val transparency = getFloat(aiMaterial, AI_MATKEY_TRANSPARENCYFACTOR, 1f)
-            LOGGER.debug("  opacity: $opacity")
-            LOGGER.debug("  diffuse: $diffuse, specular: $specular, ambient: $ambient, map: $diffuseMap")
-            LOGGER.debug("  transparent: $transparent, reflective: $reflective, trans-factor: $transparency")
+            LOGGER.debug("  opacity: {}", opacity)
+            LOGGER.debug(
+                "  diffuse: {}, specular: {}, ambient: {}, map: {}",
+                diffuse, specular, ambient, diffuseMap
+            )
+            LOGGER.debug(
+                "  transparent: {}, reflective: {}, trans-factor: {}",
+                transparent, reflective, transparency
+            )
             if (diffuse != null) {
                 diffuse.w = opacity
                 prefab.setProperty("diffuseBase", diffuse)
@@ -335,7 +339,7 @@ object StaticMeshesLoader {
 
         // emissive
         val emissive = getColor(aiMaterial, color, AI_MATKEY_COLOR_EMISSIVE)
-        LOGGER.debug("  emissive: $emissive")
+        LOGGER.debug("  emissive: {}", emissive)
         if (emissive != null) {
             emissive.mul(20f) // for brighter colors; 5.0 is our default because of Reinhard tonemapping
             // 4x, because we want it to be impressive ^^, and to actually feel like glowing;
@@ -382,7 +386,6 @@ object StaticMeshesLoader {
 
             val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY, 0f) // 0.0, rarely 0.5
             if (metallic != 0f) prefab.setProperty("metallicMinMax", Vector2f(0f, metallic))
-
         }
 
         val extraData = extraDataMap?.get(name)
@@ -590,7 +593,6 @@ object StaticMeshesLoader {
         }
 
         return prefab
-
     }
 
     private fun processTangents(aiMesh: AIMesh, vertexCount: Int, normals: FloatArray): FloatArray? {
@@ -692,5 +694,4 @@ object StaticMeshesLoader {
             dst
         } else null
     }
-
 }
