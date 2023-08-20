@@ -465,10 +465,7 @@ open class Texture2D(
         filtering(filtering)
         clamping(clamping ?: Clamping.REPEAT)
         check()
-        if (Build.isDebug) {
-            glObjectLabel(GL_TEXTURE, pointer, name)
-            check()
-        }
+        if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)
         if (isDestroyed) destroy()
     }
 

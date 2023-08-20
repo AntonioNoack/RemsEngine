@@ -20,6 +20,8 @@ import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL43C.glObjectLabel
+import org.lwjgl.opengl.GL45C
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -87,6 +89,7 @@ open class Texture2DArray(
             GL_R8, GL_R16, GL_R16F,
             GL_R32F -> swizzleMonochrome()
         }
+        if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)
     }
 
     @Suppress("unused")

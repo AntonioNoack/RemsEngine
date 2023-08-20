@@ -98,7 +98,6 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         //        "${data.format} x ${data.data.capacity()} [${getUniqueFilename(key)}]")
 
         return program
-
     }
 
     override fun load(key: Pair<String, String?>, src: FileReference?): BinaryData? {
@@ -131,23 +130,23 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
     fun compile(key: Pair<String, String?>): Int {
         val (vs, fs) = key
         val program = glCreateProgram()
+        // indices to find name
+        val ni0 = vs.indexOf('/')
+        val ni1 = vs.indexOf('\n', ni0 + 1)
+        val name = if (ni1 > 0) vs.substring(ni0 + 1, ni1).trim() else ""
         if (fs == null) {
-
-            val shader = compileShader(GL_COMPUTE_SHADER, vs)
+            val shader = compileShader(GL_COMPUTE_SHADER, vs, name)
             postPossibleError("", shader, true, vs)
             glAttachShader(program, shader)
-
         } else {
-
-            val vertexShader = compileShader(GL_VERTEX_SHADER, vs)
+            val vertexShader = compileShader(GL_VERTEX_SHADER, vs, name)
             postPossibleError("", vertexShader, true, vs)
 
-            val fragmentShader = compileShader(GL_FRAGMENT_SHADER, fs)
+            val fragmentShader = compileShader(GL_FRAGMENT_SHADER, fs, name)
             postPossibleError("", fragmentShader, true, fs)
 
             glAttachShader(program, vertexShader)
             glAttachShader(program, fragmentShader)
-
         }
 
         glLinkProgram(program)
@@ -205,7 +204,6 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         }
 
         onSuccess()
-
     }
 
     override fun getUniqueFilename(key: Pair<String, String?>): String {
@@ -214,5 +212,4 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         return encodeBase64(messageDigest.digest())
             .replace('/', '-') + ".bin"
     }
-
 }

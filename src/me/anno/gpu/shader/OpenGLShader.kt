@@ -1,5 +1,6 @@
 package me.anno.gpu.shader
 
+import me.anno.Build
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -13,6 +14,8 @@ import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.GL21C.*
+import org.lwjgl.opengl.GL43C.GL_SHADER
+import org.lwjgl.opengl.GL43C.glObjectLabel
 import java.nio.FloatBuffer
 
 abstract class OpenGLShader(val name: String) : ICacheData {
@@ -62,17 +65,18 @@ abstract class OpenGLShader(val name: String) : ICacheData {
                 shaderCache.clear()
             }
             val shader = shaderCache.getOrPut(type to source) {
-                compileShader(type, source)
+                compileShader(type, source, shaderName)
             }
             glAttachShader(program, shader)
             postPossibleError(shaderName, shader, true, source)
             return shader
         }
 
-        fun compileShader(type: Int, source: String): Int {
+        fun compileShader(type: Int, source: String, name: String): Int {
             val shader = glCreateShader(type)
             glShaderSource(shader, source)
             glCompileShader(shader)
+            if (Build.isDebug) glObjectLabel(GL_SHADER, shader, name)
             return shader
         }
 
@@ -159,7 +163,6 @@ abstract class OpenGLShader(val name: String) : ICacheData {
                 print("comp", comp)
             }
         }
-
     }
 
     var safeShaderBinding = Companion.safeShaderBinding
@@ -772,5 +775,4 @@ abstract class OpenGLShader(val name: String) : ICacheData {
             program = 0
         }
     }
-
 }

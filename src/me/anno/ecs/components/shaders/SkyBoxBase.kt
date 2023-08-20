@@ -175,7 +175,7 @@ open class SkyBoxBase : MeshComponentBase() {
                 return listOf(stage)
             }
 
-            open fun getSkyColor(): String = "vec3 getSkyColor(vec3 pos){ return skyColor; }"
+            open fun getSkyColor(): String = "vec3 getSkyColor(vec3 pos){ return skyColor; }\n"
         }
 
         val defaultShaderBase = SkyShaderBase("skyBase")

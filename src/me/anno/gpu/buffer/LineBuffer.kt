@@ -253,22 +253,7 @@ object LineBuffer {
         cam: org.joml.Vector3d,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
-        ensureSize(lineSize)
-        val bytes = bytes
-        bytes.putFloat((x0 - cam.x).toFloat())
-        bytes.putFloat((y0 - cam.y).toFloat())
-        bytes.putFloat((z0 - cam.z).toFloat())
-        bytes.put(r)
-        bytes.put(g)
-        bytes.put(b)
-        bytes.put(a)
-        bytes.putFloat((x1 - cam.x).toFloat())
-        bytes.putFloat((y1 - cam.y).toFloat())
-        bytes.putFloat((z1 - cam.z).toFloat())
-        bytes.put(r)
-        bytes.put(g)
-        bytes.put(b)
-        bytes.put(a)
+        putRelativeLine(x0, y0, z0, x1, y1, z1, cam, 1.0, r, g, b, a)
     }
 
     fun putRelativeLine(
@@ -310,17 +295,20 @@ object LineBuffer {
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
         ensureSize(lineSize)
+        putRelativePoint(x0, y0, z0, cam, worldScale, r, g, b, a)
+        putRelativePoint(x1, y1, z1, cam, worldScale, r, g, b, a)
+    }
+
+    private fun putRelativePoint(
+        x0: Double, y0: Double, z0: Double,
+        cam: org.joml.Vector3d,
+        worldScale: Double,
+        r: Byte, g: Byte, b: Byte, a: Byte = -1
+    ) {
         val bytes = bytes
         bytes.putFloat(((x0 - cam.x) * worldScale).toFloat())
         bytes.putFloat(((y0 - cam.y) * worldScale).toFloat())
         bytes.putFloat(((z0 - cam.z) * worldScale).toFloat())
-        bytes.put(r)
-        bytes.put(g)
-        bytes.put(b)
-        bytes.put(a)
-        bytes.putFloat(((x1 - cam.x) * worldScale).toFloat())
-        bytes.putFloat(((y1 - cam.y) * worldScale).toFloat())
-        bytes.putFloat(((z1 - cam.z) * worldScale).toFloat())
         bytes.put(r)
         bytes.put(g)
         bytes.put(b)
@@ -334,22 +322,11 @@ object LineBuffer {
         worldScale: Double,
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
-        ensureSize(lineSize)
-        val bytes = bytes
-        bytes.putFloat(((x0 - cam.x) * worldScale).toFloat())
-        bytes.putFloat(((y0 - cam.y) * worldScale).toFloat())
-        bytes.putFloat(((z0 - cam.z) * worldScale).toFloat())
-        bytes.put(r)
-        bytes.put(g)
-        bytes.put(b)
-        bytes.put(a)
-        bytes.putFloat(((x1 - cam.x) * worldScale).toFloat())
-        bytes.putFloat(((y1 - cam.y) * worldScale).toFloat())
-        bytes.putFloat(((z1 - cam.z) * worldScale).toFloat())
-        bytes.put(r)
-        bytes.put(g)
-        bytes.put(b)
-        bytes.put(a)
+        putRelativeLine(
+            x0.toDouble(), y0.toDouble(), z0.toDouble(),
+            x1.toDouble(), y1.toDouble(), z1.toDouble(),
+            cam, worldScale, r, g, b, a
+        )
     }
 
     @Suppress("unused")
@@ -527,9 +504,7 @@ object LineBuffer {
 
         // reset the buffer
         buffer.clear()
-
     }
 
     var enableLineSmoothing = true
-
 }

@@ -239,6 +239,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
                         PipelineStage.setupLocalTransform(shader, sky.transform, Engine.gameTime)
                         shader.v1b("hasAnimation", false)
                         GFX.shaderColor(shader, "tint", -1)
+                        shader.v1f("finalAlpha", 1f)
                         shader.v1i("hasVertexColors", 0)
                         shader.v2i("randomIdData", 6, sky.randomTriangleId)
                         shader.v1f("meshScale", scale)

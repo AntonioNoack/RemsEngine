@@ -123,16 +123,16 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         }
 
         @JvmStatic
-        fun splitVertices(numSegments: Int, y0: Float, y1: Float): FloatArray {
+        fun splitVertices(numSegments: Int): FloatArray {
             val size = numSegments * 4
             val idx = FloatArray(size)
             var i = 0
             for (xi in 0 until numSegments) {
                 val t = xi / (numSegments - 1f)
                 idx[i++] = t
-                idx[i++] = y0
+                idx[i++] = -1f
                 idx[i++] = t
-                idx[i++] = y1
+                idx[i++] = +1f
             }
             return idx
         }
@@ -140,7 +140,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         @JvmField
         val flat11x2 = StaticBuffer(
             "flat11x2",
-            splitVertices(2, -1f, +1f),
+            splitVertices(2),
             splitIndices(2),
             listOf(Attribute("coords", 2))
         )
@@ -148,7 +148,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         @JvmField
         val flat11x3 = StaticBuffer(
             "flat11x3",
-            splitVertices(3, -1f, +1f),
+            splitVertices(3),
             splitIndices(3),
             listOf(Attribute("coords", 2))
         )
@@ -156,7 +156,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         @JvmField
         val flat11x6 = StaticBuffer(
             "flat11x6",
-            splitVertices(6, -1f, +1f),
+            splitVertices(6),
             splitIndices(6),
             listOf(Attribute("coords", 2))
         )
@@ -164,7 +164,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         @JvmField
         val flat11x12 = StaticBuffer(
             "flat11x12",
-            splitVertices(12, -1f, +1f),
+            splitVertices(12),
             splitIndices(12),
             listOf(Attribute("coords", 2))
         )
@@ -172,7 +172,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         @JvmField
         val flat11x25 = StaticBuffer(
             "flat11x25",
-            splitVertices(25, -1f, +1f),
+            splitVertices(25),
             splitIndices(25),
             listOf(Attribute("coords", 2))
         )
@@ -180,7 +180,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         @JvmField
         val flat11x50 = StaticBuffer(
             "flat11x50",
-            splitVertices(50, -1f, +1f),
+            splitVertices(50),
             splitIndices(50),
             listOf(Attribute("coords", 2))
         )

@@ -1,5 +1,6 @@
 package me.anno.gpu.shader
 
+import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderCache
 import me.anno.gpu.buffer.ComputeBuffer
@@ -10,6 +11,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import org.joml.Vector3i
 import org.lwjgl.opengl.GL43.*
+import org.lwjgl.opengl.GL43C
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class ComputeShader(
@@ -30,6 +32,7 @@ class ComputeShader(
         checkGroupSizeBounds()
         val source = "" +
                 "#version $version\n" +
+                "// $name\n" +
                 "layout(local_size_x = ${groupSize.x}, local_size_y = ${groupSize.y}, local_size_z = ${groupSize.z}) in;\n" +
                 source
 
@@ -46,6 +49,10 @@ class ComputeShader(
             logShader(name, source)
             GFX.check()
             this.program = program // only assign this value, when no error has occurred
+        }
+
+        if (Build.isDebug) {
+            glObjectLabel(GL_PROGRAM, pointer, name)
         }
     }
 

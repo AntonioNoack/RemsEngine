@@ -6,7 +6,6 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.buffer.LineBuffer.putRelativeLine
 import me.anno.maths.Maths.TAU
-import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4x3d

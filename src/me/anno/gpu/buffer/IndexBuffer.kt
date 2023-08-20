@@ -6,6 +6,8 @@ import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL31C.*
+import org.lwjgl.opengl.GL43C.GL_BUFFER
+import org.lwjgl.opengl.GL43C.glObjectLabel
 import org.lwjgl.system.MemoryUtil
 
 class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int = GL_STATIC_DRAW) :
@@ -104,7 +106,10 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
             }
         }
         elementCount = indices.size
-        if (Build.isDebug) DebugGPUStorage.buffers.add(this)
+        if (Build.isDebug) {
+            DebugGPUStorage.buffers.add(this)
+            glObjectLabel(GL_BUFFER, pointer, name)
+        }
         // GFX.check()
     }
 

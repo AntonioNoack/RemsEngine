@@ -29,6 +29,8 @@ import me.anno.utils.Color.black
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
 import org.apache.logging.log4j.LogManager
+import org.lwjgl.opengl.GL42C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT
+import org.lwjgl.opengl.GL42C.glMemoryBarrier
 import org.lwjgl.opengl.GL45C
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -157,10 +159,10 @@ object DrawTexts {
                 if (code in simpleChars.indices) {
                     shader.v1f("uvZ", code.toFloat())
                     posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
-                    GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
                 }
                 x2 += charWidth
             }
+            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
         }
 
         if (shader is Shader) {
@@ -243,16 +245,18 @@ object DrawTexts {
                 if (!Character.isWhitespace(char)) {
                     val txt = char.joinChars().toString()
                     val texture = FontManager.getTexture(font, txt, -1, -1)
-                    if (texture != null) draw(shader, texture, fx + (charWidth - texture.width) / 2, y2, txt)
+                    if (texture != null) draw(shader, texture, fx + (charWidth - texture.width) / 2, y2, txt, false)
                 }
                 fx += charWidth
+            }
+            if (shader is ComputeShader) {
+                glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             }
 
             GFX.loadTexturesSync.pop()
 
             val size = FontManager.getSize(font, text, -1, -1)
             return GFXx2D.getSize(fx - (x + dx), GFXx2D.getSizeY(size))
-
         } else {
 
             val font2 = FontManager.getFont(font)
@@ -279,16 +283,18 @@ object DrawTexts {
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
                         texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
                         val x2 = fx + (w - texture.width).shr(1)
-                        draw(shader, texture, x2, y2, txt)
+                        draw(shader, texture, x2, y2, txt, false)
                     }
                 } else index++
+            }
+            if (shader is ComputeShader) {
+                glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             }
 
             GFX.loadTexturesSync.pop()
 
             val size = FontManager.getSize(font, text, -1, -1)
             return GFXx2D.getSize(textWidth.roundToInt(), GFXx2D.getSizeY(size))
-
         }
     }
 
@@ -348,11 +354,10 @@ object DrawTexts {
 
             val texture = FontManager.getTexture(key)
             if (texture != null) {
-                draw(shader, texture, x + dx + (wx - texture.width).shr(1), y2, txt)
+                draw(shader, texture, x + dx + (wx - texture.width).shr(1), y2, txt, true)
             }
 
             wx
-
         } else {
 
             val font2 = FontManager.getFont(font)
@@ -374,11 +379,10 @@ object DrawTexts {
 
             val texture = FontManager.getTexture(key)
             if (texture != null) {
-                draw(shader, texture, fx + (w - texture.width).shr(1), y2, text)
+                draw(shader, texture, fx + (w - texture.width).shr(1), y2, text, true)
             }
 
             wx
-
         }
 
         GFX.loadTexturesSync.pop()
@@ -387,7 +391,10 @@ object DrawTexts {
         return GFXx2D.getSize(charWidth, GFXx2D.getSizeY(size))
     }
 
-    private fun draw(shader: OpenGLShader, texture: ITexture2D?, x2: Int, y2: Int, txt: CharSequence) {
+    private fun draw(
+        shader: OpenGLShader, texture: ITexture2D?,
+        x2: Int, y2: Int, txt: CharSequence, barrier: Boolean
+    ) {
         if (texture != null && (texture !is Texture2D || texture.isCreated)) {
             texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
             shader.use()
@@ -397,7 +404,7 @@ object DrawTexts {
             } else {
                 shader as ComputeShader
                 posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
-                GL45C.glMemoryBarrier(GL45C.GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+                if (barrier) glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             }
         } else {
             LOGGER.warn(
@@ -430,7 +437,6 @@ object DrawTexts {
         return if (charByChar) {
             drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, heightLimit, alignX, alignY, false)
         } else drawText(x, y, color, backgroundColor, tex0 ?: whiteTexture, alignX, alignY)
-
     }
 
     fun drawText(
@@ -538,7 +544,6 @@ object DrawTexts {
 
         val texture = tex0 ?: return GFXx2D.getSize(0, FontManager.getAvgFontSize(key.fontSizeIndex()).roundToInt())
         return drawText(x, y, color, backgroundColor, texture, alignX, alignY)
-
     }
 
     fun getTextSizeX(font: Font, text: CharSequence, widthLimit: Int, heightLimit: Int) =
@@ -553,5 +558,4 @@ object DrawTexts {
 
     fun getTextSize(key: TextCacheKey) =
         FontManager.getSize(key)
-
 }
