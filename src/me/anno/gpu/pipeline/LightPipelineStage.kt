@@ -94,6 +94,9 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         shader.v3f("camPos", RenderState.cameraPosition)
         val target = GFXState.currentBuffer
         shader.v2f("invScreenSize", 1f / target.width, 1f / target.height)
+        shader.v3f("cameraPosition", RenderState.cameraPosition)
+        shader.v4f("cameraRotation", RenderState.cameraRotation)
+        shader.v1f("worldScale", RenderState.worldScale)
         bindNullDepthTextures(shader)
         bindDepthToPosition(shader)
     }
@@ -201,7 +204,6 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                 shader.v4f("data2", shadowIdx0, shadowIdx1.toFloat(), light.getShaderV1(), light.getShaderV2())
 
                 mesh.draw(shader, 0)
-
             }
         }
 
@@ -221,7 +223,6 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                 }
             }
         }
-
     }
 
     private var cameraMatrix: Matrix4f? = null
@@ -292,7 +293,6 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
             mesh.drawInstanced(shader, 0, buffer)
 
             baseIndex += batchSize
-
         }
     }
 
@@ -332,5 +332,4 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
     override val className: String get() = "LightPipelineStage"
     override val approxSize get() = 5
-
 }

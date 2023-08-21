@@ -28,6 +28,7 @@ import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
 import java.io.*
+import java.lang.IllegalArgumentException
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
@@ -139,6 +140,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         fun getReference(str: String?): FileReference {
             // invalid
             if (str == null || str.isBlank2()) return InvalidRef
+            if('$' in str) throw IllegalArgumentException("Illegal file name $str")
             // root
             if (str == "root") return FileRootRef
             val str2 = if ('\\' in str) str.replace('\\', '/') else str
@@ -654,11 +656,11 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         // only read the first bytes
         val signature = Signature.findNameSync(this)
         if (InnerFolderCache.hasReaderForFileExtension(lcExtension)) {
-            LOGGER.info("Checking $absolutePath for zip/similar file, matches extension")
+            // LOGGER.info("Checking $absolutePath for zip/similar file, matches extension")
             return true
         }
         if (InnerFolderCache.hasReaderForSignature(signature)) {
-            LOGGER.info("Checking $absolutePath for zip/similar file, matches signature")
+            // LOGGER.info("Checking $absolutePath for zip/similar file, matches signature")
             return true
         }
         return when (signature) {
@@ -666,7 +668,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                 // dae is xml
                 when (lcExtension) {
                     in UnityReader.unityExtensions, "json" -> {
-                        LOGGER.info("Checking $absolutePath for mesh file, matches extension")
+                        // LOGGER.info("Checking $absolutePath for mesh file, matches extension")
                         true
                     }
                     else -> try {
@@ -678,16 +680,16 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                         }
                         waitUntil(true) { zis != null || e != null }
                         val result = (zis ?: throw e!!).entries.hasMoreElements()
-                        LOGGER.info("Checking $absolutePath for zip file, success")
+                        // LOGGER.info("Checking $absolutePath for zip file, success")
                         result
                     } catch (e: Exception) {
-                        LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
+                        // LOGGER.info("Checking $absolutePath for zip file, ${e.message}")
                         false
                     }
                 }
             }
             else -> {
-                LOGGER.info("Checking $absolutePath for zip file, other signature: $signature")
+                // LOGGER.info("Checking $absolutePath for zip file, other signature: $signature")
                 false
             }
         }

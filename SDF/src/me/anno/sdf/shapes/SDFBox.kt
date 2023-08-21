@@ -22,6 +22,14 @@ open class SDFBox : SDFSmoothShape() {
             field.set(value)
         }
 
+    var forMorphing = false
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateShader()
+            }
+        }
+
     override fun calculateBaseBounds(dst: AABBf) {
         val h = halfExtends
         dst.setMin(-h.x, -h.y, -h.z)
@@ -40,7 +48,7 @@ open class SDFBox : SDFSmoothShape() {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdBox)
         smartMinBegin(builder, dstIndex)
-        builder.append("sddBox(pos").append(trans.posIndex)
+        builder.append(if (forMorphing) "sdBox(pos" else "sddBox(pos").append(trans.posIndex)
         builder.append(",dir").append(trans.posIndex)
         builder.append(',')
         if (dynamicSize || globalDynamic) builder.appendUniform(uniforms, halfExtends)
@@ -127,5 +135,4 @@ open class SDFBox : SDFSmoothShape() {
                 "   return r > 0.0 ? sdBox(p,b,r) : sddBox(p,d,b);\n" +
                 "}\n"
     }
-
 }

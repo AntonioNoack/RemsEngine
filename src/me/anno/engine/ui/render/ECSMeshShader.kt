@@ -7,6 +7,7 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.parallaxMapping
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -123,10 +124,19 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 // and a shader with light from top/bottom
                 "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
                 "if(abs(normalStrength.x) > 0.0){\n" +
-                "   vec3 normalFromTex = texture(normalMap, uv).rgb * 2.0 - 1.0;\n" +
+                "   vec3 rawColor = texture(normalMap, uv).rgb;\n" +
+                // support for bump maps: if grayscale, calculate gradient
+                "   if(rawColor.x == rawColor.y && rawColor.y == rawColor.z){\n" +
+                "       vec2 suv = uv * textureSize(normalMap,0);\n" +
+                "       float divisor = (length(dFdx(suv)) + length(dFdy(suv)))*0.25;\n" +
+                "       rawColor = normalize(vec3(dFdx(rawColor.x), dFdy(rawColor.x), max(divisor, 1e-6)));\n" +
+                "   } else rawColor = rawColor * 2.0 - 1.0;\n" +
+                "   vec3 normalFromTex = rawColor;\n" +
                 "        normalFromTex = matMul(tbn, normalFromTex);\n" +
                 // normalize?
                 "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
+                // for debugging
+                // "   finalColor = rawColor*.5+.5;\n" +
                 "}\n"
 
         val baseColorCalculation = "" +
@@ -254,7 +264,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         } else {
             "prevLocalPosition = localPosition;\n"
         }
-
     }
 
     init {
@@ -433,7 +442,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             Variable(GLSLType.S2D, "occlusionMap"),
             Variable(GLSLType.S2D, "sheenNormalMap"),
             // input varyings
-            Variable(GLSLType.V2F, "uv"),
+            Variable(GLSLType.V2F, "uv", VariableMode.INOUT),
             Variable(GLSLType.V3F, "normal"),
             Variable(GLSLType.V4F, "tangent"),
             Variable(GLSLType.V4F, "vertexColor0"),
@@ -489,10 +498,23 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(flags),
+                createFragmentVariables(flags) + listOf(Variable(GLSLType.V4F, "cameraRotation")),
                 createDefines(flags).toString() +
                         discardByCullingPlane +
                         // step by step define all material properties
+                        // to do weak devices like phones shouldn't use this
+                        // to do this only should be enabled for when the normal map is grayscale
+                        // todo doesn't look right yet (movement too extreme... why??)
+                        /*"#define parallaxMap normalMap\n" +
+                        "if(textureSize(parallaxMap,0).x > 1){\n" +
+                        "   finalTangent   = normalize(tangent.xyz);\n" + // for debugging
+                        "   finalNormal    = normalize(gl_FrontFacing ? normal : -normal);\n" +
+                        "   finalBitangent = cross(finalNormal, finalTangent) * tangent.w;\n" +
+                        "   if(dot(finalBitangent,finalBitangent) > 0.0) finalBitangent = normalize(finalBitangent);\n" +
+                        "   mat3 TBN = transpose(mat3(finalTangent.xyz,finalBitangent,finalNormal));\n" +
+                        "   vec3 viewDir = TBN * normalize(quatRot(finalPosition, cameraRotation));\n" + // is this right???
+                        "   uv = parallaxMapUVs(parallaxMap, uv, viewDir * vec3(-1,-1,1), 0.05);\n" +
+                        "}\n" +*/
                         baseColorCalculation +
                         normalTanBitanCalculation +
                         normalMapCalculation +
@@ -505,7 +527,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         reflectionPlaneCalculation +
                         reflectionMapCalculation +
                         (if (motionVectors) finalMotionCalculation else "")
-            )
+            ).add(quatRot).add(parallaxMapping)
         )
     }
 
@@ -522,7 +544,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         shader.glslVersion = glslVersion
         GFX.check()
         return shader
-
     }
 
     override fun createForwardShader(flags: Int, postProcessing: ShaderStage?): Shader {
@@ -539,5 +560,4 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         finish(shader)
         return shader
     }
-
 }

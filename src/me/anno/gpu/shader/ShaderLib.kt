@@ -1039,6 +1039,43 @@ object ShaderLib {
         ).apply { ignoreNameWarnings("windowSize") }
     }
 
+    // from https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
+    // https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/5.3.parallax_occlusion_mapping/5.3.parallax_mapping.fs
+    val parallaxMapping = "" +
+            "vec2 parallaxMapUVs(sampler2D depthMap, vec2 texCoords, vec3 viewDir, float heightScale) { \n" +
+            // number of depth layers
+            "    const float minLayers = 8;\n" +
+            "    const float maxLayers = 32;\n" +
+            "    float numLayers = mix(maxLayers, minLayers, abs(viewDir.z));  \n" +
+            // calculate the size of each layer
+            "    float layerDepth = 1.0 / numLayers;\n" +
+            "    float currentLayerDepth = -0.5;\n" +
+            // the amount to shift the texture coordinates per layer (from vector P)
+            "    vec2 P = viewDir.xy / viewDir.z * heightScale; \n" +
+            "    vec2 deltaTexCoords = P / numLayers;\n" +
+            // get initial values
+            "    vec2  currentTexCoords     = texCoords;\n" +
+            "    float currentDepthMapValue = 0.5 - texture(depthMap, currentTexCoords).r;\n" +
+            "    while(currentLayerDepth < currentDepthMapValue) {\n" +
+            // shift texture coordinates along direction of P
+            "        currentTexCoords -= deltaTexCoords;\n" +
+            // get depth map value at current texture coordinates
+            "        currentDepthMapValue = 0.5 - texture(depthMap, currentTexCoords).r;  \n" +
+            // get depth of next layer
+            "        currentLayerDepth += layerDepth;\n" +
+            "    }\n" +
+            // get texture coordinates before collision (reverse operations)
+            "    vec2 prevTexCoords = currentTexCoords + deltaTexCoords;\n" +
+
+            // get depth after and before collision for linear interpolation
+            "    float afterDepth  = currentDepthMapValue - currentLayerDepth;\n" +
+            "    float beforeDepth = 0.5 - texture(depthMap, prevTexCoords).r - currentLayerDepth + layerDepth;\n" +
+
+            // interpolation of texture coordinates
+            "    float weight = afterDepth / (afterDepth - beforeDepth);\n" +
+            "    return mix(currentTexCoords, prevTexCoords, weight);\n" +
+            "}\n"
+
     fun createShader(
         shaderName: String,
         vertexShader: String,

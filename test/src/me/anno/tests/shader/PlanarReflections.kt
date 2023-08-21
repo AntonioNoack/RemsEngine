@@ -26,7 +26,7 @@ fun main() {
     scene.add(MeshComponent(documents.getChild("plane.obj")).apply {
         materials = listOf(Material().apply {
             metallicMinMax.set(1f)
-            roughnessMinMax.set(0.3f)
+            roughnessMinMax.set(0.3f) // changes the used mip level
         }.ref)
     })
     scene.add(Entity().apply {

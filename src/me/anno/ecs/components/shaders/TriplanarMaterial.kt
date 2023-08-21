@@ -27,9 +27,6 @@ class TriplanarMaterial : Material() {
         shader.v1f("sharpness", if (blendPreferY > 0f) sharpness else min(sharpness, 0.999f))
         shader.v1f("blendPreferY", blendPreferY)
         shader.v4f("primaryTiling", primaryTiling)
-        val cameraPosition = RenderState.cameraPosition
-        shader.v3f("cameraPosition", cameraPosition.x.toFloat(), cameraPosition.y.toFloat(), cameraPosition.z.toFloat())
-        shader.v1f("worldScale", RenderState.worldScale)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

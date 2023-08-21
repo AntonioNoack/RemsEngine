@@ -62,10 +62,6 @@ open class PlanarMaterialBase : Material() {
     override fun bind(shader: Shader) {
         super.bind(shader)
         tiling(shader)
-
-        val cameraPosition = RenderState.cameraPosition
-        shader.v3f("cameraPosition", cameraPosition.x.toFloat(), cameraPosition.y.toFloat(), cameraPosition.z.toFloat())
-        shader.v1f("worldScale", RenderState.worldScale)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

@@ -10,6 +10,14 @@ import kotlin.math.sqrt
 
 class SDFSphere : SDFShape() {
 
+    var forMorphing = false
+        set(value) {
+            if (field != value) {
+                field = value
+                invalidateShader()
+            }
+        }
+
     override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
@@ -22,7 +30,8 @@ class SDFSphere : SDFShape() {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdSphere)
         smartMinBegin(builder, dstIndex)
-        builder.append("sdSphere2(pos").append(trans.posIndex).append(",dir").append(trans.posIndex).append(",1.0)")
+        builder.append(if (forMorphing) "sdSphere(pos" else "sdSphere2(pos").append(trans.posIndex)
+        builder.append(",dir").append(trans.posIndex).append(",1.0)")
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
@@ -44,7 +53,7 @@ class SDFSphere : SDFShape() {
 
         fun distanceToSphere(pos: Vector4f, dir: Vector3f, radius: Float): Float {
             val t = dir.dot(pos.x, pos.y, pos.z)
-            val q = pos.lengthSquared() - radius * radius
+            val q = length(pos.x, pos.y, pos.z) - radius * radius
             val disc = t * t - q
             if (disc < 0f) return Float.POSITIVE_INFINITY
             return -t - sqrt(disc)
@@ -62,5 +71,4 @@ class SDFSphere : SDFShape() {
                 "}\n" +
                 "float sdSphere2(vec3 p, vec3 d, float s){ float d0 = sdSphere(p,s); return d0 > 0.0 ? min(max(d0*2.0,0.03*s),sddSphere(p,d,s)) : d0; }\n"
     }
-
 }

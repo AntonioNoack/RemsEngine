@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.interfaces.Renderable
@@ -10,10 +11,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib
+import me.anno.gpu.texture.*
 import me.anno.image.ImageGPUCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -29,12 +27,15 @@ open class Material : PrefabSaveable(), Renderable {
     // to do most properties here could be defined by the shader, not this class
     // to do we then somehow would need to display them dynamically
 
+    @Docs("Whether linear filtering shall be applied to textures. If you need to mix, bind those textures yourself.")
     @SerializedProperty
     var linearFiltering = true
 
+    @Docs("How UVs outside the standard square are handled")
     @SerializedProperty
     var clamping = Clamping.REPEAT
 
+    @Docs("Uniforms to be overridden in the shader when applying this material")
     @Type("Map<String,TypeValue>")
     @SerializedProperty
     var shaderOverrides = HashMap<String, TypeValue>()
@@ -48,37 +49,47 @@ open class Material : PrefabSaveable(), Renderable {
     // 0 = OPAQUE_PASS
     // 1 = transparent
     // 2 = decal
-    /**
-     * for its values look at [me.anno.gpu.pipeline.PipelineStage]
-     * */
+    @Docs("For default usages look at [me.anno.gpu.pipeline.PipelineStage]")
     @NotSerializedProperty
     var pipelineStage: Int = 0
 
+    @Docs("Shader override, by default is ECSShaderLib.pbrModelShader")
     @Type("BaseShader?")
     @NotSerializedProperty
     var shader: BaseShader? = null
 
+    @Docs("Color and transparency as far as it's supported")
     @Range(0.0, 1.0)
-    @Type("Color4HDR")
+    @Type("Color4")
     var diffuseBase = Vector4f(1f)
         set(value) {
             field.set(value)
         }
+
+    @Docs("Diffuse Texture")
+    @Type("Texture/Reference")
     var diffuseMap: FileReference = InvalidRef
 
+    @Docs("Strength for normal map. Negative values flip the map inside out.")
     @Range(-100.0, 100.0)
     var normalStrength = 1f
+
+    @Docs("Typically cyan colored with patterns; bump maps (grayscale height) work, too")
+    @Type("Texture/Reference")
     var normalMap: FileReference = InvalidRef
 
     // translucency:
     // only little light directionality
+    @Docs("Internal diffuse refractions. The higher, the less the material cares about light directions.")
     @Range(0.0, 1.0)
     var translucency = 0f
 
+    @Docs("Most meshes need to be seen from the outside only (FRONT), some need both (BOTH). Some may be reversed (BACK).")
     var cullMode = CullMode.FRONT
     val isDoubleSided get() = cullMode == CullMode.BOTH
 
     // base * map
+    @Docs("How much light is emitted by the surface")
     @Range(0.0, 100.0)
     @Type("Color3HDR")
     var emissiveBase = Vector3f(0f)
@@ -86,6 +97,7 @@ open class Material : PrefabSaveable(), Renderable {
             field.set(value)
         }
 
+    @Docs("How much light is emitted by the surface, texture")
     @Type("Texture/Reference")
     var emissiveMap: FileReference = InvalidRef
 
@@ -93,6 +105,7 @@ open class Material : PrefabSaveable(), Renderable {
     @Range(0.0, 1.0)
     var roughnessMinMax = Vector2f(0f, 1f)
 
+    @Docs("Texture for roughness. Black gets mapped to roughnessMinMax.x, white to roughnessMinMax.y.")
     @Type("Texture/Reference")
     var roughnessMap: FileReference = InvalidRef
 
@@ -100,16 +113,19 @@ open class Material : PrefabSaveable(), Renderable {
     @Range(0.0, 1.0)
     var metallicMinMax = Vector2f(0f, 0f)
 
+    @Docs("Texture for metallic. Black gets mapped to metallicMinMax.x, white to metallicMinMax.y.")
     @Type("Texture/Reference")
     var metallicMap: FileReference = InvalidRef
 
+    @Docs("Future bump map for maybe tesselation, maybe parallax mapping; not yet supported.")
     @Type("Texture/Reference")
     var displacementMap: FileReference = InvalidRef
 
-    // light *= 1-(1-map(uv)) * strength
+    @Docs("Constant factor for baked ambient occlusion: light *= 1-(1-occlusion) * strength")
     @Range(0.0, 100.0)
     var occlusionStrength = 1f
 
+    @Docs("UV-based factor for baked ambient occlusion: light *= 1-(1-occlusion) * strength")
     @Type("Texture/Reference")
     var occlusionMap: FileReference = InvalidRef
 
@@ -141,11 +157,12 @@ open class Material : PrefabSaveable(), Renderable {
     @Type("Texture/Reference")
     var sheenNormalMap: FileReference = InvalidRef
 
-    // not yet supported
+    @Docs("Defines refraction strength. Not yet supported.")
     @Range(1.0, 5.0)
     var indexOfRefraction = 1f
 
     // (useful for Synty meshes, which sometimes have awkward vertex colors)
+    @Docs("Whether vertex colors shall be used.")
     @SerializedProperty
     var enableVertexColors = true
 
@@ -257,6 +274,7 @@ open class Material : PrefabSaveable(), Renderable {
         return result
     }
 
+    @Suppress("RedundantIf")
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Material) return false
@@ -319,7 +337,7 @@ open class Material : PrefabSaveable(), Renderable {
 
         var timeout = 1000L
 
-        fun getTex(image: FileReference) = ImageGPUCache[image, timeout, true]
+        fun getTex(image: FileReference): Texture2D? = ImageGPUCache[image, timeout, true]
 
         fun bindTexture(shader: Shader, name: String, file: FileReference, default: Texture2D): Texture2D? {
             val index = shader.getTextureIndex(name)
@@ -345,7 +363,5 @@ open class Material : PrefabSaveable(), Renderable {
                 tex
             } else null
         }
-
     }
-
 }

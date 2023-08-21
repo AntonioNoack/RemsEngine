@@ -7,13 +7,13 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -124,7 +124,7 @@ class GameEngineProject() : NamedSaveable() {
         // open all tabs
         for (tab in openTabs.toList()) {
             try {
-                ECSSceneTabs.open(getReference(tab), PlayMode.EDITING, false)
+                ECSSceneTabs.open(tab.toGlobalFile(workspace), PlayMode.EDITING, false)
             } catch (e: Exception) {
                 LOGGER.warn("Could not open $tab", e)
             }
@@ -221,5 +221,4 @@ class GameEngineProject() : NamedSaveable() {
 
     override val className: String get() = "GameEngineProject"
     override val approxSize get() = 1_000_000
-
 }
