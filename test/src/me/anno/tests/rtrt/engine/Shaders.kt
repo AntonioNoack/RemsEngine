@@ -29,7 +29,7 @@ import org.joml.Vector2i
 
 val shading = "" +
         "   float distance = Infinity;\n" +
-        "   vec3 pos = camPos, dir = camDir;\n" +
+        "   vec3 pos = cameraPosition, dir = cameraDirection;\n" +
         "   vec3 normal = vec3(0.0), normal0 = dir;\n" +
         "   vec3 color = vec3(1.0);\n" +
         "   uint tlasCtr=0u,blasCtr=0u,trisCtr=0u;\n" +
@@ -105,8 +105,8 @@ val shading = "" +
 
 val commonUniforms = "" +
         "uniform ivec2 size;\n" +
-        "uniform vec3 camPos;\n" +
-        "uniform vec4 camRot;\n" +
+        "uniform vec3 cameraPosition;\n" +
+        "uniform vec4 cameraRotation;\n" +
         "uniform vec3 cameraOffset;\n" +
         "uniform vec3 sky0, sky1;\n" +
         "uniform int drawMode;\n" +
@@ -118,8 +118,8 @@ val commonUniforms = "" +
 val core = "" +
         "uint pixelId = uint(uv.x + uv.y * size.x);\n" +
         "uint seed = initRand(pixelId, uint(frameIndex));\n" +
-        "vec3 camDir = vec3(vec2(uv)-cameraOffset.xy, cameraOffset.z);\n" +
-        "camDir = normalize(quatRot(camDir, camRot));\n" +
+        "vec3 cameraDirection = vec3(vec2(uv)-cameraOffset.xy, cameraOffset.z);\n" +
+        "cameraDirection = normalize(quatRot(cameraDirection, cameraRotation));\n" +
         shading
 
 val imageStore = "" +

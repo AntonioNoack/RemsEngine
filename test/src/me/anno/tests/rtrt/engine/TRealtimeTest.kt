@@ -108,7 +108,7 @@ fun run(
     fovZFactor: Float
 ) {
     LogManager.disableLogger("WorkSplitter")
-    testUI3("TLAS: Realtime") {
+    testUI3("TLAS - Realtime") {
 
         val main = PanelListY(style)
         val controls = createControls(pos, rot, bvh, main)

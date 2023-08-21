@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.ShaderCache
 import me.anno.gpu.buffer.ComputeBuffer
+import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.maths.Maths.ceilDiv
@@ -11,7 +12,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import org.joml.Vector3i
 import org.lwjgl.opengl.GL43.*
-import org.lwjgl.opengl.GL43C
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class ComputeShader(
@@ -34,12 +34,13 @@ class ComputeShader(
                 "#version $version\n" +
                 "// $name\n" +
                 "layout(local_size_x = ${groupSize.x}, local_size_y = ${groupSize.y}, local_size_z = ${groupSize.z}) in;\n" +
+                matMul +
                 source
 
         updateSession()
 
         if (useShaderFileCache) {
-            this.program = ShaderCache.createShader(source,null)
+            this.program = ShaderCache.createShader(source, null)
         } else {
             val program = glCreateProgram()
             /*val shader = */compile(name, program, GL_COMPUTE_SHADER, source)
@@ -153,7 +154,6 @@ class ComputeShader(
         fun bindTexture1(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {
             glBindImageTexture(slot, texture.pointer, 0, true, 0, mode.code, findFormat(texture.internalFormat))
         }
-
     }
 
     fun runBySize(width: Int, height: Int = 1, depth: Int = 1) {
@@ -176,5 +176,4 @@ class ComputeShader(
         // currently true, but that might change, if we just write to data buffers or similar
         Texture2D.wasModifiedInComputePipeline = true
     }
-
 }

@@ -296,7 +296,7 @@ object LightShaders {
                 Variable(GLSLType.V1F, "finalSheen"),
                 Variable(GLSLType.V1F, "finalTranslucency"),
                 Variable(GLSLType.M4x3, "camSpaceToLightSpace"), // invLightMatrices[i]
-                Variable(GLSLType.V3F, "camPos"),
+                Variable(GLSLType.V3F, "cameraPosition"),
                 Variable(GLSLType.V1F, "worldScale"),
                 Variable(GLSLType.V4F, "light", VariableMode.OUT)
             ) + depthVars, "" +
@@ -458,7 +458,7 @@ object LightShaders {
                 "tint", "invLocalTransform", "colors",
                 "tangents", "uvs", "normals", "isDirectional",
                 "defLayer0", "defLayer1", "defLayer2", "defLayer3", "defLayer4",
-                "receiveShadows", "countPerPixel", "worldScale", "camPos", "invScreenSize",
+                "receiveShadows", "countPerPixel", "worldScale", "cameraPosition", "invScreenSize",
                 "fullscreen", "prevLocalTransform", "data1"
             )
             shader.setTextureIndices(textures)

@@ -91,12 +91,10 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         depthTexture.bindTrulyNearest(shader, "depthTex")
         shader.m4x4("transform", cameraMatrix)
         shader.v1f("worldScale", RenderState.worldScale)
-        shader.v3f("camPos", RenderState.cameraPosition)
-        val target = GFXState.currentBuffer
-        shader.v2f("invScreenSize", 1f / target.width, 1f / target.height)
         shader.v3f("cameraPosition", RenderState.cameraPosition)
         shader.v4f("cameraRotation", RenderState.cameraRotation)
-        shader.v1f("worldScale", RenderState.worldScale)
+        val target = GFXState.currentBuffer
+        shader.v2f("invScreenSize", 1f / target.width, 1f / target.height)
         bindNullDepthTextures(shader)
         bindDepthToPosition(shader)
     }

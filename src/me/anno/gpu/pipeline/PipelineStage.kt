@@ -488,6 +488,9 @@ class PipelineStage(
         shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
         shader.v3f("ambientLight", pipeline.ambient)
         shader.v1b("applyToneMapping", pipeline.applyToneMapping)
+        shader.v1f("worldScale", RenderState.worldScale)
+        shader.v3f("cameraPosition", RenderState.cameraPosition)
+        shader.v4f("cameraRotation", RenderState.cameraRotation)
     }
 
     fun DrawRequest.revDistance(dir: Vector3d): Double {

@@ -32,7 +32,7 @@ class DepthTest : CameraEffect() {
             val shader = shader
             shader.use()
             shader.v1f("worldScale", RenderState.worldScale)
-            shader.v3f("camPos", RenderState.cameraPosition)
+            shader.v3f("cameraPosition", RenderState.cameraPosition)
             DepthTransforms.bindDepthToPosition(shader)
             depth.bindTrulyNearest(shader, "depthTex")
             flat01.draw(shader)
@@ -54,7 +54,7 @@ class DepthTest : CameraEffect() {
             "dof", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F,"worldScale"),
-                Variable(GLSLType.V3F,"camPos"),
+                Variable(GLSLType.V3F,"cameraPosition"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ) + depthVars, "" +
@@ -62,7 +62,7 @@ class DepthTest : CameraEffect() {
                     rawToDepth +
                     depthToPosition +
                     "void main() {\n" +
-                    "   vec3 pos = camPos + rawDepthToPosition(uv,texture(depthTex,uv).r) / worldScale;\n" +
+                    "   vec3 pos = cameraPosition + rawDepthToPosition(uv,texture(depthTex,uv).r) / worldScale;\n" +
                     "   result = vec4(fract(pos - 0.001),1.0);\n" +
                     "}\n"
         )

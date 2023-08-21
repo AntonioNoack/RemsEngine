@@ -404,8 +404,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         shader.v1i("hasVertexColors", 0)
                         sky.material.bind(shader)
                     }// else already set
-                    shader.v3f("camPos", cameraPosition)
-                    shader.v4f("camRot", cameraRotation)
+                    shader.v3f("cameraPosition", cameraPosition)
+                    shader.v4f("cameraRotation", cameraRotation)
                     shader.v1f("camScale", worldScale.toFloat())
                     sky.draw(shader, 0)
                 }
@@ -1279,8 +1279,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             shader.use()
             shader.v1i("hasVertexColors", 0)
             shader.m4x4("transform", cameraMatrix)
-            shader.v3f("camPos", cameraPosition)
-            shader.v4f("camRot", cameraRotation)
+            shader.v3f("cameraPosition", cameraPosition)
+            shader.v4f("cameraRotation", cameraRotation)
             shader.v1f("worldScale", worldScale.toFloat())
             sky.material.bind(shader)
             sky.draw(shader, 0)
