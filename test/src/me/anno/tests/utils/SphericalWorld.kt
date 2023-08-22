@@ -6,11 +6,11 @@ import me.anno.ecs.components.chunks.spherical.SphericalHierarchy
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshJoiner
 import me.anno.ecs.components.mesh.ProceduralMesh
-import me.anno.ecs.components.mesh.ProceduralMesh.Companion.testProceduralMesh
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.sq
@@ -99,11 +99,10 @@ fun main() {
         for (triangle in sphereWorld.triangles) {
             iterate(triangle, 0)
         }
-        testProceduralMesh("SphericalWorld") { mesh ->
-            meshBuilder.join(mesh, elements)
-            // todo on click raycast & find triangle & place tree there
-            // baseShape.copy(mesh)
-        }
+        val mesh = meshBuilder.join(Mesh(), elements)
+        // todo on click raycast & find triangle & place tree there
+        // baseShape.copy(mesh)
+        testSceneWithUI("SphericalWorld", mesh)
     } else {
         TestStudio.testUI3("SphericalWorld") {
             val relativeDetail = 0.1
@@ -172,5 +171,4 @@ fun main() {
             SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
         }
     }
-
 }

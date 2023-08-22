@@ -1,14 +1,9 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.SceneView
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.ui.debug.TestStudio
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 
@@ -71,34 +66,4 @@ abstract class ProceduralMesh : MeshComponentBase() {
         ensureBuffer()
         return 32
     }
-
-    companion object {
-
-        /**
-         * creates an instance of ProceduralMesh, that uses generate() to generate its mesh;
-         * this is meant for testing only
-         * */
-        @JvmStatic
-        fun createProceduralMesh(generate: (mesh: Mesh) -> Unit): ProceduralMesh {
-            return object : ProceduralMesh() {
-                override fun generateMesh(mesh: Mesh) {
-                    generate(mesh)
-                }
-            }
-        }
-
-        /**
-         * opens a new window, in which the mesh, which is being generated once, will be shown
-         * this is meant for testing only
-         * */
-        @JvmStatic
-        fun testProceduralMesh(title: String, generate: (mesh: Mesh) -> Unit) {
-            TestStudio.testUI3(title) {
-                EditorState.prefabSource = createProceduralMesh(generate).ref
-                SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
-            }
-        }
-
-    }
-
 }

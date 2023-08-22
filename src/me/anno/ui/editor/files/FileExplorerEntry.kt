@@ -91,16 +91,13 @@ open class FileExplorerEntry(
             this(null, false, file, style)
 
     // todo small file type (signature) icons
-    // todo use search bar for sort parameters :)
-    // todo or right click menu for sorting
 
     val path = file.absolutePath
     val ref1 get() = getReferenceAsync(path)
     val ref1s get() = getReference(path)
 
     // todo when entering a json file, and leaving it, the icon should not be a folder!
-
-    // todo check: do url files work (link + icon)?
+    // todo open link of URL files
 
     // done icons for 3d meshes
     // done icons for project files

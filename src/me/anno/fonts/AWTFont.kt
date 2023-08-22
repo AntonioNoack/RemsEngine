@@ -571,18 +571,11 @@ class AWTFont(val font: Font) {
         const val debugJVMResults = false
 
         var ctr = 0
-
-        // val staticGfx = BufferedImage(1,1, BufferedImage.TYPE_INT_ARGB).graphics as Graphics2D
-        // val staticMetrics = staticGfx.fontMetrics
-        // val staticFontRenderCTX = staticGfx.fontRenderContext
-
         private val fallbackFontList = DefaultConfig[
                 "ui.font.fallbacks",
                 "Segoe UI Emoji,Segoe UI Symbol,DejaVu Sans,FreeMono,Unifont,Symbola"
         ].split(',').mapNotNull { if (it.isBlank2()) null else it.trim() }
 
-        // val fallbacks = FontManager.getFont("", size, 0f, 0f)
-        // var fallbackFont0 = Font("Segoe UI Emoji", Font.PLAIN, 25)
         private val fallbackFonts = HashMap<Float, List<AWTFont>>()
         fun getFallback(size: Float): List<AWTFont> {
             val cached = fallbackFonts[size]

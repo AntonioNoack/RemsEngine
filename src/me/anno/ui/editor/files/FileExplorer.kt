@@ -47,6 +47,7 @@ import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.process.BetterProcessBuilder
+import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.History
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
@@ -82,6 +83,7 @@ open class FileExplorer(
         NAME,
         SIZE,
         LAST_MODIFIED,
+        EXTENSION,
     }
 
     // todo group files by stuff?
@@ -180,6 +182,8 @@ open class FileExplorer(
                         FileSorting.NAME -> a.name.compareTo(b.name, true)
                         FileSorting.SIZE -> a.length().compareTo(b.length())
                         FileSorting.LAST_MODIFIED -> b.lastModified.compareTo(a.lastModified)
+                        FileSorting.EXTENSION -> a.lcExtension.compareTo(b.lcExtension)
+                            .ifSame { a.name.compareTo(b.name, true) }
                     }, -1, +1
                 ) * (if (ascendingSorting) +1 else -1)
                 if (folderSorting == FolderSorting.MIXED) base
@@ -206,7 +210,9 @@ open class FileExplorer(
         addFavourite(home)
         addFavourite(downloads)
         addFavourite(documents)
-        addFavourite(workspace)
+        if (workspace != documents) {
+            addFavourite(workspace)
+        }
         addFavourite(pictures)
         addFavourite(videos)
         addFavourite(music)
@@ -229,17 +235,17 @@ open class FileExplorer(
 
     fun getShortcutFolders(): List<FileReference> {
         val raw = DefaultConfig["files.shortcuts",
-                listOf(
-                    home,
-                    desktop,
-                    documents,
-                    downloads,
-                    pictures,
-                    videos,
-                    music,
-                    workspace,
-                    FileRootRef
-                ).joinToString("|") { it.toLocalPath() }
+            listOf(
+                home,
+                desktop,
+                documents,
+                downloads,
+                pictures,
+                videos,
+                music,
+                workspace,
+                FileRootRef
+            ).joinToString("|") { it.toLocalPath() }
         ]
         return raw
             .split('|')
@@ -289,7 +295,6 @@ open class FileExplorer(
         uContent += ScrollPanelY(content2d, Padding(1), style, AxisAlignment.MIN).apply {
             weight = 1f
         }
-
     }
 
     fun invalidate() {
@@ -428,7 +433,6 @@ open class FileExplorer(
                 put()
 
                 Thread.sleep(0)
-
             } else {
                 val fe = content2d.children.filterIsInstance<FileExplorerEntry>()
                 for (it in fe) {
@@ -618,6 +622,8 @@ open class FileExplorer(
                         .setEnabled(fileSorting != FileSorting.SIZE),
                     MenuOption(NameDesc("Sort by Last-Modified")) { fileSorting = FileSorting.LAST_MODIFIED }
                         .setEnabled(fileSorting != FileSorting.LAST_MODIFIED),
+                    MenuOption(NameDesc("Sort by Extension")) { fileSorting = FileSorting.EXTENSION }
+                        .setEnabled(fileSorting != FileSorting.EXTENSION),
                     menuSeparator1,
                     MenuOption(NameDesc("Sort Ascending")) { ascendingSorting = true }
                         .setEnabled(!ascendingSorting),
@@ -821,7 +827,5 @@ open class FileExplorer(
             "Delete this file",
             "ui.file.delete"
         )
-
     }
-
 }

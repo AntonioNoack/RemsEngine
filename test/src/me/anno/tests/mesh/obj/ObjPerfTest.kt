@@ -1,4 +1,4 @@
-package me.anno.tests.mesh
+package me.anno.tests.mesh.obj
 
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.obj.TextFileReader

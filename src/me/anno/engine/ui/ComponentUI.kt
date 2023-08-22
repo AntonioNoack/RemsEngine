@@ -198,7 +198,7 @@ object ComponentUI {
                 val valueType = annotation?.valueType ?: getType(value.values.iterator(), name) ?: return null
                 return object : AnyMapPanel(title, visibilityKey, keyType, valueType, style) {
                     override fun onChange() {
-                        property.set(this, values.associate { it.first to it.first }.toMutableMap())
+                        property.set(this, values.associate { it.first to it.second }.toMutableMap())
                     }
                 }.apply {
                     setValues(value.map { MutablePair(it.key, it.value) })

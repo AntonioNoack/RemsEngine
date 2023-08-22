@@ -4,6 +4,9 @@ import java.io.EOFException
 import java.io.InputStream
 import java.util.*
 
+/**
+ * Reads an XML file without create objects
+ * */
 class XMLScanner : XMLReader() {
 
     val types = ArrayList<ComparableStringBuilder>()
@@ -13,20 +16,36 @@ class XMLScanner : XMLReader() {
         types.add(type0)
     }
 
-    fun parse(
-        input: InputStream,
-        onStart: (type: CharSequence) -> Boolean,
-        onEnd: (type: CharSequence) -> Unit,
-        onProperty: (type: CharSequence, key: CharSequence, value: CharSequence) -> Unit,
-    ) = parse(-1, input, onStart, onEnd, onProperty)
+    /**
+     * Called, when an XML node is entered
+     * */
+    fun interface OnStart {
+        /**
+         * @return whether the node shall be traversed; if not, OnEnd.handle() isn't called.
+         * */
+        fun handle(type: CharSequence): Boolean
+    }
 
-    fun parse(
-        firstChar: Int, input: InputStream,
-        onStart: (type: CharSequence) -> Boolean,
-        onEnd: (type: CharSequence) -> Unit,
-        onProperty: (type: CharSequence, key: CharSequence, value: CharSequence) -> Unit,
-    ): Any? {
-        val first = if(firstChar < 0) input.skipSpaces() else firstChar
+    /**
+     * Called, when an XML node is exited
+     * */
+    fun interface OnEnd {
+        fun handle(type: CharSequence)
+    }
+
+    /**
+     * Called on each XML attribute
+     * */
+    fun interface OnAttribute {
+        fun handle(type: CharSequence, key: CharSequence, value: CharSequence)
+    }
+
+    fun parse(input: InputStream, onStart: OnStart, onEnd: OnEnd, onAttribute: OnAttribute): Any? {
+        return parse(-1, input, onStart, onEnd, onAttribute)
+    }
+
+    fun parse(firstChar: Int, input: InputStream, onStart: OnStart, onEnd: OnEnd, onAttribute: OnAttribute): Any? {
+        val first = if (firstChar < 0) input.skipSpaces() else firstChar
         if (first == '<'.code) {
             if (types.size <= typeI) types.add(ComparableStringBuilder())
             val type = input.readTypeUntilSpaceOrEnd(types[typeI])
@@ -39,12 +58,12 @@ class XMLScanner : XMLReader() {
                     // read until ?>
                     // or <?xpacket end="w"?>
                     input.readUntil("?>")
-                    return parse(-1, input, onStart, onEnd, onProperty)
+                    return parse(-1, input, onStart, onEnd, onAttribute)
                 }
                 type.startsWith("!--") -> {
                     // search until -->
                     input.readUntil("-->")
-                    return parse(-1, input, onStart, onEnd, onProperty)
+                    return parse(-1, input, onStart, onEnd, onAttribute)
                 }
                 type.startsWith("!doctype", true) -> {
                     var ctr = 1
@@ -54,7 +73,7 @@ class XMLScanner : XMLReader() {
                             '>'.code -> ctr--
                         }
                     }
-                    return parse(-1, input, onStart, onEnd, onProperty)
+                    return parse(-1, input, onStart, onEnd, onAttribute)
                 }
                 type.startsWith("![cdata[", true) -> {
                     val value = input.getStringUntil("]]>")
@@ -63,7 +82,7 @@ class XMLScanner : XMLReader() {
                 type.startsWith('/') -> return endElement
             }
 
-            if (!onStart(type)) {
+            if (!onStart.handle(type)) {
                 // this node can be ignored
                 var depth = 1
                 while (true) {
@@ -96,7 +115,7 @@ class XMLScanner : XMLReader() {
                     val start = input.skipSpaces()
                     assert(start, '"', '\'')
                     val value = input.readString(start, valueBuilder)
-                    onProperty(type, propName, value)
+                    onAttribute.handle(type, propName, value)
                     next = input.skipSpaces()
                     when (next) {
                         '/'.code, '>'.code -> {
@@ -110,7 +129,7 @@ class XMLScanner : XMLReader() {
             when (end2) {
                 '/'.code -> {
                     assert(input.read(), '>')
-                    onEnd(type)
+                    onEnd.handle(type)
                     return Unit
                 }
                 '>'.code -> {
@@ -118,16 +137,16 @@ class XMLScanner : XMLReader() {
                     typeI++
                     var next: Int = -1
                     while (true) {
-                        val child = parse(next, input, onStart, onEnd, onProperty)
+                        val child = parse(next, input, onStart, onEnd, onAttribute)
                         next = -1
                         when (child) {
                             endElement -> {
                                 typeI--
-                                onEnd(type)
+                                onEnd.handle(type)
                                 return Unit
                             }
                             is String -> {
-                                onProperty(type, "", child)
+                                onAttribute.handle(type, "", child)
                                 next = '<'.code
                             }
                             null -> throw RuntimeException()
@@ -139,5 +158,4 @@ class XMLScanner : XMLReader() {
             }
         } else return readString(first, input)
     }
-
 }

@@ -485,7 +485,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     override fun invalidate(entity: Entity) {
         val rb = entity.getComponent(Rigidbody::class, false)?.entity ?: return
-        if (printValidations) LOGGER.debug("invalidated ${System.identityHashCode(this)}")
+        if (printValidations) LOGGER.debug("Invalidated {}", System.identityHashCode(this))
         invalidEntities.add(rb)
     }
 

@@ -20,7 +20,7 @@ object XMLWriter {
     ) {
         if (indentation != null) newLine(builder, depth, indentation)
         builder.append("<").append(xml.type)
-        for ((k, v) in xml.properties) {
+        for ((k, v) in xml.attributes) {
             builder.append(' ').append(k).append("=\"")
             Strings.writeEscaped(v, builder)
             builder.append("\"")

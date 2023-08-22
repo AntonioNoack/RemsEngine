@@ -81,8 +81,8 @@ class SVGMesh {
             it as? XMLNode ?: continue
             it.apply {
                 convertStyle(this)
-                parentGroup?.properties?.forEach { (key, value) ->
-                    if (key !in this.properties) {
+                parentGroup?.attributes?.forEach { (key, value) ->
+                    if (key !in this.attributes) {
                         this[key] = value
                     }
                 }

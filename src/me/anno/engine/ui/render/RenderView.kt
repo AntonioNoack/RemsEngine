@@ -9,8 +9,10 @@ import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
+import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.SkyBoxBase
 import me.anno.ecs.components.shaders.effects.*
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
@@ -58,6 +60,7 @@ import me.anno.gpu.pipeline.LightShaders.combineLighting
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
@@ -1405,13 +1408,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         controlScheme?.drawGizmos()
 
-        //val maximumCircleDistance = 200f
-        //val maxCircleLenSq = sq(maximumCircleDistance).toDouble()
-
         var clickId = entityBaseClickId
-        //val scaleV = JomlPools.vec3d.create()
 
-        // much faster than depthTraversal, because we only need visible elements anyways
+        // much faster than depthTraversal, because we only need visible elements anyway
         if (world != null) pipeline.traverse(world) { entity ->
 
             val transform = entity.transform
@@ -1482,8 +1481,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             } else GFX.drawnId = world.clickId
             world.onDrawGUI(world.isSelectedIndirectly)
         }
-
-        // JomlPools.vec3d.sub(1)
 
         if (drawGrid) {
             drawGrid(radius)

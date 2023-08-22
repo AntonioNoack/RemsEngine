@@ -1,8 +1,6 @@
 package me.anno.ecs
 
-import me.anno.ecs.annotations.DebugAction
-import me.anno.ecs.annotations.DebugProperty
-import me.anno.ecs.annotations.HideInInspector
+import me.anno.ecs.annotations.*
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
@@ -172,6 +170,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     @NotSerializedProperty
     var collisionMask: Int = 0
 
+    @PositionType
     @SerializedProperty
     var position: Vector3d
         get() = transform.localPosition
@@ -181,6 +180,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             invalidatePhysics(false)
         }
 
+    @RotationType
     @SerializedProperty
     var rotation: Quaterniond
         get() = transform.localRotation
@@ -190,6 +190,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             invalidatePhysics(false)
         }
 
+    @ScaleType
     @SerializedProperty
     var scale: Vector3d
         get() = transform.localScale

@@ -309,10 +309,10 @@ object GFX {
     fun copy(buffer: IFramebuffer) = copy(buffer.getTexture0MS())
 
     @JvmStatic
-    fun copy(buffer: ITexture2D) {
+    fun copy(src: ITexture2D) {
         Frame.bind()
-        buffer.bindTrulyNearest(0)
-        copy(if (buffer is Texture2D) buffer.samples else 1)
+        src.bindTrulyNearest(0)
+        copy(if (src is Texture2D) src.samples else 1)
     }
 
     @JvmStatic

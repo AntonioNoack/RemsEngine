@@ -235,10 +235,8 @@ open class Server : Closeable {
                     val packetMagic = dis.readInt()
                     val randomId = dis.readInt() // must match an existing TCP connection
                     if (Packet.debugPackets) LOGGER.debug(
-                        "" +
-                                "protocol: ${str32(protocolMagic)}, " +
-                                "packet: ${str32(packetMagic)}, " +
-                                "randomId: ${hex32(randomId)}"
+                        "protocol: {}, packet: {}, randomId: {}",
+                        str32(protocolMagic), str32(packetMagic), hex32(randomId)
                     )
                     val protocol = protocols[protocolMagic] ?: continue
                     val client = findTcpClient(udpPacket.address, randomId) ?: continue

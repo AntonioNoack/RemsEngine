@@ -30,8 +30,12 @@ class SDFSphere : SDFShape() {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdSphere)
         smartMinBegin(builder, dstIndex)
-        builder.append(if (forMorphing) "sdSphere(pos" else "sdSphere2(pos").append(trans.posIndex)
-        builder.append(",dir").append(trans.posIndex).append(",1.0)")
+        if (forMorphing) {
+            builder.append("sdSphere(pos").append(trans.posIndex).append(",1.0)")
+        } else {
+            builder.append("sdSphere2(pos").append(trans.posIndex)
+                .append(",dir").append(trans.posIndex).append(",1.0)")
+        }
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 

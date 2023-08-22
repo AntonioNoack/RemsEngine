@@ -4,24 +4,24 @@ import me.anno.utils.Tabs
 
 class XMLNode(val type: String) {
 
-    val properties: HashMap<String, String> = HashMap()
+    val attributes: HashMap<String, String> = HashMap()
     val children: ArrayList<Any> = ArrayList()
 
-    operator fun get(key: String): String? = properties[key]
+    operator fun get(key: String): String? = attributes[key]
     operator fun set(key: String, value: String?) {
-        if (value == null) properties.remove(key)
-        else properties[key] = value
+        if (value == null) attributes.remove(key)
+        else attributes[key] = value
     }
 
-    operator fun contains(key: String): Boolean = key in properties
+    operator fun contains(key: String): Boolean = key in attributes
 
     fun toString(depth: Int): String {
         val tabs = Tabs.spaces(depth * 2)
         return if (children.isEmpty()) {
-            "$tabs<$type ${properties.entries.joinToString(" ") { "${it.key}=\"${it.value}\"" }}/>" +
+            "$tabs<$type ${attributes.entries.joinToString(" ") { "${it.key}=\"${it.value}\"" }}/>" +
                     if (depth == 0) "" else "\n"
         } else {
-            "$tabs<$type ${properties.entries.joinToString(" ") { "${it.key}=\"${it.value}\"" }}>\n" +
+            "$tabs<$type ${attributes.entries.joinToString(" ") { "${it.key}=\"${it.value}\"" }}>\n" +
                     children.joinToString("") { (it as? XMLNode)?.toString(depth + 1) ?: it.toString() } +
                     if (depth == 0) "$tabs</$type>" else "$tabs</$type>\n"
         }
@@ -31,7 +31,7 @@ class XMLNode(val type: String) {
 
     fun deepClone(): XMLNode {
         val clone = XMLNode(type)
-        clone.properties.putAll(properties)
+        clone.attributes.putAll(attributes)
         clone.children.addAll(children.map {
             if (it is XMLNode) it.deepClone()
             else it
@@ -41,7 +41,7 @@ class XMLNode(val type: String) {
 
     fun shallowClone(): XMLNode {
         val clone = XMLNode(type)
-        clone.properties.putAll(properties)
+        clone.attributes.putAll(attributes)
         clone.children.addAll(children)
         return clone
     }

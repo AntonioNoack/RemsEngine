@@ -271,7 +271,7 @@ open class XMLReader {
 
     companion object {
         @JvmStatic
-        val endElement = Any()
+        val endElement = Unit
     }
 
 }

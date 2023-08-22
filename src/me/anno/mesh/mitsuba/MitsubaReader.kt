@@ -531,7 +531,7 @@ object MitsubaReader {
 
                         // read shape / open it to the scene tree :)
                         var meshRef: FileReference = InvalidRef
-                        when (val type = child.properties["type"]) {
+                        when (val type = child.attributes["type"]) {
                             "sphere" -> {
                                 // spawn sphere
                                 meshRef = Thumbs.sphereMesh.ref

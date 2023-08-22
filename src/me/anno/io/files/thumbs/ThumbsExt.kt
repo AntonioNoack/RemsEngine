@@ -2,9 +2,9 @@ package me.anno.io.files.thumbs
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.ECSShaderLib
@@ -84,7 +84,7 @@ object ThumbsExt {
         val materials0 = materials
         val materials1 = comp?.materials
 
-        if (useMaterials && (materials0.isNotEmpty() || (materials1 != null && materials1.isNotEmpty()))) {
+        if (useMaterials && (materials0.isNotEmpty() || !materials1.isNullOrEmpty())) {
             for (index in materials0.indices) {
                 val m0 = materials1?.getOrNull(index)?.nullIfUndefined()
                 val m1 = m0 ?: materials0.getOrNull(index)
@@ -102,7 +102,6 @@ object ThumbsExt {
                 draw(shader, materialIndex)
             }
         }
-
     }
 
     fun bindShader(shader: Shader, cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f) {
@@ -276,5 +275,4 @@ object ThumbsExt {
             } else textures.all { ImageGPUCache.hasImageOrCrashed(it, timeout, true) }
         }
     }
-
 }

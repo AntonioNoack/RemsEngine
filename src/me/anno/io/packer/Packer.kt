@@ -59,6 +59,7 @@ object Packer {
     // audio  mp3
     // video  mp4
     // documents  md/svg/pdf?
+    // mesh   Rem's Engine .json
 
 
     private val LOGGER = LogManager.getLogger(Packer::class)

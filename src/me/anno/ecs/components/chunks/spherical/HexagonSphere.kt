@@ -116,7 +116,7 @@ class HexagonSphere(
 
     init {
         if (t * s != n) throw IllegalArgumentException()
-        LOGGER.debug("HexSphere-Cell-Length: ${len * (n + 1)}")
+        LOGGER.debug("HexSphere-Cell-Length: {}", len * (n + 1))
     }
 
     private fun create(pos: Vector3f, ab: Vector3f, ac: Vector3f, i: Int): Vector3f {

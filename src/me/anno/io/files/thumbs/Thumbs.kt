@@ -1,7 +1,6 @@
 package me.anno.io.files.thumbs
 
 import me.anno.Build
-import me.anno.Engine
 import me.anno.cache.data.ImageData
 import me.anno.cache.data.ImageData.Companion.imageTimeout
 import me.anno.cache.instances.OldMeshCache
@@ -18,12 +17,12 @@ import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
+import me.anno.ecs.components.shaders.SkyBoxBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
-import me.anno.engine.ECSRegistry
 import me.anno.engine.GameEngineProject
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -36,6 +35,7 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
+import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.isGFXThread
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.depthMode
@@ -57,10 +57,13 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
+import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.LateinitTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.*
@@ -85,26 +88,21 @@ import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFolderCache
-import me.anno.io.zip.InnerFolderReader
-import me.anno.io.zip.InnerPrefabFile
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.MeshUtils
 import me.anno.mesh.assimp.AnimGameItem
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
-import me.anno.utils.Clock
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex4
 import me.anno.utils.Color.white4
 import me.anno.utils.OS
-import me.anno.utils.OS.desktop
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.Warning.unused
-import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Iterators.firstOrNull
@@ -202,14 +200,14 @@ object Thumbs {
 
         if (neededSize < 1) return null
         val size = getSize(neededSize)
-        val key = ThumbnailKey(file, file.lastModified, file.isDirectory, size)
+        val lastModified = file.lastModified
+        val key = ThumbnailKey(file, lastModified, size)
 
         val texture = ImageGPUCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
             if (async) {
                 thread(name = "Thumbs/${key.file.name}") {
                     try {
-                        // LOGGER.info("Loading $file")
-                        generate(file, size) { it, exc ->
+                        generate0(file, size, key) { it, exc ->
                             callback(it)
                             exc?.printStackTrace()
                         }
@@ -219,15 +217,74 @@ object Thumbs {
                         e.printStackTrace()
                     }
                 }
-            } else generate(file, size) { it, exc ->
+            } else generate0(file, size, key) { it, exc ->
                 callback(it)
                 exc?.printStackTrace()
             }
         }?.texture
-        return when (texture) {
+        val value = when (texture) {
             is GPUFrame -> if (texture.isCreated) texture else null
             is Texture2D -> if (texture.isCreated && !texture.isDestroyed) texture else null
             else -> texture
+        }
+        if (value != null) return value
+        // return lower resolutions, if they are available
+        var size1 = size shr 1
+        while (size1 >= sizes.first()) {
+            val key1 = ThumbnailKey(file, lastModified, size1)
+            val gen = ImageGPUCache.getEntryWithoutGenerator(key1, 50) as? LateinitTexture
+            val tex = gen?.texture
+            if (tex != null) return tex
+            size1 = size1 shr 1
+        }
+        return null
+    }
+
+    @JvmStatic
+    private fun generate0(
+        srcFile: FileReference,
+        size: Int,
+        key0: ThumbnailKey,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ) {
+        // if larger texture exists in cache, use it and scale it down
+        val idx = sizes.indexOf(size) + 1
+        for (i in idx until sizes.size) {
+            val size1 = sizes[i]
+            val key1 = ThumbnailKey(srcFile, key0.lastModified, size1)
+            val gen = ImageGPUCache.getEntryWithoutGenerator(key1, 500) as? LateinitTexture
+            val tex = gen?.texture
+            if (tex != null && (tex !is Texture2D || tex.isCreated)) {
+                copyTexIfPossible(srcFile, size, tex, callback)
+                return
+            }
+        }
+        generate(srcFile, size, callback)
+    }
+
+    fun copyTexIfPossible(
+        srcFile: FileReference,
+        size: Int,
+        tex: ITexture2D,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ) {
+        val (w, h) = scaleMax(tex.width, tex.height, size)
+        if (w < 2 || h < 2) return // cannot generate texture anyway, no point in loading it
+        if (isGFXThread()) {
+            if (tex is Texture2D && tex.isDestroyed) {
+                // fail, we were too slow waiting for a GFX queue call
+                generate(srcFile, size, callback)
+            } else {
+                val newTex = Framebuffer(srcFile.name, w, h, arrayOf(TargetType.UByteTarget4))
+                useFrame(newTex, copyRenderer) {
+                    GFX.copy(tex)
+                }
+                val newTex1 = newTex.textures.first()
+                newTex.destroyExceptTextures(true)
+                callback(newTex1, null)
+            }
+        } else addGPUTask("Copy", size, size) {
+            copyTexIfPossible(srcFile, size, tex, callback)
         }
     }
 
@@ -244,7 +301,6 @@ object Thumbs {
                     callback(baseHash xor CRC64.fromInputStream(bytes.inputStream()))
                 } else callback(baseHash)
             }
-
         } else callback(baseHash)
     }
 
@@ -469,7 +525,6 @@ object Thumbs {
         renderToImage(srcFile, false, dstFile, false, colorRenderer, false, callback, w, h) {
             drawTexture(src)
         }
-
     }
 
     @JvmStatic
@@ -497,7 +552,6 @@ object Thumbs {
                 whiteTexture.clamping!!, null
             )
         }
-
     }
 
     inline fun iterateMaterials(l0: List<FileReference>, l1: List<FileReference>, run: (FileReference) -> Unit) {
@@ -602,6 +656,9 @@ object Thumbs {
             .rotateY(25.0.toRadians())
             .rotateX((-15.0).toRadians())
         rv.pipeline.defaultStage.cullMode = CullMode.BOTH
+        val sky = SkyBoxBase()
+        sky.material.shaderOverrides["finalAlpha"] = TypeValue(GLSLType.V1F, 0f)
+        rv.pipeline.skyBox = sky
         rv
     }
 
@@ -1567,32 +1624,4 @@ object Thumbs {
             } else exc?.printStackTrace()
         })
     }
-
-    @JvmStatic
-    fun testGeneration(
-        src: FileReference,
-        readAsFolder: InnerFolderReader,
-        dst: FileReference = desktop.getChild("test.png"),
-        size: Int = 512
-    ) {
-        // time for debugger to attach
-        // for (i in 0 until 100) Thread.sleep(100)
-        val clock = Clock()
-        LOGGER.info("File Size: ${src.length().formatFileSize()}")
-        readAsFolder(src) { folder, _ ->
-            folder!!
-            clock.stop("read file")
-            ECSRegistry.initWithGFX(size)
-            clock.stop("inited opengl")
-            val scene = folder.getChild("Scene.json") as InnerPrefabFile
-            useCacheFolder = true
-            generateSomething(scene.prefab, src, dst, size) { _, exc ->
-                exc?.printStackTrace()
-            }
-            clock.stop("rendered & saved image")
-            Engine.requestShutdown()
-        }
-
-    }
-
 }

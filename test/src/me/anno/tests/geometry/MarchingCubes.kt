@@ -1,6 +1,7 @@
 package me.anno.tests.geometry
 
-import me.anno.ecs.components.mesh.ProceduralMesh
+import me.anno.ecs.components.mesh.Mesh
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.fonts.signeddistfields.edges.LinearSegment
 import me.anno.image.ImageWriter
 import me.anno.image.raw.FloatImage
@@ -72,17 +73,16 @@ fun main() {
         }
     }
 
-    ProceduralMesh.testProceduralMesh("MarchingCubes") { mesh ->
-        val points = MarchingCubes.march(
-            w, h, d, values, 0f,
-            AABBf(0f, 0f, 0f, w - 1f, h - 1f, d - 1f),
-            false
-        )
-        mesh.positions = points.toFloatArray()
-        // - normals can be calculated using the field to get better results,
-        //   however we're using a random field, so we don't really have a field
-        // - both true and false can be tried here
-        mesh.calculateNormals(smooth = true)
-    }
-
+    val mesh = Mesh()
+    val points = MarchingCubes.march(
+        w, h, d, values, 0f,
+        AABBf(0f, 0f, 0f, w - 1f, h - 1f, d - 1f),
+        false
+    )
+    mesh.positions = points.toFloatArray()
+    // - normals can be calculated using the field to get better results,
+    //   however we're using a random field, so we don't really have a field
+    // - both true and false can be tried here
+    mesh.calculateNormals(smooth = true)
+    testSceneWithUI("MarchingCubes", mesh)
 }

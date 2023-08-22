@@ -32,7 +32,7 @@ object Projects {
                             val configFile = FileReference.getReference(folder, "config.json")
                             if (configFile.exists) {
                                 try {
-                                    LOGGER.debug("Reading $configFile")
+                                    LOGGER.debug("Reading {}", configFile)
                                     val config = TextReader.readFirstOrNull<GameEngineProject>(configFile, folder, true)
                                     if (config != null) {
                                         projects += ProjectHeader(config.name.ifBlank { folder.name }, folder)

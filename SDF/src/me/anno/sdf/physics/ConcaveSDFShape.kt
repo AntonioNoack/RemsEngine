@@ -67,7 +67,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
         aabbMax: javax.vecmath.Vector3d
     ) {
 
-        LOGGER.debug("Requesting ConcaveSDFShape.processAllTriangles($aabbMin, $aabbMax)")
+        LOGGER.debug("Requesting ConcaveSDFShape.processAllTriangles({}, {})", aabbMin, aabbMax)
 
         // it looks like we need to meshify our sdf before we can use bullet physics
         // to do dual contouring for a better mesh
@@ -127,8 +127,7 @@ class ConcaveSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : Concav
                 callback.processTriangle(triangle, 0, ctr++)
             }
 
-            LOGGER.debug("Generated $ctr triangles")
-
+            LOGGER.debug("Generated {} triangles", ctr)
         } else LOGGER.debug("Bounds were empty")
     }
 }

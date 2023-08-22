@@ -175,6 +175,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
     // output: float distance, int material index
 
     // local transform
+    @PositionType
     @Group("Transform")
     var position = Vector3f()
         set(value) {
@@ -183,6 +184,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
             field.set(value)
         }
 
+    @RotationType
     @Group("Transform")
     var rotation = Quaternionf()
         set(value) {
@@ -191,6 +193,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
             field.set(value)
         }
 
+    @ScaleType
     @Group("Transform")
     var scale = 1f
         set(value) {
@@ -387,11 +390,6 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
             invalidateAABB()
         }
     }
-
-    // allow manual sdf?
-    // done easy script components for sdfs?
-    // no, just use lua scripts
-    // todo allow (script) components to be added to sdf components
 
     open fun calculateBounds(dst: AABBf) {
         dst.clear()
@@ -855,7 +853,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
                 }
                 else -> {}
             }
-            LOGGER.debug("todo: apply transform $mode x $vec")
+            LOGGER.debug("todo: apply transform {} x {}", mode, vec)
             JomlPools.vec3d.sub(1)
             if (reset) self.resetBlenderInput()
         }

@@ -109,7 +109,7 @@ fun compressSVG(src: FileReference, dst: FileReference) {
     }
 
     fun attr(xml: XMLNode, filter: (String) -> Boolean) {
-        for ((k, v) in xml.properties) {
+        for ((k, v) in xml.attributes) {
             if (filter(k)) attr(k, v)
         }
     }
@@ -253,7 +253,7 @@ fun compressSVG(src: FileReference, dst: FileReference) {
             "g" -> {
                 val trI = xml["transform"]
                 val group = trI != null && trI.contains("rotate")
-                val attr = xml.properties.any { it.key != "transform" } || group
+                val attr = xml.attributes.any { it.key != "transform" } || group
                 if (group) {
                     bld.append("<g transform=\"$trI\"")
                 } else if (trI != null) {

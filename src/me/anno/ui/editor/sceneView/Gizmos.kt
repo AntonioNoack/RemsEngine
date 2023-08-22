@@ -1,16 +1,16 @@
 package me.anno.ui.editor.sceneView
 
-import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.MeshCache
+import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.GridColors.colorX
 import me.anno.engine.ui.render.GridColors.colorY
 import me.anno.engine.ui.render.GridColors.colorZ
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderState.worldScale
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -18,6 +18,7 @@ import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.types.Booleans.toInt
 import org.joml.*
 import kotlin.math.PI
 
@@ -26,65 +27,99 @@ object Gizmos {
     // todo show drag/hover of these on the specific gizmo parts
 
     val arrowRef = BundledRef("mesh/arrowX.obj")
+    val arrowRef1 = BundledRef("mesh/arrowX1.obj")
     val ringRef = BundledRef("mesh/ringX.obj")
     val scaleRef = BundledRef("mesh/scaleX.obj")
 
-    fun drawScaleGizmos(cameraTransform: Matrix4f, position: Vector3d, scale: Double, clickId: Int): Int {
-        drawMesh(cameraTransform, position, scale, clickId, scaleRef)
-        return clickId + 3
+    fun drawScaleGizmos(
+        cameraTransform: Matrix4f, position: Vector3d, scale: Double,
+        clickId: Int, chosenId: Int, md: Vector3d
+    ): Int {
+        val a = drawMesh(cameraTransform, position, scale, clickId, chosenId, md, scaleRef)
+        val b = drawMesh(cameraTransform, position, scale * 0.35, clickId + 3, chosenId, md, arrowRef1)
+        return if (b != 0) b.inv().and(7) else a
     }
 
-    fun drawRotateGizmos(cameraTransform: Matrix4f, position: Vector3d, scale: Double, clickId: Int): Int {
-        drawMesh(cameraTransform, position, scale, clickId, ringRef)
-        return clickId + 3
+    fun drawRotateGizmos(
+        cameraTransform: Matrix4f, position: Vector3d, scale: Double,
+        clickId: Int, chosenId: Int, md: Vector3d
+    ): Int {
+        return drawMesh(cameraTransform, position, scale, clickId, chosenId, md, ringRef)
     }
 
-    fun drawTranslateGizmos(cameraTransform: Matrix4f, position: Vector3d, scale: Double, clickId: Int): Int {
-        drawMesh(cameraTransform, position, scale, clickId, arrowRef)
-        return clickId + 3
+    fun drawTranslateGizmos(
+        cameraTransform: Matrix4f, position: Vector3d, scale: Double,
+        clickId: Int, chosenId: Int, md: Vector3d
+    ): Int {
+        val a = drawMesh(cameraTransform, position, scale, clickId, chosenId, md, arrowRef)
+        val b = drawMesh(cameraTransform, position, scale * 0.35, clickId + 3, chosenId, md, arrowRef1)
+        return if (b != 0) b.inv().and(7) else a
     }
 
-    fun drawMesh(cameraTransform: Matrix4f, position: Vector3d, scale: Double, clickId: Int, ref: FileReference) {
-        val mesh = MeshCache[ref] ?: return
-        drawMesh(cameraTransform, position, rotations[0], scale, colorX, clickId, mesh)
-        drawMesh(cameraTransform, position, rotations[1], scale, colorY, clickId + 1, mesh)
-        drawMesh(cameraTransform, position, rotations[2], scale, colorZ, clickId + 2, mesh)
+    fun drawMesh(
+        cameraTransform: Matrix4f, position: Vector3d, scale: Double,
+        clickId: Int, chosenId: Int, md: Vector3d, ref: FileReference
+    ): Int {
+        val mesh = MeshCache[ref] ?: return 0
+        val x = drawMesh(cameraTransform, position, rotations[0], scale, colorX, clickId, chosenId, mesh, md)
+        val y = drawMesh(cameraTransform, position, rotations[1], scale, colorY, clickId + 1, chosenId, mesh, md)
+        val z = drawMesh(cameraTransform, position, rotations[2], scale, colorZ, clickId + 2, chosenId, mesh, md)
+        return x.toInt() + y.toInt(2) + z.toInt(4)
     }
 
     // todo ui does not need lighting, and we can use pbr rendering
 
     val local = Matrix4x3d()
+    val localInv = Matrix4x3d()
+
+    val rayPos = Vector3f()
+    val rayDir = Vector3f()
 
     val rotations = arrayOf(
         Quaterniond(),
-        Quaterniond().rotateZ(+PI * 0.5),
-        Quaterniond().rotateY(-PI * 0.5)
+        Quaterniond().rotateX(+PI * 0.5).rotateY(+PI * 0.5),
+        Quaterniond().rotateX(-PI * 0.5).rotateZ(-PI * 0.5)
     )
 
     fun drawMesh(
         cameraTransform: Matrix4f,
         position: Vector3d, rotation: Quaterniond, scale: Double,
-        color: Int, clickId: Int, mesh: Mesh
-    ) = drawMesh(cameraTransform, position, rotation, scale, defaultMaterial, color, clickId, mesh)
+        color: Int, clickId: Int, chosenId: Int, mesh: Mesh, md: Vector3d
+    ): Boolean = drawMesh(
+        cameraTransform, position, rotation, scale, defaultMaterial,
+        if (clickId == chosenId) -1 else color, mesh, md
+    )
 
     fun drawMesh(
         cameraTransform: Matrix4f,
         position: Vector3d, rotation: Quaterniond, scale: Double,
-        material: Material, color: Int, clickId: Int, mesh: Mesh
-    ) {
+        material: Material, color: Int, mesh: Mesh, md: Vector3d
+    ): Boolean {
+
         val localTransform = local
-        localTransform.identity()
-        localTransform.translate(position)
-        localTransform.rotate(rotation)
-        localTransform.scale(scale)
-        drawMesh(cameraTransform, localTransform, material, color, clickId, mesh)
+        localTransform.translationRotateScale(
+            position.x, position.y, position.z,
+            rotation.x, rotation.y, rotation.z, rotation.w,
+            scale, scale, scale
+        )
+        localTransform.invert(localInv)
+
+        rayPos.set(cameraPosition)
+        rayDir.set(md)
+
+        localInv.transformPosition(rayPos)
+        localInv.transformDirection(rayDir)
+        rayDir.normalize()
+
+        val hit = Raycast.raycastTriangleMesh(mesh, rayPos, rayDir, Float.POSITIVE_INFINITY, -1)
+        drawMesh(cameraTransform, localTransform, material, color, mesh)
+        return hit
     }
 
     fun drawMesh(
         cameraTransform: Matrix4f, localTransform: Matrix4x3d,
-        material: Material, color: Int, clickId: Int, mesh: Mesh
+        material: Material, color: Int, mesh: Mesh
     ) {
-        GFX.drawnId = clickId
         val shader = (material.shader ?: pbrModelShader).value
         shader.use()
         shader.m4x4("transform", cameraTransform)
@@ -153,7 +188,5 @@ object Gizmos {
                 rectSize, rectSize, color or black
             )
         }
-
     }
-
 }

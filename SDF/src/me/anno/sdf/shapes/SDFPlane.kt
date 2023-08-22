@@ -67,7 +67,7 @@ open class SDFPlane : SDFShape() {
         smartMinBegin(builder, dstIndex)
         builder.append("pos")
         builder.append(trans.posIndex)
-        builder.append('.').append(axis)
+        builder.append('.').append("xyz"[axis.id])
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 

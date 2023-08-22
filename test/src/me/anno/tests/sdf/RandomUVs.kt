@@ -28,6 +28,7 @@ fun main() {
     fun add(array: PositionMapper, y: Float) {
         val group = Entity()
         val shape = SDFSphere()
+        shape.forMorphing = true
         shape.position.y = y
         shape.addChild(array)
         shape.addChild(SDFRandomUV())

@@ -9,7 +9,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
 import me.anno.graph.types.FlowGraph
 
-// todo remove all specific implementations with RenderGraphs, as far as possible
+// todo remove all specific implementations in RenderView with RenderGraphs, as far as possible
 // todo all-metallic / all-rough/smooth render modes
 @Suppress("unused")
 class RenderMode(

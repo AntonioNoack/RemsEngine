@@ -327,13 +327,13 @@ fun main() {
             val x1 = (ox + nj.x * scale).toInt()
             val y1 = (oy + nj.y * scale).toInt()
             gfx.drawLine(x0, y0, x1, y1)
-            LOGGER.debug("[$ni -> $nj] $distance += ${distance(ni, nj)}")
+            LOGGER.debug("[{} -> {}] {} += {}", ni, nj, distance, distance(ni, nj))
             distance += distance(ni, nj)
             x0 = x1
             y0 = y1
             ni = nj
         }
-        LOGGER.info("Distance: $distance")
+        LOGGER.info("Distance: {}", distance)
         gfx.drawString(name, w / 2, h / 2 + index * gfx.font.size)
     }
 

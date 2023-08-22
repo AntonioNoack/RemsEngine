@@ -23,6 +23,8 @@ import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.hasFlag
+import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.buttons.TextButton
@@ -44,16 +46,18 @@ import org.joml.Matrix4x3d
 import org.joml.Planed
 import org.joml.Vector3d
 import org.joml.Vector3f
+import kotlin.math.floor
 import kotlin.math.round
+import kotlin.math.sign
 import kotlin.math.tan
 
 // done controls
 // done show the scene
 // done drag stuff
-// todo translate, rotate, scale with gizmos
+// done translate, rotate, scale with gizmos
 // todo gizmos & movement for properties with @PositionAnnotation
 
-// todo advanced snapping
+// advanced snapping
 // todo mode to place it on top of things using mesh bounds
 // todo xyz keys to rotate 90° on that axis
 // todo shift for dynamic angles
@@ -75,6 +79,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     var snapX = false
     var snapY = false
     var snapZ = false
+
+    val snapRemainder = Vector3d()
 
     var snapCenter = false
 
@@ -103,8 +109,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             })
         }
         val snaps = PanelListY(style)
-        // todo separate settings panel for snapping? :)
-        // todo buttons with changing background colors for this (Snap: XYZ)
+        // todo separate snapping panel?
         snaps.add(BooleanInput("SnapX", snapX, false, style).setChangeListener { snapX = it })
         snaps.add(BooleanInput("SnapY", snapY, false, style).setChangeListener { snapY = it })
         snaps.add(BooleanInput("SnapZ", snapZ, false, style).setChangeListener { snapZ = it })
@@ -159,7 +164,6 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                     // draw its gui
                     // todo add them as normal meshes instead
                     // view.drawGizmos(sample, pos, false)
-
                 }
                 JomlPools.vec3d.sub(1)
             }
@@ -191,27 +195,49 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         }
     }
 
+    private var gizmoMask: Int = 0
     private fun drawGizmos2() {
+        val md = view.getMouseRayDirection()
+        val chosenId = when (gizmoMask) {
+            // single axis
+            1 -> 0
+            2 -> 1
+            4 -> 2
+            // multiple axes
+            3 -> 5
+            5 -> 4
+            6 -> 3
+            else -> -1
+        }
+        var newGizmoMask = 0
+        val pos = JomlPools.vec3d.create()
         for (selected0 in EditorState.selection) {
             var selected: PrefabSaveable? = selected0 as? PrefabSaveable
             while (selected != null && selected !is Entity) {
                 selected = selected.parent
             }
             // todo gizmos for sdf components
+            // todo like Unity allow more gizmos than that?
             if (selected is Entity) {
                 val scale = view.radius * 0.1
                 val transform = selected.transform.globalTransform
-                val pos = transform.getTranslation(JomlPools.vec3d.create())
+                transform.getTranslation(pos)
                 val cam = view.cameraMatrix
-                when (mode) {
-                    Mode.TRANSLATING -> Gizmos.drawTranslateGizmos(cam, pos, scale, -12)
-                    Mode.ROTATING -> Gizmos.drawRotateGizmos(cam, pos, scale, -12)
-                    Mode.SCALING -> Gizmos.drawScaleGizmos(cam, pos, scale, -12)
-                    Mode.NOTHING -> {}
+                val mask = when (mode) {
+                    Mode.TRANSLATING -> Gizmos.drawTranslateGizmos(cam, pos, scale, 0, chosenId, md)
+                    Mode.ROTATING -> Gizmos.drawRotateGizmos(cam, pos, scale, 0, chosenId, md)
+                    Mode.SCALING -> Gizmos.drawScaleGizmos(cam, pos, scale, 0, chosenId, md)
+                    Mode.NOTHING -> 0
                 }
-                JomlPools.vec3d.sub(1)
+                if (mask != 0 && Input.mouseKeysDown.isEmpty()) {
+                    newGizmoMask = mask
+                }
             }
         }
+        if (Input.mouseKeysDown.isEmpty()) {
+            gizmoMask = newGizmoMask
+        }
+        JomlPools.vec3d.sub(1)
     }
 
     open fun resetCamera() {
@@ -335,12 +361,19 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                 offset.set(dx * speed, -dy * speed, 0.0)
                 camTransform.transformDirection(offset)
 
+                val gizmoMask = gizmoMask
+                if (gizmoMask != 0) {
+                    if (!gizmoMask.hasFlag(1)) offset.x = 0.0
+                    if (!gizmoMask.hasFlag(2)) offset.y = 0.0
+                    if (!gizmoMask.hasFlag(4)) offset.z = 0.0
+                }
+
                 // rotate around the direction
                 // we could use the average mouse position as center; this probably would be easier
                 val dir = view.cameraDirection
-                val rx = (x - (this.x + this.width * 0.5)) / height
-                val ry = (y - (this.y + this.height * 0.5)) / height // [-.5,+.5]
-                val rotationAngle = 0.1f * (rx * dy - ry * dx)
+                val rx = (x - (this.x + this.width * 0.5)) // [-w/2,+w/2]
+                val ry = (y - (this.y + this.height * 0.5)) // [-h/2,+h/2]
+                val rotationAngle = kotlin.math.PI * (rx * dy - ry * dx) / (length(rx, ry) * height)
 
                 val targets2 = selectedMovables
                 val targets3 = selectedEntities + targets2
@@ -361,19 +394,38 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                                     Mode.TRANSLATING -> {
                                         val distance = camTransform.distance(global)
                                         if (distance > 0.0) {
-                                            global.translateLocal(// correct
-                                                offset.x * distance, offset.y * distance, offset.z * distance
-                                            )
+                                            // correct
+                                            offset.mul(distance)
+                                            if (snapX || snapY || snapZ) {
+                                                applySnapping(offset, snapRemainder)
+                                            }
+                                            global.translateLocal(offset)
+                                            offset.div(distance)
                                         }
                                     }
                                     Mode.ROTATING -> {
-                                        val tmpQ = JomlPools.quat4d.borrow()
-                                        tmpQ.identity().fromAxisAngleRad(dir.x, dir.y, dir.z, rotationAngle)
-                                        global.rotate(tmpQ)// correct
+                                        when (gizmoMask) {
+                                            1 -> global.rotateLocalX(rotationAngle * sign(dir.x))
+                                            2 -> global.rotateLocalY(rotationAngle * sign(dir.y))
+                                            4 -> global.rotateLocalZ(rotationAngle * sign(dir.z))
+                                            else -> {
+                                                val tmpQ = JomlPools.quat4d.borrow()
+                                                tmpQ.fromAxisAngleRad(dir.x, dir.y, dir.z, rotationAngle)
+                                                global.rotate(tmpQ)// correct
+                                            }
+                                        }
                                     }
                                     Mode.SCALING -> {
-                                        val scale = pow(2.0, (dx - dy).toDouble() / height)
-                                        global.scale(scale, scale, scale) // correct
+                                        if (gizmoMask == 0) {
+                                            val scale = pow(2.0, (dx - dy).toDouble() / height)
+                                            global.scale(scale, scale, scale) // correct
+                                        } else {
+                                            val base = 8.0
+                                            val sx = pow(base, offset.x)
+                                            val sy = pow(base, offset.y)
+                                            val sz = pow(base, offset.z)
+                                            global.scale(sx, sy, sz)
+                                        }
                                     }
                                     else -> throw NotImplementedError()
                                 }
@@ -558,6 +610,14 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     fun applySnapping(dst: Vector3d) {
+        fun snap(v: Double): Double {
+            val s = snapSize
+            return if (snapCenter) {
+                floor(v / s) * s
+            } else {
+                round(v / s) * s
+            }
+        }
         if (snapSize > 0.0) {
             if (snapX) dst.x = snap(dst.x)
             if (snapY) dst.y = snap(dst.y)
@@ -565,12 +625,24 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         }
     }
 
-    fun snap(v: Double): Double {
+    fun applySnapping(dst: Vector3d, rem: Vector3d) {
         val s = snapSize
-        return if (snapCenter) {
-            (round(v / s - 0.5f) + 0.5f) * s
-        } else {
-            round(v / s) * s
+        if (s > 0.0) {
+            if (snapX) {
+                val v = dst.x + rem.x
+                dst.x = round(v / s) * s
+                rem.x = v - dst.x
+            } else rem.x = 0.0
+            if (snapY) {
+                val v = dst.y + rem.y
+                dst.y = round(v / s) * s
+                rem.y = v - dst.y
+            } else rem.y = 0.0
+            if (snapZ) {
+                val v = dst.z + rem.z
+                dst.z = round(v / s) * s
+                rem.z = v - dst.z
+            } else rem.z = 0.0
         }
     }
 
@@ -618,5 +690,4 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     companion object {
         private val LOGGER = LogManager.getLogger(DraggingControls::class)
     }
-
 }

@@ -4,9 +4,9 @@ import me.anno.Build
 import me.anno.Engine.gameTime
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.components.anim.AnimationCache
+import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.MeshCache
-import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
@@ -285,12 +285,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             entry.hasGenerator = true
             if (asyncGenerator) {
                 thread(name = "$name<$key0,$key1>") {
-                    val value = generateSafely(key0, key1, generator)
-                    entry.data = value as? ICacheData
-                    if (value is Exception) throw value
-                    if (entry.hasBeenDestroyed) {
-                        LOGGER.warn("Value for $name<$key0,$key1> was directly destroyed")
-                        entry.data?.destroy()
+                    try {
+                        val value = generateSafely(key0, key1, generator)
+                        entry.data = value as? ICacheData
+                        if (value is Exception) throw value
+                        if (entry.hasBeenDestroyed) {
+                            LOGGER.warn("Value for $name<$key0,$key1> was directly destroyed")
+                            entry.data?.destroy()
+                        }
+                    } catch (ignored: ShutdownException) {
+                        // don't care
                     }
                 }
             } else {
@@ -302,7 +306,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         waitMaybe(asyncGenerator, entry, key0, key1)
         return if (entry.hasBeenDestroyed) null else entry.data
-
     }
 
     fun <V> getEntryWithCallback(
@@ -422,7 +425,6 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         if (!async && entry.generatorThread != Thread.currentThread()) entry.waitForValue(key)
         return if (entry.hasBeenDestroyed) null else entry.data
-
     }
 
     fun <V> getEntry(key: V, timeoutMillis: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData?) =
@@ -508,7 +510,5 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(CacheSection::class)
-
     }
-
 }

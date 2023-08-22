@@ -48,8 +48,11 @@ open class SDFBox : SDFSmoothShape() {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdBox)
         smartMinBegin(builder, dstIndex)
-        builder.append(if (forMorphing) "sdBox(pos" else "sddBox(pos").append(trans.posIndex)
-        builder.append(",dir").append(trans.posIndex)
+        if (forMorphing) {
+            builder.append("sdBox(pos").append(trans.posIndex)
+        } else {
+            builder.append("sddBox(pos").append(trans.posIndex).append(",dir").append(trans.posIndex)
+        }
         builder.append(',')
         if (dynamicSize || globalDynamic) builder.appendUniform(uniforms, halfExtends)
         else builder.appendVec(halfExtends)

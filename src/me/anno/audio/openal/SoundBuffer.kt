@@ -69,7 +69,6 @@ class SoundBuffer() : ICacheData {
         data = waveData.data!!.asShortBuffer()
         format = waveData.format
         alBufferData(pointer, waveData.format, waveData.data!!, waveData.sampleRate)
-        LOGGER.debug("wav: $format")
         waveData.destroy()
         ALBase.check()
     }
@@ -84,7 +83,6 @@ class SoundBuffer() : ICacheData {
             val pcm = readVorbis(file, info)
             val format = if (info.channels() == 1) AL_FORMAT_MONO16 else AL_FORMAT_STEREO16
             ensurePointer()
-            LOGGER.debug("ogg: $format")
             alBufferData(pointer, format, pcm, info.sample_rate())
             ALBase.check()
         }

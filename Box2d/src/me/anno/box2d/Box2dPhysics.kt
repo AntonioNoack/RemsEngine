@@ -61,7 +61,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
     override fun invalidate(entity: Entity) {
         val rb = entity.getComponent(Rigidbody2d::class, false)?.entity ?: return
-        if (printValidations) LOGGER.debug("invalidated ${System.identityHashCode(this)}")
+        if (printValidations) LOGGER.debug("Invalidated {}", System.identityHashCode(this))
         invalidEntities.add(rb)
     }
 
