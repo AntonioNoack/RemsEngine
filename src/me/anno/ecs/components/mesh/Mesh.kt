@@ -6,6 +6,8 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.mesh.callbacks.LineIndexCallback
+import me.anno.ecs.components.mesh.callbacks.TriangleIndexCallback
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderMode
@@ -405,7 +407,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         JomlPools.vec3f.sub(3)
     }
 
-    fun forEachTriangleIndex(callback: (a: Int, b: Int, c: Int) -> Unit) {
+    fun forEachTriangleIndex(callback: TriangleIndexCallback) {
         val positions = positions ?: return
         val indices = indices
         if (indices == null) {
@@ -413,13 +415,13 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                 GL_TRIANGLES -> {
                     for (i in 0 until positions.size / 9) {
                         val i3 = i * 3
-                        callback(i3, i3 + 1, i3 + 2)
+                        callback.run(i3, i3 + 1, i3 + 2)
                     }
                 }
                 GL_TRIANGLE_STRIP -> {
                     for (i in 2 until positions.size / 3) {
                         val i3 = i * 3
-                        callback(i3, i3 + 1, i3 + 2)
+                        callback.run(i3, i3 + 1, i3 + 2)
                     }
                 }
             }
@@ -429,7 +431,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             when (drawMode) {
                 GL_TRIANGLES -> {
                     for (i in indices.indices step 3) {
-                        callback(indices[i], indices[i + 1], indices[i + 2])
+                        callback.run(indices[i], indices[i + 1], indices[i + 2])
                     }
                 }
                 GL_TRIANGLE_STRIP -> {
@@ -439,9 +441,9 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         val c = indices[i]
                         if (a != b && b != c && c != a) {
                             if (i.hasFlag(1)) {
-                                callback(a, c, b)
+                                callback.run(a, c, b)
                             } else {
-                                callback(a, b, c)
+                                callback.run(a, b, c)
                             }
                         }
                         a = b
@@ -452,7 +454,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         }
     }
 
-    fun forEachLineIndex(callback: (a: Int, b: Int) -> Unit) {
+    fun forEachLineIndex(callback: LineIndexCallback) {
         val positions = positions ?: return
         val indices = indices
         if (indices == null) {
@@ -460,25 +462,25 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             when (drawMode) {
                 GL_TRIANGLES -> {
                     for (i3 in 0 until numPoints - 2 step 3) {
-                        callback(i3, i3 + 1)
-                        callback(i3 + 1, i3 + 2)
-                        callback(i3 + 2, i3)
+                        callback.run(i3, i3 + 1)
+                        callback.run(i3 + 1, i3 + 2)
+                        callback.run(i3 + 2, i3)
                     }
                 }
                 GL_TRIANGLE_STRIP -> {
                     for (c in 2 until numPoints) {
-                        callback(c - 2, c)
-                        callback(c - 1, c)
+                        callback.run(c - 2, c)
+                        callback.run(c - 1, c)
                     }
                 }
                 GL_LINES -> {
                     for (i in 0 until numPoints step 2) {
-                        callback(i, i + 1)
+                        callback.run(i, i + 1)
                     }
                 }
                 GL_LINE_STRIP -> {
                     for (i in 1 until numPoints) {
-                        callback(i - 1, i)
+                        callback.run(i - 1, i)
                     }
                 }
             }
@@ -489,9 +491,9 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         val a = indices[i]
                         val b = indices[i + 1]
                         val c = indices[i + 2]
-                        callback(a, b)
-                        callback(b, c)
-                        callback(c, a)
+                        callback.run(a, b)
+                        callback.run(b, c)
+                        callback.run(c, a)
                     }
                 }
                 GL_TRIANGLE_STRIP -> {
@@ -500,8 +502,8 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                     for (i in 2 until indices.size) {
                         val c = indices[i]
                         if (a != b && a != c && b != c) {
-                            callback(a, c)
-                            callback(b, c)
+                            callback.run(a, c)
+                            callback.run(b, c)
                         }
                         a = b
                         b = c
@@ -509,14 +511,14 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                 }
                 GL_LINES -> {
                     for (i in 0 until indices.size - 1 step 2) {
-                        callback(indices[i], indices[i + 1])
+                        callback.run(indices[i], indices[i + 1])
                     }
                 }
                 GL_LINE_STRIP -> {
                     var a = indices[0]
                     for (i in 1 until indices.size) {
                         val b = indices[i]
-                        if (a != b) callback(a, b)
+                        if (a != b) callback.run(a, b)
                         a = b
                     }
                 }

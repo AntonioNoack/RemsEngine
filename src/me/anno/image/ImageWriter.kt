@@ -1,6 +1,9 @@
 package me.anno.image
 
 import me.anno.gpu.shader.effects.GaussianBlur.gaussianBlur
+import me.anno.gpu.texture.callbacks.F2F
+import me.anno.gpu.texture.callbacks.I3F
+import me.anno.gpu.texture.callbacks.I3I
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.image.raw.IntImage
@@ -59,45 +62,15 @@ object ImageWriter {
     }
 
     @JvmStatic
-    inline fun writeRGBImageByte3(
-        w: Int,
-        h: Int,
-        name: String,
-        minPerThread: Int,
-        crossinline getRGB: (x: Int, y: Int, i: Int) -> Triple<Byte, Byte, Byte>
-    ): Unit = writeRGBImageInt(w, h, name, minPerThread) { x, y, i ->
-        val (r, g, b) = getRGB(x, y, i)
-        rgba(r, g, b, -1)
-    }
-
-    @JvmStatic
-    inline fun writeRGBImageInt3(
-        w: Int,
-        h: Int,
-        name: String,
-        minPerThread: Int,
-        crossinline getRGB: (x: Int, y: Int, i: Int) -> Triple<Int, Int, Int>
-    ) = writeRGBImageInt(w, h, name, minPerThread) { x, y, i ->
-        val (r, g, b) = getRGB(x, y, i)
-        rgba(r, g, b, 255)
-    }
-
-    @JvmStatic
-    inline fun writeRGBImageInt(
-        w: Int,
-        h: Int,
-        name: String,
-        minPerThread: Int,
-        crossinline getRGB: (x: Int, y: Int, i: Int) -> Int
+    fun writeRGBImageInt(
+        w: Int, h: Int, name: String,
+        minPerThread: Int, getRGB: I3I // x,y,i -> color
     ): Unit = writeImageInt(w, h, false, name, minPerThread, getRGB)
 
     @JvmStatic
-    inline fun writeRGBAImageInt(
-        w: Int,
-        h: Int,
-        name: String,
-        minPerThread: Int,
-        crossinline getRGB: (x: Int, y: Int, i: Int) -> Int
+    fun writeRGBAImageInt(
+        w: Int, h: Int, name: String,
+        minPerThread: Int, getRGB: I3I
     ): Unit = writeImageInt(w, h, true, name, minPerThread, getRGB)
 
     @JvmStatic
@@ -182,29 +155,29 @@ object ImageWriter {
     }
 
     @JvmStatic
-    inline fun writeImageFloat(
+    fun writeImageFloat(
         w: Int, h: Int, name: String,
         minPerThread: Int,
         normalize: Boolean,
-        crossinline getRGB: (x: Int, y: Int, i: Int) -> Float
+        getRGB: I3F // x,y,i -> v
     ) {
         return writeImageFloat(w, h, name, minPerThread, normalize, LinearColorMap.default, getRGB)
     }
 
     @JvmStatic
-    inline fun writeImageFloat(
+    fun writeImageFloat(
         w: Int, h: Int, name: String,
         minPerThread: Int,
         normalize: Boolean,
         colorMap: ColorMap,
-        crossinline getRGB: (x: Int, y: Int, i: Int) -> Float
+        getRGB: I3F // x,y,i -> v
     ) {
         val values = FloatArray(w * h)
         processBalanced2d(0, 0, w, h, tileSize, minPerThread) { x0, y0, x1, y1 ->
             for (y in y0 until y1) {
                 var i = x0 + y * w
                 for (x in x0 until x1) {
-                    values[i] = getRGB(x, y, i)
+                    values[i] = getRGB.run(x, y, i)
                     i++
                 }
             }
@@ -225,20 +198,22 @@ object ImageWriter {
     )
 
     @JvmStatic
-    inline fun writeImageFloatMSAA(
+    fun writeImageFloatMSAA(
         w: Int, h: Int, name: String,
         minPerThread: Int,
         normalize: Boolean,
-        crossinline getValue: (x: Float, y: Float) -> Float
-    ) = writeImageFloatMSAA(w, h, name, minPerThread, normalize, LinearColorMap.default, getValue)
+        getValue: F2F // x,y -> v
+    ) {
+        writeImageFloatMSAA(w, h, name, minPerThread, normalize, LinearColorMap.default, getValue)
+    }
 
     @JvmStatic
-    inline fun writeImageFloatMSAA(
+    fun writeImageFloatMSAA(
         w: Int, h: Int, name: String,
         minPerThread: Int,
         normalize: Boolean,
         colorMap: ColorMap,
-        crossinline getValue: (x: Float, y: Float) -> Float
+        getValue: F2F
     ) {
         val samples = 8
         val values = FloatArray(w * h * samples)
@@ -250,9 +225,10 @@ object ImageWriter {
                     val yf = y.toFloat()
                     val k = i * samples
                     for (j in 0 until samples) {
-                        values[k + j] = getValue(
-                            xf + MSAAx8[j * 2],
-                            yf + MSAAx8[j * 2 + 1]
+                        val j2 = j shl 1
+                        values[k + j] = getValue.run(
+                            xf + MSAAx8[j2],
+                            yf + MSAAx8[j2 + 1]
                         )
                     }
                     i++
@@ -284,10 +260,10 @@ object ImageWriter {
     }
 
     @JvmStatic
-    inline fun writeImageInt(
+    fun writeImageInt(
         w: Int, h: Int, alpha: Boolean, name: String,
         minPerThread: Int,
-        crossinline getRGB: (x: Int, y: Int, i: Int) -> Int
+        getRGB: I3I
     ) {
         val img = IntImage(w, h, alpha)
         val buffer = img.data
@@ -295,7 +271,7 @@ object ImageWriter {
             for (y in y0 until y1) {
                 var i = y * w + x0
                 for (x in x0 until x1) {
-                    buffer[i] = getRGB(x, y, i)
+                    buffer[i] = getRGB.run(x, y, i)
                     i++
                 }
             }
@@ -500,9 +476,7 @@ object ImageWriter {
             val py = (ay + by + cy) / 3
 
             gfx.fillOval(px - 2, py - 2, 5, 5)
-
         }
         bi.write(desktop.getChild(name))
     }
-
 }

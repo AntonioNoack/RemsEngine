@@ -99,10 +99,7 @@ class LineSequence : IntSequence {
     }
 
     fun forEachChar(
-        x0: Int,
-        y0: Int,
-        x1: Int,
-        y1: Int,
+        x0: Int, y0: Int, x1: Int, y1: Int,
         run: (index: Int, lineIndex: Int, indexInLine: Int, char: Int) -> Unit
     ) {
         for (lineIndex in max(y0, 0) until min(y1, lineCount)) {
@@ -115,11 +112,11 @@ class LineSequence : IntSequence {
         }
     }
 
-    fun insert(index: Int, Int: Int) {
+    fun insert(index: Int, char: Int) {
         synchronized(this) {
             val lineIndex = getLineIndexAt(index)
             val indexInLine = index - indexTable[lineIndex]
-            insert(lineIndex, indexInLine, Int)
+            insert(lineIndex, indexInLine, char)
         }
     }
 

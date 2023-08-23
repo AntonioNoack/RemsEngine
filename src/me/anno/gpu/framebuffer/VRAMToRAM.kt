@@ -21,6 +21,14 @@ import kotlin.math.min
 
 object VRAMToRAM {
 
+    fun interface SectionRenderer {
+        fun render(x: Int, y: Int, width: Int, height: Int)
+    }
+
+    fun interface LineFiller {
+        fun fill(length: Int, sourceIndex: Int, buffer: ByteBuffer, bufferIndex: Int)
+    }
+
     /**
      * this is a function, which works in screen space rather than UI space!!
      * */
@@ -61,8 +69,8 @@ object VRAMToRAM {
         clearColor: Vector4f?,
         flipY: Boolean,
         withAlpha: Boolean,
-        renderSection: (x: Int, y: Int, w: Int, h: Int) -> Unit
-    ) = createImage(IntImage(width, height, withAlpha), clearColor, flipY, renderSection)
+        renderer: SectionRenderer
+    ): IntImage = createImage(IntImage(width, height, withAlpha), clearColor, flipY, renderer)
 
     /**
      * copies a framebuffer into an int image;
@@ -72,18 +80,17 @@ object VRAMToRAM {
         image: IntImage,
         clearColor: Vector4f?,
         flipY: Boolean,
-        renderSection: (x: Int, y: Int, w: Int, h: Int) -> Unit
+        renderer: SectionRenderer
     ): IntImage {
         val dataBuffer = image.data
         cloneFromFramebuffer(
             image.width, image.height,
-            clearColor, flipY, renderSection
+            clearColor, flipY, renderer
         ) { length, sourceIndex, buffer, bufferIndex ->
             for (x in 0 until length) {
-                val si = (x + sourceIndex) * 4
-                val di = x + bufferIndex
-                val argb = Color.rgba(buffer[si], buffer[si + 1], buffer[si + 2], buffer[si + 3])
-                dataBuffer[di] = argb
+                val srcI = (x + sourceIndex) * 4
+                val dstI = x + bufferIndex
+                dataBuffer[dstI] = Color.rgba(buffer[srcI], buffer[srcI + 1], buffer[srcI + 2], buffer[srcI + 3])
             }
         }
         return image
@@ -93,8 +100,8 @@ object VRAMToRAM {
         width: Int, height: Int,
         clearColor: Vector4f?,
         flipY: Boolean,
-        renderSection: (x: Int, y: Int, w: Int, h: Int) -> Unit,
-        fillLine: (length: Int, sourceIndex: Int, buffer: ByteBuffer, bufferIndex: Int) -> Unit
+        renderer: SectionRenderer,
+        lineFiller: LineFiller
     ) {
 
         GFX.check()
@@ -120,7 +127,7 @@ object VRAMToRAM {
                     val partH = min(hi, height - y0)
 
                     if (clearColor != null) NullFramebuffer.clearColor(clearColor)
-                    renderSection(x0, y0, wi, hi)
+                    renderer.render(x0, y0, wi, hi)
 
                     // wait for everything to be drawn
                     glFlush()
@@ -136,7 +143,7 @@ object VRAMToRAM {
                     for (y in 0 until partH) {
                         val srcIndex = partW * y
                         val dstIndex = x0 + width * (if (flipY) hm1 - (y0 + y) else y0 + y)
-                        fillLine(partW, srcIndex, buffer, dstIndex)
+                        lineFiller.fill(partW, srcIndex, buffer, dstIndex)
                     }
                 }
             }

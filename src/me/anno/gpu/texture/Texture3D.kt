@@ -15,11 +15,12 @@ import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
+import me.anno.gpu.texture.callbacks.I3B
+import me.anno.gpu.texture.callbacks.I3I
 import me.anno.image.Image
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL43C.glObjectLabel
-import org.lwjgl.opengl.GL45C
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -162,7 +163,7 @@ open class Texture3D(
         bufferPool.returnBuffer(byteBuffer)
     }
 
-    fun createMonochrome(getValue: (x: Int, y: Int, z: Int) -> Byte) {
+    fun createMonochrome(getValue: I3B) {
         val w = width
         val h = height
         val d = depth
@@ -171,7 +172,7 @@ open class Texture3D(
         for (z in 0 until d) {
             for (y in 0 until h) {
                 for (x in 0 until w) {
-                    byteBuffer.put(getValue(x, y, z))
+                    byteBuffer.put(getValue.run(x, y, z))
                 }
             }
         }
@@ -180,7 +181,7 @@ open class Texture3D(
         bufferPool.returnBuffer(byteBuffer)
     }
 
-    fun createRGBA8(getValue: (x: Int, y: Int, z: Int) -> Int) {
+    fun createRGBA8(getValue: I3I) {
         val w = width
         val h = height
         val d = depth
@@ -189,7 +190,7 @@ open class Texture3D(
         for (z in 0 until d) {
             for (y in 0 until h) {
                 for (x in 0 until w) {
-                    byteBuffer.putInt(getValue(x, y, z))
+                    byteBuffer.putInt(getValue.run(x, y, z))
                 }
             }
         }
@@ -381,5 +382,4 @@ open class Texture3D(
             return newValue
         }
     }
-
 }

@@ -279,12 +279,7 @@ object GFX {
         x2: Int, y2: Int, x3: Int, y3: Int,
         render: (x0: Int, y0: Int, x1: Int, y1: Int) -> Unit
     ) {
-        clip2Save(
-            max(x0, x2),
-            max(y0, y2),
-            min(x1, x3),
-            min(y1, y3)
-        ) {
+        clip2Save(max(x0, x2), max(y0, y2), min(x1, x3), min(y1, y3)) {
             render(x2, y2, x3, y3)
         }
     }
