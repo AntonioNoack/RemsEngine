@@ -33,13 +33,10 @@ object JPGThumbnails {
     }
 
     private fun findStart(data: ByteArray): Int {
-        var i = 2
-        val li = data.size - 1
-        while (i < li) {
+        for (i in 2 until data.size - 1) {
             if (data[i] == 0xff.toByte() && data[i + 1] == 0xd8.toByte()) {
                 return i
             }
-            i++
         }
         return 0
     }
@@ -59,5 +56,4 @@ object JPGThumbnails {
         }
         return null
     }
-
 }

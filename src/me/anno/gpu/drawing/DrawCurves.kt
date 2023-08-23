@@ -11,6 +11,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths
+import me.anno.maths.Maths.convertABGR2ARGB
 import java.nio.ByteBuffer
 import kotlin.math.hypot
 
@@ -172,11 +173,7 @@ object DrawCurves {
 
     fun ByteBuffer.putRGBA(v: Int): ByteBuffer {
         // argb -> rgba -> abgr
-        val agMask = 0xff00ff00.toInt()
-        val r = v.shr(16).and(0xff)
-        val ag = v.and(agMask)
-        val b = v.and(0xff)
-        return putInt(ag or r or b.shl(16))
+        return putInt(convertABGR2ARGB(v))
     }
 
     fun drawLine(

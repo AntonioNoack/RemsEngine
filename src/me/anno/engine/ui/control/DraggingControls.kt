@@ -219,7 +219,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             // todo gizmos for sdf components
             // todo like Unity allow more gizmos than that?
             if (selected is Entity) {
-                val scale = view.radius * 0.1
+                val scale = view.radius * 0.15
                 val transform = selected.transform.globalTransform
                 transform.getTranslation(pos)
                 val cam = view.cameraMatrix

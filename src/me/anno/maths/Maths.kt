@@ -559,7 +559,7 @@ object Maths {
 
     @JvmStatic
     fun convertARGB2RGBA(i: Int): Int {
-        return i.shl(8) or i.ushr(24)
+        return i.ushr(24) or i.shl(8)
     }
 
     @JvmStatic
@@ -569,7 +569,7 @@ object Maths {
 
     @JvmStatic
     fun convertABGR2ARGB(i: Int): Int {
-        return i.and(0xff00ff00.toInt()) or i.and(0xff0000).shr(16) or i.and(0xff).shl(16)
+        return i.and(0xff00ff00.toInt()) or i.shr(16).and(0xff) or i.and(0xff).shl(16)
     }
 
     @JvmStatic

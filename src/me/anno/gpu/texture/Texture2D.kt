@@ -21,6 +21,7 @@ import me.anno.image.Image
 import me.anno.image.ImageTransform
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.convertABGR2ARGB
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool
@@ -1320,26 +1321,16 @@ open class Texture2D(
         @JvmStatic
         fun switchRGB2BGR(values: IntArray) {
             // convert argb to abgr
-            val agMask = 0xff00ff00.toInt()
             for (i in values.indices) {
-                val v = values[i]
-                val r = v.shr(16).and(0xff)
-                val ag = v.and(agMask)
-                val b = v.and(0xff)
-                values[i] = ag or r or b.shl(16)
+                values[i] = convertABGR2ARGB(values[i])
             }
         }
 
         @JvmStatic
         fun switchRGB2BGR(values: IntBuffer) {
             // convert argb to abgr
-            val agMask = 0xff00ff00.toInt()
             for (i in 0 until values.limit()) {
-                val v = values[i]
-                val r = v.shr(16).and(0xff)
-                val ag = v.and(agMask)
-                val b = v.and(0xff)
-                values.put(i, ag or r or b.shl(16))
+                values.put(i, convertABGR2ARGB(values[i]))
             }
         }
 

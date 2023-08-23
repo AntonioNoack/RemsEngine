@@ -14,14 +14,15 @@ import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
+import me.anno.gpu.texture.Texture2D.Companion.switchRGB2BGR
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.image.Image
+import me.anno.maths.Maths.convertARGB2RGBA
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL14
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL43C.glObjectLabel
-import org.lwjgl.opengl.GL45C
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -110,18 +111,11 @@ open class Texture2DArray(
         // todo we could detect monochrome and such :)
         val intData = img.createIntImage().data
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            for (i in intData.indices) {// argb -> abgr
-                val argb = intData[i]
-                val r = argb.shr(16) and 0xff
-                val b = (argb and 0xff).shl(16)
-                intData[i] = (argb and 0xff00ff00.toInt()) or r or b
-            }
+            // argb -> abgr
+            switchRGB2BGR(intData)
         } else {
             for (i in intData.indices) {// argb -> rgba
-                val argb = intData[i]
-                val a = argb.shr(24) and 255
-                val rgb = argb.and(0xffffff) shl 8
-                intData[i] = rgb or a
+                intData[i] = convertARGB2RGBA(intData[i])
             }
         }
         if (sync) createRGBA8(intData)
@@ -140,18 +134,11 @@ open class Texture2DArray(
             i0 += data.size
         }
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-            for (i in intData.indices) {// argb -> abgr
-                val argb = intData[i]
-                val r = argb.shr(16) and 0xff
-                val b = (argb and 0xff).shl(16)
-                intData[i] = (argb and 0xff00ff00.toInt()) or r or b
-            }
+            // argb -> abgr
+            switchRGB2BGR(intData)
         } else {
             for (i in intData.indices) {// argb -> rgba
-                val argb = intData[i]
-                val a = argb.shr(24) and 255
-                val rgb = argb.and(0xffffff) shl 8
-                intData[i] = rgb or a
+                intData[i] = convertARGB2RGBA(intData[i])
             }
         }
         if (sync) createRGBA8(intData)
@@ -427,5 +414,4 @@ open class Texture2DArray(
             return newValue
         }
     }
-
 }
