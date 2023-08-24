@@ -340,7 +340,7 @@ open class Texture3D(
         drawSlice(x2, y2, z0 / maxOf(1f, depth - 1f), withAlpha)
         if (z1 > z0) {
             // todo we have to draw two slices
-            // drawSlice(x2, y2, z0 / maxOf(1f, d - 1f), withAlpha)
+            // drawSlice(x2, y2, z0 / maxOf(1f, depth - 1f), withAlpha)
         }
     }
 

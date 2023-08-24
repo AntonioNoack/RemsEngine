@@ -46,11 +46,9 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
     var progress = 0f
 
-    override fun executeAction() {
+    override fun onEnterState(oldState: StateNode?) {
         progress = getInput(START) as Float // start time
         setOutput(progress, 1)
-        // throws
-        super.executeAction()
     }
 
     fun getDuration(): Float {

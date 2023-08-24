@@ -14,7 +14,14 @@ import me.anno.utils.Clock
 
 object DefaultConfig : StringMap() {
 
+    /**
+     * The default style, initialized by config
+     * */
     var style: Style = Style("", "")
+        get() {
+            onSyncAccess() // ensure default style is initialized
+            return field
+        }
 
     private var lastProjectName: String? = null
 
@@ -53,7 +60,6 @@ object DefaultConfig : StringMap() {
 
         // not completely true; is loading some classes, too
         tick.stop("reading base style")
-
     }
 
     fun defineDefaultFileAssociations() {
@@ -85,7 +91,6 @@ object DefaultConfig : StringMap() {
         )
         addImportMappings("Asset", *UnityReader.unityExtensions.toTypedArray())
         addImportMappings("Executable", "exe", "lib", "dll", "pyd", "jar")
-
     }
 
     /*fun save() {
@@ -105,5 +110,4 @@ object DefaultConfig : StringMap() {
     val defaultFontName get() = this["defaultFont"] as? String ?: "Verdana"
     val defaultFont get() = Font(defaultFontName, 15f, false, false)
     val defaultFont2 get() = Font(defaultFontName, 25f, false, false)
-
 }

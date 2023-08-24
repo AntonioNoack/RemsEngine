@@ -63,6 +63,7 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { ValueNode("Int") },
             { ValueNode("Long") },
             { ValueNode("Boolean") },
+            { ValueNode("String") },
             { ConfigGetBoolNode() },
             { ConfigGetIntNode() },
             { ConfigGetFloatNode() },

@@ -1,6 +1,7 @@
 package me.anno.ui.base.buttons
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.getTextSize
@@ -88,18 +89,21 @@ open class TextButton(
 
         drawBackground(x0, y0, x1, y1)
 
+        val text = text
         val widthLimit = if (breaksIntoMultiline) this.width else -1
         val size = getTextSize(font, text, widthLimit, heightLimit)
         val textColor = textColor
+        val tx = x + (width - getSizeX(size)) / 2
+        val ty = y + (height - getSizeY(size)) / 2
         DrawTexts.drawText(
-            x + (width - getSizeX(size)) / 2,
-            y + (height - getSizeY(size)) / 2,
-            font, text, textColor.withAlpha(
+            tx, ty, font, text, textColor.withAlpha(
                 if (isEnabled && isInputAllowed) textColor.a()
                 else textColor.a() / 2
             ), backgroundColor, widthLimit, heightLimit
         )
 
+        val bi = DrawRectangles.startBatch()
+        // draw button border
         drawRect(
             x + width - borderSize.right, y, borderSize.right, height,
             getColor(isHovered, mouseDown, rightColor, leftColor)
@@ -110,7 +114,7 @@ open class TextButton(
         ) // bottom
         drawRect(x, y, borderSize.left, height, getColor(isHovered, mouseDown, leftColor, rightColor)) // left
         drawRect(x, y, width, borderSize.top, getColor(isHovered, mouseDown, topColor, bottomColor)) // top
-
+        DrawRectangles.finishBatch(bi)
     }
 
     fun getColor(isHovered: Boolean, mouseDown: Boolean, base: Int, alternative: Int): Int {
@@ -143,5 +147,4 @@ open class TextButton(
     }
 
     override val className: String get() = "TextButton"
-
 }

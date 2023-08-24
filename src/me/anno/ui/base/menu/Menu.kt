@@ -2,10 +2,12 @@ package me.anno.ui.base.menu
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.Window
@@ -54,7 +56,7 @@ object Menu {
         return window
     }
 
-    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit, onNo: () -> Unit) : Window? {
+    fun ask(windowStack: WindowStack, question: NameDesc, onYes: () -> Unit, onNo: () -> Unit): Window? {
         val window = openMenu(
             windowStack, question, listOf(
                 MenuOption(NameDesc("Yes", "", "ui.yes"), onYes),
@@ -122,7 +124,6 @@ object Menu {
         panel.requestFocus()
         window.drawDirectly = true
         return window
-
     }
 
     fun close(panel: Panel) {
@@ -149,6 +150,25 @@ object Menu {
 
         val list = ArrayList<Panel>()
 
+        // fast action letters: distributed to the first actions
+        var usedLetters = 0
+        val extraKeyListeners = HashMap<Char, () -> Boolean>()
+
+        fun addFastActionLetters(name: String): Int {
+            for (i in name.indices) {
+                val letter = name[i]
+                val lcLetter = letter.lowercaseChar()
+                if (lcLetter in 'a'..'z') {
+                    val mask = 1 shl (lcLetter.code - 'a'.code)
+                    if (!usedLetters.hasFlag(mask)) {
+                        usedLetters = usedLetters or mask
+                        return i
+                    }
+                }
+            }
+            return -1
+        }
+
         val padding = 4
         for (index in options.indices) {
             val option = options[index]
@@ -162,7 +182,24 @@ object Menu {
                 }
 
                 option.isEnabled && action != null -> {
-                    val button = TextPanel(name, style)
+                    val magicIndex = addFastActionLetters(name)
+                    val button = object : TextPanel(name, style) {
+                        override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                            super.onDraw(x0, y0, x1, y1)
+                            if (magicIndex in text.indices) {
+                                underline(magicIndex, magicIndex + 1)
+                            }
+                        }
+                    }
+                    if (magicIndex >= 0) {
+                        val char = name[magicIndex].lowercaseChar()
+                        extraKeyListeners[char] = {
+                            if (action(MouseButton.LEFT, false)) {
+                                close(button)
+                                true
+                            } else false
+                        }
+                    }
                     button.addOnClickListener { _, _, mouseButton, long ->
                         if (action(mouseButton, long)) {
                             close(button)
@@ -175,7 +212,15 @@ object Menu {
 
                 option.isEnabled && option is ComplexMenuGroup -> {
                     lateinit var button: ComplexMenuGroupPanel
-                    button = ComplexMenuGroupPanel(option, { close(button) }, style)
+                    val magicIndex = addFastActionLetters(name)
+                    button = ComplexMenuGroupPanel(option, magicIndex, { close(button) }, style)
+                    if (magicIndex >= 0) {
+                        val char = name[magicIndex].lowercaseChar()
+                        extraKeyListeners[char] = {
+                            button.openMenu()
+                            false
+                        }
+                    }
                     styleComplexEntry(button, option, padding, true)
                     list += button
                 }
@@ -193,38 +238,52 @@ object Menu {
             }
         }
 
-        return openMenuByPanels(windowStack, x, y, title, list)!!
-
+        return openMenuByPanels(windowStack, x, y, title, list, extraKeyListeners)!!
     }
 
     @Suppress("unused")
-    fun openMenuByPanels(windowStack: WindowStack, title: NameDesc, panels: List<Panel>): Window? {
+    fun openMenuByPanels(
+        windowStack: WindowStack,
+        title: NameDesc,
+        panels: List<Panel>,
+        extraKeyListeners: Map<Char, () -> Boolean> = emptyMap(),
+    ): Window? {
         // GFX.updateMousePosition()
         // windowStack.updateMousePosition(window)
         return openMenuByPanels(
             windowStack,
             windowStack.mouseXi - paddingX,
             windowStack.mouseYi - paddingY,
-            title, panels
+            title, panels, extraKeyListeners
         )
     }
 
     fun openMenuByPanels(
         windowStack: WindowStack,
-        x: Int,
-        y: Int,
+        x: Int, y: Int,
         title: NameDesc,
-        panels: List<Panel>
+        panels: List<Panel>,
+        extraKeyListeners: Map<Char, () -> Boolean> = emptyMap(),
     ): Window? {
 
         GFX.loadTexturesSync.push(true) // to calculate the correct size, which is needed for correct placement
 
         if (panels.isEmpty()) return null
+
         val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)
         list += WrapAlign.LeftTop
 
-        val container = ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN)
+        val container = object : ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN) {
+            override fun onCharTyped(x: Float, y: Float, key: Int) {
+                val window = window
+                val char = key.toChar()
+                val entry = extraKeyListeners[char.lowercaseChar()]
+                if (window != null && entry?.invoke() == true) {
+                    close(this)
+                } else super.onCharTyped(x, y, key)
+            }
+        }
         container += WrapAlign.LeftTop
 
         val window = Window(container, isTransparent = false, isFullscreen = false, windowStack, 1, 1)
@@ -233,43 +292,21 @@ object Menu {
         val titleValue = title.name
         if (titleValue.isNotEmpty()) {
             // make this window draggable
-            // todo make it resizable somehow...
             val titlePanel = object : TextPanel(titleValue, style) {
-                var leftDown = false
-                var rightDown = false
-                override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-                    if (button.isLeft) leftDown = true
-                    if (button.isRight) rightDown = true
-                }
-
-                override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-                    if (button.isLeft) leftDown = false
-                    if (button.isRight) rightDown = false
-                }
-
                 override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-                    if (leftDown) {
+                    if (Input.isLeftDown) {
                         // move the window
-                        // padding, so the user cannot move the window off-screen
-                        val safetyPadding = 10
                         window.x = clamp(
                             window.x + dx.roundToInt(),
-                            safetyPadding - window.panel.width,
-                            windowStack.width - safetyPadding
-                                    // extra width, where we'd just grab the scrollbar instead of the panel
-                                    - container.interactionWidth
+                            0, windowStack.width - window.panel.width
                         )
                         window.y = clamp(
                             // we only can control the window at the top -> top needs to stay visible
                             window.y + dy.roundToInt(), 0,
-                            windowStack.height - safetyPadding
+                            windowStack.height - window.panel.height
                         )
                         window.panel.invalidateLayout()
-                        return
-                    } else if (rightDown) {
-                        // todo scale somehow...
-                    }
-                    super.onMouseMoved(x, y, dx, dy)
+                    } else super.onMouseMoved(x, y, dx, dy)
                 }
             }
             titlePanel.tooltip = title.desc
@@ -279,10 +316,9 @@ object Menu {
             list += SpacerPanel(0, 1, style)
         }
 
-        // todo for all options, create keyboard shortcuts (if possible), and underline them somehow
-
         // search panel
         var searchPanel: TextInput? = null
+
         // while useful for keyboard-only controls, it looks quite stupid to have a searchbar for only two items
         val needsSearch = panels.size >= DefaultConfig["ui.search.minItems", 5]
         val originalOrder = HashMap<Panel, Int>()
@@ -363,12 +399,10 @@ object Menu {
         container.forAllPanels { it.window = window }
 
         windowStack.add(window)
-        searchPanel?.requestFocus()
+        (searchPanel ?: container).requestFocus()
 
         GFX.loadTexturesSync.pop()
-
         return window
-
     }
 
     @Suppress("unused")
@@ -392,12 +426,11 @@ object Menu {
     fun openMenu(
         windowStack: WindowStack,
         x: Int, y: Int, title: NameDesc, options: List<MenuOption>, delta: Int = 10
-    ) = openMenu(windowStack, x.toFloat(), y.toFloat(), title, options, delta)
+    ): Window? = openMenu(windowStack, x.toFloat(), y.toFloat(), title, options, delta)
 
     fun openMenu(
         windowStack: WindowStack,
         x: Float, y: Float, title: NameDesc, options: List<MenuOption>, delta: Int = 10
-    ) = openComplexMenu(windowStack, x.roundToInt() - delta, y.roundToInt() - delta, title,
+    ): Window? = openComplexMenu(windowStack, x.roundToInt() - delta, y.roundToInt() - delta, title,
         options.map { option -> option.toComplex() })
-
 }

@@ -6,6 +6,8 @@ import me.anno.gpu.texture.Texture3D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ValueNode
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.utils.Color.black2
 import me.anno.utils.Color.black3
 import me.anno.utils.Color.black4
@@ -131,6 +133,7 @@ class NodeInput : NodeConnector {
                 else -> null
             }.run { if (this != null && isDestroyed) null else this }
             "Texture3D" -> value as? Texture3D
+            "FileReference" -> value as? FileReference ?: InvalidRef
             else -> throw NotImplementedError("type $type needs to be implemented")
         }
         return currValue

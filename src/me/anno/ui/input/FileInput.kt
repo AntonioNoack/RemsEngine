@@ -17,6 +17,7 @@ import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileExplorer.Companion.copyPathDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.editInStandardProgramDesc
@@ -33,8 +34,8 @@ open class FileInput(
     title: String, style: Style,
     val f0: FileReference,
     var extraRightClickOptions: List<FileExplorerOption>,
-    var isDirectory: Boolean = false
-) : PanelListX(style), InputPanel<FileReference> {
+    var isDirectory: Boolean = false,
+) : PanelListX(style), InputPanel<FileReference>, TextStyleable {
 
     // done file preview, if available
     // todo property inspector, if is mutable prefab
@@ -88,6 +89,30 @@ open class FileInput(
         if (border > 0) this += SpacerPanel(border, 0, style).apply { backgroundColor = 0 }
         this += base//ScrollPanelX(base, Padding(), style, AxisAlignment.MIN)
     }
+
+    override var textSize: Float
+        get() = base.textSize
+        set(value) {
+            base.textSize = value
+        }
+
+    override var textColor: Int
+        get() = base.textColor
+        set(value) {
+            base.textColor = value
+        }
+
+    override var isBold: Boolean
+        get() = base.isBold
+        set(value) {
+            base.isBold = value
+        }
+
+    override var isItalic: Boolean
+        get() = base.isItalic
+        set(value) {
+            base.isItalic = value
+        }
 
     override var isInputAllowed: Boolean
         get() = base.isInputAllowed
@@ -196,5 +221,4 @@ open class FileInput(
     companion object {
         private val LOGGER = LogManager.getLogger(FileInput::class)
     }
-
 }

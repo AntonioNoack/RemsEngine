@@ -7,6 +7,7 @@ import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.loadTexturesSync
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.getTextSize
@@ -186,9 +187,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     open fun drawText(color: Int = effectiveTextColor) {
-        val textAlignment = textAlignment
-        val offset = if (textAlignment == AxisAlignment.MIN) 0
-        else textAlignment.getOffset(width, getMaxWidth())
+        val offset = textAlignment.getOffset(width, getMaxWidth())
         drawText(offset, 0, color)
     }
 
@@ -243,6 +242,23 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         this.width = minW
         this.height = minH
         if (inst) loadTexturesSync.pop()
+    }
+
+    fun underline(i0: Int, i1: Int) {
+        underline(i0, i1, effectiveTextColor, 1)
+    }
+
+    fun underline(i0: Int, i1: Int, color: Int, thickness: Int) {
+        val offset = textAlignment.getOffset(width, getMaxWidth())
+        underline(i0, i1, color, thickness, offset, 0)
+    }
+
+    fun underline(i0: Int, i1: Int, color: Int, thickness: Int, dx: Int, dy: Int) {
+        val x = this.x + dx + padding.left
+        val y = this.y + dy + padding.top + font.sizeInt * 10 / 8
+        val x0 = x + getTextSizeX(font, text.subSequence(0, i0), -1, -1)
+        val x1 = x + getTextSizeX(font, text.subSequence(0, i1), -1, -1)
+        DrawRectangles.drawRect(x0, y, x1 - x0, thickness, color)
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -372,5 +388,4 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         @JvmField
         val i0 = IntArray(0)
     }
-
 }

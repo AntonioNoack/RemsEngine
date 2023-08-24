@@ -31,6 +31,11 @@ object TextureHelper {
         }
     }
 
+    /**
+     * This is a helper to define swizzling on a texture.
+     * Don't use this if possible, because it's not supported on Android, WebGL, nor DirectX.
+     * Probably Vulkan either, but idk.
+     * */
     fun swizzle(target: Int, r: Int, g: Int, b: Int, a: Int) {
         val tmp = Texture2D.tmp4i
         tmp[0] = r

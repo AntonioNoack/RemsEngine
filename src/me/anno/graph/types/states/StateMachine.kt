@@ -1,5 +1,6 @@
 package me.anno.graph.types.states
 
+import me.anno.graph.Node
 import me.anno.graph.types.ControlFlowGraph
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
@@ -16,6 +17,16 @@ class StateMachine : ControlFlowGraph() {
     var prevState: StateNode? = null
     var state: StateNode? = null
 
+    fun start(startNode: Node): StateNode? {
+        val newState = try {
+            execute(startNode)
+            null
+        } catch (e: NewState) {
+            e.state
+        }
+        return next(newState)
+    }
+
     fun update(): StateNode? {
         var oldState = state
         if (oldState == null) {
@@ -26,9 +37,16 @@ class StateMachine : ControlFlowGraph() {
             if (!"default".equals(oldState.name, true)) {
                 LOGGER.warn("Missing node with name 'Default' for default state")
             }
+            oldState.onEnterState(null)
         }
-        val newState = oldState.update()
+        return next(oldState.update())
+    }
+
+    fun next(newState: StateNode?): StateNode? {
+        val oldState = state
         if (oldState !== newState) {
+            oldState?.onExitState(newState)
+            newState?.onEnterState(oldState)
             state = newState
             prevState = oldState
         }
@@ -36,5 +54,4 @@ class StateMachine : ControlFlowGraph() {
     }
 
     override val className: String get() = "StateMachine"
-
 }

@@ -10,7 +10,7 @@ import java.util.*
  * Panel for ComplexMenuGroup;
  * acceptably good solution, hover-ability would be better
  * */
-class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val close: () -> Unit, style: Style) :
+class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val close: () -> Unit, style: Style) :
     TextPanel("${data.title} →", style) {
 
     init {
@@ -62,6 +62,13 @@ class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val close: () -> Unit, s
             }
         }
         super.onUpdate()
+    }
+
+    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        super.onDraw(x0, y0, x1, y1)
+        if (magicIndex in text.indices) {
+            underline(magicIndex, magicIndex + 1)
+        }
     }
 
     companion object {

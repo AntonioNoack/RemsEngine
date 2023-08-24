@@ -118,7 +118,7 @@ object GFXBase {
     fun loadRenderDoc() {
         val enabled = DefaultConfig["debug.renderdoc.enabled", isDebug]
         if (enabled && !disableRenderDoc) {
-            forceLoadRenderDoc(null)
+            forceLoadRenderDoc()
         }
     }
 

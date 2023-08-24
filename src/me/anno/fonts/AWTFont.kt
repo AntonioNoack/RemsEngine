@@ -5,7 +5,10 @@ import me.anno.fonts.mesh.AlignmentGroup
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts.simpleChars
 import me.anno.gpu.drawing.GFXx2D
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.FakeWhiteTexture
+import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2DArray
 import me.anno.image.raw.toImage
 import me.anno.maths.Maths.clamp
 import me.anno.ui.base.DefaultRenderingHints.prepareGraphics
@@ -22,7 +25,10 @@ import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
-import kotlin.math.*
+import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.streams.toList
 
 class AWTFont(val font: Font) {
@@ -122,7 +128,7 @@ class AWTFont(val font: Font) {
         if (text.isEmpty()) return null
         if (text.containsSpecialChar() || widthLimit < text.length * fontSize * 2f) {
             return generateTextureV3(
-                text, fontSize, widthLimit.toFloat(), heightLimit.toFloat(), portableImages,
+                text, fontSize, widthLimit, heightLimit, portableImages,
                 textColor, backgroundColor, extraPadding
             )
         }
@@ -172,7 +178,6 @@ class AWTFont(val font: Font) {
         }
 
         return texture
-
     }
 
     fun generateASCIITexture(
@@ -202,7 +207,6 @@ class AWTFont(val font: Font) {
         }
 
         return texture
-
     }
 
     private fun createImage(
@@ -361,7 +365,6 @@ class AWTFont(val font: Font) {
             }
 
             firstSplitIndex + lastValidSplitIndex
-
         }
     }
 
@@ -459,25 +462,24 @@ class AWTFont(val font: Font) {
 
         val lineCount = max((currentY / actualFontSize).roundToInt(), 1)
         return PartResult(result, widthF, currentY, lineCount)
-
     }
 
     private fun generateTextureV3(
         text: CharSequence,
         fontSize: Float,
-        widthLimit: Float,
-        heightLimit: Float,
+        widthLimit: Int,
+        heightLimit: Int,
         portableImages: Boolean,
         textColor: Int,
         backgroundColor: Int,
         extraPadding: Int
     ): ITexture2D {
 
-        val parts = splitParts(text, fontSize, 4f, 0f, widthLimit, heightLimit)
+        val parts = splitParts(text, fontSize, 4f, 0f, widthLimit.toFloat(), heightLimit.toFloat())
         val result = parts.parts
 
-        val width = min(ceil(parts.width + 2 * extraPadding), widthLimit).toInt()
-        val height = min(ceil(parts.height + 2 * extraPadding), heightLimit).toInt()
+        val width = min(ceil(parts.width).toInt() + 2 + 2 * extraPadding, widthLimit)
+        val height = min(ceil(parts.height).toInt() + 1 + 2 * extraPadding, heightLimit)
 
         if (result.isEmpty() || width < 1 || height < 1) return FakeWhiteTexture(width, height)
 
@@ -572,8 +574,8 @@ class AWTFont(val font: Font) {
 
         var ctr = 0
         private val fallbackFontList = DefaultConfig[
-                "ui.font.fallbacks",
-                "Segoe UI Emoji,Segoe UI Symbol,DejaVu Sans,FreeMono,Unifont,Symbola"
+            "ui.font.fallbacks",
+            "Segoe UI Emoji,Segoe UI Symbol,DejaVu Sans,FreeMono,Unifont,Symbola"
         ].split(',').mapNotNull { if (it.isBlank2()) null else it.trim() }
 
         private val fallbackFonts = HashMap<Float, List<AWTFont>>()

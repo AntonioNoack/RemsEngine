@@ -96,7 +96,7 @@ object DrawRounded {
         shader.v4f("outlineColor", if (outlineThickness > 0f) outlineColor else centerColor)
         shader.v4f("backgroundColor", backgroundColor)
         shader.v1f("outlineThickness", outlineThickness)
-        shader.v4f("radius", tr, br, tl, bl)
+        shader.v4f("radius", br, tr, bl, tl)
         shader.v1f("smoothness", smoothness)
         shader.v2f("size2", w.toFloat(), h.toFloat())
         GFX.flat01.draw(shader)

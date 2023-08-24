@@ -3,11 +3,17 @@ package me.anno.graph.ui
 import me.anno.Engine
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
-import me.anno.graph.*
+import me.anno.graph.Graph
+import me.anno.graph.Node
+import me.anno.graph.NodeConnector
+import me.anno.graph.NodeInput
 import me.anno.graph.render.NodeGroup
 import me.anno.input.MouseButton
 import me.anno.io.SaveableArray
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.fract
@@ -18,10 +24,7 @@ import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
-import me.anno.ui.input.EnumInput
-import me.anno.ui.input.FloatInput
-import me.anno.ui.input.IntInput
-import me.anno.ui.input.TextInput
+import me.anno.ui.input.*
 import me.anno.ui.input.components.Checkbox
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
@@ -277,8 +280,10 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         val fract = fract(log.toFloat())
         val size = pow(2.0, floor(log))
         // draw 2 grids, one fading, the other becoming more opaque
+        val batch = DrawRectangles.startBatch()
         draw2DLineGrid(x0, y0, x1, y1, gridColor.withAlpha(2f * (1f - fract)), size)
         draw2DLineGrid(x0, y0, x1, y1, gridColor.withAlpha(2f * (1f + fract)), size * 2.0)
+        DrawRectangles.finishBatch(batch)
     }
 
     open fun drawNodeConnections(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -468,12 +473,24 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             }
             "String" -> {
                 if (old is TextInput) return old.apply { textSize = font.size }
-                return TextInput("", "", con.currValue.toString(), style)
+                return TextInput("", "", (con.currValue ?: "").toString(), style)
                     .addChangeListener {
                         con.currValue = it
                         onChange(false)
                     }
-                    .setResetListener { con.currValue = con.defaultValue; con.defaultValue.toString() }
+                    .setResetListener { con.currValue = con.defaultValue; (con.defaultValue ?: "").toString() }
+                    .apply { textSize = font.size }
+            }
+            "File", "FileReference" -> {
+                if (old is FileInput) return old.apply { old.textSize = font.size }
+                return FileInput("", style, con.currValue as? FileReference ?: InvalidRef, emptyList(), false)
+                    .setChangeListener {
+                        con.currValue = it
+                        onChange(false)
+                    }
+                    .setResetListener {
+                        con.currValue = con.defaultValue; con.defaultValue as? FileReference ?: InvalidRef
+                    }
                     .apply { textSize = font.size }
             }
             "Boolean", "Bool" -> {
@@ -633,5 +650,4 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             "?" to lightBlueish,
         )
     }
-
 }
