@@ -5,12 +5,23 @@ import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import org.joml.*
 
+/**
+ * Stores relevant information for when a ray is cast onto a scene.
+ *
+ * Unity: RaycastHit
+ * Unreal: HitResult
+ * Godot: RayCast? Map with properties
+ * */
 class RayHit {
 
-    var hitIfInside = false
-
+    /**
+     * Closest distance
+     * */
     var distance = Double.POSITIVE_INFINITY
 
+    /**
+     * Closest hit object
+     * */
     var collider: Collider? = null
     var mesh: Mesh? = null
     var component: Component? = null
@@ -28,24 +39,35 @@ class RayHit {
     // var material: Material? = null
     // var uv: Vector2f? = null
 
+    /**
+     * Position in world space
+     * */
     val positionWS = Vector3d()
 
     /**
+     * Normal from geometry in world space
      * might not be normalized!
      * */
     val geometryNormalWS = Vector3d()
 
     /**
+     * Normal from shading normals, in world space
      * might not be normalized!
      * */
     val shadingNormalWS = Vector3d()
 
     /**
+     * Barycentric coordinates within the intersected triangle
      * might not be normalized!
      * */
     val barycentric = Vector3d()
+
+    /**
+     * Hit UV coordinates
+     * */
     val uv = Vector2d()
 
+    // just a few statistics
     var blasCtr = 0
     var tlasCtr = 0
     var trisCtr = 0

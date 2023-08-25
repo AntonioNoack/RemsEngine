@@ -136,6 +136,7 @@ object VisualNovel {
                 shownTextPanel.backgroundColor = backgroundColor
                 shownTextPanel.focusBackground = backgroundColor
                 shownTextPanel.focusTextColor = shownTextPanel.textColor
+                shownTextPanel.breaksIntoMultiline = true
                 backgroundColor = backgroundColor.mulARGB(0xffcccccc.toInt())
             }
 

@@ -14,6 +14,15 @@ import me.anno.utils.types.Triangles.rayTriangleIntersection
 import org.joml.*
 import kotlin.math.abs
 
+/**
+ * Casts a ray into the scene, reports the closest hit.
+ *
+ * Unity: Physics.SphereCast
+ * Unreal: LineTraceByChannel
+ * Godot: RayCast
+ *
+ * todo anyhit-functionality?
+ * */
 object Raycast {
 
     val TRIANGLE_FRONT = 1
@@ -164,7 +173,7 @@ object Raycast {
         )
         // println("ld: $localDistance, md: $maxDistance, [$start,$direction] -> [$localStart,$localDir]")
         if (abs(localDistance) < maxDistance) {
-            if (localDistance >= 0f || result.hitIfInside) {
+            if (localDistance >= 0f) {
                 result.setFromLocal(
                     global, localStart, localDir, abs(localDistance), localNormal,
                     start, direction, end
