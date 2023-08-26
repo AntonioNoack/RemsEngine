@@ -57,6 +57,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         if (graph != null) {
             graphs.add(graph)
         }
+        minScale = 0.001
+        maxScale = 10.0
     }
 
     fun requestFocus(node: Node) {
