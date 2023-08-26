@@ -117,7 +117,7 @@ object LineBuffer {
         r: Byte, g: Byte, b: Byte, a: Byte = -1
     ) {
         // we have to ensure a mutex,
-        // and this is the only one that makes sense
+        // and this is the only one, that makes sense
         GFX.checkIsGFXThread()
         // ensure that there is enough space in bytes
         ensureSize(lineSize)

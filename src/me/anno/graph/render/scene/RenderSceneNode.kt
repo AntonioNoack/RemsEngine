@@ -18,7 +18,7 @@ class RenderSceneNode : RenderSceneNode0(
         "Int", "Width",
         "Int", "Height",
         "Int", "Samples",
-        "Int", "Stage Id",
+        "Int", "Stage Mask",
         "Enum<me.anno.gpu.pipeline.Sorting>", "Sorting",
         "Int", "Camera Index",
         "Boolean", "Apply ToneMapping",
@@ -35,7 +35,7 @@ class RenderSceneNode : RenderSceneNode0(
         setInput(1, 256) // width
         setInput(2, 256) // height
         setInput(3, 1) // samples
-        setInput(4, 0) // stage id
+        setInput(4, -1) // stage mask
         setInput(5, Sorting.NO_SORTING)
         setInput(6, 0) // camera index
         setInput(7, false) // apply tonemapping
@@ -85,16 +85,14 @@ class RenderSceneNode : RenderSceneNode0(
             framebuffer = settings.createBaseBuffer(name)
         }
 
-        val renderView = renderView
         val framebuffer = framebuffer!!
 
         GFX.check()
 
         pipeline.applyToneMapping = applyToneMapping
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            renderView.clearColorOrSky(renderView.cameraMatrix)
-            GFX.check()
-            pipeline.stages[stageId].bindDraw(pipeline)
+            framebuffer.clearDepth()
+            pipeline.draw()
             GFX.check()
         }
 

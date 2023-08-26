@@ -80,16 +80,14 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
         if (normal in 0 until normals.size - 2) {
             faceNormals.addAll(normals, normal, 3)
         } else {
-            faceNormals.ensureExtra(3)
-            faceNormals.addUnsafe(0f, 0f, 0f)
+            faceNormals.add(0f, 0f, 0f)
         }
         val faceUVs = faceUVs
-        faceUVs.ensureExtra(2)
         if (uv in 0 until uvs.size - 1) {
             val uvs = uvs
-            faceUVs.addUnsafe(uvs[uv], uvs[uv + 1])
+            faceUVs.add(uvs[uv], uvs[uv + 1])
         } else {
-            faceUVs.addUnsafe(0f, 0f)
+            faceUVs.add(0f, 0f)
         }
     }
 

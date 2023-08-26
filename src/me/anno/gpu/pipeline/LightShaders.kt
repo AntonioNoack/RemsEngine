@@ -196,7 +196,7 @@ object LightShaders {
             builder.addFragment(deferredStage)
             builder.addFragment(fragment)
             if (useMSAA) builder.glslVersion = 400 // required for gl_SampleID
-            val shader = builder.create("cmb")
+            val shader = builder.create("cmb0")
             // find all textures
             // first the ones for the deferred data
             // then the ones for the shadows
@@ -279,7 +279,7 @@ object LightShaders {
             LightType.POINT -> PointLight.getShaderCode(cutoffContinue, withShadows, true)
         }
         val fragment = ShaderStage(
-            "f", listOf(
+            "ls-f", listOf(
                 Variable(GLSLType.V4F, "data0"),
                 Variable(GLSLType.V1F, "data1"),
                 Variable(GLSLType.V4F, "data2"), // only if with shadows

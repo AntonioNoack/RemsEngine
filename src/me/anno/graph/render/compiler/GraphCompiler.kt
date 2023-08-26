@@ -51,8 +51,6 @@ import kotlin.math.max
 
 abstract class GraphCompiler(val g: FlowGraph) {
 
-    // todo uniform input block? maybe :)
-
     abstract val currentShader: Shader
 
     val builder = StringBuilder()

@@ -7,6 +7,7 @@ import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
+import me.anno.gpu.GFXBase
 import me.anno.graph.render.RenderGraph
 import me.anno.graph.render.RenderGraphEditor
 import me.anno.ui.custom.CustomList
@@ -14,6 +15,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS
 
 fun main() {
+    GFXBase.forceLoadRenderDoc()
     val graph = RenderGraph.combined1
     val scene = Entity()
     scene.add(MeshComponent(OS.documents.getChild("metal-roughness.glb")))

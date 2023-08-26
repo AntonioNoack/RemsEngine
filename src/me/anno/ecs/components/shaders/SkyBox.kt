@@ -233,6 +233,7 @@ open class SkyBox : SkyBoxBase() {
                         Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                        Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
                         Variable(GLSLType.V3F, "sunDir"),
                         Variable(GLSLType.V1F, "cirrus"), // 0.4

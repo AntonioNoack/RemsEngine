@@ -43,7 +43,7 @@ class QuickPipeline {
         }
 
         // set node position
-        node.position.set(300.0 * graph.nodes.size, 0.0, 0.0)
+        node.position.set(350.0 * graph.nodes.size, 0.0, 0.0)
         node.graph = graph
         graph.nodes.add(node)
 

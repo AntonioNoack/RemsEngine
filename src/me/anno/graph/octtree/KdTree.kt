@@ -91,7 +91,6 @@ abstract class KdTree<Point, Data>(
                     right.add(d)
                 }
             }
-
         } else {
 
             if (children == null) children = ArrayList(maxNumChildren)
@@ -134,12 +133,10 @@ abstract class KdTree<Point, Data>(
                 right = createChild(rightChildren, rMin, rMax)
 
                 return add(d)
-
             } else children.add(d)
         }
 
         size++
-
     }
 
     fun query(min: Point, max: Point, hasFound: (Data) -> Boolean): Boolean {
@@ -284,4 +281,9 @@ abstract class KdTree<Point, Data>(
         axis = src.axis
     }
 
+    fun clear() {
+        left = null
+        right = null
+        children?.clear()
+    }
 }

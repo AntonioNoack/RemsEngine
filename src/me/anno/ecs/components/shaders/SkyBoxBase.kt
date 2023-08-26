@@ -159,6 +159,7 @@ open class SkyBoxBase : MeshComponentBase() {
                         Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                        Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
                         Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT),
                     ), "" +

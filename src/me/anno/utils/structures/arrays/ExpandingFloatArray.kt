@@ -86,7 +86,36 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
         array[size++] = x
     }
 
-    fun addUnsafe(x: Float, y: Float) {
+    operator fun set(index: Int, value: Float) {
+        array[index] = value
+    }
+
+    fun add(v: Vector2f) {
+        add(v.x, v.y)
+    }
+
+    fun add(v: Vector3f) {
+        add(v.x, v.y, v.z)
+    }
+
+    fun add(v: Vector3d) {
+        add(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+    }
+
+    fun add(v: Vector4f) {
+        add(v.x, v.y, v.z, v.w)
+    }
+
+    fun add(v: Quaternionf) {
+        add(v.x, v.y, v.z, v.w)
+    }
+
+    fun add(v: Quaterniond) {
+        add(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
+    }
+
+    fun add(x: Float, y: Float) {
+        ensureExtra(2)
         val array = array
         var size = size
         array[size++] = x
@@ -94,7 +123,8 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
         this.size = size
     }
 
-    fun addUnsafe(x: Float, y: Float, z: Float) {
+    fun add(x: Float, y: Float, z: Float) {
+        ensureExtra(3)
         val array = array
         var size = size
         array[size++] = x
@@ -103,7 +133,8 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
         this.size = size
     }
 
-    fun addUnsafe(x: Float, y: Float, z: Float, w: Float) {
+    fun add(x: Float, y: Float, z: Float, w: Float) {
+        ensureExtra(4)
         val array = array
         var size = size
         array[size++] = x
@@ -111,85 +142,6 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
         array[size++] = z
         array[size++] = w
         this.size = size
-    }
-
-    operator fun set(index: Int, value: Float) {
-        array[index] = value
-    }
-
-    fun add(v: Vector2f) {
-        ensureExtra(2)
-        val array = array
-        var size = size
-        array[size++] = v.x
-        array[size++] = v.y
-        this.size = size
-    }
-
-    fun add(v: Vector3f) {
-        ensureExtra(3)
-        val array = array
-        var size = size
-        array[size++] = v.x
-        array[size++] = v.y
-        array[size++] = v.z
-        this.size = size
-    }
-
-    fun add(v: Vector3d) {
-        ensureExtra(3)
-        val array = array
-        var size = size
-        array[size++] = v.x.toFloat()
-        array[size++] = v.y.toFloat()
-        array[size++] = v.z.toFloat()
-        this.size = size
-    }
-
-    fun add(v: Vector4f) {
-        ensureExtra(4)
-        val array = array
-        var size = size
-        array[size++] = v.x
-        array[size++] = v.y
-        array[size++] = v.z
-        array[size++] = v.w
-        this.size = size
-    }
-
-    fun add(v: Quaternionf) {
-        ensureExtra(4)
-        val array = array
-        var size = size
-        array[size++] = v.x
-        array[size++] = v.y
-        array[size++] = v.z
-        array[size++] = v.w
-        this.size = size
-    }
-
-    fun add(v: Quaterniond) {
-        ensureExtra(4)
-        val array = array
-        var size = size
-        array[size++] = v.x.toFloat()
-        array[size++] = v.y.toFloat()
-        array[size++] = v.z.toFloat()
-        array[size++] = v.w.toFloat()
-        this.size = size
-    }
-
-    fun add(x: Float, y: Float) {
-        ensureExtra(2)
-        addUnsafe(x)
-        addUnsafe(y)
-    }
-
-    fun add(x: Float, y: Float, z: Float) {
-        ensureExtra(3)
-        addUnsafe(x)
-        addUnsafe(y)
-        addUnsafe(z)
     }
 
     fun add(l: FloatArray, srcStartIndex: Int, srcLength: Int) {
@@ -272,5 +224,4 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
         val array = array
         array.fill(s, 0, size)
     }
-
 }

@@ -75,18 +75,20 @@ class CombineLightsNode : RenderSceneNode0(
                 )
                 val expressions = sizes.indices
                     .joinToString("") { i ->
-                        val sizeI = sizes[i]
-                        val typeI = GLSLType.floats[sizeI - 1].glslName
                         val nameI = names[i]
                         val exprI = expr(inputs!![firstInputIndex + i])
-                        "$typeI $nameI=$exprI;\n"
+                        "$nameI=$exprI;\n"
                     }
                 defineLocalVars(builder)
-                val variables = typeValues.map { (k, v) -> Variable(v.type, k) } +
-                        listOf(
-                            Variable(GLSLType.V2F, "uv"),
-                            Variable(GLSLType.V4F, "result", VariableMode.OUT)
-                        ) + depthVars
+                val variables = typeValues.map { (k, v) -> Variable(v.type, k) } + listOf(
+                    Variable(GLSLType.V2F, "uv"),
+                    Variable(GLSLType.V4F, "result", VariableMode.OUT)
+                ) + depthVars + sizes.indices.map { i ->
+                    val sizeI = sizes[i]
+                    val typeI = GLSLType.floats[sizeI - 1]
+                    val nameI = names[i]
+                    Variable(typeI, nameI, VariableMode.OUT)
+                }
                 val builder = ShaderBuilder(name)
                 builder.addVertex(combineVStage)
                 builder.addFragment(
@@ -94,7 +96,7 @@ class CombineLightsNode : RenderSceneNode0(
                         .add(extraFunctions.toString())
                 )
                 builder.addFragment(combineFStage)
-                shader = builder.create("cmb")
+                shader = builder.create("cmb1")
             }
 
             override val currentShader: Shader get() = shader
