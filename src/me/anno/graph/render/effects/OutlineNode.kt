@@ -63,7 +63,7 @@ class OutlineNode : ActionNode(
         val illuminated = ((illT)?.tex as? Texture2D) ?: whiteTexture
 
         if (strength <= 0f) { // disabled
-            setOutput(illT, 1)
+            setOutput(1, illT)
             return
         }
 
@@ -89,8 +89,7 @@ class OutlineNode : ActionNode(
             )
             SimpleBuffer.flat01.draw(shader)
         }
-        setOutput(Texture(framebuffer.getTexture0()), 1)
-
+        setOutput(1, Texture(framebuffer.getTexture0()))
     }
 
     companion object {

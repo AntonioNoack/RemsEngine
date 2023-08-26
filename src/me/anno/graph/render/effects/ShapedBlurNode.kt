@@ -74,6 +74,6 @@ class ShapedBlurNode() : ActionNode(
                 Texture(applyFilter(tex1, shader, stages, tex1.isHDR, scale))
             } else tex0
         } else tex0
-        setOutput(output, 1)
+        setOutput(1, output)
     }
 }

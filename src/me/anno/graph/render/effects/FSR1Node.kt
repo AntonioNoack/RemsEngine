@@ -53,9 +53,9 @@ class FSR1Node : ActionNode(
             useFrame(width, height, true, f1, copyRenderer) {
                 FSR.sharpen(f0.getTexture0(), sharpness, flipY = true)
             }
-            setOutput(Texture(f1.getTexture0()), 1)
+            setOutput(1, Texture(f1.getTexture0()))
         } else {
-            setOutput(Texture(f0.getTexture0()), 1)
+            setOutput(1, Texture(f0.getTexture0()))
         }
 
     }

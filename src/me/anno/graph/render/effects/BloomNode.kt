@@ -29,7 +29,6 @@ class BloomNode : ActionNode(
         val color = ((getInput(4) as? Texture)?.tex as? Texture2D) ?: return
 
         val result = Bloom.bloom2(color, offset, strength, applyToneMapping)
-        setOutput(Texture(result.getTexture0()), 1)
-
+        setOutput(1, Texture(result.getTexture0()))
     }
 }

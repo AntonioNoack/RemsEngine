@@ -6,14 +6,9 @@ import me.anno.graph.types.flow.actions.ActionNode
 
 open class StateNode(
     name: String = "State",
-    inputs: List<String> = Companion.inputs,
-    outputs: List<String> = Companion.outputs
+    inputs: List<String> = emptyList(),
+    outputs: List<String> = emptyList()
 ) : ActionNode(name, inputs, outputs) {
-
-    companion object {
-        private val inputs = listOf("Flow", "Input")
-        private val outputs = listOf("Flow", "OnUpdate")
-    }
 
     open fun update(): StateNode {
         return try {
@@ -43,7 +38,9 @@ open class StateNode(
         throw NewState(this)
     }
 
-    override fun canAddOutput(type: String, index: Int): Boolean = type == "Flow"
+    override fun canAddOutput(type: String, index: Int): Boolean = index > 0 && type == "Flow"
+    override fun canRemoveOutput(type: String, index: Int): Boolean = index > 0 && type == "Flow"
+
     override fun supportsMultipleInputs(con: NodeConnector) = true
     override fun supportsMultipleOutputs(con: NodeConnector) = true
 }

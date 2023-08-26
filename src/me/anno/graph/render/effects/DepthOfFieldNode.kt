@@ -46,7 +46,6 @@ class DepthOfFieldNode : ActionNode(
             clamp(maxBlurSize, 1f, 20f),
             clamp(radScale, 0.25f, 2f), applyToneMapping
         ).getTexture0()
-        setOutput(Texture(result), 1)
-
+        setOutput(1, Texture(result))
     }
 }

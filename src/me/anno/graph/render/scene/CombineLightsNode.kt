@@ -98,7 +98,6 @@ class CombineLightsNode : RenderSceneNode0(
             }
 
             override val currentShader: Shader get() = shader
-
         }.run { shader to typeValues }
 
         shader = shader1
@@ -141,7 +140,6 @@ class CombineLightsNode : RenderSceneNode0(
             }
         }
 
-        setOutput(Texture(framebuffer.getTexture0()), 1)
-
+        setOutput(1, Texture(framebuffer.getTexture0()))
     }
 }

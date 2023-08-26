@@ -50,12 +50,10 @@ class SSAONode : ActionNode(
         val result = ScreenSpaceAmbientOcclusion
             .compute(depthT, normalT, normalZW, transform, radius, strength, samples, blur)
 
-        setOutput(Texture(result.getTexture0()), 1)
-
+        setOutput(1, Texture(result.getTexture0()))
     }
 
     private fun fail() {
-        setOutput(Texture(white4), 1)
+        setOutput(1, Texture(white4))
     }
-
 }

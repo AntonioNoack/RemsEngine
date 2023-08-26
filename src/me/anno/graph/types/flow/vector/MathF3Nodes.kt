@@ -15,7 +15,7 @@ private val dataF13 = MathNode.MathNodeData(
 class MathF13Node : MathNode<FloatMathsUnary>(dataF13) {
     override fun compute() {
         val a = getInput(0) as Vector3f
-        setOutput(Vector3f(type.float(a.x), type.float(a.y), type.float(a.z)))
+        setOutput(0, Vector3f(type.float(a.x), type.float(a.y), type.float(a.z)))
     }
 }
 
@@ -29,7 +29,7 @@ class MathF23Node : MathNode<FloatMathsBinary>(dataF23) {
     override fun compute() {
         val a = getInput(0) as Vector3f
         val b = getInput(1) as Vector3f
-        setOutput(Vector3f(type.float(a.x, b.x), type.float(a.y, b.y), type.float(a.z, b.z)))
+        setOutput(0, Vector3f(type.float(a.x, b.x), type.float(a.y, b.y), type.float(a.z, b.z)))
     }
 }
 
@@ -44,6 +44,6 @@ class MathF33Node : MathNode<FloatMathsTernary>(dataF33) {
         val a = getInput(0) as Vector3f
         val b = getInput(1) as Vector3f
         val c = getInput(2) as Vector3f
-        setOutput(Vector3f(type.float(a.x, b.x, c.x), type.float(a.y, b.y, c.y), type.float(a.z, b.z, c.z)))
+        setOutput(0, Vector3f(type.float(a.x, b.x, c.x), type.float(a.y, b.y, c.y), type.float(a.z, b.z, c.z)))
     }
 }

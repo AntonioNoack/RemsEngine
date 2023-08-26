@@ -94,7 +94,7 @@ class NodeInput : NodeConnector {
                 is Vector4f -> value
                 else -> Vector4f(0f)
             }
-            "String" -> value.toString()
+            "String" -> value?.toString() ?: ""
             "Any?", "", "?" -> value
             "Boolean", "Bool" -> when (val v = value) {
                 is Collection<*> -> v.isNotEmpty()

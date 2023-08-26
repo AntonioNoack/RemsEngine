@@ -59,6 +59,14 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         }
     }
 
+    fun requestFocus(node: Node) {
+        nodeToPanel[node]?.requestFocus()
+    }
+
+    fun requestFocus(node: NodeGroup) {
+        nodeToPanel2[node]?.requestFocus()
+    }
+
     // large scale = fast movement
     override var scale = 1.0
         set(value) {

@@ -17,6 +17,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.graph.Node
 import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
+import me.anno.graph.NodeOutput
 import me.anno.input.Input
 import me.anno.input.MouseButton
 import me.anno.io.serialization.NotSerializedProperty
@@ -30,12 +31,15 @@ import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.menu.Menu.askName
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
+import me.anno.utils.types.Arrays.subList
 import kotlin.math.*
 
 // todo show output value in tooltip on connector (for where it is easily computable without actions)
@@ -138,7 +142,6 @@ class NodePanel(
 
         this.width = minW
         this.height = minH
-
     }
 
     override fun setPosition(x: Int, y: Int) {
@@ -444,6 +447,61 @@ class NodePanel(
         node.position.y = sy
     }
 
+    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+        if (gp is GraphEditor && (button.isRight || long)) {
+            // check if is onto node connector
+            val connector = getConnectorAt(x, y)
+            if (connector != null) {
+                // todo what if there is no connector on that side?
+                // check if we can add a connector, or remove one
+                // list of all known types
+                val input = connector is NodeInput
+                val idx = (if (input) node.inputs else node.outputs)?.indexOf(connector) ?: -1
+                val idx1 = idx+1
+                val knownTypes = (gp.library.allNodes.map { it.first } + (gp.graph?.nodes ?: emptyList()))
+                    .asSequence()
+                    .map { n ->
+                        (n.inputs?.map { it.type } ?: emptyList()) + (n.outputs?.map { it.type } ?: emptyList())
+                    }
+                    .flatten()
+                    .toHashSet()
+                val addableTypes = knownTypes.filter { type ->
+                    if (input) node.canAddInput(type, idx1)
+                    else node.canAddOutput(type, idx1)
+                }.sorted()
+                val type = connector.type
+                val canRemove =
+                    (if (input) node.canRemoveInput(type, idx) else node.canRemoveOutput(type, idx)) && idx >= 0
+                if (canRemove || addableTypes.isNotEmpty()) {
+                    // ask user what shall be done
+                    openMenu(windowStack, addableTypes.map { typeI ->
+                        MenuOption(NameDesc("Add $typeI Connector")) {
+                            if (input) node.inputs = addConnector(node.inputs, NodeInput(typeI, node, true), idx1)
+                            else node.outputs = addConnector(node.outputs, NodeOutput(typeI, node, true), idx1)
+                            invalidateLayout()
+                        }
+                    } + (if (canRemove) listOf(
+                        MenuOption(NameDesc("Remove Connector")) {
+                            if (input) node.inputs = removeConnector(node.inputs, idx)
+                            else node.outputs = removeConnector(node.outputs, idx)
+                            invalidateLayout()
+                        }
+                    ) else emptyList()))
+                } else super.onMouseClicked(x, y, button, long)
+            } else super.onMouseClicked(x, y, button, long)
+        } else super.onMouseClicked(x, y, button, long)
+    }
+
+    inline fun <reified V> addConnector(old: Array<V>?, new: V, idx: Int): Array<V> {
+        return if (old == null) arrayOf(new)
+        else (old.subList(0, idx) + new + old.subList(idx)).toTypedArray()
+    }
+
+    inline fun <reified V> removeConnector(old: Array<V>?, idx: Int): Array<V>? {
+        return if (old == null) null
+        else (old.subList(0, idx) + old.subList(idx + 1)).toTypedArray()
+    }
+
     override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
         if (gp !is GraphEditor) return super.onMouseUp(x, y, button)
         val con0 = gp.dragged
@@ -565,5 +623,4 @@ class NodePanel(
     override fun getMultiSelectablePanel() = this
 
     override val className: String get() = "NodePanel"
-
 }

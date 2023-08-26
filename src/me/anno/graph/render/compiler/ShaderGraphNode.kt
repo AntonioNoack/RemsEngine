@@ -130,7 +130,7 @@ class ShaderGraphNode : ActionNode(
 
         // copy textures
         for (i in 0 until 8) {
-            startNode.setOutput(getInput(i + 5), i + 1)
+            startNode.setOutput(i + 1, getInput(i + 5))
         }
 
         val shader = shader ?: object : GraphCompiler(g) {
@@ -176,8 +176,6 @@ class ShaderGraphNode : ActionNode(
             }
 
             override val currentShader: Shader get() = shader
-
-
         }.shader
         this.shader = shader
         val w = getInput(1) as Int
@@ -199,7 +197,7 @@ class ShaderGraphNode : ActionNode(
                 flat01.draw(shader)
             }
         }
-        setOutput(buffer.getTexture0(), 1)
+        setOutput(1, buffer.getTexture0())
     }
 
     override fun onDestroy() {

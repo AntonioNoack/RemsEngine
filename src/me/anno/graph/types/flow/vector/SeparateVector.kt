@@ -13,15 +13,14 @@ class SeparateVector2f : ValueNode("Separate Vector2f", inputs, outputs) {
 
     override fun compute() {
         val v = getInput(0) as Vector2f
-        setOutput(v.x, 0)
-        setOutput(v.y, 1)
+        setOutput(0, v.x)
+        setOutput(1, v.y)
     }
 
     companion object {
         val inputs = listOf("Vector2f", "Vector")
         val outputs = listOf("Float", "X", "Float", "Y")
     }
-
 }
 
 class SeparateVector3f : ValueNode("Separate Vector3f", inputs, outputs) {
@@ -32,16 +31,15 @@ class SeparateVector3f : ValueNode("Separate Vector3f", inputs, outputs) {
 
     override fun compute() {
         val v = getInput(0) as Vector3f
-        setOutput(v.x, 0)
-        setOutput(v.y, 1)
-        setOutput(v.z, 2)
+        setOutput(0, v.x)
+        setOutput(1, v.y)
+        setOutput(2, v.z)
     }
 
     companion object {
         val inputs = listOf("Vector3f", "Vector")
         val outputs = listOf("Float", "X", "Float", "Y", "Float", "Z")
     }
-
 }
 
 class SeparateVector4f : ValueNode("Separate Vector4f", inputs, outputs) {
@@ -52,15 +50,14 @@ class SeparateVector4f : ValueNode("Separate Vector4f", inputs, outputs) {
 
     override fun compute() {
         val v = getInput(0) as Vector4f
-        setOutput(v.x, 0)
-        setOutput(v.y, 1)
-        setOutput(v.z, 2)
-        setOutput(v.w, 3)
+        setOutput(0, v.x)
+        setOutput(1, v.y)
+        setOutput(2, v.z)
+        setOutput(3, v.w)
     }
 
     companion object {
         val inputs = listOf("Vector4f", "Vector")
         val outputs = listOf("Float", "X", "Float", "Y", "Float", "Z", "Float", "W")
     }
-
 }

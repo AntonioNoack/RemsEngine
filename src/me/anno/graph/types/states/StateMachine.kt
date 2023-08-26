@@ -43,6 +43,7 @@ class StateMachine : ControlFlowGraph() {
     }
 
     fun next(newState: StateNode?): StateNode? {
+        invalidate()
         val oldState = state
         if (oldState !== newState) {
             oldState?.onExitState(newState)

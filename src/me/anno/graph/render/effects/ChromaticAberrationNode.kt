@@ -39,7 +39,7 @@ class ChromaticAberrationNode : ActionNode(
         val strength = (getInput(1) as Float) * 0.001f
         val color = ((getInput(5) as? Texture)?.tex as? Texture2D)
         if (color == null) {
-            setOutput(Texture(missingTexture), 1)
+            setOutput(1, Texture(missingTexture))
         } else {
             val power = getInput(2) as Float
             val rOffset = getInput(3) as Vector2f
@@ -55,7 +55,7 @@ class ChromaticAberrationNode : ActionNode(
                 color.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
                 flat01.draw(shader)
             }
-            setOutput(Texture(result.getTexture0()), 1)
+            setOutput(1, Texture(result.getTexture0()))
         }
     }
 

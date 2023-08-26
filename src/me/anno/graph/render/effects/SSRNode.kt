@@ -100,7 +100,6 @@ class SSRNode : RenderSceneNode0(
             illuminated, transform, strength, maskSharpness, wallThickness, fineSteps, maxDistance, applyToneMapping,
             framebuffer
         )
-        setOutput(Texture(result.getTexture0()), 1)
-
+        setOutput(1, Texture(result.getTexture0()))
     }
 }

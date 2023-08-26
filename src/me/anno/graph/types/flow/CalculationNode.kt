@@ -12,7 +12,6 @@ abstract class CalculationNode : ValueNode {
     abstract fun calculate(): Any?
 
     override fun compute() {
-        setOutput(calculate(), 0)
+        setOutput(0, calculate())
     }
-
 }

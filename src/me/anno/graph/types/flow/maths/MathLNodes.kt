@@ -10,7 +10,7 @@ val dataL1 = MathNode.MathNodeData(
 
 class MathL1Node : MathNode<IntMathsUnary>(dataL1), EnumNode, GLSLExprNode {
     override fun compute() {
-        setOutput(type.long(getInput(0) as Long))
+        setOutput(0, type.long(getInput(0) as Long))
     }
 }
 
@@ -22,7 +22,7 @@ val dataL2 = MathNode.MathNodeData(
 
 class MathL2Node : MathNode<IntMathsBinary>(dataL2), EnumNode, GLSLExprNode {
     override fun compute() {
-        setOutput(type.long(getInput(0) as Long, getInput(1) as Long))
+        setOutput(0, type.long(getInput(0) as Long, getInput(1) as Long))
     }
 }
 
@@ -34,6 +34,6 @@ val dataL3 = MathNode.MathNodeData(
 
 class MathL3Node : MathNode<IntMathsTernary>(dataL3), EnumNode, GLSLExprNode {
     override fun compute() {
-        setOutput(type.long(getInput(0) as Long, getInput(1) as Long, getInput(2) as Long))
+        setOutput(0, type.long(getInput(0) as Long, getInput(1) as Long, getInput(2) as Long))
     }
 }

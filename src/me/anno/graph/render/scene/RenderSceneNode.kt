@@ -70,7 +70,7 @@ class RenderSceneNode : RenderSceneNode0(
                     // todo only enable it, if the value actually will be used
                     enabledLayers.add(DeferredLayerType.values[i - 1])
                 }
-                setOutput(null, i)
+                setOutput(i, null)
             }
 
             if (enabledLayers.isEmpty()) return
@@ -109,7 +109,7 @@ class RenderSceneNode : RenderSceneNode0(
                 continue
             }
             val i = DeferredLayerType.values.indexOf(layer.type) + 1
-            setOutput(Texture(tex, layer.mapping, layer.type), i)
+            setOutput(i, Texture(tex, layer.mapping, layer.type))
         }
 
         // get depth texture, and use it
@@ -118,7 +118,6 @@ class RenderSceneNode : RenderSceneNode0(
         val buf2 = buf0 ?: buf1 ?: framebuffer
         val tex = buf2.depthTexture!!
         val i = DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH) + 1
-        setOutput(Texture(tex, "r", DeferredLayerType.DEPTH), i)
-
+        setOutput(i, Texture(tex, "r", DeferredLayerType.DEPTH))
     }
 }

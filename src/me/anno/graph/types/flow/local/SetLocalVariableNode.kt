@@ -36,7 +36,7 @@ class SetLocalVariableNode(type: String = "?") :
         val value = getInput(2)
         val graph = graph as FlowGraph
         graph.localVariables[key] = value
-        setOutput(value, 1)
+        setOutput(1, value)
     }
 
     override fun save(writer: BaseWriter) {
@@ -53,6 +53,4 @@ class SetLocalVariableNode(type: String = "?") :
         val inputs = listOf("String", "Name", "?", "New Value")
         val outputs = listOf("?", "Current Value")
     }
-
-
 }

@@ -48,6 +48,36 @@ open class Graph : PrefabSaveable() {
         for (node in nodes) node.graph = this
     }
 
+    fun addAllConnected(vararg nodes: Node) {
+        val nodes1 = HashSet<Node>()
+        fun process(node: Node) {
+            fun process(con: NodeConnector) {
+                for (other in con.others) {
+                    val nodeI = other.node
+                    if (nodeI != null) process(nodeI)
+                }
+            }
+            if (nodes1.add(node)) {
+                add(node)
+                val inputs = node.inputs
+                if (inputs != null) {
+                    for (c in inputs) {
+                        process(c)
+                    }
+                }
+                val outputs = node.outputs
+                if (outputs != null) {
+                    for (c in outputs) {
+                        process(c)
+                    }
+                }
+            }
+        }
+        for (node in nodes) {
+            process(node)
+        }
+    }
+
     open fun canConnectTo(self: NodeConnector, other: NodeConnector): Boolean {
         if (self.javaClass == other.javaClass) return false
         // todo when connecting flows, ensure that no loops are formed between primary inputs
@@ -90,5 +120,4 @@ open class Graph : PrefabSaveable() {
     override fun clone(): PrefabSaveable {
         return TextReader.readFirst(TextWriter.toText(this, InvalidRef), InvalidRef, false)
     }
-
 }

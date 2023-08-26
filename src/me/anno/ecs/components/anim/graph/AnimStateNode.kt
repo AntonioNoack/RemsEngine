@@ -48,7 +48,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
     override fun onEnterState(oldState: StateNode?) {
         progress = getInput(START) as Float // start time
-        setOutput(progress, 1)
+        setOutput(1, progress)
     }
 
     fun getDuration(): Float {
@@ -60,7 +60,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
     override fun update(): StateNode {
         val speed = getInput(SPEED) as Float
         progress += speed * Engine.deltaTime
-        setOutput(progress, 1)
+        setOutput(1, progress)
         var end = getInput(END) as Float
         if (end == 0f) end = getDuration()
         val fade = getInput(FADE) as Float

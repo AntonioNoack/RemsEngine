@@ -1,6 +1,5 @@
 package me.anno.graph.types.flow.vector
 
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.maths.FloatMathsBinary
 import me.anno.graph.types.flow.maths.FloatMathsTernary
 import me.anno.graph.types.flow.maths.FloatMathsUnary
@@ -16,7 +15,7 @@ private val dataF12 = MathNode.MathNodeData(
 class MathF12Node : MathNode<FloatMathsUnary>(dataF12) {
     override fun compute() {
         val a = getInput(0) as Vector2f
-        setOutput(Vector2f(type.float(a.x), type.float(a.y)))
+        setOutput(0, Vector2f(type.float(a.x), type.float(a.y)))
     }
 }
 
@@ -30,7 +29,7 @@ class MathF22Node : MathNode<FloatMathsBinary>(dataF22) {
     override fun compute() {
         val a = getInput(0) as Vector2f
         val b = getInput(1) as Vector2f
-        setOutput(Vector2f(type.float(a.x, b.x), type.float(a.y, b.y)))
+        setOutput(0, Vector2f(type.float(a.x, b.x), type.float(a.y, b.y)))
     }
 }
 
@@ -45,6 +44,6 @@ class MathF32Node : MathNode<FloatMathsTernary>(dataF32) {
         val a = getInput(0) as Vector2f
         val b = getInput(1) as Vector2f
         val c = getInput(2) as Vector2f
-        setOutput(Vector2f(type.float(a.x, b.x, c.x), type.float(a.y, b.y, c.y)))
+        setOutput(0, Vector2f(type.float(a.x, b.x, c.x), type.float(a.y, b.y, c.y)))
     }
 }

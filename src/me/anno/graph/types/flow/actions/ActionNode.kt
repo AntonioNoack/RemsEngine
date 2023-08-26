@@ -5,7 +5,7 @@ import me.anno.graph.types.flow.control.FixedControlFlowNode
 
 abstract class ActionNode : FixedControlFlowNode {
 
-    constructor(name: String) : super(name)
+    constructor(name: String) : super(name, Companion.inputs, Companion.outputs)
 
     constructor(name: String, inputs: List<String>, outputs: List<String>) :
             super(name, Companion.inputs + inputs, Companion.outputs + outputs)

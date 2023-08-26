@@ -121,7 +121,6 @@ class RenderLightsNode : RenderSceneNode0(
             }
 
             override val currentShader: Shader get() = shader
-
         }.run { shader to typeValues }
 
         shaders[id] = shader1
@@ -166,7 +165,6 @@ class RenderLightsNode : RenderSceneNode0(
             }
         }
 
-        setOutput(Texture(framebuffer.getTexture0()), 1)
-
+        setOutput(1, Texture(framebuffer.getTexture0()))
     }
 }

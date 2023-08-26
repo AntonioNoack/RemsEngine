@@ -6,49 +6,74 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.graph.Node
+import me.anno.graph.NodeInput
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.NodeLibrary.Companion.flowNodes
-import me.anno.graph.types.flow.StartNode
 import me.anno.graph.types.flow.actions.ActionNode
+import me.anno.graph.types.flow.control.IfElseNode
+import me.anno.graph.types.flow.maths.CompareNode
 import me.anno.graph.types.states.StateMachine
 import me.anno.graph.types.states.StateNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
+import me.anno.graph.ui.GraphPanel.Companion.yellow
 import me.anno.image.ImageGPUCache
 import me.anno.image.ImageScale
+import me.anno.input.MouseButton
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.min
+import me.anno.maths.Maths.sq
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.style.Style
+import me.anno.utils.Color.black
 import me.anno.utils.Color.mulARGB
 import me.anno.utils.OS.downloads
 import me.anno.utils.OS.pictures
 import kotlin.math.max
 
+/**
+ * This sample shows how a simple visual novel could be programmed, and dialogs be created using the GraphEditor.
+ * The visual novel is built using a StateMachine, which is just a special graph for such a purpose.
+ * */
 object VisualNovel {
+
+    var graphEditor: GraphEditor? = null
 
     val samples = downloads.getChild("sprites")
     var background: FileReference = pictures.getChild("4k.jpg")
     var primary: FileReference = samples.getChild("anise_c_laugh.png")
     var secondary: FileReference = samples.getChild("cardamom_nc_normal.png")
 
-    var shownText = "Start\n" +
-            "  1. Option 1\n" +
-            "  2. Option 2\n" +
-            "  3. Option 3\n"
+    var shownText = ""
     var textTime = 0L
     var numOptions: Int = 0
     var questionNode: QuestionNode? = null
 
-    class SpeakNode : StateNode("Speak", listOf("String", "Text"), emptyList()) {
+    fun setText(text: String, options: Int, node: Node) {
+        shownText = text
+        numOptions = options
+        questionNode = node as? QuestionNode
+        textTime = 0
+    }
+
+    class SpeechNode() : StateNode("Speak", listOf("String", "Text"), emptyList()) {
+        constructor(text: String) : this() {
+            setInput(1, text)
+        }
+
         override fun onEnterState(oldState: StateNode?) {
-            shownText = (getInput(1) ?: "").toString()
-            textTime = 0
+            color = yellow
+            setText(getInput(1).toString(), 0, this)
+        }
+
+        override fun onExitState(newState: StateNode?) {
+            color = black
         }
     }
 
@@ -62,14 +87,25 @@ object VisualNovel {
         }
     }
 
-    class QuestionNode : StateNode("Question", listOf("String", "Question"), listOf("Int", "Result")) {
+    class QuestionNode() : StateNode("Question", listOf("String", "Question"), listOf("Int", "Result")) {
+        constructor(question: String, options: List<String>) : this() {
+            setInput(1, question)
+            inputs = inputs!! + options.map { NodeInput("String", this, true) }
+            for (i in options.indices) {
+                setInput(i + 2, options[i])
+            }
+        }
+
         override fun onEnterState(oldState: StateNode?) {
-            questionNode = this
-            textTime = 0
+            color = yellow
             val options = (2 until inputs!!.size).map { (getInput(it) ?: "").toString() }.filter { it.isNotBlank() }
-            shownText = (getInput(1) ?: "").toString() + "\n" +
-                    options.withIndex().joinToString("") { (idx, it) -> "  ${idx + 1}. $it\n" }
-            numOptions = options.size
+            val shownText = (getInput(1) ?: "").toString() + "\n" +
+                    options.withIndex().joinToString("") { (idx, it) -> "  [${idx + 1}] $it\n" }
+            setText(shownText, options.size, this)
+        }
+
+        override fun onExitState(newState: StateNode?) {
+            color = black
         }
 
         override fun canAddInput(type: String, index: Int) = index > 0 && type == "String"
@@ -81,10 +117,28 @@ object VisualNovel {
         }
     }
 
+    class StartNode : StateNode("Start") {
+        override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
+            val self = this
+            val graph = graph as StateMachine
+            super.createUI(g, list, style)
+            list.add(TextButton("Start", false, style)
+                .addLeftClickListener {
+                    graph.start(self) // sets self
+                    graph.update() // finds first true node
+                })
+            setText("", 0, this)
+        }
+
+        override fun onEnterState(oldState: StateNode?) {
+            graphEditor?.requestFocus(this)
+        }
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
 
-        // todo story graph
+        // story graph
         // nodes for changing character images, background, effects and such,
         // todo load good images from somewhere...
 
@@ -93,31 +147,61 @@ object VisualNovel {
         //  - characters talking
 
         // UI split in two: graph, and game
-        // todo restart button
+        // start = restart button
 
-        val graph = StateMachine()
+        val stateMachine = StateMachine()
         val library = NodeLibrary(flowNodes.nodes + listOf(
-            { SpeakNode() },
+            { SpeechNode() },
             { QuestionNode() },
             { CharacterNode() },
             { SceneNode() }
         ))
 
-        val start = object : StartNode() {
-            override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
-                val self = this
-                super.createUI(g, list, style)
-                list.add(TextButton("Start", false, style)
-                    .addLeftClickListener {
-                        graph.start(self)
-                    })
-            }
-        }
-        graph.add(start)
+        // add a sample dialog :3
+        val start = StartNode()
+        val intro = SpeechNode("Hi, Darling!")
+        val question = QuestionNode(
+            "Do you still love me?", listOf(
+                "Of course, I do",
+                "More so than ever",
+                "No", "Who are you?"
+            )
+        )
+        val decision = IfElseNode()
+        val comp = CompareNode("Int") // <
+        val positiveEnding = SpeechNode("Daisuki 😍")
+        val negativeEnding = SpeechNode("Oh 😥")
+
+        start.connectTo(intro)
+        intro.connectTo(question)
+        question.connectTo(decision)
+        decision.connectTo(positiveEnding)
+        decision.connectTo(1, negativeEnding, 0)
+        question.connectTo(1, comp, 0)
+        comp.setInput(1, 3)
+        comp.connectTo(decision, 1)
+
+        start.position.set(-160.0, -160.0, 0.0)
+        intro.position.set(+160.0, -160.0, 0.0)
+        question.position.set(-100.0, 0.0, 0.0)
+        comp.position.set(230.0, 0.0, 0.0)
+        decision.position.set(0.0, 230.0, 0.0)
+        positiveEnding.position.set(230.0, 160.0, 0.0)
+        negativeEnding.position.set(230.0, 300.0, 0.0)
+
+        // restart
+        val restart = SpeechNode("Restarting...")
+        positiveEnding.connectTo(restart)
+        negativeEnding.connectTo(restart)
+        restart.connectTo(start)
+        restart.position.set(450.0, 230.0, 0.0)
+
+        stateMachine.addAllConnected(start)
 
         val splitter = CustomList(false, style)
-        val graphPanel = GraphEditor(graph, style)
+        val graphPanel = GraphEditor(stateMachine, style)
         graphPanel.library = library
+        graphEditor = graphPanel
 
         // to do screen shake for background??
         // to do soft moving of background (plus scale maybe)?
@@ -140,6 +224,20 @@ object VisualNovel {
                 backgroundColor = backgroundColor.mulARGB(0xffcccccc.toInt())
             }
 
+            override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+                if (button.isLeft && !long && numOptions < 1) {
+                    stateMachine.update()
+                } else super.onMouseClicked(x, y, button, long)
+            }
+
+            override fun onCharTyped(x: Float, y: Float, key: Int) {
+                val idx = key - '0'.code
+                if (idx in 1..numOptions) {
+                    questionNode?.setOutput(1, idx)
+                    stateMachine.update()
+                } else super.onCharTyped(x, y, key)
+            }
+
             override fun calculateSize(w: Int, h: Int) {
                 super.calculateSize(w, h)
                 val maxW = w * 17 / 20
@@ -153,13 +251,13 @@ object VisualNovel {
                 shownTextPanel.setPosSize(x + (width - w) / 2, y + height - h, w, h)
             }
 
-            fun drawChar(image: Texture2D, pos: Int, w: Int) {
+            fun drawChar(image: Texture2D, pos: Int, hasText: Boolean, w: Int) {
                 val h = image.height * w / image.width
                 image.bind(0)
                 image.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
                 drawTexture(
                     x + width * pos / 100 - w / 2,
-                    y + height * 7 / 10 - h / 2, w, h, image
+                    y + height * (if (hasText) 7 else 9) / 10 - h / 2, w, h, image
                 )
             }
 
@@ -167,13 +265,16 @@ object VisualNovel {
 
                 if (textTime == 0L) textTime = Engine.gameTime
 
+                val hasText = shownText.isNotBlank()
+
                 // draw background
                 val bgImage = ImageGPUCache[background, true]
                 if (bgImage != null) {
                     // to do can/should we blur the background a little?
                     // to do maybe foreground, too, based on cursor?
                     val (w, h) = ImageScale.scaleMin(bgImage.width, bgImage.height, width, height)
-                    drawTexture(x + (width - w) / 2, y + (height * 8 / 10 - h) / 2, w, h, bgImage)
+                    val yi = if (hasText) y + (height * 8 / 10 - h) / 2 else y + (height - h) / 2
+                    drawTexture(x + (width - w) / 2, yi, w, h, bgImage)
                 } else drawBackground(x0, y0, x1, y1)
 
                 val charWidth = (0.38f * max(width, height)).toInt()
@@ -182,24 +283,25 @@ object VisualNovel {
                 val left = ImageGPUCache[primary, true]
                 when {
                     left != null && right != null -> {
-                        drawChar(right, 75, charWidth)
-                        drawChar(left, 25, charWidth)
+                        drawChar(right, 75, hasText, charWidth)
+                        drawChar(left, 25, hasText, charWidth)
                     }
                     left != null -> {
-                        drawChar(left, 42, charWidth)
+                        drawChar(left, 42, hasText, charWidth)
                     }
                     right != null -> {
-                        drawChar(right, 58, charWidth)
+                        drawChar(right, 58, hasText, charWidth)
                     }
                 }
 
-                drawBackground(x, y + height * 8 / 10, x + width, y + height)
+                if (hasText) {
+                    drawBackground(x, y + height * 8 / 10, x + width, y + height)
 
-                // todo accept clicks
-                val progress = 1e-9 * 10 * (Engine.gameTime - textTime)
-                shownTextPanel.text = shownText.substring(0, min(progress.toInt(), shownText.length))
+                    val progress = 10 * sq(1e-9 * (Engine.gameTime - textTime))
+                    shownTextPanel.text = shownText.substring(0, min(progress.toInt(), shownText.length))
 
-                drawChildren(x0, y0, x1, y1)
+                    drawChildren(x0, y0, x1, y1)
+                }
                 invalidateDrawing() // for next frame
             }
         }

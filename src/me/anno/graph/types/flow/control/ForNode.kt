@@ -18,7 +18,7 @@ class ForNode : FixedControlFlowNode("For Loop", inputs, outputs) {
                 if (reversed) {
                     for (index in (startIndex - 1) downTo endIndex step increment) {
                         if (increment <= 0L) throw IllegalStateException("Step size must be > 0")
-                        setOutput(index, 1)
+                        setOutput(1, index)
                         graph.requestId()
                         // new id, because it's a new run, and we need to invalidate all previously calculated values
                         // theoretically it would be enough to just invalidate the ones in that subgraph
@@ -28,7 +28,7 @@ class ForNode : FixedControlFlowNode("For Loop", inputs, outputs) {
                 } else {
                     for (index in startIndex until endIndex step increment) {
                         if (increment <= 0L) throw IllegalStateException("Step size must be > 0")
-                        setOutput(index, 1)
+                        setOutput(1, index)
                         graph.requestId()
                         // new id, because it's a new run, and we need to invalidate all previously calculated values
                         // theoretically it would be enough to just invalidate the ones in that subgraph

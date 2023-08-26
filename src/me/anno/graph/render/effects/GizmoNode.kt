@@ -96,7 +96,6 @@ class GizmoNode : RenderSceneNode0(
             }
         }
 
-        setOutput(Texture(framebuffer.getTexture0()), 1)
-
+        setOutput(1, Texture(framebuffer.getTexture0()))
     }
 }

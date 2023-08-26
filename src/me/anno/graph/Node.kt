@@ -61,21 +61,16 @@ abstract class Node() : PrefabSaveable() {
 
     fun isConnected(): Boolean {
         val inputs = inputs
-        if (inputs != null && inputs.any { !it.isEmpty() }) {
-            return true
-        }
         val outputs = outputs
-        if (outputs != null && outputs.any { !it.isEmpty() }) {
-            return true
-        }
-        return false
+        return (inputs != null && inputs.any { !it.isEmpty() }) ||
+                (outputs != null && outputs.any { !it.isEmpty() })
     }
 
     fun getOutput(index: Int): Any? {
         return outputs?.getOrNull(index)?.currValue
     }
 
-    fun setOutput(value: Any?, index: Int = 0) {
+    fun setOutput(index: Int, value: Any?) {
         val output = outputs!![index]
         output.currValue = value
         val graph = graph
@@ -198,7 +193,6 @@ abstract class Node() : PrefabSaveable() {
 
         output.others += input
         input.others += output
-
     }
 
     fun setInput(index: Int, value: Any?, validId: Int) {
@@ -243,5 +237,4 @@ abstract class Node() : PrefabSaveable() {
         dst.graph = graph
         dst.color = color
     }
-
 }

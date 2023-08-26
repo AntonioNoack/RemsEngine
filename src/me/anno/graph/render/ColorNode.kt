@@ -14,8 +14,8 @@ class ColorNode : ValueNode("Color", emptyList(), listOf("Vector4f", "Color", "I
     val value = Vector4f(1f)
 
     init {
-        setOutput(value, 0)
-        setOutput(value.toARGB(), 1)
+        setOutput(0, value)
+        setOutput(1, value.toARGB())
     }
 
     // nothing to do
@@ -26,7 +26,7 @@ class ColorNode : ValueNode("Color", emptyList(), listOf("Vector4f", "Color", "I
         list += ColorInput(style, "Value", "", value, true)
             .setChangeListener { r, gr, b, a ->
                 value.set(r, gr, b, a)
-                setOutput(value.toARGB(), 1)
+                setOutput(1, value.toARGB())
                 g.onChange(false)
             }
     }
@@ -40,5 +40,4 @@ class ColorNode : ValueNode("Color", emptyList(), listOf("Vector4f", "Color", "I
         if (name == "value") this.value.set(value)
         else super.readVector4f(name, value)
     }
-
 }

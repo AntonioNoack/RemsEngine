@@ -78,7 +78,7 @@ class CompareNode(type: String = "?") :
             Mode.NOT_IDENTICAL -> a !== b
             else -> apply(compare(a, b))
         }
-        setOutput(c, 0)
+        setOutput(0, c)
     }
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
@@ -115,5 +115,4 @@ class CompareNode(type: String = "?") :
         val values2 = Mode.values()
         val outputs = listOf("Boolean", "Result")
     }
-
 }

@@ -63,8 +63,7 @@ class MotionBlurNode : ActionNode(
         }
 
         val result = framebuffer.getTexture0()
-        setOutput(Texture(result), 1)
-
+        setOutput(1, Texture(result))
     }
 
 
