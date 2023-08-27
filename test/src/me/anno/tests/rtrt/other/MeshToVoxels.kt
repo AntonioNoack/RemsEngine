@@ -1,9 +1,9 @@
 package me.anno.tests.rtrt.other
 
 import me.anno.ecs.components.mesh.MaterialCache
-import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.Texture3DBTv2Material
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -17,7 +17,9 @@ import me.anno.gpu.framebuffer.Framebuffer3D
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture3D
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.maths.Maths.PIf
@@ -56,12 +58,13 @@ fun meshToVoxels(
 }
 
 val mergeChannelsShader = ComputeShader(
-    "merge-channels", Vector3i(8, 8, 8), "" +
+    "merge-channels", Vector3i(8, 8, 8), listOf(
+        Variable(GLSLType.V3I, "size")
+    ), "" +
             "layout(rgba8, binding = 0) uniform image3D xyz;\n" +
             "layout(rgba8, binding = 1) uniform image3D zyx;\n" +
             "layout(rgba8, binding = 2) uniform image3D xzy;\n" +
             "layout(rgba8, binding = 3) uniform image3D dst;\n" +
-            "uniform ivec3 size;\n" +
             "void main(){\n" +
             "   ivec3 uvw = ivec3(gl_GlobalInvocationID);\n" +
             "   if(all(lessThan(uvw, size))) {\n" +
@@ -144,7 +147,6 @@ fun meshToSeparatedVoxels(
         }
         clock.stop("Mesh -> Dense Voxels")
     }
-
 }
 
 val skipDistanceShader = ComputeShader(

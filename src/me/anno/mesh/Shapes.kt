@@ -132,7 +132,6 @@ object Shapes {
             both.uvs = uvs
             return this
         }
-
     }
 
     val flat11 = FBBMesh(
@@ -244,5 +243,4 @@ object Shapes {
             mesh.cullMode = base1.cullMode
         }
     }
-
 }

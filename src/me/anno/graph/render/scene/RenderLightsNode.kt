@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.LightShaders.createMainFragmentStage
+import me.anno.gpu.pipeline.LightShaders.invStage
 import me.anno.gpu.pipeline.LightShaders.uvwStage
 import me.anno.gpu.pipeline.LightShaders.vertexI
 import me.anno.gpu.pipeline.LightShaders.vertexNI
@@ -101,6 +102,7 @@ class RenderLightsNode : RenderSceneNode0(
                         listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT))
                 val builder = ShaderBuilder(name)
                 builder.addVertex(if (isInstanced) vertexI else vertexNI)
+                if (isInstanced) builder.addFragment(invStage)
                 builder.addFragment(uvwStage)
                 builder.addFragment(
                     ShaderStage("rlight-f0", variables, expressions)

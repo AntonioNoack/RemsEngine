@@ -1064,13 +1064,14 @@ open class Texture2D(
         this.filtering = filtering
     }
 
-    var depthFunc: DepthMode = DepthMode.ALWAYS
+    var depthFunc: DepthMode? = null
         set(value) {
             if (field != value) {
                 field = value
                 bindBeforeUpload()
-                glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE)
-                glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
+                val mode = if (value == null) GL_NONE else GL_COMPARE_REF_TO_TEXTURE
+                glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, mode)
+                if (value != null) glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
             }
         }
 

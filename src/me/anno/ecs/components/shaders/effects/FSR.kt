@@ -4,11 +4,14 @@ import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.drawing.GFXx2D.posSize
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
-import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.simpleVertexShader
+import me.anno.gpu.shader.ShaderLib.simpleVertexShaderList
 import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.ResourceHelper
 import me.anno.utils.OS
@@ -27,18 +30,22 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", coordsList, ShaderLib.simpleVertexShader, uvList, emptyList(), "" +
-                    "uniform vec2 dstWH;\n" +
-                    "uniform vec3 background;\n" +
-                    "uniform sampler2D source;\n" +
+            "upscale", simpleVertexShaderList, simpleVertexShader, uvList, listOf(
+                Variable(GLSLType.V2F, "dstWH"),
+                Variable(GLSLType.V3F, "background"),
+                Variable(GLSLType.S2D, "source"),
+                Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT),
+                Variable(GLSLType.V4F, "con0"),
+                Variable(GLSLType.V4F, "con1"),
+                Variable(GLSLType.V4F, "con2"),
+                Variable(GLSLType.V4F, "con3"),
+                Variable(GLSLType.V2F, "texelOffset"),
+                Variable(GLSLType.V1B, "applyToneMapping")
+            ), "" +
                     "#define A_GPU 1\n" +
                     "#define A_GLSL 1\n" +
                     "#define ANNO 1\n" + // we use our custom version
                     defines +
-                    "layout(location=0) out vec4 glFragColor;\n" +
-                    "uniform vec4 con0,con1,con2,con3;\n" +
-                    "uniform vec2 texelOffset;\n" +
-                    "uniform bool applyToneMapping;\n" +
                     "#define FSR_EASU_F 1\n" +
                     (if (OS.isWeb) "#define HLSL\n" else "") +
                     "#ifdef HLSL\n" +
@@ -66,8 +73,7 @@ object FSR {
                     "   g = mix(background.gggg, textureGather(source,p,1), alpha);\n" +
                     "   b = mix(background.bbbb, textureGather(source,p,2), alpha);\n" +
                     "}\n" +
-                    "#endif\n"
-                    +
+                    "#endif\n" +
                     functions +
                     noiseFunc + // needed for tone mapping
                     tonemapGLSL +
@@ -89,7 +95,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", coordsList, ShaderLib.simpleVertexShader, uvList, emptyList(), "" +
+            "upscale", simpleVertexShaderList, simpleVertexShader, uvList, emptyList(), "" +
                     "out vec4 glFragColor;\n" +
                     "uniform vec2 dstWH;\n" +
                     "uniform float sharpness;\n" +
@@ -206,5 +212,4 @@ object FSR {
         source.bindTrulyNearest(0)
         sharpen(sharpness, flipY)
     }
-
 }

@@ -5,7 +5,8 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.AnimRenderer
-import me.anno.ecs.components.light.*
+import me.anno.ecs.components.light.PlanarReflection
+import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
@@ -192,7 +193,6 @@ class PipelineStage(
                 JomlPools.mat4x3d.sub(1)
             }
         }
-
     }
 
     var nextInsertIndex = 0
@@ -225,7 +225,6 @@ class PipelineStage(
             @Suppress("unchecked_cast")
             Arrays.sort(content, 0, size, comp as Comparator<Any?>)
         }
-
     }
 
     // doesn't work yet, why ever
@@ -374,6 +373,18 @@ class PipelineStage(
                     buffer.position(0)
                     shader.m4x3Array(invLightMatrices, buffer)
                 }
+                val lightMatrices = shader["lightMatrices"]
+                if (invLightMatrices >= 0) {
+                    // fill all transforms
+                    buffer.limit(12 * numberOfLights)
+                    for (i in 0 until numberOfLights) {
+                        buffer.position(12 * i)
+                        val light = lights[i]!!.transform.getDrawMatrix()
+                        m4x3delta(light, RenderState.cameraPosition, RenderState.worldScale, buffer)
+                    }
+                    buffer.position(0)
+                    shader.m4x3Array(lightMatrices, buffer)
+                }
                 // and sharpness; implementation depending on type
                 val lightIntensities = shader["lightData0"]
                 if (lightIntensities >= 0) {
@@ -385,13 +396,7 @@ class PipelineStage(
                         buffer.put(color.x)
                         buffer.put(color.y)
                         buffer.put(color.z)
-                        val type = when (light) {
-                            is DirectionalLight -> LightType.DIRECTIONAL.id
-                            is PointLight -> LightType.POINT.id
-                            is SpotLight -> LightType.SPOT.id
-                            else -> -1
-                        }
-                        buffer.put(type + 0.25f)
+                        buffer.put(light.lightType.id + 0.25f)
                     }
                     buffer.position(0)
                     shader.v4Array(lightIntensities, buffer)
@@ -401,12 +406,9 @@ class PipelineStage(
                 val lightTypes = shader["lightData1"]
                 if (lightTypes >= 0) {
                     buffer.limit(numberOfLights)
-                    val worldScale = RenderState.worldScale
                     for (i in 0 until numberOfLights) {
-                        val lightI = lights[i]!!
-                        val light = lightI.light
-                        val m = lightI.transform.getDrawMatrix(time)
-                        buffer.put(light.getShaderV0(m, worldScale))
+                        val light = lights[i]!!.light
+                        buffer.put(light.getShaderV0())
                     }
                     buffer.flip()
                     shader.v1Array(lightTypes, buffer)
@@ -663,7 +665,6 @@ class PipelineStage(
 
         Companion.drawnPrimitives += drawnPrimitives
         Companion.drawCalls += drawCalls
-
     }
 
     fun bindRandomness(shader: Shader) {
@@ -772,7 +773,6 @@ class PipelineStage(
 
             drawnPrimitives += mesh.numPrimitives
             drawCalls++
-
         }
 
         GFX.check()
@@ -788,7 +788,6 @@ class PipelineStage(
 
         Companion.drawnPrimitives += drawnPrimitives
         Companion.drawCalls += drawCalls
-
     }
 
     private var hadTooMuchSpace = 0
@@ -806,7 +805,6 @@ class PipelineStage(
         for (i in instances.indices) {
             instances[i].clear()
         }
-
     }
 
     fun add(component: Component, mesh: Mesh, entity: Entity, materialIndex: Int, clickId: Int) {
@@ -880,5 +878,4 @@ class PipelineStage(
     override val className: String get() = "PipelineStage"
     override val approxSize get() = 5
     override fun isDefaultValue(): Boolean = false
-
 }

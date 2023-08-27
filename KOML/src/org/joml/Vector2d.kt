@@ -69,34 +69,37 @@ open class Vector2d {
     fun perpendicular() = set(y, -x)
 
     @JvmOverloads
-    fun sub(x: Double, y: Double, dst: Vector2d = this) = dst.set(this.x - x, this.y - y)
+    fun sub(x: Double, y: Double, dst: Vector2d = this): Vector2d = dst.set(this.x - x, this.y - y)
 
     @JvmOverloads
-    fun sub(v: Vector2f, dst: Vector2d = this) = sub(v.x.toDouble(), v.y.toDouble(), dst)
+    fun sub(x: Double, dst: Vector2d = this): Vector2d = sub(x, x, dst)
 
     @JvmOverloads
-    fun sub(v: Vector2d, dst: Vector2d = this) = sub(v.x, v.y, dst)
+    fun sub(v: Vector2f, dst: Vector2d = this): Vector2d = sub(v.x.toDouble(), v.y.toDouble(), dst)
 
     @JvmOverloads
-    fun mul(scalar: Double, dst: Vector2d = this) = dst.set(x * scalar, y * scalar)
+    fun sub(v: Vector2d, dst: Vector2d = this): Vector2d = sub(v.x, v.y, dst)
 
     @JvmOverloads
-    fun mul(x: Double, y: Double, dst: Vector2d = this) = dst.set(x * this.x, y * this.y)
+    fun mul(scalar: Double, dst: Vector2d = this): Vector2d = dst.set(x * scalar, y * scalar)
 
     @JvmOverloads
-    fun mul(v: Vector2d, dst: Vector2d = this) = mul(v.x, v.y, dst)
+    fun mul(x: Double, y: Double, dst: Vector2d = this): Vector2d = dst.set(x * this.x, y * this.y)
 
     @JvmOverloads
-    fun div(scalar: Double, dst: Vector2d = this) = mul(1.0 / scalar, dst)
+    fun mul(v: Vector2d, dst: Vector2d = this): Vector2d = mul(v.x, v.y, dst)
 
     @JvmOverloads
-    fun div(x: Double, y: Double, dst: Vector2d = this) = dst.set(this.x / x, this.y / y)
+    fun div(scalar: Double, dst: Vector2d = this): Vector2d = mul(1.0 / scalar, dst)
 
     @JvmOverloads
-    fun div(v: Vector2f, dst: Vector2d = this) = div(v.x.toDouble(), v.y.toDouble(), dst)
+    fun div(x: Double, y: Double, dst: Vector2d = this): Vector2d = dst.set(this.x / x, this.y / y)
 
     @JvmOverloads
-    fun div(v: Vector2d, dst: Vector2d = this) = div(v.x, v.y, dst)
+    fun div(v: Vector2f, dst: Vector2d = this): Vector2d = div(v.x.toDouble(), v.y.toDouble(), dst)
+
+    @JvmOverloads
+    fun div(v: Vector2d, dst: Vector2d = this): Vector2d = div(v.x, v.y, dst)
 
     @JvmOverloads
     fun mul(mat: Matrix2d, dst: Vector2d = this): Vector2d {
@@ -315,10 +318,13 @@ open class Vector2d {
     companion object {
         @JvmStatic
         fun lengthSquared(x: Double, y: Double) = x * x + y * y
+
         @JvmStatic
         fun length(x: Double, y: Double) = hypot(x, y)
+
         @JvmStatic
         fun distance(x1: Double, y1: Double, x2: Double, y2: Double) = hypot(x1 - x2, y1 - y2)
+
         @JvmStatic
         fun distanceSquared(x1: Double, y1: Double, x2: Double, y2: Double) = lengthSquared(x1 - x2, y1 - y2)
     }

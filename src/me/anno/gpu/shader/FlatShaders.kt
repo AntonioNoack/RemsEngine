@@ -165,9 +165,9 @@ object FlatShaders {
             Variable(GLSLType.SCube, "tex"),
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V1B, "ignoreTexAlpha"),
-            Variable(GLSLType.V1B, "showDepth")
+            Variable(GLSLType.V1B, "showDepth"),
+            // Variable(GLSLType.M3x3, "rotation"),
         ), "" +
-                // "uniform mat3 rotation;\n" +
                 "void main(){\n" +
                 "   vec2 sc = vec2(sin(uv.y),cos(uv.y));\n" +
                 "   vec3 uvw = vec3(sin(uv.x),1.0,cos(uv.x)) * sc.yxy;\n" +
@@ -233,5 +233,4 @@ object FlatShaders {
         flatShaderTexture.ignoreNameWarnings(blacklist)
         flatShaderCubemap.ignoreNameWarnings(blacklist)
     }
-
 }

@@ -15,49 +15,23 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     constructor(xyz: FloatArray) : this(xyz[0], xyz[1], xyz[2])
     constructor(x: Int, y: Int, z: Int) : this(x.toFloat(), y.toFloat(), z.toFloat())
 
-    fun set(v: Vector3f): Vector3f {
-        x = v.x
-        y = v.y
-        z = v.z
-        return this
-    }
-
-    fun set(v: Vector3d) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
-    fun set(v: Vector3i) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
-    fun set(v: Vector2f, z: Float) = set(v.x, v.y, z)
-    fun set(v: Vector2d, z: Float) = set(v.x.toFloat(), v.y.toFloat(), z)
-    fun set(v: Vector2i, z: Float) = set(v.x.toFloat(), v.y.toFloat(), z)
-
-    fun set(d: Float): Vector3f {
-        x = d
-        y = d
-        z = d
-        return this
-    }
-
+    fun set(v: Vector3f): Vector3f = set(v.x, v.y, v.z)
+    fun set(v: Vector3d): Vector3f = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+    fun set(v: Vector3i): Vector3f = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat())
+    fun set(v: Vector2f, z: Float): Vector3f = set(v.x, v.y, z)
+    fun set(v: Vector2d, z: Float): Vector3f = set(v.x.toFloat(), v.y.toFloat(), z)
+    fun set(v: Vector2i, z: Float): Vector3f = set(v.x.toFloat(), v.y.toFloat(), z)
+    fun set(v: Float): Vector3f = set(v, v, v)
+    fun set(v: Double): Vector3f = set(v, v, v)
+    fun set(x: Double, y: Double, z: Double): Vector3f = set(x.toFloat(), y.toFloat(), z.toFloat())
+    fun set(v: FloatArray) = set(v[0], v[1], v[2])
+    fun set(v: FloatArray, i: Int) = set(v[i], v[i + 1], v[i + 2])
     fun set(x: Float, y: Float, z: Float): Vector3f {
         this.x = x
         this.y = y
         this.z = z
         return this
     }
-
-    fun set(d: Double): Vector3f {
-        x = d.toFloat()
-        y = d.toFloat()
-        z = d.toFloat()
-        return this
-    }
-
-    fun set(x: Double, y: Double, z: Double): Vector3f {
-        this.x = x.toFloat()
-        this.y = y.toFloat()
-        this.z = z.toFloat()
-        return this
-    }
-
-    fun set(v: FloatArray) = set(v[0], v[1], v[2])
-    fun set(v: FloatArray, i: Int) = set(v[i], v[i + 1], v[i + 2])
 
     operator fun set(component: Int, value: Float) = setComponent(component, value)
     fun setComponent(component: Int, value: Float): Vector3f {
@@ -70,13 +44,8 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return this
     }
 
-    fun sub(v: Vector3f, dst: Vector3f = this): Vector3f {
-        dst.x = x - v.x
-        dst.y = y - v.y
-        dst.z = z - v.z
-        return dst
-    }
-
+    fun sub(v: Float, dst: Vector3f = this): Vector3f = sub(v, v, v, dst)
+    fun sub(v: Vector3f, dst: Vector3f = this): Vector3f = sub(v.x, v.y, v.z, dst)
     fun sub(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
         dst.x = this.x - x
         dst.y = this.y - y
@@ -84,13 +53,8 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return dst
     }
 
-    fun add(v: Vector3f, dst: Vector3f = this): Vector3f {
-        dst.x = x + v.x
-        dst.y = y + v.y
-        dst.z = z + v.z
-        return dst
-    }
-
+    fun add(v: Float, dst: Vector3f = this): Vector3f = add(v, v, v, dst)
+    fun add(v: Vector3f, dst: Vector3f = this): Vector3f = add(v.x, v.y, v.z, dst)
     fun add(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
         dst.x = this.x + x
         dst.y = this.y + y

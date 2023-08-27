@@ -19,10 +19,12 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
 import kotlin.math.PI
 
-// todo size of point light: probably either distance or direction needs to be adjusted
 // todo - in proximity, the appearance must not stay as a point, but rather be a sphere
 
 class PointLight : LightComponent(LightType.POINT) {
@@ -32,18 +34,9 @@ class PointLight : LightComponent(LightType.POINT) {
 
     @SerializedProperty
     @Range(1e-6, 1.0)
-    var near = 0.001
+    var near = 0.01
 
-    override fun getShaderV0(drawTransform: Matrix4x3d, worldScale: Double): Float {
-        // put light size * world scale
-        // avg, and then /3
-        // but the center really is much smaller -> *0.01
-        val scaleX = drawTransform.getScale(JomlPools.vec3d.borrow())
-        val lightSize = (scaleX.x + scaleX.y + scaleX.z) * lightSize / 9.0
-        return (lightSize * worldScale).toFloat()
-    }
-
-    // v1 is not used
+    override fun getShaderV0() = lightSize.toFloat()
     override fun getShaderV2() = near.toFloat()
 
     override fun invalidateShadows() {
@@ -62,12 +55,11 @@ class PointLight : LightComponent(LightType.POINT) {
         position: Vector3d,
         rotation: Quaterniond
     ) {
-
     }
 
     override fun updateShadowMaps() {
 
-        lastDraw = Engine.nanoTime
+        lastDrawn = Engine.gameTime
 
         val pipeline = pipeline
 
@@ -114,7 +106,6 @@ class PointLight : LightComponent(LightType.POINT) {
         }
 
         JomlPools.quat4d.sub(2)
-
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -137,34 +128,26 @@ class PointLight : LightComponent(LightType.POINT) {
 
         val falloff = kotlin.run {
             val cutoff = 0.1
-            "max(0.0, 1.0/(1.0+9.0*dot(dir,dir)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
+            "max(0.0, 1.0/(1.0+9.0*dot(lightPos,lightPos)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
         }
 
-        fun getShaderCode(cutoffContinue: String?, withShadows: Boolean, hasLightRadius: Boolean): String {
+        fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +
-                    (if (cutoffContinue != null) "if(dot(dir,dir)>1.0) $cutoffContinue;\n" else "") + // outside
-                    // when light radius > 0, then adjust the light direction such that it looks as if the light was a sphere
-                    "lightDirWS = normalize(-dir);\n" +
-                    (if (hasLightRadius) "" +
-                            "#define lightRadius data1\n" +
-                            "if(lightRadius > 0.0){\n" +
-                            // todo effect is much more visible in the diffuse part
-                            // it's fine for small increased, but we wouldn't really use them...
-                            // should be more visible in the specular case...
-                            // in the ideal case, we move the light such that it best aligns the sphere...
-                            "   vec3 idealLightDirWS = normalize(reflect(finalPosition, finalNormal));\n" +
-                            "   lightDirWS = normalize(mix(lightDirWS, idealLightDirWS, clamp(lightRadius/(length(dir)),0.0,1.0)));\n" +
-                            "}\n" else "") +
-                    "NdotL = dot(lightDirWS, finalNormal);\n" +
-                    // shadow maps
-                    // shadows can be in every direction -> use cubemaps
+                    // light radius
+                    "float lightRadius = shaderV0;\n" +
+                    "if(lightRadius > 0.0){\n" +
+                    "   lightPos *= max(length(lightPos)-lightRadius, 0.001) * (1.0+lightRadius) / length(lightPos);\n" +
+                    "}\n" +
+                    (if (cutoffContinue != null) "if(dot(lightPos,lightPos)>1.0) $cutoffContinue;\n" else "") + // outside
+                    "lightDir = normalize(-lightPos);\n" +
+                    "NdotL = dot(lightDir, lightNor);\n" +
+                    // shadow maps; shadows can be in every direction -> use cubemaps
                     (if (withShadows) "" +
                             "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
-                            "   float near = data2.a;\n" +
-                            "   float maxAbsComponent = max(max(abs(dir.x),abs(dir.y)),abs(dir.z));\n" +
+                            "   float near = shaderV2;\n" +
+                            "   float maxAbsComponent = max(max(abs(lightPos.x),abs(lightPos.y)),abs(lightPos.z));\n" +
                             "   float depthFromShader = near/maxAbsComponent;\n" +
-                            // todo how can we get rid of this (1,-1,-1), what rotation is missing?
-                            "   lightColor *= texture_array_depth_shadowMapCubic(shadowMapIdx0, dir*vec3(+1,-1,-1), depthFromShader);\n" +
+                            "   lightColor *= texture_array_depth_shadowMapCubic(shadowMapIdx0, lightPos*vec3(1,-1,-1), depthFromShader);\n" +
                             "}\n"
                     else "") +
                     "effectiveDiffuse = lightColor * $falloff;\n" +
@@ -173,7 +156,5 @@ class PointLight : LightComponent(LightType.POINT) {
                     // nice in theory, but practically, we would need a larger cube for that
                     "effectiveSpecular = effectiveDiffuse;\n"
         }
-
     }
-
 }

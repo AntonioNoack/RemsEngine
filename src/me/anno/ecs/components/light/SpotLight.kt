@@ -16,25 +16,20 @@ import me.anno.utils.structures.arrays.ExpandingFloatArray
 import org.joml.*
 import kotlin.math.atan
 
-// a cone light
 class SpotLight() : LightComponent(LightType.SPOT) {
 
     constructor(src: SpotLight) : this() {
         src.copyInto(this)
     }
 
-    // for a large angle, it just becomes a point light
     @Range(0.0, 100.0)
-    var coneAngle = 1.0
+    var coneAngle = 1f
 
     @SerializedProperty
     @Range(1e-6, 1.0)
-    var near = 0.001
+    var near = 0.01
 
-    override fun getShaderV0(drawTransform: Matrix4x3d, worldScale: Double): Float {
-        return coneAngle.toFloat()
-    }
-
+    override fun getShaderV0(): Float = coneAngle
     override fun getShaderV1(): Float = shadowMapPower.toFloat()
     override fun getShaderV2(): Float = near.toFloat()
 
@@ -62,7 +57,7 @@ class SpotLight() : LightComponent(LightType.SPOT) {
     }
 
     override fun drawShape() {
-        drawCone(entity, coneAngle)
+        drawCone(entity, coneAngle.toDouble())
         drawArrowZ(entity, 0.0, -1.0)
     }
 
@@ -81,9 +76,6 @@ class SpotLight() : LightComponent(LightType.SPOT) {
     override val className: String get() = "SpotLight"
 
     companion object {
-
-        // val coneFunction = "clamp((localNormal.z-(1.0-coneAngle))/coneAngle,0.0,1.0)"
-        // val coneFunction = "smoothstep(0.0, 1.0, (localNormal.z-(1.0-coneAngle))/coneAngle)"
 
         val halfCubeMesh = Mesh()
 
@@ -106,43 +98,39 @@ class SpotLight() : LightComponent(LightType.SPOT) {
                 // z is half as much
             }
             halfCubeMesh.positions = positions
-
         }
 
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +
-                    (if (cutoffContinue != null) "if(dir.z >= 0.0) $cutoffContinue;\n" else "") + // backside
-                    "lightDirWS = normalize(-dir);\n" +
-                    "NdotL = dot(lightDirWS, finalNormal);\n" +
-                    "float coneAngle = data1;\n" +
-                    "vec2 shadowDir = dir.xy/(-dir.z * coneAngle);\n" +
+                    (if (cutoffContinue != null) "if(lightPos.z >= 0.0) $cutoffContinue;\n" else "") + // backside
+                    "lightDir = normalize(-lightPos);\n" +
+                    "NdotL = dot(lightDir, lightNor);\n" +
+                    "float coneAngle = shaderV0;\n" +
+                    "vec2 shadowDir = lightPos.xy/(-lightPos.z * coneAngle);\n" +
                     "float ringFalloff = dot(shadowDir,shadowDir);\n" +
-                    (if (cutoffContinue != null) "if(ringFalloff > 1.0) $cutoffContinue;\n" else "") + // outside of light
+                    (if (cutoffContinue != null) "if(ringFalloff >= 1.0) $cutoffContinue;\n" else "") + // outside of light
                     // when we are close to the edge, we blend in
-                    "lightColor *= 1.0-ringFalloff;\n" +
+                    "lightColor *= max(1.0-ringFalloff, 0.0);\n" +
                     (if (withShadows) "" +
                             "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
-                            "   #define shadowMapPower data2.b\n" +
+                            "   #define shadowMapPower shaderV1\n" +
                             "   vec2 nextDir = shadowDir * shadowMapPower;\n" +
                             "   while(abs(nextDir.x)<1.0 && abs(nextDir.y)<1.0 && shadowMapIdx0+1<shadowMapIdx1){\n" +
                             "       shadowMapIdx0++;\n" +
                             "       shadowDir = nextDir;\n" +
                             "       nextDir *= shadowMapPower;\n" +
                             "   }\n" +
-                            "   float near = data2.a;\n" +
-                            "   float depthFromShader = -near/dir.z;\n" +
+                            "   float near = shaderV2;\n" +
+                            "   float depthFromShader = -near/lightPos.z;\n" +
                             // do the shadow map function and compare
                             "    lightColor *= texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader);\n" +
                             "}\n"
                     else "") +
-                    "float falloff = $falloff;\n" +
-                    "effectiveDiffuse = lightColor * falloff;\n" +
+                    "effectiveDiffuse = lightColor * $falloff;\n" +
                     // "dir *= 0.2;\n" + // less falloff by a factor of 5,
                     // because specular light is more directed and therefore reached farther
                     // nice in theory, but practically, we would to render need a larger cube
                     "effectiveSpecular = effectiveDiffuse;//lightColor * falloff;\n"
         }
-
     }
-
 }

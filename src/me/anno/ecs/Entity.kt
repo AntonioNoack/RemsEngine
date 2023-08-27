@@ -45,6 +45,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         parent?.add(this)
     }
 
+    constructor(name: String, parent: Entity?) : this(parent) {
+        this.name = name
+    }
+
     constructor(name: String) : this() {
         this.name = name
     }
@@ -553,7 +557,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         checkNeedsPhysics()
 
         parent.setChildPath(this, index, 'e')
-
     }
 
     // todo don't directly update, rather invalidate this, because there may be more to come
@@ -1035,5 +1038,4 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         private val LOGGER = LogManager.getLogger(Entity::class)
         private val entityOptionList = listOf(Option("Entity", "Create a child entity") { Entity() })
     }
-
 }

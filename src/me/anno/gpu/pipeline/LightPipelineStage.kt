@@ -15,7 +15,6 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.LightShaders.bindNullDepthTextures
 import me.anno.gpu.pipeline.LightShaders.countPerPixel
-import me.anno.gpu.pipeline.LightShaders.lightCountInstanceBuffer
 import me.anno.gpu.pipeline.LightShaders.lightInstanceBuffer
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShader
 import me.anno.gpu.pipeline.LightShaders.visualizeLightCountShaderInstanced
@@ -151,7 +150,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
                 val transform = request.transform
 
-                shader.v1b("fullscreen", light is DirectionalLight && light.cutoff <= 0.0)
+                shader.v1b("fullscreen", light is DirectionalLight && light.cutoff == 0f)
 
                 setupLocalTransform(shader, transform, time)
 
@@ -163,10 +162,11 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                 shader.v4f("data0", light.color, 1f)
 
                 // data1: shader specific value (cone angle / size)
-                shader.v1f("data1", light.getShaderV0(m, worldScale))
+                shader.v1f("data1", light.getShaderV0())
 
                 shader.v1f("cutoff", if (light is DirectionalLight) light.cutoff else 1f)
 
+                shader.m4x3delta("lightSpaceToCamSpace", m)
                 shader.m4x3("camSpaceToLightSpace", light.invCamSpaceMatrix)
 
                 var shadowIdx1 = 0
@@ -229,7 +229,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
     fun drawBatches(
         depthTexture: Texture2D,
-        lights: List<LightRequest<*>>,
+        lights: List<LightRequest>,
         type: LightType, shader: Shader
     ) {
 
@@ -248,9 +248,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
         val time = Engine.gameTime
 
-        val buffer =
-            if (visualizeLightCount) lightCountInstanceBuffer
-            else lightInstanceBuffer
+        val buffer = lightInstanceBuffer
         val nioBuffer = buffer.nioBuffer!!
         val stride = buffer.attributes[0].stride
 
@@ -269,22 +267,20 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                 val light = lightI.light
                 val m = lightI.transform.getDrawMatrix(time)
                 m4x3delta(m, cameraPosition, worldScale, nioBuffer)
-                if (!visualizeLightCount) {
-                    m4x3x(light.invCamSpaceMatrix, nioBuffer)
-                    // put all light data: lightData0, lightData1
-                    // put data0:
-                    val color = light.color
-                    nioBuffer.putFloat(color.x)
-                    nioBuffer.putFloat(color.y)
-                    nioBuffer.putFloat(color.z)
-                    nioBuffer.putInt(light.lightType.id)
-                    // put data1: type-dependant property
-                    nioBuffer.putFloat(light.getShaderV0(m, worldScale))
-                    // put data2:
-                    nioBuffer.putFloat(0f)
-                    nioBuffer.putFloat(0f)
-                    nioBuffer.putFloat(light.getShaderV1())
-                }
+                m4x3x(light.invCamSpaceMatrix, nioBuffer)
+                // put all light data: lightData0, lightData1
+                // put data0:
+                val color = light.color
+                nioBuffer.putFloat(color.x)
+                nioBuffer.putFloat(color.y)
+                nioBuffer.putFloat(color.z)
+                nioBuffer.putInt(light.lightType.id)
+                // put data1: type-dependant property
+                nioBuffer.putFloat(light.getShaderV0())
+                // put data2:
+                nioBuffer.putFloat(0f)
+                nioBuffer.putFloat(0f)
+                nioBuffer.putFloat(light.getShaderV1())
                 nioBuffer.putFloat(light.getShaderV2())
             }
             buffer.ensureBufferWithoutResize()
@@ -294,7 +290,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         }
     }
 
-    operator fun get(index: Int): LightRequest<*> {
+    operator fun get(index: Int): LightRequest {
         val nSize = nonInstanced.size
         return if (index < nSize) {
             nonInstanced[index]
@@ -318,11 +314,11 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         environmentMaps.add(environmentMap)
     }
 
-    fun listOfAll(): List<LightRequest<*>> {
+    fun listOfAll(): List<LightRequest> {
         return instanced.listOfAll() + nonInstanced.listOfAll()
     }
 
-    fun listOfAll(dst: SmallestKList<LightRequest<*>>): Int {
+    fun listOfAll(dst: SmallestKList<LightRequest>): Int {
         instanced.listOfAll(dst)
         nonInstanced.listOfAll(dst)
         return dst.size

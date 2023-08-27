@@ -68,10 +68,12 @@ object ShaderLib {
             "}"
 
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
+    val simpleVertexShaderList = coordsList + listOf(
+        Variable(GLSLType.V4F, "posSize"),
+        Variable(GLSLType.V4F, "tiling"),
+        Variable(GLSLType.M4x4, "transform"),
+    )
     const val simpleVertexShader = "" +
-            "uniform vec4 posSize;\n" +
-            "uniform vec4 tiling;\n" +
-            "uniform mat4 transform;\n" +
             "void main(){\n" +
             "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.5, 1.0));\n" +
             "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +

@@ -125,7 +125,7 @@ class ShaderBuilder(val name: String) {
 
     fun ignore(shader: Shader, stage: ShaderStage) {
         for (param in stage.variables.filter { !it.isAttribute }) {
-            if (param.arraySize > 0 && param.type.glslName.startsWith("sampler")) {
+            if (param.arraySize >= 0 && param.type.glslName.startsWith("sampler")) {
                 for (i in 0 until param.arraySize) {
                     shader.ignoreNameWarnings(param.name + i)
                 }

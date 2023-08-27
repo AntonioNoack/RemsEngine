@@ -164,6 +164,31 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
+    fun m4x3delta(m: Matrix4x3d, pos: Vector3d, worldScale: Double, buffer16: FloatBuffer) {
+
+        buffer16.put((m.m00 * worldScale).toFloat())
+        buffer16.put((m.m01 * worldScale).toFloat())
+        buffer16.put((m.m02 * worldScale).toFloat())
+
+        buffer16.put((m.m10 * worldScale).toFloat())
+        buffer16.put((m.m11 * worldScale).toFloat())
+        buffer16.put((m.m12 * worldScale).toFloat())
+
+        buffer16.put((m.m20 * worldScale).toFloat())
+        buffer16.put((m.m21 * worldScale).toFloat())
+        buffer16.put((m.m22 * worldScale).toFloat())
+
+        buffer16.put(((m.m30 - pos.x) * worldScale).toFloat())
+        buffer16.put(((m.m31 - pos.y) * worldScale).toFloat())
+        buffer16.put(((m.m32 - pos.z) * worldScale).toFloat())
+
+    }
+
+    /**
+     * uploads the transform, minus some offset, to the GPU uniform <location>
+     * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
+     * */
+    @JvmStatic
     fun m4x3delta(m: Matrix4x3d, pos: Vector3d, buffer16: ByteBuffer) {
 
         buffer16.putFloat(m.m00.toFloat())

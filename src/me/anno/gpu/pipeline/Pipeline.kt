@@ -300,10 +300,10 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
 
     // todo fix deferred rendering for scenes with many lights
 
-    val lights = arrayOfNulls<LightRequest<*>>(RenderView.MAX_FORWARD_LIGHTS)
+    val lights = arrayOfNulls<LightRequest>(RenderView.MAX_FORWARD_LIGHTS)
 
     val center = Vector3d()
-    private val lightList = SmallestKList<LightRequest<*>>(16) { a, b ->
+    private val lightList = SmallestKList<LightRequest>(16) { a, b ->
         // todo also use the size, and relative size to the camera
         val at = a.transform.getDrawMatrix()
         val bt = b.transform.getDrawMatrix()
@@ -317,7 +317,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
     /**
      * creates a list of relevant lights for a forward-rendering draw call of a mesh or region
      * */
-    fun getClosestRelevantNLights(region: AABBd, numberOfLights: Int, lights: Array<LightRequest<*>?>): Int {
+    fun getClosestRelevantNLights(region: AABBd, numberOfLights: Int, lights: Array<LightRequest?>): Int {
         val lightStage = lightStage
         if (numberOfLights <= 0) return 0
         val size = lightStage.size

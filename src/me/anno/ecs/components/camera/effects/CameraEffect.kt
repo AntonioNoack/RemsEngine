@@ -31,7 +31,7 @@ abstract class CameraEffect : PrefabSaveable() {
     )
 
     fun write(layers: MutableMap<DeferredLayerType, IFramebuffer>, type: DeferredLayerType, fb: IFramebuffer) {
-        (fb as? Framebuffer)?.lastDraw = Engine.nanoTime
+        (fb as? Framebuffer)?.lastDrawn = Engine.gameTime
         layers[type] = fb
     }
 

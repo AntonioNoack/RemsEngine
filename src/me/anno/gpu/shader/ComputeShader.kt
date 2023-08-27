@@ -5,6 +5,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.ShaderCache
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.shader.ShaderLib.matMul
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.maths.Maths.ceilDiv
@@ -26,6 +28,27 @@ class ComputeShader(
 
     constructor(shaderName: String, localSize: Vector3i, source: String) :
             this(shaderName, 430, localSize, source)
+
+    constructor(shaderName: String, localSize: Vector2i, variables: List<Variable>, source: String) :
+            this(shaderName, 430, Vector3i(localSize, 1), variables, source)
+
+    constructor(shaderName: String, version: Int, localSize: Vector2i, variables: List<Variable>, source: String) :
+            this(shaderName, version, Vector3i(localSize, 1), variables, source)
+
+    constructor(shaderName: String, localSize: Vector3i, variables: List<Variable>, source: String) :
+            this(shaderName, 430, localSize, variables, source)
+
+    constructor(shaderName: String, version: Int, localSize: Vector3i, variables: List<Variable>, source: String) :
+            this(shaderName, version, localSize,
+                variables.joinToString("") {
+                    when (it.inOutMode) {
+                        VariableMode.IN -> {
+                            val arr = if (it.arraySize >= 0) "[${it.arraySize}]" else ""
+                            "uniform ${it.type.glslName}$arr ${it.name};\n"
+                        }
+                        else -> throw NotImplementedError()
+                    }
+                } + source)
 
     override fun compile() {
 

@@ -7,7 +7,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.DebugGPUStorage
-import me.anno.gpu.framebuffer.*
+import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.maths.Maths
 import org.joml.Quaterniond
 import org.joml.Quaternionf
@@ -173,7 +174,7 @@ open class CubemapTexture(
             Texture2D.activeSlot(index)
             val result = Texture2D.bindTexture(target, pointer)
             ensureFilterAndClamping(nearest)
-            if (needsMipmaps) {
+            if (needsMipmaps && nearest.needsMipmap && (width > 1 || height > 1)) {
                 needsMipmaps = false
                 glGenerateMipmap(target)
             }
@@ -212,7 +213,7 @@ open class CubemapTexture(
             }
             // automatic mipmap updates are not supported
             needsMipmaps = true
-        }
+        } else if (!nearest.needsMipmap) needsMipmaps = false
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, nearest.min)
         glTexParameteri(target, GL_TEXTURE_MAG_FILTER, nearest.mag)
         this.filtering = nearest
@@ -223,13 +224,14 @@ open class CubemapTexture(
         if (nearest != this.filtering) filtering(nearest)
     }
 
-    var depthFunc: DepthMode = DepthMode.ALWAYS
+    var depthFunc: DepthMode? = null
         set(value) {
             if (field != value) {
                 field = value
                 bindBeforeUpload()
-                glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE)
-                glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
+                val mode = if (value == null) GL_NONE else GL_COMPARE_REF_TO_TEXTURE
+                glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, mode)
+                if (value != null) glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
             }
         }
 
@@ -291,5 +293,4 @@ open class CubemapTexture(
             }
         }
     }
-
 }

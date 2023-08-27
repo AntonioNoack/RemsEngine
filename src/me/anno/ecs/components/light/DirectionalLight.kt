@@ -15,13 +15,13 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
      * typically a directional light will be the sun;
      * it's influence should be over the whole scene, while its shadows may not
      *
-     * with cutoff > 0, it is cutoff, as if it was a plane light
+     * with cutoff != 0, it is cutoff, as if it was a plane light
      * */
-    @Range(0.0, 1.0)
+    @Range(-1.0, 1.0)
     var cutoff = 0f
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        if (cutoff <= 0f) {
+        if (cutoff == 0f) {
             aabb.all()
         } else {
             val mesh = getLightPrimitive()
@@ -60,7 +60,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
 
     // v0 is not used
     override fun getShaderV1(): Float = shadowMapPower.toFloat()
-    override fun getShaderV2(): Float = if (cutoff > 0f) 1f / cutoff else 0f
+    override fun getShaderV2(): Float = if (cutoff == 0f) 0f else 1f / cutoff
 
     override fun drawShape() {
         drawBox(entity)
@@ -76,37 +76,31 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
     override val className: String get() = "DirectionalLight"
 
     companion object {
-
-        private fun getCutoff(cutoffContinue: String?): String {
-            return if (cutoffContinue != null) {
-                "" +
-                        "#define invCutoff data2.a\n" +
-                        // box cutoff: max(max(abs(dir.x),abs(dir.y)),abs(dir.z))
-                        // sphere cutoff:
-                        "if(invCutoff > 0.0){\n" +
-                        "   float cut = min(invCutoff * (1.0 - dot(dir,dir)), 1.0);\n" +
-                        "   if(cut <= 0.0) { $cutoffContinue; }\n" +
-                        "   lightColor *= cut;\n" +
-                        "}\n"
-            } else ""
-        }
-
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +
-                    getCutoff(cutoffContinue) +
-                    "NdotL = localNormal.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
+                    (if (cutoffContinue != null) {
+                        "" +
+                                "#define invCutoff shaderV2\n" +
+                                "if(invCutoff > 0.0){\n" +
+                                "   float cut = min(invCutoff * (1.0 - dot(lightPos,lightPos)), 1.0);\n" +
+                                "   if(cut <= 0.0) { $cutoffContinue; }\n" +
+                                "   lightColor *= cut;\n" +
+                                "} else if(invCutoff < 0.0){\n" +
+                                "   float cut = min(-invCutoff * (1.0 - max(max(abs(lightPos.x),abs(lightPos.y)),abs(lightPos.z))), 1.0);\n" +
+                                "   if(cut <= 0.0) { $cutoffContinue; }\n" +
+                                "   lightColor *= cut;\n" +
+                                "}\n"
+                    } else "") +
+                    "NdotL = lightNor.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
                     "lightColor *= max(NdotL, 0.0);\n" + // light looks much better with it
-                    // inv(W->L) * vec4(0,0,1,0) =
-                    // transpose(m3x3(W->L)) * vec3(0.0,0.0,1.0)
-                   // "lightDirWS = normalize(vec3(camSpaceToLightSpace[0][2],camSpaceToLightSpace[1][2],camSpaceToLightSpace[2][2]));\n" +
                     (if (withShadows) "" +
                             "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
                             // when we are close to the edge, we blend in
-                            "   float edgeFactor = min(20.0*(1.0-max(abs(dir.x),abs(dir.y))),1.0);\n" +
+                            "   float edgeFactor = min(20.0*(1.0-max(abs(lightPos.x),abs(lightPos.y))),1.0);\n" +
                             "   if(edgeFactor > 0.0){\n" +
-                            "       #define shadowMapPower data2.b\n" +
+                            "       #define shadowMapPower shaderV1\n" +
                             "       float invShadowMapPower = 1.0/shadowMapPower;\n" +
-                            "       vec2 shadowDir = dir.xy;\n" +
+                            "       vec2 shadowDir = lightPos.xy;\n" +
                             "       vec2 nextDir = shadowDir * shadowMapPower;\n" +
                             // find the best shadow map
                             // blend between the two best shadow maps, if close to the border?
@@ -117,7 +111,7 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "           shadowDir = nextDir;\n" +
                             "           nextDir *= shadowMapPower;\n" +
                             "       }\n" +
-                            "       float depthFromShader = dir.z*.5+.5;\n" +
+                            "       float depthFromShader = lightPos.z*.5+.5;\n" +
                             "       if(depthFromShader > 0.0){\n" +
                             // do the shadow map function and compare
                             "           float depthFromTex = texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader);\n" +
@@ -133,7 +127,5 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     "effectiveDiffuse = lightColor;\n" +
                     "effectiveSpecular = lightColor;\n"
         }
-
     }
-
 }

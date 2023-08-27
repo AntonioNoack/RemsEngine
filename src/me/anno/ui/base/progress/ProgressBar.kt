@@ -41,7 +41,7 @@ open class ProgressBar(
     private var lastUpdate = Engine.nanoTime
 
     private var lastDrawnUpdate = 0.0
-    private var lastDraw = Engine.nanoTime
+    private var lastDrawn = Engine.nanoTime
 
     var isCancelled = false
 
@@ -102,8 +102,8 @@ open class ProgressBar(
         x0: Int, y0: Int, x1: Int, y1: Int,
         time: Long
     ) {
-        val dt = Maths.dtTo01((time - lastDraw) * 1e-9 * updateSpeed)
-        lastDraw = time
+        val dt = Maths.dtTo01((time - lastDrawn) * 1e-9 * updateSpeed)
+        lastDrawn = time
         var percentage = progress / total
         lastDrawnUpdate = mix(lastDrawnUpdate, percentage, dt)
 

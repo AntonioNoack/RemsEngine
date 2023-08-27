@@ -2,7 +2,6 @@ package me.anno.ecs.components.light
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
@@ -18,7 +17,9 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -104,7 +105,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     fun ensureShadowBuffers() {
         if (hasShadow) {
-            // only a single one is supported,
+            // only a single one is supported for PointLights,
             // because more makes no sense
             val isPointLight = lightType == LightType.POINT
             if (isPointLight) shadowMapCascades = 1
@@ -122,12 +123,13 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 // so an 8 bit depth buffer would be enough
                 val depthBufferType = DepthBufferType.TEXTURE_16
                 this.shadowTextures = Array(targetSize) {
-                    if (isPointLight) {
+                    if (lightType.shadowMapType == GLSLType.SCubeShadow) {
                         CubemapFramebuffer(
                             "ShadowCubemap[$it]", resolution, 1, 0,
                             false, depthBufferType
                         ).apply {
                             ensure()
+                            depthTexture!!.filtering = GPUFiltering.TRULY_LINEAR
                             depthTexture!!.depthFunc = depthFunc
                         }
                     } else {
@@ -136,6 +138,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                             false, depthBufferType
                         ).apply {
                             ensure()
+                            depthTexture!!.filtering = GPUFiltering.TRULY_LINEAR
                             depthTexture!!.depthFunc = depthFunc
                         }
                     }
@@ -174,13 +177,9 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         resolution: Int, position: Vector3d, rotation: Quaterniond
     )
 
-    @NotSerializedProperty
-    @DebugProperty
-    var lastDraw = 0L
-
     open fun updateShadowMaps() {
 
-        lastDraw = Engine.nanoTime
+        lastDrawn = Engine.gameTime
 
         val pipeline = pipeline
         pipeline.clear()
@@ -232,7 +231,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     @NotSerializedProperty
     val invCamSpaceMatrix = Matrix4x3f()
 
-    open fun getShaderV0(drawTransform: Matrix4x3d, worldScale: Double): Float = 0f
+    open fun getShaderV0(): Float = 0f
     open fun getShaderV1(): Float = 0f
     open fun getShaderV2(): Float = 0f
 
@@ -268,5 +267,4 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
             }
         }
     }
-
 }

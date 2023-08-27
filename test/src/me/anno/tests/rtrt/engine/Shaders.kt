@@ -137,12 +137,11 @@ val commonFunctions = glslIntersections + quatRot + loadMat4x3 + glslRandomGen +
 
 fun createBLASTextureComputeShader(maxDepth: Int): ComputeShader {
     return ComputeShader(
-        "bvh-traversal", Vector2i(16), "" +
+        "bvh-traversal", Vector2i(16), commonUniforms, "" +
                 "layout(rgba32f, binding = 0) uniform image2D triangles;\n" +
                 "layout(rgba32f, binding = 1) uniform image2D nodes;\n" +
                 "layout(rgba32f, binding = 3) uniform image2D dst;\n" +
                 "#define Infinity 1e15\n" +
-                commonUniforms +
                 commonFunctions +
                 "#define BLAS_DEPTH $maxDepth\n" +
                 glslComputeDefines +
@@ -158,11 +157,10 @@ fun createBLASTextureComputeShader(maxDepth: Int): ComputeShader {
 
 fun createBLASBufferComputeShader(maxDepth: Int): ComputeShader {
     return ComputeShader(
-        "bvh-traversal", Vector2i(16), "" +
+        "bvh-traversal", Vector2i(16), commonUniforms, "" +
                 bufferStructs +
                 bufferLayouts +
                 "#define Infinity 1e15\n" +
-                commonUniforms +
                 commonFunctions +
                 "#define BLAS_DEPTH $maxDepth\n" +
                 glslComputeDefines +
@@ -214,10 +212,13 @@ fun createTLASTextureGraphicsShader(bvh: TLASNode): Pair<Shader, List<BLASNode>>
     val maxBLASDepth = meshes.maxOf { it.maxDepth() }
 
     return Shader(
-        "bvh-traversal", coordsList, coordsVShader, uvList, listOf(), "" +
+        "bvh-traversal", coordsList, coordsVShader, uvList, commonUniforms + listOf(
+            Variable(GLSLType.S2D, "triangles"),
+            Variable(GLSLType.S2D, "blasNodes"),
+            Variable(GLSLType.S2D, "tlasNodes"),
+        ), "" +
                 "out vec4 dst;\n" +
-                "uniform sampler2D triangles, blasNodes, tlasNodes;\n" +
-                commonUniforms +
+                "#define Infinity 1e15\n" +
                 commonFunctions +
                 "#define nodes blasNodes\n" +
                 "#define BLAS_DEPTH $maxBLASDepth\n" +
@@ -260,13 +261,12 @@ fun createTLASTextureComputeShader(bvh: TLASNode): Quad<ComputeShader, Texture2D
 
     return Quad(
         ComputeShader(
-            "bvh-traversal", Vector2i(16), "" +
+            "bvh-traversal", Vector2i(16), commonUniforms, "" +
                     "layout(rgba32f, binding = 0) uniform image2D triangles;\n" +
                     "layout(rgba32f, binding = 1) uniform image2D blasNodes;\n" +
                     "layout(rgba32f, binding = 2) uniform image2D tlasNodes;\n" +
                     "layout(rgba32f, binding = 3) uniform image2D dst;\n" +
                     "#define Infinity 1e15\n" +
-                    commonUniforms +
                     commonFunctions +
                     "#define nodes blasNodes\n" +
                     "#define BLAS_DEPTH $maxBLASDepth\n" +
@@ -303,11 +303,10 @@ fun createTLASBufferComputeShader(tlas: TLASNode): Pair<ComputeShader, Array<Com
     LOGGER.debug("Max TLAS depth: $maxTLASDepth, max BLAS depth: $maxBLASDepth")
 
     val shader = ComputeShader(
-        "bvh-traversal", Vector2i(16), "" +
+        "bvh-traversal", Vector2i(16), commonUniforms, "" +
                 bufferStructs +
                 bufferLayouts +
                 "#define Infinity 1e15\n" +
-                commonUniforms +
                 commonFunctions +
                 "#define BLAS_DEPTH $maxBLASDepth\n" +
                 "#define TLAS_DEPTH $maxTLASDepth\n" +

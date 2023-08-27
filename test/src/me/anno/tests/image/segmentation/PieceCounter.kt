@@ -5,6 +5,8 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache
 import me.anno.utils.OS.desktop
@@ -24,9 +26,13 @@ fun main() {
     )
     // -> try maybe 16 variations?
     val shader = ComputeShader(
-        "correlation", Vector2i(16, 16), "" +
-                "uniform int x0, x1, y0, y1;\n" +
-                "uniform float scale;\n" +
+        "correlation", Vector2i(16, 16), listOf(
+            Variable(GLSLType.V1I, "x0"),
+            Variable(GLSLType.V1I, "x1"),
+            Variable(GLSLType.V1I, "y0"),
+            Variable(GLSLType.V1I, "y1"),
+            Variable(GLSLType.V1F, "scale")
+        ), "" +
                 "layout(rgba8, binding = 0) uniform image2D src;\n" +
                 "layout(r32f, binding = 1) uniform image2D dst;\n" +
                 "void main(){\n" +

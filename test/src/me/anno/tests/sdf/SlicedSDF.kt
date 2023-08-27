@@ -296,7 +296,7 @@ fun main() {
             near = 0.01
             shadowMapCascades = 1
             shadowMapResolution = 256
-            coneAngle = 0.57
+            coneAngle = 0.57f
         })
     })
     testSceneWithUI("Sliced SDF", scene)

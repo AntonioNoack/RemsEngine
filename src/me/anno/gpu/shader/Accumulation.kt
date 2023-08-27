@@ -2,6 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.ComputeBuffer
+import me.anno.gpu.shader.builder.Variable
 import org.joml.Vector3i
 import org.lwjgl.opengl.GL42C.*
 import kotlin.math.min
@@ -34,11 +35,12 @@ object Accumulation {
 
     @JvmField
     val generalShader = ComputeShader(
-        "accumulate", Vector3i(1024, 1, 1), "" +
+        "accumulate", Vector3i(1024, 1, 1), listOf(
+            Variable(GLSLType.V1I, "totalSize"),
+            Variable(GLSLType.V1I, "step")
+        ), "" +
                 "layout(std430, binding = 0) buffer srcLayout { uint src[]; };\n" +
                 "layout(std430, binding = 1) buffer dstLayout { uint dst[]; };\n" +
-                "uniform int totalSize;\n" +
-                "uniform int step;\n" +
                 "void main() {\n" +
                 "   int index = int(gl_GlobalInvocationID.x);\n" +
                 "   if(index < totalSize){\n" +

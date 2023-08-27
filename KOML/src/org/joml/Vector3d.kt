@@ -9,135 +9,62 @@ open class Vector3d {
     var z = 0.0
 
     constructor()
-    constructor(d: Double) {
-        x = d
-        y = d
-        z = d
+    constructor(v: Double) {
+        set(v)
     }
 
     constructor(x: Double, y: Double, z: Double) {
-        this.x = x
-        this.y = y
-        this.z = z
+        set(x, y, z)
     }
 
     constructor(v: Vector3f) {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
+        set(v)
     }
 
     constructor(v: Vector3i) {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
+        set(v)
     }
 
     constructor(v: Vector2f, z: Double) {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        this.z = z
+        set(v, z)
     }
 
     constructor(v: Vector2i, z: Double) {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        this.z = z
+        set(v, z)
     }
 
     constructor(v: Vector3d) {
-        x = v.x
-        y = v.y
-        z = v.z
+        set(v)
     }
 
     constructor(v: Vector2d, z: Double) {
-        x = v.x
-        y = v.y
-        this.z = z
+        set(v, z)
     }
 
     constructor(xyz: DoubleArray) {
-        x = xyz[0]
-        y = xyz[1]
-        z = xyz[2]
+        set(xyz)
     }
 
     constructor(xyz: FloatArray) {
-        x = xyz[0].toDouble()
-        y = xyz[1].toDouble()
-        z = xyz[2].toDouble()
+        set(xyz)
     }
 
-    fun set(v: Vector3d): Vector3d {
-        x = v.x
-        y = v.y
-        z = v.z
-        return this
-    }
-
-    fun set(v: Vector3i): Vector3d {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
-        return this
-    }
-
-    fun set(v: Vector2d, z: Double): Vector3d {
-        x = v.x
-        y = v.y
-        this.z = z
-        return this
-    }
-
-    fun set(v: Vector2i, z: Double): Vector3d {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        this.z = z
-        return this
-    }
-
-    fun set(v: Vector3f): Vector3d {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        z = v.z.toDouble()
-        return this
-    }
-
-    fun set(v: Vector2f, z: Double): Vector3d {
-        x = v.x.toDouble()
-        y = v.y.toDouble()
-        this.z = z
-        return this
-    }
-
-    fun set(d: Double): Vector3d {
-        x = d
-        y = d
-        z = d
-        return this
-    }
-
+    fun set(v: Vector3d): Vector3d = set(v.x, v.y, v.z)
+    fun set(v: Vector3i): Vector3d = set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
+    fun set(v: Vector2d, z: Double): Vector3d = set(v.x, v.y, z)
+    fun set(v: Vector2i, z: Double): Vector3d = set(v.x.toDouble(), v.y.toDouble(), z)
+    fun set(v: Vector3f): Vector3d = set(v.x, v.y, v.z)
+    fun set(v: Vector2f, z: Double): Vector3d = set(v.x.toDouble(), v.y.toDouble(), z)
+    fun set(v: Double): Vector3d = set(v, v, v)
+    fun set(x: Float, y: Float, z: Float): Vector3d = set(x.toDouble(), y.toDouble(), z.toDouble())
+    fun set(xyz: DoubleArray): Vector3d = set(xyz, 0)
+    fun set(xyz: DoubleArray, i: Int): Vector3d = set(xyz[i], xyz[i + 1], xyz[i + 2])
+    fun set(xyz: FloatArray): Vector3d = set(xyz, 0)
+    fun set(xyz: FloatArray, i: Int): Vector3d = set(xyz[i], xyz[i + 1], xyz[i + 2])
     fun set(x: Double, y: Double, z: Double): Vector3d {
         this.x = x
         this.y = y
         this.z = z
-        return this
-    }
-
-    fun set(xyz: DoubleArray) = set(xyz, 0)
-    fun set(xyz: DoubleArray, i: Int): Vector3d {
-        x = xyz[i]
-        y = xyz[i + 1]
-        z = xyz[i + 2]
-        return this
-    }
-
-    fun set(xyz: FloatArray) = set(xyz, 0)
-    fun set(xyz: FloatArray, i: Int): Vector3d {
-        x = xyz[i].toDouble()
-        y = xyz[i + 1].toDouble()
-        z = xyz[i + 2].toDouble()
         return this
     }
 
@@ -152,20 +79,9 @@ open class Vector3d {
         return this
     }
 
-    fun sub(v: Vector3d, dst: Vector3d = this): Vector3d {
-        dst.x = x - v.x
-        dst.y = y - v.y
-        dst.z = z - v.z
-        return dst
-    }
-
-    fun sub(v: Vector3f, dst: Vector3d = this): Vector3d {
-        dst.x = x - v.x
-        dst.y = y - v.y
-        dst.z = z - v.z
-        return dst
-    }
-
+    fun sub(v: Double, dst: Vector3d = this): Vector3d = sub(v, v, v, dst)
+    fun sub(v: Vector3d, dst: Vector3d = this): Vector3d = sub(v.x, v.y, v.z, dst)
+    fun sub(v: Vector3f, dst: Vector3d = this): Vector3d = sub(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), dst)
     fun sub(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
         dst.x = this.x - x
         dst.y = this.y - y
@@ -173,20 +89,9 @@ open class Vector3d {
         return dst
     }
 
-    fun add(v: Vector3d, dst: Vector3d = this): Vector3d {
-        dst.x = x + v.x
-        dst.y = y + v.y
-        dst.z = z + v.z
-        return dst
-    }
-
-    fun add(v: Vector3f, dst: Vector3d = this): Vector3d {
-        dst.x = x + v.x
-        dst.y = y + v.y
-        dst.z = z + v.z
-        return dst
-    }
-
+    fun add(v: Double, dst: Vector3d = this): Vector3d = add(v, v, v, dst)
+    fun add(v: Vector3d, dst: Vector3d = this): Vector3d = add(v.x, v.y, v.z, dst)
+    fun add(v: Vector3f, dst: Vector3d = this): Vector3d = add(v.x.toDouble(), v.y.toDouble(), v.z.toDouble(), dst)
     fun add(x: Double, y: Double, z: Double, dst: Vector3d = this): Vector3d {
         dst.x = this.x + x
         dst.y = this.y + y

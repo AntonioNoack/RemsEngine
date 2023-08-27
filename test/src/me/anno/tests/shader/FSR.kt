@@ -6,8 +6,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.image.ImageGPUCache
-import me.anno.io.files.FileReference
-import me.anno.utils.OS
+import me.anno.utils.OS.pictures
 
 fun main() {
 
@@ -15,7 +14,7 @@ fun main() {
 
     HiddenOpenGLContext.createOpenGL()
 
-    val src = FileReference.getReference(OS.pictures, "rem-original.jpg")
+    val src = pictures.getChild("Anime/90940211_p0_master1200.jpg")
     val texture = ImageGPUCache[src, 10000, false]!!
 
     ShaderLib.init()
@@ -35,5 +34,4 @@ fun main() {
 
     sharpened.createImage(false, withAlpha = false)
         .write(src.getSibling("${src.nameWithoutExtension}-${size}x-s.png"))
-
 }

@@ -1,9 +1,6 @@
 package me.anno.gpu.pipeline
 
-import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightType
-import me.anno.ecs.components.light.PointLight
-import me.anno.ecs.components.light.SpotLight
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
@@ -57,16 +54,6 @@ object LightShaders {
         // instanced rendering does not support shadows -> no shadow data / as a uniform
     )
 
-    private val lightCountInstancedAttributes = listOf(
-        // transform
-        Attribute("instanceTrans0", 3),
-        Attribute("instanceTrans1", 3),
-        Attribute("instanceTrans2", 3),
-        Attribute("instanceTrans3", 3),
-        Attribute("shadowData", 1)
-        // instanced rendering does not support shadows -> no shadow data / as a uniform
-    )
-
     // test: can we get better performance, when we eliminate dependencies?
     // pro: fewer dependencies
     // con: we use more vram
@@ -81,12 +68,6 @@ object LightShaders {
     val lightInstanceBuffer = StaticBuffer(
         "lights",
         lightInstancedAttributes,
-        instancedBatchSize,
-        GL_DYNAMIC_DRAW
-    )
-    val lightCountInstanceBuffer = StaticBuffer(
-        "lightInstances",
-        lightCountInstancedAttributes,
         instancedBatchSize,
         GL_DYNAMIC_DRAW
     )
@@ -229,10 +210,13 @@ object LightShaders {
             Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V1B, "isDirectional"),
+            Variable(GLSLType.V3F, "invInsTrans0v", VariableMode.OUT),
+            Variable(GLSLType.V3F, "invInsTrans1v", VariableMode.OUT),
+            Variable(GLSLType.V3F, "invInsTrans2v", VariableMode.OUT),
+            Variable(GLSLType.V3F, "invInsTrans3v", VariableMode.OUT),
             Variable(GLSLType.V4F, "data0", VariableMode.OUT),
             Variable(GLSLType.V1F, "data1", VariableMode.OUT),
             Variable(GLSLType.V4F, "data2", VariableMode.OUT),
-            Variable(GLSLType.M4x3, "camSpaceToLightSpace", VariableMode.OUT),
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT),
         ), "" +
                 "data0 = vec4(lightData0.rgb,0.0);\n" +
@@ -246,7 +230,10 @@ object LightShaders {
                 "   vec3 globalPos = matMul(localTransform, vec4(coords, 1.0));\n" +
                 "   gl_Position = matMul(transform, vec4(globalPos, 1.0));\n" +
                 "}\n" +
-                "camSpaceToLightSpace = mat4x3(invInsTrans0,invInsTrans1,invInsTrans2,invInsTrans3);\n" +
+                "invInsTrans0v = invInsTrans0;\n" +
+                "invInsTrans1v = invInsTrans1;\n" +
+                "invInsTrans2v = invInsTrans2;\n" +
+                "invInsTrans3v = invInsTrans3;\n" +
                 "uvw = gl_Position.xyw;\n"
     )
 
@@ -271,13 +258,9 @@ object LightShaders {
     private val shaderCache = HashMap<Pair<DeferredSettingsV2, Int>, Shader>()
 
     fun createMainFragmentStage(type: LightType, isInstanced: Boolean): ShaderStage {
-        val withShadows = !isInstanced
-        val cutoffContinue = "discard"
-        val coreFragment = when (type) {
-            LightType.SPOT -> SpotLight.getShaderCode(cutoffContinue, withShadows)
-            LightType.DIRECTIONAL -> DirectionalLight.getShaderCode(cutoffContinue, withShadows)
-            LightType.POINT -> PointLight.getShaderCode(cutoffContinue, withShadows, true)
-        }
+        val ws = !isInstanced // with shadows
+        val co = "discard" // cutoff keyword
+        val coreFragment = LightType.getShaderCode(type, co, ws)
         val fragment = ShaderStage(
             "ls-f", listOf(
                 Variable(GLSLType.V4F, "data0"),
@@ -296,6 +279,7 @@ object LightShaders {
                 Variable(GLSLType.V1F, "finalSheen"),
                 Variable(GLSLType.V1F, "finalTranslucency"),
                 Variable(GLSLType.M4x3, "camSpaceToLightSpace"), // invLightMatrices[i]
+                Variable(GLSLType.M4x3, "lightSpaceToCamSpace"), // lightMatrices[i]
                 Variable(GLSLType.V3F, "cameraPosition"),
                 Variable(GLSLType.V1F, "worldScale"),
                 Variable(GLSLType.V4F, "light", VariableMode.OUT)
@@ -310,12 +294,14 @@ object LightShaders {
                     "int shadowMapIdx1 = int(data2.g);\n" +
                     // light properties, which are typically inside the loop
                     "vec3 lightColor = data0.rgb;\n" +
-                    "vec3 dir = matMul(camSpaceToLightSpace, vec4(finalPosition, 1.0));\n" +
-                    "vec3 localNormal = normalize(matMul(camSpaceToLightSpace, vec4(finalNormal, 0.0)));\n" +
+                    "vec3 lightPos = matMul(camSpaceToLightSpace, vec4(finalPosition, 1.0));\n" +
+                    "vec3 lightNor = normalize(matMul(camSpaceToLightSpace, vec4(finalNormal, 0.0)));\n" +
                     "float NdotL = 0.0;\n" + // normal dot light
-                    "vec3 effectiveDiffuse, effectiveSpecular, lightDirWS = vec3(0.0);\n" +
+                    "vec3 effectiveDiffuse = vec3(0.0), effectiveSpecular = vec3(0.0), lightDir = vec3(0.0);\n" +
+                    "float shaderV0 = data1, shaderV1 = data2.z, shaderV2 = data2.w;\n" +
                     coreFragment +
                     "if(hasSpecular && NdotL > 0.0001 && NdotV > 0.0001){\n" +
+                    "   vec3 lightDirWS = normalize(matMul(lightSpaceToCamSpace,vec4(lightDir,0.0)));\n" +
                     "   vec3 H = normalize(V + lightDirWS);\n" +
                     specularBRDFv2NoColorStart +
                     specularBRDFv2NoColor +
@@ -394,6 +380,16 @@ object LightShaders {
         ), "uv = uvw.xy/uvw.z*.5+.5;\n"
     )
 
+    val invStage = ShaderStage(
+        "invTrans2cs2ls", listOf(
+            Variable(GLSLType.V3F, "invInsTrans0v", VariableMode.IN),
+            Variable(GLSLType.V3F, "invInsTrans1v", VariableMode.IN),
+            Variable(GLSLType.V3F, "invInsTrans2v", VariableMode.IN),
+            Variable(GLSLType.V3F, "invInsTrans3v", VariableMode.IN),
+            Variable(GLSLType.M4x3, "camSpaceToLightSpace", VariableMode.OUT)
+        ), "camSpaceToLightSpace = mat4x3(invInsTrans0v,invInsTrans1v,invInsTrans2v,invInsTrans3v);\n"
+    )
+
     fun getShader(settingsV2: DeferredSettingsV2, type: LightType): Shader {
         val isInstanced = GFXState.instanced.currentValue
         val useMSAA = useMSAA
@@ -402,6 +398,7 @@ object LightShaders {
 
             val builder = ShaderBuilder("Light-$type-$isInstanced")
             builder.addVertex(if (isInstanced) vertexI else vertexNI)
+            if (isInstanced) builder.addFragment(invStage)
             builder.addFragment(uvwStage)
             builder.addFragment(
                 ShaderStage(
