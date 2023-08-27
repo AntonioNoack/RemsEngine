@@ -106,8 +106,10 @@ object DrawTextures {
             tex?.filtering ?: GPUFiltering.NEAREST,
             tex?.clamping ?: Clamping.CLAMP
         )
+        val depthFunc = tex?.depthFunc
         tex?.depthFunc = null
         GFX.flat01.draw(shader)
+        tex?.depthFunc = depthFunc
         GFX.check()
     }
 
@@ -183,7 +185,6 @@ object DrawTextures {
 
         UVProjection.Planar.getBuffer().draw(shader)
         GFX.check()
-
     }
 
     fun draw3dSlice(
@@ -235,5 +236,4 @@ object DrawTextures {
         GFX.flat01.draw(shader)
         GFX.check()
     }
-
 }
