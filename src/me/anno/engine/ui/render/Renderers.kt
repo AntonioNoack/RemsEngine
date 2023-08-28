@@ -88,7 +88,7 @@ object Renderers {
 
     @JvmField
     val pbrRenderer = object : Renderer("pbr") {
-        override fun getPostProcessing(flags: Int): ShaderStage? {
+        override fun getPostProcessing(flags: Int): ShaderStage {
             return ShaderStage(
                 "pbr", listOf(
                     // rendering
@@ -97,6 +97,7 @@ object Renderers {
                     Variable(GLSLType.V3F, "ambientLight"),
                     Variable(GLSLType.V1I, "numberOfLights"),
                     Variable(GLSLType.V1B, "receiveShadows"),
+                    Variable(GLSLType.M4x3, "lightMatrices", RenderView.MAX_FORWARD_LIGHTS),
                     Variable(GLSLType.M4x3, "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
                     Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
                     Variable(GLSLType.V1F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),

@@ -284,10 +284,10 @@ object LightShaders {
                 Variable(GLSLType.V1F, "worldScale"),
                 Variable(GLSLType.V4F, "light", VariableMode.OUT)
             ) + depthVars, "" +
-                    // todo not correct yet for deferred rendering, probably because depth is multi-sampled
                     // light calculation including shadows if !instanced
                     "vec3 diffuseLight = vec3(0.0), specularLight = vec3(0.0);\n" +
                     "bool hasSpecular = finalMetallic > 0.0;\n" +
+                    "float reflectivity = finalMetallic * (1.0 - finalRoughness);\n" +
                     "vec3 V = -normalize(rawCameraDirection(uv));\n" +
                     "float NdotV = dot(finalNormal,V);\n" +
                     "int shadowMapIdx0 = 0;\n" + // always 0 at the start
@@ -296,6 +296,7 @@ object LightShaders {
                     "vec3 lightColor = data0.rgb;\n" +
                     "vec3 lightPos = matMul(camSpaceToLightSpace, vec4(finalPosition, 1.0));\n" +
                     "vec3 lightNor = normalize(matMul(camSpaceToLightSpace, vec4(finalNormal, 0.0)));\n" +
+                    "vec3 camDir = normalize(matMul(camSpaceToLightSpace, vec4(finalPosition, 0.0)));\n" +
                     "float NdotL = 0.0;\n" + // normal dot light
                     "vec3 effectiveDiffuse = vec3(0.0), effectiveSpecular = vec3(0.0), lightDir = vec3(0.0);\n" +
                     "float shaderV0 = data1, shaderV1 = data2.z, shaderV2 = data2.w;\n" +
@@ -315,6 +316,7 @@ object LightShaders {
                     // ~65k is the limit, after that only Infinity
                     // todo car sample's light on windows looks clamped... who is clamping it?
                     "vec3 color = mix(diffuseLight, specularLight, finalMetallic);\n" +
+                    // "light = vec4(fract(-0.01 + finalPosition/worldScale + cameraPosition), 1.0);\n"
                     "light = vec4(clamp(color, 0.0, 16e3), 1.0);\n"
         )
         fragment.add(quatRot)
@@ -341,8 +343,7 @@ object LightShaders {
                 "}\n", emptyList(), listOf(
             Variable(GLSLType.V1F, "countPerPixel"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
-        ), "" +
-                "void main(){ result = vec4(countPerPixel); }"
+        ), "void main(){ result = vec4(countPerPixel); }"
     )
 
     val visualizeLightCountShaderInstanced = Shader(
@@ -376,8 +377,9 @@ object LightShaders {
     val uvwStage = ShaderStage(
         "uv2uvw", listOf(
             Variable(GLSLType.V3F, "uvw", VariableMode.IN),
-            Variable(GLSLType.V2F, "uv", VariableMode.OUT)
-        ), "uv = uvw.xy/uvw.z*.5+.5;\n"
+            Variable(GLSLType.V2F, "uv", VariableMode.OUT),
+            Variable(GLSLType.V2F, "invScreenSize")
+        ), "uv = gl_FragCoord.xy * invScreenSize;\n"
     )
 
     val invStage = ShaderStage(

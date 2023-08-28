@@ -9,10 +9,6 @@ import me.anno.engine.ui.LineShapes.drawCone
 import me.anno.gpu.drawing.Perspective.setPerspective2
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.serialization.SerializedProperty
-import me.anno.mesh.vox.meshing.BlockBuffer
-import me.anno.mesh.vox.meshing.BlockSide
-import me.anno.mesh.vox.meshing.VoxelMeshBuildInfo
-import me.anno.utils.structures.arrays.ExpandingFloatArray
 import org.joml.*
 import kotlin.math.atan
 
@@ -62,7 +58,7 @@ class SpotLight() : LightComponent(LightType.SPOT) {
     }
 
     // for deferred rendering, this could be optimized
-    override fun getLightPrimitive(): Mesh = halfCubeMesh
+    override fun getLightPrimitive(): Mesh = pyramidMesh
 
     override fun clone() = SpotLight(this)
 
@@ -77,27 +73,24 @@ class SpotLight() : LightComponent(LightType.SPOT) {
 
     companion object {
 
-        val halfCubeMesh = Mesh()
+        private val pyramidMesh = Mesh()
 
         init {
-
-            val vertices = ExpandingFloatArray(6 * 2 * 3 * 3)
-            val base = VoxelMeshBuildInfo(intArrayOf(0, -1), vertices, null, null)
-
-            base.color = -1
-            base.setOffset(-0.5f, -0.5f, -1f)
-
-            for (side in BlockSide.values) {
-                BlockBuffer.addQuad(base, side, 1, 1, 1)
-            }
-
-            val positions = vertices.toFloatArray()
-            for (i in positions.indices step 3) {
-                positions[i + 0] *= 2f
-                positions[i + 1] *= 2f
-                // z is half as much
-            }
-            halfCubeMesh.positions = positions
+            pyramidMesh.positions = floatArrayOf(
+                -1f, -1f, -1f,
+                -1f, +1f, -1f,
+                +1f, -1f, -1f,
+                +1f, +1f, -1f,
+                +0f, +0f, +0f
+            )
+            pyramidMesh.indices = intArrayOf(
+                0, 1, 3,
+                0, 3, 2,
+                0, 4, 1,
+                1, 4, 3,
+                3, 4, 2,
+                2, 4, 0
+            )
         }
 
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {

@@ -23,20 +23,25 @@ fun main() {
 
     val scene = Entity("Scene")
 
-    // floor
+    val metallic = Material()
+    metallic.metallicMinMax.set(0.9f)
+    metallic.roughnessMinMax.set(0.1f)
+
     val floor = Entity("Floor")
     val floorMat = Material()
     floorMat.roughnessMinMax.set(0.1f)
     floor.add(MeshComponent(flatCube.front).apply { materials = listOf(floorMat.ref) })
-    floor.position = floor.position.set(0.0, -1.0, 0.0)
-    floor.scale = floor.scale.set(20.0, 1.0, 20.0)
+    floor.position = floor.position.set(0.0, -0.1, 0.0)
+    floor.scale = floor.scale.set(8.0, 0.1, 3.0)
     scene.add(floor)
 
-    fun placeTruck(e: Entity, x: Double, scale: Double = 1.0 / 64.0) {
+    fun placeTruck(e: Entity) {
         val truck = Entity("${e.name} Truck")
-        truck.add(MeshComponent(downloads.getChild("MagicaVoxel/vox/truck.vox")))
-        truck.position = truck.position.set(x, 0.0, 0.0)
-        truck.scale = truck.scale.set(scale)
+        val mesh = MeshComponent(downloads.getChild("MagicaVoxel/vox/truck.vox"))
+        mesh.materials = listOf(metallic.ref)
+        truck.add(mesh)
+        truck.position = truck.position.set(e.position.x, 0.0, 0.0)
+        truck.scale = truck.scale.set(1.0 / 64.0)
         scene.add(truck)
     }
 
@@ -46,41 +51,42 @@ fun main() {
     scene.add(ambient)
 
     val sun = Entity("Directional")
-    sun.add(DirectionalLight().apply { shadowMapCascades = 1; cutoff = 1e-3f; autoUpdate = false })
-    sun.position = sun.position.set(0.0, 0.0, 0.0)
+    sun.add(DirectionalLight().apply { shadowMapCascades = 1; cutoff = 1e-3f })
+    sun.position = sun.position.set(-5.0, 0.0, 0.0)
     sun.rotation = sun.rotation.rotateX(-PI * 0.5)
     scene.add(sun)
-    placeTruck(sun, 0.0)
+    placeTruck(sun)
 
     // local lights
     val point = Entity("Point")
-    point.add(PointLight().apply { color.set(10f); shadowMapCascades = 1; autoUpdate = false })
-    point.position = point.position.set(2.0, 0.5, 0.0)
+    point.add(PointLight().apply { color.set(10f); shadowMapCascades = 1 })
+    point.position = point.position.set(-3.0, 0.5, 0.0)
     scene.add(point)
-    placeTruck(point, 2.0)
+    placeTruck(point)
 
     val spot = Entity("Spot")
-    spot.add(SpotLight().apply { color.set(10f); shadowMapCascades = 1; autoUpdate = false })
-    spot.position = spot.position.set(4.0, 0.5, 0.5)
+    spot.add(SpotLight().apply { color.set(10f); shadowMapCascades = 1 })
+    spot.position = spot.position.set(-1.0, 0.5, 0.5)
     spot.rotation = spot.rotation.rotateX(-PI * 0.3)
+    spot.scale = spot.scale.set(5.0)
     scene.add(spot)
-    placeTruck(spot, 4.0)
+    placeTruck(spot)
 
     val tube = Entity("Tube")
     tube.add(RectangleLight().apply { color.set(10f); height = 0f })
-    tube.position = tube.position.set(6.0, 0.005, 0.0)
+    tube.position = tube.position.set(1.0, 0.005, 0.0)
     tube.rotation = tube.rotation.rotateX(PI * 0.5)
     scene.add(tube)
 
     val circle = Entity("Circle")
     circle.add(CircleLight().apply { color.set(10f) })
-    circle.position = circle.position.set(8.0, 0.005, 0.0)
+    circle.position = circle.position.set(3.0, 0.005, 0.0)
     circle.rotation = circle.rotation.rotateX(PI * 0.5)
     scene.add(circle)
 
     val rect = Entity("Rectangle")
     rect.add(RectangleLight().apply { color.set(10f) })
-    rect.position = rect.position.set(10.0, 0.005, 0.0)
+    rect.position = rect.position.set(5.0, 0.005, 0.0)
     rect.rotation = rect.rotation.rotateX(PI * 0.5)
     scene.add(rect)
 

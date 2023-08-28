@@ -51,13 +51,15 @@ class CircleLight() : LightComponent(LightType.CIRCLE) {
         dst.radius = radius
     }
 
-    override val className: String get() = "TubeLight"
+    override val className: String get() = "CircleLight"
 
     companion object {
+        // todo calculate how much light shines by reflections
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +
+                    "lightPos.z *= pow(1.0+shaderV0, 2.0);\n" +
                     "float lightDistXY = length(lightPos.xy);\n" +
-                    "lightPos.xy *= max(lightDistXY-shaderV0, 0.001) * (1.0+shaderV0) / lightDistXY;\n" +
+                    "lightPos.xy *= max(lightDistXY-shaderV0, 0.001) / lightDistXY;\n" +
                     (if (cutoffContinue != null) "if(dot(lightPos,lightPos)>1.0) $cutoffContinue;\n" else "") + // outside
                     "lightDir = normalize(-lightPos);\n" +
                     "NdotL = dot(lightDir, lightNor);\n" +
