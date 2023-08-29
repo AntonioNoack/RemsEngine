@@ -12,6 +12,7 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.pipeline.PipelineStage
+import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.utils.OS.documents
@@ -60,13 +61,13 @@ fun main() {
                     when (material.name) {
                         "Piano_vetro", "sanjiaodisikeqiu_t", "08___Default_1001", "DefaultMaterial",
                         "glass", "material_0", "coat", "WINDSHIELD", "Material.003" -> {
-                            material.pipelineStage = 1
+                            material.pipelineStage = TRANSPARENT_PASS
                             material.cullMode = CullMode.BOTH
                             material.diffuseBase.w = 0.9f
                             material.metallicMinMax.y = 1f
                         }
                         "930_lights" -> {
-                            material.pipelineStage = 1
+                            material.pipelineStage = TRANSPARENT_PASS
                             material.cullMode = CullMode.BOTH
                             material.diffuseBase.w = 0.2f
                         }

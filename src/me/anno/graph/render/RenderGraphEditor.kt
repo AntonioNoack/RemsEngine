@@ -1,6 +1,5 @@
 package me.anno.graph.render
 
-import me.anno.config.DefaultConfig.style
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.graph.Node
@@ -12,8 +11,9 @@ import me.anno.graph.types.flow.StartNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.ui.style.Style
 
-class RenderGraphEditor(val rv: RenderView, graph: FlowGraph) : GraphEditor(graph, style) {
+class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : GraphEditor(graph, style) {
 
     init {
 
@@ -37,7 +37,6 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph) : GraphEditor(grap
                 }
             }
         }
-
     }
 
     var drawResultInBackground = true
@@ -61,5 +60,4 @@ class RenderGraphEditor(val rv: RenderView, graph: FlowGraph) : GraphEditor(grap
     override fun canDeleteNode(node: Node): Boolean {
         return node !is StartNode
     }
-
 }

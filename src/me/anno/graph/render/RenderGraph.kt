@@ -123,7 +123,7 @@ object RenderGraph {
     fun draw(view: RenderView, dst: Panel, graph: FlowGraph) {
 
         val nodes = graph.nodes
-        val start = nodes.firstInstanceOrNull<StartNode>()!!
+        val start = nodes.firstInstanceOrNull<StartNode>() ?: return
         for (i in nodes.indices) {
             val node = nodes[i]
             if (node is RenderSceneNode0) {

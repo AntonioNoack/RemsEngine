@@ -8,6 +8,7 @@ import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.Shapes.flatCube
 import me.anno.studio.StudioBase
 import org.joml.Vector3f
+import org.joml.Vector4f
 
 fun main() {
 
@@ -15,15 +16,11 @@ fun main() {
     val size = material.size.set(16, 16, 16)
     val densities = ByteArray(size.x * size.y * size.z)
     var i = 0
-    val noise = PerlinNoise(1234L, 5, 0.5f, 0f, 1f)
-    val scale = 0.2f
+    val noise = PerlinNoise(1234L, 5, 0.5f, 0f, 1f, Vector4f(0.2f))
     for (z in 0 until size.z) {
-        val zs = z * scale
         for (y in 0 until size.y) {
-            val ys = y * scale
             for (x in 0 until size.x) {
-                val xs = x * scale
-                densities[i++] = if (noise[xs, ys, zs] > 0.5f) 0 else -1
+                densities[i++] = if (noise[x.toFloat(), y.toFloat(), z.toFloat()] > 0.5f) 0 else -1
             }
         }
     }

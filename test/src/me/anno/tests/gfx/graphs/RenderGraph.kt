@@ -1,6 +1,6 @@
 package me.anno.tests.gfx.graphs
 
-import me.anno.config.DefaultConfig
+import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.SkyBox
@@ -24,14 +24,14 @@ fun main() {
 
         EditorState.prefabSource = scene.ref
 
-        val sv = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
+        val sv = SceneView(EditorState, PlayMode.EDITING, style)
         val rv = sv.renderer
         rv.position.set(0.0, 0.0, -5.0)
         rv.updateEditorCameraTransform()
 
-        val list = CustomList(false, DefaultConfig.style)
+        val list = CustomList(false, style)
         list.add(sv, 1f)
-        list.add(RenderGraphEditor(rv, graph), 1f)
+        list.add(RenderGraphEditor(rv, graph, style), 1f)
         list
     }
 }

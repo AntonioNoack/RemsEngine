@@ -12,6 +12,8 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 
 // get rain effect working like snow in https://www.glslsandbox.com/e#36547.0
+// todo get effect working in 3d like snow
+
 fun main() {
     val shader = Shader(
         "rain", coordsList, coordsVShader, uvList, listOf(

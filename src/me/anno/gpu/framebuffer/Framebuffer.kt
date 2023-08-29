@@ -474,6 +474,8 @@ class Framebuffer(
         bindFramebuffer(GL_FRAMEBUFFER, dst.pointer)
         drawBuffersN(dst.targets.size)
 
+        GFX.check()
+
         // restore the old binding
         Frame.invalidate()
         Frame.bind()

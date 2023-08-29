@@ -46,10 +46,7 @@ import org.joml.Matrix4x3d
 import org.joml.Planed
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.floor
-import kotlin.math.round
-import kotlin.math.sign
-import kotlin.math.tan
+import kotlin.math.*
 
 // done controls
 // done show the scene
@@ -370,10 +367,10 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
 
                 // rotate around the direction
                 // we could use the average mouse position as center; this probably would be easier
-                val dir = view.cameraDirection
+                val dir = view.getMouseRayDirection()
                 val rx = (x - (this.x + this.width * 0.5)) // [-w/2,+w/2]
                 val ry = (y - (this.y + this.height * 0.5)) // [-h/2,+h/2]
-                val rotationAngle = kotlin.math.PI * (rx * dy - ry * dx) / (length(rx, ry) * height)
+                val rotationAngle = PI * (rx * dy - ry * dx) / (length(rx, ry) * height)
 
                 val targets2 = selectedMovables
                 val targets3 = selectedEntities + targets2

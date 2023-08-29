@@ -1516,10 +1516,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     ): Vector3d {
         val tanHalfFoV = tan(fovYRadians * 0.5)
         val aspectRatio = width.toFloat() / height
-        val dir = dst.set(rx * tanHalfFoV * aspectRatio, ry * tanHalfFoV, -1.0)
-        cameraRotation.transform(dir)
-        dir.normalize()
-        return dst
+        dst.set(rx * tanHalfFoV * aspectRatio, ry * tanHalfFoV, -1.0)
+        return cameraRotation.transform(dst).normalize()
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
