@@ -90,7 +90,7 @@ class XMLScanner : XMLReader() {
                         '>'.code -> {
                             depth--
                             if (depth == 0) {
-                                return Unit
+                                return sthElement
                             }
                         }
                         '<'.code -> depth++
@@ -130,7 +130,7 @@ class XMLScanner : XMLReader() {
                 '/'.code -> {
                     assert(input.read(), '>')
                     onEnd.handle(type)
-                    return Unit
+                    return sthElement
                 }
                 '>'.code -> {
                     // read the body (all children)
@@ -143,7 +143,7 @@ class XMLScanner : XMLReader() {
                             endElement -> {
                                 typeI--
                                 onEnd.handle(type)
-                                return Unit
+                                return sthElement
                             }
                             is String -> {
                                 onAttribute.handle(type, "", child)

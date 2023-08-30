@@ -3,6 +3,7 @@ package me.anno.tests.shader
 import me.anno.Engine
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderState
@@ -36,7 +37,7 @@ import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFSphere.Companion.sdSphere
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
-import org.joml.Vector3f
+import org.joml.Vector3d
 
 // get snow effect working like in https://www.glslsandbox.com/e#36547.0
 // done get this and rain working in 3d
@@ -83,12 +84,29 @@ fun main() {
         // 3d
         GFXBase.forceLoadRenderDoc()
         class SnowControl : Component() {
-            // todo when the density is changed, the zoom-in should happen on the player
-            var density = 1f
-            var velocity = Vector3f(0f, -0.2f, 0f)
-            val position = Vector3f()
+
+            @Range(0.0, 100.0)
+            var density = 2f
+
+            @Range(0.0001, 0.5)
+            var flakeSize = 0.02f
+
+            var velocity = Vector3d(0f, 0f, 0f)
+            val position = Vector3d(0f, 0f, 0f)
+
+            // where zoom-in is appearing when the density changes
+            var center = Vector3d(0f, 100f, 0f)
+
+            private var lastDensity = density
             override fun onUpdate(): Int {
-                velocity.mulAdd(-Engine.deltaTime, position, position)
+                val deltaDensity = (lastDensity / density).toDouble()
+                lastDensity = density
+                if (deltaDensity != 1.0 && deltaDensity in 0.5..2.0) {
+                    position.add(center)
+                    position.mul(deltaDensity)
+                    position.sub(center)
+                }
+                velocity.mulAdd(-Engine.deltaTime.toDouble(), position, position)
                 return 1
             }
         }
@@ -102,6 +120,7 @@ fun main() {
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V1F, "density"),
+                Variable(GLSLType.V1F, "flakeSize"),
                 Variable(GLSLType.V3F, "snowPosition"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ) + DepthTransforms.depthVars, "" +
@@ -122,7 +141,6 @@ fun main() {
                     "   pos += snowPosition;\n" + // snow falling = camera rising
                     "   pos *= density;\n" +
                     "   vec3 dir = normalize(rawCameraDirection(uv) * density);\n" +
-                    "   pos += 0.05 * dir;\n" + // safety distance, near clipping plane
                     "   vec2 dirSign = sign(dir.xz);\n" +
                     "   vec2 blockPosition = floor(pos.xz);\n" +
                     "   vec2 dist3 = (dirSign*.5+.5 + blockPosition - pos.xz)/dir.xz;\n" +
@@ -135,9 +153,9 @@ fun main() {
                     "       float nextDist = min(dist3.x, dist3.y);\n" +
                     "       float distGuess = (dist + nextDist) * 0.5;\n" +
                     "       float cellY = floor(pos.y + dir.y * distGuess);\n" +
-                    "       float flakeD = 0.02 + max(dist - 7.0, 0.0) * 0.005, flakeR = 0.5 * flakeD, flakeA = 1.0 / (1.0 + distGuess * distGuess);\n" +
+                    "       float flakeD = flakeSize * (1.0 + max(dist - 7.0, 0.0) * 0.25), flakeR = 0.5 * flakeD, flakeA = min(distGuess, 1.0) / (1.0 + distGuess * distGuess);\n" +
                     "       vec2 seed = blockPosition + vec2(0.03 * cellY, 0.0);\n" +
-                    "       float flakeY = random(seed+0.3);\n" +
+                    "       float flakeY = flakeR+(1.0-flakeD)*random(seed+0.3);\n" +
                     // check for colliding snowflakes
                     // todo random xz swaying
                     "       float flakeX = flakeR+(1.0-flakeD)*random(seed);\n" +
@@ -174,6 +192,7 @@ fun main() {
                     shader.v3f("cameraPosition", RenderState.cameraPosition)
                     shader.v4f("cameraRotation", RenderState.cameraRotation)
                     shader.v3f("snowPosition", snowControl.position)
+                    shader.v1f("flakeSize", snowControl.flakeSize)
                     shader.v1f("density", snowControl.density)
                     DepthTransforms.bindDepthToPosition(shader)
                     flat01.draw(shader)

@@ -17,6 +17,10 @@ open class Vector3d {
         set(x, y, z)
     }
 
+    constructor(x: Float, y: Float, z: Float) {
+        set(x, y, z)
+    }
+
     constructor(v: Vector3f) {
         set(v)
     }

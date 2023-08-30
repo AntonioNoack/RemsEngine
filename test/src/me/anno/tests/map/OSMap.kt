@@ -3,9 +3,8 @@ package me.anno.tests.map
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.gpu.drawing.DrawRectangles.finishBatch
-import me.anno.gpu.drawing.DrawRectangles.startBatch
 import me.anno.io.xml.XMLNode
 import me.anno.io.xml.XMLReader
 import me.anno.io.xml.XMLScanner
@@ -165,7 +164,6 @@ fun readOSM0(input: InputStream, shallReadTags: Boolean = false, map: OSMap = OS
     }
 
     return map
-
 }
 
 /**
@@ -303,7 +301,6 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
     })
 
     return map
-
 }
 
 fun main() {
@@ -347,7 +344,7 @@ fun main() {
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.onDraw(x0, y0, x1, y1)
                 // draw all points
-                var v = startBatch()
+                var v = DrawRectangles.startBatch()
                 val minLon = (windowToCoordsX(x0.toDouble()) / scaleX).toFloat()
                 val maxLon = (windowToCoordsX(x1.toDouble()) / scaleX).toFloat()
                 val minLat = windowToCoordsY(y0.toDouble()).toFloat()
@@ -363,7 +360,7 @@ fun main() {
                         }
                     }
                 }
-                finishBatch(v)
+                DrawRectangles.finishBatch(v)
                 v = DrawCurves.lineBatch.start()
                 // draw all lines
                 for (way in map.ways.values) {
@@ -377,7 +374,7 @@ fun main() {
                         }
                     }
                 }
-                /*val x0f = coordsToWindowX(-scaleX).toFloat()
+                val x0f = coordsToWindowX(-scaleX).toFloat()
                 val x1f = coordsToWindowX(+scaleX).toFloat()
                 val y0f = coordsToWindowY(-1.0).toFloat()
                 val y1f = coordsToWindowY(+1.0).toFloat()
@@ -385,7 +382,7 @@ fun main() {
                 drawLine(x0f, y0f, x1f, y0f, 1f, -1, bg, false)
                 drawLine(x1f, y0f, x1f, y1f, 1f, -1, bg, false)
                 drawLine(x1f, y1f, x0f, y1f, 1f, -1, bg, false)
-                drawLine(x0f, y1f, x0f, y0f, 1f, -1, bg, false)*/
+                drawLine(x0f, y1f, x0f, y0f, 1f, -1, bg, false)
                 DrawCurves.lineBatch.finish(v)
             }
 
@@ -428,5 +425,4 @@ fun main() {
             }
         }
     }
-
 }
