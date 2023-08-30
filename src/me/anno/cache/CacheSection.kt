@@ -427,15 +427,15 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return if (entry.hasBeenDestroyed) null else entry.data
     }
 
-    fun <V> getEntry(key: V, timeoutMillis: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData?) =
+    fun <V> getEntry(key: V, timeoutMillis: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData?): ICacheData? =
         getEntryWithCallback(key, timeoutMillis, asyncGenerator, generator, null)
 
     fun <V, W> getEntry(
         key0: V, key1: W, timeoutMillis: Long, asyncGenerator: Boolean,
         generator: (V, W) -> ICacheData?
-    ) = getEntryWithCallback(key0, key1, timeoutMillis, asyncGenerator, generator, null)
+    ): ICacheData? = getEntryWithCallback(key0, key1, timeoutMillis, asyncGenerator, generator, null)
 
-    fun <V> getEntry(key: V, timeoutMillis: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?) =
+    fun <V> getEntry(key: V, timeoutMillis: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?): ICacheData? =
         getEntryWithCallback(key, timeoutMillis, queue, generator, null)
 
     fun update() {

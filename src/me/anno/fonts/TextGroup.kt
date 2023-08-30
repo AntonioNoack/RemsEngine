@@ -54,6 +54,10 @@ open class TextGroup(
     override fun destroy() {
     }
 
+    fun draw(drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
+        draw(0, codepoints.size, drawBuffer)
+    }
+
     override fun draw(startIndex: Int, endIndex: Int, drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
         throw NotImplementedError()
     }

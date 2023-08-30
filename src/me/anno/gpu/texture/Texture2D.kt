@@ -19,6 +19,9 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.Image
 import me.anno.image.ImageTransform
+import me.anno.image.raw.GPUImage
+import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.convertABGR2ARGB
@@ -64,6 +67,26 @@ open class Texture2D(
     var border = 0
 
     override fun toString() = "Tex2D(\"$name\", $width $height $samples)"
+
+    /**
+     * Pseudo-Reference, such that ImageGPUCache[ref] = this;
+     * Only is valid as long as the texture is created ofc.
+     *
+     * If you need this property for other Texture classes or similar, write me :).
+     * */
+    var ref: FileReference = InvalidRef
+        private set
+        get() {
+            val numChannels = when (internalFormat) {
+                GL_R8, GL_R8I, GL_R8UI, GL_R16F, GL_R16I, GL_R16UI, GL_R32F, GL_R32I, GL_R32UI -> 1
+                GL_RG8, GL_RG8I, GL_RG8UI, GL_RG16F, GL_RG16I, GL_RG16UI, GL_RG32F, GL_RG32I, GL_RG32UI -> 1
+                GL_RGB8, GL_RGB8I, GL_RGB8UI, GL_RGB16F, GL_RGB16I, GL_RGB16UI, GL_RGB32F, GL_RGB32I, GL_RGB32UI -> 1
+                else -> 4
+            }
+            val hasAlphaChannel = numChannels == 4
+            if (field == InvalidRef) field = GPUImage(this, numChannels, hasAlphaChannel, false).ref
+            return field
+        }
 
     private val withMultisampling = samples > 1
 
@@ -1168,7 +1191,6 @@ open class Texture2D(
             override fun getTextureI(index: Int) = if (index == 0) this@Texture2D else throw IndexOutOfBoundsException()
 
             override val depthTexture = null
-
         }
     }
 
@@ -1393,7 +1415,5 @@ open class Texture2D(
         fun setWriteAlignment(w: Int) {
             glPixelStorei(GL_UNPACK_ALIGNMENT, getAlignment(w))
         }
-
     }
-
 }

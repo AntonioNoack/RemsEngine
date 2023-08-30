@@ -6,7 +6,6 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.ShaderLib.mi
 import me.anno.gpu.shader.ShaderLib.u
 import me.anno.gpu.shader.ShaderLib.v
 import me.anno.gpu.shader.ShaderLib.y

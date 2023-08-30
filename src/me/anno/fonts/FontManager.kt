@@ -116,21 +116,8 @@ object FontManager {
         widthLimit: Int,
         heightLimit: Int
     ): Int {
-
         if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
-
-        val fontSizeIndex = font.sizeIndex
-        val properties = TextCacheKey.getProperties(fontSizeIndex, font)
-
-        val wl = if (widthLimit < 0) GFX.maxTextureSize else min(widthLimit, GFX.maxTextureSize)
-        val hl = if (heightLimit < 0) GFX.maxTextureSize else min(heightLimit, GFX.maxTextureSize)
-
-        val wl2 = limitWidth(font, text, wl, hl)
-        val hl2 = limitHeight(font, text, wl2, hl)
-
-        val fontName = font.name
-        return getSize(TextCacheKey(text, fontName, properties, wl2, hl2))
-
+        return getSize(TextCacheKey.getKey(font, text, widthLimit, heightLimit))
     }
 
     fun getBaselineY(
@@ -167,7 +154,6 @@ object FontManager {
 
         val fontName = font.name
         return TextCacheKey(text, fontName, sub, wl2, hl2)
-
     }
 
     fun getTexture(
@@ -188,12 +174,12 @@ object FontManager {
         } as Texture2DArray
     }
 
-    fun getTexture(cacheKey: TextCacheKey): ITexture2D? {
+    fun getTexture(cacheKey: TextCacheKey, async: Boolean = false): ITexture2D? {
         // must be sync:
         // - textures need to be available
         // - Java/Windows is not thread-safe
         if (cacheKey.text.isBlank2()) return null
-        return TextCache.getEntry(cacheKey, textureTimeout, false) { key ->
+        return TextCache.getEntry(cacheKey, textureTimeout, async) { key ->
             val font2 = getFont(key)
             val averageFontSize = getAvgFontSize(key.fontSizeIndex())
             val wl = if (key.widthLimit < 0) GFX.maxTextureSize else min(key.widthLimit, GFX.maxTextureSize)
@@ -260,5 +246,4 @@ object FontManager {
             } else callback(null)
         }
     }
-
 }

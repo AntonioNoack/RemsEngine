@@ -59,7 +59,7 @@ class TextMeshGroup(
         this.buffer = dst
     }
 
-    fun createMesh(): Mesh {
+    fun createMesh(mesh: Mesh): Mesh {
         // ("creating large ${codepoints.joinChars()}")
         val characters = alignment.buffers
         val vertexCount = codepoints.sumOf { characters[it]!!.vertexCount }
@@ -89,7 +89,6 @@ class TextMeshGroup(
                 }
             }
         }
-        val mesh = Mesh()
         mesh.positions = pos
         return mesh
     }

@@ -1,10 +1,12 @@
 package me.anno.fonts.keys
 
+import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getAvgFontSize
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.ui.base.Font
 import me.anno.utils.types.Booleans.toInt
+import kotlin.math.min
 
 data class TextCacheKey(val text: CharSequence, val fontName: String, val properties: Int, val limits: Int) {
 
@@ -63,5 +65,26 @@ data class TextCacheKey(val text: CharSequence, val fontName: String, val proper
         fun getProperties(fontSizeIndex: Int, isBold: Boolean, isItalic: Boolean): Int {
             return fontSizeIndex * 8 + isItalic.toInt(4) + isBold.toInt(2)
         }
+
+        fun getKey(
+            font: Font,
+            text: CharSequence,
+            widthLimit: Int,
+            heightLimit: Int
+        ): TextCacheKey {
+
+            val fontSizeIndex = font.sizeIndex
+            val properties = getProperties(fontSizeIndex, font)
+
+            val wl = if (widthLimit < 0) GFX.maxTextureSize else min(widthLimit, GFX.maxTextureSize)
+            val hl = if (heightLimit < 0) GFX.maxTextureSize else min(heightLimit, GFX.maxTextureSize)
+
+            val wl2 = FontManager.limitWidth(font, text, wl, hl)
+            val hl2 = FontManager.limitHeight(font, text, wl2, hl)
+
+            val fontName = font.name
+            return TextCacheKey(text, fontName, properties, wl2, hl2)
+        }
+
     }
 }
