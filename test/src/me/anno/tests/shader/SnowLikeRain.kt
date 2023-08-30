@@ -1,6 +1,11 @@
 package me.anno.tests.shader
 
 import me.anno.Engine
+import me.anno.config.DefaultConfig.style
+import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -9,13 +14,20 @@ import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
+import me.anno.io.ISaveable
+import me.anno.mesh.Shapes
+import me.anno.ui.custom.CustomList
+import me.anno.ui.debug.TestDrawPanel
+import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.utils.types.Floats.toRadians
 
 // get rain effect working like snow in https://www.glslsandbox.com/e#36547.0
-// todo get effect working in 3d like snow
+// get effect working in 3d like snow
 
 fun main() {
-    if (true) {
+    testUI("Snow-Like Rain") {
+        val list = CustomList(false, style)
+
         // 2d
         val shader = Shader(
             "rain", coordsList, coordsVShader, uvList, listOf(
@@ -41,17 +53,36 @@ fun main() {
                     "   c+=rain(uv2,8.);\n" +
                     "   c+=rain(uv2,6.);\n" +
                     "   c+=rain(uv2,5.);\n" +
-                    "   result = vec4(c,c,c,1);\n" +
+                    "   result = vec4(mix(vec3(0.1,0.2,0.3),vec3(1),c),1);\n" +
                     "}"
         )
-        testDrawing("Snow-like Rain") {
+        list.add(TestDrawPanel {
             shader.use()
             shader.v1f("time", Engine.gameTimeF)
             shader.v2f("uvScale", it.width.toFloat() / it.height, 1f)
             flat01.draw(shader)
-        }
-    } else {
-        // 3d
+        }, 1f)
 
+        // 3d
+        val snowControl = SnowControl()
+        snowControl.color.set(3f)
+        snowControl.density = 1.3f
+        snowControl.velocity.set(0f, -8f, 0f)
+        snowControl.flakeSize = 0.005f
+        snowControl.elongation = 30f
+        // tilt rain a bit
+        snowControl.worldRotation.rotateX((15f).toRadians())
+        val snowNode = SnowNode()
+        snowNode.snowControl = snowControl
+        val graph = createSnowGraph(snowNode)
+        val mode = RenderMode("Rain", graph)
+        val scene = Entity("Scene")
+        scene.add(MeshComponent(Shapes.flatCube.front))
+        scene.add(snowControl)
+        ISaveable.registerCustomClass(SnowControl())
+        list.add(SceneView.testScene(scene) {
+            it.renderer.renderMode = mode
+        }, 2f)
+        list
     }
 }
