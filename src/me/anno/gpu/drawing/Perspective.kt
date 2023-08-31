@@ -60,7 +60,7 @@ object Perspective {
 
     fun setPerspective2(
         viewTransform: Matrix4f,
-        fy: Float,
+        aspectRatio: Float,
         near: Float,
         far: Float, // only respected if !reverseDepth, because typically there is no real use for it...
         cx: Float, cy: Float,
@@ -68,7 +68,7 @@ object Perspective {
     ) {
         viewTransform.identity()
         if (reverseDepth) {
-            val y = 1f / fy
+            val y = 1f / aspectRatio
             //  x  0  0  0
             //  0  y  0  0
             //  0  0  0  n
@@ -82,7 +82,7 @@ object Perspective {
             )
         } else {
             // fy = tan(fovYRadians * 0.5f)
-            val fov = atan(fy) * 2f
+            val fov = atan(aspectRatio) * 2f
             setPerspective(viewTransform, fov, 1f, near, far, cx, cy, false)
         }
     }

@@ -110,14 +110,9 @@ object FontManager {
         return data.value as Int
     }
 
-    fun getSize(
-        font: me.anno.ui.base.Font,
-        text: CharSequence,
-        widthLimit: Int,
-        heightLimit: Int
-    ): Int {
+    fun getSize(font: me.anno.ui.base.Font, text: CharSequence, widthLimit: Int, heightLimit: Int): Int {
         if (text.isEmpty()) return GFXx2D.getSize(0, font.sizeInt)
-        return getSize(TextCacheKey.getKey(font, text, widthLimit, heightLimit))
+        return getSize(TextCacheKey.getKey(font, text, widthLimit, heightLimit, false))
     }
 
     fun getBaselineY(
@@ -184,7 +179,7 @@ object FontManager {
             val averageFontSize = getAvgFontSize(key.fontSizeIndex())
             val wl = if (key.widthLimit < 0) GFX.maxTextureSize else min(key.widthLimit, GFX.maxTextureSize)
             val hl = if (key.heightLimit < 0) GFX.maxTextureSize else min(key.heightLimit, GFX.maxTextureSize)
-            val texture = font2.generateTexture(key.text, averageFontSize, wl, hl, false)
+            val texture = font2.generateTexture(key.text, averageFontSize, wl, hl, key.isGrayscale())
             if (texture == null) LOGGER.warn("Texture for '$key' was null")
             texture
         } as? ITexture2D

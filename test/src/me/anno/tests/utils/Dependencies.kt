@@ -42,7 +42,7 @@ class Package(val name: String) {
     var r = 0f
 }
 
-// todo find parts, which could be extracted
+// find project parts visually, which could be extracted
 fun main() {
 
     val source = documents.getChild("IdeaProjects/VideoStudio/src")

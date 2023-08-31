@@ -850,7 +850,7 @@ object ShaderLib {
                 getColorForceFieldLib +
                 "float smoothSign(float f){ return clamp(f,-1.0,1.0); }\n" +
                 "void main(){\n" +
-                "   float distance = texture(tex, uv).r;\n" +
+                "   float distance = texture(tex, uv).r - 0.5;\n" +
                 "   float distDx = dFdx(distance);\n" +
                 "   float distDy = dFdy(distance);\n" +
                 "   float gradient = length(vec2(distDx, distDy));\n" +

@@ -87,8 +87,8 @@ class FFMPEGMetaParser : StringMap() {
         if (line.isBlank2()) return
         if ("Server returned" in line) {
             stream.codec = invalidCodec
-            stream.w = 1
-            stream.h = 1
+            stream.width = 1
+            stream.height = 1
             LOGGER.warn(line)
             return
         }
@@ -103,13 +103,13 @@ class FFMPEGMetaParser : StringMap() {
                 val it = data[i]
                 val idx = it.indexOf('x')
                 if (idx > 0) {
-                    val w = it.substring(0, idx).toIntOrNull() ?: continue
-                    val h = it.substring(idx + 1).toIntOrNull() ?: continue
-                    if (w > 0 && h > 0) {
+                    val width = it.substring(0, idx).toIntOrNull() ?: continue
+                    val height = it.substring(idx + 1).toIntOrNull() ?: continue
+                    if (width > 0 && height > 0) {
                         // we got our info <3
-                        stream.w = w
-                        stream.h = h
-                        if (debug) LOGGER.debug("Found size $w x $h")
+                        stream.width = width
+                        stream.height = height
+                        if (debug) LOGGER.debug("Found size $width x $height")
                         return
                     }
                 }
@@ -141,7 +141,7 @@ class FFMPEGMetaParser : StringMap() {
                 try {
                     val fpsIndex = data.indexOf("fps") - 1
                     if (fpsIndex > -1) {
-                        stream.sourceFPS = data[fpsIndex].toDouble()
+                        stream.srcFPS = data[fpsIndex].toDouble()
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -174,7 +174,7 @@ class FFMPEGMetaParser : StringMap() {
                                     7 -> durParts[0].toDouble() * 3600 * 24 + durParts[2].toDouble() * 3600 + durParts[4].toDouble() * 60 + durParts[6].toDouble()
                                     else -> throw RuntimeException("Invalid ffmpeg-duration? $data")
                                 }
-                                stream.sourceLength = duration
+                                stream.srcDuration = duration
                                 // ("duration: $duration")
                             } catch (e: Exception) {
                                 LOGGER.warn(e)

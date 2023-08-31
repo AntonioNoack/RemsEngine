@@ -194,7 +194,7 @@ object Renderers {
             }
         }
 
-        override fun getPostProcessing(flags: Int): ShaderStage? {
+        override fun getPostProcessing(flags: Int): ShaderStage {
             return ShaderStage(
                 "previewRenderer", listOf(
                     Variable(GLSLType.V4F, "lightData", previewLights.size),

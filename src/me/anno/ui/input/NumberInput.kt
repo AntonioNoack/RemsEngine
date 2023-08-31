@@ -36,8 +36,15 @@ abstract class NumberInput<BaseType>(
             titleView?.text = value
         }
 
+    override var isEnabled: Boolean
+        get() = super.isEnabled
+        set(value) {
+            super.isEnabled = value
+            inputPanel.isEnabled = value
+        }
+
     override var isInputAllowed
-        get() = inputPanel.isInputAllowed
+        get() = inputPanel.isInputAllowed && isEnabled && inputPanel.isEnabled
         set(value) {
             inputPanel.isInputAllowed = value
         }

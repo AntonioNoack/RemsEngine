@@ -6,5 +6,5 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
 
 fun main() {
-    testSceneWithUI("Gizmos", Entity(MeshComponent(flatCube.front.ref)))
+    testSceneWithUI("Gizmos", Entity(MeshComponent(flatCube.front)))
 }

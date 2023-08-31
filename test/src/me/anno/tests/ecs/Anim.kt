@@ -8,8 +8,9 @@ import me.anno.utils.OS.downloads
 
 fun main() {
 
-    // todo LWJGL Assimp 3.2.3 is better than 3.3.1
-    //  why?
+    // LWJGL Assimp 3.2.3 is better than 3.3.1
+    //  why? longstanding bug in Assimp
+    // - https://github.com/assimp/assimp/issues/4620
 
     // 3.2.3: 4.1.844643017
     // 3.3.1: 5.2.1054918762

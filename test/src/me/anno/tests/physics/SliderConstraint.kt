@@ -24,7 +24,7 @@ fun main() {
     scene.add(SkyBox())
 
     val box0 = Entity()
-    box0.add(MeshComponent(flatCube.front.ref))
+    box0.add(MeshComponent(flatCube.front))
     box0.add(BoxCollider())
     box0.position = box0.position.set(0.0, 2.3, 0.0)
     val body0 = Rigidbody()
@@ -33,7 +33,7 @@ fun main() {
     scene.add(box0)
 
     val box1 = Entity()
-    box1.add(MeshComponent(flatCube.front.ref))
+    box1.add(MeshComponent(flatCube.front))
     box1.add(BoxCollider())
     box1.rotation = box1.rotation.rotateX(5.0.toRadians())
     val body1 = Rigidbody()

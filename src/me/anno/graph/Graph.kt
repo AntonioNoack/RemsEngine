@@ -118,6 +118,8 @@ open class Graph : PrefabSaveable() {
     }
 
     override fun clone(): PrefabSaveable {
-        return TextReader.readFirst(TextWriter.toText(this, InvalidRef), InvalidRef, false)
+        val clone = TextReader.readFirst(TextWriter.toText(this, InvalidRef), InvalidRef, false) as Graph
+        for (node in clone.nodes) node.graph = clone
+        return clone
     }
 }

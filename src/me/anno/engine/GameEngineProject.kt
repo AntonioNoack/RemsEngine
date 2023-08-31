@@ -112,6 +112,7 @@ class GameEngineProject() : NamedSaveable() {
         val lastSceneRef = lastScene!!.toGlobalFile(location)
         if (!lastSceneRef.exists) {
             val prefab = Prefab("Entity", ScenePrefab)
+            lastSceneRef.getParent()?.tryMkdirs()
             lastSceneRef.writeText(TextWriter.toText(prefab, InvalidRef))
             LOGGER.debug("Wrote new scene to $lastScene")
         }

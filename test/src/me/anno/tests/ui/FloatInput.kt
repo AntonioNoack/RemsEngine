@@ -10,7 +10,6 @@ fun main() {
     GFXBase.disableRenderDoc()
     val fi = FloatInput(style)
     // fi.isInputAllowed = false
-    // todo this should change the text color as well...
     fi.isEnabled = false
     testUI("Float Input", fi)
 }

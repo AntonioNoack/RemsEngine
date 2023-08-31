@@ -188,7 +188,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         } else false
     }
 
-    private val uniformLocations = HashMap<String, Int>()
+    val uniformLocations = HashMap<String, Int>()
     private val uniformCache = FloatArray(UniformCacheSizeX4)
     var textureNames: List<String> = emptyList()
 

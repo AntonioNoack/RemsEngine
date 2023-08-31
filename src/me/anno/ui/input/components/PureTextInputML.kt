@@ -132,6 +132,17 @@ open class PureTextInputML(style: Style) :
             }
         }
 
+    override var isEnabled: Boolean
+        get() = super.isEnabled
+        set(value) {
+            super.isEnabled = value
+            val children = actualChildren
+            for (i in children.indices) {
+                children[i].isEnabled = value
+            }
+            invalidateDrawing()
+        }
+
     override val value: String
         get() = lastText
 

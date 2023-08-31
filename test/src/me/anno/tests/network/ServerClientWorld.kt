@@ -24,7 +24,7 @@ import java.net.InetAddress
 import java.net.Socket
 import kotlin.concurrent.thread
 
-val port1 = 65113
+const val port1 = 65113
 val protocol = Protocol("TEST", NetworkProtocol.TCP).apply {
     register { EnterPacket() }
     register { PingPacket() }
@@ -37,7 +37,6 @@ fun main() {
     testUI3("ServerClientWorld") {
         StudioBase.instance?.enableVSync = true
         DefaultConfig["debug.ui.showRedraws"] = true
-        // todo scrolling breaks when any client joins... why???
         val list = PanelList2D(style)
         val master = PanelListY(style)
         master.add(TextButton("Join All", false, style)

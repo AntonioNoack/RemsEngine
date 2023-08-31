@@ -3,8 +3,8 @@ package me.anno.ecs.components.anim.graph
 import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.ecs.components.anim.AnimRenderer
-import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.AnimationCache
+import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.states.StateNode
@@ -18,14 +18,13 @@ import me.anno.maths.Maths.posMod
 class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
     companion object {
-        private const val SOURCE = 1
-        private const val SPEED = 2
-        private const val START = 3
-        private const val END = 4
-        private const val FADE = 5
-        private const val LOOP = 6
+        const val SOURCE = 1
+        const val SPEED = 2
+        const val START = 3
+        const val END = 4
+        const val FADE = 5
+        const val LOOP = 6
         private val inputs = listOf(
-            "Flow", "Input",
             "File", "Source",
             "Float", "Speed",
             "Float", "Start",
@@ -34,7 +33,6 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
             "Bool", "Loop"
         )
         private val outputs = listOf(
-            "Flow", "Next",
             "Float", "Progress"
         )
 
@@ -92,18 +90,19 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         val weight = clamp(min(fadeIn, (end - progress) / fade))
         val state = if (previous != null) {
             val state = animations[0]
-            previous.fillState(clamp(fadeIn), state)
+            previous.fillState(1f - weight, state)
             state.progress += state.speed * Engine.deltaTime
             animations[1]
         } else animations[0]
         fillState(weight, state)
-        state.speed = getInput(1) as Float
+        state.speed = getInput(SPEED) as Float
         state.progress = progress
         state.repeat = if (loop) LoopingState.PLAY_LOOP else LoopingState.PLAY_LOOP
     }
 
     fun fillState(weight: Float, target: AnimationState) {
         target.weight = weight
+        target.source = getInput(SOURCE) as FileReference
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -123,5 +122,4 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
     }
 
     override val className: String get() = "AnimStateNode"
-
 }

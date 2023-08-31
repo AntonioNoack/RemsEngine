@@ -45,6 +45,9 @@ import kotlin.math.max
 
 fun main() {
 
+    // todo this has bad graphics, because I'm using Pipeline directly
+    // todo instead, use RenderGraph/RenderView
+
     // test something like DLSS3: Frame Generation
     // (to understand its challenges)
     // input: frame0, frame1, motion0-1,

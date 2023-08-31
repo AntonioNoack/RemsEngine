@@ -14,7 +14,10 @@ import me.anno.video.FrameTask.Companion.missingResource
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 
-abstract class VideoBackgroundTask(val creator: VideoCreator) {
+abstract class VideoBackgroundTask(
+    val creator: VideoCreator,
+    val samples: Int,
+) {
 
     var isDone = false
     var isCancelled = false
@@ -23,7 +26,7 @@ abstract class VideoBackgroundTask(val creator: VideoCreator) {
     abstract fun getShutterPercentage(time: Double): Float
 
     private val partialFrame = Framebuffer(
-        "VideoBackgroundTask-partial", creator.width, creator.height, 1, 1,
+        "VideoBackgroundTask-partial", creator.width, creator.height, samples, 1,
         false, DepthBufferType.TEXTURE
     )
 

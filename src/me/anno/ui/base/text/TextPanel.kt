@@ -232,7 +232,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             font.isItalic != textCacheKey.isItalic() ||
             font.sizeIndex != textCacheKey.fontSizeIndex()
         ) {
-            textCacheKey = TextCacheKey(text, font, widthLimit, heightLimit)
+            textCacheKey = TextCacheKey(text, font, widthLimit, heightLimit, false)
         }
         // todo if useMonospaceCharacters, calculate size based on them
         val size = getTextSize(textCacheKey)

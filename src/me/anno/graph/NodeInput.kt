@@ -133,12 +133,11 @@ class NodeInput : NodeConnector {
                 else -> null
             }.run { if (this != null && isDestroyed) null else this }
             "Texture3D" -> value as? Texture3D
-            "FileReference" -> value as? FileReference ?: InvalidRef
+            "File", "FileReference" -> value as? FileReference ?: InvalidRef
             else -> throw NotImplementedError("type $type needs to be implemented")
         }
         return currValue
     }
 
     override val className: String get() = "NodeInput"
-
 }

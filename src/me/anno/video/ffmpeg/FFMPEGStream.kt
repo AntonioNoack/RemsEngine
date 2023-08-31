@@ -182,16 +182,13 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
     }
 
-    var sourceFPS = -1.0
-    var sourceLength = 0.0
+    var srcFPS = -1.0
+    var srcDuration = 0.0
 
     var codec = ""
 
-    var w = 0
-    var h = 0
-
-    var srcW = 0
-    var srcH = 0
+    var width = 0
+    var height = 0
 
     abstract fun process(process: Process, vararg arguments: String)
 

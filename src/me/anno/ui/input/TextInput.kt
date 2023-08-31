@@ -116,7 +116,7 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
     }
 
     override var isInputAllowed: Boolean
-        get() = base.isInputAllowed
+        get() = base.isInputAllowed && base.isEnabled && isEnabled
         set(value) {
             base.isInputAllowed = value
         }

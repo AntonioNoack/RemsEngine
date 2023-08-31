@@ -11,6 +11,8 @@ import me.anno.fonts.signeddistfields.edges.QuadraticSegment
 import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.gpu.GFX
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
@@ -76,6 +78,8 @@ object SignedDistanceField {
         val invH = 1f / (h - 1f)
         val invW = 1f / (w - 1f)
 
+        // todo add this offset in Rem's Studio
+        val offset = 0.5f // such that the shader can be the same even if the system only supports normal textures
         for (y in 0 until h) {
 
             val ry = y * invH
@@ -115,7 +119,7 @@ object SignedDistanceField {
                     } else closestEdge.trueSignedDistance(origin, tmpParam, tmpArray, tmpDistance)
                 } else 100f
 
-                buffer.put(index, clamp(trueDistance, -maxDistance, +maxDistance) * sdfResolution)
+                buffer.put(index, clamp(trueDistance, -maxDistance, +maxDistance) * sdfResolution + offset)
                 index++
 
             }
@@ -257,7 +261,8 @@ object SignedDistanceField {
 
         val tex = Texture2D("SDF", w, h, 1)
         GFX.addGPUTask("SDF.createTexture()", w, h) {
-            tex.createMonochrome(buffer, true)
+            tex.createMonochromeFP16(buffer, true)
+            tex.ensureFilterAndClamping(GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
             ByteBufferPool.free(buffer)
         }
 

@@ -22,6 +22,7 @@ enum class GFXSettings(
     operator fun get(key: String): Any? = data[key]
 
     companion object {
+
         @JvmStatic
         fun get(id: Int, alternative: GFXSettings) = values().firstOrNull { it.id == id } ?: alternative
 

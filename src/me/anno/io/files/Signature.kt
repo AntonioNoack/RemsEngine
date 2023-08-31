@@ -9,6 +9,12 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.math.min
 
+/**
+ * Most file formats specify a magic value in the first bytes.
+ * This allows us to detect what kind of content a file contains.
+ *
+ * This class stores the data, and is a registry for known file signatures.
+ * */
 class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
 
     constructor(name: String, offset: Int, signature: String) : this(name, offset, signature.toByteArray())

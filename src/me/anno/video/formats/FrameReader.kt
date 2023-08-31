@@ -72,10 +72,10 @@ abstract class FrameReader<FrameType>(
             else {
                 val t = System.nanoTime()
                 if (abs(t - lt) > 1e9) {
-                    LOGGER.debug("Waiting for metadata on $file, $w x $h, $codec")
+                    LOGGER.debug("Waiting for metadata on $file, $width x $height, $codec")
                     lt = t
                 }
-                w != 0 && h != 0 && codec.isNotEmpty()
+                width != 0 && height != 0 && codec.isNotEmpty()
             }
         }
     }
@@ -88,7 +88,7 @@ abstract class FrameReader<FrameType>(
             }
         }
         if (!isDestroyed && !isFinished) {
-            val frame = readFrame(w, h, input)
+            val frame = readFrame(width, height, input)
             if (frame != null) {
                 synchronized(frames) {
                     frames.add(frame)

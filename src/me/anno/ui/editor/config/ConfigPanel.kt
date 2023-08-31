@@ -2,10 +2,13 @@ package me.anno.ui.editor.config
 
 import me.anno.io.utils.StringMap
 import me.anno.language.translation.Dict
+import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.menu.Menu.openMenuByPanels
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomList
@@ -42,6 +45,29 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         add(contentListUI, 3f)
         searchBar += TextButton(Dict["Close", "ui.general.close"], false, deep)
             .addLeftClickListener { windowStack.pop().destroy() }
+        searchBar += TextButton(Dict["Add Field", "ui.general.addField"], false, deep)
+            .addLeftClickListener {
+                val keyPanel = TextInput("Key", "", lastTopic, style)
+                val valuePanel = TextInput("Value", "", "", style)
+                val submit = TextButton("Set", false, style)
+                // todo we also need a way to delete fields
+                submit.addLeftClickListener {
+                    if (keyPanel.value.isNotBlank()) {
+                        config[keyPanel.value.trim()] = valuePanel.value
+                        createContent(lastNotEmptyTopic)
+                    }
+                    Menu.close(keyPanel)
+                }
+                val cancel = TextButton("Cancel", false, style)
+                cancel.addLeftClickListener { Menu.close(keyPanel) }
+                val buttons = PanelListX(style)
+                buttons += cancel
+                buttons += submit
+                openMenuByPanels(
+                    windowStack, NameDesc("New Value"),
+                    listOf(keyPanel, valuePanel, buttons)
+                )
+            }
         if (isStyle) {
             searchBar += TextButton(Dict["Apply", "ui.general.apply"], false, deep).addLeftClickListener {
                 createTopics()
@@ -60,9 +86,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
     private fun applySearch(query: String) {
 
         if (query.isBlank2()) {
-
             createContent(lastNotEmptyTopic)
-
         } else {
 
             val queryTerms = query
@@ -77,9 +101,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
             for ((name, ui) in contentList) {
                 ui.isVisible = queryTerms.all { it in name }
             }
-
         }
-
     }
 
     var lastTopic = ""
@@ -196,7 +218,5 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         }
 
         invalidateLayout()
-
     }
-
 }
