@@ -99,14 +99,14 @@ class AABBf(
 
     fun isEmpty() = minX > maxX
 
-    fun avgX() = (minX + maxX) * 0.5f
-    fun avgY() = (minY + maxY) * 0.5f
-    fun avgZ() = (minZ + maxZ) * 0.5f
+    val centerX: Float get() = (minX + maxX) * 0.5f
+    val centerY: Float get() = (minY + maxY) * 0.5f
+    val centerZ: Float get() = (minZ + maxZ) * 0.5f
 
-    fun deltaX() = maxX - minX
-    fun deltaY() = maxY - minY
-    fun deltaZ() = maxZ - minZ
-    fun volume() = deltaX() * deltaY() * deltaZ()
+    val deltaX: Float get() = maxX - minX
+    val deltaY: Float get() = maxY - minY
+    val deltaZ: Float get() = maxZ - minZ
+    val volume: Float get() = deltaX * deltaY * deltaZ
 
     fun print() = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
 
@@ -544,10 +544,6 @@ class AABBf(
                 distanceSquared(start) <= start.distanceSquared(end)
     }
 
-    val centerX get() = (minX + maxX) * 0.5f
-    val centerY get() = (minY + maxY) * 0.5f
-    val centerZ get() = (minZ + maxZ) * 0.5f
-
     fun testLine(
         start: Vector3f,
         end: Vector3f,
@@ -582,7 +578,7 @@ class AABBf(
             val cy0 = centerY - sy
             val cz0 = centerZ - sz
             val dir = Vector3f(dx, dy, dz).normalize()
-            val extends = Vector3f(deltaX(), deltaY(), deltaZ()).mul(0.5f)
+            val extends = Vector3f(deltaX, deltaY, deltaZ).mul(0.5f)
             val ai01 = arrayOf(Vector3f(), Vector3f())
             for (axis in 0 until 3) {
 
@@ -696,9 +692,9 @@ class AABBf(
     }
 
     fun maxDim(): Int {
-        val dx = deltaX()
-        val dy = deltaY()
-        val dz = deltaZ()
+        val dx = deltaX
+        val dy = deltaY
+        val dz = deltaZ
         return when {
             dx >= max(dy, dz) -> 0
             dy >= dz -> 1

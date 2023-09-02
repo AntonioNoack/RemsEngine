@@ -5,10 +5,10 @@ import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.player.LocalPlayer
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.lua.ScriptComponent.Companion.getFunction
 import me.anno.lua.ScriptComponent.Companion.toLua
 import me.anno.lua.functions.*
-import me.anno.ecs.prefab.PrefabSaveable
 import org.luaj.vm2.LuaValue
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -59,11 +59,8 @@ open class QuickScriptComponent : Component() {
             globals.set("dt", LuaValue.valueOf(Engine.deltaTime.toDouble()))
             globals.set("t", LuaValue.valueOf(Engine.gameTimeD))
             globals.set("localPlayer", LocalPlayer.currentLocalPlayer.toLua())
-            globals.set("get", GetProperty)
-            globals.set("set", SetProperty)
             // todo "call", which calls a function via reflections
             // define translation, rotation, scale functions and such :)
-            // todo more transform functions
             globals.set("getPosition", GetPosition)
             globals.set("getRotation", GetRotation)
             globals.set("getScale", GetScale)
@@ -80,5 +77,4 @@ open class QuickScriptComponent : Component() {
         return if (func.isfunction()) func.call()
         else func
     }
-
 }

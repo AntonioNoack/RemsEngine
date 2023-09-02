@@ -119,9 +119,9 @@ fun compress(
         val dx = bounds.minX
         val dy = bounds.minY
         val dz = bounds.minZ
-        val sx = 255 / bounds.deltaX()
-        val sy = 255 / bounds.deltaY()
-        val sz = 255 / Maths.max(bounds.deltaZ(), 1e-9f)
+        val sx = 255 / bounds.deltaX
+        val sy = 255 / bounds.deltaY
+        val sz = 255 / Maths.max(bounds.deltaZ, 1e-9f)
         out.writeLE32(dx)
         out.writeLE32(sx)
         out.writeLE32(dy)

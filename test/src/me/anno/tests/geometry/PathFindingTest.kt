@@ -279,7 +279,7 @@ fun main() {
         println("${index.shr(8)},${index.and(255)}: $ids")
     }*/
 
-    val h = ((w - padding) * bounds.deltaY() / bounds.deltaX() + padding).toInt()
+    val h = ((w - padding) * bounds.deltaY / bounds.deltaX + padding).toInt()
 
     // display nodes & result
     val image = BufferedImage(w, h, 1)
@@ -288,9 +288,9 @@ fun main() {
     gfx.font = Font.getFont("Roboto")?.run { deriveFont(h * 0.2f) }
 
     val border = 2 * padding
-    val scale = Maths.min((w - border) / bounds.deltaX(), (h - border) / bounds.deltaY())
-    var ox = w / 2 - bounds.avgX() * scale
-    var oy = h / 2 - bounds.avgY() * scale
+    val scale = Maths.min((w - border) / bounds.deltaX, (h - border) / bounds.deltaY)
+    var ox = w / 2 - bounds.centerX * scale
+    var oy = h / 2 - bounds.centerY * scale
 
     // draw connections
     gfx.color = Color.GRAY

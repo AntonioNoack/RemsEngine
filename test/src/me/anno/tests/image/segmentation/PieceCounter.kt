@@ -48,8 +48,8 @@ fun main() {
                 "   imageStore(dst, uv, vec4(corr));\n" +
                 "}\n"
     )
-    val workW = image.width - groundTruth.deltaX().toInt()
-    val workH = image.height - groundTruth.deltaY().toInt()
+    val workW = image.width - groundTruth.deltaX.toInt()
+    val workH = image.height - groundTruth.deltaY.toInt()
     val dst = Texture2D("dst", workW, workH, 1)
     dst.create(TargetType.FloatTarget1)
     shader.use()
@@ -57,7 +57,7 @@ fun main() {
     shader.v1i("x1", groundTruth.maxX.toInt())
     shader.v1i("y0", groundTruth.minY.toInt())
     shader.v1i("y1", groundTruth.maxY.toInt())
-    shader.v1f("scale", 4f / (groundTruth.deltaX() * groundTruth.deltaY()))
+    shader.v1f("scale", 4f / (groundTruth.deltaX * groundTruth.deltaY))
     shader.bindTexture(0, image, ComputeTextureMode.READ)
     shader.bindTexture(1, dst, ComputeTextureMode.WRITE)
     shader.runBySize(workW, workH)

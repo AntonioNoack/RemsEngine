@@ -83,10 +83,10 @@ object MeshUtils {
 
         val m0 = getBounds(modelViewProjectionMatrix)
 
-        val dx = m0.avgX()
-        val dy = m0.avgY()
+        val dx = m0.centerX
+        val dy = m0.centerY
 
-        val scale = 2f * targetFrameUsage / max(m0.deltaX(), m0.deltaY())
+        val scale = 2f * targetFrameUsage / max(m0.deltaX, m0.deltaY)
         if (abs(dx) + abs(dy) < 5f && scale in 0.1f..10f) {
             cameraMatrix.translateLocal(-dx, -dy, 0f)
             cameraMatrix.scaleLocal(scale, scale, scale)

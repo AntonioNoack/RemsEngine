@@ -23,14 +23,14 @@ class StickPanel(
 
     override fun save(cali: ControllerCalibration) {
         cali.dead[axis0]
-        if (length(bounds.deltaX(), bounds.deltaY()) > 0.5f) {
-            cali.scale[axis0] = 2f / max(1e-7f, bounds.deltaX() - dead.deltaX())
-            cali.scale[axis1] = 2f / max(1e-7f, bounds.deltaY() - dead.deltaY())
+        if (length(bounds.deltaX, bounds.deltaY) > 0.5f) {
+            cali.scale[axis0] = 2f / max(1e-7f, bounds.deltaX - dead.deltaX)
+            cali.scale[axis1] = 2f / max(1e-7f, bounds.deltaY - dead.deltaY)
             if (stillNanos > 0L) {
-                cali.dead[axis0] = dead.deltaX() * 0.75f // 0.5f because half; 1.5x for safety
-                cali.dead[axis1] = dead.deltaY() * 0.75f
-                cali.center[axis0] = dead.avgX()
-                cali.center[axis1] = dead.avgY()
+                cali.dead[axis0] = dead.deltaX * 0.75f // 0.5f because half; 1.5x for safety
+                cali.dead[axis1] = dead.deltaY * 0.75f
+                cali.center[axis0] = dead.centerX
+                cali.center[axis1] = dead.centerY
             } else {
                 // default
                 LOGGER.warn("Missing dead spots / center for $axis0/$axis1")

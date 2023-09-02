@@ -119,8 +119,8 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             }
         }
         if (!bounds.isEmpty()) {
-            center.set(bounds.avgX(), bounds.avgY())
-            val factor = scaleFactor / max(bounds.deltaX() / width, bounds.deltaY() / height)
+            center.set(bounds.centerX, bounds.centerY)
+            val factor = scaleFactor / max(bounds.deltaX / width, bounds.deltaY / height)
             if (factor.isFinite() && factor > 0.0) scale *= factor
         }
     }

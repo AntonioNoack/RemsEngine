@@ -66,7 +66,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Q
 
     val aabb = scene.aabb
 
-    val cameraPosition = Vector3d(aabb.avgX(), aabb.avgY(), aabb.maxZ * 1.5f)
+    val cameraPosition = Vector3d(aabb.centerX, aabb.centerY, aabb.maxZ * 1.5f)
     val cameraRotation = Quaterniond()
     val worldScale = 1.0 // used in Rem's Engine for astronomic scales
 
@@ -74,9 +74,9 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Q
     pipeline.fill(scene)
 
     if (true) {// duplicate object 25 times for testing
-        val dx = aabb.deltaX() * 1.1
+        val dx = aabb.deltaX * 1.1
         val dy = 0.0
-        val dz = aabb.deltaZ() * 1.1
+        val dz = aabb.deltaZ * 1.1
         for (i in 0 until 5) {
             for (j in 0 until 5) {
                 if (i + j > 0) {

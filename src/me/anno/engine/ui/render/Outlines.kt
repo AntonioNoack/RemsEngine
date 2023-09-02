@@ -107,7 +107,7 @@ object Outlines {
         val offsetCorrectedTransform = JomlPools.mat4x3d.borrow().set(transform)
         val fac = -scaleExtra.toDouble()
         // translate local or global?
-        offsetCorrectedTransform.translate(aabb.avgX() * fac, aabb.avgY() * fac, aabb.avgZ() * fac)
+        offsetCorrectedTransform.translate(aabb.centerX * fac, aabb.centerY * fac, aabb.centerZ * fac)
 
         if (scale < 1e10f) {
             useFrame(whiteRenderer) {

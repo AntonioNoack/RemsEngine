@@ -162,7 +162,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             for (boneId in bones.indices) {
                 bounds.union(bonePositions[boneId])
             }
-            val sizeEstimate = length(bounds.deltaX(), bounds.deltaY(), bounds.deltaZ())
+            val sizeEstimate = length(bounds.deltaX, bounds.deltaY, bounds.deltaZ)
             val maxBoneThickness = 0.2f * sizeEstimate
             var firstBone = true
             for (boneId in bones.indices) {

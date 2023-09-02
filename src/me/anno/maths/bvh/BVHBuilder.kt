@@ -40,7 +40,7 @@ object BVHBuilder {
             localToWorld.invert(worldToLocal)
             val centroid = Vector3f()
             val localBounds = mesh.aabb
-            centroid.set(localBounds.avgX(), localBounds.avgY(), localBounds.avgZ())
+            centroid.set(localBounds.centerX, localBounds.centerY, localBounds.centerZ)
             localToWorld.transformPosition(centroid)
             val globalBounds = AABBf()
             localBounds.transform(localToWorld, globalBounds)
@@ -236,7 +236,7 @@ object BVHBuilder {
 
         // split dimension
         val dim = centroidBoundsX3.maxDim()
-        // println("centroid ${centroidBounds.deltaX()}, ${centroidBounds.deltaY()}, ${centroidBounds.deltaZ()} -> $dim")
+        // println("centroid ${centroidBounds.deltaX}, ${centroidBounds.deltaY}, ${centroidBounds.deltaZ} -> $dim")
 
         // partition primitives into two sets & build children
         var mid = (start + end) / 2

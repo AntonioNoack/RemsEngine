@@ -316,8 +316,8 @@ object ImageWriter {
             val bounds = AABBf()
             for (p in points) bounds.union(p)
             transform.translate(w / 2f, h / 2f)
-            transform.scale(0.95f * min(w / bounds.deltaX(), h / bounds.deltaY()))
-            transform.translate(-bounds.avgX(), -bounds.avgY())
+            transform.scale(0.95f * min(w / bounds.deltaX, h / bounds.deltaY))
+            transform.translate(-bounds.centerX, -bounds.centerY)
             for (p in points) transform.transformPosition(p)
         }
         for (i in 1 until points.size) {
@@ -431,10 +431,10 @@ object ImageWriter {
             bounds.union(p.x, p.y, 0f)
         }
 
-        val s = size / max(bounds.deltaX(), bounds.deltaY())
+        val s = size / max(bounds.deltaX, bounds.deltaY)
 
-        val ox = bounds.avgX() - (size / 2f) / s
-        val oy = bounds.avgY() - (size / 2f) / s
+        val ox = bounds.centerX - (size / 2f) / s
+        val oy = bounds.centerY - (size / 2f) / s
 
         val bi = BufferedImage(size, size, 1)
         val gfx = bi.graphics as Graphics2D

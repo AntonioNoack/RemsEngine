@@ -124,7 +124,7 @@ fun createControls(
     controls.camera = camera
     controls.position.set(cameraPosition)
     controls.base = base
-    controls.radius = bvh.bounds.volume().pow(1f / 3f)
+    controls.radius = bvh.bounds.volume.pow(1f / 3f)
     controls.movementSpeed = 0.20f * controls.radius
     controls.rotationSpeed = 0.15f
     controls.friction = 20f

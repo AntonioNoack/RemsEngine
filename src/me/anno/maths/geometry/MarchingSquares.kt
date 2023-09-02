@@ -87,8 +87,8 @@ object MarchingSquares {
             }
         }
 
-        val sx = bounds.deltaX() / (w - 1)
-        val sy = bounds.deltaY() / (h - 1)
+        val sx = bounds.deltaX / (w - 1)
+        val sy = bounds.deltaY / (h - 1)
 
         for (y in 0 until h - 1) {
             var index = y * w
@@ -190,8 +190,8 @@ object MarchingSquares {
             values[i1] = checkValue(values[i1])
         }
 
-        val sx = bounds.deltaX() / (w - 1)
-        val sy = bounds.deltaY() / (h - 1)
+        val sx = bounds.deltaX / (w - 1)
+        val sy = bounds.deltaY / (h - 1)
 
         // return list of all polygons at level zero
         // first collect all segments, later combine them

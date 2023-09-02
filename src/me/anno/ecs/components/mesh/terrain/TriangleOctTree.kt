@@ -59,7 +59,7 @@ class TriangleOctTree(
             aabb.union(srcPos[b], srcPos[b + 1], srcPos[b + 2])
             aabb.union(srcPos[c], srcPos[c + 1], srcPos[c + 2])
         }
-        val avg = Vector3f(aabb.avgX(), aabb.avgY(), aabb.avgZ())
+        val avg = Vector3f(aabb.centerX, aabb.centerY, aabb.centerZ)
         val entity = component.entity!!
         entity.transform.localPosition = Vector3d(avg)
         for (i in 0 until numTriangles * 3) {

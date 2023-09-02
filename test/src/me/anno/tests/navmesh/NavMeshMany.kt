@@ -92,8 +92,8 @@ fun main() {
         val flagScale = 1f
 
         val navMesh1 = NavMesh()
-        navMesh1.agentHeight = agentBounds.deltaY() * agentScale
-        navMesh1.agentRadius = max(agentBounds.deltaX(), agentBounds.deltaZ()) * agentScale * 0.5f
+        navMesh1.agentHeight = agentBounds.deltaY * agentScale
+        navMesh1.agentRadius = max(agentBounds.deltaX, agentBounds.deltaZ) * agentScale * 0.5f
         navMesh1.agentMaxClimb = navMesh1.agentHeight * 0.7f
         navMesh1.collisionMask = mask
         world.add(navMesh1)

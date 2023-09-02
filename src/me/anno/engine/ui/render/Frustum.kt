@@ -310,12 +310,12 @@ class Frustum {
             // mat3 * vec ~ 15 flops -> much more effective
             // val transformedBounds = cameraRotation.transform(tmp.set(xx - mx, xy - my, xz - mz))
             // abs(transformedBounds.x * transformedBounds.y) // area
-            val guessedSize = calculateArea(cameraRotation, aabb.deltaX(), aabb.deltaY(), aabb.deltaZ()) // area
+            val guessedSize = calculateArea(cameraRotation, aabb.deltaX, aabb.deltaY, aabb.deltaZ) // area
             val guessedDistance = sq(min(-mx, xx), min(-my, xy), min(-mz, xz)) // distance²
             val relativeSizeGuess = guessedSize / guessedDistance // (bounds / distance)²
             return relativeSizeGuess > sizeThreshold
         } else {
-            val guessedSize = calculateArea(cameraRotation, aabb.deltaX(), aabb.deltaY(), aabb.deltaZ()) // area
+            val guessedSize = calculateArea(cameraRotation, aabb.deltaX, aabb.deltaY, aabb.deltaZ) // area
             return guessedSize > sizeThreshold
         }
     }

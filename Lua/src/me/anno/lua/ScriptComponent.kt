@@ -5,24 +5,27 @@ import me.anno.Engine
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
-import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.OS
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.luaj.vm2.*
 import org.luaj.vm2.lib.DebugLib
 import org.luaj.vm2.lib.LibFunction
-import org.luaj.vm2.lib.OneArgFunction
 import org.luaj.vm2.lib.ZeroArgFunction
 import org.luaj.vm2.lib.jse.CoerceJavaToLua
 import org.luaj.vm2.lib.jse.JsePlatform
 
-// https://github.com/luaj/luaj
+/**
+ * Uses https://github.com/luaj/luaj.
+ *
+ * todo make using Lua as similar as possible to Kotlin, and make it was easy as possible, too
+ *  -> to make conversions to Kotlin easy
+ * */
 open class ScriptComponent : Component() {
 
     // lua starts indexing at 1? I may need to reevaluate choosing lua as basic scripting language 😂
@@ -63,6 +66,7 @@ open class ScriptComponent : Component() {
 
         @JvmField
         val luaCache = CacheSection("Lua")
+
         @JvmField
         val timeout = 20_000L
 
@@ -84,7 +88,9 @@ open class ScriptComponent : Component() {
         }
 
         @JvmStatic
-        fun Any?.toLua(): LuaValue = CoerceJavaToLua.coerce(this)
+        fun Any?.toLua(): LuaValue {
+            return CoerceJavaToLua.coerce(this)
+        }
 
         @JvmStatic
         fun callIntFunction(name: String, source: FileReference, instance: Component, default: Int): Int {
@@ -102,21 +108,11 @@ open class ScriptComponent : Component() {
         @JvmStatic
         fun defineVM(): Globals {
             val g = JsePlatform.standardGlobals()
-            g.set("getTime", object : ZeroArgFunction() {
-                override fun call(): LuaValue {
-                    return LuaValue.valueOf(Engine.gameTime / 1e9)
-                }
-            })
-            g.set("getName", object : OneArgFunction() {
-                override fun call(p0: LuaValue): LuaValue {
-                    return if (p0.isuserdata()) {
-                        when (val data = p0.touserdata()) {
-                            is NamedSaveable -> LuaValue.valueOf(data.name)
-                            else -> LuaValue.NIL
-                        }
-                    } else LuaValue.NIL
-                }
-            })
+            g.set("Engine", Engine.toLua())
+            g.set("R", ConstructorRegistry) // R for Rem or Registry
+            g.set("OS", OS.toLua())
+            // todo register all important caches
+            g.set("MeshCache", MeshCache.toLua())
             return g
         }
 
@@ -125,28 +121,7 @@ open class ScriptComponent : Component() {
         // nil, boolean, number, string, userdata, function, thread, and table
 
         @JvmStatic
-        fun callLua(entity: Entity, source: FileReference) {
-            if (source == InvalidRef) return
-
-            entity.name = "Gustav"
-
-            val globals = global.get()
-
-            globals.set("entity", CoerceJavaToLua.coerce(entity))
-            val chunk = globals.load(
-                "" +
-                        "entity:setName('leon')\n" +
-                        "print(getName(entity) .. getTime())"
-            )
-            chunk.call()
-            chunk.call()
-
-            callFunction("onUpdate", getReference("res://scripts/luaTest.lua"), ScriptComponent())
-
-        }
-
-        @JvmStatic
-        @Suppress("unchecked_cast", "unused")
+        @Suppress("unused")
         fun getRawFunction(code: String): Any {
             return getRawScopeAndFunction(code)?.second ?: LuaValue.NIL
         }
@@ -159,6 +134,7 @@ open class ScriptComponent : Component() {
                 val fn = try {
                     vm.load(code1)
                 } catch (error: LuaError) {
+                    LOGGER.warn(error)
                     error
                 }
                 CacheData(Pair(vm, fn))
@@ -169,7 +145,6 @@ open class ScriptComponent : Component() {
         }
 
         @JvmStatic
-        @Suppress("unchecked_cast")
         inline fun getFunction(code: String, init: (scope: LuaValue) -> Unit): LuaValue {
             if (code.isBlank2()) return LuaValue.NIL
             val (globals, func) = getRawScopeAndFunction(code) ?: return LuaValue.NIL
@@ -196,6 +171,7 @@ open class ScriptComponent : Component() {
                     init(vm)
                     wrapIntoLimited(func, vm, 10_000)
                 } catch (error: LuaError) {
+                    LOGGER.warn(error)
                     error
                 }
                 CacheData(Pair(vm, func))
@@ -217,6 +193,7 @@ open class ScriptComponent : Component() {
 
         @JvmStatic
         private val lDebug = LuaString.valueOf("debug")
+
         @JvmStatic
         private val lSetHook = LuaString.valueOf("set" + "hook")
 
@@ -261,14 +238,11 @@ open class ScriptComponent : Component() {
             val thread = LuaThread(globals, func)
             func.thread = thread
             return SafeFunction(thread)
-
         }
 
         @JvmStatic
         fun varargs(vararg v: LuaValue): Varargs {
             return LuaValue.varargsOf(v)
         }
-
     }
-
 }

@@ -60,9 +60,9 @@ class ConvexSDFShape(val sdf: SDFComponent, val collider: SDFCollider) : ConvexS
         val bounds = sdf.localAABB
         val dir2 = JomlPools.vec3f.create().set(dir.x, dir.y, dir.z)
         val maxDistance =
-            (bounds.deltaX() * abs(dir.x) + bounds.deltaY() * abs(dir.y) + bounds.deltaZ() * abs(dir.z)).toFloat()
+            (bounds.deltaX * abs(dir.x) + bounds.deltaY * abs(dir.y) + bounds.deltaZ * abs(dir.z)).toFloat()
         val start = JomlPools.vec3f.create().set(dir2).mul(maxDistance)
-            .add(bounds.avgX().toFloat(), bounds.avgY().toFloat(), bounds.avgZ().toFloat())
+            .add(bounds.centerX.toFloat(), bounds.centerY.toFloat(), bounds.centerZ.toFloat())
         dir2.mul(-1f)
         val distance = sdf.raycast(
             start, dir2, 0f,

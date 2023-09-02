@@ -89,7 +89,7 @@ fun meshToSeparatedVoxels(
 ) {
 
     val bounds = mesh.getBounds()
-    bounds.addMargin(max(bounds.deltaX(), max(bounds.deltaY(), bounds.deltaZ())) / max(blocksX, max(blocksY, blocksZ)))
+    bounds.addMargin(max(bounds.deltaX, max(bounds.deltaY, bounds.deltaZ)) / max(blocksX, max(blocksY, blocksZ)))
 
     val transform = Matrix4f()
 
@@ -244,9 +244,9 @@ fun main() {
     val resolution = 512
     // this does not work with very flat models! ->
     // maybe now...
-    val dx = bounds.deltaX()
-    val dy = bounds.deltaY()
-    val dz = bounds.deltaZ()
+    val dx = bounds.deltaX
+    val dy = bounds.deltaY
+    val dz = bounds.deltaZ
     val dm = max(max(dx, dy), dz) / resolution
     bounds.addMargin(dm)
 

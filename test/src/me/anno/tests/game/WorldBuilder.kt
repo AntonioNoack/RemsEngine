@@ -135,9 +135,9 @@ fun main() {
                         entity.add(MeshComponent(newFile))
                         entity.position = entity.position
                             .set(
-                                -bounds.avgX().toDouble(),
+                                -bounds.centerX.toDouble(),
                                 -bounds.minY.toDouble(),
-                                -bounds.avgZ().toDouble()
+                                -bounds.centerZ.toDouble()
                             )
                         val proxy = Entity() // to center the mesh
                         proxy.add(entity)

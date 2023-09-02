@@ -133,14 +133,14 @@ class AABBd(
 
     fun isEmpty(): Boolean = minX > maxX
 
-    fun avgX(): Double = (minX + maxX) * 0.5
-    fun avgY(): Double = (minY + maxY) * 0.5
-    fun avgZ(): Double = (minZ + maxZ) * 0.5
+    val centerX: Double get() = (minX + maxX) * 0.5
+    val centerY: Double get() = (minY + maxY) * 0.5
+    val centerZ: Double get() = (minZ + maxZ) * 0.5
 
-    fun deltaX(): Double = maxX - minX
-    fun deltaY(): Double = maxY - minY
-    fun deltaZ(): Double = maxZ - minZ
-    fun volume(): Double = deltaX() * deltaY() * deltaZ()
+    val deltaX: Double get() = maxX - minX
+    val deltaY: Double get() = maxY - minY
+    val deltaZ: Double get() = maxZ - minZ
+    val volume: Double get() = deltaX * deltaY * deltaZ
 
     fun print(): String = "($minX $minY $minZ) < ($maxX $maxY $maxZ)"
 

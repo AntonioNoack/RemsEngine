@@ -42,7 +42,7 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
     }
 
     override fun print(depth: Int) {
-        println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $axis")
+        println(Tabs.spaces(depth * 2) + " ${bounds.volume}, $axis")
         n0.print(depth + 1)
         n1.print(depth + 2)
     }

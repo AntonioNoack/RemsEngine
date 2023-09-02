@@ -496,8 +496,12 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     private fun transformUpdate(keepWorldTransform: Boolean) {
         if (keepWorldTransform) {
+            // if only local is present, calculate global first
+            if (transform.state == Transform.State.VALID_LOCAL) transform.validate()
             transform.invalidateLocal()
         } else {
+            // if only global is present, calculate local first
+            if (transform.state == Transform.State.VALID_GLOBAL) transform.validate()
             transform.invalidateGlobal()
             invalidateChildTransforms()
             invalidateAABBsCompletely()

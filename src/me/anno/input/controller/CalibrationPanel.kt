@@ -135,9 +135,9 @@ abstract class CalibrationPanel(
     fun showBounds(bounds: AABBf, color: Int) {
         if (!bounds.isEmpty()) {
             circle(
-                bounds.avgX(), bounds.avgY(),
-                kotlin.math.max(bounds.deltaX() * 0.5f, 1f / size),
-                kotlin.math.max(bounds.deltaY() * 0.5f, 1f / size),
+                bounds.centerX, bounds.centerY,
+                kotlin.math.max(bounds.deltaX * 0.5f, 1f / size),
+                kotlin.math.max(bounds.deltaY * 0.5f, 1f / size),
                 color
             )
         }

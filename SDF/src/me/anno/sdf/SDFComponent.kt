@@ -471,7 +471,9 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
         calculateBounds(aabb)
         // for testing only
         Shapes.createCube(
-            mesh, aabb.deltaX(), aabb.deltaY(), aabb.deltaZ(), aabb.avgX(), aabb.avgY(), aabb.avgZ(),
+            mesh,
+            aabb.deltaX, aabb.deltaY, aabb.deltaZ,
+            aabb.centerX, aabb.centerY, aabb.centerZ,
             withNormals = false, front = false, back = true,
         )
         mesh.aabb.set(aabb)

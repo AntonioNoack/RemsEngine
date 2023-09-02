@@ -110,12 +110,12 @@ object SDFComposer {
         else dtInverse.identity()
         dtInverse.transformPosition(RenderState.cameraPosition, localPos)
         val bounds = tree.localAABB
-        val dx = (localPos.x - bounds.avgX()).toFloat()
-        val dy = (localPos.y - bounds.avgY()).toFloat()
-        val dz = (localPos.z - bounds.avgZ()).toFloat()
-        val bdx = bounds.deltaX().toFloat()
-        val bdy = bounds.deltaY().toFloat()
-        val bdz = bounds.deltaZ().toFloat()
+        val dx = (localPos.x - bounds.centerX).toFloat()
+        val dy = (localPos.y - bounds.centerY).toFloat()
+        val dz = (localPos.z - bounds.centerZ).toFloat()
+        val bdx = bounds.deltaX.toFloat()
+        val bdy = bounds.deltaY.toFloat()
+        val bdz = bounds.deltaZ.toFloat()
         val min = sdBox(dx, dy, dz, bdx * 0.5f, bdy * 0.5f, bdz * 0.5f)
         val max = min + length(bdx, bdy, bdz) // to do max could be calculated more accurately
         tree.camNear = min

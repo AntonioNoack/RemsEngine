@@ -136,7 +136,7 @@ fun createUI(): Panel {
             val tr = steeringWheel.transform
             val mesh = steeringWheelMesh.getMesh()!!.getBounds()
             q.identity().rotateZ(-5.0 * controller.lastSteering)
-            c.set(mesh.avgX().toDouble(), mesh.avgY().toDouble(), mesh.avgZ().toDouble())
+            c.set(mesh.centerX.toDouble(), mesh.centerY.toDouble(), mesh.centerZ.toDouble())
             tr.setOffsetForLocalRotation(q, c)
             tr.smoothUpdate()
             return 1

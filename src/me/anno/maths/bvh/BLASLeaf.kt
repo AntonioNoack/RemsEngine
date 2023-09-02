@@ -17,7 +17,7 @@ class BLASLeaf(
 ) : BLASNode(bounds) {
 
     override fun print(depth: Int) {
-        println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $start += $length")
+        println(Tabs.spaces(depth * 2) + " ${bounds.volume}, $start += $length")
     }
 
     override fun countNodes() = 1

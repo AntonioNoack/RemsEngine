@@ -23,7 +23,7 @@ class TLASLeaf(
     }
 
     override fun print(depth: Int) {
-        println(Tabs.spaces(depth * 2) + " ${bounds.volume()}, $worldToLocal, ${blas.nodeId}")
+        println(Tabs.spaces(depth * 2) + " ${bounds.volume}, $worldToLocal, ${blas.nodeId}")
     }
 
     override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {

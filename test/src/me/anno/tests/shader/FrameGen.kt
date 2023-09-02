@@ -261,7 +261,7 @@ fun main() {
                     // render the current frame
                     scene.validateAABBs()
                     val aabb = scene.aabb
-                    val sz = max(max(aabb.deltaX(), aabb.deltaY()), aabb.deltaZ()).toFloat()
+                    val sz = max(max(aabb.deltaX, aabb.deltaY), aabb.deltaZ).toFloat()
                     val sx = sz * zoom
                     val wf = width.toFloat()
                     val hf = height.toFloat()

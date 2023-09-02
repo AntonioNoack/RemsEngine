@@ -70,10 +70,10 @@ fun main() {
             val position = mesh.positions.resize(base2.size)
             mesh.positions = position
 
-            val sx = aabb.deltaX() * 0.5f
-            val sy = aabb.deltaY() * 0.5f
-            val offsetX = aabb.avgX()
-            val offsetY = aabb.avgY()
+            val sx = aabb.deltaX * 0.5f
+            val sy = aabb.deltaY * 0.5f
+            val offsetX = aabb.centerX
+            val offsetY = aabb.centerY
             for (i in position.indices step 3) {
                 position[i + 0] = sign(base2[i + 0]) * sx + offsetX
                 position[i + 1] = sign(base2[i + 1]) * sy + offsetY

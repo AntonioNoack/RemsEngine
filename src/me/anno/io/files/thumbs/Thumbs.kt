@@ -595,10 +595,10 @@ object Thumbs {
         renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
             val rv = rv
             val cam = rv.editorCamera
-            if (!bounds.isEmpty() && bounds.volume().isFinite()) {
+            if (!bounds.isEmpty() && bounds.volume.isFinite()) {
                 // todo why 500?
-                rv.radius = 500.0 * max(bounds.deltaX(), max(bounds.deltaY(), bounds.deltaZ()))
-                rv.position.set(bounds.avgX(), bounds.avgY(), bounds.avgZ())
+                rv.radius = 500.0 * max(bounds.deltaX, max(bounds.deltaY, bounds.deltaZ))
+                rv.position.set(bounds.centerX, bounds.centerY, bounds.centerZ)
                 rv.updateEditorCameraTransform()
                 // calculate ideal transform like previously
                 // for that, calculate bounds on screen, then rescale/recenter
@@ -631,7 +631,7 @@ object Thumbs {
                         }
                     }
                 }
-                rv.radius /= 500.0 * max(visualBounds.deltaX(), visualBounds.deltaY())
+                rv.radius /= 500.0 * max(visualBounds.deltaX, visualBounds.deltaY)
             } else {
                 rv.radius = 1.0
                 rv.position.set(0.0)

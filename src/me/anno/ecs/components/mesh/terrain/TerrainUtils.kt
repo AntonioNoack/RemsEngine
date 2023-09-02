@@ -174,8 +174,8 @@ object TerrainUtils {
         val bs = mesh.getBounds()
         val uvs = mesh.uvs.resize(pos.size / 3 * 2)
         var j = 0
-        val fx = +1f / bs.deltaX()
-        val fz = -1f / bs.deltaZ()
+        val fx = +1f / bs.deltaX
+        val fz = -1f / bs.deltaZ
         val mx = bs.minX
         val mz = bs.maxZ
         for (i in pos.indices step 3) {

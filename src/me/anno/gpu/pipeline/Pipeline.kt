@@ -338,7 +338,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
             }// else done
             return size
         } else {
-            val center = center.set(region.avgX(), region.avgY(), region.avgZ())
+            val center = center.set(region.centerX, region.centerY, region.centerZ)
             if (!center.isFinite) center.set(0.0)
             lightList.clear()
             this.lightStage.listOfAll(lightList)

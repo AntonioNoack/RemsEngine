@@ -312,7 +312,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
                     // not perfect, but good enough probably
                     // todo smooth lerp over .2s for orientation?
                     val aabb = element.aabb
-                    val newRadius = length(aabb.deltaX(), aabb.deltaY(), aabb.deltaZ())
+                    val newRadius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ)
                     if (newRadius.isFinite() && newRadius > 0.0) it.radius = newRadius
                     it.position.set(element.transform.globalPosition)
                     it.updateEditorCameraTransform()

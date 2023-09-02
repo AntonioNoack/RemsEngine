@@ -140,16 +140,16 @@ class ECSSceneTab(
     }
 
     private fun resetCamera(aabb: AABBf, translate: Boolean) {
-        if (aabb.avgX().isFinite() && aabb.avgY().isFinite() && aabb.avgZ().isFinite()) {
-            if (translate) position.set(aabb.avgX().toDouble(), aabb.avgY().toDouble(), aabb.avgZ().toDouble())
-            radius = length(aabb.deltaX(), aabb.deltaY(), aabb.deltaZ()).toDouble()
+        if (aabb.centerX.isFinite() && aabb.centerY.isFinite() && aabb.centerZ.isFinite()) {
+            if (translate) position.set(aabb.centerX.toDouble(), aabb.centerY.toDouble(), aabb.centerZ.toDouble())
+            radius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ).toDouble()
         }
     }
 
     private fun resetCamera(aabb: AABBd, translate: Boolean) {
-        if (aabb.avgX().isFinite() && aabb.avgY().isFinite() && aabb.avgZ().isFinite()) {
-            if (translate) position.set(aabb.avgX(), aabb.avgY(), aabb.avgZ())
-            radius = length(aabb.deltaX(), aabb.deltaY(), aabb.deltaZ())
+        if (aabb.centerX.isFinite() && aabb.centerY.isFinite() && aabb.centerZ.isFinite()) {
+            if (translate) position.set(aabb.centerX, aabb.centerY, aabb.centerZ)
+            radius = length(aabb.deltaX, aabb.deltaY, aabb.deltaZ)
         }
     }
 

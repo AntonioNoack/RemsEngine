@@ -24,10 +24,10 @@ class TriggerPanel(
     }
 
     override fun save(cali: ControllerCalibration) {
-        if (!bounds.isEmpty() && bounds.deltaX() > dead.deltaX()) {
-            cali.dead[axis0] = dead.deltaX() * 0.75f
-            cali.center[axis0] = dead.avgX()
-            cali.scale[axis0] = bounds.deltaX() - dead.deltaX()
+        if (!bounds.isEmpty() && bounds.deltaX > dead.deltaX) {
+            cali.dead[axis0] = dead.deltaX * 0.75f
+            cali.center[axis0] = dead.centerX
+            cali.scale[axis0] = bounds.deltaX - dead.deltaX
         } else {
             // default
             LOGGER.warn("Missing calibration for axis $axis0")

@@ -283,8 +283,8 @@ class PipelineStage(
             return
         }
 
-        val minVolume = 0.5 * aabb.volume()
-        val pos = JomlPools.vec3d.borrow().set(aabb.avgX(), aabb.avgY(), aabb.avgZ())
+        val minVolume = 0.5 * aabb.volume
+        val pos = JomlPools.vec3d.borrow().set(aabb.centerX, aabb.centerY, aabb.centerZ)
         val mapBounds = JomlPools.aabbd.borrow()
         val bestPr = if (minVolume.isFinite()) {
             var candidates: Collection<PlanarReflection> = pipeline.planarReflections.filter {
@@ -318,8 +318,8 @@ class PipelineStage(
         val envMapSlot = shader.getTextureIndex("reflectionMap")
         if (envMapSlot >= 0) {
             // find the closest environment map
-            val minVolume = 0.5 * aabb.volume()
-            val pos = JomlPools.vec3d.borrow().set(aabb.avgX(), aabb.avgY(), aabb.avgZ())
+            val minVolume = 0.5 * aabb.volume
+            val pos = JomlPools.vec3d.borrow().set(aabb.centerX, aabb.centerY, aabb.centerZ)
             val mapBounds = JomlPools.aabbd.borrow()
             val map = if (minVolume.isFinite()) {
                 pipeline.lightStage.environmentMaps.minByOrNull {

@@ -91,11 +91,11 @@ class TextMeshComponent(val text: String, val font: Font, val alignment: AxisAli
         val bounds = mesh.getBounds()
         val scale = 2f / TextMesh.DEFAULT_LINE_HEIGHT
         val dy = -0.5f
-        val dx = -bounds.avgX() * scale + when (alignment) {
+        val dx = -bounds.centerX * scale + when (alignment) {
             AxisAlignment.MIN -> -1
             AxisAlignment.MAX -> +1
             else -> 0
-        } * bounds.deltaX() / bounds.deltaY()
+        } * bounds.deltaX / bounds.deltaY
         val pos = mesh.positions!!
         for (i in pos.indices step 3) {
             pos[i] = pos[i] * scale + dx

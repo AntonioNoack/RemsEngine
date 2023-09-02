@@ -48,9 +48,9 @@ class SDFCollider : Collider(), CustomBulletCollider {
         val base = mass / 12.0
         if (sdf != null) {
             val bounds = sdf.globalAABB
-            val x2 = sq(bounds.deltaX())
-            val y2 = sq(bounds.deltaY())
-            val z2 = sq(bounds.deltaZ())
+            val x2 = sq(bounds.deltaX)
+            val y2 = sq(bounds.deltaY)
+            val z2 = sq(bounds.deltaZ)
             inertia.set(y2 + z2, z2 + x2, x2 + y2)
             inertia.scale(base)
         } else inertia.set(base, base, base)

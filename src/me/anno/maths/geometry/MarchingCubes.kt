@@ -109,9 +109,9 @@ object MarchingCubes {
         val invX = 1f / (w - 1f)
         val invY = 1f / (h - 1f)
         val invZ = 1f / (d - 1f)
-        val sx = bounds.deltaX() * invX
-        val sy = bounds.deltaY() * invY
-        val sz = bounds.deltaZ() * invZ
+        val sx = bounds.deltaX * invX
+        val sy = bounds.deltaY * invY
+        val sz = bounds.deltaZ * invZ
 
         for (z in 0 until d - 1) {
             val indexOffset = z * wh
@@ -271,9 +271,9 @@ object MarchingCubes {
         val invX = 1f / (w - 1f)
         val invY = 1f / (h - 1f)
         val invZ = 1f / (d - 1f)
-        val sx = bounds.deltaX() * invX
-        val sy = bounds.deltaY() * invY
-        val sz = bounds.deltaZ() * invZ
+        val sx = bounds.deltaX * invX
+        val sy = bounds.deltaY * invY
+        val sz = bounds.deltaZ * invZ
 
         for (z in 0 until d - 1) {
             val indexOffset = z * wh
