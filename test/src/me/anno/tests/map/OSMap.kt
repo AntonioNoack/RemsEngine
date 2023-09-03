@@ -20,7 +20,7 @@ import java.io.InputStream
 import kotlin.math.cos
 
 // <node id="240090160" visible="true" version="33" changeset="107793766" timestamp="2021-07-11T18:36:51Z" user="Zinoural" uid="6515906" lat="50.9281717" lon="11.5879359">
-class Node(
+class OSMapNode(
     val lat: Float, val lon: Float,
     val tags: HashMap<String, String>?,
     var used: Boolean = false,
@@ -43,7 +43,7 @@ class Node(
 //  <tag k="building" v="yes"/>
 // </way>
 class Way(
-    val nodes: Array<Node>,
+    val nodes: Array<OSMapNode>,
     val minLon: Float,
     val minLat: Float,
     val maxLon: Float,
@@ -55,7 +55,7 @@ class Way(
 
 class Relation(
     val waysByType: Map<String, List<Way>>,
-    val nodesByType: Map<String, List<Node>>,
+    val nodesByType: Map<String, List<OSMapNode>>,
     val tags: HashMap<String, String>?,
 )
 
@@ -67,7 +67,7 @@ class OSMap(s0: Int = 65536, s1: Int = 1024, s2: Int = 256) {
     val facX get() = 2.0 / (maxX - minX)
     val facY get() = 2.0 / (maxY - minY)
     val scaleX get() = (maxX - minX) * cos((maxY + minY).toRadians() * 0.5f) / (maxY - minY)
-    val nodes = HashMap<Long, Node>(s0)
+    val nodes = HashMap<Long, OSMapNode>(s0)
     val ways = HashMap<Long, Way>(s1)
     val relations = HashMap<Long, Relation>(s2)
 }
@@ -88,7 +88,7 @@ fun readOSM0(input: InputStream, shallReadTags: Boolean = false, map: OSMap = OS
     val facX = map.facX
     val facY = map.facY
 
-    val n0 = Node(0f, 0f, null)
+    val n0 = OSMapNode(0f, 0f, null)
 
     fun readTags(child: XMLNode): HashMap<String, String>? {
         if (!shallReadTags) return null
@@ -110,7 +110,7 @@ fun readOSM0(input: InputStream, shallReadTags: Boolean = false, map: OSMap = OS
             val id = (child["id"] ?: continue).toLong()
             val lat = (child["lat"]!!.toDouble() - map.minY) * facY - 1.0
             val lon = (child["lon"]!!.toDouble() - map.minX) * facX - 1.0
-            map.nodes[id] = Node(-lat.toFloat(), lon.toFloat(), readTags(child))
+            map.nodes[id] = OSMapNode(-lat.toFloat(), lon.toFloat(), readTags(child))
         }
     }
 
@@ -185,13 +185,13 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
     var minX = 0.0
     var minY = 0.0
 
-    val mapNodes = ArrayList<Node>(64)
+    val mapNodes = ArrayList<OSMapNode>(64)
 
     var tagKey = ""
     var tagValue = ""
 
     val relWays = ArrayList<Way>(64)
-    val relNodes = ArrayList<Node>(64)
+    val relNodes = ArrayList<OSMapNode>(64)
 
     var memType = ""
     var memRef = 0L
@@ -227,7 +227,7 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
                 minX = map.minX
                 minY = map.minY
             }
-            "node" -> map.nodes[id] = Node(-lat, lon, readTags2())
+            "node" -> map.nodes[id] = OSMapNode(-lat, lon, readTags2())
             "way" -> {
                 map.ways[id] = Way(
                     mapNodes.toTypedArray(),
@@ -386,7 +386,7 @@ fun main() {
                 DrawCurves.lineBatch.finish(v)
             }
 
-            fun drawNode(node: Node, minLon: Float, minLat: Float, maxLon: Float, maxLat: Float, color: Int) {
+            fun drawNode(node: OSMapNode, minLon: Float, minLat: Float, maxLon: Float, maxLat: Float, color: Int) {
                 val lon = node.lon
                 val lat = node.lat
                 if (!node.used && lon in minLon..maxLon && lat in minLat..maxLat) {

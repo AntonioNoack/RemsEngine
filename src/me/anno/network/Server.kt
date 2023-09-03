@@ -25,9 +25,9 @@ import kotlin.random.Random
 
 /**
  * This is a server-client architecture for many use-cases.
- * A server can support both TCP as UDP, and multiple protocols, e.g. HTTP and game-related-protocols.
+ * A server can support both TCP as UDP, and multiple protocols, e.g., HTTP and game-related-protocols.
  * This multi-functionality is inspired by my Bukkit plugin Uniport Webserver, which did this for Minecraft servers.
- * @see <a href="https://dev.bukkit.org/projects/uniport-webserver">Uniport WebServer</a>
+ * [Project Page](https://dev.bukkit.org/projects/uniport-webserver)
  * */
 open class Server : Closeable {
 

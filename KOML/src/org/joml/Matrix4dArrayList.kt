@@ -16,7 +16,7 @@ class Matrix4dArrayList : Matrix4d() {
     /**
      * The matrix stack
      */
-    private var matrices = ArrayList<Matrix4d>()
+    private val matrices = ArrayList<Matrix4d>()
 
     /**
      * The index of the "current" matrix within [.matrices].

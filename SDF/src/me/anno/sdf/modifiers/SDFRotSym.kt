@@ -65,7 +65,7 @@ class SDFRotSym : PositionMapper() {
 
     override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
         val offset = offset
-        pos.sub(offset)
+        pos.sub(offset.x, offset.y, offset.z, 0f)
         rotation.transform(pos)
         var angle = atan2(pos.z, pos.x)
         val slices = slices
@@ -76,7 +76,7 @@ class SDFRotSym : PositionMapper() {
         // todo correct direction?
         pos.rotateY(-angle)
         rotation.transformInverse(pos)
-        pos.add(offset)
+        pos.add(offset.x, offset.y, offset.z, 0f)
     }
 
     override fun applyTransform(bounds: AABBf) {
@@ -109,18 +109,6 @@ class SDFRotSym : PositionMapper() {
         JomlPools.quat4f.sub(2)
     }
 
-    fun Vector4f.add(v: Vector3f) {
-        x += v.x
-        y += v.y
-        z += v.z
-    }
-
-    fun Vector4f.sub(v: Vector3f) {
-        x -= v.x
-        y -= v.y
-        z -= v.z
-    }
-
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as SDFRotSym
@@ -145,7 +133,5 @@ class SDFRotSym : PositionMapper() {
                 "   p = quatRotInv(p,q);\n" +
                 "   return p;\n" +
                 "}\n"
-
     }
-
 }

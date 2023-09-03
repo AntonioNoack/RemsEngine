@@ -25,7 +25,7 @@ fun main() {
     comp.addChild(SDFBox().apply {
         position.add(d, d, 0f)
     })
-    comp.style = SDFGroup.Style.STAIRS
+    comp.style = SDFGroup.SDFStyle.STAIRS
     comp.smoothness = 1f
     comp.type = SDFGroup.CombinationMode.TONGUE
 

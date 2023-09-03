@@ -32,7 +32,7 @@ import kotlin.math.roundToInt
  * and reading its files would be nice, so here is
  * the official Gimp implementation ported from C to Java.
  * If only supports layer with the format U8-linear
- * @see <a href="https://github.com/GNOME/gimp/">Gimp Repository</a>
+ * [Gimp Repository](https://github.com/GNOME/gimp/)
  * */
 class GimpImage {
 

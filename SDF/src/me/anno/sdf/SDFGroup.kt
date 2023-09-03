@@ -37,34 +37,34 @@ open class SDFGroup : SDFComponent() {
         val glslCode: List<String>,
         val isStyleable: Boolean
     ) {
-        UNION(0, "sdMin", listOf(smoothMinCubic, SDFGroup.Companion.sdMin), true), // A or B
+        UNION(0, "sdMin", listOf(smoothMinCubic, SDFGroup.sdMin), true), // A or B
         INTERSECTION(1, "sdMax", listOf(
             smoothMinCubic,
-            SDFGroup.Companion.sdMax
+            SDFGroup.sdMax
         ), true), // A and B
         DIFFERENCE1(2, "sdMax", listOf(
             smoothMinCubic,
-            SDFGroup.Companion.sdMax
+            SDFGroup.sdMax
         ), true), // A \ B
         DIFFERENCE2(3, "sdMax", listOf(
             smoothMinCubic,
-            SDFGroup.Companion.sdMax
+            SDFGroup.sdMax
         ), true), // B \ A
         DIFFERENCE_SYM(4, "sdDiff3", listOf(
             smoothMinCubic,
-            SDFGroup.Companion.sdMin,
-            SDFGroup.Companion.sdMax,
-            SDFGroup.Companion.sdDiff1,
-            SDFGroup.Companion.sdDiff
+            SDFGroup.sdMin,
+            SDFGroup.sdMax,
+            SDFGroup.sdDiff1,
+            SDFGroup.sdDiff
         ), false), // A xor B
-        INTERPOLATION(5, "sdInt", listOf(SDFGroup.Companion.sdInt), false),
+        INTERPOLATION(5, "sdInt", listOf(SDFGroup.sdInt), false),
         PIPE(10, "sdPipe", listOf(hgFunctions), false),
         ENGRAVE(11, "sdEngrave", listOf(hgFunctions), false),
         GROOVE(12, "sdGroove", listOf(hgFunctions), false),
         TONGUE(13, "sdTongue", listOf(hgFunctions), false),
     }
 
-    enum class Style(val id: Int) {
+    enum class SDFStyle(val id: Int) {
         DEFAULT(0),
         ROUND(1),
         COLUMNS(2),
@@ -73,7 +73,7 @@ open class SDFGroup : SDFComponent() {
         SOFT(5),
     }
 
-    var style = Style.DEFAULT
+    var style = SDFStyle.DEFAULT
         set(value) {
             // probably should check whether the type is applied at all,
             // whether we really need to invalidate the shader
@@ -358,7 +358,7 @@ open class SDFGroup : SDFComponent() {
         seeds: ArrayList<String>,
         children: List<SDFComponent>
     ) {
-        val param1 = SDFComponent.Companion.defineUniform(uniforms, GLSLType.V1F) {
+        val param1 = SDFComponent.defineUniform(uniforms, GLSLType.V1F) {
             clamp(
                 progress,
                 0f,
@@ -396,11 +396,11 @@ open class SDFGroup : SDFComponent() {
         functions: HashSet<String>,
         uniforms: HashMap<String, TypeValue>,
         type: CombinationMode,
-        style: Style,
+        style: SDFStyle,
     ): Quad<String, String?, String?, String?> {
         functions.add(smoothMinCubic)
         val useSmoothness = dynamicSmoothness || smoothness > 0f
-                || (style != Style.DEFAULT && type.isStyleable) ||
+                || (style != SDFStyle.DEFAULT && type.isStyleable) ||
                 when (type) {// types that require smoothness
                     CombinationMode.PIPE,
                     CombinationMode.ENGRAVE,
@@ -408,7 +408,7 @@ open class SDFGroup : SDFComponent() {
                     CombinationMode.TONGUE -> true
                     else -> false
                 }
-        val smoothness = if (useSmoothness) SDFComponent.Companion.defineUniform(
+        val smoothness = if (useSmoothness) SDFComponent.defineUniform(
             uniforms,
             GLSLType.V1F
         ) { smoothness } else null
@@ -417,25 +417,25 @@ open class SDFGroup : SDFComponent() {
         val funcName = when (type) {
             // if is styleable type, apply style
             CombinationMode.UNION -> {
-                if (style != Style.DEFAULT) functions.add(hgFunctions)
+                if (style != SDFStyle.DEFAULT) functions.add(hgFunctions)
                 when (style) {
-                    Style.COLUMNS -> "unionColumn"
-                    Style.CHAMFER -> "unionChamfer"
-                    Style.ROUND -> "unionRound"
-                    Style.SOFT -> "unionSoft"
-                    Style.STAIRS -> "unionStairs"
+                    SDFStyle.COLUMNS -> "unionColumn"
+                    SDFStyle.CHAMFER -> "unionChamfer"
+                    SDFStyle.ROUND -> "unionRound"
+                    SDFStyle.SOFT -> "unionSoft"
+                    SDFStyle.STAIRS -> "unionStairs"
                     else -> "sdMin"
                 }
             }
             CombinationMode.INTERSECTION,
             CombinationMode.DIFFERENCE1,
             CombinationMode.DIFFERENCE2 -> {
-                if (style != Style.DEFAULT) functions.add(hgFunctions)
+                if (style != SDFStyle.DEFAULT) functions.add(hgFunctions)
                 when (style) {
-                    Style.COLUMNS -> "interColumn"
-                    Style.CHAMFER -> "interChamfer"
-                    Style.ROUND -> "interRound"
-                    Style.STAIRS -> "interStairs"
+                    SDFStyle.COLUMNS -> "interColumn"
+                    SDFStyle.CHAMFER -> "interChamfer"
+                    SDFStyle.ROUND -> "interRound"
+                    SDFStyle.STAIRS -> "interStairs"
                     // no other types are supported
                     else -> "sdMax"
                 }
@@ -443,13 +443,13 @@ open class SDFGroup : SDFComponent() {
             else -> type.funcName
         }
         val groove = if (type == CombinationMode.GROOVE || type == CombinationMode.TONGUE) {
-            SDFComponent.Companion.defineUniform(uniforms, groove)
+            defineUniform(uniforms, groove)
         } else null
         val stairs = if (
             funcName.contains("column", true) ||
             funcName.contains("stairs", true)
         ) {
-            SDFComponent.Companion.defineUniform(uniforms, GLSLType.V1F) { numStairs + 1f }
+            defineUniform(uniforms, GLSLType.V1F) { numStairs + 1f }
         } else null
         return Quad(funcName, smoothness, groove, stairs)
     }

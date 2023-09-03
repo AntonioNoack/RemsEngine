@@ -140,7 +140,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         fun getReference(str: String?): FileReference {
             // invalid
             if (str == null || str.isBlank2()) return InvalidRef
-            if('$' in str) throw IllegalArgumentException("Illegal file name $str")
             // root
             if (str == "root") return FileRootRef
             val str2 = if ('\\' in str) str.replace('\\', '/') else str

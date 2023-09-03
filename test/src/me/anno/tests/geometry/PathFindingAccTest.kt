@@ -62,34 +62,34 @@ fun main() {
     val y0 = 0
     val z0 = 0
 
-    data class Node(val x: Int, val y: Int, val z: Int, val isProxy: Boolean) {
+    data class AccNode(val x: Int, val y: Int, val z: Int, val isProxy: Boolean) {
         override fun toString() = if (isProxy) "Proxy[$x,$y,$z]" else "Node[$x,$y,$z]"
     }
 
-    fun findPoint(x: Int, z: Int): Node? {
+    fun findPoint(x: Int, z: Int): AccNode? {
         for (y in 0 until 256) {
             if (TestWorld.canStand(x, y, z)) {
-                return Node(x, y, z, false)
+                return AccNode(x, y, z, false)
             }
         }
         return null
     }
 
-    val accelerator = object : PathFindingAccelerator<ByteArray, Node>(useSecondaryHops) {
+    val accelerator = object : PathFindingAccelerator<ByteArray, AccNode>(useSecondaryHops) {
 
-        override fun isProxy(node: Node) = node.isProxy
+        override fun isProxy(node: AccNode) = node.isProxy
 
-        override fun selectProxy(nodes: Set<Node>): Node {
+        override fun selectProxy(nodes: Set<AccNode>): AccNode {
             // find most central node
             val avgX = nodes.sumOf { it.x } / nodes.size
             val avgY = nodes.sumOf { it.y } / nodes.size
             val avgZ = nodes.sumOf { it.z } / nodes.size
             val mostCentralNode = nodes.minByOrNull { sq(it.x - avgX) + sq(it.y - avgY) + sq(it.z - avgZ) }!!
             // create a proxy from it
-            return Node(mostCentralNode.x, mostCentralNode.y, mostCentralNode.z, true)
+            return AccNode(mostCentralNode.x, mostCentralNode.y, mostCentralNode.z, true)
         }
 
-        override fun getChunk(node: Node): ByteArray? =
+        override fun getChunk(node: AccNode): ByteArray? =
             if (node.x in 0 until sx && node.y in 0 until sy && node.z in 0 until sz) world.getChunkAt(
                 node.x,
                 node.y,
@@ -97,10 +97,10 @@ fun main() {
                 true
             ) else null
 
-        override fun distance(start: Node, end: Node) =
+        override fun distance(start: AccNode, end: AccNode) =
             (abs(end.x - start.x) + abs(end.z - start.z) + abs(end.y - start.y)).toDouble()
 
-        override fun listConnections(from: Node, callback: (Node) -> Unit) {
+        override fun listConnections(from: AccNode, callback: (AccNode) -> Unit) {
             if (!isProxy(from) && // not a proxy
                 from.x in 0 until sx && from.y in 0 until sy && from.z in 0 until sz
             ) {
@@ -108,10 +108,10 @@ fun main() {
                 // could be optimized
                 for (dy in -1..1) {
                     val y = from.y + dy
-                    if (TestWorld.canStand(from.x, y, from.z + 1)) callback(Node(from.x, y, from.z + 1, false))
-                    if (TestWorld.canStand(from.x, y, from.z - 1)) callback(Node(from.x, y, from.z - 1, false))
-                    if (TestWorld.canStand(from.x + 1, y, from.z)) callback(Node(from.x + 1, y, from.z, false))
-                    if (TestWorld.canStand(from.x - 1, y, from.z)) callback(Node(from.x - 1, y, from.z, false))
+                    if (TestWorld.canStand(from.x, y, from.z + 1)) callback(AccNode(from.x, y, from.z + 1, false))
+                    if (TestWorld.canStand(from.x, y, from.z - 1)) callback(AccNode(from.x, y, from.z - 1, false))
+                    if (TestWorld.canStand(from.x + 1, y, from.z)) callback(AccNode(from.x + 1, y, from.z, false))
+                    if (TestWorld.canStand(from.x - 1, y, from.z)) callback(AccNode(from.x - 1, y, from.z, false))
                 }
             }// else throw IllegalArgumentException("Proxies neighbor or out-of-bounds requested, $from")
         }
@@ -128,7 +128,7 @@ fun main() {
         end = findPoint(random.nextInt(sx), random.nextInt(sz))
     }
 
-    fun testPathfinding(): Pair<List<Node>?, List<Node>?>? {
+    fun testPathfinding(): Pair<List<AccNode>?, List<AccNode>?>? {
         val p0 = start
         val p1 = end
         if (p0 != null && p1 != null && p0 != p1) {
@@ -186,7 +186,7 @@ fun main() {
         val dx = (sx - 1) * .5
         val dy = (sy - 1) * .5
         val dz = (sz - 1) * .5
-        fun setCubePosition(cube: Transform, point: Node, s: Double) {
+        fun setCubePosition(cube: Transform, point: AccNode, s: Double) {
             cube.localPosition = cube.localPosition.set(point.x + s - dx, point.y + s - dy, point.z + s - dz)
             cube.validate() // compute global transform
             cube.teleportUpdate()
@@ -243,7 +243,7 @@ fun main() {
 
         val view = SceneView(EditorState, PlayMode.EDITING, style)
 
-        fun raycastPoint(): Node? {
+        fun raycastPoint(): AccNode? {
             val maxDistance = 1e3
             val hit = Raycast.raycast(
                 scene,

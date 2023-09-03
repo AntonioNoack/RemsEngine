@@ -45,13 +45,13 @@ class ColorField(
 
     override val className: String get() = "ColorPaletteEntry"
 
-    var color
+    var color: Int
         get() = palette.getColor(paletteX, paletteY)
         set(value) = palette.setColor(paletteX, paletteY, value)
 
-    val focusColor = black or 0xcccccc
-    val hoverColor = black or 0x777777
-    val focusHoverColor = mixARGB(focusColor, hoverColor, 0.5f)
+    val focusColor: Int = black or 0xcccccc
+    val hoverColor: Int = black or 0x777777
+    val focusHoverColor: Int = mixARGB(focusColor, hoverColor, 0.5f)
 
     var changeListener: (ColorField, Int) -> Unit = { _, _ -> }
 
@@ -69,7 +69,6 @@ class ColorField(
 
     override fun onCopyRequested(x: Float, y: Float) = color.toHexColor()
 
-    @Suppress("unused_parameter")
     fun setARGB(color: Int, notify: Boolean) {
         // todo allow undo?
         this.color = color

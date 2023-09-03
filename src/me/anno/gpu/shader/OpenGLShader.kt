@@ -228,7 +228,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         uniformCache.fill(Float.NaN)
     }
 
-    fun setTextureIndices(vararg textures: String) =
+    fun setTextureIndices(vararg textures: String): OpenGLShader =
         setTextureIndices(textures.toList())
 
     fun setTextureIndices(textures: List<String>?): OpenGLShader {

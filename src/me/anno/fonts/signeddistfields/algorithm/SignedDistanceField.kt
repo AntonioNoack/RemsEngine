@@ -48,10 +48,10 @@ object SignedDistanceField {
 
     val sdfResolution get() = DefaultConfig["rendering.signedDistanceFields.resolution", 1f]
 
-    fun createTexture(font: me.anno.ui.base.Font, text: CharSequence, round: Boolean) =
+    fun createTexture(font: me.anno.ui.base.Font, text: CharSequence, round: Boolean): TextSDF =
         createTexture(getFont(font), text, round)
 
-    fun createTexture(font: AWTFont, text: CharSequence, round: Boolean) =
+    fun createTexture(font: AWTFont, text: CharSequence, round: Boolean): TextSDF =
         createTexture(font.font, text, round)
 
     fun calculateDistances(

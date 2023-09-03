@@ -80,30 +80,30 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         return list.any { it.first == k2 }
     }
 
-    inline fun <Result> map(run: (k1: KManifold, k2: KFewOnly, v: Value) -> Result): List<Result> {
+    inline fun <Result> map(mapping: (k1: KManifold, k2: KFewOnly, v: Value) -> Result): List<Result> {
         val result = ArrayList<Result>(size)
         for ((k1, k2s) in values) {
             for ((k2, v) in k2s) {
-                result.add(run(k1, k2, v))
+                result.add(mapping(k1, k2, v))
             }
         }
         return result
     }
 
-    inline fun <Result> mapNotNull(run: (k1: KManifold, k2: KFewOnly, v: Value) -> Result?): List<Result> {
+    inline fun <Result> mapNotNull(mapping: (k1: KManifold, k2: KFewOnly, v: Value) -> Result?): List<Result> {
         val result = ArrayList<Result>(size)
         for ((k1, k2s) in values) {
             for ((k2, v) in k2s) {
-                result.add(run(k1, k2, v) ?: continue)
+                result.add(mapping(k1, k2, v) ?: continue)
             }
         }
         return result
     }
 
-    inline fun forEach(run: (k1: KManifold, k2: KFewOnly, v: Value) -> Unit) {
+    inline fun forEach(callback: (k1: KManifold, k2: KFewOnly, v: Value) -> Unit) {
         for ((k1, k2s) in values) {
             for ((k2, v) in k2s) {
-                run(k1, k2, v)
+                callback(k1, k2, v)
             }
         }
     }
@@ -128,12 +128,12 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         } else false
     }
 
-    inline fun removeIf(crossinline test: (k1: KManifold, k2: KFewOnly, v: Value) -> Boolean): Int {
+    inline fun removeIf(crossinline predicate: (k1: KManifold, k2: KFewOnly, v: Value) -> Boolean): Int {
         if (isEmpty()) return 0
         var removed = 0
         for ((k1, k2s) in values) {
             removed += k2s.removeIf { k2, v ->
-                test(k1, k2, v)
+                predicate(k1, k2, v)
             }
         }
         size -= removed
@@ -147,26 +147,26 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         return delta > 0
     }
 
-    fun count(test: (k1: KManifold, k2: KFewOnly, v: Value) -> Boolean): Int {
+    fun count(predicate: (k1: KManifold, k2: KFewOnly, v: Value) -> Boolean): Int {
         var sum = 0
         for ((k1, k2s) in values) {
             for ((k2, v) in k2s) {
-                if (test(k1, k2, v)) sum++
+                if (predicate(k1, k2, v)) sum++
             }
         }
         return sum
     }
 
     @Suppress("unused")
-    fun countMajor(test: (k1: KManifold) -> Boolean): Int {
+    fun countMajor(predicate: (k1: KManifold) -> Boolean): Int {
         var sum = 0
         for ((k1, k2s) in values) {
-            if (test(k1)) sum += k2s.size
+            if (predicate(k1)) sum += k2s.size
         }
         return sum
     }
 
-    fun filterMajor(test: (k1: KManifold) -> Boolean) = values.filterKeys(test)
+    fun filterMajor(predicate: (k1: KManifold) -> Boolean) = values.filterKeys(predicate)
 
     override fun iterator() = values.values.iterator()
 
