@@ -133,9 +133,9 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
     object TileMath {
 
 
-        fun C(sigma: Float) = 1f / erf(0.5f / (sigma * Maths.SQRT2F))
+        fun C(sigma: Float) = 1f / erf(0.5f / (sigma * Maths.SQRT2f))
         fun truncCdfInv(x: Float, sigma: Float = 1f / 6f) =
-            0.5f + Maths.SQRT2F * sigma * erfInv((2f * x - 1f) / C(sigma))
+            0.5f + Maths.SQRT2f * sigma * erfInv((2f * x - 1f) / C(sigma))
 
         fun buildYHistogram(image: Image): IntArray {
 

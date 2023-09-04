@@ -20,7 +20,7 @@ import org.apache.logging.log4j.LogManager
 
 open class URLInput(
     title: String, style: Style,
-    val f0: FileReference,
+    f0: FileReference,
     var extraRightClickOptions: List<FileExplorerOption>,
     var isDirectory: Boolean = false
 ) : PanelListX(style), InputPanel<FileReference> {

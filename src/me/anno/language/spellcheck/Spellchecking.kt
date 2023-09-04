@@ -137,7 +137,7 @@ object Spellchecking : CacheSection("Spellchecking") {
         }
     }
 
-    fun Int.escapeCodepoint() =
+    fun Int.escapeCodepoint(): String =
         if (this < 128) "${toChar()}"
         else "\\u${hex8((this shr 8) and 255)}${hex8(this and 255)}"
 

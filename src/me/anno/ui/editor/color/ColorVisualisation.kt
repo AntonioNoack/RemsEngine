@@ -2,7 +2,7 @@ package me.anno.ui.editor.color
 
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
-import me.anno.maths.Maths.GoldenRatio
+import me.anno.maths.Maths.GOLDEN_RATIOf
 
 enum class ColorVisualisation(
     val naming: NameDesc,
@@ -15,6 +15,6 @@ enum class ColorVisualisation(
 
     CIRCLE(NameDesc("Circle", "", "ui.input.color.vis.circle"), 1f / (1f + circleBarRatio), false, true),
 
-    BOX(NameDesc("Box", "", "ui.input.color.vis.box"), 1f / GoldenRatio, true, false),
+    BOX(NameDesc("Box", "", "ui.input.color.vis.box"), 1f / GOLDEN_RATIOf, true, false),
 
 }

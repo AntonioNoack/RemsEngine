@@ -23,7 +23,7 @@ abstract class BVHNode(val bounds: AABBf) : ICacheData {
 
     abstract fun maxDepth(): Int
 
-    fun Vector3f.dirIsNeg() = (x < 0f).toInt(1) + (y < 0f).toInt(2) + (z < 0f).toInt(4)
+    fun Vector3f.dirIsNeg(): Int = (x < 0f).toInt(1) + (y < 0f).toInt(2) + (z < 0f).toInt(4)
 
     fun intersect(pos: Vector3f, dir: Vector3f, hit: RayHit): Boolean {
         val invDir = JomlPools.vec3f.create().set(1f).div(dir)

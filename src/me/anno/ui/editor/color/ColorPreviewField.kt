@@ -8,7 +8,7 @@ import me.anno.ui.Panel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.a
 
-class PreviewField(private val refSize: Panel, val padding: Int, style: Style) : Panel(style) {
+class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Style) : Panel(style) {
 
     var color = 0
         set(value) {

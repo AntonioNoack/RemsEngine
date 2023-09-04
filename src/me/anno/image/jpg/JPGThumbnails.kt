@@ -4,7 +4,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.types.InputStreams.readNBytes2
 
 /**
- * This helper objects can extract embedded thumbnails in JPEGs.
+ * Extracts embedded thumbnails in JPEGs
  *
  * The standard readers work well and good, but unfortunately,
  * then don't allow me to load the image as a small size;

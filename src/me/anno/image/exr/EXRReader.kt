@@ -71,7 +71,7 @@ object EXRReader {
         }
     }
 
-    fun read(input: InputStream): Image {
+    fun read(input: InputStream): IFloatImage {
         val bytes = input.readBytes()
         val buffer = ByteBufferPool.allocateDirect(bytes.size)
         buffer.put(bytes).flip()

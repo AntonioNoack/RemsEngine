@@ -20,14 +20,14 @@ class ControllerCalibration() : Saveable() {
 
     var isCalibrated = false
 
-    var dead = FloatArray(MAX_NUM_AXES) { 0.1f }
+    var deadZone = FloatArray(MAX_NUM_AXES) { 0.1f }
     var scale = FloatArray(MAX_NUM_AXES) { 1f }
     var center = FloatArray(MAX_NUM_AXES) { 0f }
 
     fun getValue(state: Float, axis: Int): Float {
-        return if (axis in 0 until min(dead.size, min(scale.size, center.size))) {
+        return if (axis in 0 until min(deadZone.size, min(scale.size, center.size))) {
             val v = state - center[axis]
-            sign(v) * scale[axis] * max(0f, abs(v) - dead[axis])
+            sign(v) * scale[axis] * max(0f, abs(v) - deadZone[axis])
         } else state
     }
 
@@ -42,7 +42,7 @@ class ControllerCalibration() : Saveable() {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeBoolean("isCalibrated", isCalibrated)
-        writer.writeFloatArray("dead", dead)
+        writer.writeFloatArray("dead", deadZone)
         writer.writeFloatArray("scale", scale)
         writer.writeFloatArray("center", center)
     }
@@ -56,7 +56,7 @@ class ControllerCalibration() : Saveable() {
 
     override fun readFloatArray(name: String, values: FloatArray) {
         when (name) {
-            "dead" -> dead = values
+            "dead" -> deadZone = values
             "scale" -> scale = values
             "center" -> center = values
             else -> super.readFloatArray(name, values)

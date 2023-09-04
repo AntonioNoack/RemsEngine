@@ -14,17 +14,16 @@ abstract class ExtensionManager<V : Extension>(val instanceName: String) {
         }
     }
 
-    abstract fun onEnable(extensions: List<V>)
-
-    fun disable() {
-        val list = loaded.toList()
-        onDisable(list)
-        for (ex in list) {
+    fun disable(extensions: List<V> = loaded.toList()) {
+        onDisable(extensions)
+        for (ex in extensions) {
             LOGGER.info("Disabled $instanceName \"${ex.name}\"")
         }
-        loaded.clear()
+        if (extensions === loaded) loaded.clear()
+        else loaded.removeAll(extensions.toHashSet())
     }
 
+    abstract fun onEnable(extensions: List<V>)
     abstract fun onDisable(extensions: List<V>)
 
     operator fun contains(uuid: String) = loaded.any { it.uuid == uuid }
@@ -32,5 +31,4 @@ abstract class ExtensionManager<V : Extension>(val instanceName: String) {
     companion object {
         private val LOGGER = LogManager.getLogger(ExtensionManager::class)
     }
-
 }

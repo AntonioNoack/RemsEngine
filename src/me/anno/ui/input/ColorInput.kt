@@ -22,7 +22,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.editor.color.ColorChooser
-import me.anno.ui.editor.color.PreviewField
+import me.anno.ui.editor.color.ColorPreviewField
 import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.input.components.ColorPicker
 import me.anno.ui.input.components.TitlePanel
@@ -45,7 +45,7 @@ open class ColorInput(
     constructor(style: Style) : this(style, "", "", Vector4f(), true)
 
     val titleView = TitlePanel(title, contentView, style)
-    private val previewField = PreviewField(titleView, 2, style)
+    private val previewField = ColorPreviewField(titleView, 2, style)
         .apply {
             addLeftClickListener { if (isInputAllowed) openColorChooser() }
             color = oldValue.toARGB() or black

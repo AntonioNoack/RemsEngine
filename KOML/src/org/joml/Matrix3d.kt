@@ -355,15 +355,15 @@ open class Matrix3d {
         r00: Double, r01: Double, r02: Double, r10: Double, r11: Double, r12: Double,
         r20: Double, r21: Double, r22: Double, dest: Matrix3d = this
     ): Matrix3d {
-        val nm00 = JomlMath.fma(m00 * r00, JomlMath.fma(m10 * r01, m20 * r02))
-        val nm01 = JomlMath.fma(m01 * r00, JomlMath.fma(m11 * r01, m21 * r02))
-        val nm02 = JomlMath.fma(m02 * r00, JomlMath.fma(m12 * r01, m22 * r02))
-        val nm10 = JomlMath.fma(m00 * r10, JomlMath.fma(m10 * r11, m20 * r12))
-        val nm11 = JomlMath.fma(m01 * r10, JomlMath.fma(m11 * r11, m21 * r12))
-        val nm12 = JomlMath.fma(m02 * r10, JomlMath.fma(m12 * r11, m22 * r12))
-        val nm20 = JomlMath.fma(m00 * r20, JomlMath.fma(m10 * r21, m20 * r22))
-        val nm21 = JomlMath.fma(m01 * r20, JomlMath.fma(m11 * r21, m21 * r22))
-        val nm22 = JomlMath.fma(m02 * r20, JomlMath.fma(m12 * r21, m22 * r22))
+        val nm00 = m00 * r00 + m10 * r01 + m20 * r02
+        val nm01 = m01 * r00 + m11 * r01 + m21 * r02
+        val nm02 = m02 * r00 + m12 * r01 + m22 * r02
+        val nm10 = m00 * r10 + m10 * r11 + m20 * r12
+        val nm11 = m01 * r10 + m11 * r11 + m21 * r12
+        val nm12 = m02 * r10 + m12 * r11 + m22 * r12
+        val nm20 = m00 * r20 + m10 * r21 + m20 * r22
+        val nm21 = m01 * r20 + m11 * r21 + m21 * r22
+        val nm22 = m02 * r20 + m12 * r21 + m22 * r22
         dest.m00 = nm00
         dest.m01 = nm01
         dest.m02 = nm02
@@ -409,42 +409,15 @@ open class Matrix3d {
 
     @JvmOverloads
     fun mul(right: Matrix3f, dest: Matrix3d = this): Matrix3d {
-        val nm00 = JomlMath.fma(
-            m00 * right.m00.toDouble(),
-            JomlMath.fma(m10 * right.m01.toDouble(), m20 * right.m02.toDouble())
-        )
-        val nm01 = JomlMath.fma(
-            m01 * right.m00.toDouble(),
-            JomlMath.fma(m11 * right.m01.toDouble(), m21 * right.m02.toDouble())
-        )
-        val nm02 = JomlMath.fma(
-            m02 * right.m00.toDouble(),
-            JomlMath.fma(m12 * right.m01.toDouble(), m22 * right.m02.toDouble())
-        )
-        val nm10 = JomlMath.fma(
-            m00 * right.m10.toDouble(),
-            JomlMath.fma(m10 * right.m11.toDouble(), m20 * right.m12.toDouble())
-        )
-        val nm11 = JomlMath.fma(
-            m01 * right.m10.toDouble(),
-            JomlMath.fma(m11 * right.m11.toDouble(), m21 * right.m12.toDouble())
-        )
-        val nm12 = JomlMath.fma(
-            m02 * right.m10.toDouble(),
-            JomlMath.fma(m12 * right.m11.toDouble(), m22 * right.m12.toDouble())
-        )
-        val nm20 = JomlMath.fma(
-            m00 * right.m20.toDouble(),
-            JomlMath.fma(m10 * right.m21.toDouble(), m20 * right.m22.toDouble())
-        )
-        val nm21 = JomlMath.fma(
-            m01 * right.m20.toDouble(),
-            JomlMath.fma(m11 * right.m21.toDouble(), m21 * right.m22.toDouble())
-        )
-        val nm22 = JomlMath.fma(
-            m02 * right.m20.toDouble(),
-            JomlMath.fma(m12 * right.m21.toDouble(), m22 * right.m22.toDouble())
-        )
+        val nm00 = m00 * right.m00 + m10 * right.m01 + m20 * right.m02
+        val nm01 = m01 * right.m00 + m11 * right.m01 + m21 * right.m02
+        val nm02 = m02 * right.m00 + m12 * right.m01 + m22 * right.m02
+        val nm10 = m00 * right.m10 + m10 * right.m11 + m20 * right.m12
+        val nm11 = m01 * right.m10 + m11 * right.m11 + m21 * right.m12
+        val nm12 = m02 * right.m10 + m12 * right.m11 + m22 * right.m12
+        val nm20 = m00 * right.m20 + m10 * right.m21 + m20 * right.m22
+        val nm21 = m01 * right.m20 + m11 * right.m21 + m21 * right.m22
+        val nm22 = m02 * right.m20 + m12 * right.m21 + m22 * right.m22
         dest.m00 = nm00
         dest.m01 = nm01
         dest.m02 = nm02
@@ -506,11 +479,10 @@ open class Matrix3d {
 
     @JvmOverloads
     fun invert(dest: Matrix3d = this): Matrix3d {
-        val a = JomlMath.fma(m00, m11, -m01 * m10)
-        val b = JomlMath.fma(m02, m10, -m00 * m12)
-        val c = JomlMath.fma(m01, m12, -m02 * m11)
-        val d = JomlMath.fma(a, m22, JomlMath.fma(b, m21, c * m20))
-        val s = 1.0 / d
+        val a = m00 * m11 - m01 * m10
+        val b = m02 * m10 - m00 * m12
+        val c = m01 * m12 - m02 * m11
+        val s = 1.0 / (a * m22 + b * m21 + c * m20)
         val nm00 = (m11 * m22 - m21 * m12) * s
         val nm01 = (m21 * m02 - m01 * m22) * s
         val nm02 = c * s
@@ -1839,60 +1811,19 @@ open class Matrix3d {
     }
 
     override fun equals(obj: Any?): Boolean {
-        return if (this === obj) {
-            true
-        } else if (obj == null) {
-            false
-        } else if (this.javaClass != obj.javaClass) {
-            false
-        } else {
-            val other = obj as Matrix3d
-            if ((m00) != (other.m00)) {
-                false
-            } else if ((m01) != (other.m01)) {
-                false
-            } else if ((m02) != (other.m02)) {
-                false
-            } else if ((m10) != (other.m10)) {
-                false
-            } else if ((m11) != (other.m11)) {
-                false
-            } else if ((m12) != (other.m12)) {
-                false
-            } else if ((m20) != (other.m20)) {
-                false
-            } else if ((m21) != (other.m21)) {
-                false
-            } else {
-                (m22) == (other.m22)
-            }
-        }
+        return this === obj || (obj is Matrix3d &&
+                m00 == obj.m00 && m01 == obj.m01 && m02 == obj.m02 &&
+                m10 == obj.m10 && m11 == obj.m01 && m12 == obj.m12 &&
+                m20 == obj.m20 && m21 == obj.m01 && m22 == obj.m22)
     }
 
     fun equals(m: Matrix3d?, delta: Double): Boolean {
-        return if (this === m) {
-            true
-        } else if (m == null) {
-            false
-        } else if (!Runtime.equals(m00, m.m00, delta)) {
-            false
-        } else if (!Runtime.equals(m01, m.m01, delta)) {
-            false
-        } else if (!Runtime.equals(m02, m.m02, delta)) {
-            false
-        } else if (!Runtime.equals(m10, m.m10, delta)) {
-            false
-        } else if (!Runtime.equals(m11, m.m11, delta)) {
-            false
-        } else if (!Runtime.equals(m12, m.m12, delta)) {
-            false
-        } else if (!Runtime.equals(m20, m.m20, delta)) {
-            false
-        } else if (!Runtime.equals(m21, m.m21, delta)) {
-            false
-        } else {
-            Runtime.equals(m22, m.m22, delta)
-        }
+        return this === m || (m is Matrix3d &&
+                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
+                Runtime.equals(m02, m.m02, delta) && Runtime.equals(m10, m.m10, delta) &&
+                Runtime.equals(m11, m.m11, delta) && Runtime.equals(m12, m.m12, delta) &&
+                Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta) &&
+                Runtime.equals(m22, m.m22, delta))
     }
 
     fun swap(other: Matrix3d): Matrix3d {
@@ -1983,15 +1914,15 @@ open class Matrix3d {
 
     @JvmOverloads
     fun lerp(other: Matrix3d, t: Double, dest: Matrix3d = this): Matrix3d {
-        dest.m00 = JomlMath.fma(other.m00 - m00, t, m00)
-        dest.m01 = JomlMath.fma(other.m01 - m01, t, m01)
-        dest.m02 = JomlMath.fma(other.m02 - m02, t, m02)
-        dest.m10 = JomlMath.fma(other.m10 - m10, t, m10)
-        dest.m11 = JomlMath.fma(other.m11 - m11, t, m11)
-        dest.m12 = JomlMath.fma(other.m12 - m12, t, m12)
-        dest.m20 = JomlMath.fma(other.m20 - m20, t, m20)
-        dest.m21 = JomlMath.fma(other.m21 - m21, t, m21)
-        dest.m22 = JomlMath.fma(other.m22 - m22, t, m22)
+        dest.m00 = (other.m00 - m00) * t + m00
+        dest.m01 = (other.m01 - m01) * t + m01
+        dest.m02 = (other.m02 - m02) * t + m02
+        dest.m10 = (other.m10 - m10) * t + m10
+        dest.m11 = (other.m11 - m11) * t + m11
+        dest.m12 = (other.m12 - m12) * t + m12
+        dest.m20 = (other.m20 - m20) * t + m20
+        dest.m21 = (other.m21 - m21) * t + m21
+        dest.m22 = (other.m22 - m22) * t + m22
         return dest
     }
 

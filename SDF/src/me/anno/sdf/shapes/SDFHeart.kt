@@ -3,7 +3,7 @@ package me.anno.sdf.shapes
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.sdf.SDFComposer.dot2
 import me.anno.sdf.VariableCounter
-import me.anno.maths.Maths.SQRT2F
+import me.anno.maths.Maths.SQRT2f
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
@@ -45,7 +45,7 @@ class SDFHeart : SDF2DShape() {
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
         val px = abs(pos.x)
         val py = pos.y + 0.55f
-        return if (px + py > 1f) sqrt(sq(px - 0.25f, py - 0.75f)) - SQRT2F * 0.25f
+        return if (px + py > 1f) sqrt(sq(px - 0.25f, py - 0.75f)) - SQRT2f * 0.25f
         else {
             val di = 0.5f * max(px + py, 0f)
             sqrt(min(sq(px, py - 1f), sq(px - di, py - di))) * sign(px - py)
