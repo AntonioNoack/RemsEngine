@@ -856,22 +856,22 @@ open class Matrix4f {
 
     @JvmOverloads
     fun mulAffineR(right: Matrix4f, dst: Matrix4f = this): Matrix4f {
-        val nm00 = JomlMath.fma(m00 * right.m00, JomlMath.fma(m10 * right.m01, m20 * right.m02))
-        val nm01 = JomlMath.fma(m01 * right.m00, JomlMath.fma(m11 * right.m01, m21 * right.m02))
-        val nm02 = JomlMath.fma(m02 * right.m00, JomlMath.fma(m12 * right.m01, m22 * right.m02))
-        val nm03 = JomlMath.fma(m03 * right.m00, JomlMath.fma(m13 * right.m01, m23 * right.m02))
-        val nm10 = JomlMath.fma(m00 * right.m10, JomlMath.fma(m10 * right.m11, m20 * right.m12))
-        val nm11 = JomlMath.fma(m01 * right.m10, JomlMath.fma(m11 * right.m11, m21 * right.m12))
-        val nm12 = JomlMath.fma(m02 * right.m10, JomlMath.fma(m12 * right.m11, m22 * right.m12))
-        val nm13 = JomlMath.fma(m03 * right.m10, JomlMath.fma(m13 * right.m11, m23 * right.m12))
-        val nm20 = JomlMath.fma(m00 * right.m20, JomlMath.fma(m10 * right.m21, m20 * right.m22))
-        val nm21 = JomlMath.fma(m01 * right.m20, JomlMath.fma(m11 * right.m21, m21 * right.m22))
-        val nm22 = JomlMath.fma(m02 * right.m20, JomlMath.fma(m12 * right.m21, m22 * right.m22))
-        val nm23 = JomlMath.fma(m03 * right.m20, JomlMath.fma(m13 * right.m21, m23 * right.m22))
-        val nm30 = JomlMath.fma(m00 * right.m30, JomlMath.fma(m10 * right.m31, (m20 * right.m32 + m30)))
-        val nm31 = JomlMath.fma(m01 * right.m30, JomlMath.fma(m11 * right.m31, (m21 * right.m32 + m31)))
-        val nm32 = JomlMath.fma(m02 * right.m30, JomlMath.fma(m12 * right.m31, (m22 * right.m32 + m32)))
-        val nm33 = JomlMath.fma(m03 * right.m30, JomlMath.fma(m13 * right.m31, (m23 * right.m32 + m33)))
+        val nm00 = m00 * right.m00 + m10 * right.m01 + m20 * right.m02
+        val nm01 = m01 * right.m00 + m11 * right.m01 + m21 * right.m02
+        val nm02 = m02 * right.m00 + m12 * right.m01 + m22 * right.m02
+        val nm03 = m03 * right.m00 + m13 * right.m01 + m23 * right.m02
+        val nm10 = m00 * right.m10 + m10 * right.m11 + m20 * right.m12
+        val nm11 = m01 * right.m10 + m11 * right.m11 + m21 * right.m12
+        val nm12 = m02 * right.m10 + m12 * right.m11 + m22 * right.m12
+        val nm13 = m03 * right.m10 + m13 * right.m11 + m23 * right.m12
+        val nm20 = m00 * right.m20 + m10 * right.m21 + m20 * right.m22
+        val nm21 = m01 * right.m20 + m11 * right.m21 + m21 * right.m22
+        val nm22 = m02 * right.m20 + m12 * right.m21 + m22 * right.m22
+        val nm23 = m03 * right.m20 + m13 * right.m21 + m23 * right.m22
+        val nm30 = m00 * right.m30 + m10 * right.m31 + m20 * right.m32 + m30
+        val nm31 = m01 * right.m30 + m11 * right.m31 + m21 * right.m32 + m31
+        val nm32 = m02 * right.m30 + m12 * right.m31 + m22 * right.m32 + m32
+        val nm33 = m03 * right.m30 + m13 * right.m31 + m23 * right.m32 + m33
         return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(
                 properties and -30
@@ -901,24 +901,24 @@ open class Matrix4f {
         val rm30 = right.m30
         val rm31 = right.m31
         val rm32 = right.m32
-        return dst._m00(JomlMath.fma(m00, rm00, JomlMath.fma(m10, rm01, m20 * rm02)))
-            ._m01(JomlMath.fma(m01, rm00, JomlMath.fma(m11, rm01, m21 * rm02)))._m02(
-                JomlMath.fma(m02, rm00, JomlMath.fma(m12, rm01, m22 * rm02))
+        return dst._m00(m00 * rm00 + JomlMath.fma(m10 * rm01 + m20 * rm02))
+            ._m01(m01 * rm00 + (m11 * rm01 + m21 * rm02))._m02(
+                m02 * rm00 + (m12 * rm01 + m22 * rm02)
             )._m03(
                 m03
-            )._m10(JomlMath.fma(m00, rm10, JomlMath.fma(m10, rm11, m20 * rm12)))
-            ._m11(JomlMath.fma(m01, rm10, JomlMath.fma(m11, rm11, m21 * rm12)))._m12(
-                JomlMath.fma(m02, rm10, JomlMath.fma(m12, rm11, m22 * rm12))
+            )._m10(m00 * rm10 + JomlMath.fma(m10 * rm11 + m20 * rm12))
+            ._m11(m01 * rm10 + JomlMath.fma(m11 * rm11 + m21 * rm12))._m12(
+                m02 * rm10 + JomlMath.fma(m12 * rm11 + m22 * rm12)
             )._m13(
                 m13
-            )._m20(JomlMath.fma(m00, rm20, JomlMath.fma(m10, rm21, m20 * rm22)))
-            ._m21(JomlMath.fma(m01, rm20, JomlMath.fma(m11, rm21, m21 * rm22)))._m22(
-                JomlMath.fma(m02, rm20, JomlMath.fma(m12, rm21, m22 * rm22))
+            )._m20(m00 * rm20 + JomlMath.fma(m10 * rm21 + m20 * rm22))
+            ._m21(m01 * rm20 + JomlMath.fma(m11 * rm21 + m21 * rm22))._m22(
+                m02 * rm20 + JomlMath.fma(m12 * rm21 + m22 * rm22)
             )._m23(
                 m23
-            )._m30(JomlMath.fma(m00, rm30, JomlMath.fma(m10, rm31, JomlMath.fma(m20, rm32, m30))))
-            ._m31(JomlMath.fma(m01, rm30, JomlMath.fma(m11, rm31, JomlMath.fma(m21, rm32, m31))))._m32(
-                JomlMath.fma(m02, rm30, JomlMath.fma(m12, rm31, JomlMath.fma(m22, rm32, m32)))
+            )._m30(m00 * rm30 + JomlMath.fma(m10 * rm31 + JomlMath.fma(m20 * rm32 + m30)))
+            ._m31(m01 * rm30 + JomlMath.fma(m11 * rm31 + JomlMath.fma(m21 * rm32 + m31)))._m32(
+                m02 * rm30 + JomlMath.fma(m12 * rm31 + JomlMath.fma(m22 * rm32 + m32))
             )._m33(
                 m33
             )._properties(2 or (properties and right.properties() and 16))
@@ -953,94 +953,71 @@ open class Matrix4f {
     }
 
     @JvmOverloads
-    fun fma4x3(other: Matrix4f, otherFactor: Float, dst: Matrix4f = this): Matrix4f {
-        dst._m00(JomlMath.fma(other.m00, otherFactor, m00))._m01(JomlMath.fma(other.m01, otherFactor, m01))
-            ._m02(JomlMath.fma(other.m02, otherFactor, m02))._m03(
-                m03
-            )._m10(JomlMath.fma(other.m10, otherFactor, m10))._m11(JomlMath.fma(other.m11, otherFactor, m11))
-            ._m12(JomlMath.fma(other.m12, otherFactor, m12))._m13(
-                m13
-            )._m20(JomlMath.fma(other.m20, otherFactor, m20))._m21(JomlMath.fma(other.m21, otherFactor, m21))
-            ._m22(JomlMath.fma(other.m22, otherFactor, m22))._m23(
-                m23
-            )._m30(JomlMath.fma(other.m30, otherFactor, m30))._m31(JomlMath.fma(other.m31, otherFactor, m31))
-            ._m32(JomlMath.fma(other.m32, otherFactor, m32))._m33(
-                m33
-            )._properties(0)
+    fun fma4x3(o: Matrix4f, f: Float, dst: Matrix4f = this): Matrix4f {
+        dst._m00(o.m00 * f + m00)._m01(o.m01 * f + m01)._m02(o.m02 * f + m02)._m03(m03)
+            ._m10(o.m10 * f + m10)._m11(o.m11 * f + m11)._m12(o.m12 * f + m12)._m13(m13)
+            ._m20(o.m20 * f + m20)._m21(o.m21 * f + m21)._m22(o.m22 * f + m22)._m23(m23)
+            ._m30(o.m30 * f + m30)._m31(o.m31 * f + m31)._m32(o.m32 * f + m32)._m33(m33)
+            ._properties(0)
         return dst
     }
 
     @JvmOverloads
     fun add(other: Matrix4f, dst: Matrix4f = this): Matrix4f {
         dst._m00(m00 + other.m00)._m01(m01 + other.m01)._m02(m02 + other.m02)._m03(m03 + other.m03)
-            ._m10(m10 + other.m10)._m11(
-                m11 + other.m11
-            )._m12(m12 + other.m12)._m13(m13 + other.m13)._m20(m20 + other.m20)._m21(m21 + other.m21)._m22(
-                m22 + other.m22
-            )._m23(m23 + other.m23)._m30(m30 + other.m30)._m31(m31 + other.m31)._m32(m32 + other.m32)._m33(
-                m33 + other.m33
-            )._properties(0)
+            ._m10(m10 + other.m10)._m11(m11 + other.m11)._m12(m12 + other.m12)._m13(m13 + other.m13)
+            ._m20(m20 + other.m20)._m21(m21 + other.m21)._m22(m22 + other.m22)._m23(m23 + other.m23)
+            ._m30(m30 + other.m30)._m31(m31 + other.m31)._m32(m32 + other.m32)._m33(m33 + other.m33)
+            ._properties(0)
         return dst
     }
 
     @JvmOverloads
-    fun sub(subtrahend: Matrix4f, dst: Matrix4f = this): Matrix4f {
-        dst._m00(m00 - subtrahend.m00)._m01(m01 - subtrahend.m01)._m02(m02 - subtrahend.m02)._m03(m03 - subtrahend.m03)
-            ._m10(
-                m10 - subtrahend.m10
-            )._m11(m11 - subtrahend.m11)._m12(m12 - subtrahend.m12)._m13(m13 - subtrahend.m13)._m20(
-                m20 - subtrahend.m20
-            )._m21(m21 - subtrahend.m21)._m22(m22 - subtrahend.m22)._m23(m23 - subtrahend.m23)._m30(
-                m30 - subtrahend.m30
-            )._m31(m31 - subtrahend.m31)._m32(m32 - subtrahend.m32)._m33(m33 - subtrahend.m33)._properties(0)
+    fun sub(s: Matrix4f, dst: Matrix4f = this): Matrix4f {
+        dst._m00(m00 - s.m00)._m01(m01 - s.m01)._m02(m02 - s.m02)._m03(m03 - s.m03)
+            ._m10(m10 - s.m10)._m11(m11 - s.m11)._m12(m12 - s.m12)._m13(m13 - s.m13)
+            ._m20(m20 - s.m20)._m21(m21 - s.m21)._m22(m22 - s.m22)._m23(m23 - s.m23)
+            ._m30(m30 - s.m30)._m31(m31 - s.m31)._m32(m32 - s.m32)._m33(m33 - s.m33)
+            ._properties(0)
         return dst
     }
 
     @JvmOverloads
-    fun mulComponentWise(other: Matrix4f, dst: Matrix4f = this): Matrix4f {
-        dst._m00(m00 * other.m00)._m01(m01 * other.m01)._m02(m02 * other.m02)._m03(m03 * other.m03)
-            ._m10(m10 * other.m10)._m11(
-                m11 * other.m11
-            )._m12(m12 * other.m12)._m13(m13 * other.m13)._m20(m20 * other.m20)._m21(m21 * other.m21)._m22(
-                m22 * other.m22
-            )._m23(m23 * other.m23)._m30(m30 * other.m30)._m31(m31 * other.m31)._m32(m32 * other.m32)._m33(
-                m33 * other.m33
-            )._properties(0)
+    fun mulComponentWise(o: Matrix4f, dst: Matrix4f = this): Matrix4f {
+        dst._m00(m00 * o.m00)._m01(m01 * o.m01)._m02(m02 * o.m02)._m03(m03 * o.m03)
+            ._m10(m10 * o.m10)._m11(m11 * o.m11)._m12(m12 * o.m12)._m13(m13 * o.m13)
+            ._m20(m20 * o.m20)._m21(m21 * o.m21)._m22(m22 * o.m22)._m23(m23 * o.m23)
+            ._m30(m30 * o.m30)._m31(m31 * o.m31)._m32(m32 * o.m32)._m33(m33 * o.m33)
+            ._properties(0)
         return dst
     }
 
     @JvmOverloads
-    fun add4x3(other: Matrix4f, dst: Matrix4f = this): Matrix4f {
-        dst._m00(m00 + other.m00)._m01(m01 + other.m01)._m02(m02 + other.m02)._m03(m03)._m10(m10 + other.m10)
-            ._m11(m11 + other.m11)._m12(
-                m12 + other.m12
-            )._m13(m13)._m20(m20 + other.m20)._m21(m21 + other.m21)._m22(m22 + other.m22)._m23(m23)._m30(
-                m30 + other.m30
-            )._m31(m31 + other.m31)._m32(m32 + other.m32)._m33(m33)._properties(0)
+    fun add4x3(o: Matrix4f, dst: Matrix4f = this): Matrix4f {
+        dst._m00(m00 + o.m00)._m01(m01 + o.m01)._m02(m02 + o.m02)._m03(m03)
+            ._m10(m10 + o.m10)._m11(m11 + o.m11)._m12(m12 + o.m12)._m13(m13)
+            ._m20(m20 + o.m20)._m21(m21 + o.m21)._m22(m22 + o.m22)._m23(m23)
+            ._m30(m30 + o.m30)._m31(m31 + o.m31)._m32(m32 + o.m32)._m33(m33)
+            ._properties(0)
         return dst
     }
 
     @JvmOverloads
-    fun sub4x3(subtrahend: Matrix4f, dst: Matrix4f = this): Matrix4f {
-        dst._m00(m00 - subtrahend.m00)._m01(m01 - subtrahend.m01)._m02(m02 - subtrahend.m02)._m03(m03)
-            ._m10(m10 - subtrahend.m10)._m11(
-                m11 - subtrahend.m11
-            )._m12(m12 - subtrahend.m12)._m13(m13)._m20(m20 - subtrahend.m20)._m21(m21 - subtrahend.m21)._m22(
-                m22 - subtrahend.m22
-            )._m23(m23)._m30(m30 - subtrahend.m30)._m31(m31 - subtrahend.m31)._m32(m32 - subtrahend.m32)._m33(
-                m33
-            )._properties(0)
+    fun sub4x3(s: Matrix4f, dst: Matrix4f = this): Matrix4f {
+        dst._m00(m00 - s.m00)._m01(m01 - s.m01)._m02(m02 - s.m02)._m03(m03)
+            ._m10(m10 - s.m10)._m11(m11 - s.m11)._m12(m12 - s.m12)._m13(m13)
+            ._m20(m20 - s.m20)._m21(m21 - s.m21)._m22(m22 - s.m22)._m23(m23)
+            ._m30(m30 - s.m30)._m31(m31 - s.m31)._m32(m32 - s.m32)._m33(m33)
+            ._properties(0)
         return dst
     }
 
     @JvmOverloads
-    fun mul4x3ComponentWise(other: Matrix4f, dst: Matrix4f = this): Matrix4f {
-        dst._m00(m00 * other.m00)._m01(m01 * other.m01)._m02(m02 * other.m02)._m03(m03)._m10(m10 * other.m10)
-            ._m11(m11 * other.m11)._m12(
-                m12 * other.m12
-            )._m13(m13)._m20(m20 * other.m20)._m21(m21 * other.m21)._m22(m22 * other.m22)._m23(m23)._m30(
-                m30 * other.m30
-            )._m31(m31 * other.m31)._m32(m32 * other.m32)._m33(m33)._properties(0)
+    fun mul4x3ComponentWise(o: Matrix4f, dst: Matrix4f = this): Matrix4f {
+        dst._m00(m00 * o.m00)._m01(m01 * o.m01)._m02(m02 * o.m02)._m03(m03)._m10(m10 * o.m10)
+            ._m11(m11 * o.m11)._m12(m12 * o.m12)._m13(m13)._m20(m20 * o.m20)._m21(m21 * o.m21)
+            ._m22(m22 * o.m22)._m23(m23)._m30(m30 * o.m30)._m31(m31 * o.m31)._m32(m32 * o.m32)
+            ._m33(m33)._properties(0)
         return dst
     }
 
@@ -1070,8 +1047,10 @@ open class Matrix4f {
     }*/
 
     fun set(col0: Vector4f, col1: Vector4f, col2: Vector4f, col3: Vector4f): Matrix4f {
-        return _m00(col0.x)._m01(col0.y)._m02(col0.z)._m03(col0.w)._m10(col1.x)._m11(col1.y)._m12(col1.z)._m13(col1.w)
-            ._m20(col2.x)._m21(col2.y)._m22(col2.z)._m23(col2.w)._m30(col3.x)._m31(col3.y)._m32(col3.z)._m33(col3.w)
+        return _m00(col0.x)._m01(col0.y)._m02(col0.z)._m03(col0.w)
+            ._m10(col1.x)._m11(col1.y)._m12(col1.z)._m13(col1.w)
+            ._m20(col2.x)._m21(col2.y)._m22(col2.z)._m23(col2.w)
+            ._m30(col3.x)._m31(col3.y)._m32(col3.z)._m33(col3.w)
             .determineProperties()
     }
 
@@ -1116,10 +1095,12 @@ open class Matrix4f {
         val m01 = m01
         val m02 = m02
         val m12 = m12
-        return dst._m00(m00)._m01(m10)._m02(m20)._m03(0f)._m10(m01)._m11(m11)._m12(m21)._m13(0f)._m20(m02)._m21(m12)
-            ._m22(
-                m22
-            )._m23(0f)._m30(nm30)._m31(nm31)._m32(nm32)._m33(1f)._properties(18)
+        return dst
+            ._m00(m00)._m01(m10)._m02(m20)._m03(0f)
+            ._m10(m01)._m11(m11)._m12(m21)._m13(0f)
+            ._m20(m02)._m21(m12)._m22(m22)._m23(0f)
+            ._m30(nm30)._m31(nm31)._m32(nm32)._m33(1f)
+            ._properties(18)
     }
 
     private fun invertGeneric(dst: Matrix4f): Matrix4f {
@@ -1141,47 +1122,25 @@ open class Matrix4f {
         val l = m22 * m33 - m23 * m32
         var det = a * l - b * k + c * j + d * i - e * h + f * g
         det = 1f / det
-        return dst._m00(JomlMath.fma(m11, l, JomlMath.fma(-m12, k, m13 * j)) * det)._m01(
-            JomlMath.fma(
-                -m01, l, JomlMath.fma(
-                    m02, k, -m03 * j
-                )
-            ) * det
-        )._m02(JomlMath.fma(m31, f, JomlMath.fma(-m32, e, m33 * d)) * det)._m03(
-            JomlMath.fma(
-                -m21, f, JomlMath.fma(
-                    m22, e, -m23 * d
-                )
-            ) * det
-        )._m10(JomlMath.fma(-m10, l, JomlMath.fma(m12, i, -m13 * h)) * det)._m11(
-            JomlMath.fma(
-                m00, l, JomlMath.fma(-m02, i, m03 * h)
-            ) * det
-        )._m12(JomlMath.fma(-m30, f, JomlMath.fma(m32, c, -m33 * b)) * det)._m13(
-            JomlMath.fma(
-                m20, f, JomlMath.fma(-m22, c, m23 * b)
-            ) * det
-        )._m20(JomlMath.fma(m10, k, JomlMath.fma(-m11, i, m13 * g)) * det)._m21(
-            JomlMath.fma(
-                -m00, k, JomlMath.fma(
-                    m01, i, -m03 * g
-                )
-            ) * det
-        )._m22(JomlMath.fma(m30, e, JomlMath.fma(-m31, c, m33 * a)) * det)._m23(
-            JomlMath.fma(
-                -m20, e, JomlMath.fma(
-                    m21, c, -m23 * a
-                )
-            ) * det
-        )._m30(JomlMath.fma(-m10, j, JomlMath.fma(m11, h, -m12 * g)) * det)._m31(
-            JomlMath.fma(
-                m00, j, JomlMath.fma(-m01, h, m02 * g)
-            ) * det
-        )._m32(JomlMath.fma(-m30, d, JomlMath.fma(m31, b, -m32 * a)) * det)._m33(
-            JomlMath.fma(
-                m20, d, JomlMath.fma(-m21, b, m22 * a)
-            ) * det
-        )._properties(0)
+        return dst._m00((m11 * l + (-m12 * k + m13 * j)) * det)._m01(
+            (-m01 * l + (m02 * k + -m03 * j
+                    )) * det
+        )._m02((m31 * f + (-m32 * e + m33 * d)) * det)._m03(
+            (-m21 * f + JomlMath.fma(
+                m22, e, -m23 * d
+            )
+                    ) * det
+        )._m10((-m10 * l + (m12 * i + -m13 * h)) * det)._m11(
+            (m00 * l + JomlMath.fma(-m02, i, m03 * h)
+                    ) * det
+        )._m12((-m30 * f + (m32 * c + -m33 * b)) * det)._m13(
+            (m20 * f + (-m22 * c + m23 * b
+                    )) * det
+        )._m20((m10 * k + (-m11 * i + m13 * g)) * det)._m21(
+            (-m00 * k + (m01 * i - m03 * g)) * det
+        )._m22((m30 * e + (-m31 * c + m33 * a)) * det)._m23((-m20 * e + (m21 * c - m23 * a)) * det
+        )._m30((-m10 * j + (m11 * h + -m12 * g)) * det)._m31((m00 * j + JomlMath.fma(-m01, h, m02 * g)) * det)
+            ._m32((-m30 * d + (m31 * b + -m32 * a)) * det)._m33((m20 * d + (-m21 * b + m22 * a)) * det)._properties(0)
     }
 
     private fun invertGenericThis(dst: Matrix4f): Matrix4f {
@@ -1199,22 +1158,22 @@ open class Matrix4f {
         val l = m22 * m33 - m23 * m32
         var det = a * l - b * k + c * j + d * i - e * h + f * g
         det = 1f / det
-        val nm00 = JomlMath.fma(m11, l, JomlMath.fma(-m12, k, m13 * j)) * det
-        val nm01 = JomlMath.fma(-m01, l, JomlMath.fma(m02, k, -m03 * j)) * det
-        val nm02 = JomlMath.fma(m31, f, JomlMath.fma(-m32, e, m33 * d)) * det
-        val nm03 = JomlMath.fma(-m21, f, JomlMath.fma(m22, e, -m23 * d)) * det
-        val nm10 = JomlMath.fma(-m10, l, JomlMath.fma(m12, i, -m13 * h)) * det
-        val nm11 = JomlMath.fma(m00, l, JomlMath.fma(-m02, i, m03 * h)) * det
-        val nm12 = JomlMath.fma(-m30, f, JomlMath.fma(m32, c, -m33 * b)) * det
-        val nm13 = JomlMath.fma(m20, f, JomlMath.fma(-m22, c, m23 * b)) * det
-        val nm20 = JomlMath.fma(m10, k, JomlMath.fma(-m11, i, m13 * g)) * det
-        val nm21 = JomlMath.fma(-m00, k, JomlMath.fma(m01, i, -m03 * g)) * det
-        val nm22 = JomlMath.fma(m30, e, JomlMath.fma(-m31, c, m33 * a)) * det
-        val nm23 = JomlMath.fma(-m20, e, JomlMath.fma(m21, c, -m23 * a)) * det
-        val nm30 = JomlMath.fma(-m10, j, JomlMath.fma(m11, h, -m12 * g)) * det
-        val nm31 = JomlMath.fma(m00, j, JomlMath.fma(-m01, h, m02 * g)) * det
-        val nm32 = JomlMath.fma(-m30, d, JomlMath.fma(m31, b, -m32 * a)) * det
-        val nm33 = JomlMath.fma(m20, d, JomlMath.fma(-m21, b, m22 * a)) * det
+        val nm00 = (m11 * l + (-m12 * k + m13 * j)) * det
+        val nm01 = (-m01 * l + (m02 * k + -m03 * j)) * det
+        val nm02 = (m31 * f + (-m32 * e + m33 * d)) * det
+        val nm03 = (-m21 * f + (m22 * e + -m23 * d)) * det
+        val nm10 = (-m10 * l + (m12 * i + -m13 * h)) * det
+        val nm11 = (m00 * l + (-m02 * i + m03 * h)) * det
+        val nm12 = (-m30 * f + (m32 * c + -m33 * b)) * det
+        val nm13 = (m20 * f + (-m22 * c + m23 * b)) * det
+        val nm20 = (m10 * k + (-m11 * i + m13 * g)) * det
+        val nm21 = (-m00 * k + (m01 * i + -m03 * g)) * det
+        val nm22 = (m30 * e + (-m31 * c + m33 * a)) * det
+        val nm23 = (-m20 * e + (m21 * c + -m23 * a)) * det
+        val nm30 = (-m10 * j + (m11 * h + -m12 * g)) * det
+        val nm31 = (m00 * j + (-m01 * h + m02 * g)) * det
+        val nm32 = (-m30 * d + (m31 * b + -m32 * a)) * det
+        val nm33 = (m20 * d + (-m21 * b + m22 * a)) * det
         return dst._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(nm10)._m11(nm11)._m12(nm12)._m13(nm13)._m20(nm20)
             ._m21(nm21)._m22(nm22)._m23(nm23)._m30(nm30)._m31(nm31)._m32(nm32)._m33(nm33)._properties(0)
     }
@@ -1234,18 +1193,9 @@ open class Matrix4f {
         val invM23 = 1f / m23
         val invM32 = 1f / m32
         return dst.set(
-            invM00,
-            0f,
-            0f,
-            0f,
-            0f,
-            invM11,
-            0f,
-            0f,
-            0f,
-            0f,
-            0f,
-            invM32,
+            invM00, 0f, 0f, 0f,
+            0f, invM11, 0f, 0f,
+            0f, 0f, 0f, invM32,
             -m20 * invM00 * invM23,
             -m21 * invM11 * invM23,
             invM23,
@@ -1259,22 +1209,12 @@ open class Matrix4f {
         val invM11 = 1f / m11
         val invM22 = 1f / m22
         return dst.set(
-            invM00,
-            0f,
-            0f,
-            0f,
-            0f,
-            invM11,
-            0f,
-            0f,
-            0f,
-            0f,
-            invM22,
-            0f,
+            invM00, 0f, 0f, 0f,
+            0f, invM11, 0f, 0f,
+            0f, 0f, invM22, 0f,
             -m30 * invM00,
             -m31 * invM11,
-            -m32 * invM22,
-            1f
+            -m32 * invM22, 1f
         )._properties(2 or (properties and 16))
     }
 
@@ -2249,14 +2189,11 @@ open class Matrix4f {
         val lm21 = m21
         val lm22 = m22
         val lm23 = m23
-        return dst._m20(JomlMath.fma(lm10, -sin, lm20 * cos))._m21(JomlMath.fma(lm11, -sin, lm21 * cos))
-            ._m22(JomlMath.fma(lm12, -sin, lm22 * cos))._m23(
-                JomlMath.fma(lm13, -sin, lm23 * cos)
-            )._m10(JomlMath.fma(lm10, cos, lm20 * sin))._m11(JomlMath.fma(lm11, cos, lm21 * sin))._m12(
-                JomlMath.fma(lm12, cos, lm22 * sin)
-            )._m13(JomlMath.fma(lm13, cos, lm23 * sin))._m00(
-                m00
-            )._m01(m01)._m02(m02)._m03(m03)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
+        return dst._m20(lm10 * -sin + lm20 * cos)._m21(lm11 * -sin + lm21 * cos)._m22(lm12 * -sin + lm22 * cos)
+            ._m23(lm13 * -sin + lm23 * cos)._m10(lm10 * cos + lm20 * sin)._m11(lm11 * cos + lm21 * sin)
+            ._m12(lm12 * cos + lm22 * sin)._m13(lm13 * cos + lm23 * sin)
+            ._m00(m00)._m01(m01)._m02(m02)._m03(m03)._m30(m30)._m31(m31)._m32(m32)._m33(m33)
+            ._properties(properties and -14)
     }
 
     @JvmOverloads
@@ -2276,17 +2213,13 @@ open class Matrix4f {
     private fun rotateYInternal(ang: Float, dst: Matrix4f): Matrix4f {
         val sin = sin(ang)
         val cos = cos(ang)
-        val nm00 = JomlMath.fma(m00, cos, m20 * -sin)
-        val nm01 = JomlMath.fma(m01, cos, m21 * -sin)
-        val nm02 = JomlMath.fma(m02, cos, m22 * -sin)
-        val nm03 = JomlMath.fma(m03, cos, m23 * -sin)
-        return dst._m20(JomlMath.fma(m00, sin, m20 * cos))._m21(JomlMath.fma(m01, sin, m21 * cos))._m22(
-            JomlMath.fma(
-                m02, sin, m22 * cos
-            )
-        )._m23(JomlMath.fma(m03, sin, m23 * cos))._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)._m10(
-            m10
-        )._m11(m11)._m12(m12)._m13(m13)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
+        val nm00 = m00 * cos + m20 * -sin
+        val nm01 = m01 * cos + m21 * -sin
+        val nm02 = m02 * cos + m22 * -sin
+        val nm03 = m03 * cos + m23 * -sin
+        return dst._m20(m00 * sin + m20 * cos)._m21(m01 * sin + m21 * cos)._m22(m02 * sin + m22 * cos)
+            ._m23(m03 * sin + m23 * cos)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+            ._m10(m10)._m11(m11)._m12(m12)._m13(m13)._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
     @JvmOverloads
@@ -2314,14 +2247,14 @@ open class Matrix4f {
         return if (properties and 4 != 0) {
             dst.rotationTowardsXY(dirX, dirY)
         } else {
-            val nm00 = JomlMath.fma(m00, dirY, m10 * dirX)
-            val nm01 = JomlMath.fma(m01, dirY, m11 * dirX)
-            val nm02 = JomlMath.fma(m02, dirY, m12 * dirX)
-            val nm03 = JomlMath.fma(m03, dirY, m13 * dirX)
-            dst._m10(JomlMath.fma(m00, -dirX, m10 * dirY))
-                ._m11(JomlMath.fma(m01, -dirX, m11 * dirY))
-                ._m12(JomlMath.fma(m02, -dirX, m12 * dirY))
-                ._m13(JomlMath.fma(m03, -dirX, m13 * dirY))._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
+            val nm00 = m00 * dirY + m10 * dirX
+            val nm01 = m01 * dirY + m11 * dirX
+            val nm02 = m02 * dirY + m12 * dirX
+            val nm03 = m03 * dirY + m13 * dirX
+            dst._m10(m00 * -dirX + m10 * dirY)
+                ._m11(m01 * -dirX + m11 * dirY)
+                ._m12(m02 * -dirX + m12 * dirY)
+                ._m13(m03 * -dirX + m13 * dirY)._m00(nm00)._m01(nm01)._m02(nm02)._m03(nm03)
                 ._m20(m20)._m21(m21)._m22(m22)._m23(m23)._m30(m30)._m31(m31)._m32(m32)
                 ._m33(m33)._properties(properties and -14)
         }
@@ -2360,31 +2293,23 @@ open class Matrix4f {
         val m_sinX = -sinX
         val m_sinY = -sinY
         val m_sinZ = -sinZ
-        val nm10 = JomlMath.fma(m10, cosX, m20 * sinX)
-        val nm11 = JomlMath.fma(m11, cosX, m21 * sinX)
-        val nm12 = JomlMath.fma(m12, cosX, m22 * sinX)
-        val nm13 = JomlMath.fma(m13, cosX, m23 * sinX)
-        val nm20 = JomlMath.fma(m10, m_sinX, m20 * cosX)
-        val nm21 = JomlMath.fma(m11, m_sinX, m21 * cosX)
-        val nm22 = JomlMath.fma(m12, m_sinX, m22 * cosX)
-        val nm23 = JomlMath.fma(m13, m_sinX, m23 * cosX)
-        val nm00 = JomlMath.fma(m00, cosY, nm20 * m_sinY)
-        val nm01 = JomlMath.fma(m01, cosY, nm21 * m_sinY)
-        val nm02 = JomlMath.fma(m02, cosY, nm22 * m_sinY)
-        val nm03 = JomlMath.fma(m03, cosY, nm23 * m_sinY)
-        return dst._m20(JomlMath.fma(m00, sinY, nm20 * cosY))._m21(JomlMath.fma(m01, sinY, nm21 * cosY))._m22(
-            JomlMath.fma(
-                m02, sinY, nm22 * cosY
-            )
-        )._m23(JomlMath.fma(m03, sinY, nm23 * cosY))._m00(JomlMath.fma(nm00, cosZ, nm10 * sinZ))._m01(
-            JomlMath.fma(nm01, cosZ, nm11 * sinZ)
-        )._m02(JomlMath.fma(nm02, cosZ, nm12 * sinZ))._m03(JomlMath.fma(nm03, cosZ, nm13 * sinZ))._m10(
-            JomlMath.fma(nm00, m_sinZ, nm10 * cosZ)
-        )._m11(JomlMath.fma(nm01, m_sinZ, nm11 * cosZ))._m12(JomlMath.fma(nm02, m_sinZ, nm12 * cosZ))._m13(
-            JomlMath.fma(nm03, m_sinZ, nm13 * cosZ)
-        )._m30(
-            m30
-        )._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
+        val nm10 = m10 * cosX + m20 * sinX
+        val nm11 = m11 * cosX + m21 * sinX
+        val nm12 = m12 * cosX + m22 * sinX
+        val nm13 = m13 * cosX + m23 * sinX
+        val nm20 = m10 * m_sinX + m20 * cosX
+        val nm21 = m11 * m_sinX + m21 * cosX
+        val nm22 = m12 * m_sinX + m22 * cosX
+        val nm23 = m13 * m_sinX + m23 * cosX
+        val nm00 = m00 * cosY + nm20 * m_sinY
+        val nm01 = m01 * cosY + nm21 * m_sinY
+        val nm02 = m02 * cosY + nm22 * m_sinY
+        val nm03 = m03 * cosY + nm23 * m_sinY
+        return dst._m20(m00 * sinY + nm20 * cosY)._m21(m01 * sinY + nm21 * cosY)._m22(m02 * sinY + nm22 * cosY)
+            ._m23(m03 * sinY + nm23 * cosY)._m00(nm00 * cosZ + nm10 * sinZ)._m01(nm01 * cosZ + nm11 * sinZ)
+            ._m02(nm02 * cosZ + nm12 * sinZ)._m03(nm03 * cosZ + nm13 * sinZ)._m10(nm00 * m_sinZ + nm10 * cosZ)
+            ._m11(nm01 * m_sinZ + nm11 * cosZ)._m12(nm02 * m_sinZ + nm12 * cosZ)._m13(nm03 * m_sinZ + nm13 * cosZ)
+            ._m30(m30)._m31(m31)._m32(m32)._m33(m33)._properties(properties and -14)
     }
 
     @JvmOverloads
@@ -2411,15 +2336,15 @@ open class Matrix4f {
         val m_sinX = -sinX
         val m_sinY = -sinY
         val m_sinZ = -sinZ
-        val nm10 = JomlMath.fma(m10, cosX, m20 * sinX)
-        val nm11 = JomlMath.fma(m11, cosX, m21 * sinX)
-        val nm12 = JomlMath.fma(m12, cosX, m22 * sinX)
-        val nm20 = JomlMath.fma(m10, m_sinX, m20 * cosX)
-        val nm21 = JomlMath.fma(m11, m_sinX, m21 * cosX)
-        val nm22 = JomlMath.fma(m12, m_sinX, m22 * cosX)
-        val nm00 = JomlMath.fma(m00, cosY, nm20 * m_sinY)
-        val nm01 = JomlMath.fma(m01, cosY, nm21 * m_sinY)
-        val nm02 = JomlMath.fma(m02, cosY, nm22 * m_sinY)
+        val nm10 = m10 * cosX + m20 * sinX
+        val nm11 = m11 * cosX + m21 * sinX
+        val nm12 = m12 * cosX + m22 * sinX
+        val nm20 = m10 * m_sinX + m20 * cosX
+        val nm21 = m11 * m_sinX + m21 * cosX
+        val nm22 = m12 * m_sinX + m22 * cosX
+        val nm00 = m00 * cosY + nm20 * m_sinY
+        val nm01 = m01 * cosY + nm21 * m_sinY
+        val nm02 = m02 * cosY + nm22 * m_sinY
         return dst._m20(JomlMath.fma(m00, sinY, nm20 * cosY))._m21(JomlMath.fma(m01, sinY, nm21 * cosY))._m22(
             JomlMath.fma(
                 m02, sinY, nm22 * cosY

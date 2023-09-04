@@ -41,20 +41,26 @@ object JomlMath {
 
     @JvmStatic
     /** a*b+c */
+    @Deprecated("dirty", replaceWith = ReplaceWith("a*b+c"))
     fun fma(a: Float, b: Float, c: Float): Float = a * b + c
 
     @JvmStatic
     /** a*b+c */
+    @Deprecated("dirty", replaceWith = ReplaceWith("a*b+c"))
     fun fma(a: Double, b: Double, c: Double): Double = a * b + c
 
     // for the transition away from fma()
     @JvmStatic
+    @Deprecated("dirty", replaceWith = ReplaceWith("a+b"))
     fun fma(a: Float, b: Float): Float = a + b
     @JvmStatic
+    @Deprecated("dirty", replaceWith = ReplaceWith("a+b"))
     fun fma(a: Double, b: Double): Double = a + b
     @JvmStatic
+    @Deprecated("dirty", replaceWith = ReplaceWith("a"))
     fun fma(a: Float): Float = a
     @JvmStatic
+    @Deprecated("dirty", replaceWith = ReplaceWith("a"))
     fun fma(a: Double): Double = a
 
     // can be replaced in the future

@@ -932,9 +932,9 @@ open class Matrix3d {
 
     fun transform(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
         return dest.set(
-            JomlMath.fma(m00 * x, JomlMath.fma(m10 * y, m20 * z)),
-            JomlMath.fma(m01 * x, JomlMath.fma(m11 * y, m21 * z)),
-            JomlMath.fma(m02 * x, JomlMath.fma(m12 * y, m22 * z))
+            m00 * x + m10 * y + m20 * z,
+            m01 * x + m11 * y + m21 * z,
+            m02 * x + m12 * y + m22 * z
         )
     }
 
@@ -948,11 +948,9 @@ open class Matrix3d {
 
     fun transformTranspose(x: Double, y: Double, z: Double, dest: Vector3d): Vector3d {
         return dest.set(
-            JomlMath.fma(m00, x, JomlMath.fma(m01, y, m02 * z)), JomlMath.fma(
-                m10, x, JomlMath.fma(
-                    m11, y, m12 * z
-                )
-            ), JomlMath.fma(m20, x, JomlMath.fma(m21, y, m22 * z))
+            m00 * x + m01 * y + m02 * z,
+            m10 * x + m11 * y + m12 * z,
+            m20 * x + m21 * y + m22 * z
         )
     }
 
