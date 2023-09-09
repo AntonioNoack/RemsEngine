@@ -252,7 +252,7 @@ class CachedReflections(
                 field.type.kotlin, name, serial,
                 serialize, annotations,
                 {
-                    if (getterMethod != null) getterMethod.invoke(it)
+                    if (getterMethod != null && getterMethod.returnType == field.type) getterMethod.invoke(it)
                     else field.get(it)
                 }, { i, v ->
                     if (setterMethod != null) setterMethod.invoke(i, v)

@@ -61,7 +61,6 @@ abstract class InnerTmpFile private constructor(
         }
 
         override fun readBytesSync() = bytes
-
     }
 
     @Suppress("unused")
@@ -75,20 +74,26 @@ abstract class InnerTmpFile private constructor(
                 this.compressedSize = size
             }
 
-        override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
-            callback(text, null)
-        }
-
-        override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-            callback(text.toByteArray(), null)
+        init {
+            size = text.length.toLong()
+            compressedSize = size
         }
 
         override fun readTextSync() = text
         override fun readBytesSync() = text.toByteArray()
-        override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
-            callback(text.byteInputStream(), null)
+        override fun inputStreamSync() = text.byteInputStream()
+
+        override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+            callback(readTextSync(), null)
         }
 
+        override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
+            callback(readBytesSync(), null)
+        }
+
+        override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
+            callback(inputStreamSync(), null)
+        }
     }
 
     class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json") :
@@ -127,7 +132,6 @@ abstract class InnerTmpFile private constructor(
         override fun readPrefab(): Prefab {
             return prefab
         }
-
     }
 
     class InnerTmpImageFile(val image: Image, ext: String = "png") : InnerTmpFile(ext), ImageReadable {
@@ -160,7 +164,6 @@ abstract class InnerTmpFile private constructor(
         override fun readBytesSync(): ByteArray = bytes.value
 
         override fun readImage(): Image = image
-
     }
 
     abstract class InnerTmpAudioFile : InnerTmpFile("mp3"), AudioReadable {
@@ -205,5 +208,4 @@ abstract class InnerTmpFile private constructor(
             }
         }
     }
-
 }

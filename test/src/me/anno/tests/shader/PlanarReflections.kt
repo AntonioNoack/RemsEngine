@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -15,14 +15,14 @@ import kotlin.math.PI
 fun main() {
     ECSRegistry.initMeshes()
     registerCustomClass(PlanarReflection())
-    registerCustomClass(SkyBox())
+    registerCustomClass(Skybox())
     val scene = Entity()
     scene.add(Entity().apply {
         add(PlanarReflection())
         position = position.set(0.0, -0.01, 0.0)
         rotation = rotation.identity().rotateX(-PI / 2)
     })
-    scene.add(SkyBox())
+    scene.add(Skybox())
     scene.add(MeshComponent(documents.getChild("plane.obj")).apply {
         materials = listOf(Material().apply {
             metallicMinMax.set(1f)

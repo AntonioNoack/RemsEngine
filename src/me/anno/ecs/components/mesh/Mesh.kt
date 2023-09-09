@@ -231,6 +231,12 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
     var ignoreStrayPointsInAABB = false
 
+    override fun clone(): PrefabSaveable {
+        val clone = Mesh()
+        copyInto(clone)
+        return clone
+    }
+
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as Mesh

@@ -2,7 +2,7 @@ package me.anno.tests.sdf
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.sdf.uv.LinearUVMapper
@@ -15,7 +15,7 @@ import me.anno.utils.OS.pictures
 fun main() {
 
     val scene = Entity()
-    scene.add(SkyBox())
+    scene.add(Skybox())
 
     val materials = listOf(
         Material().apply {

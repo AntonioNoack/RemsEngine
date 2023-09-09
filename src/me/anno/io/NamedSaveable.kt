@@ -12,10 +12,8 @@ open class NamedSaveable : Saveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        if (name.isNotEmpty())
-            writer.writeString("name", name)
-        if (description.isNotEmpty())
-            writer.writeString("desc", description)
+        writer.writeString("name", name)
+        writer.writeString("desc", description)
     }
 
     override fun readString(name: String, value: String?) {

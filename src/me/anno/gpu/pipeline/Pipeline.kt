@@ -9,8 +9,8 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
-import me.anno.ecs.components.shaders.SkyBoxBase
-import me.anno.ecs.components.shaders.SkyBoxBase.Companion.defaultSky
+import me.anno.ecs.components.shaders.SkyboxBase
+import me.anno.ecs.components.shaders.SkyboxBase.Companion.defaultSky
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -86,7 +86,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
 
     val ambient = Vector3f()
 
-    var skyBox: SkyBoxBase = defaultSky
+    var skyBox: SkyboxBase = defaultSky
     var bakedSkyBox: CubemapFramebuffer? = null
 
     val planarReflections = ArrayList<PlanarReflection>()
@@ -219,7 +219,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         }
     }
 
-    fun drawSky(sky: SkyBoxBase, stage: PipelineStage) {
+    fun drawSky(sky: SkyboxBase, stage: PipelineStage) {
         GFXState.depthMode.use(stage.depthMode) {
             GFXState.depthMask.use(false) {
                 GFXState.blendMode.use(null) {

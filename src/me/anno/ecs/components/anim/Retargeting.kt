@@ -81,7 +81,7 @@ class Retargeting : NamedSaveable() {
                 val file2 = downloads.getChild("fbx/Walking.fbx")
                 val animation = (if (testRetargeting) file2 else file1).getChild("animations").listChildren()!!.first()
                 val mesh = AnimRenderer()
-                mesh.mesh = file1
+                mesh.meshFile = file1
                 mesh.skeleton = file1.getChild("Skeleton.json")
                 mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
                 testScene(mesh)

@@ -140,7 +140,7 @@ class FlagMesh : MeshComponent() {
             val key = IntPair(w, h)
             val data = meshCache[key]
             createTargets(key, data.positions!!)
-            mesh = data.ref
+            meshFile = data.ref
         }
 
         val dt0 = Engine.deltaTime

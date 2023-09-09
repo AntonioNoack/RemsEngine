@@ -11,10 +11,10 @@ object MeshData {
     fun warnMissingMesh(comp: MeshComponentBase, mesh: Mesh?) {
         val msg = if (mesh == null) {
             if (comp is MeshComponent) {
-                if (comp.mesh == InvalidRef)
-                    "MeshComponent '${comp.name}' is missing path (${comp.mesh})"
+                if (comp.meshFile == InvalidRef)
+                    "MeshComponent '${comp.name}' is missing path (${comp.meshFile})"
                 else
-                    "Mesh '${comp.name}'/'${comp.mesh}' is missing from MeshComponent"
+                    "Mesh '${comp.name}'/'${comp.meshFile}' is missing from MeshComponent"
             } else "Missing mesh $comp, ${comp::class.simpleName}"
         } else "Missing positions ${comp.getMesh()}"
         LOGGER.warn(msg)

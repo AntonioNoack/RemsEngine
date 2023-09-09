@@ -10,7 +10,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
@@ -244,7 +244,7 @@ fun main() {
     }
 
     val scene = Entity()
-    scene.add(SkyBox())
+    scene.add(Skybox())
     scene.add(Entity("Floor").apply {
         position = position.set(0.0, -1.0, 0.0)
         scale = scale.set(20.0)

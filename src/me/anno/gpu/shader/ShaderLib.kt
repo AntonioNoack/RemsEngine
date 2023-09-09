@@ -1045,24 +1045,26 @@ object ShaderLib {
     // https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/5.3.parallax_occlusion_mapping/5.3.parallax_mapping.fs
     val parallaxMapping = "" +
             "vec2 parallaxMapUVs(sampler2D depthMap, vec2 texCoords, vec3 viewDir, float heightScale) { \n" +
+            // clamping? repeating? out-of-bounds-pixel-access?... -> repeating :)
             // number of depth layers
             "    const float minLayers = 8;\n" +
             "    const float maxLayers = 32;\n" +
-            "    float numLayers = mix(maxLayers, minLayers, abs(viewDir.z));  \n" +
+            "    float numLayers = mix(maxLayers, minLayers, abs(viewDir.z));\n" +
+            "    vec2 texSize = textureSize(depthMap,0);\n" +
             // calculate the size of each layer
             "    float layerDepth = 1.0 / numLayers;\n" +
             "    float currentLayerDepth = -0.5;\n" +
             // the amount to shift the texture coordinates per layer (from vector P)
             "    vec2 P = viewDir.xy / viewDir.z * heightScale; \n" +
-            "    vec2 deltaTexCoords = P / numLayers;\n" +
+            "    vec2 deltaTexCoords = texSize * P / numLayers;\n" +
             // get initial values
-            "    vec2  currentTexCoords     = texCoords;\n" +
-            "    float currentDepthMapValue = 0.5 - texture(depthMap, currentTexCoords).r;\n" +
+            "    vec2  currentTexCoords     = texSize * texCoords;\n" +
+            "    float currentDepthMapValue = 0.5 - texelFetch(depthMap, ivec2(mod(currentTexCoords, texSize)), 0).r;\n" +
             "    while(currentLayerDepth < currentDepthMapValue) {\n" +
             // shift texture coordinates along direction of P
             "        currentTexCoords -= deltaTexCoords;\n" +
             // get depth map value at current texture coordinates
-            "        currentDepthMapValue = 0.5 - texture(depthMap, currentTexCoords).r;  \n" +
+            "        currentDepthMapValue = 0.5 - texelFetch(depthMap, ivec2(mod(currentTexCoords, texSize)), 0).r;  \n" +
             // get depth of next layer
             "        currentLayerDepth += layerDepth;\n" +
             "    }\n" +
@@ -1071,11 +1073,11 @@ object ShaderLib {
 
             // get depth after and before collision for linear interpolation
             "    float afterDepth  = currentDepthMapValue - currentLayerDepth;\n" +
-            "    float beforeDepth = 0.5 - texture(depthMap, prevTexCoords).r - currentLayerDepth + layerDepth;\n" +
+            "    float beforeDepth = 0.5 - texelFetch(depthMap, ivec2(mod(prevTexCoords, texSize)), 0).r - currentLayerDepth + layerDepth;\n" +
 
             // interpolation of texture coordinates
             "    float weight = afterDepth / (afterDepth - beforeDepth);\n" +
-            "    return mix(currentTexCoords, prevTexCoords, weight);\n" +
+            "    return mix(currentTexCoords, prevTexCoords, weight) / texSize;\n" +
             "}\n"
 
     fun createShader(

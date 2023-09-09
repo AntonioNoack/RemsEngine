@@ -37,7 +37,7 @@ fun main() {
     // find file with multiple animations -> fox :)
     val folder = downloads.getChild("3d/azeria/scene.gltf")
     renderer.skeleton = folder.getChild("Skeleton.json")
-    renderer.mesh = folder.getChild("meshes/Object_0.json")
+    renderer.meshFile = folder.getChild("meshes/Object_0.json")
     val animations = folder.getChild("animations").listChildren()!!
         .map { it.getChild("Imported.json") }
     renderer.animations = animations

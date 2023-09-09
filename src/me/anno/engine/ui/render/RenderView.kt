@@ -9,10 +9,8 @@ import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.ecs.components.camera.effects.SSAOEffect
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.components.shaders.SkyBox
-import me.anno.ecs.components.shaders.SkyBoxBase
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.components.shaders.effects.*
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
@@ -60,7 +58,6 @@ import me.anno.gpu.pipeline.LightShaders.combineLighting
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
@@ -380,41 +377,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 pipeline.lightStage.environmentMaps.isNotEmpty() ||
                 (renderMode.dlt == null && renderMode.effect == null)
             ) {
-
-                val sky = pipeline.skyBox
                 if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
                     this.renderMode = RenderMode.DEFAULT
                 }
-                val bsb = pipeline.bakedSkyBox ?: CubemapFramebuffer(
-                    "skyBox", 256, 1,
-                    arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
-                )
-                val cameraMatrix = JomlPools.mat4f.create()
-                val skyRot = JomlPools.quat4f.create()
-                bsb.draw(rawAttributeRenderers[DeferredLayerType.EMISSIVE]) { side ->
-                    // draw sky
-                    // could be optimized to draw a single triangle instead of a full cube for each side
-                    rotateForCubemap(skyRot.identity(), side)
-                    val shader = (sky.shader ?: pbrModelShader).value
-                    shader.use()
-                    Perspective.setPerspective(
-                        cameraMatrix, PIf * 0.5f, 1f,
-                        0.1f, 10f, 0f, 0f
-                    )
-                    cameraMatrix.rotate(skyRot)
-                    shader.m4x4("transform", cameraMatrix)
-                    if (side == 0) {
-                        shader.v1i("hasVertexColors", 0)
-                        sky.material.bind(shader)
-                    }// else already set
-                    shader.v3f("cameraPosition", cameraPosition)
-                    shader.v4f("cameraRotation", cameraRotation)
-                    shader.v1f("camScale", worldScale.toFloat())
-                    sky.draw(shader, 0)
-                }
-                JomlPools.mat4f.sub(1)
-                JomlPools.quat4f.sub(1)
-                pipeline.bakedSkyBox = bsb
+                bakeSkybox()
                 this.renderMode = renderMode
             } else {
                 pipeline.bakedSkyBox?.destroy()
@@ -485,6 +451,40 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     private val fsr22 by lazy { FSR2v2() }
 
+    fun bakeSkybox() {
+        val bsb = pipeline.bakedSkyBox ?: CubemapFramebuffer(
+            "skyBox", 256, 1,
+            arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
+        )
+        bsb.draw(rawAttributeRenderers[DeferredLayerType.EMISSIVE]) { side ->
+            val skyRot = JomlPools.quat4f.create()
+            val cameraMatrix = JomlPools.mat4f.create()
+            val sky = pipeline.skyBox
+            // draw sky
+            // could be optimized to draw a single triangle instead of a full cube for each side
+            rotateForCubemap(skyRot.identity(), side)
+            val shader = (sky.shader ?: pbrModelShader).value
+            shader.use()
+            Perspective.setPerspective(
+                cameraMatrix, PIf * 0.5f, 1f,
+                0.1f, 10f, 0f, 0f
+            )
+            cameraMatrix.rotate(skyRot)
+            shader.m4x4("transform", cameraMatrix)
+            if (side == 0) {
+                shader.v1i("hasVertexColors", 0)
+                sky.material.bind(shader)
+            }// else already set
+            shader.v3f("cameraPosition", cameraPosition)
+            shader.v4f("cameraRotation", cameraRotation)
+            shader.v1f("camScale", worldScale.toFloat())
+            sky.draw(shader, 0)
+            JomlPools.quat4f.sub(1)
+            JomlPools.mat4f.sub(1)
+        }
+        pipeline.bakedSkyBox = bsb
+    }
+
     fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
         camera0: Camera, camera1: Camera, blending: Float,
@@ -540,6 +540,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             RenderMode.FSR_X4,
             RenderMode.FSR_MSAA_X4 -> true
             else -> false
+        }
+
+        // clearing everything by sky won't work, because sky will be lines xD
+        when (renderMode) {
+            RenderMode.LINES, RenderMode.LINES_MSAA -> {
+                dstBuffer.clearColor(black)
+            }
         }
 
         when {
@@ -1351,7 +1358,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             for (selected in library.selection) {
                 when (selected) {
                     is Entity -> drawOutline(selected)
-                    is SkyBox -> {}
+                    is Skybox -> {}
                     is MeshComponentBase -> {
                         val mesh = selected.getMesh() ?: continue
                         drawOutline(selected, mesh)

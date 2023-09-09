@@ -3,7 +3,7 @@ package me.anno.tests.shader
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.utils.OS.documents
@@ -20,6 +20,6 @@ fun main() {
         roughnessMinMax.set(0.5f)
     }.ref)
     scene.add(mesh)
-    scene.add(SkyBox())
+    scene.add(Skybox())
     testSceneWithUI("CubeMap LODs", scene)
 }

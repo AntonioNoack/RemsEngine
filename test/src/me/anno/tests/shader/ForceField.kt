@@ -6,7 +6,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel.createUVSphere
 import me.anno.ecs.components.mesh.shapes.PlaneModel.createPlane
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
@@ -134,6 +134,6 @@ fun main() {
     scene.add(Entity("Monkey", MeshComponent(documents.getChild("monkey.obj"), forceFieldMaterial)).apply {
         position = position.set(-1.3, 1.0, 0.0)
     })
-    scene.add(SkyBox())
+    scene.add(Skybox())
     testSceneWithUI("Force Field", scene)
 }

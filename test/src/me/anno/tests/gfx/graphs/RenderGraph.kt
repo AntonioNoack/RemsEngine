@@ -3,7 +3,7 @@ package me.anno.tests.gfx.graphs
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
@@ -19,7 +19,7 @@ fun main() {
     val graph = RenderGraph.combined1
     val scene = Entity()
     scene.add(MeshComponent(OS.documents.getChild("metal-roughness.glb")))
-    scene.add(SkyBox())
+    scene.add(Skybox())
     testUI("RenderGraph") {
 
         EditorState.prefabSource = scene.ref

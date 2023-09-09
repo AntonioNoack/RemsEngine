@@ -10,7 +10,7 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
@@ -292,7 +292,7 @@ fun main() {
     val mesh = createMesh(hexagons, world)
     scene.add(MeshComponent(mesh))
 
-    val sky = SkyBox()
+    val sky = Skybox()
     sky.spherical = true
     scene.add(sky)
 
@@ -339,7 +339,7 @@ fun main() {
 
 open class ControllerOnSphere(
     rv: RenderView,
-    val sky: SkyBox?
+    val sky: Skybox?
 ) : ControlScheme(rv) {
 
     // todo set and destroy blocks

@@ -224,7 +224,7 @@ Shipping to web:
 
 - download [JVM2WASM](https://github.com/AntonioNoack/JVM2WASM)
 - build your game, best as a panel-creating function, into a JAR (don't use sync IO)
-- bind that as the missing VideoStudio.jar in JVM2WASM
+- bind that as the missing VideoStudio/RemsEngine.jar in JVM2WASM
 - run JVM2WASM.kt to create the WASM file and index0.js bindings
 - if needed, implement missing or extra functions from Java
 

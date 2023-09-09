@@ -14,8 +14,8 @@ class PIProperty(
     val property: CachedProperty
 ) : IProperty<Any?> {
 
-    private fun getPath(): Path? {
-        val path = instance.prefabPath ?: return null
+    private fun getPath(): Path {
+        val path = instance.prefabPath
         // the index may not be set in the beginning
         val li = path.size - 1
         if (li >= 0 && path.lastIndex() < 0) {

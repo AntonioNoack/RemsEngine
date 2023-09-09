@@ -28,11 +28,11 @@ class Clock(
         firstTime = lastTime
     }
 
-    fun stop(wasUsedFor: () -> String) {
-        stop(wasUsedFor, minTime)
+    fun stop(wasUsedFor: () -> String): Double {
+        return stop(wasUsedFor, minTime)
     }
 
-    fun stop(wasUsedFor: () -> String, elementCount: Long) {
+    fun stop(wasUsedFor: () -> String, elementCount: Long): Double {
         val time = System.nanoTime()
         val dt0 = time - lastTime
         val dt = dt0 * 1e-9
@@ -44,27 +44,29 @@ class Clock(
                         " for ${wasUsedFor()}, ${format(nanosPerElement)}"
             )
         }
+        return dt
     }
 
     fun format(nanos: Double): String {
         return when {
-            nanos < 1.0 -> nanos.f4() + " ns/e"
-            nanos < 10.0 -> nanos.f3() + " ns/e"
-            nanos < 100.0 -> nanos.f2() + " ns/e"
-            nanos < 1e3 -> nanos.f1() + " ns/e"
-            nanos < 1e6 -> nanos.roundToInt().toString() + " ns/e"
-            else -> ((nanos * 1e-9).toFloat()).toString() + " s/e"
+            nanos < 1.0 -> nanos.f4() + "ns/e"
+            nanos < 10.0 -> nanos.f3() + "ns/e"
+            nanos < 100.0 -> nanos.f2() + "ns/e"
+            nanos < 1e3 -> nanos.f1() + "ns/e"
+            nanos < 1e6 -> nanos.roundToInt().toString() + "ns/e"
+            else -> ((nanos * 1e-9).toFloat()).toString() + "s/e"
         }
     }
 
-    fun stop(wasUsedFor: String) {
-        stop(wasUsedFor, minTime)
+    fun stop(wasUsedFor: String): Double {
+        return stop(wasUsedFor, minTime)
     }
 
-    fun stop(wasUsedFor: String, elementCount: Int) =
-        stop(wasUsedFor, elementCount.toLong())
+    fun stop(wasUsedFor: String, elementCount: Int): Double {
+        return stop(wasUsedFor, elementCount.toLong())
+    }
 
-    fun stop(wasUsedFor: String, elementCount: Long) {
+    fun stop(wasUsedFor: String, elementCount: Long): Double {
         val time = System.nanoTime()
         val dt0 = time - lastTime
         val dt = dt0 * 1e-9
@@ -76,6 +78,7 @@ class Clock(
                         "for $wasUsedFor, ${format(nanosPerElement)}"
             )
         }
+        return dt
     }
 
     fun update(wasUsedFor: String) {
@@ -90,22 +93,24 @@ class Clock(
         stop(wasUsedFor, minTime)
     }
 
-    fun stop(wasUsedFor: String, minTime: Double) {
+    fun stop(wasUsedFor: String, minTime: Double): Double {
         val time = System.nanoTime()
         val dt = (time - lastTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
             LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for $wasUsedFor")
         }
+        return dt
     }
 
-    fun stop(wasUsedFor: () -> String, minTime: Double) {
+    fun stop(wasUsedFor: () -> String, minTime: Double): Double {
         val time = System.nanoTime()
         val dt = (time - lastTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
             LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for ${wasUsedFor()}")
         }
+        return dt
     }
 
     fun total(wasUsedFor: String = "") {

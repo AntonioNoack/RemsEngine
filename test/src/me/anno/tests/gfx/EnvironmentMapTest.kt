@@ -3,7 +3,7 @@ package me.anno.tests.gfx
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.EnvironmentMap
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS
@@ -26,7 +26,7 @@ fun main() {
         add(EnvironmentMap())
     })
     scene.add(MeshComponent(OS.documents.getChild("metal-roughness.glb")))
-    scene.add(SkyBox())
+    scene.add(Skybox())
     testSceneWithUI("EnvironmentMap", scene)
 
 }

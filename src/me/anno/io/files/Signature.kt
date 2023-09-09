@@ -2,9 +2,11 @@ package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.gimp.GimpImage
+import me.anno.io.zip.InnerTmpFile
 import me.anno.io.zip.SignatureFile
 import me.anno.utils.Color.hex8
 import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.math.min
@@ -269,6 +271,8 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             Signature("yaml", 0, "%YAML"),
             // json, kind of
             Signature("json", 0, "["),
+            Signature("json", 0, "[{"),
+            Signature("json", 0, "[{\"class\":"),
             Signature("json", 0, "{"),
             Signature("sims", 0, "DBPF"),
             // windows link file

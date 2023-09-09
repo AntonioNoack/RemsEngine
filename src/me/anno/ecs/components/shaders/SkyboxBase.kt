@@ -22,7 +22,7 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.mesh.Shapes
 import org.joml.*
 
-open class SkyBoxBase : MeshComponentBase() {
+open class SkyboxBase : MeshComponentBase() {
 
     // todo make this a light, such that all things can be lighted from it
 
@@ -103,13 +103,13 @@ open class SkyBoxBase : MeshComponentBase() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SkyBoxBase
+        dst as SkyboxBase
         dst.shader = shader
         dst.skyColor.set(skyColor)
         dst.worldRotation.set(worldRotation)
     }
 
-    override val className: String get() = "SkyBox"
+    override val className: String get() = "SkyboxBase"
 
     companion object {
 
@@ -189,6 +189,6 @@ open class SkyBoxBase : MeshComponentBase() {
                 )
             }
 
-        val defaultSky = SkyBoxBase()
+        val defaultSky = SkyboxBase()
     }
 }

@@ -42,7 +42,12 @@ class BundledRef(
                         length = it.available().toLong()
 
                     is BufferedInputStream -> {
-                        it
+                        val buffer = ByteArray(2048)
+                        while (true) {
+                            val len = it.read(buffer)
+                            if (len < 0) break
+                            length += len
+                        }
                     }
 
                     else -> {
@@ -161,7 +166,5 @@ class BundledRef(
         }
 
         private val jarAsZip2 by lazy { getReference(jarAsZip3) }
-
     }
-
 }

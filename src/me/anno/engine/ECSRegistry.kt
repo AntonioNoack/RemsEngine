@@ -27,7 +27,7 @@ import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.player.RemotePlayer
 import me.anno.ecs.components.shaders.AutoTileableMaterial
 import me.anno.ecs.components.shaders.CuboidMesh
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.components.shaders.TriplanarMaterial
 import me.anno.ecs.components.test.RaycastTestComponent
 import me.anno.ecs.components.test.TypeTestComponent
@@ -64,6 +64,15 @@ object ECSRegistry {
         registerCustomClass(BoneByBoneAnimation())
         registerCustomClass(Skeleton())
         registerCustomClass(Retargeting())
+    }
+
+    @JvmStatic
+    fun initPrefabs() {
+        registerCustomClass(Path.ROOT_PATH)
+        registerCustomClass(ChangeHistory())
+        registerCustomClass(CAdd())
+        registerCustomClass(CSet())
+        registerCustomClass(Prefab())
     }
 
     @JvmStatic
@@ -130,7 +139,7 @@ object ECSRegistry {
         registerCustomClass(EnvironmentMap())
         registerCustomClass(PlanarReflection())
 
-        registerCustomClass(SkyBox())
+        registerCustomClass(Skybox())
 
         // audio, currently not well tested
         registerCustomClass(AudioComponent())
@@ -156,11 +165,7 @@ object ECSRegistry {
         registerCustomClass(BoneByBoneAnimation())
 
         // prefab system
-        registerCustomClass(Path.ROOT_PATH)
-        registerCustomClass(ChangeHistory())
-        registerCustomClass(CAdd())
-        registerCustomClass(CSet())
-        registerCustomClass(Prefab())
+        initPrefabs()
 
         // project
         registerCustomClass(GameEngineProject())
@@ -225,5 +230,4 @@ object ECSRegistry {
         ShaderLib.init()
         init()
     }
-
 }

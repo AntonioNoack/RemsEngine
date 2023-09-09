@@ -3,7 +3,7 @@ package me.anno.tests.shader
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -50,7 +50,7 @@ fun main() {
             this as Entity
             position = position.set(-1.6, 0.0, -1.43)
         })
-    scene.add(SkyBox())
+    scene.add(Skybox())
     scene.simpleTraversal {
         if (it is Entity) {
             for (comp in it.components) {

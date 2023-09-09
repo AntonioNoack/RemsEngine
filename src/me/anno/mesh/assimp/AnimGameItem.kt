@@ -67,7 +67,7 @@ class AnimGameItem(
                     jointMatrix.set(transform).mul(global)
 
                     // if aabb u transform(mesh.aabb) == aabb, then skip this sub-mesh
-                    mesh.aabb.transformProjectUnion(jointMatrix, testAABB.set(aabb))
+                    mesh.aabb.transformProject(jointMatrix, testAABB.set(aabb))
                     if (testAABB != aabb) {
                         mesh.forEachPoint(false) { x, y, z ->
                             aabb.union(jointMatrix.transformProject(vf.set(x, y, z)))

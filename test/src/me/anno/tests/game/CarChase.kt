@@ -13,7 +13,7 @@ import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -71,7 +71,7 @@ fun createUI(): Panel {
     val list = NineTilePanel(style)
 
     val world = Entity()
-    world.add(SkyBox())
+    world.add(Skybox())
     val physics = BulletPhysics()
     physics.updateInEditMode = true
     physics.synchronousPhysics = true

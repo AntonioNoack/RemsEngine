@@ -10,6 +10,7 @@ import me.anno.mesh.Shapes
 import me.anno.utils.OS.pictures
 
 fun main() {
+    // todo this lags behind one frame, can we get it perfect?
     val material = Material().apply {
         // for alpha
         diffuseMap = pictures.getChild("fav128.ico")

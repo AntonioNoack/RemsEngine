@@ -47,7 +47,7 @@ abstract class InnerFile(
     override var lastAccessed = 0L // _parent.lastAccessed
 
     var compressedSize = 0L
-    var size = 0L
+    var size = 65536L // we don't know in this class
     var data: ByteArray? = null
     var isEncrypted = false
 

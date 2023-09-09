@@ -21,7 +21,7 @@ open class MeshComponent() : MeshComponentBase() {
 
     constructor(mesh: FileReference) : this() {
         this.name = mesh.nameWithoutExtension
-        this.mesh = mesh
+        this.meshFile = mesh
     }
 
     constructor(mesh: FileReference, material: Material) : this(mesh, material.ref)
@@ -36,7 +36,7 @@ open class MeshComponent() : MeshComponentBase() {
 
     @SerializedProperty
     @Type("Mesh/Reference")
-    var mesh: FileReference = InvalidRef
+    var meshFile: FileReference = InvalidRef
         set(value) {
             if (field != value) {
                 field = value
@@ -44,12 +44,12 @@ open class MeshComponent() : MeshComponentBase() {
             }
         }
 
-    override fun getMesh(): Mesh? = MeshCache[mesh]
+    override fun getMesh(): Mesh? = MeshCache[meshFile]
 
     override fun onUpdate(): Int {
         super.onUpdate()
         // keep the mesh loaded
-        mesh = getReference(mesh)
+        meshFile = getReference(meshFile)
         return 1
     }
 
@@ -74,7 +74,7 @@ open class MeshComponent() : MeshComponentBase() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as MeshComponent
-        dst.mesh = mesh
+        dst.meshFile = meshFile
     }
 
     override val className: String get() = "MeshComponent"

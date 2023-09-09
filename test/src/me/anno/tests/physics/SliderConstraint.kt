@@ -6,7 +6,7 @@ import me.anno.bullet.constraints.SliderConstraint
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
@@ -21,7 +21,7 @@ fun main() {
     val physics = BulletPhysics()
     scene.add(physics)
     physics.updateInEditMode = true
-    scene.add(SkyBox())
+    scene.add(Skybox())
 
     val box0 = Entity()
     box0.add(MeshComponent(flatCube.front))

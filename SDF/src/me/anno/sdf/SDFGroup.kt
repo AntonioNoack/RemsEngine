@@ -92,7 +92,7 @@ open class SDFGroup : SDFComponent() {
     override fun listChildTypes(): String = "c" + super.listChildTypes()
     override fun getChildListNiceName(type: Char) = if (type == 'c') "Children" else super.getChildListNiceName(type)
     override fun getChildListByType(type: Char) = if (type == 'c') children else super.getChildListByType(type)
-    override fun getTypeOf(child: PrefabSaveable): Char = if (child is SDFComponent) 'c' else super.getTypeOf(child)
+    override fun getValidTypesForChild(child: PrefabSaveable): String = if (child is SDFComponent) "c" else super.getValidTypesForChild(child)
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
         if (child is SDFComponent) {
             children.add(index, child)

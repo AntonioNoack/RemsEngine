@@ -498,7 +498,8 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
     override fun getOptionsByType(type: Char) = when (type) {
         'p' -> getOptionsByClass(this, PositionMapper::class)
         'd' -> getOptionsByClass(this, DistanceMapper::class)
-        else -> getOptionsByClass(this, Component::class)
+        'x' -> getOptionsByClass(this, Component::class)
+        else -> super.getOptionsByType(type)
     }
 
     override fun listChildTypes(): String = "pdx"
@@ -506,20 +507,26 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
     override fun getChildListByType(type: Char): List<PrefabSaveable> = when (type) {
         'p' -> positionMappers
         'd' -> distanceMappers
-        else -> components
+        'x' -> components
+        else -> super.getChildListByType(type)
     }
 
-    override fun getTypeOf(child: PrefabSaveable): Char = when (child) {
-        is PositionMapper -> 'p'
-        is DistanceMapper -> 'd'
-        else -> 'x'
+    override fun getValidTypesForChild(child: PrefabSaveable): String = when (child) {
+        is PositionMapper -> "p"
+        is DistanceMapper -> "d"
+        is Component -> "x"
+        else -> super.getValidTypesForChild(child)
     }
 
-    override fun addChild(index: Int, child: PrefabSaveable) = addChildByType(index, ' ', child)
+    override fun addChild(index: Int, child: PrefabSaveable) {
+        addChildByType(index, getValidTypesForChild(child)[0], child)
+    }
+
     override fun getChildListNiceName(type: Char) = when (type) {
         'p' -> "PositionMappers"
         'd' -> "DistanceMappers"
-        else -> "Components"
+        'x' -> "Components"
+        else -> super.getChildListNiceName(type)
     }
 
     override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
@@ -1124,5 +1131,4 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
         val pos0 = Vector3f()
         const val sca0 = 1f
     }
-
 }

@@ -26,7 +26,7 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.max
 
-open class SkyBox : SkyBoxBase() {
+open class Skybox : SkyboxBase() {
 
     @SerializedProperty
     var sunRotation: Quaternionf = Quaternionf()
@@ -152,7 +152,7 @@ open class SkyBox : SkyBoxBase() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as SkyBox
+        dst as Skybox
         dst.sunRotation.set(sunRotation)
         dst.sunBaseDir.set(sunBaseDir)
         dst.cirrus = cirrus
@@ -165,11 +165,11 @@ open class SkyBox : SkyBoxBase() {
         dst.sunSpeed.set(sunSpeed)
     }
 
-    override val className: String get() = "SkyBox"
+    override val className: String get() = "Skybox"
 
     companion object {
 
-        open class SkyShader(name: String) : SkyBoxBase.Companion.SkyShaderBase(name) {
+        open class SkyShader(name: String) : SkyboxBase.Companion.SkyShaderBase(name) {
 
             override fun createVertexStages(flags: Int): List<ShaderStage> {
                 val defines = if (flags.hasFlag(NEEDS_COLORS)) "#define COLORS\n" else ""

@@ -1,5 +1,6 @@
 package me.anno.utils.structures.maps
 
+import me.anno.utils.Color.toHexString
 import me.anno.utils.structures.lists.PairArrayList
 
 open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
@@ -9,6 +10,7 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     var size = 0
 
     open fun clear() {
+        if(size > 50) throw IllegalStateException()
         values.clear()
         size = 0
     }
@@ -31,31 +33,16 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         }
     }
 
-    operator fun get(
-        k1: KManifold,
-        k2: KFewOnly
-    ): Value? {
+    operator fun get(k1: KManifold, k2: KFewOnly): Value? {
         return values[k1]?.byA(k2)
     }
 
-    operator fun set(
-        k1: KManifold,
-        k2: KFewOnly,
-        v: Value
-    ) {
-        // if (k1 == Path.ROOT_PATH && k2 == "gravity") throw RuntimeException()
-        // LOGGER.info("('$k1','$k2') = '$v'")
+    operator fun set(k1: KManifold, k2: KFewOnly, v: Value) {
         val list = values.getOrPut(k1) { PairArrayList(8) }
         if (list.replaceOrAddMap(k2, v)) size++
     }
 
-    fun setUnsafe(
-        k1: KManifold,
-        k2: KFewOnly,
-        v: Value
-    ) {
-        // if (k1 == Path.ROOT_PATH && k2 == "gravity") throw RuntimeException()
-        // LOGGER.info("('$k1','$k2') = '$v'")
+    fun setUnsafe(k1: KManifold, k2: KFewOnly, v: Value) {
         val list = values.getOrPut(k1) { PairArrayList(8) }
         list.add(k2, v)
         size++
@@ -196,5 +183,4 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
         sb.append("}")
         return sb.toString()
     }
-
 }

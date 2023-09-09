@@ -50,8 +50,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
                 prefab._sampleInstance = this
                 this.prefab = prefab
                 this.prefabPath = Path.ROOT_PATH
+                collectPrimaryChanges()
                 setAllChildPaths()
-                collectAllChanges()
             }
             return prefab.source
         }
@@ -84,12 +84,13 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeBoolean("isCollapsed", isCollapsed)
+        writer.writeBoolean("nonCollapsed", !isCollapsed, false)
     }
 
     override fun readBoolean(name: String, value: Boolean) {
         when (name) {
             "isCollapsed" -> isCollapsed = value
+            "nonCollapsed" -> isCollapsed = !value
             else -> super.readBoolean(name, value)
         }
     }
@@ -165,30 +166,33 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         }
     }
 
-    private fun collectAllChanges() {
+    private fun collectPrimaryChanges() {
         // collect all changes, and save them to the prefab
-        val prefab = prefab!!
-        prefab.sets.clear()
-        prefab.adds = ArrayList()
-        PrefabHelperWriter(prefab)
-            .run(this)
+        PrefabHelperWriter(prefab!!).run(this)
     }
 
     open fun getOptionsByType(type: Char): List<Option>? = null
 
     override fun addChild(child: PrefabSaveable) {
-        val type = getTypeOf(child)
-        val length = getChildListByType(type).size
-        addChildByType(length, type, child)
+        val type = getValidTypesForChild(child)[0]
+        val index = getChildListByType(type).size
+        addChildByType(index, type, child)
     }
 
-    override fun addChild(index: Int, child: PrefabSaveable) = addChildByType(index, getTypeOf(child), child)
+    override fun addChild(index: Int, child: PrefabSaveable) {
+        addChildByType(index, getValidTypesForChild(child)[0], child)
+    }
+
     override fun deleteChild(child: PrefabSaveable) {
-        val list = getChildListByType(getTypeOf(child))
-        val index = list.indexOf(child)
-        if (index < 0) return
-        list as MutableList<*>
-        list.remove(child)
+        for (type in getValidTypesForChild(child)) {
+            val list = getChildListByType(type)
+            val index = list.indexOf(child)
+            if (index >= 0) {
+                list as MutableList<*>
+                list.removeAt(index)
+                break
+            }
+        }
     }
 
     fun <V : PrefabSaveable> getInClone(thing: V?, clone: PrefabSaveable): V? {
@@ -199,8 +203,16 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         return instance as V
     }
 
-    open fun getIndexOf(child: PrefabSaveable): Int = getChildListByType(getTypeOf(child)).indexOf(child)
-    open fun getTypeOf(child: PrefabSaveable): Char = ' '
+    open fun getIndexOf(child: PrefabSaveable): Int {
+        for (type in getValidTypesForChild(child)) {
+            val list = getChildListByType(type)
+            val idx = list.indexOf(child)
+            if (idx >= 0) return idx
+        }
+        return -1
+    }
+
+    open fun getValidTypesForChild(child: PrefabSaveable): String = ""
 
     open fun clone(): PrefabSaveable {
         val clone = this.javaClass.newInstance()
@@ -213,8 +225,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         dst.description = description
         dst.isEnabled = isEnabled
         dst.isCollapsed = isCollapsed
-        // clone.prefab = prefab
-        // clone.prefabPath = prefabPath
+        // dst.prefab = prefab
+        // dst.prefabPath = prefabPath
     }
 
     override fun onDestroy() {}
@@ -281,5 +293,4 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             }.sortedBy { it.title }
         }
     }
-
 }

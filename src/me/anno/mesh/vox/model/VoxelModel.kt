@@ -121,7 +121,7 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         // probably complicated to implement -> skip for now
 
         // guess the number of required points
-        val vertexPointGuess = max(size * 6, 18)
+        val vertexPointGuess = max(countBlocks() * 3, 18)
 
         val vertices = ExpandingFloatArray(vertexPointGuess)
         val colors = ExpandingIntArray(vertexPointGuess / 3 + 1)
@@ -155,7 +155,6 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         dst.color0 = colors.toIntArray()
 
         return dst
-
     }
 
     fun createMeshPrefab(palette: IntArray): Prefab {
@@ -163,12 +162,12 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         val mesh = createMesh(palette, null, null)
         val prefab = Prefab("Mesh")
 
+        prefab._sampleInstance = mesh
         prefab.setProperty("positions", mesh.positions)
         prefab.setProperty("normals", mesh.normals)
         prefab.setProperty("color0", mesh.color0)
 
         return prefab
-
     }
 
     companion object {
@@ -177,5 +176,4 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         private val sideList = BlockSide.values.map { listOf(it) }
         private val LOGGER = LogManager.getLogger(VoxelModel::class)
     }
-
 }

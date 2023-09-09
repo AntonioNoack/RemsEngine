@@ -75,10 +75,10 @@ class CSet() : Change() {
                 // it's a prefab saveable; yes, saving paths therefore is no longer supported
                 // they just are internal to the change package
                 value = Hierarchy.getInstanceAt(instance.root, value)
-                LOGGER.debug("Changed path $value0 to instance $value")
+                LOGGER.debug("Changed path {} to instance {}", value0, value)
             }
             if (!instance.set(name, value)) {
-                LOGGER.warn("Property ${instance::class.simpleName}.$name is unknown/faulty, path: $path, prefab: ${instance.root.prefab?.source}")
+                throw IllegalStateException("Property ${instance::class.simpleName}.$name is unknown/faulty, path: $path, prefab: ${instance.root.prefab?.source}")
             }
         }
 

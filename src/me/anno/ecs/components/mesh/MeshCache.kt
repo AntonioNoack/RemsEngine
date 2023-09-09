@@ -10,8 +10,10 @@ import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
+import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 
 object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
@@ -19,6 +21,11 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
     private val LOGGER = LogManager.getLogger(MeshCache::class)
 
     val cache = CacheSection("MeshCache2")
+
+    fun clear() {
+        cache.clear()
+        lru.clear()
+    }
 
     override operator fun get(ref: FileReference?, async: Boolean): Mesh? {
         if (ref == null || ref == InvalidRef) return null
@@ -30,7 +37,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                 is Mesh -> instance
                 is MeshComponent -> {
                     // warning: if there is a dependency ring, this will produce a stack overflow
-                    val ref2 = instance.mesh
+                    val ref2 = instance.meshFile
                     if (ref == ref2) null
                     else get(ref2, async)
                 }
@@ -76,7 +83,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
      * this should only be executed for decently small meshes ^^,
      * large meshes might cause OutOfMemoryExceptions
      * */
-    private fun joinMeshes(list: Iterable<Component>): Mesh {
+    private fun joinMeshes(list: Iterable<Component>): Mesh? {
 
         val meshes = ArrayList<Triple<Mesh, Transform?, List<FileReference>>>()
         for (comp in list) {
@@ -84,26 +91,76 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                 is MeshComponentBase -> addMesh(meshes, comp.getMesh(), comp.transform, comp.materials)
                 is MeshSpawner -> {
                     comp.forEachMesh { mesh, material, transform ->
-                        addMesh(meshes, mesh, transform, listOf(material?.ref))
+                        val materialList = if (material == null) emptyList()
+                        else listOf(material.ref)
+                        addMesh(meshes, mesh, transform, materialList)
                     }
                 }
             }
         }
 
-        val hasColors = meshes.any2 { it.first.color0 != null }
-        val hasBones = meshes.any2 { it.first.hasBones }
-        val hasUVs = meshes.any2 { it.first.uvs != null }
-
-        return object : MeshJoiner<Triple<Mesh, Transform?, List<FileReference>>>(hasColors, hasBones, hasUVs) {
-            override fun getMesh(element: Triple<Mesh, Transform?, List<FileReference>>) = element.first
-            override fun getMaterials(element: Triple<Mesh, Transform?, List<FileReference>>) = element.third
-            override fun getTransform(element: Triple<Mesh, Transform?, List<FileReference>>, dst: Matrix4x3f) {
-                val transform = element.second
-                if (transform != null) dst.set(transform.globalTransform)
-                else dst.identity()
+        return when (meshes.size) {
+            0 -> null
+            1 -> {
+                // special case: no joining required
+                val (mesh, transform, materials) = meshes[0]
+                val matrix = transform?.globalTransform
+                if ((matrix == null || matrix.isIdentity())) {
+                    if (materials == mesh.materials) mesh else {
+                        val clone = mesh.clone() as Mesh
+                        clone.materials = materials
+                        clone
+                    }
+                } else {
+                    // transform required
+                    // only needed for position, normal and tangents
+                    val clone = mesh.clone() as Mesh
+                    clone.positions = transform(matrix, clone.positions)
+                    clone.normals = rotate(matrix, clone.normals)
+                    clone.tangents = rotate(matrix, clone.tangents)
+                    clone
+                }
             }
-        }.join(Mesh(), meshes)
+            else -> {
 
+                val hasColors = meshes.any2 { it.first.color0 != null }
+                val hasBones = meshes.any2 { it.first.hasBones }
+                val hasUVs = meshes.any2 { it.first.uvs != null }
+
+                object : MeshJoiner<Triple<Mesh, Transform?, List<FileReference>>>(hasColors, hasBones, hasUVs) {
+                    override fun getMesh(element: Triple<Mesh, Transform?, List<FileReference>>) = element.first
+                    override fun getMaterials(element: Triple<Mesh, Transform?, List<FileReference>>) = element.third
+                    override fun getTransform(element: Triple<Mesh, Transform?, List<FileReference>>, dst: Matrix4x3f) {
+                        val transform = element.second
+                        if (transform != null) dst.set(transform.globalTransform)
+                        else dst.identity()
+                    }
+                }.join(Mesh(), meshes)
+            }
+        }
     }
 
+    private fun transform(matrix: Matrix4x3d, src: FloatArray?): FloatArray? {
+        src ?: return null
+        val tmp = JomlPools.vec3f.borrow()
+        val dst = FloatArray(src.size)
+        for (i in src.indices step 3) {
+            tmp.set(src, i)
+            matrix.transformPosition(tmp)
+            tmp.get(dst, i)
+        }
+        return dst
+    }
+
+    private fun rotate(matrix: Matrix4x3d, src: FloatArray?): FloatArray? {
+        src ?: return null
+        val tmp = JomlPools.vec3f.borrow()
+        val dst = FloatArray(src.size)
+        for (i in src.indices step 3) {
+            tmp.set(src, i)
+            matrix.transformDirection(tmp)
+            tmp.get(dst, i)
+        }
+        return dst
+    }
 }

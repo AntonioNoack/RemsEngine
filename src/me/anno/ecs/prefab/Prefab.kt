@@ -12,7 +12,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.files.LocalFile.toGlobalFile
-import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.maps.CountMap
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
@@ -39,6 +38,7 @@ class Prefab : Saveable {
 
     val addCounts = CountMap<Pair<Char, Path>>()
     var adds: List<CAdd> = emptyList()
+    val addedPaths: HashSet<Pair<Path, String>>? = if (Build.isShipped) null else HashSet()
 
     val sets = KeyPairMap<Path, String, Any?>(256)
 
@@ -192,14 +192,16 @@ class Prefab : Saveable {
     fun add(change: CAdd, insertIndex: Int): CAdd {
         if (!isWritable) throw ImmutablePrefabException(source)
         if (!Build.isShipped) {
-            if (adds.any2 { it.nameId == change.nameId && it.path == change.path })
+            val key = Pair(change.path, change.nameId)
+            if (addedPaths?.contains(key) == true)
                 throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
             // todo check branched prefabs for adds as well
             val sourcePrefab = PrefabCache[prefab]
             if (sourcePrefab != null) {
-                if (sourcePrefab.adds.any2 { it.nameId == change.nameId && it.path == change.path })
+                if (sourcePrefab.addedPaths?.contains(key) == true)
                     throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
             }
+            addedPaths?.add(key)
         }
         ensureMutableLists()
         val adds = adds as MutableList
@@ -359,5 +361,4 @@ class Prefab : Saveable {
         var maxPrefabDepth = 25
         private val LOGGER = LogManager.getLogger(Prefab::class)
     }
-
 }

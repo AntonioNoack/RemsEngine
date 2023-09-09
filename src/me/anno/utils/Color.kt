@@ -156,6 +156,11 @@ object Color {
     }
 
     @JvmStatic
+    fun Int.toHexString(): String {
+        return hex32(this)
+    }
+
+    @JvmStatic
     fun Vector3f.toHexColor(): String {
         return "#${hex8(x)}${hex8(y)}${hex8(z)}"
     }

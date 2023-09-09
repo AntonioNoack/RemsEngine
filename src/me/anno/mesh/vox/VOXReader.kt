@@ -173,8 +173,8 @@ class VOXReader {
             RGBA -> {
                 palette = IntArray(256)
                 // color 0 is always transparent black
-                for (i in 0 until 255) {// data seems to be ABGR
-                    palette[i + 1] = convertABGR2ARGB(bytes.int)
+                for (i in 1 until 256) {// data seems to be ABGR
+                    palette[i] = convertABGR2ARGB(bytes.int)
                 }
             }
             MATv1 -> {
@@ -297,6 +297,8 @@ class VOXReader {
                 // val properties = skipDict(bytes)
                 // LOGGER.debug("Scene Information: $properties")
             }
+            rCAM -> {} // camera infos
+            NOTE -> {} // notes?
             IMAP -> indexMap = ByteArray(256) { bytes.get() }
             else -> {
                 val idName = (0..3).joinToString("") { ((id shr it * 8) and 255).toChar().toString() }
@@ -414,6 +416,8 @@ class VOXReader {
         private val nGRP = encode("nGRP")
         private val LAYER = encode("LAYR")
         private val rOBJ = encode("rOBJ")
+        private val rCAM = encode("rCAM")
+        private val NOTE = encode("NOTE")
         private val IMAP = encode("IMAP")
 
         // we could store it in a large list, but this algorithm probably is shorter

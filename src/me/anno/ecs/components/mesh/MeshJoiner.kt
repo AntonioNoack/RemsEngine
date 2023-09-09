@@ -50,6 +50,8 @@ abstract class MeshJoiner<V>(
             return dstMesh
         }
 
+        // if size is one, this could be optimized...
+
         var numPositions = 0
         var numTriangles = 0
 
@@ -70,7 +72,7 @@ abstract class MeshJoiner<V>(
 
         for (element in elements) {
             val model = getMesh(element)
-            numPositions += model.positions!!.size
+            numPositions += model.positions!!.size / 3
             numTriangles += model.numPrimitives.toInt()
         }
 
@@ -111,6 +113,7 @@ abstract class MeshJoiner<V>(
             val srcPositions = srcMesh.positions!!
             val srcNormals = srcMesh.normals!!
             getTransform(element, localToGlobal)
+
             val i0 = i
 
             val srcTangents = srcMesh.tangents
@@ -180,7 +183,18 @@ abstract class MeshJoiner<V>(
                     }
                 }
             }
-            dstColors?.fill(getVertexColor(element), i0 / 3, (i0 + srcNormals.size) / 3)
+
+            // support color0 properly
+            if (dstColors != null) {
+                val color = getVertexColor(element)
+                val srcColor = srcMesh.color0
+                if (color == -1 && srcColor != null) {
+                    System.arraycopy(srcColor, 0, dstColors, i0 / 3, min(srcNormals.size, srcColor.size))
+                } else {// overridden
+                    dstColors.fill(color, i0 / 3, (i0 + srcNormals.size) / 3)
+                }
+            }
+
             val indices2 = srcMesh.indices
             val baseIndex = i0 / 3
             val j0 = j
@@ -237,7 +251,5 @@ abstract class MeshJoiner<V>(
         dstMesh.numMaterials = max(materialToId.size, 1)
 
         return dstMesh
-
     }
-
 }

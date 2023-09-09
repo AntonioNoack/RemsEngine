@@ -16,7 +16,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.AutoTileableMaterial
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
@@ -24,7 +24,6 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.maths.noise.PerlinNoise
-import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
@@ -48,7 +47,7 @@ fun main() {
     val physics = BulletPhysics()
     physics.updateInEditMode = true
     scene.add(physics)
-    scene.add(SkyBox())
+    scene.add(Skybox())
 
     testSceneWithUI("FlightSim", scene) {
         // it.renderer.localPlayer = player

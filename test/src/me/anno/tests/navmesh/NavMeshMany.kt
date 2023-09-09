@@ -7,7 +7,7 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.maths.Maths.dtTo01
@@ -82,7 +82,7 @@ fun main() {
 
         val mask = 1 shl 16
         val world = Entity("World")
-        world.add(SkyBox())
+        world.add(Skybox())
 
         val agentMeshRef = documents.getChild("CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!

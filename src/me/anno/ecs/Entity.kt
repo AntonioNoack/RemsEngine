@@ -142,7 +142,11 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     override fun getChildListByType(type: Char): List<PrefabSaveable> = if (type == 'c') components else children
     override fun getChildListNiceName(type: Char): String = if (type == 'c') "components" else "children"
-    override fun getTypeOf(child: PrefabSaveable): Char = if (child is Component) 'c' else 'e'
+    override fun getValidTypesForChild(child: PrefabSaveable): String = when (child) {
+        is Component -> "c"
+        is Entity -> "e"
+        else -> ""
+    }
 
     override fun getIndexOf(child: PrefabSaveable): Int {
         return if (child is Component) {
@@ -993,7 +997,10 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeVector3d("position", transform.localPosition)
-        writer.writeVector3d("scale", transform.localScale)
+        val scale = transform.localScale
+        if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0) {
+            writer.writeVector3d("scale", scale, true)
+        }
         writer.writeQuaterniond("rotation", transform.localRotation)
         writer.writeObjectList(this, "children", children)
         writer.writeObjectList(this, "components", components)

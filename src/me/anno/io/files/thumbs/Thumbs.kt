@@ -17,7 +17,7 @@ import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
-import me.anno.ecs.components.shaders.SkyBoxBase
+import me.anno.ecs.components.shaders.SkyboxBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
@@ -656,7 +656,8 @@ object Thumbs {
             .rotateY(25.0.toRadians())
             .rotateX((-15.0).toRadians())
         rv.pipeline.defaultStage.cullMode = CullMode.BOTH
-        val sky = SkyBoxBase()
+        val sky = SkyboxBase()
+        // todo why is this not working???
         sky.material.shaderOverrides["finalAlpha"] = TypeValue(GLSLType.V1F, 0f)
         rv.pipeline.skyBox = sky
         rv

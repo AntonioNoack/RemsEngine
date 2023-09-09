@@ -2,6 +2,7 @@ package me.anno.io
 
 import me.anno.Build
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.UnknownClassException

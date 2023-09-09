@@ -135,8 +135,7 @@ class PrefabInspector(val reference: FileReference) {
         )
 
         // the index may not be set in the beginning
-        fun getPath(): Path? {
-            path ?: return null
+        fun getPath(): Path {
             if (path.lastIndex() < 0) {
                 path.index = instance.parent!!.getIndexOf(instance)
             }

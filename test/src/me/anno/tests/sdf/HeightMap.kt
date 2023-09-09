@@ -2,7 +2,7 @@ package me.anno.tests.sdf
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.DirectionalLight
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.sdf.DebugMode
 import me.anno.sdf.shapes.SDFHeightMap
@@ -12,7 +12,7 @@ fun main() {
     // todo define a sample with bricks (SDFArray2)
     testSceneWithUI("SDFHeightMap", Entity().apply {
         addChild(DirectionalLight())
-        addChild(SkyBox())
+        addChild(Skybox())
         addChild(SDFHeightMap().apply {
             maxSteps = 50
             localReliability = 0.5f

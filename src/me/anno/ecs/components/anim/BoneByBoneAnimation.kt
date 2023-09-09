@@ -346,7 +346,7 @@ class BoneByBoneAnimation() : Animation() {
             val mesh = AnimRenderer()
             mesh.skeleton = animation.skeleton
             mesh.animations = listOf(AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
-            mesh.mesh = meshFile
+            mesh.meshFile = meshFile
 
             for (bone in SkeletonCache[mesh.skeleton]!!.bones) {
                 LOGGER.debug(

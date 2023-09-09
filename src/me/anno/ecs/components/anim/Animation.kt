@@ -115,7 +115,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
                 bones, Array(bones.size) { bones[it].bindPosition },
                 mesh.positions!!, mesh.boneIndices!!
             )
-            renderer.mesh = mesh.ref
+            renderer.meshFile = mesh.ref
             renderer.skeleton = skeleton.ref
             renderer.animations = listOf(state)
         }

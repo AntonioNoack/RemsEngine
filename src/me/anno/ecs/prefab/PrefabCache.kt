@@ -265,7 +265,7 @@ object PrefabCache : CacheSection("Prefab") {
         return when {
             resource == null || resource == InvalidRef -> null
             resource is InnerLinkFile -> {
-                LOGGER.debug("[link] $resource -> ${resource.link}")
+                LOGGER.debug("[link] {} -> {}", resource, resource.link)
                 getPrefabPair(resource.link, depth, async)
             }
             resource is PrefabReadable -> {
@@ -273,7 +273,6 @@ object PrefabCache : CacheSection("Prefab") {
                 FileReadPrefabData(resource).apply { value = prefab }
             }
             resource.exists && !resource.isDirectory -> {
-                // LOGGER.info("get prefab from $resource, ${resource?.exists}, ${resource?.isDirectory}")
                 val entry = getFileEntry(resource, false, prefabTimeout, async, ::loadPrefabPair)
                 if (entry is FileReadPrefabData && entry.hasValue && entry.value == null)
                     throw IOException("Could not load $resource as prefab")

@@ -1,7 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.Pipeline
 import org.joml.AABBd
@@ -42,7 +42,7 @@ class GPUMesh : MeshComponentBase() {
         @JvmStatic
         fun main(args: Array<String>) {
             val scene = Entity()
-            scene.add(SkyBox())
+            scene.add(Skybox())
             scene.add(GPUMesh())
             testSceneWithUI("GPUMesh", scene)
         }

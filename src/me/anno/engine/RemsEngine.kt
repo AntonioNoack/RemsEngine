@@ -3,7 +3,7 @@ package me.anno.engine
 import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
-import me.anno.ecs.components.shaders.SkyBox
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
@@ -160,7 +160,7 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
 
             override fun createBackground(style: Style): Panel {
                 return object : Panel(style) {
-                    val sky = SkyBox()
+                    val sky = Skybox()
                     val cameraMatrix = Matrix4f()
                     override val canDrawOverBorders get() = true
                     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
