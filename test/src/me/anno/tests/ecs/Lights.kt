@@ -151,14 +151,14 @@ fun main() {
     set(floorMesh2E, "position", Vector3d(-0.5, 0.0, 0.0))
     set(floorMesh2E, "scale", Vector3d(0.5, 1.0, 1.0))
     val floorMesh1 = addC(floorMesh1E, "MeshComponent")
-    set(floorMesh1, "mesh", cubePath)
+    set(floorMesh1, "meshFile", cubePath)
     // todo why is the ssr-reflectivity so low?
     set(floorMesh1, "materials", listOf(Material().apply {
         metallicMinMax.set(1f)
         roughnessMinMax.set(0.2f)
     }.ref))
     val floorMesh2 = addC(floorMesh2E, "MeshComponent")
-    set(floorMesh2, "mesh", cubePath)
+    set(floorMesh2, "meshFile", cubePath)
 
     clock.stop("floor")
 

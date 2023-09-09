@@ -621,7 +621,7 @@ object MitsubaReader {
                         prefab[entity, "scale"] = Vector3d(matrix.getScale(Vector3f()))
 
                         val mesh = prefab.add(entity, 'c', "MeshComponent", "Mesh")
-                        prefab[mesh, "mesh"] = meshRef
+                        prefab[mesh, "meshFile"] = meshRef
                         if (material != null) {
                             prefab[mesh, "materials"] = listOf(materials[material["id"]!!])
                         }

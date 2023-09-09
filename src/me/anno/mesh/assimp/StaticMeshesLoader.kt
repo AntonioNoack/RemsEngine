@@ -165,7 +165,7 @@ object StaticMeshesLoader {
             for (i in 0 until meshCount) {
                 val mesh = sceneMeshes[meshIndices[i]]
                 val meshComponent = prefab.add(path, 'c', rendererClass, mesh.name)
-                prefab.setUnsafe(meshComponent, "mesh", mesh)
+                prefab.setUnsafe(meshComponent, "meshFile", mesh)
             }
         }
 

@@ -191,7 +191,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                 }
             }
             meshCountInObject++
-            scenePrefab[meshPath, "mesh"] = meshRef
+            scenePrefab[meshPath, "meshFile"] = meshRef
             // LOGGER.debug("Clearing at ${facePositions.size / 3}")
             facePositions.clear()
             faceNormals.clear()

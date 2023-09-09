@@ -420,7 +420,7 @@ object UnityReader {
     fun defineMeshFilter(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject): FileReference {
         // later add a Unity-MeshRenderer or similar for the list of materials
         prefab.clazzName = "MeshComponent"
-        prefab.setProperty("mesh", decodePath(guid, node["Mesh"], project))
+        prefab.setProperty("meshFile", decodePath(guid, node["Mesh"], project))
         return decodePath(guid, node["GameObject"], project)
     }
 

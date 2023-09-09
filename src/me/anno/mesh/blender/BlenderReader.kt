@@ -560,7 +560,7 @@ object BlenderReader {
             BObject.BObjectType.OB_MESH -> {
                 // add mesh component
                 val c = prefab.add(path, 'c', "MeshComponent", obj.id.name)
-                prefab.setUnsafe(c, "mesh", (obj.data as BMesh).fileRef)
+                prefab.setUnsafe(c, "meshFile", (obj.data as BMesh).fileRef)
                 // materials would be nice... but somehow they are always null
             }
             BObject.BObjectType.OB_CAMERA -> {

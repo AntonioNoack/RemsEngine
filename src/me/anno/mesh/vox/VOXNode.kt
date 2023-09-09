@@ -39,7 +39,7 @@ class VOXNode {
                 val name = mesh.name
                 if ((0 until i).any { meshes[it].name == name }) LOGGER.warn("Duplicate name! $name")
                 val meshComponent = prefab.add(path, 'c', "MeshComponent", name)
-                prefab.setUnsafe(meshComponent, "mesh", mesh)
+                prefab.setUnsafe(meshComponent, "meshFile", mesh)
             }
         }
         if (px != 0.0 || py != 0.0 || pz != 0.0) {
