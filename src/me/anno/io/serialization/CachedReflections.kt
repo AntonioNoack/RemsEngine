@@ -251,14 +251,9 @@ class CachedReflections(
             return saveField(
                 field.type.kotlin, name, serial,
                 serialize, annotations,
-                {
-                    if (getterMethod != null && getterMethod.returnType == field.type) getterMethod.invoke(it)
-                    else field.get(it)
-                }, { i, v ->
-                    if (setterMethod != null) setterMethod.invoke(i, v)
-                    else field.set(i, v)
-                }
-            )
+                if (getterMethod != null && getterMethod.returnType == field.type) { it -> getterMethod.invoke(it) }
+                else field::get,
+                if (setterMethod != null) { i, v -> setterMethod.invoke(i, v) } else { i, v -> field.set(i, v) })
         }
 
         private fun saveField(
@@ -276,5 +271,4 @@ class CachedReflections(
             )
         }
     }
-
 }

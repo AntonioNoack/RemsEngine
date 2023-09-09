@@ -29,8 +29,7 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
     }
 
     fun write(name: String, value: Any?) {
-        if ((name == "mesh" && value !is FileReference)) throw IllegalArgumentException("$name: $value, ${value?.javaClass?.simpleName}")
-        prefab.sets[currentPath, name] = value
+        prefab.sets.setUnsafe(currentPath, name, value)
     }
 
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {
@@ -231,6 +230,7 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
             // todo is this good enough? mmh...
             val lastPath = currentPath
             currentPath = value.prefabPath
+            prefab.sets.clear(currentPath)
             value.save(this)
             currentPath = lastPath
         }

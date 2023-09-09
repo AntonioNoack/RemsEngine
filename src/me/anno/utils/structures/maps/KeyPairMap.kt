@@ -1,6 +1,5 @@
 package me.anno.utils.structures.maps
 
-import me.anno.utils.Color.toHexString
 import me.anno.utils.structures.lists.PairArrayList
 
 open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
@@ -10,9 +9,14 @@ open class KeyPairMap<KManifold, KFewOnly, Value>(capacity: Int = 16) :
     var size = 0
 
     open fun clear() {
-        if(size > 50) throw IllegalStateException()
         values.clear()
         size = 0
+    }
+
+    open fun clear(k1: KManifold) {
+        val vs = values[k1] ?: return
+        size -= vs.size shr 1
+        vs.clear()
     }
 
     fun addAll(other: KeyPairMap<KManifold, KFewOnly, Value>) {

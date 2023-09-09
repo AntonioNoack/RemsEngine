@@ -1,11 +1,10 @@
 package me.anno.ecs.prefab.change
 
-import me.anno.io.Base64.encodeBase64
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import java.text.ParseException
-import kotlin.random.Random
+import java.util.concurrent.ThreadLocalRandom
 
 /**
  * internal class to changes,
@@ -290,15 +289,16 @@ class Path(
 
         val ROOT_PATH = Path(null, "", 0, ' ')
 
-        private val random = Random(System.nanoTime())
-
+        private const val randomIdChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz--"
         fun generateRandomId(): String {
-            return synchronized(random) {
-                val value = random.nextLong() xor System.nanoTime()
-                "#" + encodeBase64(value)
-                    .replace('+', '-')
-                    .replace('/', '-')
+            var value = ThreadLocalRandom.current().nextLong()
+            val result = CharArray(11)
+            result[0] = '#'
+            for (i in 1 until result.size) {
+                result[i] = randomIdChars[(value and 63).toInt()]
+                value = value ushr 6
             }
+            return String(result)
         }
 
         fun parseInt(str: String, startIndex: Int, endIndex: Int): Int {
@@ -310,7 +310,7 @@ class Path(
         }
 
         fun parse(str: String?): Path {
-            if (str == null || str.isEmpty()) return ROOT_PATH
+            if (str.isNullOrEmpty()) return ROOT_PATH
             var path = ROOT_PATH
             var startIndex = 0
             while (startIndex < str.length) {
@@ -333,7 +333,5 @@ class Path(
                 .appended(a)
                 .appended(b)
         }
-
     }
-
 }
