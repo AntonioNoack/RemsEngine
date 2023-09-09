@@ -5,8 +5,8 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.navigation.NavMesh
-import me.anno.ecs.components.navigation.NavMeshAgent
+import me.anno.recast.NavMesh
+import me.anno.recast.NavMeshAgent
 import me.anno.ecs.components.shaders.SkyBox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene

@@ -1,4 +1,4 @@
-package me.anno.ecs.components.navigation
+package me.anno.recast
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh

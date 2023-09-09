@@ -17,6 +17,7 @@ import me.anno.utils.Sleep.waitUntilDefined
 import java.io.IOException
 import kotlin.math.min
 
+@Suppress("unused")
 object Logo {
 
     // can be set by the application
@@ -101,7 +102,7 @@ object Logo {
     var requested = false
     var hasMesh = false
 
-    fun getLogoMeshes(async: Boolean): Mesh? {
+    fun getLogoMesh(async: Boolean): Mesh? {
         if (requested) {
             if (!async) waitUntilDefined(true) { mesh }
         } else {
@@ -130,7 +131,7 @@ object Logo {
                 // you can override this file, if you want to change the logo
                 // but please show Rem's Engine somewhere in there!
                 val async = OS.isWeb // must be async on Web; maybe Android too later
-                val mesh = getLogoMeshes(async)
+                val mesh = getLogoMesh(async)
                 if (mesh != null) {
                     mesh.ensureBuffer()
                     for (i in 0 until mesh.numMaterials) {

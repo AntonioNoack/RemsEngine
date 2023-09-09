@@ -1,4 +1,4 @@
-package me.anno.ecs.components.navigation
+package me.anno.recast
 
 import me.anno.ecs.Component
 import me.anno.io.serialization.NotSerializedProperty

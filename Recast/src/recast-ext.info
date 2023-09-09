@@ -1,0 +1,4 @@
+plugin-name: Recast4j Integration
+author: Antonio Noack
+description: Agent navigation
+main-class: me.anno.recast.RecastPlugin

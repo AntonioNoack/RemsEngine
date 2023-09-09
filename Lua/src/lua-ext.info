@@ -1,0 +1,4 @@
+plugin-name: LuaJ Integration
+author: Antonio Noack
+description: Executes Lua scripts
+main-class: me.anno.lua.LuaPlugin

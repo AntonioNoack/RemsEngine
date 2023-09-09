@@ -1,0 +1,4 @@
+plugin-name: SDF Integration
+author: Antonio Noack
+description: Defined a collection of SDF shapes, which can be combined, too
+main-class: me.anno.sdf.SDFPlugin
