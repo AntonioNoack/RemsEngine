@@ -1,13 +1,11 @@
 package me.anno.tests.utils
 
 import me.anno.ui.editor.files.Search
-
-fun assert(b: Boolean) {
-    if (!b) throw RuntimeException()
-}
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 fun main() {
     val s = Search("!.png")
-    assert(!s.matches("nemo.png"))
-    assert(s.matches("nemo.jpg"))
+    assertFalse(s.matches("nemo.png"))
+    assertTrue(s.matches("nemo.jpg"))
 }

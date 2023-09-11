@@ -129,7 +129,7 @@ class XMLScanner : XMLReader() {
 
             when (end2) {
                 '/'.code -> {
-                    assert(input.read(), '>')
+                    assertEquals(input.read(), '>'.code)
                     onEnd.handle(type)
                     return sthElement
                 }

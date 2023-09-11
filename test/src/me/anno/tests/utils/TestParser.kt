@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.parser.SimpleExpressionParser.parseDouble
+import kotlin.test.assertEquals
 
 fun main(){
 
@@ -59,9 +60,5 @@ fun main(){
 }
 
 fun test(expr: String, value: Double){
-    assert(parseDouble(expr), value)
-}
-
-fun assert(a: Double?, b: Double){
-    if(a != b) throw RuntimeException("Expected $b, but got $a")
+    assertEquals(parseDouble(expr), value)
 }

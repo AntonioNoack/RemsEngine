@@ -3,6 +3,8 @@ package me.anno.io.json
 import me.anno.io.files.FileReference
 import java.io.EOFException
 import java.io.InputStream
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * to avoid the import of FasterXML (17MB) or similar, we create our own light-weight solution to reading JSON files;
@@ -100,10 +102,10 @@ class JsonReader(val data: InputStream) {
                     when (val next1 = next()) {
                         '\\', 'r', 'n', 't', '"', '\'', 'f', 'b' -> {}
                         'u' -> {
-                            assert(isHex(next()), "expected hex")
-                            assert(isHex(next()), "expected hex")
-                            assert(isHex(next()), "expected hex")
-                            assert(isHex(next()), "expected hex")
+                            assertTrue(isHex(next()), "expected hex")
+                            assertTrue(isHex(next()), "expected hex")
+                            assertTrue(isHex(next()), "expected hex")
+                            assertTrue(isHex(next()), "expected hex")
                         }
                         else -> throw RuntimeException("Unknown escape sequence \\$next1")
                     }
@@ -159,7 +161,7 @@ class JsonReader(val data: InputStream) {
     }
 
     fun readObject(readOpeningBracket: Boolean = true, filter: ((String) -> Boolean)? = null): HashMap<String, Any?> {
-        if (readOpeningBracket) assert(skipSpace(), '{')
+        if (readOpeningBracket) assertEquals(skipSpace(), '{')
         var next = skipSpace()
         val obj = HashMap<String, Any?>()
         while (true) {
@@ -167,7 +169,7 @@ class JsonReader(val data: InputStream) {
                 '}' -> return obj
                 '"' -> {
                     val name = readString()
-                    assert(skipSpace(), ':')
+                    assertEquals(skipSpace(), ':')
                     if (filter == null || filter(name)) {
                         obj[name] = readSomething(skipSpace(), filter)
                     } else skipSomething(skipSpace())
@@ -180,14 +182,14 @@ class JsonReader(val data: InputStream) {
     }
 
     fun skipObject(readOpeningBracket: Boolean = true) {
-        if (readOpeningBracket) assert(skipSpace(), '{')
+        if (readOpeningBracket) assertEquals(skipSpace(), '{')
         var next = skipSpace()
         while (true) {
             when (next) {
                 '}' -> return
                 '"' -> {
                     skipString() // name
-                    assert(skipSpace(), ':')
+                    assertEquals(skipSpace(), ':')
                     skipSomething(skipSpace())
                     next = skipSpace()
                 }
@@ -257,7 +259,7 @@ class JsonReader(val data: InputStream) {
     }
 
     fun readArray(readOpeningBracket: Boolean = true): ArrayList<Any?> {
-        if (readOpeningBracket) assert(skipSpace(), '[')
+        if (readOpeningBracket) assertEquals(skipSpace(), '[')
         var next = skipSpace()
         val obj = ArrayList<Any?>()
         while (true) {
@@ -271,7 +273,7 @@ class JsonReader(val data: InputStream) {
     }
 
     fun skipArray(readOpeningBracket: Boolean = true) {
-        if (readOpeningBracket) assert(skipSpace(), '[')
+        if (readOpeningBracket) assertEquals(skipSpace(), '[')
         var next = skipSpace()
         while (true) {
             when (next) {
@@ -288,14 +290,6 @@ class JsonReader(val data: InputStream) {
     // we can't really put it elsewhere without prefix, because Kotlin will use the wrong import...
     fun assert(i: Char, c1: Char, c2: Char) {
         if (i != c1 && i != c2) throw JsonFormatException("Expected $c1 or $c2, but got $i")
-    }
-
-    fun assert(i: Char, c: Char) {
-        if (i != c) throw JsonFormatException("Expected $c, but got $i")
-    }
-
-    fun assert(b: Boolean, msg: String) {
-        if (!b) throw JsonFormatException(msg)
     }
 
 }

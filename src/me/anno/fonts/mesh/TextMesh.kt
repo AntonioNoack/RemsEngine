@@ -428,10 +428,6 @@ class TextMesh(
         drawBuffer(buffer, null, 0f)
     }
 
-    fun assert(b: Boolean) {
-        if (!b) throw RuntimeException()
-    }
-
     override fun destroy() {
         buffer.destroy()
     }

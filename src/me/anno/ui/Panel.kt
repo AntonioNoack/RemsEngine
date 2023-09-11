@@ -376,10 +376,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
         layoutConstraints.sortBy { it.order }
     }
 
-    fun assert(b: Boolean, msg: String?) {
-        if (!b) throw RuntimeException(msg)
-    }
-
     fun setPosSize(x: Int, y: Int, w: Int, h: Int) {
         setSize(w, h)
         this.x = x
