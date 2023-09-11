@@ -1,6 +1,6 @@
 package org.joml
 
-open class Planef(var a: Float, var b: Float, var c: Float, var d: Float) {
+open class Planef(var dirX: Float, var dirY: Float, var dirZ: Float, var distance: Float) {
 
     constructor() : this(0f, 0f, 0f, 0f)
 
@@ -8,13 +8,20 @@ open class Planef(var a: Float, var b: Float, var c: Float, var d: Float) {
             this(dir.x, dir.y, dir.z, -pos.dot(dir))
 
     fun set(x: Float, y: Float, z: Float, w: Float): Planef {
-        a = x
-        b = y
-        c = z
-        d = w
+        dirX = x
+        dirY = y
+        dirZ = z
+        distance = w
         return this
     }
 
     fun set(pos: Vector3f, dir: Vector3f) = set(dir.x, dir.y, dir.z, -pos.dot(dir))
 
+    fun set(src: Planef): Planef = set(src.dirX, src.dirY, src.dirZ, src.distance)
+
+    fun dot(x: Float, y: Float, z: Float): Float = x * dirX + y * dirY + z * dirZ + distance
+
+    override fun toString(): String {
+        return "Plane($dirX, $dirY, $dirZ, $distance)"
+    }
 }

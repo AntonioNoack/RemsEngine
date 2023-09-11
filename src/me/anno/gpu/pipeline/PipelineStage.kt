@@ -45,6 +45,7 @@ import org.lwjgl.opengl.GL30C.*
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 class PipelineStage(
     var name: String,
@@ -288,10 +289,13 @@ class PipelineStage(
         val mapBounds = JomlPools.aabbd.borrow()
         val bestPr = if (minVolume.isFinite()) {
             var candidates: Collection<PlanarReflection> = pipeline.planarReflections.filter {
-                val lb = it.lastBuffer
-                lb != null && lb.pointer != 0
+                // todo check if reflection can be visible
+                // doubleSided || it.transform!!.getDrawMatrix().transformDirection(0,0,1).dot(camDirection) > camPos.dot(camDir) (?)
+                val buffer = it.lastBuffer
+                buffer != null && buffer.pointer != 0
             }
             if (minVolume > 1e-308) candidates = candidates.filter {
+                // todo use projected 2d comparison instead
                 // only if environment map fills >= 50% of the AABB
                 val volume = mapBounds
                     .setMin(-1.0, -1.0, -1.0)
@@ -351,7 +355,6 @@ class PipelineStage(
         setupPlanarReflection(pipeline, shader, aabb)
         setupReflectionMap(pipeline, shader, aabb)
 
-        val time = Engine.gameTime
         val numberOfLightsPtr = shader["numberOfLights"]
         if (numberOfLightsPtr >= 0) {
             val maxNumberOfLights = RenderView.MAX_FORWARD_LIGHTS
@@ -548,7 +551,8 @@ class PipelineStage(
         val hasLights = maxNumberOfLights > 0
         val needsLightUpdateForEveryMesh =
             ((hasLights && pipeline.lightStage.size > maxNumberOfLights) ||
-                    pipeline.lightStage.environmentMaps.isNotEmpty())
+                    pipeline.lightStage.environmentMaps.isNotEmpty() ||
+                    pipeline.planarReflections.size > 1)
         var lastReceiveShadows = false
 
         pipeline.lights.fill(null)

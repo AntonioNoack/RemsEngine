@@ -2,6 +2,8 @@ package me.anno.sdf.modifiers
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.shader.GLSLType
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
@@ -9,8 +11,6 @@ import me.anno.sdf.SDFGroup.Companion.sMaxCubic
 import me.anno.sdf.SDFGroup.Companion.smoothMinCubic
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.SDFMirror.Companion.normalize3
-import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.shader.GLSLType
 import org.joml.AABBf
 import org.joml.Planef
 import org.joml.Vector3f
@@ -38,7 +38,7 @@ class SDFHalfSpace() : DistanceMapper() {
     var dynamicSmoothness = false
         set(value) {
             if (field != value) {
-                if(!globalDynamic) invalidateShader()
+                if (!globalDynamic) invalidateShader()
                 field = value
             }
         }
@@ -48,7 +48,7 @@ class SDFHalfSpace() : DistanceMapper() {
         set(value) {
             if (dynamicPlane || globalDynamic) invalidateBounds()
             else invalidateShader()
-            field.set(value.a, value.b, value.c, value.d)
+            field.set(value)
             field.normalize3()
         }
 
@@ -108,18 +108,18 @@ class SDFHalfSpace() : DistanceMapper() {
             var x = if (i.and(1) == 0) imx else ixx
             var y = if (i.and(2) == 0) imy else ixy
             var z = if (i.and(4) == 0) imz else ixz
-            val dot = normal.a * x + normal.b * y + normal.c * z + normal.d
+            val dot = normal.dot(x, y, z)
             if (dot > 0f) {// if on wrong side, project points onto plane
-                x -= dot * normal.a
-                y -= dot * normal.b
-                z -= dot * normal.c
+                x -= dot * normal.dirX
+                y -= dot * normal.dirY
+                z -= dot * normal.dirZ
             }
             bounds.union(x, y, z)
         }
     }
 
     override fun calcTransform(pos: Vector4f, distance: Float): Float {
-        return sMaxCubic(distance, plane.dot(pos), smoothness)
+        return sMaxCubic(distance, plane.dot(pos.x, pos.y, pos.z), smoothness)
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -129,18 +129,5 @@ class SDFHalfSpace() : DistanceMapper() {
     }
 
     override val className: String get() = "SDFHalfSpace"
-
-    companion object {
-
-        fun Planef.dot(v: Vector4f): Float {
-            return v.dot(a, b, c, 0f) + d
-        }
-
-        fun Planef.dot(v: Vector3f): Float {
-            return v.dot(a, b, c) + d
-        }
-
-    }
-
 
 }

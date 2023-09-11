@@ -92,9 +92,22 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "       vec2 uv7 = gl_FragCoord.xy/renderSize;\n" +
                 "       uv7.y = 1.0-uv7.y;\n" + // flipped on y-axis to save reprogramming of culling
                 "       vec3 specularColor = finalColor;\n" + // could be changed
-                // todo more samples from texture to reduce blocky look
                 "       vec3 newColor = vec3(0.0);\n" +
-                "       vec3 newEmissive = specularColor * textureLod(reflectionPlane, uv7, finalRoughness * 10.0).rgb;\n" +
+                "       float lod = finalRoughness * 10.0;\n" +
+                "       vec2 duv0 = 1.0 / textureSize(reflectionPlane,int(lod)), duv1 = vec2(duv0.x,-duv0.y),\n" +
+                "           du0 = vec2(duv0.x,0.0), dv0 = vec2(0.0,duv0.y);\n" +
+                // todo don't blur for sharpest reflections
+                "       vec3 newEmissive = specularColor * (\n" +
+                "           textureLod(reflectionPlane, uv7, lod).rgb * 4.0 +\n" +
+                "          (textureLod(reflectionPlane, uv7 + du0, lod).rgb +\n" +
+                "           textureLod(reflectionPlane, uv7 - du0, lod).rgb +\n" +
+                "           textureLod(reflectionPlane, uv7 + dv0, lod).rgb +\n" +
+                "           textureLod(reflectionPlane, uv7 - dv0, lod).rgb) * 2.0 +\n" +
+                "          (textureLod(reflectionPlane, uv7 + duv0, lod).rgb +\n" +
+                "           textureLod(reflectionPlane, uv7 - duv0, lod).rgb +\n" +
+                "           textureLod(reflectionPlane, uv7 + duv1, lod).rgb +\n" +
+                "           textureLod(reflectionPlane, uv7 - duv1, lod).rgb)\n" +
+                "       ) * 0.06125;\n" +
                 "       finalEmissive  = mix(finalEmissive, newEmissive, factor);\n" +
                 "       finalColor     = mix(finalColor, newColor, factor);\n" +
                 "       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +

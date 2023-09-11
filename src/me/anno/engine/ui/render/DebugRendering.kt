@@ -43,6 +43,7 @@ object DebugRendering {
             val s = min(w, h) / 3
             var texture: ITexture2D? = null
             var isDepth = false
+            val flipY = light is PlanarReflection
             when (light) {
                 is LightComponent -> {
                     texture = light.shadowTextures?.firstOrNull()?.depthTexture
@@ -59,9 +60,11 @@ object DebugRendering {
                 }
                 is ITexture2D -> {
                     if (Input.isShiftDown && light is PlanarReflection) {
-                        DrawTextures.drawTexture(x, y + h, w, -h, texture, true, 0x33ffffff, null)
+                        DrawTextures.drawTexture(x, y, w, h, texture, true, 0x33ffffff, null)
                     } else if (isDepth) {
                         DrawTextures.drawDepthTexture(x, y + h, s, -s, texture)
+                    } else if (flipY) {
+                        DrawTextures.drawTexture(x, y + h - s, s, s, texture, true, -1, null)
                     } else {
                         DrawTextures.drawTexture(x, y + h, s, -s, texture, true, -1, null)
                     }
@@ -87,7 +90,15 @@ object DebugRendering {
             DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
             // prepareDrawScene needs to be reset afterwards, because we seem to have a kind-of-bug somewhere
             val camera2 = view.editorCamera
-            view.prepareDrawScene(view.width, view.height, view.width.toFloat() / view.height, camera2, camera2, 0f, false)
+            view.prepareDrawScene(
+                view.width,
+                view.height,
+                view.width.toFloat() / view.height,
+                camera2,
+                camera2,
+                0f,
+                false
+            )
         }
     }
 
@@ -170,5 +181,4 @@ object DebugRendering {
             camPosition, worldScale, color
         )
     }
-
 }

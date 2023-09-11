@@ -9,6 +9,7 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.io.EOFException
+import kotlin.test.assertEquals
 
 /**
  * reads a JSON-similar format from a text file
@@ -41,19 +42,19 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
     abstract fun skipSpace(): Char
 
     override fun readObject(): ISaveable {
-        assert(skipSpace(), '"')
+        assertEquals(skipSpace(), '"')
         val firstProperty = readString()
-        assert(firstProperty == "class", "Expected first property to be 'class', was '$firstProperty'")
-        assert(skipSpace(), ':')
-        assert(skipSpace(), '"')
+        assertEquals(firstProperty, "class", "Expected first property to be 'class', was '$firstProperty'")
+        assertEquals(skipSpace(), ':')
+        assertEquals(skipSpace(), '"')
         val clazz = readString()
         val nc0 = skipSpace()
         val obj = getNewClassInstance(clazz)
         allInstances.add(obj)
         if (nc0 == ',') {
-            assert(skipSpace(), '"')
+            assertEquals(skipSpace(), '"')
             val secondProperty = readString()
-            assert(skipSpace(), ':')
+            assertEquals(skipSpace(), ':')
             if (secondProperty == "i:*ptr") {
                 val ptr = readInt()
                 register(obj, ptr)
@@ -63,14 +64,14 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             }
             propertyLoop(obj)
         } else {
-            assert(nc0, '}')
+            assertEquals(nc0, '}')
             register(obj)
         }
         return obj
     }
 
     override fun readAllInList() {
-        assert(skipSpace(), '[')
+        assertEquals(skipSpace(), '[')
         while (true) {
             when (val next = skipSpace()) {
                 ',' -> Unit // nothing to do
@@ -85,9 +86,9 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         return when (val c = skipSpace()) {
             '"' -> readString()
             'n' -> {
-                assert(next(), 'u')
-                assert(next(), 'l')
-                assert(next(), 'l')
+                assertEquals(next(), 'u')
+                assertEquals(next(), 'l')
+                assertEquals(next(), 'l')
                 null
             }
             else -> throw InvalidFormatException("Expected '\"' or 'n' but got $c for readStringValueOrNull")
@@ -99,7 +100,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     private fun readStringValue(): String {
-        assert(skipSpace(), '"', "Reading String")
+        assertEquals(skipSpace(), '"', "Reading String")
         return readString()
     }
 
@@ -209,7 +210,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         readValue: () -> InstanceType,
         putValue: (array: ArrayType, index: Int, value: InstanceType) -> Unit
     ): ArrayType {
-        assert(skipSpace(), '[')
+        assertEquals(skipSpace(), '[')
         val rawLength = readLong()
         if (rawLength > Int.MAX_VALUE || rawLength < 0) error("Invalid $typeName[] length '$rawLength'")
         val length = rawLength.toInt()
@@ -249,7 +250,6 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         crossinline readValue: () -> Type2,
     ): Array<Array<Type2>> {
         val sampleInstance = sampleArray[0]
-        @Suppress("unchecked_cast")
         return readArray(typeName,
             { Array(it) { sampleArray } },
             { readArray(typeName, sampleInstance, readValue) },
@@ -262,16 +262,16 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             '0' -> false
             '1' -> true
             't', 'T' -> {
-                assert(next(), 'r', "boolean:true")
-                assert(next(), 'u', "boolean:true")
-                assert(next(), 'e', "boolean:true")
+                assertEquals(next(), 'r', "boolean:true")
+                assertEquals(next(), 'u', "boolean:true")
+                assertEquals(next(), 'e', "boolean:true")
                 true
             }
             'f', 'F' -> {
-                assert(next(), 'a', "boolean:false")
-                assert(next(), 'l', "boolean:false")
-                assert(next(), 's', "boolean:false")
-                assert(next(), 'e', "boolean:false")
+                assertEquals(next(), 'a', "boolean:false")
+                assertEquals(next(), 'l', "boolean:false")
+                assertEquals(next(), 's', "boolean:false")
+                assertEquals(next(), 'e', "boolean:false")
                 false
             }
             else -> throw InvalidFormatException("Unknown boolean value starting with $firstChar")
@@ -281,240 +281,240 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
     private fun readVector2f(allowCommaAtStart: Boolean = false): Vector2f {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readFloat()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector2f(rawX)
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readFloat()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Vector2f(rawX, rawY)
     }
 
     private fun readVector3f(allowCommaAtStart: Boolean = false): Vector3f {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readFloat()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector3f(rawX) // monotone / grayscale
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readFloat()
-        assert(skipSpace(), ',', "Separator of Vector")
+        assertEquals(skipSpace(), ',', "Separator of Vector")
         val rawZ = readFloat()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Vector3f(rawX, rawY, rawZ)
     }
 
     private fun readVector4f(allowCommaAtStart: Boolean = false): Vector4f {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readFloat()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector4f(rawX) // monotone
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readFloat()
         val sep1 = skipSpace()
         if (sep1 == ']') return Vector4f(rawX, rawX, rawX, rawY) // white with alpha
-        assert(sep1, ',', "Separator of Vector")
+        assertEquals(sep1, ',', "Separator of Vector")
         val rawZ = readFloat()
         val sep2 = skipSpace()
         if (sep2 == ']') return Vector4f(rawX, rawY, rawZ, 1f) // opaque color
-        assert(sep2, ',', "Separator of Vector")
+        assertEquals(sep2, ',', "Separator of Vector")
         val rawW = readFloat()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Vector4f(rawX, rawY, rawZ, rawW)
     }
 
     private fun readQuaternionf(): Quaternionf {
-        assert(skipSpace(), '[', "Start of Vector")
+        assertEquals(skipSpace(), '[', "Start of Vector")
         val rawX = readFloat()
         val sep0 = skipSpace()
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readFloat()
         val sep1 = skipSpace()
-        assert(sep1, ',', "Separator of Vector")
+        assertEquals(sep1, ',', "Separator of Vector")
         val rawZ = readFloat()
         val sep2 = skipSpace()
-        assert(sep2, ',', "Separator of Vector")
+        assertEquals(sep2, ',', "Separator of Vector")
         val rawW = readFloat()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Quaternionf(rawX, rawY, rawZ, rawW)
     }
 
     private fun readVector2d(allowCommaAtStart: Boolean = false): Vector2d {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readDouble()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector2d(rawX)
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readDouble()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Vector2d(rawX, rawY)
     }
 
     private fun readVector3d(allowCommaAtStart: Boolean = false): Vector3d {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readDouble()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector3d(rawX) // monotone / grayscale
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readDouble()
-        assert(skipSpace(), ',', "Separator of Vector")
+        assertEquals(skipSpace(), ',', "Separator of Vector")
         val rawZ = readDouble()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Vector3d(rawX, rawY, rawZ)
     }
 
     private fun readVector4d(allowCommaAtStart: Boolean = false): Vector4d {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readDouble()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector4d(rawX) // monotone
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readDouble()
         val sep1 = skipSpace()
         if (sep1 == ']') return Vector4d(rawX, rawX, rawX, rawY) // white with alpha
-        assert(sep1, ',', "Separator of Vector")
+        assertEquals(sep1, ',', "Separator of Vector")
         val rawZ = readDouble()
         val sep2 = skipSpace()
         if (sep2 == ']') return Vector4d(rawX, rawY, rawZ, 1.0) // opaque color
-        assert(sep2, ',', "Separator of Vector")
+        assertEquals(sep2, ',', "Separator of Vector")
         val rawW = readDouble()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Vector4d(rawX, rawY, rawZ, rawW)
     }
 
     private fun readPlanef(allowCommaAtStart: Boolean = false): Planef {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readFloat()
         val sep0 = skipSpace()
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readFloat()
         val sep1 = skipSpace()
-        assert(sep1, ',', "Separator of Vector")
+        assertEquals(sep1, ',', "Separator of Vector")
         val rawZ = readFloat()
         val sep2 = skipSpace()
-        assert(sep2, ',', "Separator of Vector")
+        assertEquals(sep2, ',', "Separator of Vector")
         val rawW = readFloat()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Planef(rawX, rawY, rawZ, rawW)
     }
 
     private fun readPlaned(allowCommaAtStart: Boolean = false): Planed {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readDouble()
         val sep0 = skipSpace()
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readDouble()
         val sep1 = skipSpace()
-        assert(sep1, ',', "Separator of Vector")
+        assertEquals(sep1, ',', "Separator of Vector")
         val rawZ = readDouble()
         val sep2 = skipSpace()
-        assert(sep2, ',', "Separator of Vector")
+        assertEquals(sep2, ',', "Separator of Vector")
         val rawW = readDouble()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Planed(rawX, rawY, rawZ, rawW)
     }
 
     private fun readQuaterniond(): Quaterniond {
-        assert(skipSpace(), '[', "Start of Vector")
+        assertEquals(skipSpace(), '[', "Start of Vector")
         val rawX = readDouble()
         val sep0 = skipSpace()
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readDouble()
         val sep1 = skipSpace()
-        assert(sep1, ',', "Separator of Vector")
+        assertEquals(sep1, ',', "Separator of Vector")
         val rawZ = readDouble()
         val sep2 = skipSpace()
-        assert(sep2, ',', "Separator of Vector")
+        assertEquals(sep2, ',', "Separator of Vector")
         val rawW = readDouble()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Quaterniond(rawX, rawY, rawZ, rawW)
     }
 
     private fun readVector2i(allowCommaAtStart: Boolean = false): Vector2i {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readInt()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector2i(rawX)
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readInt()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Vector2i(rawX, rawY)
     }
 
     private fun readVector3i(allowCommaAtStart: Boolean = false): Vector3i {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readInt()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector3i(rawX) // monotone / grayscale
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readInt()
-        assert(skipSpace(), ',', "Separator of Vector")
+        assertEquals(skipSpace(), ',', "Separator of Vector")
         val rawZ = readInt()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Vector3i(rawX, rawY, rawZ)
     }
 
     private fun readVector4i(allowCommaAtStart: Boolean = false): Vector4i {
         var c0 = skipSpace()
         if (c0 == ',' && allowCommaAtStart) c0 = skipSpace()
-        assert(c0, '[', "Start of Vector")
+        assertEquals(c0, '[', "Start of Vector")
         val rawX = readInt()
         val sep0 = skipSpace()
         if (sep0 == ']') return Vector4i(rawX) // monotone
-        assert(sep0, ',', "Separator of Vector")
+        assertEquals(sep0, ',', "Separator of Vector")
         val rawY = readInt()
         val sep1 = skipSpace()
         if (sep1 == ']') return Vector4i(rawX, rawX, rawX, rawY) // white with alpha
-        assert(sep1, ',', "Separator of Vector")
+        assertEquals(sep1, ',', "Separator of Vector")
         val rawZ = readInt()
         val sep2 = skipSpace()
         if (sep2 == ']') return Vector4i(rawX, rawY, rawZ, 255) // opaque color
-        assert(sep2, ',', "Separator of Vector")
+        assertEquals(sep2, ',', "Separator of Vector")
         val rawW = readInt()
-        assert(skipSpace(), ']', "End of Vector")
+        assertEquals(skipSpace(), ']', "End of Vector")
         return Vector4i(rawX, rawY, rawZ, rawW)
     }
 
     private fun readMatrix2x2(): Matrix2f {
-        assert(skipSpace(), '[', "Start of m2x2")
+        assertEquals(skipSpace(), '[', "Start of m2x2")
         val m = Matrix2f(
             readVector2f(),
             readVector2f(true),
         )
-        assert(skipSpace(), ']', "End of m2x2")
+        assertEquals(skipSpace(), ']', "End of m2x2")
         return m
     }
 
     private fun readMatrix2x2d(): Matrix2d {
-        assert(skipSpace(), '[', "Start of m2x2d")
+        assertEquals(skipSpace(), '[', "Start of m2x2d")
         val m = Matrix2d(
             readVector2d(),
             readVector2d(true),
         )
-        assert(skipSpace(), ']', "End of m2x2d")
+        assertEquals(skipSpace(), ']', "End of m2x2d")
         return m
     }
 
     private fun readMatrix3x2(): Matrix3x2f {
-        assert(skipSpace(), '[', "Start of m3x2")
+        assertEquals(skipSpace(), '[', "Start of m3x2")
         val a = readVector2f()
         val b = readVector2f(true)
         val c = readVector2f(true)
@@ -523,12 +523,12 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             b.x, b.y,
             c.x, c.y
         )
-        assert(skipSpace(), ']', "End of m3x2")
+        assertEquals(skipSpace(), ']', "End of m3x2")
         return m
     }
 
     private fun readMatrix3x2d(): Matrix3x2d {
-        assert(skipSpace(), '[', "Start of m3x2d")
+        assertEquals(skipSpace(), '[', "Start of m3x2d")
         val a = readVector2d()
         val b = readVector2d(true)
         val c = readVector2d(true)
@@ -537,46 +537,46 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             b.x, b.y,
             c.x, c.y
         )
-        assert(skipSpace(), ']', "End of m3x2d")
+        assertEquals(skipSpace(), ']', "End of m3x2d")
         return m
     }
 
     private fun readMatrix3x3(): Matrix3f {
-        assert(skipSpace(), '[', "Start of m3x3")
+        assertEquals(skipSpace(), '[', "Start of m3x3")
         val m = Matrix3f(
             readVector3f(),
             readVector3f(true),
             readVector3f(true)
         )
-        assert(skipSpace(), ']', "End of m3x3")
+        assertEquals(skipSpace(), ']', "End of m3x3")
         return m
     }
 
     private fun readMatrix3x3d(): Matrix3d {
-        assert(skipSpace(), '[', "Start of m3x3d")
+        assertEquals(skipSpace(), '[', "Start of m3x3d")
         val m = Matrix3d(
             readVector3d(),
             readVector3d(true),
             readVector3d(true)
         )
-        assert(skipSpace(), ']', "End of m3x3d")
+        assertEquals(skipSpace(), ']', "End of m3x3d")
         return m
     }
 
     private fun readMatrix4x3(): Matrix4x3f {
-        assert(skipSpace(), '[', "Start of m4x3")
+        assertEquals(skipSpace(), '[', "Start of m4x3")
         val m = Matrix4x3f(
             readVector3f(),
             readVector3f(true),
             readVector3f(true),
             readVector3f(true)
         )
-        assert(skipSpace(), ']', "End of m4x3")
+        assertEquals(skipSpace(), ']', "End of m4x3")
         return m
     }
 
     private fun readMatrix4x3d(): Matrix4x3d {
-        assert(skipSpace(), '[', "Start of m4x3d")
+        assertEquals(skipSpace(), '[', "Start of m4x3d")
         val m = Matrix4x3d() // constructor is missing somehow...
         m.set(
             readVector3d(),
@@ -584,38 +584,38 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             readVector3d(true),
             readVector3d(true)
         )
-        assert(skipSpace(), ']', "End of m4x3d")
+        assertEquals(skipSpace(), ']', "End of m4x3d")
         return m
     }
 
     private fun readMatrix4x4(): Matrix4f {
-        assert(skipSpace(), '[', "Start of m4x4")
+        assertEquals(skipSpace(), '[', "Start of m4x4")
         val m = Matrix4f(
             readVector4f(),
             readVector4f(true),
             readVector4f(true),
             readVector4f(true)
         )
-        assert(skipSpace(), ']', "End of m4x4")
+        assertEquals(skipSpace(), ']', "End of m4x4")
         return m
     }
 
     private fun readMatrix4x4d(): Matrix4d {
-        assert(skipSpace(), '[', "Start of m4x4d")
+        assertEquals(skipSpace(), '[', "Start of m4x4d")
         val m = Matrix4d(
             readVector4d(),
             readVector4d(true),
             readVector4d(true),
             readVector4d(true)
         )
-        assert(skipSpace(), ']', "End of m4x4d")
+        assertEquals(skipSpace(), ']', "End of m4x4d")
         return m
     }
 
     fun readProperty(obj: ISaveable) {
-        assert(skipSpace(), '"')
+        assertEquals(skipSpace(), '"')
         val typeName = readString()
-        assert(skipSpace(), ':')
+        assertEquals(skipSpace(), ':')
         readProperty(obj, typeName)
     }
 
@@ -627,7 +627,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         return when (val first = skipSpace()) {
             '\'', '"' -> {
                 val value = next()
-                assert(next(), first)
+                assertEquals(next(), first)
                 value
             }
             else -> {
@@ -703,7 +703,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
                 '"', '\'' -> {
                     if (isFirst) {
                         number = readLong()
-                        assert(next(), next)
+                        assertEquals(next(), next)
                         break@loop
                     } else {
                         tmpChar = next.code
@@ -782,7 +782,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
 
     private fun readProperty(obj: ISaveable, typeName: String): ISaveable {
         if (typeName == "class") {
-            assert(skipSpace(), '"')
+            assertEquals(skipSpace(), '"')
             val clazz = readString()
             // could be different in lists
             return if (clazz == obj.className) obj
@@ -793,7 +793,6 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             }
         }
         var (type, name) = splitTypeName(typeName)
-        @Suppress("unchecked_cast")
         when (type) {
             "i1", "b" -> obj.readBoolean(name, readBool())
             "c" -> obj.readChar(name, readChar())
@@ -956,9 +955,9 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     private fun readNull(): Nothing? {
-        assert(next(), 'u', "Reading null")
-        assert(next(), 'l', "Reading null")
-        assert(next(), 'l', "Reading null")
+        assertEquals(next(), 'u', "Reading null")
+        assertEquals(next(), 'l', "Reading null")
+        assertEquals(next(), 'l', "Reading null")
         return null
     }
 
@@ -971,14 +970,14 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             // nothing to do
             register(instance)
         } else {
-            assert(firstChar, '"')
+            assertEquals(firstChar, '"')
             var property0 = readString()
             if (property0 == "class") {
-                assert(skipSpace(), ':')
-                assert(skipSpace(), '"')
-                assert(readString(), type)
-                assert(skipSpace(), ',')
-                assert(skipSpace(), '"')
+                assertEquals(skipSpace(), ':')
+                assertEquals(skipSpace(), '"')
+                assertEquals(readString(), type)
+                assertEquals(skipSpace(), ',')
+                assertEquals(skipSpace(), '"')
                 property0 = readString()
             }
             val nextChar = skipSpace()
@@ -986,7 +985,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
                 // nothing to do
                 register(instance)
             } else {
-                assert(nextChar, ':')
+                assertEquals(nextChar, ':')
                 if (property0 == "*ptr" || property0 == "i:*ptr") {
                     val ptr = readNumber().toIntOrNull() ?: throw InvalidFormatException("Invalid pointer")
                     register(instance, ptr)
@@ -998,7 +997,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
                 if (n != '}') {
                     if (n == ',') n = skipSpace()
                     if (n != '}') {
-                        assert(n, '"')
+                        assertEquals(n, '"')
                         tmpChar = '"'.code
                         readProperty(instance)
                         propertyLoop(instance)
@@ -1010,9 +1009,9 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
     }
 
     private inline fun readWithBrackets(name: String, run: () -> Unit) {
-        assert(skipSpace(), '[', name)
+        assertEquals(skipSpace(), '[', name)
         run()
-        assert(skipSpace(), ']', name)
+        assertEquals(skipSpace(), ']', name)
     }
 
     private fun splitTypeName(typeName: String): Pair<String, String> {
@@ -1021,34 +1020,6 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         val type = typeName.substring(0, index)
         val name = typeName.substring(index + 1)
         return type to name
-    }
-
-    override fun assert(b: Boolean) {
-        if (!b) throw InvalidFormatException("Assertion failed, line $lineNumber:$lineIndex")
-    }
-
-    override fun assert(b: Boolean, msg: String) {
-        if (!b) throw InvalidFormatException("$msg, line $lineNumber:$lineIndex")
-    }
-
-    override fun assert(isValue: String, shallValue: String) {
-        if (!isValue.equals(shallValue, true)) {
-            throw InvalidFormatException("Expected $shallValue but got $isValue, line $lineNumber:$lineIndex")
-        }
-    }
-
-    override fun assert(isValue: Char, shallValue: Char) {
-        if (isValue == (-1).toChar()) throw EOFException()
-        if (isValue != shallValue.lowercaseChar() && isValue != shallValue.uppercaseChar()) {
-            throw InvalidFormatException("Expected $shallValue but got $isValue, ${isValue.code}, line $lineNumber:$lineIndex")
-        }
-    }
-
-    override fun assert(isValue: Char, shallValue: Char, context: String) {
-        if (isValue == (-1).toChar()) throw EOFException()
-        if (isValue != shallValue.lowercaseChar() && isValue != shallValue.uppercaseChar()) {
-            throw InvalidFormatException("Expected $shallValue but got $isValue for $context, line $lineNumber:$lineIndex")
-        }
     }
 
     companion object {
@@ -1102,7 +1073,6 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         private const val black = 255.shl(24).toLong()
         private val LOGGER = LogManager.getLogger(TextReaderBase::class)
     }
-
 }
 
 /*fun main() {// testing the number parser

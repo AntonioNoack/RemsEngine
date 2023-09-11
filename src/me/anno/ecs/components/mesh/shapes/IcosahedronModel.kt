@@ -1,7 +1,7 @@
 package me.anno.ecs.components.mesh.shapes
 
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.maths.Maths.PHIf
+import me.anno.maths.Maths.PHI
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.length
@@ -15,42 +15,38 @@ import kotlin.math.sin
 
 object IcosahedronModel {
 
-    // not sorted, because those numbers are from a Blender file
-    val positions = floatArrayOf(
-        -1f, -PHIf, 0f,
-        +1f, -PHIf, 0f,
-        +0f, -1f, PHIf,
-        -PHIf, 0f, +1f,
-        -PHIf, 0f, -1f,
-        0f, -1f, -PHIf,
-        PHIf, 0f, +1f,
-        0f, +1f, +PHIf,
-        -1f, +PHIf, 0f,
-        +0f, +1f, -PHIf,
-        +PHIf, 0f, -1f,
-        +1f, +PHIf, 0f,
+    val positions = doubleArrayOf(
+        -PHI, 0.0, -1.0,
+        -PHI, 0.0, +1.0,
+        +PHI, 0.0, -1.0,
+        +PHI, 0.0, +1.0,
+        -1.0, -PHI, 0.0,
+        +1.0, -PHI, 0.0,
+        -1.0, +PHI, 0.0,
+        +1.0, +PHI, 0.0,
+        0.0, -1.0, -PHI,
+        0.0, +1.0, -PHI,
+        0.0, -1.0, +PHI,
+        0.0, +1.0, +PHI,
     )
 
     val indices = byteArrayOf(
-        0, 1, 2, 1, 0, 5, 0, 2, 3,
-        0, 3, 4, 0, 4, 5, 1, 5, 10,
-        2, 1, 6, 3, 2, 7, 4, 3, 8,
-        5, 4, 9, 1, 10, 6, 2, 6, 7,
-        3, 7, 8, 4, 8, 9, 5, 9, 10,
-        6, 10, 11, 7, 6, 11, 8, 7, 11,
-        9, 8, 11, 10, 9, 11
+        0, 4, 1, 2, 3, 5, 0, 1, 6, 2, 7, 3, 2, 5, 8, 0, 8, 4, 4, 8, 5, 6, 7, 9, 2, 9, 7, 0, 6, 9, 2,
+        8, 9, 0, 9, 8, 3, 10, 5, 1, 4, 10, 4, 5, 10, 3, 7, 11, 6, 11, 7, 3, 11, 10, 1, 11, 6, 1, 10, 11
     )
 
     init {
-        // normalize all positions
+        // normalize all positions, and rotate everything by https://oeis.org/A195693,
+        // so it is even
+        val s = 1.0 / length(1.0, PHI)
+        val c = PHI * s
         for (i in positions.indices step 3) {
             val x = positions[i]
             val y = positions[i + 1]
             val z = positions[i + 2]
-            val f = 1f / length(x, y, z)
-            positions[i] = x * f
-            positions[i + 1] = y * f
-            positions[i + 2] = z * f
+            positions[i] = (x * c - y * s) * s
+            positions[i + 1] = (x * s + y * c) * s
+            positions[i + 2] = z * s
         }
     }
 
@@ -68,16 +64,15 @@ object IcosahedronModel {
         var k3 = 0
 
         fun u(x: Float, z: Float, x2: Float, z2: Float): Float {
-            if (x * x + z * z <= 1e-7f) return atan2(x2, z2) / PIf
-            return atan2(z, x) / PIf
+            return if (x * x + z * z <= 1e-7f) 1f - atan2(z2, x2) / PIf
+            else 1f - atan2(z, x) / PIf
         }
 
-        // todo equators are weird
         fun v(x: Float, y: Float, z: Float): Float {
             return 1f - atan2(length(x, z), y) / PIf
         }
 
-        fun add(
+        fun addTriangle(
             s: Int,
             x0: Float, y0: Float, z0: Float, u0: Float, v0: Float,
             x1: Float, y1: Float, z1: Float, u1: Float, v1: Float,
@@ -112,22 +107,22 @@ object IcosahedronModel {
                 y20 *= c
                 z20 *= c
                 val t = s + 1
-                add(
+                addTriangle(
                     t, x0, y0, z0, u0, v0,
                     x01, y01, z01, u01, v01,
                     x20, y20, z20, u20, v20,
                 )
-                add(
+                addTriangle(
                     t, x01, y01, z01, u01, v01,
                     x12, y12, z12, u12, v12,
                     x20, y20, z20, u20, v20,
                 )
-                add(
+                addTriangle(
                     t, x1, y1, z1, u1, v1,
                     x12, y12, z12, u12, v12,
                     x01, y01, z01, u01, v01,
                 )
-                add(
+                addTriangle(
                     t, x2, y2, z2, u2, v2,
                     x20, y20, z20, u20, v20,
                     x12, y12, z12, u12, v12,
@@ -137,10 +132,13 @@ object IcosahedronModel {
                 var u1x = u1
                 var u2x = u2
                 // more than PI difference? fix it
-                if (max(u0x, max(u1x, u2x)) > min(u0x, min(u1x, u2x)) + 1f) {
-                    if (u0x > 0f) u0x -= 2f
-                    if (u1x > 0f) u1x -= 2f
-                    if (u2x > 0f) u2x -= 2f
+                val mx = max(u0x, max(u1x, u2x))
+                val mn = min(u0x, min(u1x, u2x))
+                if (mx > mn + 1f) {
+                    val avg = (mx + mn) * 0.5f
+                    if (u0x > avg) u0x -= 2f
+                    if (u1x > avg) u1x -= 2f
+                    if (u2x > avg) u2x -= 2f
                 }
                 // add triangle
                 positions[k3++] = x0
@@ -166,16 +164,16 @@ object IcosahedronModel {
             val a = indices[i] * 3
             val b = indices[i + 1] * 3
             val c = indices[i + 2] * 3
-            val x0 = pos[a]
-            val y0 = pos[a + 1]
-            val z0 = pos[a + 2]
-            val x1 = pos[b]
-            val y1 = pos[b + 1]
-            val z1 = pos[b + 2]
-            val x2 = pos[c]
-            val y2 = pos[c + 1]
-            val z2 = pos[c + 2]
-            add(
+            val x0 = pos[a].toFloat()
+            val y0 = pos[a + 1].toFloat()
+            val z0 = pos[a + 2].toFloat()
+            val x1 = pos[b].toFloat()
+            val y1 = pos[b + 1].toFloat()
+            val z1 = pos[b + 2].toFloat()
+            val x2 = pos[c].toFloat()
+            val y2 = pos[c + 1].toFloat()
+            val z2 = pos[c + 2].toFloat()
+            addTriangle(
                 0,
                 x0, y0, z0, u(x0, z0, (x1 + x2), (z1 + z2)), v(x0, y0, z0),
                 x1, y1, z1, u(x1, z1, (x0 + x2), (z0 + z2)), v(x1, y1, z1),

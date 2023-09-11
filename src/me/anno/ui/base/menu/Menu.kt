@@ -279,7 +279,7 @@ object Menu {
                 val window = window
                 val char = key.toChar()
                 val entry = extraKeyListeners[char.lowercaseChar()]
-                if (window != null && entry?.invoke() == true) {
+                if (window in windowStack && entry?.invoke() == true) {
                     close(this)
                 } else super.onCharTyped(x, y, key)
             }

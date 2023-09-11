@@ -1,7 +1,6 @@
 package me.anno.engine.ui.render
 
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.input.Input
 import me.anno.maths.Maths.sq
 import me.anno.utils.Color.black
 import org.joml.*
@@ -13,13 +12,12 @@ class Frustum {
     // this class might be replaceable with org.joml.FrustumIntersection,
     // if we replace those floats with doubles
 
-    // todo define a 7th plane for reflection culling
-
     // -x,+x,-y,+y,-z,+z
-    val planes = Array(6) { Vector4d() }
+    val planes = Array(13) { Vector4d() }
+    var length = 6
 
-    private val normals = Array(6) { Vector3d() }
-    private val positions = Array(6) { Vector3d() }
+    private val normals = Array(13) { Vector3d() }
+    private val positions = Array(13) { Vector3d() }
 
     // frustum information, for the size estimation
     private val cameraPosition = Vector3d()
@@ -38,16 +36,8 @@ class Frustum {
     // for debugging, when the pipeline seems to be empty for unknown reasons
     fun setToEverything(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
 
-        val planes = planes
-        planes[0].set(-1.0, 0.0, 0.0, -1e30)
-        planes[1].set(+1.0, 0.0, 0.0, -1e30)
-        planes[2].set(0.0, -1.0, 0.0, -1e30)
-        planes[3].set(0.0, +1.0, 0.0, -1e30)
-        planes[4].set(0.0, 0.0, -1.0, -1e30)
-        planes[5].set(0.0, 0.0, +1.0, -1e30)
-
+        length = 0
         isPerspective = false
-
         sizeThreshold = 0.0
 
         this.cameraPosition.set(cameraPosition)
@@ -89,17 +79,17 @@ class Frustum {
         positions[5].set(0.0, 0.0, -far)
         normals[5].set(0.0, 0.0, -1.0)
 
+        length = 6
         transform2(cameraPosition, cameraRotation)
 
         isPerspective = false
-
     }
 
     fun transform(cameraPosition: Vector3d, cameraRotation: Quaterniond) {
         val positions = positions
         val normals = normals
         val planes = planes
-        for (i in 0 until 6) {
+        for (i in 0 until length) {
             val position = positions[i].add(cameraPosition)
             val normal = cameraRotation.transform(normals[i])
             val distance = position.dot(normal)
@@ -113,7 +103,7 @@ class Frustum {
         val positions = positions
         val normals = normals
         val planes = planes
-        for (i in 0 until 6) {
+        for (i in 0 until length) {
             val position = cameraRotation.transform(positions[i]).add(cameraPosition)
             val normal = cameraRotation.transform(normals[i])
             val distance = position.dot(normal)
@@ -249,13 +239,14 @@ class Frustum {
         normals[0].set(+cosX, 0.0, +sinX)
         normals[1].set(-cosX, 0.0, +sinX)
 
+        length = 6
         transform(cameraPosition, cameraRotation)
 
         isPerspective = true
     }
 
     fun showPlanes() {
-        for (i in 0 until 6) {
+        for (i in 0 until length) {
             val length = 10.0
             val s = 1.0
             val p = positions[i]
@@ -362,7 +353,7 @@ class Frustum {
     operator fun contains(aabb: AABBd): Boolean {
         if (aabb.isEmpty()) return false
         // https://www.gamedev.net/forums/topic/512123-fast--and-correct-frustum---aabb-intersection/
-        for (i in 0 until 6) {
+        for (i in 0 until length) {
             val plane = planes[i]
             val x = if (plane.x > 0.0) aabb.minX else aabb.maxX
             val y = if (plane.y > 0.0) aabb.minY else aabb.maxY

@@ -12,6 +12,8 @@ import me.anno.utils.types.Booleans.toInt
 // decal pass:
 //  Input: pos, normal (we could pass in color theoretically, but idk)
 //  Output: new color, new normal, new emissive
+// these attributes are mixed in deferred layers, so we probably need to do it in the shader... could be expensive,
+// because we need a copy on some platforms to operate on
 // todo different blend modes: additive, subtractive, default, ...
 class DecalMaterial : Material() {
 

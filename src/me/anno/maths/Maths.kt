@@ -30,7 +30,7 @@ object Maths {
     const val INV_SQRT_PIf = 0.5641896f
 
     const val PHI = GOLDEN_RATIO
-    const val PHIf = PHI.toFloat()
+    const val PHIf = GOLDEN_RATIOf
 
     @JvmStatic
     fun sq(x: Int) = x * x

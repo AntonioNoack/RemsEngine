@@ -1,13 +1,12 @@
 package me.anno.sdf.modifiers
 
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.maths.Maths.sq
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.defineUniform
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
 import me.anno.sdf.VariableCounter
-import me.anno.sdf.modifiers.SDFHalfSpace.Companion.dot
-import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.maths.Maths.sq
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Planef
@@ -31,12 +30,11 @@ class SDFMirror() : PositionMapper() {
     // considering this effect probably would be stacked, it would get too expensive
     // (+ our pipeline currently does not support that)
 
-    @Suppress("SetterBackingFieldAssignment")
     var plane = Planef(0f, 1f, 0f, 0f)
         set(value) {
             if (dynamicPlane || globalDynamic) invalidateBounds()
             else invalidateShader()
-            field.set(value.a, value.b, value.c, value.d)
+            field.set(value)
             field.normalize3()
         }
 
@@ -75,10 +73,10 @@ class SDFMirror() : PositionMapper() {
             val x = if (i.and(1) == 0) imx else ixx
             val y = if (i.and(2) == 0) imy else ixy
             val z = if (i.and(4) == 0) imz else ixz
-            val dot = 2f * (normal.a * x + normal.b * y + normal.c * z + normal.d)
+            val dot = 2f * (normal.dot(x, y, z))
             if (dot >= 0f) {
                 bounds.union(x, y, z)
-                bounds.union(x - dot * normal.a, y - dot * normal.b, z - dot * normal.c)
+                bounds.union(x - dot * normal.dirX, y - dot * normal.dirY, z - dot * normal.dirZ)
             }
         }
     }
@@ -119,8 +117,8 @@ class SDFMirror() : PositionMapper() {
 
     override fun calcTransform(pos: Vector4f, seeds: IntArrayList) {
         val normal = plane
-        val dot = 2f * normal.dot(pos)
-        if (dot < 0f) pos.sub(dot * normal.a, dot * normal.b, dot * normal.c, 0f)
+        val dot = 2f * normal.dot(pos.x, pos.y, pos.z)
+        if (dot < 0f) pos.sub(dot * normal.dirX, dot * normal.dirY, dot * normal.dirZ, 0f)
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -135,21 +133,20 @@ class SDFMirror() : PositionMapper() {
 
     companion object {
         fun Planef.normalize3(): Planef {
-            val sq = sq(a, b, c)
+            val sq = sq(dirX, dirY, dirZ)
             if (sq > 0f) {
                 val factor = 1f / sqrt(sq)
-                a *= factor
-                b *= factor
-                c *= factor
-                d *= factor
+                dirX *= factor
+                dirY *= factor
+                dirZ *= factor
+                distance *= factor
             } else {
-                a = 0f
-                b = 1f
-                c = 0f
+                dirX = 0f
+                dirY = 1f
+                dirZ = 0f
             }
-            if (d.isNaN()) d = 0f
+            if (distance.isNaN()) distance = 0f
             return this
         }
     }
-
 }

@@ -178,6 +178,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     @NotSerializedProperty
     var collisionMask: Int = 0
 
+    @Docs("Local position, shortcut for transform.localPosition")
     @PositionType
     @SerializedProperty
     var position: Vector3d
@@ -188,6 +189,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             invalidatePhysics(false)
         }
 
+    @Docs("Local rotation, shortcut for transform.localRotation")
     @RotationType
     @SerializedProperty
     var rotation: Quaterniond
@@ -198,6 +200,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             invalidatePhysics(false)
         }
 
+    @Docs("Local scale, shortcut for transform.localScale")
     @ScaleType
     @SerializedProperty
     var scale: Vector3d

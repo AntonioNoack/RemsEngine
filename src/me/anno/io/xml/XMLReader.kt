@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.io.EOFException
 import java.io.InputStream
 import java.util.*
+import kotlin.test.assertEquals
 
 open class XMLReader {
 
@@ -200,7 +201,7 @@ open class XMLReader {
                     val propName = input.readTypeUntilSpaceOrEnd(keyBuilder, next)
                     val propEnd = last
                     // ("  '${if(next < 0) "" else next.toChar().toString()}$propName' '${propEnd.toChar()}'")
-                    assert(propEnd, '=')
+                    assertEquals(propEnd, '='.code)
                     val start = input.skipSpaces()
                     assert(start, '"', '\'')
                     val value = input.readString(start, valueBuilder)
@@ -217,7 +218,7 @@ open class XMLReader {
 
             when (end2) {
                 '/'.code -> {
-                    assert(input.read(), '>')
+                    assertEquals(input.read(), '>'.code)
                     return xmlNode
                 }
                 '>'.code -> {

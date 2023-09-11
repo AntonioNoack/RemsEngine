@@ -67,34 +67,6 @@ abstract class BaseReader {
             .add(owner to name)
     }
 
-    open fun assert(b: Boolean) {
-        if (!b) throw InvalidFormatException("Assertion failed")
-    }
-
-    open fun assert(b: Boolean, msg: String) {
-        if (!b) throw InvalidFormatException(msg)
-    }
-
-    open fun assert(isValue: String, shallValue: String) {
-        if (!isValue.equals(shallValue, true)) {
-            throw InvalidFormatException("Expected $shallValue but got $isValue")
-        }
-    }
-
-    open fun assert(isValue: Char, shallValue: Char) {
-        if (isValue == (-1).toChar()) throw EOFException()
-        if (isValue != shallValue.lowercaseChar() && isValue != shallValue.uppercaseChar()) {
-            throw InvalidFormatException("Expected $shallValue but got $isValue, ${isValue.code}")
-        }
-    }
-
-    open fun assert(isValue: Char, shallValue: Char, context: String) {
-        if (isValue == (-1).toChar()) throw EOFException()
-        if (isValue != shallValue.lowercaseChar() && isValue != shallValue.uppercaseChar()) {
-            throw InvalidFormatException("Expected $shallValue but got $isValue for $context")
-        }
-    }
-
     fun start(): Int = allInstances.size
     fun finish(start: Int = 0) {
         for (i in start until allInstances.size) {

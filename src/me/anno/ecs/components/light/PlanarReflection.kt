@@ -15,10 +15,10 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.mesh.Shapes
 import org.joml.*
 import org.lwjgl.opengl.GL11C.glScissor
 import kotlin.math.abs
@@ -50,6 +50,7 @@ class PlanarReflection : LightComponentBase() {
         val h = instance.height
 
         pipeline.ignoredComponent = this
+        val frustumLen = pipeline.frustum.length
         draw(
             instance, pipeline, w, h,
             instance.cameraMatrix,
@@ -57,6 +58,7 @@ class PlanarReflection : LightComponentBase() {
             RenderState.worldScale
         )
         pipeline.ignoredComponent = null
+        pipeline.frustum.length = frustumLen
 
         // restore state just in case we have multiple planes or similar
         instance.setRenderState()
@@ -65,10 +67,8 @@ class PlanarReflection : LightComponentBase() {
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        // todo if not both-sided, use half-cubes
-        val mesh = Shapes.cube11Smooth
-        mesh.getBounds()
-        mesh.aabb.transformUnion(globalTransform, aabb)
+        (if (bothSided) fullCubeBounds else halfCubeBounds)
+            .transformUnion(globalTransform, aabb)
         return true
     }
 
@@ -86,10 +86,8 @@ class PlanarReflection : LightComponentBase() {
             .transformDirection(globalNormal.set(0.0, 0.0, 1.0)) // default direction: z
             .normalize()
 
-        // todo check whether the plane would be visible
         val isBackSide = cameraPosition.dot(mirrorNormal) - mirrorPosition.dot(mirrorNormal) < 0.0
         if (isBackSide) {
-            // todo is this working? in my tests, it was always just black...
             if (bothSided) {
                 mirrorNormal.mul(-1.0)
             } else {
@@ -99,25 +97,41 @@ class PlanarReflection : LightComponentBase() {
             }
         }
 
-        val mirrorMatrix = tmp1M.identity()
-            .mirror(mirrorPosition, mirrorNormal)
-
+        val mirrorMatrix = tmp1M.identity().mirror(mirrorPosition, mirrorNormal)
         val reflectedCameraPosition = mirrorMatrix.transformPosition(tmp1d.set(cameraPosition))
+        val reflectedMirrorPosition = mirrorMatrix.transformPosition(Vector3d(mirrorPosition))
+        val mirrorDot = mirrorNormal.dot(reflectedCameraPosition) - mirrorNormal.dot(reflectedMirrorPosition)
+        val isPerspective = abs(cameraMatrix0.m33) < 0.5f
+
+        // better way to do this?
+        // todo is this correct??
+        val m0 = Matrix3d().rotate(ci.cameraRotation).mul(mirrorMatrix)
+        val reflectedCameraRotation = m0.getNormalizedRotation(Quaterniond())
 
         val root = getRoot(Entity::class)
         pipeline.clear()
         // todo define the correct frustum using the correct rotation & position
-        pipeline.frustum.setToEverything(reflectedCameraPosition, ci.cameraRotation)
+        if (Input.isAltDown) {
+            // todo why is this not working?
+            // todo can we define the frustum from our matrix?
+            pipeline.frustum.definePerspective(
+                near, far,
+                RenderState.fovYRadians.toDouble(), w, h, w.toDouble() / h.toDouble(),
+                reflectedCameraPosition, reflectedCameraRotation
+            )
+        } else {
+            pipeline.frustum.setToEverything(reflectedCameraPosition, ci.cameraRotation)
+        }
+
+        // define last frustum plane
+        pipeline.frustum.planes[pipeline.frustum.length].set(mirrorNormal, mirrorDot) // todo is this correct??, scale?
+        pipeline.frustum.length++
+        // pipeline.frustum.showPlanes()
+
         pipeline.fill(root)
         addDefaultLightsIfRequired(pipeline)
-        pipeline.planarReflections.clear()
-
-        val reflectedMirrorPosition = mirrorMatrix.transformPosition(Vector3d(mirrorPosition))
-        // if(mirrorPosition.dot(cameraPosition) < 0) mirrorNormal.mul(-1.0)
-        pipeline.reflectionCullingPlane.set(
-            mirrorNormal,
-            -(mirrorNormal.dot(reflectedCameraPosition) - mirrorNormal.dot(reflectedMirrorPosition)) * worldScale
-        )
+        // pipeline.planarReflections.clear()
+        pipeline.reflectionCullingPlane.set(mirrorNormal, mirrorDot * worldScale)
 
         mirrorMatrix.setTranslation(0.0, 0.0, 0.0)
         val cameraMatrix1 = tmp0M.set(cameraMatrix0).mul(mirrorMatrix)
@@ -127,8 +141,10 @@ class PlanarReflection : LightComponentBase() {
         RenderState.cameraMatrix.set(cameraMatrix1)
         RenderState.cameraPosition.set(reflectedCameraPosition)
         RenderState.cameraDirection.reflect(mirrorNormal) // for sorting
-        RenderState.calculateDirections(abs(cameraMatrix0.m33) < 0.5f)
+        RenderState.cameraRotation.set(reflectedCameraRotation)
+        RenderState.calculateDirections(isPerspective)
 
+        // is that worth it?
         // todo cut frustum into local area by bounding box
 
         val buffer = lastBuffer ?: Framebuffer("planarReflection", w, h, samples, 1, usesFP, DepthBufferType.INTERNAL)
@@ -219,6 +235,17 @@ class PlanarReflection : LightComponentBase() {
 
     companion object {
 
+        val fullCubeBounds = AABBf(
+            -1f, -1f, -1f,
+            +1f, +1f, +1f,
+        )
+
+        // correct?
+        val halfCubeBounds = AABBf(
+            -1f, -1f, 0f,
+            +1f, +1f, +1f,
+        )
+
         // these are vectors to avoid allocate them again and again,
         // and without need to the stack allocator
         private val tmp0d = Vector3d()
@@ -228,7 +255,5 @@ class PlanarReflection : LightComponentBase() {
         private val tmp0M = Matrix4f()
         private val tmp1M = Matrix4d()
         private val tmpAABB = AABBf()
-
     }
-
 }

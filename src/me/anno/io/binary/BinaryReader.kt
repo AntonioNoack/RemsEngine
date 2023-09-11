@@ -112,6 +112,8 @@ import me.anno.utils.types.InputStreams.readNBytes2
 import org.joml.*
 import java.io.DataInputStream
 import java.io.IOException
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * writing as text is:
@@ -468,8 +470,8 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
 
     override fun readAllInList() {
         val nameType = readTypeName()
-        assert(nameType.name == "", "Expected object without a name")
-        assert(nameType.type.code == OBJECT_LIST_UNKNOWN_LENGTH, "Expected list of unknown length")
+        assertEquals(nameType.name, "", "Expected object without a name")
+        assertEquals(nameType.type.code, OBJECT_LIST_UNKNOWN_LENGTH, "Expected list of unknown length")
         loop@ while (true) {
             val type = input.read()
             if (type != OBJECT_IMPL) throw RuntimeException("Type must be OBJECT_IMPL, but got $type != $OBJECT_IMPL")
@@ -483,5 +485,4 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
             }
         }
     }
-
 }

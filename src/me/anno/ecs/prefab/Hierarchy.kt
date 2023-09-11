@@ -8,6 +8,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase
 import org.apache.logging.log4j.LogManager
+import kotlin.test.assertTrue
 
 object Hierarchy {
 
@@ -49,20 +50,20 @@ object Hierarchy {
         return null
     }
 
-    private fun extractPrefab(srcPrefab: Prefab, srcPath: Path, srcAdd: CAdd?): Prefab {
+    private fun extractPrefab(srcPrefab: Prefab, srcPath: Path): Prefab {
 
-        val className = when {
-            srcAdd != null -> srcAdd.clazzName
-            srcPath == Path.ROOT_PATH -> srcPrefab.clazzName
-            else -> findAdd(srcPrefab, srcPath)?.clazzName ?: throw RuntimeException("Instance was not found")
+        val className = when (srcPath) {
+            Path.ROOT_PATH -> srcPrefab.clazzName
+            else -> findAdd(srcPrefab, srcPath)?.clazzName ?: throw IllegalStateException("Instance was not found")
         }
 
         val dstPrefab = Prefab(className)
         dstPrefab.ensureMutableLists()
         dstPrefab.isValid = false
 
-        val isRoot = srcPath == Path.ROOT_PATH && srcAdd == null
+        val isRoot = srcPath == Path.ROOT_PATH
         if (isRoot) {
+
             // simple copy-paste
             dstPrefab.prefab = srcPrefab.prefab
             for (it in srcPrefab.adds) {
@@ -72,90 +73,54 @@ object Hierarchy {
                 dstPrefab[k1, k2] = v
             }
             return dstPrefab
-        }
+        } else {
 
-        val srcSetPath = if (srcAdd == null) srcPath else
-            srcPath.added(srcAdd.nameId, 0, srcAdd.type)
+            LOGGER.info("For copy path: $srcPath")
 
-        LOGGER.info("For copy path: $srcSetPath")
-
-        fun processPrefab(prefab: Prefab, prefabRootPath: Path) {
-            for (add in prefab.adds) {
-                val herePath = prefabRootPath + add.getSetterPath(0)
-                val startsWithPath = herePath.startsWith1(srcSetPath)
-                if (startsWithPath != null) {
-                    if (startsWithPath != Path.ROOT_PATH) {
-                        // can simply reference it, and we're done
-                        dstPrefab.add(startsWithPath.parent!!, add.type, add.clazzName, add.nameId, add.prefab)
-                    }// else done: this was already added via Prefab(className)
-                } else if (add.prefab != InvalidRef) {
-                    val prefab2 = PrefabCache[add.prefab]
-                    if (prefab2 != null) {
-                        val startsWithPath2 = srcSetPath.startsWith1(herePath)
-                        if (startsWithPath2 != null) {
-                            // check out all properties from the prefab
-                            processPrefab(prefab, herePath)
+            fun processPrefab(prefab: Prefab, prefabRootPath: Path) {
+                for (add in prefab.adds) {
+                    val herePath = prefabRootPath + add.getSetterPath(0)
+                    val startsWithPath = herePath.startsWith1(srcPath)
+                    if (startsWithPath != null) {
+                        if (startsWithPath != Path.ROOT_PATH) {
+                            // can simply reference it, and we're done
+                            dstPrefab.add(startsWithPath.parent!!, add.type, add.clazzName, add.nameId, add.prefab)
+                        }// else done: this was already added via Prefab(className)
+                    } else if (add.prefab != InvalidRef) {
+                        val prefab2 = PrefabCache[add.prefab]
+                        if (prefab2 != null) {
+                            val startsWithPath2 = srcPath.startsWith1(herePath)
+                            if (startsWithPath2 != null) {
+                                // check out all properties from the prefab
+                                processPrefab(prefab, herePath)
+                            }
                         }
                     }
                 }
-            }
-            prefab.sets.forEach { path, name, value ->
-                // todo there is such a thing as relative paths (Rigidbody)... can they be copied?
-                // check if set is applicable
-                val herePath = prefabRootPath + path
-                val startsWithPath = herePath.startsWith1(srcSetPath)
-                if (startsWithPath != null) {
-                    dstPrefab[startsWithPath, name] = value
-                }
-            }
-        }
-
-        processPrefab(srcPrefab, Path.ROOT_PATH)
-
-        // collect changes from this element going upwards
-        /*var someParent = element
-        val collDepth = element.depthInHierarchy
-        if (!copyPasteRoot && someParent.parent != null) someParent = someParent.parent!!
-        val startIndex = if (copyPasteRoot) collDepth else collDepth - 1
-        for (depth in startIndex downTo 0) {// from element to root
-            LOGGER.info("Checking depth $depth/$collDepth, ${someParent.name}")
-            var someRelatedParent = someParent.prefab
-            while (someRelatedParent != null) {// follow the chain of prefab-inheritance
-                val adds = someRelatedParent.adds
-                val sets = someRelatedParent.sets
-                LOGGER.info("Changes from $depth/${someRelatedParent.getPrefabOrSource()}: ${adds.size} + ${sets.size}")
-                // get all changes
-                // filter them & short them by their filter
-                for (change in adds.mapNotNull { path.getSubPathIfMatching(it, depth) }) {
-                    adders.add(change)
-                }
-                sets.forEach { k1, k2, v ->
-                    val change = path.getSubPathIfMatching(k1, depth)
-                    if (change != null) {
-                        // don't apply changes twice, especially, because the order is reversed
-                        // this would cause errors
-                        dstPrefab.setIfNotExisting(change, k2, v)
-                        /*if (setters.none { it.path == change.path && it.name == change.name }) {
-                            setters.add(change)
-                        }*/
+                prefab.sets.forEach { path, name, value ->
+                    // todo there is such a thing as relative paths (Rigidbody)... can they be copied?
+                    // check if set is applicable
+                    val herePath = prefabRootPath + path
+                    val startsWithPath = herePath.startsWith1(srcPath)
+                    if (startsWithPath != null) {
+                        dstPrefab[startsWithPath, name] = value
                     }
                 }
-                someRelatedParent = PrefabCache[someRelatedParent.prefab] ?: break
             }
-            someParent = someParent.parent ?: break
-        }
-        */
 
-        LOGGER.info("Found: ${dstPrefab.prefab}, prefab: ${srcPrefab.prefab}, own file: ${srcPrefab.source}")
-        LOGGER.info("check start")
-        dstPrefab.getSampleInstance()
-        LOGGER.info("check end")
-        return dstPrefab
+            processPrefab(srcPrefab, Path.ROOT_PATH)
+
+            LOGGER.info("Found: ${dstPrefab.prefab}, prefab: ${srcPrefab.prefab}, own file: ${srcPrefab.source}")
+            LOGGER.info("check start")
+            dstPrefab.getSampleInstance()
+            LOGGER.info("check end")
+            return dstPrefab
+        }
     }
 
     fun stringify(element: PrefabSaveable): String {
         return TextWriter.toText(
-            extractPrefab(element.prefab!!, element.prefabPath!!, null),
+            extractPrefab(element.prefab!!, element.prefabPath),
             StudioBase.workspace
         )
     }
@@ -210,7 +175,7 @@ object Hierarchy {
     }
 
     fun add(srcPrefab: Prefab, srcPath: Path, dst: PrefabSaveable, type: Char, insertIndex: Int = -1) =
-        add(srcPrefab, srcPath, dst.root.prefab!!, dst.prefabPath!!, dst, type, insertIndex)
+        add(srcPrefab, srcPath, dst.root.prefab!!, dst.prefabPath, dst, type, insertIndex)
 
     fun add(
         srcPrefab: Prefab,
@@ -236,37 +201,44 @@ object Hierarchy {
         if (!dstPrefab.isWritable) throw ImmutablePrefabException(dstPrefab.source)
         LOGGER.debug(
             "Trying to add " +
-                    "'${srcPrefab.source}'/'$srcPath'@${System.identityHashCode(srcPrefab)} to " +
-                    "'${dstPrefab.source}'/'$dstParentPath'@${System.identityHashCode(dstPrefab)}"
+                    "'${srcPrefab.source}'/'$srcPath'@${System.identityHashCode(srcPrefab)},${srcPrefab.adds.size}+${srcPrefab.sets.size} to " +
+                    "'${dstPrefab.source}'/'$dstParentPath'@${System.identityHashCode(dstPrefab)},${dstPrefab.adds.size}+${dstPrefab.sets.size}"
         )
         if (srcPrefab == dstPrefab || (srcPrefab.source == dstPrefab.source && srcPrefab.source != InvalidRef)) {
             LOGGER.debug("src == dst, so trying extraction")
             return add(
-                extractPrefab(srcPrefab, srcPath, null), Path.ROOT_PATH,
+                extractPrefab(srcPrefab, srcPath), Path.ROOT_PATH,
                 dstPrefab, dstParentPath, dstParentInstance, type, insertIndex
             )
         } else {
             // find all necessary changes
-            if (srcPath.isEmpty()) {
+            if (srcPath == Path.ROOT_PATH) {
                 LOGGER.debug("Path is empty")
                 // find correct type and insert index
                 val nameId = Path.generateRandomId()
                 val clazz = srcPrefab.clazzName
                 val allowLink = srcPrefab.source != InvalidRef
+                LOGGER.debug("Allow link? $allowLink")
                 if (allowLink) {
                     val srcPrefabSource = srcPrefab.source
                     if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
                     val dstPath = dstPrefab.add(dstParentPath, type, clazz, nameId, srcPrefabSource, insertIndex)
-                    LOGGER.debug("Adding element '$nameId' of class $clazz, type '$type' to path '$dstPath' [1]")
+                    LOGGER.debug(
+                        "Adding element '{}' of class {}, type '{}' to path '{}' [1]",
+                        nameId, clazz, type, dstPath
+                    )
                     ECSSceneTabs.updatePrefab(dstPrefab)
                     return dstPath
                 } else {
                     val srcPrefabSource = srcPrefab.prefab
                     if (type == ' ') LOGGER.warn("Adding type '$type' (${dstParentInstance.className} += $clazz), might not be supported")
                     val dstPath = dstPrefab.add(dstParentPath, type, clazz, nameId, srcPrefabSource, insertIndex)
-                    LOGGER.debug("Adding element '$nameId' of class $clazz, type '$type' to path '$dstPath' [2]")
+                    LOGGER.debug(
+                        "Adding element '{}' of class {}, type '{}' to path '{}' [2], {}",
+                        nameId, clazz, type, dstPath, srcPrefabSource
+                    )
                     val adds = srcPrefab.adds
-                    assert(adds !== dstPrefab.adds)
+                    assertTrue(adds !== dstPrefab.adds)
                     for (index1 in adds.indices) {
                         val change = adds[index1]
                         dstPrefab.add(change.withPath(Path(dstPath, change.path), true), -1)
@@ -281,7 +253,7 @@ object Hierarchy {
             } else {
                 LOGGER.debug("Extraction")
                 return add(
-                    extractPrefab(srcPrefab, srcPath, null), Path.ROOT_PATH,
+                    extractPrefab(srcPrefab, srcPath), Path.ROOT_PATH,
                     dstPrefab, dstParentPath, dstParentInstance, type, insertIndex
                 )
             }
@@ -429,17 +401,5 @@ object Hierarchy {
         }
 
         ECSSceneTabs.updatePrefab(prefab)
-
     }
-
-
-    fun assert(boolean: Boolean) {
-        if (!boolean) throw RuntimeException()
-    }
-
-    fun assert(a: Any?, b: Any?) {
-        if (a != b) throw RuntimeException("$a != $b")
-    }
-
-
 }

@@ -3,8 +3,6 @@ package me.anno.tests.ecs
 import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PointLight
-import me.anno.sdf.modifiers.SDFHalfSpace
-import me.anno.sdf.shapes.SDFBox
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -14,29 +12,35 @@ import me.anno.engine.ScenePrefab
 import me.anno.io.files.FileReference
 import me.anno.io.json.JsonFormatter
 import me.anno.io.zip.InnerTmpFile
+import me.anno.sdf.modifiers.SDFHalfSpace
+import me.anno.sdf.shapes.SDFBox
 import me.anno.utils.OS
 import org.joml.Planef
 import org.joml.Vector3d
 import java.util.*
 import kotlin.math.PI
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 
 private fun testAdd() {
     // test
-    val scene = Prefab("Entity", ScenePrefab)
-    scene.source = InnerTmpFile.InnerTmpPrefabFile(scene)
-    val sample0 = scene.getSampleInstance() as Entity
+    val prefab = Prefab("Entity", ScenePrefab)
+    prefab.source = InnerTmpFile.InnerTmpTextFile("")
+    val sample0 = prefab.createInstance() as Entity
     val size0 = sample0.sizeOfHierarchy
-    val added = Hierarchy.add(scene, Path.ROOT_PATH, scene, Path.ROOT_PATH, 'e')!!
-    val sample1 = scene.getSampleInstance() as Entity
+    val added = Hierarchy.add(prefab, Path.ROOT_PATH, prefab, Path.ROOT_PATH, 'e')!!
+    val sample1 = prefab.createInstance() as Entity
     val size1 = sample1.sizeOfHierarchy
     if (size0 * 2 != size1) {
+        println(prefab.adds)
+        println(prefab.sets)
         println(sample0)
         println(sample1)
         throw RuntimeException("Sizes don't match: $size0*2 vs $size1")
     }
-    Hierarchy.removePathFromPrefab(scene, added, "Entity")
-    val sample2 = scene.getSampleInstance() as Entity
+    Hierarchy.removePathFromPrefab(prefab, added, "Entity")
+    val sample2 = prefab.createInstance() as Entity
     val size2 = sample2.sizeOfHierarchy
     if (size0 != size2) {
         println(sample0)
@@ -83,22 +87,22 @@ fun testRemoval2() {
         prefab.setProperty(child, "description", "desc$i")
         prefab.setProperty(child, "lightSize", i.toDouble())
     }
-    Hierarchy.assert(prefab.adds.size, n)
-    Hierarchy.assert(prefab.sets.size, 2 * n)
+    assertEquals(prefab.adds.size, n)
+    assertEquals(prefab.sets.size, 2 * n)
     val tested = intArrayOf(1, 2, 3, 5, 7)
     for (i in tested.sortedDescending()) {
         val sample = prefab.getSampleInstance() as Entity
         Hierarchy.removePathFromPrefab(prefab, sample.components[i])
     }
     // test prefab
-    Hierarchy.assert(prefab.adds.size, n - tested.size)
-    Hierarchy.assert(prefab.sets.size, 2 * (n - tested.size))
+    assertEquals(prefab.adds.size, n - tested.size)
+    assertEquals(prefab.sets.size, 2 * (n - tested.size))
     // test result
     val sample = prefab.getSampleInstance() as Entity
-    Hierarchy.assert(sample.components.size, n - tested.size)
+    assertEquals(sample.components.size, n - tested.size)
     for (i in 0 until n) {
-        // test that exactly those still exist, that we didn't remove
-        Hierarchy.assert(sample.components.count { it.name == names[i] }, if (i in tested) 0 else 1)
+        // test, that exactly those still exist, that we didn't remove
+        assertEquals(sample.components.count { it.name == names[i] }, if (i in tested) 0 else 1)
     }
     Engine.requestShutdown()
 }
@@ -112,17 +116,16 @@ private fun testJsonFormatter() {
 private fun testPrefab() {
     val prefab = Prefab("Entity")
     val sample1 = prefab.getSampleInstance()
-    Hierarchy.assert(sample1 is Entity)
+    assertTrue(sample1 is Entity)
     val child = prefab.add(Path.ROOT_PATH, 'c', "PointLight", "PL")
     prefab[child, "lightSize"] = PI
     val sample2 = prefab.getSampleInstance()
-    Hierarchy.assert(sample2 is Entity)
-    sample2 as Entity
-    Hierarchy.assert(sample2.components.count { it is PointLight }, 1)
+    assertTrue(sample2 is Entity)
+    assertEquals(sample2.components.count { it is PointLight }, 1)
     val light1 = Hierarchy.getInstanceAt(sample2, child)
     println("found ${light1?.prefabPath} at $child")
-    Hierarchy.assert(light1 is PointLight)
-    Hierarchy.assert((light1 as PointLight).lightSize == PI)
+    assertTrue(light1 is PointLight)
+    assertEquals(light1.lightSize, PI)
 }
 
 private fun testMultiAdd() {
@@ -131,14 +134,15 @@ private fun testMultiAdd() {
     for (i in 0 until count) {
         val child = Prefab("SDFHalfSpace")
         child[Path.ROOT_PATH, "plane"] = Planef(0f, 1f, 0f, i.toFloat())
-        Hierarchy.add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH, 'c')
+        Hierarchy.add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH, 'd')
     }
     println(prefab.adds)
     println(prefab.sets)
     val inst = prefab.getSampleInstance() as SDFBox
+    println(inst.distanceMappers)
     for (i in 0 until count) {
         val dist = inst.distanceMappers[i] as SDFHalfSpace
-        Hierarchy.assert(dist.plane.d, i.toFloat())
+        assertEquals(i.toFloat(), dist.plane.distance)
     }
 }
 
@@ -152,14 +156,12 @@ private fun testReordering() {
         order.add(insertIndex, i)
         val child = Prefab("SDFHalfSpace")
         child[Path.ROOT_PATH, "plane"] = Planef(0f, 1f, 0f, i.toFloat())
-        Hierarchy.add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH, 'c', insertIndex)
+        Hierarchy.add(child, Path.ROOT_PATH, prefab, Path.ROOT_PATH, 'd', insertIndex)
     }
-    println(prefab.adds)
-    println(prefab.sets)
     val inst = prefab.getSampleInstance() as SDFBox
     for (i in 0 until count) {
         val dist = inst.distanceMappers[i] as SDFHalfSpace
-        Hierarchy.assert(dist.plane.d, order[i].toFloat())
+        assertEquals(order[i].toFloat(), dist.plane.distance)
     }
 }
 
@@ -171,8 +173,8 @@ fun testAddSimpleChild() {
     Hierarchy.add(added, Path.ROOT_PATH, scene, Path.ROOT_PATH, 'e')
     val nca = scene.adds.size
     val ncs = scene.sets.size
-    Hierarchy.assert(nca, ca + 1)
-    Hierarchy.assert(ncs, cs)
+    assertEquals(nca, ca + 1)
+    assertEquals(ncs, cs)
     scene.createInstance()
     // to do check there were no warnings
 }

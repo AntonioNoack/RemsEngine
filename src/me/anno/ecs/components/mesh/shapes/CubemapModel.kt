@@ -4,6 +4,12 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import org.joml.Vector3f
 
+/**
+ * Cubemap model with UVs for typical skymap layout:
+ *    +y
+ * -x -z +x +z
+ *    -y
+ * */
 object CubemapModel {
 
     @JvmStatic

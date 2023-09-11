@@ -64,7 +64,7 @@ class Prefab : Saveable {
         }
 
     fun invalidateInstance() {
-        if (source !is PrefabReadable || sets.isNotEmpty()) {
+        if (source !is PrefabReadable || adds.isNotEmpty() || sets.isNotEmpty()) {
             synchronized(this) {
                 _sampleInstance?.destroy()
                 _sampleInstance = null

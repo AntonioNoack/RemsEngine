@@ -3,6 +3,7 @@ package me.anno.io.xml
 import java.io.EOFException
 import java.io.InputStream
 import java.util.*
+import kotlin.test.assertEquals
 
 /**
  * Reads an XML file without create objects
@@ -111,7 +112,7 @@ class XMLScanner : XMLReader() {
                     if (next < 0) next = input.skipSpaces()
                     val propName = input.readTypeUntilSpaceOrEnd(keyBuilder, next)
                     val propEnd = last
-                    assert(propEnd, '=')
+                    assertEquals(propEnd, '='.code)
                     val start = input.skipSpaces()
                     assert(start, '"', '\'')
                     val value = input.readString(start, valueBuilder)
