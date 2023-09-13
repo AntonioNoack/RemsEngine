@@ -591,8 +591,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         val cp = view.cameraPosition
         val cd = view.mouseDirection
         val plane = Planed(0.0, 1.0, 0.0, 0.0)
-        var distance =
-            (cd.dot(plane.a, plane.b, plane.c) - cp.dot(plane.a, plane.b, plane.c)) / cd.dot(plane.a, plane.b, plane.c)
+        var distance = (plane.dot(cd) - plane.dot(cp)) / plane.dot(cd)
         val world = view.getWorld()
         if (world is Entity) {
             val cast = Raycast.raycast(world, cp, cd, 0.0, 0.0, 1e9, -1)
@@ -663,8 +662,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     val blenderAddon = BlenderControlsAddon()
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
-        if (!blenderAddon.onCharTyped(x, y, key)) super.onCharTyped(x, y, key)
+    override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
+        if (!blenderAddon.onCharTyped(x, y, codepoint)) super.onCharTyped(x, y, codepoint)
     }
 
     override fun onEscapeKey(x: Float, y: Float) {

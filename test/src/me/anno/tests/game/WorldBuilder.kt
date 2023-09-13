@@ -15,7 +15,7 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
@@ -25,11 +25,9 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.editor.files.FileExplorerEntry
-import me.anno.utils.types.Vectors.normalToQuaternion
 import me.anno.utils.types.Vectors.normalToQuaternion2
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import org.lwjgl.glfw.GLFW
 import kotlin.math.PI
 
 // done:
@@ -182,11 +180,11 @@ fun main() {
                 return 1
             }
 
-            override fun onKeyTyped(key: Int): Boolean {
+            override fun onKeyTyped(key: Key): Boolean {
                 when (key) {
-                    GLFW.GLFW_KEY_KP_ADD -> placingScale *= 1.1
-                    GLFW.GLFW_KEY_KP_SUBTRACT -> placingScale /= 1.1
-                    GLFW.GLFW_KEY_KP_MULTIPLY -> dynamicAngle = !dynamicAngle
+                    Key.KEY_KP_ADD -> placingScale *= 1.1
+                    Key.KEY_KP_SUBTRACT -> placingScale /= 1.1
+                    Key.KEY_KP_MULTIPLY -> dynamicAngle = !dynamicAngle
                     else -> return super.onKeyTyped(key)
                 }
                 return true
@@ -198,11 +196,11 @@ fun main() {
                 return true
             }
 
-            override fun onMouseClicked(button: MouseButton, long: Boolean): Boolean {
+            override fun onMouseClicked(button: Key, long: Boolean): Boolean {
                 if (hasValidLocation) {
-                    if (button.isLeft) {
+                    if (button == Key.BUTTON_LEFT) {
                         sample = null // forget this object = place it
-                    } else if (button.isRight) {
+                    } else if (button == Key.BUTTON_RIGHT) {
                         // delete existing object
                         hitEntity?.destroy()
                     }

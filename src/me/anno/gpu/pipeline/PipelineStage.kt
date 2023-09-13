@@ -39,13 +39,13 @@ import me.anno.io.Saveable
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
+import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.lwjgl.opengl.GL30C.*
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 
 class PipelineStage(
     var name: String,
@@ -193,6 +193,15 @@ class PipelineStage(
 
                 JomlPools.mat4x3d.sub(1)
             }
+        }
+
+        fun setupLocalTransform(
+            shader: Shader,
+            transform: Matrix4x3d
+        ) {
+            tmp4x3.set4x3Delta(transform)
+            shader.m4x3delta("localTransform", transform)
+            shader.v1f("worldScale", RenderState.worldScale)
         }
     }
 
@@ -382,8 +391,7 @@ class PipelineStage(
                     buffer.limit(12 * numberOfLights)
                     for (i in 0 until numberOfLights) {
                         buffer.position(12 * i)
-                        val light = lights[i]!!.transform.getDrawMatrix()
-                        m4x3delta(light, RenderState.cameraPosition, RenderState.worldScale, buffer)
+                        m4x3delta(lights[i]!!.drawMatrix, RenderState.cameraPosition, RenderState.worldScale, buffer)
                     }
                     buffer.position(0)
                     shader.m4x3Array(lightMatrices, buffer)

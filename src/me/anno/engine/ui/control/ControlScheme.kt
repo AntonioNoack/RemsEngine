@@ -20,7 +20,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.Pipeline.Companion.sampleEntity
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.input.Touch
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
@@ -79,49 +79,49 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
     open fun fill(pipeline: Pipeline) {}
 
     // transfer events
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         invalidateDrawing()
         if (control?.onMouseDown(button) == true) return
         if (editMode?.onEditDown(button) == true) return
         super.onMouseDown(x, y, button)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
         invalidateDrawing()
         if (control?.onMouseUp(button) == true) return
         if (editMode?.onEditUp(button) == true) return
         super.onMouseUp(x, y, button)
     }
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
+    override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
         invalidateDrawing()
-        if (control?.onCharTyped(key) == true) return
-        if (editMode?.onEditTyped(key) == true) return
-        super.onCharTyped(x, y, key)
+        if (control?.onCharTyped(codepoint) == true) return
+        if (editMode?.onEditTyped(codepoint) == true) return
+        super.onCharTyped(x, y, codepoint)
     }
 
-    override fun onKeyTyped(x: Float, y: Float, key: Int) {
+    override fun onKeyTyped(x: Float, y: Float, key: Key) {
         invalidateDrawing()
         if (control?.onKeyTyped(key) == true) return
-        if (editMode?.onEditClick(key) == true) return
+        if (editMode?.onEditClick(key, false) == true) return
         super.onKeyTyped(x, y, key)
     }
 
-    override fun onKeyDown(x: Float, y: Float, key: Int) {
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
         invalidateDrawing()
         if (control?.onKeyDown(key) == true) return
         if (editMode?.onEditDown(key) == true) return
         super.onKeyDown(x, y, key)
     }
 
-    override fun onKeyUp(x: Float, y: Float, key: Int) {
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
         invalidateDrawing()
         if (control?.onKeyUp(key) == true) return
         if (editMode?.onEditUp(key) == true) return
         super.onKeyUp(x, y, key)
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         invalidateDrawing()
         if (control?.onMouseClicked(button, long) == true) return
         if (editMode?.onEditClick(button, long) == true) return
@@ -206,10 +206,9 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
     }
 
     open fun drawGizmos() {
-
     }
 
-    /*override fun onKeyTyped(x: Float, y: Float, key: Int) {
+    /*override fun onKeyTyped(x: Float, y: Float, key: Key) {
         super.onKeyTyped(x, y, key)
         if (isSelected) {
             super.onKeyTyped(x, y, key)
@@ -358,7 +357,6 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
                     zoom(r * r * sign(r))// power 1 is too slow
 
                     Touch.updateAll()
-
                 }
                 else -> {
 
@@ -377,11 +375,9 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
                     zoom(r * r * sign(r))// power 1 is too slow
 
                     Touch.updateAll()
-
                 }
             }
         }
-
     }
 
     fun zoom(factor: Float) {
@@ -394,5 +390,4 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
     companion object {
         private val LOGGER = LogManager.getLogger(ControlScheme::class)
     }
-
 }

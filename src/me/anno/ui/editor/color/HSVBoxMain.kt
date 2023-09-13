@@ -6,7 +6,7 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.maths.Maths.length
 import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
@@ -80,7 +80,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         drawRect(x - 1, y, 3, 1, black)
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         val rx = (x - this.x) / this.width
         val ry = (y - this.y) / this.height
         when (chooser.visualisation) {

@@ -6,7 +6,7 @@ import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
@@ -150,10 +150,10 @@ class TreeViewPanel<V : Any>(
         return uiSymbol != null && x <= uiSymbol.lx1
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         val element = getElement()
-        when {
-            button.isLeft -> {
+        when (button) {
+            Key.BUTTON_LEFT -> {
                 // collapse, if you click on the symbol
                 // todo selecting multiple isn't working yet :/
                 val inFocusByParent = siblings.count { it is TreeViewPanel<*> && it.isAnyChildInFocus }
@@ -177,14 +177,15 @@ class TreeViewPanel<V : Any>(
                     treeView.selectElementsMaybe(elements)
                 }
             }
-            button.isRight -> openAddMenu(element)
+            Key.BUTTON_RIGHT -> openAddMenu(element)
+            else -> super.onMouseClicked(x, y, button, long)
         }
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+    override fun onDoubleClick(x: Float, y: Float, button: Key) {
         when {
-            button.isLeft -> treeView.focusOnElement(getElement())
-            // button.isRight -> toggleCollapsed()
+            button == Key.BUTTON_LEFT -> treeView.focusOnElement(getElement())
+            // button == Key.BUTTON_RIGHT -> toggleCollapsed()
             else -> super.onDoubleClick(x, y, button)
         }
     }

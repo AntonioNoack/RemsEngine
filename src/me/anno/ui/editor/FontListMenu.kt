@@ -2,7 +2,7 @@ package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
 import me.anno.fonts.FontManager
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
@@ -64,7 +64,7 @@ object FontListMenu {
              * this menu is overridden, so we can set each font name to its respective font :3
              * this could be a bad idea, if the user has thousands of fonts installed
              * */
-            override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+            override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 if (DefaultConfig["ui.fonts.previewInEnumInput.enable", true]) {
                     val window = Menu.openMenu(windowStack, this.x, this.y,
                         NameDesc("Select the %1", "", "ui.input.enum.menuTitle")

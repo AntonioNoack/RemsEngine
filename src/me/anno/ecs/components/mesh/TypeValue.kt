@@ -68,7 +68,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
             GLSLType.V4F -> when (value) {
                 is Quaternionf -> shader.v4f(location, value)
                 is Vector4f -> shader.v4f(location, value)
-                is Planef -> shader.v4f(location, value.a, value.b, value.c, value.d)
+                is Planef -> shader.v4f(location, value.dirX, value.dirY, value.dirZ, value.distance)
                 else -> LOGGER.warn("Unknown type for V4F, ${value::class.simpleName}")
             }
             GLSLType.M2x2 -> shader.m2x2(location, value as Matrix2f)

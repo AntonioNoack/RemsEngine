@@ -2,9 +2,8 @@ package me.anno.io.xml
 
 import java.io.ByteArrayOutputStream
 import java.io.EOFException
+import java.io.IOException
 import java.io.InputStream
-import java.util.*
-import kotlin.test.assertEquals
 
 open class XMLReader {
 
@@ -120,9 +119,7 @@ open class XMLReader {
                 // yes, it was
                 val bytes = result.toByteArray()
                 return String(bytes, 0, bytes.size - size)
-
             }
-
         }
     }
 
@@ -263,14 +260,18 @@ open class XMLReader {
 
     fun assert(a: Int, b: Char, c: Char) {
         val ac = a.toChar()
-        if (ac != b && ac != c) throw RuntimeException("Expected $b or $c, but got ${a.toChar()}")
+        if (ac != b && ac != c) throw IOException("Expected $b or $c, but got ${a.toChar()}")
+    }
+
+    fun assertEquals(a: Int, b: Int) {
+        if (a != b) throw IOException("$a != $b")
     }
 
     companion object {
         @JvmStatic
         val endElement = Any()
+
         @JvmStatic
         val sthElement = Any()
     }
-
 }

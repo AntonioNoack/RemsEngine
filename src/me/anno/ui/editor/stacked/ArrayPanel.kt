@@ -6,7 +6,7 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -154,9 +154,9 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
         invalidateLayout()
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         val index = getButtonIndex(x.toInt(), y.toInt())
-        if (index >= 0 && button.isRight) {
+        if (index >= 0 && button == Key.BUTTON_RIGHT) {
             // item specific actions
             openMenu(
                 windowStack, listOf(
@@ -194,7 +194,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
                     },
                 )
             )
-        } else if (button.isRight) {
+        } else if (button == Key.BUTTON_RIGHT) {
             // todo when everything is working, use actions instead
             openMenu(windowStack, listOf(
                 MenuOption(NameDesc("Add Entry")) {

@@ -8,7 +8,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.Screenshots
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
@@ -124,13 +124,13 @@ open class ColorInput(
         )
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         when {
-            isInputAllowed && button.isLeft -> {
+            isInputAllowed && button == Key.BUTTON_LEFT -> {
                 if (long) openColorChooser()
                 else super.onMouseClicked(x, y, button, false)
             }
-            isInputAllowed && button.isRight -> {
+            isInputAllowed && button == Key.BUTTON_RIGHT -> {
                 val window = GFX.activeWindow!!
                 Menu.openMenu(windowStack, listOf(
                     MenuOption(NameDesc("Copy")) { Input.copy(window, contentView) },
@@ -200,12 +200,12 @@ open class ColorInput(
         return contentView.onPaste(x, y, data, type)
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         super.onMouseDown(x, y, button)
         mouseIsDown = true
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
         super.onMouseUp(x, y, button)
         mouseIsDown = false
     }

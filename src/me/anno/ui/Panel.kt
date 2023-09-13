@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -446,16 +446,16 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * as functions to be able to cancel parent listeners
      * */
 
-    val onClickListeners = ArrayList<(Float, Float, MouseButton, Boolean) -> Boolean>()
+    val onClickListeners = ArrayList<(Float, Float, Key, Boolean) -> Boolean>()
 
-    fun addOnClickListener(onClickListener: ((x: Float, y: Float, button: MouseButton, long: Boolean) -> Boolean)): Panel {
+    fun addOnClickListener(onClickListener: ((x: Float, y: Float, button: Key, long: Boolean) -> Boolean)): Panel {
         onClickListeners.add(onClickListener)
         return this
     }
 
     fun addLeftClickListener(onClick: () -> Unit): Panel {
         addOnClickListener { _, _, mouseButton, isLong ->
-            if (mouseButton.isLeft && !isLong) {
+            if (mouseButton == Key.BUTTON_LEFT && !isLong) {
                 onClick()
                 true
             } else false
@@ -465,7 +465,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     fun addRightClickListener(onClick: () -> Unit): Panel {
         addOnClickListener { _, _, b, isLong ->
-            if (b.isRight || isLong) {
+            if (b == Key.BUTTON_RIGHT || isLong) {
                 onClick()
                 true
             } else false
@@ -473,22 +473,22 @@ open class Panel(val style: Style) : PrefabSaveable() {
         return this
     }
 
-    open fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    open fun onMouseDown(x: Float, y: Float, button: Key) {
         uiParent?.onMouseDown(x, y, button)
     }
 
-    open fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    open fun onMouseUp(x: Float, y: Float, button: Key) {
         uiParent?.onMouseUp(x, y, button)
     }
 
-    open fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    open fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         for (listener in onClickListeners) {
             if (listener(x, y, button, long)) return
         }
         uiParent?.onMouseClicked(x, y, button, long)
     }
 
-    open fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+    open fun onDoubleClick(x: Float, y: Float, button: Key) {
         for (l in onClickListeners) {
             if (l(x, y, button, false)) return
         }
@@ -503,20 +503,20 @@ open class Panel(val style: Style) : PrefabSaveable() {
         uiParent?.onMouseWheel(x, y, dx, dy, byMouse)
     }
 
-    open fun onKeyDown(x: Float, y: Float, key: Int) {
+    open fun onKeyDown(x: Float, y: Float, key: Key) {
         uiParent?.onKeyDown(x, y, key)
     }
 
-    open fun onKeyUp(x: Float, y: Float, key: Int) {
+    open fun onKeyUp(x: Float, y: Float, key: Key) {
         uiParent?.onKeyUp(x, y, key)
     }
 
-    open fun onKeyTyped(x: Float, y: Float, key: Int) {
+    open fun onKeyTyped(x: Float, y: Float, key: Key) {
         uiParent?.onKeyTyped(x, y, key)
     }
 
-    open fun onCharTyped(x: Float, y: Float, key: Int) {
-        uiParent?.onCharTyped(x, y, key)
+    open fun onCharTyped(x: Float, y: Float, codepoint: Int) {
+        uiParent?.onCharTyped(x, y, codepoint)
     }
 
     open fun onEmpty(x: Float, y: Float) {
@@ -899,5 +899,4 @@ open class Panel(val style: Style) : PrefabSaveable() {
         val interactionPadding get() = Maths.max(0, DefaultConfig["ui.interactionPadding", 6])
         val minOpaqueAlpha = 63
     }
-
 }

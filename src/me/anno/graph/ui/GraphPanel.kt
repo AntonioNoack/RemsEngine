@@ -10,7 +10,7 @@ import me.anno.graph.Node
 import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
 import me.anno.graph.render.NodeGroup
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -238,14 +238,14 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         scrollBottom = bottom
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         // if we start dragging from a node, and it isn't yet in focus,
         // quickly solve that by making bringing it into focus
         mapMouseDown(x, y)
         super.onMouseDown(x, y, button)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
         super.onMouseUp(x, y, button)
         mapMouseUp()
     }

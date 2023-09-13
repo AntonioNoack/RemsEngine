@@ -7,7 +7,6 @@ import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.components.ui.UIEventType
 import me.anno.gpu.GFXBase
 import me.anno.gpu.OSWindow
-import me.anno.input.MouseButton.Companion.toMouseButton
 import me.anno.input.Touch.Companion.onTouchDown
 import me.anno.input.Touch.Companion.onTouchMove
 import me.anno.input.Touch.Companion.onTouchUp
@@ -64,16 +63,16 @@ object Input {
 
     var mouseDownX = 0f
     var mouseDownY = 0f
-    var mouseKeysDown = HashSet<Int>()
+    var mouseKeysDown = HashSet<Key>()
 
     // sum of mouse wheel movement
     // for components that have no access to events
     var mouseWheelSumX = 0f
     var mouseWheelSumY = 0f
 
-    val keysDown = HashMap<Int, Long>()
-    val keysWentDown = HashSet<Int>()
-    val keysWentUp = HashSet<Int>()
+    val keysDown = HashMap<Key, Long>()
+    val keysWentDown = HashSet<Key>()
+    val keysWentUp = HashSet<Key>()
 
     var lastShiftDown = 0L
 
@@ -166,9 +165,10 @@ object Input {
         GLFW.glfwSetMouseButtonCallback(window.pointer) { _, button, action, mods ->
             addEvent {
                 window.framesSinceLastInteraction = 0
+                val button1 = Key.byId(button)
                 when (action) {
-                    GLFW.GLFW_PRESS -> onMousePress(window, button)
-                    GLFW.GLFW_RELEASE -> onMouseRelease(window, button)
+                    GLFW.GLFW_PRESS -> onMousePress(window, button1)
+                    GLFW.GLFW_RELEASE -> onMouseRelease(window, button1)
                 }
                 keyModState = mods
             }
@@ -193,16 +193,16 @@ object Input {
                     }
                 }
             } else addEvent {
+                val key1 = Key.byId(key)
                 when (action) {
-                    GLFW.GLFW_PRESS -> onKeyPressed(window, key)
-                    GLFW.GLFW_RELEASE -> onKeyReleased(window, key)
-                    GLFW.GLFW_REPEAT -> onKeyTyped(window, key)
+                    GLFW.GLFW_PRESS -> onKeyPressed(window, key1)
+                    GLFW.GLFW_RELEASE -> onKeyReleased(window, key1)
+                    GLFW.GLFW_REPEAT -> onKeyTyped(window, key1)
                 }
                 // LOGGER.info("event $key $scancode $action $mods")
                 keyModState = mods
             }
         }
-
     }
 
     fun resetFrameSpecificKeyStates() {
@@ -214,18 +214,19 @@ object Input {
 
     fun onCharTyped(window: OSWindow, codepoint: Int, mods: Int) {
         window.framesSinceLastInteraction = 0
-        KeyMap.onCharTyped(codepoint)
+        KeyNames.onCharTyped(codepoint)
         if (!UIEvent(
                 window.currentWindow,
-                window.mouseX,
-                window.mouseY, codepoint,
-                UIEventType.CHAR_TYPED
+                window.mouseX, window.mouseY, 0f, 0f,
+                Key.KEY_UNKNOWN, codepoint,
+                byMouse = false, isLong = false,
+                UIEventType.CHAR_TYPED,
             ).call().isCancelled
         ) window.windowStack.inFocus0?.onCharTyped(window.mouseX, window.mouseY, codepoint)
         keyModState = mods
     }
 
-    fun onKeyPressed(window: OSWindow, key: Int) {
+    fun onKeyPressed(window: OSWindow, key: Key) {
         window.framesSinceLastInteraction = 0
         keysDown[key] = gameTime
         keysWentDown += key
@@ -242,7 +243,7 @@ object Input {
         }
     }
 
-    fun onKeyReleased(window: OSWindow, key: Int) {
+    fun onKeyReleased(window: OSWindow, key: Key) {
         window.framesSinceLastInteraction = 0
         keyUpCtr++
         keysWentUp += key
@@ -259,7 +260,7 @@ object Input {
         keysDown.remove(key)
     }
 
-    fun onKeyTyped(window: OSWindow, key: Int) {
+    fun onKeyTyped(window: OSWindow, key: Key) {
 
         window.framesSinceLastInteraction = 0
 
@@ -281,7 +282,7 @@ object Input {
         val mouseY = window.mouseY
 
         when (key) {
-            GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> {
+            Key.KEY_ENTER, Key.KEY_KP_ENTER -> {
                 if (inFocus0 != null) {
                     if (isShiftDown || isControlDown) {
                         inFocus0.onCharTyped(mouseX, mouseY, '\n'.code)
@@ -290,19 +291,19 @@ object Input {
                     }
                 }
             }
-            GLFW.GLFW_KEY_DELETE -> {
+            Key.KEY_DELETE -> {
                 // tree view selections need to be removed, because they would be illogical to keep
                 // (because the underlying Transform changes)
                 val inFocusTreeViews = inFocus.filterIsInstance<TreeViewPanel<*>>()
                 for (it in inFocus) it.onDeleteKey(mouseX, mouseY)
                 inFocus.removeAll(inFocusTreeViews.toSet())
             }
-            GLFW.GLFW_KEY_BACKSPACE -> {
+            Key.KEY_BACKSPACE -> {
                 // todo secondary windows are not reacting... why?
                 // GFX.createWindow("Test", TextPanel("this is a test", style))
                 inFocus0?.onBackSpaceKey(mouseX, mouseY)
             }
-            GLFW.GLFW_KEY_TAB -> {
+            Key.KEY_TAB -> {
                 if (inFocus0 != null) {
                     if (isShiftDown || isControlDown
                         || !inFocus0.isKeyInput()
@@ -330,7 +331,7 @@ object Input {
                     } else inFocus0.onCharTyped(mouseX, mouseY, '\t'.code)
                 }
             }
-            GLFW.GLFW_KEY_ESCAPE -> {
+            Key.KEY_ESCAPE -> {
                 if (ws.size > 1) {
                     val window2 = ws.peek()
                     if (window2.canBeClosedByUser) {
@@ -362,17 +363,16 @@ object Input {
 
         UIEvent(
             window.currentWindow,
-            window.mouseX,
-            window.mouseY, dx, dy,
-            0, true, MouseButton.UNKNOWN,
-            false, UIEventType.MOUSE_MOVE
+            window.mouseX, window.mouseY, dx, dy,
+            Key.KEY_UNKNOWN, -1,
+            byMouse = true, isLong = false,
+            UIEventType.MOUSE_MOVE
         ).call()
 
         for (panel in window.windowStack.inFocus) {
             panel.onMouseMoved(newX, newY, dx, dy)
         }
         ActionManager.onMouseMoved(window, dx, dy)
-
     }
 
     var userCanScrollX = false
@@ -408,13 +408,12 @@ object Input {
         }
     }
 
-    fun onClickIntoWindow(window: OSWindow, button: Int, panelWindow: Pair<Panel, Window>?) {
+    fun onClickIntoWindow(window: OSWindow, button: Key, panelWindow: Pair<Panel, Window>?) {
         if (panelWindow != null) {
-            val mouseButton = button.toMouseButton()
             val ws = window.windowStack
             while (ws.isNotEmpty()) {
                 val peek = ws.peek()
-                if (panelWindow.second == peek || !peek.acceptsClickAway(mouseButton)) break
+                if (panelWindow.second == peek || !peek.acceptsClickAway(button)) break
                 ws.pop().destroy()
                 windowWasClosed = true
             }
@@ -425,7 +424,7 @@ object Input {
     var windowWasClosed = false
     var maySelectByClick = false
 
-    fun onMousePress(window: OSWindow, button: Int) {
+    fun onMousePress(window: OSWindow, button: Key) {
 
         val mouseX = window.mouseX
         val mouseY = window.mouseY
@@ -436,9 +435,10 @@ object Input {
         keysWentDown += button
 
         when (button) {
-            0 -> isLeftDown = true
-            1 -> isRightDown = true
-            2 -> isMiddleDown = true
+            Key.BUTTON_LEFT -> isLeftDown = true
+            Key.BUTTON_RIGHT -> isRightDown = true
+            Key.BUTTON_MIDDLE -> isMiddleDown = true
+            else -> {}
         }
 
         windowWasClosed = false
@@ -453,12 +453,12 @@ object Input {
 
         if (!windowWasClosed) {
 
-            val button2 = button.toMouseButton()
             if (!UIEvent(
                     window.currentWindow,
                     mouseX, mouseY, 0f, 0f,
-                    0, true, button2,
-                    false, UIEventType.MOUSE_DOWN
+                    button, -1,
+                    byMouse = true, isLong = false,
+                    UIEventType.MOUSE_DOWN
                 ).call().isCancelled
             ) {
 
@@ -513,7 +513,7 @@ object Input {
                 }
 
                 val mouseYi = mouseY.toInt()
-                if (button2.isRight && mouseYi in 0 until window.progressbarHeightSum) {
+                if (button == Key.BUTTON_RIGHT && mouseYi in 0 until window.progressbarHeightSum) {
                     val idx = mouseYi / window.progressbarHeight
                     val progressBar = window.progressBars.getOrNull(idx)
                     if (progressBar != null) {
@@ -525,14 +525,14 @@ object Input {
                 }
 
                 for (panel in windowStack.inFocus) {
-                    panel.onMouseDown(mouseX, mouseY, button2)
+                    panel.onMouseDown(mouseX, mouseY, button)
                     issuedMouseDown = true
                 }
 
                 if (!issuedMouseDown) {
                     val inFocus = window.currentWindow?.panel?.getPanelAt(mouseX.toInt(), mouseY.toInt())
                     inFocus?.requestFocus()
-                    inFocus?.onMouseDown(mouseX, mouseY, button2)
+                    inFocus?.onMouseDown(mouseX, mouseY, button)
                 }
 
                 ActionManager.onKeyDown(window, button)
@@ -541,29 +541,27 @@ object Input {
             mouseStart = Engine.nanoTime
             mouseKeysDown.add(button)
             keysDown[button] = gameTime
-
         }
-
     }
 
-    fun onMouseRelease(window: OSWindow, button: Int) {
+    fun onMouseRelease(window: OSWindow, button: Key) {
 
         keyUpCtr++
         keysWentUp += button
 
         when (button) {
-            0 -> isLeftDown = false
-            1 -> isRightDown = false
-            2 -> isMiddleDown = false
+            Key.BUTTON_LEFT -> isLeftDown = false
+            Key.BUTTON_RIGHT -> isRightDown = false
+            Key.BUTTON_MIDDLE -> isMiddleDown = false
+            else -> {}
         }
 
         val mouseX = window.mouseX
         val mouseY = window.mouseY
-        val button2 = button.toMouseButton()
         val inFocus0 = window.windowStack.inFocus
         for (i in inFocus0.indices) {
             inFocus0.getOrNull(i)
-                ?.onMouseUp(mouseX, mouseY, button2)
+                ?.onMouseUp(mouseX, mouseY, button)
                 ?: break
         }
 
@@ -578,7 +576,7 @@ object Input {
             window.currentWindow,
             window.mouseX,
             window.mouseY, 0f, 0f,
-            0, true, button2,
+            button, -1, true,
             false, UIEventType.MOUSE_UP
         ).call()
 
@@ -599,24 +597,23 @@ object Input {
                     window.currentWindow,
                     window.mouseX,
                     window.mouseY, 0f, 0f,
-                    0, true, button2,
+                    button, -1, true,
                     false, UIEventType.MOUSE_CLICK
                 ).call().isCancelled
             ) {
                 if (isDoubleClick) {
                     ActionManager.onKeyDoubleClick(window, button)
-                    inFocus0?.onDoubleClick(mouseX, mouseY, button2)
+                    inFocus0?.onDoubleClick(mouseX, mouseY, button)
                 } else {
                     val mouseDuration = currentNanos - mouseStart
                     val isLongClick = mouseDuration / 1_000_000 >= longClickMillis
-                    inFocus0?.onMouseClicked(mouseX, mouseY, button2, isLongClick)
+                    inFocus0?.onMouseClicked(mouseX, mouseY, button, isLongClick)
                 }
             }
 
             lastClickX = mouseX
             lastClickY = mouseY
             lastClickTime = currentNanos
-
         }
 
         mouseKeysDown.remove(button)
@@ -626,7 +623,6 @@ object Input {
         // but there might be situations, where it isn't, so
         // then set it to null just in case
         dragged = null
-
     }
 
     fun empty(window: OSWindow) {
@@ -856,7 +852,7 @@ object Input {
             .setContents(FileTransferable(files), null)
     }
 
-    fun isKeyDown(key: Int): Boolean {
+    fun isKeyDown(key: Key): Boolean {
         return key in keysDown
     }
 
@@ -866,15 +862,19 @@ object Input {
     }
 
     fun isKeyDown(key: Char): Boolean {
-        return isKeyDown(key.uppercaseChar().code)
+        val key1 = Key.byId(key.uppercaseChar().code)
+        if (key1 == Key.KEY_UNKNOWN) return false
+        return isKeyDown(key1)
     }
 
-    fun wasKeyPressed(key: Int): Boolean {
+    fun wasKeyPressed(key: Key): Boolean {
         return key in keysWentDown
     }
 
     fun wasKeyPressed(key: Char): Boolean {
-        return wasKeyPressed(key.uppercaseChar().code)
+        val key1 = Key.byId(key.uppercaseChar().code)
+        if (key1 == Key.KEY_UNKNOWN) return false
+        return wasKeyPressed(key1)
     }
 
     @Suppress("unused")
@@ -883,13 +883,15 @@ object Input {
         return wasKeyPressed(keyCode)
     }
 
-    fun wasKeyReleased(key: Int): Boolean {
+    fun wasKeyReleased(key: Key): Boolean {
         return key in keysWentUp
     }
 
     @Suppress("unused")
     fun wasKeyReleased(key: Char): Boolean {
-        return wasKeyReleased(key.uppercaseChar().code)
+        val key1 = Key.byId(key.uppercaseChar().code)
+        if (key1 == Key.KEY_UNKNOWN) return false
+        return wasKeyReleased(key1)
     }
 
     @Suppress("unused")
@@ -897,5 +899,4 @@ object Input {
         val keyCode = KeyCombination.keyMapping[key] ?: return false
         return wasKeyReleased(keyCode)
     }
-
 }

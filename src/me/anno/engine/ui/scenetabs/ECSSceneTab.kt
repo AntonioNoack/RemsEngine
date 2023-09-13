@@ -20,7 +20,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs.findName
 import me.anno.gpu.Cursor
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
@@ -197,9 +197,9 @@ class ECSSceneTab(
         }
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        when {
-            button.isLeft -> {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+        when (button) {
+            Key.BUTTON_LEFT -> {
                 try {
                     ECSSceneTabs.open(this, true)
                 } catch (e: Exception) {
@@ -207,7 +207,7 @@ class ECSSceneTab(
                     Menu.msg(windowStack, NameDesc(e.toString()))
                 }
             }
-            button.isRight -> {
+            Key.BUTTON_RIGHT -> {
                 openMenu(windowStack, listOf(
                     MenuOption(NameDesc(if (playMode == PlayMode.EDITING) "Play" else "Edit")) { play() },
                     MenuOption(NameDesc("Play Fullscreen")) { playFullscreen() },

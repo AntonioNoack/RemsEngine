@@ -1,6 +1,6 @@
 package me.anno.ui.debug.console
 
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
@@ -23,7 +23,7 @@ class ConsoleOutputLine(val list: PanelList, msg: String, style: Style) : TextPa
         }
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+    override fun onDoubleClick(x: Float, y: Float, button: Key) {
         onSelectAll(x, y)
     }
 

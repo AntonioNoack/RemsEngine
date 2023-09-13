@@ -21,6 +21,8 @@ open class Planed(var dirX: Double, var dirY: Double, var dirZ: Double, var dist
 
     fun dot(x: Double, y: Double, z: Double): Double = x * dirX + y * dirY + z * dirZ + distance
 
+    fun dot(v: Vector3d): Double = dot(v.x, v.y, v.z)
+
     override fun toString(): String {
         return "Plane($dirX, $dirY, $dirZ, $distance)"
     }

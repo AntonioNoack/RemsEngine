@@ -2,7 +2,7 @@ package me.anno.ui.debug
 
 import me.anno.engine.RemsEngine
 import me.anno.gpu.texture.Texture2D
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
@@ -48,8 +48,8 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
         } or black
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        if (button.isLeft) {
+    override fun onDoubleClick(x: Float, y: Float, button: Key) {
+        if (button == Key.BUTTON_LEFT) {
             // open console in large with scrollbar
             val listPanel = ConsoleLogFullscreen(style)
             // todo update, if there are new messages incoming

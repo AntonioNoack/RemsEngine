@@ -4,12 +4,29 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.LightType
 import me.anno.utils.structures.lists.SmallestKList
+import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
 
 class LightData {
 
     class Entry(val type: LightType) {
+
         val values = ArrayList<LightRequest>()
         var index = 0
+
+        fun add(
+            light: LightComponent,
+            drawMatrix: Matrix4x3d,
+            invCamSpaceMatrix: Matrix4x3f
+        ) {
+            val index = index++
+            val list = values
+            if (index >= list.size) {
+                list.add(LightRequest(light, drawMatrix, invCamSpaceMatrix))
+            } else {
+                list[index].set(light, drawMatrix, invCamSpaceMatrix)
+            }
+        }
     }
 
     val entries = LightType.values().map {
@@ -22,24 +39,18 @@ class LightData {
         }
     }
 
-    private fun <V : LightComponent> add(
-        list: MutableList<LightRequest>,
-        index: Int, light: V, transform: Transform
-    ) {
-        if (index >= list.size) {
-            list.add(LightRequest(light, transform))
-        } else {
-            list[index].set(light, transform)
-        }
+    fun add(light: LightComponent, transform: Transform) {
+        add(light, transform.getDrawMatrix(), light.invCamSpaceMatrix)
     }
 
-    fun add(light: LightComponent, transform: Transform) {
-        val entry = entries[light.lightType.id]
-        add(entry.values, entry.index++, light, transform)
+    fun add(light: LightComponent, drawMatrix: Matrix4x3d, invCamSpaceMatrix: Matrix4x3f) {
+        this[light].add(light, drawMatrix, invCamSpaceMatrix)
     }
+
+    operator fun get(light: LightComponent) = entries[light.lightType.id]
 
     fun listOfAll(): List<LightRequest> {
-        val dst = ArrayList<LightRequest>(size as Int)
+        val dst = ArrayList<LightRequest>(size)
         for (entry in entries) {
             dst.addAll(entry.values.subList(0, entry.index))
         }

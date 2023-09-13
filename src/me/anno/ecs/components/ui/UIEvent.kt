@@ -2,7 +2,7 @@ package me.anno.ecs.components.ui
 
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.extensions.events.Event
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.ui.Window
 
 class UIEvent(
@@ -11,9 +11,9 @@ class UIEvent(
     var y: Float,
     var dx: Float,
     var dy: Float,
-    var key: Int,
+    var key: Key,
+    var codepoint: Int,
     var byMouse: Boolean,
-    var button: MouseButton,
     var isLong: Boolean,
     var type: UIEventType,
     var action: String = ""
@@ -23,9 +23,9 @@ class UIEvent(
         return when (type) {
             UIEventType.MOUSE_WHEEL -> "mouse wheel $x $y += $dx $dy ($byMouse)"
             UIEventType.MOUSE_MOVE -> "mouse move $x $y += $dx $dy"
-            UIEventType.MOUSE_DOWN -> "mouse down $button"
-            UIEventType.MOUSE_UP -> "mouse up $button"
-            UIEventType.MOUSE_CLICK ->"mouse click $button, $isLong"
+            UIEventType.MOUSE_DOWN -> "mouse down $key"
+            UIEventType.MOUSE_UP -> "mouse up $key"
+            UIEventType.MOUSE_CLICK ->"mouse click $key, $isLong"
             UIEventType.KEY_DOWN -> "key down $key"
             UIEventType.KEY_UP ->  "key up $key"
             UIEventType.KEY_TYPED ->"key typed $key"
@@ -34,31 +34,31 @@ class UIEvent(
         }
     }
 
-    constructor(window: Window?, x: Float, y: Float, key: Int, type: UIEventType) :
-            this(window, x, y, 0f, 0f, key, false, MouseButton.UNKNOWN, false, type)
+    constructor(window: Window?, x: Float, y: Float, key: Key, type: UIEventType) :
+            this(window, x, y, 0f, 0f, key, -1, false, false, type)
 
     // empty constructor for serialisation
     @Suppress("unused")
     constructor() : this(
         null,
-        0f, 0f, 0f, 0f, 0, false,
-        MouseButton.UNKNOWN, false, UIEventType.MOUSE_WHEEL
+        0f, 0f, 0f, 0f, Key.KEY_UNKNOWN, -1, false,
+        false, UIEventType.MOUSE_WHEEL
     )
 
-    constructor(window: Window?, x: Float, y: Float, byMouse: Boolean, button: MouseButton, type: UIEventType) :
-            this(window, x, y, 0f, 0f, 0, byMouse, button, false, type)
+    constructor(window: Window?, x: Float, y: Float, byMouse: Boolean, button: Key, type: UIEventType) :
+            this(window, x, y, 0f, 0f, button, -1, byMouse, false, type)
 
     fun call(r: ControlReceiver): Boolean {
         return when (type) {
             UIEventType.MOUSE_WHEEL -> r.onMouseWheel(x, y, dx, dy, byMouse)
             UIEventType.MOUSE_MOVE -> r.onMouseMoved(x, y, dx, dy)
-            UIEventType.MOUSE_DOWN -> r.onMouseDown(button)
-            UIEventType.MOUSE_UP -> r.onMouseUp(button)
-            UIEventType.MOUSE_CLICK -> r.onMouseClicked(button, isLong)
+            UIEventType.MOUSE_DOWN -> r.onMouseDown(key)
+            UIEventType.MOUSE_UP -> r.onMouseUp(key)
+            UIEventType.MOUSE_CLICK -> r.onMouseClicked(key, isLong)
             UIEventType.KEY_DOWN -> r.onKeyUp(key)
             UIEventType.KEY_UP -> r.onKeyUp(key)
             UIEventType.KEY_TYPED -> r.onKeyTyped(key)
-            UIEventType.CHAR_TYPED -> r.onCharTyped(key)
+            UIEventType.CHAR_TYPED -> r.onCharTyped(codepoint)
             UIEventType.ACTION -> r.onGotAction(x, y, dx, dy, action)
         }
     }

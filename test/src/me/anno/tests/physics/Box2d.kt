@@ -13,6 +13,7 @@ import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawCubicBezier
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.input.Input
+import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.angleDifference
@@ -203,8 +204,8 @@ fun test3() {
 
             var targetAngle = 0.0
 
-            val dragButton = 0 // left
-            val moveButton = 1 // right
+            val dragButton = Key.BUTTON_LEFT
+            val moveButton = Key.BUTTON_RIGHT
 
             override fun shallMoveMap() =
                 (Input.isKeyDown(dragButton) && hovered == null) || Input.isKeyDown(moveButton)

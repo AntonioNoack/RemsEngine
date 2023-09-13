@@ -5,7 +5,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isShiftDown
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
@@ -264,10 +264,10 @@ open class FloatVectorInput(
     }
 
     fun setValue(v: Planef, notify: Boolean) {
-        compX.setValue(v.a, notify)
-        compY?.setValue(v.b, notify)
-        compZ?.setValue(v.c, notify)
-        compW?.setValue(v.d, notify)
+        compX.setValue(v.dirX, notify)
+        compY?.setValue(v.dirY, notify)
+        compZ?.setValue(v.dirZ, notify)
+        compW?.setValue(v.distance, notify)
     }
 
     fun setValue(v: Quaternionf, notify: Boolean) {
@@ -297,10 +297,10 @@ open class FloatVectorInput(
     }
 
     fun setValue(v: Planed, notify: Boolean) {
-        compX.setValue(v.a, notify)
-        compY?.setValue(v.b, notify)
-        compZ?.setValue(v.c, notify)
-        compW?.setValue(v.d, notify)
+        compX.setValue(v.dirX, notify)
+        compY?.setValue(v.dirY, notify)
+        compZ?.setValue(v.dirZ, notify)
+        compW?.setValue(v.distance, notify)
     }
 
     fun setValue(v: Quaterniond, notify: Boolean) {
@@ -340,7 +340,7 @@ open class FloatVectorInput(
         return this
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         super.onMouseDown(x, y, button)
         mouseIsDown = true
     }
@@ -422,7 +422,7 @@ open class FloatVectorInput(
         }
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
         super.onMouseUp(x, y, button)
         mouseIsDown = false
     }

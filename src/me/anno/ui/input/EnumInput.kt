@@ -1,7 +1,7 @@
 package me.anno.ui.input
 
 import me.anno.gpu.Cursor
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelListX
@@ -147,7 +147,7 @@ open class EnumInput(
         return this
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         openMenu(
             windowStack, this.x, this.y,
             NameDesc("Select the %1", "", "ui.input.enum.menuTitle")

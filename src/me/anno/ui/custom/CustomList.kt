@@ -2,7 +2,7 @@ package me.anno.ui.custom
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
@@ -157,7 +157,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     var isDownIndex = -1
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         // find where the mouse went down
         for (index in scrollbars.indices) {
             val scrollbar = scrollbars[index]
@@ -169,7 +169,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         super.onMouseDown(x, y, button)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
         isDownIndex = -1
         super.onMouseUp(x, y, button)
     }
@@ -293,5 +293,4 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
     companion object {
         private val LOGGER = LogManager.getLogger(CustomList::class)
     }
-
 }

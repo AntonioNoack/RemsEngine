@@ -6,7 +6,7 @@ import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawCurves.drawQuadraticBezier
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.sq
 import me.anno.ui.base.groups.MapPanel
@@ -89,8 +89,8 @@ fun main() {
                 )
             }
 
-            override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-                if (button.isLeft) {
+            override fun onMouseDown(x: Float, y: Float, button: Key) {
+                if (button == Key.BUTTON_LEFT) {
                     val lx = windowToCoordsX(x)
                     val ly = windowToCoordsY(y)
                     val maxDistSq = sq(10f / scale.toFloat())
@@ -101,8 +101,8 @@ fun main() {
                 } else super.onMouseDown(x, y, button)
             }
 
-            override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-                if (button.isLeft && selected != null) {
+            override fun onMouseUp(x: Float, y: Float, button: Key) {
+                if (button == Key.BUTTON_LEFT && selected != null) {
                     selected = null
                 } else super.onMouseUp(x, y, button)
             }

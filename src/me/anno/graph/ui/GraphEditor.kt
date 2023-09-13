@@ -8,7 +8,7 @@ import me.anno.graph.NodeInput
 import me.anno.graph.types.NodeLibrary
 import me.anno.graph.ui.NodePositionOptimization.calculateNodePositions
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.SaveableArray
 import me.anno.io.text.TextReader
 import me.anno.language.translation.NameDesc
@@ -74,11 +74,11 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
             }
         }
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
+    override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
         val graph = graph
-        if (graph != null && key == 'r'.code) {
+        if (graph != null && codepoint == 'r'.code) {
             calculateNodePositions(graph.nodes)
-        } else super.onCharTyped(x, y, key)
+        } else super.onCharTyped(x, y, codepoint)
     }
 
     init {
@@ -146,7 +146,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
                 min(y0, y1) <= child.y + child.height
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         // if we start dragging from a node, and it isn't yet in focus,
         // quickly solve that by making bringing it into focus
         if (!isDownOnScrollbarX && !isDownOnScrollbarY &&
@@ -158,14 +158,14 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
                 match.requestFocus(true)
                 match.isInFocus = true
                 match.onMouseDown(x, y, button)
-            } else if (button.isLeft && Input.isShiftDown) {
+            } else if (button == Key.BUTTON_LEFT && Input.isShiftDown) {
                 mapMouseDown(x, y)
                 selectingStart = Vector2f(x, y)
             } else super.onMouseDown(x, y, button)
         } else super.onMouseDown(x, y, button)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
         val dragged = dragged
         if (dragged != null) {
             val child = getPanelAt(x.toInt(), y.toInt())
@@ -173,7 +173,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
             else getNodePanel(dragged.node!!).onMouseUp(x, y, button)
             this.dragged = null
             invalidateDrawing()
-        } else if (selectingStart != null && button.isLeft) {
+        } else if (selectingStart != null && button == Key.BUTTON_LEFT) {
             // select all panels within the border :)
             var first = true
             for (i in children.indices) {

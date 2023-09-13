@@ -33,7 +33,7 @@ import me.anno.image.ImageGPUCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileReference.Companion.getReferenceAsync
@@ -739,8 +739,8 @@ open class FileExplorerEntry(
         }
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        if (button.isLeft && explorer != null) {
+    override fun onDoubleClick(x: Float, y: Float, button: Key) {
+        if (button == Key.BUTTON_LEFT && explorer != null) {
             val file = getReferenceOrTimeout(path)
             if (explorer.canSensiblyEnter(file)) {
                 LOGGER.info("Can enter ${file.name}? Yes!")

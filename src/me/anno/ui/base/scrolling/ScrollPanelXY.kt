@@ -2,7 +2,7 @@ package me.anno.ui.base.scrolling
 
 import me.anno.Engine.deltaTime
 import me.anno.config.DefaultConfig
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
@@ -233,8 +233,8 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     @NotSerializedProperty
     private var isDownOnScrollbarY = 0
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        if (button.isLeft) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
+        if (button == Key.BUTTON_LEFT) {
             val xi = x.toInt()
             val yi = y.toInt()
             isDownOnScrollbarX = if (hasScrollbarX && drawsOverX(xi, yi)) 1 else -1
@@ -242,7 +242,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         } else super.onMouseDown(x, y, button)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
         isDownOnScrollbarX = 0
         isDownOnScrollbarY = 0
         super.onMouseUp(x, y, button)

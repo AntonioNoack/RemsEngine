@@ -6,6 +6,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.Clock
@@ -90,7 +91,7 @@ fun main() {
     ///////////////////////
 
     val lights = addE(world, "Lights")
-    addC(lights, "SkyBox")
+    addC(lights, "Skybox")
     val ambient = addC(lights, "AmbientLight")
     set(ambient, "color", Vector3f(0.25f))
 
@@ -107,7 +108,7 @@ fun main() {
     // todo why appear the outest rings brightest???
 
     val ringOfLights = addE(lights, "Ring Of Lights")
-    val superRings = 38
+    val superRings = 200
     val elementSize = 10.0
     val lightLevel = 20f
     val numColors = 3
@@ -122,7 +123,7 @@ fun main() {
         val radius = 50.0 * (1.0 + j * 0.1)
         val ringLightCount = (radius * 0.5).toInt()
         for (i in 0 until ringLightCount) {
-            val angle = 6.2830 * i.toDouble() / ringLightCount
+            val angle = Maths.TAU * i.toDouble() / ringLightCount
             val light = addE(superRing, "L$i")
             val position = Vector3d(radius * cos(angle), elementSize * 0.5, radius * sin(angle))
             set(light, "position", position)

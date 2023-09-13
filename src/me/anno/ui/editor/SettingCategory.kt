@@ -1,10 +1,9 @@
 package me.anno.ui.editor
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
-import me.anno.ui.Keys.isClickKey
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
@@ -35,8 +34,8 @@ open class SettingCategory(
     }
 
     val titlePanel = object : TextPanel(title, style.getChild("group")) {
-        override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-            if (button.isLeft && !long) toggle()
+        override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+            if (button == Key.BUTTON_LEFT && !long) toggle()
             else super.onMouseClicked(x, y, button, long)
         }
 
@@ -72,11 +71,11 @@ open class SettingCategory(
         super.onUpdate()
     }
 
-    override fun onKeyTyped(x: Float, y: Float, key: Int) {
+    override fun onKeyTyped(x: Float, y: Float, key: Key) {
         if (key.isClickKey()) toggle()
     }
 
-    override fun acceptsChar(char: Int) = char.isClickKey()
+    override fun acceptsChar(char: Int) = Key.byId(char).isClickKey() // not ideal...
     override fun isKeyInput() = true
 
     override val children: List<Panel> = listOf(titlePanel, child)
@@ -132,5 +131,4 @@ open class SettingCategory(
     override fun addChild(child: PrefabSaveable) {
         content.addChild(child)
     }
-
 }

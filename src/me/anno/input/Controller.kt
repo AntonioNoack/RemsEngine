@@ -7,8 +7,8 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.OSWindow
 import me.anno.input.Input.isMouseTrapped
-import me.anno.input.controller.ControllerCalibration
 import me.anno.input.controller.CalibrationProcedure
+import me.anno.input.controller.ControllerCalibration
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.text.TextReader
@@ -37,16 +37,14 @@ class Controller(val id: Int) {
     private val glfwId = GLFW_JOYSTICK_1 + id
 
     var isConnected = false
-    val baseKey = BASE_KEY * (id + 1)
-    val baseAxis = baseKey + (BASE_AXIS - BASE_KEY)
-
-    private val buttonDownTime = LongArray(MAX_NUM_BUTTONS)
+    val baseKey = BASE_KEY + 32 * id
 
     private var ticksOnline = 0
 
-    private val rawAxisValues = FloatArray(MAX_NUM_AXES)
-    private val axisValues = FloatArray(MAX_NUM_AXES)
-    private val axisSpeeds = FloatArray(MAX_NUM_AXES)
+    val rawAxisValues = FloatArray(MAX_NUM_AXES)
+    val axisValues = FloatArray(MAX_NUM_AXES)
+    val axisSpeeds = FloatArray(MAX_NUM_AXES)
+    val buttonDownTime = LongArray(MAX_NUM_BUTTONS)
 
     var calibration = ControllerCalibration()
 
@@ -128,28 +126,28 @@ class Controller(val id: Int) {
         }
     }
 
-    private fun mouseButtonDown(window: OSWindow, key: Int) {
+    private fun mouseButtonDown(window: OSWindow, key: Key) {
         if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
             Input.onMousePress(window, key)
         } else {
             GFXBase.robot?.mousePress(
                 when (key) {
-                    0 -> InputEvent.BUTTON1_MASK
-                    1 -> InputEvent.BUTTON2_MASK
+                    Key.BUTTON_LEFT -> InputEvent.BUTTON1_MASK
+                    Key.BUTTON_RIGHT -> InputEvent.BUTTON2_MASK
                     else -> InputEvent.BUTTON3_MASK
                 }
             )
         }
     }
 
-    private fun mouseButtonUp(window: OSWindow, key: Int) {
+    private fun mouseButtonUp(window: OSWindow, key: Key) {
         if (isMouseInWindow() && GFX.windows.any2 { it.isInFocus }) {
             Input.onMouseRelease(window, key)
         } else {
             GFXBase.robot?.mouseRelease(
                 when (key) {
-                    0 -> InputEvent.BUTTON1_MASK
-                    1 -> InputEvent.BUTTON2_MASK
+                    Key.BUTTON_LEFT -> InputEvent.BUTTON1_MASK
+                    Key.BUTTON_RIGHT -> InputEvent.BUTTON2_MASK
                     else -> InputEvent.BUTTON3_MASK
                 }
             )
@@ -159,31 +157,37 @@ class Controller(val id: Int) {
     private fun buttonDown(window: OSWindow, key: Int) {
         if (isFirst) {
             when (key) {
-                DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonDown(window, 0)
-                DefaultConfig["ui.controller.rightMouseButton", 1] -> mouseButtonDown(window, 1)
+                DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonDown(window, Key.BUTTON_LEFT)
+                DefaultConfig["ui.controller.rightMouseButton", 1] -> mouseButtonDown(window, Key.BUTTON_RIGHT)
                 // 9 = click on right wheel
-                DefaultConfig["ui.controller.middleMouseButton", 9] -> mouseButtonDown(window, 2)
+                DefaultConfig["ui.controller.middleMouseButton", 9] -> mouseButtonDown(window, Key.BUTTON_MIDDLE)
             }
         }
-        ActionManager.onKeyDown(window, baseKey + key)
+        if (key < MAX_NUM_INPUTS && id < MAX_NUM_CONTROLLERS) {
+            ActionManager.onKeyDown(window, Key.byId(baseKey + key))
+        }
         isActiveMaybe = 1f
     }
 
     private fun buttonType(window: OSWindow, key: Int) {
-        ActionManager.onKeyTyped(window, baseKey + key)
+        if (key < MAX_NUM_INPUTS && id < MAX_NUM_CONTROLLERS) {
+            ActionManager.onKeyTyped(window, Key.byId(baseKey + key))
+        }
         isActiveMaybe = 1f
     }
 
     private fun buttonUp(window: OSWindow, key: Int) {
         if (isFirst) {
             when (key) {
-                DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonUp(window, 0)
-                DefaultConfig["ui.controller.rightMouseButton", 1] -> mouseButtonUp(window, 1)
+                DefaultConfig["ui.controller.leftMouseButton", 0] -> mouseButtonUp(window, Key.BUTTON_LEFT)
+                DefaultConfig["ui.controller.rightMouseButton", 1] -> mouseButtonUp(window, Key.BUTTON_RIGHT)
                 // 9 = click on right wheel
-                DefaultConfig["ui.controller.middleMouseButton", 9] -> mouseButtonUp(window, 2)
+                DefaultConfig["ui.controller.middleMouseButton", 9] -> mouseButtonUp(window, Key.BUTTON_MIDDLE)
             }
         }
-        ActionManager.onKeyTyped(window, baseKey + key)
+        if (key < MAX_NUM_INPUTS && id < MAX_NUM_CONTROLLERS) {
+            ActionManager.onKeyTyped(window, Key.byId(baseKey + key))
+        }
         isActiveMaybe = 1f
     }
 
@@ -221,17 +225,14 @@ class Controller(val id: Int) {
                 glfwGetGamepadState(glfwId, gamepadState)
                 updateButtons(window, gamepadButtons)
                 updateAxes(window, dt, gamepadAxes)
-
             } else {
 
                 updateButtons(window)
                 updateAxes(window, dt)
-
             }
         }
 
         return isPresent
-
     }
 
     private fun updateButtons(window: OSWindow, buttons: ByteBuffer? = glfwGetJoystickButtons(glfwId)) {
@@ -287,23 +288,29 @@ class Controller(val id: Int) {
                 val wasUp = lastValue > +axisKeyTriggerPoint
                 val isDown = value < -axisKeyTriggerPoint
                 val isUp = value > axisKeyTriggerPoint
+                val baseAxis = baseKey + numButtons
                 if (isDown != wasDown) {
                     isActiveMaybe = 1f
-                    if (isDown) {
-                        ActionManager.onKeyDown(window, baseAxis + axisId * 2)
-                    } else {
-                        ActionManager.onKeyUp(window, baseAxis + axisId * 2)
+                    if (numButtons + axisId * 2 < MAX_NUM_INPUTS && id < MAX_NUM_CONTROLLERS) {
+                        val key = Key.byId(baseAxis + axisId * 2)
+                        if (isDown) {
+                            ActionManager.onKeyDown(window, key)
+                        } else {
+                            ActionManager.onKeyUp(window, key)
+                        }
                     }
                 }
                 if (isUp != wasUp) {
                     isActiveMaybe = 1f
-                    if (isUp) {
-                        ActionManager.onKeyDown(window, baseAxis + axisId * 2 + 1)
-                    } else {
-                        ActionManager.onKeyUp(window, baseAxis + axisId * 2 + 1)
+                    if (numButtons + axisId * 2 < MAX_NUM_INPUTS && id < MAX_NUM_CONTROLLERS) {
+                        val key = Key.byId(baseAxis + axisId * 2 + 1)
+                        if (isUp) {
+                            ActionManager.onKeyDown(window, key)
+                        } else {
+                            ActionManager.onKeyUp(window, key)
+                        }
                     }
                 }
-
             }
 
             // support multiple mice (?); game specific; nice for strategy games
@@ -383,7 +390,6 @@ class Controller(val id: Int) {
                             mouseWheelFract -= mwf
                         }
                     }
-
                 }
             }
         }
@@ -441,14 +447,25 @@ class Controller(val id: Int) {
             TextWriter.save(calibration, file, StudioBase.workspace)
         }
 
-        // first controller: 1000,1200;
-        // second controller: 2000,2200;
-        // ...
-        const val BASE_KEY = 1000
-        const val BASE_AXIS = 1200
+        const val MAX_NUM_BUTTONS = 128
+        const val MAX_NUM_AXES = 8
 
-        const val MAX_NUM_BUTTONS = 32
-        const val MAX_NUM_AXES = 32
+        /**
+         * value of first enum
+         * */
+        val BASE_KEY = Key.CONTROLLER_0_KEY_0.id
+
+        /**
+         * max supported inputs per controller for UI;
+         * could be increased by adding more enum values to enum class Key
+         * */
+        val MAX_NUM_INPUTS = Key.CONTROLLER_1_KEY_0.id - Key.CONTROLLER_0_KEY_0.id
+
+        /**
+         * max supported number of controllers for UI;
+         * could be increased by adding more enum values to enum class Key
+         * */
+        const val MAX_NUM_CONTROLLERS = 4
 
         // should get a place in the config
         private val initialTypeDelayNanos get() = DefaultConfig["controller.initialTypeDelayMillis", 1000] * 1_000_000L
@@ -460,6 +477,5 @@ class Controller(val id: Int) {
         // private val minActivationPoint = 0.05f
         // private val maxActivationPoint = 0.95f
         private val LOGGER = LogManager.getLogger(Controller::class)
-
     }
 }

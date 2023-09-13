@@ -30,6 +30,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -1136,7 +1137,7 @@ object ComponentUI {
 
     private fun Panel.askForReset(property: IProperty<Any?>, callback: (Any?) -> Unit): Panel {
         addOnClickListener { _, _, button, _ ->
-            if (button.isRight) {
+            if (button == Key.BUTTON_RIGHT) {
                 // todo option to edit the parent... how will that work?
                 val enabled = this !is InputPanel<*> || this.isInputAllowed
                 Menu.openMenu(windowStack, listOf(MenuOption(NameDesc("Reset")) {

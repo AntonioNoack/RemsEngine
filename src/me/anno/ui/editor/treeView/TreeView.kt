@@ -2,7 +2,7 @@ package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
@@ -13,7 +13,6 @@ import me.anno.ui.input.TextInput
 import me.anno.ui.style.Style
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import org.lwjgl.glfw.GLFW.GLFW_KEY_F
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
@@ -136,11 +135,11 @@ abstract class TreeView<V : Any>(
     private fun addToTreeList(element: V, depth: Int, index0: Int): Int {
         var index = index0
         val name = getName(element)
-        val ttt = getTooltipText(element)
+        val ttt = lazy { getTooltipText(element) }
         val panel = getOrCreateChildPanel(index++, element)
         val isCollapsed = isCollapsed(element)
         val search = search
-        var isIncludedInSearch = search == null || fulfillsSearch(element, name, ttt, search)
+        var isIncludedInSearch = search == null || fulfillsSearch(element, name, ttt.value, search)
         if (!isCollapsed) {
             val children = getChildren(element)
             for (i in children.indices) {
@@ -155,7 +154,7 @@ abstract class TreeView<V : Any>(
         return if (isIncludedInSearch) {
             val symbol = if (isCollapsed) collapsedSymbol else getSymbol(element)
             panel.setText(symbol.trim(), name)
-            panel.tooltip = ttt
+            panel.tooltip = ttt.value
             val padding = panel.padding
             val left = inset * depth + padding.right
             if (padding.left != left) {
@@ -205,8 +204,8 @@ abstract class TreeView<V : Any>(
         super.onDraw(x0, y0, x1, y1)
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        if (button.isRight && sources.isNotEmpty()) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+        if (button == Key.BUTTON_RIGHT && sources.isNotEmpty()) {
             // correct? maybe 😄
             openAddMenu(sources.last())
         } else super.onMouseClicked(x, y, button, long)
@@ -280,9 +279,9 @@ abstract class TreeView<V : Any>(
         }
     }
 
-    override fun onKeyTyped(x: Float, y: Float, key: Int) {
+    override fun onKeyTyped(x: Float, y: Float, key: Key) {
         // probably should be an action instead...
-        if (key == GLFW_KEY_F && Input.isControlDown) {
+        if (key == Key.KEY_F && Input.isControlDown) {
             searchPanel.requestFocus()
         } else super.onKeyTyped(x, y, key)
     }
@@ -291,5 +290,4 @@ abstract class TreeView<V : Any>(
         @JvmStatic
         private val LOGGER = LogManager.getLogger(TreeView::class)
     }
-
 }

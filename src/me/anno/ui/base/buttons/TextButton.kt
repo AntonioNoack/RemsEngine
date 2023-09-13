@@ -9,10 +9,9 @@ import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.Input
 import me.anno.input.Input.keysDown
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
-import me.anno.ui.Keys.isClickKey
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
@@ -123,15 +122,15 @@ open class TextButton(
     }
 
     fun click() {
-        onMouseClicked(x + width * 0.5f, y + height * 0.5f, MouseButton.LEFT, false)
+        onMouseClicked(x + width * 0.5f, y + height * 0.5f,Key.BUTTON_LEFT, false)
     }
 
-    override fun onKeyTyped(x: Float, y: Float, key: Int) {
+    override fun onKeyTyped(x: Float, y: Float, key: Key) {
         if (isInputAllowed && key.isClickKey()) click()
         else super.onKeyTyped(x, y, key)
     }
 
-    override fun acceptsChar(char: Int) = char.isClickKey()
+    override fun acceptsChar(char: Int) = Key.byId(char).isClickKey() // not ideal...
     override fun isKeyInput() = true
 
     override fun clone(): TextButton {

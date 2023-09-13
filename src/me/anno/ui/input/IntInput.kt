@@ -145,11 +145,11 @@ open class IntInput(
         }
     }
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
-        when (key) {
+    override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
+        when (codepoint) {
             '+'.code -> setValueClamped(value + 1, true)
             '-'.code -> setValueClamped(value - 1, true)
-            else -> super.onCharTyped(x, y, key)
+            else -> super.onCharTyped(x, y, codepoint)
         }
     }
 

@@ -2,6 +2,7 @@ package me.anno.ui.editor
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
@@ -131,14 +132,13 @@ abstract class WelcomeUI {
         val mainWindow = Window(scroll, isTransparent = true, isFullscreen = false, windowStack, 0, 0)
         mainWindow.cannotClose()
         mainWindow.acceptsClickAway = {
-            if (it.isLeft) {
+            if (it == Key.BUTTON_LEFT) {
                 loadLastProject(studio, usableFile, nameInput, recent)
                 usableFile != null
             } else false
         }
 
         windowStack.push(mainWindow)
-
     }
 
     fun createRecentProjectsUI(studio: StudioBase, style: Style, recent: List<ProjectHeader>): Panel {
@@ -216,7 +216,6 @@ abstract class WelcomeUI {
         }
 
         return recentProjects
-
     }
 
     abstract fun loadProject(name: String, folder: FileReference): Pair<String, FileReference>
@@ -367,7 +366,6 @@ abstract class WelcomeUI {
         newProject += button
 
         return newProject
-
     }
 
     companion object {
@@ -382,7 +380,5 @@ abstract class WelcomeUI {
             if (file == InvalidRef) return false
             return rootIsOk(file.getParent() ?: return false)
         }
-
     }
-
 }

@@ -13,7 +13,6 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.types.Strings.joinChars
-import org.lwjgl.glfw.GLFW
 import java.util.function.BiConsumer
 
 /**
@@ -22,10 +21,10 @@ import java.util.function.BiConsumer
 object ShowKeys {
 
     @JvmField
-    val activeKeys = ArrayList<Key>()
+    val activeKeys = ArrayList<Key1>()
 
     @JvmField
-    val activeKeysMap = HashMap<Int, Key>()
+    val activeKeysMap = HashMap<Key, Key1>()
 
     @JvmField
     var decaySpeed = 1f
@@ -36,31 +35,31 @@ object ShowKeys {
     @JvmField
     val template = TextPanel("", style)
 
-    class Key(
-        val keyCode: Int,
+    class Key1(
+        val key: Key,
         val isSuperKey: Boolean,
         var time: Float,
-        val state: KeyMap.InputState = KeyMap.InputState()
+        val state: KeyNames.InputState = KeyNames.InputState()
     ) {
-        var stateId = KeyMap.stateId
+        var stateId = KeyNames.stateId
         var name = findName()
         fun findName(): String {
             // this can be incorrect as long as we don't know the correct mapping
-            val char = KeyMap.inputMap[state]
+            val char = KeyNames.inputMap[state]
             val text2 = if (char != null && char != 32 && char != 9 && char != 10) // space, \n, \r
                 char.joinChars().toString() else null
-            val text0 = KeyCombination.keyMapping.reverse[keyCode]
-            return text2 ?: text0 ?: keyCode.toString()
+            val text0 = KeyCombination.keyMapping.reverse[key]
+            return text2 ?: text0 ?: key.toString()
         }
     }
 
     private const val lower = 0.8f // full strength while hold
 
     @JvmStatic
-    private fun addKey(keyCode: Int, isSuperKey: Boolean) {
+    private fun addKey(keyCode: Key, isSuperKey: Boolean) {
         var key = activeKeysMap[keyCode]
         if (key == null) {
-            key = Key(keyCode, isSuperKey, 2f)
+            key = Key1(keyCode, isSuperKey, 2f)
             activeKeys += key
             activeKeysMap[keyCode] = key
         } else {
@@ -98,16 +97,16 @@ object ShowKeys {
     }
 
     @JvmStatic
-    private val addKeyConsumer = BiConsumer<Int, Long> { keyCode, _ ->
+    private val addKeyConsumer = BiConsumer<Key, Long> { keyCode, _ ->
         when (keyCode) {
-            GLFW.GLFW_KEY_LEFT_CONTROL,
-            GLFW.GLFW_KEY_RIGHT_CONTROL -> addKey(GLFW.GLFW_KEY_LEFT_CONTROL, true)
-            GLFW.GLFW_KEY_LEFT_SHIFT,
-            GLFW.GLFW_KEY_RIGHT_SHIFT -> addKey(GLFW.GLFW_KEY_LEFT_SHIFT, true)
-            GLFW.GLFW_KEY_LEFT_ALT,
-            GLFW.GLFW_KEY_RIGHT_ALT -> addKey(GLFW.GLFW_KEY_LEFT_ALT, true)
-            GLFW.GLFW_KEY_LEFT_SUPER,
-            GLFW.GLFW_KEY_RIGHT_SUPER -> addKey(GLFW.GLFW_KEY_LEFT_SUPER, true)
+            Key.KEY_LEFT_CONTROL,
+            Key.KEY_RIGHT_CONTROL -> addKey(Key.KEY_LEFT_CONTROL, true)
+            Key.KEY_LEFT_SHIFT,
+            Key.KEY_RIGHT_SHIFT -> addKey(Key.KEY_LEFT_SHIFT, true)
+            Key.KEY_LEFT_ALT,
+            Key.KEY_RIGHT_ALT -> addKey(Key.KEY_LEFT_ALT, true)
+            Key.KEY_LEFT_SUPER,
+            Key.KEY_RIGHT_SUPER -> addKey(Key.KEY_LEFT_SUPER, true)
             else -> addKey(keyCode, false)
         }
     }
@@ -129,7 +128,7 @@ object ShowKeys {
             for (key in iter) {
                 key.time = min(key.time - dt, 1f)
                 if (key.time < 0f) {
-                    activeKeysMap.remove(key.keyCode)
+                    activeKeysMap.remove(key.key)
                     iter.remove()
                 }
             }
@@ -140,7 +139,7 @@ object ShowKeys {
                     for (index in activeKeys.indices) {
                         val key = activeKeys[index]
                         val alpha = key.time
-                        if (key.stateId != KeyMap.stateId) {
+                        if (key.stateId != KeyNames.stateId) {
                             key.name = key.findName()
                         }
                         x0 = drawKey(key.name, alpha, x0, h - y)

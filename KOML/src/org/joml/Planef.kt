@@ -21,6 +21,8 @@ open class Planef(var dirX: Float, var dirY: Float, var dirZ: Float, var distanc
 
     fun dot(x: Float, y: Float, z: Float): Float = x * dirX + y * dirY + z * dirZ + distance
 
+    fun dot(v: Vector3f): Float = dot(v.x, v.y, v.z)
+
     override fun toString(): String {
         return "Plane($dirX, $dirY, $dirZ, $distance)"
     }

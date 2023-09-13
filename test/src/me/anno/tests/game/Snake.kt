@@ -5,6 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
+import me.anno.input.Key
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.ui.Panel
@@ -13,7 +14,6 @@ import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.black
-import org.lwjgl.glfw.GLFW
 import java.util.*
 
 class Snake : Panel(style) {
@@ -81,7 +81,6 @@ class Snake : Panel(style) {
         gameOver = false
         stepDelayNanos = 500 * MILLIS_TO_NANOS
         isPaused = false
-
     }
 
     fun step() {
@@ -196,13 +195,13 @@ class Snake : Panel(style) {
         }
     }
 
-    override fun onKeyTyped(x: Float, y: Float, key: Int) {
+    override fun onKeyTyped(x: Float, y: Float, key: Key) {
         when (key) {
-            GLFW.GLFW_KEY_W, GLFW.GLFW_KEY_UP -> tryMove(0, -1)
-            GLFW.GLFW_KEY_A, GLFW.GLFW_KEY_LEFT -> tryMove(-1, 0)
-            GLFW.GLFW_KEY_S, GLFW.GLFW_KEY_DOWN -> tryMove(0, 1)
-            GLFW.GLFW_KEY_D, GLFW.GLFW_KEY_RIGHT -> tryMove(1, 0)
-            GLFW.GLFW_KEY_SPACE, GLFW.GLFW_KEY_ESCAPE -> {
+            Key.KEY_W, Key.KEY_ARROW_UP -> tryMove(0, -1)
+            Key.KEY_A, Key.KEY_ARROW_LEFT -> tryMove(-1, 0)
+            Key.KEY_S, Key.KEY_ARROW_DOWN -> tryMove(0, 1)
+            Key.KEY_D, Key.KEY_ARROW_RIGHT -> tryMove(1, 0)
+            Key.KEY_SPACE, Key.KEY_ESCAPE -> {
                 if (gameOver) {
                     startGame()
                 } else {

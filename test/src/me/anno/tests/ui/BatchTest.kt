@@ -3,7 +3,7 @@ package me.anno.tests.ui
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
@@ -25,7 +25,7 @@ fun main() {
                 invalidateDrawing()
             }
 
-            override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+            override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 batch = !batch
             }
 

@@ -5,7 +5,7 @@ import me.anno.ecs.Transform
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.input.Input.isShiftDown
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.maths.Maths.length
 import me.anno.parser.SimpleExpressionParser
 import org.joml.Matrix4x3d
@@ -212,11 +212,11 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
 
     var old: List<Matrix4x3d> = emptyList()
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         if (mode != Mode.NOTHING) {
-            when {
-                button.isLeft -> accept()
-                button.isRight -> cancel()
+            when (button) {
+                Key.BUTTON_LEFT -> accept()
+                Key.BUTTON_RIGHT -> cancel()
                 else -> super.onMouseClicked(x, y, button, long)
             }
         } else super.onMouseClicked(x, y, button, long)
@@ -258,8 +258,8 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         mode = Mode.NOTHING
     }
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
-        when (key.toChar()) {
+    override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
+        when (codepoint.toChar()) {
             'x' -> {
                 axis = 1
                 isLocking = isShiftDown
@@ -306,7 +306,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
             }
             // todo instead of supporting expressions, just make - switch the sign?
             in '0'..'9', '.', '*', '/', '(', ')', '+', '-' -> {
-                number += key.toChar()
+                number += codepoint.toChar()
                 showChange()
             }
         }

@@ -6,7 +6,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.unmix
@@ -107,7 +107,7 @@ class ColorPicker(
 
     fun sign(i: Int) = if (i < 0) -1 else +1
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         // get pixel color
         val (mouseX, mouseY) = getMouseCoordinates()
         val color = cpuData.getRGB(mouseX, mouseY)

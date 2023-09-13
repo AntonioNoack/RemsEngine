@@ -3,7 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.Engine.deltaTime
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
@@ -207,7 +207,7 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         if (hasScrollbarY) drawChild(scrollbarY, x0, y0, x1, y1)
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         mapMouseDown(x, y)
         if (!isDownOnScrollbarX && !isDownOnScrollbarY) super.onMouseDown(x, y, button)
     }
@@ -217,7 +217,7 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         isDownOnScrollbarY = false
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
         mapMouseUp()
         super.onMouseUp(x, y, button)
     }

@@ -107,9 +107,9 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
         } else false
     }
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
-        if (!(key == '\t'.code && tryApplySuggestion())) {
-            onCharTyped2(x, y, key)
+    override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
+        if (!(codepoint == '\t'.code && tryApplySuggestion())) {
+            onCharTyped2(x, y, codepoint)
         }
     }
 

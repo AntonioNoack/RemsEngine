@@ -6,7 +6,7 @@ import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.maths.Maths.mixARGB
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -79,15 +79,15 @@ class ColorField(
         setARGB(color.toARGB(), notify)
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
-        if (button.isLeft) {
+    override fun onDoubleClick(x: Float, y: Float, button: Key) {
+        if (button == Key.BUTTON_LEFT) {
             palette.onColorSelected(color)
         }
     }
 
-    /*override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    /*override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         when {
-            button.isRight -> {
+            button == Key.BUTTON_RIGHT -> {
                 // open context menu for clearing?
             }
             else -> super.onMouseClicked(x, y, button, long)

@@ -12,7 +12,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.ui.utils.WindowStack
 import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.types.Floats.f3
@@ -122,7 +122,8 @@ open class Window(
         acceptsClickAway = { boolean }
     }
 
-    var acceptsClickAway = { _: MouseButton -> canBeClosedByUser }
+    @Suppress("UNUSED_ANONYMOUS_PARAMETER")
+    var acceptsClickAway = { mouseButton: Key -> canBeClosedByUser }
 
     open fun destroy() {
         buffer.destroy()

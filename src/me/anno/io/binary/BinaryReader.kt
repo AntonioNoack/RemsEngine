@@ -112,8 +112,6 @@ import me.anno.utils.types.InputStreams.readNBytes2
 import org.joml.*
 import java.io.DataInputStream
 import java.io.IOException
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * writing as text is:
@@ -484,5 +482,9 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                 }
             }
         }
+    }
+
+    private fun <V> assertEquals(a: V, b: V, msg: String) {
+        if (a != b) throw IOException("$msg, $a != $b")
     }
 }

@@ -7,7 +7,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.ceilDiv
@@ -96,7 +96,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
         } else super.onGotAction(x, y, dx, dy, action, isContinuous)
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+    override fun onDoubleClick(x: Float, y: Float, button: Key) {
         super.onDoubleClick(x, y, button)
         // todo find which byte is clicked,
         // todo collect input in hex or chars
@@ -299,8 +299,8 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     }
 
     var markedRight = false
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        if (button.isLeft) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
+        if (button == Key.BUTTON_LEFT) {
             cursor0 = getCursorAt(x, y)
             cursor1 = cursor0
             invalidateDrawing()
@@ -308,7 +308,7 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (isAnyChildInFocus && MouseButton.LEFT.id in Input.mouseKeysDown) {
+        if (isAnyChildInFocus && Input.isLeftDown) {
             cursor1 = getCursorAt(x, y)
             invalidateDrawing()
         }

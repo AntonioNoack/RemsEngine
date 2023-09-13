@@ -1,6 +1,6 @@
 package me.anno.ui.editor.stacked
 
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.language.translation.NameDesc
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase.Companion.dragged
@@ -67,9 +67,9 @@ abstract class StackPanel(
         })
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         when {
-            button.isRight || long || content.isEmpty() -> {
+            button == Key.BUTTON_RIGHT || long || content.isEmpty() -> {
                 showMenu()
             }
             else -> super.onMouseClicked(x, y, button, long)

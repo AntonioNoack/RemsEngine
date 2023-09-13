@@ -12,6 +12,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
+import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
@@ -19,7 +20,6 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3f
-import org.lwjgl.glfw.GLFW
 
 abstract class CameraController : Component(), ControlReceiver {
 
@@ -98,10 +98,10 @@ abstract class CameraController : Component(), ControlReceiver {
     open fun collectInputs(acceleration: Vector3f) {
         // todo replace this with actions, so it can be configured easily
         val s = movementSpeed
-        if (isKeyDown('w') || isKeyDown(GLFW.GLFW_KEY_UP)) acceleration.z -= s
-        if (isKeyDown('s') || isKeyDown(GLFW.GLFW_KEY_DOWN)) acceleration.z += s
-        if (isKeyDown('a') || isKeyDown(GLFW.GLFW_KEY_LEFT)) acceleration.x -= s
-        if (isKeyDown('d') || isKeyDown(GLFW.GLFW_KEY_RIGHT)) acceleration.x += s
+        if (isKeyDown(Key.KEY_W) || isKeyDown(Key.KEY_ARROW_UP)) acceleration.z -= s
+        if (isKeyDown(Key.KEY_S) || isKeyDown(Key.KEY_ARROW_DOWN)) acceleration.z += s
+        if (isKeyDown(Key.KEY_A) || isKeyDown(Key.KEY_ARROW_LEFT)) acceleration.x -= s
+        if (isKeyDown(Key.KEY_D) || isKeyDown(Key.KEY_ARROW_RIGHT)) acceleration.x += s
         if (isShiftDown || isKeyDown('q')) acceleration.y -= s
         if (isKeyDown(' ') || isKeyDown('e')) acceleration.y += s
         if (numpadAsMouseSpeed != 0f || numpadWheelSpeed != 0f) {

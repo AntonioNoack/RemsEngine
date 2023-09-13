@@ -4,14 +4,14 @@ package me.anno.input
  * records, which key combinations were used to create which keys;
  * this makes that we can print Umlauts and special symbols correctly
  * */
-object KeyMap {
+object KeyNames {
 
     data class InputState(
         val control: Boolean,
         val shift: Boolean,
         val alt: Boolean,
         val superKey: Boolean,
-        val keys: HashSet<Int>
+        val keys: HashSet<Key>
     ) {
         constructor() : this(
             Input.isControlDown,

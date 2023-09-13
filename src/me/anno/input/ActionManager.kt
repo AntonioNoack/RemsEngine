@@ -117,27 +117,27 @@ object ActionManager {
     }
 
     @JvmStatic
-    fun onKeyTyped(window: OSWindow, key: Int) {
+    fun onKeyTyped(window: OSWindow, key: Key) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.TYPED), false)
     }
 
     @JvmStatic
-    fun onKeyUp(window: OSWindow, key: Int) {
+    fun onKeyUp(window: OSWindow, key: Key) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.UP), false)
     }
 
     @JvmStatic
-    fun onKeyDown(window: OSWindow, key: Int) {
+    fun onKeyDown(window: OSWindow, key: Key) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOWN), false)
     }
 
     @JvmStatic
-    fun onKeyDoubleClick(window: OSWindow, key: Int) {
+    fun onKeyDoubleClick(window: OSWindow, key: Key) {
         onEvent(window, 0f, 0f, KeyCombination(key, Input.keyModState, KeyCombination.Type.DOUBLE), false)
     }
 
     @JvmStatic
-    fun onKeyHoldDown(window: OSWindow, dx: Float, dy: Float, key: Int, isSafe: Boolean) {
+    fun onKeyHoldDown(window: OSWindow, dx: Float, dy: Float, key: Key, isSafe: Boolean) {
         val type = if (isSafe) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE
         onEvent(window, dx, dy, KeyCombination(key, Input.keyModState, type), true)
     }
@@ -148,7 +148,7 @@ object ActionManager {
     @JvmStatic
     fun onMouseMoved(window: OSWindow, dx: Float, dy: Float) {
         if (Input.keysDown.isEmpty()) return
-        val mouseMoveConsumer = BiConsumer<Int, Long> { key, downTime ->
+        val mouseMoveConsumer = BiConsumer<Key, Long> { key, downTime ->
             onKeyHoldDown(window, dx, dy, key, false)
             val deltaTime = (gameTime - downTime) * 1e-9f
             val mouseStill = Input.mouseMovementSinceMouseDown < Input.maxClickDistance

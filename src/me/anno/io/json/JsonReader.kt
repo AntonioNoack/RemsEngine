@@ -2,9 +2,8 @@ package me.anno.io.json
 
 import me.anno.io.files.FileReference
 import java.io.EOFException
+import java.io.IOException
 import java.io.InputStream
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * to avoid the import of FasterXML (17MB) or similar, we create our own light-weight solution to reading JSON files;
@@ -288,8 +287,15 @@ class JsonReader(val data: InputStream) {
     // Java/Kotlin's defaults assert only works with arguments
     // we want ours to always work
     // we can't really put it elsewhere without prefix, because Kotlin will use the wrong import...
-    fun assert(i: Char, c1: Char, c2: Char) {
+    private fun assert(i: Char, c1: Char, c2: Char) {
         if (i != c1 && i != c2) throw JsonFormatException("Expected $c1 or $c2, but got $i")
     }
 
+    private fun assertTrue(c: Boolean, msg: String) {
+        if (!c) throw IOException(msg)
+    }
+
+    private fun assertEquals(a: Char, b: Char) {
+        if (a != b) throw IOException("$a != $b")
+    }
 }

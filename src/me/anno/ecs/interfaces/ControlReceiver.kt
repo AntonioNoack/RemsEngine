@@ -1,6 +1,6 @@
 package me.anno.ecs.interfaces
 
-import me.anno.input.MouseButton
+import me.anno.input.Key
 
 /**
  * the class, that you can use to control your components by mouse/keyboard
@@ -12,18 +12,18 @@ interface ControlReceiver {
 
     fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String) = false
 
-    fun onKeyDown(key: Int) = false
-    fun onKeyUp(key: Int) = false
-    fun onKeyTyped(key: Int) = false
+    fun onKeyDown(key: Key) = false
+    fun onKeyUp(key: Key) = false
+    fun onKeyTyped(key: Key) = false
 
-    fun onMouseDown(button: MouseButton) = false
-    fun onMouseUp(button: MouseButton) = false
-    fun onMouseClicked(button: MouseButton, long: Boolean) = false
+    fun onMouseDown(button: Key) = false
+    fun onMouseUp(button: Key) = false
+    fun onMouseClicked(button: Key, long: Boolean) = false
 
     fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) = false
     fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) = false
 
-    fun onCharTyped(char: Int) = false
+    fun onCharTyped(codepoint: Int) = false
 
     // todo ???, do we do that? we would need to track all control receivers constantly, and raycast a ray once per frame
     // todo this is cool, and really would be nice to have

@@ -13,11 +13,11 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.maths.Maths.sq
 import me.anno.maths.paths.PathFindingAccelerator
-import me.anno.tests.utils.TestWorld
 import me.anno.mesh.Shapes
+import me.anno.tests.utils.TestWorld
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.LOGGER
 import org.apache.logging.log4j.LogManager
@@ -115,7 +115,6 @@ fun main() {
                 }
             }// else throw IllegalArgumentException("Proxies neighbor or out-of-bounds requested, $from")
         }
-
     }
 
     val random = Random(1234L)
@@ -159,7 +158,6 @@ fun main() {
             LOGGER.debug("Solutions? ${path0?.size}, ${path2?.size}, ${(t2 - t1).toFloat() / (t1 - t0)}x, ${(t3 - t2).toFloat() / (t1 - t0)}x faster")
             // LOGGER.debug("$path0".replace("Node", ""))
             return path0 to path2
-
         } else return null
     }
 
@@ -265,23 +263,27 @@ fun main() {
 
         view.editControls = object : DraggingControls(view.renderer) {
 
-            override fun onKeyTyped(x: Float, y: Float, key: Int) {
-                if (key.toChar() in "rR") {
+            override fun onKeyTyped(x: Float, y: Float, key: Key) {
+                if (key == Key.KEY_R) {
                     randomizePoints()
                     updateCubes()
                 } else super.onKeyTyped(x, y, key)
             }
 
-            override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+            override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 if (!long) {
-                    if (button.isLeft) {
-                        start = raycastPoint() ?: start
-                        updateCubes()
-                        return
-                    } else if (button.isRight) {
-                        end = raycastPoint() ?: end
-                        updateCubes()
-                        return
+                    when (button) {
+                        Key.BUTTON_LEFT -> {
+                            start = raycastPoint() ?: start
+                            updateCubes()
+                            return
+                        }
+                        Key.BUTTON_RIGHT -> {
+                            end = raycastPoint() ?: end
+                            updateCubes()
+                            return
+                        }
+                        else -> {}
                     }
                 }
                 super.onMouseClicked(x, y, button, long)
@@ -305,12 +307,12 @@ fun main() {
             fun onClick(e: UIEvent) {
                 if (e.type == UIEventType.MOUSE_CLICK && view.isAnyChildInFocus) {
                     when {
-                        e.button.isLeft -> {
+                        e.button == Key.BUTTON_LEFT -> {
                             start = raycastPoint() ?: start
                             updateCubes()
                             e.cancel()
                         }
-                        e.button.isRight -> {
+                        e.button == Key.BUTTON_RIGHT -> {
                             end = raycastPoint() ?: end
                             updateCubes()
                             e.cancel()
@@ -323,5 +325,4 @@ fun main() {
         view
 
     }
-
 }

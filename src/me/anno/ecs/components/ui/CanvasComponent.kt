@@ -25,7 +25,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.GPUImage
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
@@ -297,27 +297,27 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
 
     // todo do this like in ActionManager
 
-    override fun onKeyDown(key: Int): Boolean {
+    override fun onKeyDown(key: Key): Boolean {
         return findPanel { panel, x, y -> panel.onKeyDown(x, y, key) }
     }
 
-    override fun onKeyUp(key: Int): Boolean {
+    override fun onKeyUp(key: Key): Boolean {
         return findPanel { panel, x, y -> panel.onKeyUp(x, y, key) }
     }
 
-    override fun onKeyTyped(key: Int): Boolean {
+    override fun onKeyTyped(key: Key): Boolean {
         return findPanel { panel, x, y -> panel.onKeyTyped(x, y, key) }
     }
 
-    override fun onMouseDown(button: MouseButton): Boolean {
+    override fun onMouseDown(button: Key): Boolean {
         return findPanel { panel, x, y -> panel.onMouseDown(x, y, button) }
     }
 
-    override fun onMouseUp(button: MouseButton): Boolean {
+    override fun onMouseUp(button: Key): Boolean {
         return findPanel { panel, x, y -> panel.onMouseUp(x, y, button) }
     }
 
-    override fun onMouseClicked(button: MouseButton, long: Boolean): Boolean {
+    override fun onMouseClicked(button: Key, long: Boolean): Boolean {
         return findPanel { panel, x, y -> panel.onMouseClicked(x, y, button, long) }
     }
 
@@ -349,5 +349,4 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
             5, 6, 4, 6, 5, 7
         )
     }
-
 }

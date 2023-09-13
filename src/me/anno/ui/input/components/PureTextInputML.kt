@@ -9,7 +9,7 @@ import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.input.Input
 import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mixARGB
@@ -526,10 +526,10 @@ open class PureTextInputML(style: Style) :
         return cursor
     }
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
+    override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
         if (!isInputAllowed) return
         lastChangeTime = Engine.gameTime
-        addKey(key)
+        addKey(codepoint)
     }
 
     private fun moveRight() {
@@ -676,12 +676,12 @@ open class PureTextInputML(style: Style) :
         }
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         if (y >= scrollbarStartY) return super.onMouseDown(x, y, button)
         onMouseDown(x, getLineIndex(y))
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+    override fun onDoubleClick(x: Float, y: Float, button: Key) {
         selectAll()
     }
 

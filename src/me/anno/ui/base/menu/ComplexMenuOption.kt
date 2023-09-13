@@ -1,6 +1,7 @@
 package me.anno.ui.base.menu
 
-import me.anno.input.MouseButton
+import me.anno.input.Key
+
 
 class ComplexMenuOption(
     title: String,
@@ -9,5 +10,5 @@ class ComplexMenuOption(
     /**
      * action shall return true if the menu is to be closed
      * */
-    val action: (button: MouseButton, long: Boolean) -> Boolean
-): ComplexMenuEntry(title, description, isEnabled)
+    val action: (button: Key, long: Boolean) -> Boolean
+) : ComplexMenuEntry(title, description, isEnabled)

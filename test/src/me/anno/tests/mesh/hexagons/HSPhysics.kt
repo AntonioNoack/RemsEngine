@@ -14,7 +14,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.graph.ui.GraphPanel.Companion.yellow
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.maths.Maths.dtTo01
 import me.anno.utils.Color.black
 import me.anno.utils.OS.documents
@@ -215,14 +215,14 @@ fun main() {
             // todo show inventory
             // todo serialization
             var inventory = grass
-            override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+            override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 // resolve click
                 val start = it.renderer.cameraPosition
                 val dir = it.renderer.getMouseRayDirection()
                 val hit = Raycast.raycast(scene, start, dir, 0.0, 0.0, 10.0, -1)
                 if (hit != null) {
-                    val setBlock = button.isRight
-                    val testBlock = button.isMiddle
+                    val setBlock = button == Key.BUTTON_RIGHT
+                    val testBlock = button == Key.BUTTON_MIDDLE
                     if (setBlock) {
                         // move hit back slightly
                         dir.mulAdd(-sphere.len * 0.05, hit.positionWS, hit.positionWS)

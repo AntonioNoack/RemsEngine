@@ -9,9 +9,6 @@ import kotlin.math.max
 
 object PathFinding {
 
-    // todo Dijkstra without specific target, just find something good enough,
-    //  or all distances to good things within a certain radius
-
     private val LOGGER = LogManager.getLogger(PathFinding::class)
 
     private object FoundEndException : RuntimeException()
@@ -52,7 +49,7 @@ object PathFinding {
         includeStart: Boolean,
         includeEnd: Boolean,
         queryForward: (from: Node, (to: Node, dist: Double) -> Unit) -> Unit
-    ) = genericSearch(
+    ): List<Node>? = genericSearch(
         start, end, distStartEnd, maxDistance, false,
         capacityGuess, includeStart, includeEnd
     ) { from, callback ->
@@ -60,6 +57,30 @@ object PathFinding {
             callback(to, distance, 0.0)
         }
     }
+
+
+    /**
+     * searches for the shortest path within a graph;
+     * @return list of nodes from start to end; without start and end; null if no path is found
+     * */
+    fun <Node : Any> dijkstra(
+        start: Node,
+        isEnd: (Node) -> Boolean,
+        distStartEnd: Double,
+        maxDistance: Double,
+        capacityGuess: Int,
+        includeStart: Boolean,
+        includeEnd: Boolean,
+        queryForward: (from: Node, (to: Node, dist: Double) -> Unit) -> Unit
+    ): List<Node>? = genericSearchMany(
+        setOf(start), isEnd, distStartEnd, maxDistance, false,
+        capacityGuess, includeStart, includeEnd
+    ) { from, callback ->
+        queryForward(from) { to, distance ->
+            callback(to, distance, 0.0)
+        }
+    }
+
 
     /**
      * searches for a short path within a graph;
@@ -76,7 +97,7 @@ object PathFinding {
         includeStart: Boolean,
         includeEnd: Boolean,
         queryForward: (from: Node, (to: Node, distFromTo: Double, distToEnd: Double) -> Unit) -> Unit
-    ) = genericSearch(
+    ): List<Node>? = genericSearch(
         start, end, distStartEnd, maxDistance, true,
         capacityGuess, includeStart, includeEnd, queryForward
     )
@@ -103,95 +124,12 @@ object PathFinding {
         includeStart: Boolean,
         includeEnd: Boolean,
         queryForward: (from: Node, (to: Node, distFromTo: Double, distToEnd: Double) -> Unit) -> Unit
-    ): List<Node>? {
+    ): List<Node>? = genericSearchMany(
+        setOf(start), { it == end }, distStartEnd, maxDistance,
+        earlyExit, capacityGuess, includeStart, includeEnd, queryForward
+    )
 
-        if (start == end) return emptyResult(start, end, includeStart, includeEnd)
-
-        // forward tracking
-        val poolStartIndex = pool.index
-        val capacity = if (capacityGuess <= 0) 16
-        else max(16, 1 shl log2(capacityGuess.toFloat()).toInt())
-        val cache = HashMap<Node, DataNode>(capacity)
-        val queue = PriorityQueue<Node> { p0, p1 ->
-            val score0 = cache[p0]!!.score
-            val score1 = cache[p1]!!.score
-            score0.compareTo(score1)
-        }
-
-        /*val cache = localCache.get() as HashMap<Node,DataNode>
-        val queue = localQueue.get() as PriorityQueue<Node>
-
-        cache.clear()
-        queue.clear()*/
-
-        queue.add(start)
-        cache[start] = pool.create()
-            .set(0.0, distStartEnd, null)
-        var previousFromEnd: Node? = null
-        val result = try {
-            while (queue.isNotEmpty()) {
-                val from = queue.poll()!!
-                // LOGGER.debug("Checking $from at ${cache[from]}")
-                if (!earlyExit && from == end) {
-                    // LOGGER.debug("Found end, remaining: ${queue.map { "$it at ${cache[it]}" }}")
-                    throw FoundEndException
-                }
-                val currentData = cache[from]!!
-                val currentDistance = currentData.distance
-                queryForward(from) { to, distFromTo, distToEnd ->
-                    if (from == to) throw IllegalStateException("Node must not link to itself")
-                    if (distFromTo < 0.0 || distToEnd < 0.0) LOGGER.warn("Distances must be non-negative")
-                    val newDistance = currentDistance + distFromTo
-                    val newScore = newDistance + distToEnd
-                    if (newScore < maxDistance) {// check whether the route is good enough
-                        // LOGGER.debug("$from -> $to = $currentDistance + $distFromTo = $newDistance")
-                        if (earlyExit && to == end) {
-                            // LOGGER.debug("Found $to at ($newDistance,$newScore)")
-                            previousFromEnd = from
-                            throw FoundEndException
-                        }
-                        val oldScore = cache[to]
-                        if (oldScore == null) {
-                            cache[to] = pool.create()
-                                .set(newDistance, newScore, from)
-                            queue.add(to)
-                        } else {
-                            if (newDistance < oldScore.distance) {
-                                // point is in queue, remove it and reinsert it
-                                // LOGGER.debug("Updating $to from ${oldScore.score},${oldScore.distance} to $newScore,$newDistance, >= ${currentData.score}")
-                                queue.remove(to)
-                                oldScore.score = newScore
-                                queue.add(to)
-                                oldScore.set(newDistance, from)
-                            }
-                        }
-                    }
-                }
-            }
-            null
-        } catch (e: FoundEndException) {
-            // backward tracking
-            val path = ArrayList<Node>()
-            if (includeEnd) path.add(end)
-            @Suppress("unchecked_cast")
-            var node = previousFromEnd ?: cache[end]!!.previous as Node
-            // find the best candidate = node with the smallest distance from start
-            // LOGGER.debug("Remaining nodes: $queue")
-            while (node != start) {
-                path.add(node)
-                @Suppress("unchecked_cast")
-                node = cache[node]!!.previous as Node
-            }
-            if (includeStart) path.add(start)
-            path.reverse()
-            path
-        }
-        pool.index = poolStartIndex
-        // LOGGER.debug("Visited ${cache.size} nodes")
-        return result
-    }
-
-    fun <Node : Any> genericSearch2(
+    fun <Node : Any> genericSearchMany(
         starts: Set<Node>,
         isEnd: (Node) -> Boolean,
         distStartEnd: Double,
@@ -203,8 +141,10 @@ object PathFinding {
         queryForward: (from: Node, (to: Node, distFromTo: Double, distToEnd: Double) -> Unit) -> Unit
     ): List<Node>? {
 
-        for(start in starts){
-            if (isEnd(start)) return emptyResult(start, start, includeStart, includeEnd)
+        for (start in starts) {
+            if (isEnd(start)) {
+                return emptyResult(start, start, includeStart, includeEnd)
+            }
         }
 
         // forward tracking
@@ -224,7 +164,7 @@ object PathFinding {
         cache.clear()
         queue.clear()*/
 
-        for(start in starts){
+        for (start in starts) {
             queue.add(start)
             cache[start] = pool.create()
                 .set(0.0, distStartEnd, null)
@@ -308,5 +248,4 @@ object PathFinding {
             else -> listOf(start, end)
         }
     }
-
 }

@@ -3,7 +3,6 @@ package me.anno.io.xml
 import java.io.EOFException
 import java.io.InputStream
 import java.util.*
-import kotlin.test.assertEquals
 
 /**
  * Reads an XML file without create objects

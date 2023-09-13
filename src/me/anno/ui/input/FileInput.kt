@@ -2,7 +2,7 @@ package me.anno.ui.input
 
 import me.anno.config.DefaultConfig
 import me.anno.input.Input.setClipboardContent
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -165,10 +165,10 @@ open class FileInput(
         } else super.onGotAction(x, y, dx, dy, action, isContinuous)
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        when {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+        when (button) {
             // todo paste option
-            button.isRight -> openMenu(windowStack, listOf(
+            Key.BUTTON_RIGHT -> openMenu(windowStack, listOf(
                 MenuOption(openInExplorerDesc) { value.openInExplorer() },
                 MenuOption(openInStandardProgramDesc) { value.openInStandardProgram() },
                 MenuOption(editInStandardProgramDesc) { value.editInStandardProgram() },

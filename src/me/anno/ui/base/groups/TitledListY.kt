@@ -1,5 +1,6 @@
 package me.anno.ui.base.groups
 
+import me.anno.input.Key
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
@@ -20,7 +21,7 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
         if (titleView != null) {
             this.add(titleView)
             titleView.addOnClickListener { x, y, button, long ->
-                if (button.isLeft && !long) {
+                if (button == Key.BUTTON_LEFT && !long) {
                     InputVisibility.toggle(visibilityKey, this)
                 } else this@TitledListY.onMouseClicked(x, y, button, long)
                 true

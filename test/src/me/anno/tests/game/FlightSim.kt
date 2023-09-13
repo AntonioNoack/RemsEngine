@@ -20,6 +20,7 @@ import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.input.Input
+import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
@@ -30,7 +31,6 @@ import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.glfw.GLFW
 import kotlin.math.PI
 import kotlin.math.abs
 
@@ -141,7 +141,7 @@ fun createPlane(player: LocalPlayer): Entity {
             val rot = body.transform!!.globalRotation
             // add lift based on velocity on Z axis
             // add opposing force against localVelocityZ
-            val rudder = Input.isKeyDown(GLFW.GLFW_KEY_UP).toInt() - Input.isKeyDown(GLFW.GLFW_KEY_DOWN).toInt() // tilt
+            val rudder = Input.isKeyDown(Key.KEY_ARROW_UP).toInt() - Input.isKeyDown(Key.KEY_ARROW_DOWN).toInt() // tilt
             val lift = 1.0 * length(lv.y, lv.z)
             val airFriction = 20.0 * dt
             val engineForce = 1000.0 * dt * (speed - 0.3 * lv.z)
@@ -156,7 +156,7 @@ fun createPlane(player: LocalPlayer): Entity {
             )
             // rotation depends on speed along local z axis
             // todo rotate plane into straightness
-            val steering = Input.isKeyDown(GLFW.GLFW_KEY_LEFT).toInt() - Input.isKeyDown(GLFW.GLFW_KEY_RIGHT).toInt()
+            val steering = Input.isKeyDown(Key.KEY_ARROW_LEFT).toInt() - Input.isKeyDown(Key.KEY_ARROW_RIGHT).toInt()
             body.applyTorqueImpulse(
                 rot.transform(
                     tmp.set(

@@ -1,6 +1,6 @@
 package me.anno.ui.debug.console
 
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
@@ -20,7 +20,7 @@ class ConsoleLogFullscreen(style: Style) : ScrollPanelXY(Padding(5), style) {
         }
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+    override fun onDoubleClick(x: Float, y: Float, button: Key) {
         onSelectAll(x, y)
     }
 }

@@ -98,7 +98,7 @@ object DualContouring3d {
         /**
          * find minimum point of equation within cell boundaries
          * */
-        fun findExtremum(dst: Vector3f = Vector3f()): Vector3f {
+        fun findExtremum(dst: Vector3f): Vector3f {
 
             // todo this isn't ideal yet...
 

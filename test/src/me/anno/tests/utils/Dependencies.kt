@@ -11,7 +11,7 @@ import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.graph.ui.GraphPanel.Companion.lightBlueish
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
@@ -306,7 +306,7 @@ fun main() {
                 }
             }
 
-            override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+            override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 val clickedPck = hoveredPck
                 if (clickedPck != null) {
                     clickedPck.isCollapsed = !clickedPck.isCollapsed

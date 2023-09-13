@@ -3,7 +3,7 @@ package me.anno.ui.base.menu
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
@@ -194,7 +194,7 @@ object Menu {
                     if (magicIndex >= 0) {
                         val char = name[magicIndex].lowercaseChar()
                         extraKeyListeners[char] = {
-                            if (action(MouseButton.LEFT, false)) {
+                            if (action(Key.BUTTON_LEFT, false)) {
                                 close(button)
                                 true
                             } else false
@@ -275,13 +275,13 @@ object Menu {
         list += WrapAlign.LeftTop
 
         val container = object : ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN) {
-            override fun onCharTyped(x: Float, y: Float, key: Int) {
+            override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
                 val window = window
-                val char = key.toChar()
+                val char = codepoint.toChar()
                 val entry = extraKeyListeners[char.lowercaseChar()]
                 if (window in windowStack && entry?.invoke() == true) {
                     close(this)
-                } else super.onCharTyped(x, y, key)
+                } else super.onCharTyped(x, y, codepoint)
             }
         }
         container += WrapAlign.LeftTop
@@ -369,7 +369,7 @@ object Menu {
                 if (chosen != null) {
                     val deepest = chosen.getPanelAt(chosen.x, chosen.y)!!
                     deepest.requestFocus()
-                    deepest.onMouseClicked(chosen.x.toFloat(), chosen.y.toFloat(), MouseButton.LEFT, false)
+                    deepest.onMouseClicked(chosen.x.toFloat(), chosen.y.toFloat(), Key.BUTTON_LEFT, false)
                 }
             }
             list += searchPanel

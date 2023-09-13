@@ -14,13 +14,12 @@ import me.anno.gpu.drawing.DrawTexts.getTextSize
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.mixARGB
-import me.anno.ui.Keys.isClickKey
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
@@ -299,10 +298,10 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         else -> true
     }
 
-    override fun onKeyDown(x: Float, y: Float, key: Int) {
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
         if (key.isClickKey()) {
             for (l in onClickListeners) {
-                if (l(x, y, MouseButton.LEFT, false)) {
+                if (l(x, y, Key.BUTTON_LEFT, false)) {
                     return
                 }
             }

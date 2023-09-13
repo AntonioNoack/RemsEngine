@@ -1,6 +1,6 @@
 package me.anno.ui.editor.stacked
 
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.Saveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
@@ -26,9 +26,9 @@ class OptionPanel(
         PropertyInspector.createInspector(value, content, style)
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        when {
-            button.isRight -> {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+        when (button) {
+            Key.BUTTON_RIGHT -> {
                 val index = indexInParent
                 openMenu(windowStack, stackPanel.options.map { option ->
                     MenuOption(
@@ -45,8 +45,7 @@ class OptionPanel(
                     )
                 ) {
                     stackPanel.removeComponent(value)
-                }
-                )
+                })
             }
             else -> super.onMouseClicked(x, y, button, long)
         }
@@ -78,5 +77,4 @@ class OptionPanel(
     }
 
     override fun getMultiSelectablePanel() = this
-
 }

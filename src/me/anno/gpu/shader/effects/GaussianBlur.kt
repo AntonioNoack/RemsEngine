@@ -12,6 +12,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.image.BoxBlur
 import me.anno.image.BoxBlur.multiply
 import me.anno.input.Input
+import me.anno.input.Key
 import me.anno.maths.Maths.sq
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
@@ -102,7 +103,7 @@ object GaussianBlur {
                 // smallerW /= 2
                 // smallerH /= 2
                 smallerW = max(10, w / subSteps)
-                if (debug && 'J'.code in Input.keysDown) smallerH = max(10, h / subSteps)
+                if (debug && Key.KEY_J in Input.keysDown) smallerH = max(10, h / subSteps)
                 // smallerH /= 2
                 // smallerH = max(10, h / subSteps)
                 size = pixelSize * smallerW / w
@@ -117,7 +118,7 @@ object GaussianBlur {
                 }
             }
 
-            if (debug && 'I'.code in Input.keysDown) LOGGER.info("$w,$h -> $smallerW,$smallerH")
+            if (debug && Key.KEY_I in Input.keysDown) LOGGER.info("$w,$h -> $smallerW,$smallerH")
 
             drawBlur(
                 FBStack["mask-gaussian-blur-0", smallerW, smallerH, 4, true, 1, false], smallerW, smallerH,

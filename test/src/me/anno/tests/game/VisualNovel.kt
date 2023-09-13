@@ -20,7 +20,7 @@ import me.anno.graph.ui.GraphPanel
 import me.anno.graph.ui.GraphPanel.Companion.yellow
 import me.anno.image.ImageGPUCache
 import me.anno.image.ImageScale
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.min
@@ -224,18 +224,18 @@ object VisualNovel {
                 backgroundColor = backgroundColor.mulARGB(0xffcccccc.toInt())
             }
 
-            override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-                if (button.isLeft && !long && numOptions < 1) {
+            override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+                if (button == Key.BUTTON_LEFT && !long && numOptions < 1) {
                     stateMachine.update()
                 } else super.onMouseClicked(x, y, button, long)
             }
 
-            override fun onCharTyped(x: Float, y: Float, key: Int) {
-                val idx = key - '0'.code
+            override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
+                val idx = codepoint - '0'.code
                 if (idx in 1..numOptions) {
                     questionNode?.setOutput(1, idx)
                     stateMachine.update()
-                } else super.onCharTyped(x, y, key)
+                } else super.onCharTyped(x, y, codepoint)
             }
 
             override fun calculateSize(w: Int, h: Int) {

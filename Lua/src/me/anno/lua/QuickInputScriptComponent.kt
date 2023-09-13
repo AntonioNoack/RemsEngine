@@ -4,7 +4,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.lua.ScriptComponent.Companion.toLua
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import org.luaj.vm2.LuaValue
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -43,37 +43,37 @@ open class QuickInputScriptComponent : QuickScriptComponent(), ControlReceiver {
     @Type("Lua/Code")
     var actionScript = ""
 
-    override fun onKeyDown(key: Int): Boolean {
+    override fun onKeyDown(key: Key): Boolean {
         return callBoolFunction(keyDownScript) {
-            it.set("key", LuaValue.valueOf(key))
+            it.set("key", key.toLua())
         }
     }
 
-    override fun onKeyUp(key: Int): Boolean {
+    override fun onKeyUp(key: Key): Boolean {
         return callBoolFunction(keyUpScript) {
-            it.set("key", LuaValue.valueOf(key))
+            it.set("key", key.toLua())
         }
     }
 
-    override fun onKeyTyped(key: Int): Boolean {
+    override fun onKeyTyped(key: Key): Boolean {
         return callBoolFunction(keyTypedScript) {
-            it.set("key", LuaValue.valueOf(key))
+            it.set("key", key.toLua())
         }
     }
 
-    override fun onCharTyped(char: Int): Boolean {
+    override fun onCharTyped(codepoint: Int): Boolean {
         return callBoolFunction(charTypedScript) {
-            it.set("char", LuaValue.valueOf(char))
+            it.set("char", LuaValue.valueOf(codepoint))
         }
     }
 
-    override fun onMouseDown(button: MouseButton): Boolean {
+    override fun onMouseDown(button: Key): Boolean {
         return callBoolFunction(mouseDownScript) {
             it.set("button", button.toLua())
         }
     }
 
-    override fun onMouseUp(button: MouseButton): Boolean {
+    override fun onMouseUp(button: Key): Boolean {
         return callBoolFunction(mouseUpScript) {
             it.set("button", button.toLua())
         }
@@ -98,7 +98,7 @@ open class QuickInputScriptComponent : QuickScriptComponent(), ControlReceiver {
         }
     }
 
-    override fun onMouseClicked(button: MouseButton, long: Boolean): Boolean {
+    override fun onMouseClicked(button: Key, long: Boolean): Boolean {
         return callBoolFunction(mouseClickScript) {
             it.set("button", button.toLua())
             it.set("long", LuaValue.valueOf(long))

@@ -7,13 +7,12 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
 import me.anno.ui.input.InputPanel
 import me.anno.ui.style.Style
 import me.anno.utils.Color.withAlpha
-import org.lwjgl.glfw.GLFW
 
 open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: Int, style: Style) :
     Panel(style.getChild("checkbox")), InputPanel<Boolean> {
@@ -91,12 +90,12 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         } else isChecked = !isChecked
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         if (isInputAllowed) toggle(true)
         else super.onMouseClicked(x, y, button, long)
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+    override fun onDoubleClick(x: Float, y: Float, button: Key) {
         if (isInputAllowed) toggle(true)
         else super.onDoubleClick(x, y, button)
     }
@@ -106,9 +105,9 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         else super.onEnterKey(x, y)
     }
 
-    override fun onKeyTyped(x: Float, y: Float, key: Int) {
+    override fun onKeyTyped(x: Float, y: Float, key: Key) {
         when (key) {
-            GLFW.GLFW_KEY_DOWN, GLFW.GLFW_KEY_UP -> {
+            Key.KEY_ARROW_DOWN, Key.KEY_ARROW_UP -> {
                 if (isInputAllowed) toggle(true)
                 else super.onKeyTyped(x, y, key)
             }
@@ -149,5 +148,4 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         dst.changeListener = changeListener
         dst.wasHovered = wasHovered
     }
-
 }

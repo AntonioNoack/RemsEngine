@@ -1,17 +1,17 @@
 package me.anno.ui.input.components
 
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.style.Style
 
 class TitlePanel(title: String, var owner: Panel, style: Style) : TextPanel(title, style) {
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         owner.onMouseDown(x, y, button)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
         owner.onMouseUp(x, y, button)
     }
 
@@ -34,5 +34,4 @@ class TitlePanel(title: String, var owner: Panel, style: Style) : TextPanel(titl
     override fun onEnterKey(x: Float, y: Float) {
         return owner.onEnterKey(x, y)
     }
-
 }

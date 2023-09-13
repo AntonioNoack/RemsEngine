@@ -5,7 +5,7 @@ import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import java.io.EOFException
+import java.io.IOException
 
 abstract class BaseReader {
 
@@ -83,6 +83,14 @@ abstract class BaseReader {
 
         private val LOGGER = LogManager.getLogger(BaseReader::class)
 
+        fun <V> assertEquals(a: V, b: V, msg: String) {
+            if (a != b) throw IOException("$msg, $a != $b")
+        }
+
+        fun <V> assertEquals(a: V, b: V) {
+            if (a != b) throw IOException("$a != $b")
+        }
+
         fun error(msg: String): Nothing = throw InvalidFormatException("[BaseReader] $msg")
         fun error(msg: String, appended: Any?): Nothing = throw InvalidFormatException("[BaseReader] $msg $appended")
 
@@ -103,7 +111,5 @@ abstract class BaseReader {
                         "available: ${ISaveable.objectTypeRegistry.keys.joinToString { "${it}:${it.hashCode()}:${if (it == className) 1 else 0}" }}"
             )
         }
-
     }
-
 }

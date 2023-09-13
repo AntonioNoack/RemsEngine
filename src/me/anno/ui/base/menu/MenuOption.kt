@@ -1,6 +1,6 @@
 package me.anno.ui.base.menu
 
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.language.translation.NameDesc
 
 class MenuOption(
@@ -25,8 +25,8 @@ class MenuOption(
         return this
     }
 
-    fun onClick(button: MouseButton, isLong: Boolean): Boolean {
-        return if (button.isLeft && !isLong) {
+    fun onClick(button: Key, isLong: Boolean): Boolean {
+        return if (button == Key.BUTTON_LEFT && !isLong) {
             action()
             true
         } else false

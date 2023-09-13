@@ -8,7 +8,7 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.input.ActionManager
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.language.spellcheck.Suggestion
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
@@ -497,16 +497,16 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
     }
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
+    override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
         val suggestion = lastSuggestion
         val variable = lastVariable
-        if (key == '\t'.code && variable != null && suggestion?.improvements?.isNotEmpty() == true) {
+        if (codepoint == '\t'.code && variable != null && suggestion?.improvements?.isNotEmpty() == true) {
             applySuggestion(variable, suggestion, suggestion.improvements.first())
             lastVariable = null
             lastSuggestion = null
         } else {
             deleteSelectionInternal()
-            content.insert(cursor1.y, cursor1.x, key)
+            content.insert(cursor1.y, cursor1.x, codepoint)
             right(cursor1)
             cursor0.set(cursor1)
             onChangeText()
@@ -560,8 +560,8 @@ open class CodeEditor(style: Style) : Panel(style) {
         onChangeText()
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
-        if (button.isLeft) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
+        if (button == Key.BUTTON_LEFT) {
             moveCursor(cursor0, x, y)
         } else super.onMouseDown(x, y, button)
     }
@@ -572,8 +572,8 @@ open class CodeEditor(style: Style) : Panel(style) {
         } else super.onMouseMoved(x, y, dx, dy)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
-        if (button.isLeft) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
+        if (button == Key.BUTTON_LEFT) {
             moveCursor(cursor1, x, y)
         } else super.onMouseUp(x, y, button)
     }

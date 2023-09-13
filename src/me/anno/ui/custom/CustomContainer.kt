@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
@@ -148,7 +148,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         return true
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         clicked(x, y)
     }
 
@@ -176,7 +176,5 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
             val crossSize = getCrossSize(style) + 4f // +4f for 2*padding
             return x - (this.x + width - crossSize) in 0f..crossSize && y - this.y in 0f..crossSize
         }
-
     }
-
 }

@@ -165,7 +165,7 @@ abstract class PathFindingAccelerator<Chunk : Any, Node : Any>(
                 val endNode = base[proxyIndex]
                 val targetProxies = getProxyData(endNode)!!.members
                 result.addAll(
-                    PathFinding.genericSearch2(
+                    PathFinding.genericSearchMany(
                         setOf(startNode),
                         { it in targetProxies },
                         distance(startNode, endNode), maxDistance,

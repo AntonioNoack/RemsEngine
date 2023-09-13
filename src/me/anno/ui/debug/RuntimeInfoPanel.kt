@@ -103,10 +103,10 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         )
     }
 
-    override fun onCharTyped(x: Float, y: Float, key: Int) {
-        if (key == '?'.code) {
+    override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
+        if (codepoint == '?'.code) {
             printDetailedReport()
-        } else super.onCharTyped(x, y, key)
+        } else super.onCharTyped(x, y, codepoint)
     }
 
     override fun acceptsChar(char: Int): Boolean {

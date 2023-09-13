@@ -8,8 +8,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import java.io.EOFException
-import kotlin.test.assertEquals
 
 /**
  * reads a JSON-similar format from a text file
@@ -44,7 +42,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
     override fun readObject(): ISaveable {
         assertEquals(skipSpace(), '"')
         val firstProperty = readString()
-        assertEquals(firstProperty, "class", "Expected first property to be 'class', was '$firstProperty'")
+        assertEquals(firstProperty, "class", "Expected first property to be 'class'")
         assertEquals(skipSpace(), ':')
         assertEquals(skipSpace(), '"')
         val clazz = readString()

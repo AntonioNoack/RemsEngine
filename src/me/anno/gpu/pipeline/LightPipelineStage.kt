@@ -1,7 +1,7 @@
 package me.anno.gpu.pipeline
 
-import me.anno.Engine
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.components.light.*
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers
@@ -49,8 +49,8 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
     val size get() = instanced.size + nonInstanced.size
 
-    private val instanced = LightData()
-    private val nonInstanced = LightData()
+    val instanced = LightData()
+    val nonInstanced = LightData()
 
     fun bindDraw(source: IFramebuffer, cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
         bind {
@@ -117,8 +117,6 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         depthTexture: Texture2D,
     ) {
 
-        val time = Engine.gameTime
-
         // todo detect, where MSAA is applicable
         // todo and then only do computations with MSAA on those pixels
         //  - render the remaining pixels on a new FB without MSAA
@@ -147,14 +145,11 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
                 val request = lights[index]
                 val light = request.light
-
-                val transform = request.transform
+                val transform = request.drawMatrix
 
                 shader.v1b("fullscreen", light is DirectionalLight && light.cutoff == 0f)
 
-                setupLocalTransform(shader, transform, time)
-
-                val m = transform.getDrawMatrix(time)
+                setupLocalTransform(shader, transform)
 
                 // define the light data
                 // data0: color, type;
@@ -166,7 +161,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
                 shader.v1f("cutoff", if (light is DirectionalLight) light.cutoff else 1f)
 
-                shader.m4x3delta("lightSpaceToCamSpace", m)
+                shader.m4x3delta("lightSpaceToCamSpace", transform)
                 shader.m4x3("camSpaceToLightSpace", light.invCamSpaceMatrix)
 
                 var shadowIdx1 = 0
@@ -234,19 +229,15 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
     ) {
 
         val size = lights.size
-        val visualizeLightCount = visualizeLightCount
 
         val sample = lights[0].light
         val mesh = sample.getLightPrimitive()
-        mesh.ensureBuffer()
 
         val cameraMatrix = cameraMatrix!!
         val cameraPosition = cameraPosition!!
         val worldScale = worldScale
 
         initShader(shader, cameraMatrix, type, depthTexture)
-
-        val time = Engine.gameTime
 
         val buffer = lightInstanceBuffer
         val nioBuffer = buffer.nioBuffer!!
@@ -264,12 +255,11 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
             for (index in baseIndex until min(size, baseIndex + batchSize)) {
                 nioBuffer.position((index - baseIndex) * stride)
                 val lightI = lights[index]
-                val light = lightI.light
-                val m = lightI.transform.getDrawMatrix(time)
-                m4x3delta(m, cameraPosition, worldScale, nioBuffer)
-                m4x3x(light.invCamSpaceMatrix, nioBuffer)
+                m4x3delta(lightI.drawMatrix, cameraPosition, worldScale, nioBuffer)
+                m4x3x(lightI.invCamSpaceMatrix, nioBuffer)
                 // put all light data: lightData0, lightData1
                 // put data0:
+                val light = lightI.light
                 val color = light.color
                 nioBuffer.putFloat(color.x)
                 nioBuffer.putFloat(color.y)
@@ -306,8 +296,12 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
     }
 
     fun add(light: LightComponent, entity: Entity) {
+        add(light, entity.transform)
+    }
+
+    fun add(light: LightComponent, transform: Transform) {
         val group = if (light.hasShadow && light.shadowTextures != null) nonInstanced else instanced
-        group.add(light, entity.transform)
+        group.add(light, transform)
     }
 
     fun add(environmentMap: EnvironmentMap) {

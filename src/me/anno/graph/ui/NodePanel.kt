@@ -19,7 +19,7 @@ import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
 import me.anno.graph.NodeOutput
 import me.anno.input.Input
-import me.anno.input.MouseButton
+import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.distance
@@ -403,17 +403,17 @@ class NodePanel(
         return bestCon
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseDown(x: Float, y: Float, button: Key) {
         if (gp !is GraphEditor) return super.onMouseDown(x, y, button)
         val con = getConnectorAt(x, y)
         isDragged = false
         when {
-            button.isLeft && con != null -> {
+            button == Key.BUTTON_LEFT && con != null -> {
                 gp.dragged = con
                 gp.invalidateDrawing()
                 gp.requestFocus(true)
             }
-            button.isLeft -> {
+            button == Key.BUTTON_LEFT -> {
                 isDragged = true
             }
             else -> super.onMouseDown(x, y, button)
@@ -447,8 +447,8 @@ class NodePanel(
         node.position.y = sy
     }
 
-    override fun onMouseClicked(x: Float, y: Float, button: MouseButton, long: Boolean) {
-        if (gp is GraphEditor && (button.isRight || long)) {
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+        if (gp is GraphEditor && (button == Key.BUTTON_RIGHT || long)) {
             // check if is onto node connector
             val connector = getConnectorAt(x, y)
             if (connector != null) {
@@ -502,7 +502,7 @@ class NodePanel(
         else (old.subList(0, idx) + old.subList(idx + 1)).toTypedArray()
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: MouseButton) {
+    override fun onMouseUp(x: Float, y: Float, button: Key) {
         if (gp !is GraphEditor) return super.onMouseUp(x, y, button)
         val con0 = gp.dragged
         val con1 = (gp.getPanelAt(x.toInt(), y.toInt()) as? NodePanel)?.getConnectorAt(x, y)
@@ -597,7 +597,7 @@ class NodePanel(
         } else super.onDeleteKey(x, y)
     }
 
-    override fun onDoubleClick(x: Float, y: Float, button: MouseButton) {
+    override fun onDoubleClick(x: Float, y: Float, button: Key) {
         // if user is clicking onto title, ask for new name
         val xi = x.toInt()
         val yi = y.toInt()

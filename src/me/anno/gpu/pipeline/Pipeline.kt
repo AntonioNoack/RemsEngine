@@ -305,8 +305,8 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
     val center = Vector3d()
     private val lightList = SmallestKList<LightRequest>(16) { a, b ->
         // todo also use the size, and relative size to the camera
-        val at = a.transform.getDrawMatrix()
-        val bt = b.transform.getDrawMatrix()
+        val at = a.drawMatrix
+        val bt = b.drawMatrix
         val cam = RenderState.cameraPosition
         val scale = JomlPools.vec3d.borrow()
         val da = (at.distanceSquared(center) + at.distanceSquared(cam)) * bt.getScale(scale).lengthSquared()
