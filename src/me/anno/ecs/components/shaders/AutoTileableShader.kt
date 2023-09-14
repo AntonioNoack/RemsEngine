@@ -48,7 +48,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             "       rgb = textureAnisotropic(T, pos, uv);\n" +
             "   } else {\n" +
             // less costly, isotropic filtering
-            "       float diff = length(vec4(dFdx(uv),dFdy(uv)))*textureSize(T,0).y;\n" +
+            "       float diff = length(vec4(dFdx(uv),dFdy(uv)))*float(textureSize(T,0).y);\n" +
             "       rgb = textureLod(T, pos, log2(diff));\n" +
             "   }\n" +
             "   vec3 yuv = rgb2yuv(rgb.xyz);\n" +

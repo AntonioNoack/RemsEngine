@@ -54,11 +54,11 @@ class SDFHeightMap : SDFShape() {
                 "   dir = dir.xzy * scale;\n" +
                 "   dir.y *= 2.0;\n" +
                 "   pos.xy = pos.xy * 0.5 + 0.5;\n" + // center texture
-                "   vec2 size = textureSize(image,0);\n" +
+                "   ivec2 size = textureSize(image,0);\n" +
                 "   float dh0 = pos.z - pow(textureLod(image,pos.xy,0.0).x,2.0);\n" +
                 "   float sign0 = sign(dh0);\n" +
                 "   if(sign0 < 0.0) dir = -dir;\n" + // reverse the ray if inside the terrain
-                "   float step = 1.0/max(1e-9,length(dir.xz)*max(size.x,size.y));\n" +
+                "   float step = 1.0/max(1e-9,length(dir.xz)*float(max(size.x,size.y)));\n" +
                 "   float distance = abs(dh0 / dir.z);\n" +
                 "   float walked = 0.0, lastDh = dh0;\n" +
                 "   float distToCenter = sddBox(pos.xy-vec2(0.5),dir.xy,vec2(0.5));\n" +

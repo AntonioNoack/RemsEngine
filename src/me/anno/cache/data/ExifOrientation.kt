@@ -39,7 +39,7 @@ val orientations = arrayOf(
 )
 
 fun getExifOrientation(reader: ImageReader, imageIndex: Int): ImageTransform? {
-    val metadata = reader.getImageMetadata(imageIndex)
+    val metadata = reader.getImageMetadata(imageIndex) ?: return null
     val rootNode = metadata.getAsTree("javax_imageio_jpeg_image_1.0")
     val childNodes = rootNode.childNodes
     // Look for the APP1 containing Exif data, and retrieve it.

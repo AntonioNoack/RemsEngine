@@ -130,12 +130,18 @@ open class Shader(
             builder.append(extension).append('\n')
         }
 
+        fun usesType(type: GLSLType): Boolean {
+            return varyings.any2 { it.type == type } || fragmentVariables.any2 { it.type == type }
+        }
+
         builder.append("precision highp float;\n")
         builder.append("precision highp int;\n")
-        if (varyings.any2 { it.type == GLSLType.S2DA } || fragmentVariables.any2 { it.type == GLSLType.S2DA })
-            builder.append("precision highp sampler2DArray;\n")
-        if (varyings.any2 { it.type == GLSLType.S3D } || fragmentVariables.any2 { it.type == GLSLType.S3D })
-            builder.append("precision highp sampler3D;\n")
+        // these need default values, why ever...
+        if (usesType(GLSLType.S2DA)) builder.append("precision highp sampler2DArray;\n")
+        if (usesType(GLSLType.S3D)) builder.append("precision highp sampler3D;\n")
+        if (usesType(GLSLType.S2DShadow)) builder.append("precision highp sampler2DShadow;\n")
+        if (usesType(GLSLType.SCubeShadow)) builder.append("precision highp samplerCubeShadow;\n")
+
         builder.append(matMul)
 
         for (v in varyings) {

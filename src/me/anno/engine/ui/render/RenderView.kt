@@ -240,6 +240,16 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         clock.start()
 
+        if (!GFX.supportsDepthTextures) {
+            when (renderMode) {
+                // todo most ways need a way to work without depth textures...
+                // todo -> or we could render the depth to a FP16/32 target XD
+                RenderMode.DEFAULT, RenderMode.FORCE_DEFERRED -> {
+                    renderMode = RenderMode.FORCE_NON_DEFERRED
+                }
+            }
+        }
+
         // to see ghosting, if there is any
         val renderMode = renderMode
         if (renderMode == RenderMode.GHOSTING_DEBUG) Thread.sleep(250)

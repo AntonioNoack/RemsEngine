@@ -123,14 +123,14 @@ class MainStage {
                 code.append("(int index, vec3 uv, float depth){\n")
                 code.append("float bias = 0.005;\n")
                 code.append("vec4 uvw = vec4(uv,depth+bias);\n")
-                code.append("vec2 size; float du, sum=0.0; vec3 u; bool x,z; vec4 dx,dy;\n")
+                code.append("ivec2 size; float du, sum=0.0; vec3 u; bool x,z; vec4 dx,dy;\n")
                 if (isMoreThanOne) code.append("switch(index){\n")
                 for (index in 0 until uniform.arraySize) {
                     val nameIndex = name + index.toString()
                     if (isMoreThanOne) code.append("case ").append(index).append(": ")
                     code.append(
                         "" +
-                                "size = textureSize($nameIndex,0); du=0.5/size.x;\n" +
+                                "size = textureSize($nameIndex,0); du=0.5/float(size.x);\n" +
                                 "u = abs(uvw.xyz);\n" +
                                 "x = u.x >= u.y && u.x > u.z;\n" +
                                 "z = !x && u.z >= u.y;\n" +

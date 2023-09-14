@@ -80,7 +80,7 @@ class MotionBlurNode : ActionNode(
             ), "" +
                     "void main(){\n" +
                     "   vec2 motion = 0.5 * shutter * texture(motionTex,uv).xy;\n" + // 0.5, because we sample from both sides
-                    "   float length = length(motion * textureSize(motionTex,0));\n" +
+                    "   float length = length(motion * vec2(textureSize(motionTex,0)));\n" +
                     "   int samplesI = min(samples, int(round(length)));\n" +
                     "   vec4 res = texture(colorTex, uv);\n" +
                     "   if(samplesI > 1){\n" +

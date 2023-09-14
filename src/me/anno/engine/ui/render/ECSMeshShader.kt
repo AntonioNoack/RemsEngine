@@ -94,7 +94,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "       vec3 specularColor = finalColor;\n" + // could be changed
                 "       vec3 newColor = vec3(0.0);\n" +
                 "       float lod = finalRoughness * 10.0;\n" +
-                "       vec2 duv0 = 1.0 / textureSize(reflectionPlane,int(lod)), duv1 = vec2(duv0.x,-duv0.y),\n" +
+                "       vec2 duv0 = 1.0 / vec2(textureSize(reflectionPlane,int(lod))), duv1 = vec2(duv0.x,-duv0.y),\n" +
                 "           du0 = vec2(duv0.x,0.0), dv0 = vec2(0.0,duv0.y);\n" +
                 // todo don't blur for sharpest reflections
                 "       vec3 newEmissive = specularColor * (\n" +
@@ -140,7 +140,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "   vec3 rawColor = texture(normalMap, uv).rgb;\n" +
                 // support for bump maps: if grayscale, calculate gradient
                 "   if(rawColor.x == rawColor.y && rawColor.y == rawColor.z){\n" +
-                "       vec2 suv = uv * textureSize(normalMap,0);\n" +
+                "       vec2 suv = uv * vec2(textureSize(normalMap,0));\n" +
                 "       float divisor = (length(dFdx(suv)) + length(dFdy(suv)))*0.25;\n" +
                 "       rawColor = normalize(vec3(dFdx(rawColor.x), dFdy(rawColor.x), max(divisor, 1e-6)));\n" +
                 "   } else rawColor = rawColor * 2.0 - 1.0;\n" +

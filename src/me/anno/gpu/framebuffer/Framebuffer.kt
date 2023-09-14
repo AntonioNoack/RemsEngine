@@ -275,7 +275,7 @@ class Framebuffer(
                     }
                     var texPointer = da.depthTexture?.pointer
                     if (texPointer == null) {
-                        texPointer = internalDepthRenderbuffer
+                        texPointer = da.internalDepthRenderbuffer
                         if (texPointer == 0) throw IllegalStateException("Depth Attachment was not found in $name, $da.${da.depthTexture}")
                         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, texPointer)
                     } else {

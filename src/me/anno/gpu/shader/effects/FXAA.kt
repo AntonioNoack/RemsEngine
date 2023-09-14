@@ -43,7 +43,7 @@ object FXAA {
                     "void main(){\n" +
 
                     "#define u_lumaThreshold threshold\n" +
-                    "#define u_texelStep 1.0/textureSize(colorTex,0)\n" +
+                    "#define u_texelStep 1.0/vec2(textureSize(colorTex,0))\n" +
                     "#define u_maxSpan 8.0\n" +
                     "#define u_mulReduce 0.5\n" +
                     "#define u_minReduce 0.01\n" +
