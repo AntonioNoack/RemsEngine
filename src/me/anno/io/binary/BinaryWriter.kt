@@ -872,18 +872,18 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     override fun writePlanef(name: String, value: Planef, force: Boolean) {
         writeAttributeStart(name, PLANE32)
-        output.writeFloat(value.a)
-        output.writeFloat(value.b)
-        output.writeFloat(value.c)
-        output.writeFloat(value.d)
+        output.writeFloat(value.dirX)
+        output.writeFloat(value.dirY)
+        output.writeFloat(value.dirZ)
+        output.writeFloat(value.distance)
     }
 
     override fun writePlaned(name: String, value: Planed, force: Boolean) {
         writeAttributeStart(name, PLANE64)
-        output.writeDouble(value.a)
-        output.writeDouble(value.b)
-        output.writeDouble(value.c)
-        output.writeDouble(value.d)
+        output.writeDouble(value.dirX)
+        output.writeDouble(value.dirY)
+        output.writeDouble(value.dirZ)
+        output.writeDouble(value.distance)
     }
 
     override fun writeNull(name: String?) {

@@ -302,15 +302,15 @@ open class Matrix3f {
 
     @JvmOverloads
     fun mul(right: Matrix3f, dst: Matrix3f = this): Matrix3f {
-        val nm00 = JomlMath.fma(m00, right.m00, JomlMath.fma(m10, right.m01, m20 * right.m02))
-        val nm01 = JomlMath.fma(m01, right.m00, JomlMath.fma(m11, right.m01, m21 * right.m02))
-        val nm02 = JomlMath.fma(m02, right.m00, JomlMath.fma(m12, right.m01, m22 * right.m02))
-        val nm10 = JomlMath.fma(m00, right.m10, JomlMath.fma(m10, right.m11, m20 * right.m12))
-        val nm11 = JomlMath.fma(m01, right.m10, JomlMath.fma(m11, right.m11, m21 * right.m12))
-        val nm12 = JomlMath.fma(m02, right.m10, JomlMath.fma(m12, right.m11, m22 * right.m12))
-        val nm20 = JomlMath.fma(m00, right.m20, JomlMath.fma(m10, right.m21, m20 * right.m22))
-        val nm21 = JomlMath.fma(m01, right.m20, JomlMath.fma(m11, right.m21, m21 * right.m22))
-        val nm22 = JomlMath.fma(m02, right.m20, JomlMath.fma(m12, right.m21, m22 * right.m22))
+        val nm00 = m00 * right.m00 + m10 * right.m01 + m20 * right.m02
+        val nm01 = m01 * right.m00 + m11 * right.m01 + m21 * right.m02
+        val nm02 = m02 * right.m00 + m12 * right.m01 + m22 * right.m02
+        val nm10 = m00 * right.m10 + m10 * right.m11 + m20 * right.m12
+        val nm11 = m01 * right.m10 + m11 * right.m11 + m21 * right.m12
+        val nm12 = m02 * right.m10 + m12 * right.m11 + m22 * right.m12
+        val nm20 = m00 * right.m20 + m10 * right.m21 + m20 * right.m22
+        val nm21 = m01 * right.m20 + m11 * right.m21 + m21 * right.m22
+        val nm22 = m02 * right.m20 + m12 * right.m21 + m22 * right.m22
         dst.m00 = nm00
         dst.m01 = nm01
         dst.m02 = nm02
@@ -393,19 +393,19 @@ open class Matrix3f {
 
     @JvmOverloads
     fun invert(dst: Matrix3f = this): Matrix3f {
-        val a = JomlMath.fma(m00, m11, -m01 * m10)
-        val b = JomlMath.fma(m02, m10, -m00 * m12)
-        val c = JomlMath.fma(m01, m12, -m02 * m11)
-        val d = JomlMath.fma(a, m22, JomlMath.fma(b, m21, c * m20))
+        val a = m00 * m11 - m01 * m10
+        val b = m02 * m10 - m00 * m12
+        val c = m01 * m12 - m02 * m11
+        val d = a * m22 + b * m21 + c * m20
         val s = 1f / d
-        val nm00 = JomlMath.fma(m11, m22, -m21 * m12) * s
-        val nm01 = JomlMath.fma(m21, m02, -m01 * m22) * s
+        val nm00 = (m11 * m22 - m21 * m12) * s
+        val nm01 = (m21 * m02 - m01 * m22) * s
         val nm02 = c * s
-        val nm10 = JomlMath.fma(m20, m12, -m10 * m22) * s
-        val nm11 = JomlMath.fma(m00, m22, -m20 * m02) * s
+        val nm10 = (m20 * m12 - m10 * m22) * s
+        val nm11 = (m00 * m22 - m20 * m02) * s
         val nm12 = b * s
-        val nm20 = JomlMath.fma(m10, m21, -m20 * m11) * s
-        val nm21 = JomlMath.fma(m20, m01, -m00 * m21) * s
+        val nm20 = (m10 * m21 - m20 * m11) * s
+        val nm21 = (m20 * m01 - m00 * m21) * s
         val nm22 = a * s
         dst.m00 = nm00
         dst.m01 = nm01

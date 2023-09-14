@@ -638,10 +638,10 @@ open class Matrix2d {
 
     @JvmOverloads
     fun lerp(other: Matrix2d, t: Double, dst: Matrix2d = this): Matrix2d {
-        dst.m00 = JomlMath.fma(other.m00 - m00, t, m00)
-        dst.m01 = JomlMath.fma(other.m01 - m01, t, m01)
-        dst.m10 = JomlMath.fma(other.m10 - m10, t, m10)
-        dst.m11 = JomlMath.fma(other.m11 - m11, t, m11)
+        dst.m00 = (other.m00 - m00) * t + m00
+        dst.m01 = (other.m01 - m01) * t + m01
+        dst.m10 = (other.m10 - m10) * t + m10
+        dst.m11 = (other.m11 - m11) * t + m11
         return dst
     }
 

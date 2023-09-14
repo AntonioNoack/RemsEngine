@@ -1193,26 +1193,26 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writePlanef(name: String, value: Planef, force: Boolean) {
         writeAttributeStart("p4", name)
         append('[')
-        append(value.a)
+        append(value.dirX)
         append(',')
-        append(value.b)
+        append(value.dirY)
         append(',')
-        append(value.c)
+        append(value.dirZ)
         append(',')
-        append(value.d)
+        append(value.distance)
         append(']')
     }
 
     override fun writePlaned(name: String, value: Planed, force: Boolean) {
         writeAttributeStart("p4d", name)
         append('[')
-        append(value.a)
+        append(value.dirX)
         append(',')
-        append(value.b)
+        append(value.dirY)
         append(',')
-        append(value.c)
+        append(value.dirZ)
         append(',')
-        append(value.d)
+        append(value.distance)
         append(']')
     }
 
