@@ -1063,13 +1063,13 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
 
         fun StringBuilder.appendVec(v: Planef): StringBuilder {
             append("vec4(")
-            append(v.a)
+            append(v.dirX)
             append(',')
-            append(v.b)
+            append(v.dirY)
             append(',')
-            append(v.c)
+            append(v.dirZ)
             append(',')
-            append(v.d)
+            append(v.distance)
             append(')')
             return this
         }

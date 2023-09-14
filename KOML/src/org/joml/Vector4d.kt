@@ -420,9 +420,9 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
     }
 
     fun mul(mat: Matrix4x3d, dst: Vector4d): Vector4d {
-        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w)))
-        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w)))
-        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w)))
+        val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
+        val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
+        val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
         dst.x = rx
         dst.y = ry
         dst.z = rz
@@ -431,21 +431,9 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
     }
 
     fun mul(mat: Matrix4x3f): Vector4d {
-        val rx = JomlMath.fma(
-            mat.m00.toDouble(),
-            x,
-            JomlMath.fma(mat.m10.toDouble(), y, JomlMath.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
-        )
-        val ry = JomlMath.fma(
-            mat.m01.toDouble(),
-            x,
-            JomlMath.fma(mat.m11.toDouble(), y, JomlMath.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
-        )
-        val rz = JomlMath.fma(
-            mat.m02.toDouble(),
-            x,
-            JomlMath.fma(mat.m12.toDouble(), y, JomlMath.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
-        )
+        val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
+        val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
+        val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
         x = rx
         y = ry
         z = rz
@@ -453,21 +441,9 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
     }
 
     fun mul(mat: Matrix4x3f, dst: Vector4d): Vector4d {
-        val rx = JomlMath.fma(
-            mat.m00.toDouble(),
-            x,
-            JomlMath.fma(mat.m10.toDouble(), y, JomlMath.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
-        )
-        val ry = JomlMath.fma(
-            mat.m01.toDouble(),
-            x,
-            JomlMath.fma(mat.m11.toDouble(), y, JomlMath.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
-        )
-        val rz = JomlMath.fma(
-            mat.m02.toDouble(),
-            x,
-            JomlMath.fma(mat.m12.toDouble(), y, JomlMath.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
-        )
+        val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
+        val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
+        val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
         dst.x = rx
         dst.y = ry
         dst.z = rz
@@ -484,21 +460,9 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
     }
 
     private fun mulAffine(mat: Matrix4f, dst: Vector4d): Vector4d {
-        val rx = JomlMath.fma(
-            mat.m00.toDouble(),
-            x,
-            JomlMath.fma(mat.m10.toDouble(), y, JomlMath.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
-        )
-        val ry = JomlMath.fma(
-            mat.m01.toDouble(),
-            x,
-            JomlMath.fma(mat.m11.toDouble(), y, JomlMath.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
-        )
-        val rz = JomlMath.fma(
-            mat.m02.toDouble(),
-            x,
-            JomlMath.fma(mat.m12.toDouble(), y, JomlMath.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
-        )
+        val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
+        val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
+        val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
         dst.x = rx
         dst.y = ry
         dst.z = rz
@@ -507,26 +471,10 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
     }
 
     private fun mulGeneric(mat: Matrix4f, dst: Vector4d): Vector4d {
-        val rx = JomlMath.fma(
-            mat.m00.toDouble(),
-            x,
-            JomlMath.fma(mat.m10.toDouble(), y, JomlMath.fma(mat.m20.toDouble(), z, mat.m30.toDouble() * w))
-        )
-        val ry = JomlMath.fma(
-            mat.m01.toDouble(),
-            x,
-            JomlMath.fma(mat.m11.toDouble(), y, JomlMath.fma(mat.m21.toDouble(), z, mat.m31.toDouble() * w))
-        )
-        val rz = JomlMath.fma(
-            mat.m02.toDouble(),
-            x,
-            JomlMath.fma(mat.m12.toDouble(), y, JomlMath.fma(mat.m22.toDouble(), z, mat.m32.toDouble() * w))
-        )
-        val rw = JomlMath.fma(
-            mat.m03.toDouble(),
-            x,
-            JomlMath.fma(mat.m13.toDouble(), y, JomlMath.fma(mat.m23.toDouble(), z, mat.m33.toDouble() * w))
-        )
+        val rx = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w
+        val ry = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w
+        val rz = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w
+        val rw = mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w
         dst.x = rx
         dst.y = ry
         dst.z = rz
@@ -536,9 +484,9 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
 
     fun mulProject(mat: Matrix4d, dst: Vector4d): Vector4d {
         val invW = 1.0 / (mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w)
-        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w))) * invW
-        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w))) * invW
-        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w))) * invW
+        val rx = (mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w) * invW
+        val ry = (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w) * invW
+        val rz = (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w) * invW
         dst.x = rx
         dst.y = ry
         dst.z = rz
@@ -548,9 +496,9 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
 
     fun mulProject(mat: Matrix4d): Vector4d {
         val invW = 1.0 / (mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w)
-        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w))) * invW
-        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w))) * invW
-        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w))) * invW
+        val rx = (mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w) * invW
+        val ry = (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w) * invW
+        val rz = (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w) * invW
         x = rx
         y = ry
         z = rz
@@ -559,10 +507,10 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
     }
 
     fun mulProject(mat: Matrix4d, dst: Vector3d): Vector3d {
-        val invW = 1.0 / JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33 * w)))
-        val rx = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w))) * invW
-        val ry = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w))) * invW
-        val rz = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w))) * invW
+        val invW = 1.0 / (mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w)
+        val rx = (mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w) * invW
+        val ry = (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w) * invW
+        val rz = (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w) * invW
         dst.x = rx
         dst.y = ry
         dst.z = rz
@@ -793,10 +741,10 @@ open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) 
     }
 
     fun lerp(other: Vector4d, t: Double, dst: Vector4d = this): Vector4d {
-        dst.x = JomlMath.fma(other.x - x, t, x)
-        dst.y = JomlMath.fma(other.y - y, t, y)
-        dst.z = JomlMath.fma(other.z - z, t, z)
-        dst.w = JomlMath.fma(other.w - w, t, w)
+        dst.x = (other.x - x) * t + x
+        dst.y = (other.y - y) * t + y
+        dst.z = (other.z - z) * t + z
+        dst.w = (other.w - w) * t + w
         return dst
     }
 

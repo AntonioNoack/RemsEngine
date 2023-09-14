@@ -433,7 +433,7 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         val dy = this.y - y
         val dz = this.z - z
         val dw = this.w - w
-        return sqrt(JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, JomlMath.fma(dz, dz, dw * dw))))
+        return sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
     }
 
     fun distanceSquared(v: Vector4f) = distanceSquared(v.x, v.y, v.z, v.w)
@@ -442,12 +442,12 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
         val dy = this.y - y
         val dz = this.z - z
         val dw = this.w - w
-        return JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, JomlMath.fma(dz, dz, dw * dw)))
+        return sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
     }
 
     fun dot(v: Vector4f) = dot(v.x, v.y, v.z, v.w)
     fun dot(x: Float, y: Float, z: Float, w: Float): Float {
-        return JomlMath.fma(this.x, x, JomlMath.fma(this.y, y, JomlMath.fma(this.z, z, this.w * w)))
+        return this.x * x + this.y * y + this.z * z + this.w * w
     }
 
     fun angleCos(v: Vector4f) = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
@@ -575,10 +575,10 @@ open class Vector4f(var x: Float, var y: Float, var z: Float, var w: Float) {
     }
 
     fun lerp(other: Vector4f, t: Float, dst: Vector4f = this): Vector4f {
-        dst.x = JomlMath.fma(other.x - x, t, x)
-        dst.y = JomlMath.fma(other.y - y, t, y)
-        dst.z = JomlMath.fma(other.z - z, t, z)
-        dst.w = JomlMath.fma(other.w - w, t, w)
+        dst.x = (other.x - x) * t + x
+        dst.y = (other.y - y) * t + y
+        dst.z = (other.z - z) * t + z
+        dst.w = (other.w - w) * t + w
         return dst
     }
 
