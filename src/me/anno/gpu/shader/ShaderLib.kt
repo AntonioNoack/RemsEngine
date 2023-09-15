@@ -669,7 +669,7 @@ object ShaderLib {
             Variable(GLSLType.V4F, "vertexColor0"),
         )
 
-        shaderAssimp = BaseShader(
+        shaderAssimp = createShader(
             "assimp", assimpVertexList,
             assimpVertex, assimpVarying, listOf(
                 Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
@@ -690,7 +690,7 @@ object ShaderLib {
                     "   finalAlpha = color.a;\n" +
                     "   finalPosition = finalPosition;\n" +
                     "   finalNormal = normal;\n" +
-                    "}"
+                    "}", listOf("diffuseMap", "animTexture")
         )
         shaderAssimp.glslVersion = 330
 
