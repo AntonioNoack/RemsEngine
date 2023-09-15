@@ -69,8 +69,7 @@ open class IntInput(
             val parsed = if (trimmed.isEmpty()) 0L
             else trimmed.toLongOrNull() ?: SimpleExpressionParser.parseDouble(trimmed)?.roundToLong()
             if (parsed == null) null else AnyToLong.getLong(type.clamp(parsed), 0L)
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (ignored: Exception) {
             null
         }
     }

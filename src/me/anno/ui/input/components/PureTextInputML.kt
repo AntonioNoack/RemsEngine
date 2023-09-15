@@ -217,7 +217,6 @@ open class PureTextInputML(style: Style) :
                 override fun onCopyRequested(x: Float, y: Float): Any? {
                     return this@PureTextInputML.onCopyRequested(x, y)
                 }
-
             }
             panel.enableSpellcheck = enableSpellcheck
             content.add(panel)
@@ -237,7 +236,7 @@ open class PureTextInputML(style: Style) :
         val isInFocus = isAnyChildInFocus
         val oldShowBars = showBars
         showBars = isInFocus && (blinkVisible || wasJustChanged)
-        if (isInFocus || showBars != oldShowBars) invalidateDrawing()
+        if (showBars != oldShowBars) invalidateDrawing()
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -315,7 +314,6 @@ open class PureTextInputML(style: Style) :
                         maxPanel.height - padding,
                         textColor and 0x3fffffff
                     )
-
                 }
                 if (showBars) drawRect(
                     panel2.x + cursorX2 + panel2.padding.left - 1,
@@ -337,7 +335,6 @@ open class PureTextInputML(style: Style) :
         }
 
         loadTexturesSync.pop()
-
     }
 
     fun <V : Comparable<V>> min(a: V, b: V): V = if (a < b) a else b
@@ -408,7 +405,9 @@ open class PureTextInputML(style: Style) :
         return true
     }
 
-    fun addKey(codePoint: Int) = insert(codePoint, true)
+    fun addKey(codePoint: Int) {
+        insert(codePoint, true)
+    }
 
     fun insert(insertion: CharSequence) {
         if (insertion.isNotEmpty()) {
@@ -795,5 +794,4 @@ open class PureTextInputML(style: Style) :
     }
 
     override val className: String get() = "PureTextInputML"
-
 }

@@ -19,6 +19,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.dragged
@@ -92,16 +93,16 @@ object Input {
     var isMiddleDown = false
     var isRightDown = false
 
-    val isControlDown get() = (keyModState and GLFW.GLFW_MOD_CONTROL) != 0
+    val isControlDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_CONTROL)
 
     // 30ms shift lag for numpad, because shift disables it on Windows
-    val isShiftTrulyDown get() = (keyModState and GLFW.GLFW_MOD_SHIFT) != 0
-    val isShiftDown get() = isShiftTrulyDown || abs(lastShiftDown - gameTime) < 30_000_000
+    val isShiftTrulyDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_SHIFT)
+    val isShiftDown: Boolean get() = isShiftTrulyDown || (lastShiftDown != 0L && abs(lastShiftDown - gameTime) < 30_000_000)
 
     @Suppress("unused")
-    val isCapsLockDown get() = (keyModState and GLFW.GLFW_MOD_CAPS_LOCK) != 0
-    val isAltDown get() = (keyModState and GLFW.GLFW_MOD_ALT) != 0
-    val isSuperDown get() = (keyModState and GLFW.GLFW_MOD_SUPER) != 0
+    val isCapsLockDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_CAPS_LOCK)
+    val isAltDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_ALT)
+    val isSuperDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_SUPER)
 
     var trapMouseWindow: OSWindow? = null
     var trapMousePanel: Panel? = null
@@ -236,7 +237,7 @@ object Input {
                 UIEventType.KEY_DOWN
             ).call().isCancelled
         ) {
-            window.windowStack.inFocus0?.onKeyDown(window.mouseX, window.mouseY, key) // 264
+            window.windowStack.inFocus0?.onKeyDown(window.mouseX, window.mouseY, key)
             ActionManager.onKeyDown(window, key)
             onKeyTyped(window, key)
         }
