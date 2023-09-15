@@ -1,10 +1,12 @@
 package me.anno.video
 
 import me.anno.io.files.FileReference
+import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
 
+@Suppress("unused")
 open class VideoAudioCreator(
     val videoCreator: VideoCreator,
     val videoBackgroundTask: VideoBackgroundTask,
@@ -13,7 +15,13 @@ open class VideoAudioCreator(
 ) {
 
     fun start() {
-        thread(name = "VideoAudioCreator") { run() }
+        thread(name = "VideoAudioCreator") {
+            try {
+                run()
+            } catch (ignored: ShutdownException) {
+                LOGGER.debug("Rendering has been cancelled")
+            }
+        }
     }
 
     fun run() {
@@ -51,5 +59,4 @@ open class VideoAudioCreator(
     companion object {
         private val LOGGER = LogManager.getLogger(VideoAudioCreator::class)
     }
-
 }

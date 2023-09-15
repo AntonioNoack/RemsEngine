@@ -42,15 +42,14 @@ class Type(
 
     override fun toString() = "Type[${defaultValue::class.simpleName} x $components]"
 
-    fun withDefaultValue(defaultValue: Any) = Type(
+    fun withDefaultValue(defaultValue: Any): Type = Type(
         defaultValue, components, unitScale, hasLinear, hasExponential,
         clampFunc, acceptOrNull
     )
 
-    fun withDefault(defaultValue: Any) = withDefaultValue(defaultValue)
+    fun withDefault(defaultValue: Any): Type = withDefaultValue(defaultValue)
 
-    @Suppress("unchecked_cast")
-    fun <V> clamp(value: V): V = if (clampFunc != null) clampFunc.invoke(value) as V else value
+    fun clamp(value: Any): Any = clampFunc?.invoke(value) ?: value
 
     @Suppress("unused")
     companion object {
@@ -145,7 +144,10 @@ class Type(
          * constant rate factor, 0 = lossless, 51 = worst, 23 = default
          * https://trac.ffmpeg.org/wiki/Encode/H.264
          * */
-        val VIDEO_QUALITY_CRF = Type(23, 1, 1f, true, hasExponential = false, { clamp(it as Int, 0, 51) }, ::castToInt)
+        val VIDEO_QUALITY_CRF = Type(
+            23, 1, 1f, true, hasExponential = false,
+            { clamp(castToInt2(it), 0, 51) }, ::castToInt
+        )
 
         val VEC2D = Type(Vector2d(), 2, 1f, true, hasExponential = true, null, ::castToVector2d)
         val VEC3D = Type(Vector3d(), 3, 1f, true, hasExponential = true, null, ::castToVector3d)
@@ -162,7 +164,5 @@ class Type(
                 y = max(y, 0f)
             } ?: Vector2f()
         }
-
     }
-
 }

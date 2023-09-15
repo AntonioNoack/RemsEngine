@@ -8,9 +8,7 @@ import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.style.Style
-import org.joml.Vector2i
-import org.joml.Vector3i
-import org.joml.Vector4i
+import me.anno.utils.types.AnyToLong
 import kotlin.math.max
 import kotlin.math.round
 import kotlin.math.roundToLong
@@ -66,14 +64,15 @@ open class IntInput(
     }
 
     fun parseValue(text: String): Long? {
-        try {
+        return try {
             val trimmed = text.trim()
             val parsed = if (trimmed.isEmpty()) 0L
             else trimmed.toLongOrNull() ?: SimpleExpressionParser.parseDouble(trimmed)?.roundToLong()
-            return if (parsed == null) null else type.clamp(parsed)
-        } catch (_: Exception) {
+            if (parsed == null) null else AnyToLong.getLong(type.clamp(parsed), 0L)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
-        return 0L
     }
 
     fun setValue(v: Int, notify: Boolean) = setValue(v.toLong(), notify)
@@ -97,52 +96,16 @@ open class IntInput(
             if (value < 0) 1f / 1.03f else 1.03f,
             delta * if (type.hasLinear) 1f else 3f
         )).roundToLong()
-        when (val clamped = type.clamp(if (type.defaultValue is Int) value.toInt() else value)) {
-            is Byte -> setValue(clamped.toLong(), true)
-            is Short -> setValue(clamped.toLong(), true)
-            is Int -> setValue(clamped.toLong(), true)
-            is Long -> setValue(clamped, true)
-            else -> throw RuntimeException("Unknown type ${clamped::class} for ${this::class.simpleName}")
-        }
+        setValueClamped(value, true)
     }
 
     fun setValueClamped(value: Long, notify: Boolean) {
-        when (val clamped = type.clamp(
-            when (type.defaultValue) {
-                is Float -> value.toFloat()
-                is Double -> value.toDouble()
-                is Byte -> value.toInt()
-                is Short -> value.toInt()
-                is Char -> value.toInt()
-                is Int -> value.toInt()
-                is Long -> value
-                else -> throw RuntimeException("Unknown type ${type.defaultValue}")
-            }
-        )) {
-            is Float -> setValue(clamped.roundToLong(), notify)
-            is Double -> setValue(clamped.roundToLong(), notify)
-            is Int -> setValue(clamped.toLong(), notify)
-            is Long -> setValue(clamped, notify)
-            else -> throw RuntimeException("Unknown type $clamped for ${this::class.simpleName}")
-        }
+        setValue(AnyToLong.getLong(type.clamp(value), 0L), notify)
     }
 
     // must be open for Rem's Studio
     open fun getValue(value: Any): Long {
-        return when (value) {
-            is Boolean -> if (value) 1L else 0L
-            is Byte -> value.toLong()
-            is Short -> value.toLong()
-            is Char -> value.code.toLong()
-            is Int -> value.toLong()
-            is Long -> value
-            is Float -> value.toLong()
-            is Double -> value.toLong()
-            is Vector2i -> value.x.toLong()
-            is Vector3i -> value.x.toLong()
-            is Vector4i -> value.x.toLong()
-            else -> throw RuntimeException("Unknown type $value for ${this::class.simpleName}")
-        }
+        return AnyToLong.getLong(value, 0)
     }
 
     override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
@@ -207,5 +170,4 @@ open class IntInput(
     }
 
     override val className: String get() = "IntInput"
-
 }
