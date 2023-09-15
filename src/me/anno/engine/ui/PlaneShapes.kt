@@ -5,10 +5,10 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.maths.Maths.TAUf
+import me.anno.utils.structures.maps.LazyMap
 import org.joml.Matrix4x3d
 import kotlin.math.cos
 import kotlin.math.sin
@@ -16,48 +16,68 @@ import kotlin.math.sin
 // todo draw highlighted stuff instanced
 object PlaneShapes {
 
-    val circleBuffer = Mesh()
+    val circleBuffer = LazyMap<Pair<Int, Boolean>, Mesh> { (slices, inner) ->
 
-    init {
+        val mesh = Mesh()
 
-        // create circle buffer
+        if (inner) {
 
-        val slices = 15
-        val positions = FloatArray(slices * 3 * 2)
-        val indices = IntArray(slices * 6)
-        val f = 0.5f
-        for (i in 0 until slices) {
+            val positions = FloatArray(slices * 3 * 2)
+            val indices = IntArray(slices * 6)
+            val f = 0.5f
+            for (i in 0 until slices) {
 
-            val angle = i * TAUf / slices
-            val x = cos(angle)
-            val z = sin(angle)
+                val angle = i * TAUf / slices
+                val x = cos(angle)
+                val z = sin(angle)
 
-            positions[i * 6 + 0] = x
-            positions[i * 6 + 1] = 0f
-            positions[i * 6 + 2] = z
-            positions[i * 6 + 3] = x * f
-            positions[i * 6 + 4] = 0f
-            positions[i * 6 + 5] = z * f
+                val i6 = i * 6
+                positions[i6 + 0] = x
+                positions[i6 + 2] = z
+                positions[i6 + 3] = x * f
+                positions[i6 + 5] = z * f
 
-            val i0 = i * 2
-            val i1 = i * 2 + 1
-            val i2 = (i * 2 + 2) % (slices * 2)
-            val i3 = (i * 2 + 3) % (slices * 2)
+                val j0 = i * 2
+                val j1 = i * 2 + 1
+                val j2 = (i * 2 + 2) % (slices * 2)
+                val j3 = (i * 2 + 3) % (slices * 2)
 
-            indices[i * 4 + 0] = i0
-            indices[i * 4 + 0] = i1
-            indices[i * 4 + 0] = i2
+                indices[i6 + 0] = j0
+                indices[i6 + 1] = j1
+                indices[i6 + 2] = j2
 
-            indices[i * 4 + 0] = i2
-            indices[i * 4 + 0] = i3
-            indices[i * 4 + 0] = i0
+                indices[i6 + 3] = j2
+                indices[i6 + 4] = j1
+                indices[i6 + 5] = j3
+            }
 
+            mesh.positions = positions
+            mesh.indices = indices
+        } else {
+
+            val positions = FloatArray(slices * 3)
+            val indices = IntArray((slices - 2) * 3)
+            for (i in 0 until slices) {
+
+                val angle = i * TAUf / slices
+                val x = cos(angle)
+                val z = sin(angle)
+
+                val i3 = i * 3
+                positions[i3 + 0] = x
+                positions[i3 + 2] = z
+
+                if (i + 2 < slices) {
+                    indices[i3 + 0] = i + 1
+                    indices[i3 + 2] = i + 2
+                }
+            }
+
+            mesh.positions = positions
+            mesh.indices = indices
         }
 
-        circleBuffer.positions = positions
-        circleBuffer.indices = indices
-        circleBuffer.checkCompleteness()
-
+        mesh
     }
 
     val buffer = PipelineStage.instancedBuffer
@@ -96,7 +116,7 @@ object PlaneShapes {
         GFX.check()
         val shader = pbrModelShader.value
         shader.use()
-        val mesh = circleBuffer
+        val mesh = circleBuffer[15 to true]
         val material = defaultMaterial
         // init shader
         val cameraMatrix = RenderState.cameraMatrix
@@ -115,5 +135,4 @@ object PlaneShapes {
         size = 0
         GFX.check()
     }
-
 }

@@ -4,7 +4,6 @@ import me.anno.fonts.AWTFont
 import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.distance
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.OS
@@ -308,7 +307,7 @@ class TextMesh(
         gfx.color = Color.GRAY
         for (i in pts.indices) {
             val a = pts[i]
-            drawRect(ix(a), iy(a), 1, 1)
+            gfx.drawRect(ix(a), iy(a), 1, 1)
             gfx.drawString("$i", ix(a), iy(a))
         }
     }
@@ -322,7 +321,7 @@ class TextMesh(
             gfx.drawLine(ix(c) + d, iy(c) + d, ix(b) + d, iy(b) + d)
             gfx.drawLine(ix(a) + d, iy(a) + d, ix(c) + d, iy(c) + d)
             val center = avg(a, b, c)
-            drawRect(ix(center) + d, iy(center) + d, 1, 1)
+            gfx.drawRect(ix(center) + d, iy(center) + d, 1, 1)
             gfx.drawString("${i / 3}", ix(center), iy(center))
         }
     }

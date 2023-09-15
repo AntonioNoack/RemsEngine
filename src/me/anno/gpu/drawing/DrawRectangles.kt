@@ -101,22 +101,6 @@ object DrawRectangles {
         drawRect(x.toFloat(), y.toFloat(), w.toFloat(), h.toFloat(), color)
     }
 
-    fun drawRect(x: Int, y: Int, w: Int, h: Int) {
-        drawRect(x.toFloat(), y.toFloat(), w.toFloat(), h.toFloat())
-    }
-
-    fun drawRect(x: Float, y: Float, w: Float, h: Float) {
-        if (w == 0f || h == 0f) return
-        if (batch.active) {
-            addRect(x, y, w, h, color)
-        } else {
-            val shader = flatShader.value
-            shader.use()
-            GFXx2D.posSize(shader, x, y, w, h)
-            flat01.draw(shader)
-        }
-    }
-
     fun drawRect(x: Float, y: Float, w: Float, h: Float, color: Vector4f) {
         if (batch.active) {
             this.color.set(color)
@@ -153,14 +137,6 @@ object DrawRectangles {
         drawRect(x, y + h - thicknessY, w, thicknessY, color)
         drawRect(x, y, thicknessX, h, color)
         drawRect(x + w - thicknessX, y, thicknessX, h, color)
-    }
-
-    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, size: Int) {
-        GFXx2D.flatColor(color)
-        drawRect(x, y, w, size)
-        drawRect(x, y + h - size, w, size)
-        drawRect(x, y + size, size, h - 2 * size)
-        drawRect(x + w - size, y + size, size, h - 2 * size)
     }
 
 }

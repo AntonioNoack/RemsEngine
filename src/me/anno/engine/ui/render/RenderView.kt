@@ -552,13 +552,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             else -> false
         }
 
-        // clearing everything by sky won't work, because sky will be lines xD
-        when (renderMode) {
-            RenderMode.LINES, RenderMode.LINES_MSAA -> {
-                dstBuffer.clearColor(black)
-            }
-        }
-
         when {
             useDeferredRendering -> {
                 when {
@@ -1351,6 +1344,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 GFXState.depthMode.use(depthMode) {
                     setClearDepth()
                     dst.clearDepth()
+                }
+            }
+
+            // clearing everything by sky won't work, because sky will be lines xD
+            when (renderMode) {
+                RenderMode.LINES, RenderMode.LINES_MSAA -> {
+                    dst.clearColor(black)
                 }
             }
 

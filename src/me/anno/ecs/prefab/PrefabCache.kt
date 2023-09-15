@@ -255,13 +255,11 @@ object PrefabCache : CacheSection("Prefab") {
     }
 
     var debugLoading = false
-    var disablePrefabs = false
     private fun getPrefabPair(
         resource: FileReference?,
         depth: Int = maxPrefabDepth,
         async: Boolean = false
     ): FileReadPrefabData? {
-        if (disablePrefabs) return null
         return when {
             resource == null || resource == InvalidRef -> null
             resource is InnerLinkFile -> {

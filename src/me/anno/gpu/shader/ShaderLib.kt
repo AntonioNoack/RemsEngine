@@ -612,9 +612,10 @@ object ShaderLib {
             Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
             Variable(GLSLType.V3F, "normals", VariableMode.ATTR),
             Variable(GLSLType.V4F, "tangents", VariableMode.ATTR),
-            Variable(GLSLType.V4F, "colors", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "colors0", VariableMode.ATTR),
             Variable(GLSLType.V4F, "weights", VariableMode.ATTR),
             Variable(GLSLType.V4I, "indices", VariableMode.ATTR),
+            Variable(GLSLType.V1I, "hasVertexColors"),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.M4x3, "localTransform"),
             Variable(GLSLType.V1B, "hasAnimation"),
@@ -658,7 +659,7 @@ object ShaderLib {
                 "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 "   uv = uvs;\n" +
                 // "   weight = weights;\n" +
-                "   vertexColor0 = colors;\n" +
+                "   vertexColor0 = (hasVertexColors & 1) != 0 ? colors0 : vec4(1.0);\n" +
                 positionPostProcessing +
                 "}"
 
@@ -668,7 +669,7 @@ object ShaderLib {
             Variable(GLSLType.V4F, "vertexColor0"),
         )
 
-        shaderAssimp = createShader(
+        shaderAssimp = BaseShader(
             "assimp", assimpVertexList,
             assimpVertex, assimpVarying, listOf(
                 Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
@@ -676,20 +677,20 @@ object ShaderLib {
                 Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalPosition"),
-                Variable(GLSLType.S2D, "albedoTex"),
+                Variable(GLSLType.S2D, "diffuseMap"),
                 Variable(GLSLType.V4F, "diffuseBase")
             ), "" +
                     getTextureLib +
                     getColorForceFieldLib +
                     "void main(){\n" +
-                    "   vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * getTexture(albedoTex, uv);\n" +
+                    "   vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * getTexture(diffuseMap, uv);\n" +
                     "   color.rgb *= 0.6 + 0.4 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
                     "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
                     "   finalColor = color.rgb;\n" +
                     "   finalAlpha = color.a;\n" +
                     "   finalPosition = finalPosition;\n" +
                     "   finalNormal = normal;\n" +
-                    "}", listOf("albedoTex", "animTexture")
+                    "}"
         )
         shaderAssimp.glslVersion = 330
 
