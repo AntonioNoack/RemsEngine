@@ -176,7 +176,7 @@ open class ProgressBar(
             clip2Save(
                 max(x0, x + mid),
                 max(y0, y),
-                min(x1, x + w - mid),
+                min(x1, x + w),
                 min(y1, y + h)
             ) {
                 drawSimpleTextCharByChar(

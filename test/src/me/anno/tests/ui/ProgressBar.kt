@@ -4,8 +4,10 @@ import me.anno.Engine
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
+import me.anno.maths.Maths
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.progress.ProgressBar
 import me.anno.ui.base.progress.ProgressBarPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.debug.TestStudio.Companion.testUI2
@@ -17,10 +19,17 @@ fun main() {
         testUI("Progress Bar") {
             var offset = 0f
             // testing indeterminate mode
-            GFX.someWindow!!.addProgressBar("Something", "Bytes", Double.NaN).progress = 123456789.0
+            val window = GFX.someWindow!!
+            window.addProgressBar("Something", "Bytes", Double.NaN).progress = 123456789.0
+            window.addProgressBar(object : ProgressBar("Sample", "Bytes", 1e6) {
+                override fun formatText(): String {
+                    progress = Maths.clamp(window.mouseX * 1e6 / window.width, 0.0, 0.999e6)
+                    return super.formatText()
+                }
+            })
             TextButton("Start", false, style)
                 .addLeftClickListener {
-                    val bar = GFX.someWindow!!.addProgressBar("Sample", "Bytes", 1e6)
+                    val bar = window.addProgressBar("Sample", "Bytes", 1e6)
                     thread {
                         val offsetI = offset++
                         while (!Engine.shutdown && !bar.isCancelled) {

@@ -48,7 +48,6 @@ import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 import javax.imageio.ImageIO
 import kotlin.collections.set
-import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -63,7 +62,7 @@ object Input {
 
     var mouseDownX = 0f
     var mouseDownY = 0f
-    var mouseKeysDown = HashSet<Key>()
+    val mouseKeysDown = HashSet<Key>()
 
     // sum of mouse wheel movement
     // for components that have no access to events
@@ -631,14 +630,12 @@ object Input {
     }
 
     fun import() {
-        thread(name = "Ctrl+I") {
-            if (lastFile == InvalidRef) lastFile = instance!!.getDefaultFileLocation()
-            FileExplorerSelectWrapper.selectFile((lastFile as? FileFileRef)?.file) { file ->
-                if (file != null) {
-                    val fileRef = getReference(file)
-                    lastFile = fileRef
-                    instance?.importFile(fileRef)
-                }
+        if (lastFile == InvalidRef) lastFile = instance!!.getDefaultFileLocation()
+        FileExplorerSelectWrapper.selectFile((lastFile as? FileFileRef)?.file) { file ->
+            if (file != null) {
+                val fileRef = getReference(file)
+                lastFile = fileRef
+                instance?.importFile(fileRef)
             }
         }
     }
