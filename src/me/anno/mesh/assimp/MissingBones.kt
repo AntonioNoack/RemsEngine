@@ -1,5 +1,6 @@
 package me.anno.mesh.assimp
 
+import me.anno.mesh.assimp.StaticMeshesLoader.convert
 import me.anno.utils.types.Matrices.sampleDistanceSquared
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -65,7 +66,7 @@ object MissingBones {
                 LOGGER.warn("Mapping ${bonesWithIssue.size} bones:")
                 val nodeMatrices = sceneNodeList.map { (_, value) ->
                     // from parent bone to this bone
-                    AssimpTree.convert(value.mTransformation())
+                    convert(value.mTransformation())
                 }
                 for (boneNameWithIssue in bonesWithIssue) {
                     val bone = bones[boneNameWithIssue]!!

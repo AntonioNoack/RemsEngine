@@ -1,7 +1,6 @@
 package me.anno.mesh.assimp
 
 import me.anno.animation.LoopingState
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.anim.AnimationState
@@ -15,23 +14,21 @@ import me.anno.io.NamedSaveable
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.io.zip.InnerZipFile
 import me.anno.mesh.assimp.AnimationLoader.getDuration
 import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
-import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.MissingBones.compareBoneWithNodeNames
 import me.anno.mesh.assimp.StaticMeshesLoader.buildScene
+import me.anno.mesh.assimp.StaticMeshesLoader.convert
 import me.anno.mesh.assimp.StaticMeshesLoader.defaultFlags
 import me.anno.mesh.assimp.StaticMeshesLoader.loadFile
 import me.anno.mesh.assimp.StaticMeshesLoader.loadMaterialPrefabs
 import me.anno.mesh.assimp.StaticMeshesLoader.loadTextures
 import me.anno.mesh.assimp.StaticMeshesLoader.processPositions
 import me.anno.mesh.fbx.FBX6000
-import me.anno.studio.StudioBase
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
@@ -81,25 +78,6 @@ object AnimatedMeshesLoader {
         JomlPools.vec3f.sub(3)
 
         return Matrix3f(rightVec, upVec, forwardVec)
-
-    }
-
-    fun read(file: FileReference, resources: FileReference): AnimGameItem {
-        val (folder, prefab) = readAsFolder2(file, resources)
-
-        val instance = prefab.createInstance() as Entity
-        val animations = folder.getChild("animations").listChildren()?.mapNotNull {
-            try {
-                val text = it.readTextSync()
-                // not sure about the workspace... probably should be the next project above file
-                val animation = TextReader.read(text, StudioBase.workspace, true).first() as Animation
-                it.nameWithoutExtension to animation
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        }?.associate { it } ?: emptyMap()
-        return AnimGameItem(instance, animations)
     }
 
     fun readAsFolder(
@@ -195,7 +173,7 @@ object AnimatedMeshesLoader {
         val hasSkeleton = boneList.isNotEmpty()
         val hierarchy = buildScene(aiScene, meshes, hasSkeleton)
 
-        LOGGER.debug("$file, #anims: ${aiScene.mNumAnimations()}, #bones: ${boneList.size}")
+        LOGGER.debug("{}, #anims: {}, #bones: {}", file, aiScene.mNumAnimations(), boneList.size)
 
         val metadata = loadMetadata(aiScene)
         val matrixFix = matrixFix(metadata, isFBX) // fbx is already 100x
@@ -203,7 +181,7 @@ object AnimatedMeshesLoader {
             applyMatrixFix(hierarchy, matrixFix)
         }
 
-        LOGGER.debug("[ScaleDebug] $file -> $metadata -> $matrixFix")
+        LOGGER.debug("[ScaleDebug] {} -> {} -> {}", file, metadata, matrixFix)
 
         // for (change in hierarchy.changes!!) LOGGER.info(change)
 
@@ -219,8 +197,7 @@ object AnimatedMeshesLoader {
             if (animMap.isNotEmpty()) {
                 val animations = root.createChild("animations", null) as InnerFolder
                 for ((animName, animation) in animMap) {
-                    val folder = if (animMap.size == 1) animations
-                    else animations.createChild(animName, null) as InnerFolder
+                    val folder = animations.createChild(animName, null) as InnerFolder
                     folder.createPrefabChild("Imported.json", animation)
                     folder.createLazyPrefabChild("BoneByBone.json", lazy {
                         createBoneByBone(
@@ -238,7 +215,8 @@ object AnimatedMeshesLoader {
             val sampleAnimations = if (animMap.isNotEmpty()) {
                 arrayListOf(
                     AnimationState(
-                        animMap.values.first().source, 1f, 0f, 1f, LoopingState.PLAY_LOOP
+                        animMap.values.first().source, 1f,
+                        0f, 1f, LoopingState.PLAY_LOOP
                     )
                 )
             } else null // must be ArrayList
@@ -252,9 +230,8 @@ object AnimatedMeshesLoader {
             }
 
             val animRefs = animMap.values.map { it.source }
-            skeleton.setUnsafe(ROOT_PATH, "animations", animRefs.associateBy { it.nameWithoutExtension })
+            skeleton.setUnsafe(ROOT_PATH, "animations", animRefs.associateBy { it.getParent()!!.name })
             animRefs
-
         } else emptyList()
 
         // override the empty scene with an animation
@@ -308,7 +285,6 @@ object AnimatedMeshesLoader {
         prefab.setProperty("position", transform.getTranslation(Vector3d()))
         prefab.setProperty("rotation", transform.getUnnormalizedRotation(Quaterniond()))
         prefab.setProperty("scale", transform.getScale(Vector3d()))
-
     }
 
     private fun fixBoneOrder(boneList: ArrayList<Bone>, meshes: List<Prefab>) {
@@ -356,7 +332,7 @@ object AnimatedMeshesLoader {
     ) {
         val (_, globalInvTransform) = findRootTransform(name, rootNode, boneMap)
         if (globalInvTransform != null) {
-            LOGGER.debug("Applying global transform $globalInvTransform to $name")
+            LOGGER.debug("Applying global transform {} to {}", globalInvTransform, name)
             for (bone in boneList) {
                 bone.setBindPose(Matrix4x3f(globalInvTransform).mul(bone.bindPose))
             }
@@ -567,7 +543,6 @@ object AnimatedMeshesLoader {
         val prefab = Prefab("ImportedAnimation")
         prefab[ROOT_PATH, "name"] = animName
         prefab[ROOT_PATH, "skeleton"] = skeletonPath
-        LOGGER.debug("Setting $animName.skeleton = $skeletonPath")
         prefab[ROOT_PATH, "duration"] = duration.toFloat()
         prefab[ROOT_PATH, "frames"] = createSkinningFrames(
             aiScene, rootNode, boneMap, numFrames, timeScale,
@@ -712,7 +687,6 @@ object AnimatedMeshesLoader {
                     }
                     vertexWeightList.add(vw)
                 }
-
             }
             aiWeight.free()
 
@@ -733,11 +707,9 @@ object AnimatedMeshesLoader {
             }
 
             return boneIds to boneWeights
-
         }
 
         return null
-
     }
 
     private fun createMeshPrefab(
@@ -755,5 +727,4 @@ object AnimatedMeshesLoader {
         }
         return prefab
     }
-
 }

@@ -3,8 +3,7 @@ package me.anno.mesh
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.io.ISaveable
-import me.anno.mesh.assimp.AnimGameItem
+import me.anno.ecs.components.mesh.MeshComponentBase
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -35,27 +34,6 @@ object MeshUtils {
         }, targetFrameUsage)
     }
 
-    fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, model0: AnimGameItem, targetFrameUsage: Float = 0.95f) {
-        centerMesh(stack, localStack, model0.staticAABB.value, { model0.getBounds(it) }, targetFrameUsage)
-    }
-
-    fun centerMesh(
-        transform: ISaveable?,
-        stack: Matrix4f,
-        localStack: Matrix4x3f,
-        model0: AnimGameItem,
-        targetFrameUsage: Float = 0.95f
-    ) {
-        val staticAABB = model0.staticAABB.value
-        if (!staticAABB.isEmpty()) {
-            if (transform == null) {
-                centerMesh(stack, localStack, staticAABB, { model0.getBounds(it) }, targetFrameUsage)
-            } else {
-                AnimGameItem.centerStackFromAABB(localStack, staticAABB)
-            }
-        }
-    }
-
     /**
      * whenever possible, this optimization should be on another thread
      * (because for high-poly meshes, it is expensive)
@@ -74,7 +52,7 @@ object MeshUtils {
             return
 
         // rough approximation using bounding box
-        AnimGameItem.centerStackFromAABB(modelMatrix, aabb0)
+        centerStackFromAABB(modelMatrix, aabb0)
 
         val modelViewProjectionMatrix = Matrix4f()
         modelViewProjectionMatrix
@@ -91,7 +69,72 @@ object MeshUtils {
             cameraMatrix.translateLocal(-dx, -dy, 0f)
             cameraMatrix.scaleLocal(scale, scale, scale)
         }
-
     }
 
+    /**
+     * calculates the bounds of the mesh
+     * not fast, but the gpu will take just as long -> doesn't matter
+     *
+     * the goal is to be accurate
+     * */
+    fun getBounds(root: Entity, transform: Matrix4f): AABBf {
+        updateTransforms(root)
+        val vf = Vector3f()
+        val aabb = AABBf()
+        val testAABB = AABBf()
+        val jointMatrix = Matrix4f()
+        root.simpleTraversal(false) { entity ->
+            entity as Entity
+            val global = entity.transform.globalTransform
+            entity.anyComponent(MeshComponentBase::class, false) { comp ->
+                val mesh = comp.getMesh()
+                if (mesh != null) {
+                    mesh.getBounds()
+
+                    // join the matrices for 2x better performance than without
+                    jointMatrix.set(transform).mul(global)
+
+                    // if aabb u transform(mesh.aabb) == aabb, then skip this sub-mesh
+                    mesh.aabb.transformProject(jointMatrix, testAABB.set(aabb))
+                    if (testAABB != aabb) {
+                        mesh.forEachPoint(false) { x, y, z ->
+                            aabb.union(jointMatrix.transformProject(vf.set(x, y, z)))
+                        }
+                    }
+                }
+                false
+            }
+        }
+        return aabb
+    }
+
+    @JvmStatic
+    fun getScaleFromAABB(aabb: AABBf): Float {
+        // calculate the scale, such that everything can be visible
+        val delta = max(aabb.maxX - aabb.minX, max(aabb.maxY - aabb.minY, aabb.maxZ - aabb.minZ))
+        return 1f / max(delta, 1e-38f)
+    }
+
+    @JvmStatic
+    fun getScaleFromAABB(aabb: AABBd): Float {
+        // calculate the scale, such that everything can be visible
+        val delta = max(aabb.maxX - aabb.minX, max(aabb.maxY - aabb.minY, aabb.maxZ - aabb.minZ))
+        return 1f / max(delta.toFloat(), 1e-38f)
+    }
+
+    @JvmStatic
+    fun centerStackFromAABB(stack: Matrix4x3f, aabb: AABBd) {
+        stack.translate(
+            -(aabb.minX + aabb.maxX).toFloat() / 2,
+            -(aabb.minY + aabb.maxY).toFloat() / 2,
+            -(aabb.minZ + aabb.maxZ).toFloat() / 2
+        )
+    }
+
+    @JvmStatic
+    private fun updateTransforms(entity: Entity) {
+        entity.validateTransform()
+        entity.transform.teleportUpdate(0)
+        for (child in entity.children) updateTransforms(child)
+    }
 }

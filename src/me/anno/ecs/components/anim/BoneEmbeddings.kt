@@ -4,6 +4,9 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.language.embeddings.WordEmbedding
 
+/**
+ * Experiments for retargeting
+ * */
 object BoneEmbeddings {
 
     @JvmStatic

@@ -1,14 +1,11 @@
 package me.anno.gpu.shader
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
-import me.anno.engine.ui.render.ECSMeshShader.Companion.getAnimMatrix
 import me.anno.gpu.drawing.UVProjection
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Filtering
-import me.anno.mesh.assimp.AnimGameItem
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Matrix4x3f
 import org.joml.Vector3i
@@ -16,7 +13,6 @@ import org.joml.Vector4f
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.math.PI
-import kotlin.math.min
 import kotlin.math.sqrt
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
@@ -47,8 +43,6 @@ object ShaderLib {
     val m = mi.invert(Matrix4x3f())
 
     lateinit var shader3DSVG: BaseShader
-    lateinit var shaderAssimp: BaseShader
-    lateinit var monochromeModelShader: BaseShader
 
     /**
      * our code only uses 3, I think
@@ -603,127 +597,6 @@ object ShaderLib {
                 "}"
 
         shader3DSVG = createShader("3d-svg", vSVGl, vSVG, ySVG, fSVGl, fSVG, listOf("tex"))
-
-        // create the obj+mtl shader
-
-        val maxBones = AnimGameItem.maxBones
-        val assimpVertexList = listOf(
-            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-            Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "normals", VariableMode.ATTR),
-            Variable(GLSLType.V4F, "tangents", VariableMode.ATTR),
-            Variable(GLSLType.V4F, "colors0", VariableMode.ATTR),
-            Variable(GLSLType.V4F, "weights", VariableMode.ATTR),
-            Variable(GLSLType.V4I, "indices", VariableMode.ATTR),
-            Variable(GLSLType.V1I, "hasVertexColors"),
-            Variable(GLSLType.M4x4, "transform"),
-            Variable(GLSLType.M4x3, "localTransform"),
-            Variable(GLSLType.V1B, "hasAnimation"),
-        )
-        val assimpVertex = "" +
-                (if (useAnimTextures) "" +
-                        "uniform sampler2D animTexture;\n" +
-                        "uniform vec4 animWeights, animIndices;\n" +
-                        getAnimMatrix else "" +
-                        "uniform mat4x3 jointTransforms[${min(128, maxBones)}];\n" +
-                        "") +
-                "void main(){\n" +
-                (if (useAnimTextures) "" +
-                        "   if(hasAnimation && textureSize(animTexture,0).x > 1){\n" +
-                        "       mat4x3 jointMat;\n" +
-                        "jointMat  = getAnimMatrix(indices.x) * weights.x;\n" +
-                        "jointMat += getAnimMatrix(indices.y) * weights.y;\n" +
-                        "jointMat += getAnimMatrix(indices.z) * weights.z;\n" +
-                        "jointMat += getAnimMatrix(indices.w) * weights.w;\n"
-                else "" +
-                        "   if(hasAnimation){\n" +
-                        "       mat4x3 jointMat;\n" +
-                        "jointMat  = jointTransforms[indices.x] * weights.x;\n" +
-                        "jointMat += jointTransforms[indices.y] * weights.y;\n" +
-                        "jointMat += jointTransforms[indices.z] * weights.z;\n" +
-                        "jointMat += jointTransforms[indices.w] * weights.w;\n"
-                        ) +
-                "       finalPosition = matMul(jointMat, vec4(coords, 1.0));\n" +
-                "       normal = matMul(jointMat, vec4(normals, 0.0));\n" +
-                "       tangent = vec4(matMul(jointMat, vec4(tangents.xyz, 0.0)), tangents.w);\n" +
-                "   } else {\n" +
-                "       finalPosition = coords;\n" +
-                "       normal = normals;\n" +
-                "       tangent = tangents;\n" +
-                "   }\n" +
-                "   normal = matMul(localTransform, vec4(normal,0.0));\n" +
-                "   tangent.xyz = matMul(localTransform, vec4(tangent.xyz,0.0));\n" +
-                "   finalPosition = matMul(localTransform, vec4(finalPosition, 1.0));\n" +
-                // normal only needs to be normalized, if we show the normal
-                "   normal = normalize(normal);\n" + // here? nah ^^
-                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                "   uv = uvs;\n" +
-                // "   weight = weights;\n" +
-                "   vertexColor0 = (hasVertexColors & 1) != 0 ? colors0 : vec4(1.0);\n" +
-                positionPostProcessing +
-                "}"
-
-        val assimpVarying = y3D + listOf(
-            Variable(GLSLType.V4F, "tangent"),
-            // Variable(GLSLType.V4F, "weight"),
-            Variable(GLSLType.V4F, "vertexColor0"),
-        )
-
-        shaderAssimp = createShader(
-            "assimp", assimpVertexList,
-            assimpVertex, assimpVarying, listOf(
-                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-                Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
-                Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
-                Variable(GLSLType.V3F, "finalPosition"),
-                Variable(GLSLType.S2D, "diffuseMap"),
-                Variable(GLSLType.V4F, "diffuseBase")
-            ), "" +
-                    getTextureLib +
-                    getColorForceFieldLib +
-                    "void main(){\n" +
-                    "   vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * getTexture(diffuseMap, uv);\n" +
-                    "   color.rgb *= 0.6 + 0.4 * dot(vec3(-1.0, 0.0, 0.0), normal);\n" +
-                    "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
-                    "   finalColor = color.rgb;\n" +
-                    "   finalAlpha = color.a;\n" +
-                    "   finalPosition = finalPosition;\n" +
-                    "   finalNormal = normal;\n" +
-                    "}", listOf("diffuseMap", "animTexture")
-        )
-        shaderAssimp.glslVersion = 330
-
-        monochromeModelShader = createShader(
-            "monochrome-model", assimpVertexList,
-            assimpVertex, assimpVarying, listOf(
-                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-                Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
-                Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
-                Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
-                Variable(GLSLType.V1F, "finalRoughness", VariableMode.OUT),
-                Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT),
-                Variable(GLSLType.S2D, "tex"),
-                Variable(GLSLType.V4F, "tint"),
-            ), "" +
-                    "void main(){\n" +
-                    "   vec4 color = texture(tex, uv);\n" +
-                    "   finalColor = color.rgb;\n" +
-                    "   finalAlpha = color.a;\n" +
-                    "   finalPosition = finalPosition;\n" +
-                    "   finalNormal = normal;\n" +
-                    "   finalEmissive = tint.rgb;\n" +
-                    "   finalRoughness = 1.0;" +
-                    "   finalMetallic = 0.0;\n" +
-                    "}", listOf("tex", "animTexture")
-        )
-        monochromeModelShader.glslVersion = 330
-        monochromeModelShader.ignoreNameWarnings("worldScale")
-
-        // create the fbx shader
-        // shaderFBX = FBXShader.getShader(v3DBase, positionPostProcessing, y3D, getTextureLib)
-
     }
 
     val shader3D = createShader(
@@ -1110,5 +983,4 @@ object ShaderLib {
         shader.ignoreNameWarnings(ignored.toList())
         return shader
     }
-
 }

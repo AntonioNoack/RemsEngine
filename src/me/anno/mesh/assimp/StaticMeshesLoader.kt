@@ -1,6 +1,5 @@
 package me.anno.mesh.assimp
 
-import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
@@ -16,7 +15,6 @@ import me.anno.io.xml.XMLWriter
 import me.anno.io.zip.InnerFile
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerTmpFile
-import me.anno.mesh.assimp.AssimpTree.convert
 import me.anno.mesh.assimp.io.AIFileIOImpl
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
@@ -24,6 +22,7 @@ import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Triangles.crossDot
 import org.apache.logging.log4j.LogManager
+import org.joml.Matrix4x3f
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -58,7 +57,6 @@ object StaticMeshesLoader {
         // 1e3: 0.09
         return 1f / (shininessExponent * 0.01f + 1f)
     }
-
 
     fun loadFile(file: FileReference, flags: Int): Pair<AIScene, Boolean> {
         // obj files should use our custom importer
@@ -109,15 +107,6 @@ object StaticMeshesLoader {
             if (obj == null) throw IOException("Error loading model $file, ${aiGetErrorString()}")
             Pair(obj, isFBXFile)
         }
-    }
-
-    fun load(file: FileReference): AnimGameItem = read(file, file.getParent() ?: InvalidRef)
-
-    fun read(file: FileReference, resources: FileReference): AnimGameItem {
-        val asFolder = AnimatedMeshesLoader.readAsFolder2(file, resources)
-        val prefab = asFolder.second
-        val instance = prefab.createInstance() as Entity
-        return AnimGameItem(instance)
     }
 
     private fun buildScene(
@@ -694,4 +683,14 @@ object StaticMeshesLoader {
             dst
         } else null
     }
+
+    fun convert(m: AIMatrix4x4, dst: Matrix4x3f = Matrix4x3f()): Matrix4x3f {
+        return dst.set(
+            m.a1(), m.b1(), m.c1(),
+            m.a2(), m.b2(), m.c2(),
+            m.a3(), m.b3(), m.c3(),
+            m.a4(), m.b4(), m.c4(),
+        )
+    }
+
 }

@@ -1,5 +1,6 @@
 package me.anno.mesh.assimp
 
+import me.anno.mesh.assimp.StaticMeshesLoader.convert
 import org.joml.Matrix4x3f
 import org.lwjgl.assimp.*
 
@@ -68,7 +69,7 @@ private fun findAllBones1(
 ) {
 
     val name = aiNode.mName().dataString()
-    val localTransform = AssimpTree.convert(aiNode.mTransformation())
+    val localTransform = convert(aiNode.mTransformation())
 
     // multiply with the parent transform, if it exists
     nodeTransformParent?.mul(localTransform, localTransform)
@@ -101,14 +102,4 @@ private fun findAllBones1(
             )
         }
     }
-
-}
-
-fun convert(m: AIMatrix4x4, dst: Matrix4x3f): Matrix4x3f {
-    return dst.set(
-        m.a1(), m.b1(), m.c1(),
-        m.a2(), m.b2(), m.c2(),
-        m.a3(), m.b3(), m.c3(),
-        m.a4(), m.b4(), m.c4(),
-    )
 }

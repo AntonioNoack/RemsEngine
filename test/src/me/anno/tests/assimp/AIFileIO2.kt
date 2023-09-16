@@ -1,11 +1,11 @@
 package me.anno.tests.assimp
 
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerByteFile
 import me.anno.io.zip.InnerFolder
-import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
 
@@ -24,8 +24,7 @@ fun main() {
         val data = ref.readBytesSync()
         val folder = InnerFolder(InvalidRef)
         val intFile = InnerByteFile(folder, ref.name, data)
-        StaticMeshesLoader.read(intFile, intFile.getParent())
+        MeshCache[intFile]!!
         LOGGER.info("done :)")
     }
-
 }

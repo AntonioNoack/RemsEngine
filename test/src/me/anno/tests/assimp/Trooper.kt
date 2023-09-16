@@ -1,7 +1,7 @@
 package me.anno.tests.assimp
 
+import me.anno.ecs.prefab.PrefabCache
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.utils.LOGGER
 import me.anno.utils.OS
 
@@ -13,8 +13,8 @@ fun main() {
     val fbxPath = getReference(OS.downloads, "3d/trooper fbx/source/silly_dancing.fbx")
     val glbPath = getReference(OS.downloads, "3d/trooper gltf/scene.gltf")
 
-    val fbx = StaticMeshesLoader.load(fbxPath)
-    val glb = StaticMeshesLoader.load(glbPath)
+    val fbx = PrefabCache[fbxPath]!!.getSampleInstance()
+    val glb = PrefabCache[glbPath]!!.getSampleInstance()
 
     /*fbx.bones.forEachIndexed { index,it ->
         LOGGER.info("$index ${it.name}")
@@ -28,7 +28,6 @@ fun main() {
         // LOGGER.info(it.skinningMatrix)
     }*/
 
-    LOGGER.info(fbx.hierarchy)
-    LOGGER.info(glb.hierarchy)
-
+    LOGGER.info(fbx)
+    LOGGER.info(glb)
 }

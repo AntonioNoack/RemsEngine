@@ -2,7 +2,7 @@ package me.anno.mesh.assimp
 
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.mesh.assimp.AssimpTree.convert
+import me.anno.mesh.assimp.StaticMeshesLoader.convert
 import me.anno.utils.search.BinarySearch
 import me.anno.utils.search.BinarySearch.binarySearch
 import org.joml.Matrix4x3f
@@ -10,7 +10,6 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.lwjgl.assimp.*
 import kotlin.math.max
-
 
 object AnimationLoader {
 
@@ -131,7 +130,6 @@ object AnimationLoader {
         val scale = interpolateScale(animationTime, aiNodeAnim)
 
         dst.translationRotateScale(translation, rotation, scale)
-
     }
 
     fun readAnimationFrame(
@@ -191,7 +189,6 @@ object AnimationLoader {
                 )
             }
         }
-
     }
 
     fun getDuration(
@@ -222,5 +219,4 @@ object AnimationLoader {
             null, globalTransform, globalInverseTransform
         )
     }
-
 }

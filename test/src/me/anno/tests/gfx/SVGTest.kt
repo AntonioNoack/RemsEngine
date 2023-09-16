@@ -1,7 +1,7 @@
 package me.anno.tests.gfx
 
 import me.anno.cache.data.ImageData.Companion.imageTimeout
-import me.anno.cache.instances.OldMeshCache
+import me.anno.cache.instances.SVGMeshCache
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
@@ -70,7 +70,7 @@ fun main() {
 
                     } else {
                         // old method, uses specialized shader
-                        val buffer = OldMeshCache.getSVG(srcFile, imageTimeout, false)!!
+                        val buffer = SVGMeshCache[srcFile, imageTimeout, false]!!
                         val white = TextureLib.whiteTexture
                         SVGxGFX.draw3DSVG(
                             transform, buffer, white,

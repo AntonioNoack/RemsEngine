@@ -3,9 +3,9 @@ package me.anno.engine.ui.scenetabs
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
+import me.anno.ecs.components.anim.BoneData
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.anim.SkeletonCache
-import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
@@ -25,7 +25,6 @@ import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mixARGB
-import me.anno.mesh.assimp.AnimGameItem
 import me.anno.studio.StudioBase
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
@@ -97,7 +96,7 @@ class ECSSceneTab(
                 // widen bounds by motion
                 val motionBounds = AABBf()
                 for (i in 0 until root.numFrames) {
-                    val matrices = root.getMatrices(0, AnimGameItem.tmpMatrices) ?: break
+                    val matrices = root.getMatrices(0, BoneData.tmpMatrices) ?: break
                     for (j in skeleton.bones.indices) {
                         val offset = matrices[j]
                         motionBounds.union(offset.m30, offset.m31, offset.m32)
@@ -177,7 +176,6 @@ class ECSSceneTab(
                 }
             }
         }
-
     }
 
     fun onStop() {
@@ -282,5 +280,4 @@ class ECSSceneTab(
     companion object {
         private val LOGGER = LogManager.getLogger(ECSSceneTab::class)
     }
-
 }

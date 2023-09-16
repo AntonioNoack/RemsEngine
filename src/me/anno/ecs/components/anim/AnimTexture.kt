@@ -3,7 +3,6 @@ package me.anno.ecs.components.anim
 import me.anno.cache.ICacheData
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
-import me.anno.mesh.assimp.AnimGameItem.Companion.tmpMatrices
 import org.joml.Matrix4x3f
 import java.nio.FloatBuffer
 import kotlin.math.min
@@ -125,7 +124,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         dst: FloatBuffer,
         animation: Animation
     ) {
-        val tmp = tmpMatrices
+        val tmp = BoneData.tmpMatrices
         for (frameIndex in 0 until animation.numFrames) {
             fillData(dst, animation, frameIndex, tmp)
         }

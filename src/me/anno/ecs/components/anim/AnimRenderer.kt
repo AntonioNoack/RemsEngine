@@ -17,7 +17,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.mesh.assimp.AnimGameItem
 import org.joml.Matrix4x3f
 import org.joml.Vector3d
 import org.joml.Vector4f
@@ -313,13 +312,13 @@ open class AnimRenderer : MeshComponent() {
         private val tmpMapping1 = Array(256) { Matrix4x3f() }
 
         fun upload(shader: Shader, location: Int, matrices: Array<Matrix4x3f>) {
-            val boneCount = min(matrices.size, AnimGameItem.maxBones)
-            val buffer = AnimGameItem.matrixBuffer
-            buffer.limit(AnimGameItem.matrixSize * boneCount)
+            val boneCount = min(matrices.size, BoneData.maxBones)
+            val buffer = BoneData.matrixBuffer
+            buffer.limit(BoneData.matrixSize * boneCount)
             for (index in 0 until boneCount) {
                 val matrix0 = matrices[index]
-                buffer.position(index * AnimGameItem.matrixSize)
-                AnimGameItem.get(matrix0, buffer)
+                buffer.position(index * BoneData.matrixSize)
+                BoneData.get(matrix0, buffer)
             }
             buffer.position(0)
             shader.m4x3Array(location, buffer)

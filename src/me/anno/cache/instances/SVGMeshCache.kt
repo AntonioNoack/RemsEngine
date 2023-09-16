@@ -9,11 +9,9 @@ import me.anno.io.xml.XMLNode
 import me.anno.io.xml.XMLReader
 import java.io.InputStream
 
-@Deprecated("Please use MeshCache and ECS if possible")
-object OldMeshCache : CacheSection("Meshes") {
-
-    fun getSVG(file: FileReference, timeout: Long, asyncGenerator: Boolean): StaticBuffer? {
-        return OldMeshCache.getEntry(file to "svg", timeout, asyncGenerator) {
+object SVGMeshCache : CacheSection("Meshes") {
+    operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): StaticBuffer? {
+        return SVGMeshCache.getEntry(file to "svg", timeout, asyncGenerator) {
             val svg = SVGMesh()
             file.inputStreamSync().use { input: InputStream ->
                 svg.parse(XMLReader().parse(input) as XMLNode)
@@ -25,5 +23,4 @@ object OldMeshCache : CacheSection("Meshes") {
             }
         } as? StaticBuffer
     }
-
 }

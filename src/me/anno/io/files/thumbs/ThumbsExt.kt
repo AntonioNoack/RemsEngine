@@ -19,7 +19,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
 import me.anno.mesh.MeshData
 import me.anno.mesh.MeshUtils.centerMesh
-import me.anno.mesh.assimp.AnimGameItem.Companion.getScaleFromAABB
+import me.anno.mesh.MeshUtils.getScaleFromAABB
 import me.anno.utils.Sleep
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
@@ -140,16 +140,6 @@ object ThumbsExt {
             if (centerMesh) centerMesh(cameraMatrix, modelMatrix, this)
         }
         return modelMatrix
-    }
-
-    fun Collider.drawAssimp(
-        cameraMatrix: Matrix4f,
-        modelMatrix: Matrix4x3f,
-        centerMesh: Boolean,
-        normalizeScale: Boolean
-    ) {
-        findModelMatrix(cameraMatrix, modelMatrix, centerMesh, normalizeScale)
-        drawAssimp(cameraMatrix, modelMatrix)
     }
 
     fun finishLines(cameraMatrix: Matrix4f, worldMatrix: Matrix4x3f? = null): Boolean {

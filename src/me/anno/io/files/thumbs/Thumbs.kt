@@ -3,7 +3,7 @@ package me.anno.io.files.thumbs
 import me.anno.Build
 import me.anno.cache.data.ImageData
 import me.anno.cache.data.ImageData.Companion.imageTimeout
-import me.anno.cache.instances.OldMeshCache
+import me.anno.cache.instances.SVGMeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
@@ -90,7 +90,7 @@ import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFolderCache
 import me.anno.maths.Maths.clamp
 import me.anno.mesh.MeshUtils
-import me.anno.mesh.assimp.AnimGameItem
+import me.anno.mesh.MeshUtils.getScaleFromAABB
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
 import me.anno.utils.Color.black
@@ -535,7 +535,7 @@ object Thumbs {
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
 
-        val buffer = OldMeshCache.getSVG(srcFile, imageTimeout, false)!!
+        val buffer = SVGMeshCache[srcFile, imageTimeout, false]!!
 
         val maxSize = max(buffer.maxX, buffer.maxY)
         val w = (size * buffer.maxX / maxSize).roundToInt()
@@ -763,7 +763,7 @@ object Thumbs {
         val mm = createModelMatrix()
 
         sampleEntity.validateAABBs()
-        mm.scale(AnimGameItem.getScaleFromAABB(sampleEntity.aabb))
+        mm.scale(getScaleFromAABB(sampleEntity.aabb))
         MeshUtils.centerMesh(cm, mm, sampleEntity)
 
         cm.mul(mm) // join matrices; is this order correct?

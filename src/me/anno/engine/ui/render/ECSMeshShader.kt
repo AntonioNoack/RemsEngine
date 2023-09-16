@@ -15,7 +15,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.bvh.RayTracing.loadMat4x3
-import me.anno.mesh.assimp.AnimGameItem.Companion.maxBones
+import me.anno.ecs.components.anim.BoneData.maxBones
 import kotlin.math.max
 
 open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
