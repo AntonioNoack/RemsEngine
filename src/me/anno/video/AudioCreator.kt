@@ -16,6 +16,7 @@ import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.ceil
 import kotlin.math.roundToInt
+import kotlin.test.assertFalse
 
 abstract class AudioCreator(
     val durationSeconds: Double,
@@ -30,9 +31,11 @@ abstract class AudioCreator(
 
     abstract fun createStreams(): List<AudioStream>
 
-    fun createOrAppendAudio(output: FileReference, videoCreatorOutput: FileReference?, deleteVCO: Boolean) {
+    fun createOrAppendAudio(output: FileReference, videoCreatorOutput: FileReference, deleteVCO: Boolean) {
 
         output.delete()
+        output.getParent()?.tryMkdirs()
+        assertFalse(output.exists)
 
         // todo allow different audio codecs (if required...)
         // quality:
@@ -44,7 +47,7 @@ abstract class AudioCreator(
         // add -shortest to use shortest...
         val rawFormat = "s16be"// signed, 16 bit, big endian
         val channels = "2" // stereo
-        val audioEncodingArguments = if (videoCreatorOutput != null) {
+        val audioEncodingArguments = if (videoCreatorOutput.exists) {
             arrayListOf(
                 "-i", videoCreatorOutput.absolutePath,
                 "-f", rawFormat,
@@ -98,7 +101,6 @@ abstract class AudioCreator(
         }
 
         onFinished()
-
     }
 
     // some callback while rendering audio
@@ -165,10 +167,8 @@ abstract class AudioCreator(
                             audioOutput.writeShort(0)
                         }
                     }
-
                 }
             }
-
         } catch (e: IOException) {
             val msg = e.message!!
             // pipe has been ended will be thrown, if we write more audio bytes than required
@@ -195,5 +195,4 @@ abstract class AudioCreator(
         val playbackSliceDuration = bufferSize.toDouble() / playbackSampleRate
         private val LOGGER = LogManager.getLogger(AudioCreator::class)
     }
-
 }

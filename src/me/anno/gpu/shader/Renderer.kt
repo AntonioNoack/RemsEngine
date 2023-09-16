@@ -98,7 +98,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
                         "#ifndef IS_TINTED\n" +
                         " * tint.rgb\n" +
                         "#endif\n" +
-                        "SPResult = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n"
+                        ";SPResult = vec4(tmpCol * tmpCol, clamp(finalAlpha, 0.0, 1.0) * tint.a);\n"
             )
         )
 

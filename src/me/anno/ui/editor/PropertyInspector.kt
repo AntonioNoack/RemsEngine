@@ -63,6 +63,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
 
     fun invalidate() {
         needsUpdate = true
+        invalidateLayout()
     }
 
     override fun getLayoutState(): List<Inspectable> = getInspectables()
@@ -230,6 +231,11 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
                 lastInvalidated = time + (if (major) 0L else 500L * MILLIS_TO_NANOS)
                 for (window in GFX.windows) {
                     invalidateUI(window.windowStack)
+                }
+                for (window in GFX.windows) {
+                    for (window1 in window.windowStack) {
+                        window1.panel.invalidateDrawing()
+                    }
                 }
             }
         }

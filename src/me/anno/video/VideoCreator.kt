@@ -31,6 +31,7 @@ import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.test.assertFalse
 
 open class VideoCreator(
     val width: Int, val height: Int,
@@ -59,8 +60,9 @@ open class VideoCreator(
 
     fun init() {
 
-        if (output.exists) output.delete()
-        else output.getParent()?.tryMkdirs()
+        output.delete()
+        output.getParent()?.tryMkdirs()
+        assertFalse(output.exists)
 
         /**
          * first create the video,
