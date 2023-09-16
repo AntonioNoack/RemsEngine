@@ -1,10 +1,13 @@
 package me.anno.video
 
+import me.anno.cache.FileCache
+import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
 import org.apache.logging.log4j.LogManager
 import kotlin.concurrent.thread
+import kotlin.test.assertTrue
 
 @Suppress("unused")
 open class VideoAudioCreator(

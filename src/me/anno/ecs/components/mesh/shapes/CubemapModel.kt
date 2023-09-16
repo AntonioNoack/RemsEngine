@@ -3,6 +3,7 @@ package me.anno.ecs.components.mesh.shapes
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.StaticBuffer
 import org.joml.Vector3f
+import org.lwjgl.opengl.GL11C.GL_LINES
 
 /**
  * Cubemap model with UVs for typical skymap layout:
@@ -107,12 +108,7 @@ object CubemapModel {
         addFace(1, 0, myAxis, mxAxis, mzAxis) // top
         addFace(1, 2, yAxis, mxAxis, zAxis) // bottom
 
-    }
+        drawMode = GL_LINES
 
-    @JvmStatic
-    fun destroy() {
-        cubemapLineModel.destroy()
-        cubemapModel.destroy()
     }
-
 }

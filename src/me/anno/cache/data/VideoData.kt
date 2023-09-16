@@ -66,7 +66,12 @@ class VideoData(
         // this is less efficient for large amounts of videos,
         // but it's better for fast loading of video, because the encoder is already loaded etc...
         @JvmStatic
-        val framesPerContainer get() = getInt(StudioBase.instance!!.gfxSettings["video.frames.perContainer"], 64)
+        val framesPerContainer: Int
+            get() {
+                val default = 64
+                val instance = StudioBase.instance
+                return if (instance != null) getInt(instance.gfxSettings["video.frames.perContainer"], default)
+                else default
+            }
     }
-
 }

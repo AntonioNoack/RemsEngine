@@ -192,7 +192,6 @@ abstract class StudioBase(
     private var lastMouseY = 0f
 
     open fun onShutdown() {
-        shallStop = true
         ExtensionLoader.unload()
         Cursor.destroy()
         Engine.requestShutdown()
@@ -377,8 +376,6 @@ abstract class StudioBase(
     open var language = Language.get(Dict["en-US", "lang.spellcheck"])
 
     companion object {
-
-        var shallStop = false
 
         var instance: StudioBase? = null
 

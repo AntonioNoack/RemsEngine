@@ -71,9 +71,7 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
             duration = audioDuration
         } else if (file is ImageReadable) {
             val image = file.readImage()
-            hasVideo = true
-            videoWidth = image.width
-            videoHeight = image.height
+            setImage(image.width, image.height)
         } else when (val signature1 = signature ?: Signature.findNameSync(file)) {
             "gimp" -> {
                 // Gimp files are a special case, which is not covered by FFMPEG
@@ -139,6 +137,7 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
         videoWidth = w
         videoHeight = h
         videoFrameCount = 1
+        duration = Double.POSITIVE_INFINITY // actual value isn't really well-defined
     }
 
     fun loadFFMPEG() {

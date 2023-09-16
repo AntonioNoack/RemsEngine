@@ -141,7 +141,7 @@ fun createControls(
                 controls.onMouseMoved(0f, 0f, dx, dy)
             }
             if (Input.wasKeyPressed('v')) {
-                StudioBase.instance!!.toggleVsync()
+                StudioBase.instance?.toggleVsync()
             }
             val dw = Input.mouseWheelSumY - lz
             controls.onMouseWheel(0f, 0f, 0f, dw, true)

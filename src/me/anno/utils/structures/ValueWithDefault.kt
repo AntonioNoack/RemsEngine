@@ -40,15 +40,6 @@ class ValueWithDefault<V>(
         state = null
     }
 
-    /**
-     * sets the value for a slightly cleaner look
-     * (even if awkward)
-     * can be misleading in the context of numbers...
-     * */
-    operator fun timesAssign(value: V) {
-        this.value = value
-    }
-
     companion object {
         fun BaseWriter.writeMaybe(self: ISaveable?, name: String, value: ValueWithDefault<*>) {
             value.write(this, self, name)

@@ -4,6 +4,7 @@ import me.anno.Engine
 import me.anno.audio.streams.AudioStream
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.clamp
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.Codecs.audioCodecByExtension
@@ -47,7 +48,7 @@ abstract class AudioCreator(
         // add -shortest to use shortest...
         val rawFormat = "s16be"// signed, 16 bit, big endian
         val channels = "2" // stereo
-        val audioEncodingArguments = if (videoCreatorOutput.exists) {
+        val audioEncodingArguments = if (videoCreatorOutput != InvalidRef) {
             arrayListOf(
                 "-i", videoCreatorOutput.absolutePath,
                 "-f", rawFormat,
@@ -90,11 +91,11 @@ abstract class AudioCreator(
         val audioOutput = DataOutputStream(process.outputStream.buffered())
         createAudio(audioOutput)
 
-        LOGGER.info(if (videoCreatorOutput != null) "Saved video with audio to $output" else "Saved audio to $output")
+        LOGGER.info(if (videoCreatorOutput != InvalidRef) "Saved video with audio to $output" else "Saved audio to $output")
 
         // delete the temporary file
         //
-        if (videoCreatorOutput != null && deleteVCO) {
+        if (videoCreatorOutput != InvalidRef && deleteVCO) {
             // temporary file survives sometimes
             // -> kill it at the end at the very least
             if (!videoCreatorOutput.delete()) videoCreatorOutput.deleteOnExit()
