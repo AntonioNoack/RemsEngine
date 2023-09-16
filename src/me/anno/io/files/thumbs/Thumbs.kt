@@ -25,9 +25,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.GameEngineProject
 import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
@@ -54,9 +52,6 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.PipelineStage
-import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
@@ -89,8 +84,6 @@ import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.zip.InnerFolderCache
 import me.anno.maths.Maths.clamp
-import me.anno.mesh.MeshUtils
-import me.anno.mesh.MeshUtils.getScaleFromAABB
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
 import me.anno.utils.Color.black
@@ -126,6 +119,8 @@ import kotlin.math.*
 
 /**
  * creates and caches small versions of image and video resources
+ *
+ * todo materials look right, meshes have incorrectly blue background
  * */
 object Thumbs {
 
@@ -413,7 +408,7 @@ object Thumbs {
                 flipY, callback, w, h, render
             )
         } else {
-            GFX.addGPUTask("Thumbs.render($src)", w, h) {
+            addGPUTask("Thumbs.render($src)", w, h) {
                 renderToImagePart2(
                     src, checkRotation, dstFile, withDepth, renderer,
                     flipY, callback, w, h, render
@@ -644,7 +639,7 @@ object Thumbs {
             rv.pipeline.clear()
             rv.pipeline.fill(entity)
             rv.setRenderState()
-            rv.pipeline.draw()
+            rv.pipeline.drawWithoutSky()
         }
     }
 
@@ -740,60 +735,9 @@ object Thumbs {
         comp: Renderable,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-
-        // todo check that this is correct
-
-        // todo how could we wait for resources here?
-        /*comp.ensureBuffer()
-        val mesh = comp.getMesh() ?: return
-        mesh.checkCompleteness()
-        mesh.ensureBuffer()
-        waitForTextures(comp, mesh, srcFile)*/
-
-        val pipeline = Pipeline(null)
-        pipeline.defaultStage = PipelineStage(
-            "default", Sorting.FRONT_TO_BACK, 16,
-            null, DepthMode.CLOSER, true, CullMode.BACK, pbrModelShader
-        )
-
         val sampleEntity = Entity()
-        sampleEntity.add(comp as Component)
-
-        val cm = createCameraMatrix(1f)
-        val mm = createModelMatrix()
-
-        sampleEntity.validateAABBs()
-        mm.scale(getScaleFromAABB(sampleEntity.aabb))
-        MeshUtils.centerMesh(cm, mm, sampleEntity)
-
-        cm.mul(mm) // join matrices; is this order correct?
-
-        // todo set camera position
-        val cameraPosition = Vector3d()
-        val worldScale = 1.0
-
-        fun defineRenderState() {
-            // setup full render state
-            RenderState.cameraPosition.set(cameraPosition)
-            RenderState.worldScale = worldScale
-            RenderState.cameraMatrix.set(cm)
-            RenderState.cameraRotation.identity()
-                .rotateX((15.0).toRadians())// rotate it into a nice viewing angle
-                .rotateY((-25.0).toRadians())
-            RenderState.calculateDirections(true)
-            RenderState.fovYRadians = 1f
-        }
-
-        defineRenderState()
-        comp.fill(pipeline, sampleEntity, 0)
-
-        renderToImage(srcFile, false, dstFile, true, simpleNormalRenderer, true, callback, size, size) {
-            // setup full render state
-            defineRenderState()
-            GFXState.cullMode.use(CullMode.BOTH) {
-                pipeline.defaultStage.drawColors(pipeline)
-            }
-        }
+        sampleEntity.add((comp as Component).clone() as Component)
+        generateEntityFrame(srcFile, dstFile, size, sampleEntity, callback)
     }
 
     @JvmField

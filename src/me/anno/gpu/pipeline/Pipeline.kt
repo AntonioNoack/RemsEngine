@@ -219,6 +219,16 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         }
     }
 
+    fun drawWithoutSky() {
+        GFXState.currentBuffer.clearColor(0)
+        for (i in stages.indices) {
+            val stage = stages[i]
+            if (stage.size > 0) {
+                stage.bindDraw(this)
+            }
+        }
+    }
+
     fun drawSky(sky: SkyboxBase, stage: PipelineStage) {
         GFXState.depthMode.use(stage.depthMode) {
             GFXState.depthMask.use(false) {

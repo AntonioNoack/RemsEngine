@@ -58,9 +58,10 @@ object StaticMeshesLoader {
         return 1f / (shininessExponent * 0.01f + 1f)
     }
 
-    fun loadFile(file: FileReference, flags: Int): Pair<AIScene, Boolean> {
+    fun loadFile(file0: FileReference, flags: Int): Pair<AIScene, Boolean> {
         // obj files should use our custom importer
         // if (file.lcExtension == "obj") throw IllegalArgumentException()
+        var file = file0
         val sign = Signature.findNameSync(file)
         if (sign == "dae" && aiGetVersionMajor() < 5) {
             // Assimp 4.1 is extremely picky when parsing Collada XML for no valid reason
@@ -76,8 +77,7 @@ object StaticMeshesLoader {
             }
 
             val better = XMLWriter.write(clean(xml) as XMLNode, null, false)
-            val tmpFile = InnerTmpFile.InnerTmpTextFile(better)
-            return loadFile(tmpFile, flags)
+            file = InnerTmpFile.InnerTmpTextFile(better)
         }
 
         // we could load in parallel,
