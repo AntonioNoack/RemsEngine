@@ -963,7 +963,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
 
     override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
         if (force || values?.isNotEmpty() == true) {
-            if (values != null && values.isNotEmpty()) {
+            if (!values.isNullOrEmpty()) {
                 val firstType = values.first().className
                 val allSameType = values.all { it.className == firstType }
                 if (allSameType) {
@@ -987,7 +987,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         force: Boolean
     ) {
         if (force || values?.isNotEmpty() == true) {
-            if (values != null && values.isNotEmpty()) {
+            if (!values.isNullOrEmpty()) {
                 val firstType = values.first()?.className
                 val allSameType = values.all { it?.className == firstType }
                 if (firstType != null && allSameType) {
