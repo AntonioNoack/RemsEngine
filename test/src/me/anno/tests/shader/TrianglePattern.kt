@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.maths.Maths.hasFlag
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
 
@@ -38,10 +39,10 @@ fun main() {
                                 // occlusionCalculation +
                                 // metallicCalculation +
                                 // roughnessCalculation +
-                                reflectionPlaneCalculation +
                                 // v0 + sheenCalculation +
                                 // clearCoatCalculation +
-                                (if (motionVectors) finalMotionCalculation else "")
+                                reflectionCalculation +
+                                (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
                     )
                 )
             }

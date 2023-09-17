@@ -146,7 +146,7 @@ data class DeferredSettingsV2(
         fragmentVariables: List<Variable>,
         fragmentShader: String,
         textures: List<String>?,
-        postProcessing: ShaderStage?
+        postProcessing: List<ShaderStage>
     ): Shader {
         val vertex = if (instanced) "#define INSTANCED;\n$vertexShader" else vertexShader
         val builder = ShaderBuilder(shaderName, this)

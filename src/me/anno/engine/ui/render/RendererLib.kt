@@ -2,8 +2,10 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.components.light.LightType
 import me.anno.engine.pbr.PBRLibraryGLTF
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.gpu.pipeline.LightShaders.translucencyNL
 
+@Suppress("MayBeConstant")
 object RendererLib {
 
     val skyMapCode = "" +
@@ -22,6 +24,7 @@ object RendererLib {
             "   }\n"
 
     val lightCode = "" +
+            colorToLinear +
             "   vec3 V = normalize(-finalPosition);\n" +
             // light calculations
             "   float NdotV = abs(dot(finalNormal,V));\n" +
@@ -77,6 +80,7 @@ object RendererLib {
             // respect reflectionMap, todo multiple samples?
             // todo base LOD on roughness (and maybe metallic)
             // respect sky -> sky can be baked as reflectionMap, if we find none :)
+            colorToLinear +
             "   finalColor = diffuseColor * diffuseLight + specularLight;\n" +
             "   finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n"
 }

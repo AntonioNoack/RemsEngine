@@ -770,6 +770,17 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return false
     }
 
+    fun <V : Any> forAllComponents(
+        clazz: KClass<V>,
+        includingDisabled: Boolean = false,
+        callback: (V) -> Unit
+    ) {
+        anyComponent(clazz, includingDisabled) {
+            callback(it)
+            false
+        }
+    }
+
     fun <V : Any> anyComponentInChildren(
         clazz: KClass<V>,
         includingDisabled: Boolean = false,
@@ -792,13 +803,24 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return false
     }
 
+    fun <V : Any> forAllComponentsInChildren(
+        clazz: KClass<V>,
+        includingDisabled: Boolean = false,
+        callback: (V) -> Unit
+    ) {
+        anyComponentInChildren(clazz, includingDisabled) {
+            callback(it)
+            false
+        }
+    }
+
     fun <V : Any> sumComponents(
         clazz: KClass<V>,
         includingDisabled: Boolean = false,
-        test: (V) -> Int
-    ): Int {
+        test: (V) -> Long
+    ): Long {
         val components = components
-        var counter = 0
+        var counter = 0L
         for (index in components.indices) {
             val c = components[index]
             @Suppress("unchecked_cast")

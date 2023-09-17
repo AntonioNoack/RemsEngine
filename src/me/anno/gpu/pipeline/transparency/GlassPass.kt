@@ -1,5 +1,7 @@
 package me.anno.gpu.pipeline.transparency
 
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
@@ -38,23 +40,26 @@ class GlassPass : TransparentPass() {
     //  depth stays the same
 
     companion object {
+
         val GlassRenderer = object : Renderer(
             "glass", DeferredSettingsV2(
                 listOf(DeferredLayerType.COLOR, DeferredLayerType.EMISSIVE),
                 1, false
             )
         ) {
-            override fun getPostProcessing(flags: Int): ShaderStage {
-                val vars = pbrRenderer.getPostProcessing(flags)!!.variables.filter { !it.isOutput }
-                return ShaderStage("glass",
+            override fun getPostProcessing(flags: Int): List<ShaderStage> {
+                val vars = pbrRenderer.getPostProcessing(flags).first().variables.filter { !it.isOutput }
+                return listOf(ShaderStage("glass",
                     vars, "" +
+                            colorToLinear +
                             RendererLib.lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
                             RendererLib.combineLightCode +
                             RendererLib.skyMapCode +
+                            colorToSRGB +
                             "finalEmissive = finalColor * finalAlpha;\n" + // reflections
                             "finalColor = -log(finalColor0) * finalAlpha;\n" + // diffuse tinting ; todo light needs to get tinted by closer glass-panes...
                             "finalAlpha = 1.0;\n"
-                )
+                ))
             }
         }
 

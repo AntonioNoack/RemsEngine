@@ -15,7 +15,7 @@ import me.anno.gpu.texture.ITexture2D
 
 object RandomEffect : ColorMapEffect() {
 
-    const val randomFunc = "#define GET_RANDOM(co) fract(sin(dot((co).xy, vec2(12.9898,78.233))) * 43758.547)\n"
+    const val randomFunc = "\n#define GET_RANDOM(co) fract(sin(dot((co).xy, vec2(12.9898,78.233))) * 43758.547)\n"
 
     val randomShader = Shader(
         "random", coordsList, coordsVShader, uvList,

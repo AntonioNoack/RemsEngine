@@ -7,11 +7,9 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.Renderer
-import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.maths.Maths.PIf
-import me.anno.mesh.Shapes.flat11
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS.desktop
 import me.anno.utils.types.Floats.toRadians

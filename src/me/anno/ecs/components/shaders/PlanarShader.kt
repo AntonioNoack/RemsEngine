@@ -4,6 +4,7 @@ import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.maths.Maths.hasFlag
 
 object PlanarShader : ECSMeshShader("planar") {
 
@@ -37,10 +38,10 @@ object PlanarShader : ECSMeshShader("planar") {
                         occlusionCalculation +
                         metallicCalculation +
                         roughnessCalculation +
-                        reflectionPlaneCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
-                        (if (motionVectors) finalMotionCalculation else "")
+                        reflectionCalculation +
+                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
             )
         )
     }

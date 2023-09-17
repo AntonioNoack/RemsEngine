@@ -36,8 +36,8 @@ class Camera : Component() {
      * */
     var fovOrthographic = 5f
 
-    val bloomStrength = 0.5f
-    val bloomOffset = 25f
+    val bloomStrength = 0.001f
+    val bloomOffset = 0f
 
     /**
      * offset of the center relative to the screen center; in OpenGL coordinates [-1, +1]²

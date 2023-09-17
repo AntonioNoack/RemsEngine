@@ -80,7 +80,7 @@ class ShaderBuilder(val name: String) {
                 for (stage in fragment.stages) {
                     if (stage.variables.any { it.isInput && name == it.name }) {
                         // the stage uses it -> might be relevant
-                        if (stage.variables.any { it.isOutput && name == it.name }) {
+                        if (stage.variables.any { it.isModified && name == it.name }) {
                             // the stage also exports it ->
                             // LOGGER.info("Bridge is being created for $variable")
                             bridgeVariables[variable] =

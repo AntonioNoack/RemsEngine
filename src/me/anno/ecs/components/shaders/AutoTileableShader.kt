@@ -13,6 +13,7 @@ import me.anno.image.Image
 import me.anno.maths.Maths
 import me.anno.maths.Maths.erf
 import me.anno.maths.Maths.erfInv
+import me.anno.maths.Maths.hasFlag
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
@@ -121,10 +122,10 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  sampleAutoTileableTexture(metallicMap,  uv).r), 0.0, 1.0);\n" +
                         "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, sampleAutoTileableTexture(roughnessMap, uv).r), 0.0, 1.0);\n" +
                         // todo sample other properties well, too
-                        reflectionPlaneCalculation +
+                        reflectionCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
-                        (if (motionVectors) finalMotionCalculation else "")
+                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
             ).add(rgb2yuv).add(yuv2rgb).add(anisotropic16).add(noiseFunc)
                 .add(getTexture).add(sampleTile)
         )

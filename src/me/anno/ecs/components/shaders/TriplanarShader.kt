@@ -4,6 +4,7 @@ import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.maths.Maths.hasFlag
 
 object TriplanarShader : ECSMeshShader("triplanar") {
 
@@ -79,7 +80,6 @@ object TriplanarShader : ECSMeshShader("triplanar") {
                         "finalMetallic  = clamp(mix(metallicMinMax.x,metallicMinMax.y,LOAD_TRIPLANAR_TEXTURE(metallicMap,uvx,uvy,uvz).r),0.0,1.0);\n" +
                         // roughnessCalculation +
                         "finalRoughness = clamp(mix(roughnessMinMax.x,roughnessMinMax.y,LOAD_TRIPLANAR_TEXTURE(roughnessMap,uvx,uvy,uvz).r),0.0,1.0);\n" +
-                        reflectionPlaneCalculation +
                         v0 +
                         // sheenCalculation +
                         // sheen calculation
@@ -98,7 +98,8 @@ object TriplanarShader : ECSMeshShader("triplanar") {
                         "   finalSheen = sheen * pow(sheenFresnel, 3.0);\n" +
                         "} else finalSheen = 0.0;\n" +
                         clearCoatCalculation +
-                        (if (motionVectors) finalMotionCalculation else "")
+                        reflectionCalculation +
+                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
             )
         )
     }

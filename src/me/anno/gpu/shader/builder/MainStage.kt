@@ -303,7 +303,7 @@ class MainStage {
             val params = stage.variables
             // if this function defines a variable, which has been undefined before, define it
             for (param in params.sortedBy { it.type }) {
-                if (param.isOutput && param !in defined) {
+                if (param.isModified && param !in defined) {
                     // write default value if name matches deferred layer
                     // if the shader works properly, it is overridden anyway
                     val dlt = DeferredLayerType.byName[param.name]

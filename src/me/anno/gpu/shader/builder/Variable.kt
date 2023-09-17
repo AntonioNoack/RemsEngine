@@ -116,5 +116,6 @@ class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inO
     val isAttribute get() = inOutMode == VariableMode.ATTR
     val isInput get() = inOutMode != VariableMode.OUT
     val isOutput get() = inOutMode == VariableMode.OUT || inOutMode == VariableMode.INOUT
+    val isModified get() = inOutMode == VariableMode.OUT || inOutMode == VariableMode.INOUT || inOutMode == VariableMode.INMOD
 
 }

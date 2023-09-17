@@ -86,7 +86,7 @@ object MeshUtils {
         root.simpleTraversal(false) { entity ->
             entity as Entity
             val global = entity.transform.globalTransform
-            entity.anyComponent(MeshComponentBase::class, false) { comp ->
+            entity.forAllComponents(MeshComponentBase::class, false) { comp ->
                 val mesh = comp.getMesh()
                 if (mesh != null) {
                     mesh.getBounds()
@@ -102,8 +102,8 @@ object MeshUtils {
                         }
                     }
                 }
-                false
             }
+            false
         }
         return aabb
     }

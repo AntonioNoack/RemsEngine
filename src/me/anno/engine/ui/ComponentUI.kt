@@ -863,6 +863,8 @@ object ComponentUI {
 
             "File", "FileReference", "InvalidReference" -> {
                 value as FileReference
+                // todo if resource is located here, and we support the type, allow editing here directly
+                //  (Materials), #fileInputRightClickOptions
                 return FileInput(title, style, value, fileInputRightClickOptions).apply {
                     property.init(this)
                     setResetListener {

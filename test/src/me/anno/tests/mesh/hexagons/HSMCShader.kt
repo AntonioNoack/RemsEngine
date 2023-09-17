@@ -12,6 +12,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.image.ImageCPUCache
+import me.anno.maths.Maths.hasFlag
 import me.anno.utils.OS.pictures
 
 object HSMCShader : ECSMeshShader("hexagons") {
@@ -117,10 +118,10 @@ object HSMCShader : ECSMeshShader("hexagons") {
                     // occlusionCalculation +
                     // metallicCalculation +
                     // roughnessCalculation +
-                    reflectionPlaneCalculation +
                     // v0 + sheenCalculation +
                     // clearCoatCalculation +
-                    (if (motionVectors) finalMotionCalculation else "")
+                    reflectionCalculation +
+                    (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
         ).add(dither2x2))
     }
 }

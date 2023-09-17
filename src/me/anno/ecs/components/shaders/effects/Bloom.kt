@@ -16,9 +16,9 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
-import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -47,7 +47,7 @@ object Bloom {
     // temporary buffer for this object
     private val tmpForward = arrayOfNulls<Framebuffer>(maxSteps)
 
-    private fun forwardPass(source: ITexture2D, offset: Float): Int {
+    private fun forwardPass(source: ITexture2D, strength: Float, offset: Float): Int {
 
         var wi = source.width
         var hi = source.height
@@ -57,6 +57,7 @@ object Bloom {
         val shaderY = forwardShaderY
 
         shaderX.use()
+        shaderX.v1f("strength", strength)
         shaderX.v1f("offset", offset)
 
         val renderer = copyRenderer
@@ -90,7 +91,6 @@ object Bloom {
             // in the next steps with x use the actual shader,
             // which does not have the costly offset calculation
             shaderX = forwardShaderX
-
         }
         return maxSteps
     }
@@ -122,7 +122,7 @@ object Bloom {
         val factors = FloatArray(halfSegments + 1) { exp(factor0 * sq(it * f)) }
         val inv = factors.sum() * 2f - factors[0]
         blur.append(factors[0] / inv)
-        if (offset) blur.append("*minusOffset(texelFetch(tex,p,0).rgb)")
+        if (offset) blur.append("*loadColor(texelFetch(tex,p,0).rgb)")
         else blur.append("*texelFetch(tex,p,0).rgb")
         blur.append('\n')
         for (i in 1..halfSegments) {
@@ -131,12 +131,12 @@ object Bloom {
             val dyi = dy * i
             blur.append('+')
             blur.append(factor)
-            if (offset) blur.append("*(minusOffset(texelFetch(tex,p+ivec2(")
+            if (offset) blur.append("*(loadColor(texelFetch(tex,p+ivec2(")
             else blur.append("*(texelFetch(tex,p+ivec2(")
             blur.append(dxi)
             blur.append(",")
             blur.append(dyi)
-            if (offset) blur.append("),0).rgb)+minusOffset(texelFetch(tex,p-ivec2(")
+            if (offset) blur.append("),0).rgb)+loadColor(texelFetch(tex,p-ivec2(")
             else blur.append("),0).rgb+texelFetch(tex,p-ivec2(")
             blur.append(dxi)
             blur.append(",")
@@ -149,25 +149,29 @@ object Bloom {
             listOf(
                 Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
                 Variable(GLSLType.V1F, "offset"),
+                Variable(GLSLType.V1F, "strength"),
                 Variable(GLSLType.S2D, "tex")
             ), "" +
                     brightness +
                     "vec3 minusOffset(vec3 col){\n" +
-                    "   float length = brightness(col);\n" +
+                    "   float length = dot(col, vec3(0.299, 0.587, 0.114));\n" +
                     "   return length > offset ? col * (length-offset) / length : vec3(0);\n" +
+                    "}\n" +
+                    "vec3 loadColor(vec3 srgb){\n" +
+                    "   return pow(srgb,vec3(2.2));\n" +
                     "}\n" +
                     "void main(){\n" +
                     "   ivec2 p = ivec2(gl_FragCoord.x${if (dx == 0) "" else "*2.0"},gl_FragCoord.y${if (dy == 0) "" else "*2.0"});\n" +
-                    "   fragColor = vec4($blur, 1.0);\n" +
+                    (if (offset) "fragColor = vec4(minusOffset($blur) * strength, 1.0);\n" else
+                        "fragColor = vec4($blur, 1.0);\n") +
                     "}\n"
         )
     }
 
-    private fun addBloom(source: ITexture2D, bloom: ITexture2D, strength: Float, applyToneMapping: Boolean) {
+    private fun addBloom(source: ITexture2D, bloom: ITexture2D, applyToneMapping: Boolean) {
         val shader = compositionShader.value
         shader.use()
         shader.v1b("applyToneMapping", applyToneMapping)
-        shader.v1f("strength", strength)
         source.bindTrulyNearest(0)
         bloom.bind(1, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         flat01.draw(shader)
@@ -181,8 +185,7 @@ object Bloom {
         Shader(
             "bloom", coordsList, coordsVShader, uvList,
             listOf(
-                Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
-                Variable(GLSLType.V1F, "strength"),
+                Variable(GLSLType.V4F, "result", VariableMode.OUT),
                 Variable(GLSLType.V1B, "applyToneMapping"),
                 Variable(GLSLType.S2D, "base"),
                 Variable(GLSLType.S2D, "bloom")
@@ -190,31 +193,33 @@ object Bloom {
                     noiseFunc +
                     tonemapGLSL +
                     "void main(){\n" +
-                    "   vec4 color0 = texture(base,uv);\n" +
-                    "   vec3 color = color0.rgb + strength * texture(bloom, uv).rgb;\n" +
-                    "   if(applyToneMapping) color = tonemap(color) - random(uv) * ${1.0 / 255.0};\n" +
-                    "   fragColor = vec4(color.rgb, 1.0);\n" +
+                    "   vec3 color0 = pow(texture(base,uv).rgb,vec3(2.2));\n" +
+                    "   vec3 color1 = color0 + texture(bloom, uv).rgb;\n" +
+                    // todo noise should depend on used destination
+                    // - random(uv) * ${1.0 / 255.0}
+                    "   if(applyToneMapping) color1 = tonemapLinear(color1);\n" +
+                    "   color1 = pow(color1,vec3(1.0/2.2));\n" +
+                    "   result = vec4(color1.rgb, 1.0);\n" +
                     "}\n"
         ).apply { setTextureIndices("base", "bloom") }
     }
 
     fun bloom(source: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean) {
         renderPurely {
-            val steps = forwardPass(source, offset)
+            val steps = forwardPass(source, strength, offset)
             val bloom = backwardPass(steps)
-            addBloom(source, bloom, strength, applyToneMapping)
+            addBloom(source, bloom, applyToneMapping)
         }
     }
 
     fun bloom2(
         source: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean,
         dst: IFramebuffer = FBStack["bloom", source.width, source.height,
-                if (applyToneMapping) TargetType.UByteTarget4 else TargetType.FP16Target4, 1, false]
+            if (applyToneMapping) TargetType.UByteTarget4 else TargetType.FP16Target4, 1, false]
     ): IFramebuffer {
         useFrame(dst) {
             bloom(source, offset, strength, applyToneMapping)
         }
         return dst
     }
-
 }

@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline.transparency
 
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.combineLightCode
 import me.anno.engine.ui.render.RendererLib.lightCode
 import me.anno.engine.ui.render.RendererLib.skyMapCode
@@ -89,38 +90,43 @@ class WeightedBlended : TransparentPass() {
         }
 
         object Renderer0 : Renderer(name0, l01) {
-            override fun getPostProcessing(flags: Int): ShaderStage {
-                val vars = Renderers.pbrRenderer.getPostProcessing(flags)!!.variables.filter { !it.isOutput } +
+            override fun getPostProcessing(flags: Int): List<ShaderStage> {
+                val vars = Renderers.pbrRenderer.getPostProcessing(flags).first().variables.filter { !it.isOutput } +
                         listOf(
                             Variable(GLSLType.V4F, "result0", VariableMode.OUT),
                             Variable(GLSLType.V4F, "result1", VariableMode.OUT)
                         )
-                return ShaderStage(
-                    "wb-0", vars, "" +
-                            lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
-                            combineLightCode +
-                            skyMapCode + blendWeight +
-                            "finalColor *= finalAlpha;\n" +
-                            "result0 = vec4(finalColor, finalAlpha) * weight;\n" + // gl_FragData[0] = vec4(Ci, ai) * w(zi, ai);
-                            "result1 = vec4(finalAlpha);\n" // gl_FragData[1] = vec4(ai);
+                return listOf(
+                    ShaderStage(
+                        "wb-0", vars, "" +
+                                lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
+                                combineLightCode +
+                                skyMapCode + blendWeight +
+                                colorToSRGB +
+                                "finalColor *= finalAlpha;\n" +
+                                "result0 = vec4(finalColor, finalAlpha) * weight;\n" + // gl_FragData[0] = vec4(Ci, ai) * w(zi, ai);
+                                "result1 = vec4(finalAlpha);\n" // gl_FragData[1] = vec4(ai);
+                    )
                 )
             }
         }
 
         object Renderer1 : Renderer(name1, l01) {
-            override fun getPostProcessing(flags: Int): ShaderStage {
-                val vars = Renderers.pbrRenderer.getPostProcessing(flags)!!.variables.filter { !it.isOutput } +
+            override fun getPostProcessing(flags: Int): List<ShaderStage> {
+                val vars = Renderers.pbrRenderer.getPostProcessing(flags).first().variables.filter { !it.isOutput } +
                         listOf(
                             Variable(GLSLType.V4F, "result0", VariableMode.OUT),
                             Variable(GLSLType.V4F, "result1", VariableMode.OUT)
                         )
-                return ShaderStage(
-                    "wb-1", vars, "" +
-                            lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
-                            combineLightCode +
-                            skyMapCode + blendWeight +
-                            "result0 = vec4(finalColor * weight, finalAlpha);\n" +  // gl_FragData[0] = vec4(Ci * w(zi, ai), ai);
-                            "result1 = vec4(finalAlpha * weight,0,0,1);\n" // gl_FragData[1].r = ai * w(zi, ai);
+                return listOf(
+                    ShaderStage(
+                        "wb-1", vars, "" +
+                                lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
+                                combineLightCode +
+                                skyMapCode + blendWeight +
+                                "result0 = vec4(finalColor * weight, finalAlpha);\n" +  // gl_FragData[0] = vec4(Ci * w(zi, ai), ai);
+                                "result1 = vec4(finalAlpha * weight,0,0,1);\n" // gl_FragData[1].r = ai * w(zi, ai);
+                    )
                 )
             }
         }
@@ -168,5 +174,4 @@ class WeightedBlended : TransparentPass() {
             flat01.draw(shader)
         }
     }
-
 }

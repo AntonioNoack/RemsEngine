@@ -53,12 +53,11 @@ class TestVehicleController : Component(), ControlReceiver {
         lastSteering = Maths.mix(lastSteering, steeringSum, factor)
         lastBrake = brakeForcePerWheel
 
-        entity?.anyComponentInChildren(VehicleWheel::class) {
+        entity?.forAllComponentsInChildren(VehicleWheel::class) {
             it.steering = lastSteering * it.steeringMultiplier
             it.brakeForce = lastBrake * it.brakeForceMultiplier
             // bullet engine refused to brake, if the motor is running
             it.engineForce = if (it.brakeForce > 0.0) 0.0 else lastForce * it.engineForceMultiplier
-            false
         }
         return true
     }

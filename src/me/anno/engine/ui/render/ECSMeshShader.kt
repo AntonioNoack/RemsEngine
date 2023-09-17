@@ -16,6 +16,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.ecs.components.anim.BoneData.maxBones
+import me.anno.gpu.shader.ShaderLib.brightness
 import kotlin.math.max
 
 open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
@@ -51,6 +52,20 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "}\n" +
                     "mat4x3 getAnimMatrix(int boneIndex){ return getAnimMatrix(boneIndex, animIndices, animWeights); }\n"
 
+        val colorToSRGB = "" +
+                "#ifdef IS_LINEAR\n" +
+                "   finalColor = pow(finalColor,vec3(1.0/2.2));\n" +
+                "   finalEmissive = pow(finalEmissive,vec3(1.0/2.2));\n" +
+                "   #undef IS_LINEAR\n" +
+                "#endif\n"
+
+        val colorToLinear = "" +
+                "#ifndef IS_LINEAR\n" +
+                "   finalColor = pow(finalColor,vec3(2.2));\n" +
+                "   finalEmissive = pow(finalEmissive,vec3(2.2));\n" +
+                "   #define IS_LINEAR\n" +
+                "#endif\n"
+
         val discardByCullingPlane = "if(dot(vec4(finalPosition, 1.0), reflectionCullingPlane) < 0.0) discard;\n"
 
         val v0 = "vec3 V0 = normalize(-finalPosition);\n"
@@ -71,6 +86,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "} else finalSheen = 0.0;\n"
 
         val clearCoatCalculation = "" +
+                colorToSRGB +
                 "if(finalClearCoat.w > 0.0){\n" +
                 // cheap clear coat effect
                 "   float fresnel = 1.0 - abs(dot(finalNormal,V0));\n" +
@@ -92,12 +108,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "       vec2 uv7 = gl_FragCoord.xy/renderSize;\n" +
                 "       uv7.y = 1.0-uv7.y;\n" + // flipped on y-axis to save reprogramming of culling
                 "       vec3 specularColor = finalColor;\n" + // could be changed
-                "       vec3 newColor = vec3(0.0);\n" +
                 "       float lod = finalRoughness * 10.0;\n" +
                 "       vec2 duv0 = 1.0 / vec2(textureSize(reflectionPlane,int(lod))), duv1 = vec2(duv0.x,-duv0.y),\n" +
                 "           du0 = vec2(duv0.x,0.0), dv0 = vec2(0.0,duv0.y);\n" +
                 // todo don't blur for sharpest reflections
-                "       vec3 newEmissive = specularColor * (\n" +
+                "       vec3 skyEmissive = specularColor * pow((\n" +
                 "           textureLod(reflectionPlane, uv7, lod).rgb * 4.0 +\n" +
                 "          (textureLod(reflectionPlane, uv7 + du0, lod).rgb +\n" +
                 "           textureLod(reflectionPlane, uv7 - du0, lod).rgb +\n" +
@@ -106,10 +121,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "          (textureLod(reflectionPlane, uv7 + duv0, lod).rgb +\n" +
                 "           textureLod(reflectionPlane, uv7 - duv0, lod).rgb +\n" +
                 "           textureLod(reflectionPlane, uv7 + duv1, lod).rgb +\n" +
-                "           textureLod(reflectionPlane, uv7 - duv1, lod).rgb)\n" +
-                "       ) * 0.06125;\n" +
-                "       finalEmissive  = mix(finalEmissive, newEmissive, factor);\n" +
-                "       finalColor     = mix(finalColor, newColor, factor);\n" +
+                "           textureLod(reflectionPlane, uv7 - duv1, lod).rgb)) * 0.06125, vec3(2.2));\n" +
+                "       finalEmissive += skyEmissive * factor;\n" +
+                "       finalColor    *= 1.0 - factor;\n" +
+                // prevents reflection map and SSR from being applied
                 "       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +
                 "       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
                 "   }\n" +
@@ -123,13 +138,22 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 // todo why do I need to flip x here???
                 "       vec3 dir = vec3(-1,1,1) * reflect(V0, finalNormal);\n" +
                 "       vec3 newColor = vec3(0.0);\n" +
-                "       vec3 newEmissive = texture(reflectionMap, dir).rgb;\n" +
-                "       finalEmissive  = mix(finalEmissive, newEmissive, factor);\n" +
-                "       finalColor     = mix(finalColor, newColor, factor);\n" +
-                "       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +
-                "       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
+                // texture is SRGB -> convert to linear
+                "       vec3 skyEmissive = pow(texture(reflectionMap, dir).rgb, vec3(2.2));\n" +
+                "       finalEmissive += finalColor * skyEmissive * factor;\n" +
+                // doing this would make SSR reflect the incorrect color
+                // "       finalColor    *= 1.0 - factor;\n" +
+                // doing this would disable SSR
+                //"       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +
+                //"       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
                 "   }\n" +
-                "#endif\n"
+               "#endif\n" +
+                ""
+
+        val reflectionCalculation = "" +
+                colorToLinear +
+                reflectionPlaneCalculation +
+                reflectionMapCalculation
 
         val normalMapCalculation = "" +
                 // bitangent: checked, correct transform
@@ -299,14 +323,14 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
     }
 
-    open fun createBase(flags: Int, postProcessing: ShaderStage?): ShaderBuilder {
+    open fun createBase(flags: Int, postProcessing: List<ShaderStage>): ShaderBuilder {
         val builder = createBuilder()
         builder.addVertex(
             createVertexStages(flags)
         )
         builder.addVertex(createRandomIdStage())
         builder.addFragment(createFragmentStages(flags))
-        if (postProcessing != null) builder.addFragment(postProcessing)
+        builder.addFragment(postProcessing)
         return builder
     }
 
@@ -396,7 +420,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             // Variable(GLSLType.V4F, "weight", false),
         }
 
-        if (motionVectors) {
+        if (flags.hasFlag(NEEDS_MOTION_VECTORS)) {
             variables += Variable(GLSLType.M4x4, "prevTransform")
             if (isInstanced) {
                 variables += Variable(GLSLType.V3F, "instancePrevTrans0", VariableMode.ATTR)
@@ -537,10 +561,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         roughnessCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
-                        reflectionPlaneCalculation +
-                        reflectionMapCalculation +
-                        (if (motionVectors) finalMotionCalculation else "")
-            ).add(quatRot).add(parallaxMapping)
+                        reflectionCalculation +
+                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+            ).add(quatRot).add(brightness).add(parallaxMapping)
         )
     }
 
@@ -559,13 +582,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return shader
     }
 
-    override fun createForwardShader(flags: Int, postProcessing: ShaderStage?): Shader {
+    override fun createForwardShader(flags: Int, postProcessing: List<ShaderStage>): Shader {
         val shader = createBase(flags, postProcessing).create("fwd$flags")
         finish(shader)
         return shader
     }
 
-    override fun createDeferredShader(deferred: DeferredSettingsV2, flags: Int, postProcessing: ShaderStage?): Shader {
+    override fun createDeferredShader(deferred: DeferredSettingsV2, flags: Int, postProcessing: List<ShaderStage>): Shader {
         val base = createBase(flags, postProcessing)
         base.outputs = deferred
         // build & finish

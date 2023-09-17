@@ -20,6 +20,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.InvalidRef
+import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes.flat11
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
@@ -132,10 +133,9 @@ val sdfShader = object : ECSMeshShader("SDF") {
                         roughnessCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
-                        reflectionPlaneCalculation +
-                        reflectionMapCalculation +
-                        (if (motionVectors) finalMotionCalculation else "")
-            ).add(ShaderLib.quatRot).add(ShaderLib.parallaxMapping)
+                        reflectionCalculation +
+                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+            ).add(ShaderLib.quatRot).add(ShaderLib.brightness).add(ShaderLib.parallaxMapping)
         )
     }
 }
@@ -170,10 +170,9 @@ val sdfAvgShader = object : ECSMeshShader("SDF-AVG") {
                         roughnessCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
-                        reflectionPlaneCalculation +
-                        reflectionMapCalculation +
-                        (if (motionVectors) finalMotionCalculation else "")
-            ).add(ShaderLib.quatRot).add(ShaderLib.parallaxMapping)
+                        reflectionCalculation +
+                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+            ).add(ShaderLib.quatRot).add(ShaderLib.brightness).add(ShaderLib.parallaxMapping)
         )
     }
 }

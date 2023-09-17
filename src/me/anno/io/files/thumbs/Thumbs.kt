@@ -565,9 +565,7 @@ object Thumbs {
     ) {
         val data = waitUntilDefined(true) {
             PrefabCache[srcFile, maxPrefabDepth, true]
-            // loadVOX(srcFile, null)
         }.getSampleInstance() as Entity
-        // generateFrame(dstFile, data, size, previewRenderer, true, callback)
         generateEntityFrame(srcFile, dstFile, size, data, callback)
     }
 
@@ -576,17 +574,17 @@ object Thumbs {
         srcFile: FileReference,
         dstFile: FileReference,
         size: Int,
-        entity: Entity,
+        scene: Entity,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
         // todo draw gui (colliders), entity positions
         for (i in 0 until 3) { // make sure both are loaded
-            waitForMeshes(entity)
-            waitForTextures(entity, srcFile)
+            waitForMeshes(scene)
+            waitForTextures(scene, srcFile)
         }
-        entity.validateTransform()
-        entity.validateAABBs()
-        val bounds = entity.aabb
+        scene.validateTransform()
+        scene.validateAABBs()
+        val bounds = scene.aabb
         renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
             val rv = rv
             val cam = rv.editorCamera
@@ -618,9 +616,9 @@ object Thumbs {
                         visualBounds.union(vec0.x * invZ, vec0.y * invZ, invZ)
                     }
                 }
-                entity.forAll {
+                scene.forAll {
                     when (it) {
-                        is MeshComponentBase -> addMesh(it.getMesh(), it.transform ?: entity.transform)
+                        is MeshComponentBase -> addMesh(it.getMesh(), it.transform ?: scene.transform)
                         is MeshSpawner -> it.forEachMesh { mesh, _, transform ->
                             addMesh(mesh, transform)
                         }
@@ -637,7 +635,7 @@ object Thumbs {
             rv.prepareDrawScene(size, size, 1f, cam, cam, 0f, false)
             // don't use EditorState
             rv.pipeline.clear()
-            rv.pipeline.fill(entity)
+            rv.pipeline.fill(scene)
             rv.setRenderState()
             rv.pipeline.drawWithoutSky()
         }
@@ -654,7 +652,7 @@ object Thumbs {
         val sky = SkyboxBase()
         // todo why is this not working???
         sky.material.shaderOverrides["finalAlpha"] = TypeValue(GLSLType.V1F, 0f)
-        rv.pipeline.skyBox = sky
+        rv.pipeline.skybox = sky
         rv
     }
 
@@ -735,9 +733,9 @@ object Thumbs {
         comp: Renderable,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        val sampleEntity = Entity()
-        sampleEntity.add((comp as Component).clone() as Component)
-        generateEntityFrame(srcFile, dstFile, size, sampleEntity, callback)
+        val entity = Entity()
+        entity.add((comp as Component).clone() as Component)
+        generateEntityFrame(srcFile, dstFile, size, entity, callback)
     }
 
     @JvmField
@@ -1041,7 +1039,7 @@ object Thumbs {
                         false
                     } else {
                         val rotation = ImageData.getRotation(srcFile)
-                        GFX.addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
+                        addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
                             val texture = Texture2D(srcFile.name, image.toImage(), true)
                             texture.rotation = rotation
                             callback(texture, null)
@@ -1134,7 +1132,7 @@ object Thumbs {
         HashMap<String, (FileReference, FileReference, Int, (ITexture2D?, Exception?) -> Unit) -> Unit>()
 
     @JvmStatic
-    fun register(
+    fun registerSignature(
         signature: String,
         reader: (srcFile: FileReference, dstFile: FileReference, size: Int, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
     ) {
@@ -1142,34 +1140,34 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun unregister(signature: String) {
+    fun unregisterSignature(signature: String) {
         readerBySignature.remove(signature)
     }
 
     @JvmStatic
-    fun register2(
-        signature: String,
+    fun registerExtension(
+        extension: String,
         reader: (srcFile: FileReference, dstFile: FileReference, size: Int, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
     ) {
-        readerByExtension[signature] = reader
+        readerByExtension[extension] = reader
     }
 
     @JvmStatic
-    fun unregister2(signature: String) {
+    fun unregisterExtension(signature: String) {
         readerByExtension.remove(signature)
     }
 
     init {
-        register("vox") { srcFile, dstFile, size, callback ->
+        registerSignature("vox") { srcFile, dstFile, size, callback ->
             generateVOXMeshFrame(srcFile, dstFile, size, callback)
         }
-        register("hdr") { srcFile, dstFile, size, callback ->
+        registerSignature("hdr") { srcFile, dstFile, size, callback ->
             val src = HDRImage(srcFile)
             findScale(src, srcFile, size, callback) { dst ->
                 saveNUpload(srcFile, false, dstFile, dst, callback)
             }
         }
-        register("jpg") { srcFile, dstFile, size, callback ->
+        registerSignature("jpg") { srcFile, dstFile, size, callback ->
             JPGThumbnails.extractThumbnail(srcFile) { bytes ->
                 if (bytes != null) {
                     try {
@@ -1181,7 +1179,7 @@ object Thumbs {
                 } else generateImage(srcFile, dstFile, size, callback)
             }
         }
-        register("ico") { srcFile, dstFile, size, callback ->
+        registerSignature("ico") { srcFile, dstFile, size, callback ->
             // for ico we could find the best image from looking at the headers
             srcFile.inputStream { it, exc ->
                 if (it != null) {
@@ -1190,34 +1188,34 @@ object Thumbs {
                 } else exc?.printStackTrace()
             }
         }
-        register("png", ::generateImage)
-        register("bmp", ::generateImage)
-        register("psd", ::generateImage)
-        register("qoi", ::generateImage)
-        register("ttf", ::generateFontPreview)
-        register("woff1", ::generateFontPreview)
-        register("woff2", ::generateFontPreview)
-        register("dds", ::generateVideoFrame0)
-        register2("dds", ::generateVideoFrame0)
-        register2("webp", ::generateVideoFrame0)
-        register("media") { srcFile, dstFile, size, callback ->
+        registerSignature("png", ::generateImage)
+        registerSignature("bmp", ::generateImage)
+        registerSignature("psd", ::generateImage)
+        registerSignature("qoi", ::generateImage)
+        registerSignature("ttf", ::generateFontPreview)
+        registerSignature("woff1", ::generateFontPreview)
+        registerSignature("woff2", ::generateFontPreview)
+        registerSignature("dds", ::generateVideoFrame0)
+        registerExtension("dds", ::generateVideoFrame0)
+        registerExtension("webp", ::generateVideoFrame0)
+        registerSignature("media") { srcFile, dstFile, size, callback ->
             generateVideoFrame(srcFile, dstFile, size, callback, 1.0)
         }
-        register("blend", ::generateSomething)
-        register("mitsuba-scene", ::generateSomething)
-        register("mitsuba-meshes", ::generateSomething)
-        register("exe", ::generateSystemIcon)
-        register2("obj", ::generateSomething)
-        register2("fbx", ::generateSomething)
-        register2("gltf", ::generateSomething)
-        register2("glb", ::generateSomething)
-        register2("dae", ::generateSomething)
-        register2("md2", ::generateSomething)
-        register2("md5mesh", ::generateSomething)
-        register2("svg", ::generateSVGFrame)
-        register2("txt", ::generateTextImage)
-        register2("html", ::generateTextImage)
-        register2("md", ::generateTextImage)
+        registerSignature("blend", ::generateSomething)
+        registerSignature("mitsuba-scene", ::generateSomething)
+        registerSignature("mitsuba-meshes", ::generateSomething)
+        registerSignature("exe", ::generateSystemIcon)
+        registerExtension("obj", ::generateSomething)
+        registerExtension("fbx", ::generateSomething)
+        registerExtension("gltf", ::generateSomething)
+        registerExtension("glb", ::generateSomething)
+        registerExtension("dae", ::generateSomething)
+        registerExtension("md2", ::generateSomething)
+        registerExtension("md5mesh", ::generateSomething)
+        registerExtension("svg", ::generateSVGFrame)
+        registerExtension("txt", ::generateTextImage)
+        registerExtension("html", ::generateTextImage)
+        registerExtension("md", ::generateTextImage)
     }
 
     fun generateVideoFrame0(
@@ -1472,7 +1470,7 @@ object Thumbs {
                         val sy = monospaceFont.sizeInt
                         val w = (length + 1) * sx
                         val h = (lines.size + 1) * sy
-                        GFX.addGPUTask("textThumbs", w, h) {
+                        addGPUTask("textThumbs", w, h) {
                             val tex = Framebuffer(
                                 "textThumbs", w, h, 1,
                                 arrayOf(TargetType.UByteTarget3), DepthBufferType.NONE

@@ -69,7 +69,7 @@ open class BaseShader(
     /** shader for forward rendering */
     open fun createForwardShader(
         flags: Int,
-        postProcessing: ShaderStage?,
+        postProcessing: List<ShaderStage>,
     ): Shader {
 
         var extraStage: ShaderStage? = null
@@ -174,7 +174,7 @@ open class BaseShader(
     open fun createDeferredShader(
         deferred: DeferredSettingsV2,
         flags: Int,
-        postProcessing: ShaderStage?,
+        postProcessing: List<ShaderStage>,
     ): Shader {
         val shader = deferred.createShader(
             name,
@@ -217,7 +217,6 @@ open class BaseShader(
     }
 
     open fun createDefines(flags: Int, dst: StringBuilder = StringBuilder()): StringBuilder {
-        dst.append(matMul)
         if (flags.hasFlag(IS_INSTANCED)) dst.append("#define INSTANCED\n")
         if (flags.hasFlag(IS_ANIMATED)) dst.append("#define ANIMATED\n")
         if (flags.hasFlag(IS_DEFERRED)) dst.append("#define DEFERRED\n")

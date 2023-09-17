@@ -104,7 +104,7 @@ open class Shader(
         for (v in vertexVariables) {
             val prefix = when (v.inOutMode) {
                 VariableMode.ATTR -> attribute
-                VariableMode.IN, VariableMode.INOUT -> "uniform"
+                VariableMode.IN, VariableMode.INOUT, VariableMode.INMOD -> "uniform"
                 VariableMode.OUT -> "out"
             }
             v.declare(builder, prefix, false)
@@ -160,7 +160,7 @@ open class Shader(
             }
         }) {
             val prefix = when (v.inOutMode) {
-                VariableMode.IN, VariableMode.INOUT -> "uniform"
+                VariableMode.IN, VariableMode.INOUT, VariableMode.INMOD -> "uniform"
                 VariableMode.ATTR -> throw IllegalArgumentException("Fragment variable must not have type ATTR")
                 VariableMode.OUT -> {
                     val slot = if (v.slot < 0) outCtr else v.slot

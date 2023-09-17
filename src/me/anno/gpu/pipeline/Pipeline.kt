@@ -86,8 +86,8 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
 
     val ambient = Vector3f()
 
-    var skyBox: SkyboxBase = defaultSky
-    var bakedSkyBox: CubemapFramebuffer? = null
+    var skybox: SkyboxBase = defaultSky
+    var bakedSkybox: CubemapFramebuffer? = null
 
     val planarReflections = ArrayList<PlanarReflection>()
 
@@ -189,19 +189,22 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
     var transparentPass: TransparentPass = GlassPass()
 
     override fun destroy() {
-        bakedSkyBox?.destroy()
-        bakedSkyBox = null
+        bakedSkybox?.destroy()
+        bakedSkybox = null
         transparentPass.destroy()
     }
 
+    fun hasTransparentPart(): Boolean {
+        return GFXState.currentRenderer.deferredSettings != null &&
+                stages.any2 { it.blendMode != null && it.size > 0 } &&
+                GFXState.currentBuffer.numTextures >= 2
+    }
+
     fun draw() {
-        if (GFXState.currentRenderer.deferredSettings != null &&
-            stages.any2 { it.blendMode != null && it.size > 0 } &&
-            GFXState.currentBuffer.numTextures >= 2
-        ) {
-            transparentPass.draw0(this)
+        if (hasTransparentPart()) {
+            transparentPass.draw0(this, true)
         } else {
-            val sky = skyBox
+            val sky = skybox
             var hasDrawnSky = false
             for (i in stages.indices) {
                 val stage = stages[i]
@@ -220,11 +223,16 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
     }
 
     fun drawWithoutSky() {
-        GFXState.currentBuffer.clearColor(0)
-        for (i in stages.indices) {
-            val stage = stages[i]
-            if (stage.size > 0) {
-                stage.bindDraw(this)
+        if (hasTransparentPart()) {
+            // todo test this
+            transparentPass.draw0(this, false)
+        } else {
+            GFXState.currentBuffer.clearColor(0)
+            for (i in stages.indices) {
+                val stage = stages[i]
+                if (stage.size > 0) {
+                    stage.bindDraw(this)
+                }
             }
         }
     }

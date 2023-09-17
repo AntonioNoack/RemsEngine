@@ -63,7 +63,12 @@ class FSR2 {
     var hdrColorInput = true
 
     // similar to Reinhard tonemapping
-    val tonemap = "vec3 tonemap(vec3 rgb){ return rgb/(1.0 + max(max(0.0,rgb.r),max(rgb.g,rgb.b))); }\n"
+    val tonemap = "" +
+            "vec3 tonemap(vec3 color){\n" +
+            "   float maxTerm = max(max(0.0,color.r),max(color.g,color.b));\n" +
+            "   return color/(1.0 + maxTerm);\n" +
+            "}\n"
+    // todo inv tonemap isn't completely correct anymore
     val invTonemap = "vec3 invTonemap(vec3 rgb){ return rgb / max(0.001, 1.0-max(rgb.r,max(rgb.g,rgb.b))); }\n"
 
     lateinit var prevDepth: Texture2D
@@ -119,7 +124,6 @@ class FSR2 {
 
         prevExposure.ensure()
         currExposure.ensure()
-
     }
 
     fun calculate(
@@ -738,5 +742,4 @@ class FSR2 {
         }
         GFX.check()
     }
-
 }

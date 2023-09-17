@@ -349,11 +349,11 @@ class PipelineStage(
                     else Double.POSITIVE_INFINITY
                 }
             } else null
-            val bakedSkyBox = (map?.texture ?: pipeline.bakedSkyBox)?.getTexture0() ?: blackCube
+            val bakedSkyBox = (map?.texture ?: pipeline.bakedSkybox)?.getTexture0() ?: blackCube
             // todo bug: mipmaps are not updating automatically :/
             bakedSkyBox.bind(
                 envMapSlot,
-                GPUFiltering.TRULY_NEAREST,
+                GPUFiltering.TRULY_LINEAR,
                 Clamping.CLAMP
             ) // clamping doesn't really apply here
         }

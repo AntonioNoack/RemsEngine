@@ -10,7 +10,7 @@ import me.anno.ecs.components.camera.effects.SSAOEffect
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.components.shaders.Skybox
+import me.anno.ecs.components.shaders.SkyboxBase
 import me.anno.ecs.components.shaders.effects.*
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
@@ -81,6 +81,7 @@ import me.anno.ui.debug.FrameTimings
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
@@ -117,9 +118,9 @@ import kotlin.math.tan
  * */
 open class RenderView(val library: EditorState, var playMode: PlayMode, style: Style) : Panel(style) {
 
-    private var bloomStrength = 0.5f // defined by the camera
-    private var bloomOffset = 1f // defined by the camera
-    private val useBloom get() = bloomOffset > 0f && renderMode != RenderMode.WITHOUT_POST_PROCESSING
+    private var bloomStrength = 0f // defined by the camera
+    private var bloomOffset = 0f // defined by the camera
+    private val useBloom get() = bloomStrength > 0f && renderMode != RenderMode.WITHOUT_POST_PROCESSING
 
     private val ssao = SSAOEffect()
 
@@ -383,18 +384,17 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 else -> base1Buffer
             }
 
-            if (renderer == pbrRenderer ||
-                pipeline.lightStage.environmentMaps.isNotEmpty() ||
-                (renderMode.dlt == null && renderMode.effect == null)
-            ) {
-                if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
-                    this.renderMode = RenderMode.DEFAULT
+            // blacklist for renderModes?
+            if (renderMode.dlt == null && when (renderMode) {
+                    RenderMode.LIGHT_SUM, RenderMode.LIGHT_COUNT,
+                    RenderMode.LIGHT_SUM_MSAA -> false
+                    else -> true
                 }
+            ) {
                 bakeSkybox()
-                this.renderMode = renderMode
             } else {
-                pipeline.bakedSkyBox?.destroy()
-                pipeline.bakedSkyBox = null
+                pipeline.bakedSkybox?.destroy()
+                pipeline.bakedSkybox = null
             }
 
             drawScene(
@@ -440,13 +440,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             pushBetterBlending(true)
             val drawnPrimitives = PipelineStage.drawnPrimitives - drawnPrimitives0
             val drawCalls = PipelineStage.drawCalls - drawCalls0
+            val usesBetterBlending = DrawTexts.canUseComputeShader()
             drawSimpleTextCharByChar(
-                x + DrawTexts.monospaceFont.sizeInt / 4,
+                x + 2,
                 y + height - 1 - DrawTexts.monospaceFont.sizeInt,
-                0, if (drawCalls == 1L) "$drawnPrimitives tris, 1 draw call"
+                2, if (drawCalls == 1L) "$drawnPrimitives tris, 1 draw call"
                 else "$drawnPrimitives tris, $drawCalls draw calls",
                 FrameTimings.textColor,
-                FrameTimings.backgroundColor and 0xffffff
+                FrameTimings.backgroundColor.withAlpha(if(usesBetterBlending) 0 else 255)
             )
             popBetterBlending(pbb)
         }
@@ -462,14 +463,18 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     private val fsr22 by lazy { FSR2v2() }
 
     fun bakeSkybox() {
-        val bsb = pipeline.bakedSkyBox ?: CubemapFramebuffer(
+        val renderMode = renderMode
+        if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
+            this.renderMode = RenderMode.DEFAULT
+        }
+        val framebuffer = pipeline.bakedSkybox ?: CubemapFramebuffer(
             "skyBox", 256, 1,
             arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
         )
-        bsb.draw(rawAttributeRenderers[DeferredLayerType.EMISSIVE]) { side ->
+        framebuffer.draw(rawAttributeRenderers[DeferredLayerType.EMISSIVE]) { side ->
             val skyRot = JomlPools.quat4f.create()
             val cameraMatrix = JomlPools.mat4f.create()
-            val sky = pipeline.skyBox
+            val sky = pipeline.skybox
             // draw sky
             // could be optimized to draw a single triangle instead of a full cube for each side
             rotateForCubemap(skyRot.identity(), side)
@@ -488,11 +493,15 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             shader.v3f("cameraPosition", cameraPosition)
             shader.v4f("cameraRotation", cameraRotation)
             shader.v1f("camScale", worldScale.toFloat())
+            shader.v1f("meshScale", 1f)
+            shader.v1b("isPerspective", false)
+            shader.v1b("reversedDepth", false) // depth doesn't matter
             sky.draw(shader, 0)
             JomlPools.quat4f.sub(1)
             JomlPools.mat4f.sub(1)
         }
-        pipeline.bakedSkyBox = bsb
+        pipeline.bakedSkybox = framebuffer
+        this.renderMode = renderMode
     }
 
     fun drawScene(
@@ -1104,8 +1113,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             mix(previousCamera.fovOrthographic, camera.fovOrthographic, blending)
         }
 
-        bloomOffset = mix(previousCamera.bloomOffset, camera.bloomOffset, blendF)
         bloomStrength = mix(previousCamera.bloomStrength, camera.bloomStrength, blendF)
+        bloomOffset = mix(previousCamera.bloomOffset, camera.bloomOffset, blendF)
 
         val centerX = mix(previousCamera.center.x, camera.center.x, blendF)
         val centerY = mix(previousCamera.center.x, camera.center.y, blendF)
@@ -1282,7 +1291,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     fun clearColorOrSky(cameraMatrix: Matrix4f) {
         GFXState.depthMode.use(DepthMode.ALWAYS) {
-            val sky = pipeline.skyBox
+            val sky = pipeline.skybox
             val renderMode1 = renderMode
             if (renderMode1 == RenderMode.LINES || renderMode1 == RenderMode.LINES_MSAA) {
                 this.renderMode = RenderMode.DEFAULT
@@ -1368,7 +1377,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             for (selected in library.selection) {
                 when (selected) {
                     is Entity -> drawOutline(selected)
-                    is Skybox -> {}
+                    is SkyboxBase -> {}
                     is MeshComponentBase -> {
                         val mesh = selected.getMesh() ?: continue
                         drawOutline(selected, mesh)

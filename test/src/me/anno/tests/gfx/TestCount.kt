@@ -18,10 +18,9 @@ fun main() {
     var sum = 0L
     entity.simpleTraversal {
         if (it is Entity) {
-            it.anyComponent(MeshComponent::class) { mesh ->
+            sum += it.sumComponents(MeshComponent::class) { mesh ->
                 val mesh2 = MeshCache[mesh.meshFile]!!
-                sum += mesh2.numPrimitives
-                false
+                mesh2.numPrimitives
             }
         }
         false

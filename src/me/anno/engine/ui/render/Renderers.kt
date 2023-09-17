@@ -4,6 +4,8 @@ import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.combineLightCode
 import me.anno.engine.ui.render.RendererLib.lightCode
 import me.anno.engine.ui.render.RendererLib.skyMapCode
@@ -39,9 +41,24 @@ object Renderers {
     // reinhard tonemapping works often, but not always: {0,1}³ does not work, add spilling somehow
     // also maybe it should be customizable...
 
+    val finalResultStage = ShaderStage(
+        "finalResult",
+        listOf(Variable(GLSLType.V4F, "finalResult", VariableMode.INOUT)), ""
+    )
+
     @JvmField
     var tonemapGLSL = "" +
-            "vec3 tonemap(vec3 color){ return color / (1.0 + max(max(color.r, color.g), max(color.b, 0.0))); }\n" +
+            "vec3 tonemapLinear(vec3 color){\n" +
+            "   float maxTerm = max(max(color.r, color.g), color.b);\n" +
+            "   color = mix(vec3(1.0), color / (1.0 + maxTerm), exp(-maxTerm * maxTerm * 0.01));\n" +
+            "   return color;\n" +
+            "}\n" +
+            "vec3 tonemap(vec3 color){\n" +
+            "   color = pow(color,vec3(2.2));\n" +
+            "   color = tonemapLinear(color);\n" +
+            "   color = pow(color,vec3(1.0/2.2));\n" +
+            "   return color;\n" +
+            "}\n" +
             "vec4 tonemap(vec4 color){ return vec4(tonemap(color.rgb), color.a); }\n"
 
     @JvmField
@@ -88,62 +105,65 @@ object Renderers {
 
     @JvmField
     val pbrRenderer = object : Renderer("pbr") {
-        override fun getPostProcessing(flags: Int): ShaderStage {
-            return ShaderStage(
-                "pbr", listOf(
-                    // rendering
-                    Variable(GLSLType.V1B, "applyToneMapping"),
-                    // light data
-                    Variable(GLSLType.V3F, "ambientLight"),
-                    Variable(GLSLType.V1I, "numberOfLights"),
-                    Variable(GLSLType.V1B, "receiveShadows"),
-                    Variable(GLSLType.M4x3, "lightMatrices", RenderView.MAX_FORWARD_LIGHTS),
-                    Variable(GLSLType.M4x3, "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
-                    Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
-                    Variable(GLSLType.V1F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
-                    Variable(GLSLType.V4F, "shadowData", RenderView.MAX_FORWARD_LIGHTS),
-                    // light maps for shadows
-                    // - spotlights, directional lights
-                    Variable(GLSLType.S2DShadow, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
-                    // - point lights
-                    Variable(GLSLType.SCubeShadow, "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
-                    // reflection plane for rivers or perfect mirrors
-                    Variable(GLSLType.V1B, "hasReflectionPlane"),
-                    Variable(GLSLType.S2D, "reflectionPlane"),
-                    // reflection cubemap or irradiance map
-                    Variable(GLSLType.SCube, "reflectionMap"),
-                    // material properties
-                    Variable(GLSLType.V3F, "finalEmissive"),
-                    Variable(GLSLType.V1F, "finalMetallic"),
-                    Variable(GLSLType.V1F, "finalRoughness"),
-                    Variable(GLSLType.V1F, "finalOcclusion"),
-                    Variable(GLSLType.V1F, "finalSheen"),
-                    // Variable(GLSLType.V3F, "finalSheenNormal"),
-                    // Variable(GLSLType.V4F, "finalClearCoat"),
-                    // Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
-                    // if the translucency > 0, the normal map probably should be turned into occlusion ->
-                    // no, or at max slightly, because the surrounding area will illuminate it
-                    Variable(GLSLType.V1F, "finalTranslucency"),
-                    Variable(GLSLType.V1F, "finalAlpha"),
-                    Variable(GLSLType.V3F, "finalPosition"),
-                    Variable(GLSLType.V3F, "finalNormal"),
-                    Variable(GLSLType.V3F, "finalColor"),
-                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
-                ), "" +
-                        // define all light positions, radii, types and colors
-                        // use the lights to illuminate the model
+        override fun getPostProcessing(flags: Int): List<ShaderStage> {
+            return listOf(
+                ShaderStage(
+                    "pbr", listOf(
+                        // rendering
+                        Variable(GLSLType.V1B, "applyToneMapping"),
                         // light data
-                        // a try of depth dithering, which can be used for plants, but is really expensive...
-                        // "   gl_FragDepth = 1.0/(1.0+zDistance) * (1.0 + 0.001 * random(finalPosition.xy));\n" +
-                        // shared pbr data
-                        "#ifndef SKIP_LIGHTS\n" +
-                        lightCode +
-                        combineLightCode +
-                        (if (flags.hasFlag(IS_DEFERRED)) "" else skyMapCode) +
-                        "#endif\n" +
-                        "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
-                        "   finalResult = vec4(finalColor, finalAlpha);\n"
-            ).add(noiseFunc).add(tonemapGLSL)
+                        Variable(GLSLType.V3F, "ambientLight"),
+                        Variable(GLSLType.V1I, "numberOfLights"),
+                        Variable(GLSLType.V1B, "receiveShadows"),
+                        Variable(GLSLType.M4x3, "lightMatrices", RenderView.MAX_FORWARD_LIGHTS),
+                        Variable(GLSLType.M4x3, "invLightMatrices", RenderView.MAX_FORWARD_LIGHTS),
+                        Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
+                        Variable(GLSLType.V1F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
+                        Variable(GLSLType.V4F, "shadowData", RenderView.MAX_FORWARD_LIGHTS),
+                        // light maps for shadows
+                        // - spotlights, directional lights
+                        Variable(GLSLType.S2DShadow, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
+                        // - point lights
+                        Variable(GLSLType.SCubeShadow, "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
+                        // reflection plane for rivers or perfect mirrors
+                        Variable(GLSLType.V1B, "hasReflectionPlane"),
+                        Variable(GLSLType.S2D, "reflectionPlane"),
+                        // reflection cubemap or irradiance map
+                        Variable(GLSLType.SCube, "reflectionMap"),
+                        // material properties
+                        Variable(GLSLType.V3F, "finalEmissive", VariableMode.INOUT),
+                        Variable(GLSLType.V1F, "finalMetallic"),
+                        Variable(GLSLType.V1F, "finalRoughness"),
+                        Variable(GLSLType.V1F, "finalOcclusion"),
+                        Variable(GLSLType.V1F, "finalSheen"),
+                        // Variable(GLSLType.V3F, "finalSheenNormal"),
+                        // Variable(GLSLType.V4F, "finalClearCoat"),
+                        // Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
+                        // if the translucency > 0, the normal map probably should be turned into occlusion ->
+                        // no, or at max slightly, because the surrounding area will illuminate it
+                        Variable(GLSLType.V1F, "finalTranslucency"),
+                        Variable(GLSLType.V1F, "finalAlpha"),
+                        Variable(GLSLType.V3F, "finalPosition"),
+                        Variable(GLSLType.V3F, "finalNormal"),
+                        Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
+                        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                    ), "" +
+                            // define all light positions, radii, types and colors
+                            // use the lights to illuminate the model
+                            // light data
+                            // a try of depth dithering, which can be used for plants, but is really expensive...
+                            // "   gl_FragDepth = 1.0/(1.0+zDistance) * (1.0 + 0.001 * random(finalPosition.xy));\n" +
+                            // shared pbr data
+                            "#ifndef SKIP_LIGHTS\n" +
+                            lightCode +
+                            combineLightCode +
+                            (if (flags.hasFlag(IS_DEFERRED)) "" else skyMapCode) +
+                            "#endif\n" +
+                            colorToSRGB +
+                            "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
+                            "   finalResult = vec4(finalColor, finalAlpha);\n"
+                ).add(noiseFunc).add(tonemapGLSL), finalResultStage
+            )
         }
     }
 
@@ -194,11 +214,11 @@ object Renderers {
             }
         }
 
-        override fun getPostProcessing(flags: Int): ShaderStage {
-            return ShaderStage(
+        override fun getPostProcessing(flags: Int): List<ShaderStage> {
+            return listOf(ShaderStage(
                 "previewRenderer", listOf(
                     Variable(GLSLType.V4F, "lightData", previewLights.size),
-                    Variable(GLSLType.V3F, "finalColor"),
+                    Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
                     Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V3F, "finalPosition"),
                     Variable(GLSLType.V1F, "finalRoughness", VariableMode.INOUT),
@@ -208,7 +228,7 @@ object Renderers {
                     Variable(GLSLType.V4F, "finalClearCoat"),
                     Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
                     Variable(GLSLType.V3F, "finalNormal"),
-                    Variable(GLSLType.V3F, "finalEmissive"),
+                    Variable(GLSLType.V3F, "finalEmissive", VariableMode.INOUT),
                     Variable(GLSLType.V1F, "finalOcclusion"),
                     Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
                 ), "" +
@@ -240,28 +260,37 @@ object Renderers {
                         "   }\n" +
                         "}\n" +
                         specularBRDFv2NoDivInlined2End +
+                        colorToLinear +
                         "finalColor = diffuseColor * diffuseLight + specularLight;\n" +
                         "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
+                        // todo linear2srgb before or after tonemap?
+                        colorToSRGB +
                         "finalColor = tonemap(finalColor);\n" +
+                        // todo SRGB textures/framebuffers?
                         "finalResult = vec4(finalColor, finalAlpha);\n"
-            ).add(noiseFunc).add(tonemapGLSL)
+            ).add(noiseFunc).add(tonemapGLSL), finalResultStage)
         }
     }
 
     @JvmField
     val simpleNormalRenderer = object : Renderer("simple-color") {
-        override fun getPostProcessing(flags: Int): ShaderStage {
-            return ShaderStage(
-                "uiRenderer",
-                listOf(
-                    Variable(GLSLType.V3F, "finalColor"),
-                    Variable(GLSLType.V1F, "finalAlpha"),
-                    Variable(GLSLType.V3F, "finalNormal"),
-                    Variable(GLSLType.V3F, "finalEmissive"),
-                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
-                ),
-                // must not be normalized, or be careful to not divide by zero!
-                "finalResult = vec4((finalColor * (0.6 - 0.4 * finalNormal.x)) + finalEmissive, finalAlpha);\n"
+        override fun getPostProcessing(flags: Int): List<ShaderStage> {
+            return listOf(
+                ShaderStage(
+                    "uiRenderer",
+                    listOf(
+                        Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
+                        Variable(GLSLType.V1F, "finalAlpha"),
+                        Variable(GLSLType.V3F, "finalNormal"),
+                        Variable(GLSLType.V3F, "finalEmissive", VariableMode.INOUT),
+                        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                    ), "" +
+                            colorToLinear +
+                            // must not be normalized, or be careful to not divide by zero!
+                            "finalColor = (finalColor * (0.6 - 0.4 * finalNormal.x)) + finalEmissive;\n" +
+                            colorToSRGB +
+                            "finalResult = vec4(finalColor, finalAlpha);\n"
+                ), finalResultStage
             )
         }
     }
@@ -279,7 +308,9 @@ object Renderers {
                     "finalResult.rgb += 0.5;\n"
             DeferredLayerType.NORMAL -> "finalResult = vec4(${type.glslName}*0.5+0.5, 1.0);\n"
             else -> {
-                "finalResult = ${
+                val prefix = if (type == DeferredLayerType.COLOR || type == DeferredLayerType.EMISSIVE) colorToSRGB
+                else ""
+                prefix + "finalResult = ${
                     when (type.workDims) {
                         1 -> "vec4(vec3(${type.glslName}),1.0)"
                         2 -> "vec4(${type.glslName},0.0,1.0)"
@@ -305,7 +336,9 @@ object Renderers {
             Variable(GLSLType.floats[type.workDims - 1], type.glslName, VariableMode.IN),
             Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
         )
-        val shaderCode = "" +
+        val prefix = if (type == DeferredLayerType.COLOR || type == DeferredLayerType.EMISSIVE) colorToSRGB
+        else ""
+        val shaderCode = prefix +
                 "finalResult = ${
                     when (type.workDims) {
                         1 -> "vec4(vec3(${type.glslName}),1.0)"
@@ -373,5 +406,4 @@ object Renderers {
 
     @JvmField
     var MAX_CUBEMAP_LIGHTS = max(GFX.maxBoundTextures / 4, 1)
-
 }

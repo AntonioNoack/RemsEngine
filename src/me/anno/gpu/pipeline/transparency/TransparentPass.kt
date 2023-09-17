@@ -29,16 +29,23 @@ abstract class TransparentPass : ICacheData {
         return tmp
     }
 
-    fun draw0(pipeline: Pipeline) {
+    fun draw0(pipeline: Pipeline, sky: Boolean) {
+        if (!sky) {
+            GFXState.currentBuffer.clearColor(0)
+        }
         val stages = pipeline.stages
         for (i in stages.indices) {
             val stage = stages[i]
             if (stage.blendMode == null)
                 stage.bindDraw(pipeline)
         }
-        pipeline.drawSky(pipeline.skyBox, pipeline.defaultStage)
+        if (sky) {
+            pipeline.drawSky(pipeline.skybox, pipeline.defaultStage)
+        }
         draw1(pipeline)
     }
+
+    abstract fun draw1(pipeline: Pipeline)
 
     fun draw2(pipeline: Pipeline) {
         val stages = pipeline.stages
@@ -58,6 +65,4 @@ abstract class TransparentPass : ICacheData {
             }
         }
     }
-
-    abstract fun draw1(pipeline: Pipeline)
 }

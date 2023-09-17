@@ -196,7 +196,8 @@ object ScreenSpaceReflections {
                     "       * min(10.0 * (0.5 - abs(bestUV.y - 0.5)), 1.0);\n" +
 
                     // reflected position * base color of mirror (for golden reflections)
-                    "   vec3 color1 = texelFetch(finalIlluminated,ivec2(bestUV*texSize),0).rgb;\n" +
+                    "   vec3 diffuseColor = texture(finalColor, uv).rgb;\n" +
+                    "   vec3 color1 = diffuseColor * texelFetch(finalIlluminated,ivec2(bestUV*texSize),0).rgb;\n" +
                     "   color0 = mix(color0, color1, min(visibility * reflectivity * strength, 1.0));\n" +
                     "   fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     "}\n"

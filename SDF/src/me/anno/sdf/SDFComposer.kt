@@ -141,10 +141,10 @@ object SDFComposer {
         val shader = object : SDFShader(tree) {
             override fun createFragmentStages(flags: Int): List<ShaderStage> {
                 // instancing is not supported
-                val fragmentVariables =
-                    fragmentVariables1 + uniforms.map { (k, v) -> Variable(v.type, k) }
+                val fragmentVariables = fragmentVariables1 + uniforms.map { (k, v) -> Variable(v.type, k) }
+                val defines = createDefines(flags, StringBuilder()).toString()
                 val stage = ShaderStage(
-                    name, fragmentVariables, "" +
+                    name, fragmentVariables, defines +
 
                             // todo calculate motion vectors, if requested
 
@@ -196,6 +196,12 @@ object SDFComposer {
                             "       }\n" +
                             "   }\n" +
                             "} else discard;\n" + // inside an object
+
+                            v0 +
+                            // sheenCalculation +
+                            // clearCoatCalculation +
+                            reflectionCalculation +
+
                             partClickIds
                 )
 
@@ -238,7 +244,6 @@ object SDFComposer {
             shader.v2f("renderSize", GFXState.currentBuffer.width.toFloat(), GFXState.currentBuffer.height.toFloat())
 
             bindDepthToPosition(shader)
-
         }
 
         override fun createDepthShader(flags: Int): Shader {
@@ -433,6 +438,7 @@ object SDFComposer {
         Variable(GLSLType.V3F, "reflectionPlaneNormal"),
         Variable(GLSLType.S2D, "reflectionPlane"),
         Variable(GLSLType.V4F, "reflectionCullingPlane"),
+        Variable(GLSLType.SCube, "reflectionMap"),
         Variable(GLSLType.V1B, "renderIds"),
         Variable(GLSLType.V2F, "renderSize"),
         Variable(GLSLType.V4F, "tint", VariableMode.OUT),
@@ -586,5 +592,4 @@ object SDFComposer {
 
         return res.toString()
     }
-
 }

@@ -283,7 +283,7 @@ fun test3() {
                 val v = DrawCurves.lineBatch.start()
                 world.validateTransform()
                 world.forAll { entity ->
-                    if (entity is Entity) entity.anyComponent(Collider2d::class) { collider ->
+                    if (entity is Entity) entity.forAllComponents(Collider2d::class) { collider ->
                         val pos = entity.transform.globalPosition
                         val x1i = x0i + scale * pos.x.toFloat()
                         val y1i = y0i + scale * pos.y.toFloat()
@@ -345,7 +345,6 @@ fun test3() {
                             targetAngle = angle
                             anchorLS.set(c * rx + s * ry, c * ry - s * rx)
                         } else if (!Input.isKeyDown(dragButton)) hovered = null
-                        false
                     }
                 }
 

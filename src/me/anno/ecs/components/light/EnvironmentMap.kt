@@ -162,7 +162,7 @@ class EnvironmentMap : LightComponentBase() {
                 }
 
                 addDefaultLightsIfRequired(pipeline)
-                pipeline.bakedSkyBox = ci?.pipeline?.bakedSkyBox
+                pipeline.bakedSkybox = ci?.pipeline?.bakedSkybox
                 pipeline.draw()
             }
         }

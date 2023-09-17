@@ -104,7 +104,7 @@ class DecalShader(val layers: ArrayList<DeferredLayerType>) : ECSMeshShader("dec
         return disabled
     }
 
-    override fun createDeferredShader(deferred: DeferredSettingsV2, flags: Int, postProcessing: ShaderStage?): Shader {
+    override fun createDeferredShader(deferred: DeferredSettingsV2, flags: Int, postProcessing: List<ShaderStage>): Shader {
         val base = createBase(flags, postProcessing)
         base.outputs = deferred
         base.disabledLayers = getDisabledLayers()

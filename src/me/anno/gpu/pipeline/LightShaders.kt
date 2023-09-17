@@ -4,6 +4,8 @@ import me.anno.ecs.components.light.LightType
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.Renderers
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFXState
@@ -113,8 +115,8 @@ object LightShaders {
     )
     val combineFStage = ShaderStage(
         "combineLight-f", listOf(
-            Variable(GLSLType.V3F, "finalColor"),
-            Variable(GLSLType.V3F, "finalEmissive"),
+            Variable(GLSLType.V3F, "finalColor", VariableMode.INMOD),
+            Variable(GLSLType.V3F, "finalEmissive", VariableMode.INMOD),
             Variable(GLSLType.V1F, "finalOcclusion"),
             Variable(GLSLType.V1B, "applyToneMapping"),
             Variable(GLSLType.V3F, "finalLight"),
@@ -122,11 +124,13 @@ object LightShaders {
             Variable(GLSLType.V1F, "ambientOcclusion"),
             Variable(GLSLType.V4F, "color", VariableMode.OUT)
         ), "" +
+                colorToLinear +
                 "   vec3 light = finalLight + ambientLight;\n" +
                 "   float invOcclusion = (1.0 - finalOcclusion) * (1.0 - ambientOcclusion);\n" +
-                "   vec3 color3 = finalColor * light * invOcclusion + finalEmissive;\n" +
-                "   if(applyToneMapping) color3 = tonemap(color3);\n" +
-                "   color = vec4(color3, 1.0);\n"
+                "   finalColor = finalColor * light * invOcclusion + finalEmissive;\n" +
+                colorToSRGB +
+                "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
+                "   color = vec4(finalColor, 1.0);\n"
     ).add(tonemapGLSL)
 
     fun getCombineLightShader(settingsV2: DeferredSettingsV2): Shader {

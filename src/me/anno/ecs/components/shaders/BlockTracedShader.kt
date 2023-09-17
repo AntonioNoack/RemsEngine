@@ -139,9 +139,9 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         "vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" +
                         "gl_FragDepth = newVertex.z/newVertex.w;\n" +
                         computeMaterialProperties(flags.hasFlag(IS_INSTANCED)) +
-                        reflectionPlaneCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
+                        reflectionCalculation +
                         ""
             )
         )

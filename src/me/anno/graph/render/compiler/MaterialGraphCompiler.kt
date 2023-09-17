@@ -16,6 +16,7 @@ import me.anno.graph.render.MaterialReturnNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
+import me.anno.maths.Maths.hasFlag
 
 class MaterialGraphCompiler(
     start: StartNode,
@@ -217,8 +218,8 @@ class MaterialGraphCompiler(
                                 funcCall +
                                 // todo node for clear coat calculation
                                 // todo optional sheen calculation
-                                reflectionPlaneCalculation +
-                                (if (motionVectors) finalMotionCalculation else "")
+                                reflectionCalculation +
+                                (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
                     ).add(functions)
                 )
             }

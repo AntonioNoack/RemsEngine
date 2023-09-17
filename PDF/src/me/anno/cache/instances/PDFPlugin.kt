@@ -18,7 +18,7 @@ class PDFPlugin : Plugin() {
         // pdf documents
         PDFCache.disableLoggers()
         InnerFolderCache.register("pdf", PDFCache::readAsFolder)
-        Thumbs.register("pdf") { srcFile, dstFile, size, callback ->
+        Thumbs.registerSignature("pdf") { srcFile, dstFile, size, callback ->
             srcFile.inputStream { it, exc ->
                 if (it != null) {
                     val ref = PDFCache.getDocumentRef(srcFile, it, borrow = true, async = false)
@@ -37,7 +37,7 @@ class PDFPlugin : Plugin() {
     override fun onDisable() {
         super.onDisable()
         InnerFolderCache.unregister("pdf")
-        Thumbs.unregister("pdf")
+        Thumbs.unregisterSignature("pdf")
     }
 
 }

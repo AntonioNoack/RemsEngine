@@ -1,5 +1,6 @@
 package me.anno.gpu.shader
 
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
@@ -26,7 +27,7 @@ import org.joml.Vector4f
  * */
 open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? = null) {
 
-    open fun getPostProcessing(flags: Int): ShaderStage? = null
+    open fun getPostProcessing(flags: Int): List<ShaderStage> = emptyList()
 
     open fun uploadDefaultUniforms(shader: Shader) {}
 
@@ -53,7 +54,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
         return cache!!.getOrPut(index.shl(16) + spliceSize) {
             val settings = deferredSettings.split(index, spliceSize)
             object : Renderer("$name/$index/$spliceSize", settings) {
-                override fun getPostProcessing(flags: Int): ShaderStage? = this@Renderer.getPostProcessing(flags)
+                override fun getPostProcessing(flags: Int) = this@Renderer.getPostProcessing(flags)
                 override fun uploadDefaultUniforms(shader: Shader) {
                     this@Renderer.uploadDefaultUniforms(shader)
                 }
@@ -68,15 +69,17 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
     companion object {
 
         val colorRenderer = SimpleRenderer(
-            "color", null, ShaderStage(
+            "color", ShaderStage(
                 "color", listOf(
                     Variable(GLSLType.V4F, "tint"),
-                    Variable(GLSLType.V3F, "finalColor"),
+                    Variable(GLSLType.V3F, "finalColor", VariableMode.INMOD),
+                    Variable(GLSLType.V3F, "finalEmissive", VariableMode.INMOD),
                     Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V4F, "SPResult", VariableMode.OUT),
                 ),
                 "" +
                         randomFunc +
+                        colorToSRGB +
                         "SPResult = vec4(finalColor\n" +
                         "   #ifndef IS_TINTED\n * tint.rgb\n #endif\n," +
                         "clamp(finalAlpha\n #ifndef IS_TINTED\n * tint.a\n #endif\n, 0.0, 1.0));\n"
@@ -85,15 +88,17 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
 
         @Suppress("unused")
         val colorSqRenderer = SimpleRenderer(
-            "colorSq", null, ShaderStage(
+            "colorSq", ShaderStage(
                 "colorSq", listOf(
                     Variable(GLSLType.V4F, "tint"),
-                    Variable(GLSLType.V3F, "finalColor"),
+                    Variable(GLSLType.V3F, "finalColor", VariableMode.INMOD),
+                    Variable(GLSLType.V3F, "finalEmissive", VariableMode.INMOD),
                     Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V4F, "SPResult", VariableMode.OUT),
                 ),
                 "" +
                         randomFunc +
+                        colorToSRGB +
                         "vec3 tmpCol = finalColor\n" +
                         "#ifndef IS_TINTED\n" +
                         " * tint.rgb\n" +

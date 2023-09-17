@@ -21,10 +21,12 @@ import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.input.Input
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.pictures
@@ -120,10 +122,9 @@ fun main() {
                                 roughnessCalculation +
                                 // sheenCalculation +
                                 // clearCoatCalculation +
-                                reflectionPlaneCalculation +
-                                reflectionMapCalculation +
-                                (if (motionVectors) finalMotionCalculation else "")
-                    ).add(rawToDepth)
+                                reflectionCalculation +
+                                (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+                    ).add(ShaderLib.brightness).add(rawToDepth)
                 )
             }
         }
