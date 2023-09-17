@@ -13,6 +13,13 @@ import me.anno.sdf.shapes.SDFSphere
 import me.anno.utils.OS.downloads
 
 fun main() {
+
+    // todo default lighting model in editor now looks weird/cheap
+
+    // todo if would be nice if we supported FileReference->Material-editing in the same inspector:
+    //  - colors might be scene dependent, and that can be important!
+    //  -> or open a second scene/window with it
+
     // todo we need an exposure setting or auto-exposure
     // fixed: SkyboxBase looked like it's not reflected
     val scene = Entity()

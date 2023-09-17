@@ -168,6 +168,9 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
                             sky.nadirSharpness = 10f
                             val shader = sky.shader!!.value
                             shader.use()
+                            shader.v1f("meshScale", 1f)
+                            shader.v1b("isPerspective", true)
+                            shader.v1b("reverseDepth", false)
                             Perspective.setPerspective(
                                 cameraMatrix,
                                 0.7f,
