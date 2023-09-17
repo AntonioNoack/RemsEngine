@@ -118,7 +118,6 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
         ScenePrefab.prefab.value.getSampleInstance()
 
         PluginRegistry.init()
-
     }
 
     override fun onGameLoopStart() {
@@ -221,6 +220,10 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
             override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {
                 currentProject = GameEngineProject.readOrCreate(folder)!!
                 currentProject.init()
+                val title = "$title - $name"
+                for (window in GFX.windows) {
+                    window.title = title
+                }
                 EditorState.projectFile = currentProject.location
                 return name to folder
             }
@@ -234,7 +237,6 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
         ECSSceneTabs.window = windowStack.firstElement()
         EngineActions.register()
         ActionManager.init()
-
     }
 
     class RuntimeInfoPlaceholder : Panel(style) {
@@ -274,5 +276,4 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
             PropertyInspector.invalidateUI(true)
         }
     }
-
 }

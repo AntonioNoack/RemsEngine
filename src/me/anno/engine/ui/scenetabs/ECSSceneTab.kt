@@ -214,8 +214,12 @@ class ECSSceneTab(
                     MenuOption(NameDesc("Close")) { ECSSceneTabs.close(this, true) },
                     MenuOption(NameDesc("Close All")) {
                         val tabs = ECSSceneTabs.children3.reversed()
-                        val lastTab = tabs.last()
-                        for (tab in tabs) ECSSceneTabs.close(tab, lastTab == tab)
+                        for (tab in tabs) {
+                            if (tab != this) {
+                                ECSSceneTabs.close(tab, false)
+                            }
+                        }
+                        ECSSceneTabs.open(this, true)
                     }
                 ))
             }

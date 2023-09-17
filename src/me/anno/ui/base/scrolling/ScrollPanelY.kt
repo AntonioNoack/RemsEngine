@@ -14,7 +14,6 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawsOverY
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.minWeight
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.ui.style.Style
@@ -109,7 +108,10 @@ open class ScrollPanelY(
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         val sbWidth = interactionWidth + 2 * scrollbarPadding
-        return hasScrollbar && drawsOverY(this.lx0, this.ly0, this.lx1, this.ly1, sbWidth, lx0, ly0, lx1, ly1)
+        return hasScrollbar && ScrollPanelXY.drawsOverY(
+            this.lx0, this.ly0, this.lx1, this.ly1,
+            sbWidth, lx0, ly0, lx1, ly1
+        )
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -151,7 +153,7 @@ open class ScrollPanelY(
         } else {
             scrollY(delta.toDouble())
             // we consumed dy
-            if (dx != 0f) {
+            if (delta != 0f) {
                 super.onMouseWheel(x, y, dx, 0f, byMouse)
             }
         }
@@ -190,5 +192,4 @@ open class ScrollPanelY(
     }
 
     override val className: String get() = "ScrollPanelY"
-
 }

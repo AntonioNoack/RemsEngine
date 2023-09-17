@@ -101,7 +101,7 @@ class GameEngineProject() : NamedSaveable() {
     }
 
     fun init() {
-        StudioBase.workspace = location
+        workspace = location
 
         // if last scene is invalid, create a valid scene
         if (lastScene == null) {

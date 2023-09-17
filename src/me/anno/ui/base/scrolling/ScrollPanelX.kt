@@ -43,14 +43,12 @@ open class ScrollPanelX(
     @NotSerializedProperty
     var lastMaxScrollPosX = -1L
 
-    override var scrollPositionX = 0.0
-
-    override var targetScrollPositionX = 0.0
     override var scrollHardnessX = 25.0
 
-    override val maxScrollPositionX get() = max(0, child.minW + padding.width - width).toLong()
-    val scrollbar = ScrollbarX(this, style)
+    override var scrollPositionX = 0.0
+    override var targetScrollPositionX = 0.0
 
+    val scrollbar = ScrollbarX(this, style)
     val scrollbarHeight = style.getSize("scrollbarHeight", 8)
     val scrollbarPadding = style.getSize("scrollbarPadding", 1)
 
@@ -63,6 +61,21 @@ open class ScrollPanelX(
             val child = child
             return if (child is LongScrollable) child.sizeX else child.minW.toLong()
         }
+
+    override val maxScrollPositionX: Long
+        get() {
+            val child = child
+            val childW = if (child is LongScrollable) child.sizeX else child.minW.toLong()
+            return max(0, childW + padding.width - width)
+        }
+
+    override fun scrollX(delta: Double): Double {
+        if (delta == 0.0) return 0.0
+        val old = targetScrollPositionX
+        val new = clamp(old + delta, 0.0, maxScrollPositionX.toDouble())
+        targetScrollPositionX = new
+        return new - (old + delta) // remaining scroll amount
+    }
 
     override fun onUpdate() {
         super.onUpdate()
@@ -78,12 +91,9 @@ open class ScrollPanelX(
             lastScrollPosX = round(scrollPositionX)
             lastMaxScrollPosX = maxScrollPositionX
             placeChild()
-            invalidateDrawing()
+            // todo why is invalidateDrawing() here not enough, but is in ScrollPanelY?
+            invalidateLayout()
         }
-    }
-
-    override fun invalidateDrawing() {
-        window?.addNeedsRedraw(this)
     }
 
     fun placeChild() {
@@ -95,14 +105,6 @@ open class ScrollPanelX(
         if (child is LongScrollable) {
             child.setExtraScrolling(scroll0 - scroll, 0L)
         }
-    }
-
-    override fun scrollX(delta: Double): Double {
-        if (delta == 0.0) return 0.0
-        val old = targetScrollPositionX
-        val new = clamp(old + delta, 0.0, maxScrollPositionX.toDouble())
-        targetScrollPositionX = new
-        return new - (old + delta) // remaining scroll amount
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
@@ -118,7 +120,7 @@ open class ScrollPanelX(
 
         val child = child
         val padding = padding
-        child.calculateSize(maxLength, h - padding.height)
+        child.calculateSize(maxLength - padding.width, h - padding.height)
 
         minW = child.minW + padding.width
         minH = child.minH + padding.height + hasScrollbar.toInt(scrollbarHeight)
@@ -131,9 +133,10 @@ open class ScrollPanelX(
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+        clampScrollPosition()
         super.onDraw(x0, y0, x1, y1)
-        // draw the scrollbar
         if (hasScrollbar) {
+            val scrollbar = scrollbar
             scrollbar.x = x + scrollbarPadding
             scrollbar.y = y1 - scrollbarHeight - scrollbarPadding
             scrollbar.width = width - 2 * scrollbarPadding
@@ -143,18 +146,23 @@ open class ScrollPanelX(
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
-        val scale = scrollSpeed
-        if ((dx > 0f && scrollPositionX >= maxScrollPositionX) ||
-            (dx < 0f && scrollPositionX <= 0f)
+        val delta = dx * scrollSpeed
+        if ((delta > 0f && scrollPositionX >= maxScrollPositionX) ||
+            (delta < 0f && scrollPositionX <= 0f)
         ) {// if done scrolling go up the hierarchy one
             super.onMouseWheel(x, y, dx, dy, byMouse)
         } else {
-            scrollX((scale * dx).toDouble())
+            scrollX(delta.toDouble())
             // we consumed dx
-            if (dy != 0f) {
+            if (delta != 0f) {
                 super.onMouseWheel(x, y, 0f, dy, byMouse)
             }
         }
+    }
+
+    fun clampScrollPosition() {
+        scrollPositionX = clamp(scrollPositionX, 0.0, maxScrollPositionX.toDouble())
+        targetScrollPositionX = clamp(targetScrollPositionX, 0.0, maxScrollPositionX.toDouble())
     }
 
     @NotSerializedProperty
@@ -179,11 +187,10 @@ open class ScrollPanelX(
     }
 
     override fun clone(): ScrollPanelX {
-        val clone = ScrollPanelX(child.clone(), padding, style, alignmentX)
+        val clone = ScrollPanelX(child.clone(), padding, style, alignmentY)
         copyInto(clone)
         return clone
     }
 
     override val className: String get() = "ScrollPanelX"
-
 }
