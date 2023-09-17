@@ -139,7 +139,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "       vec3 dir = vec3(-1,1,1) * reflect(V0, finalNormal);\n" +
                 "       vec3 newColor = vec3(0.0);\n" +
                 // texture is SRGB -> convert to linear
-                "       vec3 skyEmissive = pow(texture(reflectionMap, dir).rgb, vec3(2.2));\n" +
+                // todo like planar reflections, blur LODs (?)
+                // todo LOD seems like it does nothing
+                "       float lod = finalRoughness * 10.0;\n" +
+                "       vec3 skyEmissive = pow(textureLod(reflectionMap, dir, lod).rgb, vec3(2.2));\n" +
                 "       finalEmissive += finalColor * skyEmissive * factor;\n" +
                 // doing this would make SSR reflect the incorrect color
                 // "       finalColor    *= 1.0 - factor;\n" +

@@ -18,7 +18,8 @@ object RendererLib {
             "       if(reflectivity > 0.0){\n" +
             // todo why do I need to flip x here???
             "           vec3 dir = vec3(-1,1,1) * reflect(V, finalNormal);\n" +
-            "           vec3 skyColor = 0.15 * finalEmissive + finalColor0 * texture(reflectionMap, dir).rgb;\n" +
+            "           float lod = finalRoughness * 10.0;\n" +
+            "           vec3 skyColor = 0.15 * finalEmissive + finalColor0 * textureLod(reflectionMap, dir, lod).rgb;\n" +
             "           finalColor = mix(finalColor, skyColor, sqrt(reflectivity) * (1.0 - finalOcclusion));\n" +
             "       }\n" +
             "   }\n"

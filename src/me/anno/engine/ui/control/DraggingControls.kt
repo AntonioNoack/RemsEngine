@@ -41,6 +41,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.none2
+import me.anno.utils.types.Floats.toDegrees
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
 import org.joml.Planed
@@ -386,9 +387,9 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                         when (val inst = targets3[index]) {
                             is Entity -> {
                                 val transform = inst.transform
-                                val global = transform.globalTransform
                                 when (mode) {
                                     Mode.TRANSLATING -> {
+                                        val global = transform.globalTransform
                                         val distance = camTransform.distance(global)
                                         if (distance > 0.0) {
                                             // correct
@@ -399,34 +400,50 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                                             global.translateLocal(offset)
                                             offset.div(distance)
                                         }
+                                        transform.invalidateLocal()
                                     }
                                     Mode.ROTATING -> {
+                                        // todo rotate rotating gizmo
                                         when (gizmoMask) {
-                                            1 -> global.rotateLocalX(rotationAngle * sign(dir.x))
-                                            2 -> global.rotateLocalY(rotationAngle * sign(dir.y))
-                                            4 -> global.rotateLocalZ(rotationAngle * sign(dir.z))
+                                            1 -> transform.localRotation = transform.localRotation
+                                                .toEulerAnglesDegrees()
+                                                .apply {
+                                                    this.x += rotationAngle * sign(dir.x).toDegrees()
+                                                }.toQuaternionDegrees()
+                                            2 -> transform.localRotation = transform.localRotation
+                                                .toEulerAnglesDegrees()
+                                                .apply {
+                                                    this.y += rotationAngle * sign(dir.y).toDegrees()
+                                                }.toQuaternionDegrees()
+                                            4 -> transform.localRotation = transform.localRotation
+                                                .toEulerAnglesDegrees()
+                                                .apply {
+                                                    this.z += rotationAngle * sign(dir.z).toDegrees()
+                                                }.toQuaternionDegrees()
                                             else -> {
+                                                val global = transform.globalTransform
                                                 val tmpQ = JomlPools.quat4d.borrow()
                                                 tmpQ.fromAxisAngleRad(dir.x, dir.y, dir.z, rotationAngle)
                                                 global.rotate(tmpQ)// correct
+                                                transform.invalidateLocal()
                                             }
                                         }
                                     }
                                     Mode.SCALING -> {
+                                        // todo rotate scaling gizmo
                                         if (gizmoMask == 0) {
                                             val scale = pow(2.0, (dx - dy).toDouble() / height)
-                                            global.scale(scale, scale, scale) // correct
+                                            transform.localScale = transform.localScale.mul(scale)
                                         } else {
                                             val base = 8.0
                                             val sx = pow(base, offset.x)
                                             val sy = pow(base, offset.y)
                                             val sz = pow(base, offset.z)
-                                            global.scale(sx, sy, sz)
+                                            transform.localScale = transform.localScale.mul(sx, sy, sz)
                                         }
                                     }
                                     else -> throw NotImplementedError()
                                 }
-                                transform.invalidateLocal()
                                 transform.teleportUpdate()
                                 onChangeTransform(inst)
                             }

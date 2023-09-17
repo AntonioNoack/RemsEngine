@@ -112,8 +112,8 @@ class GlassPass : TransparentPass() {
             shader.use()
 
             // bind all textures
-            s0.findTexture(b0, l0).bindTrulyNearest(shader, "diffuseSrcTex")
-            s0.findTexture(b0, l1).bindTrulyNearest(shader, "emissiveSrcTex")
+            s0.findTexture(b0, l0)!!.bindTrulyNearest(shader, "diffuseSrcTex")
+            s0.findTexture(b0, l1)!!.bindTrulyNearest(shader, "emissiveSrcTex")
             tmp.getTextureI(0).bindTrulyNearest(shader, "diffuseGlassTex")
             tmp.getTextureI(1).bindTrulyNearest(shader, "emissiveGlassTex")
 

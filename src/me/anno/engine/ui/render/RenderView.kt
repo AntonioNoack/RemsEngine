@@ -65,6 +65,7 @@ import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
@@ -81,7 +82,9 @@ import me.anno.ui.debug.FrameTimings
 import me.anno.ui.style.Style
 import me.anno.utils.Clock
 import me.anno.utils.Color.black
+import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
+import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
@@ -447,7 +450,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 2, if (drawCalls == 1L) "$drawnPrimitives tris, 1 draw call"
                 else "$drawnPrimitives tris, $drawCalls draw calls",
                 FrameTimings.textColor,
-                FrameTimings.backgroundColor.withAlpha(if(usesBetterBlending) 0 else 255)
+                FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255)
             )
             popBetterBlending(pbb)
         }
@@ -467,6 +470,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
             this.renderMode = RenderMode.DEFAULT
         }
+        // todo only update skybox every n frames
+        //  maybe even only one side at a time
         val framebuffer = pipeline.bakedSkybox ?: CubemapFramebuffer(
             "skyBox", 256, 1,
             arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
@@ -499,6 +504,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             sky.draw(shader, 0)
             JomlPools.quat4f.sub(1)
             JomlPools.mat4f.sub(1)
+        }
+        if (!OS.isAndroid) {
+            // performance impact of this: 230->210 fps, so 0.4ms on RTX 3070
+            framebuffer.textures[0].bind(0, GPUFiltering.LINEAR)
         }
         pipeline.bakedSkybox = framebuffer
         this.renderMode = renderMode
@@ -817,6 +826,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
                             val name: String
                             val texture: ITexture2D
+                            var applyTonemapping = false
                             if (index < deferred.layerTypes.size) {
                                 // draw the light buffer as the last stripe
                                 val layer = deferred.layerTypes[index]
@@ -838,11 +848,15 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                                 texture = tmp.getTexture0()
                             } else {
                                 texture = lightNBuffer1.getTexture0()
+                                applyTonemapping = true // not really doing much visually...
                                 name = "Light"
                             }
 
                             // y flipped, because it would be incorrect otherwise
-                            drawTexture(x02, y12, tw, -th, texture, true, -1, null)
+                            drawTexture(
+                                x02, y12, tw, -th, texture, true, white,
+                                null, applyTonemapping
+                            )
                             drawSimpleTextCharByChar(
                                 (x02 + x12) / 2, (y02 + y12) / 2, 2,
                                 name, AxisAlignment.CENTER, AxisAlignment.CENTER

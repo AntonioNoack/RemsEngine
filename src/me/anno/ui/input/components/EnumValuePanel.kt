@@ -25,6 +25,11 @@ class EnumValuePanel(title: String, private var owner: EnumInput, style: Style) 
 
     override fun clone() = EnumValuePanel(this)
 
+    override fun getCursor(): Long? {
+        return if (owner.isInputAllowed) super.getCursor()
+        else null
+    }
+
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as EnumValuePanel

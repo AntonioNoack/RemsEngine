@@ -91,7 +91,7 @@ object SmoothedNormals {
 
         if (radius <= 0.5f) return false
         val layer = settings.findLayer(DeferredLayerType.NORMAL) ?: return false
-        val normal = settings.findTexture(frame, layer)
+        val normal = settings.findTexture(frame, layer)!!
         val depth = frame.depthTexture ?: return false
 
         // input = output, so copy normal to avoid data races

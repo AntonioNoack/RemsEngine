@@ -10,9 +10,14 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
+import me.anno.studio.StudioBase
 import me.anno.utils.OS.downloads
 
 fun main() {
+
+    // todo bugfix: highlight reflection makes rough metal looks super smooth
+    //  -> where is that highlight coming from?
+    //  -> LODs of bakedSkybox are probably missing
 
     // todo default lighting model in editor now looks weird/cheap
 
@@ -43,11 +48,12 @@ fun main() {
     })
     // fixed: gold didn't look like gold :(
     //  - color was yellow, but reflection of white stuff was blue (because of sky, probably...)
-    val golden = Material()
-    golden.diffuseBase.set(0xfd / 255f, 0xb6 / 255f, 0x56 / 255f)
-    golden.metallicMinMax.set(1f)
-    golden.roughnessMinMax.set(0f)
+
     scene.add(Entity("Golden Cube", SDFBox().apply {
+        val golden = Material()
+        golden.diffuseBase.set(0xfd / 255f, 0xb6 / 255f, 0x56 / 255f)
+        golden.metallicMinMax.set(1f)
+        golden.roughnessMinMax.set(0.99f)
         sdfMaterials = listOf(golden.ref)
     }).apply {
         position = position.set(-2.5, 0.0, 0.0)
@@ -62,14 +68,20 @@ fun main() {
             name = "Lucy"
             position = position.set(0.0, -1.0, -2.5)
             scale = scale.set(2.5)
+            val golden = Material()
+            golden.diffuseBase.set(0xfd / 255f, 0xb6 / 255f, 0x56 / 255f)
+            golden.metallicMinMax.set(1f)
+            golden.roughnessMinMax.set(0f)
             forAllComponentsInChildren(MeshComponent::class) {
                 it.materials = listOf(golden.ref)
             }
         })
     }
-    testSceneWithUI("Metallic", scene)
+    testSceneWithUI("Metallic", scene) {
+        StudioBase.instance?.enableVSync = false
+    }
     // todo bug: LIGHT_SUM_MSAA doesn't work
+    // todo bug: SSAO is not showing up
     // but MSAA_DEFERRED does, so idk...
     // todo bug: SSR does not work with MSAA deferred (roughness and metallic look incorrectly bound)
-    // todo bug: rotating Gizmos happens around 0 instead of object origin...
 }

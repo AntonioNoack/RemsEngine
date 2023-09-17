@@ -243,8 +243,8 @@ object ScreenSpaceReflections {
         val normalTexture = deferred.findTexture(buffer, DeferredLayerType.NORMAL) ?: return null
         val emissiveTexture = deferred.findTexture(buffer, DeferredLayerType.EMISSIVE) ?: blackTexture
         val colorTexture = deferred.findTexture(buffer, DeferredLayerType.COLOR) ?: return null
-        val metallic = deferred.findTexture(buffer, metallicLayer)
-        val roughness = deferred.findTexture(buffer, roughnessLayer)
+        val metallic = deferred.findTexture(buffer, metallicLayer)!!
+        val roughness = deferred.findTexture(buffer, roughnessLayer)!!
         return compute(
             buffer.depthTexture!!,
             normalTexture, deferred.zw(DeferredLayerType.NORMAL),

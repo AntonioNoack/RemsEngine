@@ -65,7 +65,7 @@ open class TextButton(
         }
     }
 
-    var mouseDown = false
+    var isPressed = false
         set(value) {
             if (field != value) {
                 field = value
@@ -75,13 +75,13 @@ open class TextButton(
 
     override fun onUpdate() {
         super.onUpdate()
-        mouseDown = (isHovered && Input.isLeftDown) ||
-                (isInFocus && keysDown.any { it.key.isClickKey() })
-        backgroundColor = if (isHovered && !mouseDown) hoveredBackground else normalBackground
+        isPressed = isInputAllowed && ((isHovered && Input.isLeftDown) ||
+                (isInFocus && keysDown.any { it.key.isClickKey() }))
+        backgroundColor = if (isHovered && !isPressed && isInputAllowed) hoveredBackground else normalBackground
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        draw(x0, y0, x1, y1, isHovered, mouseDown)
+        draw(x0, y0, x1, y1, isHovered && isInputAllowed, isPressed && isInputAllowed)
     }
 
     fun draw(x0: Int, y0: Int, x1: Int, y1: Int, isHovered: Boolean, mouseDown: Boolean) {
@@ -102,6 +102,21 @@ open class TextButton(
         )
 
         val bi = DrawRectangles.startBatch()
+        var leftColor = leftColor
+        var rightColor = rightColor
+        var topColor = topColor
+        var bottomColor = bottomColor
+        if (!isInputAllowed) {
+            val avgColor = mixARGB(
+                mixARGB(leftColor, rightColor, 0.5f),
+                mixARGB(topColor, bottomColor, 0.5f), 0.5f
+            )
+            val f = 0.5f
+            leftColor = mixARGB(leftColor, avgColor, f)
+            rightColor = mixARGB(rightColor, avgColor, f)
+            topColor = mixARGB(topColor, avgColor, f)
+            bottomColor = mixARGB(bottomColor, avgColor, f)
+        }
         // draw button border
         drawRect(
             x + width - borderSize.right, y, borderSize.right, height,
@@ -122,7 +137,7 @@ open class TextButton(
     }
 
     fun click() {
-        onMouseClicked(x + width * 0.5f, y + height * 0.5f,Key.BUTTON_LEFT, false)
+        onMouseClicked(x + width * 0.5f, y + height * 0.5f, Key.BUTTON_LEFT, false)
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Key) {
@@ -132,6 +147,11 @@ open class TextButton(
 
     override fun acceptsChar(char: Int) = Key.byId(char).isClickKey() // not ideal...
     override fun isKeyInput() = true
+
+    override fun getCursor(): Long? {
+        return if (isInputAllowed) super.getCursor()
+        else null
+    }
 
     override fun clone(): TextButton {
         val clone = TextButton(style)

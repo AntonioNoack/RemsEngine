@@ -12,6 +12,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
@@ -23,6 +24,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -30,7 +32,10 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
+import me.anno.gpu.texture.TextureLib.blackTexture
+import me.anno.utils.Color.black4
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector3f
@@ -82,7 +87,10 @@ object LightShaders {
     ) {
         val shader = getCombineLightShader(deferred)
         shader.use()
-        scene.bindTrulyNearestMS(2)
+        scene.bindTrulyNearestMS(3)
+        val metallic = deferred.findLayer(DeferredLayerType.METALLIC)
+        (deferred.findTextureMS(scene, metallic) as? Texture2D ?: blackTexture).bindTrulyNearest(2)
+        shader.v4f("metallicMask", DeferredSettingsV2.singleToVector[metallic?.mapping] ?: black4)
         ssao.bindTrulyNearest(1)
         light.bindTrulyNearestMS(0)
         combineLighting1(shader, applyToneMapping, ambientLight)
@@ -117,6 +125,7 @@ object LightShaders {
         "combineLight-f", listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.INMOD),
             Variable(GLSLType.V3F, "finalEmissive", VariableMode.INMOD),
+            Variable(GLSLType.V1F, "finalMetallic"),
             Variable(GLSLType.V1F, "finalOcclusion"),
             Variable(GLSLType.V1B, "applyToneMapping"),
             Variable(GLSLType.V3F, "finalLight"),
@@ -127,7 +136,7 @@ object LightShaders {
                 colorToLinear +
                 "   vec3 light = finalLight + ambientLight;\n" +
                 "   float invOcclusion = (1.0 - finalOcclusion) * (1.0 - ambientOcclusion);\n" +
-                "   finalColor = finalColor * light * invOcclusion + finalEmissive;\n" +
+                "   finalColor = finalColor * light * pow(invOcclusion, 2.0) + finalEmissive * mix(1.0, invOcclusion, finalMetallic);\n" +
                 colorToSRGB +
                 "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
                 "   color = vec4(finalColor, 1.0);\n"
@@ -148,10 +157,13 @@ object LightShaders {
                 if (useMSAA) {
                     "" +
                             "ambientOcclusion = texture(occlusionTex,uv).x;\n" +
-                            "finalLight = texelFetch(lightTex,ivec2(uv*textureSize(lightTex)),0).rgb;\n"
+                            "ivec2 iuv = ivec2(uv*textureSize(lightTex));\n" +
+                            "finalMetallic = dot(metallicMask, texture(metallicTex,iuv,0));\n" +
+                            "finalLight = texelFetch(lightTex,iuv,0).rgb;\n"
                 } else {
                     "" +
                             "ambientOcclusion = texture(occlusionTex,uv).x;\n" +
+                            "finalMetallic = dot(metallicMask, texture(metallicTex,uv));\n" +
                             "finalLight = texture(lightTex,uv).rgb;\n"
                 }
             )
@@ -160,9 +172,12 @@ object LightShaders {
             val deferredVariables = ArrayList<Variable>()
             deferredVariables += Variable(GLSLType.V2F, "uv")
             deferredVariables += Variable(GLSLType.S2D, "occlusionTex")
+            deferredVariables += Variable(samplerType, "metallicTex")
+            deferredVariables += Variable(GLSLType.V4F, "metallicMask")
             deferredVariables += Variable(samplerType, "lightTex")
             deferredVariables += Variable(GLSLType.V3F, "finalLight", VariableMode.OUT)
             deferredVariables += Variable(GLSLType.V1F, "ambientOcclusion", VariableMode.OUT)
+            deferredVariables += Variable(GLSLType.V1F, "finalMetallic", VariableMode.OUT)
             val imported = HashSet<String>()
             for (layer in settingsV2.layers) {
                 // if this layer is present,
@@ -185,7 +200,7 @@ object LightShaders {
             // find all textures
             // first the ones for the deferred data
             // then the ones for the shadows
-            val textures = listOf("lightTex", "occlusionTex") + settingsV2.layers2.map { it.name }
+            val textures = listOf("lightTex", "occlusionTex", "metallicTex") + settingsV2.layers2.map { it.name }
             shader.ignoreNameWarnings(
                 "tint", "invLocalTransform", "d_camRot", "d_fovFactor",
                 "defLayer0", "defLayer1", "defLayer2", "defLayer3",

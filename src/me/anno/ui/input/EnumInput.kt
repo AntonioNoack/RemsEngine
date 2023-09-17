@@ -71,6 +71,9 @@ open class EnumInput(
         set(value) {
             if (field != value) {
                 field = value
+                titleView?.enableHoverColor = value
+                inputPanel.enableHoverColor = value
+                inputPanel.enableFocusColor = value
                 invalidateDrawing()
             }
         }
@@ -148,7 +151,7 @@ open class EnumInput(
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
-        openMenu(
+        if (isInputAllowed) openMenu(
             windowStack, this.x, this.y,
             NameDesc("Select the %1", "", "ui.input.enum.menuTitle")
                 .with("%1", title),
@@ -179,34 +182,9 @@ open class EnumInput(
         setValue(options[index], index, true)
     }
 
-    override fun getCursor(): Long = Cursor.drag
-
-    companion object {
-
-        fun createInput(title: String, value: Enum<*>, style: Style): EnumInput {
-            val values = getEnumConstants(value.javaClass)
-            val ttt = value::class.simpleName?.camelCaseToTitle() ?: "?"
-            val valueName = enumToNameDesc(value).name
-            return EnumInput(title, ttt, valueName, values.map { enumToNameDesc(it) }, style)
-        }
-
-        fun getEnumConstants(clazz: Class<*>): Array<out Any> {
-            return if (clazz.isEnum) clazz.enumConstants!!
-            else getEnumConstants(clazz.superclass)
-        }
-
-        fun enumToNameDesc(instance: Any): NameDesc {
-            val clazz = instance::class
-            val naming = clazz.memberProperties
-                .firstOrNull { it.name == "naming" }?.getter?.call(instance) as? NameDesc
-            if (naming != null) return naming
-            val desc = clazz.memberProperties
-                .firstOrNull { it.name == "desc" || it.name == "description" }
-                ?: return NameDesc(instance.toString())
-            val desc2 = (desc as KProperty<*>).getter.call(instance)?.toString() ?: ""
-            return NameDesc(instance.toString(), desc2, "")
-        }
-
+    override fun getCursor(): Long? {
+        return if (isInputAllowed) Cursor.drag
+        else null
     }
 
     override var textSize: Float
@@ -237,4 +215,30 @@ open class EnumInput(
             titleView?.isItalic = value
         }
 
+    companion object {
+
+        fun createInput(title: String, value: Enum<*>, style: Style): EnumInput {
+            val values = getEnumConstants(value.javaClass)
+            val ttt = value::class.simpleName?.camelCaseToTitle() ?: "?"
+            val valueName = enumToNameDesc(value).name
+            return EnumInput(title, ttt, valueName, values.map { enumToNameDesc(it) }, style)
+        }
+
+        fun getEnumConstants(clazz: Class<*>): Array<out Any> {
+            return if (clazz.isEnum) clazz.enumConstants!!
+            else getEnumConstants(clazz.superclass)
+        }
+
+        fun enumToNameDesc(instance: Any): NameDesc {
+            val clazz = instance::class
+            val naming = clazz.memberProperties
+                .firstOrNull { it.name == "naming" }?.getter?.call(instance) as? NameDesc
+            if (naming != null) return naming
+            val desc = clazz.memberProperties
+                .firstOrNull { it.name == "desc" || it.name == "description" }
+                ?: return NameDesc(instance.toString())
+            val desc2 = (desc as KProperty<*>).getter.call(instance)?.toString() ?: ""
+            return NameDesc(instance.toString(), desc2, "")
+        }
+    }
 }

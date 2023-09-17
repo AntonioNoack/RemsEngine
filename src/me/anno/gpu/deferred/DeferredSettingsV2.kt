@@ -62,7 +62,6 @@ data class DeferredSettingsV2(
             output.append(")+defRR*").append(textureName).append("RR.y")
             output.append(";\n")
         }
-
     }
 
     val layers = ArrayList<Layer>()
@@ -115,7 +114,6 @@ data class DeferredSettingsV2(
                 emptySlots += Triple(layerIndex, layer2.name, mask)
             }
         }
-
     }
 
     val settingsV1 = DeferredSettingsV1(layers2, fpLights)
@@ -218,11 +216,13 @@ data class DeferredSettingsV2(
         return findTextureMS(buffer, layer)
     }
 
-    fun findTexture(buffer: IFramebuffer, layer: Layer): ITexture2D {
+    fun findTexture(buffer: IFramebuffer, layer: Layer?): ITexture2D? {
+        if (layer == null) return null
         return buffer.getTextureI(layer.texIndex)
     }
 
-    fun findTextureMS(buffer: IFramebuffer, layer: Layer): ITexture2D {
+    fun findTextureMS(buffer: IFramebuffer, layer: Layer?): ITexture2D? {
+        if (layer == null) return null
         return buffer.getTextureIMS(layer.texIndex)
     }
 
@@ -245,5 +245,4 @@ data class DeferredSettingsV2(
             "a" to Vector4f(0f, 0f, 0f, 1f)
         )
     }
-
 }

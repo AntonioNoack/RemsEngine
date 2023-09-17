@@ -133,6 +133,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     var disableCopy = false
 
     open var enableHoverColor = false
+    open var enableFocusColor = true
 
     override var textSize: Float
         get() = font.size
@@ -271,7 +272,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val inst = instantTextLoading
         if (inst) loadTexturesSync.push(true)
         val bg = backgroundColor
-        backgroundColor = if (isInFocus) focusBackground else backgroundColor
+        backgroundColor = if (isInFocus && enableFocusColor) focusBackground else backgroundColor
         drawBackground(x0, y0, x1, y1)
         drawText(effectiveTextColor)
         backgroundColor = bg
@@ -285,7 +286,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     open val effectiveTextColor
         get() =
             if (isHovered && enableHoverColor) hoverColor
-            else if (isInFocus) focusTextColor
+            else if (isInFocus && enableFocusColor) focusTextColor
             else textColor
 
     override fun getCursor(): Long? = if (onClickListeners.isEmpty()) super.getCursor() else Cursor.drag
@@ -309,8 +310,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
     }
 
     fun disableFocusColors(): TextPanel {
-        focusTextColor = textColor
-        focusBackground = backgroundColor
+        enableFocusColor = false
         return this
     }
 

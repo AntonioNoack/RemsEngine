@@ -167,8 +167,8 @@ class WeightedBlended : TransparentPass() {
             val shader = applyShader[IntPair(l0.texIndex, l1.texIndex)]
             shader.use()
             shader.v1b("perTargetBlending", perTargetBlending)
-            s0.findTexture(b0, l0).bindTrulyNearest(shader, "diffuseSrcTex")
-            s0.findTexture(b0, l1).bindTrulyNearest(shader, "emissiveSrcTex")
+            s0.findTexture(b0, l0)!!.bindTrulyNearest(shader, "diffuseSrcTex")
+            s0.findTexture(b0, l1)!!.bindTrulyNearest(shader, "emissiveSrcTex")
             tmp.getTextureI(0).bindTrulyNearest(shader, "accuTexture")
             tmp.getTextureI(1).bindTrulyNearest(shader, "revealTexture")
             flat01.draw(shader)

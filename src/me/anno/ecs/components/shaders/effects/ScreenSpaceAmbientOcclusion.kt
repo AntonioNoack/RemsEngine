@@ -236,7 +236,7 @@ object ScreenSpaceAmbientOcclusion {
         // ensure we can find the required inputs
         val depth = data.depthTexture ?: return null
         val normalLayer = settingsV2.findLayer(DeferredLayerType.NORMAL) ?: return null
-        val normal = settingsV2.findTextureMS(data, normalLayer)
+        val normal = settingsV2.findTextureMS(data, normalLayer)!!
         return calculate(
             depth, normal, normalLayer.mapping == "zw",
             transform, radius, strength, samples, enableBlur
