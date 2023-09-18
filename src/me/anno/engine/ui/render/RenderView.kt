@@ -111,7 +111,7 @@ import kotlin.math.tan
 //  - however it would limit us to a single renderer...
 // -> first just draw a single scene and later todo make it multiplayer
 
-// todo make shaders of materials be references via a file? this will allow for visual shaders in the future
+// todo make shaders of materials be references via a file (StaticRef)? this will allow for visual shaders in the future
 
 // todo define the render pipeline from the editor? maybe from the code in an elegant way? top level element?
 
@@ -402,10 +402,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
             drawScene(
                 x0, y0, x1, y1,
-                camera0, camera1, blending,
-                renderer, buffer,
-                useDeferredRendering,
-                size, cols, rows, layers.size
+                renderer, buffer, useDeferredRendering,
+                size, cols,
+                rows,
+                layers.size
             )
         }
 
@@ -515,11 +515,9 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
-        camera0: Camera, camera1: Camera, blending: Float,
-        renderer: Renderer,
-        buffer: IFramebuffer,
-        useDeferredRendering: Boolean,
-        size: Int, cols: Int, rows: Int, layersSize: Int
+        renderer: Renderer, buffer: IFramebuffer, useDeferredRendering: Boolean,
+        size: Int, cols: Int, rows: Int,
+        layersSize: Int
     ) {
 
         var w = x1 - x0
@@ -868,13 +866,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     renderer == DeferredRenderer -> {
                         dstBuffer = drawSceneDeferred(
                             buffer, w, h, baseNBuffer1, lightNBuffer1, baseSameDepth1,
-                            camera0, camera1, blending, renderer, deferred
+                            renderer, deferred
                         )
                     }
                     renderer == DeferredRendererMSAA -> {
                         dstBuffer = drawSceneDeferred(
                             buffer, w, h, baseNBuffer8, lightNBuffer8, baseSameDepth8,
-                            camera0, camera1, blending, renderer, deferredMSAA
+                            renderer, deferredMSAA
                         )
                     }
                     else -> {
@@ -975,7 +973,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     fun drawSceneDeferred(
         buffer: IFramebuffer, w: Int, h: Int,
         baseBuffer: IFramebuffer, lightBuffer: IFramebuffer, baseSameDepth: IFramebuffer,
-        camera0: Camera, camera1: Camera, blending: Float,
         renderer: Renderer, deferredSettings: DeferredSettingsV2
     ): IFramebuffer {
 

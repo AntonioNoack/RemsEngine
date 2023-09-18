@@ -77,7 +77,7 @@ open class ProgressBar(
             else -> 0x999999 or black
         }
 
-    open fun formatText(): String {
+    open fun formatProgress(): String {
         val progress = progress
         val total = total
         return when {
@@ -126,7 +126,7 @@ open class ProgressBar(
             drawRect(x1, y, x2 - x1, h, rightColor)
             drawRect(x2, y, x3 - x2, h, leftColor)
             // show num/total unit
-            val text = formatText()
+            val text = formatProgress()
             val xt = x + w.shr(1)
             val yt = y + (h - monospaceFont.sizeInt).shr(1)
             if (x1 > x) clip(x, y, x1 - x, h) {
@@ -159,7 +159,7 @@ open class ProgressBar(
             drawRect(x + 1 + wxi, y, w - wxi - 1, h, rightColor)
             // show num/total unit
             val mid = wxi + (wxf >= 0.5f).toInt()
-            val text = formatText()
+            val text = formatProgress()
             val xt = x + w.shr(1)
             val yt = y + (h - monospaceFont.sizeInt).shr(1)
             clip2Save(

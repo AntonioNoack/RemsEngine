@@ -22,9 +22,9 @@ fun main() {
             val window = GFX.someWindow!!
             window.addProgressBar("Something", "Bytes", Double.NaN).progress = 123456789.0
             window.addProgressBar(object : ProgressBar("Sample", "Bytes", 1e6) {
-                override fun formatText(): String {
+                override fun formatProgress(): String {
                     progress = Maths.clamp(window.mouseX * 1e6 / window.width, 0.0, 0.999e6)
-                    return super.formatText()
+                    return super.formatProgress()
                 }
             })
             TextButton("Start", false, style)

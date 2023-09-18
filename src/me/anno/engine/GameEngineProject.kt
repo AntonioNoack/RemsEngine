@@ -1,9 +1,11 @@
 package me.anno.engine
 
+import me.anno.Engine
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.gpu.GFX
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -11,12 +13,13 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.ui.base.progress.ProgressBar
+import me.anno.utils.OS
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
-import java.io.IOException
+import kotlin.concurrent.thread
 
 class GameEngineProject() : NamedSaveable() {
 
@@ -56,7 +59,8 @@ class GameEngineProject() : NamedSaveable() {
 
     val configFile get() = location.getChild("config.json")
 
-    val assetIndex = HashSet<FileReference>()
+    val assetIndex = HashSet<Pair<FileReference, String>>()
+    var maxIndexDepth = 5
 
     private var isValid = true
     fun invalidate() {
@@ -101,6 +105,7 @@ class GameEngineProject() : NamedSaveable() {
     }
 
     fun init() {
+
         workspace = location
 
         // if last scene is invalid, create a valid scene
@@ -118,7 +123,6 @@ class GameEngineProject() : NamedSaveable() {
         }
 
         assetIndex.clear()
-        indexResources(location)
 
         // may be changed by ECSSceneTabs otherwise
         val lastScene = lastScene
@@ -136,40 +140,55 @@ class GameEngineProject() : NamedSaveable() {
         } catch (e: Exception) {
             LOGGER.warn("Could not open $lastScene", e)
         }
+
+        // to do if is Web, provide mechanism to index files...
+        // we can't really do that anyway...
+        if (!OS.isWeb) {
+            thread(name = "Indexing Resources") {
+                val progress = GFX.someWindow?.addProgressBar(object : ProgressBar("Indexing Assets", "Files", 1.0) {
+                    override fun formatProgress(): String {
+                        return "$name: ${progress.toLong()} / ${total.toLong()} $unit"
+                    }
+                })
+                val resourcesToIndex = ArrayList<Pair<FileReference, Int>>()
+                resourcesToIndex.add(location to maxIndexDepth)
+                var processedFiles = 0L
+                while (!Engine.shutdown && resourcesToIndex.isNotEmpty()) {
+                    if (Engine.shutdown) break
+                    if (progress != null) {
+                        progress.total = (resourcesToIndex.size + processedFiles).toDouble()
+                        progress.progress = processedFiles.toDouble()
+                    }
+                    val (file, depth) = resourcesToIndex.removeLast()
+                    indexResource(file, depth, resourcesToIndex)
+                    processedFiles++
+                }
+                progress?.finish(true)
+            }
+        }
     }
 
-    fun indexResources(file: FileReference, depth: Int = 2) {
+    fun indexResource(file: FileReference, depth: Int, resourcesToIndex: MutableList<Pair<FileReference, Int>>) {
         if (file.isDirectory) {
-            for (child in file.listChildren()?.toList() ?: return) {
-                try {
-                    indexResources(child, depth)
-                } catch (e: IOException) {
-                    e.printStackTrace()
+            if (depth > 0) {
+                val depthM1 = depth - 1
+                for (child in file.listChildren() ?: return) {
+                    resourcesToIndex.add(child to depthM1)
                 }
             }
         } else {
             Signature.findName(file) { sign ->
                 when (sign) {
-                    "png", "jpg", "gimp", "blend", "gltf", "dae", "md2", "exr", "qoi",
-                    "media", "vox", "fbx", "obj", "webp", "dds", "hdr", "ico", "pdf",
-                    "ttf", "woff1", "woff2", "gif", "bmp" -> assetIndex.add(file)
-
+                    "png", "jpg", "exr", "qoi", "webp", "dds", "hdr", "ico", "gimp", "bmp" -> assetIndex.add(file to "Image")
+                    "blend", "gltf", "dae", "md2", "vox", "fbx", "obj" -> assetIndex.add(file to "Mesh")
+                    "media", "gif" -> assetIndex.add(file to "Media")
+                    "pdf" -> assetIndex.add(file to "PDF")
+                    "ttf", "woff1", "woff2" -> assetIndex.add(file to "")
                     else -> {
-                        if (depth >= 0 && file.isSomeKindOfDirectory) {
-                            val children = file.listChildren()
-                            if (children != null) for (child in children.toList()) { // .toList() is to prevent concurrency issues
-                                try {
-                                    indexResources(child, depth - 1)
-                                } catch (e: IOException) {
-                                    e.printStackTrace()
-                                }
-                            }
-                        } else {
-                            // todo make this async
-                            val prefab = PrefabCache[file, false]
-                            if (prefab != null) {
-                                assetIndex.add(file)
-                            }
+                        // todo specify timeout as 0ms
+                        val prefab = PrefabCache[file, false]
+                        if (prefab != null) {
+                            assetIndex.add(file to prefab.clazzName)
                         }
                     }
                 }
@@ -181,6 +200,7 @@ class GameEngineProject() : NamedSaveable() {
         super.save(writer)
         writer.writeString("lastScene", lastScene)
         writer.writeStringArray("openTabs", openTabs.toTypedArray())
+        writer.writeInt("maxIndexDepth", maxIndexDepth)
         // location doesn't really need to be saved
     }
 
@@ -188,6 +208,13 @@ class GameEngineProject() : NamedSaveable() {
         when (name) {
             "lastScene" -> lastScene = value?.toGlobalFile()?.absolutePath ?: value
             else -> super.readString(name, value)
+        }
+    }
+
+    override fun readInt(name: String, value: Int) {
+        when (name) {
+            "maxIndexDepth" -> maxIndexDepth = value
+            else -> super.readInt(name, value)
         }
     }
 
@@ -204,7 +231,6 @@ class GameEngineProject() : NamedSaveable() {
                 openTabs.clear()
                 openTabs.addAll(values)
             }
-
             else -> super.readStringArray(name, values)
         }
     }
@@ -215,7 +241,6 @@ class GameEngineProject() : NamedSaveable() {
                 openTabs.clear()
                 openTabs.addAll(values.filter { it.exists }.map { it.toLocalPath(location) })
             }
-
             else -> super.readFileArray(name, values)
         }
     }

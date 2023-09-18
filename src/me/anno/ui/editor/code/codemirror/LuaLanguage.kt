@@ -2,7 +2,7 @@ package me.anno.ui.editor.code.codemirror
 
 import me.anno.utils.types.Booleans.toInt
 
-class LuaLanguage(var customVariables: Set<String> = emptySet()) : Language {
+class LuaLanguage(var customVariables: Set<String> = emptySet()) : LanguageTokenizer {
 
     companion object {
 

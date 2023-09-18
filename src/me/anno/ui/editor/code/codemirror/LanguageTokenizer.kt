@@ -1,13 +1,13 @@
 package me.anno.ui.editor.code.codemirror
 
-// this is a language-coloring engine inspired by CodeMirror (a JavaScript library)
-// it is based on a state machine, and states are given different colors
-interface Language {
+/**
+ * language-coloring engine inspired by CodeMirror (a JavaScript library);
+ * based on a state machine, and states are given different colors
+ * */
+interface LanguageTokenizer {
 
     fun getStartState(): State
-
     fun getToken(stream: Stream, state: State): TokenType
-
     fun getIndentation(state: State, indentUnit: Int, textAfter: CharSequence): Int
 
     val lineComment: String

@@ -60,7 +60,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
     }
 
-    var language: Language = LuaLanguage()
+    var language: LanguageTokenizer = LuaLanguage()
 
     var theme = LanguageThemeLib.Twilight
         set(value) {

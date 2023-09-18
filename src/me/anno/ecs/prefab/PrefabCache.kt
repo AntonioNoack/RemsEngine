@@ -26,7 +26,6 @@ import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
-import java.io.IOException
 
 @Suppress("MemberVisibilityCanBePrivate")
 object PrefabCache : CacheSection("Prefab") {
@@ -272,8 +271,10 @@ object PrefabCache : CacheSection("Prefab") {
             }
             resource.exists && !resource.isDirectory -> {
                 val entry = getFileEntry(resource, false, prefabTimeout, async, ::loadPrefabPair)
-                if (entry is FileReadPrefabData && entry.hasValue && entry.value == null)
-                    throw IOException("Could not load $resource as prefab")
+                if (entry is FileReadPrefabData && entry.hasValue && entry.value == null) {
+                    LOGGER.warn("Could not load $resource as prefab")
+                    return null
+                }
                 return entry as? FileReadPrefabData
             }
             else -> null
@@ -296,5 +297,4 @@ object PrefabCache : CacheSection("Prefab") {
         }
         return data
     }
-
 }

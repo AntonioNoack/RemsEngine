@@ -21,6 +21,8 @@ import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.types.AnyToInt.getInt
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import java.io.BufferedReader
+import java.io.BufferedWriter
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.concurrent.thread
@@ -137,9 +139,9 @@ object Spellchecking : CacheSection("Spellchecking") {
         }
     }
 
-    fun Int.escapeCodepoint(): String =
-        if (this < 128) "${toChar()}"
-        else "\\u${hex8((this shr 8) and 255)}${hex8(this and 255)}"
+    fun escapeCodepoint(v: Int): String =
+        if (v < 128) "${v.toChar()}"
+        else "\\u${hex8((v shr 8) and 255)}${hex8(v and 255)}"
 
 
     /**
@@ -153,73 +155,8 @@ object Spellchecking : CacheSection("Spellchecking") {
         thread(name = "Spellchecking ${language.code}") {
             if (!OS.isAndroid) {
                 getExecutable(language) { executable ->
-                    LOGGER.info("Starting process for $language")
-                    val builder = BetterProcessBuilder("java", 3, true)
-                    builder += "-jar"
-                    builder += executable.absolutePath
-                    builder += language.code
-                    val process = builder.start()
-                    val input = process.inputStream
-                    val reader = input.bufferedReader()
-                    process.errorStream.listen("Spellchecking-Listener ${language.code}") { msg -> LOGGER.warn(msg) }
-                    val output = process.outputStream.bufferedWriter()
-                    val startMessage = reader.readLine()
-                    if (startMessage != null) LOGGER.info(startMessage)
-                    try {
-                        while (!shutdown) {
-                            if (queue.isEmpty()) sleepShortly(true)
-                            else {
-                                val sentence = queue.poll() as CharSequence
-
-                                @Suppress("unchecked_cast")
-                                val callback = queue.poll() as ((List<Suggestion>) -> Unit)
-                                var lines = sentence
-                                    .toString()
-                                    .replace("\\", "\\\\")
-                                    .replace("\n", "\\n")
-                                val limitChar = 127.toChar()
-                                if (lines.any { it > limitChar }) {
-                                    lines = lines.codePoints()
-                                        .toList().joinToString("") { it.escapeCodepoint() }
-                                }
-                                output.write(lines)
-                                output.write('\n'.code)
-                                output.flush()
-                                var suggestionsString = ""
-                                while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !shutdown) {
-                                    suggestionsString = reader.readLine() ?: break
-                                    // a random, awkward case, when "Program" or "Transform" is requested in German
-                                    if (suggestionsString.startsWith("[COMPOUND")) {
-                                        suggestionsString = "[" + (reader.readLine() ?: break)
-                                    }
-                                }
-                                try {
-                                    val suggestionsJson = JsonReader(suggestionsString).readArray()
-                                    val suggestionsList = suggestionsJson.map { suggestion ->
-                                        suggestion as HashMap<*, *>
-                                        val start = getInt(suggestion["start"], 0)
-                                        val end = getInt(suggestion["end"], 0)
-                                        val message = suggestion["message"].toString()
-                                        val shortMessage = suggestion["shortMessage"].toString()
-                                        val improvements = suggestion["suggestions"] as ArrayList<*>
-                                        val result = Suggestion(
-                                            start, end, message, shortMessage,
-                                            improvements.map { it as String }
-                                        )
-                                        result
-                                    }
-                                    callback(suggestionsList)
-                                } catch (e: Exception) {
-                                    OS.desktop
-                                        .getChild("${System.currentTimeMillis()}.txt")
-                                        .writeText("$lines\n$suggestionsString")
-                                    LOGGER.error(suggestionsString)
-                                    e.printStackTrace()
-                                }
-                            }
-                        }
-                    } catch (ignored: ShutdownException) {
-                    }
+                    val process = createProcess(executable, language)
+                    runProcess(process, queue)
                     process.destroy()
                 }
             } else {
@@ -236,9 +173,88 @@ object Spellchecking : CacheSection("Spellchecking") {
         return queue
     }
 
+    private fun createProcess(executable: FileReference, language: Language): Process {
+        LOGGER.info("Starting process for $language")
+        val builder = BetterProcessBuilder("java", 3, true)
+        builder += "-jar"
+        builder += executable.absolutePath
+        builder += language.code
+        return builder.start()
+    }
+
+    private fun runProcess(process: Process, queue: Queue<Any>) {
+        val input = process.inputStream
+        val reader = input.bufferedReader()
+        process.errorStream.listen("Spellchecking-Listener ${language.code}") { msg -> LOGGER.warn(msg) }
+        val writer = process.outputStream.bufferedWriter()
+        val startMessage = reader.readLine()
+        if (startMessage != null) LOGGER.info(startMessage)
+        try {
+            while (!shutdown) {
+                if (queue.isEmpty()) sleepShortly(true)
+                else processRequest(queue, reader, writer)
+            }
+        } catch (ignored: ShutdownException) {
+        }
+    }
+
+    private fun processRequest(queue: Queue<Any>, reader: BufferedReader, writer: BufferedWriter) {
+
+        val sentence = queue.poll() as CharSequence
+
+        @Suppress("unchecked_cast")
+        val callback = queue.poll() as ((List<Suggestion>) -> Unit)
+        writer.write(formatSentence(sentence))
+        writer.write('\n'.code)
+        writer.flush()
+        var suggestionsString = ""
+        while ((suggestionsString.isEmpty() || !suggestionsString.startsWith("[")) && !shutdown) {
+            suggestionsString = reader.readLine() ?: break
+            // a random, awkward case, when "Program" or "Transform" is requested in German
+            if (suggestionsString.startsWith("[COMPOUND")) {
+                suggestionsString = "[" + (reader.readLine() ?: break)
+            }
+        }
+        try {
+            callback(translateSuggestions(suggestionsString))
+        } catch (e: Exception) {
+            LOGGER.error(suggestionsString)
+            e.printStackTrace()
+        }
+    }
+
+    private fun formatSentence(sentence: CharSequence): String {
+        var lines = sentence
+            .toString()
+            .replace("\\", "\\\\")
+            .replace("\n", "\\n")
+        val limitChar = 127.toChar()
+        if (lines.any { it > limitChar }) {
+            lines = lines.codePoints()
+                .toList().joinToString("") { escapeCodepoint(it) }
+        }
+        return lines
+    }
+
+    private fun translateSuggestions(suggestionsString: String): List<Suggestion> {
+        val suggestionsJson = JsonReader(suggestionsString).readArray()
+        return suggestionsJson.map { suggestion ->
+            suggestion as HashMap<*, *>
+            val start = getInt(suggestion["start"], 0)
+            val end = getInt(suggestion["end"], 0)
+            val message = suggestion["message"].toString()
+            val shortMessage = suggestion["shortMessage"].toString()
+            val improvements = suggestion["suggestions"] as ArrayList<*>
+            val result = Suggestion(
+                start, end, message, shortMessage,
+                improvements.map { it as String }
+            )
+            result
+        }
+    }
+
     private val queues = HashMap<Language, Queue<Any>>()
     private val LOGGER = LogManager.getLogger(Spellchecking::class)
 
     private const val timeout = 600_000L // 10 min
-
 }

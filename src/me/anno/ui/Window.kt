@@ -20,7 +20,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * a virtual window within one GLFW window
+ * a virtual window within one OS-level window
  * */
 open class Window(
     panel: Panel,

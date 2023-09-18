@@ -12,6 +12,10 @@ import org.joml.Matrix4f
 import java.util.*
 import kotlin.math.max
 
+/**
+ * Stack of windows within one OS-level window.
+ * Could be within a virtual window, too (CanvasComponent)
+ * */
 @Suppress("MemberVisibilityCanBePrivate")
 class WindowStack : Stack<Window>() {
 

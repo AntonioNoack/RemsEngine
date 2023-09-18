@@ -10,7 +10,6 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.Style
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import org.apache.logging.log4j.LogManager
-import kotlin.reflect.KClass
 
 // todo click, then open tree view to select it (?)
 /**
