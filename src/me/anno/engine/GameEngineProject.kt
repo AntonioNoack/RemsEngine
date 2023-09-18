@@ -153,7 +153,7 @@ class GameEngineProject() : NamedSaveable() {
                 val resourcesToIndex = ArrayList<Pair<FileReference, Int>>()
                 resourcesToIndex.add(location to maxIndexDepth)
                 var processedFiles = 0L
-                while (!Engine.shutdown && resourcesToIndex.isNotEmpty()) {
+                while (!Engine.shutdown && resourcesToIndex.isNotEmpty() && progress?.isCancelled != true) {
                     if (Engine.shutdown) break
                     if (progress != null) {
                         progress.total = (resourcesToIndex.size + processedFiles).toDouble()
