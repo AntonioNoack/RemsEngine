@@ -13,7 +13,7 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.custom.CustomList
 import me.anno.ui.input.TextInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.types.Strings.isBlank2
 import java.util.*

@@ -12,7 +12,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt

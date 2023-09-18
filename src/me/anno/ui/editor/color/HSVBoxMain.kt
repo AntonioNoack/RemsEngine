@@ -10,7 +10,7 @@ import me.anno.input.Key
 import me.anno.maths.Maths.length
 import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector3f

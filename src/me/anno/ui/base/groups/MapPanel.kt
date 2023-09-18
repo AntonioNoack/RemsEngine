@@ -14,7 +14,7 @@ import me.anno.ui.base.scrolling.ScrollableX
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarX
 import me.anno.ui.base.scrolling.ScrollbarY
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import org.joml.Vector2d
 import org.joml.Vector3d
 import kotlin.math.*

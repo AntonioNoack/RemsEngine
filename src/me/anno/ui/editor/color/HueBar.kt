@@ -1,7 +1,7 @@
 package me.anno.ui.editor.color
 
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.black
 import org.joml.Vector3f
 import kotlin.math.roundToInt

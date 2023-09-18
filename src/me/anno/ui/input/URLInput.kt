@@ -14,7 +14,7 @@ import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileExplorer.Companion.copyPathDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorerOption
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 

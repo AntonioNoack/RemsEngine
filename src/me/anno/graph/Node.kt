@@ -10,7 +10,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.maths.Maths.hasFlag
 import me.anno.ui.base.groups.PanelList
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import org.joml.Vector3d
 
 abstract class Node() : PrefabSaveable() {

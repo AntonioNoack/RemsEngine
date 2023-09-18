@@ -15,6 +15,8 @@ import me.anno.utils.OS.downloads
 
 fun main() {
 
+    // todo replace all class names in Wiki by links to the docs
+
     // todo bugfix: highlight reflection makes rough metal looks super smooth
     //  -> where is that highlight coming from?
     //  -> LODs of bakedSkybox are probably missing

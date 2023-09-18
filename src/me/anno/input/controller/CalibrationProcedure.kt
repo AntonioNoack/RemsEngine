@@ -11,7 +11,7 @@ import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 object CalibrationProcedure {
 

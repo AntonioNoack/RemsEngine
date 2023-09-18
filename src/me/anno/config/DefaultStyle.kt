@@ -4,7 +4,7 @@ import me.anno.io.config.ConfigBasics
 import me.anno.io.files.InvalidRef
 import me.anno.io.utils.StringMap
 import me.anno.maths.Maths.clamp
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white
 import java.awt.Toolkit

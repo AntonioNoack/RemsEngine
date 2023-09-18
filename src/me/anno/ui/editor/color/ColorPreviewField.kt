@@ -5,7 +5,7 @@ import me.anno.gpu.drawing.DrawTextures.drawTransparentBackground
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.a
 
 class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Style) : Panel(style) {

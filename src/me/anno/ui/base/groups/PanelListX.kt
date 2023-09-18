@@ -2,7 +2,7 @@ package me.anno.ui.base.groups
 
 import me.anno.Engine
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
 import kotlin.math.min

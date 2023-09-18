@@ -10,7 +10,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.WrapAlign
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.max
 import kotlin.math.roundToInt
 

@@ -2,7 +2,7 @@ package me.anno.ui.base.progress
 
 import me.anno.Engine
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.a
 import kotlin.math.min
 

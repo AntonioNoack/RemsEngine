@@ -7,7 +7,7 @@ import me.anno.input.Input
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.Window
 import me.anno.ui.base.progress.ProgressBar
-import me.anno.ui.utils.WindowStack
+import me.anno.ui.WindowStack
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback

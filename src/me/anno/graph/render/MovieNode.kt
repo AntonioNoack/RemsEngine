@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.FileInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import org.joml.Vector2f
 import org.joml.Vector4f
 

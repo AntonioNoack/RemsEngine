@@ -23,7 +23,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.files.Search
 import me.anno.ui.editor.treeView.TreeView
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.normARGB
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten

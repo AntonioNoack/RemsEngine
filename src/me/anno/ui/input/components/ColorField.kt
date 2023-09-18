@@ -11,7 +11,7 @@ import me.anno.maths.Maths.mixARGB
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.dragging.Draggable
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.toHexColor

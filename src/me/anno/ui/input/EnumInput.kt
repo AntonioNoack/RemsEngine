@@ -10,7 +10,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.EnumValuePanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import kotlin.reflect.KProperty

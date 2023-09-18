@@ -3,7 +3,7 @@ package me.anno.ui.input.components
 import me.anno.input.Key
 import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 class TitlePanel(title: String, var owner: Panel, style: Style) : TextPanel(title, style) {
 

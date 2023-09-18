@@ -2,7 +2,7 @@ package me.anno.ui.base.groups
 
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.max
 import kotlin.math.min
 

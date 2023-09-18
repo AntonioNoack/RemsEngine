@@ -6,7 +6,7 @@ import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.scrolling.ScrollableX
 import me.anno.ui.base.scrolling.ScrollableY
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGroup(style) {
 

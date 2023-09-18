@@ -3,7 +3,7 @@ package me.anno.engine.ui
 import me.anno.engine.Ptr
 import me.anno.ui.Panel
 import me.anno.ui.editor.stacked.ArrayPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 open class AnyArrayPanel(title: String, visibilityKey: String, val arrayType: String, style: Style) :
     ArrayPanel<Any?, Panel>(title, visibilityKey, { ComponentUI.getDefault(arrayType) }, style) {

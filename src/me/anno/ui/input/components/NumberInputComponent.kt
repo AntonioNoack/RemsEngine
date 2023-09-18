@@ -1,7 +1,7 @@
 package me.anno.ui.input.components
 
 import me.anno.ui.input.InputVisibility
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 open class NumberInputComponent(
     val visibilityKey: String,

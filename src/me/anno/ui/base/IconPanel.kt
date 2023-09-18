@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 open class IconPanel(var internalPath: FileReference, style: Style) : ImagePanel(style) {
 

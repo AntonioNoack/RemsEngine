@@ -6,7 +6,7 @@ import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.input.components.NumberInputComponent
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*

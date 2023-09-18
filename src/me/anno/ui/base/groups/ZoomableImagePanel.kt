@@ -3,7 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.min
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 /**
  * Makes an image / a texture zoomable for inspection by the user

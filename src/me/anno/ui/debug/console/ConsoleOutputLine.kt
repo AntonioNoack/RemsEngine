@@ -4,7 +4,7 @@ import me.anno.input.Key
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 class ConsoleOutputLine(val list: PanelList, msg: String, style: Style) : TextPanel(msg, style) {
     override fun getMultiSelectablePanel(): Panel = this

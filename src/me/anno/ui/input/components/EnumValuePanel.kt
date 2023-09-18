@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Key
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 class EnumValuePanel(title: String, private var owner: EnumInput, style: Style) :
     TextPanel(title, style.getChild("italic")) {

@@ -13,7 +13,7 @@ import me.anno.studio.StudioBase.Companion.warn
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.VectorInputList
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToDouble.getDouble

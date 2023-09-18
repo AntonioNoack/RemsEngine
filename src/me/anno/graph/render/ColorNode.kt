@@ -5,7 +5,7 @@ import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.ColorInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.toARGB
 import org.joml.Vector4f
 

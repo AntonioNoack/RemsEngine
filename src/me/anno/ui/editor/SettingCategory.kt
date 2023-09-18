@@ -11,7 +11,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputVisibility
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.max
 
 open class SettingCategory(

@@ -1,6 +1,6 @@
 package me.anno.ui.input
 
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.maths.Maths.clamp
 
 @Suppress("unused")

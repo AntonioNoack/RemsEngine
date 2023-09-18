@@ -4,7 +4,7 @@ import me.anno.input.Key
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelXY
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 class ConsoleLogFullscreen(style: Style) : ScrollPanelXY(Padding(5), style) {
     override fun onBackSpaceKey(x: Float, y: Float) {

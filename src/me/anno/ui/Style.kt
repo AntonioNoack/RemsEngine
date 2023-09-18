@@ -1,10 +1,10 @@
-package me.anno.ui.style
+package me.anno.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.utils.Color.black
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
+import me.anno.utils.Color
 import org.apache.logging.log4j.LogManager
 
 /**
@@ -101,9 +101,9 @@ class Style(val prefix: String?, val suffix: String?) {
                 hex ?: if (value.startsWith("#")) {
                     val colorValue = when (value.length) {
                         9 -> value.substring(1).toIntOrNull()
-                        7 -> value.substring(1).toIntOrNull()?.or(black)
+                        7 -> value.substring(1).toIntOrNull()?.or(Color.black)
                         5 -> value.substring(1).toIntOrNull()?.int4ToInt8()
-                        4 -> value.substring(1).toIntOrNull()?.int4ToInt8()?.or(black)
+                        4 -> value.substring(1).toIntOrNull()?.int4ToInt8()?.or(Color.black)
                         else -> null
                     }
                     if (colorValue == null) {

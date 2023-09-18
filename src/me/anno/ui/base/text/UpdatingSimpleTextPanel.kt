@@ -1,7 +1,7 @@
 package me.anno.ui.base.text
 
 import me.anno.Engine
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.abs
 
 class UpdatingSimpleTextPanel(updateMillis: Long, style: Style, val getValue: () -> String?) :

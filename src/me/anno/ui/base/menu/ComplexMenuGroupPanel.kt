@@ -3,7 +3,7 @@ package me.anno.ui.base.menu
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import java.util.*
 
 /**

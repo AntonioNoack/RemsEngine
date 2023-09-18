@@ -9,7 +9,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.StringMap
 import me.anno.ui.base.Font
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Clock
 
 object DefaultConfig : StringMap() {

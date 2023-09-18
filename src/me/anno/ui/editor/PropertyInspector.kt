@@ -20,8 +20,8 @@ import me.anno.ui.editor.files.Search
 import me.anno.ui.input.ColorInput
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
-import me.anno.ui.style.Style
-import me.anno.ui.utils.WindowStack
+import me.anno.ui.Style
+import me.anno.ui.WindowStack
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 

@@ -2,7 +2,7 @@ package me.anno.ui.base
 
 import me.anno.config.DefaultConfig
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 /**
  * an invisible panel that executes a function every tick

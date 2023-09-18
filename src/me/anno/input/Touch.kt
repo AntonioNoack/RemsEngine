@@ -2,7 +2,7 @@ package me.anno.input
 
 import me.anno.Engine
 import me.anno.maths.Maths.length
-import me.anno.ui.utils.WindowStack
+import me.anno.ui.WindowStack
 import org.joml.Vector3f
 import kotlin.math.max
 

@@ -8,7 +8,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max

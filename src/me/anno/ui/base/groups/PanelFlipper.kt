@@ -8,7 +8,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.*
 
 // todo test it

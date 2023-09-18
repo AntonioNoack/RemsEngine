@@ -6,7 +6,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.lua.ScriptComponent
 import me.anno.lua.ScriptComponent.Companion.toLua
 import me.anno.ui.anim.AnimTextPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color
 import org.apache.logging.log4j.LogManager
 import org.luaj.vm2.LuaString

@@ -7,7 +7,7 @@ import me.anno.ui.Panel
 import me.anno.ui.custom.CustomContainer
 import me.anno.ui.custom.CustomList
 import me.anno.ui.editor.PropertyInspector
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.OS.documents
 
 object DefaultLayout {

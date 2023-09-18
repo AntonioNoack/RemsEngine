@@ -11,7 +11,7 @@ import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
 import me.anno.ui.input.InputPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.withAlpha
 
 open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: Int, style: Style) :

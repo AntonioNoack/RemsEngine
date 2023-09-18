@@ -6,7 +6,7 @@ import me.anno.input.Key
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.files.OpenInBrowser.openInBrowser
 import java.net.URL
 

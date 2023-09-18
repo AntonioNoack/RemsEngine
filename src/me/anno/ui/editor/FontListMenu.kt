@@ -8,7 +8,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 

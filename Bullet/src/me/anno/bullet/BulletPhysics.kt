@@ -36,7 +36,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager

@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.Language
 import me.anno.studio.StudioBase
 import me.anno.ui.input.EnumInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.io.InputStream

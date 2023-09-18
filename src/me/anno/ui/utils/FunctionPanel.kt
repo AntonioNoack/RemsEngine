@@ -7,7 +7,7 @@ import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.maths.Maths.clamp
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
 import java.math.BigDecimal

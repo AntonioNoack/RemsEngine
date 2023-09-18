@@ -8,7 +8,7 @@ import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.TablePanel
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.types.Booleans.toInt
 

@@ -19,7 +19,7 @@ import me.anno.maths.Maths.max
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.color.spaces.HSLuv
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.toRGB
 import me.anno.utils.pooling.JomlPools

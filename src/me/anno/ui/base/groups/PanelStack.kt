@@ -1,7 +1,7 @@
 package me.anno.ui.base.groups
 
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.max
 
 open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {

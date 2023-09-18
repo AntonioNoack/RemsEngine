@@ -21,7 +21,7 @@ import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.b
 import me.anno.utils.Color.black
 import me.anno.utils.Color.g

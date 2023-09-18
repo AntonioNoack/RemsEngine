@@ -23,7 +23,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
-import me.anno.ui.utils.WindowStack
+import me.anno.ui.WindowStack
 import me.anno.utils.strings.StringHelper.levenshtein
 import kotlin.math.max
 import kotlin.math.min

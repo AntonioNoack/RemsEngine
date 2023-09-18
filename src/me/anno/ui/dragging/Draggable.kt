@@ -4,7 +4,7 @@ import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.structures.tuples.IntPair
 
 /**

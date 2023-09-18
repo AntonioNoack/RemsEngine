@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelGroup
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 // maximum size???...
 open class ColorPalette(

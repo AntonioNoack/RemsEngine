@@ -34,7 +34,7 @@ import me.anno.io.zip.InnerTmpFile
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelGroup
-import me.anno.ui.utils.WindowStack
+import me.anno.ui.WindowStack
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4d
 

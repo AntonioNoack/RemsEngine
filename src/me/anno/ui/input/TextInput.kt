@@ -7,7 +7,7 @@ import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.PureTextInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 @Suppress("unused")
 open class TextInput(title: String, val visibilityKey: String, enableSpellcheck: Boolean, style: Style) :

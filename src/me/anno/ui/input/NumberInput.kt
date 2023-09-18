@@ -7,7 +7,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.input.components.TitlePanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.types.Strings.isBlank2
 
 abstract class NumberInput<BaseType>(

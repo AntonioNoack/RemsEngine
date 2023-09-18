@@ -12,7 +12,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
 import me.anno.studio.StudioBase
 import me.anno.ui.editor.code.CodeEditor
-import me.anno.ui.utils.WindowStack.Companion.printLayout
+import me.anno.ui.WindowStack.Companion.printLayout
 import me.anno.utils.LOGGER
 
 @Suppress("MemberVisibilityCanBePrivate")

@@ -6,7 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.max
 
 open class SimpleTextPanel(style: Style) : Panel(style) {

@@ -10,7 +10,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.abs
 import kotlin.math.min
 

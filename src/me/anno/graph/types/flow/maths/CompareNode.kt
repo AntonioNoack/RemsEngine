@@ -8,7 +8,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 class CompareNode(type: String = "?") :
     ValueNode("Compare", listOf(type, "A", type, "B"), outputs) {

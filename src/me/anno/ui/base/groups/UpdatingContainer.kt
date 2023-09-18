@@ -3,7 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.Engine
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.abs
 
 @Suppress("unused")

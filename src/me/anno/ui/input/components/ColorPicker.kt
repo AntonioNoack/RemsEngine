@@ -11,7 +11,7 @@ import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.unmix
 import me.anno.ui.base.ImagePanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.structures.tuples.IntPair
 import kotlin.math.abs

@@ -7,7 +7,7 @@ import me.anno.input.Controller
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import org.joml.AABBf
 
 abstract class CalibrationPanel(

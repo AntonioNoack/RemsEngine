@@ -5,7 +5,7 @@ import me.anno.gpu.GFX
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Tabs
 import kotlin.math.max
 import kotlin.math.min

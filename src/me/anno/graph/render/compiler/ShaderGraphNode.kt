@@ -26,7 +26,7 @@ import me.anno.graph.ui.GraphPanel
 import me.anno.maths.Maths.clamp
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelList
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 // todo own internal graph
 // todo customizable inputs

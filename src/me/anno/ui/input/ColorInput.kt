@@ -26,7 +26,7 @@ import me.anno.ui.editor.color.ColorPreviewField
 import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.input.components.ColorPicker
 import me.anno.ui.input.components.TitlePanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toARGB
 import org.joml.Vector4f

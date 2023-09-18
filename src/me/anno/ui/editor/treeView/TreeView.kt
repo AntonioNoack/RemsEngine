@@ -10,7 +10,7 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 

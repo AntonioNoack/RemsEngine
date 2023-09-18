@@ -12,7 +12,7 @@ import me.anno.maths.Maths.hasFlag
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 
 abstract class MathNode<V : Enum<V>>(

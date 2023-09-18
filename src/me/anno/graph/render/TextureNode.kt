@@ -10,7 +10,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.input.FileInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.black4
 import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector2f

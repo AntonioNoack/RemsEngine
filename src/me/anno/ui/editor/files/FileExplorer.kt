@@ -32,7 +32,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
 import me.anno.ui.input.TextInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents

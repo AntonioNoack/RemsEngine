@@ -52,7 +52,7 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.input.*
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.strings.StringHelper.camelCaseToTitle

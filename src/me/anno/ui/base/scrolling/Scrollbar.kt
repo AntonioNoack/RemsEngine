@@ -8,7 +8,7 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.mulAlpha
 import me.anno.ui.Panel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.abs
 
 open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {

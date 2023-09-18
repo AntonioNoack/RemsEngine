@@ -6,7 +6,7 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.ui.Panel
 import me.anno.ui.Window
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 open class UITests {
 

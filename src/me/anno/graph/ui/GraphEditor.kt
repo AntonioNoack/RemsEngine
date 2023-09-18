@@ -17,7 +17,7 @@ import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
 import org.joml.Vector2f

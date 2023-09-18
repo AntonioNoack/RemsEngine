@@ -7,7 +7,7 @@ import me.anno.maths.Maths.pow
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.input.components.NumberInputComponent
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.types.AnyToLong
 import kotlin.math.max
 import kotlin.math.round

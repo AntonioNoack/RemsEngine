@@ -5,7 +5,7 @@ import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.sq
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.max
 import kotlin.math.min
 

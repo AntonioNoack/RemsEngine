@@ -5,7 +5,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.maths.Maths.mulAlpha
 import me.anno.ui.base.groups.PanelGroup
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.max
 
 open class ScrollbarX(val scrollable: ScrollableX, style: Style) : Scrollbar(style) {

@@ -2,7 +2,7 @@ package me.anno.ui.base.groups
 
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import kotlin.math.max

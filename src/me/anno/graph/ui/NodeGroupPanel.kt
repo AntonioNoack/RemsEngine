@@ -7,7 +7,7 @@ import me.anno.graph.render.NodeGroup
 import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
 

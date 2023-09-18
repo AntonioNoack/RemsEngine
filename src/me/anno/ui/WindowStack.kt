@@ -1,12 +1,10 @@
-package me.anno.ui.utils
+package me.anno.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.input.Input
 import me.anno.studio.StudioBase
-import me.anno.ui.Panel
-import me.anno.ui.Window
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager

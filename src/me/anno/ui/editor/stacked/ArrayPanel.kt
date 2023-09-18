@@ -18,7 +18,7 @@ import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import kotlin.math.max
 import kotlin.math.min
 

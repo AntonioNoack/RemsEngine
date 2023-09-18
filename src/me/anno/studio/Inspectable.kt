@@ -2,7 +2,7 @@ package me.anno.studio
 
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 interface Inspectable {
 

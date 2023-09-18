@@ -16,7 +16,7 @@ import me.anno.ui.editor.color.spaces.HSV
 import me.anno.ui.editor.color.spaces.LinearHSI
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
 import me.anno.utils.structures.tuples.Quad

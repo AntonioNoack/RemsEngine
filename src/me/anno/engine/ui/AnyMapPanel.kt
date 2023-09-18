@@ -5,7 +5,7 @@ import me.anno.engine.Ptr
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.stacked.ArrayPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.structures.tuples.MutablePair
 
 // todo sort list/map by key or property of the users choice

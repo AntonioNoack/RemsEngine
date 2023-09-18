@@ -5,7 +5,7 @@ import me.anno.ui.Panel
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputVisibility
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.types.Strings.isBlank2
 
 open class TitledListY(val title: String, val visibilityKey: String, sorter: Comparator<Panel>?, style: Style) :

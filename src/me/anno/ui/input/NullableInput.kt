@@ -4,7 +4,7 @@ import me.anno.engine.IProperty
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.components.Checkbox
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 class NullableInput<V>(val content: Panel, val property: IProperty<V>, style: Style) :
     PanelListX(style), InputPanel<V> {

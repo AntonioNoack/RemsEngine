@@ -24,7 +24,7 @@ import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.strings.StringHelper.shorten

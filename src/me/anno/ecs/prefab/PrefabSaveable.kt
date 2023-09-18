@@ -14,7 +14,7 @@ import me.anno.studio.Inspectable
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.Hierarchical
 import org.apache.logging.log4j.LogManager

@@ -34,8 +34,8 @@ import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.WelcomeUI
 import me.anno.ui.editor.config.ConfigPanel
-import me.anno.ui.style.Style
-import me.anno.ui.utils.WindowStack.Companion.createReloadWindow
+import me.anno.ui.Style
+import me.anno.ui.WindowStack.Companion.createReloadWindow
 import me.anno.utils.OS
 import org.joml.Matrix4f
 

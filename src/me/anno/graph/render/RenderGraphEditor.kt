@@ -11,7 +11,7 @@ import me.anno.graph.types.flow.StartNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : GraphEditor(graph, style) {
 

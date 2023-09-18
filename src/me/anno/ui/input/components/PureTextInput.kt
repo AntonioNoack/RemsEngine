@@ -1,6 +1,6 @@
 package me.anno.ui.input.components
 
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 
 open class PureTextInput(style: Style) : PureTextInputML(style.getChild("edit")) {
 

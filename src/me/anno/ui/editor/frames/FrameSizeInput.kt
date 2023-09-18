@@ -7,7 +7,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.IntInput
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import java.util.*
 
 /** input for width and height; offers presets and a custom input field; used in Rem's Studio */

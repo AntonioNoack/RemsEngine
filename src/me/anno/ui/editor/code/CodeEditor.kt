@@ -20,7 +20,7 @@ import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
 import me.anno.ui.editor.code.codemirror.*
 import me.anno.ui.input.components.CursorPosition
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.structures.arrays.IntSequence
 import me.anno.utils.structures.arrays.LineSequence

@@ -1,7 +1,7 @@
 package me.anno.ui.editor.config
 
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 
 class TopicPanel(val topic: String, topicName: String, val configPanel: ConfigPanel, style: Style) :

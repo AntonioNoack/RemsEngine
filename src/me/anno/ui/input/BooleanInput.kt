@@ -7,7 +7,7 @@ import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.Checkbox
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.types.Strings.isBlank2
 
 /**

@@ -79,7 +79,7 @@ import me.anno.maths.Maths.roundDiv
 import me.anno.ui.Panel
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Clock
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white

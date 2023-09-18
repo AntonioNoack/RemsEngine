@@ -13,7 +13,7 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputPanel
-import me.anno.ui.style.Style
+import me.anno.ui.Style
 import me.anno.utils.Warning.unused
 
 /**
