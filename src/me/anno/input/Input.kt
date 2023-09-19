@@ -19,6 +19,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextWriter
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.studio.StudioBase.Companion.addEvent
@@ -27,6 +28,7 @@ import me.anno.studio.StudioBase.Companion.instance
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.treeView.TreeViewPanel
 import me.anno.utils.Sleep
 import me.anno.utils.files.FileExplorerSelectWrapper
@@ -517,9 +519,29 @@ object Input {
                     val idx = mouseYi / window.progressbarHeight
                     val progressBar = window.progressBars.getOrNull(idx)
                     if (progressBar != null) {
-                        Menu.ask(windowStack, NameDesc("Cancel ${progressBar.name}?")) {
-                            progressBar.cancel(false)
-                        }
+                        val notifyWhenFinishedTitle = NameDesc(
+                            if (progressBar.notifyWhenFinished) "Don't notify when finished"
+                            else "Notify when finished"
+                        )
+                        Menu.openMenu(
+                            windowStack,
+                            NameDesc(progressBar.name),
+                            listOf(
+                                MenuOption(notifyWhenFinishedTitle) {
+                                    progressBar.notifyWhenFinished = !progressBar.notifyWhenFinished
+                                },
+                                MenuOption(NameDesc("Hide")) {
+                                    window.progressBars.remove(progressBar)
+                                    window.invalidateLayout()
+                                },
+                                MenuOption(NameDesc("Cancel")) {
+                                    progressBar.cancel(false)
+                                    // the user interacted, and knows what he was doing,
+                                    // so close much quicker than usual
+                                    progressBar.endShowDuration = 300 * MILLIS_TO_NANOS
+                                }
+                            )
+                        )
                         issuedMouseDown = true
                     }
                 }

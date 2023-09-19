@@ -1,7 +1,5 @@
 package me.anno.utils.structures.heap
 
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
 import kotlin.math.max
 
 /**
@@ -17,7 +15,8 @@ class MinHeap<Value>(
 
     // Member variables of this class
     private var values = Array<Any?>(initialSize) { null }
-    private var size = 0
+    var size = 0
+        private set
 
     fun isEmpty() = size <= 0
     fun isNotEmpty() = size > 0
@@ -135,12 +134,5 @@ class MinHeap<Value>(
      * */
     override fun iterator(): Iterator<Value> {
         return this
-    }
-
-    companion object {
-
-        private val LOGGER = LogManager.getLogger(MinHeap::class)
-
-
     }
 }

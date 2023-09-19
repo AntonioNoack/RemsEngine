@@ -251,10 +251,12 @@ class PerlinNoise(
         var sum = 0f
         val generators = levels!!
         val factors = factors
+        var fx = 1f
         var vx = x * scale.x
         for (i in factors.indices) {
-            sum += factors[i] * generators[i].getSmoothGradient(vx)
+            sum += fx * factors[i] * generators[i].getSmoothGradient(vx)
             vx *= 2f
+            fx *= 2f
         }
         return sum * scale.x
     }
@@ -279,13 +281,15 @@ class PerlinNoise(
         val factors = factors
         var vx = x * scale.x
         var vy = y * scale.y
+        var fx = 1f
         dst.set(0f)
         for (i in factors.indices) {
             val fac = factors[i]
             sum += fac * generators[i].getSmoothGradient(vx, vy, tmp)
-            tmp.mulAdd(fac, dst, dst)
+            tmp.mulAdd(fac * fx, dst, dst)
             vx *= 2f
             vy *= 2f
+            fx *= 2f
         }
         dst.mul(scale.x, scale.y)
         return sum

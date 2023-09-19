@@ -6,6 +6,7 @@ import me.anno.gpu.GFXBase
 import me.anno.input.Key
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.input.IntInput
+import org.apache.logging.log4j.LogManager
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -17,6 +18,8 @@ fun main() {
 class IntInputTests : UITests() {
     @Test
     fun typingChangesValue() {
+
+        LogManager.disableLogger("SimpleExpressionParser")
 
         val test = IntInput("Quality", "", Type.VIDEO_QUALITY_CRF, style)
         prepareUI(test)

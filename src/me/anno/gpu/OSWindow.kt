@@ -6,8 +6,8 @@ import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.Window
-import me.anno.ui.base.progress.ProgressBar
 import me.anno.ui.WindowStack
+import me.anno.ui.base.progress.ProgressBar
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback
@@ -285,7 +285,10 @@ open class OSWindow(var title: String) {
 
     fun addProgressBar(bar: ProgressBar): ProgressBar {
         addEvent {
-            progressBars.add(bar)
+            bar.window = this
+            synchronized(progressBars) {
+                progressBars.add(bar)
+            }
             for (window in windowStack) {
                 if (window.isFullscreen) {
                     window.panel.invalidateLayout()
@@ -295,6 +298,14 @@ open class OSWindow(var title: String) {
         return bar
     }
 
+    fun invalidateLayout() {
+        for (window1 in windowStack) {
+            if (window1.isFullscreen) {
+                window1.panel.invalidateLayout()
+            }
+        }
+    }
+
     val progressbarHeight
         get() = monospaceFont.sizeInt + style.getSize("progressbarHeight", 8)
 
@@ -302,5 +313,4 @@ open class OSWindow(var title: String) {
         get() =
             if (progressBars.isEmpty()) 0
             else progressbarHeight * progressBars.size
-
 }

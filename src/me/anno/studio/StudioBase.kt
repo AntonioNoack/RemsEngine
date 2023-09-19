@@ -148,7 +148,6 @@ abstract class StudioBase(
         ExtensionLoader.load()
 
         createUI()
-
     }
 
     open fun setupNames() {
@@ -182,7 +181,6 @@ abstract class StudioBase(
         if (runGraphics) {
             GFXBase.run(title)
         }
-
     }
 
     var hoveredPanel: Panel? = null
@@ -236,7 +234,6 @@ abstract class StudioBase(
             useFrame(0, 0, w, h, NullFramebuffer, Renderer.colorRenderer) {
                 if (drawUIOverlay(window, w, h)) didSomething = true
             }
-
         }
 
         if (didSomething) window.didNothingCounter = 0
@@ -254,7 +251,6 @@ abstract class StudioBase(
         CacheSection.updateAll()
 
         onGameLoopEnd()
-
     }
 
     fun updateVSync(window: OSWindow) {
@@ -326,21 +322,17 @@ abstract class StudioBase(
             val ph = window.progressbarHeight
             val time = Engine.nanoTime
             for (index in progressBars.indices) {
-                val bar = progressBars[index]
+                val progressBar = progressBars.getOrNull(index) ?: break
                 val x = 0
                 val y = ph * index
-                bar.draw(
+                progressBar.draw(
                     x, y, w, ph,
                     x, y, x + w, y + ph,
                     time
                 )
             }
             val changed = progressBars.removeIf { it.canBeRemoved(time) }
-            if (changed) {
-                for (window1 in window.windowStack) {
-                    if (window1.isFullscreen) window1.panel.invalidateLayout()
-                }
-            }
+            if (changed) window.invalidateLayout()
         }
 
         // dragging can be a nice way to work, but dragging values to change them,
@@ -360,7 +352,6 @@ abstract class StudioBase(
         }
 
         return didSomething
-
     }
 
     private var isFirstFrame = true
@@ -430,7 +421,5 @@ abstract class StudioBase(
                 }
             }
         }
-
     }
-
 }

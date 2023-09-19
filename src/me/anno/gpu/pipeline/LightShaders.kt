@@ -158,7 +158,7 @@ object LightShaders {
                     "" +
                             "ambientOcclusion = texture(occlusionTex,uv).x;\n" +
                             "ivec2 iuv = ivec2(uv*textureSize(lightTex));\n" +
-                            "finalMetallic = dot(metallicMask, texture(metallicTex,iuv,0));\n" +
+                            "finalMetallic = dot(metallicMask, texelFetch(metallicTex,iuv,gl_SampleID));\n" +
                             "finalLight = texelFetch(lightTex,iuv,0).rgb;\n"
                 } else {
                     "" +

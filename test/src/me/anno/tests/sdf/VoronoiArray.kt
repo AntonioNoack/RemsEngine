@@ -32,5 +32,22 @@ fun main() {
                 diffuseMap = OS.pictures.getChild("RemsStudio/8c841f59b8dedb0b63abcac91cb82392-1000.jpg")
             }.ref)
         })
+        // grass
+        addChild(SDFCone().apply {
+            val s = 0.02f
+            scale = s
+            limit = 1e5f
+            addChild(SDFVoronoiArray().apply {
+                min.set(-1e3f / s)
+                max.set(+1e3f / s)
+            })
+            radius = 0.2f
+            addChild(SDFRandomUV())
+            sdfMaterials = listOf(Material().apply {
+                // add texture with random shades of green :)
+                // https://www.wallpaperup.com/259563/green_landscapes_nature_trees_grass_parks.html
+                diffuseMap = OS.pictures.getChild("RemsStudio/8c841f59b8dedb0b63abcac91cb82392-1000.jpg")
+            }.ref)
+        })
     })
 }

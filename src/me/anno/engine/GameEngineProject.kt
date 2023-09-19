@@ -145,51 +145,61 @@ class GameEngineProject() : NamedSaveable() {
         // we can't really do that anyway...
         if (!OS.isWeb) {
             thread(name = "Indexing Resources") {
-                val progress = GFX.someWindow?.addProgressBar(object : ProgressBar("Indexing Assets", "Files", 1.0) {
+                val progressBar = GFX.someWindow?.addProgressBar(object : ProgressBar("Indexing Assets", "Files", 1.0) {
                     override fun formatProgress(): String {
                         return "$name: ${progress.toLong()} / ${total.toLong()} $unit"
                     }
                 })
-                val resourcesToIndex = ArrayList<Pair<FileReference, Int>>()
-                resourcesToIndex.add(location to maxIndexDepth)
-                var processedFiles = 0L
-                while (!Engine.shutdown && resourcesToIndex.isNotEmpty() && progress?.isCancelled != true) {
+                val filesToIndex = ArrayList<FileReference>()
+                indexFolder(progressBar, location, maxIndexDepth, filesToIndex)
+                while (!Engine.shutdown && filesToIndex.isNotEmpty() && progressBar?.isCancelled != true) {
                     if (Engine.shutdown) break
-                    if (progress != null) {
-                        progress.total = (resourcesToIndex.size + processedFiles).toDouble()
-                        progress.progress = processedFiles.toDouble()
+                    if (progressBar != null) {
+                        progressBar.progress += 1.0
                     }
-                    val (file, depth) = resourcesToIndex.removeLast()
-                    indexResource(file, depth, resourcesToIndex)
-                    processedFiles++
+                    val fileToIndex = filesToIndex.removeFirst()
+                    indexResource(fileToIndex)
                 }
-                progress?.finish(true)
+                progressBar?.finish(true)
             }
         }
     }
 
-    fun indexResource(file: FileReference, depth: Int, resourcesToIndex: MutableList<Pair<FileReference, Int>>) {
-        if (file.isDirectory) {
-            if (depth > 0) {
-                val depthM1 = depth - 1
-                for (child in file.listChildren() ?: return) {
-                    resourcesToIndex.add(child to depthM1)
+    fun indexFolder(
+        progressBar: ProgressBar?,
+        file: FileReference, depth: Int,
+        resourcesToIndex: MutableCollection<FileReference>
+    ) {
+        val depthM1 = depth - 1
+        if (!file.isDirectory || Engine.shutdown || progressBar?.isCancelled == true) return
+        val children = file.listChildren() ?: return
+        if (progressBar != null) {
+            progressBar.total += children.size
+            progressBar.progress += 1.0
+        }
+        for (child in children) {
+            if (child.isDirectory) {
+                if (depthM1 >= 0) {
+                    indexFolder(progressBar, child, depthM1, resourcesToIndex)
                 }
-            }
-        } else {
-            Signature.findName(file) { sign ->
-                when (sign) {
-                    "png", "jpg", "exr", "qoi", "webp", "dds", "hdr", "ico", "gimp", "bmp" -> assetIndex.add(file to "Image")
-                    "blend", "gltf", "dae", "md2", "vox", "fbx", "obj" -> assetIndex.add(file to "Mesh")
-                    "media", "gif" -> assetIndex.add(file to "Media")
-                    "pdf" -> assetIndex.add(file to "PDF")
-                    "ttf", "woff1", "woff2" -> assetIndex.add(file to "")
-                    else -> {
-                        // todo specify timeout as 0ms
-                        val prefab = PrefabCache[file, false]
-                        if (prefab != null) {
-                            assetIndex.add(file to prefab.clazzName)
-                        }
+            } else resourcesToIndex.add(child)
+        }
+    }
+
+    fun indexResource(file: FileReference) {
+        if (file.isDirectory) return
+        Signature.findName(file) { sign ->
+            when (sign) {
+                "png", "jpg", "exr", "qoi", "webp", "dds", "hdr", "ico", "gimp", "bmp" -> assetIndex.add(file to "Image")
+                "blend", "gltf", "dae", "md2", "vox", "fbx", "obj" -> assetIndex.add(file to "Mesh")
+                "media", "gif" -> assetIndex.add(file to "Media")
+                "pdf" -> assetIndex.add(file to "PDF")
+                "ttf", "woff1", "woff2" -> assetIndex.add(file to "")
+                else -> {
+                    // todo specify timeout as 0ms
+                    val prefab = PrefabCache[file, false]
+                    if (prefab != null) {
+                        assetIndex.add(file to prefab.clazzName)
                     }
                 }
             }

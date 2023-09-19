@@ -1,10 +1,6 @@
 package me.anno.utils.structures.heap
 
-import org.apache.logging.log4j.LogManager
-
 object Heap {
-
-    private val LOGGER = LogManager.getLogger(Heap::class)
 
     // https://www.geeksforgeeks.org/building-heap-from-array/
     // To heapify a subtree rooted with node i which is
@@ -102,36 +98,4 @@ object Heap {
             minHeapify(arr, i, comparator)
         }
     }
-
-    // A utility function to print the array
-    // representation of Heap
-    fun <V> printHeap(arr: List<V>?) {
-        LOGGER.info("Array representation of Heap is:")
-        LOGGER.info(arr)
-    }
-
-    fun <V> printSortedMax(arr: ArrayList<V>, comparator: Comparator<V>) {
-        LOGGER.info("Sorted elements are:")
-        var i = 0
-        val l = arr.size
-        while (i < l) {
-            val value = extractMax(arr, comparator)
-            print(value.toString() + " ")
-            i++
-        }
-        LOGGER.info()
-    }
-
-    fun <V> printSortedMin(arr: ArrayList<V>, comparator: Comparator<V>) {
-        LOGGER.info("Sorted elements are:")
-        var i = 0
-        val l = arr.size
-        while (i < l) {
-            val value = extractMin(arr, comparator)
-            print(value.toString() + " ")
-            i++
-        }
-        LOGGER.info()
-    }
-
 }

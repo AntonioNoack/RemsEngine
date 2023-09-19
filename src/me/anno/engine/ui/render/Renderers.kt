@@ -304,9 +304,11 @@ object Renderers {
         val shaderCode = when (type) {
             DeferredLayerType.MOTION -> "" +
                     "finalResult = vec4(${type.glslName}, 1.0);" +
-                    "finalResult.rgb *= 10.0 / (1.0 + abs(finalResult.rgb));\n" +
+                    "finalResult.rgb *= 10.0;\n" +
+                    "finalResult.rgb *= 1.0 / (1.0 + abs(finalResult.rgb));\n" +
                     "finalResult.rgb += 0.5;\n"
-            DeferredLayerType.NORMAL -> "finalResult = vec4(${type.glslName}*0.5+0.5, 1.0);\n"
+            DeferredLayerType.NORMAL, DeferredLayerType.TANGENT ->
+                "finalResult = vec4(${type.glslName}*0.5+0.5, 1.0);\n"
             else -> {
                 val prefix = if (type == DeferredLayerType.COLOR || type == DeferredLayerType.EMISSIVE) colorToSRGB
                 else ""
@@ -325,8 +327,7 @@ object Renderers {
             }
         }
         val name = type.name
-        val stage = ShaderStage(name, variables, shaderCode)
-            .add(octNormalPacking)
+        val stage = ShaderStage(name, variables, shaderCode).add(octNormalPacking)
         SimpleRenderer(name, stage)
     }, DeferredLayerType.values.size)
 

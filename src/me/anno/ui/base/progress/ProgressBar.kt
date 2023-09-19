@@ -3,6 +3,7 @@ package me.anno.ui.base.progress
 import me.anno.Engine
 import me.anno.gpu.GFX.clip
 import me.anno.gpu.GFX.clip2Save
+import me.anno.gpu.OSWindow
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
@@ -44,10 +45,12 @@ open class ProgressBar(
     private var lastDrawn = Engine.nanoTime
 
     var isCancelled = false
+    var window: OSWindow? = null
 
     fun finish(done: Boolean = !isCancelled) {
         if (done) progress = total
         if (finishTime == 0L) finishTime = Engine.nanoTime
+        if (notifyWhenFinished) window?.requestAttention()
     }
 
     /**
@@ -108,7 +111,7 @@ open class ProgressBar(
         lastDrawnUpdate = mix(lastDrawnUpdate, percentage, dt)
 
         // when it's finished, we know it's 100%
-        if(isFinished && percentage.isNaN()) percentage = 1.0
+        if (isFinished && percentage.isNaN()) percentage = 1.0
 
         // todo animation with shifted stripes?
         val pad = 1
@@ -189,5 +192,5 @@ open class ProgressBar(
 
     var timeout = Long.MAX_VALUE
     var endShowDuration = 3_000_000_000
-
+    var notifyWhenFinished = false
 }

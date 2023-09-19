@@ -7,7 +7,9 @@ import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.hasFlag
+import me.anno.maths.Maths.min
 import me.anno.utils.types.Booleans.toInt
+import org.joml.Vector4f
 
 // decal pass:
 //  Input: pos, normal (we could pass in color theoretically, but idk)
@@ -27,7 +29,7 @@ class DecalMaterial : Material() {
     // a) list of all decals for all pixels -> bad
     // b) render normal extra; and apply lighting twice
 
-    var writeColor = true
+    var writeColor = false
         set(value) {
             field = value
             shader = getShader()
@@ -57,6 +59,14 @@ class DecalMaterial : Material() {
             shader = getShader()
         }
 
+    /**
+     * fading sharpness of decal on edges, by local xyz, and normal
+     * */
+    var decalSharpness = Vector4f(5f)
+        set(value) {
+            field.set(value)
+        }
+
     init {
         pipelineStage = 2
         shader = getShader()
@@ -70,10 +80,11 @@ class DecalMaterial : Material() {
         val sett = sett
         if (sett != null) {
             val layers = sett.layers2
-            for (index in layers.indices) {
+            for (index in 0 until min(layers.size, buff.numTextures)) {
                 buff.getTextureI(index).bindTrulyNearest(shader, layers[index].name + "_in0")
             }
         }
+        shader.v4f("decalSharpness", decalSharpness)
         shader.v2f("windowSize", buff.width.toFloat(), buff.height.toFloat())
         buff.depthTexture?.bindTrulyNearest(shader, "depth_in0")
     }
@@ -93,5 +104,4 @@ class DecalMaterial : Material() {
     }
 
     override val className: String get() = "DecalMaterial"
-
 }
