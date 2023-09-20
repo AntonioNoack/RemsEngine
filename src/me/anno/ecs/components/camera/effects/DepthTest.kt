@@ -17,7 +17,6 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.ITexture2D
 
 class DepthTest : CameraEffect() {
 
@@ -46,15 +45,12 @@ class DepthTest : CameraEffect() {
     override fun listOutputs() =
         listOf(DeferredLayerType.SDR_RESULT)
 
-    override fun clone() = DepthTest()
-
     companion object {
-
         val shader = Shader(
             "dof", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
-                Variable(GLSLType.V1F,"worldScale"),
-                Variable(GLSLType.V3F,"cameraPosition"),
+                Variable(GLSLType.V1F, "worldScale"),
+                Variable(GLSLType.V3F, "cameraPosition"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ) + depthVars, "" +
@@ -66,6 +62,5 @@ class DepthTest : CameraEffect() {
                     "   result = vec4(fract(pos - 0.001),1.0);\n" +
                     "}\n"
         )
-
     }
 }

@@ -36,12 +36,10 @@ import org.joml.Vector4f
 // todo these are too sharp, make them blurry when the material is rough
 object ScreenSpaceReflections {
 
-    private const val testMaxDistanceRatio = 100
-
     // position + normal + metallic/reflectivity + maybe-roughness + illuminated image -> illuminated + reflections
     fun createShader(): Shader {
         val variables = arrayListOf(
-            Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
+            Variable(GLSLType.V4F, "result", VariableMode.OUT),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.S2D, "finalColor"),
             Variable(GLSLType.S2D, "finalEmissive"),
@@ -53,8 +51,6 @@ object ScreenSpaceReflections {
             Variable(GLSLType.S2D, "finalRoughness"),
             Variable(GLSLType.V4F, "metallicMask"),
             Variable(GLSLType.V4F, "roughnessMask"),
-            Variable(GLSLType.V1F, "testDistance"),
-            Variable(GLSLType.V1F, "maxDistanceSq"),
             Variable(GLSLType.V1F, "resolution"),
             Variable(GLSLType.V1I, "steps"),
             Variable(GLSLType.V1F, "thickness"),
@@ -73,6 +69,10 @@ object ScreenSpaceReflections {
         functions.add(octNormalPacking)
         variables.addAll(depthVars)
 
+        val returnColor0 = "" +
+                "result = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
+                "return;\n"
+
         return Shader(
             "ss-reflections", coordsList, coordsVShader, uvList, variables, "" +
 
@@ -89,27 +89,38 @@ object ScreenSpaceReflections {
                     // "   reflectivity = 1;//uv.x > 0.5 ? 1 : 0;\n" + // for debugging
                     // skip, if not reflective
                     "   if (reflectivity <= 0.0) {\n" +
-                    "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
-                    "       return;\n" +
+                    returnColor0 +
                     "   };\n" +
 
                     "   ivec2 texSizeI = textureSize(finalDepth, 0);\n" +
                     "   vec2  texSize  = vec2(texSizeI);\n" +
                     "   ivec2 uvi = clamp(ivec2(uv*texSize),ivec2(0,0),texSizeI-1);\n" +
 
-                    "   vec3 positionFrom     = rawDepthToPosition(uv,texelFetch(finalDepth,uvi,0).r);\n" +
+                    "   vec3 positionFrom = rawDepthToPosition(uv,texelFetch(finalDepth,uvi,0).r);\n" +
 
                     "   vec4 normalData = texture(finalNormal, uv);\n" +
-                    "   vec3 normal           = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
-                    "   vec3 pivot            = normalize(reflect(positionFrom, normal));\n" +
+                    "   vec3 normal     = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
+                    "   vec3 pivot      = normalize(reflect(positionFrom, normal));\n" +
 
                     "   float startDistance = length(positionFrom);\n" +
+                    "   vec3 endView; vec4 endUV0; vec2 endUV;\n" +
 
-                    "   vec3  endView       = positionFrom + pivot * testDistance;\n" +
-                    "   float endDistance   = length(endView);\n" +
+                    // guess a distance to the border
+                    "   float dist = startDistance;\n" +
+                    "   endView = positionFrom + pivot * dist;\n" +
+                    "   endUV0 = matMul(transform, vec4(endView, 1.0));\n" +
+                    "   endUV = endUV0.xy / endUV0.w * 0.5 + 0.5;\n" +
+                    // correct that distance
+                    "   dist *= min(\n" +
+                    "       (endUV.x<uv.x?uv.x:1.0-uv.x)/abs(endUV.x-uv.x),\n" +
+                    "       (endUV.y<uv.y?uv.y:1.0-uv.y)/abs(endUV.y-uv.y)\n" +
+                    "   );\n" +
 
-                    "   vec4 endUV0    = matMul(transform, vec4(endView, 1.0));\n" +
-                    "   vec2 endUV     = endUV0.xy / endUV0.w * 0.5 + 0.5;\n" +
+                    // now we're on the border :)
+                    "   endView = positionFrom + pivot * dist;\n" +
+                    "   endUV0 = matMul(transform, vec4(endView, 1.0));\n" +
+                    "   endUV = endUV0.xy / endUV0.w * 0.5 + 0.5;\n" +
+                    "   float endDistance = length(endView);\n" +
 
                     "   vec2 dstUV = uv;\n" +
 
@@ -128,19 +139,20 @@ object ScreenSpaceReflections {
                     "   vec3 positionTo = vec3(0.0);\n" +
 
                     // calculate the number of pixels to the edge of the screen
-                    "   int maxLinearSteps = int(min(delta * $testMaxDistanceRatio.0, useX ?\n" +
+                    "   int maxLinearSteps = int(min(100.0, useX ?\n" +
                     "       (deltaXY.x < 0.0 ? uv.x : 1.0 - uv.x) * resolution * texSize.x :\n" +
                     "       (deltaXY.y < 0.0 ? uv.y : 1.0 - uv.y) * resolution * texSize.y\n" +
                     "   ));\n" +
                     "   for (int i = 0; i <= maxLinearSteps; i++){\n" +
 
-                    "       dstUV     += increment;\n" +
+                    "       dstUV += increment;\n" +
+                    "       if(dstUV.x < 0.0 || dstUV.y < 0.0 || dstUV.x >= 1.0 || dstUV.y >= 1.0) break;\n" +
                     "       positionTo = rawDepthToPosition(dstUV,texelFetch(finalDepth,ivec2(dstUV*texSize),0).r);\n" +
 
                     "       fraction1 = useX ? (dstUV.x - uv.x) / deltaXY.x : (dstUV.y - uv.y) / deltaXY.y;\n" +
 
                     "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, fraction1);\n" +
-                    "       depth        = viewDistance - length(positionTo);\n" +
+                    "       depth = viewDistance - length(positionTo);\n" +
 
                     "       if (depth > 0.0 && depth < thickness) {\n" +
                     // we found something between fraction0 and fraction1
@@ -151,15 +163,9 @@ object ScreenSpaceReflections {
                     "       }\n" +
                     "   }\n" +
 
-                    // "   vec4 skyAtPivot = getSkyColor1(pivot, roughness);\n" +
-                    "   vec4 baseEmission = vec4(texelFetch(finalEmissive,uvi,0).rgb, 0.0);\n" +
-                    "   vec4 baseColor = vec4(texelFetch(finalColor,uvi,0).rgb, 1.0);\n" +
                     "   if(hit0 == 0) {\n" +
-                    "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
-                    "       return;\n" +
+                    returnColor0 +
                     "   }\n" +
-
-                    // "   fraction1 = (fraction0 + fraction1) * 0.5;\n" +
 
                     "   vec2  bestUV = dstUV;\n" +
                     "   vec3  bestPositionTo = positionTo;\n" +
@@ -184,23 +190,22 @@ object ScreenSpaceReflections {
 
                     "   vec3 distanceDelta = bestPositionTo - positionFrom;\n" +
                     "   float distanceSq = dot(distanceDelta, distanceDelta);\n" +
-                    "   if(distanceSq >= maxDistanceSq || bestUV.x < 0.0 || bestUV.x > 1.0 || bestUV.y < 0.0 || bestUV.y > 1.0){\n" +
-                    "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
-                    "       return;\n" +
+                    "   if(bestUV.x < 0.0 || bestUV.x > 1.0 || bestUV.y < 0.0 || bestUV.y > 1.0){\n" +
+                    returnColor0 +
                     "   }\n" +
 
                     "   float visibility = \n" +
                     "         (1.0 + min(dot(normalize(positionFrom), pivot), 0.0))\n" + // [0,1]
                     "       * (1.0 - min(bestDepth / thickness, 1.0))\n" +
-                    "       * (1.0 - sqrt(distanceSq / maxDistanceSq))\n" +
                     "       * min(10.0 * (0.5 - abs(bestUV.x - 0.5)), 1.0)\n" +
-                    "       * min(10.0 * (0.5 - abs(bestUV.y - 0.5)), 1.0);\n" +
+                    "       * min(10.0 * (0.5 - abs(bestUV.y - 0.5)), 1.0)\n" +
+                    ";\n" +
 
                     // reflected position * base color of mirror (for golden reflections)
                     "   vec3 diffuseColor = texture(finalColor, uv).rgb;\n" +
                     "   vec3 color1 = diffuseColor * texelFetch(finalIlluminated,ivec2(bestUV*texSize),0).rgb;\n" +
                     "   color0 = mix(color0, color1, min(visibility * reflectivity * strength, 1.0));\n" +
-                    "   fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
+                    returnColor0 +
                     "}\n"
         )
     }
@@ -217,7 +222,7 @@ object ScreenSpaceReflections {
     ) = compute(
         buffer, illuminated, deferred, transform,
         1f, 1f, 0.2f,
-        10, 8f, applyToneMapping, dst
+        16, applyToneMapping, dst
     )
 
     /**
@@ -228,11 +233,10 @@ object ScreenSpaceReflections {
         illuminated: ITexture2D,
         deferred: DeferredSettingsV2,
         transform: Matrix4f,
-        strength: Float = 1f,
-        maskSharpness: Float = 1f,
-        wallThickness: Float = 0.2f,
-        fineSteps: Int = 10, // 10 are enough, if there are only rough surfaces
-        maxDistance: Float = 8f,
+        strength: Float, // 1f
+        maskSharpness: Float, // 1f
+        wallThickness: Float, // 0.2f
+        fineSteps: Int, // 10 are enough, if there are only rough surfaces
         applyToneMapping: Boolean,
         dst: Framebuffer = FBStack["ss-reflections", buffer.width, buffer.height, 4, true, 1, false]
     ): ITexture2D? {
@@ -254,7 +258,7 @@ object ScreenSpaceReflections {
             roughness, singleToVector[roughnessMask]!!,
             illuminated, transform,
             strength, maskSharpness, wallThickness, fineSteps,
-            maxDistance, applyToneMapping, dst
+            applyToneMapping, dst
         ).getTexture0()
     }
 
@@ -273,11 +277,10 @@ object ScreenSpaceReflections {
         roughnessMask: Vector4f,
         illuminated: ITexture2D,
         transform: Matrix4f,
-        strength: Float = 1f,
-        maskSharpness: Float = 1f,
-        wallThickness: Float = 0.2f,
-        fineSteps: Int = 10, // 10 are enough, if there are only rough surfaces
-        maxDistance: Float = 8f,
+        strength: Float, // 1f
+        maskSharpness: Float, // 1f
+        wallThickness: Float, // 0.2f
+        fineSteps: Int, // 10 are enough, if there are only rough surfaces
         applyToneMapping: Boolean,
         dst: IFramebuffer = FBStack["ss-reflections", depth.width, depth.height, 4, true, 1, false]
     ): IFramebuffer {
@@ -286,8 +289,6 @@ object ScreenSpaceReflections {
             val shader = shader
             shader.use()
             shader.v1b("applyToneMapping", applyToneMapping)
-            shader.v1f("testDistance", maxDistance / testMaxDistanceRatio)
-            shader.v1f("maxDistanceSq", maxDistance * maxDistance)
             shader.v1f("resolution", 1f / fineSteps)
             shader.v1i("steps", fineSteps)
             shader.v1f("maskSharpness", maskSharpness)
@@ -311,5 +312,4 @@ object ScreenSpaceReflections {
         }
         return dst
     }
-
 }

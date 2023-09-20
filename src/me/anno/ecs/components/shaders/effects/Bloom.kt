@@ -9,8 +9,6 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
@@ -210,16 +208,5 @@ object Bloom {
             val bloom = backwardPass(steps)
             addBloom(source, bloom, applyToneMapping)
         }
-    }
-
-    fun bloom2(
-        source: ITexture2D, offset: Float, strength: Float, applyToneMapping: Boolean,
-        dst: IFramebuffer = FBStack["bloom", source.width, source.height,
-            if (applyToneMapping) TargetType.UByteTarget4 else TargetType.FP16Target4, 1, false]
-    ): IFramebuffer {
-        useFrame(dst) {
-            bloom(source, offset, strength, applyToneMapping)
-        }
-        return dst
     }
 }

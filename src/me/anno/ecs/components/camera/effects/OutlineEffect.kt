@@ -87,20 +87,6 @@ class OutlineEffect : CameraEffect() {
         }
     }
 
-    override fun copyInto(dst: PrefabSaveable) {
-        super.copyInto(dst)
-        dst as OutlineEffect
-        dst.radius = radius
-        dst.numGroups = numGroups
-        for (i in 0 until MAX_NUM_GROUPS) {
-            dst.groupIds[i] = groupIds[i]
-            dst.fillColors[i].set(fillColors[i])
-            dst.lineColors[i].set(lineColors[i])
-        }
-    }
-
-    override val className: String get() = "OutlineEffect"
-
     companion object {
 
         private val inputs = listOf(DeferredLayerType.SDR_RESULT, DeferredLayerType.ID)

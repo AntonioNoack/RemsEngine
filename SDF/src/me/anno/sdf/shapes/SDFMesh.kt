@@ -43,7 +43,8 @@ open class SDFMesh : SDFSmoothShape() {
     fun loadMesh() = MeshCache[meshFile]
 
     /**
-     * Generates the AABB in code; this saves a texture slot,
+     * true: Uses one texture slot for the BVH hierarchy, and one for all vertex positions.
+     * false: Generates the AABB in code; this saves a texture slot,
      * but also needs much longer to compile, and it was 25% slower for Suzanne on my RTX 3070
      * */
     var useTextures = true

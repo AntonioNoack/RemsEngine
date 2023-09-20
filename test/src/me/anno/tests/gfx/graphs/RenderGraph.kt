@@ -14,6 +14,9 @@ import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS
 
+/**
+ * Displays a post-processing pipeline in graph form, which can be edited in real-time.
+ * */
 fun main() {
     GFXBase.forceLoadRenderDoc()
     val graph = RenderGraph.combined1

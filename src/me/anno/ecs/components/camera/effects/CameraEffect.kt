@@ -2,17 +2,15 @@ package me.anno.ecs.components.camera.effects
 
 import me.anno.Engine
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.texture.ITexture2D
-import me.anno.io.base.BaseWriter
 
 // todo each camera effect shall become a node in RenderGraph
 @Deprecated("Shall be replaced by RenderGraph")
-abstract class CameraEffect : PrefabSaveable() {
+abstract class CameraEffect {
 
     @Range(0.0, 1e10)
     var strength = 1f
@@ -38,22 +36,4 @@ abstract class CameraEffect : PrefabSaveable() {
     fun write(layers: MutableMap<DeferredLayerType, IFramebuffer>, type: DeferredLayerType, fb: ITexture2D) {
         layers[type] = fb.wrapAsFramebuffer()
     }
-
-    override fun copyInto(dst: PrefabSaveable) {
-        super.copyInto(dst)
-        dst as CameraEffect
-        dst.strength = strength
-    }
-
-    override fun save(writer: BaseWriter) {
-        super.save(writer)
-        saveSerializableProperties(writer)
-    }
-
-    override fun readSomething(name: String, value: Any?) {
-        if (!readSerializableProperty(name, value)) {
-            super.readSomething(name, value)
-        }
-    }
-
 }

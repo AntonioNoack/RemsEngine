@@ -1,6 +1,5 @@
 package me.anno.engine.ui.render
 
-import me.anno.ecs.components.camera.effects.CameraEffect
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
@@ -10,10 +9,8 @@ import me.anno.engine.ui.render.RendererLib.combineLightCode
 import me.anno.engine.ui.render.RendererLib.lightCode
 import me.anno.engine.ui.render.RendererLib.skyMapCode
 import me.anno.gpu.GFX
-import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.BaseShader.Companion.IS_DEFERRED
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
@@ -215,60 +212,62 @@ object Renderers {
         }
 
         override fun getPostProcessing(flags: Int): List<ShaderStage> {
-            return listOf(ShaderStage(
-                "previewRenderer", listOf(
-                    Variable(GLSLType.V4F, "lightData", previewLights.size),
-                    Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
-                    Variable(GLSLType.V1F, "finalAlpha"),
-                    Variable(GLSLType.V3F, "finalPosition"),
-                    Variable(GLSLType.V1F, "finalRoughness", VariableMode.INOUT),
-                    Variable(GLSLType.V1F, "finalMetallic", VariableMode.INOUT),
-                    Variable(GLSLType.V1F, "finalSheen"),
-                    Variable(GLSLType.V3F, "finalSheenNormal"),
-                    Variable(GLSLType.V4F, "finalClearCoat"),
-                    Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
-                    Variable(GLSLType.V3F, "finalNormal"),
-                    Variable(GLSLType.V3F, "finalEmissive", VariableMode.INOUT),
-                    Variable(GLSLType.V1F, "finalOcclusion"),
-                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
-                ), "" +
-                        // shared pbr data
-                        "vec3 V = normalize(-finalPosition);\n" +
-                        // light calculations
-                        "float NdotV = abs(dot(finalNormal,V));\n" +
-                        // precalculate sheen
-                        "float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
-                        "float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
-                        // light calculation
-                        "vec3 ambientLight = vec3(0.2);\n" +
-                        "vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
-                        "vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);\n" +
-                        "vec3 specularColor = finalColor * finalMetallic;\n" +
-                        "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
-                        specularBRDFv2NoDivInlined2Start +
-                        "for(int i=0;i<${previewLights.size};i++){\n" +
-                        "   vec4 data = lightData[i];\n" +
-                        "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
-                        "   float NdotL = dot(finalNormal, lightDirection);\n" +
-                        "   if(NdotL > 0.0){\n" +
-                        "       if(hasSpecular) {\n" +
-                        "           vec3 H = normalize(V + lightDirection);\n" +
-                        specularBRDFv2NoDivInlined2 +
-                        "           specularLight += lightColor * computeSpecularBRDF;\n" +
-                        "       }\n" +
-                        "       diffuseLight += lightColor * NdotL;\n" +
-                        "   }\n" +
-                        "}\n" +
-                        specularBRDFv2NoDivInlined2End +
-                        colorToLinear +
-                        "finalColor = diffuseColor * diffuseLight + specularLight;\n" +
-                        "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
-                        // todo linear2srgb before or after tonemap?
-                        colorToSRGB +
-                        "finalColor = tonemap(finalColor);\n" +
-                        // todo SRGB textures/framebuffers?
-                        "finalResult = vec4(finalColor, finalAlpha);\n"
-            ).add(noiseFunc).add(tonemapGLSL), finalResultStage)
+            return listOf(
+                ShaderStage(
+                    "previewRenderer", listOf(
+                        Variable(GLSLType.V4F, "lightData", previewLights.size),
+                        Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
+                        Variable(GLSLType.V1F, "finalAlpha"),
+                        Variable(GLSLType.V3F, "finalPosition"),
+                        Variable(GLSLType.V1F, "finalRoughness", VariableMode.INOUT),
+                        Variable(GLSLType.V1F, "finalMetallic", VariableMode.INOUT),
+                        Variable(GLSLType.V1F, "finalSheen"),
+                        Variable(GLSLType.V3F, "finalSheenNormal"),
+                        Variable(GLSLType.V4F, "finalClearCoat"),
+                        Variable(GLSLType.V2F, "finalClearCoatRoughMetallic"),
+                        Variable(GLSLType.V3F, "finalNormal"),
+                        Variable(GLSLType.V3F, "finalEmissive", VariableMode.INOUT),
+                        Variable(GLSLType.V1F, "finalOcclusion"),
+                        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                    ), "" +
+                            // shared pbr data
+                            "vec3 V = normalize(-finalPosition);\n" +
+                            // light calculations
+                            "float NdotV = abs(dot(finalNormal,V));\n" +
+                            // precalculate sheen
+                            "float sheenFresnel = 1.0 - abs(dot(finalSheenNormal,V));\n" +
+                            "float sheen = finalSheen * pow(sheenFresnel, 3.0);\n" +
+                            // light calculation
+                            "vec3 ambientLight = vec3(0.2);\n" +
+                            "vec3 diffuseLight = ambientLight, specularLight = vec3(0.0);\n" +
+                            "vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);\n" +
+                            "vec3 specularColor = finalColor * finalMetallic;\n" +
+                            "bool hasSpecular = dot(specularColor, vec3(1.0)) > 0.0;\n" +
+                            specularBRDFv2NoDivInlined2Start +
+                            "for(int i=0;i<${previewLights.size};i++){\n" +
+                            "   vec4 data = lightData[i];\n" +
+                            "   vec3 lightDirection = data.xyz, lightColor = vec3(data.w);\n" +
+                            "   float NdotL = dot(finalNormal, lightDirection);\n" +
+                            "   if(NdotL > 0.0){\n" +
+                            "       if(hasSpecular) {\n" +
+                            "           vec3 H = normalize(V + lightDirection);\n" +
+                            specularBRDFv2NoDivInlined2 +
+                            "           specularLight += lightColor * computeSpecularBRDF;\n" +
+                            "       }\n" +
+                            "       diffuseLight += lightColor * NdotL;\n" +
+                            "   }\n" +
+                            "}\n" +
+                            specularBRDFv2NoDivInlined2End +
+                            colorToLinear +
+                            "finalColor = diffuseColor * diffuseLight + specularLight;\n" +
+                            "finalColor = finalColor * (1.0 - finalOcclusion) + finalEmissive;\n" +
+                            // todo linear2srgb before or after tonemap?
+                            colorToSRGB +
+                            "finalColor = tonemap(finalColor);\n" +
+                            // todo SRGB textures/framebuffers?
+                            "finalResult = vec4(finalColor, finalAlpha);\n"
+                ).add(noiseFunc).add(tonemapGLSL), finalResultStage
+            )
         }
     }
 
@@ -333,35 +332,16 @@ object Renderers {
 
     @JvmField
     val rawAttributeRenderers = LazyMap({ type: DeferredLayerType ->
-        val variables = listOf(
-            Variable(GLSLType.floats[type.workDims - 1], type.glslName, VariableMode.IN),
-            Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
-        )
-        val prefix = if (type == DeferredLayerType.COLOR || type == DeferredLayerType.EMISSIVE) colorToSRGB
-        else ""
-        val shaderCode = prefix +
-                "finalResult = ${
-                    when (type.workDims) {
-                        1 -> "vec4(vec3(${type.glslName}),1.0)"
-                        2 -> "vec4(${type.glslName},1.0,1.0)"
-                        3 -> "vec4(${type.glslName},1.0)"
-                        4 -> type.glslName
-                        else -> ""
-                    }
-                };\n"
-        val name = type.name
-        val stage = ShaderStage(name, variables, shaderCode)
-            .add(octNormalPacking)
-        SimpleRenderer(name, stage)
+        SimpleRenderer(type.name, DeferredSettingsV2(listOf(type), 1, false), emptyList())
     }, DeferredLayerType.values.size)
 
     @JvmField
-    val attributeEffects: Map<Pair<DeferredLayerType, DeferredSettingsV2>, CameraEffect?> =
+    val attributeEffects: Map<Pair<DeferredLayerType, DeferredSettingsV2>, Shader?> =
         LazyMap({ (type, settings) ->
             val layer = settings.findLayer(type)
             if (layer != null) {
                 val type2 = GLSLType.floats[type.workDims - 1].glslName
-                val shader = Shader(
+                Shader(
                     type.name, coordsList, coordsVShader, uvList, listOf(
                         Variable(GLSLType.S2D, "source"),
                         Variable(GLSLType.V4F, "result", VariableMode.OUT)
@@ -385,20 +365,6 @@ object Renderers {
                             "   result = vec4(color, 1.0);\n" +
                             "}"
                 )
-                object : CameraEffect() {
-                    override fun listInputs() = listOf(type)
-                    override fun clone() = throw NotImplementedError()
-                    override fun render(
-                        buffer: IFramebuffer,
-                        format: DeferredSettingsV2,
-                        layers: MutableMap<DeferredLayerType, IFramebuffer>
-                    ) {
-                        shader.use()
-                        layers[type]!!.getTexture0()
-                            .bindTrulyNearest(0)
-                        flat01.draw(shader)
-                    }
-                }
             } else null
         }, DeferredLayerType.values.size)
 

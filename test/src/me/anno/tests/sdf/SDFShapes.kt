@@ -10,6 +10,9 @@ import me.anno.sdf.shapes.*
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3f
 
+/**
+ * Scene, which shows most SDF shapes
+ * */
 fun main() {
 
     ECSRegistry.initMeshes()

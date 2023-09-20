@@ -169,7 +169,6 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
                         "finalResult = vec4(GET_RANDOM(seed.xy), GET_RANDOM(seed.yx), GET_RANDOM(100.0 - seed.yx), 1.0);\n"
             )
         )
-        val motionVectorRenderer = attributeRenderers[DeferredLayerType.MOTION]
 
         val uvRenderer = object : SimpleRenderer(
             "uv-checker", ShaderStage(
@@ -186,6 +185,8 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
                 checkerTex.bind(shader, "checkerTex", GPUFiltering.LINEAR, Clamping.REPEAT)
             }
         }
+
+        val motionVectorRenderer get() = attributeRenderers[DeferredLayerType.MOTION]
 
     }
 

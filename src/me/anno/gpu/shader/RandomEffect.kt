@@ -40,6 +40,4 @@ object RandomEffect : ColorMapEffect() {
         return target
     }
 
-    override fun clone() = this // illegal
-
 }

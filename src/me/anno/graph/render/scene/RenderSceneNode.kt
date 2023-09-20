@@ -1,5 +1,6 @@
 package me.anno.graph.render.scene
 
+import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
@@ -7,7 +8,12 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.pipeline.Sorting
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.SimpleRenderer
+import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.utils.LOGGER
@@ -55,7 +61,7 @@ class RenderSceneNode : RenderSceneNode0(
         val samples = getInput(3) as Int
         if (width < 1 || height < 1 || samples < 1) return
         // 0 is flow
-        val stageId = getInput(4) as Int
+        // val stageId = getInput(4) as Int
         // val sorting = getInput(5) as Int
         // val cameraIndex = getInput(6) as Int
         val applyToneMapping = getInput(7) == true
@@ -80,7 +86,17 @@ class RenderSceneNode : RenderSceneNode0(
             // create deferred settings
             settings = DeferredSettingsV2(enabledLayers, samples, true)
             this.settings = settings
-            renderer = Renderer("tmp", settings)
+            renderer = SimpleRenderer(
+                "tmp", settings,
+                listOf(
+                    ShaderStage(
+                        "linear2srgb", listOf(
+                            Variable(GLSLType.V3F, "finalColor", VariableMode.INOUT),
+                            Variable(GLSLType.V3F, "finalEmissive", VariableMode.INOUT)
+                        ), colorToSRGB
+                    )
+                )
+            )
             framebuffer?.destroy()
             framebuffer = settings.createBaseBuffer(name)
         }

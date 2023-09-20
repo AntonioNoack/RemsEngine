@@ -8,6 +8,7 @@ import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.mesh.Shapes.flatCube
 import me.anno.sdf.shapes.SDFBox
 import me.anno.sdf.shapes.SDFSphere
 import me.anno.studio.StudioBase
@@ -53,7 +54,7 @@ fun main() {
         val golden = Material()
         golden.diffuseBase.set(0xfd / 255f, 0xb6 / 255f, 0x56 / 255f)
         golden.metallicMinMax.set(1f)
-        golden.roughnessMinMax.set(0.99f)
+        golden.roughnessMinMax.set(0f)
         sdfMaterials = listOf(golden.ref)
     }).apply {
         position = position.set(-2.5, 0.0, 0.0)
@@ -76,6 +77,21 @@ fun main() {
                 it.materials = listOf(golden.ref)
             }
         })
+    }
+    val cubes = Entity("Cubes", scene)
+    for (j in 0..5) {
+        for (i in 0..10) {
+            val sc = 0.1
+            val child = Entity(cubes)
+            child.position = child.position.set((i - 5) * sc * 3.5, -1.0 + sc, 2.5 + (j - 2.5) * sc * 3.5)
+            child.scale = child.scale.set(sc)
+            child.add(MeshComponent(flatCube.front).apply {
+                materials = listOf(Material().apply {
+                    metallicMinMax.set(j / 5f)
+                    roughnessMinMax.set(i / 10f)
+                }.ref)
+            })
+        }
     }
     testSceneWithUI("Metallic", scene) {
         StudioBase.instance?.enableVSync = false

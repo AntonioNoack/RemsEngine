@@ -1,6 +1,5 @@
 package me.anno.ecs.components.camera.effects
 
-import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.FBStack
@@ -13,8 +12,6 @@ import me.anno.gpu.texture.ITexture2D
 
 class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
 
-    constructor() : this(Mode.GRAYSCALE)
-
     enum class Mode(val id: Int) {
         PROTANOPIA(0),
         DEUTERANOPIA(1),
@@ -24,14 +21,6 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
 
     override fun render(color: ITexture2D) =
         render(color, strength, mode)
-
-    override fun copyInto(dst: PrefabSaveable) {
-        super.copyInto(dst)
-        dst as ColorBlindnessEffect
-        dst.mode = mode
-    }
-
-    override val className: String get() = "ColorBlindnessEffect"
 
     companion object {
 
@@ -91,5 +80,4 @@ class ColorBlindnessEffect(var mode: Mode) : ColorMapEffect() {
                     "}\n"
         ).apply { setTextureIndices("source") }
     }
-
 }

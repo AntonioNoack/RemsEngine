@@ -1,6 +1,9 @@
 package me.anno.graph.render.effects
 
 import me.anno.ecs.components.shaders.effects.Bloom
+import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.actions.ActionNode
@@ -16,8 +19,8 @@ class BloomNode : ActionNode(
 ) {
 
     init {
-        setInput(1, 3.0f) // offset
-        setInput(2, 0.5f) // strength
+        setInput(1, 0.0f) // offset
+        setInput(2, 0.001f) // strength
         setInput(3, false) // apply tone mapping
     }
 
@@ -28,7 +31,11 @@ class BloomNode : ActionNode(
         val applyToneMapping = getInput(3) == true
         val color = ((getInput(4) as? Texture)?.tex as? Texture2D) ?: return
 
-        val result = Bloom.bloom2(color, offset, strength, applyToneMapping)
+        val target = if (applyToneMapping) TargetType.UByteTarget4 else TargetType.FP16Target4
+        val result = FBStack["bloom", color.width, color.height, target, 1, false]
+        useFrame(result) {
+            Bloom.bloom(color, offset, strength, applyToneMapping)
+        }
         setOutput(1, Texture(result.getTexture0()))
     }
 }

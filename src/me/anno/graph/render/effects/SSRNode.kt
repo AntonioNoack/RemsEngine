@@ -97,8 +97,7 @@ class SSRNode : RenderSceneNode0(
 
         val result = ScreenSpaceReflections.compute(
             depthT, normalT, normalZW, color, emissive, metallicT, metallicM, roughnessT, roughnessM,
-            illuminated, transform, strength, maskSharpness, wallThickness, fineSteps, maxDistance, applyToneMapping,
-            framebuffer
+            illuminated, transform, strength, maskSharpness, wallThickness, fineSteps, applyToneMapping, framebuffer
         )
         setOutput(1, Texture(result.getTexture0()))
     }

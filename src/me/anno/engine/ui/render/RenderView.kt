@@ -42,6 +42,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
@@ -476,7 +477,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             "skyBox", 256, 1,
             arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
         )
-        framebuffer.draw(rawAttributeRenderers[DeferredLayerType.EMISSIVE]) { side ->
+        val renderer = rawAttributeRenderers[DeferredLayerType.EMISSIVE]
+        framebuffer.draw(renderer) { side ->
             val skyRot = JomlPools.quat4f.create()
             val cameraMatrix = JomlPools.mat4f.create()
             val sky = pipeline.skybox
@@ -829,19 +831,11 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                                 // draw the light buffer as the last stripe
                                 val layer = deferred.layerTypes[index]
                                 name = layer.name
-                                /*val layerRenderer = attributeRenderers[layer]!!
-                                drawScene(
-                                    tw, th, camera0, camera1,
-                                    blending, layerRenderer, tmp,
-                                    false,
-                                    doDrawGizmos = false,
-                                    toneMappedColors = false
-                                )
-                                drawGizmos(world, tmp, renderer, camPosition, true) */
-                                // instead of drawing the scene again, use a post-processing shader
                                 useFrame(tmp) {
-                                    val layerRenderer = Renderers.attributeEffects[layer to settings]!!
-                                    layerRenderer.render(buffer, settings, layers)
+                                    val shader = Renderers.attributeEffects[layer to settings]!!
+                                    shader.use()
+                                    settings.findTexture(buffer, layer)!!.bindTrulyNearest(0)
+                                    SimpleBuffer.flat01.draw(shader)
                                 }
                                 texture = tmp.getTexture0()
                             } else {
