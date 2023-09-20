@@ -30,7 +30,6 @@ class ShaderExprNode : ActionNode(
     }
 
     override var shader: Shader? = null
-    override var buffer: Framebuffer? = null
     override var typeValues: HashMap<String, TypeValue>? = null
     override fun executeAction() {
         setOutput(1, render(true))
@@ -39,8 +38,6 @@ class ShaderExprNode : ActionNode(
     override fun onDestroy() {
         super.onDestroy()
         shader?.destroy()
-        buffer?.destroy()
         shader = null
-        buffer = null
     }
 }

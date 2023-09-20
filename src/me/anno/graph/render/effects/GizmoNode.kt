@@ -23,7 +23,10 @@ class GizmoNode : RenderSceneNode0(
         "Bool", "Debug Shapes",
         "Texture", "Illuminated",
         "Texture", "Depth",
-    ), listOf("Texture", "Illuminated")
+    ), listOf(
+        "Texture", "Illuminated",
+        "Texture", "Depth"
+    )
 ) {
 
     init {
@@ -65,6 +68,7 @@ class GizmoNode : RenderSceneNode0(
         }
 
         setOutput(1, Texture(framebuffer.getTexture0()))
+        setOutput(2, Texture(framebuffer.depthTexture!!))
     }
 
     companion object {

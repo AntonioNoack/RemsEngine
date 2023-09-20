@@ -3,13 +3,9 @@ package me.anno.graph.render.compiler
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.framebuffer.TargetType.Companion.FloatTargets
-import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
-import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.DepthTransforms
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
@@ -25,7 +21,6 @@ import org.joml.Vector4f
 interface ExpressionRenderer {
 
     var shader: Shader?
-    var buffer: Framebuffer?
     val graph: Graph?
     val name: String
     val inputs: Array<NodeInput>?
@@ -48,6 +43,14 @@ interface ExpressionRenderer {
     }
 
     fun render(fp: Boolean): ITexture2D {
+
+        // todo if input matches request, just return directly
+
+        val w = getInput(2) as Int
+        val h = getInput(3) as Int
+        val channels = Maths.clamp(getInput(4) as Int, 1, 4)
+        val samples = Maths.clamp(getInput(5) as Int, 1, GFX.maxSamples)
+
         val shader = shader ?: kotlin.run {
             val compiler = object : GraphCompiler(graph as FlowGraph) {
 
@@ -80,29 +83,13 @@ interface ExpressionRenderer {
                 }
 
                 override val currentShader: Shader get() = shader
-
-
             }
             typeValues = compiler.typeValues
             compiler.shader
         }
         this.shader = shader
 
-        val w = getInput(2) as Int
-        val h = getInput(3) as Int
-        val channels = Maths.clamp(getInput(4) as Int, 1, 4)
-        val samples = Maths.clamp(getInput(5) as Int, 1, GFX.maxSamples)
-        var buffer = buffer
-        if (buffer == null || buffer.samples != samples || buffer.targets[0].channels != channels) {
-            buffer?.destroy()
-            val target = (if (fp) FloatTargets else UByteTargets)[channels-1]
-            buffer = Framebuffer(
-                name, w, h, samples,
-                arrayOf(target), DepthBufferType.NONE
-            )
-            this.buffer = buffer
-        }
-
+        val buffer = FBStack["expr-renderer", w, h, channels, fp, samples, false]
         GFXState.useFrame(w, h, true, buffer) {
             GFXState.renderPurely {
                 shader.use()
