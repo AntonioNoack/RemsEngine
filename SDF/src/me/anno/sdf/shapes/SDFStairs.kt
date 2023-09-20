@@ -1,13 +1,16 @@
 package me.anno.sdf.shapes
 
+import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.sdf.SDFComposer.dot2
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
+import me.anno.sdf.SDFComposer.dot2
+import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
+import org.joml.AABBf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.min
@@ -17,12 +20,42 @@ import kotlin.math.sqrt
 
 class SDFStairs : SDF2DShape() {
 
-    var stepSizeCount: Vector3f = Vector3f(0.2f, 0.2f, 5f)
+    @NotSerializedProperty
+    private var params: Vector3f = Vector3f(0.2f, 0.2f, 5f)
         set(value) {
             if (dynamicSize || globalDynamic) invalidateBounds()
             else invalidateShader()
             field.set(value)
         }
+
+    @Range(0.0, 1e38)
+    var stepWidth: Float
+        get() = params.x
+        set(value) {
+            params.x = value
+            params = params
+        }
+
+    @Range(0.0, 1e38)
+    var stepHeight: Float
+        get() = params.y
+        set(value) {
+            params.y = value
+            params = params
+        }
+
+    @Range(0.0, 1e38)
+    var stepCount: Int
+        get() = params.z.toInt()
+        set(value) {
+            params.z = value.toFloat()
+            params = params
+        }
+
+    override fun calculateBaseBounds2d(dst: AABBf) {
+        dst.setMin(0f, 0f, 0f)
+        dst.setMax(stepWidth * stepCount, stepHeight * stepCount, 0f)
+    }
 
     override fun buildShader(
         builder: StringBuilder,
@@ -39,16 +72,16 @@ class SDFStairs : SDF2DShape() {
         smartMinBegin(builder, dstIndex)
         builder.append("sdStairs(pos")
         builder.append(trans.posIndex)
-        builder.append(".").append(axes).append(",")
+        builder.append(".").append(axes.glslName).append(",")
         val dynamicSize = dynamicSize || globalDynamic
-        if (dynamicSize) builder.appendUniform(uniforms, stepSizeCount)
-        else builder.appendVec(stepSizeCount)
+        if (dynamicSize) builder.appendUniform(uniforms, params)
+        else builder.appendVec(params)
         builder.append(')')
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
-        val whn = stepSizeCount
+        val whn = params
         val w = whn.x
         val h = whn.y
         val n = whn.z
@@ -88,7 +121,7 @@ class SDFStairs : SDF2DShape() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as SDFStairs
-        dst.stepSizeCount.set(stepSizeCount)
+        dst.params.set(params)
     }
 
     override val className: String get() = "SDFStairs"
@@ -97,6 +130,12 @@ class SDFStairs : SDF2DShape() {
         // from https://www.shadertoy.com/view/Xds3zN, Inigo Quilez
         private const val stairsSDF = "" +
                 "float sdStairs(vec2 p, vec3 whn){\n" +
+                // formula only works if w >= h
+                "   if(whn.x < whn.y){\n" +
+                "       p = vec2(whn.y*whn.z-p.y,whn.x*whn.z-p.x);\n" +
+                "       whn.xy = whn.yx;\n" +
+                "   }\n" +
+
                 "   vec2 wh = whn.xy;\n" +
                 "   float n = whn.z;\n" +
                 "   vec2 ba = wh*n;\n" +
@@ -123,5 +162,4 @@ class SDFStairs : SDF2DShape() {
                 "   return sqrt(d)*s;" +
                 "}\n"
     }
-
 }

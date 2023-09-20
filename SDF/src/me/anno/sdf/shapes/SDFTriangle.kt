@@ -156,8 +156,8 @@ open class SDFTriangle : SDFShape() {
             return fx * fx + fy * fy + fz * fz
         }
 
-        // https://iquilezles.org/www/articles/distfunctions/distfunctions.htm
-        private const val udTriangle = "" +
+        const val udTriangle = "" +
+                // https://iquilezles.org/www/articles/distfunctions/distfunctions.htm
                 "float udTriangle(vec3 p, vec3 a, vec3 b, vec3 c){\n" +
                 "  vec3 ba = b - a; vec3 pa = p - a;\n" +
                 "  vec3 cb = c - b; vec3 pb = p - b;\n" +
@@ -176,5 +176,4 @@ open class SDFTriangle : SDFShape() {
                 "     dot(nor,pa)*dot(nor,pa)/dot2(nor));" +
                 "}\n"
     }
-
 }

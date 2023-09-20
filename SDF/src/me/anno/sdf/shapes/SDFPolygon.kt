@@ -2,15 +2,18 @@ package me.anno.sdf.shapes
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.length
+import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector4f
 import kotlin.math.*
 
+/**
+ * Regular polygon, flat shape.
+ * */
 class SDFPolygon : SDF2DShape() {
 
     @Range(3.0, 2e9)
@@ -89,5 +92,4 @@ class SDFPolygon : SDF2DShape() {
                 "   return sdPolygon(p,an,vec2(cos(an),sin(an)));\n" +
                 "}\n"
     }
-
 }

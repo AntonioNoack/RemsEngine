@@ -1,23 +1,25 @@
 package me.anno.sdf.shapes
 
-import me.anno.ecs.Entity
+import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.sdf.VariableCounter
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.shader.GLSLType
-import me.anno.io.ISaveable.Companion.registerCustomClass
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.sdf.VariableCounter
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.abs
 
+/**
+ * Cuboid in 4D.
+ * */
 open class SDFHyperCube : SDFSmoothShape() {
 
     var halfExtends = Vector4f(1f)
@@ -27,11 +29,30 @@ open class SDFHyperCube : SDFSmoothShape() {
             field.set(value)
         }
 
-    var rotation4d = Vector3f()
+    /**
+     * rotation in 4th dimension
+     * */
+    var rotation4d = Quaternionf()
         set(value) {
             field.set(value)
+            field.toEulerAnglesRadians(rotation4di)
         }
 
+    /**
+     * rotation in 4th dimension;
+     * rotation in radians, euler angles, YXZ order
+     * */
+    @HideInInspector
+    @NotSerializedProperty
+    var rotation4di = Vector3f()
+        set(value) {
+            field.set(value)
+            field.toQuaternionRadians(rotation4d)
+        }
+
+    /**
+     * value of 4th coordinate
+     * */
     @Range(-2.0, 2.0)
     var w = 0f
 
@@ -61,7 +82,7 @@ open class SDFHyperCube : SDFSmoothShape() {
         if (dynamicSize || globalDynamic) builder.appendUniform(uniforms, halfExtends)
         else builder.appendVec(halfExtends)
         builder.append(',')
-        builder.appendUniform(uniforms, rotation4d)
+        builder.appendUniform(uniforms, rotation4di)
         builder.append(',')
         builder.appendUniform(uniforms, GLSLType.V1F) { w }
         if (dynamicSmoothness || globalDynamic || smoothness > 0f) {
@@ -87,8 +108,8 @@ open class SDFHyperCube : SDFSmoothShape() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as SDFHyperCube
-        dst.halfExtends.set(halfExtends)
-        dst.rotation4d.set(rotation4d)
+        dst.halfExtends = halfExtends
+        dst.rotation4d = rotation4d
         dst.w = w
     }
 
@@ -116,5 +137,4 @@ open class SDFHyperCube : SDFSmoothShape() {
                 "  return min(max(max(q.x,q.y),max(q.z,q.w)),0.0) + length(max(q,0.0)) - c;\n" +
                 "}\n"
     }
-
 }

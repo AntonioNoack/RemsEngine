@@ -26,16 +26,16 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
 
         val PIXELS_PER_BLAS_NODE = 2
 
-        fun createTriangleTexture(BLAS: BLASNode) = createTriangleTexture(listOf(BLAS))
-        fun createBLASTexture(BLAS: BLASNode) = createBLASTexture(listOf(BLAS))
+        fun createTriangleTexture(blas: BLASNode) = createTriangleTexture(listOf(blas))
+        fun createBLASTexture(blas: BLASNode) = createBLASTexture(listOf(blas))
 
-        fun createTriangleTexture(BLASs: List<BLASNode>): Texture2D {
+        fun createTriangleTexture(blasList: List<BLASNode>): Texture2D {
             // to do if there are too many triangles, use a texture array?
             // 8k x 8k = 64M pixels = 64M vertices = 21M triangles
             // but that'd also need 64M * 16byte/vertex = 1GB of VRAM
             // todo most meshes don't need such high precision, maybe use u8 or u16 or fp16
             GFX.checkIsGFXThread()
-            val buffers = BLASs.map { it.findGeometryData() } // positions without index
+            val buffers = blasList.map { it.findGeometryData() } // positions without index
             // RGB is not supported by compute shaders (why ever...), so use RGBA
             val numTriangles = buffers.sumOf { it.indices.size / 3 }
             val texture = createTexture("triangles", numTriangles, PIXELS_PER_TRIANGLE)
@@ -45,16 +45,16 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             // write triangle into memory
             var pixelIndex = 0
             var triangleIndex = 0
-            for (index in BLASs.indices) {
-                val blasRoot = BLASs[index]
+            for (index in blasList.indices) {
+                val blasRoot = blasList[index]
                 blasRoot.forEach {
                     it.triangleStartIndex = triangleIndex
                 }
-                val data2 = buffers[index]
-                val positions = data2.positions
-                val indices = data2.indices
-                val normals = data2.normals
-                val colors = data2.vertexColors
+                val geometryData = buffers[index]
+                val positions = geometryData.positions
+                val indices = geometryData.indices
+                val normals = geometryData.normals
+                val colors = geometryData.vertexColors
                 for (i in indices.indices step 3) {
                     fun put(k: Int) {
                         data.put(positions[k])
@@ -88,19 +88,19 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             Attribute("color", 1)
         )
 
-        fun createTriangleBuffer(BLASs: List<BLASNode>): ComputeBuffer {
+        fun createTriangleBuffer(blasList: List<BLASNode>): ComputeBuffer {
             // to do if there are too many triangles, use a texture array?
             // 8k x 8k = 64M pixels = 64M vertices = 21M triangles
             // but that'd also need 64M * 16byte/vertex = 1GB of VRAM
             // todo most meshes don't need such high precision, maybe use u8 or u16 or fp16
-            val buffers = BLASs.map { it.findGeometryData() } // positions without index
+            val buffers = blasList.map { it.findGeometryData() } // positions without index
             // RGB is not supported by compute shaders (why ever...), so use RGBA
             val numTriangles = buffers.sumOf { it.indices.size / 3 }
             val buffer = ComputeBuffer("BLAS", triangleAttr, numTriangles * 3)
             // write triangle into memory
             var triangleIndex = 0
-            for (index in BLASs.indices) {
-                val blasRoot = BLASs[index]
+            for (index in blasList.indices) {
+                val blasRoot = blasList[index]
                 blasRoot.forEach {
                     it.triangleStartIndex = triangleIndex
                 }
@@ -132,7 +132,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             return buffer
         }
 
-        fun createBLASTexture(BLASs: List<BLASNode>): Texture2D {
+        fun createBLASTexture(blasList: List<BLASNode>): Texture2D {
 
             GFX.checkIsGFXThread()
             // root node
@@ -145,22 +145,22 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             // for both types just use 8x4 = 32 bytes
             // we will find a place for markers about the type :)
             val pixelsPerNode = PIXELS_PER_BLAS_NODE
-            val numNodes = BLASs.sumOf { it.countNodes() }
+            val numNodes = blasList.sumOf { it.countNodes() }
             val texture = createTexture("blas", numNodes, pixelsPerNode)
             val buffer = Texture2D.bufferPool[texture.width * texture.height * 16, false, false]
             val data = buffer.asFloatBuffer()
 
             var i = 0
             var nextId = 0
-            for (index in BLASs.indices) {
-                val bvh = BLASs[index]
+            for (index in blasList.indices) {
+                val bvh = blasList[index]
                 bvh.forEach {
                     it.nodeId = nextId++
                 }
             }
             // assign indices to all nodes
-            for (index in BLASs.indices) {
-                val bvh = BLASs[index]
+            for (index in blasList.indices) {
+                val bvh = blasList[index]
                 bvh.forEach {
 
                     val v0: Int

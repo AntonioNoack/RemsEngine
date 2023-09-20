@@ -1,12 +1,22 @@
 package me.anno.sdf.shapes
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.maths.bvh.*
+import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
+import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
+import me.anno.maths.bvh.RayTracing.intersectAABB
+import me.anno.sdf.SDFComposer.dot2
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.shapes.SDFTriangle.Companion.calculateDistSq
+import me.anno.sdf.shapes.SDFTriangle.Companion.udTriangle
+import me.anno.utils.Color.toHexString
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
 import org.joml.Vector4f
@@ -14,13 +24,13 @@ import kotlin.math.abs
 import kotlin.math.sign
 import kotlin.math.sqrt
 
-// todo groups: bounding spheres / volumes
-
-// todo sdf mesh like https://www.iquilezles.org/www/articles/sdfbounding/sdfbounding.htm
-// todo with bvh
+/**
+ * This class is just an experiment, and shouldn't really be used...
+ * Performance is bad, because you're applying raytracing multiple times (70 steps typically LOL + 3 for normals) per ray.
+ * */
 open class SDFMesh : SDFSmoothShape() {
 
-    var mesh: FileReference = InvalidRef
+    var meshFile: FileReference = InvalidRef
         set(value) {
             if (field != value) {
                 invalidateShader()
@@ -28,16 +38,33 @@ open class SDFMesh : SDFSmoothShape() {
             }
         }
 
-    fun loadMesh() = MeshCache[mesh]
+    override val boundsInfluencedBySmoothness: Boolean get() = true
+
+    fun loadMesh() = MeshCache[meshFile]
+
+    /**
+     * Generates the AABB in code; this saves a texture slot,
+     * but also needs much longer to compile, and it was 25% slower for Suzanne on my RTX 3070
+     * */
+    var useTextures = true
+        set(value) {
+            if (field != value) {
+                invalidateShader()
+                field = value
+            }
+        }
 
     override fun calculateBaseBounds(dst: AABBf) {
         val mesh = loadMesh()
         if (mesh != null) {
-            dst.set(mesh.aabb)
-        } else {
-            dst.clear()
-        }
+            dst.set(mesh.getBounds())
+            dst.addMargin(smoothness)
+        } else super.calculateBaseBounds(dst)
     }
+
+    private var lastMesh: Mesh? = null
+    private var lastTris: Texture2D? = null
+    private var lastBlas: Texture2D? = null
 
     override fun buildShader(
         builder: StringBuilder,
@@ -49,11 +76,154 @@ open class SDFMesh : SDFSmoothShape() {
         seeds: ArrayList<String>
     ) {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
-        functions.add(sdMesh)
         smartMinBegin(builder, dstIndex)
-        builder.append("sdBox(pos")
-        builder.append(trans.posIndex)
-        builder.append(')')
+        val mesh = loadMesh()
+        val blas = if (mesh != null) BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN, 16) else null
+        if (blas == null) {
+            builder.append("sdBox(pos")
+            builder.append(trans.posIndex)
+            builder.append(",vec3(1.0))")
+        } else {
+
+            if (mesh !== lastMesh || !useTextures) {
+                lastBlas?.destroy()
+                lastTris?.destroy()
+                lastBlas = null
+                lastTris = null
+            }
+
+            val meshId = (if (useTextures) "M" else "W") + meshFile.absolutePath.hashCode().toHexString()
+
+            functions.add(intersectAABB)
+            functions.add(dot2)
+            functions.add(udTriangle)
+
+            if (useTextures) {
+
+                val blasTexture = lastBlas ?: BLASNode.createBLASTexture(blas)
+                val trisTexture = lastTris ?: BLASNode.createTriangleTexture(blas)
+
+                lastMesh = mesh
+                lastBlas = blasTexture
+                lastTris = trisTexture
+
+                val maxDepth = blas.maxDepth()
+
+                val funcCode = "" +
+                        "float sdf$meshId(vec3 pos, vec3 dir, float s){\n" +
+                        "   float dist = 1e38;\n" +
+                        "   if(dot(dir,dir) < 0.5) dir = vec3(0.0,1.0,0.0);\n" +
+                        "   vec3 invDir = 1.0 / dir;\n" +
+                        "   uvec2 nodeTexSize = uvec2(textureSize(blas$meshId,0));\n" +
+                        "   uvec2 triTexSize  = uvec2(textureSize(tris$meshId,0));\n" +
+                        "   uint nextNodeStack[$maxDepth];\n" +
+                        "   uint nodeIndex = 0u, stackIndex = 0u;\n" +
+                        "   uint k=uint(ZERO);\n" +
+                        "   while(k++<512u){\n" + // could be k<bvh.count() or true or 2^depth
+                        // fetch node data
+                        "       uint pixelIndex = nodeIndex * ${BLASNode.PIXELS_PER_BLAS_NODE}u;\n" +
+                        "       uint nodeX = pixelIndex % nodeTexSize.x;\n" +
+                        "       uint nodeY = pixelIndex / nodeTexSize.x;\n" +
+                        "       vec4 d0 = texelFetch(blas$meshId, ivec2(nodeX,   nodeY), 0);\n" +
+                        "       vec4 d1 = texelFetch(blas$meshId, ivec2(nodeX+1u,nodeY), 0);\n" +
+                        "       if(intersectAABB(pos,invDir,d0.xyz,d1.xyz,s,dist)){\n" + // bounds check
+                        "           uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
+                        "           if(v01.y < 3u) {\n" +
+                        // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
+                        "               if(dir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
+                        "                   nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
+                        "                   nodeIndex++;\n" + // search child next
+                        "               } else {\n" +
+                        "                   nextNodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark other child for later
+                        "                   nodeIndex += v01.x;\n" + // search child next
+                        "               }\n" +
+                        "           } else {\n" +
+                        // this node is a leaf
+                        // check all triangles for intersections
+                        "               uint index = v01.x, end = index + v01.y;\n" +
+                        "               uint triX = index % triTexSize.x;\n" +
+                        "               uint triY = index / triTexSize.x;\n" +
+                        "               for(;index<end;index += ${PIXELS_PER_TRIANGLE}u){\n" + // triangle index -> load triangle data
+                        "                   vec3 p0 = texelFetch(tris$meshId, ivec2(triX, triY), 0).rgb;\n" +
+                        "                   vec3 p1 = texelFetch(tris$meshId, ivec2(triX+${PIXELS_PER_VERTEX}u,triY), 0).rgb;\n" +
+                        "                   vec3 p2 = texelFetch(tris$meshId, ivec2(triX+${PIXELS_PER_VERTEX * 2}u,triY), 0).rgb;\n" +
+                        // todo better distance function with bulb on backside
+                        "                   dist = min(dist, udTriangle(pos,p0,p1,p2));\n" +
+                        "                   triX += ${PIXELS_PER_TRIANGLE}u;\n" +
+                        "                   if(triX >= triTexSize.x){\n" + // switch to next row of data if needed
+                        "                       triX=0u;triY++;\n" +
+                        "                   }\n" +
+                        "               }\n" + // next node
+                        "               if(stackIndex < 1u) break;\n" +
+                        "               nodeIndex = nextNodeStack[--stackIndex];\n" +
+                        "          }\n" +
+                        "       } else {\n" + // next node
+                        "           if(stackIndex < 1u) break;\n" +
+                        "           nodeIndex = nextNodeStack[--stackIndex];\n" +
+                        "       }\n" +
+                        "   }\n" +
+                        "   return dist - s;\n" +
+                        "}\n"
+
+                functions.add(funcCode)
+                uniforms["blas$meshId"] = TypeValue(GLSLType.S2D, blasTexture)
+                uniforms["tris$meshId"] = TypeValue(GLSLType.S2D, trisTexture)
+            } else {
+
+                val builder1 = StringBuilder()
+                fun build(node: BLASNode) {
+                    val bounds = node.bounds
+                    builder1.append("if(intersectAABB(p,i,vec3(")
+                        .append(bounds.minX).append(',')
+                        .append(bounds.minY).append(',')
+                        .append(bounds.minZ).append("),vec3(")
+                        .append(bounds.maxX).append(',')
+                        .append(bounds.maxY).append(',')
+                        .append(bounds.maxZ).append("),s,r)){\n")
+                    when (node) {
+                        is BLASBranch -> {
+                            build(node.n0)
+                            build(node.n1)
+                        }
+                        is BLASLeaf -> {
+                            val positions = node.geometry.positions
+                            val indices = node.geometry.indices
+                            for (j in node.start until node.start + node.length) {
+                                builder1.append("r=min(r,udTriangle(p")
+                                for (i in 0 until 3) {
+                                    val i3 = indices[j*3 + i] * 3
+                                    builder1.append(",vec3(")
+                                        .append(positions[i3]).append(',')
+                                        .append(positions[i3 + 1]).append(',')
+                                        .append(positions[i3 + 2]).append(')')
+                                }
+                                builder1.append("));\n")
+                            }
+                        }
+                    }
+                    builder1.append("}\n")
+                }
+                build(blas)
+
+                val funcCode = "" +
+                        "float sdf$meshId(vec3 p, vec3 d, float s){\n" +
+                        "   float r = 1e38;\n" +
+                        "   if(dot(d,d) < 0.5) d = vec3(0.0,1.0,0.0);\n" +
+                        "   vec3 i = 1.0 / d;\n" +
+                        builder1.toString() +
+                        "   return r - s;\n" +
+                        "}\n"
+
+                functions.add(funcCode)
+            }
+
+            builder.append("sdf$meshId(pos").append(trans.posIndex).append(',')
+            builder.append("dir").append(trans.posIndex).append(',')
+            val dynamicSmoothness = dynamicSmoothness || globalDynamic
+            if (dynamicSmoothness) builder.appendUniform(uniforms, GLSLType.V1F) { smoothness }
+            else builder.append(smoothness)
+            builder.append(")")
+        }
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
@@ -75,14 +245,16 @@ open class SDFMesh : SDFSmoothShape() {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as SDFMesh
-        dst.mesh = mesh
+        dst.meshFile = meshFile
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        lastBlas?.destroy()
+        lastTris?.destroy()
+        lastBlas = null
+        lastTris = null
     }
 
     override val className: String get() = "SDFMesh"
-
-    companion object {
-        const val sdMesh = "" +
-                ""
-    }
-
 }

@@ -921,6 +921,10 @@ open class Vector3d {
         return dst.identity().rotateYXZ(y, x, z)
     }
 
+    fun toQuaternionRadians(dst: Quaterniond = Quaterniond()): Quaterniond {
+        return dst.identity().rotateYXZ(y, x, z)
+    }
+
     fun rotate(q: Quaternionf): Vector3d {
         return Quaterniond.transform(
             q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble(),

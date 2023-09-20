@@ -15,10 +15,9 @@ import kotlin.math.max
 import kotlin.math.sign
 import kotlin.math.sqrt
 
-@Suppress("unused")
 open class SDFPyramid : SDFShape() {
 
-    private val params: Vector2f = Vector2f(1f, 1f)
+    private val params: Vector2f = Vector2f(1f, 2f)
 
     var height: Float
         get() = params.y
@@ -30,6 +29,7 @@ open class SDFPyramid : SDFShape() {
             }
         }
 
+    @Suppress("unused")
     @Range(0.0, 1e38)
     var baseLength: Float
         get() = params.x * 2f

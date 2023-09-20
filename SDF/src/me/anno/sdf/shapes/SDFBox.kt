@@ -13,6 +13,9 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.abs
 
+/**
+ * Cuboid
+ * */
 open class SDFBox : SDFSmoothShape() {
 
     var halfExtends = Vector3f(1f)

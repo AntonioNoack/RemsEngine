@@ -6,15 +6,36 @@ import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
 
 object RayTracing {
 
-    const val glslIntersections = "" +
-            // https://stackoverflow.com/questions/59257678/intersect-a-ray-with-a-triangle-in-glsl-c
+    const val intersectAABB = "" +
+            "float minComp(vec3 v){ return min(v.x,min(v.y,v.z)); }\n" +
+            "float maxComp(vec3 v){ return max(v.x,max(v.y,v.z)); }\n" +
+            // taken from JOML
+            "bool intersectAABB(vec3 pos, vec3 invDir, vec3 bMin, vec3 bMax, float maxDistance){\n" +
+            "   bvec3 neg   = lessThan(invDir, vec3(0.0));\n" +
+            "   vec3  close = mix(bMin,bMax,neg);\n" +
+            "   vec3  far   = mix(bMax,bMin,neg);\n" +
+            "   float tMin  = maxComp((close-pos)*invDir);\n" +
+            "   float tMax  = minComp((far-pos)*invDir);\n" +
+            "   return max(tMin, 0.0) <= min(tMax, maxDistance);\n" +
+            "}\n" +
+            "bool intersectAABB(vec3 pos, vec3 invDir, vec3 bMin, vec3 bMax, float s, float maxDistance){\n" +
+            "   return intersectAABB(pos, invDir, bMin-s, bMax+s, maxDistance);\n" +
+            "}\n"
+
+    /**
+     * https://stackoverflow.com/questions/59257678/intersect-a-ray-with-a-triangle-in-glsl-c
+     * */
+    const val intersectTriangle = "" +
             "float pointInOrOn(vec3 p1, vec3 p2, vec3 a, vec3 b){\n" +
             "    vec3 ba  = b-a;\n" +
             "    vec3 cp1 = cross(ba, p1 - a);\n" +
             "    vec3 cp2 = cross(ba, p2 - a);\n" +
             "    return step(0.0, dot(cp1, cp2));\n" +
             "}\n" +
-            "void intersectTriangle(vec3 pos, vec3 dir, vec3 p0, vec3 p1, vec3 p2, inout vec3 normal, inout float bestDistance){\n" +
+            "void intersectTriangle(\n" +
+            "   vec3 pos, vec3 dir, vec3 p0, vec3 p1, vec3 p2,\n" +
+            "   inout vec3 normal, inout float bestDistance\n" +
+            ") {\n" +
             "   vec3 N = cross(p1-p0, p2-p0);\n" +
             "   float dnn = dot(dir, N);\n" +
             "   float distance = dot(p0-pos, N) / dnn;\n" +
@@ -34,7 +55,7 @@ object RayTracing {
             "void intersectTriangle(\n" +
             "      vec3 pos, vec3 dir, vec3 p0, vec3 p1, vec3 p2,\n" +
             "      vec3 n0, vec3 n1, vec3 n2, inout vec3 normal, inout float bestDistance\n" +
-            "){\n" +
+            ") {\n" +
             "   vec3 N = cross(p1-p0, p2-p0);\n" +
             "   float dnn = dot(dir, N);\n" +
             "   float distance = dot(p0-pos, N) / dnn;\n" +
@@ -55,17 +76,11 @@ object RayTracing {
             "       step(distance,bestDistance) > 0.0;\n" +
             "   bestDistance = hit ? distance : bestDistance;\n" +
             "   normal = hit ? (u*n0+v*n1+w*n2) : normal;\n" +
-            "}\n" +
-            "float minComp(vec3 v){ return min(v.x,min(v.y,v.z)); }\n" +
-            "float maxComp(vec3 v){ return max(v.x,max(v.y,v.z)); }\n" +
-            "bool intersectAABB(vec3 pos, vec3 invDir, vec3 bMin, vec3 bMax, float maxDistance){\n" +
-            "   bvec3 neg   = lessThan(invDir, vec3(0.0));\n" +
-            "   vec3  close = mix(bMin,bMax,neg);\n" +
-            "   vec3  far   = mix(bMax,bMin,neg);\n" +
-            "   float tMin  = maxComp((close-pos)*invDir);\n" +
-            "   float tMax  = minComp((far-pos)*invDir);\n" +
-            "   return max(tMin, 0.0) <= min(tMax, maxDistance);\n" +
             "}\n"
+
+    const val glslIntersections = "" +
+            intersectTriangle +
+            intersectAABB
 
     const val loadMat4x3 = "" +
             "mat4x3 loadMat4x3(vec4 a, vec4 b, vec4 c){\n" +

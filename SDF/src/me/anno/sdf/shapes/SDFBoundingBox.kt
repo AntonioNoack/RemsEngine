@@ -12,6 +12,9 @@ import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
 
+/**
+ * A cuboid's lines
+ * */
 open class SDFBoundingBox : SDFBox() {
 
     var dynamicThickness = false

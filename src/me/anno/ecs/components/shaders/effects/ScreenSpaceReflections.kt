@@ -91,7 +91,7 @@ object ScreenSpaceReflections {
                     "   if (reflectivity <= 0.0) {\n" +
                     "       fragColor = vec4(applyToneMapping ? tonemap(color0) : color0, 1.0);\n" +
                     "       return;\n" +
-                    "   } else reflectivity = sqrt(reflectivity);\n" +
+                    "   };\n" +
 
                     "   ivec2 texSizeI = textureSize(finalDepth, 0);\n" +
                     "   vec2  texSize  = vec2(texSizeI);\n" +

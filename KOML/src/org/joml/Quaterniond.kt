@@ -2109,8 +2109,11 @@ open class Quaterniond {
     }
 
     fun toEulerAnglesDegrees(dst: Vector3d = Vector3d()): Vector3d {
-        val toDegrees = 180.0 / PI
-        return getEulerAnglesYXZ(dst).mul(toDegrees)
+        return toEulerAnglesRadians(dst).mul(180.0 / PI)
+    }
+
+    fun toEulerAnglesRadians(dst: Vector3d = Vector3d()): Vector3d {
+        return getEulerAnglesYXZ(dst)
     }
 
     fun mul(q: Quaternionf): Quaterniond {// why ever this function is missing :annoyed:

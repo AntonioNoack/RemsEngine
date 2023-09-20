@@ -12,7 +12,10 @@ import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
 
-class SDFHyperBBox() : SDFHyperCube() {
+/**
+ * Bounding box in 4D.
+ * */
+class SDFHyperBBox : SDFHyperCube() {
 
     var dynamicThickness = false
         set(value) {
@@ -48,7 +51,7 @@ class SDFHyperBBox() : SDFHyperCube() {
         builder.append("sdBoundingBox4(pos")
         builder.append(trans.posIndex)
         builder.append(',')
-        builder.appendUniform(uniforms, rotation4d)
+        builder.appendUniform(uniforms, rotation4di)
         builder.append(',')
         builder.appendUniform(uniforms, GLSLType.V1F) { w }
         builder.append(',')

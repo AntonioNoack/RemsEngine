@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.shapes.IcosahedronModel.createUVSphere
+import me.anno.ecs.components.mesh.shapes.UVSphereModel.createUVSphere
 import me.anno.ecs.components.mesh.shapes.PlaneModel.createPlane
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ui.render.ECSMeshShader

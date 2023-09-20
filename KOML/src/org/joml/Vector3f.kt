@@ -822,6 +822,10 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return dst.identity().rotateYXZ(y, x, z)
     }
 
+    fun toQuaternionRadians(dst: Quaternionf = Quaternionf()): Quaternionf {
+        return dst.identity().rotateYXZ(y, x, z)
+    }
+
     companion object {
 
         @JvmStatic

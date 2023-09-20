@@ -25,34 +25,21 @@ class SDFDoor : SDF2DShape() {
         }
 
     @Range(0.0, 1e38)
-    var halfExtendsX: Float
-        get() = params.x
-        set(value) {
-            if (params.x != value) {
-                if (dynamicSize || globalDynamic) invalidateBounds()
-                else invalidateShader()
-                params.x = value
-            }
-        }
-
-    @Range(0.0, 1e38)
     var bottomExtends: Float
-        get() = params.y * .5f
+        get() = params.y
         set(value) {
-            val v2 = value * 2f
-            if (params.y != v2) {
+            if (params.y != value) {
                 if (dynamicSize || globalDynamic) invalidateBounds()
                 else invalidateShader()
-                params.y = v2
+                params.y = value
             }
         }
 
-    override fun calculateBaseBounds(dst: AABBf) {
-        val w = halfExtendsX
+    override fun calculateBaseBounds2d(dst: AABBf) {
+        val w = 1f
         val h = bottomExtends
         dst.setMin(-w, -h, 0f)
         dst.setMax(+w, +w, 0f)
-        super.calculateBaseBounds(dst)
     }
 
     override fun buildShader(

@@ -17,7 +17,7 @@ import kotlin.math.sqrt
 // center it, and the pyramid as well?
 open class SDFCone : SDFShape() {
 
-    private val params = Vector2f(1f)
+    private val params = Vector2f(1f, 2f)
 
     var radius
         get() = params.x

@@ -12,7 +12,6 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.sqrt
 
-@Suppress("unused")
 open class SDFDeathStar : SDFShape() {
 
     private val params = Vector3f(1f)
@@ -28,6 +27,7 @@ open class SDFDeathStar : SDFShape() {
             }
         }
 
+    @Suppress("unused")
     @Range(0.0, 1e38)
     var cutoffRadius
         get() = params.y

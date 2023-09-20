@@ -2057,8 +2057,11 @@ open class Quaternionf {
     }
 
     fun toEulerAnglesDegrees(dst: Vector3f = Vector3f()): Vector3f {
-        val toDegrees = (180.0 / PI).toFloat()
-        return getEulerAnglesYXZ(dst).mul(toDegrees)
+        return toEulerAnglesRadians(dst).mul((180.0 / PI).toFloat())
+    }
+
+    fun toEulerAnglesRadians(dst: Vector3f = Vector3f()): Vector3f {
+        return getEulerAnglesYXZ(dst)
     }
 
     companion object {

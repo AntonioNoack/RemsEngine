@@ -81,7 +81,7 @@ object SDFComposer {
             "      vec3 e = vec3((((i+3)>>1)&1),((i>>1)&1),(i&1))*2.0-1.0;\n" +
             "      n += e*map(ro,rd,pos+e*epsilon,t).x;\n" +
             "   }\n" +
-            "   return normalize(n);\n" +
+            "   return sign(-dot(rd,n)) * normalize(n);\n" +
             "}\n"
 
     fun localCamPos(tree: SDFComponent, dst: Vector3f): Vector3f {
@@ -370,7 +370,6 @@ object SDFComposer {
             "float t = float(steps)/float(maxSteps);\n" +
             "finalEmissive = t < 0.5 ? mix(a, c, 2.0 * t) : mix(c, b, 2.0 * t - 1.0);\n" +
             "finalColor = finalEmissive;\n" +
-            "finalEmissive *= 10.0;\n" + // only correct with current tonemapping...
             "finalAlpha = 1.0;\n"
 
     val sdfOnY = "" + // check if & where ray hits y == 0

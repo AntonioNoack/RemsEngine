@@ -20,10 +20,12 @@ abstract class SDFSmoothShape : SDFShape() {
         set(value) {
             if (field != value) {
                 if (!(dynamicSmoothness || globalDynamic)) invalidateShader()
-                // bounds are not influenced by smoothness (in 99% of cases)
+                else if(boundsInfluencedBySmoothness) invalidateBounds()
                 field = value
             }
         }
+
+   open val boundsInfluencedBySmoothness get() = false
 
     fun appendSmoothnessParameter(builder: StringBuilder, uniforms: HashMap<String, TypeValue>) {
         val dynamicSmoothness = dynamicSmoothness || globalDynamic

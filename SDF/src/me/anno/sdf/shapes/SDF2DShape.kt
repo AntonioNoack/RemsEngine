@@ -1,13 +1,15 @@
 package me.anno.sdf.shapes
 
 import me.anno.ecs.annotations.DebugAction
-import me.anno.sdf.TwoDims
-import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
+import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
+import me.anno.sdf.TwoDims
+import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.AABBf
@@ -23,7 +25,7 @@ import org.joml.Vector4f
 // https://www.iquilezles.org/www/articles/distfunctions/distfunctions.htm
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
-open class SDF2DShape : SDFShape() {
+abstract class SDF2DShape : SDFShape() {
 
     var axes: TwoDims = TwoDims.XY
         set(value) {
@@ -71,8 +73,7 @@ open class SDF2DShape : SDFShape() {
     }
 
     @DebugAction
-    fun bound11() {
-        val s = 0.1f
+    fun bound11(s: Float = 0.1f) {
         when (axes) {
             TwoDims.YZ, TwoDims.ZY -> bound1(-s, +s, 0)
             TwoDims.XZ, TwoDims.ZX -> bound1(-s, +s, 1)
@@ -82,7 +83,7 @@ open class SDF2DShape : SDFShape() {
 
     fun bound1(min: Vector3f, max: Vector3f) {
         val dir1 = JomlPools.vec3f.create()
-        dir1.set(min).sub(max)
+        dir1.set(min).sub(max).normalize()
         bound2(min, dir1)
         dir1.negate()
         bound2(max, dir1)
@@ -114,7 +115,13 @@ open class SDF2DShape : SDFShape() {
         JomlPools.vec3f.sub(2)
     }
 
+    open fun calculateBaseBounds2d(dst: AABBf) {
+        dst.setMin(-1f, -1f, 0f)
+        dst.setMax(+1f, +1f, 0f)
+    }
+
     override fun calculateBaseBounds(dst: AABBf) {
+        calculateBaseBounds2d(dst)
         if (rotary) {
             // axes becomes x, other becomes y
             val minZ = dst.minY
@@ -152,6 +159,33 @@ open class SDF2DShape : SDFShape() {
                 }
             }
         }
+        // todo iterate over bounds, and apply them
+        for (halfSpace in distanceMappers) {
+            if (halfSpace is SDFHalfSpace) {
+                val plane = halfSpace.plane
+                // project all outside points onto the plane
+                val tmp = AABBf()
+                for (i in 0 until 8) {
+                    val px = if (i.hasFlag(1)) dst.maxX else dst.minX
+                    val py = if (i.hasFlag(2)) dst.maxY else dst.minY
+                    val pz = if (i.hasFlag(4)) dst.maxZ else dst.minZ
+                    val dt = plane.dot(px, py, pz)
+                    if (dt > 0f) {// todo correct sign?
+                        // inside (?)
+                        tmp.union(px, py, pz)
+                    } else {
+                        tmp.union(
+                            // todo correct sign?
+                            // todo projection direction must be within bounds...
+                            clamp(px + dt * plane.dirX, dst.minX, dst.maxX),
+                            clamp(py + dt * plane.dirY, dst.minY, dst.maxY),
+                            clamp(pz + dt * plane.dirZ, dst.minZ, dst.maxZ)
+                        )
+                    }
+                }
+                dst.set(tmp)
+            }
+        }
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -160,5 +194,4 @@ open class SDF2DShape : SDFShape() {
         dst.axes = axes
         dst.rotary = rotary
     }
-
 }

@@ -17,10 +17,9 @@ import kotlin.math.sqrt
 @Suppress("unused")
 class SDFHeart : SDF2DShape() {
 
-    override fun calculateBaseBounds(dst: AABBf) {
+    override fun calculateBaseBounds2d(dst: AABBf) {
         dst.setMin(-0.60f, -0.55f, Float.NEGATIVE_INFINITY)
         dst.setMax(+0.60f, +0.55f, Float.POSITIVE_INFINITY)
-        super.calculateBaseBounds(dst)
     }
 
     override fun buildShader(
