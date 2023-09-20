@@ -1,6 +1,7 @@
 package me.anno.gpu.framebuffer
 
 import me.anno.Build
+import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
@@ -17,7 +18,7 @@ class Framebuffer(
     override var width: Int, override var height: Int,
     samples: Int, val targets: Array<TargetType>,
     val depthBufferType: DepthBufferType
-) : IFramebuffer {
+) : IFramebuffer, ICacheData {
 
     constructor(
         name: String, w: Int, h: Int, samples: Int,

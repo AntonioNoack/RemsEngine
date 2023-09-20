@@ -106,9 +106,7 @@ object ScreenSpaceAmbientOcclusion {
         return Shader(
             "ssao",
             coordsList, coordsVShader, uvList, listOf(
-                Variable(GLSLType.V1F, "radius"),
                 Variable(GLSLType.V1F, "strength"),
-                Variable(GLSLType.V1F, "skipRadiusSq"),
                 Variable(GLSLType.V1I, "numSamples"),
                 Variable(GLSLType.V1I, "mask"),
                 Variable(GLSLType.M4x4, "transform"),
@@ -117,7 +115,7 @@ object ScreenSpaceAmbientOcclusion {
                 Variable(srcType, "finalNormal"),
                 Variable(GLSLType.S2D, "random4x4"),
                 Variable(GLSLType.V1B, "normalZW"),
-                Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT)
+                Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ) + depthVars, "" +
                     "float dot2(vec3 p){ return dot(p,p); }\n" +
                     quatRot +
@@ -130,9 +128,8 @@ object ScreenSpaceAmbientOcclusion {
                             "   #define getPixel(tex,uv) texelFetch(tex,ivec2(clamp(uv,vec2(0.0),vec2(0.99999))*texSizeI),0)\n"
                     else "#define getPixel(tex,uv) textureLod(tex,uv,0.0)\n") +
                     "   vec3 origin = rawDepthToPosition(uv, getPixel(finalDepth, uv).x);\n" +
-                    "   if(dot2(origin) > skipRadiusSq){\n" + // sky and such can be skipped automatically
-                    "       glFragColor = vec4(0.0);\n" +
-                    "   } else {\n" +
+                    "   float radius = length(origin);\n" +
+                    "   if(radius < 1e18){\n" + // sky and such can be skipped automatically
                     "       vec4 normalData = getPixel(finalNormal, uv);\n" +
                     "       vec3 normal = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
                     // reverse back sides, e.g., for plants
@@ -159,11 +156,13 @@ object ScreenSpaceAmbientOcclusion {
                     // without it, the result looks approx. the same :)
                     "           if(isInside){\n" +
                     "               float sampleDepth = dot2(rawDepthToPosition(offset.xy, getPixel(finalDepth, offset.xy).x));\n" +
-                    "               occlusion += step(0.0, sampleTheoDepth-sampleDepth);\n" +
+                    "               occlusion += step(sampleDepth, sampleTheoDepth);\n" +
                     "           }\n" +
                     "       }\n" +
-                    "       glFragColor = vec4(clamp(strength * occlusion/float(numSamples), 0.0, 1.0));\n" +
-                    "   }" +
+                    "       result = vec4(clamp(strength * occlusion/float(numSamples), 0.0, 1.0));\n" +
+                    "   } else {\n" +
+                    "       result = vec4(0.0);\n" +
+                    "   }\n" +
                     "}"
         ).apply {
             glslVersion = 330
@@ -352,5 +351,4 @@ object ScreenSpaceAmbientOcclusion {
             if (enableBlur) average(tmp) else tmp
         }
     }
-
 }

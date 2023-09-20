@@ -28,6 +28,7 @@ class RenderSceneNode : RenderSceneNode0(
         "Enum<me.anno.gpu.pipeline.Sorting>", "Sorting",
         "Int", "Camera Index",
         "Boolean", "Apply ToneMapping",
+        "Int", "Skybox Resolution" // or 0 to not bake it
     ),
     // list all available deferred layers
     DeferredLayerType.values.map {
@@ -45,6 +46,7 @@ class RenderSceneNode : RenderSceneNode0(
         setInput(5, Sorting.NO_SORTING)
         setInput(6, 0) // camera index
         setInput(7, false) // apply tonemapping
+        setInput(8, true) // bake skybox
     }
 
     override fun invalidate() {
@@ -56,10 +58,12 @@ class RenderSceneNode : RenderSceneNode0(
     lateinit var renderer: Renderer
 
     override fun executeAction() {
+
         val width = getInput(1) as Int
         val height = getInput(2) as Int
         val samples = getInput(3) as Int
         if (width < 1 || height < 1 || samples < 1) return
+
         // 0 is flow
         // val stageId = getInput(4) as Int
         // val sorting = getInput(5) as Int
@@ -104,6 +108,11 @@ class RenderSceneNode : RenderSceneNode0(
         val framebuffer = framebuffer!!
 
         GFX.check()
+
+        // if skybox is not used, bake it anyway?
+        // -> yes, the pipeline architect (^^) has to be careful
+        val skyboxResolution = getInput(8) as Int
+        pipeline.bakeSkybox(skyboxResolution)
 
         pipeline.applyToneMapping = applyToneMapping
         GFXState.useFrame(width, height, true, framebuffer, renderer) {

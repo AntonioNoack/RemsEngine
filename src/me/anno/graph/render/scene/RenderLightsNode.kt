@@ -2,12 +2,12 @@ package me.anno.graph.render.scene
 
 import me.anno.ecs.components.light.LightType
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.LightShaders.createMainFragmentStage
 import me.anno.gpu.pipeline.LightShaders.invStage
 import me.anno.gpu.pipeline.LightShaders.uvwStage
@@ -17,7 +17,7 @@ import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -30,6 +30,7 @@ import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.utils.types.Booleans.toInt
+import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
 
 class RenderLightsNode : RenderSceneNode0(
     "Render Lights",
@@ -60,7 +61,6 @@ class RenderLightsNode : RenderSceneNode0(
     }
 
     override fun invalidate() {
-        framebuffer?.destroy()
         for (it in shaders) it?.first?.destroy()
         shaders.fill(null)
     }
@@ -136,34 +136,37 @@ class RenderLightsNode : RenderSceneNode0(
 
     override fun executeAction() {
 
+        // default output in case of error
+        setOutput(1, null)
+
         val width = getInput(1) as Int
         val height = getInput(2) as Int
         val samples = getInput(3) as Int
         if (width < 1 || height < 1 || samples < 1) return
 
-        val rv = renderView
-        if (framebuffer?.samples != samples) {
-            framebuffer?.destroy()
-            framebuffer = Framebuffer(
-                name, width, height, samples,
-                arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
-            )
-        }
+        val depthTexture0 = getInput(depthIndex) as? Texture
+        val depthTexture = depthTexture0?.tex as? Texture2D ?: return // if no depth is given, we can return 0
+        val depthT = depthTexture.owner
 
-        val framebuffer = framebuffer!!
-        val renderer = Renderer.copyRenderer
+        val useDepth = depthT != null
+        val framebuffer = FBStack[name, width, height, 3, BufferQuality.HIGH_16, samples, useDepth]
 
         GFX.check()
 
-        val depthTexture0 = getInput(depthIndex) as? Texture
-        val depthTexture = depthTexture0?.tex as? Texture2D ?: TextureLib.depthTexture
-
-        GFXState.useFrame(width, height, true, framebuffer, renderer) {
+        GFXState.useFrame(width, height, true, framebuffer, copyRenderer) {
             val stage = pipeline.lightStage
-            // todo copy depth into framebuffer
-            framebuffer.clearColor(0)
+            if (depthT == null) {
+                framebuffer.clearColor(0, true)
+            } else {
+                // copy depth to framebuffer for early discard
+                framebuffer.clearColor(0)
+                depthT.copyTo(framebuffer, GL_DEPTH_BUFFER_BIT)
+            }
             stage.bind {
-                stage.draw(rv.cameraMatrix, rv.cameraPosition, rv.worldScale, ::getShader, depthTexture)
+                stage.draw(
+                    RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,
+                    ::getShader, depthTexture
+                )
             }
         }
 

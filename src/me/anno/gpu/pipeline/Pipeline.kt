@@ -13,28 +13,34 @@ import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.components.shaders.SkyboxBase
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.*
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
-import me.anno.engine.ui.render.Frustum
-import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
+import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStage.Companion.DECAL_PASS
 import me.anno.gpu.pipeline.PipelineStage.Companion.OPAQUE_PASS
 import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
+import me.anno.gpu.texture.CubemapTexture
+import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths
+import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.any2
@@ -187,6 +193,67 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
     }
 
     var transparentPass: TransparentPass = GlassPass()
+
+    fun bakeSkybox(resolution: Int) {
+        if (resolution <= 0) {
+            return
+        }
+
+        val self = RenderView.currentInstance
+        val renderMode = self?.renderMode
+        if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
+            self.renderMode = RenderMode.DEFAULT
+        }
+        // todo only update skybox every n frames
+        //  maybe even only one side at a time
+        val framebuffer = bakedSkybox ?: CubemapFramebuffer(
+            "skyBox", resolution, 1,
+            arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
+        )
+        val renderer = Renderers.rawAttributeRenderers[DeferredLayerType.EMISSIVE]
+        framebuffer.draw(renderer) { side ->
+            val skyRot = JomlPools.quat4f.create()
+            val cameraMatrix = JomlPools.mat4f.create()
+            val sky = skybox
+            // draw sky
+            // could be optimized to draw a single triangle instead of a full cube for each side
+            CubemapTexture.rotateForCubemap(skyRot.identity(), side)
+            val shader = (sky.shader ?: pbrModelShader).value
+            shader.use()
+            Perspective.setPerspective(
+                cameraMatrix, Maths.PIf * 0.5f, 1f,
+                0.1f, 10f, 0f, 0f
+            )
+            cameraMatrix.rotate(skyRot)
+            shader.m4x4("transform", cameraMatrix)
+            if (side == 0) {
+                shader.v1i("hasVertexColors", 0)
+                sky.material.bind(shader)
+            }// else already set
+            shader.v3f("cameraPosition", RenderState.cameraPosition)
+            shader.v4f("cameraRotation", RenderState.cameraRotation)
+            shader.v1f("camScale", RenderState.worldScale.toFloat())
+            shader.v1f("meshScale", 1f)
+            shader.v1b("isPerspective", false)
+            shader.v1b("reversedDepth", false) // depth doesn't matter
+            sky.draw(shader, 0)
+            JomlPools.quat4f.sub(1)
+            JomlPools.mat4f.sub(1)
+        }
+        if (!OS.isAndroid) {
+            // performance impact of this: 230->210 fps, so 0.4ms on RTX 3070
+            framebuffer.textures[0].bind(0, GPUFiltering.LINEAR)
+        }
+        bakedSkybox = framebuffer
+        if (renderMode != null) {
+            self.renderMode = renderMode
+        }
+    }
+
+    fun destroyBakedSkybox() {
+        bakedSkybox?.destroy()
+        bakedSkybox = null
+    }
 
     override fun destroy() {
         bakedSkybox?.destroy()

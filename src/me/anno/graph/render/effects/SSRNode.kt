@@ -3,18 +3,16 @@ package me.anno.graph.render.effects
 import me.anno.ecs.components.shaders.effects.ScreenSpaceReflections
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
-import me.anno.graph.render.scene.RenderSceneNode0
+import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.utils.Color.black4
 import org.joml.Vector4f
 
-class SSRNode : RenderSceneNode0(
+class SSRNode : ActionNode(
     "Screen Space Reflections",
     listOf(
         "Int", "Width",
@@ -23,7 +21,6 @@ class SSRNode : RenderSceneNode0(
         "Float", "Mask Sharpness",
         "Float", "Wall Thickness",
         "Int", "Fine Steps",
-        "Float", "Max Distance",
         "Bool", "Apply Tone Mapping",
         "Texture", "Illuminated",
         "Texture", "Diffuse",
@@ -42,12 +39,7 @@ class SSRNode : RenderSceneNode0(
         setInput(4, 1f) // mask sharpness
         setInput(5, 0.2f) // wall thickness
         setInput(6, 10) // fine steps
-        setInput(7, 8f) // max distance
-        setInput(8, false) // apply tone mapping
-    }
-
-    override fun invalidate() {
-        framebuffer?.destroy()
+        setInput(7, false) // apply tone mapping
     }
 
     override fun executeAction() {
@@ -60,32 +52,27 @@ class SSRNode : RenderSceneNode0(
         val maskSharpness = getInput(4) as Float
         val wallThickness = getInput(5) as Float
         val fineSteps = getInput(6) as Int // 10
-        val maxDistance = getInput(7) as Float // 8
-        val applyToneMapping = getInput(8) == true
+        val applyToneMapping = getInput(7) == true
 
-        val illuminated = (getInput(9) as? Texture)?.tex ?: return
+        val illuminated = (getInput(8) as? Texture)?.tex ?: return
 
-        val color = (getInput(10) as? Texture)?.tex ?: whiteTexture
-        val emissive = (getInput(11) as? Texture)?.tex ?: blackTexture
+        val color = (getInput(9) as? Texture)?.tex ?: whiteTexture
+        val emissive = (getInput(10) as? Texture)?.tex ?: blackTexture
 
         // todo optional normal reconstruction
-        val normal = getInput(12) as? Texture
+        val normal = getInput(11) as? Texture
         val normalZW = normal?.mapping == "zw"
         val normalT = ((normal)?.tex as? Texture2D) ?: whiteTexture
 
-        val metallic = getInput(13) as? Texture
-        val roughness = getInput(14) as? Texture
+        val metallic = getInput(12) as? Texture
+        val roughness = getInput(13) as? Texture
 
-        val depthT = ((getInput(15) as? Texture)?.tex as? Texture2D) ?: return
+        val depthT = ((getInput(14) as? Texture)?.tex as? Texture2D) ?: return
 
         val transform = RenderState.cameraMatrix
 
-        var framebuffer = framebuffer
-        if (framebuffer == null || framebuffer.width != width || framebuffer.height != height) {
-            framebuffer?.destroy()
-            framebuffer = Framebuffer(name, width, height, 1, arrayOf(TargetType.FP16Target3), DepthBufferType.NONE)
-            this.framebuffer = framebuffer
-        }
+        val samples = 1
+        val framebuffer = FBStack["ssr", width, height, 4, true, samples, false]
 
         val metallicT = metallic?.tex ?: whiteTexture
         val metallicM = if (metallicT != whiteTexture) singleToVector[metallic!!.mapping]!!

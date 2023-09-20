@@ -125,10 +125,14 @@ object RenderGraph {
         val nodes = graph.nodes
         val start = nodes.firstInstanceOrNull<StartNode>() ?: return
         for (i in nodes.indices) {
-            val node = nodes[i]
-            if (node is RenderSceneNode0) {
-                node.pipeline = view.pipeline
-                node.renderView = view
+            when (val node = nodes[i]) {
+                is RenderSceneNode0 -> {
+                    node.pipeline = view.pipeline
+                    node.renderView = view
+                }
+                is BakeSkyboxNode -> {
+                    node.pipeline = view.pipeline
+                }
             }
         }
 

@@ -64,14 +64,11 @@ import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.shader.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.effects.FXAA
-import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.RenderGraph
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.maths.Maths.roundDiv
@@ -83,7 +80,6 @@ import me.anno.utils.Clock
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
-import me.anno.utils.OS
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
@@ -372,17 +368,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             }
 
             // blacklist for renderModes?
-            if (renderMode.dlt == null && when (renderMode) {
-                    RenderMode.LIGHT_COUNT,
-                    RenderMode.LIGHT_SUM, RenderMode.LIGHT_SUM_MSAA,
-                    RenderMode.SSAO, RenderMode.SSAO_MS -> false
-                    else -> true
-                }
-            ) {
-                bakeSkybox()
+            if (renderMode.dlt == null && renderMode != RenderMode.LIGHT_COUNT) {
+                pipeline.bakeSkybox(256)
             } else {
-                pipeline.bakedSkybox?.destroy()
-                pipeline.bakedSkybox = null
+                pipeline.destroyBakedSkybox()
             }
 
             drawScene(
@@ -449,55 +438,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     private val mayChangeSize get() = (Engine.frameIndex % 20 == 0)
 
     private val fsr22 by lazy { FSR2v2() }
-
-    fun bakeSkybox() {
-        val renderMode = renderMode
-        if (renderMode == RenderMode.LINES || renderMode == RenderMode.LINES_MSAA) {
-            this.renderMode = RenderMode.DEFAULT
-        }
-        // todo only update skybox every n frames
-        //  maybe even only one side at a time
-        val framebuffer = pipeline.bakedSkybox ?: CubemapFramebuffer(
-            "skyBox", 256, 1,
-            arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
-        )
-        val renderer = rawAttributeRenderers[DeferredLayerType.EMISSIVE]
-        framebuffer.draw(renderer) { side ->
-            val skyRot = JomlPools.quat4f.create()
-            val cameraMatrix = JomlPools.mat4f.create()
-            val sky = pipeline.skybox
-            // draw sky
-            // could be optimized to draw a single triangle instead of a full cube for each side
-            rotateForCubemap(skyRot.identity(), side)
-            val shader = (sky.shader ?: pbrModelShader).value
-            shader.use()
-            Perspective.setPerspective(
-                cameraMatrix, PIf * 0.5f, 1f,
-                0.1f, 10f, 0f, 0f
-            )
-            cameraMatrix.rotate(skyRot)
-            shader.m4x4("transform", cameraMatrix)
-            if (side == 0) {
-                shader.v1i("hasVertexColors", 0)
-                sky.material.bind(shader)
-            }// else already set
-            shader.v3f("cameraPosition", cameraPosition)
-            shader.v4f("cameraRotation", cameraRotation)
-            shader.v1f("camScale", worldScale.toFloat())
-            shader.v1f("meshScale", 1f)
-            shader.v1b("isPerspective", false)
-            shader.v1b("reversedDepth", false) // depth doesn't matter
-            sky.draw(shader, 0)
-            JomlPools.quat4f.sub(1)
-            JomlPools.mat4f.sub(1)
-        }
-        if (!OS.isAndroid) {
-            // performance impact of this: 230->210 fps, so 0.4ms on RTX 3070
-            framebuffer.textures[0].bind(0, GPUFiltering.LINEAR)
-        }
-        pipeline.bakedSkybox = framebuffer
-        this.renderMode = renderMode
-    }
 
     fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
@@ -640,10 +580,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
                         drawSceneLights(buffer, lightBuffer)
                         val sett = SSAOSettings
-                        val ssao = if (sett.strength > 0f) ScreenSpaceAmbientOcclusion.compute(
+                        val ssao = ScreenSpaceAmbientOcclusion.compute(
                             buffer, deferred, cameraMatrix,
                             sett.radius, sett.strength, sett.samples, sett.enable2x2Blur
-                        ) ?: blackTexture else blackTexture
+                        )
                         useFrame(w, h, true, baseSameDepth1) {
                             // theoretically, this pass could blur the normals itself...
                             combineLighting(

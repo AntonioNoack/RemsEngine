@@ -3,14 +3,14 @@ package me.anno.graph.render.effects
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.framebuffer.DepthBufferType
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderSceneNode0
-import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL30C.GL_COLOR_BUFFER_BIT
+import org.lwjgl.opengl.GL30C.GL_DEPTH_BUFFER_BIT
 
 class GizmoNode : RenderSceneNode0(
     "Gizmos",
@@ -36,10 +36,6 @@ class GizmoNode : RenderSceneNode0(
         setInput(7, null) // depth
     }
 
-    override fun invalidate() {
-        framebuffer?.destroy()
-    }
-
     override fun executeAction() {
 
         val width = getInput(1) as Int
@@ -54,25 +50,27 @@ class GizmoNode : RenderSceneNode0(
         val colorT = ((getInput(7) as? Texture)?.tex as? Texture2D)
         val depthT = ((getInput(8) as? Texture)?.tex as? Texture2D)
 
-        val color = colorT?.owner
-        val depth = depthT?.owner
 
-        val rv = renderView
-        if (framebuffer?.samples != samples) {
-            framebuffer?.destroy()
-            framebuffer = Framebuffer(
-                name, width, height, samples,
-                arrayOf(TargetType.UByteTarget4), DepthBufferType.TEXTURE
-            )
-        }
-
-        val framebuffer = framebuffer as Framebuffer
-        val renderer = copyRenderer
+        val framebuffer = FBStack[name, width, height, 4, false, samples, true]
 
         GFX.check()
 
-        GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            // copy depth into framebuffer
+        GFXState.useFrame(width, height, true, framebuffer, copyRenderer) {
+            copyColorAndDepth(colorT, depthT, framebuffer)
+            GFXState.depthMode.use(renderView.pipeline.defaultStage.depthMode) {
+                GFXState.blendMode.use(BlendMode.DEFAULT) {
+                    renderView.drawGizmos1(grid, debug, aabbs)
+                }
+            }
+        }
+
+        setOutput(1, Texture(framebuffer.getTexture0()))
+    }
+
+    companion object {
+        fun copyColorAndDepth(colorT: Texture2D?, depthT: Texture2D?, framebuffer: Framebuffer) {
+            val color = colorT?.owner
+            val depth = depthT?.owner
             if (depth == null && color == null) {
                 framebuffer.clearColor(0, true)
             } else if (depth != null && color === depth) {
@@ -89,13 +87,6 @@ class GizmoNode : RenderSceneNode0(
                     GL_COLOR_BUFFER_BIT
                 )
             }
-            GFXState.depthMode.use(rv.pipeline.defaultStage.depthMode) {
-                GFXState.blendMode.use(BlendMode.DEFAULT) {
-                    rv.drawGizmos1(grid, debug, aabbs)
-                }
-            }
         }
-
-        setOutput(1, Texture(framebuffer.getTexture0()))
     }
 }

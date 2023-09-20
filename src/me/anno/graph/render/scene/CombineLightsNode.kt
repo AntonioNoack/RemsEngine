@@ -4,10 +4,9 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely2
+import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.LightShaders.combineFStage
 import me.anno.gpu.pipeline.LightShaders.combineLighting1
 import me.anno.gpu.pipeline.LightShaders.combineVStage
@@ -50,7 +49,6 @@ class CombineLightsNode : RenderSceneNode0(
     }
 
     override fun invalidate() {
-        framebuffer?.destroy()
         shader?.first?.destroy()
         shader = null
     }
@@ -121,21 +119,13 @@ class CombineLightsNode : RenderSceneNode0(
         val applyToneMapping = getInput(4) == true
 
         val rv = renderView
-        if (framebuffer?.samples != samples) {
-            framebuffer?.destroy()
-            framebuffer = Framebuffer(
-                name, width, height, samples,
-                arrayOf(TargetType.FP16Target3), DepthBufferType.NONE
-            )
-        }
 
-        val framebuffer = framebuffer!!
+        val framebuffer = FBStack[name, width, height, 3, BufferQuality.HIGH_16, samples, false]
         val renderer = Renderer.copyRenderer
 
         GFX.check()
 
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            // todo copy depth into framebuffer
             renderPurely2 {
                 val shader = bindShader()
                 combineLighting1(shader, applyToneMapping, rv.pipeline.ambient)
