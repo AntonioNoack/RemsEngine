@@ -29,11 +29,11 @@ class GizmoNode : RenderSceneNode0(
     init {
         setInput(1, 256) // width
         setInput(2, 256) // height
-        setInput(3, 1) // samples
-        setInput(4, true)
-        setInput(5, true)
-        setInput(6, true)
-        setInput(7, null)
+        setInput(3, 8) // samples
+        setInput(4, true) // grid
+        setInput(5, false) // aabbs
+        setInput(6, true) // debug shapes
+        setInput(7, null) // depth
     }
 
     override fun invalidate() {

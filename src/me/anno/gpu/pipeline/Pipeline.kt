@@ -241,33 +241,37 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         GFXState.depthMode.use(stage.depthMode) {
             GFXState.depthMask.use(false) {
                 GFXState.blendMode.use(null) {
-                    val mesh = sky.getMesh()
-                    mesh.ensureBuffer()
-                    val allAABB = JomlPools.aabbd.create()
-                    val scale = if (RenderState.isPerspective) 1f
-                    else 2f * max(RenderState.fovXRadians, RenderState.fovYRadians)
-                    allAABB.all()
-                    for (i in 0 until mesh.numMaterials) {
-                        val material = MaterialCache[sky.materials.getOrNull(i)] ?: defaultMaterial
-                        val shader = (material.shader ?: pbrModelShader).value
-                        shader.use()
-                        stage.initShader(shader, this)
-                        stage.bindRandomness(shader)
-                        stage.setupLights(this, shader, allAABB, false)
-                        PipelineStage.setupLocalTransform(shader, sky.transform, Engine.gameTime)
-                        shader.v1b("hasAnimation", false)
-                        GFX.shaderColor(shader, "tint", -1)
-                        shader.v1f("finalAlpha", 1f)
-                        shader.v1i("hasVertexColors", 0)
-                        shader.v2i("randomIdData", 6, sky.randomTriangleId)
-                        shader.v1f("meshScale", scale)
-                        material.bind(shader)
-                        mesh.draw(shader, i)
-                    }
-                    JomlPools.aabbd.sub(1)
+                    drawSky0(sky, stage)
                 }
             }
         }
+    }
+
+    fun drawSky0(sky: SkyboxBase, stage: PipelineStage) {
+        val mesh = sky.getMesh()
+        mesh.ensureBuffer()
+        val allAABB = JomlPools.aabbd.create()
+        val scale = if (RenderState.isPerspective) 1f
+        else 2f * max(RenderState.fovXRadians, RenderState.fovYRadians)
+        allAABB.all()
+        for (i in 0 until mesh.numMaterials) {
+            val material = MaterialCache[sky.materials.getOrNull(i)] ?: defaultMaterial
+            val shader = (material.shader ?: pbrModelShader).value
+            shader.use()
+            stage.initShader(shader, this)
+            stage.bindRandomness(shader)
+            stage.setupLights(this, shader, allAABB, false)
+            PipelineStage.setupLocalTransform(shader, sky.transform, Engine.gameTime)
+            shader.v1b("hasAnimation", false)
+            GFX.shaderColor(shader, "tint", -1)
+            shader.v1f("finalAlpha", 1f)
+            shader.v1i("hasVertexColors", 0)
+            shader.v2i("randomIdData", 6, sky.randomTriangleId)
+            shader.v1f("meshScale", scale)
+            material.bind(shader)
+            mesh.draw(shader, i)
+        }
+        JomlPools.aabbd.sub(1)
     }
 
     fun clear() {

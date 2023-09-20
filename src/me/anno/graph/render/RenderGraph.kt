@@ -93,7 +93,7 @@ object RenderGraph {
         .then(RenderLightsNode())
         .then(SSAONode())
         .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
-        .then(GizmoNode(), mapOf("Samples" to 8), mapOf("Illuminated" to listOf("Color")))
+        .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
         .finish()
 
     // todo sample with FSR1 node
@@ -108,7 +108,7 @@ object RenderGraph {
         .then(ChromaticAberrationNode())
         .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
         .then(FXAANode())
-        .then(GizmoNode(), mapOf("Samples" to 8), mapOf("Illuminated" to listOf("Color")))
+        .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
         .finish()
 
     val outlined = QuickPipeline()

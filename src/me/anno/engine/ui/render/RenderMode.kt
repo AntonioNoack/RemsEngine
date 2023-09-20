@@ -1,12 +1,23 @@
 package me.anno.engine.ui.render
 
-import me.anno.ecs.components.camera.effects.*
+import me.anno.ecs.components.camera.effects.CameraEffect
+import me.anno.ecs.components.camera.effects.ColorBlindnessMode
+import me.anno.ecs.components.camera.effects.ColorBlindnessNode.Companion.createRenderGraph
+import me.anno.ecs.components.camera.effects.DepthTestNode
+import me.anno.ecs.components.camera.effects.OutlineEffect
+import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.RandomEffect
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Renderer.Companion.triangleVisRenderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
+import me.anno.graph.render.QuickPipeline
+import me.anno.graph.render.effects.*
+import me.anno.graph.render.scene.CombineLightsNode
+import me.anno.graph.render.scene.RenderLightsNode
+import me.anno.graph.render.scene.RenderSceneNode
 import me.anno.graph.types.FlowGraph
 
 // todo remove all specific implementations in RenderView with RenderGraphs, as far as possible
@@ -33,10 +44,32 @@ class RenderMode(
 
         val values = ArrayList<RenderMode>()
 
-        val DEFAULT = RenderMode("Default")
-        val WITHOUT_POST_PROCESSING = RenderMode("Without Post-Processing")
+        val DEFAULT = RenderMode(
+            "Default",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
+        val WITHOUT_POST_PROCESSING = RenderMode(
+            "Without Post-Processing",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(CombineLightsNode(), mapOf("Apply Tone Mapping" to true), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
         val CLICK_IDS = RenderMode("ClickIds (Random)", RandomEffect)
+
         val DEPTH = RenderMode("Depth")
+
         val NO_DEPTH = RenderMode("No Depth")
         val FORCE_DEFERRED = RenderMode("Force Deferred")
         val FORCE_NON_DEFERRED = RenderMode("Force Non-Deferred")
@@ -65,28 +98,86 @@ class RenderMode(
         val PREVIEW = RenderMode("Preview", previewRenderer)
         val SIMPLE = RenderMode("Simple", simpleNormalRenderer)
 
-        // ALPHA, // currently not defined
-        val LIGHT_SUM = RenderMode("Light Sum") // todo implement dust-light-spilling for impressive fog
-        val LIGHT_SUM_MSAA = RenderMode("Light Sum MSAAx8")
+        // todo implement dust-light-spilling for impressive fog
+
+        val LIGHT_SUM = RenderMode(
+            "Light Sum",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(RenderLightsNode(), mapOf("Light" to listOf("Illuminated")))
+                .then(ToneMappingNode())
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
+        val LIGHT_SUM_MSAA = RenderMode(
+            "Light Sum MSAAx8",
+            QuickPipeline()
+                .then1(RenderSceneNode(), mapOf("Samples" to 8))
+                .then(RenderLightsNode(), mapOf("Samples" to 8), mapOf("Light" to listOf("Illuminated")))
+                .then(ToneMappingNode())
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
         val LIGHT_COUNT = RenderMode("Light Count")
 
-        val SSAO = RenderMode("SSAO")
-        val SSAO_MS = RenderMode("SSAO MSAAx8")
-        val SS_REFLECTIONS = RenderMode("SS-Reflections")
+        val SSAO = RenderMode(
+            "SSAO",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(SSAONode(), mapOf("Ambient Occlusion" to listOf("Illuminated")))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
+        val SSAO_MS = RenderMode(
+            "SSAO MSAAx8",
+            QuickPipeline()
+                .then1(RenderSceneNode(), mapOf("Samples" to 8))
+                .then(SSAONode(), mapOf("Ambient Occlusion" to listOf("Illuminated")))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
+        val SS_REFLECTIONS = RenderMode(
+            "SS-Reflections",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then1(CombineLightsNode(), mapOf("Ambient Occlusion" to 1f))
+                .then(SSRNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
 
         val INVERSE_DEPTH = RenderMode("Inverse Depth")
         val OVERDRAW = RenderMode("Overdraw")
+
+        // todo this mode's sky is broken
         val WITH_DEPTH_PREPASS = RenderMode("With Depth-Prepass")
+
         val MONO_WORLD_SCALE = RenderMode("Mono World-Scale")
         val GHOSTING_DEBUG = RenderMode("Ghosting Debug")
 
-        val MSAA_X8 = RenderMode("MSAAx8")
+        val MSAA_NON_DEFERRED = RenderMode("MSAA Non-Deferred")
 
-        // implement this properly:
-        //  - https://www.reddit.com/r/opengl/comments/kvuolj/deferred_rendering_and_msaa/
-        //  - https://docs.nvidia.com/gameworks/content/gameworkslibrary/graphicssamples/d3d_samples/antialiaseddeferredrendering.htm
-        //  - https://registry.khronos.org/OpenGL-Refpages/gl4/html/texelFetch.xhtml
-        val MSAA_DEFERRED = RenderMode("MSAAx8 Deferred")
+        val MSAA_DEFERRED = RenderMode(
+            "MSAAx8 Deferred",
+            QuickPipeline()
+                .then1(RenderSceneNode(), mapOf("Samples" to 8))
+                .then1(RenderLightsNode(), mapOf("Samples" to 8))
+                .then(SSAONode())
+                .then1(CombineLightsNode(), mapOf("Samples" to 8))
+                .then(SSRNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
+        // todo make these modes use a render graph, too
         val FSR_SQRT2 = RenderMode("FSRx1.41")
         val FSR_X2 = RenderMode("FSRx2")
         val FSR_X4 = RenderMode("FSRx4")
@@ -97,29 +188,59 @@ class RenderMode(
 
         val LINES = RenderMode("Lines")
         val LINES_MSAA = RenderMode("Lines MSAA")
-        val FRONT_BACK = RenderMode("Front/Back")
+        val FRONT_BACK = RenderMode("Front/Back", frontBackRenderer)
 
         /** visualize the triangle structure by giving each triangle its own color */
-        val SHOW_TRIANGLES = RenderMode("Show Triangles")
+        val SHOW_TRIANGLES = RenderMode("Show Triangles", triangleVisRenderer)
 
-        val SHOW_AABB = RenderMode("Show AABBs")
+        val SHOW_AABB = RenderMode(
+            "Show AABBs",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode(), mapOf("AABBs" to true), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
         val PHYSICS = RenderMode("Physics")
 
         val POST_OUTLINE = RenderMode("Post-Outline", OutlineEffect())
 
         // color blindness modes
-        val GRAYSCALE = RenderMode("Grayscale", ColorBlindnessEffect(ColorBlindnessEffect.Mode.GRAYSCALE))
-        val PROTANOPIA = RenderMode("Protanopia", ColorBlindnessEffect(ColorBlindnessEffect.Mode.PROTANOPIA))
-        val DEUTERANOPIA = RenderMode("Deuteranopia", ColorBlindnessEffect(ColorBlindnessEffect.Mode.DEUTERANOPIA))
-        val TRITANOPIA = RenderMode("Tritanopia", ColorBlindnessEffect(ColorBlindnessEffect.Mode.TRITANOPIA))
+        val GRAYSCALE = RenderMode("Grayscale", createRenderGraph(ColorBlindnessMode.GRAYSCALE))
+        val PROTANOPIA = RenderMode("Protanopia", createRenderGraph(ColorBlindnessMode.PROTANOPIA))
+        val DEUTERANOPIA = RenderMode("Deuteranopia", createRenderGraph(ColorBlindnessMode.DEUTERANOPIA))
+        val TRITANOPIA = RenderMode("Tritanopia", createRenderGraph(ColorBlindnessMode.TRITANOPIA))
 
         val RAY_TEST = RenderMode("Raycast Test")
 
-        val DEPTH_OF_FIELD = RenderMode("Depth Of Field", DepthOfFieldEffect())
+        val DEPTH_OF_FIELD = RenderMode(
+            "Depth Of Field",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then(DepthOfFieldNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
         val SMOOTH_NORMALS = RenderMode("Smooth Normals")
 
-        val DEPTH_TEST = RenderMode("Depth Test", DepthTest())
-
+        val DEPTH_TEST = RenderMode(
+            "Depth Test",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(DepthTestNode())
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
     }
-
 }

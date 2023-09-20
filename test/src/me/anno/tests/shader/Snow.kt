@@ -260,6 +260,6 @@ fun createSnowGraph(snowNode: SnowNode): FlowGraph {
         // .then(ChromaticAberrationNode())
         .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
         .then(FXAANode())
-        .then(GizmoNode(), mapOf("Samples" to 1), mapOf("Illuminated" to listOf("Color")))
+        .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
         .finish()
 }

@@ -323,7 +323,7 @@ object ScreenSpaceAmbientOcclusion {
         strength: Float,
         samples: Int,
         enableBlur: Boolean,
-    ): ITexture2D? {
+    ): ITexture2D {
         if (strength <= 0f) return blackTexture
         return renderPurely {
             val samples1 = min(samples, MAX_SAMPLES)
@@ -331,7 +331,7 @@ object ScreenSpaceAmbientOcclusion {
             if (tmp == null) null
             else if (enableBlur) average(tmp).getTexture0()
             else tmp.getTexture0()
-        }
+        } ?: blackTexture
     }
 
     fun compute(

@@ -2,48 +2,37 @@ package me.anno.ecs.components.camera.effects
 
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
-import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.DepthTransforms
-import me.anno.gpu.shader.DepthTransforms.depthToPosition
-import me.anno.gpu.shader.DepthTransforms.depthVars
-import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.Texture2D
+import me.anno.graph.render.Texture
+import me.anno.graph.types.flow.actions.ActionNode
 
-class DepthTest : CameraEffect() {
-
-    override fun render(
-        buffer: IFramebuffer,
-        format: DeferredSettingsV2,
-        layers: MutableMap<DeferredLayerType, IFramebuffer>
-    ) {
-        val depth = layers[DeferredLayerType.DEPTH]!!.getTexture0()
-        val output = FBStack["depthTest", depth.width, depth.height, 4, false, 1, false]
-        useFrame(output) {
+class DepthTestNode : ActionNode(
+    "DepthTest",
+    listOf("Texture", "Depth"),
+    listOf("Texture", "Illuminated")
+) {
+    override fun executeAction() {
+        val depth = ((getInput(1) as? Texture)?.tex as? Texture2D) ?: return
+        val result = FBStack[name, depth.width, depth.height, 4, true, 1, false]
+        useFrame(result) {
             val shader = shader
             shader.use()
             shader.v1f("worldScale", RenderState.worldScale)
             shader.v3f("cameraPosition", RenderState.cameraPosition)
             DepthTransforms.bindDepthToPosition(shader)
             depth.bindTrulyNearest(shader, "depthTex")
-            flat01.draw(shader)
+            SimpleBuffer.flat01.draw(shader)
         }
-        write(layers, DeferredLayerType.SDR_RESULT, output)
+        setOutput(1, Texture(result.getTexture0()))
     }
-
-    override fun listInputs() =
-        listOf(DeferredLayerType.DEPTH)
-
-    override fun listOutputs() =
-        listOf(DeferredLayerType.SDR_RESULT)
 
     companion object {
         val shader = Shader(
@@ -53,10 +42,10 @@ class DepthTest : CameraEffect() {
                 Variable(GLSLType.V3F, "cameraPosition"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
-            ) + depthVars, "" +
-                    quatRot +
-                    rawToDepth +
-                    depthToPosition +
+            ) + DepthTransforms.depthVars, "" +
+                    ShaderLib.quatRot +
+                    DepthTransforms.rawToDepth +
+                    DepthTransforms.depthToPosition +
                     "void main() {\n" +
                     "   vec3 pos = cameraPosition + rawDepthToPosition(uv,texture(depthTex,uv).r) / worldScale;\n" +
                     "   result = vec4(fract(pos - 0.001),1.0);\n" +
