@@ -9,8 +9,8 @@ import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.components.shaders.SkyboxBase
-import me.anno.ecs.components.shaders.SkyboxBase.Companion.defaultSky
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
@@ -86,7 +86,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
 
     val ambient = Vector3f()
 
-    var skybox: SkyboxBase = defaultSky
+    var skybox: SkyboxBase = Skybox.defaultSky
     var bakedSkybox: CubemapFramebuffer? = null
 
     val planarReflections = ArrayList<PlanarReflection>()

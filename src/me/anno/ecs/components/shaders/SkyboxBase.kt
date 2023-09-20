@@ -106,9 +106,7 @@ open class SkyboxBase : MeshComponentBase() {
     override val className: String get() = "SkyboxBase"
 
     companion object {
-
         val mesh = Shapes.smoothCube.back
-
         val defaultShaderBase = SkyShaderBase("skyBase")
             .apply {
                 ignoreNameWarnings(
@@ -118,7 +116,5 @@ open class SkyboxBase : MeshComponentBase() {
                     "forceFieldColorCount", "forceFieldUVCount",
                 )
             }
-
-        val defaultSky = SkyboxBase()
     }
 }

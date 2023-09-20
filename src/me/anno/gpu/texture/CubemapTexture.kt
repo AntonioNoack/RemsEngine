@@ -204,6 +204,9 @@ open class CubemapTexture(
 
     private fun filtering(nearest: GPUFiltering) {
         if (!hasMipmap && nearest.needsMipmap && samples <= 1) {
+            // todo use a better algorithm for these mipmaps:
+            //  the native algorithm generates blocky artefacts, we need gaussian blur, or similar,
+            //  also ideally in pow(color,2.2) space
             glGenerateMipmap(target)
             hasMipmap = true
             if (GFX.supportsAnisotropicFiltering) {

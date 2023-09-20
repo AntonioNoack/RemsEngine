@@ -181,5 +181,6 @@ open class Skybox : SkyboxBase() {
                     "reflectionCullingPlane", "ambientLight"
                 )
             }
+        val defaultSky = Skybox()
     }
 }

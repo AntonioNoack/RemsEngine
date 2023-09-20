@@ -140,7 +140,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "       vec3 newColor = vec3(0.0);\n" +
                 // texture is SRGB -> convert to linear
                 // todo like planar reflections, blur LODs (?)
-                // todo LOD seems like it does nothing
                 "       float lod = finalRoughness * 10.0;\n" +
                 "       vec3 skyEmissive = pow(textureLod(reflectionMap, dir, lod).rgb, vec3(2.2));\n" +
                 "       finalEmissive += finalColor * skyEmissive * factor;\n" +

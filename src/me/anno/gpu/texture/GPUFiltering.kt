@@ -10,7 +10,9 @@ enum class GPUFiltering(val mag: Int, val min: Int, val needsMipmap: Boolean) {
     NEAREST(GL_NEAREST, GL_LINEAR_MIPMAP_LINEAR, true),
     /**
      * Pixels in all cases,
-     * moire-patterns when under sampling (far away), like Minecraft on low settings
+     * moire-patterns when under sampling (far away), like Minecraft on low settings;
+     *
+     * (Probably) Disables ability to sample from mip levels using textureLod().
      * */
     TRULY_NEAREST(GL_NEAREST, GL_NEAREST, false),
     /**
@@ -20,7 +22,9 @@ enum class GPUFiltering(val mag: Int, val min: Int, val needsMipmap: Boolean) {
     LINEAR(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR, true),
     /**
      * Smooth-like look, but quad pattern still visible (cubic fixes this, isn't part of OpenGL itself though);
-     * moire-patterns when under sampling (far away), like Minecraft on low settings
+     * moire-patterns when under sampling (far away), like Minecraft on low settings;
+     *
+     * Disables ability to sample from mip levels using textureLod().
      * */
     TRULY_LINEAR(GL_LINEAR, GL_LINEAR, false)
 }
