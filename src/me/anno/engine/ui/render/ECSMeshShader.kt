@@ -298,7 +298,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                     "jointMat2 += getAnimMatrix(indices.y,prevAnimIndices,prevAnimWeights) * weights.y;\n" +
                     "jointMat2 += getAnimMatrix(indices.z,prevAnimIndices,prevAnimWeights) * weights.z;\n" +
                     "jointMat2 += getAnimMatrix(indices.w,prevAnimIndices,prevAnimWeights) * weights.w;\n" +
-                    "prevLocalPosition = matMul(jointMat2, vec4(coords, 1.0);)\n"
+                    "prevLocalPosition = matMul(jointMat2, vec4(coords, 1.0));\n"
         } else {
             "prevLocalPosition = localPosition;\n"
         }

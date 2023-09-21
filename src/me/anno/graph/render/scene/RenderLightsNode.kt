@@ -65,7 +65,7 @@ class RenderLightsNode : RenderSceneNode0(
         shaders.fill(null)
     }
 
-    private val shaders = arrayOfNulls<Pair<Shader, HashMap<String, TypeValue>>>(6) // current number of shaders
+    private val shaders = arrayOfNulls<Pair<Shader, HashMap<String, TypeValue>>>(LightType.values().size.shl(1)) // current number of shaders
     private fun getShader(type: LightType, isInstanced: Boolean): Shader {
         val id = type.ordinal.shl(1) + isInstanced.toInt()
         val shader1 = shaders[id] ?: object : GraphCompiler(graph as FlowGraph) {
