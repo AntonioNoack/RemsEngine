@@ -1,12 +1,14 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
+import me.anno.ecs.components.anim.BoneData.maxBones
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.parallaxMapping
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -15,8 +17,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.bvh.RayTracing.loadMat4x3
-import me.anno.ecs.components.anim.BoneData.maxBones
-import me.anno.gpu.shader.ShaderLib.brightness
 import kotlin.math.max
 
 open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
@@ -148,7 +148,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 //"       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +
                 //"       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
                 "   }\n" +
-               "#endif\n" +
+                "#endif\n" +
                 ""
 
         val reflectionCalculation = "" +
@@ -577,7 +577,14 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         // base.addFragment(ShaderStage("material", emptyList(), ""))
 
         GFX.check()
-        val shader = builder.create("dth$flags")
+        val shader = builder.create("depth$flags")
+        shader.ignoreNameWarnings(
+            "ambientLight", "applyToneMapping", "worldScale", "cameraPosition",
+            "cameraRotation", "invLocalTransform", "diffuseBase", "normalStrength",
+            "emissiveBase", "roughnessMinMax", "metallicMinMax", "occlusionStrength",
+            "finalTranslucency", "finalSheen", "sheen", "finalClearCoat", "randomIdData",
+            "renderSize", "reflectionCullingPlane", "hasReflectionPlane", "numberOfLights"
+        )
         shader.glslVersion = glslVersion
         GFX.check()
         return shader
@@ -589,7 +596,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return shader
     }
 
-    override fun createDeferredShader(deferred: DeferredSettingsV2, flags: Int, postProcessing: List<ShaderStage>): Shader {
+    override fun createDeferredShader(
+        deferred: DeferredSettingsV2,
+        flags: Int,
+        postProcessing: List<ShaderStage>
+    ): Shader {
         val base = createBase(flags, postProcessing)
         base.outputs = deferred
         // build & finish

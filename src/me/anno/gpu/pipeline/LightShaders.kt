@@ -24,7 +24,6 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -363,7 +362,13 @@ object LightShaders {
             Variable(GLSLType.V1F, "countPerPixel"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
         ), "void main(){ result = vec4(countPerPixel); }"
-    )
+    ).apply {
+        ignoreNameWarnings(
+            "cameraPosition", "cameraRotation", "invScreenSize", "receiveShadows",
+            "d_camRot", "d_fovFactor", "data0", "data1", "data2", "cutoff",
+            "lightSpaceToCamSpace", "camSpaceToLightSpace", "worldScale", "isDirectional"
+        )
+    }
 
     val visualizeLightCountShaderInstanced = Shader(
         "visualize-light-count-instanced", listOf(
@@ -390,7 +395,12 @@ object LightShaders {
         ), "" +
                 "void main(){ result = vec4(countPerPixel); }"
     ).apply {
-        ignoreNameWarnings("normals", "uvs", "tangents", "colors", "receiveShadows")
+        ignoreNameWarnings(
+            "normals", "uvs", "tangents", "colors", "receiveShadows",
+            "invScreenSize", "cameraPosition", "cameraRotation", "d_camRot", "d_fovFactor", "worldScale",
+            "data0", "data1", "data2", "cutoff", "lightSpaceToCamSpace", "camSpaceToLightSpace",
+            "receiveShadows", "isDirectional"
+        )
     }
 
     val uvwStage = ShaderStage(
@@ -477,7 +487,7 @@ object LightShaders {
                 "tangents", "uvs", "normals", "isDirectional",
                 "defLayer0", "defLayer1", "defLayer2", "defLayer3", "defLayer4",
                 "receiveShadows", "countPerPixel", "worldScale", "cameraPosition", "invScreenSize",
-                "fullscreen", "prevLocalTransform", "data1"
+                "fullscreen", "prevLocalTransform", "data1", "cameraRotation"
             )
             shader.setTextureIndices(textures)
             shader

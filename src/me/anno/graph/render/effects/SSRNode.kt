@@ -83,8 +83,8 @@ class SSRNode : ActionNode(
         else roughness?.color?.run { Vector4f(x, 0f, 0f, 0f) } ?: black4
 
         val result = ScreenSpaceReflections.compute(
-            depthT, normalT, normalZW, color, emissive, metallicT, metallicM, roughnessT, roughnessM,
-            illuminated, transform, strength, maskSharpness, wallThickness, fineSteps, applyToneMapping, framebuffer
+            depthT, normalT, normalZW, color, metallicT, metallicM, roughnessT, roughnessM, illuminated,
+            transform, strength, maskSharpness, wallThickness, fineSteps, applyToneMapping, framebuffer
         )
         setOutput(1, Texture(result.getTexture0()))
     }

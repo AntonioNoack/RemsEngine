@@ -93,8 +93,6 @@ class DepthOfFieldNode : ActionNode(
                 bindDepth(shader, spherical)
                 shader.v1f("focusPoint", focusPoint)
                 shader.v1f("focusScale", focusScale)
-                shader.v1f("maxBlurSize", maxBlurSize)
-                shader.v1f("radScale", radScale)
                 color.bind(shader, "colorTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
                 depth.bindTrulyNearest(shader, "depthTex")
                 SimpleBuffer.flat01.draw(shader)
@@ -126,7 +124,7 @@ class DepthOfFieldNode : ActionNode(
                 "}"
 
         val cocShader = Shader(
-            "dof", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+            "coc", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "focusScale"),
                 Variable(GLSLType.V1F, "focusPoint"),

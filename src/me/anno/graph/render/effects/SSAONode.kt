@@ -48,7 +48,7 @@ class SSAONode : ActionNode(
 
         val transform = RenderState.cameraMatrix
         val result = ScreenSpaceAmbientOcclusion
-            .compute(depthT, normalT, normalZW, transform, radius, strength, samples, blur)
+            .compute(depthT, normalT, normalZW, transform, strength, samples, blur)
 
         setOutput(1, Texture(result.getTexture0()))
     }

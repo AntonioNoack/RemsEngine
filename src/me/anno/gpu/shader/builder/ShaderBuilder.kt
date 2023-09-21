@@ -136,7 +136,9 @@ class ShaderBuilder(val name: String) {
 
     companion object {
 
-        // a little auto-formatting
+        /***
+         * a little auto-formatting
+         */
         fun indent(text: String): String {
             val lines = text.split("\n")
             val result = StringBuilder(lines.size * 3)

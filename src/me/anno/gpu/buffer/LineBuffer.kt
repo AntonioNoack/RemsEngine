@@ -50,7 +50,10 @@ object LineBuffer {
                 "   finalAlpha = vColor.a;\n" +
                 "   finalNormal = vec3(0.0);\n" +
                 "}\n"
-    ).apply { glslVersion = max(glslVersion, 330) }
+    ).apply {
+        glslVersion = max(glslVersion, 330)
+        ignoreNameWarnings("tint")
+    }
 
     // drawing all these lines is horribly slow -> speed it up by caching them
     // we also could calculate their position in 2D on the CPU and just upload them xD

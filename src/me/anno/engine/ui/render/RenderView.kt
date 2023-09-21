@@ -582,7 +582,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         val sett = SSAOSettings
                         val ssao = ScreenSpaceAmbientOcclusion.compute(
                             buffer, deferred, cameraMatrix,
-                            sett.radius, sett.strength, sett.samples, sett.enable2x2Blur
+                            sett.strength, sett.samples, sett.enable2x2Blur
                         )
                         useFrame(w, h, true, baseSameDepth1) {
                             // theoretically, this pass could blur the normals itself...
@@ -842,8 +842,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         val sett = SSAOSettings
         val ssao = ScreenSpaceAmbientOcclusion.compute(
-            buffer, deferred, cameraMatrix, sett.radius, sett.strength, sett.samples,
-            sett.enable2x2Blur
+            buffer, deferred, cameraMatrix, sett.strength, sett.samples, sett.enable2x2Blur
         )
 
         // use the existing depth buffer for the 3d ui
@@ -1513,7 +1512,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         object SSAOSettings {
             var strength = 1f
-            var radius = 2f // 0.1 of world size looks pretty good :)
             var samples = max(1, DefaultConfig["gpu.ssao.samples", 128])
             var enable2x2Blur = true
         }

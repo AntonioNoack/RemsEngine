@@ -80,6 +80,7 @@ interface ExpressionRenderer {
                             else -> false
                         }
                     }.map { it.name })
+                    shader.ignoreNameWarnings("d_camRot")
                 }
 
                 override val currentShader: Shader get() = shader

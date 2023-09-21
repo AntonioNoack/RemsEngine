@@ -24,7 +24,6 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib
 import me.anno.graph.render.Texture
 import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
@@ -65,7 +64,9 @@ class RenderLightsNode : RenderSceneNode0(
         shaders.fill(null)
     }
 
-    private val shaders = arrayOfNulls<Pair<Shader, HashMap<String, TypeValue>>>(LightType.values().size.shl(1)) // current number of shaders
+    private val shaders =
+        arrayOfNulls<Pair<Shader, HashMap<String, TypeValue>>>(LightType.values().size.shl(1)) // current number of shaders
+
     private fun getShader(type: LightType, isInstanced: Boolean): Shader {
         val id = type.ordinal.shl(1) + isInstanced.toInt()
         val shader1 = shaders[id] ?: object : GraphCompiler(graph as FlowGraph) {
@@ -119,7 +120,13 @@ class RenderLightsNode : RenderSceneNode0(
                     ).add(rawToDepth).add(depthToPosition)
                 )
                 builder.addFragment(createMainFragmentStage(type, isInstanced))
-                shader = builder.create("rln${type.ordinal}-${isInstanced.toInt()}")
+                builder.ignored.addAll(
+                    listOf(
+                        "cameraPosition", "cameraRotation", "tint", "receiveShadows", "countPerPixel",
+                        "worldScale", "fullscreen", "isDirectional"
+                    )
+                )
+                shader = builder.create("${type.ordinal}-${isInstanced.toInt()}")
             }
 
             override val currentShader: Shader get() = shader

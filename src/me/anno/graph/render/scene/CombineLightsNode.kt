@@ -94,6 +94,7 @@ class CombineLightsNode : RenderSceneNode0(
                         .add(extraFunctions.toString())
                 )
                 builder.addFragment(combineFStage)
+                builder.ignored.addAll(listOf("tint", "d_camRot"))
                 shader = builder.create("cmb1")
             }
 

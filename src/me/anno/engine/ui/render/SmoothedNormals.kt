@@ -8,10 +8,10 @@ import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
@@ -29,7 +29,6 @@ object SmoothedNormals {
         Shader(
             "smoothNormals-unpack", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(
                 Variable(GLSLType.S2D, "normalTex"),
-                Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT),
             ), "" +
                     octNormalPacking +
@@ -37,7 +36,9 @@ object SmoothedNormals {
                     "   ivec2 uvi = ivec2(gl_FragCoord.xy);\n" +
                     "   result = vec4(UnpackNormal(texelFetch(normalTex,uvi,0).$ext),1.0);\n" +
                     "}\n"
-        )
+        ).apply {
+            ignoreNameWarnings("depthTex", "d_camRot")
+        }
     }
     val blurShader = LazyMap<Int, Shader> {
         val ext = if (it.hasFlag(1)) "zw" else "xy"
@@ -84,7 +85,9 @@ object SmoothedNormals {
                     "   }\n" +
                     "   result = base;\n" +
                     "}\n"
-        )
+        ).apply {
+            ignoreNameWarnings("d_camRot")
+        }
     }
 
     fun smoothNormals(frame: IFramebuffer, settings: DeferredSettingsV2, radius: Float = 1f): Boolean {
@@ -118,7 +121,5 @@ object SmoothedNormals {
         }
 
         return true
-
     }
-
 }

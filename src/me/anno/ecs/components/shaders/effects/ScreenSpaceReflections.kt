@@ -42,7 +42,6 @@ object ScreenSpaceReflections {
             Variable(GLSLType.V4F, "result", VariableMode.OUT),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.S2D, "finalColor"),
-            Variable(GLSLType.S2D, "finalEmissive"),
             Variable(GLSLType.S2D, "finalIlluminated"),
             Variable(GLSLType.S2D, "finalDepth"),
             Variable(GLSLType.S2D, "finalNormal"),
@@ -246,19 +245,18 @@ object ScreenSpaceReflections {
         val roughnessLayer = deferred.findLayer(DeferredLayerType.ROUGHNESS) ?: return null
         val roughnessMask = roughnessLayer.mapping
         val normalTexture = deferred.findTexture(buffer, DeferredLayerType.NORMAL) ?: return null
-        val emissiveTexture = deferred.findTexture(buffer, DeferredLayerType.EMISSIVE) ?: blackTexture
         val colorTexture = deferred.findTexture(buffer, DeferredLayerType.COLOR) ?: return null
         val metallic = deferred.findTexture(buffer, metallicLayer)!!
         val roughness = deferred.findTexture(buffer, roughnessLayer)!!
         return compute(
             buffer.depthTexture!!,
             normalTexture, deferred.zw(DeferredLayerType.NORMAL),
-            colorTexture, emissiveTexture,
-            metallic, singleToVector[metallicMask]!!,
-            roughness, singleToVector[roughnessMask]!!,
-            illuminated, transform,
-            strength, maskSharpness, wallThickness, fineSteps,
-            applyToneMapping, dst
+            colorTexture, metallic,
+            singleToVector[metallicMask]!!, roughness,
+            singleToVector[roughnessMask]!!, illuminated,
+            transform, strength,
+            maskSharpness, wallThickness, fineSteps, applyToneMapping,
+            dst
         ).getTexture0()
     }
 
@@ -270,7 +268,6 @@ object ScreenSpaceReflections {
         normal: ITexture2D,
         normalZW: Boolean,
         color: ITexture2D,
-        emissive: ITexture2D,
         metallic: ITexture2D,
         metallicMask: Vector4f,
         roughness: ITexture2D,
@@ -303,7 +300,6 @@ object ScreenSpaceReflections {
             bindDepthToPosition(shader)
             illuminated.bind(shader, "finalIlluminated", n, c)
             roughness.bind(shader, "finalRoughness", n, c)
-            emissive.bind(shader, "finalEmissive", n, c)
             metallic.bind(shader, "finalMetallic", n, c)
             normal.bind(shader, "finalNormal", n, c)
             depth.bind(shader, "finalDepth", n, c)

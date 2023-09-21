@@ -171,14 +171,16 @@ open class Skybox : SkyboxBase() {
     override val className: String get() = "Skybox"
 
     companion object {
-        val defaultShader = SkyShader("sky")
+        val defaultShader = SkyShader("skybox")
             .apply {
                 ignoreNameWarnings(
                     "diffuseBase", "normalStrength", "emissiveBase",
                     "roughnessMinMax", "metallicMinMax", "occlusionStrength", "finalTranslucency", "finalClearCoat",
                     "tint", "hasAnimation", "localTransform", "invLocalTransform", "worldScale", "tiling",
                     "forceFieldColorCount", "forceFieldUVCount", "skyColor", "renderSize", "tint",
-                    "reflectionCullingPlane", "ambientLight"
+                    "reflectionCullingPlane", "ambientLight", "cameraPosition", "cameraRotation",
+                    "hasReflectionPlane", "numberOfLights", "prevLocalTransform", "finalSheen", "sheen",
+                    "applyToneMapping", "tint", "hasVertexColors", "reflectionPlane", "camScale"
                 )
             }
         val defaultSky = Skybox()

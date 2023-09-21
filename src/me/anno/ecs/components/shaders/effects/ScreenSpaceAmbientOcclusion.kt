@@ -29,7 +29,6 @@ import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.maths.Maths.sq
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Matrix4f
@@ -227,7 +226,6 @@ object ScreenSpaceAmbientOcclusion {
         data: IFramebuffer,
         settingsV2: DeferredSettingsV2,
         transform: Matrix4f,
-        radius: Float,
         strength: Float,
         samples: Int,
         enableBlur: Boolean,
@@ -238,7 +236,7 @@ object ScreenSpaceAmbientOcclusion {
         val normal = settingsV2.findTextureMS(data, normalLayer)!!
         return calculate(
             depth, normal, normalLayer.mapping == "zw",
-            transform, radius, strength, samples, enableBlur
+            transform, strength, samples, enableBlur
         )
     }
 
@@ -247,7 +245,6 @@ object ScreenSpaceAmbientOcclusion {
         normal: ITexture2D,
         normalZW: Boolean,
         transform: Matrix4f,
-        radius: Float,
         strength: Float,
         samples: Int,
         enableBlur: Boolean,
@@ -282,8 +279,6 @@ object ScreenSpaceAmbientOcclusion {
             normal.bindTrulyNearest(shader, "finalNormal")
             depth.bindTrulyNearest(shader, "finalDepth")
             // define all uniforms
-            shader.v1f("radius", radius)
-            shader.v1f("skipRadiusSq", sq(radius * 20f))
             shader.m4x4("transform", transform)
             shader.v1i("numSamples", samples)
             shader.v1f("strength", strength)
@@ -318,7 +313,6 @@ object ScreenSpaceAmbientOcclusion {
         data: IFramebuffer,
         settingsV2: DeferredSettingsV2,
         transform: Matrix4f,
-        radius: Float,
         strength: Float,
         samples: Int,
         enableBlur: Boolean,
@@ -326,7 +320,7 @@ object ScreenSpaceAmbientOcclusion {
         if (strength <= 0f) return blackTexture
         return renderPurely {
             val samples1 = min(samples, MAX_SAMPLES)
-            val tmp = calculate(data, settingsV2, transform, radius, strength, samples1, enableBlur)
+            val tmp = calculate(data, settingsV2, transform, strength, samples1, enableBlur)
             if (tmp == null) null
             else if (enableBlur) average(tmp).getTexture0()
             else tmp.getTexture0()
@@ -338,15 +332,14 @@ object ScreenSpaceAmbientOcclusion {
         normal: ITexture2D,
         normalZW: Boolean,
         transform: Matrix4f,
-        radius: Float,
         strength: Float,
         samples: Int,
         enableBlur: Boolean,
     ): IFramebuffer {
         return renderPurely {
             val tmp = calculate(
-                depth, normal, normalZW, transform, radius,
-                strength, min(samples, MAX_SAMPLES), enableBlur
+                depth, normal, normalZW, transform, strength,
+                min(samples, MAX_SAMPLES), enableBlur
             )
             if (enableBlur) average(tmp) else tmp
         }

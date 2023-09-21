@@ -49,7 +49,7 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
     override fun createFragmentStages(flags: Int): List<ShaderStage> {
         // todo the red clouds in the night sky are a bit awkward
         val stage = ShaderStage(
-            "sky", listOf(
+            "skyBase", listOf(
                 Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
