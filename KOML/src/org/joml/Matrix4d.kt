@@ -341,8 +341,10 @@ open class Matrix4d {
     }
 
     private fun _identity() {
-        _m00(1.0)._m10(0.0)._m20(0.0)._m30(0.0)._m01(0.0)._m11(1.0)._m21(0.0)._m31(0.0)._m02(0.0)._m12(0.0)._m22(1.0)
-            ._m32(0.0)._m03(0.0)._m13(0.0)._m23(0.0)._m33(1.0)
+        _m00(1.0)._m10(0.0)._m20(0.0)._m30(0.0)
+            ._m01(0.0)._m11(1.0)._m21(0.0)._m31(0.0)
+            ._m02(0.0)._m12(0.0)._m22(1.0)._m32(0.0)
+            ._m03(0.0)._m13(0.0)._m23(0.0)._m33(1.0)
     }
 
     fun set(m: Matrix4d): Matrix4d {
@@ -4307,13 +4309,8 @@ open class Matrix4d {
         return if (properties and 4 != 0) {
             dest.reflection(a, b, c, d)
         } else {
-            if (properties and 2 != 0) reflectAffine(a, b, c, d, dest) else reflectGeneric(
-                a,
-                b,
-                c,
-                d,
-                dest
-            )
+            if (properties and 2 != 0) reflectAffine(a, b, c, d, dest)
+            else reflectGeneric(a, b, c, d, dest)
         }
     }
 
@@ -4389,12 +4386,8 @@ open class Matrix4d {
 
     @JvmOverloads
     fun reflect(
-        nx: Double,
-        ny: Double,
-        nz: Double,
-        px: Double,
-        py: Double,
-        pz: Double,
+        nx: Double, ny: Double, nz: Double,
+        px: Double, py: Double, pz: Double,
         dest: Matrix4d = this
     ): Matrix4d {
         val invLength = JomlMath.invsqrt(nx * nx + ny * ny + nz * nz)
@@ -8043,24 +8036,7 @@ open class Matrix4d {
                 JomlMath.isFinite(m30) && JomlMath.isFinite(m31) && JomlMath.isFinite(m32) && JomlMath.isFinite(m33)
 
     fun mirror(pos: Vector3d, normal: Vector3d): Matrix4d {
-        val nx = normal.x
-        val ny = normal.y
-        val nz = normal.z
-        val xx = -2f * nx * nx
-        val xy = -2f * nx * ny
-        val xz = -2f * nx * nz
-        val yy = -2f * ny * ny
-        val yz = -2f * ny * nz
-        val zz = -2f * nz * nz
-        translate(pos)
-        mul(
-            1.0 + xx, xy, xz, 0.0,
-            xy, 1.0 + yy, yz, 0.0,
-            xz, yz, 1.0 + zz, 0.0,
-            0.0, 0.0, 0.0, 1.0
-        )
-        translate(-pos.x, -pos.y, -pos.z)
-        return this
+        return reflect(normal.x, normal.y, normal.z, pos.x, pos.y, pos.z)
     }
 
     fun skew(x: Double, y: Double): Matrix4d {

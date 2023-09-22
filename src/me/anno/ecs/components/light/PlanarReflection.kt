@@ -98,6 +98,7 @@ class PlanarReflection : LightComponentBase() {
         }
 
         val mirrorMatrix = tmp1M.identity().mirror(mirrorPosition, mirrorNormal)
+
         val reflectedCameraPosition = mirrorMatrix.transformPosition(tmp1d.set(cameraPosition))
         val reflectedMirrorPosition = mirrorMatrix.transformPosition(Vector3d(mirrorPosition))
         val mirrorDot = mirrorNormal.dot(reflectedCameraPosition) - mirrorNormal.dot(reflectedMirrorPosition)

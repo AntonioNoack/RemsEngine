@@ -15,7 +15,6 @@ import kotlin.math.PI
 
 fun main() {
 
-    // todo bug: reflections now are broken completely :(
     // todo reflections don't work properly inside mirrors (flipped on y?)
     // (recursive reflections, should be easy theoretically)
 
