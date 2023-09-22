@@ -19,6 +19,6 @@ fun main() {
     scene.add(Skybox())
     scene.add(AmbientLight().apply { color.set(0.1f) })
     testSceneWithUI("Forward Sky", scene) {
-        it.renderer.renderMode = RenderMode.FORCE_NON_DEFERRED
+        it.renderer.renderMode = RenderMode.NON_DEFERRED
     }
 }

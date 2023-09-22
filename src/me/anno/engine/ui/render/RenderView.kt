@@ -241,8 +241,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             when (renderMode) {
                 // todo most ways need a way to work without depth textures...
                 // todo -> or we could render the depth to a FP16/32 target XD
-                RenderMode.DEFAULT, RenderMode.FORCE_DEFERRED -> {
-                    renderMode = RenderMode.FORCE_NON_DEFERRED
+                RenderMode.DEFAULT -> {
+                    renderMode = RenderMode.NON_DEFERRED
                 }
             }
         }
@@ -335,11 +335,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             var renderer = when (renderMode) {
                 RenderMode.OVERDRAW -> overdrawRenderer
                 RenderMode.CLICK_IDS -> randomIdRenderer
-                RenderMode.FORCE_DEFERRED -> {
-                    useDeferredRendering = true
-                    DeferredRendererMSAA
-                }
-                RenderMode.FORCE_NON_DEFERRED, RenderMode.MSAA_NON_DEFERRED,
+                RenderMode.NON_DEFERRED, RenderMode.MSAA_NON_DEFERRED,
                 RenderMode.FSR_MSAA_X4, RenderMode.LINES,
                 RenderMode.LINES_MSAA -> {
                     useDeferredRendering = false

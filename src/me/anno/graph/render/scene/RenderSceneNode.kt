@@ -5,8 +5,6 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
@@ -14,9 +12,7 @@ import me.anno.gpu.shader.SimpleRenderer
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
-import me.anno.utils.LOGGER
 
 class RenderSceneNode : RenderSceneNode0(
     "Render Scene",
@@ -123,24 +119,19 @@ class RenderSceneNode : RenderSceneNode0(
 
         // todo there are special types for which we might need to apply lighting or combine other types
         //  e.g. for forward-rendering :)
+
+        // todo only blit if necessary
+        // todo only blit textures, where necessary (e.g. only metallic might have to be blitted)
+
         val layers = settings.layers
         for (j in layers.indices) {
             val layer = layers[j]
-            val tex = framebuffer.getTextureI(layer.texIndex)
-            if (tex is Texture2D && !tex.isCreated) {
-                LOGGER.warn("${layer.type} -> ${layer.texIndex} is missing")
-                continue
-            }
             val i = DeferredLayerType.values.indexOf(layer.type) + 1
-            setOutput(i, Texture(tex, layer.mapping, layer.type))
+            setOutput(i, Texture.texture(framebuffer, layer.texIndex, layer.mapping, layer.type))
         }
 
         // get depth texture, and use it
-        val buf0 = (framebuffer as? Framebuffer)?.ssBuffer
-        val buf1 = (framebuffer as? MultiFramebuffer)?.targetsI?.first()?.ssBuffer
-        val buf2 = buf0 ?: buf1 ?: framebuffer
-        val tex = buf2.depthTexture!!
         val i = DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH) + 1
-        setOutput(i, Texture(tex, "r", DeferredLayerType.DEPTH))
+        setOutput(i, Texture.depth(framebuffer, "r", DeferredLayerType.DEPTH))
     }
 }

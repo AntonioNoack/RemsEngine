@@ -107,7 +107,7 @@ class MultiFramebuffer(
 
     override fun getTextureIMS(index: Int): ITexture2D {
         return if (withMultisampling) targetsI[index / div].getTextureIMS(index % div)
-        else super.getTextureIMS(index)
+        else getTextureI(index)
     }
 
     override fun bindTrulyNearestMS(offset: Int) {

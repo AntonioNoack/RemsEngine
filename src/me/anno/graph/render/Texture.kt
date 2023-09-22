@@ -1,6 +1,9 @@
 package me.anno.graph.render
 
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.MultiFramebuffer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -10,13 +13,16 @@ import org.joml.Vector4f
 
 class Texture private constructor(
     val tex: ITexture2D,
+    val texMS: ITexture2D?,
     val mapping: String,
     val encoding: DeferredLayerType?,
     val color: Vector4f
 ) {
-    constructor(v: ITexture2D) : this(v, "", null, white4)
-    constructor(v: Vector4f) : this(whiteTexture, "", null, v)
-    constructor(tex: ITexture2D, mapping: String, encoding: DeferredLayerType?) : this(tex, mapping, encoding, white4)
+
+    constructor(v: ITexture2D) : this(v, null, "", null, white4)
+    constructor(v: Vector4f) : this(whiteTexture, null, "", null, v)
+    constructor(tex: ITexture2D, texMS: ITexture2D?, mapping: String, encoding: DeferredLayerType?) :
+            this(tex, texMS, mapping, encoding, white4)
 
     val isDestroyed get() = tex is Texture2D && tex.isDestroyed
 
@@ -33,6 +39,36 @@ class Texture private constructor(
                 hasEnc -> "$base/${encoding!!.name}"
                 else -> base
             }
+        }
+    }
+
+    companion object {
+
+        fun texture(f: IFramebuffer, i: Int): Texture {
+            return texture(f, i, "", null)
+        }
+
+        fun texture(f: IFramebuffer, i: Int, mapping: String, type: DeferredLayerType?): Texture {
+            return if (f.samples <= 1) Texture(f.getTextureI(i), null, mapping, type)
+            else Texture(f.getTextureI(i), f.getTextureIMS(i), mapping, type)
+        }
+
+        fun depth(f: IFramebuffer): Texture {
+            return depth(f, "", null)
+        }
+
+        fun depth(f: IFramebuffer, mapping: String, type: DeferredLayerType?): Texture {
+            if (f.samples <= 1) return Texture(f.depthTexture!!, null, mapping, type)
+
+            val buf0 = (f as? Framebuffer)?.ssBuffer
+            val buf1 = (f as? MultiFramebuffer)?.targetsI?.first()?.ssBuffer
+            val tex = (buf0 ?: buf1 ?: f).depthTexture!!
+            val texMS = f.depthTexture!!
+
+            val f1st = (f as? Framebuffer) ?: (f as? MultiFramebuffer)?.targetsI?.first()!!
+            f1st.copyIfNeeded(f1st.ssBuffer!!)
+
+            return Texture(tex, texMS, mapping, type)
         }
     }
 }

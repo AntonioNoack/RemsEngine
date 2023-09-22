@@ -77,6 +77,7 @@ class RenderLightsNode : RenderSceneNode0(
             val shader: Shader
 
             init {
+
                 val sizes = intArrayOf(3, 1, 1, 1, 1, 1)
                 val names = arrayOf(
                     DeferredLayerType.NORMAL,
@@ -86,13 +87,16 @@ class RenderLightsNode : RenderSceneNode0(
                     DeferredLayerType.SHEEN,
                     DeferredLayerType.DEPTH
                 )
+
                 val expressions = sizes.indices
                     .joinToString("") { i ->
                         val nameI = names[i].glslName
                         val exprI = expr(inputs!![firstInputIndex + i])
                         "$nameI = $exprI;\n"
                     }
+
                 defineLocalVars(builder)
+
                 val variables = sizes.indices.map { i ->
                     val sizeI = sizes[i]
                     val typeI = GLSLType.floats[sizeI - 1]
@@ -101,14 +105,19 @@ class RenderLightsNode : RenderSceneNode0(
                 } + typeValues.map { (k, v) -> Variable(v.type, k) } +
                         extraVariables +
                         listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT))
+
+                println("RenderLightsNode.typeValues: $typeValues")
+
                 val builder = ShaderBuilder(name)
                 builder.addVertex(if (isInstanced) vertexI else vertexNI)
                 if (isInstanced) builder.addFragment(invStage)
+
                 builder.addFragment(uvwStage)
                 builder.addFragment(
                     ShaderStage("rlight-f0", variables, expressions)
                         .add(extraFunctions.toString())
                 )
+
                 builder.addFragment(
                     ShaderStage(
                         "rlight-f1", listOf(
@@ -119,6 +128,7 @@ class RenderLightsNode : RenderSceneNode0(
                         "finalPosition = depthToPosition(uv,finalDepth);\n"
                     ).add(rawToDepth).add(depthToPosition)
                 )
+
                 builder.addFragment(createMainFragmentStage(type, isInstanced))
                 builder.ignored.addAll(
                     listOf(
@@ -177,6 +187,6 @@ class RenderLightsNode : RenderSceneNode0(
             }
         }
 
-        setOutput(1, Texture(framebuffer.getTexture0()))
+        setOutput(1, Texture.texture(framebuffer, 0, "r", DeferredLayerType.LIGHT_SUM))
     }
 }

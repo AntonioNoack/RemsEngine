@@ -67,8 +67,8 @@ class GizmoNode : RenderSceneNode0(
             }
         }
 
-        setOutput(1, Texture(framebuffer.getTexture0()))
-        setOutput(2, Texture(framebuffer.depthTexture!!))
+        setOutput(1, Texture.texture(framebuffer, 0))
+        setOutput(2, Texture.depth(framebuffer))
     }
 
     companion object {

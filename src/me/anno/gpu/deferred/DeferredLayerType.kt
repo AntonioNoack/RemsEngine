@@ -142,10 +142,10 @@ open class DeferredLayerType(
 
         // ids / markers
         val ID = DeferredLayerType("ID", "finalId", 4, 0)
-        val FLAGS = DeferredLayerType("Flags", "finalFlags", 4, 0)
+        // val FLAGS = DeferredLayerType("Flags", "finalFlags", 4, 0)
 
         // pseudo types for effects
-        val HDR_RESULT = DeferredLayerType("HDR", "finalHDR", 0)
+        @Deprecated("Will be removed with CameraEffect")
         val SDR_RESULT = DeferredLayerType("SDR", "finalSDR", 0)
         val LIGHT_SUM = DeferredLayerType("Light Sum", "finalLight", 0)
 

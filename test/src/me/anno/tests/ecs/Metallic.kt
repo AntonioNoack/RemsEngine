@@ -16,6 +16,8 @@ import me.anno.utils.OS.downloads
 
 fun main() {
 
+    // todo MSAA Deferred doesn't look MSAA, because RenderLightsNode is not using the proper MSAA textures
+
     // todo light reflections missing? idk... probably light model should have small spheres
 
     // todo default lighting model in editor now looks weird/cheap
@@ -94,8 +96,4 @@ fun main() {
     testSceneWithUI("Metallic", scene) {
         StudioBase.instance?.enableVSync = false
     }
-    // todo bug: LIGHT_SUM_MSAA doesn't work
-    // todo bug: SSAO is not showing up
-    // but MSAA_DEFERRED does, so idk...
-    // todo bug: SSR does not work with MSAA deferred (roughness and metallic look incorrectly bound)
 }

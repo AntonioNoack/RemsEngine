@@ -66,13 +66,28 @@ class RenderMode(
                 .finish()
         )
 
+        val MSAA_DEFERRED = RenderMode(
+            "MSAA Deferred",
+            QuickPipeline()
+                .then1(RenderSceneNode(), mapOf("Samples" to 8))
+                .then1(RenderLightsNode(), mapOf("Samples" to 8))
+                .then(SSAONode())
+                .then1(CombineLightsNode(), mapOf("Samples" to 8))
+                .then(SSRNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
         val CLICK_IDS = RenderMode("ClickIds (Random)", RandomEffect)
 
         val DEPTH = RenderMode("Depth")
 
         val NO_DEPTH = RenderMode("No Depth")
-        val FORCE_DEFERRED = RenderMode("Force Deferred")
-        val FORCE_NON_DEFERRED = RenderMode("Force Non-Deferred")
+
+        val NON_DEFERRED = RenderMode("Non-Deferred")
+        val MSAA_NON_DEFERRED = RenderMode("MSAA Non-Deferred")
+
         val ALL_DEFERRED_LAYERS = RenderMode("All Deferred Layers")
         val ALL_DEFERRED_BUFFERS = RenderMode("All Deferred Buffers")
 
@@ -162,20 +177,6 @@ class RenderMode(
         val MONO_WORLD_SCALE = RenderMode("Mono World-Scale")
         val GHOSTING_DEBUG = RenderMode("Ghosting Debug")
 
-        val MSAA_NON_DEFERRED = RenderMode("MSAA Non-Deferred")
-
-        val MSAA_DEFERRED = RenderMode(
-            "MSAAx8 Deferred",
-            QuickPipeline()
-                .then1(RenderSceneNode(), mapOf("Samples" to 8))
-                .then1(RenderLightsNode(), mapOf("Samples" to 8))
-                .then(SSAONode())
-                .then1(CombineLightsNode(), mapOf("Samples" to 8))
-                .then(SSRNode())
-                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
-                .finish()
-        )
 
         // todo make these modes use a render graph, too
         val FSR_SQRT2 = RenderMode("FSRx1.41")

@@ -57,7 +57,8 @@ class SSRNode : ActionNode(
         val illuminated = (getInput(8) as? Texture)?.tex ?: return
 
         val color = (getInput(9) as? Texture)?.tex ?: whiteTexture
-        val emissive = (getInput(10) as? Texture)?.tex ?: blackTexture
+        // we might use this again later...
+        // val emissive = (getInput(10) as? Texture)?.tex ?: blackTexture
 
         // todo optional normal reconstruction
         val normal = getInput(11) as? Texture
@@ -86,6 +87,6 @@ class SSRNode : ActionNode(
             depthT, normalT, normalZW, color, metallicT, metallicM, roughnessT, roughnessM, illuminated,
             transform, strength, maskSharpness, wallThickness, fineSteps, applyToneMapping, framebuffer
         )
-        setOutput(1, Texture(result.getTexture0()))
+        setOutput(1, Texture.texture(result, 0))
     }
 }

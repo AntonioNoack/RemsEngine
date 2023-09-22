@@ -117,8 +117,14 @@ class Framebuffer(
     var needsBlit = true
 
     val withMultisampling get() = samples > 1
-    var ssBuffer = if (withMultisampling)
-        Framebuffer("$name.ss", width, height, 1, targets, depthBufferType) else null
+
+    /**
+     * Framebuffer with single sample for blitting;
+     * null, if this Framebuffer already just has a single sample
+     * */
+    var ssBuffer = if (samples > 1)
+        Framebuffer("$name.ss", width, height, 1, targets, depthBufferType)
+    else null
 
     override var pointer = 0
     var session = 0
@@ -202,7 +208,6 @@ class Framebuffer(
         }
         depthTexture?.hasMipmap = false
         depthTexture?.filtering = GPUFiltering.TRULY_NEAREST
-
     }
 
     private fun ensureSize(newWidth: Int, newHeight: Int) {
@@ -389,13 +394,11 @@ class Framebuffer(
                     if (i == 0) bits else GL_COLOR_BUFFER_BIT, // correct???
                     GL_NEAREST
                 )
-
             }
 
             // reset state, just in case
             glDrawBuffers(GL_COLOR_ATTACHMENT0)
             glReadBuffer(GL_COLOR_ATTACHMENT0)
-
         } else {
 
             glBlitFramebuffer(
@@ -406,7 +409,6 @@ class Framebuffer(
             )
 
             GFX.check()
-
         }
 
         GFX.check()
@@ -414,7 +416,6 @@ class Framebuffer(
         // restore the old binding
         Frame.invalidate()
         Frame.bind()
-
     }
 
     fun copyTo(dst: IFramebuffer, mask: Int) {
@@ -444,7 +445,6 @@ class Framebuffer(
         Frame.bind()
 
         GFX.check()
-
     }
 
     fun copyColorTo(dst: Framebuffer, srcI: Int, dstI: Int, mask: Int) {
@@ -482,7 +482,6 @@ class Framebuffer(
         Frame.bind()
 
         GFX.check()
-
     }
 
     fun check() {
@@ -631,10 +630,8 @@ class Framebuffer(
                 else -> glDrawBuffers(attachments[size - 2])
             }
         }
-
     }
 
     override fun toString(): String =
         "FB[n=$name, i=$pointer, w=$width h=$height s=$samples t=${targets.joinToString()} d=$depthBufferType]"
-
 }

@@ -79,7 +79,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
     val typeToFunc = HashMap<String, String?>() // key -> name
     val movies = HashMap<MovieNode, Pair<String, Boolean>>() // file -> name, linear
     val textures = HashMap<FileReference, Pair<String, Boolean>>() // file -> name, linear
-    val textures2 = HashMap<NodeInput, Pair<String, Boolean>>() // file -> name, linear
+    val textures2 = HashMap<NodeInput, Triple<String, GLSLType, Boolean>>() // file -> name, linear
 
     init {
         typeToFunc["ONP"] = ""
@@ -188,10 +188,14 @@ abstract class GraphCompiler(val g: FlowGraph) {
                 if (input != null) {
                     val texName = textures2.getOrPut(input) {
                         val linear = constEval(n.inputs!![2]) == true
+                        val currValue = input.currValue
+                        val useMS = currValue is Texture2D && currValue.samples > 1
                         // todo different color repeat modes in GLSL
-                        Pair("tex2I${textures2.size}", linear)
-                    }.first
-                    "texture($texName,$uv)"
+                        Triple("tex2I${textures2.size}", if (useMS) GLSLType.S2DMS else GLSLType.S2D, linear)
+                    }
+                    if (texName.second == GLSLType.S2DMS) {
+                        "texelFetch(${texName.first},ivec2($uv*textureSize(${texName.first})),gl_SampleID)"
+                    } else "texture(${texName.first},$uv)"
                 } else "vec4(1.0,0.0,1.0,1.0)"
             }
             is MovieNode -> {
@@ -221,8 +225,15 @@ abstract class GraphCompiler(val g: FlowGraph) {
                         val tint = tex.color
                         val tintStr = if (tint != white4) "vec4(${tint.x},${tint.y},${tint.z},${tint.z})" else null
                         val tex1 = if (tex.tex != whiteTexture) {
-                            val texName = textures2.getOrPut(input) { Pair("tex2I${textures2.size}", true) }.first
-                            "texture($texName,uv)${if (tintStr != null) "*$tintStr" else ""}"
+                            val currValue = input.currValue
+                            val useMS = currValue is Texture2D && currValue.samples > 1
+                            val texName = textures2.getOrPut(input) {
+                                Triple("tex2I${textures2.size}", if (useMS) GLSLType.S2DMS else GLSLType.S2D, true)
+                            }
+                            val base = if (texName.second == GLSLType.S2DMS) {
+                                "texelFetch(${texName.first},ivec2(uv*textureSize(${texName.first})),gl_SampleID)"
+                            } else "texture(${texName.first},uv)"
+                            "$base${if (tintStr != null) "*$tintStr" else ""}"
                         } else tintStr ?: "1.0"
                         val map = tex.mapping
                         val tex2 = if (map.isEmpty()) tex1 else "$tex1.$map"
@@ -405,21 +416,21 @@ abstract class GraphCompiler(val g: FlowGraph) {
     }
 
     fun defineTextures() {
+        // todo decide on MS/not-MS
         for ((file, data) in textures) {
             val (name, linear) = data
-            typeValues[name] =
-                TypeValueV2(GLSLType.S2D) {
-                    val tex = ImageGPUCache[file, true]
-                    if (tex != null) filter(currentShader, name, tex, linear)
-                    else TextureLib.missingTexture
-                }
+            typeValues[name] = TypeValueV2(GLSLType.S2D) {
+                val tex = ImageGPUCache[file, true]
+                if (tex != null) filter(currentShader, name, tex, linear)
+                else TextureLib.missingTexture
+            }
         }
         for ((node, data) in textures2) {
-            val (name, linear) = data
-            typeValues[name] = TypeValueV2(GLSLType.S2D) {
+            val (name, type, linear) = data
+            typeValues[name] = TypeValueV2(type) {
                 when (val tex = node.getValue()) {
                     is ITexture2D -> filter(currentShader, name, tex, linear)
-                    is Texture -> tex.tex ?: TextureLib.missingTexture
+                    is Texture -> if (type == GLSLType.S2DMS) tex.texMS ?: tex.tex else tex.tex
                     else -> TextureLib.missingTexture
                 }
             }

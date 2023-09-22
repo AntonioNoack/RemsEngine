@@ -75,7 +75,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
             GLSLType.M3x3 -> shader.m3x3(location, value as Matrix3f)
             GLSLType.M4x3 -> shader.m4x3(location, value as Matrix4x3f)
             GLSLType.M4x4 -> shader.m4x4(location, value as Matrix4f)
-            GLSLType.S2D, GLSLType.S2DU, GLSLType.S2DI, GLSLType.S2DMS -> {
+            GLSLType.S2D, GLSLType.S2DU, GLSLType.S2DI -> {
                 when (value) {
                     is Texture2D -> {
                         if (value.isCreated) {
@@ -86,6 +86,30 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                         }
                     }
                     is Framebuffer -> value.bindTexture0(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
+                    is ITexture2D -> value.bind(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
+                    is FileReference -> {
+                        val value1 = ImageGPUCache[value, true]
+                        if (value1 != null && value1.isCreated) {
+                            value1.bind(location)
+                        } else {
+                            whiteTexture.bind(location)
+                            if (value1 != null) LOGGER.warn("Texture ${value1.name} has not been created")
+                        }
+                    }
+                    else -> LOGGER.warn("Unsupported type for S2D: ${value.javaClass}")
+                }
+            }
+            GLSLType.S2DMS -> {
+                when (value) {
+                    is Texture2D -> {
+                        if (value.isCreated) {
+                            value.bind(location)
+                        } else {
+                            whiteTexture.bind(location)
+                            LOGGER.warn("Texture ${value.name} has not been created")
+                        }
+                    }
+                    is Framebuffer -> value.getTextureIMS(0).bind(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
                     is ITexture2D -> value.bind(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
                         val value1 = ImageGPUCache[value, true]
