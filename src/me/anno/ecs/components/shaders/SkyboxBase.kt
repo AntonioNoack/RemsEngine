@@ -1,6 +1,6 @@
 package me.anno.ecs.components.shaders
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Material
@@ -77,7 +77,7 @@ open class SkyboxBase : MeshComponentBase() {
         entity: Entity,
         clickId: Int
     ): Int {
-        lastDrawn = Engine.gameTime
+        lastDrawn = Time.gameTimeN
         pipeline.skybox = this
         this.clickId = clickId
         return clickId + 1

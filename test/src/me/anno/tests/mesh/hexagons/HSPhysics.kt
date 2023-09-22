@@ -2,6 +2,7 @@ package me.anno.tests.mesh.hexagons
 
 import com.bulletphysics.collision.shapes.SphereShape
 import me.anno.Engine
+import me.anno.Time
 import me.anno.bullet.HexagonSpherePhysics
 import me.anno.ecs.Entity
 import me.anno.ecs.components.chunks.spherical.Hexagon
@@ -192,12 +193,12 @@ fun main() {
                     physics.addForce(up.x.toFloat(), up.y.toFloat(), up.z.toFloat(), 3f * len)
                 }
                 // friction
-                val dtx = Engine.deltaTime * (if (triQ.touchesFloor) 5f else 1f)
+                val dtx = Time.deltaTime.toFloat() * (if (triQ.touchesFloor) 5f else 1f)
                 physics.velocity.mul(1f - dtTo01(dtx))
                 // reset floor touching state
                 triQ.touchesFloor = false
                 // execute physics
-                physics.update(Engine.deltaTime)
+                physics.update(Time.deltaTime.toFloat())
                 // update visuals & control transform
                 position.set(physics.currPosition)//.mul(1.0 + len * shape.halfHeight) // eye height
                 onChangePosition()
@@ -264,7 +265,7 @@ fun main() {
                     (dx * right.x + dy2 * up.x - dz * forward.x).toFloat(),
                     (dx * right.y + dy2 * up.y - dz * forward.y).toFloat(),
                     (dx * right.z + dy2 * up.z - dz * forward.z).toFloat(),
-                    200f * Engine.deltaTime
+                    200f * Time.deltaTime.toFloat()
                 )
             }
         }

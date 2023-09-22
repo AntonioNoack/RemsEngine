@@ -1,6 +1,6 @@
 package me.anno.ui.debug
 
-import me.anno.Engine.gameTime
+import me.anno.Time.nanoTime
 import me.anno.audio.AudioPools
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.texture.CubemapTexture
@@ -25,7 +25,7 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
 
     override fun onUpdate() {
         super.onUpdate()
-        val time = gameTime
+        val time = nanoTime
         if (abs(time - lastUpdate) > updateInterval) {
             val newText = getDebugText()
             lastUpdate = time

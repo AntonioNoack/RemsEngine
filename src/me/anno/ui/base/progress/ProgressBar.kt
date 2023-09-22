@@ -1,6 +1,6 @@
 package me.anno.ui.base.progress
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.gpu.GFX.clip
 import me.anno.gpu.GFX.clip2Save
 import me.anno.gpu.OSWindow
@@ -30,7 +30,7 @@ open class ProgressBar(
     var progress = 0.0
         set(value) {
             if (field != value) {
-                lastUpdate = Engine.nanoTime
+                lastUpdate = Time.nanoTime
                 field = if (finishTime == 0L && value >= total) {
                     finishTime = lastUpdate
                     total
@@ -39,17 +39,17 @@ open class ProgressBar(
         }
 
     private var finishTime = 0L
-    private var lastUpdate = Engine.nanoTime
+    private var lastUpdate = Time.nanoTime
 
     private var lastDrawnUpdate = 0.0
-    private var lastDrawn = Engine.nanoTime
+    private var lastDrawn = Time.nanoTime
 
     var isCancelled = false
     var window: OSWindow? = null
 
     fun finish(done: Boolean = !isCancelled) {
         if (done) progress = total
-        if (finishTime == 0L) finishTime = Engine.nanoTime
+        if (finishTime == 0L) finishTime = Time.nanoTime
         if (notifyWhenFinished) window?.requestAttention()
     }
 

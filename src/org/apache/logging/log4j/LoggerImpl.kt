@@ -1,6 +1,6 @@
 package org.apache.logging.log4j
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import org.apache.commons.logging.Log
 import java.util.*
@@ -44,7 +44,7 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     private var lastString = ""
     private fun getTimeStamp(): String {
         val updateInterval = 500 * MILLIS_TO_NANOS
-        val time = Engine.nanoTime / updateInterval
+        val time = Time.nanoTime / updateInterval
         synchronized(Unit) {
             if (time == lastTime && lastString.isNotEmpty())
                 return lastString
@@ -143,7 +143,7 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
 
     override fun warn(msg: String) {
         synchronized(lastWarned) {
-            val time = Engine.gameTime
+            val time = Time.nanoTime
             if (msg !in lastWarned || (lastWarned[msg]!! - time) > warningTimeoutNanos) {
                 lastWarned[msg] = time
                 print("WARN", msg)

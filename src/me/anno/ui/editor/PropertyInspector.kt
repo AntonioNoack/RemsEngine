@@ -1,6 +1,6 @@
 package me.anno.ui.editor
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -226,7 +226,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
         /** expensive operation if something major was changed */
         var lastInvalidated = 0L
         fun invalidateUI(major: Boolean) {
-            val time = Engine.gameTime
+            val time = Time.nanoTime
             if (time != lastInvalidated) {
                 lastInvalidated = time + (if (major) 0L else 500L * MILLIS_TO_NANOS)
                 for (window in GFX.windows) {

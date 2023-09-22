@@ -1,6 +1,6 @@
 package me.anno.gpu.pipeline
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
@@ -551,7 +551,7 @@ class PipelineStage(
         var drawnPrimitives = 0L
         var drawCalls = 0L
 
-        val time = Engine.gameTime
+        val time = Time.gameTimeN
 
         // we could theoretically cluster them to need fewer uploads
         // but that would probably be hard to implement reliably
@@ -733,7 +733,7 @@ class PipelineStage(
 
         var drawnPrimitives = 0L
         var drawCalls = 0L
-        val time = Engine.gameTime
+        val time = Time.gameTimeN
 
         val shader = defaultShader.value
         shader.use()

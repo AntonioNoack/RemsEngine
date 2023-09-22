@@ -1,6 +1,6 @@
 package me.anno.gpu
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.input.Input
@@ -66,7 +66,7 @@ open class OSWindow(var title: String) {
     var mouseTargetX = Double.NaN
     var mouseTargetY = Double.NaN
     var lastMouseTargetNanos = 0L
-    var lastMouseCorrection = Engine.nanoTime
+    var lastMouseCorrection = Time.nanoTime
 
     var savedWidth = 300
     var savedHeight = 300
@@ -80,7 +80,7 @@ open class OSWindow(var title: String) {
         get() = windowStack.lastOrNull()
 
     fun hasActiveMouseTargets(): Boolean {
-        return abs(lastMouseTargetNanos - Engine.nanoTime) < 1e9
+        return abs(lastMouseTargetNanos - Time.nanoTime) < 1e9
     }
 
     fun setVsyncEnabled(enabled: Boolean) {
@@ -176,7 +176,7 @@ open class OSWindow(var title: String) {
     fun moveMouseTo(x: Double, y: Double) {
         mouseTargetX = x
         mouseTargetY = y
-        lastMouseTargetNanos = Engine.nanoTime
+        lastMouseTargetNanos = Time.nanoTime
     }
 
     private val xs = DoubleArray(1)

@@ -1,7 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.Build
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.annotations.DebugProperty
@@ -31,7 +31,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * if you need different behaviour, just override this method :)
      * */
     override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
-        lastDrawn = Engine.gameTime
+        lastDrawn = Time.gameTimeN
         this.clickId = clickId
         var done = forEachInstancedGroup { mesh, material, group, overrides ->
             val material2 = material ?: Mesh.defaultMaterial

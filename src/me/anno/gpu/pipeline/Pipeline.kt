@@ -1,6 +1,6 @@
 package me.anno.gpu.pipeline
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.cache.ICacheData
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -328,7 +328,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
             stage.initShader(shader, this)
             stage.bindRandomness(shader)
             stage.setupLights(this, shader, allAABB, false)
-            PipelineStage.setupLocalTransform(shader, sky.transform, Engine.gameTime)
+            PipelineStage.setupLocalTransform(shader, sky.transform, Time.gameTimeN)
             shader.v1b("hasAnimation", false)
             GFX.shaderColor(shader, "tint", -1)
             shader.v1f("finalAlpha", 1f)

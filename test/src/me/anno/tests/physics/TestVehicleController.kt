@@ -1,6 +1,6 @@
 package me.anno.tests.physics
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.bullet.VehicleWheel
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugProperty
@@ -47,7 +47,7 @@ class TestVehicleController : Component(), ControlReceiver {
 
         val brakeForcePerWheel = if (Input.isKeyDown(' ')) this.brake else 0.0
 
-        val dt = Engine.deltaTime * smoothing
+        val dt = Time.deltaTime * smoothing
         val factor = Maths.dtTo01(dt)
         lastForce = Maths.mix(lastForce, forceSum, factor)
         lastSteering = Maths.mix(lastSteering, steeringSum, factor)

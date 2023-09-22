@@ -1,6 +1,6 @@
 package me.anno.input
 
-import me.anno.Engine.deltaTime
+import me.anno.Time.deltaTime
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -65,7 +65,7 @@ object ShowKeys {
         } else {
             key.time =
                 if (key.time < lower) lower
-                else mix(key.time, lower, deltaTime * 5f)
+                else mix(key.time, lower, deltaTime.toFloat() * 5f)
         }
     }
 
@@ -123,7 +123,7 @@ object ShowKeys {
         Input.keysDown.forEach(addKeyConsumer)
 
         return if (activeKeys.isNotEmpty()) {
-            val dt = deltaTime * decaySpeed
+            val dt = deltaTime.toFloat() * decaySpeed
             val iter = activeKeys.iterator()
             for (key in iter) {
                 key.time = min(key.time - dt, 1f)

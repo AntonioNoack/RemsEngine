@@ -1,6 +1,6 @@
 package me.anno.tests.geometry
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
@@ -138,7 +138,7 @@ fun main() {
             val cap = accelerator.distance(p0, p1).toInt()
             val includeStart = true
             val includeEnd = true
-            val t0 = Engine.nanoTime
+            val t0 = Time.nanoTime
             val path0 = if (partialResults) {
                 accelerator.find(
                     p0, p1, maxDistance, cap,
@@ -150,11 +150,11 @@ fun main() {
                     includeStart, includeEnd
                 )
             }
-            val t1 = Engine.nanoTime
+            val t1 = Time.nanoTime
             // val path1 = accelerator.findShortest(p0, p1, maxDistance, cap, includeStart, includeEnd)
-            val t2 = Engine.nanoTime
+            val t2 = Time.nanoTime
             val path2 = accelerator.findWithoutAcceleration(p0, p1, maxDistance, cap, includeStart, includeEnd)
-            val t3 = Engine.nanoTime
+            val t3 = Time.nanoTime
             LOGGER.debug("Solutions? ${path0?.size}, ${path2?.size}, ${(t2 - t1).toFloat() / (t1 - t0)}x, ${(t3 - t2).toFloat() / (t1 - t0)}x faster")
             // LOGGER.debug("$path0".replace("Node", ""))
             return path0 to path2

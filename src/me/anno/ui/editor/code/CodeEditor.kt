@@ -1,6 +1,6 @@
 package me.anno.ui.editor.code
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.fonts.keys.TextCacheKey
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawStriped.drawRectStriped
@@ -192,7 +192,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     var blinkingIntervalNanos = 500_000_000L
 
     override fun onUpdate() {
-        val blinkVisible = ((Engine.gameTime - lastChangeTime) / blinkingIntervalNanos).and(1L) == 0L
+        val blinkVisible = ((Time.nanoTime - lastChangeTime) / blinkingIntervalNanos).and(1L) == 0L
         val sb = showCursor
         showCursor = isInFocus && blinkVisible
         if (sb != showCursor) invalidateDrawing()
@@ -386,7 +386,7 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     fun left(c: CursorPosition = cursor1) {
         clampCursor(c)
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
         if (c.x == 0 && c.y > 0) {
             c.set(content.getLineLength(c.y - 1), c.y - 1)
         } else {
@@ -396,19 +396,19 @@ open class CodeEditor(style: Style) : Panel(style) {
 
     fun up(c: CursorPosition = cursor1) {
         clampCursor(c)
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
         c.set(c.x, max(c.y - 1, 0))
     }
 
     fun down(c: CursorPosition = cursor1) {
         clampCursor(c)
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
         c.set(c.x, min(c.y + 1, content.lineCount - 1))
     }
 
     fun right(c: CursorPosition = cursor1) {
         clampCursor(c)
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
         if (c.x >= content.getLineLength(c.y) && c.y + 1 < content.lineCount) {
             // set to next line
             c.set(0, c.y + 1)
@@ -486,7 +486,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     override fun onSelectAll(x: Float, y: Float) {
         cursor0.set(0, 0)
         cursor1.set(content.getLineLength(content.lineCount - 1), content.lineCount - 1)
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
         invalidateDrawing()
     }
 
@@ -541,7 +541,7 @@ open class CodeEditor(style: Style) : Panel(style) {
     private fun onChangeText(updateHistory: Boolean = true, notify: Boolean = true) {
         recalculateColors()
         invalidateLayout()
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
         if (updateHistory) history.put(content.toString())
         if (notify) changeListener(this, content)
     }
@@ -586,7 +586,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         cursor.y = ((y - (this.y + padding.top)) / lineHeight).toInt()
         clampCursor(cursor)
         if (cursor.x != ox || cursor.y != oy) {
-            lastChangeTime = Engine.gameTime
+            lastChangeTime = Time.nanoTime
             invalidateDrawing()
         }
     }

@@ -1,6 +1,6 @@
 package me.anno.ui.base.text
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ui.Style
 import kotlin.math.abs
 
@@ -11,7 +11,7 @@ class UpdatingSimpleTextPanel(updateMillis: Long, style: Style, val getValue: ()
     var lastUpdate = 0L
 
     override fun onUpdate() {
-        val time = Engine.gameTime
+        val time = Time.nanoTime
         if (abs(lastUpdate - time) >= updateNanos) {
             val value = getValue()
             isVisible = value != null

@@ -1,6 +1,6 @@
 package me.anno.tests.physics
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.box2d.Box2dPhysics
 import me.anno.box2d.Rigidbody2d
 import me.anno.config.DefaultConfig.style
@@ -212,7 +212,7 @@ fun test3() {
 
             override fun onUpdate() {
                 super.onUpdate()
-                physics.step((Engine.deltaTime * 1e9f).toLong(), false)
+                physics.step((Time.deltaTime * 1e9f).toLong(), false)
                 if (Input.isKeyDown(dragButton)) {
                     val hovered = hovered
                     val entity = hovered?.entity

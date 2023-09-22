@@ -1,6 +1,6 @@
 package me.anno.ecs.components.camera.control
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
@@ -118,13 +118,13 @@ abstract class CameraController : Component(), ControlReceiver {
             if (isKeyDown("numpad1")) dz--
 
             if (dx != 0f || dy != 0f) {
-                val dt = Engine.deltaTime * numpadAsMouseSpeed * rotationSpeed
+                val dt = Time.deltaTime.toFloat() * numpadAsMouseSpeed * rotationSpeed
                 rotation.add((dy * dt).toRadians(), (dx * dt).toRadians(), 0f)
                 clampRotation()
             }
 
             if (dz != 0f) {
-                val dt = Engine.deltaTime * numpadWheelSpeed
+                val dt = Time.deltaTime.toFloat() * numpadWheelSpeed
                 onMouseWheel(0f, 0f, 0f, dz * dt, false)
             }
 
@@ -152,7 +152,7 @@ abstract class CameraController : Component(), ControlReceiver {
 
                 lastWarning = null
 
-                val dt = clamp(Engine.deltaTime * friction, 0f, 0.25f)
+                val dt = clamp(Time.deltaTime.toFloat() * friction, 0f, 0.25f)
 
                 acceleration.set(0f)
 

@@ -1,17 +1,18 @@
 package me.anno.tests.navmesh
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.recast.NavMesh
-import me.anno.recast.NavMeshAgent
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
+import me.anno.recast.NavMesh
+import me.anno.recast.NavMeshAgent
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
@@ -57,7 +58,7 @@ class AgentController1b(
         // project agent onto surface
         np.set(nextPos)
         val lp = entity.position
-        val dt = Engine.deltaTime
+        val dt = Time.deltaTime
         np.lerp(lp, dtTo01(dt * 3.0))
         upDownAngle = mix(upDownAngle, atan((lp.y - np.y) / max(np.distance(lp), 1e-308)), dtTo01(dt * 3.0))
         entity.rotation = entity.rotation
@@ -67,8 +68,6 @@ class AgentController1b(
         entity.position = np
         return 1
     }
-
-
 }
 
 /**
@@ -133,7 +132,7 @@ fun main() {
 
         world.addComponent(object : Component() {
             override fun onUpdate(): Int {
-                crowd.update(Engine.deltaTime, null)
+                crowd.update(Time.deltaTime.toFloat(), null)
                 return 1
             }
         })

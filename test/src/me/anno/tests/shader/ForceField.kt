@@ -1,6 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
@@ -77,8 +77,8 @@ fun main() {
 
             override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
                 super.bind(shader, renderer, instanced)
-                shader.v1f("uvScroll", (Engine.gameTimeD * 0.17) % 1.0)
-                emissiveBase.set(60f * mix(1f, 1.05f, sin(1.5 * Engine.gameTimeD).toFloat()))
+                shader.v1f("uvScroll", (Time.gameTime * 0.17) % 1.0)
+                emissiveBase.set(60f * mix(1f, 1.05f, sin(1.5 * Time.gameTime).toFloat()))
                 bindDepthToPosition(shader)
                 var depth = findDepthTexture(GFXState.framebuffer.currentValue)
                 if (depth == null) println("no depth was found!")

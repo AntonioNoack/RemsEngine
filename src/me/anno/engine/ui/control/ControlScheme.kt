@@ -1,6 +1,6 @@
 package me.anno.engine.ui.control
 
-import me.anno.Engine.deltaTime
+import me.anno.Time.deltaTime
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity

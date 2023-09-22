@@ -1,6 +1,6 @@
 package me.anno.engine.debug
 
-import me.anno.Engine
+import me.anno.Time
 
 object DebugShapes {
 
@@ -17,7 +17,7 @@ object DebugShapes {
     }
 
     fun removeExpired() {
-        val time = Engine.gameTime
+        val time = Time.nanoTime
         debugPoints.removeIf { it.timeOfDeath < time }
         debugLines.removeIf { it.timeOfDeath < time }
         debugRays.removeIf { it.timeOfDeath < time }

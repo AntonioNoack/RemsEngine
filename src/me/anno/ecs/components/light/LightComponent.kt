@@ -1,6 +1,6 @@
 package me.anno.ecs.components.light
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Range
@@ -179,7 +179,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     open fun updateShadowMaps() {
 
-        lastDrawn = Engine.gameTime
+        lastDrawn = Time.gameTimeN
 
         val pipeline = pipeline
         pipeline.clear()

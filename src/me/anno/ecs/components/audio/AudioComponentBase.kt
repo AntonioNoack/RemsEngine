@@ -1,6 +1,6 @@
 package me.anno.ecs.components.audio
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.openal.AudioTasks.addTask
 import me.anno.audio.openal.SoundListener
@@ -120,7 +120,7 @@ abstract class AudioComponentBase : Component() {
         addTask("start", 1) {
             stream0?.stop()
             stream1?.stop()
-            startTime = Engine.nanoTime - (startTime0 * 1e9).toLong()
+            startTime = Time.nanoTime - (startTime0 * 1e9).toLong()
             this as AudioComponent
             // todo wait for meta async
             val meta = FFMPEGMetadata.getMeta(source, false)
@@ -235,7 +235,7 @@ abstract class AudioComponentBase : Component() {
     @DebugAction
     open fun stop() {
         if (stream0 == null) return
-        stopTime = (Engine.nanoTime - startTime) * 1e-9
+        stopTime = (Time.nanoTime - startTime) * 1e-9
         addTask("stop", 1) {
             stream0?.stop()
             stream1?.stop()
@@ -254,7 +254,7 @@ abstract class AudioComponentBase : Component() {
         if (transform != null) {
             transform.validate()
             val pos = transform.globalPosition
-            val time = Engine.gameTime
+            val time = Time.gameTimeN
             val deltaTime = time - lastTime
             if (deltaTime > 0) {
                 lastTime = time
@@ -287,7 +287,7 @@ abstract class AudioComponentBase : Component() {
             addTask("Update", 1) {
 
                 // once per frame, also set the camera :3
-                val time = Engine.gameTime
+                val time = Time.gameTimeN
                 if (time != lastCameraUpdate) {
                     val dt = time - lastCameraUpdate
                     lastCameraUpdate = time

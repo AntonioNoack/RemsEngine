@@ -1,6 +1,6 @@
 package me.anno.graph.render.compiler
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.cache.instances.VideoCache
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
@@ -209,7 +209,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
             is GameTime -> {
                 val key = "uGameTime"
                 typeValues.getOrPut(key) {
-                    TypeValueV2(GLSLType.V1F) { Engine.gameTimeF }
+                    TypeValueV2(GLSLType.V1F) { Time.gameTime.toFloat() }
                 }
                 key
             }
@@ -434,7 +434,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
                     val file = node.file
                     val meta = FFMPEGMetadata.getMeta(file, true)
                     if (meta != null && meta.hasVideo) {
-                        val time1 = Engine.gameTime
+                        val time1 = Time.nanoTime
                         if (time1 != g.lastInvalidation) {
                             g.invalidate()
                             g.lastInvalidation = time1
@@ -461,7 +461,6 @@ abstract class GraphCompiler(val g: FlowGraph) {
                             val tex2 = tex.getTextures()[0]
                             filter(currentShader, name, tex2, linear)
                         } else TextureLib.blackTexture
-
                     } else TextureLib.blackTexture
                 }
         }
@@ -501,5 +500,4 @@ abstract class GraphCompiler(val g: FlowGraph) {
         traverse(start)
         return exportedLayers
     }
-
 }

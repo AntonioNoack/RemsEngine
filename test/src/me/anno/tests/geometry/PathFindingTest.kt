@@ -1,6 +1,6 @@
 package me.anno.tests.geometry
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.image.raw.write
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
@@ -188,7 +188,7 @@ fun main() {
 
     var seed: Long = 1
     var lastSeed = seed
-    var lastTime = Engine.nanoTime
+    var lastTime = Time.nanoTime
     var path0: List<TestNode>
     var path1: List<TestNode>
     var cost0 = 0L
@@ -211,17 +211,17 @@ fun main() {
         // path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, ForwardV2x2)!!
         // with and without inlining, we get the same performance of 1500ns/seed
         // 1500ns/seed | 32k ns/seed
-        val t0 = Engine.nanoTime
+        val t0 = Time.nanoTime
         path0 = PathFinding.aStar(
             start, end, distance(start, end), maxDistance,
             sx * sy, includeStart, includeEnd, ::forwardV2x1
         )!!
-        val t1 = Engine.nanoTime
+        val t1 = Time.nanoTime
         path1 = PathFinding.dijkstra(
             start, end, distance(start, end), maxDistance,
             sx * sy, includeStart, includeEnd, ::forwardV2x2
         )!!
-        val t2 = Engine.nanoTime
+        val t2 = Time.nanoTime
         cost0 += (t1 - t0)
         cost1 += (t2 - t1)
         // 2100ns/seed | 70k ns/seed
@@ -229,7 +229,7 @@ fun main() {
         // path1 = PathFinding.dijkstra(start, end, distance(start, end), sx * sy, forward(nodes, sx, sy))!!
         val distance1 = distance(path0)
         val distance2 = distance(path1)
-        val time = Engine.nanoTime
+        val time = Time.nanoTime
         if (time - lastTime > 1e9) {
             LOGGER.info("Checking seed $seed, ${(time - lastTime) / (seed - lastSeed)} ns/seed, A* is ${cost1.toFloat() / cost0}x faster")
             lastSeed = seed

@@ -1,6 +1,6 @@
 package me.anno.tests.gfx
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.gpu.drawing.GFXx2D.drawCircle
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
@@ -35,7 +35,7 @@ fun main() {
     val measuredFps = 60f
     val vsync = true
     val delayNanos = (0.95 * 1e9 / measuredFps).toLong()
-    var lastTime = Engine.nanoTime
+    var lastTime = Time.nanoTime
     testDrawing("InputLag") {
         // with Vsync: 3 frames input lag (red ring)
         // without vsync (at 2000 fps): still 33ms lag (yellow ring)
@@ -54,7 +54,7 @@ fun main() {
                 0f, 360f, colors[i] or black
             )
         }
-        val time = Engine.nanoTime
+        val time = Time.nanoTime
         if (vsync || time >= lastTime + delayNanos) {
             lastTime = time
             val pos = previous.removeLast()

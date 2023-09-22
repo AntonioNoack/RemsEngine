@@ -3,6 +3,7 @@ package me.anno.gpu
 import me.anno.Build
 import me.anno.Build.isDebug
 import me.anno.Engine
+import me.anno.Time
 import me.anno.audio.streams.AudioStream
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFXState.blendMode
@@ -423,7 +424,7 @@ object GFX {
     fun workQueue(queue: Queue<Task>, timeLimit: Float): Boolean {
 
         // async work section
-        val startTime = Engine.nanoTime
+        val startTime = Time.nanoTime
 
         // work 1/5th of the tasks by weight...
 
@@ -443,7 +444,7 @@ object GFX {
             }
             if (Thread.currentThread() == glThread) check()
             workDone += task.cost
-            val currentTime = Engine.nanoTime
+            val currentTime = Time.nanoTime
             val workTime = abs(currentTime - startTime) * 1e-9f
             if (workTime > 2f * timeLimit) {
                 LOGGER.warn("Spent ${workTime}s on '${task.name}' with cost ${task.cost}")
@@ -465,13 +466,13 @@ object GFX {
 
     @JvmStatic
     fun workGPUTasks(all: Boolean) {
-        val t0 = Engine.nanoTime
+        val t0 = Time.nanoTime
         synchronized(nextGPUTasks) {
             gpuTasks.addAll(nextGPUTasks)
             nextGPUTasks.clear()
         }
         if (workQueue(gpuTasks, gpuTaskBudget, all)) {
-            val remainingTime = Engine.nanoTime - t0
+            val remainingTime = Time.nanoTime - t0
             workQueue(lowPriorityGPUTasks, remainingTime * 1e-9f, all)
         }
         /*val dt = (Engine.nanoTime - t0) * 1e-9f
@@ -643,9 +644,9 @@ object GFX {
         val glConstants = glConstants ?: return
         // literally 300 times faster than the Kotlin code... what is Kotlin doing???
         // 3.5 ms instead of 1000 ms
-        val t2 = Engine.nanoTime
+        val t2 = Time.nanoTime
         discoverOpenGLNames(clazz.java)
-        val t3 = Engine.nanoTime
+        val t3 = Time.nanoTime
         LOGGER.debug("Took ${(t3 - t2) * 1e-9f}s for loading ${glConstants.size} OpenGL names")
         /*val t0 = Engine.nanoTime
         val properties = clazz.staticProperties // this call takes 1000 ms 

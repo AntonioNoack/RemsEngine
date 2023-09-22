@@ -1,6 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
@@ -66,7 +66,7 @@ fun main() {
     val material = Material().apply { shader = shader1 }
     val spawner = object : MeshSpawner() {
 
-        val count get() = ((sin(Engine.gameTimeF) + 1f) * 30).toInt()
+        val count get() = ((sin(Time.gameTime) + 1.0) * 30).toInt()
 
         override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
             // the size is changing constantly, so it would be best to calculate the maximum size

@@ -1,6 +1,6 @@
 package me.anno.audio
 
-import me.anno.Engine.gameTime
+import me.anno.Time.nanoTime
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioPools.SAPool
 import me.anno.audio.streams.AudioFileStream
@@ -105,7 +105,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
                 Engine.shutdown()
                 throw IllegalStateException("Cannot destroy twice, now $gameTime, then: $isDestroyed!")
             }*/
-            isDestroyed = gameTime
+            isDestroyed = nanoTime
             /*FAPool.returnBuffer(timeLeft)
             FAPool.returnBuffer(freqLeft)
             FAPool.returnBuffer(timeRight)

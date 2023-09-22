@@ -1,6 +1,6 @@
 package me.anno.ecs.components.audio
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioFXCache
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
@@ -68,7 +68,7 @@ class AudioComponent : AudioComponentBase() {
         if (keepInMemory) {
             keepInMemory()
         }
-        if (autoStart && !isPlaying && abs(startTime - Engine.nanoTime) > 1e9) {
+        if (autoStart && !isPlaying && abs(startTime - Time.nanoTime) > 1e9) {
             start()
         }
         return 1

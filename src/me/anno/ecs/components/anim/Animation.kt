@@ -1,6 +1,6 @@
 package me.anno.ecs.components.anim
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
@@ -147,8 +147,8 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         val skeleton = SkeletonCache[skeleton] ?: return clickId
         if (previewData == null) previewData = PreviewData(skeleton, this)
         return previewData!!.run {
-            if (renderer.prevTime != Engine.gameTime) {
-                state.update(renderer, Engine.deltaTime, false)
+            if (renderer.prevTime != Time.gameTimeN) {
+                state.update(renderer, Time.deltaTime.toFloat(), false)
                 renderer.updateAnimState()
             }
             renderer.fill(pipeline, entity, clickId)

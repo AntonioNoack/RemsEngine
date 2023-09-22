@@ -49,7 +49,6 @@ open class CommandLineReader {
                 false
             }
         }
-
     }
 
     fun start() {
@@ -66,5 +65,4 @@ open class CommandLineReader {
     open fun interpret(line: String) {
         LOGGER.info(line)
     }
-
 }

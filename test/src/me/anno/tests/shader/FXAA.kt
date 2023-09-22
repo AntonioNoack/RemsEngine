@@ -1,6 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.components.mesh.shapes.CubemapModel
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -34,7 +34,7 @@ private fun testShader() {
         transform.identity()
         transform.perspective(1f, w.toFloat() / h, 0.01f, 100f)
         transform.translate(0f, 0f, -5f)
-        val delta = 0.2f * Engine.deltaTime
+        val delta = 0.2f * Time.deltaTime.toFloat()
         if (Input.isLeftDown) angle += delta
         if (Input.isRightDown) angle -= delta
         transform.rotateZ(angle)

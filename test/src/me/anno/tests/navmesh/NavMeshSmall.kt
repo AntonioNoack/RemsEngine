@@ -1,6 +1,7 @@
 package me.anno.tests.navmesh
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
@@ -97,7 +98,7 @@ fun main() {
 
         world.addComponent(object : Component() {
             override fun onUpdate(): Int {
-                crowd.update(Engine.deltaTime, null)
+                crowd.update(Time.deltaTime.toFloat(), null)
                 return 1
             }
         })

@@ -46,7 +46,7 @@ class RenderSceneNode : RenderSceneNode0(
         setInput(5, Sorting.NO_SORTING)
         setInput(6, 0) // camera index
         setInput(7, false) // apply tonemapping
-        setInput(8, true) // bake skybox
+        setInput(8, 256) // bake skybox
     }
 
     override fun invalidate() {

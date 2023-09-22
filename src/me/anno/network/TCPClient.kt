@@ -1,6 +1,6 @@
 package me.anno.network
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep.waitUntil
 import java.io.Closeable
@@ -89,14 +89,14 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
                     if (writingQueue.removeIf { it.canDropPacket }) {
                         writingQueue.add(packet)
                     } else {
-                        val t0 = Engine.nanoTime
+                        val t0 = Time.nanoTime
                         val tMax = t0 + maxWaitTimeMillis * MILLIS_TO_NANOS
                         while (true) {
                             if (writingQueue.size < packetLimit) {
                                 writingQueue.add(packet)
                                 return
                             }
-                            if (Engine.nanoTime > tMax) {
+                            if (Time.nanoTime > tMax) {
                                 // all packets are important... this is awkward
                                 // should not happen with a well-designed protocol,
                                 // or only if the client is malicious and not reading packets

@@ -1,6 +1,6 @@
 package me.anno.ecs.components.anim
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
@@ -69,9 +69,9 @@ open class AnimRenderer : MeshComponent() {
     private var lastUpdate = 0L
     override fun onUpdate(): Int {
         // update all weights
-        return if (lastUpdate != Engine.gameTime) {
-            lastUpdate = Engine.gameTime
-            val dt = Engine.deltaTime
+        return if (lastUpdate != Time.gameTimeN) {
+            lastUpdate = Time.gameTimeN
+            val dt = Time.deltaTime.toFloat()
             var anyIsRunning = false
             for (index in animations.indices) {
                 val anim = animations[index]
@@ -166,7 +166,7 @@ open class AnimRenderer : MeshComponent() {
     }
 
     fun updateAnimState(): Boolean {
-        val time = Engine.gameTime
+        val time = Time.gameTimeN
         return if (time != prevTime) {
             prevTime = time
             prevWeights.set(currWeights)

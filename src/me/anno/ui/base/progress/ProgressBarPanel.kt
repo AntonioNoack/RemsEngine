@@ -1,6 +1,6 @@
 package me.anno.ui.base.progress
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.a
@@ -26,7 +26,7 @@ class ProgressBarPanel(name: String, unit: String, total: Double, val height1: I
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         if (min(progressBar.color.a(), progressBar.backgroundColor.a()) < 255)
             super.onDraw(x0, y0, x1, y1) // else no background needed
-        progressBar.draw(x, y, width, height1, x0, y0, x1, y1, Engine.gameTime)
+        progressBar.draw(x, y, width, height1, x0, y0, x1, y1, Time.nanoTime)
     }
 
 }

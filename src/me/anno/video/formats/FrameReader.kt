@@ -1,6 +1,6 @@
 package me.anno.video.formats
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.waitUntil
@@ -68,7 +68,7 @@ abstract class FrameReader<FrameType>(
             // if the last line is too long ago, e.g., because the source is not readable as an image, return
             val timeLimit = 30e9
             if (codec == invalidCodec) true
-            else if (parser.lastLineTime != 0L && Engine.nanoTime - parser.lastLineTime > timeLimit) true
+            else if (parser.lastLineTime != 0L && Time.nanoTime - parser.lastLineTime > timeLimit) true
             else {
                 val t = System.nanoTime()
                 if (abs(t - lt) > 1e9) {

@@ -1,6 +1,6 @@
 package me.anno.ui.base.groups
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
@@ -21,7 +21,7 @@ abstract class PanelList(val sorter: Comparator<Panel>?, style: Style) : PanelGr
     var allChildrenHaveSameSize = false
 
     fun needsPosUpdate(x: Int, y: Int): Boolean {
-        return this.x != x || this.y != y || lastPosTime != Engine.gameTime
+        return this.x != x || this.y != y || lastPosTime != Time.nanoTime
     }
 
     open fun clear() {

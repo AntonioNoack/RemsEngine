@@ -1,6 +1,6 @@
 package me.anno.engine.ui.control
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.drawing.DrawTexts
@@ -252,7 +252,7 @@ class BlenderControls(view: RenderView) : ControlScheme(view) {
         for ((index, transform) in selectedTransforms.withIndex()) {
             if (index >= old.size) break
             transform.setLocal(old[index])
-            transform.teleportUpdate(Engine.gameTime)
+            transform.teleportUpdate(Time.gameTimeN)
         }
         old = emptyList()
         mode = Mode.NOTHING

@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.blendMode
@@ -100,7 +100,6 @@ abstract class FrameTask(
             // c1.stop("saved to file"), 0.07s on NVME SSD
             LOGGER.info("Wrote frame to $dst")
         }
-
     }
 
     private fun renderFrame(time: Double): Boolean {
@@ -168,7 +167,6 @@ abstract class FrameTask(
         GFX.check()
 
         return true
-
     }
 
     fun destroy() {
@@ -183,17 +181,16 @@ abstract class FrameTask(
         private val LOGGER = LogManager.getLogger(FrameTask::class)
 
         @JvmField
-        var lastPrinted = 0L
+        var lastPrinted = -1L
 
         @JvmStatic
         var missingResource = ""
             set(value) {
-                if (value.isNotEmpty() && abs(Engine.gameTime - lastPrinted) > 1000_000_000L) {
-                    lastPrinted = Engine.gameTime
+                if (value.isNotEmpty() && (lastPrinted == -1L || abs(Time.nanoTime - lastPrinted) > 1000_000_000L)) {
+                    lastPrinted = Time.nanoTime
                     LOGGER.info("Waiting for $value")
                 }
                 field = value
             }
     }
-
 }

@@ -1,6 +1,6 @@
 package me.anno.ui.base.scrolling
 
-import me.anno.Engine.deltaTime
+import me.anno.Time.deltaTime
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty

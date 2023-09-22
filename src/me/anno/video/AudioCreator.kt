@@ -1,6 +1,6 @@
 package me.anno.video
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.audio.streams.AudioStream
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
 import me.anno.io.files.FileReference
@@ -24,7 +24,7 @@ abstract class AudioCreator(
     val sampleRate: Int
 ) {
 
-    val startTime = Engine.gameTime
+    val startTime = Time.nanoTime
     var onFinished = {}
     var isCancelled = false
 

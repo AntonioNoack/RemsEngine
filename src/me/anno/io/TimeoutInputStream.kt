@@ -35,5 +35,4 @@ class TimeoutInputStream(
             else TimeoutInputStream(this, millis)
         }
     }
-
 }

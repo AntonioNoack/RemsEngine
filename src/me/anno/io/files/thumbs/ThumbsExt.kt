@@ -1,6 +1,6 @@
 package me.anno.io.files.thumbs
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Material
@@ -254,9 +254,9 @@ object ThumbsExt {
         // 25s timeout, because unzipping all can take its time
         // wait for textures
         if (textures.isEmpty()) return
-        val endTime = Engine.gameTime + timeout * Maths.MILLIS_TO_NANOS
+        val endTime = Time.gameTimeN + timeout * Maths.MILLIS_TO_NANOS
         Sleep.waitForGFXThread(true) {
-            if (Engine.gameTime > endTime) {
+            if (Time.gameTimeN > endTime) {
                 // textures may be missing; just ignore them, if they cannot be read
                 textures
                     .filter { !ImageGPUCache.hasImageOrCrashed(it, timeout, true) }

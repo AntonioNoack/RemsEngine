@@ -1,6 +1,6 @@
 package me.anno.video.ffmpeg
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.io.utils.StringMap
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.indexOf2
@@ -83,7 +83,7 @@ class FFMPEGMetaParser : StringMap() {
 
     fun parseLine(line: String, stream: FFMPEGStream) {
 
-        lastLineTime = Engine.nanoTime
+        lastLineTime = Time.nanoTime
         if (line.isBlank2()) return
         if ("Server returned" in line) {
             stream.codec = invalidCodec

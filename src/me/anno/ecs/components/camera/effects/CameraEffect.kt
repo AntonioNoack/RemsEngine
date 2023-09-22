@@ -1,6 +1,6 @@
 package me.anno.ecs.components.camera.effects
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.annotations.Range
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
@@ -29,7 +29,7 @@ abstract class CameraEffect {
     )
 
     fun write(layers: MutableMap<DeferredLayerType, IFramebuffer>, type: DeferredLayerType, fb: IFramebuffer) {
-        (fb as? Framebuffer)?.lastDrawn = Engine.gameTime
+        (fb as? Framebuffer)?.lastDrawn = Time.gameTimeN
         layers[type] = fb
     }
 

@@ -5,10 +5,9 @@
 package me.anno.gpu
 
 import me.anno.Build.isDebug
-import me.anno.Engine
+import me.anno.Time
 import me.anno.Engine.shutdown
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GFX.getErrorTypeName
@@ -330,7 +329,7 @@ object GFXBase {
     fun runRenderLoop() {
         lastTime = System.nanoTime()
         while (!destroyed && !shutdown) {
-            Engine.updateTime()
+            Time.updateTime()
             renderFrame()
         }
         StudioBase.instance?.onShutdown()
@@ -366,7 +365,7 @@ object GFXBase {
             // run render loop incl. updating windows
             lastTime = System.nanoTime()
             while (!destroyed && !shutdown && !windows.all2 { it.shouldClose }) {
-                Engine.updateTime()
+                Time.updateTime()
                 updateWindows()
                 renderFrame()
             }
@@ -381,7 +380,7 @@ object GFXBase {
     @JvmStatic
     fun renderFrame() {
 
-        val time = Engine.nanoTime
+        val time = Time.nanoTime
 
         val firstWindow = windows.firstOrNull()
         if (firstWindow != null) Input.pollControllers(firstWindow)
@@ -518,7 +517,7 @@ object GFXBase {
                             GLFW.glfwSetCursorPos(window.pointer, centerX, centerY)
                             window.mouseX = centerX.toFloat()
                             window.mouseY = centerY.toFloat()
-                            window.lastMouseCorrection = Engine.nanoTime + 5_000_000 // 5ms safety delay
+                            window.lastMouseCorrection = Time.nanoTime + 5_000_000 // 5ms safety delay
                         }
                     }
                 }

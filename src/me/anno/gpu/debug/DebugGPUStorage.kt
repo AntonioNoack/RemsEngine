@@ -1,6 +1,6 @@
 package me.anno.gpu.debug
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.OpenGLBuffer
@@ -143,7 +143,7 @@ object DebugGPUStorage {
             // todo calculate min/max?
             // todo better test? currently only black...
             val z = if (isHovered) clamp((window!!.mouseX - x) / w)
-            else fract(Engine.gameTimeF / 5f)
+            else fract(Time.nanoTime / 5.0).toFloat()
             DrawTextures.draw3dSlice(x, y, w, h, z, tex, true, -1, false, isDepth)
         }
 
@@ -170,7 +170,7 @@ object DebugGPUStorage {
             // b) when hovering
             // todo calculate min/max?
             val z = if (isHovered) clamp((window!!.mouseX - x) / w)
-            else fract(Engine.gameTimeF / max(5f, tex.d / 3f))
+            else fract(Time.nanoTime / max(5f, tex.d / 3f)).toFloat()
             val zi = (z * (tex.d + 1)).toInt()
             // todo why is every 2nd slice missing??
             DrawTextures.draw2dArraySlice(

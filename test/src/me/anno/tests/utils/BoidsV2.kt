@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
@@ -62,7 +62,7 @@ class BoidV2(
             false
         }
 
-        val time = Engine.gameTimeF * 10f
+        val time = Time.gameTime.toFloat() * 10f
         dirA.add(
             noiseFlowField[posA.x, posA.y, posA.z, time],
             noiseFlowField[posA.x, posA.y, posA.z, time + 1e4f],
@@ -80,9 +80,10 @@ class BoidV2(
         // apply update
         // and calculate new position and direction
         newDir.normalize(dirA)
-        dirA.mulAdd(Engine.deltaTime * speed, velocity, velocity)
-        velocity.mulAdd(Engine.deltaTime, posA, posA)
-        velocity.mul(1f - dtTo01(0.1f * Engine.deltaTime))
+        val dt = Time.deltaTime.toFloat()
+        dirA.mulAdd(dt * speed, velocity, velocity)
+        velocity.mulAdd(dt, posA, posA)
+        velocity.mul(1f - dtTo01(0.1f * dt))
         val entity = entity!!
         val transform = entity.transform
         transform.localPosition = transform.localPosition.set(posA)

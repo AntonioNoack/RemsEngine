@@ -1,6 +1,6 @@
 package me.anno.tests.geometry
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths.PIf
 import me.anno.utils.types.Floats.f1
@@ -49,13 +49,13 @@ fun main() {
     }
 
     val total = 1e7.toInt()
-    var lastTime = Engine.nanoTime
+    var lastTime = Time.nanoTime
     var lastI = 0
     for (i in 0 until total) {// 400ns/e
         genAnalytic()
         analytic[((v.y * .5f + .5f) * size).toInt()]++
         if (i.and(1023) == 0) {
-            val time = Engine.nanoTime
+            val time = Time.nanoTime
             if (time - lastTime > 1e9) {
                 println("$i/$total, ${(i * 100f / total).f1()}%, ${(time - lastTime) / (i - lastI)}ns/e")
                 lastTime = time
@@ -63,14 +63,14 @@ fun main() {
             }
         }
     }
-    println("$total/$total, 100%, ${(Engine.nanoTime - lastTime) / (total - lastI)}ns/e")
-    lastTime = Engine.nanoTime
+    println("$total/$total, 100%, ${(Time.nanoTime - lastTime) / (total - lastI)}ns/e")
+    lastTime = Time.nanoTime
     lastI = 0
     for (i in 0 until total) {// 30ns/e
         genPerfect()
         perfect[((v.y * .5f + .5f) * size).toInt()]++
         if (i.and(1023) == 0) {
-            val time = Engine.nanoTime
+            val time = Time.nanoTime
             if (time - lastTime > 1e9) {
                 println("$i/$total, ${(i * 100f / total).f1()}%, ${(time - lastTime) / (i - lastI)}ns/e")
                 lastTime = time
@@ -78,7 +78,7 @@ fun main() {
             }
         }
     }
-    println("$total/$total, 100%, ${(Engine.nanoTime - lastTime) / (total - lastI)}ns/e")
+    println("$total/$total, 100%, ${(Time.nanoTime - lastTime) / (total - lastI)}ns/e")
 
     ImageWriter.writeImageCurve(
         512, 512, true, 0, -1,

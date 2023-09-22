@@ -1,6 +1,6 @@
 package me.anno.ecs.components.light
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.interfaces.Renderable
@@ -14,13 +14,13 @@ abstract class LightComponentBase : Component(), Renderable {
         entity: Entity,
         clickId: Int
     ): Int {
-        lastDrawn = Engine.gameTime
+        lastDrawn = Time.gameTimeN
         return clickId // not itself clickable
     }
 
     override fun onUpdate(): Int {
         super.onUpdate()
-        if (lastDrawn >= Engine.lastGameTime)
+        if (lastDrawn >= Time.lastGameTime)
             onVisibleUpdate()
         return 1
     }

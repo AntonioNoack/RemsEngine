@@ -1,6 +1,6 @@
 package me.anno.tests.mesh
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
@@ -47,7 +47,7 @@ class SimpleMeshTest(
     override val canDrawOverBorders get() = true
 
     override fun onUpdate() {
-        rootEntity.rotation = rootEntity.rotation.rotateZ(Engine.deltaTime * 1.0)
+        rootEntity.rotation = rootEntity.rotation.rotateZ(Time.deltaTime * 1.0)
         invalidateDrawing()
     }
 

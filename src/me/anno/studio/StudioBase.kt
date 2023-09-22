@@ -3,6 +3,7 @@ package me.anno.studio
 import me.anno.Build
 import me.anno.Engine
 import me.anno.Engine.projectName
+import me.anno.Time
 import me.anno.audio.openal.AudioManager
 import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
@@ -320,7 +321,7 @@ abstract class StudioBase(
         val progressBars = window.progressBars
         if (progressBars.isNotEmpty()) {
             val ph = window.progressbarHeight
-            val time = Engine.nanoTime
+            val time = Time.nanoTime
             for (index in progressBars.indices) {
                 val progressBar = progressBars.getOrNull(index) ?: break
                 val x = 0
@@ -388,7 +389,7 @@ abstract class StudioBase(
          * will wait at least deltaMillis before it is executed
          * */
         fun addEvent(deltaMillis: Long, event: () -> Unit) {
-            scheduledTasks.add(Pair(Engine.nanoTime + deltaMillis * MILLIS_TO_NANOS, event))
+            scheduledTasks.add(Pair(Time.nanoTime + deltaMillis * MILLIS_TO_NANOS, event))
         }
 
         fun warn(msg: String) {
@@ -404,7 +405,7 @@ abstract class StudioBase(
         fun workEventTasks() {
             while (scheduledTasks.isNotEmpty()) {
                 try {
-                    val time = Engine.nanoTime
+                    val time = Time.nanoTime
                     val peeked = scheduledTasks.peek()!!
                     if (time >= peeked.first) {
                         scheduledTasks.poll()!!.second.invoke()

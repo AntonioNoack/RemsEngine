@@ -1,6 +1,6 @@
 package me.anno.ecs.components.physics
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.anim.AnimTexture
 import me.anno.ecs.components.mesh.Material
@@ -23,6 +23,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.maths.Maths
+import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.FullNoise
@@ -79,7 +80,6 @@ class FlagMesh : MeshComponent() {
         tex1.destroy()
         tex1.ensure()
         tex1.textures[0].createRGB(initial, false)
-
     }
 
     private var prevDt = 0.01f
@@ -100,7 +100,7 @@ class FlagMesh : MeshComponent() {
             updateShader.v1f("dt0", prevDt)
             updateShader.v1f("dt1", currDt)
             updateShader.v2f("duv", 1f / (w - 1f), 1f / (h - 1f))
-            val time = Engine.gameTimeF
+            val time = (fract(Time.gameTime / 1e3) * 1e3).toFloat()
             val nx = noise[time, randomnessSeed] - 0.5f
             val ny = noise[time, randomnessSeed + 1f] - 0.5f
             val nz = noise[time, randomnessSeed + 2f] - 0.5f
@@ -112,7 +112,6 @@ class FlagMesh : MeshComponent() {
 
         tex0 = dst
         tex1 = src
-
     }
 
     private var time = 0f
@@ -143,7 +142,7 @@ class FlagMesh : MeshComponent() {
             meshFile = data.ref
         }
 
-        val dt0 = Engine.deltaTime
+        val dt0 = Time.deltaTime.toFloat()
         time += dt0
         if (time < 10f * dt) {
             while (time > dt) {
@@ -282,6 +281,5 @@ class FlagMesh : MeshComponent() {
                 return listOf(stage)
             }
         }
-
     }
 }

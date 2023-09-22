@@ -1,6 +1,6 @@
 package me.anno.cache.instances
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
@@ -60,7 +60,7 @@ object LastModifiedCache {
 
     fun update() {
         values.removeIf { (_, value) ->
-            Engine.gameTime - value.lastChecked > timeoutNanos
+            Time.gameTimeN - value.lastChecked > timeoutNanos
             false
         }
     }
@@ -69,7 +69,7 @@ object LastModifiedCache {
         return values.getOrPut(absolutePath) {
             val r = Result(file)
             // randomness for random decay: from 0.75x to 1.5x
-            r.lastChecked = Engine.gameTime + ((196 + (Maths.random() * 196).toInt()) * timeoutNanos ushr 8)
+            r.lastChecked = Time.gameTimeN + ((196 + (Maths.random() * 196).toInt()) * timeoutNanos ushr 8)
             values[absolutePath.replace('/', '\\')] = r
             values[absolutePath.replace('\\', '/')] = r
             r

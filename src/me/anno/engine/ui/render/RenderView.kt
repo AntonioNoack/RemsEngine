@@ -1,7 +1,7 @@
 package me.anno.engine.ui.render
 
 // this list of imports is insane XD
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -435,7 +435,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     // be more conservative with framebuffer size changes,
     // because they are expensive -> only change every 20th frame
-    private val mayChangeSize get() = (Engine.frameIndex % 20 == 0)
+    private val mayChangeSize get() = (Time.frameIndex % 20 == 0)
 
     private val fsr22 by lazy { FSR2v2() }
 

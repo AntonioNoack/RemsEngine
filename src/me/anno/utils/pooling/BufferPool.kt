@@ -1,6 +1,6 @@
 package me.anno.utils.pooling
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.annotations.Docs
 import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -64,7 +64,7 @@ abstract class BufferPool<V>(
             for (i in 0 until size) {
                 if (available[i] == null) {
                     available[i] = buffer
-                    lastUsed[i] = Engine.nanoTime
+                    lastUsed[i] = Time.nanoTime
                     return
                 }
             }
@@ -79,7 +79,7 @@ abstract class BufferPool<V>(
 
     fun freeUnusedEntries() {
         synchronized(this) {
-            val time = Engine.nanoTime
+            val time = Time.nanoTime
             val timeoutNanos = timeoutMillis * MILLIS_TO_NANOS
             for (i in available.indices) {
                 val element = available[i]

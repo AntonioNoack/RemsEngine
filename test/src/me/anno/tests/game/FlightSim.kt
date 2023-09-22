@@ -1,6 +1,6 @@
 package me.anno.tests.game
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
 import me.anno.ecs.Component
@@ -130,7 +130,7 @@ fun createPlane(player: LocalPlayer): Entity {
         var speed = 0.0
         val tmp = Vector3d()
         override fun onUpdate(): Int {
-            val dt = Engine.deltaTime.toDouble()
+            val dt = Time.deltaTime.toDouble()
             val transform = transform!!
             val lv = body.localVelocity
             speed = mix(speed, if (Input.isShiftDown) 50.0 else 0.0, dt)

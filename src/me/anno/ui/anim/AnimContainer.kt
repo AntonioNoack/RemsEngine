@@ -1,6 +1,6 @@
 package me.anno.ui.anim
 
-import me.anno.Engine.deltaTime
+import me.anno.Time.deltaTime
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
@@ -50,7 +50,7 @@ class AnimContainer(base: Panel, space: Padding, style: Style) : PanelContainer(
     override fun onUpdate() {
         super.onUpdate()
         var needsUpdate = false
-        val dtx = min(deltaTime * speed, 0.5f)
+        val dtx = min(deltaTime.toFloat() * speed, 0.5f)
         val minDelta = 0.1f / max(1, max(padding.width, padding.height))
         hover = move(hover, isHovered, dtx)
         if (abs(hover - lastHover) > minDelta) {

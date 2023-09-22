@@ -1,6 +1,6 @@
 package me.anno.ui.base.groups
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
@@ -60,17 +60,18 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
 
     fun updatePosition() {
         val oldPosition = position
-        position = mix(position, targetPosition, Maths.dtTo01(Engine.deltaTime * smoothingPerSeconds))
+        val dt = Time.deltaTime.toFloat()
+        position = mix(position, targetPosition, Maths.dtTo01(dt * smoothingPerSeconds))
         if (abs(position - oldPosition) > 1e-4) {
             invalidateDrawing()
         }
         // if not is controller down, then clamp targetPosition smoothly into an integer value
         val correction =
             if ((Input.isLeftDown && useLeftMouseButton) || (Input.isRightDown && useRightMouseButton)) 0f
-            else if (useMouseWheel) (abs(Engine.gameTime - lastMouseWheel) * 1e-9f) else 1f
+            else if (useMouseWheel) (abs(Time.nanoTime - lastMouseWheel) * 1e-9f) else 1f
         if (correction > 0f) {
             val int = round(targetPosition)
-            targetPosition = mix(targetPosition, int, Engine.deltaTime * smoothingPerSeconds)
+            targetPosition = mix(targetPosition, int, dt * smoothingPerSeconds)
         }
     }
 
@@ -144,7 +145,7 @@ open class PanelFlipper(sorter: Comparator<Panel>?, style: Style) : PanelList(so
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         if (useMouseWheel) {
             swipe(dx + dy)
-            if (length(dx, dy) > 1e-3f) lastMouseWheel = Engine.gameTime
+            if (length(dx, dy) > 1e-3f) lastMouseWheel = Time.nanoTime
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
 

@@ -1,6 +1,6 @@
 package me.anno.tests.terrain
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
@@ -129,7 +129,7 @@ class FoliageShader(
         val density = ImageGPUCache[densitySource, false] ?: blackTexture
         terrainTexture.value.bind(shader, "terrainTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         density.bind(shader, "densityTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
-        shader.v2f("time", Engine.gameTimeF, Engine.gameTimeF - Engine.deltaTime)
+        shader.v2f("time", Time.gameTime.toFloat(), (Time.gameTime - Time.deltaTime).toFloat())
 
         val rv = rv ?: RenderView.currentInstance!!
         val pos = rv.cameraPosition
@@ -188,7 +188,6 @@ class FoliageShader(
         shader.v1f("index0", index0)
         shader.v1f("invMaxDensity", 1f / maxDensity)
         mesh.proceduralLength = min(max((index1 - index0).toInt(), 1), proceduralBudget)
-
     }
 }
 
@@ -287,5 +286,4 @@ fun main() {
 
         list
     }
-
 }

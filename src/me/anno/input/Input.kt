@@ -1,7 +1,7 @@
 package me.anno.input
 
-import me.anno.Engine
-import me.anno.Engine.gameTime
+import me.anno.Time
+import me.anno.Time.nanoTime
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.components.ui.UIEventType
@@ -83,7 +83,7 @@ object Input {
     var lastClickTime = 0L
     var keyModState = 0
         set(value) {// check for shift...
-            if (isShiftTrulyDown) lastShiftDown = gameTime
+            if (isShiftTrulyDown) lastShiftDown = nanoTime
             field = value
         }
 
@@ -99,7 +99,7 @@ object Input {
 
     // 30ms shift lag for numpad, because shift disables it on Windows
     val isShiftTrulyDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_SHIFT)
-    val isShiftDown: Boolean get() = isShiftTrulyDown || (lastShiftDown != 0L && abs(lastShiftDown - gameTime) < 30_000_000)
+    val isShiftDown: Boolean get() = isShiftTrulyDown || (lastShiftDown != 0L && abs(lastShiftDown - nanoTime) < 30_000_000)
 
     @Suppress("unused")
     val isCapsLockDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_CAPS_LOCK)
@@ -157,7 +157,7 @@ object Input {
         }
 
         GLFW.glfwSetCursorPosCallback(window.pointer) { _, xPosition, yPosition ->
-            val time = Engine.nanoTime
+            val time = Time.nanoTime
             addEvent {
                 if (time > window.lastMouseCorrection)
                     onMouseMove(window, xPosition.toFloat(), yPosition.toFloat())
@@ -230,7 +230,7 @@ object Input {
 
     fun onKeyPressed(window: OSWindow, key: Key) {
         window.framesSinceLastInteraction = 0
-        keysDown[key] = gameTime
+        keysDown[key] = nanoTime
         keysWentDown += key
         if (!UIEvent(
                 window.currentWindow,
@@ -560,9 +560,9 @@ object Input {
                 ActionManager.onKeyDown(window, button)
             }
 
-            mouseStart = Engine.nanoTime
+            mouseStart = nanoTime
             mouseKeysDown.add(button)
-            keysDown[button] = gameTime
+            keysDown[button] = nanoTime
         }
     }
 
@@ -591,7 +591,7 @@ object Input {
         ActionManager.onKeyTyped(window, button)
 
         val longClickMillis = DefaultConfig["longClick", 300]
-        val currentNanos = Engine.nanoTime
+        val currentNanos = Time.nanoTime
         val isClick = mouseMovementSinceMouseDown < maxClickDistance && !windowWasClosed
 
         UIEvent(

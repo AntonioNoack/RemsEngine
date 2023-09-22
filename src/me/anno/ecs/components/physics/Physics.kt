@@ -2,6 +2,7 @@ package me.anno.ecs.components.physics
 
 import cz.advel.stack.Stack
 import me.anno.Engine
+import me.anno.Time
 import me.anno.utils.Color.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -226,7 +227,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                     val targetStepNanos = (targetStep * 1e9).toLong()
 
                     // stop if received updates for no more than 1-3s
-                    val targetTime = Engine.nanoTime
+                    val targetTime = Time.nanoTime
                     if (abs(targetTime - lastUpdate) > simulationTimeoutMillis * MILLIS_TO_NANOS) {
                         LOGGER.debug("Stopping work, ${(targetTime - lastUpdate) / 1e6} > $simulationTimeoutMillis")
                         break
@@ -277,11 +278,11 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
     override fun onUpdate(): Int {
         super.onUpdate()
-        lastUpdate = Engine.nanoTime
+        lastUpdate = Time.nanoTime
         val shallExecute = updateInEditMode || RenderView.currentInstance?.playMode != PlayMode.EDITING
         if (shallExecute) {
             if (synchronousPhysics) {
-                step((Engine.deltaTime * 1e9).toLong(), false)
+                step((Time.deltaTime * 1e9).toLong(), false)
             } else {
                 if (isEnabled) {
                     if (workerThread == null) {

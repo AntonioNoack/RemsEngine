@@ -1,6 +1,6 @@
 package me.anno.ui.editor.files
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.openal.AudioTasks
 import me.anno.audio.streams.AudioFileStreamOpenAL
@@ -261,13 +261,13 @@ open class FileExplorerEntry(
                     frameIndex = if (isHovered) {
                         invalidateDrawing()
                         if (startTime == 0L) {
-                            startTime = Engine.gameTime
+                            startTime = Time.nanoTime
                             val file = getReferenceOrTimeout(path)
                             stopPlayback(file)
                             if (meta.hasAudio) startPlayback(file, meta)
                             0
                         } else {
-                            time = (Engine.gameTime - startTime) * 1e-9 - hoverPlaybackDelay
+                            time = (Time.nanoTime - startTime) * 1e-9 - hoverPlaybackDelay
                             max(0, (time * previewFPS).toInt())
                         }
                     } else {
@@ -349,7 +349,7 @@ open class FileExplorerEntry(
                 null // just not an animation
             }
             if (animSample is Animation) {
-                val frameTime = (Engine.gameTime / 1e9) % animSample.duration
+                val frameTime = (Time.nanoTime / 1e9) % animSample.duration
                 val frameIndex = (frameTime * animSample.numFrames).toFloat()
                 val samples = min(
                     GFX.maxSamples, when (StudioBase.instance?.gfxSettings) {

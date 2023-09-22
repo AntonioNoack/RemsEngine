@@ -1,6 +1,6 @@
 package me.anno.ecs.components.anim.graph
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.anim.AnimationCache
@@ -57,7 +57,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
     override fun update(): StateNode {
         val speed = getInput(SPEED) as Float
-        progress += speed * Engine.deltaTime
+        progress += speed * Time.deltaTime.toFloat()
         setOutput(1, progress)
         var end = getInput(END) as Float
         if (end == 0f) end = getDuration()
@@ -91,7 +91,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         val state = if (previous != null) {
             val state = animations[0]
             previous.fillState(1f - weight, state)
-            state.progress += state.speed * Engine.deltaTime
+            state.progress += state.speed * Time.deltaTime.toFloat()
             animations[1]
         } else animations[0]
         fillState(weight, state)

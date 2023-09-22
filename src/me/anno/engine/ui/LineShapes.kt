@@ -1,6 +1,6 @@
 package me.anno.engine.ui
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
 import me.anno.engine.ui.render.RenderState
@@ -20,7 +20,7 @@ object LineShapes {
     private val tmpVec3f = Array(16) { Vector3f() }
     private val tmpVec3d = Array(16) { Vector3d() }
 
-    fun getDrawMatrix(entity: Entity?, time: Long = Engine.gameTime): Matrix4x3d? {
+    fun getDrawMatrix(entity: Entity?, time: Long = Time.gameTimeN): Matrix4x3d? {
         return entity?.transform?.getDrawMatrix(time)
     }
 

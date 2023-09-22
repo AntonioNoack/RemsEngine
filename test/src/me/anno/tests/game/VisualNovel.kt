@@ -1,6 +1,6 @@
 package me.anno.tests.game
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
@@ -263,7 +263,7 @@ object VisualNovel {
 
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
-                if (textTime == 0L) textTime = Engine.gameTime
+                if (textTime == 0L) textTime = Time.gameTimeN
 
                 val hasText = shownText.isNotBlank()
 
@@ -297,7 +297,7 @@ object VisualNovel {
                 if (hasText) {
                     drawBackground(x, y + height * 8 / 10, x + width, y + height)
 
-                    val progress = 10 * sq(1e-9 * (Engine.gameTime - textTime))
+                    val progress = 10 * sq(1e-9 * (Time.gameTimeN - textTime))
                     shownTextPanel.text = shownText.substring(0, min(progress.toInt(), shownText.length))
 
                     drawChildren(x0, y0, x1, y1)

@@ -1,6 +1,6 @@
 package me.anno.tests.physics
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.gpu.GFX.clip
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.renderPurely
@@ -195,7 +195,7 @@ fun main() {
 
         init.value
 
-        val dt = Engine.deltaTime
+        val dt = Time.deltaTime
 
         renderPurely {
 

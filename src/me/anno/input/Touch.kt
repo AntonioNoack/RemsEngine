@@ -1,6 +1,6 @@
 package me.anno.input
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.maths.Maths.length
 import me.anno.ui.WindowStack
 import org.joml.Vector3f
@@ -8,7 +8,7 @@ import kotlin.math.max
 
 class Touch(var x: Float, var y: Float) {
 
-    val t0 = Engine.gameTime
+    val t0 = Time.nanoTime
     val x0 = x
     val y0 = y
     var dx = 0f

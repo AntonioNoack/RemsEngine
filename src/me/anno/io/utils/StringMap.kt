@@ -1,7 +1,7 @@
 package me.anno.io.utils
 
 import me.anno.Engine
-import me.anno.Engine.gameTime
+import me.anno.Time.nanoTime
 import me.anno.gpu.texture.Filtering
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
@@ -337,20 +337,20 @@ open class StringMap(
     }
 
     private val saveDelay = SECONDS_TO_NANOS
-    private var lastSaveTime = gameTime - saveDelay - 1
+    private var lastSaveTime = nanoTime - saveDelay - 1
     fun saveMaybe(name: String) {
         if (wasChanged) {
             synchronized(this) {
-                if (gameTime - lastSaveTime >= saveDelay || Engine.shutdown) {// only save every 1s
+                if (nanoTime - lastSaveTime >= saveDelay || Engine.shutdown) {// only save every 1s
                     if (OS.isWeb) {
                         save(name)
-                        lastSaveTime = gameTime
+                        lastSaveTime = nanoTime
                     } else {
                         // delay in case it needs longer
-                        lastSaveTime = gameTime + 60_000_000_000L
+                        lastSaveTime = nanoTime + 60 * SECONDS_TO_NANOS
                         thread(name = "Saving $name") {
                             save(name)
-                            lastSaveTime = gameTime
+                            lastSaveTime = nanoTime
                         }
                     }
                 } else {
@@ -371,5 +371,4 @@ open class StringMap(
     }
 
     override fun isDefaultValue() = false
-
 }

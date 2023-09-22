@@ -1,6 +1,6 @@
 package me.anno.ecs.components.shaders.effects
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
@@ -644,7 +644,7 @@ class FSR2 {
             shader.use()
             prevExposure.bindTrulyNearest(1)
             currExposure.bindTrulyNearest(0)
-            shader.v1f("mixFactor", 1f - exp(-Engine.deltaTime))
+            shader.v1f("mixFactor", 1f - exp(-Time.deltaTime))
             flat01.draw(shader)
         }
         GFX.check()

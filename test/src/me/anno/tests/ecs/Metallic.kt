@@ -16,9 +16,7 @@ import me.anno.utils.OS.downloads
 
 fun main() {
 
-    // todo bugfix: highlight reflection makes rough metal looks super smooth
-    //  -> where is that highlight coming from?
-    //  -> LODs of bakedSkybox are probably missing
+    // todo light reflections missing? idk... probably light model should have small spheres
 
     // todo default lighting model in editor now looks weird/cheap
 
@@ -54,7 +52,7 @@ fun main() {
         val golden = Material()
         golden.diffuseBase.set(0xfd / 255f, 0xb6 / 255f, 0x56 / 255f)
         golden.metallicMinMax.set(1f)
-        golden.roughnessMinMax.set(0f)
+        golden.roughnessMinMax.set(1f)
         sdfMaterials = listOf(golden.ref)
     }).apply {
         position = position.set(-2.5, 0.0, 0.0)

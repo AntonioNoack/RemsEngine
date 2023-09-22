@@ -1,7 +1,7 @@
 package me.anno.sdf
 
 import me.anno.Build
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.*
@@ -248,7 +248,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
         ensureValidShader()
         ensureValidBounds()
         pipeline.addMesh(getMesh(), this, entity, gfxId)
-        lastDrawn = Engine.gameTime
+        lastDrawn = Time.gameTimeN
         return clickId + 1
     }
 

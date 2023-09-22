@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
@@ -99,7 +99,7 @@ class BoidV3(val n: Int) : MeshSpawner() {
                 false
             }
 
-            val time = Engine.gameTimeF * 10f
+            val time = Time.gameTime.toFloat() * 10f
             dirA.add(
                 noiseFlowField[posA.x, posA.y, posA.z, time],
                 noiseFlowField[posA.x, posA.y, posA.z, time + 1e4f],
@@ -118,9 +118,10 @@ class BoidV3(val n: Int) : MeshSpawner() {
             // and calculate new position and direction
             newDir.normalize(dirA)
             val velocity = velocities[i]
-            dirA.mulAdd(Engine.deltaTime * speed, velocity, velocity)
-            velocity.mulAdd(Engine.deltaTime, posA, posA)
-            velocity.mul(1f - dtTo01(0.1f * Engine.deltaTime))
+            val dt = Time.deltaTime.toFloat()
+            dirA.mulAdd(dt * speed, velocity, velocity)
+            velocity.mulAdd(dt, posA, posA)
+            velocity.mul(1f - dtTo01(0.1f * dt))
             velocity.normalize(center).normalToQuaternion(rotations[i])
         }
         accPool.sub(accPool.index)

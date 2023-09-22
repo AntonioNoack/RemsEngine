@@ -1,6 +1,7 @@
 package me.anno.tests.navmesh
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
@@ -77,7 +78,7 @@ class AgentController1a(
         )
         // DebugShapes.debugLines.add(DebugLine(start, Vector3d(raycastDir).mul(dist).add(start), -1))
         val np = hr?.positionWS ?: Vector3d(nextPos)
-        val dt = Engine.deltaTime
+        val dt = Time.deltaTime
         np.lerp(lp, dtTo01(dt * 3.0))
         upDownAngle = mix(upDownAngle, atan((lp.y - np.y) / max(np.distance(lp), 1e-308)), dtTo01(dt * 3.0))
         entity.rotation = entity.rotation
@@ -165,7 +166,7 @@ fun main() {
 
         world.addComponent(object : Component() {
             override fun onUpdate(): Int {
-                crowd.update(Engine.deltaTime, null)
+                crowd.update(Time.deltaTime.toFloat(), null)
                 return 1
             }
         })

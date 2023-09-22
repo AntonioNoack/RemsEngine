@@ -1,6 +1,6 @@
 package me.anno.lua
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Type
@@ -56,8 +56,8 @@ open class QuickScriptComponent : Component() {
             globals.set("entity", entity.toLua())
             globals.set("transform", entity?.transform.toLua())
             globals.set("parent", parent.toLua())
-            globals.set("dt", LuaValue.valueOf(Engine.deltaTime.toDouble()))
-            globals.set("t", LuaValue.valueOf(Engine.gameTimeD))
+            globals.set("dt", LuaValue.valueOf(Time.deltaTime.toDouble()))
+            globals.set("t", LuaValue.valueOf(Time.gameTime))
             globals.set("localPlayer", LocalPlayer.currentLocalPlayer.toLua())
             // todo "call", which calls a function via reflections
             // define translation, rotation, scale functions and such :)

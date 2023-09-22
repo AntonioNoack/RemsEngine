@@ -1,6 +1,6 @@
 package me.anno.ui.base.buttons
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.utils.Color.black
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
@@ -30,7 +30,7 @@ open class Button(
 
     override fun onUpdate() {
         super.onUpdate()
-        val time = Engine.gameTime
+        val time = Time.nanoTime
         val targetTint = when {
             Input.isLeftDown && contains(mouseDownX, mouseDownY) -> 0f
             isHovered -> 0.5f

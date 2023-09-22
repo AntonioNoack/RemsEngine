@@ -1,6 +1,6 @@
 package me.anno.utils.process
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.utils.OS
@@ -22,7 +22,7 @@ class DelayedTask(
             isWorking = true
         }
         if (OS.isWeb) {// no threading supported rn
-            endTime = Engine.nanoTime + delayMillis * MILLIS_TO_NANOS
+            endTime = Time.nanoTime + delayMillis * MILLIS_TO_NANOS
             webUpdate()
         } else {
             thread(name = "DelayedTask") {
@@ -44,7 +44,7 @@ class DelayedTask(
     }
 
     private fun webUpdate() {
-        if (Engine.nanoTime >= endTime) {
+        if (Time.nanoTime >= endTime) {
             function()
             isWorking = false
         } else {

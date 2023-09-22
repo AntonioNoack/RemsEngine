@@ -1,6 +1,5 @@
 package me.anno.engine
 
-import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.shaders.Skybox
@@ -118,13 +117,6 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
         ScenePrefab.prefab.value.getSampleInstance()
 
         PluginRegistry.init()
-    }
-
-    override fun onGameLoopStart() {
-        super.onGameLoopStart()
-        GameEngine.scaledDeltaTime = Engine.gameTimeF * GameEngine.timeFactor
-        GameEngine.scaledNanos += (GameEngine.scaledDeltaTime * 1e9).toLong()
-        GameEngine.scaledTime = GameEngine.scaledNanos * 1e-9
     }
 
     override fun isSelected(obj: Any?) =

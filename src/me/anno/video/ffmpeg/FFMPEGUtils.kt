@@ -1,6 +1,6 @@
 package me.anno.video.ffmpeg
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.utils.types.Floats.formatPercent
 import me.anno.utils.types.Strings.formatTime2
 import me.anno.utils.types.Strings.withLength
@@ -22,7 +22,7 @@ object FFMPEGUtils {
         onFailure: () -> Unit
     ) {
         val out = stream.bufferedReader()
-        var lastTime = Engine.gameTime
+        var lastTime = Time.nanoTime
         var progressGuess = 0.0
         var hasFailed = false
         val lines = ArrayList<String>()
@@ -51,7 +51,7 @@ object FFMPEGUtils {
                 var fps = 0f
                 // var quality = 0f
                 // var size = 0
-                val thisTime = Engine.gameTime
+                val thisTime = Time.nanoTime
                 val deltaTime = thisTime - lastTime
                 lastTime = thisTime
                 val elapsedTime = (thisTime - startTime) * 1e-9

@@ -1,6 +1,6 @@
 package me.anno.ui.base.groups
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.structures.lists.Lists.count2
@@ -101,7 +101,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
 
     override fun setPosition(x: Int, y: Int) {
         if (true || needsPosUpdate(x, y)) {
-            lastPosTime = Engine.gameTime
+            lastPosTime = Time.nanoTime
 
             super.setPosition(x, y)
 

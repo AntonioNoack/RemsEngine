@@ -1,6 +1,6 @@
 package me.anno.input
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
@@ -117,7 +117,7 @@ class Controller(val id: Int) {
         numButtons = 0
         numAxes = 0
         isActiveMaybe = 0f
-        lastTime = Engine.gameTime
+        lastTime = Time.nanoTime
     }
 
     private fun isMouseInWindow(): Boolean {
@@ -193,7 +193,7 @@ class Controller(val id: Int) {
 
     fun pollEvents(window: OSWindow, isFirst: Boolean): Boolean {
 
-        val time = Engine.nanoTime
+        val time = Time.nanoTime
         val dt = clamp((time - lastTime) * 1e-9f, 1e-3f, 0.2f)
         lastTime = time
         isActiveMaybe *= (1f - dt)
@@ -237,7 +237,7 @@ class Controller(val id: Int) {
 
     private fun updateButtons(window: OSWindow, buttons: ByteBuffer? = glfwGetJoystickButtons(glfwId)) {
         if (buttons != null) {
-            val time = Engine.gameTime
+            val time = Time.nanoTime
             numButtons = min(buttons.remaining(), MAX_NUM_BUTTONS)
             for (buttonId in 0 until numButtons) {
                 val rawState = buttons.get()
@@ -270,7 +270,7 @@ class Controller(val id: Int) {
     private fun updateAxes(window: OSWindow, dt: Float, axes: FloatBuffer? = glfwGetJoystickAxes(glfwId)) {
         if (axes != null) {
 
-            val time = Engine.gameTime
+            val time = Time.nanoTime
             numAxes = min(axes.remaining(), MAX_NUM_AXES)
             for (axisId in 0 until numAxes) {
 

@@ -1,6 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
@@ -33,7 +34,7 @@ fun main() {
                     thread {
                         val offsetI = offset++
                         while (!Engine.shutdown && !bar.isCancelled) {
-                            bar.progress = (((Engine.gameTimeF + offsetI) * 0.1) % 1.0) * 0.99 * 1e6
+                            bar.progress = (((Time.gameTime + offsetI) * 0.1) % 1.0) * 0.99 * 1e6
                             Thread.sleep(10)
                         }
                         bar.finish()
@@ -43,7 +44,7 @@ fun main() {
     } else {
         // test progress bar panel
         val p = ProgressBarPanel("Sample", "", 1.0, 15, style)
-        val t = SpyPanel { p.progress = (Engine.gameTimeD * 5.0 / p.width) % 1.0 }
+        val t = SpyPanel { p.progress = (Time.gameTime * 5.0 / p.width) % 1.0 }
         testUI2("Progress Bar") { listOf(t, p) }
     }
 }

@@ -1,6 +1,6 @@
 package me.anno.ui.input.components
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.gpu.GFX.loadTexturesSync
@@ -170,7 +170,7 @@ open class PureTextInputML(style: Style) :
     private val joinedText get() = lines.joinToString("\n") { list -> list.joinChars() }
     private val actualChildren = (child as PanelListY).children
     private val scrollbarStartY get() = if (minW > width) actualChildren.last().run { y + height - 3 } else y + height
-    private val wasJustChanged get() = abs(Engine.gameTime - lastChangeTime) < 200_000_000
+    private val wasJustChanged get() = abs(Time.nanoTime - lastChangeTime) < 200_000_000
     val styleSample get() = actualChildren[0] as TextPanel
 
     private fun updateLines() {
@@ -232,7 +232,7 @@ open class PureTextInputML(style: Style) :
 
     override fun onUpdate() {
         super.onUpdate()
-        val blinkVisible = ((Engine.gameTime / 500_000_000L) % 2L == 0L)
+        val blinkVisible = ((Time.nanoTime / 500_000_000L) % 2L == 0L)
         val isInFocus = isAnyChildInFocus
         val oldShowBars = showBars
         showBars = isInFocus && (blinkVisible || wasJustChanged)
@@ -411,7 +411,7 @@ open class PureTextInputML(style: Style) :
 
     fun insert(insertion: CharSequence) {
         if (insertion.isNotEmpty()) {
-            lastChangeTime = Engine.gameTime
+            lastChangeTime = Time.nanoTime
             for (cp in insertion.codePoints()) {
                 insert(cp, false)
             }
@@ -441,7 +441,7 @@ open class PureTextInputML(style: Style) :
     }
 
     fun insert(insertion: Int, notify: Boolean) {
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
         deleteSelection()
         when (insertion) {
             '\n'.code -> {
@@ -479,7 +479,7 @@ open class PureTextInputML(style: Style) :
     }
 
     fun deleteBefore() {
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
         if (!deleteSelection() && cursor1.x + cursor1.y > 0) {
             if (cursor1.x == 0) {
                 // join lines
@@ -500,8 +500,8 @@ open class PureTextInputML(style: Style) :
     }
 
     fun deleteAfter() {
-        if (lastDelete != Engine.gameTime) {
-            lastDelete = Engine.gameTime
+        if (lastDelete != Time.nanoTime) {
+            lastDelete = Time.nanoTime
             moveRight()
             deleteBefore()
         }
@@ -527,7 +527,7 @@ open class PureTextInputML(style: Style) :
 
     override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
         if (!isInputAllowed) return
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
         addKey(codepoint)
     }
 
@@ -549,7 +549,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
     }
 
     private fun moveLeft() {
@@ -569,7 +569,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
     }
 
     private fun moveUp() {
@@ -585,7 +585,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
     }
 
     private fun moveDown() {
@@ -601,7 +601,7 @@ open class PureTextInputML(style: Style) :
             cursor2.set(cursor1)
         }
         ensureCursorBounds()
-        lastChangeTime = Engine.gameTime
+        lastChangeTime = Time.nanoTime
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
@@ -754,8 +754,8 @@ open class PureTextInputML(style: Style) :
 
     private var lastDelete = 0L
     private fun likeBackspaceKey() {
-        if (lastDelete != Engine.gameTime) {
-            lastDelete = Engine.gameTime
+        if (lastDelete != Time.nanoTime) {
+            lastDelete = Time.nanoTime
             deleteBefore()
         }
     }

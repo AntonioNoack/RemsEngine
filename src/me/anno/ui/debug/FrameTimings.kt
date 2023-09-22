@@ -1,6 +1,6 @@
 package me.anno.ui.debug
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
@@ -214,7 +214,7 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
         draw()
 
         val maxTime = timeContainer.maxValue
-        formatNumber(text.value, 0, 6, Engine.currentFPS)
+        formatNumber(text.value, 0, 6, Time.currentFPS.toFloat())
         formatNumber(text.value, 13, 6, 1f / maxTime)
 
         val pad = 2

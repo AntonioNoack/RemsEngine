@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultStyle.deepDark
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.gpu.GFX
@@ -18,7 +18,6 @@ import me.anno.sdf.arrays.SDFArrayMapper
 import me.anno.sdf.arrays.SDFHexGrid
 import me.anno.sdf.modifiers.*
 import me.anno.sdf.shapes.*
-import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.rgba
 import me.anno.utils.pooling.JomlPools
@@ -122,9 +121,9 @@ fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
     val camRotation = Quaternionf()
     val camMatrix = Matrix3f()
     testDrawing("SDFs on GPU") {
-        val dt = Engine.deltaTime
+        val dt = Time.deltaTime.toFloat()
         val dt5 = 5f * dt
-        val time = Engine.gameTimeF
+        val time = Time.gameTime.toFloat()
         val progressTime = 3f * time / ((group1 ?: group2)?.children?.size ?: 1)
         camRotation.transformInverse(camPosition)
         if (Input.isKeyDown('w')) camPosition.z -= dt5

@@ -1,6 +1,6 @@
 package me.anno.ui.editor.files
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.input.Input
@@ -460,14 +460,14 @@ open class FileExplorer(
             title.file = folder// ?.toString() ?: "This Computer"
             title.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
             createResults()
-        } else isValid -= Engine.deltaTime
+        } else isValid -= Time.deltaTime.toFloat()
         if (loading != 0L) invalidateDrawing()
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         if (loading != 0L) {
-            drawLoadingCircle((Engine.gameTime - loading) / 1e9f, x0, y0, x1, y1)
+            drawLoadingCircle((Time.nanoTime - loading) / 1e9f, x0, y0, x1, y1)
         }
     }
 
@@ -681,7 +681,7 @@ open class FileExplorer(
                 }
             }
             GFX.isGFXThread() && !OS.isWeb -> {
-                loading = Engine.gameTime
+                loading = Time.nanoTime
                 invalidateDrawing()
                 thread(name = "switchTo($folder)") {
                     try {

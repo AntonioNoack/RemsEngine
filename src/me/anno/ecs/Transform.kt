@@ -1,6 +1,6 @@
 package me.anno.ecs
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.pooling.JomlPools
@@ -68,7 +68,7 @@ class Transform() : Saveable() {
     private val prerot = Quaterniond()
     private val presca = Vector3d(1.0)
 
-    fun teleportUpdate(time: Long = Engine.gameTime) {
+    fun teleportUpdate(time: Long = Time.gameTimeN) {
         validate()
         lastUpdateTime = time
         lastUpdateDt = 0L
@@ -77,15 +77,15 @@ class Transform() : Saveable() {
     }
 
     @Suppress("unused")
-    fun getDrawnMatrix(time: Long = Engine.gameTime): Matrix4x3d {
+    fun getDrawnMatrix(time: Long = Time.gameTimeN): Matrix4x3d {
         getDrawMatrix(time) // update matrices
         return drawnTransform
     }
 
-    fun getDrawMatrix(time: Long = Engine.gameTime): Matrix4x3d {
+    fun getDrawMatrix(time: Long = Time.gameTimeN): Matrix4x3d {
         val factor = updateDrawingLerpFactor(time)
         if (factor > 0f) {
-            val udt = Engine.gameTime - lastUpdateTime
+            val udt = Time.gameTimeN - lastUpdateTime
             if (udt < lastUpdateDt) {
                 val extrapolatedTime = 1f - udt.toFloat() / lastUpdateDt
                 // needs to be changed, if the extrapolated time changes -> it changes if the physics engine is behind
@@ -136,7 +136,7 @@ class Transform() : Saveable() {
         }
     }
 
-    fun smoothUpdate(time: Long = Engine.gameTime) {
+    fun smoothUpdate(time: Long = Time.gameTimeN) {
         needsStaticUpdate = true
         val dt = time - lastUpdateTime
         if (dt > 0) {
@@ -145,18 +145,18 @@ class Transform() : Saveable() {
         }
     }
 
-    fun setStateAndUpdate(state: State, time: Long = Engine.gameTime) {
+    fun setStateAndUpdate(state: State, time: Long = Time.gameTimeN) {
         this.state = state
         smoothUpdate(time)
     }
 
-    private fun updateDrawingLerpFactor(time: Long = Engine.gameTime): Float {
+    private fun updateDrawingLerpFactor(time: Long = Time.gameTimeN): Float {
         val v = calculateDrawingLerpFactor(time)
         lastDrawTime = time
         return v
     }
 
-    private fun calculateDrawingLerpFactor(time: Long = Engine.gameTime): Float {
+    private fun calculateDrawingLerpFactor(time: Long = Time.gameTimeN): Float {
         return if (lastUpdateDt <= 0) {
             if (needsStaticUpdate) {
                 // hasn't happened -> no interpolation

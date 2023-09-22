@@ -1,6 +1,6 @@
 package me.anno.tests.game
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFXBase
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -27,7 +27,7 @@ class Snake : Panel(style) {
     val sy = 9
 
     var gameOver = false
-    var lastStep = Engine.gameTime
+    var lastStep = Time.gameTimeN
     var stepDelayNanos = 0L
     var isPaused = false
 
@@ -108,7 +108,7 @@ class Snake : Panel(style) {
             }
         }
         invalidateDrawing()
-        lastStep = Engine.gameTime
+        lastStep = Time.gameTimeN
         if (windowStack.inFocus0 == null)
             requestFocus()
     }
@@ -181,7 +181,7 @@ class Snake : Panel(style) {
 
     override fun onUpdate() {
         super.onUpdate()
-        if (Engine.gameTime - lastStep > stepDelayNanos) {
+        if (Time.gameTimeN - lastStep > stepDelayNanos) {
             step()
         }
     }

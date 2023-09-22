@@ -1,7 +1,7 @@
 package me.anno.ecs.components.mesh.spline
 
 import me.anno.Build
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.prefab.PrefabSaveable
@@ -140,7 +140,7 @@ class SplineMesh : ProceduralMesh() {
     override fun generateMesh(mesh: Mesh) {
         val entity = entity
         if (entity == null) {
-            lastWarning = "Missing entity, $parent, ${Engine.gameTime}"
+            lastWarning = "Missing entity, $parent, ${Time.gameTimeN}"
             invalidateMesh()
             return
         }

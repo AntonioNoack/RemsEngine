@@ -1,6 +1,6 @@
 package me.anno.graph.ui
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.gpu.drawing.DrawCurves.drawQuartBezier
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
 import me.anno.gpu.drawing.DrawRectangles
@@ -261,7 +261,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
                 max((this.y + border) - y, y - (this.y + this.height - border))
             ) / border, 1f
         )
-        val multiplier = speed * Engine.deltaTime / length(dx2, dy2)
+        val multiplier = speed * Time.deltaTime.toFloat() / length(dx2, dy2)
         if (multiplier > 0f) {
             dx2 *= multiplier
             dy2 *= multiplier

@@ -1,6 +1,6 @@
 package me.anno.tests.shader
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -156,7 +156,7 @@ class SnowControl : Component() {
             position.mul(deltaDensity)
             position.sub(center)
         }
-        velocity.mulAdd(-Engine.deltaTime.toDouble(), position, position)
+        velocity.mulAdd(-Time.deltaTime.toDouble(), position, position)
         return 1
     }
 }
@@ -226,7 +226,7 @@ fun main() {
         )
         list.add(TestDrawPanel {
             shader.use()
-            shader.v1f("time", Engine.gameTimeF)
+            shader.v1f("time", Time.gameTime)
             shader.v2f("uvScale", it.width.toFloat() / it.height, 1f)
             flat01.draw(shader)
         }, 1f)

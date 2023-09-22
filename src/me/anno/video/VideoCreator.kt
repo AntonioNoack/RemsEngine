@@ -1,6 +1,7 @@
 package me.anno.video
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -47,7 +48,7 @@ open class VideoCreator(
         if (width % 2 != 0 || height % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
     }
 
-    val startTime = Engine.gameTime
+    val startTime = Time.nanoTime
 
     private lateinit var videoOut: OutputStream
     private lateinit var process: Process

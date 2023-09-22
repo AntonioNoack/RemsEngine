@@ -1,6 +1,6 @@
 package me.anno.ecs.components.light
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.engine.ui.LineShapes.drawBox
@@ -70,7 +70,7 @@ class EnvironmentMap : LightComponentBase() {
         entity: Entity,
         clickId: Int
     ): Int {
-        lastDrawn = Engine.gameTime
+        lastDrawn = Time.gameTimeN
         pipeline.lightStage.add(this)
         this.clickId = clickId
         return clickId + 1

@@ -1,6 +1,6 @@
 package me.anno.utils.structures
 
-import me.anno.Engine
+import me.anno.Time
 import kotlin.math.abs
 
 class CachedValue<V>(val getter: () -> V) {
@@ -10,9 +10,9 @@ class CachedValue<V>(val getter: () -> V) {
 
     val value: V
         get() {
-            if (abs(lastUpdate - Engine.gameTime) > 1_000_000_000L) {
+            if (abs(lastUpdate - Time.nanoTime) > 1_000_000_000L) {
                 internal = getter()
-                lastUpdate = Engine.gameTime
+                lastUpdate = Time.nanoTime
             }
             return internal
         }

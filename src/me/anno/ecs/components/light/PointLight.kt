@@ -1,6 +1,6 @@
 package me.anno.ecs.components.light
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Mesh
@@ -59,7 +59,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
     override fun updateShadowMaps() {
 
-        lastDrawn = Engine.gameTime
+        lastDrawn = Time.gameTimeN
 
         val pipeline = pipeline
 

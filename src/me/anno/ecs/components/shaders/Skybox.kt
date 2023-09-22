@@ -1,6 +1,6 @@
 package me.anno.ecs.components.shaders
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Group
@@ -127,7 +127,7 @@ open class Skybox : SkyboxBase() {
     }
 
     override fun onUpdate(): Int {
-        val dt = Engine.deltaTime
+        val dt = Time.deltaTime.toFloat()
         cirrusSpeed.mulAdd(dt, cirrusOffset, cirrusOffset)
         cumulusSpeed.mulAdd(dt, cumulusOffset, cumulusOffset)
         sunRotation.mul(JomlPools.quat4f.borrow().identity().slerp(sunSpeed, dt))

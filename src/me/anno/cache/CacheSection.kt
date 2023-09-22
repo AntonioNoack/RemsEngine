@@ -1,7 +1,7 @@
 package me.anno.cache
 
 import me.anno.Build
-import me.anno.Engine.gameTime
+import me.anno.Time.nanoTime
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.SkeletonCache
@@ -445,7 +445,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
         synchronized(dualCache) {
             dualCache.removeIf { _, _, v ->
-                if (gameTime > v.timeoutNanoTime) {
+                if (nanoTime > v.timeoutNanoTime) {
                     v.destroy()
                     true
                 } else false
@@ -462,7 +462,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         @JvmStatic
         private val remover = object : Maps.Remover<Any, CacheEntry>() {
             override fun filter(key: Any, value: CacheEntry): Boolean {
-                return if (gameTime > value.timeoutNanoTime) {
+                return if (nanoTime > value.timeoutNanoTime) {
                     value.destroy()
                     true
                 } else false

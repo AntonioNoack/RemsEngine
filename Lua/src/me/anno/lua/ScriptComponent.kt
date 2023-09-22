@@ -1,7 +1,7 @@
 package me.anno.lua
 
 import me.anno.Build
-import me.anno.Engine
+import me.anno.Time
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.ecs.Component
@@ -108,7 +108,7 @@ open class ScriptComponent : Component() {
         @JvmStatic
         fun defineVM(): Globals {
             val g = JsePlatform.standardGlobals()
-            g.set("Engine", Engine.toLua())
+            g.set("Engine", Time.toLua())
             g.set("R", ConstructorRegistry) // R for Rem or Registry
             g.set("OS", OS.toLua())
             // todo register all important caches

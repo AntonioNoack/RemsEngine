@@ -1,6 +1,6 @@
 package me.anno.tests.utils
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Texture2D
@@ -52,7 +52,7 @@ fun main() {
         throw IllegalStateException("Cannot connect any tiles")
     val sizeX = 64
     val sizeY = 64
-    val random = Random(Engine.nanoTime)
+    val random = Random(Time.nanoTime)
     val grid = wfc.collapseInit(sizeX, sizeY)
     val texToImage = LazyMap({ key: Image -> Texture2D(key, false) }, wfc.types.size)
     var hasRemaining = true
@@ -67,8 +67,8 @@ fun main() {
             val ys = IntArray(sizeY + 1)
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.onDraw(x0, y0, x1, y1)
-                val t0 = Engine.nanoTime
-                while (hasRemaining && Engine.nanoTime - t0 < 1e9 / 60)
+                val t0 = Time.nanoTime
+                while (hasRemaining && Time.nanoTime - t0 < 1e9 / 60)
                     hasRemaining = wfc.collapseStep(sizeX, sizeY, grid, random)
                 val x0i = x + width / 2
                 val y0i = y + height / 2

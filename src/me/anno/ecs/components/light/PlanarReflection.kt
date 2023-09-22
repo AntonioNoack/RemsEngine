@@ -1,6 +1,6 @@
 package me.anno.ecs.components.light
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawArrowZ
@@ -41,7 +41,7 @@ class PlanarReflection : LightComponentBase() {
     // todo everything lags behind 1 frame -> this needs to be calculated after the camera position has been calculated!!!
     override fun onUpdate(): Int {
 
-        lastDrawn = Engine.gameTime
+        lastDrawn = Time.gameTimeN
 
         val instance = RenderView.currentInstance ?: return 1
         val pipeline = instance.pipeline
@@ -78,7 +78,7 @@ class PlanarReflection : LightComponentBase() {
         cameraMatrix0: Matrix4f, cameraPosition: Vector3d, worldScale: Double
     ) {
 
-        val transform = transform!!.getDrawMatrix(Engine.gameTime)
+        val transform = transform!!.getDrawMatrix(Time.gameTimeN)
         val mirrorPosition = transform.getTranslation(tmp0d)
 
         // local -> global = yes, this is the correct direction

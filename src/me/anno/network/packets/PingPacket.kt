@@ -1,6 +1,6 @@
 package me.anno.network.packets
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.network.Packet
 import me.anno.network.Server
 import me.anno.network.TCPClient
@@ -13,13 +13,13 @@ open class PingPacket(magic: String = "PING") : Packet(magic) {
     override val constantSize = true
 
     override fun writeData(server: Server?, client: TCPClient, dos: DataOutputStream) {
-        dos.writeLong(Engine.nanoTime)
+        dos.writeLong(Time.nanoTime)
     }
 
     override fun readData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {
         val localTimeNanos0 = dis.readLong()
         // waste no time, and execute this immediately
-        val localTimeNanos = Engine.nanoTime
+        val localTimeNanos = Time.nanoTime
         client.localTimeOffset = localTimeNanos0 - localTimeNanos
     }
 

@@ -1,6 +1,6 @@
 package me.anno.input.controller
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.gpu.drawing.DrawCurves.drawQuadraticBezier
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Controller
@@ -54,7 +54,7 @@ abstract class CalibrationPanel(
         // update statistics
 
         bounds.union(x, y, 0f)
-        val time = Engine.nanoTime
+        val time = Time.nanoTime
         val deltaTime = time - lastTime
         if (lastTime != 0L && deltaTime != 0L) {
 

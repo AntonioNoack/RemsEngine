@@ -1,6 +1,6 @@
 package me.anno.input
 
-import me.anno.Engine.gameTime
+import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.gpu.OSWindow
 import me.anno.io.ISaveable
@@ -41,7 +41,6 @@ object ActionManager {
         // if an action is supposed to do nothing, then it should be set to ""
         createDefaultKeymap(keyMap)
         parseConfig(keyMap)
-
     }
 
     @JvmField
@@ -150,7 +149,7 @@ object ActionManager {
         if (Input.keysDown.isEmpty()) return
         val mouseMoveConsumer = BiConsumer<Key, Long> { key, downTime ->
             onKeyHoldDown(window, dx, dy, key, false)
-            val deltaTime = (gameTime - downTime) * 1e-9f
+            val deltaTime = (Time.nanoTime - downTime) * 1e-9f
             val mouseStill = Input.mouseMovementSinceMouseDown < Input.maxClickDistance
             if (deltaTime >= keyDragDelay && mouseStill) {
                 onKeyHoldDown(window, dx, dy, key, true)
@@ -273,5 +272,4 @@ object ActionManager {
     fun registerGlobalAction(name: String, action: () -> Boolean) {
         globalActions[name] = action
     }
-
 }

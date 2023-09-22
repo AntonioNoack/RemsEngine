@@ -25,6 +25,8 @@ import kotlin.math.sin
  * recreate colorful test scene with 100k lights from ages ago :3,
  *
  * just with modern methods :3 (faster, more direct, easier API)
+ *
+ * todo light needs to reflect...
  * */
 fun main() {
 

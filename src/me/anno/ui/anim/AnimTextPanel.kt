@@ -1,6 +1,6 @@
 package me.anno.ui.anim
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.annotations.Docs
 import me.anno.fonts.FontManager
 import me.anno.fonts.TextGroup
@@ -134,7 +134,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
         val alignY = alignmentY
         val equalSpaced = useMonospaceCharacters
 
-        val time = (Engine.gameTime % max(1, periodMillis * MILLIS_TO_NANOS)) / 1e9f
+        val time = (Time.gameTime % max(1.0, periodMillis * 1e-3)).toFloat()
         val shader = (if (disableSubpixels) ShaderLib.textShader else ShaderLib.subpixelCorrectTextShader[0]).value
         shader.use()
 

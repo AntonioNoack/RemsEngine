@@ -1,6 +1,6 @@
 package me.anno.ecs.components.mesh
 
-import me.anno.Engine
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
@@ -130,7 +130,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
                     pipeline.addMesh(mesh, this, entity, clickId)
                 }
             }
-            lastDrawn = Engine.gameTime
+            lastDrawn = Time.gameTimeN
             this.clickId = clickId
             clickId + 1
         } else clickId

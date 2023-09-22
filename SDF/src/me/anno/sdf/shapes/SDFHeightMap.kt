@@ -1,14 +1,12 @@
 package me.anno.sdf.shapes
 
-import me.anno.Engine
-import me.anno.ecs.Entity
+import me.anno.Time
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Clamping
@@ -24,13 +22,11 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
-import me.anno.sdf.DebugMode
 import me.anno.sdf.SDFGroup.Companion.sdMax
 import me.anno.sdf.SDFGroup.Companion.smoothMinCubic
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.utils.Color.black
-import me.anno.utils.OS.pictures
 import org.joml.AABBf
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -175,7 +171,7 @@ class SDFHeightMap : SDFShape() {
         // draw test ray on CPU side to make sure it's correct
         val pos = Vector3f(-1f, 0.19f, 0f)
         var pos0 = Vector3d(pos)
-        debugPoints.add(DebugPoint(pos0, -1, Engine.gameTime))
+        debugPoints.add(DebugPoint(pos0, -1, Time.nanoTime))
 
         val dir = Vector3f(pos).normalize(-1f)
 
@@ -191,8 +187,8 @@ class SDFHeightMap : SDFShape() {
             val pos1 = Vector3d(pos)
                 .sub(0.5, 0.0, 0.5).div(0.5, 1.0, 0.5)
                 .div(scale)
-            debugPoints.add(DebugPoint(pos1, color, Engine.gameTime))
-            debugLines.add(DebugLine(pos0, pos1, color, Engine.gameTime))
+            debugPoints.add(DebugPoint(pos1, color, Time.nanoTime))
+            debugLines.add(DebugLine(pos0, pos1, color, Time.nanoTime))
             pos0 = pos1
         }
 

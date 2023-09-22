@@ -1,6 +1,7 @@
 package me.anno.video.ffmpeg
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.acquire
@@ -179,7 +180,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
             }
         }
-
     }
 
     var srcFPS = -1.0
@@ -198,7 +198,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         if (isProcessCountLimited) acquire(true, processLimiter)
 
-        LOGGER.info("${(Engine.gameTime * 1e-9f).f3()} ${arguments.joinToString(" ")}")
+        LOGGER.info("${(Time.nanoTime * 1e-9f).f3()} ${arguments.joinToString(" ")}")
 
         val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, arguments.size + 1, true)
         if (arguments.isNotEmpty()) builder += "-hide_banner"
@@ -210,7 +210,6 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             waitForRelease(process)
         }
         return this
-
     }
 
     fun waitForRelease(process: Process) {
@@ -246,5 +245,4 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             out.close()
         }
     }
-
 }
