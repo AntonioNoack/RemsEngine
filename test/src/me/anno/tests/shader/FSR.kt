@@ -25,7 +25,7 @@ fun main() {
     val oh = texture.height * size
 
     val upscaled = FBStack["", ow, oh, 4, false, 1, false]
-    GFXState.useFrame(upscaled) { FSR.upscale(texture, 0, 0, ow, oh, true, applyToneMapping = false) }
+    GFXState.useFrame(upscaled) { FSR.upscale(texture, 0, 0, ow, oh, 0, flipY = true, applyToneMapping = false, withAlpha = false) }
     upscaled.createImage(false, withAlpha = false)
         .write(src.getSibling("${src.nameWithoutExtension}-${size}x.png"))
 

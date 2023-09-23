@@ -3,12 +3,12 @@ package me.anno.gpu.shader.builder
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
 import java.util.*
-import kotlin.collections.LinkedHashSet
 
 class MainStage {
 
@@ -24,6 +24,7 @@ class MainStage {
     fun add(stage: ShaderStage) {
         stages.add(stage)
         attributes.addAll(stage.attributes)
+        defineFunction(Function(randomGLSL))
         for (function in stage.functions) {
             defineFunction(function)
         }
@@ -78,7 +79,6 @@ class MainStage {
         }
 
         return Pair(defined, uniforms)
-
     }
 
     fun defineUniformSamplerArrayFunctions(code: StringBuilder, uniform: Variable) {
@@ -412,5 +412,4 @@ class MainStage {
     companion object {
         private val LOGGER = LogManager.getLogger(MainStage::class)
     }
-
 }

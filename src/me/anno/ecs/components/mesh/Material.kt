@@ -228,8 +228,8 @@ open class Material : PrefabSaveable(), Renderable {
         val stage = pipeline.findStage(this)
         val materialSource = root.ref
         mesh.material = materialSource
-        stage.add(Pipeline.sampleMeshComponent, mesh, entity, 0, clickId)
-        return clickId
+        stage.add(Pipeline.sampleMeshComponent, mesh, entity, 0)
+        return clickId + 1
     }
 
     override fun save(writer: BaseWriter) {

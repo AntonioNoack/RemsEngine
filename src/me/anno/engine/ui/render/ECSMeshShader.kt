@@ -196,8 +196,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  texture(metallicMap,  uv).r), 0.0, 1.0);\n"
         val roughnessCalculation =
             "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, texture(roughnessMap, uv).r), 0.0, 1.0);\n"
-        val finalMotionCalculation =
-            "finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n"
+        val finalMotionCalculation = "" +
+                "#ifdef MOTION_VECTORS\n" +
+                "   finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" +
+                "#endif\n"
 
         val applyTransformCode = "" +
                 "#ifdef PRS_TRANSFORM\n" +
@@ -251,9 +253,6 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "   #ifdef MOTION_VECTORS\n" +
                 "       mat4x3 prevLocalTransform = mat4x3(instancePrevTrans0,instancePrevTrans1,instancePrevTrans2,instancePrevTrans3);\n" +
                 "   #endif\n" +
-                "   #ifdef COLORS\n" +
-                "       tint = instanceTint;\n" +
-                "   #endif\n" + // colors
                 "#endif\n" // instanced
 
         fun animCode0() = "" +
@@ -381,10 +380,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             variables += Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR)
             variables += Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR)
             variables += Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR)
-            if (flags.hasFlag(NEEDS_COLORS)) {
-                variables += Variable(GLSLType.V4F, "instanceTint", VariableMode.ATTR)
-                variables += Variable(GLSLType.V4F, "tint", VariableMode.OUT)
-            }
+            variables += Variable(GLSLType.V4F, "gfxId", VariableMode.ATTR)
             if (isAnimated && useAnimTextures) {
                 variables += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
                 variables += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
@@ -563,7 +559,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         v0 + sheenCalculation +
                         clearCoatCalculation +
                         reflectionCalculation +
-                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+                        finalMotionCalculation
             ).add(quatRot).add(brightness).add(parallaxMapping)
         )
     }

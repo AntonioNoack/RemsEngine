@@ -15,7 +15,7 @@ import me.anno.gpu.shader.BaseShader.Companion.IS_DEFERRED
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
@@ -159,7 +159,7 @@ object Renderers {
                             colorToSRGB +
                             "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
                             "   finalResult = vec4(finalColor, finalAlpha);\n"
-                ).add(noiseFunc).add(tonemapGLSL), finalResultStage
+                ).add(randomGLSL).add(tonemapGLSL), finalResultStage
             )
         }
     }
@@ -266,7 +266,7 @@ object Renderers {
                             "finalColor = tonemap(finalColor);\n" +
                             // todo SRGB textures/framebuffers?
                             "finalResult = vec4(finalColor, finalAlpha);\n"
-                ).add(noiseFunc).add(tonemapGLSL), finalResultStage
+                ).add(randomGLSL).add(tonemapGLSL), finalResultStage
             )
         }
     }

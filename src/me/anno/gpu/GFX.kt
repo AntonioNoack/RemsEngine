@@ -192,9 +192,6 @@ object GFX {
     val flat01 = SimpleBuffer.flat01
 
     @JvmField
-    var drawnId = 0
-
-    @JvmField
     var glThread: Thread? = null
 
     @JvmStatic
@@ -284,22 +281,6 @@ object GFX {
             render(x2, y2, x3, y3)
         }
     }
-
-    @JvmStatic
-    fun shaderColor(shader: Shader, name: String, color: Int) =
-        currentRenderer.shaderColor(shader, name, color)
-
-    @JvmStatic
-    fun shaderColor(shader: Shader, name: String, color: Vector4f?) =
-        currentRenderer.shaderColor(shader, name, color)
-
-    @JvmStatic
-    fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) =
-        currentRenderer.shaderColor(shader, name, r, g, b, a)
-
-    @JvmStatic
-    fun shaderColor(shader: Shader, name: String, color: Vector3f?) =
-        currentRenderer.shaderColor(shader, name, color)
 
     @JvmStatic
     fun copy(buffer: IFramebuffer) = copy(buffer.getTexture0MS())

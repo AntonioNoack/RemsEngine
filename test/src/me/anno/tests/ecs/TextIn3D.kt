@@ -134,7 +134,7 @@ val sdfShader = object : ECSMeshShader("SDF") {
                         v0 + sheenCalculation +
                         clearCoatCalculation +
                         reflectionCalculation +
-                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+                        finalMotionCalculation
             ).add(ShaderLib.quatRot).add(ShaderLib.brightness).add(ShaderLib.parallaxMapping)
         )
     }
@@ -171,7 +171,7 @@ val sdfAvgShader = object : ECSMeshShader("SDF-AVG") {
                         v0 + sheenCalculation +
                         clearCoatCalculation +
                         reflectionCalculation +
-                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+                        finalMotionCalculation
             ).add(ShaderLib.quatRot).add(ShaderLib.brightness).add(ShaderLib.parallaxMapping)
         )
     }

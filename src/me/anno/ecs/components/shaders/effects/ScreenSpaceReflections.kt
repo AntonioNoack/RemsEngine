@@ -16,7 +16,7 @@ import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
@@ -27,7 +27,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.TextureLib.blackTexture
 import org.joml.Matrix4f
 import org.joml.Vector4f
 
@@ -60,7 +59,7 @@ object ScreenSpaceReflections {
         )
 
         val functions = HashSet<String>()
-        functions.add(noiseFunc)
+        functions.add(randomGLSL)
         functions.add(tonemapGLSL)
         functions.add(quatRot)
         functions.add(rawToDepth)

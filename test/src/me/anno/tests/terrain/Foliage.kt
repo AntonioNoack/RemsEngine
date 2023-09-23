@@ -15,7 +15,7 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
@@ -120,7 +120,7 @@ class FoliageShader(
                         "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                         motionVectorCode +
                         ShaderLib.positionPostProcessing
-            ).add(animFunc).add(quatRot).add(noiseFunc).add(sdfConstants).add(generalNoise).add(perlinNoise)
+            ).add(animFunc).add(quatRot).add(randomGLSL).add(sdfConstants).add(generalNoise).add(perlinNoise)
         )
     }
 

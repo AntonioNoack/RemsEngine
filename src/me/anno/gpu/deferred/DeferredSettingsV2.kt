@@ -2,7 +2,6 @@ package me.anno.gpu.deferred
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.*
-import me.anno.gpu.shader.RandomEffect.randomFunc
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -77,7 +76,7 @@ data class DeferredSettingsV2(
         val needsHighPrecision = Array(maxTextures) { BufferQuality.LOW_8 }
         var usedTextures0 = -1
 
-        for (layerType in layerTypes) {
+        fun addType(layerType: DeferredLayerType) {
             val dimensions = layerType.dataDims
             val layerIndex = spaceInLayers.indexOfFirst { it >= dimensions }
             val startIndex = 4 - spaceInLayers[layerIndex]
@@ -90,6 +89,18 @@ data class DeferredSettingsV2(
             val np = layerType.minimumQuality
             needsHighPrecision[layerIndex] = if (op > np) op else np
         }
+
+        // vec3s and vec4s come first, so vec3 is guaranteed to always be rgb, never gba
+        for (i in layerTypes.indices) {
+            val type = layerTypes[i]
+            if (type.dataDims >= 3) addType(type)
+        }
+
+        for (i in layerTypes.indices) {
+            val type = layerTypes[i]
+            if (type.dataDims < 3) addType(type)
+        }
+
         usedTextures0++
 
         layers2 = ArrayList(usedTextures0)
@@ -172,8 +183,7 @@ data class DeferredSettingsV2(
     }
 
     fun appendLayerWriters(output: StringBuilder, disabledLayers: BitSet?) {
-        output.append(randomFunc)
-        output.append("float defRR = GET_RANDOM(0.001 * gl_FragCoord)-0.5;\n")
+        output.append("float defRR = random(0.001 * gl_FragCoord.xy)-0.5;\n")
         for (index in layers.indices) {
             val layer = layers[index]
             if (disabledLayers == null || !disabledLayers[layer.texIndex]) {

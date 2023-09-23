@@ -123,7 +123,7 @@ fun main() {
                                 // sheenCalculation +
                                 // clearCoatCalculation +
                                 reflectionCalculation +
-                                (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+                                finalMotionCalculation
                     ).add(ShaderLib.brightness).add(rawToDepth)
                 )
             }

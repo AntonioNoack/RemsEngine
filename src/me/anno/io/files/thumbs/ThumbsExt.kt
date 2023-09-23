@@ -8,7 +8,6 @@ import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.ECSShaderLib
-import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.Perspective
@@ -106,7 +105,7 @@ object ThumbsExt {
 
     fun bindShader(shader: Shader, cameraMatrix: Matrix4f, modelMatrix: Matrix4x3f) {
         shader.use()
-        shaderColor(shader, "tint", -1)
+        shader.v4f("tint", -1)
         shader.v1b("hasAnimation", false)
         shader.m4x3("localTransform", modelMatrix)
         if (shader["invLocalTransform"] >= 0) {

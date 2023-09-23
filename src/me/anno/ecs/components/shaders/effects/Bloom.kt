@@ -13,7 +13,7 @@ import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
@@ -188,7 +188,7 @@ object Bloom {
                 Variable(GLSLType.S2D, "base"),
                 Variable(GLSLType.S2D, "bloom")
             ), "" +
-                    noiseFunc +
+                    randomGLSL +
                     tonemapGLSL +
                     "void main(){\n" +
                     "   vec3 color0 = pow(texture(base,uv).rgb,vec3(2.2));\n" +

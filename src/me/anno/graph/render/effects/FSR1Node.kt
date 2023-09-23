@@ -6,17 +6,26 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.graph.render.QuickPipeline
 import me.anno.graph.render.Texture
+import me.anno.graph.render.scene.CombineLightsNode
+import me.anno.graph.render.scene.RenderLightsNode
+import me.anno.graph.render.scene.RenderSceneNode
+import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.actions.ActionNode
 
 class FSR1Node : ActionNode(
     "FSR1",
     listOf(
-        "Int", "Width",
-        "Int", "Height",
+        "Int", "Target Width",
+        "Int", "Target Height",
         "Float", "Sharpness",
         "Texture", "Illuminated",
-    ), listOf("Texture", "Illuminated")
+    ), listOf(
+        "Texture", "Illuminated",
+        "Int", "Width",
+        "Int", "Height"
+    )
 ) {
 
     init {
@@ -45,18 +54,36 @@ class FSR1Node : ActionNode(
         val color = (getInput(4) as? Texture)?.tex ?: whiteTexture
 
         useFrame(width, height, true, f0, copyRenderer) {
-            FSR.upscale(color, 0, 0, width, height, flipY = true, applyToneMapping = false)
+            FSR.upscale(color, 0, 0, width, height, flipY = true, applyToneMapping = false, withAlpha = false)
         }
 
         if (sharpness > 0f) {
-            // todo sharpening doesn't work yet
             useFrame(width, height, true, f1, copyRenderer) {
-                FSR.sharpen(f0.getTexture0(), sharpness, flipY = true)
+                FSR.sharpen(f0.getTexture0(), sharpness, 0, 0, width, height, flipY = true)
             }
-            setOutput(1, Texture(f1.getTexture0()))
+            setOutput(1, Texture.texture(f1, 0))
         } else {
-            setOutput(1, Texture(f0.getTexture0()))
+            setOutput(1, Texture.texture(f0, 0))
         }
 
+        setOutput(2, width)
+        setOutput(3, height)
+    }
+
+    companion object {
+        fun createPipeline(fraction: Float): FlowGraph {
+            return QuickPipeline()
+                .then1(FSR1HelperNode(), mapOf("Fraction" to fraction))
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                // todo scale depth if needed in gizmo node?
+                .then(GizmoNode()) // gizmo node depends on 1:1 depth scale, so we cannot do FSR before it
+                .then(FSR1Node(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        }
     }
 }

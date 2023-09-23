@@ -19,12 +19,12 @@ class InstancedStackI32(capacity: Int = 512) :
 
         val size get() = data.size
         val data = ExpandingIntArray(256)
-        val clickIds = ExpandingIntArray(16)
+        val gfxIds = ExpandingIntArray(16)
         val matrices = ArrayList<Matrix4x3d>() // transform for a group of meshes
 
         fun clear() {
             data.clear()
-            clickIds.clear()
+            gfxIds.clear()
             matrices.clear()
         }
 
@@ -79,7 +79,7 @@ class InstancedStackI32(capacity: Int = 512) :
         }
 
         material.bind(shader)
-        GFX.shaderColor(shader, "tint", -1)
+        shader.v4f("tint", -1)
         shader.v1b("hasAnimation", false)
         shader.v1i("hasVertexColors", if(material.enableVertexColors) mesh.hasVertexColors else 0)
         shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
@@ -99,13 +99,13 @@ class InstancedStackI32(capacity: Int = 512) :
         var baseIndex = 0
         val batchSize = buffer.vertexCount
         var drawCalls = 0L
-        for (i in 0 until instances.clickIds.size / 2) {
+        for (i in 0 until instances.gfxIds.size / 2) {
 
-            val totalEndIndex = if (i * 2 + 2 < instances.clickIds.size)
-                instances.clickIds[i * 2 + 2] else instances.size
+            val totalEndIndex = if (i * 2 + 2 < instances.gfxIds.size)
+                instances.gfxIds[i * 2 + 2] else instances.size
 
-            val clickId = instances.clickIds[i * 2 + 1]
-            shader.v4f("clickId", clickId)
+            val gfxId = instances.gfxIds[i * 2 + 1]
+            shader.v4f("gfxId", gfxId)
             shader.m4x3delta("localTransform", instances.matrices[i], cameraPosition, worldScale)
 
             // draw them in batches of size <= batchSize

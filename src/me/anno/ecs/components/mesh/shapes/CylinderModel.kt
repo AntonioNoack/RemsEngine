@@ -27,7 +27,7 @@ object CylinderModel {
         val triangleCount = quadCount * 2 + (us - 2) * (top.toInt() + bottom.toInt())
         val indexCount = triangleCount * 3
 
-        val vertexCount = us * vs + us * (top.toInt() + bottom.toInt())
+        val vertexCount = (us + 1) * vs + top.toInt(us) + bottom.toInt(us)
 
         mesh.positions = mesh.positions.resize(3 * vertexCount)
         mesh.normals = mesh.normals.resize(3 * vertexCount)
@@ -37,9 +37,9 @@ object CylinderModel {
         mesh.materialIds = materialIds
 
         // precalculate the angles
-        val cu = FloatArray(us)
-        val su = FloatArray(us)
-        for (i in 0 until us) {
+        val cu = FloatArray(us + 1)
+        val su = FloatArray(us + 1)
+        for (i in 0..us) {
             val angle = (2.0 * PI * i / us).toFloat()
             cu[i] = cos(angle)
             su[i] = sin(angle)
@@ -52,17 +52,15 @@ object CylinderModel {
         val uvs = mesh.uvs!!
         for (v in 0 until vs) {
             val y = v * 2f / (vs - 1) - 1f
-            for (u in 0 until us) {
+            for (u in 0..us) {
                 // calculate position
                 normals[k] = cu[u]
                 positions[k++] = cu[u]
-                // normals[k] = 0f
                 positions[k++] = y
                 normals[k] = su[u]
                 positions[k++] = su[u]
-                // good like this?
-                uvs[l++] = 1f - u.toFloat() / us
-                uvs[l++] = v.toFloat() / vs
+                uvs[l++] = 3f * (1f - u.toFloat() / us)
+                uvs[l++] = v.toFloat() / (vs - 1f)
             }
         }
 
@@ -72,15 +70,12 @@ object CylinderModel {
         if (top) {
             for (u in 0 until us) {
                 // calculate position
-                normals[k] = 0f
                 positions[k++] = cu[u]
                 normals[k] = 1f
                 positions[k++] = +1f
-                normals[k] = 0f
                 positions[k++] = su[u]
-                // good like this?
-                uvs[l++] = 0f
-                uvs[l++] = 0f
+                uvs[l++] = .5f + cu[u] * .5f
+                uvs[l++] = .5f - su[u] * .5f
             }
         }
 
@@ -90,15 +85,12 @@ object CylinderModel {
         if (bottom) {
             for (u in 0 until us) {
                 // calculate position
-                normals[k] = 0f
                 positions[k++] = cu[u]
                 normals[k] = -1f
                 positions[k++] = -1f
-                normals[k] = 0f
                 positions[k++] = su[u]
-                // good like this?
-                uvs[l++] = 0f
-                uvs[l++] = 0f
+                uvs[l++] = .5f + cu[u] * .5f
+                uvs[l++] = .5f + su[u] * .5f
             }
         }
 
@@ -112,10 +104,10 @@ object CylinderModel {
         for (v in 0 until vs) {
             for (u in 0 until us) {
                 // create quad face
-                val v0 = getIndex(u, v + 1, us, vs)
-                val v1 = getIndex(u + 1, v + 1, us, vs)
-                val v2 = getIndex(u + 1, v, us, vs)
-                val v3 = getIndex(u, v, us, vs)
+                val v0 = getIndex(u, v + 1, us)
+                val v1 = getIndex(u + 1, v + 1, us)
+                val v2 = getIndex(u + 1, v, us)
+                val v3 = getIndex(u, v, us)
                 indices[k++] = v0
                 indices[k++] = v1
                 indices[k++] = v2
@@ -125,7 +117,7 @@ object CylinderModel {
             }
         }
 
-        var v0 = us * vs
+        var v0 = (us + 1) * vs
         if (top) {
             // add ring
             // 0 1 2 0 2 3 0 3 4
@@ -148,10 +140,7 @@ object CylinderModel {
         return mesh
     }
 
-    private fun getIndex(u: Int, v: Int, us: Int, vs: Int): Int {
-        val u2 = if (u >= us) 0 else u
-        val v2 = if (v >= vs) 0 else v
-        return u2 + v2 * us
+    private fun getIndex(u: Int, v: Int, us: Int): Int {
+        return u + v * (us + 1)
     }
-
 }

@@ -2,7 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.UVProjection
-import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Filtering
@@ -719,7 +719,7 @@ object ShaderLib {
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
         ), "" +
-                noiseFunc +
+                randomGLSL +
                 getTextureLib +
                 getColorForceFieldLib +
                 "float smoothSign(float f){ return clamp(f,-1.0,1.0); }\n" +

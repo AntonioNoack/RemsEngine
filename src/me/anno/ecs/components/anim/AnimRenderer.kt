@@ -165,6 +165,9 @@ open class AnimRenderer : MeshComponent() {
         }
     }
 
+    /**
+     * returns whether it is animated
+     * */
     fun updateAnimState(): Boolean {
         val time = Time.gameTimeN
         return if (time != prevTime) {

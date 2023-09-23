@@ -89,7 +89,7 @@ fun main() {
                     FSR.upscale(
                         scaledDown.getTexture0(),
                         0, 0, reconstructed.width, reconstructed.height,
-                        true, applyToneMapping = false
+                        flipY = true, applyToneMapping = false, withAlpha = false
                     )
                     scaledDown.bindTexture0(0, filtering, Clamping.CLAMP)
                     GFX.copy()

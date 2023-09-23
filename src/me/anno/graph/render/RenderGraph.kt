@@ -56,6 +56,7 @@ object RenderGraph {
             { SSRNode() },
             { BloomNode() },
             { DepthOfFieldNode() },
+            { FSR1HelperNode() },
             { FSR1Node() },
             { MotionBlurNode() },
             { OutlineNode() },

@@ -8,6 +8,5 @@ class DrawRequest(
     var mesh: Mesh,
     var component: Component, // light component or renderer
     var entity: Entity,
-    var materialIndex: Int,
-    var clickId: Int
+    var materialIndex: Int
 )

@@ -2,15 +2,15 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.render.RenderMode
 import me.anno.graph.render.NodeGroup
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.ui.GraphEditor
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI
 
 fun main() {
     ECSRegistry.init()
-    val graph = FlowGraph.testLocalVariables()
+    val graph = RenderMode.FSR_X4.renderGraph!!
     val group = NodeGroup()
     group.members.addAll(graph.nodes.subList(0, 2))
     group.extends.set(500.0, 500.0, 0.0)

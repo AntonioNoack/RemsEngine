@@ -55,7 +55,7 @@ class MotionBlurNode : ActionNode(
             color.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
             motion.bindTrulyNearest(1)
             GFX.check()
-            shader.v1i("samples", samples)
+            shader.v1i("maxSamples", samples)
             shader.v1f("shutter", shutter)
             GFX.check()
             SimpleBuffer.flat01.draw(shader)
@@ -72,7 +72,7 @@ class MotionBlurNode : ActionNode(
         val shader = Shader(
             "MotionBlur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
             listOf(
-                Variable(GLSLType.V1I, "samples"),
+                Variable(GLSLType.V1I, "maxSamples"),
                 Variable(GLSLType.V1F, "shutter"),
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "motionTex"),
@@ -80,8 +80,8 @@ class MotionBlurNode : ActionNode(
             ), "" +
                     "void main(){\n" +
                     "   vec2 motion = 0.5 * shutter * texture(motionTex,uv).xy;\n" + // 0.5, because we sample from both sides
-                    "   float length = length(motion * vec2(textureSize(motionTex,0)));\n" +
-                    "   int samplesI = min(samples, int(round(length)));\n" +
+                    "   float length1 = length(motion * vec2(textureSize(motionTex,0)));\n" +
+                    "   int samplesI = min(maxSamples, int(round(length1)));\n" +
                     "   vec4 res = texture(colorTex, uv);\n" +
                     "   if(samplesI > 1){\n" +
                     "       vec2 uv2 = uv, uv3 = uv;\n" +

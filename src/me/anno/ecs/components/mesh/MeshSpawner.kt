@@ -45,9 +45,9 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             val material2 = material ?: Mesh.defaultMaterial
             val stage = pipeline.findStage(material2)
             val stack = stage.instancedI32.getOrPut(mesh, material2) { _, _ -> InstancedStackI32.Data() }
-            if (stack.clickIds.isEmpty() || (stack.clickIds.last() != this.clickId || stack.matrices.last() != matrix)) {
-                stack.clickIds.add(stack.size)
-                stack.clickIds.add(this.clickId)
+            if (stack.gfxIds.isEmpty() || (stack.gfxIds.last() != gfxId || stack.matrices.last() != matrix)) {
+                stack.gfxIds.add(stack.size)
+                stack.gfxIds.add(gfxId)
                 stack.matrices.add(matrix)
             }
             stack.data
@@ -56,9 +56,9 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             val material2 = material ?: Mesh.defaultMaterial
             val stage = pipeline.findStage(material2)
             val stack = stage.instancedPSR.getOrPut(mesh, material2) { _, _ -> InstancedStackPSR.Data() }
-            if (stack.clickIds.isEmpty() || stack.clickIds.last() != this.clickId) {
-                stack.clickIds.add(stack.size)
-                stack.clickIds.add(this.clickId)
+            if (stack.gfxIds.isEmpty() || stack.gfxIds.last() != gfxId) {
+                stack.gfxIds.add(stack.size)
+                stack.gfxIds.add(gfxId)
             }
             stack.posSizeRot
         }
@@ -69,7 +69,6 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             val stack = stage.instanced.getOrPut(mesh, material2, 0) { mesh1, _, _ ->
                 if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
             }
-            stack.autoClickId = this.clickId
             validateLastStack()
             lastStack = stack
             lastStackIndex = stack.size
@@ -93,12 +92,12 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                         val stack = stage.instanced.getOrPut(mesh, materialI, matIndex) { mesh1, _, _ ->
                             if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
                         }
-                        stage.addToStack(stack, null, transform, clickId)
+                        stage.addToStack(stack, this, transform)
                     } else {
                         if (Build.isDebug && mesh.numMaterials > 1) {
                             LOGGER.warn("Procedural meshes cannot support multiple materials (in MeshSpawner)")
                         }
-                        stage.add(this, mesh, entity, matIndex, clickId)
+                        stage.add(this, mesh, entity, matIndex)
                     }
                 }
 

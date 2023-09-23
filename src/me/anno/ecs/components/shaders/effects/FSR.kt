@@ -1,12 +1,11 @@
 package me.anno.ecs.components.shaders.effects
 
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
-import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.simpleVertexShader
 import me.anno.gpu.shader.ShaderLib.simpleVertexShaderList
 import me.anno.gpu.shader.ShaderLib.uvList
@@ -40,7 +39,8 @@ object FSR {
                 Variable(GLSLType.V4F, "con2"),
                 Variable(GLSLType.V4F, "con3"),
                 Variable(GLSLType.V2F, "texelOffset"),
-                Variable(GLSLType.V1B, "applyToneMapping")
+                Variable(GLSLType.V1B, "applyToneMapping"),
+                Variable(GLSLType.V1B, "withAlpha")
             ), "" +
                     "#define A_GPU 1\n" +
                     "#define A_GLSL 1\n" +
@@ -54,13 +54,13 @@ object FSR {
                     "   vec2 dy = vec2(0.0,con1.y);\n" +
                     "   vec2 dxy = con1.xy;\n" +
                     "   vec4 x00 = texture(source,p);\n" +
-                    "   vec3 y00 = mix(background, x00.rgb, x00.aaa);\n" +
                     "   vec4 x01 = texture(source,p+dy);\n" +
-                    "   vec3 y01 = mix(background, x01.rgb, x01.aaa);\n" +
                     "   vec4 x10 = texture(source,p+dx);\n" +
-                    "   vec3 y10 = mix(background, x10.rgb, x10.aaa);\n" +
                     "   vec4 x11 = texture(source,p+dxy);\n" +
-                    "   vec3 y11 = mix(background, x11.rgb, x11.aaa);\n" +
+                    "   vec3 y00 = withAlpha ? mix(background, x00.rgb, x00.aaa) : x00;\n" +
+                    "   vec3 y01 = withAlpha ? mix(background, x01.rgb, x01.aaa) : x01;\n" +
+                    "   vec3 y10 = withAlpha ? mix(background, x10.rgb, x10.aaa) : x10;\n" +
+                    "   vec3 y11 = withAlpha ? mix(background, x11.rgb, x11.aaa) : x11;\n" +
                     // this is the order of textureGather: https://registry.khronos.org/OpenGL-Refpages/gl4/html/textureGather.xhtml
                     "   r = vec4(y01.r,y11.r,y10.r,y00.r);\n" +
                     "   g = vec4(y01.g,y11.g,y10.g,y00.g);\n" +
@@ -68,14 +68,20 @@ object FSR {
                     "}\n" +
                     "#else\n" +
                     "void FsrEasuLoad(vec2 p, out vec4 r, out vec4 g, out vec4 b){\n" +
-                    "   vec4 alpha = textureGather(source,p,3);\n" +
-                    "   r = mix(background.rrrr, textureGather(source,p,0), alpha);\n" +
-                    "   g = mix(background.gggg, textureGather(source,p,1), alpha);\n" +
-                    "   b = mix(background.bbbb, textureGather(source,p,2), alpha);\n" +
+                    "   if(withAlpha){\n" +
+                    "       vec4 alpha = textureGather(source,p,3);\n" +
+                    "       r = mix(background.rrrr, textureGather(source,p,0), alpha);\n" +
+                    "       g = mix(background.gggg, textureGather(source,p,1), alpha);\n" +
+                    "       b = mix(background.bbbb, textureGather(source,p,2), alpha);\n" +
+                    "   } else {\n" +
+                    "       r = textureGather(source,p,0);\n" +
+                    "       g = textureGather(source,p,1);\n" +
+                    "       b = textureGather(source,p,2);\n" +
+                    "   }\n" +
                     "}\n" +
                     "#endif\n" +
                     functions +
-                    noiseFunc + // needed for tone mapping
+                    randomGLSL + // needed for tone mapping
                     tonemapGLSL +
                     "void main(){\n" +
                     "   vec3 color;\n" +
@@ -95,7 +101,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", simpleVertexShaderList, simpleVertexShader, uvList, emptyList(), "" +
+            "sharpen", simpleVertexShaderList, simpleVertexShader, uvList, emptyList(), "" +
                     "out vec4 glFragColor;\n" +
                     "uniform vec2 dstWH;\n" +
                     "uniform float sharpness;\n" +
@@ -125,23 +131,8 @@ object FSR {
 
     fun upscale(
         sw: Int, sh: Int, x: Int, y: Int, w: Int, h: Int,
-        flipY: Boolean, applyToneMapping: Boolean
-    ) {
-        // if source is null, the texture needs to be bound to slot 0
-        val shader = upscaleShader.value
-        shader.use()
-        fsrConfig(shader, sw, sh, w, h)
-        tiling(shader, flipY)
-        texelOffset(shader, w, h)
-        posSize(shader, x, y, w, h)
-        shader.v3f("background", 0)
-        shader.v1b("applyToneMapping", applyToneMapping)
-        flat01.draw(shader)
-    }
-
-    fun upscale(
-        sw: Int, sh: Int, x: Int, y: Int, w: Int, h: Int,
-        flipY: Boolean, backgroundColor: Int, applyToneMapping: Boolean
+        backgroundColor: Int, flipY: Boolean,
+        applyToneMapping: Boolean, withAlpha: Boolean
     ) {
         // if source is null, the texture needs to be bound to slot 0
         val shader = upscaleShader.value
@@ -152,6 +143,7 @@ object FSR {
         posSize(shader, x, y, w, h)
         shader.v3f("background", backgroundColor)
         shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1b("withAlpha", withAlpha)
         flat01.draw(shader)
     }
 
@@ -162,17 +154,20 @@ object FSR {
         shader.v4f("con3", 0f, 4f / ih, 0f, 0f)
     }
 
-    fun upscale(source: ITexture2D, x: Int, y: Int, w: Int, h: Int, flipY: Boolean, applyToneMapping: Boolean) {
+    fun upscale(
+        source: ITexture2D, x: Int, y: Int, w: Int, h: Int,
+        flipY: Boolean, applyToneMapping: Boolean, withAlpha: Boolean
+    ) {
         source.bindTrulyNearest(0)
-        upscale(source.width, source.height, x, y, w, h, flipY, applyToneMapping)
+        upscale(source.width, source.height, x, y, w, h, 0, flipY, applyToneMapping, withAlpha)
     }
 
     fun upscale(
-        source: ITexture2D, x: Int, y: Int, w: Int, h: Int,
-        flipY: Boolean, backgroundColor: Int, applyToneMapping: Boolean
+        source: ITexture2D, x: Int, y: Int, w: Int, h: Int, backgroundColor: Int,
+        flipY: Boolean, applyToneMapping: Boolean, withAlpha: Boolean
     ) {
         source.bindTrulyNearest(0)
-        upscale(source.width, source.height, x, y, w, h, flipY, backgroundColor, applyToneMapping)
+        upscale(source.width, source.height, x, y, w, h, backgroundColor, flipY, applyToneMapping, withAlpha)
     }
 
     fun sharpen(sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
@@ -189,16 +184,6 @@ object FSR {
         shader.v4f("tiling", 1f, if (flipY) -1f else +1f, 0f, 0f)
     }
 
-    fun sharpen(sharpness: Float, flipY: Boolean) {
-        val shader = sharpenShader.value
-        shader.use()
-        shader.v1f("sharpness", sharpness)
-        texelOffset(shader, GFX.viewportY, GFX.viewportHeight)
-        tiling(shader, flipY)
-        posSize(shader, 0f, 0f, 1f, 1f)
-        flat01.draw(shader)
-    }
-
     fun texelOffset(shader: Shader, w: Int, h: Int) {
         shader.v2f("dstWH", w.toFloat(), h.toFloat())
     }
@@ -206,10 +191,5 @@ object FSR {
     fun sharpen(source: ITexture2D, sharpness: Float, x: Int, y: Int, w: Int, h: Int, flipY: Boolean) {
         source.bindTrulyNearest(0)
         sharpen(sharpness, x, y, w, h, flipY)
-    }
-
-    fun sharpen(source: ITexture2D, sharpness: Float, flipY: Boolean) {
-        source.bindTrulyNearest(0)
-        sharpen(sharpness, flipY)
     }
 }

@@ -1,4 +1,4 @@
-package me.anno.ecs.components.camera.effects
+package me.anno.graph.render.effects
 
 enum class ColorBlindnessMode(val id: Int) {
     PROTANOPIA(0),

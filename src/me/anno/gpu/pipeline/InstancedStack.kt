@@ -27,7 +27,7 @@ import me.anno.utils.structures.tuples.LongPair
 open class InstancedStack {
 
     var transforms = arrayOfNulls<Transform>(64)
-    var clickIds = IntArray(64)
+    var gfxIds = IntArray(64)
     var size = 0
 
     fun clear() {
@@ -37,22 +37,20 @@ open class InstancedStack {
     fun isNotEmpty() = size > 0
     fun isEmpty() = size == 0
 
-    var autoClickId = 0
-
-    open fun add(transform: Transform, clickId: Int) {
+    open fun add(transform: Transform, gfxId: Int) {
         if (size >= transforms.size) {
             // resize
             val newSize = transforms.size * 2
             val newTransforms = arrayOfNulls<Transform>(newSize)
             val newClickIds = IntArray(newSize)
             System.arraycopy(transforms, 0, newTransforms, 0, size)
-            System.arraycopy(clickIds, 0, newClickIds, 0, size)
+            System.arraycopy(gfxIds, 0, newClickIds, 0, size)
             transforms = newTransforms
-            clickIds = newClickIds
+            gfxIds = newClickIds
         }
         val index = size++
         transforms[index] = transform
-        clickIds[index] = clickId
+        gfxIds[index] = gfxId
     }
 
     companion object {
@@ -94,7 +92,7 @@ open class InstancedStack {
                 }
 
                 material.bind(shader)
-                GFX.shaderColor(shader, "tint", -1)
+                shader.v4f("tint", -1)
                 shader.v1b("hasAnimation", useAnimations)
                 shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
                 shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
@@ -119,8 +117,9 @@ open class InstancedStack {
                 // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
                 val nioBuffer = buffer.nioBuffer!!
                 // fill the data
-                val trs = instances.transforms
-                val ids = instances.clickIds
+                val transforms = instances.transforms
+                val gfxIds = instances.gfxIds
+
                 val anim = (instances as? InstancedAnimStack)?.animData
                 val cameraPosition = RenderState.cameraPosition
                 val worldScale = RenderState.worldScale
@@ -154,7 +153,7 @@ open class InstancedStack {
                         val cz = cameraPosition.z
                         if (noWorldScale) {
                             for (index in baseIndex until endIndex) {
-                                val tr = trs[index]!!
+                                val tr = transforms[index]!!
                                 val tri = tr.localPosition
                                 nioBuffer.putFloat((tri.x - cx).toFloat())
                                 nioBuffer.putFloat((tri.y - cy).toFloat())
@@ -169,7 +168,7 @@ open class InstancedStack {
                             }
                         } else {
                             for (index in baseIndex until endIndex) {
-                                val tr = trs[index]!!
+                                val tr = transforms[index]!!
                                 val tri = tr.localPosition
                                 nioBuffer.putFloat(((tri.x - cx) * worldScale).toFloat())
                                 nioBuffer.putFloat(((tri.y - cy) * worldScale).toFloat())
@@ -185,12 +184,12 @@ open class InstancedStack {
                         }
                     } else {
                         for (index in baseIndex until endIndex) {
-                            val tri = trs[index]!!.getDrawMatrix(time)
+                            val tri = transforms[index]!!.getDrawMatrix(time)
                             if (noWorldScale) M4x3Delta.m4x3delta(tri, cameraPosition, nioBuffer)
                             else M4x3Delta.m4x3delta(tri, cameraPosition, worldScale, nioBuffer)
                             if (motionVectors) {
                                 // put previous matrix
-                                val tri2 = trs[index]!!.getDrawnMatrix(time)
+                                val tri2 = transforms[index]!!.getDrawnMatrix(time)
                                 if (noWorldScale) M4x3Delta.m4x3delta(tri2, cameraPosition, nioBuffer)
                                 else M4x3Delta.m4x3delta(tri2, cameraPosition, prevWorldScale, nioBuffer)
                                 // put animation data
@@ -201,8 +200,8 @@ open class InstancedStack {
                             } else {
                                 // put current animation data
                                 if (useAnimations) buffer.put(anim!!, index * 16, 8)
-                                nioBuffer.putInt(ids[index])
                             }
+                            nioBuffer.putInt(gfxIds[index])
                         }
                     }
 
@@ -214,7 +213,7 @@ open class InstancedStack {
                         // todo cluster them cheaply?
                         aabb.clear()
                         for (index in baseIndex until endIndex) {
-                            localAABB.transformUnion(trs[index]!!.getDrawMatrix(), aabb)
+                            localAABB.transformUnion(transforms[index]!!.getDrawMatrix(), aabb)
                         }
                         stage.setupLights(pipeline, shader, aabb, receiveShadows)
                     }

@@ -20,7 +20,7 @@ import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsVShader
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -72,7 +72,7 @@ val snowShader = Shader(
             rawToDepth +
             depthToPosition +
             sdSphere +
-            noiseFunc +
+            randomGLSL +
             "void main(){\n" +
             "   vec4 color = texture(colorTex,uv);\n" +
             "   float depth = density * invWorldScale * rawToDepth(texture(depthTex,uv).r);\n" +

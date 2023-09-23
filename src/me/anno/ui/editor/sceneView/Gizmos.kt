@@ -11,7 +11,6 @@ import me.anno.engine.ui.render.GridColors.colorY
 import me.anno.engine.ui.render.GridColors.colorZ
 import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderState.worldScale
-import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.io.files.BundledRef
@@ -133,7 +132,7 @@ object Gizmos {
         shader.v1f("worldScale", worldScale)
         material.bind(shader)
         shader.v4f("diffuseBase", color)
-        shaderColor(shader, "tint", color)
+        shader.v4f("tint", color)
         shader.v1b("hasAnimation", false)
         shader.v1b("hasVertexColors", false)
         mesh.draw(shader, 0)

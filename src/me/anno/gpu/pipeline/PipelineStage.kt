@@ -18,7 +18,6 @@ import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.buffer16x256
 import me.anno.gpu.M4x3Delta.m4x3delta
@@ -79,7 +78,7 @@ class PipelineStage(
                 Attribute("instanceTrans1", 3),
                 Attribute("instanceTrans2", 3),
                 Attribute("instanceTrans3", 3),
-                Attribute("instanceTint", AttributeType.UINT8_NORM, 4)
+                Attribute("gfxId", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
@@ -91,7 +90,7 @@ class PipelineStage(
                 Attribute("instanceTrans3", 3),
                 Attribute("animWeights", 4),
                 Attribute("animIndices", 4),
-                Attribute("instanceTint", AttributeType.UINT8_NORM, 4)
+                Attribute("gfxId", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
@@ -105,6 +104,7 @@ class PipelineStage(
                 Attribute("instancePrevTrans1", 3),
                 Attribute("instancePrevTrans2", 3),
                 Attribute("instancePrevTrans3", 3),
+                Attribute("gfxId", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
@@ -123,6 +123,7 @@ class PipelineStage(
                 Attribute("animIndices", 4),
                 Attribute("prevAnimWeights", 4),
                 Attribute("prevAnimIndices", 4),
+                Attribute("gfxId", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
@@ -575,8 +576,6 @@ class PipelineStage(
             val oc = (renderer as? MeshComponentBase)?.occlusionQuery
             if (oc != null && oqp && !oc.wasVisible) continue
 
-            GFX.drawnId = request.clickId
-
             val hasAnimation = (renderer as? MeshComponentBase)?.hasAnimation ?: false
             GFXState.animated.use(hasAnimation) {
 
@@ -642,9 +641,10 @@ class PipelineStage(
                     lastComp = renderer
                 }
 
-                shaderColor(shader, "tint", -1)
+                shader.v4f("tint", -1)
                 shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
                 val component = request.component
+                shader.v4f("gfxId", component.gfxId)
                 shader.v2i(
                     "randomIdData",
                     if (mesh.proceduralLength > 0) 3 else 0,
@@ -773,7 +773,7 @@ class PipelineStage(
                 lastMesh = mesh
             }
 
-            shaderColor(shader, "tint", -1)
+            shader.v4f("tint", -1)
             shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
 
             GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
@@ -818,54 +818,52 @@ class PipelineStage(
         }
     }
 
-    fun add(component: Component, mesh: Mesh, entity: Entity, materialIndex: Int, clickId: Int) {
+    fun add(component: Component, mesh: Mesh, entity: Entity, materialIndex: Int) {
         val nextInsertIndex = nextInsertIndex++
         if (nextInsertIndex >= drawRequests.size) {
-            drawRequests.add(DrawRequest(mesh, component, entity, materialIndex, clickId))
+            drawRequests.add(DrawRequest(mesh, component, entity, materialIndex))
         } else {
             val request = drawRequests[nextInsertIndex]
             request.mesh = mesh
             request.component = component
             request.entity = entity
             request.materialIndex = materialIndex
-            request.clickId = clickId
         }
     }
 
     fun addInstanced(
         mesh: Mesh,
-        component: MeshComponentBase?,
+        component: Component,
         entity: Entity,
         material: Material,
-        materialIndex: Int,
-        clickId: Int
-    ) = addInstanced(mesh, component, entity.transform, material, materialIndex, clickId)
+        materialIndex: Int
+    ) = addInstanced(mesh, component, entity.transform, material, materialIndex)
 
     fun addInstanced(
         mesh: Mesh,
-        component: MeshComponentBase?,
+        component: Component,
         transform: Transform,
         material: Material,
-        materialIndex: Int,
-        clickId: Int
+        materialIndex: Int
     ) {
         val stack = instancedWithIdx.getOrPut(mesh, material, materialIndex) { mesh1, _, _ ->
             if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
         }
-        addToStack(stack, component, transform, clickId)
+        addToStack(stack, component, transform)
     }
 
-    fun addToStack(stack: InstancedStack, component: MeshComponentBase?, transform: Transform, clickId: Int) {
-        if (stack is InstancedAnimStack && component is AnimRenderer) {
-            if (component.updateAnimState()) {
-                val texture = component.getAnimTexture()
-                stack.add(
-                    transform, clickId, texture,
-                    component.prevWeights, component.prevIndices,
-                    component.currWeights, component.currIndices
-                )
-            } else stack.add(transform, clickId)
-        } else stack.add(transform, clickId)
+    fun addToStack(stack: InstancedStack, component: Component, transform: Transform) {
+        if (stack is InstancedAnimStack &&
+            component is AnimRenderer &&
+            component.updateAnimState()
+        ) {
+            val texture = component.getAnimTexture()
+            stack.add(
+                transform, component.gfxId, texture,
+                component.prevWeights, component.prevIndices,
+                component.currWeights, component.currIndices
+            )
+        } else stack.add(transform, component.gfxId)
     }
 
     @Suppress("unused")

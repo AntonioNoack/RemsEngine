@@ -2,7 +2,7 @@ package me.anno.gpu.shader
 
 object ShaderFuncLib {
 
-    val noiseFunc = "" +
+    val randomGLSL = "" +
             "float random(vec2 co){\n" +
             "    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);\n" +
             "}\n"

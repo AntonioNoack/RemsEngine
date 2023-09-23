@@ -70,7 +70,7 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
                     "finalEmissive = getSkyColor(quatRot(finalNormal, worldRot));\n" +
                     "finalNormal = -finalNormal;\n" +
                     "finalPosition = finalNormal * 1e20;\n" +
-                    (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+                    finalMotionCalculation
         )
         stage.add(quatRot)
         stage.add(getSkyColor())

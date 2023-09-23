@@ -121,7 +121,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
                     // v0 + sheenCalculation +
                     // clearCoatCalculation +
                     reflectionCalculation +
-                    (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+                    finalMotionCalculation
         ).add(dither2x2))
     }
 }

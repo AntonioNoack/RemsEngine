@@ -6,7 +6,6 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
-import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
@@ -62,16 +61,15 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
-import me.anno.gpu.shader.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.RenderGraph
 import me.anno.io.files.InvalidRef
+import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.roundDiv
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.constraints.AxisAlignment
@@ -320,8 +318,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.BACK else CullMode.BOTH
 
             var useDeferredRendering = when (renderMode) {
-                RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.NO_DEPTH,
-                RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4, RenderMode.FSR_SQRT2, RenderMode.FSR_X2, RenderMode.NEAREST_X4,
+                RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.NO_DEPTH, RenderMode.FSR_MSAA_X4,
                 RenderMode.GHOSTING_DEBUG, RenderMode.INVERSE_DEPTH,
                 RenderMode.LINES, RenderMode.LINES_MSAA, RenderMode.UV,
                 RenderMode.MSAA_NON_DEFERRED -> false
@@ -334,7 +331,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
             var renderer = when (renderMode) {
                 RenderMode.OVERDRAW -> overdrawRenderer
-                RenderMode.CLICK_IDS -> randomIdRenderer
                 RenderMode.NON_DEFERRED, RenderMode.MSAA_NON_DEFERRED,
                 RenderMode.FSR_MSAA_X4, RenderMode.LINES,
                 RenderMode.LINES_MSAA -> {
@@ -446,16 +442,11 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         var h = y1 - y0
 
         when (renderMode) {
-            RenderMode.FSR_SQRT2 -> {
-                // 12/17 ~ 0.706 ~ sqrt 1/2
-                w = roundDiv(w * 12, 17)
-                h = roundDiv(h * 12, 17)
-            }
-            RenderMode.FSR_X2, RenderMode.FSR2_X2 -> {
+            RenderMode.FSR2_X2 -> {
                 w = (w + 1) / 2
                 h = (h + 1) / 2
             }
-            RenderMode.FSR_X4, RenderMode.FSR_MSAA_X4, RenderMode.NEAREST_X4 -> {
+            RenderMode.FSR_MSAA_X4 -> {
                 w = (w + 2) / 4
                 h = (h + 2) / 4
             }
@@ -483,9 +474,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val renderMode = renderMode
         var isHDR = false
         val useFSR = when (renderMode) {
-            RenderMode.FSR_X2,
-            RenderMode.FSR_SQRT2,
-            RenderMode.FSR_X4,
             RenderMode.FSR_MSAA_X4 -> true
             else -> false
         }
@@ -499,14 +487,8 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             changeSize = true, hdr = true
                         )
                         val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, true]
-                        drawScene(
-                            w,
-                            h,
-                            rawAttributeRenderers[DeferredLayerType.MOTION],
-                            motion,
-                            changeSize = false,
-                            hdr = true
-                        )
+                        val motion1 = rawAttributeRenderers[DeferredLayerType.MOTION]
+                        drawScene(w, h, motion1, motion, changeSize = false, hdr = true)
 
                         val lightBuffer = lightNBuffer1
                         drawSceneLights(buffer, lightBuffer)
@@ -758,14 +740,12 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             }
 
             else -> {
-                val hdr = useFSR || renderMode.effect != null
-                isHDR = hdr
-                drawScene(w, h, renderer, buffer, changeSize = true, hdr)
+                isHDR = useFSR
+                drawScene(w, h, renderer, buffer, changeSize = true, useFSR)
                 drawGizmos(buffer, true)
             }
         }
 
-        val effect = renderMode.effect
         when {
             useFSR -> {
                 val tw = x1 - x0
@@ -774,39 +754,12 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 useFrame(tmp) {
                     FSR.upscale(
                         dstBuffer.getTexture0(), 0, 0, tw, th,
-                        flipY = false, applyToneMapping = false
+                        flipY = false, applyToneMapping = false,
+                        withAlpha = false
                     )
                 }
                 // afterwards sharpen
                 FSR.sharpen(tmp.getTexture0(), 0.5f, x, y, tw, th, false)
-            }
-            effect != null -> {
-                val map = when (effect) {
-                    is OutlineEffect -> {
-                        // reset+set old selection IDs; not efficient
-                        // just for testing used here
-                        getWorld()?.forAll {
-                            if (it is MeshComponentBase) it.groupId = 0
-                        }
-                        for (thing in EditorState.selection) {
-                            (thing as? PrefabSaveable)?.forAll {
-                                if (it is MeshComponentBase) it.groupId = 1
-                            }
-                        }
-                        val ids = FBStack["ids", w, h, 4, true, buffer.samples, true]
-                        drawScene(w, h, idRenderer, ids, changeSize = false, hdr = false)
-                        hashMapOf(
-                            DeferredLayerType.SDR_RESULT to dstBuffer,
-                            DeferredLayerType.ID to ids
-                        )
-                    }
-                    else -> hashMapOf(
-                        DeferredLayerType.SDR_RESULT to dstBuffer,
-                        DeferredLayerType.DEPTH to buffer.depthTexture!!.wrapAsFramebuffer(),
-                    )
-                }
-                effect.render(dstBuffer, deferred, map)
-                GFX.copyNoAlpha(map[DeferredLayerType.SDR_RESULT]!!)
             }
             isHDR -> drawTexture(
                 x, y + h, w, -h,
@@ -900,7 +853,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     fun resolveClick(px: Float, py: Float, drawDebug: Boolean = false): Pair<Entity?, Component?> {
 
         // pipeline should already be filled
-        val camera = editorCamera
         val ws = windowStack
         val buffer = FBStack["click", ws.width, ws.height, 4, true, 1, true]
 
@@ -925,12 +877,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             drawGizmos(drawGridLines = false, drawDebug)
         }
 
-        val clickedId = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
+        val clickedIdBGR = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
+        val clickedId = Maths.convertABGR2ARGB(clickedIdBGR).and(0xffffff)
         val clicked = if (clickedId == 0 || world !is Entity) null
         else pipeline.findDrawnSubject(clickedId, world)
-        // LOGGER.info("${ids.joinToString()} x ${depths.joinToString()} -> $clickedId -> $clicked")
-        // val ids2 = world.getComponentsInChildren(MeshComponent::class, false).map { it.clickId }
-        // LOGGER.info(ids2.joinToString())
+        /*LOGGER.info("Found: ${ids.joinToString { it.toString(16) }} x ${depths.joinToString()} -> $clickedId -> $clicked")
+        val ids2 = (world as? Entity)?.getComponentsInChildren(MeshComponent::class, false)
+            ?.joinToString { it.clickId.toString(16) }
+        LOGGER.info("Available: $ids2")*/
         // LOGGER.info(clickedId in ids2)
         return Pair(clicked as? Entity, clicked as? Component)
     }
@@ -1317,7 +1271,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             ) < maxCircleLenSq*/
 
             val nextClickId = clickId++
-            GFX.drawnId = nextClickId
             entity.clickId = nextClickId
 
             val stack = stack
@@ -1340,8 +1293,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     if (component !is MeshComponentBase && component !is MeshSpawner) {
                         val componentClickId = clickId++
                         component.clickId = componentClickId
-                        GFX.drawnId = componentClickId
-                    } else GFX.drawnId = component.clickId
+                    }
                     component.onDrawGUI(component.isSelectedIndirectly)
                 }
             }
@@ -1371,8 +1323,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 // mesh components already got their ID
                 val componentClickId = clickId++
                 world.clickId = componentClickId
-                GFX.drawnId = componentClickId
-            } else GFX.drawnId = world.clickId
+            }
             world.onDrawGUI(world.isSelectedIndirectly)
         }
 

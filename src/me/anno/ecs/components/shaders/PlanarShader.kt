@@ -41,7 +41,7 @@ object PlanarShader : ECSMeshShader("planar") {
                         v0 + sheenCalculation +
                         clearCoatCalculation +
                         reflectionCalculation +
-                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+                        finalMotionCalculation
             )
         )
     }

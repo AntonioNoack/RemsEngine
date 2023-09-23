@@ -134,7 +134,15 @@ class NodeInput : NodeConnector {
             }.run { if (this != null && isDestroyed) null else this }
             "Texture3D" -> value as? Texture3D
             "File", "FileReference" -> value as? FileReference ?: InvalidRef
-            else -> throw NotImplementedError("type $type needs to be implemented")
+            "IntArray" -> value as? IntArray
+            "LongArray" -> value as? LongArray
+            "FloatArray" -> value as? FloatArray
+            "DoubleArray" -> value as? DoubleArray
+            else -> {
+                if (type.startsWith("List<")) {
+                    value as? List<*> ?: emptyList<Any>()
+                } else throw NotImplementedError("type $type needs to be implemented")
+            }
         }
         return currValue
     }

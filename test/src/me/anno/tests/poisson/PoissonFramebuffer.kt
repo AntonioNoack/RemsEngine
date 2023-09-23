@@ -82,7 +82,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
                 Variable(GLSLType.V2F, "dx2"),
                 Variable(GLSLType.V2F, "dy2")
             ), "" +
-                    ShaderFuncLib.noiseFunc +
+                    ShaderFuncLib.randomGLSL +
                     "void main(){\n" +
                     "   vec4 a0  = texture(src, uv);\n" +
                     "   vec3 a1  = texture(src, uv-dx2).rgb;\n" +

@@ -2,10 +2,9 @@ package me.anno.gpu.shader
 
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.Renderers.attributeRenderers
-import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.shader.RandomEffect.randomFunc
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -13,13 +12,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageGPUCache
-import me.anno.utils.Color.a01
-import me.anno.utils.Color.b01
-import me.anno.utils.Color.g01
-import me.anno.utils.Color.r01
 import me.anno.utils.files.UVChecker
-import org.joml.Vector3f
-import org.joml.Vector4f
 
 /**
  * defines render targets combined with post-processing
@@ -30,24 +23,6 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
     open fun getPostProcessing(flags: Int): List<ShaderStage> = emptyList()
 
     open fun uploadDefaultUniforms(shader: Shader) {}
-
-    open fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) {
-        shader.v4f(name, r, g, b, a)
-    }
-
-    fun shaderColor(shader: Shader, name: String, color: Int) {
-        shaderColor(shader, name, color.r01(), color.g01(), color.b01(), color.a01())
-    }
-
-    fun shaderColor(shader: Shader, name: String, value: Vector4f?) {
-        if (value == null) shaderColor(shader, name, 1f, 1f, 1f, 1f)
-        else shaderColor(shader, name, value.x, value.y, value.z, value.w)
-    }
-
-    fun shaderColor(shader: Shader, name: String, value: Vector3f?) {
-        if (value == null) shaderColor(shader, name, 1f, 1f, 1f, 1f)
-        else shaderColor(shader, name, value.x, value.y, value.z, 1f)
-    }
 
     fun split(index: Int, spliceSize: Int): Renderer {
         if (deferredSettings == null) return this
@@ -78,7 +53,6 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
                     Variable(GLSLType.V4F, "SPResult", VariableMode.OUT),
                 ),
                 "" +
-                        randomFunc +
                         colorToSRGB +
                         "SPResult = vec4(finalColor\n" +
                         "   #ifndef IS_TINTED\n * tint.rgb\n #endif\n," +
@@ -97,7 +71,6 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
                     Variable(GLSLType.V4F, "SPResult", VariableMode.OUT),
                 ),
                 "" +
-                        randomFunc +
                         colorToSRGB +
                         "vec3 tmpCol = finalColor\n" +
                         "#ifndef IS_TINTED\n" +
@@ -107,41 +80,41 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
             )
         )
 
-        val idRenderer = object : SimpleRenderer(
+        val idRenderer = SimpleRenderer(
             "id", ShaderStage(
                 "id", listOf(
-                    Variable(GLSLType.V4F, "tint"),
+                    Variable(GLSLType.V4F, "gfxId"),
                     Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
-                ), "if(finalAlpha < 0.01) discard; finalResult = tint;\n"
+                ), "if(finalAlpha < 0.01) discard; finalResult = gfxId;\n"
             )
-        ) {
-            override fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) {
-                val id = GFX.drawnId
-                shader.v4f(name, id.b01(), id.g01(), id.r01(), id.a01())
-            }
-        }
+        )
+
+        val groupRenderer = SimpleRenderer(
+            "id", ShaderStage(
+                "id", listOf(
+                    Variable(GLSLType.V4F, "gfxId"),
+                    Variable(GLSLType.V1F, "finalAlpha"),
+                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
+                ), "if(finalAlpha < 0.01) discard; finalResult = vec4(gfxId.w);\n"
+            )
+        )
 
         // todo randomness based on object position?
-        val randomIdRenderer = object : SimpleRenderer(
+        val randomIdRenderer = SimpleRenderer(
             "randomId", ShaderStage(
                 "randomId", listOf(
-                    Variable(GLSLType.V4F, "tint"),
+                    Variable(GLSLType.V4F, "gfxId"),
                     Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
                 ), "if(finalAlpha < 0.01) discard;\n" +
-                        "float id = dot(tint,vec4(65536.0,256.0,1.0,1.0/256.0));\n" +
+                        "float id = dot(gfxId,vec4(65536.0,256.0,1.0,1.0/256.0));\n" +
                         "finalResult = vec4(\n" +
-                        "   GET_RANDOM(vec2(id,1.0)),\n" +
-                        "   GET_RANDOM(vec2(id,5.0)),\n" +
-                        "   GET_RANDOM(vec2(id,9.0)), 1.0);\n"
-            ).add(randomFunc)
-        ) {
-            override fun shaderColor(shader: Shader, name: String, r: Float, g: Float, b: Float, a: Float) {
-                val id = GFX.drawnId
-                shader.v4f(name, id.b01(), id.g01(), id.r01(), id.a01())
-            }
-        }
+                        "   random(vec2(id,1.0)),\n" +
+                        "   random(vec2(id,5.0)),\n" +
+                        "   random(vec2(id,9.0)), 1.0);\n"
+            ).add(randomGLSL)
+        )
 
         val nothingRenderer = SimpleRenderer("depth", ShaderStage("", emptyList(), ""))
         val depthRenderer = SimpleRenderer(
@@ -165,9 +138,8 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
                         "if(finalAlpha<0.01) discard;\n" +
                         "float flRandomId = float(randomId);\n" +
                         "vec2 seed = vec2(sin(flRandomId), cos(flRandomId));\n" +
-                        randomFunc +
-                        "finalResult = vec4(GET_RANDOM(seed.xy), GET_RANDOM(seed.yx), GET_RANDOM(100.0 - seed.yx), 1.0);\n"
-            )
+                        "finalResult = vec4(random(seed.xy), random(seed.yx), random(100.0 - seed.yx), 1.0);\n"
+            ).add(randomGLSL)
         )
 
         val uvRenderer = object : SimpleRenderer(
@@ -187,7 +159,5 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
         }
 
         val motionVectorRenderer get() = attributeRenderers[DeferredLayerType.MOTION]
-
     }
-
 }

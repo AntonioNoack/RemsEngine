@@ -3,7 +3,7 @@ package me.anno.ecs.components.shaders
 import me.anno.cache.CacheSection
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderFuncLib.noiseFunc
+import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.anisotropic16
 import me.anno.gpu.shader.ShaderLib.rgb2yuv
 import me.anno.gpu.shader.ShaderLib.yuv2rgb
@@ -125,8 +125,8 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         reflectionCalculation +
                         v0 + sheenCalculation +
                         clearCoatCalculation +
-                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
-            ).add(rgb2yuv).add(yuv2rgb).add(anisotropic16).add(noiseFunc)
+                        finalMotionCalculation
+            ).add(rgb2yuv).add(yuv2rgb).add(anisotropic16).add(randomGLSL)
                 .add(getTexture).add(sampleTile)
         )
     }

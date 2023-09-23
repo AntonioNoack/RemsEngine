@@ -7,7 +7,6 @@ import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.CullMode
-import me.anno.gpu.GFX.shaderColor
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.m4x3delta
@@ -132,7 +131,7 @@ object Outlines {
                         shader.m4x3delta("prevLocalTransform", offsetCorrectedTransform, camPosition, worldScale, scale)
                         shader.v1f("worldScale", worldScale)
                         shader.v1f("prevWorldScale", RenderState.prevWorldScale)
-                        shaderColor(shader, "tint", -1)
+                        shader.v4f("tint", -1)
 
                         val hasAnim = animated && comp.defineVertexTransform(shader, entity, mesh)
                         shader.v1b("hasAnimation", hasAnim)
@@ -144,5 +143,4 @@ object Outlines {
             }
         }
     }
-
 }

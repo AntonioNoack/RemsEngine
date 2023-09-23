@@ -300,7 +300,7 @@ open class FileExplorerEntry(
         val y = y0 + (h - ih) / 2
         if (image is Texture2D) image.filtering = GPUFiltering.LINEAR
         if (iw > image.width && ih > image.height) {// maybe use fsr only, when scaling < 4x
-            FSR.upscale(image, x, y, iw, ih, false, backgroundColor, isHDR)// ^^
+            FSR.upscale(image, x, y, iw, ih, backgroundColor, false, isHDR, true)// ^^
         } else {
             drawTexture(x, y, iw, ih, image, -1, null, isHDR)
         }

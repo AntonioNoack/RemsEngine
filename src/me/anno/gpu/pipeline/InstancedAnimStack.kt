@@ -17,8 +17,8 @@ class InstancedAnimStack : InstancedStack() {
     var animData = FloatArray(8 * 16)
     var animTexture: Texture2D? = null
 
-    override fun add(transform: Transform, clickId: Int) {
-        add(transform, clickId, null, defaultWeights, defaultIndices, defaultWeights, defaultIndices)
+    override fun add(transform: Transform, gfxId: Int) {
+        add(transform, gfxId, null, defaultWeights, defaultIndices, defaultWeights, defaultIndices)
     }
 
     fun add(
@@ -33,15 +33,15 @@ class InstancedAnimStack : InstancedStack() {
             val newClickIds = IntArray(newSize)
             val newAnimData = FloatArray(newSize * 16)
             System.arraycopy(transforms, 0, newTransforms, 0, size)
-            System.arraycopy(clickIds, 0, newClickIds, 0, size)
+            System.arraycopy(gfxIds, 0, newClickIds, 0, size)
             System.arraycopy(animData, 0, newAnimData, 0, size * 16)
             transforms = newTransforms
-            clickIds = newClickIds
+            gfxIds = newClickIds
         }
         if (texture != null) this.animTexture = texture
         val index = size++
         transforms[index] = transform
-        clickIds[index] = clickId
+        gfxIds[index] = clickId
         var j = index * 16
         val animData = animData
         // same order as in PipelineStage.instancedBufferMA

@@ -17,7 +17,6 @@ import me.anno.engine.ui.render.*
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
-import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.blending.BlendMode
@@ -139,7 +138,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         // todo add it to the transparent pass
     }
 
-    fun addMesh(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, clickId: Int) {
+    fun addMesh(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, gfxId: Int) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         val materialOverrides = renderer.materials
@@ -148,12 +147,12 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
             val m1 = m0 ?: materials.getOrNull(index)
             val material = MaterialCache[m1, defaultMaterial]
             val stage = findStage(material)
-            stage.add(renderer, mesh, entity, index, clickId)
+            stage.add(renderer, mesh, entity, index)
         }
     }
 
     private fun addMeshDepth(mesh: Mesh, renderer: MeshComponentBase, entity: Entity) {
-        defaultStage.add(renderer, mesh, entity, 0, 0)
+        defaultStage.add(renderer, mesh, entity, 0)
     }
 
     fun addMeshInstanced(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, clickId: Int) {
@@ -165,7 +164,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
             val m1 = m0 ?: materials.getOrNull(index)
             val material = MaterialCache[m1, defaultMaterial]
             val stage = findStage(material)
-            stage.addInstanced(mesh, renderer, entity, material, index, clickId)
+            stage.addInstanced(mesh, renderer, entity, material, index)
         }
     }
 
@@ -176,7 +175,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         material: Material,
         materialIndex: Int
     ) {
-        defaultStage.addInstanced(mesh, component, entity, material, materialIndex, 0)
+        defaultStage.addInstanced(mesh, component, entity, material, materialIndex)
     }
 
     fun addLight(light: LightComponent, entity: Entity) {
@@ -330,7 +329,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
             stage.setupLights(this, shader, allAABB, false)
             PipelineStage.setupLocalTransform(shader, sky.transform, Time.gameTimeN)
             shader.v1b("hasAnimation", false)
-            GFX.shaderColor(shader, "tint", -1)
+            shader.v4f("tint", -1)
             shader.v1f("finalAlpha", 1f)
             shader.v1i("hasVertexColors", 0)
             shader.v2i("randomIdData", 6, sky.randomTriangleId)

@@ -1,7 +1,5 @@
 package me.anno.graph.render
 
-import me.anno.gpu.shader.RandomEffect.randomFunc
-import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.types.flow.maths.GLSLExprNode
 import me.anno.maths.Maths.fract
@@ -23,6 +21,6 @@ class RandomNode : CalculationNode("Random", listOf("Vector2f", "Seed"), listOf(
     override fun getShaderFuncName(outputIndex: Int): String = "rand2"
 
     override fun defineShaderFunc(outputIndex: Int): String {
-        return "(vec2 uv){\n${randomFunc}return GET_RANDOM(uv);}"
+        return "(vec2 uv){ return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); }"
     }
 }

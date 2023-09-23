@@ -219,7 +219,7 @@ class MaterialGraphCompiler(
                                 // todo node for clear coat calculation
                                 // todo optional sheen calculation
                                 reflectionCalculation +
-                                (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+                                finalMotionCalculation
                     ).add(functions)
                 )
             }

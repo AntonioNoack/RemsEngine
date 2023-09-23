@@ -550,7 +550,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
 
     fun v4f(name: String, color: Int) = v4f(getUniformLocation(name), color)
     fun v4f(loc: Int, color: Int) {
-        v4f(
+        if (loc >= 0) v4f(
             loc,
             (color.shr(16) and 255) / 255f,
             (color.shr(8) and 255) / 255f,
@@ -564,7 +564,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
      * */
     fun v4fs(name: String, vs: FloatArray) = v4fs(getUniformLocation(name), vs)
     fun v4fs(loc: Int, vs: FloatArray) {
-        if (loc > -1) {
+        if (loc >= 0) {
             potentiallyUse()
             glUniform4fv(loc, vs)
         }
@@ -573,7 +573,7 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     @Suppress("unused")
     fun v4fs(name: String, vs: FloatBuffer) = v4fs(getUniformLocation(name), vs)
     fun v4fs(loc: Int, vs: FloatBuffer) {
-        if (loc > -1) {
+        if (loc >= 0) {
             potentiallyUse()
             glUniform4fv(loc, vs)
         }

@@ -144,9 +144,6 @@ open class DeferredLayerType(
         val ID = DeferredLayerType("ID", "finalId", 4, 0)
         // val FLAGS = DeferredLayerType("Flags", "finalFlags", 4, 0)
 
-        // pseudo types for effects
-        @Deprecated("Will be removed with CameraEffect")
-        val SDR_RESULT = DeferredLayerType("SDR", "finalSDR", 0)
         val LIGHT_SUM = DeferredLayerType("Light Sum", "finalLight", 0)
 
         // is there more, which we could use?

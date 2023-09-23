@@ -99,7 +99,7 @@ object TriplanarShader : ECSMeshShader("triplanar") {
                         "} else finalSheen = 0.0;\n" +
                         clearCoatCalculation +
                         reflectionCalculation +
-                        (if (flags.hasFlag(NEEDS_MOTION_VECTORS)) finalMotionCalculation else "")
+                        finalMotionCalculation
             )
         )
     }

@@ -253,7 +253,7 @@ class NodePanel(
             if (texture.width >= width) {
                 drawTexture(x, y + height, width, -height, texture)
             } else {
-                FSR.upscale(texture, x, y, width, height, flipY = true, applyToneMapping = false)
+                FSR.upscale(texture, x, y, width, height, flipY = true, applyToneMapping = false, withAlpha = true)
             }
         } else {
             cachedTexture?.destroy()

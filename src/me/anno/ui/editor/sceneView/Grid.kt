@@ -16,10 +16,11 @@ import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
 import me.anno.utils.Color.black
-import me.anno.utils.Color.withAlpha
 import me.anno.utils.types.Vectors.avg
-import org.joml.*
-import org.lwjgl.opengl.GL11C.*
+import org.joml.Matrix4f
+import org.joml.Matrix4fArrayList
+import org.joml.Vector3f
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL20.GL_LINES
 import kotlin.math.*
 
@@ -69,7 +70,6 @@ object Grid {
             sphereBuffer.put(cos(a1), sin(a1), 0f)
         }
         sphereBuffer.drawMode = GL_LINES
-
     }
 
     fun drawSmoothLine(
@@ -128,11 +128,11 @@ object Grid {
     ) = drawLine11((x0 + x1) / w - 1f, 1f - (y0 + y1) / h, x1 * 2f / w - 1f, 1f - 2f * y1 / h, color, alpha)
 
     private fun defaultUniforms(shader: Shader, color: Vector4f) {
-        GFX.shaderColor(shader, "tint", color)
+        shader.v4f("tint", color)
     }
 
     private fun defaultUniforms(shader: Shader, color: Int, alpha: Float) {
-        GFX.shaderColor(shader, "tint", color.withAlpha(alpha))
+        shader.v4f("tint", color, alpha)
     }
 
     private val stack = Matrix4f()
@@ -175,7 +175,6 @@ object Grid {
             bindWhite(0)
             lineBuffer.draw(shader)
         }
-
     }
 
     fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float) {
@@ -187,7 +186,6 @@ object Grid {
         defaultUniforms(shader, color, alpha)
         bindWhite(0)
         lineBuffer.draw(shader)
-
     }
 
     // allow more/full grid customization?
@@ -227,7 +225,6 @@ object Grid {
 
         }
         // if (LineBuffer.enableLineSmoothing) glDisable(GL_LINE_SMOOTH)
-
     }
 
     // allow more/full grid customization?
@@ -239,7 +236,6 @@ object Grid {
 
         val distance = length(camPos.x, camPos.y, camPos.z)
         draw(stack, distance.toDouble())
-
     }
 
     @Suppress("unused")
@@ -255,7 +251,6 @@ object Grid {
         bindWhite(0)
 
         buffer.draw(shader)
-
     }
 
     fun drawGrid(stack: Matrix4fArrayList, alpha: Float) {
@@ -270,7 +265,5 @@ object Grid {
         bindWhite(0)
 
         gridBuffer.draw(shader)
-
     }
-
 }

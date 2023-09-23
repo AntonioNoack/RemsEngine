@@ -120,7 +120,6 @@ class RenderSceneNode : RenderSceneNode0(
         // todo there are special types for which we might need to apply lighting or combine other types
         //  e.g. for forward-rendering :)
 
-        // todo only blit if necessary
         // todo only blit textures, where necessary (e.g. only metallic might have to be blitted)
 
         val layers = settings.layers

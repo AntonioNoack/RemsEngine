@@ -1,20 +1,16 @@
 package me.anno.engine.ui.render
 
-import me.anno.ecs.components.camera.effects.CameraEffect
-import me.anno.ecs.components.camera.effects.ColorBlindnessMode
-import me.anno.ecs.components.camera.effects.ColorBlindnessNode.Companion.createRenderGraph
-import me.anno.ecs.components.camera.effects.DepthTestNode
-import me.anno.ecs.components.camera.effects.OutlineEffect
 import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.shader.RandomEffect
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.Renderer.Companion.triangleVisRenderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
 import me.anno.graph.render.QuickPipeline
 import me.anno.graph.render.effects.*
+import me.anno.graph.render.effects.ColorBlindnessNode.Companion.createRenderGraph
 import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneNode
@@ -26,15 +22,13 @@ import me.anno.graph.types.FlowGraph
 class RenderMode(
     val name: String,
     val dlt: DeferredLayerType? = null,
-    val effect: CameraEffect? = null,
     val renderer: Renderer? = null,
     val renderGraph: FlowGraph? = null,
 ) {
 
-    constructor(name: String, effect: CameraEffect) : this(name, null, effect)
-    constructor(name: String, renderer: Renderer) : this(name, null, null, renderer)
-    constructor(renderer: Renderer) : this(renderer.name, null, null, renderer)
-    constructor(name: String, renderGraph: FlowGraph?) : this(name, null, null, null, renderGraph)
+    constructor(name: String, renderer: Renderer) : this(name, null, renderer)
+    constructor(renderer: Renderer) : this(renderer.name, null, renderer)
+    constructor(name: String, renderGraph: FlowGraph?) : this(name, null, null, renderGraph)
 
     init {
         values.add(this)
@@ -79,7 +73,7 @@ class RenderMode(
                 .finish()
         )
 
-        val CLICK_IDS = RenderMode("ClickIds (Random)", RandomEffect)
+        val CLICK_IDS = RenderMode("ClickIds (Random)", randomIdRenderer)
 
         val DEPTH = RenderMode("Depth")
 
@@ -177,15 +171,28 @@ class RenderMode(
         val MONO_WORLD_SCALE = RenderMode("Mono World-Scale")
         val GHOSTING_DEBUG = RenderMode("Ghosting Debug")
 
+        val FSR_SQRT2 = RenderMode("FSRx1.41", FSR1Node.createPipeline(0.707f))
+        val FSR_X2 = RenderMode("FSRx2", FSR1Node.createPipeline(0.5f))
+        val FSR_X4 = RenderMode("FSRx4", FSR1Node.createPipeline(0.25f))
 
         // todo make these modes use a render graph, too
-        val FSR_SQRT2 = RenderMode("FSRx1.41")
-        val FSR_X2 = RenderMode("FSRx2")
-        val FSR_X4 = RenderMode("FSRx4")
         val FSR_MSAA_X4 = RenderMode("FSR+MSAAx4")
         val FSR2_X2 = RenderMode("FSR2x2")
         val FSR2_X8 = RenderMode("FSR2x8")
-        val NEAREST_X4 = RenderMode("Nearest 4x")
+
+        val NEAREST_X4 = RenderMode(
+            "Nearest 4x",
+            QuickPipeline()
+                .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f)) // reduces resolution 4x
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode())
+                .finish()
+        )
 
         val LINES = RenderMode("Lines")
         val LINES_MSAA = RenderMode("Lines MSAA")
@@ -209,7 +216,21 @@ class RenderMode(
 
         val PHYSICS = RenderMode("Physics")
 
-        val POST_OUTLINE = RenderMode("Post-Outline", OutlineEffect())
+        val POST_OUTLINE = RenderMode(
+            "Post-Outline",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(OutlineEffectSelectNode())
+                .then(OutlineEffectNode())
+                .then(FXAANode())
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
 
         // color blindness modes
         val GRAYSCALE = RenderMode("Grayscale", createRenderGraph(ColorBlindnessMode.GRAYSCALE))
@@ -228,6 +249,19 @@ class RenderMode(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then(DepthOfFieldNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
+        val MOTION_BLUR = RenderMode(
+            "Motion Blur", QuickPipeline()
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then(MotionBlurNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()

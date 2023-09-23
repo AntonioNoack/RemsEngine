@@ -17,10 +17,10 @@ class InstancedStackPSR(capacity: Int = 64) :
     class Data {
         val size get() = posSizeRot.size ushr 3
         val posSizeRot = ExpandingFloatArray(256)
-        val clickIds = ExpandingIntArray(16)
+        val gfxIds = ExpandingIntArray(16)
         fun clear() {
             posSizeRot.clear()
-            clickIds.clear()
+            gfxIds.clear()
         }
     }
 
@@ -75,7 +75,7 @@ class InstancedStackPSR(capacity: Int = 64) :
         }
 
         material.bind(shader)
-        GFX.shaderColor(shader, "tint", -1)
+        shader.v4f("tint", -1)
         shader.v1b("hasAnimation", false)
         shader.v1i("hasVertexColors", if(material.enableVertexColors) mesh.hasVertexColors else 0)
         shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
@@ -91,13 +91,13 @@ class InstancedStackPSR(capacity: Int = 64) :
 
         var baseIndex = 0
         var drawCalls = 0L
-        for (i in 0 until instances.clickIds.size / 2) {
+        for (i in 0 until instances.gfxIds.size / 2) {
 
-            val totalEndIndex = if (i * 2 + 2 < instances.clickIds.size)
-                instances.clickIds[i * 2 + 2] else instances.size
+            val totalEndIndex = if (i * 2 + 2 < instances.gfxIds.size)
+                instances.gfxIds[i * 2 + 2] else instances.size
 
-            val clickId = instances.clickIds[i * 2 + 1]
-            shader.v4f("clickId", clickId)
+            val gfxId = instances.gfxIds[i * 2 + 1]
+            shader.v4f("gfxId", gfxId)
 
             // draw them in batches of size <= batchSize
             val batchSize = buffer.vertexCount

@@ -17,6 +17,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.*
 import me.anno.utils.Color.toARGB
+import me.anno.utils.Color.white4
 import me.anno.utils.types.Floats.toRadians
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.*
@@ -48,7 +49,7 @@ object GFXx3D {
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
         ), "" +
-                ShaderFuncLib.noiseFunc +
+                ShaderFuncLib.randomGLSL +
                 ShaderLib.getTextureLib +
                 ShaderLib.getColorForceFieldLib +
                 "void main(){\n" +
@@ -165,7 +166,6 @@ object GFXx3D {
 
         GFXx2D.tiling(shader, tiling)
         shader.v1i("uvProjection", uvProjection?.id ?: UVProjection.Planar.id)
-
     }
 
     fun shader3DUniforms(
@@ -175,7 +175,7 @@ object GFXx3D {
         uvProjection: UVProjection?
     ) {
         shader3DUniforms(shader, stack, w, h, tiling, filtering, uvProjection)
-        GFX.shaderColor(shader, "tint", color)
+        shader.v4f("tint", color ?: white4)
     }
 
     fun shader3DUniforms(
@@ -185,7 +185,7 @@ object GFXx3D {
         uvProjection: UVProjection?
     ) {
         shader3DUniforms(shader, stack, w, h, tiling, filtering, uvProjection)
-        GFX.shaderColor(shader, "tint", color)
+        shader.v4f("tint", color)
     }
 
     fun shader3DUniforms(
@@ -194,7 +194,7 @@ object GFXx3D {
         tiling: Vector4f?, uvProjection: UVProjection?
     ) {
         shader3DUniforms(shader, stack, w, h, tiling, Filtering.NEAREST, uvProjection)
-        GFX.shaderColor(shader, "tint", color)
+        shader.v4f("tint", color)
     }
 
     fun drawDebugCube(matrix: Matrix4fArrayList, size: Float, color: Vector4f?) {
@@ -208,13 +208,13 @@ object GFXx3D {
 
     fun shader3DUniforms(shader: Shader, transform: Matrix4f?, color: Int) {
         transformUniform(shader, transform)
-        GFX.shaderColor(shader, "tint", color)
+        shader.v4f("tint", color)
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
     }
 
     fun shader3DUniforms(shader: Shader, transform: Matrix4f, color: Vector4f) {
         transformUniform(shader, transform)
-        GFX.shaderColor(shader, "tint", color)
+        shader.v4f("tint", color)
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
     }
 
@@ -360,7 +360,7 @@ object GFXx3D {
 
         defineAdvancedGraphicalFeatures(shader)
 
-        GFX.shaderColor(shader, "tint", color)
+        shader.v4f("tint", color)
 
         val cc = min(colorCount, maxOutlineColors)
 
@@ -391,7 +391,6 @@ object GFXx3D {
         shader.v1f("depth", depth * 0.00001f)
 
         drawOutlinedText(stack, offset, scale, texture, hasUVAttractors)
-
     }
 
     fun drawOutlinedText(
@@ -497,7 +496,5 @@ object GFXx3D {
         // localScale, localOffset not needed
         shader.v1i("forceFieldColorCount", 0)
         shader.v1i("forceFieldUVCount", 0)
-
     }
-
 }
