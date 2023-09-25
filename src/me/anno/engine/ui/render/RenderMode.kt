@@ -180,6 +180,7 @@ class RenderMode(
         val FSR2_X2 = RenderMode("FSR2x2")
         val FSR2_X8 = RenderMode("FSR2x8")
 
+        // todo this is broken...
         val NEAREST_X4 = RenderMode(
             "Nearest 4x",
             QuickPipeline()

@@ -249,6 +249,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val instancedInitCode = "" +
                 "#ifdef INSTANCED\n" +
+                "   gfxId = instanceGfxId;\n" +
                 "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
                 "   #ifdef MOTION_VECTORS\n" +
                 "       mat4x3 prevLocalTransform = mat4x3(instancePrevTrans0,instancePrevTrans1,instancePrevTrans2,instancePrevTrans3);\n" +
@@ -380,7 +381,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             variables += Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR)
             variables += Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR)
             variables += Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR)
-            variables += Variable(GLSLType.V4F, "gfxId", VariableMode.ATTR)
+            variables += Variable(GLSLType.V4F, "instanceGfxId", VariableMode.ATTR)
+            variables += Variable(GLSLType.V4F, "gfxId", VariableMode.OUT)
             if (isAnimated && useAnimTextures) {
                 variables += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
                 variables += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)

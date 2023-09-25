@@ -1,6 +1,7 @@
 package me.anno.graph.render
 
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.graph.render.compiler.ShaderExprNode
@@ -143,7 +144,11 @@ object RenderGraph {
         start.setOutput(2, dst.height)
 
         val endNode = try {
-            graph.execute(start) as? ExprReturnNode
+            // set default blend mode to null
+            renderPurely {
+                // then render
+                graph.execute(start) as? ExprReturnNode
+            }
         } catch (e: ReturnNode.ReturnThrowable) {
             e.node as? ExprReturnNode
         } catch (e: Exception) {
