@@ -153,10 +153,7 @@ open class ScrollPanelX(
             super.onMouseWheel(x, y, dx, dy, byMouse)
         } else {
             scrollX(delta.toDouble())
-            // we consumed dx
-            if (delta != 0f) {
-                super.onMouseWheel(x, y, 0f, dy, byMouse)
-            }
+            super.onMouseWheel(x, y, 0f, dy, byMouse)
         }
     }
 

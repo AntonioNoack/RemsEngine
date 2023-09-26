@@ -18,6 +18,7 @@ import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList2D
@@ -32,7 +33,6 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
 import me.anno.ui.input.TextInput
-import me.anno.ui.Style
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
@@ -723,7 +723,7 @@ open class FileExplorer(
         if (!Input.isControlDown) {
             // find, which item is being hovered
             hoveredItemIndex = content2d.getItemIndexAt(x.toInt(), y.toInt())
-            hoverFractionY = clamp(content2d.getItemFractionY(y).toFloat(), 0.25f, 0.75f)
+            hoverFractionY = clamp(content2d.getItemFractionY(y), 0.25f, 0.75f)
         }
     }
 

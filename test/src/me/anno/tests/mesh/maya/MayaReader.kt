@@ -5,24 +5,33 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.LOGGER
+import me.anno.utils.OS.desktop
+import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.toDouble
+import me.anno.utils.types.Strings.toFloat
 import me.anno.utils.types.Strings.toInt
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import kotlin.math.max
+import kotlin.test.assertEquals
 
-// todo read Maya files
-// todo first files: Maya Ascii 2015
+/**
+ * todo reading some Maya files from Synty Store
+ * not working yet
+ *
+ * Maya Ascii 2015
+ * */
 
 fun split(data: String, list: ArrayList<CharSequence>) {
     var i = 0
     while (i < data.length) {
-        when (data[i]) {
-            ' ', '\t', '\r', '\n' -> i++
-            '"' -> {
+        val di = data[i]
+        when {
+            isSpace(di) -> i++
+            di == '"' -> {
                 val i0 = ++i
                 while (i < data.length && data[i] != '"') i++
                 list.add(data.subSequence(i0, i))
@@ -31,10 +40,17 @@ fun split(data: String, list: ArrayList<CharSequence>) {
             else -> {
                 // read until space
                 val i0 = i
-                while (i < data.length && data[i] != ' ') i++
+                while (i < data.length && !isSpace(data[i])) i++
                 list.add(data.subSequence(i0, i))
             }
         }
+    }
+}
+
+fun isSpace(char: Char): Boolean {
+    return when (char) {
+        ' ', '\t', '\r', '\n' -> true
+        else -> false
     }
 }
 
@@ -55,16 +71,21 @@ fun named(arguments: ArrayList<CharSequence>, named: HashMap<String, CharSequenc
 }
 
 fun main() {
-    val file = getReference(
-        "E:/Assets/Sources/Simple_Fantasy_Interiors_SourceFiles.rar/" +
-                "SourceFiles/Simple_Fantasy_Interiors_Demo.ma"
-    )
+    val file = desktop.getChild("Simple_Racer_StaticMeshes.ma")
+    val debug = desktop.getChild("ma-debug")
+    debug.tryMkdirs()
+
+    /* println(1.0419103e-33)
+     println(1.0419103e-33.toFloat())
+     println("1.0419103e-033".toFloat())
+     return*/
 
     // not supported by Assimp
     // println(AnimatedMeshesLoader.loadFile(file, defaultFlags))
 
     file.readText { text, e ->
         if (text != null) {
+            var meshIndex = 0
             var node: PrefabSaveable? = null
             val nodes = ArrayList<PrefabSaveable>()
             val namedNodes = HashMap<String, PrefabSaveable>()
@@ -80,11 +101,21 @@ fun main() {
                 split(line, arguments)
                 named(arguments, namedArguments)
                 println("$arguments, $namedArguments")
+                fun finishNode() {
+                    when (val m = node) {
+                        is Mesh -> {
+                            val dst = debug.getChild("${meshIndex++}.json")
+                            dst.writeText(m.toString())
+                            // GLTFWriter().write(m, dst)
+                        }
+                    }
+                }
                 when (arguments.first()) {
                     "requires" -> {}
                     "currentUnit" -> {}
                     "fileInfo" -> {}
                     "createNode" -> {
+                        finishNode()
                         val name = namedArguments["-n"].toString()
                         when (val type = arguments[1]) {
                             "camera" -> {
@@ -116,7 +147,6 @@ fun main() {
                         }
                     }
                     "addAttr" -> {
-
                     }
                     "setAttr" -> {
                         when (val key = arguments[1]) {
@@ -158,11 +188,86 @@ fun main() {
                                 //  and then save data
                                 if (key.startsWith(".vt[")) {
                                     // vertices
+                                    node as Mesh
+
+                                    if ("-s" in namedArguments) {
+                                        val size = namedArguments["-s"]!!.toInt() * 3
+                                        node.positions = node.positions.resize(size)
+                                    }
+
+                                    val colon = key.indexOf(':')
+                                    val start = key.substring(4, colon).toInt()
+                                    val end = key.substring(colon + 1, key.length - 1).toInt() + 1
+                                    val dst = node.positions!!
+                                    assertEquals((end - start) * 3, arguments.size - 2, key.toString())
+                                    val offset = start * 3 - 2
+                                    for (i in 2 until arguments.size) {
+                                        dst[i + offset] = arguments[i].toFloat()
+                                    }
                                 } else if (key.startsWith(".n[")) {
                                     // normals
+                                    node as Mesh
+
+                                    if ("-s" in namedArguments) {
+                                        val size = namedArguments["-s"]!!.toInt() * 3
+                                        node.normals = node.normals.resize(size)
+                                    }
+
+                                    val colon = key.indexOf(':')
+                                    val start = key.substring(3, colon).toInt()
+                                    val end = key.substring(colon + 1, key.length - 1).toInt() + 1
+                                    val dst = node.normals!!
+                                    assertEquals((end - start) * 3, arguments.size - 2)
+                                    val offset = start * 3 - 2
+                                    for (i in 2 until arguments.size) {
+                                        dst[i + offset] = arguments[i].toFloat()
+                                    }
                                 } else if (key.startsWith(".fc[")) {
                                     // face count
+                                    node as Mesh
                                     // -s is the number of "f", -ch of "f" and "mu"
+                                    val indices = ExpandingIntArray(64)
+                                    // val colon = key.indexOf(':')
+                                    // val start = key.substring(3, colon).toInt()
+                                    // else we have a problem, and need to join multiple indices sections...
+                                    var i = 2
+                                    while (i < arguments.size) {
+                                        when (arguments[i++]) {
+                                            "f" -> {
+                                                val numVertices = node.positions!!.size / 3
+                                                val count = arguments[i++].toInt()
+                                                val indices1 = IntArray(count) {
+                                                    val idx = arguments[i++].toInt()
+                                                    val idx1 = if (idx < 0) numVertices + idx else idx
+                                                    if(idx1<0) println("Illegal index? $idx, #verts: $numVertices")
+                                                    max(idx1, 0)
+                                                }
+                                                for (j in 2 until count) {
+                                                    indices.add(indices1[0])
+                                                    indices.add(indices1[j - 1])
+                                                    indices.add(indices1[j])
+                                                }
+                                            }
+                                            "mu" -> {
+                                                i++ // can also be 1, idk what it means...
+                                                // assertEquals("0", arguments[i++].toString())
+                                                val count = arguments[i++].toInt()
+                                                i += count
+                                                // idk what data this is
+                                            }
+                                            "mc" -> {
+                                                assertEquals("0", arguments[i++].toString())
+                                                val count = arguments[i++].toInt()
+                                                i += count
+                                                // idk what data this is
+                                            }
+                                            else -> throw NotImplementedError(arguments[i].toString())
+                                        }
+                                    }
+                                    // not ideal...
+                                    node.indices = (node.indices ?: IntArray(0)) + indices.toIntArray()
+                                } else if (key.startsWith(".ed[")) {
+                                    // ???
                                 }
                             }
                         }
@@ -170,7 +275,6 @@ fun main() {
                     "connectAttr" -> {
                         val k0 = arguments[1]
                         val k1 = arguments[2]
-
                     }
                 }
             }

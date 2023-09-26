@@ -408,7 +408,7 @@ object Strings {
             when (val char = this[i]) {
                 in '0'..'9' -> number = number * 10 + char.code - 48
                 '.' -> return readAfterDot(i0, i + 1, i1, sign, number.toDouble())
-                'e', 'E' -> return sign * number * 10.0.pow(toInt())
+                'e', 'E' -> return sign * number * 10.0.pow(toInt(i + 1))
                 else -> throw NumberFormatException(subSequence(i0, i1).toString())
             }
         }
@@ -425,11 +425,10 @@ object Strings {
                     fraction += exponent * (char2.code - 48)
                     exponent *= 0.1f
                 }
-                'e', 'E' -> return sign * (number + fraction) * 10.0.pow(toLong(i).toInt())
+                'e', 'E' -> return sign * (number + fraction) * 10.0.pow(toInt(i + 1))
                 else -> throw NumberFormatException(subSequence(ix, i1).toString())
             }
         }
         return sign * (number + fraction)
     }
-
 }

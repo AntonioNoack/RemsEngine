@@ -385,13 +385,13 @@ object Input {
         addEvent {
             val mouseX = window.mouseX
             val mouseY = window.mouseY
-            val clicked = window.windowStack.getPanelAt(mouseX, mouseY)
+            val panelUnderCursor = window.windowStack.getPanelAt(mouseX, mouseY)
             if (!byMouse && abs(dx) > abs(dy)) userCanScrollX = true // e.g., by touchpad: use can scroll x
-            if (clicked != null) {
+            if (panelUnderCursor != null) {
                 if (!userCanScrollX && byMouse && (isShiftDown || isControlDown)) {
-                    clicked.onMouseWheel(mouseX, mouseY, -dy, dx, byMouse = true)
+                    panelUnderCursor.onMouseWheel(mouseX, mouseY, -dy, dx, byMouse = true)
                 } else {
-                    clicked.onMouseWheel(mouseX, mouseY, dx, dy, byMouse)
+                    panelUnderCursor.onMouseWheel(mouseX, mouseY, dx, dy, byMouse)
                 }
             }
         }

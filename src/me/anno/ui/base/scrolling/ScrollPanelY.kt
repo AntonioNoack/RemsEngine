@@ -9,6 +9,7 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
@@ -16,7 +17,6 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.minWeight
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
-import me.anno.ui.Style
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
 import kotlin.math.round
@@ -152,10 +152,7 @@ open class ScrollPanelY(
             super.onMouseWheel(x, y, dx, dy, byMouse)
         } else {
             scrollY(delta.toDouble())
-            // we consumed dy
-            if (delta != 0f) {
-                super.onMouseWheel(x, y, dx, 0f, byMouse)
-            }
+            super.onMouseWheel(x, y, dx, 0f, byMouse)
         }
     }
 
