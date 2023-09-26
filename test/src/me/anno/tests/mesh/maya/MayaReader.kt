@@ -5,10 +5,12 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.mesh.gltf.GLTFWriter
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Arrays.resize
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.toDouble
 import me.anno.utils.types.Strings.toFloat
@@ -72,13 +74,8 @@ fun named(arguments: ArrayList<CharSequence>, named: HashMap<String, CharSequenc
 
 fun main() {
     val file = desktop.getChild("Simple_Racer_StaticMeshes.ma")
-    val debug = desktop.getChild("ma-debug")
-    debug.tryMkdirs()
-
-    /* println(1.0419103e-33)
-     println(1.0419103e-33.toFloat())
-     println("1.0419103e-033".toFloat())
-     return*/
+    val dst = desktop.getChild("ma")
+    dst.tryMkdirs()
 
     // not supported by Assimp
     // println(AnimatedMeshesLoader.loadFile(file, defaultFlags))
@@ -91,6 +88,68 @@ fun main() {
             val namedNodes = HashMap<String, PrefabSaveable>()
             val namedArguments = HashMap<String, CharSequence>()
             val arguments = ArrayList<CharSequence>()
+
+            var edgeIndices: IntArray? = null
+
+            class Face(val indices: IntArray) {
+                var uvIndices: IntArray? = null
+            }
+
+            val faces = ArrayList<Face>()
+
+            fun buildMeshIndices() {
+                // decrypt face and edge indices into triangle faces
+                val mesh = node as Mesh
+                val ei = edgeIndices!!
+                val triangleCount = faces.sumOf { max(it.indices.size - 2, 0) }
+                val triangleIndices = IntArray(triangleCount * 3)
+                val uvs = mesh.uvs!!
+                val newUVs = FloatArray(triangleCount * 6)
+                var ti = 0
+                var ui = 0
+                for (faceI in faces) {
+                    val face = faceI.indices
+                    if (face.size < 3) continue
+
+                    val vertexIndices = IntArray(face.size) {
+                        val fi = face[it]
+                        ei[(if (fi < 0) -fi - 1 else fi) * 2 + (fi < 0).toInt()]
+                    }
+
+                    val uvIndices = faceI.uvIndices
+                    fun push(i: Int) {
+                        triangleIndices[ti++] = vertexIndices[i]
+                        if (uvIndices != null) {
+                            val j = uvIndices[i] * 2
+                            newUVs[ui++] = uvs[j]
+                            newUVs[ui++] = uvs[j + 1]
+                        }
+                    }
+
+                    for (i in 2 until face.size) {
+                        push(0)
+                        push(i - 1)
+                        push(i)
+                    }
+                }
+                mesh.uvs = null
+                mesh.indices = triangleIndices
+                mesh.makeFlatShaded(false)
+                mesh.uvs = newUVs
+            }
+
+            fun finishNode() {
+                when (val m = node) {
+                    is Mesh -> {
+                        buildMeshIndices()
+                        GLTFWriter().write(m, dst.getChild("mesh-${meshIndex++}.glb"))
+                        // testSceneWithUI("Mesh", m)
+                        // throw EOFException()
+                    }
+                }
+                faces.clear()
+            }
+
             for (line in text.split(';')) {
                 // todo remove comments
                 val depth = line.indexOfFirst { it != '\t' }
@@ -101,15 +160,6 @@ fun main() {
                 split(line, arguments)
                 named(arguments, namedArguments)
                 println("$arguments, $namedArguments")
-                fun finishNode() {
-                    when (val m = node) {
-                        is Mesh -> {
-                            val dst = debug.getChild("${meshIndex++}.json")
-                            dst.writeText(m.toString())
-                            // GLTFWriter().write(m, dst)
-                        }
-                    }
-                }
                 when (arguments.first()) {
                     "requires" -> {}
                     "currentUnit" -> {}
@@ -171,9 +221,20 @@ fun main() {
                                 node.positions = node.positions.resize(size)
                             }
                             ".n" -> {
-                                node as Mesh
+                                // ignored for now
+                                /*node as Mesh
                                 val size = namedArguments["-s"]!!.toInt() * 3
-                                node.normals = node.normals.resize(size)
+                                node.normals = node.normals.resize(size)*/
+                            }
+                            ".ed" -> {
+                                node as Mesh
+                                val size = namedArguments["-s"]!!.toInt() * 2
+                                edgeIndices = edgeIndices.resize(size)
+                            }
+                            ".uvst[0].uvsp" -> {
+                                node as Mesh
+                                val size = namedArguments["-s"]!!.toInt() * 2
+                                node.uvs = node.uvs.resize(size)
                             }
                             else -> {
 
@@ -184,8 +245,6 @@ fun main() {
                                 // setAttr -s 2 ".uvst"; -> there are 2 uv maps
                                 // .uvst[0].uvsn -> uv map [0]
 
-                                // todo decode start and end,
-                                //  and then save data
                                 if (key.startsWith(".vt[")) {
                                     // vertices
                                     node as Mesh
@@ -205,8 +264,8 @@ fun main() {
                                         dst[i + offset] = arguments[i].toFloat()
                                     }
                                 } else if (key.startsWith(".n[")) {
-                                    // normals
-                                    node as Mesh
+                                    // normals, ignored for now, seem to depend on edge
+                                    /*node as Mesh
 
                                     if ("-s" in namedArguments) {
                                         val size = namedArguments["-s"]!!.toInt() * 3
@@ -221,7 +280,7 @@ fun main() {
                                     val offset = start * 3 - 2
                                     for (i in 2 until arguments.size) {
                                         dst[i + offset] = arguments[i].toFloat()
-                                    }
+                                    }*/
                                 } else if (key.startsWith(".fc[")) {
                                     // face count
                                     node as Mesh
@@ -232,30 +291,27 @@ fun main() {
                                     // else we have a problem, and need to join multiple indices sections...
                                     var i = 2
                                     while (i < arguments.size) {
+                                        // https://cgkit.sourceforge.net/doc2/mayaascii.html
                                         when (arguments[i++]) {
                                             "f" -> {
-                                                val numVertices = node.positions!!.size / 3
+                                                // "edge indices", negative = reversed
+                                                // https://forums.cgsociety.org/t/parsing-maya-ascii/928039
                                                 val count = arguments[i++].toInt()
-                                                val indices1 = IntArray(count) {
-                                                    val idx = arguments[i++].toInt()
-                                                    val idx1 = if (idx < 0) numVertices + idx else idx
-                                                    if(idx1<0) println("Illegal index? $idx, #verts: $numVertices")
-                                                    max(idx1, 0)
-                                                }
-                                                for (j in 2 until count) {
-                                                    indices.add(indices1[0])
-                                                    indices.add(indices1[j - 1])
-                                                    indices.add(indices1[j])
-                                                }
+                                                faces += Face(IntArray(count) { arguments[i++].toInt() })
                                             }
                                             "mu" -> {
-                                                i++ // can also be 1, idk what it means...
-                                                // assertEquals("0", arguments[i++].toString())
+                                                // loop / outer loop or hole
+                                                val uvIndex = arguments[i++].toInt()
                                                 val count = arguments[i++].toInt()
-                                                i += count
-                                                // idk what data this is
+                                                if (uvIndex == 0) {
+                                                    faces.last().uvIndices = IntArray(count) { arguments[i++].toInt() }
+                                                } else {
+                                                    // multiple UVs are not yet supported
+                                                    i += count // indices
+                                                }
                                             }
                                             "mc" -> {
+                                                // ???
                                                 assertEquals("0", arguments[i++].toString())
                                                 val count = arguments[i++].toInt()
                                                 i += count
@@ -267,7 +323,35 @@ fun main() {
                                     // not ideal...
                                     node.indices = (node.indices ?: IntArray(0)) + indices.toIntArray()
                                 } else if (key.startsWith(".ed[")) {
-                                    // ???
+                                    // edge indices, faces are built from them
+                                    if ("-s" in namedArguments) {
+                                        val size = namedArguments["-s"]!!.toInt() * 2
+                                        edgeIndices = edgeIndices.resize(size)
+                                    }
+                                    val colon = key.indexOf(':')
+                                    val start = key.substring(4, colon).toInt()
+                                    var k = start * 2
+                                    edgeIndices!!
+                                    for (i in 2 until arguments.size step 3) {
+                                        edgeIndices[k++] = arguments[i].toInt()
+                                        edgeIndices[k++] = arguments[i + 1].toInt()
+                                    }
+                                } else if (key.startsWith(".uvst[0].uvsp[")) {
+                                    node as Mesh
+                                    // todo what do the UVs belong to?
+                                    if ("-s" in namedArguments) {
+                                        val size = namedArguments["-s"]!!.toInt() * 2
+                                        node.uvs = node.uvs.resize(size)
+                                    }
+                                    val dst = node.uvs!!
+                                    val colon = key.indexOf(':')
+                                    val start = key.substring(".uvst[0].uvsp[".length, colon).toInt()
+                                    val end = key.substring(colon + 1, key.length - 1).toInt() + 1
+                                    assertEquals((end - start) * 2, arguments.size - 2, key.toString())
+                                    val offset = start * 2 - 2
+                                    for (i in 2 until arguments.size) {
+                                        dst[i + offset] = arguments[i].toFloat()
+                                    }
                                 }
                             }
                         }
@@ -278,6 +362,7 @@ fun main() {
                     }
                 }
             }
+            finishNode()
         } else e!!.printStackTrace()
     }
     Engine.requestShutdown()

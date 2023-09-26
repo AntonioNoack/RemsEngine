@@ -80,7 +80,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             lineBuffer?.destroy()
             debugLineBuffer?.destroy()
         }
-
     }
 
     // use buffers instead, so they can be uploaded directly? no, I like the strided thing...
@@ -431,7 +430,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                     }
                 }
             }
-
         } else {
             if (indices.size < 3) return
             when (drawMode) {
@@ -715,7 +713,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         NormalCalculator.checkNormals(this, positions, normals, indices, drawMode)
         if (hasUVs && checkTangents)
             TangentCalculator.checkTangents(this, positions, normals, tangents, uvs)
-
     }
 
     private fun updateMesh() {
@@ -832,7 +829,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                     buffer.putByte(normals[i3 + 2])
                     buffer.putByte(127) // positive ^^
                 }
-
             }
 
             fun putColor(colors: IntArray?) {
@@ -883,9 +879,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                 } else {
                     buffer.putInt(0)
                 }
-
             }
-
         }
 
         updateHelperMeshes()
@@ -898,7 +892,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         lineBuffer?.drawMode = GL_LINES
 
         invalidDebugLines = true
-
     }
 
     fun updateHelperMeshes() {
@@ -1119,12 +1112,12 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         return aabb
     }
 
-    fun makeFlatShaded() {
+    fun makeFlatShaded(calculateNormals: Boolean = true) {
         val indices = indices
         val positions = positions ?: return
         val colors = color0
         if (indices == null) {
-            calculateNormals(false)
+            if (calculateNormals) calculateNormals(false)
         } else {
             val newPositions = FloatArray(indices.size * 3)
             val newColors = if (colors != null) IntArray(indices.size) else null
@@ -1141,7 +1134,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             this.normals = normals.resize(newPositions.size)
             this.color0 = newColors
             this.indices = null
-            calculateNormals(false)
+            if (calculateNormals) calculateNormals(false)
         }
     }
 
@@ -1201,5 +1194,4 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             }
         }
     }
-
 }
