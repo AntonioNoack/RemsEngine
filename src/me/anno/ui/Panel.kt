@@ -445,27 +445,27 @@ open class Panel(val style: Style) : PrefabSaveable() {
      * as functions to be able to cancel parent listeners
      * */
 
-    val onClickListeners = ArrayList<(Float, Float, Key, Boolean) -> Boolean>()
+    val onClickListeners = ArrayList<(Panel, Float, Float, Key, Boolean) -> Boolean>()
 
-    fun addOnClickListener(onClickListener: ((x: Float, y: Float, button: Key, long: Boolean) -> Boolean)): Panel {
+    fun addOnClickListener(onClickListener: ((panel: Panel, x: Float, y: Float, button: Key, long: Boolean) -> Boolean)): Panel {
         onClickListeners.add(onClickListener)
         return this
     }
 
-    fun addLeftClickListener(onClick: () -> Unit): Panel {
-        addOnClickListener { _, _, mouseButton, isLong ->
+    fun addLeftClickListener(onClick: (Panel) -> Unit): Panel {
+        addOnClickListener { panel, _, _, mouseButton, isLong ->
             if (mouseButton == Key.BUTTON_LEFT && !isLong) {
-                onClick()
+                onClick(panel)
                 true
             } else false
         }
         return this
     }
 
-    fun addRightClickListener(onClick: () -> Unit): Panel {
-        addOnClickListener { _, _, b, isLong ->
+    fun addRightClickListener(onClick: (Panel) -> Unit): Panel {
+        addOnClickListener { panel, _, _, b, isLong ->
             if (b == Key.BUTTON_RIGHT || isLong) {
-                onClick()
+                onClick(panel)
                 true
             } else false
         }
@@ -482,14 +482,14 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     open fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         for (listener in onClickListeners) {
-            if (listener(x, y, button, long)) return
+            if (listener(this, x, y, button, long)) return
         }
         uiParent?.onMouseClicked(x, y, button, long)
     }
 
     open fun onDoubleClick(x: Float, y: Float, button: Key) {
-        for (l in onClickListeners) {
-            if (l(x, y, button, false)) return
+        for (listener in onClickListeners) {
+            if (listener(this, x, y, button, false)) return
         }
         uiParent?.onDoubleClick(x, y, button)
     }

@@ -20,7 +20,7 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
     init {
         if (titleView != null) {
             this.add(titleView)
-            titleView.addOnClickListener { x, y, button, long ->
+            titleView.addOnClickListener { _, x, y, button, long ->
                 if (button == Key.BUTTON_LEFT && !long) {
                     InputVisibility.toggle(visibilityKey, this)
                 } else this@TitledListY.onMouseClicked(x, y, button, long)

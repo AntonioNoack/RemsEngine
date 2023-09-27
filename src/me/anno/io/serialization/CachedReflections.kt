@@ -129,9 +129,7 @@ class CachedReflections(
             return list
         }
 
-        fun getPropertiesByDeclaringClass(
-            clazz: KClass<*>, allProperties: Map<String, CachedProperty>
-        ): List<Pair<KClass<*>, List<String>>> {
+        private fun listClasses(clazz: KClass<*>): List<KClass<*>> {
             val classes = ArrayList<KClass<*>>()
             classes.add(clazz)
             while (true) {
@@ -140,29 +138,38 @@ class CachedReflections(
                 if (superClasses.isEmpty()) break
                 classes.addAll(superClasses)
             }
-            val classesWithIndex = classes.withIndex().toList()
-            val reflections = classes.map { clazz2 ->
-                clazz2.declaredMemberProperties.filterIsInstance<KMutableProperty1<*, *>>()
-            }
+            return classes
+        }
+
+        fun getPropertiesByDeclaringClass(
+            classes: List<KClass<*>>, allProperties: Map<String, CachedProperty>
+        ): List<Pair<KClass<*>, List<String>>> {
             // the earlier something is found, the better
             val doneNames = HashSet<String>()
             val result = ArrayList<Pair<KClass<*>, List<String>>>(classes.size)
             val targetSize = allProperties.size
-            for (classWithIndex in classesWithIndex) {
+            for (clazz2 in classes) {
                 val partialResult = ArrayList<String>()
-                val index = classWithIndex.index
-                for (property in reflections[index]) {
+                val reflections = clazz2.declaredMemberProperties
+                    .filterIsInstance<KMutableProperty1<*, *>>()
+                for (property in reflections) {
                     val name = property.name
                     if (name !in allProperties) continue // not serialized
-                    if (name !in doneNames) {
+                    if (doneNames.add(name)) {
                         partialResult.add(name)
                     }
                 }
-                doneNames.addAll(partialResult)
-                result.add(classWithIndex.value to partialResult)
+                result.add(clazz2 to partialResult)
                 if (doneNames.size >= targetSize) break // done :)
             }
             return result
+        }
+
+        fun getPropertiesByDeclaringClass(
+            clazz: KClass<*>, allProperties: Map<String, CachedProperty>
+        ): List<Pair<KClass<*>, List<String>>> {
+            val classes = listClasses(clazz)
+            return getPropertiesByDeclaringClass(classes, allProperties)
         }
 
         fun findProperties(
@@ -189,7 +196,7 @@ class CachedReflections(
                                 methods.any { Modifier.isPublic(it.modifiers) && it.name == setterName })
                 val serialize = serial != null || (isPublic && notSerial == null)
                 var name = serial?.name
-                if (name == null || name.isEmpty()) name = field.name
+                if (name.isNullOrEmpty()) name = field.name
                 if (name in map) continue
                 try {
                     map[name!!] = saveField(field, name, serial, serialize, annotations.toList())

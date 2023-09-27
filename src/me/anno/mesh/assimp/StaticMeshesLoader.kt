@@ -217,7 +217,7 @@ object StaticMeshesLoader {
         texturesDir: FileReference,
         loadedTextures: List<FileReference>,
         original: FileReference,
-        missingFilesLookup: Map<String, FileReference>,
+        missingFilesLookup: Map<String, FileReference>
     ): Array<Prefab> {
         val numMaterials = aiScene.mNumMaterials()
         val aiMaterials = aiScene.mMaterials()
@@ -226,9 +226,13 @@ object StaticMeshesLoader {
         } catch (e: IOException) {
             null
         }
+        val textureLookup = createTextureLookup(missingFilesLookup)
         return Array(numMaterials) {
             val aiMaterial = AIMaterial.create(aiMaterials!![it])
-            processMaterialPrefab(aiScene, aiMaterial, loadedTextures, texturesDir, gltfMaterials, missingFilesLookup)
+            processMaterialPrefab(
+                aiScene, aiMaterial, loadedTextures, texturesDir,
+                gltfMaterials, missingFilesLookup, textureLookup
+            )
         }
     }
 
@@ -271,6 +275,7 @@ object StaticMeshesLoader {
         texturesDir: FileReference,
         extraDataMap: Map<String, GLTFMaterialExtractor.PBRMaterialData>?,
         missingFilesLookup: Map<String, FileReference>,
+        textureLookup: List<FileReference>,
     ): Prefab {
 
         val prefab = Prefab("Material")
@@ -289,8 +294,10 @@ object StaticMeshesLoader {
         var opacity = getFloat(aiMaterial, AI_MATKEY_OPACITY, 1f)
         if (opacity == 0f) opacity = 1f // completely transparent makes no sense
 
-        val diffuseMap =
-            findTexture(aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE, texturesDir, missingFilesLookup)
+        val diffuseMap = findTexture(
+            aiScene, aiMaterial, loadedTextures, aiTextureType_DIFFUSE,
+            texturesDir, missingFilesLookup, textureLookup
+        )
         if (diffuseMap != InvalidRef) {
             prefab.setProperty("diffuseMap", diffuseMap)
             if (opacity != 1f) prefab.setProperty("diffuseBase", Vector4f(1f, 1f, 1f, opacity))
@@ -330,20 +337,24 @@ object StaticMeshesLoader {
             prefab.setProperty("emissiveBase", Vector3f(emissive.x, emissive.y, emissive.z))
         }
 
-        val emissiveMap =
-            findTexture(aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE, texturesDir, missingFilesLookup)
+        val emissiveMap = findTexture(
+            aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE,
+            texturesDir, missingFilesLookup, textureLookup
+        )
         if (emissiveMap != InvalidRef) prefab.setProperty("emissiveMap", emissiveMap)
 
         // normal
-        val normalMap =
-            findTexture(aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS, texturesDir, missingFilesLookup)
+        val normalMap = findTexture(
+            aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS,
+            texturesDir, missingFilesLookup, textureLookup
+        )
         if (normalMap != InvalidRef) prefab.setProperty("normalMap", normalMap)
 
         // metallic / roughness
         val metallicRoughness = findTexture(
             aiScene, aiMaterial, loadedTextures,
             AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, texturesDir,
-            missingFilesLookup
+            missingFilesLookup, textureLookup
         )
 
         val ior = getFloat(aiMaterial, AI_MATKEY_REFRACTI, 1f)
@@ -378,17 +389,14 @@ object StaticMeshesLoader {
         }
 
         // other stuff
-        val displacementMap =
-            findTexture(
-                aiScene,
-                aiMaterial,
-                loadedTextures,
-                aiTextureType_DISPLACEMENT,
-                texturesDir,
-                missingFilesLookup
-            )
-        val occlusionMap =
-            findTexture(aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP, texturesDir, missingFilesLookup)
+        val displacementMap = findTexture(
+            aiScene, aiMaterial, loadedTextures, aiTextureType_DISPLACEMENT,
+            texturesDir, missingFilesLookup, textureLookup
+        )
+        val occlusionMap = findTexture(
+            aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP,
+            texturesDir, missingFilesLookup, textureLookup
+        )
         if (displacementMap != InvalidRef) prefab.setProperty("displacementMap", displacementMap)
         if (occlusionMap != InvalidRef) prefab.setProperty("occlusionMap", occlusionMap)
 
@@ -410,6 +418,7 @@ object StaticMeshesLoader {
         type: Int,
         parentFolder: FileReference,
         missingFilesLookup: Map<String, FileReference>,
+        textureLookup: List<FileReference>
     ): FileReference {
         val path = AIString.calloc()
         aiGetMaterialTexture(
@@ -425,7 +434,7 @@ object StaticMeshesLoader {
             return loadedTextures.getOrNull(index) ?: InvalidRef
         }
         if (path0.startsWith("./")) path0 = path0.substring(2)
-        LOGGER.debug("Resolving {}, loaded: {}, mfl: {}", path0, loadedTextures, missingFilesLookup.values.filter { it.lcExtension in "png,jpg,psd,bmp" }.toHashSet())
+        // LOGGER.debug("Resolving {}, loaded: {}, mfl: {}", path0, loadedTextures, missingFilesLookup.values.filter { it.lcExtension in "png,jpg,psd,bmp" }.toHashSet())
         // replace double slashes
         val path1 = path0.replace("//", "/")
         // check whether it may be a global path, not a local one
@@ -449,8 +458,7 @@ object StaticMeshesLoader {
                 val i1 = path1.lastIndexOf('.')
                 if (i1 > i0) {
                     val sub = path1.substring(i0, i1)
-                    val candidate1 = missingFilesLookup
-                        .values.filter { it.lcExtension in "psd,png,jpg" && "_Texture_" in it.nameWithoutExtension }
+                    val candidate1 = textureLookup
                         .minByOrNull {
                             val sub1 = it.nameWithoutExtension
                             val idx = sub1.indexOf("_Texture_")
@@ -465,6 +473,10 @@ object StaticMeshesLoader {
             }
             return candidate ?: maybePath
         }
+    }
+
+    private fun createTextureLookup(missingFilesLookup: Map<String, FileReference>): List<FileReference> {
+        return missingFilesLookup.values.filter { it.lcExtension in "psd,png,jpg,bmp,svg,ico" && "_Texture_" in it.nameWithoutExtension }
     }
 
     private fun loadTexture(parentFolder: InnerFolder, texture: AITexture, index: Int): InnerFile {

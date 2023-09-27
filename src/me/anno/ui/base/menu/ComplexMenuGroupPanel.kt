@@ -1,9 +1,9 @@
 package me.anno.ui.base.menu
 
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.text.TextPanel
-import me.anno.ui.Style
 import java.util.*
 
 /**
@@ -14,7 +14,9 @@ class ComplexMenuGroupPanel(val data: ComplexMenuGroup, val magicIndex: Int, val
     TextPanel("${data.title} →", style) {
 
     init {
-        addLeftClickListener(::openMenu)
+        addLeftClickListener {
+            openMenu()
+        }
     }
 
     fun openMenu() {

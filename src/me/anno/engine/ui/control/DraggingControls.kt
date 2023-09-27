@@ -1,6 +1,5 @@
 package me.anno.engine.ui.control
 
-import me.anno.animation.Type
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
@@ -10,7 +9,6 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
-import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -31,13 +29,10 @@ import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
-import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.sceneView.Gizmos
-import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
-import me.anno.ui.input.FloatInput
 import me.anno.utils.Warning.unused
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Hierarchical
@@ -76,49 +71,44 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     // todo apply snapping to <when moving things around> as well
     // todo we could snap rotations, and maybe scale, as well
 
-    var snapX = false
-    var snapY = false
-    var snapZ = false
-
-    val snapRemainder = Vector3d()
-
-    var snapCenter = false
-
-    var snapSize = 1.0
     val drawModeInput = EnumInput(
         "Draw Mode", "", view.renderMode.name, RenderMode.values.map { NameDesc(it.name) }, style
     ).setChangeListener { _, index, _ ->
         view.renderMode = RenderMode.values[index]
     }
 
+    val snappingSettings = SnappingSettings()
+
     init {
         // todo debugging view selection
         val topLeft = PanelListX(style)
         topLeft.add(drawModeInput)
-        topLeft.add(TextButton("Play", "Start the game", false, style).addLeftClickListener {
-            ECSSceneTabs.currentTab?.play()
-            // todo also set this instance text to "Back"
-        })
-        if (view.playMode == PlayMode.PLAY_TESTING) {
-            topLeft.add(TextButton("Pause", "", false, style).addLeftClickListener {
-                // todo pause/unpause
-                // todo change text accordingly,
+        topLeft.add(TextButton("Play", "Start the game", false, style)
+            .addLeftClickListener {
+                ECSSceneTabs.currentTab?.play()
+                // todo also set this instance text to "Back"
             })
-            topLeft.add(TextButton("Restart", "", false, style).addLeftClickListener {
-                view.getWorld()?.prefab?.invalidateInstance()
-            })
+        /* todo this class isn't used in play-testing...
+        val pauseButton = TextButton("Pause", "", false, style).addLeftClickListener {
+            // pause/unpause
+            Time.timeSpeed = if (Time.timeSpeed == 0.0) 1.0 else 0.0
+            (it as TextButton).text = if (Time.timeSpeed == 0.0) "Unpause" else "Pause"
         }
-        val snaps = PanelListY(style)
-        // todo separate snapping panel?
-        snaps.add(BooleanInput("SnapX", snapX, false, style).setChangeListener { snapX = it })
-        snaps.add(BooleanInput("SnapY", snapY, false, style).setChangeListener { snapY = it })
-        snaps.add(BooleanInput("SnapZ", snapZ, false, style).setChangeListener { snapZ = it })
-        snaps.add(BooleanInput("Center", snapCenter, false, style).setChangeListener { snapCenter = it })
-        topLeft.add(FloatInput("Snap Size", "", snapSize, Type.FLOAT_PLUS_EXP, style)
-            .setChangeListener { snapSize = it })
-        // snaps.makeBackgroundTransparent()
-        // topLeft.makeBackgroundTransparent()
-        topLeft.add(snaps)
+        val restartButton = TextButton("Restart", "", false, style).addLeftClickListener {
+            view.getWorld()?.prefab?.invalidateInstance()
+        }
+        topLeft.add(pauseButton)
+        topLeft.add(restartButton)
+        topLeft.add(SpyPanel {
+            val isPlayTesting = view.playMode == PlayMode.PLAY_TESTING
+            pauseButton.isVisible = isPlayTesting
+            restartButton.isVisible = isPlayTesting
+        })
+        */
+        topLeft.add(TextButton("Snap", false, style)
+            .addLeftClickListener {
+                library.select(snappingSettings)
+            })
         add(topLeft)
     }
 
@@ -396,8 +386,9 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                                         if (distance > 0.0) {
                                             // correct
                                             offset.mul(distance)
-                                            if (snapX || snapY || snapZ) {
-                                                applySnapping(offset, snapRemainder)
+                                            val snap = snappingSettings
+                                            if (snap.snapX || snap.snapY || snap.snapZ) {
+                                                applySnapping(offset, snap.snapRemainder)
                                             }
                                             global.translateLocal(offset)
                                             offset.div(distance)
@@ -638,35 +629,37 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     fun applySnapping(dst: Vector3d) {
+        val snap = snappingSettings
         fun snap(v: Double): Double {
-            val s = snapSize
-            return if (snapCenter) {
+            val s = snap.snapSize
+            return if (snap.snapCenter) {
                 floor(v / s) * s
             } else {
                 round(v / s) * s
             }
         }
-        if (snapSize > 0.0) {
-            if (snapX) dst.x = snap(dst.x)
-            if (snapY) dst.y = snap(dst.y)
-            if (snapZ) dst.z = snap(dst.z)
+        if (snap.snapSize > 0.0) {
+            if (snap.snapX) dst.x = snap(dst.x)
+            if (snap.snapY) dst.y = snap(dst.y)
+            if (snap.snapZ) dst.z = snap(dst.z)
         }
     }
 
     fun applySnapping(dst: Vector3d, rem: Vector3d) {
-        val s = snapSize
+        val snap = snappingSettings
+        val s = snap.snapSize
         if (s > 0.0) {
-            if (snapX) {
+            if (snap.snapX) {
                 val v = dst.x + rem.x
                 dst.x = round(v / s) * s
                 rem.x = v - dst.x
             } else rem.x = 0.0
-            if (snapY) {
+            if (snap.snapY) {
                 val v = dst.y + rem.y
                 dst.y = round(v / s) * s
                 rem.y = v - dst.y
             } else rem.y = 0.0
-            if (snapZ) {
+            if (snap.snapZ) {
                 val v = dst.z + rem.z
                 dst.z = round(v / s) * s
                 rem.z = v - dst.z

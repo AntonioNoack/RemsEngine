@@ -11,10 +11,10 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.io.zip.InnerTmpFile
 import me.anno.studio.Inspectable
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
-import me.anno.ui.Style
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.Hierarchical
 import org.apache.logging.log4j.LogManager
@@ -247,19 +247,14 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         }
 
     override fun createInspector(
-        list: PanelListY, style: Style,
-        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
-    ) {
-        createInspector(listOf(this), list, style, getGroup)
-    }
-
-    override fun createInspector(
         inspected: List<Inspectable>,
         list: PanelListY,
         style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        PrefabInspector.currentInspector?.inspect(inspected.filterIsInstance<PrefabSaveable>(), list, style) ?: LOGGER.warn("Missing inspector!")
+        val inspector = PrefabInspector.currentInspector
+        if (inspector != null) inspector.inspect(inspected.filterIsInstance<PrefabSaveable>(), list, style)
+        else super.createInspector(inspected, list, style, getGroup)
     }
 
     fun changePaths(prefab: Prefab?, path: Path) {

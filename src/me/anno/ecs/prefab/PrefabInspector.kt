@@ -167,9 +167,12 @@ class PrefabInspector(val reference: FileReference) {
         }
         list += warningPanel
 
-        instances.map { it.className }.filter {
-            it !in ISaveable.objectTypeRegistry
-        }.toHashSet().sorted().forEach { className ->
+        for (className in instances
+            .map { it.className }
+            .filter { it !in ISaveable.objectTypeRegistry }
+            .toHashSet()
+            .sorted()
+        ) {
             val warningPanel1 = TextPanel("Class '$className' wasn't registered as a custom class", style)
             warningPanel1.tooltip =
                 "This class cannot be saved properly to disk, and might not be copyable.\n" +
@@ -178,30 +181,38 @@ class PrefabInspector(val reference: FileReference) {
             list += warningPanel1
         }
 
-        run {
-            val first = instances.first()
-            val original = first.getOriginal()
-            list.add(TextInput("Name", "", instances.joinToString { it.name }, style).apply {
-                isBold = instances.any { isChanged(getPath(it), "name") }
-                isInputAllowed = isWritable && instances.all { it.name == first.name }
-                addChangeListener {
-                    isBold = true
-                    for (instance in instances) {
-                        change(getPath(instance), instance, "name", it)
-                    }
-                    onChange(false)
+        val first = instances.first()
+        val original = first.getOriginal()
+        list.add(TextInput("Name", "", instances.joinToString { it.name }, style).apply {
+            isBold = instances.any { isChanged(getPath(it), "name") }
+            isInputAllowed = isWritable && instances.all { it.name == first.name }
+            addChangeListener {
+                isBold = true
+                for (instance in instances) {
+                    change(getPath(instance), instance, "name", it)
                 }
-                setResetListener {
-                    isBold = false
-                    val defaultValue = original?.name ?: ""
-                    for (instance in instances) {
-                        reset(getPath(instance), "name")
-                        instance.name = defaultValue
-                    }
-                    defaultValue
+                onChange(false)
+            }
+            setResetListener {
+                isBold = false
+                val defaultValue = original?.name ?: ""
+                for (instance in instances) {
+                    reset(getPath(instance), "name")
+                    instance.name = defaultValue
                 }
-            })
-            list.add(TextInput("Description", "", instances.joinToString { it.description }, style).apply {
+                defaultValue
+            }
+        })
+        list.add(
+            TextInput(
+                "Description",
+                "",
+                instances
+                    .map { it.description }
+                    .filter { it.isNotBlank() }
+                    .joinToString(", "),
+                style
+            ).apply {
                 isInputAllowed = isWritable && instances.all { it.description == first.description }
                 addChangeListener {
                     isBold = true
@@ -220,7 +231,6 @@ class PrefabInspector(val reference: FileReference) {
                     defaultValue
                 }
             }.apply { this.isInputAllowed = isWritable })
-        }
 
         val controlReceiver = instances.firstInstanceOrNull<ControlReceiver>()
         if (controlReceiver != null) {
@@ -293,7 +303,7 @@ class PrefabInspector(val reference: FileReference) {
             val list1 = PanelListX(style)
             list1.add(TextPanel("$title:", style))
             list1.add(UpdatingTextPanel(100L, style) {
-                // call on all, where class matches
+                // todo call on all, where class matches
                 val relevantInstances = instances.filter { it.javaClass == instances.first().javaClass }
                 relevantInstances.joinToString { property.getter.call(it).toString() }
                     .shorten2Way(200)
@@ -379,13 +389,6 @@ class PrefabInspector(val reference: FileReference) {
                 }
             }
         }
-
-        // todo either
-        //  - only create UI when it is visible,
-        //  - show a preview
-        //  - hide this
-
-        // todo disable this if !prefab.isWritable
 
         val instance = instances.first()
         val types = instance.listChildTypes()

@@ -200,7 +200,7 @@ object Menu {
                             } else false
                         }
                     }
-                    button.addOnClickListener { _, _, mouseButton, long ->
+                    button.addOnClickListener { _, _, _, mouseButton, long ->
                         if (action(mouseButton, long)) {
                             close(button)
                             true

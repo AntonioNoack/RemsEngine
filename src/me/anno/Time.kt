@@ -83,7 +83,6 @@ object Time {
      * */
     @JvmStatic
     var timeSpeed: Double = 1.0
-        private set
 
     @JvmStatic
     fun updateTime() {

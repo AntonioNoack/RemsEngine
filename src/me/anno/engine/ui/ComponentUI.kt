@@ -1138,7 +1138,7 @@ object ComponentUI {
     }
 
     private fun Panel.askForReset(property: IProperty<Any?>, callback: (Any?) -> Unit): Panel {
-        addOnClickListener { _, _, button, _ ->
+        addOnClickListener { _, _, _, button, _ ->
             if (button == Key.BUTTON_RIGHT) {
                 // todo option to edit the parent... how will that work?
                 val enabled = this !is InputPanel<*> || this.isInputAllowed
