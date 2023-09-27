@@ -8,12 +8,14 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.*
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.raycast.Raycast
+import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
@@ -574,6 +576,19 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                         val position = Vector3d(sampleInstance.transform.localPosition)
                         position.add(dropPosition)
                         addToParent(prefab, root, 'c', position, results)
+                        // todo position isn't properly persisted
+                        //  - after each save, it jumps back to the center...,
+                        //  - when moved it goes to the proper position
+                        // todo tree view is also not properly updated... needs redraw...
+                        // todo also ECSTreeView reordering isn't working properly...
+                        // TreeViews need to be updated
+                        for (window in GFX.windows) {
+                            for (window1 in window.windowStack) {
+                                window1.panel.forAllVisiblePanels {
+                                    if (it is ECSTreeView) it.invalidateLayout()
+                                }
+                            }
+                        }
                     } else LOGGER.warn("Could not drop $file onto ${root?.className}")
                 }
                 is DCDroppable -> sampleInstance.drop(this, prefab, hovEntity, hovComponent, dropPosition, results)

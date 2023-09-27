@@ -195,9 +195,9 @@ object ECSRegistry {
                 .loadClass("me.anno.sdf.SDFRegistry")
             clazz.getMethod("init").invoke(null)
         } catch (e: ClassNotFoundException) {
-            LOGGER.warn("SDF module was not found", e)
+            LOGGER.warn("SDF module was not found")
         } catch (e: NoClassDefFoundError) {
-            LOGGER.warn("SDF module was not found", e)
+            LOGGER.warn("SDF module was not found")
         }
 
         NodeLibrary.init()
@@ -214,14 +214,14 @@ object ECSRegistry {
             val clazz = this::class.java.classLoader.loadClass(clazzName)
             registerCustomClass(clazz.getConstructor().newInstance() as ISaveable)
         } catch (e: ClassNotFoundException) {
-            warnIfUnavailable(moduleName, e)
+            warnIfUnavailable(moduleName)
         } catch (e: NoClassDefFoundError) {
-            warnIfUnavailable(moduleName, e)
+            warnIfUnavailable(moduleName)
         }
     }
 
-    private fun warnIfUnavailable(moduleName: String?, e: Throwable) {
-        if (moduleName != null) LOGGER.warn("$moduleName module was not found", e)
+    private fun warnIfUnavailable(moduleName: String?) {
+        if (moduleName != null) LOGGER.warn("$moduleName module was not found")
     }
 
     @JvmStatic

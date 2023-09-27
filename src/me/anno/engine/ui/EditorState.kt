@@ -3,7 +3,6 @@ package me.anno.engine.ui
 import me.anno.config.DefaultConfig
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
-import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
@@ -11,7 +10,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
 import me.anno.studio.Inspectable
-import me.anno.ui.Panel
 import me.anno.ui.custom.Type
 import me.anno.ui.custom.UITypeLibrary
 import me.anno.ui.editor.PropertyInspector
@@ -58,24 +56,22 @@ object EditorState {
 
     fun select(major: Inspectable?, add: Boolean = false) {
         if (add) {
-            if (major != null) selection = added(selection, major)
-            lastSelection = major
+            if (major != null) selection += major
         } else {
             selection = if (major == null) emptyList() else listOf(major)
-            lastSelection = major
         }
+        // why?
+        lastSelection = major
     }
 
-    private fun <V> added(list: List<V>, element: V): List<V> {
-        return if (list is ArrayList) {
-            list.add(element)
-            list
-        } else list + element
+    fun select(major: List<Inspectable>, add: Boolean = false) {
+        if (add) selection += major
+        else selection = major
+        lastSelection = major.firstOrNull()
     }
 
     fun unselect(element: Inspectable) {
         selection = selection.filter { it != element }
         if (lastSelection == element) lastSelection = null
     }
-
 }

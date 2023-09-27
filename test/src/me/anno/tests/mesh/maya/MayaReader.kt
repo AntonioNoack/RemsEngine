@@ -4,7 +4,9 @@ import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.gltf.GLTFWriter
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
@@ -15,8 +17,6 @@ import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Strings.toDouble
 import me.anno.utils.types.Strings.toFloat
 import me.anno.utils.types.Strings.toInt
-import org.joml.Quaterniond
-import org.joml.Vector3d
 import kotlin.math.max
 import kotlin.test.assertEquals
 
@@ -74,17 +74,32 @@ fun named(arguments: ArrayList<CharSequence>, named: HashMap<String, CharSequenc
 
 fun main() {
     val file = desktop.getChild("Simple_Racer_StaticMeshes.ma")
-    val dst = desktop.getChild("ma")
-    dst.tryMkdirs()
+    val debug = desktop.getChild("ma")
+    debug.tryMkdirs()
 
     // not supported by Assimp
     // println(AnimatedMeshesLoader.loadFile(file, defaultFlags))
+
+    // weird names:
+    // https://download.autodesk.com/us/maya/2009help/Nodes/dagNode.html
+    //  iog = instObjGroups, An instanced attribute array of compound attributes used to represent "set"
+    //      membership information. Connections are made to this attribute if the entire instance is in a set and
+    //      connections are made to the children of this attribute if portions of this attribute are in sets.
+    // https://download.autodesk.com/us/maya/2009help/Nodes/index.html
+
+    // transform:
+    // https://download.autodesk.com/us/maya/2009help/Nodes/index.html
+    //  rp = rotation pivot
+    //  sp = scale pivot
+    //  rq = rotate quaternion
+    // rotations are in degrees
+    // distances generally are centimeters
 
     file.readText { text, e ->
         if (text != null) {
             var meshIndex = 0
             var node: PrefabSaveable? = null
-            val nodes = ArrayList<PrefabSaveable>()
+            val scene = Entity()
             val namedNodes = HashMap<String, PrefabSaveable>()
             val namedArguments = HashMap<String, CharSequence>()
             val arguments = ArrayList<CharSequence>()
@@ -142,9 +157,10 @@ fun main() {
                 when (val m = node) {
                     is Mesh -> {
                         buildMeshIndices()
-                        GLTFWriter().write(m, dst.getChild("mesh-${meshIndex++}.glb"))
+                        GLTFWriter().write(m, debug.getChild("mesh-${meshIndex++}.glb"))
                         // testSceneWithUI("Mesh", m)
                         // throw EOFException()
+                        scene.add(MeshComponent(m))
                     }
                 }
                 faces.clear()
@@ -202,7 +218,7 @@ fun main() {
                         when (val key = arguments[1]) {
                             ".t" -> {
                                 node as Entity
-                                node.transform.localPosition = Vector3d(
+                                node.transform.localPosition = node.transform.localPosition.set(
                                     arguments[2].toDouble(),
                                     arguments[3].toDouble(),
                                     arguments[4].toDouble()
@@ -210,7 +226,8 @@ fun main() {
                             }
                             ".r" -> {
                                 node as Entity
-                                node.transform.localRotation = Quaterniond()
+                                node.transform.localRotation = node.transform.localRotation
+                                    .identity()
                                     .rotateX(arguments[2].toDouble().toRadians())
                                     .rotateY(arguments[3].toDouble().toRadians())
                                     .rotateZ(arguments[4].toDouble().toRadians())
@@ -363,6 +380,7 @@ fun main() {
                 }
             }
             finishNode()
+            testSceneWithUI("Maya ASCII 2015", scene)
         } else e!!.printStackTrace()
     }
     Engine.requestShutdown()

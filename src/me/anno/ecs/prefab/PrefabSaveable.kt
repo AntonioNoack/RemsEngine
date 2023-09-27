@@ -250,7 +250,16 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         list: PanelListY, style: Style,
         getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
     ) {
-        PrefabInspector.currentInspector?.inspect(this, list, style) ?: LOGGER.warn("Missing inspector!")
+        createInspector(listOf(this), list, style, getGroup)
+    }
+
+    override fun createInspector(
+        inspected: List<Inspectable>,
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+    ) {
+        PrefabInspector.currentInspector?.inspect(inspected.filterIsInstance<PrefabSaveable>(), list, style) ?: LOGGER.warn("Missing inspector!")
     }
 
     fun changePaths(prefab: Prefab?, path: Path) {

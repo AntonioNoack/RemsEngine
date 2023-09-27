@@ -15,10 +15,10 @@ import me.anno.io.xml.XMLWriter
 import me.anno.io.zip.InnerFile
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerTmpFile
-import me.anno.mesh.assimp.io.AIFileIOImpl
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.files.Files.findNextFileName
+import me.anno.utils.strings.StringHelper.distance
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Triangles.crossDot
 import org.apache.logging.log4j.LogManager
@@ -93,13 +93,7 @@ object StaticMeshesLoader {
             } else {
                 val store = aiCreatePropertyStore()!!
                 aiSetImportPropertyFloat(store, AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY, scale)
-                val fileIO = AIFileIOImpl.create(file, file.getParent()!!)
-                try {
-                    aiImportFileExWithProperties(file.name, flags, fileIO, store)
-                } catch (e: NullPointerException) {
-                    e.printStackTrace()
-                    null
-                } ?: aiImportFileFromMemoryWithProperties( // the first method threw "bad allocation" somehow 🤷‍♂️
+                aiImportFileFromMemoryWithProperties( // the first method threw "bad allocation" somehow 🤷‍♂️
                     file.readByteBufferSync(true), flags, null as ByteBuffer?, store
                 )
             }
@@ -424,25 +418,53 @@ object StaticMeshesLoader {
         )
         var path0 = path.dataString() ?: return InvalidRef
         if (path0.isBlank2()) return InvalidRef
+        path0 = path0.replace('\\', '/')
         if (path0.startsWith('*')) {
             val index = path0.substring(1).toIntOrNull() ?: return InvalidRef
             if (index !in 0 until aiScene.mNumTextures()) return InvalidRef
             return loadedTextures.getOrNull(index) ?: InvalidRef
         }
         if (path0.startsWith("./")) path0 = path0.substring(2)
+        LOGGER.debug("Resolving {}, loaded: {}, mfl: {}", path0, loadedTextures, missingFilesLookup.values.filter { it.lcExtension in "png,jpg,psd,bmp" }.toHashSet())
         // replace double slashes
         val path1 = path0.replace("//", "/")
         // check whether it may be a global path, not a local one
         val maybePath = if (':' in path1) getReference(path1) else parentFolder.getChild(path1)
         // if the path does not exist, check whether the name matches with any internal texture
-        return if (maybePath.exists) maybePath
-        else loadedTextures.firstOrNull { it.name == maybePath.name }
-            ?: loadedTextures.firstOrNull { it.name.equals(maybePath.name, true) }
-            ?: loadedTextures.firstOrNull { it.nameWithoutExtension == maybePath.nameWithoutExtension }
-            ?: loadedTextures.firstOrNull { it.nameWithoutExtension.equals(maybePath.nameWithoutExtension, true) }
-            ?: missingFilesLookup[maybePath.name]
-            ?: missingFilesLookup[maybePath.nameWithoutExtension + "_A"] // for files from Synty
-            ?: maybePath
+        if (maybePath.exists) return maybePath
+        else {
+            val candidate = if (maybePath == InvalidRef) null
+            else {
+                loadedTextures.firstOrNull { it.name == maybePath.name }
+                    ?: loadedTextures.firstOrNull { it.name.equals(maybePath.name, true) }
+                    ?: loadedTextures.firstOrNull { it.nameWithoutExtension == maybePath.nameWithoutExtension }
+                    ?: loadedTextures.firstOrNull {
+                        it.nameWithoutExtension.equals(maybePath.nameWithoutExtension, true)
+                    } ?: missingFilesLookup[maybePath.name]
+                    ?: missingFilesLookup[maybePath.nameWithoutExtension + "_A"] // for files from Synty
+            }
+            if (candidate == null && "_Texture_" in path1) {
+                // more specialized code for Synty ^^
+                val i0 = path1.lastIndexOf("_Texture_") + "_Texture_".length
+                val i1 = path1.lastIndexOf('.')
+                if (i1 > i0) {
+                    val sub = path1.substring(i0, i1)
+                    val candidate1 = missingFilesLookup
+                        .values.filter { it.lcExtension in "psd,png,jpg" && "_Texture_" in it.nameWithoutExtension }
+                        .minByOrNull {
+                            val sub1 = it.nameWithoutExtension
+                            val idx = sub1.indexOf("_Texture_")
+                            val sub2 = sub1.substring(idx + "_Texture_".length)
+                            sub.distance(sub2)
+                        }
+                    if (candidate1 != null) {
+                        LOGGER.debug("Resolved {} to {}", path0, candidate1)
+                        return candidate1
+                    }
+                }
+            }
+            return candidate ?: maybePath
+        }
     }
 
     private fun loadTexture(parentFolder: InnerFolder, texture: AITexture, index: Int): InnerFile {
@@ -692,5 +714,4 @@ object StaticMeshesLoader {
             m.a4(), m.b4(), m.c4(),
         )
     }
-
 }

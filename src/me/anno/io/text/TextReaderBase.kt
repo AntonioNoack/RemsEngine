@@ -728,7 +728,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
                         number.and(0xf000) * 0x11000
                 6 -> number or black
                 else -> number
-            }
+            }.toInt().toLong()
             isNegative -> -number
             else -> number
         }
@@ -1072,8 +1072,3 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         private val LOGGER = LogManager.getLogger(TextReaderBase::class)
     }
 }
-
-/*fun main() {// testing the number parser
-    val tr = TextReader("[4,0xff,077,#a,0110]", InvalidRef)
-    println(tr.readLongArray().joinToString { it.toUInt().toString(16) })
-}*/

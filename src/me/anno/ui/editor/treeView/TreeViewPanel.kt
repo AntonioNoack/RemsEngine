@@ -158,7 +158,7 @@ class TreeViewPanel<V : Any>(
                 // todo selecting multiple isn't working yet :/
                 val inFocusByParent = siblings.count { it is TreeViewPanel<*> && it.isAnyChildInFocus }
                 LOGGER.debug(
-                    "[TVP] click -> ${siblings.size}, ${siblings.count { it is TreeViewPanel<*> }}, $inFocusByParent, " +
+                    "click -> ${siblings.size}, ${siblings.count { it is TreeViewPanel<*> }}, $inFocusByParent, " +
                             "${Input.isShiftDown}, ${isMouseOnSymbol(x)}"
                 )
                 if (Input.isShiftDown && inFocusByParent < 2) {

@@ -17,10 +17,10 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.studio.Inspectable
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
-import me.anno.ui.Style
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
 import org.apache.logging.log4j.LogManager
@@ -440,6 +440,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     /**
      * validates all children, which are invalid
      * */
+    @DebugAction
     fun validateTransform() {
         when (transform.state) {
             Transform.State.VALID -> {}
@@ -1004,20 +1005,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     override val defaultDisplayName: String
         get() = "Entity"
-
-    override fun createInspector(
-        list: PanelListY,
-        style: Style,
-        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
-    ) {
-        // all tests can be removed
-        // interpolation tests
-        /*list += UpdatingTextPanel(50, style) {
-            val t = transform
-            "1x/${(t.lastUpdateDt * 1e-9).f3()}s, ${((Engine.gameTime - t.lastUpdateTime) * 1e-9).f3()}s ago"
-        }.apply { useMonospaceCharacters = true }*/
-        PrefabInspector.currentInspector!!.inspect(this, list, style)
-    }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

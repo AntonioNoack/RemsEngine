@@ -18,12 +18,12 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mixARGB
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.files.Search
 import me.anno.ui.editor.treeView.TreeView
-import me.anno.ui.Style
 import me.anno.utils.Color.normARGB
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten
@@ -31,8 +31,6 @@ import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-
-// todo edit multiple elements at the same time
 
 class ECSTreeView(val library: EditorState, style: Style) :
     TreeView<ISaveable>(
@@ -209,7 +207,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
         // idc too much about saving that property; main thing is that we can collapse and expand stuff in the editor
         val path = element.prefabPath
         val prefab = element.root.prefab
-        if (path != null && prefab != null && prefab.isWritable)
+        if (prefab != null && prefab.isWritable)
             prefab[path, "isCollapsed"] = collapsed
 
         needsTreeUpdate = true
@@ -297,9 +295,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
     }
 
     override fun selectElements(elements: List<ISaveable>) {
-        val first = elements.firstOrNull()
-        if (first is PrefabSaveable)
-            library.select(first)
+        library.select(elements.filterIsInstance<PrefabSaveable>())
     }
 
     override fun focusOnElement(element: ISaveable) {
@@ -351,5 +347,4 @@ class ECSTreeView(val library: EditorState, style: Style) :
     companion object {
         private val LOGGER = LogManager.getLogger(ECSTreeView::class)
     }
-
 }

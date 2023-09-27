@@ -1,15 +1,13 @@
 package me.anno.utils.hpc
 
 import me.anno.maths.Maths
+import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.structures.tuples.IntPair
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.roundToInt
-import kotlin.math.sqrt
+import kotlin.math.*
 
 /**
  * defines a worker, that can process large tasks
@@ -66,33 +64,24 @@ abstract class WorkSplitter(val numThreads: Int) {
         processUnbalanced(i0, i1, if (heavy) 1 else 5, func)
     }
 
-    fun processUnbalanced(
+    open fun processUnbalanced(
         i0: Int,
         i1: Int,
-        minCountPerThread: Int,
+        countPerThread: Int,
         func: Task1d
     ) {
         val count = i1 - i0
-        val threadCount = Maths.clamp(count / max(1, minCountPerThread), 1, numThreads)
-        val counter = AtomicInteger(threadCount + i0)
-        for (threadId in 1 until threadCount) {
-            // spawn #threads workers
+        val threadCount = ceilDiv(count, countPerThread)
+        val counter = AtomicInteger(1)
+        for (threadId in 0 until threadCount) {
             plusAssign {
-                val index = threadId + i0
-                func.work(index, index + 1)
-                while (true) {
-                    val nextIndex = counter.incrementAndGet()
-                    if (nextIndex >= i1) break
-                    func.work(nextIndex, nextIndex + 1)
-                }
+                val min = threadId * countPerThread
+                val max = min(min + countPerThread, count)
+                func.work(min, max)
+                counter.addAndGet(max - min)
             }
         }
-        func.work(i0, i0 + 1)
-        while (true) {
-            val nextIndex = counter.incrementAndGet()
-            if (nextIndex >= i1) break
-            func.work(nextIndex, nextIndex + 1)
-        }
+        waitUntil(true) { counter.get() >= i1 }
     }
 
     fun processBalanced(i0: Int, i1: Int, minCountPerThread: Int, func: Task1d) {
@@ -230,6 +219,4 @@ abstract class WorkSplitter(val numThreads: Int) {
         process2d(x0, y0, x1, y1, tileSize, tx0, ty0, tx1, ty1, tiledTask)
         waitUntil(true) { counter.get() <= 0 }
     }
-
-
 }

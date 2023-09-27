@@ -153,8 +153,9 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
         }
 
         fun formatAccessURL(url: String, args: Map<Any?, Any?>): String {
-            if ('#' in url) return formatAccessURL(url.substring(0, url.indexOf('#')), args)
-            return if (args.isEmpty()) url
+            if (args.isEmpty()) return url
+            val hi = url.indexOf('#')
+            return if (hi >= 0) "${formatAccessURL(url.substring(0, hi), args)}#${url.substring(hi + 1)}"
             else url + (if ('?' in url) "&" else "?") + args.entries.joinToString("&") { entry ->
                 val (key, value) = entry
                 val key2 = encodeURIComponent(key.toString())
@@ -172,7 +173,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
             val args = HashMap<String, String>(url.count { it == '&' } * 3 / 2 + 2)
             var i = qi
             while (i < hi) {
-                val ni = min(url.indexOf2('&', i + 1), url.indexOf2('?', i + 1))
+                val ni = min(min(url.indexOf2('&', i + 1), url.indexOf2('?', i + 1)), hi)
                 // i .. ni
                 val eq = min(url.indexOf2('=', i + 1), ni)
                 val key = url.substring(i + 1, eq)
@@ -225,5 +226,4 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
             return res.toString()
         }
     }
-
 }

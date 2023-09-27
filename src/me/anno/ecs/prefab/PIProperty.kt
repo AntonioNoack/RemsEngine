@@ -9,12 +9,12 @@ import org.apache.logging.log4j.LogManager
 
 class PIProperty(
     val pi: PrefabInspector,
-    val instance: PrefabSaveable,
+    val instances: List<PrefabSaveable>,
     val name: String,
     val property: CachedProperty
 ) : IProperty<Any?> {
 
-    private fun getPath(): Path {
+    private fun getPath(instance: PrefabSaveable): Path {
         val path = instance.prefabPath
         // the index may not be set in the beginning
         val li = path.size - 1
@@ -25,32 +25,40 @@ class PIProperty(
     }
 
     override fun init(panel: Panel?) {
-        (panel as? TextStyleable)?.isBold = pi.isChanged(getPath(), name)
+        (panel as? TextStyleable)?.isBold = instances.any {
+            pi.isChanged(getPath(it), name)
+        }
     }
 
     override fun getDefault(): Any? {
         // info("default of $name: ${component.getDefaultValue(name)}")
-        return instance.getDefaultValue(name)
+        return instances.first().getDefaultValue(name)
     }
 
     override fun set(panel: Panel?, value: Any?) {
         if (pi.prefab.isWritable) {
             (panel as? TextStyleable)?.isBold = true
-            property[instance] = value
-            pi.change(getPath(), instance, name, value)
+            for (instance in instances) {
+                println("Setting $name to $value for ${getPath(instance)}")
+                property[instance] = value
+                pi.change(getPath(instance), instance, name, value)
+            }
+            pi.onChange(false)
         } else LOGGER.warn("Cannot modify ${pi.prefab.source}")
     }
 
     override fun get(): Any? {
-        return property[instance]
+        return property[instances.first()]
     }
 
     override fun reset(panel: Panel?): Any? {
         (panel as? TextStyleable)?.isBold = false
         // info("reset $name")
-        pi.reset(getPath(), name)
         val value = getDefault()
-        property[instance] = value
+        for (instance in instances) {
+            pi.reset(getPath(instance), name)
+            property[instance] = value
+        }
         return value
     }
 
@@ -60,5 +68,4 @@ class PIProperty(
     companion object {
         private val LOGGER = LogManager.getLogger(PIProperty::class)
     }
-
 }

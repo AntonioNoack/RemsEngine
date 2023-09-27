@@ -108,7 +108,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
                         "[InternetShortcut]\r\n" +
                                 files.joinToString(",") { "URL=file://${it.toLocalPath()}\r\n" }
                     )
-                    LOGGER.debug("Created url link file $newFile")
+                    LOGGER.debug("Created url link file {}", newFile)
                 },
                 MenuOption(NameDesc(if (files.size > 1) "Raw-Copy" else "Other")) {
                     super.onPasteFiles(x, y, files)

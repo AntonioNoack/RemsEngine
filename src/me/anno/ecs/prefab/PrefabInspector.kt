@@ -20,6 +20,7 @@ import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -30,7 +31,6 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.ui.editor.stacked.StackPanel
 import me.anno.ui.input.InputPanel
 import me.anno.ui.input.TextInput
-import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
@@ -114,28 +114,31 @@ class PrefabInspector(val reference: FileReference) {
         instance[name] = value
         path ?: return
         prefab[path, name] = value
-        onChange(false)
     }
 
-    fun inspect(instance: PrefabSaveable, list: PanelListY, style: Style) {
+    fun inspect(instances: List<PrefabSaveable>, list: PanelListY, style: Style) {
 
-        if (instance.prefab !== prefab && instance.prefab != null)
-            LOGGER.warn(
-                "Component ${instance.name}:${instance.className} " +
-                        "is not part of tree ${root.name}:${root.className}, " +
-                        "its root is ${instance.root.name}:${instance.root.className}; " +
-                        "${instance.prefab?.source} vs ${prefab.source}"
-            )
+        for (instance in instances) {
+            if (instance.prefab !== prefab && instance.prefab != null)
+                LOGGER.warn(
+                    "Component ${instance.name}:${instance.className} " +
+                            "is not part of tree ${root.name}:${root.className}, " +
+                            "its root is ${instance.root.name}:${instance.root.className}; " +
+                            "${instance.prefab?.source} vs ${prefab.source}"
+                )
+        }
 
-        val path = instance.prefabPath
-        instance.ensurePrefab()
-        list += TextPanel(
-            "$path@${instance.prefab?.source}, " +
-                    "${instance.className}@${hex32(System.identityHashCode(instance))}", style
-        )
+        for (instance in instances) instance.ensurePrefab()
+
+        val pathInformation = instances.joinToString("\n") {
+            "${it.prefabPath}@${it.prefab?.source}, " +
+                    "${it.className}@${hex32(System.identityHashCode(it))}"
+        }
+        list += TextPanel(pathInformation, style)
 
         // the index may not be set in the beginning
-        fun getPath(): Path {
+        fun getPath(instance: PrefabSaveable): Path {
+            val path = instance.prefabPath
             if (path.lastIndex() < 0) {
                 path.index = instance.parent!!.getIndexOf(instance)
             }
@@ -143,20 +146,31 @@ class PrefabInspector(val reference: FileReference) {
         }
 
         val isWritable = prefab.isWritable
-        val original = instance.getOriginal()
 
         list.add(TextButton("Select Parent", false, style).addLeftClickListener {
-            EditorState.select(instance.parent)
+            EditorState.select(instances.map { it.parent }.toHashSet().filterIsInstance<Inspectable>().toList())
         })
 
-        val warningPanel = UpdatingTextPanel(500, style) { instance.lastWarning }
+        val warningPanel = UpdatingTextPanel(500, style) {
+            instances.mapNotNull { it.lastWarning }.joinToString().ifBlank { null }
+        }
         warningPanel.textColor = warningPanel.textColor.mulARGB(0xffff3333.toInt())
         warningPanel.tooltip = "Click to hide this warning until the issue reappears."
-        warningPanel.addLeftClickListener { instance.lastWarning = null } // "marks" the warning as "read"
+        warningPanel.addLeftClickListener {
+            // "marks" the warning as "read"
+            for (instance in instances) {
+                if (instance.lastWarning != null) {
+                    instance.lastWarning = null
+                    break
+                }
+            }
+        }
         list += warningPanel
 
-        if (instance.className !in ISaveable.objectTypeRegistry) {
-            val warningPanel1 = TextPanel("Class '${instance.className}' wasn't registered as a custom class", style)
+        instances.map { it.className }.filter {
+            it !in ISaveable.objectTypeRegistry
+        }.toHashSet().sorted().forEach { className ->
+            val warningPanel1 = TextPanel("Class '$className' wasn't registered as a custom class", style)
             warningPanel1.tooltip =
                 "This class cannot be saved properly to disk, and might not be copyable.\n" +
                         "Use registerCustomClass { customConstructor() } or registerCustomClass(YourClass::class)."
@@ -164,43 +178,67 @@ class PrefabInspector(val reference: FileReference) {
             list += warningPanel1
         }
 
-        list.add(TextInput("Name", "", instance.name, style).apply {
-            isBold = isChanged(getPath(), "name")
-            addChangeListener { isBold = true; change(getPath(), instance, "name", it) }
-            setResetListener {
-                isBold = false; reset(getPath(), "name")
-                instance.name = original?.name ?: ""; instance.name
-            }
-        }.apply { this.isInputAllowed = isWritable })
-        list.add(TextInput("Description", "", instance.description, style).apply {
-            addChangeListener { isBold = true; change(getPath(), instance, "description", it) }
-            setResetListener {
-                isBold = false; reset(getPath(), "description")
-                instance.description = original?.description ?: ""; instance.description
-            }
-        }.apply { this.isInputAllowed = isWritable })
-
-        // for debugging
-        /*list.add(TextButton("Copy Internal Data", false, style).addLeftClickListener {
-            val text = TextWriter.toText(instance)
-            setClipboardContent(text)
-            LOGGER.info("Copy: $text")
-        })*/
-
-        if (instance is ControlReceiver) {
-            list.add(TextButton("Test Controls", false, style)
-                .addLeftClickListener { EditorState.control = instance })
+        run {
+            val first = instances.first()
+            val original = first.getOriginal()
+            list.add(TextInput("Name", "", instances.joinToString { it.name }, style).apply {
+                isBold = instances.any { isChanged(getPath(it), "name") }
+                isInputAllowed = isWritable && instances.all { it.name == first.name }
+                addChangeListener {
+                    isBold = true
+                    for (instance in instances) {
+                        change(getPath(instance), instance, "name", it)
+                    }
+                    onChange(false)
+                }
+                setResetListener {
+                    isBold = false
+                    val defaultValue = original?.name ?: ""
+                    for (instance in instances) {
+                        reset(getPath(instance), "name")
+                        instance.name = defaultValue
+                    }
+                    defaultValue
+                }
+            })
+            list.add(TextInput("Description", "", instances.joinToString { it.description }, style).apply {
+                isInputAllowed = isWritable && instances.all { it.description == first.description }
+                addChangeListener {
+                    isBold = true
+                    for (instance in instances) {
+                        change(getPath(instance), instance, "description", it)
+                    }
+                    onChange(false)
+                }
+                setResetListener {
+                    isBold = false
+                    val defaultValue = original?.description ?: ""
+                    for (instance in instances) {
+                        reset(getPath(instance), "description")
+                        instance.description = defaultValue
+                    }
+                    defaultValue
+                }
+            }.apply { this.isInputAllowed = isWritable })
         }
 
-        if (instance is CustomEditMode) {
+        val controlReceiver = instances.firstInstanceOrNull<ControlReceiver>()
+        if (controlReceiver != null) {
+            list.add(TextButton("Test Controls", false, style)
+                .addLeftClickListener { EditorState.control = controlReceiver })
+        }
+
+        val customEditModes = instances.filterIsInstance<CustomEditMode>()
+        if (customEditModes.isNotEmpty()) {
             list.add(object : TextButton("Toggle Edit Mode", false, style) {
 
                 var borderColor = 0
 
                 override fun onUpdate() {
                     super.onUpdate()
-                    val newBorderColor = if (EditorState.editMode === instance) {
-                        instance.getEditModeBorderColor()
+                    val editMode = EditorState.editMode
+                    val newBorderColor = if (editMode in customEditModes) {
+                        editMode!!.getEditModeBorderColor()
                     } else 0
                     if (newBorderColor != borderColor) {
                         borderColor = newBorderColor
@@ -212,21 +250,20 @@ class PrefabInspector(val reference: FileReference) {
                     super.onDraw(x0, y0, x1, y1)
                     DrawRectangles.drawBorder(x, y, width, height, borderColor, 2)
                 }
-
             }.addLeftClickListener {
-                EditorState.editMode =
-                    if (EditorState.editMode === instance) null
-                    else instance
+                val editMode = EditorState.editMode
+                val index = customEditModes.indexOf(editMode) + 1
+                EditorState.editMode = customEditModes.getOrNull(index)
             })
         }
 
-        val reflections = instance.getReflections()
+        val reflections = instances.first().getReflections()
 
         // debug warnings
         for (warn in reflections.debugWarnings) {
             val title = warn.name.camelCaseToTitle()
             list.add(UpdatingTextPanel(500L, style) {
-                formatWarning(title, warn.getter.call(instance))
+                formatWarning(title, instances.firstNotNullOfOrNull { warn.getter.call(it) })
             }.apply { textColor = black or 0xffff33 })
         }
 
@@ -239,7 +276,13 @@ class PrefabInspector(val reference: FileReference) {
             val title = action.annotations.firstInstanceOrNull<DebugTitle>()?.title ?: action.name.camelCaseToTitle()
             list.add(TextButton(title, false, style)
                 .addLeftClickListener {
-                    action.call(instance)
+                    // could become a little heavy....
+                    for (instance in instances) {
+                        // todo check class using inheritance / whether it exists...
+                        if (instance.javaClass == instances.first().javaClass) {
+                            action.call(instance)
+                        }
+                    }
                     invalidateUI(true) // typically sth would have changed -> show that automatically
                 })
         }
@@ -250,8 +293,10 @@ class PrefabInspector(val reference: FileReference) {
             val list1 = PanelListX(style)
             list1.add(TextPanel("$title:", style))
             list1.add(UpdatingTextPanel(100L, style) {
-                property.getter.call(instance)
-                    .toString().shorten2Way(200)
+                // call on all, where class matches
+                val relevantInstances = instances.filter { it.javaClass == instances.first().javaClass }
+                relevantInstances.joinToString { property.getter.call(it).toString() }
+                    .shorten2Way(200)
             })
             // todo when clicked, a tracking graph/plot is displayed (real time)
             /*list1.addLeftClickListener {
@@ -275,6 +320,7 @@ class PrefabInspector(val reference: FileReference) {
         val properties = reflections.propertiesByClass
         for (i in properties.size - 1 downTo 0) {
             val (clazz, propertyNames) = properties[i]
+            val relevantInstances = instances.filter { clazz.isInstance(it) }
 
             var hadIntro = false
             val defaultGroup = ""
@@ -292,7 +338,8 @@ class PrefabInspector(val reference: FileReference) {
 
                 val property = allProperties[name]!!
                 if (!property.serialize) continue
-                if (property.hideInInspector.any { it(instance) }) continue
+                val firstInstance = relevantInstances.first()
+                if (property.hideInInspector.any { it(firstInstance) }) continue
 
                 val group = property.group ?: ""
                 if (group != lastGroup) {
@@ -311,7 +358,7 @@ class PrefabInspector(val reference: FileReference) {
                 // to do more indentation?
 
                 try {
-                    val property2 = PIProperty(this, instance, name, property)
+                    val property2 = PIProperty(this, relevantInstances, name, property)
                     val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: continue
                     panel.tooltip = property.description
                     panel.forAllPanels { panel2 ->
@@ -340,6 +387,7 @@ class PrefabInspector(val reference: FileReference) {
 
         // todo disable this if !prefab.isWritable
 
+        val instance = instances.first()
         val types = instance.listChildTypes()
         for (i in types.indices) {
             val type = types[i]
@@ -382,7 +430,6 @@ class PrefabInspector(val reference: FileReference) {
                     EditorState.unselect(component)
                     Hierarchy.removePathFromPrefab(this@PrefabInspector.prefab, component)
                 }
-
             }.apply { isInputAllowed = isWritable })
         }
     }
@@ -440,7 +487,5 @@ class PrefabInspector(val reference: FileReference) {
         }
 
         var currentInspector: PrefabInspector? = null
-
     }
-
 }

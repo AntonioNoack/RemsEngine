@@ -15,7 +15,7 @@ fun main() {
     val instance = Mesh()
     instance.materials = listOf(Material().ref)
     val pi = PrefabInspector(instance.ref)
-    val property = PIProperty(pi, instance, "materials", instance.getReflections()["materials"]!!)
+    val property = PIProperty(pi, listOf(instance), "materials", instance.getReflections()["materials"]!!)
     val ui = ComponentUI.createUI2("Materials", "", property, null, style)!!
     testUI("Disabled FileInput", ui.apply {
         forAllPanels { p ->
