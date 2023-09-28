@@ -138,7 +138,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         // todo add it to the transparent pass
     }
 
-    fun addMesh(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, gfxId: Int) {
+    fun addMesh(mesh: Mesh, renderer: MeshComponentBase, entity: Entity) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         val materialOverrides = renderer.materials
@@ -155,7 +155,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         defaultStage.add(renderer, mesh, entity, 0)
     }
 
-    fun addMeshInstanced(mesh: Mesh, renderer: MeshComponentBase, entity: Entity, clickId: Int) {
+    fun addMeshInstanced(mesh: Mesh, renderer: MeshComponentBase, entity: Entity) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         val materialOverrides = renderer.materials

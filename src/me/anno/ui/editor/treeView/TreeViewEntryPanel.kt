@@ -29,7 +29,7 @@ import me.anno.utils.Color.r
 import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
 
-class TreeViewPanel<V : Any>(
+class TreeViewEntryPanel<V : Any>(
     val getElement: () -> V,
     val isValidElement: (Any?) -> Boolean,
     val toggleCollapsed: (V) -> Unit,
@@ -40,11 +40,11 @@ class TreeViewPanel<V : Any>(
     private val fileContentImporter: FileContentImporter<V>,
     showSymbol: Boolean,
     private val treeView: TreeView<V>, style: Style
-) : PanelListX(style) {
+) : PanelListX(style), ITreeViewEntryPanel {
 
     companion object {
         @JvmStatic
-        private val LOGGER = LogManager.getLogger(TreeViewPanel::class)
+        private val LOGGER = LogManager.getLogger(TreeViewEntryPanel::class)
     }
 
     val uiSymbol: TextPanel? = if (showSymbol) {
@@ -64,13 +64,13 @@ class TreeViewPanel<V : Any>(
             }
 
             override fun onCopyRequested(x: Float, y: Float) =
-                this@TreeViewPanel.onCopyRequested(x, y)
+                this@TreeViewEntryPanel.onCopyRequested(x, y)
         }
     } else null
 
     val text = object : TextPanel("", style) {
         override fun onCopyRequested(x: Float, y: Float) =
-            this@TreeViewPanel.onCopyRequested(x, y)
+            this@TreeViewEntryPanel.onCopyRequested(x, y)
     }
 
     init {
@@ -82,9 +82,16 @@ class TreeViewPanel<V : Any>(
         this += text
     }
 
-    fun setText(symbol: String, name: String) {
+    override fun setEntrySymbol(symbol: String) {
         this.uiSymbol?.text = symbol
+    }
+
+    override fun setEntryName(name: String) {
         this.text.text = name
+    }
+
+    override fun setEntryTooltip(ttt: String?) {
+        this.tooltip = ttt
     }
 
     var showAddIndex: Int? = null
@@ -156,9 +163,9 @@ class TreeViewPanel<V : Any>(
             Key.BUTTON_LEFT -> {
                 // collapse, if you click on the symbol
                 // todo selecting multiple isn't working yet :/
-                val inFocusByParent = siblings.count { it is TreeViewPanel<*> && it.isAnyChildInFocus }
+                val inFocusByParent = siblings.count { it is TreeViewEntryPanel<*> && it.isAnyChildInFocus }
                 LOGGER.debug(
-                    "click -> ${siblings.size}, ${siblings.count { it is TreeViewPanel<*> }}, $inFocusByParent, " +
+                    "click -> ${siblings.size}, ${siblings.count { it is TreeViewEntryPanel<*> }}, $inFocusByParent, " +
                             "${Input.isShiftDown}, ${isMouseOnSymbol(x)}"
                 )
                 if (Input.isShiftDown && inFocusByParent < 2) {
@@ -170,7 +177,7 @@ class TreeViewPanel<V : Any>(
                 } else {
                     val elements = siblings.mapNotNull {
                         if (it == this) element
-                        else if (it is TreeViewPanel<*> && it.isAnyChildInFocus)
+                        else if (it is TreeViewEntryPanel<*> && it.isAnyChildInFocus)
                             it.getElement() as V
                         else null
                     }
@@ -183,9 +190,9 @@ class TreeViewPanel<V : Any>(
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: Key) {
-        when {
-            button == Key.BUTTON_LEFT -> treeView.focusOnElement(getElement())
-            // button == Key.BUTTON_RIGHT -> toggleCollapsed()
+        when (button) {
+            Key.BUTTON_LEFT -> treeView.focusOnElement(getElement())
+            // Key.BUTTON_RIGHT -> toggleCollapsed()
             else -> super.onDoubleClick(x, y, button)
         }
     }
@@ -328,6 +335,6 @@ class TreeViewPanel<V : Any>(
     // multiple values can be selected
     override fun getMultiSelectablePanel() = this
 
-    override val className: String get() = "TreeViewPanel"
+    override val className: String get() = "TreeViewEntryPanel"
 
 }

@@ -13,9 +13,7 @@ import me.anno.engine.raycast.Projection.projectRayToAABBBack
 import me.anno.engine.raycast.Projection.projectRayToAABBFront
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
-import me.anno.engine.ui.control.BlenderControlsAddon
-import me.anno.engine.ui.control.DraggingControls
-import me.anno.engine.ui.control.Mode
+import me.anno.engine.ui.control.*
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
@@ -57,8 +55,9 @@ import kotlin.math.floor
 // we then could directly link an online library for fast development
 // ... or generate them synthetically ...
 
-open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.BlenderCATransformable,
-    DraggingControls.DCMovable, DraggingControls.DCDroppable {
+open class SDFComponent : ProceduralMesh(), Renderable,
+    BlenderCATransformable,
+    DCMovable, DCDroppable {
 
     override var isEnabled: Boolean
         get() = super.isEnabled
@@ -247,7 +246,7 @@ open class SDFComponent : ProceduralMesh(), Renderable, BlenderControlsAddon.Ble
         this.clickId = clickId
         ensureValidShader()
         ensureValidBounds()
-        pipeline.addMesh(getMesh(), this, entity, gfxId)
+        pipeline.addMesh(getMesh(), this, entity)
         lastDrawn = Time.gameTimeN
         return clickId + 1
     }

@@ -22,6 +22,7 @@ import me.anno.input.Input
 import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
@@ -291,23 +292,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         return true
     }
 
-    interface DCMovable {
-        fun move(
-            self: DraggingControls, camTransform: Matrix4x3d, offset: Vector3d, dir: Vector3d,
-            rotationAngle: Double, dx: Float, dy: Float
-        )
-    }
-
-    interface DCPaintable {
-        fun paint(self: DraggingControls, color: Material, file: FileReference)
-    }
-
-    interface DCDroppable {
-        fun drop(
-            self: DraggingControls, prefab: Prefab, hovEntity: Entity?, hovComponent: Component?,
-            dropPosition: Vector3d, results: MutableCollection<PrefabSaveable>
-        )
-    }
+    @NotSerializedProperty
+    val snapRemainder = Vector3d()
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (EditorState.control?.onMouseMoved(x, y, dx, dy) == true) return
@@ -388,7 +374,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                                             offset.mul(distance)
                                             val snap = snappingSettings
                                             if (snap.snapX || snap.snapY || snap.snapZ) {
-                                                applySnapping(offset, snap.snapRemainder)
+                                                snappingSettings.applySnapping(offset, snapRemainder)
                                             }
                                             global.translateLocal(offset)
                                             offset.div(distance)
@@ -624,47 +610,8 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         }
         // to do camDirection will only be correct, if this was the last drawn instance
         dst.set(view.mouseDirection).mul(distance).add(view.cameraPosition)
-        applySnapping(dst)
+        snappingSettings.applySnapping(dst)
         return dst
-    }
-
-    fun applySnapping(dst: Vector3d) {
-        val snap = snappingSettings
-        fun snap(v: Double): Double {
-            val s = snap.snapSize
-            return if (snap.snapCenter) {
-                floor(v / s) * s
-            } else {
-                round(v / s) * s
-            }
-        }
-        if (snap.snapSize > 0.0) {
-            if (snap.snapX) dst.x = snap(dst.x)
-            if (snap.snapY) dst.y = snap(dst.y)
-            if (snap.snapZ) dst.z = snap(dst.z)
-        }
-    }
-
-    fun applySnapping(dst: Vector3d, rem: Vector3d) {
-        val snap = snappingSettings
-        val s = snap.snapSize
-        if (s > 0.0) {
-            if (snap.snapX) {
-                val v = dst.x + rem.x
-                dst.x = round(v / s) * s
-                rem.x = v - dst.x
-            } else rem.x = 0.0
-            if (snap.snapY) {
-                val v = dst.y + rem.y
-                dst.y = round(v / s) * s
-                rem.y = v - dst.y
-            } else rem.y = 0.0
-            if (snap.snapZ) {
-                val v = dst.z + rem.z
-                dst.z = round(v / s) * s
-                rem.z = v - dst.z
-            } else rem.z = 0.0
-        }
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {

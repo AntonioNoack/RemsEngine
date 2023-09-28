@@ -64,5 +64,6 @@ object InvalidRef : FileReference("") {
     override fun toString() = ""
 
     override fun nullIfUndefined(): FileReference? = null
+    override fun ifUndefined(other: FileReference) = other
 
 }

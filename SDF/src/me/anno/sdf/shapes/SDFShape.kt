@@ -3,6 +3,7 @@ package me.anno.sdf.shapes
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.control.DCPaintable
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.gpu.GFXState.currentRenderer
 import me.anno.gpu.shader.GLSLType
@@ -15,7 +16,7 @@ import me.anno.sdf.VariableCounter
 import me.anno.utils.LOGGER
 import kotlin.math.max
 
-open class SDFShape : SDFComponent(), DraggingControls.DCPaintable {
+open class SDFShape : SDFComponent(), DCPaintable {
 
     var dynamicSize = false
         set(value) {
@@ -101,5 +102,4 @@ open class SDFShape : SDFComponent(), DraggingControls.DCPaintable {
             else LOGGER.warn("Invalid material id, must be non-negative")
         }
     }
-
 }

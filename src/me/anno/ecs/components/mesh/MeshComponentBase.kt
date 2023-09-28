@@ -123,11 +123,11 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         val mesh = getMesh()
         return if (mesh != null) {
             if (isInstanced && mesh.proceduralLength <= 0) {
-                pipeline.addMeshInstanced(mesh, this, entity, clickId)
+                pipeline.addMeshInstanced(mesh, this, entity)
             } else {
                 val oc = occlusionQuery
                 if (oc == null || oc.wasVisible || oc.frameCounter++ > 0) {
-                    pipeline.addMesh(mesh, this, entity, clickId)
+                    pipeline.addMesh(mesh, this, entity)
                 }
             }
             lastDrawn = Time.gameTimeN

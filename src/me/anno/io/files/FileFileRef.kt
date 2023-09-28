@@ -49,7 +49,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
                 }
             }
         }
-
     }
 
     override fun toFile(): File = file
@@ -128,6 +127,12 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
         LastModifiedCache.invalidate(file)
     }
 
+    override fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit, callback: (Exception?) -> Unit) {
+        if (file is FileFileRef) file.file.copyTo(this.file)
+        else super.writeFile(file, deltaProgress, callback)
+        LastModifiedCache.invalidate(file)
+    }
+
     override fun length() = LastModifiedCache[file, absolutePath].length
 
     override fun deleteRecursively(): Boolean {
@@ -159,7 +164,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun listChildren(): List<FileReference>? {
         return (if (exists) {
-            if (isDirectory) file.listFiles()?.map { getReference(it) }
+            if (isDirectory) file.listFiles()?.map { getChild(it.name) }
             else zipFileForDirectory?.listChildren()
         } else null) ?: super.listChildren()
     }
@@ -168,7 +173,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun renameTo(newName: FileReference): Boolean {
         val response = file.renameTo(
-            if(newName is FileFileRef) newName.file
+            if (newName is FileFileRef) newName.file
             else File(newName.absolutePath)
         )
         if (response) {
@@ -204,5 +209,4 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override val isDirectory: Boolean
         get() = LastModifiedCache[file, absolutePath].isDirectory
-
 }

@@ -1143,7 +1143,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         entity: Entity,
         clickId: Int
     ): Int {
-        pipeline.addMesh(this, Pipeline.sampleMeshComponent, entity, clickId)
+        pipeline.addMesh(this, Pipeline.sampleMeshComponent, entity)
         return clickId
     }
 

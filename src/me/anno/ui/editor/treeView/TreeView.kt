@@ -4,27 +4,26 @@ import me.anno.config.DefaultConfig
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
-import me.anno.ui.Style
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
 abstract class TreeView<V : Any>(
-    val sources: List<V>,
     private val fileContentImporter: FileContentImporter<V>,
     private val showSymbols: Boolean,
     style: Style
 ) : ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
     val list = child as PanelListY
-    val sample get() = list.children.getOrNull(1) as TreeViewPanel<*>
+    val sample get() = list.children.getOrNull(1) as TreeViewEntryPanel<*>
     val searchPanel = TextInput("Search Term", "", false, style)
 
     init {
@@ -35,12 +34,14 @@ abstract class TreeView<V : Any>(
         }
     }
 
-    private val elementByIndex = ArrayList<V>()
+    val elementByIndex = ArrayList<V>()
 
     var inset = style.getSize("fontSize", 12) / 3
     var collapsedSymbol = DefaultConfig["ui.symbol.collapsed", "\uD83D\uDDBF"]
 
     var needsTreeUpdate = true
+
+    abstract fun listSources(): List<V>
 
     // Selection.select(element, null)
     abstract fun selectElements(elements: List<V>)
@@ -144,8 +145,9 @@ abstract class TreeView<V : Any>(
             val children = getChildren(element)
             for (i in children.indices) {
                 val child = children[i]
-                if (getParent(child) != element) {
-                    LOGGER.warn("${className}.getParent($child) is incorrect, $element")
+                val testParent = getParent(child)
+                if (testParent != element) {
+                    LOGGER.warn("${className}.getParent($child) is incorrect, $testParent != $element")
                 }
                 index = addToTreeList(child, depth + 1, index)
                 if (index > index0 + 1) isIncludedInSearch = true
@@ -153,8 +155,9 @@ abstract class TreeView<V : Any>(
         }// todo else show that it's collapsed, if there is no symbol
         return if (isIncludedInSearch) {
             val symbol = if (isCollapsed) collapsedSymbol else getSymbol(element)
-            panel.setText(symbol.trim(), name)
-            panel.tooltip = ttt.value
+            panel.setEntrySymbol(symbol.trim())
+            panel.setEntryName(name)
+            panel.setEntryTooltip(ttt.value)
             val padding = panel.padding
             val left = inset * depth + padding.right
             if (padding.left != left) {
@@ -170,7 +173,7 @@ abstract class TreeView<V : Any>(
     private fun updateTree() {
         try {
             var index = 1
-            val sources = sources
+            val sources = listSources()
             for (i in sources.indices) {
                 val element = sources[i]
                 index = addToTreeList(element, 0, index)
@@ -205,28 +208,35 @@ abstract class TreeView<V : Any>(
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+        val sources = listSources()
         if (button == Key.BUTTON_RIGHT && sources.isNotEmpty()) {
             // correct? maybe 😄
             openAddMenu(sources.last())
         } else super.onMouseClicked(x, y, button, long)
     }
 
-    private fun getOrCreateChildPanel(index: Int, element: V): TreeViewPanel<*> {
-        if (index < list.children.size) {
+    open fun getOrCreateChildPanel(index: Int, element: V): ITreeViewEntryPanel {
+        return if (index < list.children.size) {
             elementByIndex[index - 1] = element
-            val panel = list.children[index] as TreeViewPanel<*>
+            val panel = list.children[index] as TreeViewEntryPanel<*>
             panel.isVisible = true
-            return panel
+            panel
+        } else {
+            elementByIndex += element
+            val panel = createChildPanel(index)
+            list += panel
+            panel
         }
-        elementByIndex += element
-        val child = TreeViewPanel(
+    }
+
+    fun createChildPanel(index: Int): TreeViewEntryPanel<*> {
+        val child = TreeViewEntryPanel(
             { elementByIndex[index - 1] }, ::isValidElement, ::toggleCollapsed, ::moveChange,
             ::getName, ::setName, this::openAddMenu,
             fileContentImporter, showSymbols, this, style
         )
         child.padding.left = 4
         // todo checkbox with custom icons
-        list += child
         return child
     }
 
@@ -245,7 +255,7 @@ abstract class TreeView<V : Any>(
             "Delete" -> {
                 moveChange {
                     for (child in list.children) {
-                        if (child is TreeViewPanel<*>) {
+                        if (child is TreeViewEntryPanel<*>) {
                             @Suppress("unchecked_cast")
                             val element = child.getElement() as V
                             val parent = getParent(element)
@@ -271,7 +281,7 @@ abstract class TreeView<V : Any>(
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         for (file in files) {
             fileContentImporter.addChildFromFile(
-                sources.lastOrNull(),
+                listSources().lastOrNull(),
                 file,
                 FileContentImporter.SoftLinkMode.ASK,
                 true
@@ -285,6 +295,8 @@ abstract class TreeView<V : Any>(
             searchPanel.requestFocus()
         } else super.onKeyTyped(x, y, key)
     }
+
+    override val className: String get() = "TreeView"
 
     companion object {
         @JvmStatic

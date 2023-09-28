@@ -3,12 +3,14 @@ package me.anno.io.csv
 import me.anno.utils.structures.lists.Lists.transposed
 import me.anno.utils.types.Strings.isBlank2
 
+/**
+ * a few simple readers for the Comma Separated Values file format
+ *
+ * to do later maybe dedicated, optimized readers,
+ * which can detect the separator even maybe :)
+ * */
 @Suppress("unused")
 object CSVReader {
-
-    // a few simple and dirty readers
-    // to do later maybe dedicated, optimized readers,
-    // which can detect the separator even maybe :)
 
     fun readNumerical(
         textData: String,

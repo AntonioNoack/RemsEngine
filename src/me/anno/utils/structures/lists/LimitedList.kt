@@ -5,31 +5,35 @@ import kotlin.math.min
 
 class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
 
-    val data = arrayOfNulls<Any>(limit)
+    private val data = arrayOfNulls<Any>(limit)
 
-    fun isFull() = size >= data.size
+    var isFull = limit == 0
+        private set
 
     override var size = 0
+        private set
 
     override fun isEmpty(): Boolean = size <= 0
 
     override fun clear() {
         size = 0
+        isFull = false
+        // for GC
         data.fill(null)
     }
 
     override fun add(element: V): Boolean {
         if (element in this) return false
-        if (size < data.size) data[size] = element
-        size++
+        if (size < data.size) data[size++] = element
+        else isFull = true
         return true
     }
 
     // implemented to reduce allocations
     @Suppress("unchecked_cast")
-    inline fun sumOf(run: (V?) -> Int): Int {
+    fun sumOf(run: (V?) -> Int): Int {
+        if (isFull) throw IllegalStateException("Cannot calculate sum if is full")
         var accumulator = 0
-        val data = data
         for (i in 0 until min(size, data.size)) {
             accumulator += run(data[i] as V)
         }
@@ -37,6 +41,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun remove(element: V): Boolean {
+        if (isFull) throw IllegalStateException("Cannot remove specific element when list is full")
         var size = size
         for (index in 0 until size) {
             if (element == data[index]) {
@@ -51,7 +56,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun removeAll(elements: Collection<V>): Boolean {
-        if (size >= data.size) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
+        if (isFull) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
         var writeIndex = 0
         val oldSize = min(size, data.size)
         for (readIndex in 0 until oldSize) {
@@ -61,11 +66,11 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
             }
         }
         size = writeIndex
-        return writeIndex != oldSize || isFull()
+        return writeIndex != oldSize
     }
 
     override fun removeIf(p0: Predicate<in V>): Boolean {
-        if (size > data.size) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
+        if (isFull) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
         var writeIndex = 0
         val oldSize = min(size, data.size)
         for (readIndex in 0 until oldSize) {
@@ -76,11 +81,11 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
             }
         }
         size = writeIndex
-        return writeIndex != oldSize || isFull()
+        return writeIndex != oldSize
     }
 
     override fun retainAll(elements: Collection<V>): Boolean {
-        if (size > data.size) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
+        if (isFull) throw IllegalStateException("Cannot remove finite set from filled LimitedList")
         var writeIndex = 0
         val oldSize = min(size, data.size)
         for (readIndex in 0 until oldSize) {
@@ -90,16 +95,15 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
             }
         }
         size = writeIndex
-        return writeIndex != oldSize || isFull()
+        return writeIndex != oldSize
     }
 
     override fun addAll(elements: Collection<V>): Boolean {
-        val targetSize = data.size + elements.size
+        if (isFull) return true
         var wasChanged = false
         for (e in elements) {
             if (e !in data) {
                 if (!add(e)) { // we're full, so we're done
-                    size = targetSize
                     return true
                 } else {
                     wasChanged = true
@@ -110,7 +114,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override operator fun contains(element: V): Boolean {
-        if (size > data.size) return true
+        if (isFull) return true
         for (i in 0 until min(size, data.size)) {
             if (data[i] == element) return true
         }
@@ -118,14 +122,16 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun containsAll(elements: Collection<V>): Boolean {
-        return if (size > data.size) true
+        return if (isFull) true
         else elements.all { it in this }
     }
 
     override fun iterator(): MutableIterator<V> {
+        if (isFull) throw IllegalStateException("Cannot iterate over all elements")
         return object : Iterator<V>, MutableIterator<V> {
             private var i = 0
             private val size1 = min(size, data.size)
+            @Suppress("unchecked_cast")
             override fun next() = data[i++] as V
             override fun hasNext() = i < size1
             override fun remove() {
@@ -135,7 +141,7 @@ class LimitedList<V>(limit: Int = 16) : MutableCollection<V> {
     }
 
     override fun toString(): String {
+        if (isFull) return "*"
         return Array(size) { data[it] }.joinToString()
     }
-
 }

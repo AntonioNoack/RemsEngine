@@ -1,8 +1,8 @@
 package me.anno.ui.base.groups
 
 import me.anno.ui.Panel
-import me.anno.ui.base.components.Padding
 import me.anno.ui.Style
+import me.anno.ui.base.components.Padding
 
 open class PanelContainer(
     onlyChild: Panel,
@@ -49,10 +49,14 @@ open class PanelContainer(
         child.setPosition(x + padding.left, y + padding.top)
     }
 
+    override fun setSize(w: Int, h: Int) {
+        super.setSize(w, h)
+        child.setSize(w - padding.width, h - padding.height)
+    }
+
     override fun clone() = PanelContainer(this)
 
     companion object {
         const val maxLength = 2_000_000_000 // max value, but also enough for any padding addition/subtraction
     }
-
 }

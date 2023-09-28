@@ -6,6 +6,9 @@ import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import org.joml.*
 
+/**
+ * IProperty for ISaveable
+ * */
 class SIProperty<V>(
     val name: String,
     val type: String,

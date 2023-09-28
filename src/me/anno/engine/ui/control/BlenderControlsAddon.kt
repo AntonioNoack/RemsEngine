@@ -124,9 +124,7 @@ class BlenderControlsAddon {
         } else false
     }
 
-    interface BlenderCATransformable {
-        fun transform(self: BlenderControlsAddon, x: Float, y: Float, reset: Boolean)
-    }
+
 
     fun transform(transform: Transform, vec: Vector3d) {
         when (local) {

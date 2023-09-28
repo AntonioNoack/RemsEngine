@@ -29,7 +29,7 @@ import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.editor.treeView.TreeViewPanel
+import me.anno.ui.editor.treeView.TreeViewEntryPanel
 import me.anno.utils.Sleep
 import me.anno.utils.files.FileExplorerSelectWrapper
 import me.anno.utils.files.Files.findNextFile
@@ -296,7 +296,7 @@ object Input {
             Key.KEY_DELETE -> {
                 // tree view selections need to be removed, because they would be illogical to keep
                 // (because the underlying Transform changes)
-                val inFocusTreeViews = inFocus.filterIsInstance<TreeViewPanel<*>>()
+                val inFocusTreeViews = inFocus.filterIsInstance<TreeViewEntryPanel<*>>()
                 for (it in inFocus) it.onDeleteKey(mouseX, mouseY)
                 inFocus.removeAll(inFocusTreeViews.toSet())
             }

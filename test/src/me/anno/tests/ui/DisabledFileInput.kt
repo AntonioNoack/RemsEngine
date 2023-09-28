@@ -3,7 +3,7 @@ package me.anno.tests.ui
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.prefab.PIProperty
+import me.anno.ecs.prefab.PrefabSaveableProperty
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.ComponentUI
 import me.anno.gpu.GFXBase
@@ -15,7 +15,7 @@ fun main() {
     val instance = Mesh()
     instance.materials = listOf(Material().ref)
     val pi = PrefabInspector(instance.ref)
-    val property = PIProperty(pi, listOf(instance), "materials", instance.getReflections()["materials"]!!)
+    val property = PrefabSaveableProperty(pi, listOf(instance), "materials", instance.getReflections()["materials"]!!)
     val ui = ComponentUI.createUI2("Materials", "", property, null, style)!!
     testUI("Disabled FileInput", ui.apply {
         forAllPanels { p ->

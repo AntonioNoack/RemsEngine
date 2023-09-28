@@ -48,21 +48,10 @@ fun main() {
         val root = FileRootRef
         notCollapsed.add(root)
         object : TreeView<FileReference>(
-            listOf(root), object : FileContentImporter<FileReference>() {
-                override fun createNode(parent: FileReference?) = InvalidRef
-                override fun setName(element: FileReference, name: String) {}
-                override fun import(
-                    parent: FileReference?,
-                    file: FileReference,
-                    useSoftLink: SoftLinkMode,
-                    doSelect: Boolean,
-                    depth: Int,
-                    callback: (FileReference) -> Unit
-                ) {
-                }
-            },
+            object : FileContentImporter<FileReference>() {},
             true, style
         ) {
+            override fun listSources(): List<FileReference> = listOf(root)
             override fun selectElements(elements: List<FileReference>) {}
             override fun focusOnElement(element: FileReference) {}
             override fun openAddMenu(parent: FileReference) {}

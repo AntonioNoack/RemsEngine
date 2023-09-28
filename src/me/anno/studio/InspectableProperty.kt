@@ -4,7 +4,10 @@ import me.anno.engine.IProperty
 import me.anno.io.serialization.CachedProperty
 import me.anno.ui.Panel
 
-class IIProperty(
+/**
+ * IProperty for Inspectables
+ * */
+class InspectableProperty(
     val instances: List<Inspectable>,
     val property: CachedProperty,
     val cleanInstance: Inspectable?

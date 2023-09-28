@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.cache.FileCache
 import me.anno.cache.ICacheData
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX
@@ -475,7 +476,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     @kotlin.jvm.Throws(IOException::class)
-    fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit, callback: (Exception?) -> Unit) {
+    open fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit, callback: (Exception?) -> Unit) {
         outputStream().use { output: OutputStream ->
             file.inputStream { input, exc ->
                 if (input != null) {
@@ -754,6 +755,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     open fun nullIfUndefined(): FileReference? = this
+
+    open fun ifUndefined(other: FileReference): FileReference = this
 
     inline fun anyInHierarchy(run: (FileReference) -> Boolean): Boolean {
         var element = this

@@ -28,10 +28,9 @@ open class PlanarMaterialBase : Material() {
             ((worldPosCenter.z - pos.z) * worldScale).toFloat()
         )
 
-        val texture = diffuseMap.nullIfUndefined()
-            ?: emissiveMap.nullIfUndefined()
-            ?: normalMap.nullIfUndefined()
-            ?: InvalidRef
+        val texture = diffuseMap
+            .ifUndefined(emissiveMap)
+            .ifUndefined(normalMap)
 
         // calculate final scale + aspect ratio correction
         val tex3 = getTex(texture)

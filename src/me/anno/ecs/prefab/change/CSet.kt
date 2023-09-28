@@ -34,7 +34,7 @@ class CSet() : Change() {
         // special handling, to save a little space by omitting "name": and "value":
         val value = value
         if (value is PrefabSaveable) {
-            writer.writeObject(null, name, value.prefabPath!!)
+            writer.writeObject(null, name, value.prefabPath)
         } else {
             writer.writeSomething(null, name!!, value, true)
         }
@@ -78,7 +78,7 @@ class CSet() : Change() {
                 LOGGER.debug("Changed path {} to instance {}", value0, value)
             }
             if (!instance.set(name, value)) {
-                throw IllegalStateException("Property ${instance::class.simpleName}.$name is unknown/faulty, path: $path, prefab: ${instance.root.prefab?.source}")
+                LOGGER.warn("Property ${instance::class.simpleName}.$name is unknown/faulty, path: $path, prefab: ${instance.root.prefab?.source}")
             }
         }
 

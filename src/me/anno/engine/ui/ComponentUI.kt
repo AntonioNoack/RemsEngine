@@ -42,6 +42,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu
@@ -52,7 +53,6 @@ import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.input.*
-import me.anno.ui.Style
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
@@ -105,10 +105,7 @@ object ComponentUI {
             // at least in my version it works ^^
             System.arraycopy(tmpArray, 0, newArray, 0, tmpArray.size)
         } catch (e: Exception) {
-            LOGGER.error(
-                "Copy failed, which is a failure by the JVM implementation; please contact Antonio Noack, author of Rem's Engine",
-                e
-            )
+            LOGGER.error("Copy failed", e)
         }
         return newArray
     }
@@ -223,7 +220,6 @@ object ComponentUI {
         }
 
         return createUIByTypeName(name, visibilityKey, property, type1, range, style)
-
     }
 
     fun createISaveableInput(title: String, saveable: ISaveable, style: Style, property: IProperty<Any?>): Panel {
@@ -1051,7 +1047,7 @@ object ComponentUI {
                                         ce.tooltip = if (func is LuaError) {
                                             func.toString()
                                         } else null
-                                    } catch (e: Exception){
+                                    } catch (e: Exception) {
                                         LOGGER.warn("Lua not available?", e)
                                         ce.tooltip = "$e"
                                     }
@@ -1073,7 +1069,6 @@ object ComponentUI {
                 )
             }
         }
-
     }
 
     fun getType(value: Iterator<Any?>, warnName: String? = null): String? {
@@ -1183,8 +1178,6 @@ object ComponentUI {
 
     fun instanceOf(clazz: KClass<*>, parent: KClass<*>): Boolean {
         if (clazz == parent) return true
-        if (clazz.superclasses.any { instanceOf(it, parent) }) return true
-        return false
+        return clazz.superclasses.any { instanceOf(it, parent) }
     }
-
 }

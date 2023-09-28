@@ -186,13 +186,13 @@ open class Window(
     }
 
     fun processNeeds(list: LimitedList<Panel>, panel: Panel, full: () -> Unit, single: (Panel) -> Unit) {
-        val needsLayout = needsTmp
-        needsLayout.clear()
-        needsLayout.addAll(list)
-        list.clear()
-        if (panel in needsLayout) {
+        if (needsLayout.isFull || panel in list) {
             full()
         } else {
+            val needsLayout = needsTmp
+            needsLayout.clear()
+            needsLayout.addAll(list)
+            list.clear()
             while (needsLayout.isNotEmpty()) {
                 val p = needsLayout.minByOrNull { it.depth }!!
                 single(p)
@@ -273,7 +273,6 @@ open class Window(
                     sparseRedraw2(panel0, wasRedrawn)
                 }
             }
-
         }
 
         if (didSomething || forceRedraw) {
@@ -281,7 +280,6 @@ open class Window(
         }// else no buffer needs to be updated
 
         return didSomething
-
     }
 
     private fun sparseRedraw2(panel0: Panel, wasRedrawn: MutableCollection<Panel>) {
@@ -294,7 +292,7 @@ open class Window(
 
         if (x1 > x0 && y1 > y0) {
 
-            if (needsRedraw.sumOf {
+            if (needsRedraw.isFull || needsRedraw.sumOf {
                     if (it != null) max((it.lx1 - it.lx0) * (it.ly1 - it.ly0), 0) else 0
                 } >= panel0.width * panel0.height) {
                 needsRedraw.add(panel0)

@@ -130,7 +130,7 @@ object AutoInspector {
                 // to do more indentation?
 
                 try {
-                    val property2 = IIProperty(relevantInstances, property, cleanInstance)
+                    val property2 = InspectableProperty(relevantInstances, property, cleanInstance)
                     val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: continue
                     panel.tooltip = property.description
                     panel.forAllPanels { panel2 ->

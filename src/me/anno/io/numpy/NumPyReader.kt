@@ -21,8 +21,6 @@ import kotlin.math.min
 
 object NumPyReader {
 
-
-
     fun readNPZ(file: FileReference): Map<String, NumPyData?> {
         return file.listChildren()?.associate { readNPYOrNull(it) } ?: emptyMap()
     }

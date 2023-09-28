@@ -50,6 +50,7 @@ import me.anno.maths.Maths.sq
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.base.menu.Menu.askName
@@ -57,7 +58,6 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
-import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
@@ -244,7 +244,6 @@ open class FileExplorerEntry(
 
         // todo only if is animation
         if (isHovered) invalidateDrawing()
-
     }
 
     private fun updatePlaybackTime() {
@@ -525,7 +524,6 @@ open class FileExplorerEntry(
                 .mapNotNull { getReferenceAsync(it) }
             tooltip = "${files.count { it.isDirectory }} folders + ${files.count { !it.isDirectory }} files\n" +
                     files.sumOf { it.length() }.formatFileSize()
-
         } else {
 
             fun getTooltip(file: FileReference): String {
@@ -551,32 +549,41 @@ open class FileExplorerEntry(
                                 "${image.width} x ${image.height}"
                     }
                     else -> {
-                        val meta = getMeta(path, true)
                         val ttt = StringBuilder()
                         ttt.append(file.name).append('\n')
                         ttt.append(file.length().formatFileSize())
-                        if (meta != null) {
-                            if (meta.hasVideo) {
-                                ttt.append('\n').append(meta.videoWidth).append(" x ").append(meta.videoHeight)
-                                if (meta.videoFrameCount > 1) ttt.append(" @").append(meta.videoFPS.f1()).append(" fps")
-                            } else {
-                                val image = ImageCPUCache.getImageWithoutGenerator(file)
-                                if (image != null) {
-                                    ttt.append('\n').append(image.width).append(" x ").append(image.height)
+                        val prefab = PrefabCache[file, true]
+                        if (prefab != null) {
+                            ttt.append('\n').append(prefab.clazzName)
+                            if (prefab.prefab != InvalidRef) ttt.append(" : ").append(prefab.prefab.toLocalPath()).append('\n')
+                            else ttt.append(", ")
+                            ttt.append(prefab.adds.size).append("+, ").append(prefab.sets.size).append("*")
+                        } else {
+                            val meta = getMeta(path, true)
+                            if (meta != null) {
+                                if (meta.hasVideo) {
+                                    ttt.append('\n').append(meta.videoWidth).append(" x ").append(meta.videoHeight)
+                                    if (meta.videoFrameCount > 1) ttt.append(" @").append(meta.videoFPS.f1())
+                                        .append(" fps")
+                                } else {
+                                    val image = ImageCPUCache.getImageWithoutGenerator(file)
+                                    if (image != null) {
+                                        ttt.append('\n').append(image.width).append(" x ").append(image.height)
+                                    }
                                 }
-                            }
-                            if (meta.hasAudio) {
-                                ttt.append('\n').append(roundDiv(meta.audioSampleRate, 1000)).append(" kHz")
-                                when (meta.audioChannels) {
-                                    1 -> ttt.append(" Mono")
-                                    2 -> ttt.append(" Stereo")
-                                    else -> ttt.append(" ").append(meta.audioChannels).append(" Ch")
+                                if (meta.hasAudio) {
+                                    ttt.append('\n').append(roundDiv(meta.audioSampleRate, 1000)).append(" kHz")
+                                    when (meta.audioChannels) {
+                                        1 -> ttt.append(" Mono")
+                                        2 -> ttt.append(" Stereo")
+                                        else -> ttt.append(" ").append(meta.audioChannels).append(" Ch")
+                                    }
                                 }
-                            }
-                            if (meta.duration > 0 && (meta.hasAudio || (meta.hasVideo && meta.videoFrameCount > 1))) {
-                                val duration = meta.duration
-                                val digits = if (duration < 60) max((1.5 - log10(duration)).roundToInt(), 0) else 0
-                                ttt.append('\n').append(meta.duration.formatTime(digits))
+                                if (meta.duration > 0 && (meta.hasAudio || (meta.hasVideo && meta.videoFrameCount > 1))) {
+                                    val duration = meta.duration
+                                    val digits = if (duration < 60) max((1.5 - log10(duration)).roundToInt(), 0) else 0
+                                    ttt.append('\n').append(meta.duration.formatTime(digits))
+                                }
                             }
                         }
                         ttt.toString()
@@ -586,7 +593,6 @@ open class FileExplorerEntry(
 
             val ref1 = ref1
             tooltip = if (ref1 != null) getTooltip(ref1) else "Loading..."
-
         }
     }
 
@@ -633,7 +639,6 @@ open class FileExplorerEntry(
             titlePanel.width = w
             titlePanel.height = titlePanel.minH
             titlePanel.drawText()
-
         } else {
 
             val extraHeight = h - w
@@ -659,7 +664,6 @@ open class FileExplorerEntry(
                 y + h/* - padding*/, // only apply the padding, when not playing video?
                 ::drawText
             )
-
         }
     }
 
@@ -990,7 +994,5 @@ open class FileExplorerEntry(
                 Vector4f(1f, 1f, 1f, 0.2f)
             )
         }
-
     }
-
 }

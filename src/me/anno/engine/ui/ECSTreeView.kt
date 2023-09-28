@@ -28,22 +28,22 @@ import me.anno.utils.Color.normARGB
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.flatten
-import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
 class ECSTreeView(val library: EditorState, style: Style) :
     TreeView<ISaveable>(
-        UpdatingList {
-            val world = library.prefab?.getSampleInstance()// ?: library.world
-            if (world != null) listOf(world) else emptyList()
-        },
         ECSFileImporter as FileContentImporter<ISaveable>,
         true,
         style
     ) {
 
     val inspector get() = currentInspector!!
+
+    override fun listSources(): List<ISaveable> {
+        val world = library.prefab?.getSampleInstance()// ?: library.world
+        return if (world != null) listOf(world) else emptyList()
+    }
 
     override fun isValidElement(element: Any?): Boolean {
         return element is PrefabSaveable

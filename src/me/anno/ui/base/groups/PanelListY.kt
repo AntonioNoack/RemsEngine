@@ -70,7 +70,6 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
 
         minW = (maxX - x) + padding.width
         minH = constantSum + padding.height
-
     }
 
     override val visibleIndex0
@@ -151,5 +150,4 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
     }
 
     override val className: String get() = "PanelListY"
-
 }

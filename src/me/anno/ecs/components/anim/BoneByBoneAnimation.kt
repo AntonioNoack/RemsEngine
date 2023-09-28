@@ -27,6 +27,8 @@ import kotlin.math.sin
 /**
  * a basic animation for characters, where animated translation only exists at the root node
  * this can be easier retargeted and customized than ImportedAnimation
+ *
+ * todo this is broken for driving and digging (downloads/3d), but works fine for Azeria -> probably a scale issue...
  * */
 class BoneByBoneAnimation() : Animation() {
 
@@ -36,8 +38,16 @@ class BoneByBoneAnimation() : Animation() {
     var boneCount = 0
     var frameCount = 0
 
-    var translations: FloatArray? = null // Array(frameCount) { Vector3f() }
-    var rotations: FloatArray? = null // Array(frameCount * boneCount) { Quaternionf() }
+    /**
+     * Array(frameCount) { Array(boneCount) { Vector3f() } }
+     * should be zero, when bones are connected
+     * */
+    var translations: FloatArray? = null
+
+    /**
+     * Array(frameCount) { Array(boneCount) { Quaternionf() } }
+     * */
+    var rotations: FloatArray? = null
 
     override val numFrames get() = frameCount
 

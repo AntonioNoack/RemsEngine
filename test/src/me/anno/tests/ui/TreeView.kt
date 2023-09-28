@@ -44,7 +44,7 @@ fun main() {
 
     GFXBase.disableRenderDoc()
     testUI3("Tree View") {
-        object : TreeView<Element>(listOf(root), object : FileContentImporter<Element>() {
+        object : TreeView<Element>(object : FileContentImporter<Element>() {
 
             override fun setName(element: Element, name: String) {
                 element.name = name
@@ -66,8 +66,9 @@ fun main() {
                 parent?.add(child)
                 return child
             }
-
         }, true, style) {
+
+            override fun listSources() = listOf(root)
 
             override fun selectElements(elements: List<Element>) {
                 selected += elements
@@ -119,7 +120,6 @@ fun main() {
             override fun canBeInserted(parent: Element, element: Element, index: Int) = true
             override fun getDragType(element: Element) = "S"
             override fun isValidElement(element: Any?) = element is Element
-
         }
     }
 }

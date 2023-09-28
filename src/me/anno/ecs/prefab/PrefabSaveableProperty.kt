@@ -7,7 +7,10 @@ import me.anno.ui.Panel
 import me.anno.ui.base.text.TextStyleable
 import org.apache.logging.log4j.LogManager
 
-class PIProperty(
+/**
+ * IProperty for PrefabSaveables
+ * */
+class PrefabSaveableProperty(
     val pi: PrefabInspector,
     val instances: List<PrefabSaveable>,
     val name: String,
@@ -66,6 +69,6 @@ class PIProperty(
         get() = property.annotations
 
     companion object {
-        private val LOGGER = LogManager.getLogger(PIProperty::class)
+        private val LOGGER = LogManager.getLogger(PrefabSaveableProperty::class)
     }
 }

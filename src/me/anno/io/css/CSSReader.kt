@@ -5,6 +5,9 @@ import me.anno.image.svg.SVGMesh
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
+/**
+ * CSS parser for SVG meshes
+ * */
 object CSSReader {
 
     fun read(mesh: SVGMesh, str: String) {

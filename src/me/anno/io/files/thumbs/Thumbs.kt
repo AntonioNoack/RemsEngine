@@ -120,7 +120,7 @@ import kotlin.math.*
 /**
  * creates and caches small versions of image and video resources
  *
- * todo materials look right, meshes have incorrectly blue background
+ * // todo we have a race-condition issue: sometimes, matrices are transformed incorrectly
  * */
 object Thumbs {
 
@@ -586,6 +586,7 @@ object Thumbs {
         scene.validateAABBs()
         val bounds = scene.aabb
         renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
+            GFX.checkIsGFXThread()
             val rv = rv
             val cam = rv.editorCamera
             if (!bounds.isEmpty() && bounds.volume.isFinite()) {
@@ -817,6 +818,7 @@ object Thumbs {
             previewRenderer, callback
         ) { it, _ ->
             GFXState.blendMode.use(BlendMode.DEFAULT) {
+                GFX.checkIsGFXThread()
                 val mesh = sphereMesh
                 mesh.material = materials[it]
                 mesh.drawAssimp(

@@ -368,7 +368,7 @@ class PrefabInspector(val reference: FileReference) {
                 // to do more indentation?
 
                 try {
-                    val property2 = PIProperty(this, relevantInstances, name, property)
+                    val property2 = PrefabSaveableProperty(this, relevantInstances, name, property)
                     val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: continue
                     panel.tooltip = property.description
                     panel.forAllPanels { panel2 ->

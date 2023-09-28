@@ -134,7 +134,7 @@ object Packer {
      * */
     fun pack(
         resources: List<FileReference>,
-        ensurePrivacy: Boolean, // pack without names
+        packWithoutNames: Boolean,
         dst: FileReference,
         createMap: Boolean,
         reportProgress: (done: Long, total: Long) -> Unit = { _, _ -> }
@@ -153,13 +153,13 @@ object Packer {
                 LOGGER.warn("Directory $resource was ignored, because it's a directory!")
                 continue
             }
-            val name = if (ensurePrivacy) {
-                "$index.${resource.extension}"
+            val name = if (packWithoutNames) {
+                "${index.toString(36)}.${resource.extension}"
             } else {
-                "${resource.nameWithoutExtension}.$index.${resource.extension}"
+                "${resource.nameWithoutExtension}.${index.toString(36)}.${resource.extension}"
             }
             val entry = ZipEntry(name)
-            if (!ensurePrivacy) {
+            if (!packWithoutNames) {
                 entry.lastModifiedTime = FileTime.fromMillis(resource.lastModified)
                 entry.lastAccessTime = FileTime.fromMillis(resource.lastAccessed)
             }
