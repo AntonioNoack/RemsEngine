@@ -225,10 +225,13 @@ abstract class GraphCompiler(val g: FlowGraph) {
                         val tint = tex.color
                         val tintStr = if (tint != white4) "vec4(${tint.x},${tint.y},${tint.z},${tint.z})" else null
                         val tex1 = if (tex.tex != whiteTexture) {
-                            val currValue = input.currValue
-                            val useMS = currValue is Texture2D && currValue.samples > 1
+                            val currValue = input.currValue as? Texture
+                            val currValue1 = currValue?.texMS
+                            val useMS = currValue1 != null && currValue1.samples > 1
                             val texName = textures2.getOrPut(input) {
-                                Triple("tex2I${textures2.size}", if (useMS) GLSLType.S2DMS else GLSLType.S2D, true)
+                                val name = "tex2I${textures2.size}"
+                                val type = if (useMS) GLSLType.S2DMS else GLSLType.S2D
+                                Triple(name, type, true)
                             }
                             val base = if (texName.second == GLSLType.S2DMS) {
                                 "texelFetch(${texName.first},ivec2(uv*textureSize(${texName.first})),gl_SampleID)"
@@ -416,7 +419,6 @@ abstract class GraphCompiler(val g: FlowGraph) {
     }
 
     fun defineTextures() {
-        // todo decide on MS/not-MS
         for ((file, data) in textures) {
             val (name, linear) = data
             typeValues[name] = TypeValueV2(GLSLType.S2D) {

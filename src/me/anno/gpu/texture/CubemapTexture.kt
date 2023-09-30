@@ -24,7 +24,7 @@ import kotlin.math.PI
 open class CubemapTexture(
     var name: String,
     var size: Int,
-    val samples: Int
+    override val samples: Int
 ) : ICacheData, ITexture2D {
 
     var isCreated = false

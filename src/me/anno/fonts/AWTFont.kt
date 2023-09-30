@@ -156,7 +156,7 @@ class AWTFont(val font: Font) {
             // and return an empty/blank texture
             // that the correct size is returned is required by text input fields
             // (with whitespace at the start or end)
-            return FakeWhiteTexture(width, height)
+            return FakeWhiteTexture(width, height, 1)
         }
 
         val texture = Texture2D("awt-" + text.shorten(24), width, height, 1)
@@ -481,7 +481,7 @@ class AWTFont(val font: Font) {
         val width = min(ceil(parts.width).toInt() + 2 + 2 * extraPadding, widthLimit)
         val height = min(ceil(parts.height).toInt() + 1 + 2 * extraPadding, heightLimit)
 
-        if (result.isEmpty() || width < 1 || height < 1) return FakeWhiteTexture(width, height)
+        if (result.isEmpty() || width < 1 || height < 1) return FakeWhiteTexture(width, height, 1)
 
         val texture = Texture2D("awt-font-v3", width, height, 1)
         val prio = GFX.isGFXThread() && (GFX.loadTexturesSync.peek() || text.length == 1)

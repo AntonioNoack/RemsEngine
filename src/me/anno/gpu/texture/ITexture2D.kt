@@ -11,6 +11,7 @@ interface ITexture2D : ICacheData {
 
     var width: Int
     var height: Int
+    val samples: Int
 
     val isHDR: Boolean
 

@@ -45,6 +45,8 @@ open class Texture2DArray(
     var filtering = GPUFiltering.NEAREST
     var clamping = Clamping.CLAMP
 
+    override val samples: Int get() = 1
+
     var locallyAllocated = 0L
 
     var internalFormat = 0

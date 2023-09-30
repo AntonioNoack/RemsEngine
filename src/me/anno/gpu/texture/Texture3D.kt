@@ -45,6 +45,8 @@ open class Texture3D(
     var internalFormat = 0
     var border = 0
 
+    override val samples: Int get() = 1
+
     val target get() = GL_TEXTURE_3D
 
     override var isHDR = false

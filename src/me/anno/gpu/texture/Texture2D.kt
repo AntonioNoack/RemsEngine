@@ -60,7 +60,7 @@ open class Texture2D(
         filtering(GPUFiltering.NEAREST)
     }
 
-    val samples = clamp(samples, 1, GFX.maxSamples)
+    override val samples = clamp(samples, 1, GFX.maxSamples)
     var owner: Framebuffer? = null
 
     var internalFormat = 0
