@@ -11,6 +11,7 @@ import me.anno.input.Modifiers
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
 import me.anno.studio.StudioBase
+import me.anno.ui.UIRegistry
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.WindowStack.Companion.printLayout
 import me.anno.utils.LOGGER
@@ -223,14 +224,20 @@ object EngineActions {
 
         register["TextInput.backspace.typed", "DeleteBefore"]
         register["TextInputML.backspace.typed", "DeleteBefore"]
+
+        // PureTextInputML
         register["PureTextInputML.delete.typed", "DeleteAfter"]
         register["PureTextInputML.backspace.typed", "DeleteBefore"]
+
         register["PureTextInputML.leftArrow.typed", "MoveLeft"]
         register["PureTextInputML.rightArrow.typed", "MoveRight"]
         register["PureTextInputML.upArrow.typed", "MoveUp"]
         register["PureTextInputML.downArrow.typed", "MoveDown"]
+
+        // PureTextInput
         register["PureTextInput.leftArrow.typed", "MoveLeft"]
         register["PureTextInput.rightArrow.typed", "MoveRight"]
+
         register["ConsoleInput.upArrow.typed", "MoveUp"]
         register["ConsoleInput.downArrow.typed", "MoveDown"]
         register["NumberInputComponent.leftArrow.typed", "MoveLeft"]
@@ -243,7 +250,7 @@ object EngineActions {
 
         register["FileExplorer.f5.typed", "Refresh"]
 
-        register["ECSTreeView.delete.typed", "Delete"]
+        register["TreeView.delete.typed", "Delete"]
         register["SceneView.r.typed"] = "SetMode(MOVE)"
         register["SceneView.t.typed"] = "SetMode(ROTATE)"
         register["SceneView.y.typed"] = "SetMode(SCALE)"

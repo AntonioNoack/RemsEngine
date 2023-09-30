@@ -15,13 +15,13 @@ import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.ui.Style
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.ui.editor.files.FileContentImporter
-import me.anno.ui.Style
 import me.anno.utils.Color.b
 import me.anno.utils.Color.black
 import me.anno.utils.Color.g
@@ -30,16 +30,9 @@ import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
 
 class TreeViewEntryPanel<V : Any>(
-    val getElement: () -> V,
-    val isValidElement: (Any?) -> Boolean,
-    val toggleCollapsed: (V) -> Unit,
-    val moveChange: (run: () -> Unit) -> Unit,
-    val getName: (V) -> String,
-    val setName: (V, String) -> Unit,
-    val openAddMenu: (parent: V) -> Unit,
-    private val fileContentImporter: FileContentImporter<V>,
-    showSymbol: Boolean,
-    private val treeView: TreeView<V>, style: Style
+    val elementIndex: Int,
+    private val treeView: TreeView<V>,
+    style: Style
 ) : PanelListX(style), ITreeViewEntryPanel {
 
     companion object {
@@ -47,7 +40,11 @@ class TreeViewEntryPanel<V : Any>(
         private val LOGGER = LogManager.getLogger(TreeViewEntryPanel::class)
     }
 
-    val uiSymbol: TextPanel? = if (showSymbol) {
+    fun getElement(): V {
+        return treeView.elementByIndex[elementIndex]
+    }
+
+    val uiSymbol: TextPanel? = if (treeView.showSymbols) {
         object : TextPanel("", style) {
 
             init {
@@ -115,7 +112,7 @@ class TreeViewEntryPanel<V : Any>(
         val showAddIndex = if (
             window.mouseXi in lx0..lx1 &&
             window.mouseYi in ly0..ly1 &&
-            dragged is Draggable && isValidElement(dragged.getOriginal())
+            dragged is Draggable && treeView.isValidElement(dragged.getOriginal())
         ) {
             clamp(((window.mouseY - this.y) / this.height * 3).toInt(), 0, 2)
         } else null
@@ -169,10 +166,10 @@ class TreeViewEntryPanel<V : Any>(
                             "${Input.isShiftDown}, ${isMouseOnSymbol(x)}"
                 )
                 if (Input.isShiftDown && inFocusByParent < 2) {
-                    toggleCollapsed(element)
+                    treeView.toggleCollapsed(element)
                     uiParent?.invalidateLayout()
                 } else if (isMouseOnSymbol(x)) {
-                    toggleCollapsed(element)
+                    treeView.toggleCollapsed(element)
                     uiParent?.invalidateLayout()
                 } else {
                     val elements = siblings.mapNotNull {
@@ -184,7 +181,7 @@ class TreeViewEntryPanel<V : Any>(
                     treeView.selectElementsMaybe(elements)
                 }
             }
-            Key.BUTTON_RIGHT -> openAddMenu(element)
+            Key.BUTTON_RIGHT -> treeView.openAddMenu(element)
             else -> super.onMouseClicked(x, y, button, long)
         }
     }
@@ -226,7 +223,7 @@ class TreeViewEntryPanel<V : Any>(
                     ancestor = getParent(ancestor) ?: break
                 }
                 if (canBeMoved) {
-                    moveChange {
+                    treeView.moveChange {
                         val parent = treeView.getParent(original)
                         if (parent != null) treeView.removeChild(parent, original)
                         insertElement(relativeY, hovered, original, type1)
@@ -240,10 +237,9 @@ class TreeViewEntryPanel<V : Any>(
             val clone = TextReader.read(data, StudioBase.workspace, true).firstOrNull()
                     as? V ?: return super.onPaste(x, y, data, type)
 
-            moveChange {
+            treeView.moveChange {
                 insertElement(relativeY, hovered, clone, type1)
             }
-
         } catch (e: Exception) {
             e.printStackTrace()
             super.onPaste(x, y, data, type)
@@ -287,7 +283,7 @@ class TreeViewEntryPanel<V : Any>(
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val transform = getElement()
         for (it in files) {
-            fileContentImporter.addChildFromFile(transform, it, FileContentImporter.SoftLinkMode.ASK, true) {}
+            treeView.fileContentImporter.addChildFromFile(transform, it, FileContentImporter.SoftLinkMode.ASK, true) {}
         }
     }
 
@@ -312,10 +308,10 @@ class TreeViewEntryPanel<V : Any>(
                     x.toInt(),
                     y.toInt(),
                     NameDesc("Name"),
-                    getName(e),
+                    treeView.getName(e),
                     getColor = { -1 },
                     callback = { newName ->
-                        setName(e, newName)
+                        treeView.setName(e, newName)
                     },
                     actionName = NameDesc("Change Name")
                 )
@@ -336,5 +332,4 @@ class TreeViewEntryPanel<V : Any>(
     override fun getMultiSelectablePanel() = this
 
     override val className: String get() = "TreeViewEntryPanel"
-
 }

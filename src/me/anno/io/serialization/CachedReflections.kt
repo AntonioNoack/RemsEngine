@@ -229,8 +229,9 @@ class CachedReflections(
                         val isPublic = Modifier.isPublic(getterMethod.modifiers)
                         val serialize = serial != null || (isPublic && notSerial == null)
                         map[betterName] = saveField(
-                            getterMethod.returnType.kotlin, betterName, serial, serialize,
-                            annotations, getterMethod::invoke, setterMethod::invoke
+                            getterMethod.declaringClass.kotlin, getterMethod.returnType.kotlin,
+                            betterName, serial, serialize, annotations,
+                            getterMethod::invoke, setterMethod::invoke
                         )
                     }
                 }
@@ -239,7 +240,9 @@ class CachedReflections(
         }
 
         private fun saveField(
-            field: Field, name: String, serial: SerializedProperty?,
+            field: Field,
+            name: String,
+            serial: SerializedProperty?,
             serialize: Boolean,
             annotations: List<Annotation>
         ): CachedProperty {
@@ -256,24 +259,29 @@ class CachedReflections(
                 null
             }
             return saveField(
+                field.declaringClass.kotlin,
                 field.type.kotlin, name, serial,
                 serialize, annotations,
                 if (getterMethod != null && getterMethod.returnType == field.type) { it -> getterMethod.invoke(it) }
                 else field::get,
-                if (setterMethod != null) { i, v -> setterMethod.invoke(i, v) } else { i, v -> field.set(i, v) })
+                if (setterMethod != null) { i, v -> setterMethod.invoke(i, v) }
+                else { i, v -> field.set(i, v) })
         }
 
         private fun saveField(
-            valueClass: KClass<*>, name: String, serial: SerializedProperty?,
+            instanceClass: KClass<*>,
+            valueClass: KClass<*>,
+            name: String,
+            serial: SerializedProperty?,
             serialize: Boolean,
             annotations: List<Annotation>,
-            getter: (Any?) -> Any?,
-            setter: (Any?, Any?) -> Unit
+            getter: (instance: Any) -> Any?,
+            setter: (instance: Any, value: Any?) -> Unit
         ): CachedProperty {
             // save the field
             val forceSaving = serial?.forceSaving ?: (valueClass == Boolean::class)
             return CachedProperty(
-                name, valueClass, serialize, forceSaving,
+                name, instanceClass, valueClass, serialize, forceSaving,
                 annotations, getter, setter
             )
         }

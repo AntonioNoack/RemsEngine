@@ -64,6 +64,7 @@ fun main() {
 
             override fun addChild(element: FileReference, child: Any, type: Char, index: Int): Boolean = false
             override fun remove(child: Panel) {}
+            override fun removeRoot(root: FileReference) {}
             override fun removeChild(parent: FileReference, child: FileReference) {}
             override fun getSymbol(element: FileReference): String = "X"
             override fun getTooltipText(element: FileReference): String {

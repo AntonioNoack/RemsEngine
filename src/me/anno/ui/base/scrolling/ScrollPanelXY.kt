@@ -208,10 +208,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             consumedY = true
         }
 
-        if (consumedX || consumedY) {
-            invalidateLayout()
-        }
-
         if (!consumedX || !consumedY) {
             val dx2 = if (consumedX) 0f else dx
             val dy2 = if (consumedY) 0f else dy

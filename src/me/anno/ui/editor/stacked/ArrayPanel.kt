@@ -36,9 +36,6 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
     // todo drag
     // todo move around (like scene views)
 
-    // todo thousands of editing fields, or edit one at a time? idk...
-
-    // abstract fun setValue(panel: PanelType, value: EntryType)
     abstract fun createPanel(value: EntryType): PanelType
 
     var buttonWidth = 10

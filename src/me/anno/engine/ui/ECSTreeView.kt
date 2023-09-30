@@ -97,6 +97,10 @@ class ECSTreeView(val library: EditorState, style: Style) :
         } else throw NotImplementedError()
     }
 
+    override fun removeRoot(root: ISaveable) {
+        LOGGER.warn("Cannot remove root")
+    }
+
     override fun destroy(element: ISaveable) {
         if (element is PrefabSaveable) element.onDestroy()
     }
@@ -288,7 +292,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
         if (element !is PrefabSaveable) return false
         if (element.root.prefab?.isWritable == false) return false
         val indexInParent = element.indexInParent
-        val parent = element.parent!!
+        val parent = element.parent ?: return false // must not remove root
         val parentPrefab = parent.getOriginal()
         if (element.prefab == null) return true
         return !(parentPrefab == null || indexInParent >= parentPrefab.children.size)

@@ -3,26 +3,18 @@ package me.anno.tests.ui
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.ui.AnyArrayPanel2
 import me.anno.engine.ui.ComponentUI
-import me.anno.engine.ui.ComponentUI.toTypedArray2
+import me.anno.engine.ui.ComponentUI.writeTo
 import me.anno.io.ISaveable.Companion.getReflections
 import me.anno.studio.Inspectable
 import me.anno.studio.InspectableProperty
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 
-// todo implement editing huge arrays,
-//  and refine our implementation to create subfolders like Chrome Debug Panel
-
-// todo shift-clicking to collapse/uncollapse an item should work without selecting it first
-// todo shift shouldn't be needed to collapse/uncollapse
-
-// todo delete key is doing nothing...
-
-// todo we need to show the actual, editable values
+// todo some content seems to be missing / invisible: with base >= 15
 
 fun main() {
     testUI3("Edit Huge Arrays") {
         class Data : Inspectable {
-            var data = IntArray(43) { it * it }
+            var data = IntArray(43) { it }
         }
 
         val instance = Data()
@@ -34,10 +26,10 @@ fun main() {
         val arrayType = ComponentUI.getArrayType(iProperty, value.iterator())!!
         object : AnyArrayPanel2("Data", "", arrayType, style) {
             override fun onChange() {
-                property[this] = values.toTypedArray2(value)
+                property[instance] = values.writeTo(value)
             }
         }.apply {
-            base = 2
+            base = 4
             setValues(value.toList())
         }
     }

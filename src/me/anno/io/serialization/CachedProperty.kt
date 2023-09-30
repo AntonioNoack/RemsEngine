@@ -6,28 +6,30 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
-import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.jvmName
 
 class CachedProperty(
     val name: String,
-    val clazz: KClass<*>,
+    val instanceClass: KClass<*>,
+    val valueClass: KClass<*>,
     val serialize: Boolean,
     val forceSaving: Boolean?,
     val annotations: List<Annotation>,
-    val getter: (Any) -> Any?,
-    val setter: (Any, Any?) -> Unit
+    val getter: (instance: Any) -> Any?,
+    val setter: (instance: Any, value: Any?) -> Unit
 ) {
 
     val range = annotations.firstInstanceOrNull<Range>()
-    val hideInInspector = annotations.mapNotNull { if (it is HideInInspector) hide(it, name, clazz) else null }
+    val hideInInspector = annotations.mapNotNull { if (it is HideInInspector) hide(it, name, valueClass) else null }
     val description = annotations.filterIsInstance<Docs>().joinToString("\n") { it.description }
     val order = annotations.firstInstanceOrNull<Order>()?.index ?: 0
     val group = annotations.firstInstanceOrNull<Group>()?.name
 
     operator fun set(instance: Any, value: Any?): Boolean {
+        if (!instanceClass.isInstance(instance)) throw IllegalArgumentException("Instance is not instance of $instanceClass, it is ${instance::class}")
+        if (!valueClass.isInstance(value)) throw IllegalArgumentException("Value is not instance of $valueClass")
         return try {
             val oldValue = getter(instance)
             if (oldValue is Enum<*> && value !is Enum<*>) {
@@ -87,7 +89,7 @@ class CachedProperty(
             } else setter(instance, value)
             true
         } catch (e: Exception) {
-            LOGGER.error("Error setting property '$name' with value of class '${value?.javaClass?.name}' to instance of class '${instance::class.jvmName}', properties class: '$clazz'")
+            LOGGER.error("Error setting property '$name' with value of class '${value?.javaClass?.name}' to instance of class '${instance::class.jvmName}', properties class: '$valueClass'")
             e.printStackTrace()
             false
         }
@@ -97,14 +99,14 @@ class CachedProperty(
         return try {
             getter(instance)
         } catch (e: Exception) {
-            LOGGER.error("Setting property '$name' of ${instance::class.jvmName}, but the properties class is '$clazz'")
+            LOGGER.error("Setting property '$name' of ${instance::class.jvmName}, but the properties class is '$valueClass'")
             e.printStackTrace()
             null
         }
     }
 
     override fun toString(): String {
-        return "$name: ${clazz.jvmName}" +
+        return "$name: ${valueClass.jvmName}" +
                 (if (serialize) ", serialize" else "") +
                 (if (forceSaving == true) ", force-saving" else "") +
                 (if (range != null) ", $range" else "") +
@@ -129,5 +131,4 @@ class CachedProperty(
             }
         }
     }
-
 }

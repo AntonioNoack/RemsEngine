@@ -1,7 +1,7 @@
 package me.anno.ui.input.components
 
-import me.anno.ui.input.InputVisibility
 import me.anno.ui.Style
+import me.anno.ui.input.InputVisibility
 
 open class NumberInputComponent(
     val visibilityKey: String,
@@ -14,7 +14,7 @@ open class NumberInputComponent(
     }
 
     override var isVisible: Boolean
-        get() = InputVisibility[visibilityKey ?: ""] // can be null in constructor
+        get() = InputVisibility[visibilityKey] // can be null in constructor
         set(_) {}
 
     override fun acceptsChar(char: Int): Boolean {
@@ -24,11 +24,6 @@ open class NumberInputComponent(
         }
     }
 
-    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        // don't call parent, as this would prevent dragging a value
-        uiParent?.onMouseMoved(x, y, dx, dy)
-    }
-
     override fun clone(): NumberInputComponent {
         val clone = NumberInputComponent(visibilityKey, style)
         copyInto(clone)
@@ -36,5 +31,4 @@ open class NumberInputComponent(
     }
 
     override val className = "NumberInputComponent"
-
 }

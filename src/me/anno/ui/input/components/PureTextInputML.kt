@@ -14,6 +14,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mixARGB
 import me.anno.studio.StudioBase.Companion.dragged
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelListY
@@ -21,7 +22,6 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputPanel
-import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -558,9 +558,12 @@ open class PureTextInputML(style: Style) :
         val newCursor = if (oldCursor.x > 0) {
             // we can move left
             CursorPosition(oldCursor.x - 1, oldCursor.y)
-        } else {
+        } else if (oldCursor.y > 0) {
             // we need to move down
-            CursorPosition(0, max(0, oldCursor.y - 1))
+            CursorPosition(0, oldCursor.y - 1)
+        } else {
+            // we cannot move at all
+            oldCursor
         }
         if (useC2) {
             cursor2.set(newCursor)
@@ -696,9 +699,10 @@ open class PureTextInputML(style: Style) :
 
     override fun onEmpty(x: Float, y: Float) {
         if (!isInputAllowed) return
-        if (isNothingSelected() || isEverythingSelected()) {
-            clear()
+        if (isNothingSelected()) {
+            resetToDefault()
         } else {
+            // empty selection
             deleteSelection()
             update(true)
         }
@@ -708,14 +712,7 @@ open class PureTextInputML(style: Style) :
         return cursor1 == cursor2
     }
 
-    fun isEverythingSelected(): Boolean {
-        val min = min(cursor1, cursor2)
-        val max = max(cursor1, cursor2)
-        val end = endCursor
-        return min.x == 0 && min.y == 0 && max.x == end.x && max.y == end.y
-    }
-
-    fun clear() {
+    fun resetToDefault() {
         val newText = resetListener?.invoke() ?: ""
         setText(newText, true)
         setCursorToEnd()

@@ -103,6 +103,8 @@ fun main() {
                 child.parent = null
             }
 
+            override fun removeRoot(root: Element) {}
+
             override fun destroy(element: Element) {
                 val parent = element.parent ?: return
                 removeChild(parent, element)
@@ -116,7 +118,7 @@ fun main() {
                 return element.name
             }
 
-            override fun canBeRemoved(element: Element) = true
+            override fun canBeRemoved(element: Element) = getParent(element) != null
             override fun canBeInserted(parent: Element, element: Element, index: Int) = true
             override fun getDragType(element: Element) = "S"
             override fun isValidElement(element: Any?) = element is Element

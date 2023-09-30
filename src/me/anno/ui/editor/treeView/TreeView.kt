@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
+import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
@@ -17,8 +18,8 @@ import org.apache.logging.log4j.LogManager
 // todo select multiple elements, filter for common properties, and apply them all together :)
 
 abstract class TreeView<V : Any>(
-    private val fileContentImporter: FileContentImporter<V>,
-    private val showSymbols: Boolean,
+    val fileContentImporter: FileContentImporter<V>,
+    val showSymbols: Boolean,
     style: Style
 ) : ScrollPanelXY(Padding(5), style.getChild("treeView")) {
 
@@ -63,10 +64,10 @@ abstract class TreeView<V : Any>(
     abstract fun addChild(element: V, child: Any, type: Char, index: Int): Boolean
 
     abstract fun removeChild(parent: V, child: V)
+    abstract fun removeRoot(root: V)
 
-    abstract fun getSymbol(element: V): String
-
-    abstract fun getTooltipText(element: V): String?
+    open fun getSymbol(element: V): String = if (isCollapsed(element)) "▶" else "▼"
+    open fun getTooltipText(element: V): String? = null
 
     abstract fun getParent(element: V): V?
 
@@ -137,7 +138,13 @@ abstract class TreeView<V : Any>(
         var index = index0
         val name = getName(element)
         val ttt = lazy { getTooltipText(element) }
+
+        while (index >= elementByIndex.size) elementByIndex.add(element)
+        elementByIndex[index] = element
+
         val panel = getOrCreateChildPanel(index++, element)
+
+        (panel as Panel).isVisible = true
         val isCollapsed = isCollapsed(element)
         val search = search
         var isIncludedInSearch = search == null || fulfillsSearch(element, name, ttt.value, search)
@@ -154,8 +161,7 @@ abstract class TreeView<V : Any>(
             }
         }// todo else show that it's collapsed, if there is no symbol
         return if (isIncludedInSearch) {
-            val symbol = if (isCollapsed) collapsedSymbol else getSymbol(element)
-            panel.setEntrySymbol(symbol.trim())
+            panel.setEntrySymbol(getSymbol(element))
             panel.setEntryName(name)
             panel.setEntryTooltip(ttt.value)
             val padding = panel.padding
@@ -186,6 +192,7 @@ abstract class TreeView<V : Any>(
             }
             needsTreeUpdate = false
         } catch (e: Exception) {
+            e.printStackTrace()
             lastWarning = e.message ?: lastWarning
         }
     }
@@ -197,13 +204,11 @@ abstract class TreeView<V : Any>(
 
     override fun onUpdate() {
         super.onUpdate()
-        if (needsTreeUpdate) {
-            updateTree()
-        }
+        if (needsTreeUpdate) updateTree()
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        updateTree()
+        if (needsTreeUpdate) updateTree()
         super.onDraw(x0, y0, x1, y1)
     }
 
@@ -217,12 +222,8 @@ abstract class TreeView<V : Any>(
 
     open fun getOrCreateChildPanel(index: Int, element: V): ITreeViewEntryPanel {
         return if (index < list.children.size) {
-            elementByIndex[index - 1] = element
-            val panel = list.children[index] as TreeViewEntryPanel<*>
-            panel.isVisible = true
-            panel
+            list.children[index] as TreeViewEntryPanel<*>
         } else {
-            elementByIndex += element
             val panel = createChildPanel(index)
             list += panel
             panel
@@ -230,11 +231,7 @@ abstract class TreeView<V : Any>(
     }
 
     fun createChildPanel(index: Int): TreeViewEntryPanel<*> {
-        val child = TreeViewEntryPanel(
-            { elementByIndex[index - 1] }, ::isValidElement, ::toggleCollapsed, ::moveChange,
-            ::getName, ::setName, this::openAddMenu,
-            fileContentImporter, showSymbols, this, style
-        )
+        val child = TreeViewEntryPanel(index, this, style)
         child.padding.left = 4
         // todo checkbox with custom icons
         return child
@@ -259,9 +256,10 @@ abstract class TreeView<V : Any>(
                             @Suppress("unchecked_cast")
                             val element = child.getElement() as V
                             val parent = getParent(element)
-                            if (parent != null && child.isAnyChildInFocus) {
+                            if (child.isAnyChildInFocus) {
                                 if (canBeRemoved(element)) {
-                                    removeChild(parent, element)
+                                    if (parent == null) removeRoot(element)
+                                    else removeChild(parent, element)
                                 } else LOGGER.info("Cannot remove element")
                             }
                         }

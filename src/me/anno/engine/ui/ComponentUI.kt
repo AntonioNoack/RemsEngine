@@ -96,18 +96,61 @@ object ComponentUI {
 
     // todo position control+x is not working (reset on right click is working)
 
-    fun List<*>.toTypedArray2(value: Any): Any? {
-        val newArray = java.lang.reflect.Array.newInstance(value.javaClass.componentType, size) // Array<V>
-        val tmpArray = toTypedArray() // Array<Object>
-        // println("old class: ${value::class.java}, or ${value.javaClass}, new class: ${newArray.javaClass}, tmp class: ${tmpArray.javaClass}")
-        try {
-            // will this work? can we do it via reflections, if it doesn't???
-            // at least in my version it works ^^
-            System.arraycopy(tmpArray, 0, newArray, 0, tmpArray.size)
-        } catch (e: Exception) {
-            LOGGER.error("Copy failed", e)
+    fun List<*>.writeTo(array: Any): Any {
+        val dstSize0 = when (array) {
+            is ByteArray -> array.size
+            is ShortArray -> array.size
+            is IntArray -> array.size
+            is LongArray -> array.size
+            is FloatArray -> array.size
+            is DoubleArray -> array.size
+            is Array<*> -> array.size
+            else -> throw NotImplementedError()
         }
-        return newArray
+        val dst = if (dstSize0 != size) {
+            java.lang.reflect.Array.newInstance(array.javaClass.componentType, size)
+        } else array
+        when (dst) {
+            is ByteArray -> {
+                for (i in indices) {
+                    dst[i] = this[i] as Byte
+                }
+            }
+            is ShortArray -> {
+                for (i in indices) {
+                    dst[i] = this[i] as Short
+                }
+            }
+            is IntArray -> {
+                for (i in indices) {
+                    dst[i] = this[i] as Int
+                }
+            }
+            is LongArray -> {
+                for (i in indices) {
+                    dst[i] = this[i] as Long
+                }
+            }
+            is FloatArray -> {
+                for (i in indices) {
+                    dst[i] = this[i] as Float
+                }
+            }
+            is DoubleArray -> {
+                for (i in indices) {
+                    dst[i] = this[i] as Double
+                }
+            }
+            is Array<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                dst as Array<Any?>
+                for (i in indices) {
+                    dst[i] = this[i]
+                }
+            }
+            else -> throw NotImplementedError()
+        }
+        return dst
     }
 
     fun createUI2(
@@ -167,7 +210,7 @@ object ComponentUI {
                 val arrayType = getArrayType(property, value.iterator(), name) ?: return null
                 return object : AnyArrayPanel(title, visibilityKey, arrayType, style) {
                     override fun onChange() {
-                        property.set(this, values.toTypedArray2(value))
+                        property.set(this, values.writeTo(value))
                     }
                 }.apply { setValues(value.toList()) }
             }
@@ -914,7 +957,7 @@ object ComponentUI {
                                 value as Array<*>
                                 return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                     override fun onChange() {
-                                        property.set(this, values.toTypedArray2(value))
+                                        property.set(this, values.writeTo(value))
                                     }
                                 }.apply {
                                     property.init(this)

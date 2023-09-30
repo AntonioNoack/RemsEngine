@@ -19,6 +19,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.ITreeViewEntryPanel
 import me.anno.ui.editor.treeView.TreeView
@@ -28,15 +29,19 @@ import kotlin.math.*
 
 /**
  * WIP, don't use!
- * todo make it work
+ *
+ * when there is a lot of values, unfold them like in Chrome Dev Console:
+ * 100 at a time, every power of 10 is grouped
+ *
+ * todo fix everything wrong with this class...
  * */
 abstract class ArrayPanel2<EntryType, PanelType : Panel>(
-    title: String,
+    title: String, // todo add title
     val visibilityKey: String,
     val newValue: () -> EntryType, style: Style
 ) : TreeView<IntRange>(
     object : FileContentImporter<IntRange>() {},
-    false,
+    true,
     style
 ) {
 
@@ -44,18 +49,14 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
         private val LOGGER = LogManager.getLogger(ArrayPanel2::class)
     }
 
-    // todo when there is a lot of values, unfold them like in Chrome Dev Console:
-    //  100 at a time, every power of 10 is grouped
-
     val values = ArrayList<EntryType>()
 
     // todo drag
     // todo move around (like scene views)
 
-    // todo thousands of editing fields, or edit one at a time? idk...
-
-    // abstract fun setValue(panel: PanelType, value: EntryType)
-    abstract fun createPanel(index: Int, value: EntryType): PanelType
+    abstract fun createPanel(value: EntryType): PanelType
+    abstract fun updatePanel(value: EntryType, panel: PanelType)
+    open fun onChange() {}
 
     var buttonWidth = 10
     var buttonPadding = 2
@@ -121,33 +122,40 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     }
 
     override fun openAddMenu(parent: IntRange) {
-        TODO("Not yet implemented")
+        LOGGER.warn("Add menu not really supported")
     }
 
     override fun listSources(): List<IntRange> {
-        return listOf(0 until values.size)
+        return listOf(0 until Int.MAX_VALUE)
     }
 
     @Range(2.0, 4e9)
     var base = 10
 
     override fun getChildren(element: IntRange): List<IntRange> {
-        val size = element.last + 1 - element.first
+        val last = min(element.last, values.lastIndex)
+        val size = last + 1 - element.first
         return if (size > base * base) {
             val base = base.toDouble()
             val step = base.pow(floor(log(size - 1.0, base))).toInt()
-            val ret = ((element.first..element.last) step step).map {
-                it until min(element.last + 1, it + step)
+            val ret = ((element.first..last) step step).map {
+                it until min(last + 1, it + step)
             }
             return ret
         } else if (size > 1) {
             // list all children
-            (element.first..element.last).map { it..it }
+            (element.first..last).map { it..it }
         } else emptyList()
     }
 
     fun isSingle(element: IntRange): Boolean {
         return element.first == element.last
+    }
+
+    class EditPanel(style: Style) : PanelListX(style), ITreeViewEntryPanel {
+        override fun setEntrySymbol(symbol: String) {}
+        override fun setEntryName(name: String) {}
+        override fun setEntryTooltip(ttt: String?) {}
     }
 
     override fun getOrCreateChildPanel(index: Int, element: IntRange): ITreeViewEntryPanel {
@@ -158,20 +166,20 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
             return super.getOrCreateChildPanel(index, element)
         }
 
-        if (index < elementByIndex.size) elementByIndex[index] = element
-        else elementByIndex.add(element)
-
         val panel = if (isSingle(element)) {
-            // todo needs to be updated
-            list.children.getOrNull(index) as? PanelListX
-                ?: (object : PanelListX(style), ITreeViewEntryPanel {
-                    override fun setEntrySymbol(symbol: String) {}
-                    override fun setEntryName(name: String) {}
-                    override fun setEntryTooltip(ttt: String?) {}
-                }.apply {
-                    // add(TextPanel("$index", style))
-                    add(createPanel(index, values[element.first]))
-                })
+            val editPanel = list.children.getOrNull(index) as? EditPanel
+            val title = "${element.first}: "
+            if (editPanel != null) {
+                (editPanel.children[0] as TextPanel).text = title
+                @Suppress("UNCHECKED_CAST")
+                updatePanel(values[element.first], editPanel.children[1] as PanelType)
+                editPanel
+            } else {
+                EditPanel(style).apply {
+                    add(TextPanel(title, style))
+                    add(createPanel(values[element.first]))
+                }
+            }
         } else {
             list.children.getOrNull(index) as? TreeViewEntryPanel<*>
                 ?: createChildPanel(index)
@@ -183,7 +191,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
             panel.parent = list
         } else list.add(panel)
 
-        return panel as ITreeViewEntryPanel
+        return panel
     }
 
     override fun canBeRemoved(element: IntRange): Boolean {
@@ -206,7 +214,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
 
     val notCollapsed = HashSet<IntRange>()
     override fun isCollapsed(element: IntRange): Boolean {
-        return element !in notCollapsed
+        return !isSingle(element) && element !in notCollapsed
     }
 
     override fun setCollapsed(element: IntRange, collapsed: Boolean) {
@@ -220,20 +228,27 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
 
     override fun removeChild(parent: IntRange, child: IntRange) {
         val element = child
-        values.subList(element.first, element.last + 1).clear()
+        val last = min(element.last, values.lastIndex)
+        values.subList(element.first, last + 1).clear()
         onChange()
         invalidateLayout()
     }
 
-    override fun getSymbol(element: IntRange): String = ""
+    override fun removeRoot(root: IntRange) {
+        values.clear()
+        onChange()
+        invalidateLayout()
+    }
+
     override fun getTooltipText(element: IntRange): String? = null
     override fun getParent(element: IntRange): IntRange? {
-        if (element.first == 0 && element.last == values.lastIndex) return null
+        if (element.first == 0 && element.last == Int.MAX_VALUE) return null
         val base1 = base.toDouble()
         val step = element.last + 1 - element.first
         val parentStep = max(base1.pow(ceil(log(step.toDouble(), base1)) + 1.0).toInt(), base * base)
         val parentFloor = element.first / parentStep * parentStep
-        val parentCeil = min(parentFloor + parentStep, values.size)
+        var parentCeil = min(parentFloor + parentStep, values.size)
+        if (parentFloor == 0 && parentCeil >= values.size) parentCeil = Int.MAX_VALUE
         return parentFloor until parentCeil
     }
 
@@ -242,8 +257,11 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     }
 
     override fun getName(element: IntRange): String {
-        return if (isSingle(element)) element.first.toString()
-        else "[${element.first} .. ${element.last}]"
+        return when {
+            isSingle(element) -> element.first.toString()
+            element.isEmpty() -> "[ empty ]"
+            else -> "[${element.first} .. ${min(element.last, values.lastIndex)}]"
+        }
     }
 
     override fun setName(element: IntRange, name: String) {
@@ -257,15 +275,14 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     }
 
     fun set(panel: Panel, value: Any?) {
-        val index = list.children.indexOfFirst { panel in it.listOfAll } - 1
+        val index = list.children.indexOfFirst { panel in it.listOfAll }
+        val index1 = elementByIndex[index]
         @Suppress("unchecked_cast")
-        values[index] = value as EntryType
+        values[index1.first] = value as EntryType
         onChange()
     }
 
     fun getValues(): List<EntryType> = values
-
-    open fun onChange() {}
 
     fun copy(index: Int) {
         // hopefully good enough...

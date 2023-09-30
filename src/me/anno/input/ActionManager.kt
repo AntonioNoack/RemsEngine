@@ -158,8 +158,11 @@ object ActionManager {
         Input.keysDown.forEach(mouseMoveConsumer)
     }
 
+    /**
+     * returns whether the event was consumed
+     * */
     @JvmStatic
-    fun onEvent(window: OSWindow, dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean) {
+    fun onEvent(window: OSWindow, dx: Float, dy: Float, combination: KeyCombination, isContinuous: Boolean): Boolean {
         val stack = window.windowStack
         var panel = stack.inFocus0
         if (stack.isEmpty() || stack.peek() != panel?.window) panel = null
@@ -171,21 +174,27 @@ object ActionManager {
         }
         val x = window.mouseX
         val y = window.mouseY
-        val la = localActions
-        val universally = la["*", combination]
+        val localActions = localActions
+        val globalActions = localActions["*", combination]
         val print = lastComb != combination
         // if (print) LOGGER.info("-- processing $universally, $combination")
         lastComb = combination
         targetSearch@ while (panel != null) {
-            if (processActions(panel, x, y, dx, dy, isContinuous, la[panel.className, combination], print)) return
+            val actions = localActions[panel.className, combination]
+            if (processActions(panel, x, y, dx, dy, isContinuous, actions, print)) {
+                return true
+            }
             // also check parent classes
             if (OS.isWeb) { // Kotlin's reflection is not yet supported
                 var clazz: Class<*> = panel.javaClass
                 while (true) {
                     val entry = ISaveable.getByClass(clazz)
-                    if (entry != null) {
-                        val cnI = entry.sampleInstance.className
-                        if (processActions(panel, x, y, dx, dy, isContinuous, la[cnI, combination], print)) return
+                    val className = entry?.sampleInstance?.className ?: clazz.simpleName
+                    if (className != null) {
+                        val actions1 = localActions[className, combination]
+                        if (processActions(panel, x, y, dx, dy, isContinuous, actions1, print)) {
+                            return true
+                        }
                     }
                     if (clazz == Panel::javaClass) break
                     clazz = clazz.superclass ?: break
@@ -194,18 +203,24 @@ object ActionManager {
                 var clazz: KClass<*> = panel::class
                 while (true) {
                     val entry = ISaveable.getByClass(clazz)
-                    if (entry != null) {
-                        val cnI = entry.sampleInstance.className
-                        if (processActions(panel, x, y, dx, dy, isContinuous, la[cnI, combination], print)) return
+                    val className = entry?.sampleInstance?.className ?: clazz.simpleName
+                    if (className != null) {
+                        val actions1 = localActions[className, combination]
+                        if (processActions(panel, x, y, dx, dy, isContinuous, actions1, print)) {
+                            return true
+                        }
                     }
                     if (clazz == Panel::class) break
                     clazz = clazz.superclasses.getOrNull(0) ?: break
                 }
             }
             // and if nothing is found at all, check the universal list
-            if (processActions(panel, x, y, dx, dy, isContinuous, universally, print)) return
+            if (processActions(panel, x, y, dx, dy, isContinuous, globalActions, print)) {
+                return true
+            }
             panel = panel.uiParent
         }
+        return false
     }
 
     @JvmField
