@@ -7,7 +7,6 @@ import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.maths.Maths.hasFlag
 
 open class SkyShaderBase(name: String) : ECSMeshShader(name) {
     companion object {
@@ -63,11 +62,14 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
                 Variable(GLSLType.V3F, "skyColor"),
                 Variable(GLSLType.V4F, "currPosition"),
                 Variable(GLSLType.V4F, "prevPosition"),
-            ), "" +
+            ), createDefines(flags).toString() +
                     // sky no longer properly defined for y > 0
                     "finalNormal = normalize(-normal);\n" +
-                    "finalColor = vec3(0.0);\n" +
-                    "finalEmissive = getSkyColor(quatRot(finalNormal, worldRot));\n" +
+                    // sky color can be quite expensive to compute, so only do so if we need it
+                    "#ifdef COLORS\n" +
+                    "   finalColor = vec3(0.0);\n" +
+                    "   finalEmissive = getSkyColor(quatRot(finalNormal, worldRot));\n" +
+                    "#endif\n" +
                     "finalNormal = -finalNormal;\n" +
                     "finalPosition = finalNormal * 1e20;\n" +
                     finalMotionCalculation

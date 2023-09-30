@@ -5,7 +5,6 @@ import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.maths.Maths.hasFlag
 
 open class SkyShader(name: String) : SkyShaderBase(name) {
     override fun createFragmentStages(flags: Int): List<ShaderStage> {
@@ -61,11 +60,13 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 Variable(GLSLType.V4F, "worldRot"),
                 Variable(GLSLType.V1B, "sphericalSky"),
                 Variable(GLSLType.V3F, "sunColor"),
-            ), "" +
+            ), createDefines(flags).toString() +
                     // sky no longer properly defined for y > 0
                     "finalNormal = normalize(-normal);\n" +
-                    "finalColor = vec3(0.0);\n" +
-                    "finalEmissive = getSkyColor(quatRot(finalNormal, worldRot));\n" +
+                    "#ifdef COLORS\n" +
+                    "   finalColor = vec3(0.0);\n" +
+                    "   finalEmissive = getSkyColor(quatRot(finalNormal, worldRot));\n" +
+                    "#endif\n" +
                     "finalNormal = -finalNormal;\n" +
                     "finalPosition = finalNormal * 1e20;\n" +
                     finalMotionCalculation

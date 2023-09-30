@@ -92,7 +92,12 @@ class BlendMode(
         */
 
         val INHERIT = BlendMode(NameDesc("Parent", "", "gpu.blendMode.parent"), "*Inherit")
+
+        /**
+         * back to front, non-premultiplied-colors, start/blending transparency being any value between 0 and 1
+         * */
         val DEFAULT = BlendMode(NameDesc("Default", "", "gpu.blendMode.default"), "*Blend")
+
         val ADD = BlendMode(NameDesc("Add", "", "gpu.blendMode.add"), "Add")
             .set(GL_SRC_ALPHA, GL_ONE)
 
