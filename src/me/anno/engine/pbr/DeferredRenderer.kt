@@ -1,10 +1,8 @@
 package me.anno.engine.pbr
 
-import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.SimpleRenderer
-import kotlin.math.min
 
 // many lights with many shadow maps would
 // - require many heavy updates
@@ -20,48 +18,20 @@ import kotlin.math.min
 // done and deferred rendering (no mapping needed, more memory intensive, more lights supported)
 
 object DeferredRenderer : SimpleRenderer(
-    "deferred", DeferredSettingsV2(findLayers(), 1, true),
+    "deferred", DeferredSettingsV2(
+        listOf(
+            DeferredLayerType.COLOR, // 3
+            DeferredLayerType.NORMAL, // 2
+            DeferredLayerType.EMISSIVE, // 3
+            // DeferredLayerType.TANGENT,
+            DeferredLayerType.OCCLUSION, // 1
+            DeferredLayerType.ROUGHNESS, // 1
+            DeferredLayerType.METALLIC,// 1
+            DeferredLayerType.SHEEN, // 1
+            DeferredLayerType.TRANSLUCENCY, // 1
+            DeferredLayerType.ANISOTROPIC, // 1
+            // total: 14
+        ), 1, true
+    ),
     colorRenderer.getPostProcessing(0)
 )
-
-object DeferredRendererMSAA : SimpleRenderer(
-    "deferredMSAA", DeferredSettingsV2(findLayers(), min(GFX.maxSamples, 8), true),
-    colorRenderer.getPostProcessing(0)
-)
-
-// todo while these should be matches to the program running them, the game should decide what it needs where
-//  -> is done by RenderGraph, I think, and also you can use as many attachments as you like, using MultiFramebuffer
-fun findLayers() = when (8 + GFX.maxColorAttachments) {
-    // my Huawei H10 has 4, my RX 580 and RTX 3070 have 8
-    1 -> listOf(DeferredLayerType.COLOR_EMISSIVE)
-    2 -> listOf(
-        DeferredLayerType.COLOR_EMISSIVE, // 4
-        DeferredLayerType.NORMAL, // 2
-        DeferredLayerType.ROUGHNESS, // 1
-        // total: 7
-    )
-    3 -> listOf(
-        DeferredLayerType.COLOR_EMISSIVE, // 4
-        DeferredLayerType.NORMAL, // 2
-        DeferredLayerType.OCCLUSION, // 1
-        DeferredLayerType.ROUGHNESS, // 1
-        DeferredLayerType.METALLIC, // 1
-        DeferredLayerType.SHEEN, // 1
-        DeferredLayerType.TRANSLUCENCY, // 1
-        DeferredLayerType.ANISOTROPIC, // 1
-        // total: 12
-    )
-    else -> listOf(
-        DeferredLayerType.COLOR, // 3
-        DeferredLayerType.NORMAL, // 2
-        DeferredLayerType.EMISSIVE, // 3
-        // DeferredLayerType.TANGENT,
-        DeferredLayerType.OCCLUSION, // 1
-        DeferredLayerType.ROUGHNESS, // 1
-        DeferredLayerType.METALLIC,// 1
-        DeferredLayerType.SHEEN, // 1
-        DeferredLayerType.TRANSLUCENCY, // 1
-        DeferredLayerType.ANISOTROPIC, // 1
-        // total: 14
-    )
-}

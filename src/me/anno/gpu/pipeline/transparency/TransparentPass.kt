@@ -40,7 +40,7 @@ abstract class TransparentPass : ICacheData {
                 stage.bindDraw(pipeline)
         }
         if (sky) {
-            pipeline.drawSky(pipeline.skybox, pipeline.defaultStage)
+            pipeline.drawSky()
         }
         draw1(pipeline)
     }

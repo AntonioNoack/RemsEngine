@@ -32,7 +32,7 @@ class BloomNode : ActionNode(
         val color = ((getInput(4) as? Texture)?.tex as? Texture2D) ?: return
 
         val target = if (applyToneMapping) TargetType.UByteTarget4 else TargetType.FP16Target4
-        val result = FBStack["bloom", color.width, color.height, target, 1, false]
+        val result = FBStack[name, color.width, color.height, target, 1, false]
         useFrame(result) {
             Bloom.bloom(color, offset, strength, applyToneMapping)
         }

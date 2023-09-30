@@ -54,7 +54,7 @@ class Texture private constructor(
         }
 
         fun depth(f: IFramebuffer): Texture {
-            return depth(f, "", null)
+            return depth(f, "x", DeferredLayerType.DEPTH)
         }
 
         fun depth(f: IFramebuffer, mapping: String, type: DeferredLayerType?): Texture {

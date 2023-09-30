@@ -47,6 +47,8 @@ class CubemapFramebuffer(
 
     var autoUpdateMipmaps = true
 
+    val isCreated get() = pointer != 0
+
     override fun getTargetType(slot: Int) = targets[slot]
 
     override fun ensure() {

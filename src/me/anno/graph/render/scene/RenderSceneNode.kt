@@ -112,7 +112,7 @@ class RenderSceneNode : RenderSceneNode0(
 
         pipeline.applyToneMapping = applyToneMapping
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            framebuffer.clearDepth()
+            framebuffer.clearColor(0, depth = true)
             pipeline.draw()
             GFX.check()
         }

@@ -1,8 +1,8 @@
 package me.anno.tests.ecs
 
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.utils.OS.documents
+import me.anno.tests.gfx.metalRoughness
 
 fun main() {
-    testSceneWithUI("Metallic Reflections", documents.getChild("metal-roughness.glb"))
+    testSceneWithUI("Metallic Reflections", metalRoughness())
 }

@@ -171,9 +171,9 @@ class PlanarReflection : LightComponentBase() {
                     GFXState.depthMode.use(DepthMode.CLOSER) {
                         GFXState.scissorTest.use(true) {
                             glScissor(x0, h - 1 - y1, x1 - x0, y1 - y0)
-                            ci.clearColorOrSky(cameraMatrix1)
-                            // buffer.clearColor(1f,0f,0f,1f)
-                            pipeline.draw()
+                            // todo why is the normal way to draw the sky failing its depth test?
+                            clearSky(pipeline)
+                            pipeline.draw(false)
                         }
                     }
                 }
@@ -256,5 +256,12 @@ class PlanarReflection : LightComponentBase() {
         private val tmp0M = Matrix4f()
         private val tmp1M = Matrix4d()
         private val tmpAABB = AABBf()
+
+        fun clearSky(pipeline: Pipeline) {
+            GFXState.depthMode.use(DepthMode.ALWAYS) {
+                pipeline.drawSky0(pipeline.defaultStage)
+                GFXState.currentBuffer.clearDepth()
+            }
+        }
     }
 }

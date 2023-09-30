@@ -266,16 +266,15 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
                 GFXState.currentBuffer.numTextures >= 2
     }
 
-    fun draw() {
+    fun draw(drawSky: Boolean = true) {
         if (hasTransparentPart()) {
-            transparentPass.draw0(this, true)
+            transparentPass.draw0(this, drawSky)
         } else {
-            val sky = skybox
-            var hasDrawnSky = false
+            var hasDrawnSky = !drawSky
             for (i in stages.indices) {
                 val stage = stages[i]
                 if (stage.blendMode != null && !hasDrawnSky) {
-                    drawSky(sky, defaultStage)
+                    drawSky()
                     hasDrawnSky = true
                 }
                 if (stage.size > 0) {
@@ -283,7 +282,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
                 }
             }
             if (!hasDrawnSky) {
-                drawSky(sky, defaultStage)
+                drawSky()
             }
         }
     }
@@ -303,17 +302,18 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         }
     }
 
-    fun drawSky(sky: SkyboxBase, stage: PipelineStage) {
-        GFXState.depthMode.use(stage.depthMode) {
+    fun drawSky() {
+        GFXState.depthMode.use(defaultStage.depthMode) {
             GFXState.depthMask.use(false) {
                 GFXState.blendMode.use(null) {
-                    drawSky0(sky, stage)
+                    drawSky0(defaultStage)
                 }
             }
         }
     }
 
-    fun drawSky0(sky: SkyboxBase, stage: PipelineStage) {
+    fun drawSky0(stage: PipelineStage) {
+        val sky = skybox
         val mesh = sky.getMesh()
         mesh.ensureBuffer()
         val allAABB = JomlPools.aabbd.create()

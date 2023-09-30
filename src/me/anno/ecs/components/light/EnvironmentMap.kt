@@ -3,6 +3,7 @@ package me.anno.ecs.components.light
 import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.light.PlanarReflection.Companion.clearSky
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.engine.ui.LineShapes.drawCross
 import me.anno.engine.ui.render.ECSShaderLib
@@ -153,23 +154,15 @@ class EnvironmentMap : LightComponentBase() {
                 RenderState.calculateDirections(true)
 
                 // clear using sky
-                val ci = RenderView.currentInstance
-                if (ci != null) {
-                    ci.clearColorOrSky(cameraMatrix)
-                } else {
-                    lastWarning = "Current RenderView is undefined"
-                    texture.clearColor(.7f, .9f, 1f, 1f, true)
-                }
-
+                clearSky(pipeline)
                 addDefaultLightsIfRequired(pipeline)
-                pipeline.bakedSkybox = ci?.pipeline?.bakedSkybox
-                pipeline.draw()
+                pipeline.bakedSkybox = RenderView.currentInstance?.pipeline?.bakedSkybox
+                pipeline.draw(false)
             }
         }
         JomlPools.mat4f.sub(1)
 
         // todo create irradiance mipmaps: blur & size down, just like bloom
-
     }
 
     override val className: String get() = "EnvironmentMap"
@@ -192,7 +185,5 @@ class EnvironmentMap : LightComponentBase() {
             pipeline.stages.add(pipeline.defaultStage)
             pipeline
         }
-
     }
-
 }

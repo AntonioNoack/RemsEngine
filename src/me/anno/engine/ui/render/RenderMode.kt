@@ -1,5 +1,6 @@
 package me.anno.engine.ui.render
 
+import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
@@ -21,14 +22,13 @@ import me.anno.graph.types.FlowGraph
 @Suppress("unused")
 class RenderMode(
     val name: String,
-    val dlt: DeferredLayerType? = null,
     val renderer: Renderer? = null,
     val renderGraph: FlowGraph? = null,
 ) {
 
-    constructor(name: String, renderer: Renderer) : this(name, null, renderer)
-    constructor(renderer: Renderer) : this(renderer.name, null, renderer)
-    constructor(name: String, renderGraph: FlowGraph?) : this(name, null, null, renderGraph)
+    constructor(name: String, renderer: Renderer) : this(name, renderer, null)
+    constructor(name: String, renderGraph: FlowGraph?) : this(name, null, renderGraph)
+    constructor(name: String, dlt: DeferredLayerType) : this(name, attributeRenderers[dlt])
 
     init {
         values.add(this)
@@ -163,7 +163,7 @@ class RenderMode(
         )
 
         val INVERSE_DEPTH = RenderMode("Inverse Depth")
-        val OVERDRAW = RenderMode("Overdraw")
+        val OVERDRAW = RenderMode("Overdraw", Renderers.overdrawRenderer)
 
         // todo this mode's sky is broken
         val WITH_DEPTH_PREPASS = RenderMode("With Depth-Prepass")
@@ -175,12 +175,24 @@ class RenderMode(
         val FSR_X2 = RenderMode("FSRx2", FSR1Node.createPipeline(0.5f))
         val FSR_X4 = RenderMode("FSRx4", FSR1Node.createPipeline(0.25f))
 
+        val FSR_MSAA_X4 = RenderMode(
+            "FSR+MSAAx4", QuickPipeline()
+                .then1(FSR1HelperNode(), mapOf("Fraction" to 0.25f))
+                .then1(RenderSceneNode(), mapOf("Samples" to 8))
+                .then1(RenderLightsNode(), mapOf("Samples" to 8))
+                .then(SSAONode())
+                .then1(CombineLightsNode(), mapOf("Samples" to 8))
+                .then(SSRNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode()) // gizmo node depends on 1:1 depth scale, so we cannot do FSR before it
+                .then(FSR1Node(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
         // todo make these modes use a render graph, too
-        val FSR_MSAA_X4 = RenderMode("FSR+MSAAx4")
         val FSR2_X2 = RenderMode("FSR2x2")
         val FSR2_X8 = RenderMode("FSR2x8")
 
-        // todo this is broken...
         val NEAREST_X4 = RenderMode(
             "Nearest 4x",
             QuickPipeline()
@@ -191,12 +203,12 @@ class RenderMode(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
-                .then(GizmoNode())
+                .then(GizmoNode(), mapOf("Samples" to 8), mapOf("Illuminated" to listOf("Color")))
                 .finish()
         )
 
-        val LINES = RenderMode("Lines")
-        val LINES_MSAA = RenderMode("Lines MSAA")
+        val LINES = RenderMode("Lines", DEFAULT.renderGraph)
+        val LINES_MSAA = RenderMode("Lines MSAA", MSAA_DEFERRED.renderGraph)
         val FRONT_BACK = RenderMode("Front/Back", frontBackRenderer)
 
         /** visualize the triangle structure by giving each triangle its own color */
@@ -256,7 +268,8 @@ class RenderMode(
         )
 
         val MOTION_BLUR = RenderMode(
-            "Motion Blur", QuickPipeline()
+            "Motion Blur",
+            QuickPipeline()
                 .then(RenderSceneNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
@@ -268,7 +281,20 @@ class RenderMode(
                 .finish()
         )
 
-        val SMOOTH_NORMALS = RenderMode("Smooth Normals")
+        val SMOOTH_NORMALS = RenderMode(
+            "Smooth Normals",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(SmoothNormalsNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then(MotionBlurNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
 
         val DEPTH_TEST = RenderMode(
             "Depth Test",

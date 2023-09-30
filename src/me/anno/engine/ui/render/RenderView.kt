@@ -15,7 +15,6 @@ import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.pbr.DeferredRenderer
-import me.anno.engine.pbr.DeferredRendererMSAA
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.PlaneShapes
 import me.anno.engine.ui.control.ControlScheme
@@ -27,7 +26,6 @@ import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Outlines.drawOutline
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.cheapRenderer
-import me.anno.engine.ui.render.Renderers.overdrawRenderer
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
@@ -82,10 +80,7 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.*
-import kotlin.math.atan
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.tan
+import kotlin.math.*
 
 // to do render the grid slightly off position, so we don't get flickering, always closer to the camera, proportional to radius
 // (because meshes at 0 are very common and to be expected)
@@ -146,18 +141,14 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         .rotateX(20.0.toRadians())
 
     private val deferred = DeferredRenderer.deferredSettings!!
-    private val deferredMSAA = DeferredRendererMSAA.deferredSettings!!
 
     val baseNBuffer1 = deferred.createBaseBuffer()
-    val baseNBuffer8 = deferredMSAA.createBaseBuffer()
     private val baseSameDepth1 = baseNBuffer1.attachFramebufferToDepth("baseSD1", 1, false)
-    private val baseSameDepth8 = baseNBuffer8.attachFramebufferToDepth("baseSD8", 1, false)
     val base1Buffer = Framebuffer("base1", 1, 1, 1, 1, false, DepthBufferType.TEXTURE)
     val base8Buffer = Framebuffer("base8", 1, 1, 8, 1, false, DepthBufferType.TEXTURE)
 
     private val light1Buffer = base1Buffer.attachFramebufferToDepth("light1", arrayOf(TargetType.FP16Target4))
     private val lightNBuffer1 = baseNBuffer1.attachFramebufferToDepth("lightN1", arrayOf(TargetType.FP16Target4))
-    private val lightNBuffer8 = baseNBuffer8.attachFramebufferToDepth("lightN8", arrayOf(TargetType.FP16Target4))
 
     private val clock = Clock()
     private var entityBaseClickId = 0
@@ -186,13 +177,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         // all framebuffers that we own need to be freed
         light1Buffer.destroy()
         lightNBuffer1.destroy()
-        lightNBuffer8.destroy()
         baseSameDepth1.destroy()
-        baseSameDepth8.destroy()
         base1Buffer.destroy()
         base8Buffer.destroy()
         baseNBuffer1.destroy()
-        baseNBuffer8.destroy()
         editorCameraNode.destroy()
         fsr22.destroy()
         pipeline.destroy()
@@ -254,8 +242,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         val world = getWorld()
 
         setRenderState()
-
-        // done go through the rendering pipeline, and render everything
 
         // todo draw all local players in their respective fields
         // todo use customizable masks for the assignment (plus a button mapping)
@@ -320,30 +306,17 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             var useDeferredRendering = when (renderMode) {
                 RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.NO_DEPTH, RenderMode.FSR_MSAA_X4,
                 RenderMode.GHOSTING_DEBUG, RenderMode.INVERSE_DEPTH,
-                RenderMode.LINES, RenderMode.LINES_MSAA, RenderMode.UV,
-                RenderMode.MSAA_NON_DEFERRED -> false
-
+                RenderMode.UV, RenderMode.MSAA_NON_DEFERRED -> false
                 else -> true
             }
 
-            // todo only if the render-mode/camera-effects use light information
-            if (pipeline.hasTooManyLights() || useBloom) useDeferredRendering = true
-
-            var renderer = when (renderMode) {
-                RenderMode.OVERDRAW -> overdrawRenderer
+            val renderer = when (renderMode) {
                 RenderMode.NON_DEFERRED, RenderMode.MSAA_NON_DEFERRED,
-                RenderMode.FSR_MSAA_X4, RenderMode.LINES,
-                RenderMode.LINES_MSAA -> {
+                RenderMode.FSR_MSAA_X4 -> {
                     useDeferredRendering = false
                     pbrRenderer
                 }
                 else -> renderMode.renderer ?: (if (useDeferredRendering) DeferredRenderer else pbrRenderer)
-            }
-
-            val dlt = renderMode.dlt
-            if (dlt != null) {
-                useDeferredRendering = false
-                renderer = attributeRenderers[dlt]
             }
 
             // multi-sampled buffer
@@ -352,15 +325,15 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 renderMode == RenderMode.MSAA_NON_DEFERRED ||
                         renderMode == RenderMode.LINES_MSAA ||
                         renderMode == RenderMode.FSR_MSAA_X4 -> base8Buffer
-                // msaa, multi target
-                renderer == DeferredRendererMSAA -> baseNBuffer8
                 // aliased, multi-target
                 renderer == DeferredRenderer -> baseNBuffer1
                 else -> base1Buffer
             }
 
             // blacklist for renderModes?
-            if (renderMode.dlt == null && renderMode != RenderMode.LIGHT_COUNT) {
+            if (renderer !in attributeRenderers.values &&
+                renderMode != RenderMode.LIGHT_COUNT
+            ) {
                 pipeline.bakeSkybox(256)
             } else {
                 pipeline.destroyBakedSkybox()
@@ -369,9 +342,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             drawScene(
                 x0, y0, x1, y1,
                 renderer, buffer, useDeferredRendering,
-                size, cols,
-                rows,
-                layers.size
+                size, cols, rows, layers.size
             )
         }
 
@@ -446,10 +417,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 w = (w + 1) / 2
                 h = (h + 1) / 2
             }
-            RenderMode.FSR_MSAA_X4 -> {
-                w = (w + 2) / 4
-                h = (h + 2) / 4
-            }
             RenderMode.FSR2_X8 -> {
                 w = (w + 1) / 8
                 h = (h + 1) / 8
@@ -471,8 +438,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         var dstBuffer = buffer
 
-        val renderMode = renderMode
-        var isHDR = false
         val useFSR = when (renderMode) {
             RenderMode.FSR_MSAA_X4 -> true
             else -> false
@@ -546,31 +511,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         )
                         drawGizmos(depth, true)
                         drawDepthTexture(x, y, w, h, depth.depthTexture!!)
-                        return
-                    }
-                    renderMode == RenderMode.SMOOTH_NORMALS -> {
-                        drawScene(
-                            w, h, renderer, buffer,
-                            changeSize = true, hdr = true
-                        )
-                        // smooth normals before light, so light is influenced by it
-                        SmoothedNormals.smoothNormals(buffer, deferred)
-                        val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
-                        drawSceneLights(buffer, lightBuffer)
-                        val sett = SSAOSettings
-                        val ssao = ScreenSpaceAmbientOcclusion.compute(
-                            buffer, deferred, cameraMatrix,
-                            sett.strength, sett.samples, sett.enable2x2Blur
-                        )
-                        useFrame(w, h, true, baseSameDepth1) {
-                            // theoretically, this pass could blur the normals itself...
-                            combineLighting(
-                                deferred, true, pipeline.ambient,
-                                buffer, lightBuffer, ssao
-                            )
-                        }
-                        drawGizmos(baseSameDepth1, true)
-                        drawTexture(x, y + h, w, -h, baseSameDepth1.getTexture0())
                         return
                     }
                     renderMode == RenderMode.LIGHT_COUNT -> {
@@ -648,10 +588,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                         val th = h / rows
                         val tmp = FBStack["tmp-layers", tw, th, 4, false, 1, true]
                         val settings = DeferredRenderer.deferredSettings!!
-                        val layers = HashMap(settings.layerTypes.associateWith {
-                            settings.findTexture(buffer, it)!!
-                                .wrapAsFramebuffer()
-                        })
 
                         val pbb = pushBetterBlending(true)
                         for (index in 0 until size) {
@@ -703,12 +639,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                             renderer, deferred
                         )
                     }
-                    renderer == DeferredRendererMSAA -> {
-                        dstBuffer = drawSceneDeferred(
-                            buffer, w, h, baseNBuffer8, lightNBuffer8, baseSameDepth8,
-                            renderer, deferredMSAA
-                        )
-                    }
                     else -> {
                         drawScene(
                             w, h, renderer, buffer,
@@ -720,12 +650,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     }
                 }
                 clock.stop("presenting deferred buffers", 0.1)
-            }
-
-            renderMode.dlt != null -> {
-                drawScene(w, h, renderer, buffer, changeSize = true, hdr = true)
-                drawGizmos(buffer, true)
-                isHDR = renderMode.dlt.highDynamicRange
             }
 
             useBloom -> {
@@ -740,7 +664,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             }
 
             else -> {
-                isHDR = useFSR
                 drawScene(w, h, renderer, buffer, changeSize = true, useFSR)
                 drawGizmos(buffer, true)
             }
@@ -761,13 +684,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 // afterwards sharpen
                 FSR.sharpen(tmp.getTexture0(), 0.5f, x, y, tw, th, false)
             }
-            isHDR -> drawTexture(
-                x, y + h, w, -h,
-                dstBuffer.getTexture0(),
-                ignoreAlpha = true,
-                color = -1, tiling = null,
-                applyToneMapping = true
-            )
             else -> {
                 // we could optimize that one day, when the shader graph works
                 GFX.copyNoAlpha(dstBuffer)
@@ -1103,32 +1019,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         get() = if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
         else if (reverseDepth) DepthMode.CLOSER else DepthMode.FORWARD_CLOSER
 
-    val clearColor = Vector4f()
-
-    fun clearColorOrSky(cameraMatrix: Matrix4f) {
-        GFXState.depthMode.use(DepthMode.ALWAYS) {
-            val sky = pipeline.skybox
-            val renderMode1 = renderMode
-            if (renderMode1 == RenderMode.LINES || renderMode1 == RenderMode.LINES_MSAA) {
-                this.renderMode = RenderMode.DEFAULT
-            }
-
-            val shader = (sky.shader ?: pbrModelShader).value
-            shader.use()
-            shader.v1i("hasVertexColors", 0)
-            shader.m4x4("transform", cameraMatrix)
-            shader.v3f("cameraPosition", cameraPosition)
-            shader.v4f("cameraRotation", cameraRotation)
-            shader.v1f("worldScale", worldScale.toFloat())
-            sky.material.bind(shader)
-            sky.draw(shader, 0)
-            lastWarning = null
-
-            GFXState.currentBuffer.clearDepth()
-            this.renderMode = renderMode1
-        }
-    }
-
     fun drawScene(
         w: Int, h: Int,
         renderer: Renderer,
@@ -1175,13 +1065,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 GFXState.depthMode.use(depthMode) {
                     setClearDepth()
                     dst.clearDepth()
-                }
-            }
-
-            // clearing everything by sky won't work, because sky will be lines xD
-            when (renderMode) {
-                RenderMode.LINES, RenderMode.LINES_MSAA -> {
-                    dst.clearColor(black)
                 }
             }
 

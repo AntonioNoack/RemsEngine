@@ -26,7 +26,6 @@ open class LazyMap<K, V>(
 
     override fun get(key: K): V = cache.getOrPut(key) { generator(key) }
 
-    @Suppress("unchecked_cast")
     override val entries
         get() = if (nullsAreValid) {
             cache.entries
@@ -43,7 +42,7 @@ open class LazyMap<K, V>(
         get() = cache.size
 
     override val values: Collection<V>
-        get() = emptySet()
+        get() = cache.values
 
     override fun isEmpty() = cache.isEmpty()
 

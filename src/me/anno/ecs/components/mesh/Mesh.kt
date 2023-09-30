@@ -1149,7 +1149,11 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
     companion object {
 
-        val drawDebugLines get() = RenderView.currentInstance?.renderMode.run { this == RenderMode.LINES || this == RenderMode.LINES_MSAA }
+        val drawDebugLines: Boolean
+            get() {
+                val mode = RenderView.currentInstance?.renderMode
+                return mode == RenderMode.LINES || mode == RenderMode.LINES_MSAA
+            }
 
         val defaultMaterial = Material()
         private val defaultMaterials = emptyList<FileReference>()

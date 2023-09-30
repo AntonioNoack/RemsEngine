@@ -350,7 +350,11 @@ class PipelineStage(
                     else Double.POSITIVE_INFINITY
                 }
             } else null
-            val bakedSkyBox = (map?.texture ?: pipeline.bakedSkybox)?.getTexture0() ?: blackCube
+            var mapTexture = map?.texture
+            if (mapTexture?.isCreated != true) mapTexture = null
+            mapTexture = mapTexture ?: pipeline.bakedSkybox
+            if (mapTexture?.isCreated != true) mapTexture = null
+            val bakedSkyBox = mapTexture?.getTexture0() ?: blackCube
             bakedSkyBox.bind(
                 envMapSlot,
                 GPUFiltering.LINEAR,

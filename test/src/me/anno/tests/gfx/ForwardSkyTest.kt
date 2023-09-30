@@ -3,7 +3,6 @@ package me.anno.tests.gfx
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS
@@ -15,8 +14,7 @@ fun main() {
     // todo where is non-deferred lighting handled? too bright, probably using wrong color space
     val scene = Entity()
     scene.add(MeshComponent(OS.downloads.getChild("3d/DamagedHelmet.glb")))
-    scene.add(MeshComponent(OS.documents.getChild("metal-roughness.glb")))
-    scene.add(Skybox())
+    scene.add(metalRoughness())
     scene.add(AmbientLight().apply { color.set(0.1f) })
     testSceneWithUI("Forward Sky", scene) {
         it.renderer.renderMode = RenderMode.NON_DEFERRED
