@@ -91,8 +91,7 @@ open class ScrollPanelX(
             lastScrollPosX = round(scrollPositionX)
             lastMaxScrollPosX = maxScrollPositionX
             placeChild()
-            // todo why is invalidateDrawing() here not enough, but is in ScrollPanelY?
-            invalidateLayout()
+            invalidateDrawing()
         }
     }
 

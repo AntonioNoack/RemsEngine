@@ -14,8 +14,10 @@ class BlendMode(
 
     var src = GL_SRC_ALPHA
     var dst = GL_ONE_MINUS_SRC_ALPHA
-    var srcAlpha = GL_SRC_ALPHA
+
+    var srcAlpha = GL_ONE
     var dstAlpha = GL_ONE_MINUS_SRC_ALPHA
+
     var func = BlendFunc.ADD
     var funcAlpha = BlendFunc.ADD
 

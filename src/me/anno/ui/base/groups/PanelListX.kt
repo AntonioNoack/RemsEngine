@@ -34,7 +34,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         val children = children
         if (allChildrenHaveSameSize && children.isNotEmpty()) {
             // optimize for case that all children have same size
-            val child0 = children[min(visibleIndex0, children.lastIndex)]
+            val child0 = children[0]
             val count = children.count2 { it.isVisible }
             child0.calculateSize(availableW, availableH)
             // apply constraints?

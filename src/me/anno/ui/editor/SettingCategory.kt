@@ -3,15 +3,16 @@ package me.anno.ui.editor
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Key
 import me.anno.language.translation.Dict
-import me.anno.maths.Maths.mixARGB
+import me.anno.maths.Maths.min
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputVisibility
-import me.anno.ui.Style
+import me.anno.utils.Color.mulAlpha
 import kotlin.math.max
 
 open class SettingCategory(
@@ -51,7 +52,7 @@ open class SettingCategory(
 
     init {
         titlePanel.parent = this
-        titlePanel.textColor = mixARGB(titlePanel.textColor, titlePanel.textColor and 0xffffff, 0.5f)
+        titlePanel.textColor = titlePanel.textColor.mulAlpha(0.5f)
         titlePanel.focusTextColor = -1
         child.parent = this
     }
@@ -122,6 +123,14 @@ open class SettingCategory(
         super.setPosition(x, y)
         titlePanel.setPosition(x, y)
         child.setPosition(x + padding.left, y + titlePanel.minH + padding.top)
+    }
+
+    override fun setSize(w: Int, h: Int) {
+        super.setSize(w, h)
+        titlePanel.setSize(min(titlePanel.minW, w), min(titlePanel.minH, h))
+        if (child.isVisible) {
+            child.setSize(w - padding.width, h - titlePanel.height - padding.height)
+        } else child.setSize(1, 1)
     }
 
     operator fun plusAssign(child: Panel) {

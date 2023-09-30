@@ -16,6 +16,7 @@ import me.anno.studio.ProjectHeader
 import me.anno.studio.Projects
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
@@ -34,7 +35,6 @@ import me.anno.ui.input.BooleanInput
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FileInput
 import me.anno.ui.input.TextInput
-import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.OS
 import me.anno.utils.types.Strings.isBlank2
@@ -157,14 +157,13 @@ abstract class WelcomeUI {
             val tp = TextPanel(project.name, style)
             tp.enableHoverColor = true
             tp.tooltip = project.file.absolutePath
-            thread(name = "FileExists?") {// file search can use some time
-                if (!project.file.exists) {
-                    tp.textColor = 0xff0000 or black
-                    tp.tooltip = Dict["%1, not found!", "ui.recentProjects.projectNotFound"].replace(
-                        "%1",
-                        project.file.absolutePath
-                    )
-                }
+
+            if (!project.file.exists) {
+                tp.textColor = 0xff0000 or black
+                tp.tooltip = Dict["%1, not found!", "ui.recentProjects.projectNotFound"].replace(
+                    "%1",
+                    project.file.absolutePath
+                )
             }
 
             fun open() {// open zip?
