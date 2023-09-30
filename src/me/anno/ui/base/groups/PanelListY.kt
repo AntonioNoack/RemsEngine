@@ -34,20 +34,20 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         val children = children
         if (allChildrenHaveSameSize && children.isNotEmpty()) {
             // optimize for case that all children have same size
-            val child = children[min(visibleIndex0, children.lastIndex)]
+            val child0 = children[min(visibleIndex0, children.lastIndex)]
             val count = children.count2 { it.isVisible }
-            child.calculateSize(availableW, availableH)
+            child0.calculateSize(availableW, availableH)
             // apply constraints?
-            constantSum += count * child.minH
-            maxX = max(maxX, child.x + child.minW)
-            weightSum += count * max(0f, child.weight)
+            constantSum += count * child0.minH
+            maxX = max(maxX, child0.x + child0.minW)
+            weightSum += count * max(0f, child0.weight)
             // assign child measurements to all visible children
-            for (i in visibleIndex0 until visibleIndex1) {
-                val child2 = children[i]
-                child2.width = child.width
-                child2.height = child.height
-                child2.minW = child.minW
-                child2.minH = child.minH
+            for (i in children.indices) {
+                val child = children[i]
+                child.width = child0.width
+                child.height = child0.height
+                child.minW = child0.minW
+                child.minH = child0.minH
             }
         } else {
             for (i in children.indices) {
@@ -74,18 +74,17 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
 
     override val visibleIndex0
         get(): Int {
-            return 0
-            // val idx = children.binarySearch { it.y.compareTo(ly0) }
-            // return max(0, (if (idx < 0) -1 - idx else idx) - 1)
-        }
-    override val visibleIndex1
-        get(): Int {
-            return children.size
-            // val idx = children.binarySearch { it.y.compareTo(ly1) }
-            // return min(children.size, if (idx < 0) -1 - idx else idx)
+            val idx = children.binarySearch { it.y.compareTo(ly0) }
+            return max(0, (if (idx < 0) -1 - idx else idx) - 1)
         }
 
-    /*override fun getChildPanelAt(x: Int, y: Int): Panel? {
+    override val visibleIndex1
+        get(): Int {
+            val idx = children.binarySearch { it.y.compareTo(ly1) }
+            return min(children.size, if (idx < 0) -1 - idx else idx)
+        }
+
+    override fun getChildPanelAt(x: Int, y: Int): Panel? {
         val children = children
         var idx = children.binarySearch { it.y.compareTo(y) }
         if (idx < 0) idx = -1 - idx
@@ -96,7 +95,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
             }
         }
         return null
-    }*/
+    }
 
     override fun setPosition(x: Int, y: Int) {
         // todo some elements don't like this shortcut...
@@ -108,34 +107,45 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
             val availableW = width - padding.width
             val availableH = height - padding.height
 
-            var perWeight = 0f
-            val sumWeight = sumWeight
-            val sumConst = sumConst
-            if (availableH > sumConst && sumWeight > 1e-7f) {
-                val extraAvailable = availableH - sumConst
-                perWeight = extraAvailable / sumWeight
-            }
 
             val childX = x + padding.left
             var currentY = y + padding.top
 
             val children = children
-            for (i in children.indices) {
-                val child = children[i]
-                if (child.isVisible) {
-                    var childH = (child.minH + perWeight * max(0f, child.weight)).roundToInt()
-                    val currentH = currentY - y
-                    val remainingH = availableH - currentH
-                    childH = min(childH, remainingH)
-                    if (child.width != availableW || child.height != childH) {
-                        // update the children, if they need to be updated
-                        child.calculateSize(availableW, childH)
-                    }
-                    //if (child.x != childX || child.y != currentY || child.w != availableW || child.h != childH) {
-                    // something changes, or constraints are used
-                    child.setPosSize(childX, currentY, availableW, childH)
-                    //}
-                    currentY += childH + spacing
+            if (allChildrenHaveSameSize) {
+                val childH = availableH / max(1, children.count2 { it.isVisible })
+                for (i in children.indices) {
+                    val child = children[i]
+                    if (child.isVisible) {
+                        child.setPosSize(childX, currentY, availableW, childH)
+                        currentY += childH + spacing
+                    } else child.setPosSize(childX, currentY, 1, 1)
+                }
+            } else {
+                var perWeight = 0f
+                val sumWeight = sumWeight
+                val sumConst = sumConst
+                if (availableH > sumConst && sumWeight > 1e-7f) {
+                    val extraAvailable = availableH - sumConst
+                    perWeight = extraAvailable / sumWeight
+                }
+                for (i in children.indices) {
+                    val child = children[i]
+                    if (child.isVisible) {
+                        var childH = (child.minH + perWeight * max(0f, child.weight)).roundToInt()
+                        val currentH = currentY - y
+                        val remainingH = availableH - currentH
+                        childH = min(childH, remainingH)
+                        if (child.width != availableW || child.height != childH) {
+                            // update the children, if they need to be updated
+                            child.calculateSize(availableW, childH)
+                        }
+                        //if (child.x != childX || child.y != currentY || child.w != availableW || child.h != childH) {
+                        // something changes, or constraints are used
+                        child.setPosSize(childX, currentY, availableW, childH)
+                        //}
+                        currentY += childH + spacing
+                    } else child.setPosSize(childX, currentY, 1, 1)
                 }
             }
         }

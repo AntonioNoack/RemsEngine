@@ -10,7 +10,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI
 
 fun main() {
-    testUI("List Stresstest XY") {
+    testUI("ListStressTest-XY") {
         StudioBase.instance?.enableVSync = false
         val listY = PanelListY(style)
         for (j in 0 until 100) {

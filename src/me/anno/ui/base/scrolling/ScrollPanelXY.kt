@@ -9,10 +9,10 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.Style
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.abs
 import kotlin.math.max
@@ -131,12 +131,14 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        super.calculateSize(w, h)
-
         child.calculateSize(maxLength - padding.width, maxLength - padding.height)
-
         minW = child.minW + padding.width + hasScrollbarY.toInt(scrollbarWidth)
         minH = child.minH + padding.height + hasScrollbarX.toInt(scrollbarHeight)
+    }
+
+    override fun setSize(w: Int, h: Int) {
+        super.setSize(w, h)
+        child.setSize(max(child.minW, w - padding.width), max(child.minH, h - padding.height))
     }
 
     override fun setPosition(x: Int, y: Int) {
@@ -157,7 +159,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         if (child is LongScrollable) {
             child.setExtraScrolling(scrollX0 - scrollX1, scrollY0 - scrollY1)
         }
-
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -190,7 +191,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         if ((dx0 > 0f && scrollPositionX >= maxScrollPositionX) ||
             (dx0 < 0f && scrollPositionX <= 0f)
         ) {// if done scrolling go up the hierarchy one
-
         } else {
             scrollX(dx0.toDouble())
             clampScrollPosition()
@@ -201,7 +201,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         if ((dy0 > 0f && scrollPositionY >= maxScrollPositionY) ||
             (dy0 < 0f && scrollPositionY <= 0f)
         ) {// if done scrolling go up the hierarchy one
-
         } else {
             scrollY(dy0.toDouble())
             clampScrollPosition()
@@ -213,7 +212,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             val dy2 = if (consumedY) 0f else dy
             super.onMouseWheel(x, y, dx2, dy2, byMouse)
         }
-
     }
 
     private fun clampScrollPosition() {
@@ -298,7 +296,5 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             return abs((x0 + x1) - (x2 + x3)) < (x1 - x0) + (x3 - x2) &&
                     abs((y0 + y1) - (y2 + y3)) < (y1 - y0) + (y3 - y2)
         }
-
     }
-
 }

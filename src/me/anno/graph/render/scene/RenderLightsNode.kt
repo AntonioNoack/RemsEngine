@@ -106,8 +106,6 @@ class RenderLightsNode : RenderSceneNode0(
                         extraVariables +
                         listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT))
 
-                println("RenderLightsNode.typeValues: $typeValues")
-
                 val builder = ShaderBuilder(name)
                 builder.addVertex(if (isInstanced) vertexI else vertexNI)
                 if (isInstanced) builder.addFragment(invStage)

@@ -106,6 +106,11 @@ open class ScrollPanelY(
         }
     }
 
+    override fun setSize(w: Int, h: Int) {
+        super.setSize(w, h)
+        child.setSize(w - padding.width, max(child.minH, h - padding.height))
+    }
+
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         val sbWidth = interactionWidth + 2 * scrollbarPadding
         return hasScrollbar && ScrollPanelXY.drawsOverY(
@@ -115,12 +120,9 @@ open class ScrollPanelY(
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        super.calculateSize(w, h)
-
         val child = child
         val padding = padding
         child.calculateSize(w - padding.width, maxLength - padding.height)
-
         minW = child.minW + padding.width + hasScrollbar.toInt(scrollbarWidth)
         minH = child.minH + padding.height
     }

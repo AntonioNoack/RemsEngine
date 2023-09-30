@@ -37,10 +37,10 @@ abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(
 
         val vi0 = visibleIndex0
         val vi1 = visibleIndex1
-        val idx0 = max(min(vi0, lpi2), 0)
-        val idx1 = min(max(vi1, lpi3), children.size)
-        lpi2 = vi0
-        lpi3 = vi1
+        val idx0 = max(min(vi0, lpx), 0)
+        val idx1 = min(max(vi1, lpy), children.size)
+        lpx = vi0
+        lpy = vi1
 
         val children = children
         for (i in idx0 until idx1) {
@@ -60,15 +60,8 @@ abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(
     }
 
     @NotSerializedProperty
-    var lpi0 = 0
+    private var lpx = 0
 
     @NotSerializedProperty
-    var lpi1 = Int.MAX_VALUE
-
-    @NotSerializedProperty
-    var lpi2 = 0
-
-    @NotSerializedProperty
-    var lpi3 = Int.MAX_VALUE
-
+    private var lpy = Int.MAX_VALUE
 }

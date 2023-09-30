@@ -9,6 +9,7 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
@@ -16,7 +17,6 @@ import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.minWeight
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
-import me.anno.ui.Style
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
 import kotlin.math.round
@@ -107,6 +107,11 @@ open class ScrollPanelX(
         }
     }
 
+    override fun setSize(w: Int, h: Int) {
+        super.setSize(w, h)
+        child.setSize(max(child.minW, w - padding.width), h - padding.height)
+    }
+
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
         val sbHeight = interactionHeight + 2 * scrollbarPadding
         return hasScrollbar && ScrollPanelXY.drawsOverX(
@@ -116,12 +121,9 @@ open class ScrollPanelX(
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        super.calculateSize(w, h)
-
         val child = child
         val padding = padding
         child.calculateSize(maxLength - padding.width, h - padding.height)
-
         minW = child.minW + padding.width
         minH = child.minH + padding.height + hasScrollbar.toInt(scrollbarHeight)
     }

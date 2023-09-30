@@ -4,8 +4,8 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.sq
 import me.anno.ui.Panel
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.Style
+import me.anno.ui.base.constraints.AxisAlignment
 import kotlin.math.max
 import kotlin.math.min
 
@@ -77,7 +77,6 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
 
         this.width = minW
         this.height = minH
-
     }
 
     override val visibleIndex0
@@ -121,29 +120,18 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
 
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
-
         val contentW = columns * childWidth
-
-        // only place visible children + all that were previously visible
-        val vi0 = visibleIndex0
-        val vi1 = visibleIndex1
-        val idx0 = max(min(vi0, lpi0), 0)
-        val idx1 = min(max(vi1, lpi1), children.size)
-        lpi0 = vi0
-        lpi1 = vi1
-        for (i in idx0 until idx1) {
+        for (i in children.indices) {
             val child = children[i]
-            if (child.isVisible) {
-                val ix = i % columns
-                val iy = i / columns
-                val cx = x + when (child.alignmentX) {
-                    AxisAlignment.MIN, AxisAlignment.FILL -> ix * (calcChildWidth + spacing) + spacing
-                    AxisAlignment.CENTER -> ix * calcChildWidth + max(0, width - contentW) * (ix + 1) / (columns + 1)
-                    AxisAlignment.MAX -> width - (columns - ix) * (calcChildWidth + spacing)
-                }
-                val cy = y + iy * (calcChildHeight + spacing) + spacing
-                child.setPosSize(cx, cy, calcChildWidth, calcChildHeight)
+            val ix = i % columns
+            val iy = i / columns
+            val cx = x + when (child.alignmentX) {
+                AxisAlignment.MIN, AxisAlignment.FILL -> ix * (calcChildWidth + spacing) + spacing
+                AxisAlignment.CENTER -> ix * calcChildWidth + max(0, width - contentW) * (ix + 1) / (columns + 1)
+                AxisAlignment.MAX -> width - (columns - ix) * (calcChildWidth + spacing)
             }
+            val cy = y + iy * (calcChildHeight + spacing) + spacing
+            child.setPosSize(cx, cy, calcChildWidth, calcChildHeight)
         }
     }
 
@@ -160,5 +148,4 @@ class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter,
         dst.spacing = spacing
         dst.maxColumns = maxColumns
     }
-
 }
