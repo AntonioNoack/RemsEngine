@@ -39,7 +39,7 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
                         "#endif\n" +
                         "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                         motionVectorCode2 +
-                        "if(isPerspective) gl_Position.z = (reversedDepth ? 1e-36 : 0.9999995) * gl_Position.w;\n" +
+                        "if(isPerspective) gl_Position.z = (reversedDepth ? 0.0 : 1.0) * gl_Position.w;\n" +
                         ShaderLib.positionPostProcessing
             )
         )

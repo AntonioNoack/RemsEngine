@@ -101,7 +101,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     @NotSerializedProperty
     var shadowTextures: Array<IFramebuffer>? = null
 
-    var depthFunc = DepthMode.CLOSER
+    var depthFunc = DepthMode.CLOSE
 
     fun ensureShadowBuffers() {
         if (hasShadow) {
@@ -199,7 +199,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
         val renderer = Renderer.nothingRenderer
-        GFXState.depthMode.use(DepthMode.CLOSER) {
+        GFXState.depthMode.use(DepthMode.CLOSE) {
             for (i in 0 until shadowMapCascades) {
                 val cascadeScale = shadowMapPower.pow(-i.toDouble())
                 val texture = shadowTextures!![i]

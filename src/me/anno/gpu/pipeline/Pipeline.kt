@@ -81,7 +81,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
     val lightStage = LightPipelineStage(deferred)
 
     var defaultStage: PipelineStage = PipelineStage(
-        "default", Sorting.NO_SORTING, 0, null, DepthMode.CLOSER,
+        "default", Sorting.NO_SORTING, 0, null, DepthMode.CLOSE,
         true, CullMode.BOTH, pbrModelShader
     )
 
@@ -120,7 +120,7 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
                     TRANSPARENT_PASS -> PipelineStage(
                         "transparent",
                         Sorting.BACK_TO_FRONT, 64,
-                        BlendMode.DEFAULT, DepthMode.CLOSER, false, CullMode.BOTH,
+                        BlendMode.DEFAULT, DepthMode.CLOSE, false, CullMode.BOTH,
                         pbrModelShader
                     )
                     DECAL_PASS -> PipelineStage(

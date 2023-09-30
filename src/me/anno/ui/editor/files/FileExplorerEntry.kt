@@ -361,7 +361,7 @@ open class FileExplorerEntry(
                 if (samples > 1) {
                     val tmp = FBStack["tmp", w, h, 4, false, 8, true] // msaa; probably should depend on gfx settings
                     GFXState.useFrame(0, 0, w, h, tmp, Renderers.simpleNormalRenderer) {
-                        GFXState.depthMode.use(DepthMode.CLOSER) {
+                        GFXState.depthMode.use(DepthMode.CLOSE) {
                             tmp.clearColor(backgroundColor, true)
                             Thumbs.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }
@@ -375,7 +375,7 @@ open class FileExplorerEntry(
                         Renderers.simpleNormalRenderer
                     ) {
                         // todo clip to correct area
-                        GFXState.depthMode.use(DepthMode.CLOSER) {
+                        GFXState.depthMode.use(DepthMode.CLOSE) {
                             GFXState.currentBuffer.clearDepth()
                             Thumbs.drawAnimatedSkeleton(animSample, frameIndex, aspect)
                         }

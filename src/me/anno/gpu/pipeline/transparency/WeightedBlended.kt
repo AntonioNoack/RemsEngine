@@ -153,7 +153,7 @@ class WeightedBlended : TransparentPass() {
         useFrame(b0.width, b0.height, true, tmp, renderer) {
             if (perTargetBlending) tmp.clearColor(clear0)
             else tmp.clearColor(black)
-            GFXState.depthMode.use(DepthMode.CLOSER) {
+            GFXState.depthMode.use(DepthMode.CLOSE) {
                 GFXState.depthMask.use(false) {
                     val blend: Any = if (perTargetBlending) blend0s else blend2
                     GFXState.blendMode.use(blend) {

@@ -159,7 +159,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         Sorting.NO_SORTING,
         MAX_FORWARD_LIGHTS,
         null,
-        DepthMode.CLOSER,
+        DepthMode.CLOSE,
         true,
         CullMode.BACK,
         pbrModelShader
@@ -293,47 +293,36 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
         clock.stop("preparing", 0.05)
 
+        setClearDepth()
+        stage0.blendMode = if (renderMode == RenderMode.OVERDRAW) BlendMode.ADD else null
+        stage0.sorting = Sorting.FRONT_TO_BACK
+        stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.BACK else CullMode.BOTH
+
         val renderGraph = renderMode.renderGraph
         if (renderGraph != null) {
             // some things are just too easy ^^
             RenderGraph.draw(this, this, renderGraph)
         } else {
 
-            stage0.blendMode = if (renderMode == RenderMode.OVERDRAW) BlendMode.ADD else null
-            stage0.sorting = Sorting.FRONT_TO_BACK
-            stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.BACK else CullMode.BOTH
-
-            var useDeferredRendering = when (renderMode) {
-                RenderMode.CLICK_IDS, RenderMode.DEPTH, RenderMode.NO_DEPTH, RenderMode.FSR_MSAA_X4,
-                RenderMode.GHOSTING_DEBUG, RenderMode.INVERSE_DEPTH,
-                RenderMode.UV, RenderMode.MSAA_NON_DEFERRED -> false
+            val useDeferredRendering = when (renderMode) {
+                RenderMode.DEPTH, RenderMode.NO_DEPTH,
+                RenderMode.GHOSTING_DEBUG, RenderMode.INVERSE_DEPTH -> false
                 else -> true
             }
 
-            val renderer = when (renderMode) {
-                RenderMode.NON_DEFERRED, RenderMode.MSAA_NON_DEFERRED,
-                RenderMode.FSR_MSAA_X4 -> {
-                    useDeferredRendering = false
-                    pbrRenderer
-                }
-                else -> renderMode.renderer ?: (if (useDeferredRendering) DeferredRenderer else pbrRenderer)
-            }
+            val renderer = renderMode.renderer ?: (if (useDeferredRendering) DeferredRenderer else pbrRenderer)
 
             // multi-sampled buffer
             val buffer = when {
                 // msaa, single target
-                renderMode == RenderMode.MSAA_NON_DEFERRED ||
-                        renderMode == RenderMode.LINES_MSAA ||
-                        renderMode == RenderMode.FSR_MSAA_X4 -> base8Buffer
+                renderMode == RenderMode.MSAA_NON_DEFERRED -> base8Buffer
                 // aliased, multi-target
                 renderer == DeferredRenderer -> baseNBuffer1
                 else -> base1Buffer
             }
 
             // blacklist for renderModes?
-            if (renderer !in attributeRenderers.values &&
-                renderMode != RenderMode.LIGHT_COUNT
-            ) {
+            if (renderer !in attributeRenderers.values && renderMode != RenderMode.LIGHT_COUNT) {
                 pipeline.bakeSkybox(256)
             } else {
                 pipeline.destroyBakedSkybox()
@@ -437,11 +426,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         }
 
         var dstBuffer = buffer
-
-        val useFSR = when (renderMode) {
-            RenderMode.FSR_MSAA_X4 -> true
-            else -> false
-        }
 
         when {
             useDeferredRendering -> {
@@ -664,31 +648,13 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
             }
 
             else -> {
-                drawScene(w, h, renderer, buffer, changeSize = true, useFSR)
+                drawScene(w, h, renderer, buffer, changeSize = true, false)
                 drawGizmos(buffer, true)
             }
         }
 
-        when {
-            useFSR -> {
-                val tw = x1 - x0
-                val th = y1 - y0
-                val tmp = FBStack["fsr", tw, th, 4, false, 1, false]
-                useFrame(tmp) {
-                    FSR.upscale(
-                        dstBuffer.getTexture0(), 0, 0, tw, th,
-                        flipY = false, applyToneMapping = false,
-                        withAlpha = false
-                    )
-                }
-                // afterwards sharpen
-                FSR.sharpen(tmp.getTexture0(), 0.5f, x, y, tw, th, false)
-            }
-            else -> {
-                // we could optimize that one day, when the shader graph works
-                GFX.copyNoAlpha(dstBuffer)
-            }
-        }
+        // we could optimize that one day, when the shader graph works
+        GFX.copyNoAlpha(dstBuffer)
     }
 
     fun drawSceneDeferred(
@@ -1017,7 +983,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     private val depthMode
         get() = if (renderMode == RenderMode.NO_DEPTH) DepthMode.ALWAYS
-        else if (reverseDepth) DepthMode.CLOSER else DepthMode.FORWARD_CLOSER
+        else if (reverseDepth) DepthMode.CLOSE else DepthMode.FORWARD_CLOSE
 
     fun drawScene(
         w: Int, h: Int,

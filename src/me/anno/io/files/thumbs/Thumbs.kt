@@ -448,7 +448,7 @@ object Thumbs {
             }
             useFrame(w, h, false, renderTarget, renderer) {
                 if (withDepth) {
-                    depthMode.use(DepthMode.CLOSER) {
+                    depthMode.use(DepthMode.CLOSE) {
                         renderTarget.clearColor(0, true)
                         render()
                     }

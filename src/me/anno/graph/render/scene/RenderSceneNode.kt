@@ -1,10 +1,13 @@
 package me.anno.graph.render.scene
 
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
@@ -12,7 +15,9 @@ import me.anno.gpu.shader.SimpleRenderer
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
+import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
 
 class RenderSceneNode : RenderSceneNode0(
     "Render Scene",
@@ -24,7 +29,8 @@ class RenderSceneNode : RenderSceneNode0(
         "Enum<me.anno.gpu.pipeline.Sorting>", "Sorting",
         "Int", "Camera Index",
         "Boolean", "Apply ToneMapping",
-        "Int", "Skybox Resolution" // or 0 to not bake it
+        "Int", "Skybox Resolution", // or 0 to not bake it
+        "Texture", "Depth", // optional prepass
     ),
     // list all available deferred layers
     DeferredLayerType.values.map {
@@ -110,10 +116,14 @@ class RenderSceneNode : RenderSceneNode0(
         val skyboxResolution = getInput(8) as Int
         pipeline.bakeSkybox(skyboxResolution)
 
+        val prepassDepth = ((getInput(9) as? Texture)?.tex as? Texture2D)?.owner
+
         pipeline.applyToneMapping = applyToneMapping
+        val depthMode = pipeline.defaultStage.depthMode
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
-            framebuffer.clearColor(0, depth = true)
+            clearFramebuffer(framebuffer, prepassDepth)
             pipeline.draw()
+            pipeline.defaultStage.depthMode = depthMode
             GFX.check()
         }
 
@@ -132,5 +142,20 @@ class RenderSceneNode : RenderSceneNode0(
         // get depth texture, and use it
         val i = DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH) + 1
         setOutput(i, Texture.depth(framebuffer, "r", DeferredLayerType.DEPTH))
+    }
+
+    fun clearFramebuffer(framebuffer: IFramebuffer, prepassDepth: Framebuffer?) {
+        val color = 0
+        if (prepassDepth != null && // else wouldn't work well
+            prepassDepth.width == framebuffer.width &&
+            prepassDepth.height == framebuffer.height &&
+            prepassDepth.samples == framebuffer.samples
+        ) {
+            framebuffer.clearColor(color)
+            prepassDepth.copyTo(framebuffer, GL_DEPTH_BUFFER_BIT)
+            pipeline.defaultStage.depthMode = DepthMode.EQUALS
+        } else {
+            framebuffer.clearColor(color, depth = true)
+        }
     }
 }

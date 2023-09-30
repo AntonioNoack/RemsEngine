@@ -168,7 +168,7 @@ class PlanarReflection : LightComponentBase() {
 
             if (x1 > x0 && y1 > y0) {
                 useFrame(w, h, true, buffer, pbrRenderer) {
-                    GFXState.depthMode.use(DepthMode.CLOSER) {
+                    GFXState.depthMode.use(DepthMode.CLOSE) {
                         GFXState.scissorTest.use(true) {
                             glScissor(x0, h - 1 - y1, x1 - x0, y1 - y0)
                             // todo why is the normal way to draw the sky failing its depth test?

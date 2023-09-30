@@ -88,7 +88,7 @@ fun main() {
             PipelineStage(
                 "transparent", Sorting.BACK_TO_FRONT,
                 16, BlendMode.DEFAULT,
-                DepthMode.CLOSER, false, // both true and false are incorrect here
+                DepthMode.CLOSE, false, // both true and false are incorrect here
                 CullMode.FRONT, pbrModelShader
             )
         )

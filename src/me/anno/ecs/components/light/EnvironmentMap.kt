@@ -125,7 +125,7 @@ class EnvironmentMap : LightComponentBase() {
         val root = entity.getRoot(Entity::class)
         root.validateTransform()
         root.validateAABBs()
-        GFXState.depthMode.use(DepthMode.CLOSER) {
+        GFXState.depthMode.use(DepthMode.CLOSE) {
             texture.draw(resolution, pbrRenderer) { side ->
 
                 Perspective.setPerspective(
@@ -179,7 +179,7 @@ class EnvironmentMap : LightComponentBase() {
             val pipeline = Pipeline(DeferredSettingsV2(listOf(), 1, false))
             // we may need a second stage for transparent stuff
             pipeline.defaultStage = PipelineStage(
-                "", Sorting.NO_SORTING, 16, null, DepthMode.CLOSER,
+                "", Sorting.NO_SORTING, 16, null, DepthMode.CLOSE,
                 true, CullMode.BACK, ECSShaderLib.pbrModelShader
             )
             pipeline.stages.add(pipeline.defaultStage)

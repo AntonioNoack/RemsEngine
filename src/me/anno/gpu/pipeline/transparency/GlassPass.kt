@@ -91,7 +91,7 @@ class GlassPass : TransparentPass() {
         val tmp = getFB(arrayOf(TargetType.FP16Target3, TargetType.FP16Target3))
         useFrame(b0.width, b0.height, true, tmp, GlassRenderer) {
             tmp.clearColor(0)
-            GFXState.depthMode.use(DepthMode.CLOSER) {
+            GFXState.depthMode.use(DepthMode.CLOSE) {
                 GFXState.depthMask.use(false) {
                     GFXState.blendMode.use(BlendMode.PURE_ADD) {
                         draw2(pipeline)
