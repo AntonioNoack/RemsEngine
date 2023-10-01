@@ -921,10 +921,10 @@ object ShaderLib {
             "vec2 parallaxMapUVs(sampler2D depthMap, vec2 texCoords, vec3 viewDir, float heightScale) { \n" +
             // clamping? repeating? out-of-bounds-pixel-access?... -> repeating :)
             // number of depth layers
-            "    const float minLayers = 8;\n" +
-            "    const float maxLayers = 32;\n" +
+            "    const float minLayers = 8.0;\n" +
+            "    const float maxLayers = 32.0;\n" +
             "    float numLayers = mix(maxLayers, minLayers, abs(viewDir.z));\n" +
-            "    vec2 texSize = textureSize(depthMap,0);\n" +
+            "    vec2 texSize = vec2(textureSize(depthMap,0));\n" +
             // calculate the size of each layer
             "    float layerDepth = 1.0 / numLayers;\n" +
             "    float currentLayerDepth = -0.5;\n" +

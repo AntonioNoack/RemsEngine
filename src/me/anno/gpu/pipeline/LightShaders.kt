@@ -8,6 +8,7 @@ import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.Renderers
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
@@ -33,7 +34,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
-import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.utils.Color.black4
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
@@ -88,7 +88,7 @@ object LightShaders {
         shader.use()
         scene.bindTrulyNearestMS(3)
         val metallic = deferred.findLayer(DeferredLayerType.METALLIC)
-        (deferred.findTextureMS(scene, metallic) as? Texture2D ?: blackTexture).bindTrulyNearest(2)
+        (deferred.findTextureMS(scene, metallic) as? Texture2D ?: TextureLib.blackTexture).bindTrulyNearest(2)
         shader.v4f("metallicMask", DeferredSettings.singleToVector[metallic?.mapping] ?: black4)
         ssao.bindTrulyNearest(1)
         light.bindTrulyNearestMS(0)
@@ -103,15 +103,17 @@ object LightShaders {
     }
 
     fun bindNullDepthTextures(shader: Shader) {
+        val depthTexture = if (GFX.supportsDepthTextures) TextureLib.depthTexture else TextureLib.blackTexture
         for (i in 0 until 8) {
             val tx = shader.getTextureIndex("shadowMapPlanar$i")
             if (tx < 0) break
-            TextureLib.depthTexture.bindTrulyNearest(tx)
+            depthTexture.bindTrulyNearest(tx)
         }
+        val depthCube = if (GFX.supportsDepthTextures) TextureLib.depthCube else TextureLib.blackCube
         for (i in 0 until 8) {
             val tx = shader.getTextureIndex("shadowMapCubic$i")
             if (tx < 0) break
-            TextureLib.depthCube.bindTrulyNearest(tx)
+            depthCube.bindTrulyNearest(tx)
         }
     }
 
@@ -439,7 +441,7 @@ object LightShaders {
                         Variable(if (useMSAA) GLSLType.S2DMS else GLSLType.S2D, "depthTex"),
                         Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
                     ), if (useMSAA) {
-                        "finalPosition = rawDepthToPosition(uv,texelFetch(depthTex,ivec2(uv*textureSize(depthTex)),gl_SampleID).x);\n"
+                        "finalPosition = rawDepthToPosition(uv,texelFetch(depthTex,ivec2(uv*vec2(textureSize(depthTex))),gl_SampleID).x);\n"
                     } else {
                         "finalPosition = rawDepthToPosition(uv,texture(depthTex,uv).x);\n"
                     }

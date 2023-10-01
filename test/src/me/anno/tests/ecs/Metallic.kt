@@ -16,11 +16,9 @@ import me.anno.utils.OS.downloads
 
 fun main() {
 
-    // todo MSAA Deferred doesn't look MSAA, because RenderLightsNode is not using the proper MSAA textures
-
     // todo light reflections missing? idk... probably light model should have small spheres
 
-    // todo default lighting model in editor now looks weird/cheap
+    // todo forward lighting model in editor now looks weird/cheap
 
     // todo if would be nice if we supported FileReference->Material-editing in the same inspector:
     //  - colors might be scene dependent, and that can be important!

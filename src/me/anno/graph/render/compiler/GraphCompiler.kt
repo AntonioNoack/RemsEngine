@@ -234,7 +234,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
                                 Triple(name, type, true)
                             }
                             val base = if (texName.second == GLSLType.S2DMS) {
-                                "texelFetch(${texName.first},ivec2(uv*textureSize(${texName.first})),gl_SampleID)"
+                                "texelFetch(${texName.first},ivec2(uv*vec2(textureSize(${texName.first}))),gl_SampleID)"
                             } else "texture(${texName.first},uv)"
                             "$base${if (tintStr != null) "*$tintStr" else ""}"
                         } else tintStr ?: "1.0"

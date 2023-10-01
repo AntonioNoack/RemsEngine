@@ -655,7 +655,7 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (y >= scrollbarStartY) return super.onMouseMoved(x, y, dx, dy)
+        if (!isHovered || y >= scrollbarStartY) return super.onMouseMoved(x, y, dx, dy)
         onMouseMoved(x, getLineIndex(y))
     }
 
@@ -679,7 +679,7 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onMouseDown(x: Float, y: Float, button: Key) {
-        if (y >= scrollbarStartY) return super.onMouseDown(x, y, button)
+        if (!isHovered || y >= scrollbarStartY) return super.onMouseDown(x, y, button)
         onMouseDown(x, getLineIndex(y))
     }
 

@@ -238,7 +238,9 @@ class ECSTreeView(val library: EditorState, style: Style) :
     }
 
     override fun getSymbol(element: ISaveable): String {
-        return if (element is PrefabSaveable && element.root.prefab?.isWritable == false) "\uD83D\uDD12" else "⚪"
+        return if (isCollapsed(element) && getChildren(element).isNotEmpty()) "📁"
+        else if (element is PrefabSaveable && element.root.prefab?.isWritable == false) "\uD83D\uDD12" // lock
+        else "⚪"
     }
 
     override fun getParent(element: ISaveable): ISaveable? {

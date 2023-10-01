@@ -152,13 +152,12 @@ class BundledRef(
         // todo required data: HashSet<FileNameLowerCase>
         private val jarAsZip3 by lazy {
             try {
-                File(
-                    Companion::class.java
-                        .protectionDomain
-                        .codeSource
-                        .location
-                        .toURI()
-                )
+                val uri = Companion::class.java
+                    .protectionDomain
+                    ?.codeSource
+                    ?.location
+                    ?.toURI()
+                if (uri != null) File(uri) else null
             } catch (e: NullPointerException) {
                 e.printStackTrace()
                 null

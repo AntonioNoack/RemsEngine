@@ -39,7 +39,7 @@ abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
 
     fun drawSuggestionLines() {
         val suggestions = suggestions
-        if (suggestions != null && suggestions.isNotEmpty()) {
+        if (!suggestions.isNullOrEmpty()) {
             // display all suggestions
             for (si in suggestions.indices) {
                 val x0 = x + padding.left + drawingOffset

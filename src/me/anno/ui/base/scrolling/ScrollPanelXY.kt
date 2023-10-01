@@ -251,7 +251,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         }
         if (isDownOnScrollbarY != 0 && ry != 0f && StudioBase.dragged == null) {
             // todo test this remainder using scroll panels inside scroll panels
-            ry = scrollY(if (isDownOnScrollbarX > 0) ry / relativeSizeY else -ry.toDouble()).toFloat()
+            ry = scrollY(if (isDownOnScrollbarY > 0) ry / relativeSizeY else -ry.toDouble()).toFloat()
         }
         if (rx != 0f || ry != 0f) {
             super.onMouseMoved(x, y, rx, ry)

@@ -155,7 +155,7 @@ class FSR2v2 : ICacheData {
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ), "" +
                     "void main(){\n" +
-                    "   ivec2 uvi = ivec2(uv*textureSize(colorNWeights,0));\n" +
+                    "   ivec2 uvi = ivec2(uv*vec2(textureSize(colorNWeights,0)));\n" +
                     "   vec4 colorNWeight = texelFetch(colorNWeights,uvi,0);\n" +
                     "   vec4 depth = texelFetch(depths,uvi,0)/colorNWeight.w;\n" +
                     "   result = vec4(colorNWeight.rgb/colorNWeight.w, 1.0);\n" +

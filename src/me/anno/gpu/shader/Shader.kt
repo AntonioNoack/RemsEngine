@@ -92,13 +92,15 @@ open class Shader(
             builder.append(line).append('\n')
         }
 
-        // todo only set them, if not already specified
         builder.append("precision highp float;\n")
         builder.append("precision highp int;\n")
-        if (vertexVariables.any2 { it.type == GLSLType.S2DA })
-            builder.append("precision highp sampler2DArray;\n")
-        if (vertexVariables.any2 { it.type == GLSLType.S3D })
-            builder.append("precision highp sampler3D;\n")
+        for (type in GLSLType.values) {
+            if (type.glslName.startsWith("sampler")) {
+                if (vertexVariables.any2 { it.type == type }) {
+                    builder.append("precision highp ").append(type.glslName).append(";\n")
+                }
+            }
+        }
         builder.append(matMul)
 
         for (v in vertexVariables) {
@@ -130,17 +132,16 @@ open class Shader(
             builder.append(extension).append('\n')
         }
 
-        fun usesType(type: GLSLType): Boolean {
-            return varyings.any2 { it.type == type } || fragmentVariables.any2 { it.type == type }
-        }
-
         builder.append("precision highp float;\n")
         builder.append("precision highp int;\n")
         // these need default values, why ever...
-        if (usesType(GLSLType.S2DA)) builder.append("precision highp sampler2DArray;\n")
-        if (usesType(GLSLType.S3D)) builder.append("precision highp sampler3D;\n")
-        if (usesType(GLSLType.S2DShadow)) builder.append("precision highp sampler2DShadow;\n")
-        if (usesType(GLSLType.SCubeShadow)) builder.append("precision highp samplerCubeShadow;\n")
+        for (type in GLSLType.values) {
+            if (type.glslName.startsWith("sampler")) {
+                if (varyings.any2 { it.type == type } || fragmentVariables.any2 { it.type == type }) {
+                    builder.append("precision highp ").append(type.glslName).append(";\n")
+                }
+            }
+        }
 
         builder.append(matMul)
 
@@ -205,7 +206,6 @@ open class Shader(
             }
 
             program
-
         } else {
 
             val program = glCreateProgram()
@@ -271,7 +271,6 @@ open class Shader(
         if (Build.isDebug) {
             glObjectLabel(GL_PROGRAM, pointer, name)
         }
-
     }
 
     fun getAttributeLocation(name: String): Int {
@@ -294,5 +293,4 @@ open class Shader(
     fun printCode() {
         LOGGER.warn(formatShader(name, "", vertexSource, fragmentSource))
     }
-
 }

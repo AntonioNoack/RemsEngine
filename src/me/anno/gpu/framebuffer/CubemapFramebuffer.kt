@@ -158,16 +158,6 @@ class CubemapFramebuffer(
         check()
     }
 
-    /*fun createColorBuffer(){
-        if(!withMultisampling) throw RuntimeException()
-        val renderBuffer = glGenRenderbuffers()
-        colorRenderBuffer = renderBuffer
-        if(renderBuffer < 0) throw RuntimeException()
-        glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGBA8, w, h)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer)
-    }*/
-
     private fun createDepthBuffer() {
         val renderBuffer = glGenRenderbuffers()
         depthRenderBuffer = renderBuffer
