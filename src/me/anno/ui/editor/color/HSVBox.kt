@@ -31,14 +31,14 @@ open class HSVBox(
         when (action) {
             "SelectColor" -> {
                 if (dragged == null) {
+                    val width = lx1 - lx0 // width itself is somehow incorrect...
                     onValueChanged((x - this.x) / width, 1f - (y - this.y) / height)
+                    return true
                 }
             }
-            else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
-        return true
+        return super.onGotAction(x, y, dx, dy, action, isContinuous)
     }
 
     override val className: String get() = "HSVBox"
-
 }

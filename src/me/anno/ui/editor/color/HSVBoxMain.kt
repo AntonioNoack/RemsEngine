@@ -1,5 +1,6 @@
 package me.anno.ui.editor.color
 
+import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawGradients.drawRectGradient
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -7,12 +8,14 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib
 import me.anno.input.Key
+import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.length
+import me.anno.ui.Style
 import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
-import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGBA
+import me.anno.utils.Color.withAlpha
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.*
@@ -109,7 +112,6 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         }
         when (val style = chooser.visualisation) {
             ColorVisualisation.WHEEL -> {
-                // "   vec2 uv2 = clamp((uv-0.5)*1.8+0.5, 0.0, 1.0);\n" +
                 val cx = x + width / 2
                 val cy = y + height / 2
                 val dx = width.toFloat()
@@ -118,19 +120,17 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                 val y = (cy - (chooser.lightness - 0.5f) * dy / 1.8f).roundToInt()
                 drawCrossHair(x, y)
                 // draw hue line
-                // hue = (atan2(l2, s2) * (0.5/ PI) + 0.5).toFloat()
-                val angle = ((chooser.hue - 0.5) * (2 * PI)).toFloat()
+                val angle = (chooser.hue - 0.5f) * TAUf
                 val sin = sin(angle)
                 val cos = cos(angle)
-                val outerRadius = 0.5f * 0.975f * max(dx, dy)
-                val innerRadius = outerRadius * 0.79f / 0.975f
-                var i = innerRadius
-                while (i < outerRadius) {
-                    val x2 = (cx + cos * i).roundToInt()
-                    val y2 = (cy - sin * i).roundToInt()
-                    drawRect(x2, y2, 1, 1, 0x11000000)
-                    i += 0.1f
-                }
+                val outerRadius = 0.489f * max(dx, dy)
+                val innerRadius = 0.392f * max(dx, dy)
+                val color = black.withAlpha(0.5f)
+                drawLine(
+                    cx + cos * innerRadius, cy - sin * innerRadius,
+                    cx + cos * outerRadius, cy - sin * outerRadius,
+                    0.75f, color, backgroundColor.withAlpha(0), false
+                )
                 if (!chooser.withAlpha) drawSmallRect()
             }
             ColorVisualisation.BOX -> {
@@ -194,5 +194,4 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
             }
         }
     }
-
 }

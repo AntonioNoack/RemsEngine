@@ -9,7 +9,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import kotlin.math.max
 import kotlin.math.min
 
-class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter, style) {
+open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter, style) {
 
     constructor(style: Style) : this(null, style)
 

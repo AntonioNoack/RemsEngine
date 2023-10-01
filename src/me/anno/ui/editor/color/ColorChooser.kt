@@ -8,15 +8,14 @@ import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
-import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
 import me.anno.ui.editor.color.spaces.LinearHSI
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
-import me.anno.ui.Style
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
 import me.anno.utils.structures.tuples.Quad
@@ -86,15 +85,14 @@ open class ColorChooser(
         "Color Layout: which colors are where?, e.g. color circle", "ui.input.color.colorSpace",
         colorSpace.naming.name,
         ColorSpace.list.value.map { it.naming }, style
-    )
-        .setChangeListener { _, index, _ ->
-            val newColorSpace = ColorSpace.list.value[index]
-            colorSpace = newColorSpace
-            invalidateLayout()
-        }
+    ).setChangeListener { _, index, _ ->
+        val newColorSpace = ColorSpace.list.value[index]
+        colorSpace = newColorSpace
+        invalidateLayout()
+    }
 
     private val styleInput = EnumInput(
-        "", false,
+        "Style", true,
         visualisation.naming.name,
         ColorVisualisation.values().map { it.naming },
         style
@@ -104,11 +102,8 @@ open class ColorChooser(
     }.setTooltip("Style, does not change values")
 
     init {
-        val spaceBox = PanelListX(style)
-        this += spaceBox
-        colorSpaceInput.weight = 1f
-        spaceBox += colorSpaceInput
-        spaceBox += styleInput
+        this += colorSpaceInput
+        this += styleInput
         this += SpacerPanel(0, 2, style)
         this += hslBox
         this += hueChooserSpace
@@ -281,5 +276,4 @@ open class ColorChooser(
             LinearHSI.toString()
         }
     }
-
 }

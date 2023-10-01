@@ -12,6 +12,7 @@ import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
@@ -117,9 +118,11 @@ open class ColorInput(
     fun openColorChooser() {
         contentView.colorSpace = ColorChooser.getDefaultColorSpace()
         val window = window!!
+        val title = NameDesc(title.ifEmpty { "Choose Color" })
+        val width = min(max(windowStack.width / 5, 200), windowStack.width)
         Menu.openMenuByPanels(
-            window.windowStack, window.mouseXi, window.mouseYi, NameDesc(title), listOf(
-                SizeLimitingContainer(contentView, windowStack.width / 5, -1, style)
+            window.windowStack, window.mouseXi, window.mouseYi, title, listOf(
+                SizeLimitingContainer(contentView, width, -1, style)
             )
         )
     }
@@ -268,5 +271,4 @@ open class ColorInput(
     }
 
     override val className: String get() = "ColorInput"
-
 }

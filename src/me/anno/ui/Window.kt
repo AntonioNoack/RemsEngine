@@ -105,9 +105,11 @@ open class Window(
 
     private fun calculateFullLayout(dx: Int, dy: Int, windowW: Int, windowH: Int) {
         val t0 = System.nanoTime()
-        panel.calculateSize(min(windowW - (x + dx), windowW - dx), min(windowH - (y + dy), windowH - dy))
+        val width = min(windowW - (x + dx), windowW - dx)
+        val height = min(windowH - (y + dy), windowH - dy)
+        panel.calculateSize(width, height)
         val t1 = System.nanoTime()
-        panel.setPosSize(x + dx, y + dy, windowW, windowH)
+        panel.setPosSize(x + dx, y + dy, width, height)
         val t2 = System.nanoTime()
         val dt1 = (t1 - t0) * 1e-9f
         val dt2 = (t2 - t1) * 1e-9f

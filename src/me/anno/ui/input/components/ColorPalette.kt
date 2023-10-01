@@ -3,8 +3,8 @@ package me.anno.ui.input.components
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
-import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.Style
+import me.anno.ui.base.groups.PanelGroup
 
 // maximum size???...
 open class ColorPalette(
@@ -30,17 +30,14 @@ open class ColorPalette(
 
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
+        val h = height
         for (j in 0 until dimY) {
-            val y2 = y + j * height / dimY
-            val y3 = y + (j + 1) * height / dimY
+            val y2 = y + j * h / dimY
+            val y3 = y + (j + 1) * h / dimY
             for (i in 0 until dimX) {
-                val x2 = x + i * width / dimX
-                val x3 = x + (i + 1) * width / dimX
-                val index = getIndex(i, j)
-                val child = children[index]
-                child.setPosition(x2, y2)
-                child.width = x3 - x2
-                child.height = y3 - y2
+                val x2 = x + i * h / dimY
+                val x3 = x + (i + 1) * h / dimY
+                children[i + j * dimX].setPosSize(x2, y2, x3 - x2, y3 - y2)
             }
         }
     }
@@ -54,8 +51,6 @@ open class ColorPalette(
     open fun setColor(x: Int, y: Int, color: Int) {
         DefaultConfig[getKey(x, y)] = color
     }
-
-    private fun getIndex(x: Int, y: Int): Int = x + y * dimX
 
     override fun clone(): ColorPalette {
         val clone = ColorPalette(dimX, dimY, style)
@@ -71,5 +66,4 @@ open class ColorPalette(
     }
 
     override val className: String get() = "ColorPalette"
-
 }
