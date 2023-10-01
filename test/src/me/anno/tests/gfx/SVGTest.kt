@@ -10,6 +10,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.SVGxGFX
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Clamping
@@ -48,7 +49,7 @@ fun main() {
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.onDraw(x0, y0, x1, y1)
 
-                val msaaBuffer = FBStack["svg", x1 - x0, y1 - y0, TargetType.UByteTarget4, 8, false]
+                val msaaBuffer = FBStack["svg", x1 - x0, y1 - y0, TargetType.UByteTarget4, 8, DepthBufferType.NONE]
                 msaaBuffer.clearColor(-1, false)
 
                 val transform = Matrix4fArrayList()

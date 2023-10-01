@@ -10,6 +10,8 @@ import me.anno.graph.types.flow.StartNode
 
 /**
  * quickly creates pipelines for existing RenderModes
+ *
+ * todo right click on node in editor -> "then" -> choose node -> prefill all inputs :)
  * */
 class QuickPipeline {
 

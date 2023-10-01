@@ -13,6 +13,7 @@ import me.anno.gpu.GFX.maxBoundTextures
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.debug.DebugGPUStorage
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -226,7 +227,8 @@ open class Texture2D(
             }
         } else {
             if (withMultisampling) {
-                glTexImage2DMultisample(target, samples, internalFormat, w, h, false)
+                val needsFixedSampleLocations = owner?.depthBufferType == DepthBufferType.INTERNAL
+                glTexImage2DMultisample(target, samples, internalFormat, w, h, needsFixedSampleLocations)
                 check()
             } else {
                 if (data != null) setAlignmentAndBuffer(w, dataFormat, dataType, unbind)
@@ -1091,10 +1093,12 @@ open class Texture2D(
         set(value) {
             if (field != value) {
                 field = value
-                bindBeforeUpload()
-                val mode = if (value == null) GL_NONE else GL_COMPARE_REF_TO_TEXTURE
-                glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, mode)
-                if (value != null) glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
+                if (GFX.supportsDepthTextures) {
+                    bindBeforeUpload()
+                    val mode = if (value == null) GL_NONE else GL_COMPARE_REF_TO_TEXTURE
+                    glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, mode)
+                    if (value != null) glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
+                } // else we can't use them properly anyway, because they are not supported
             }
         }
 

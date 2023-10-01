@@ -1,5 +1,6 @@
 package me.anno.gpu.shader.builder
 
+import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
 import kotlin.math.max
 
@@ -54,6 +55,7 @@ class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inO
     fun declare(code: StringBuilder, prefix: String?, assign: Boolean) {
         if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.glslName.startsWith("sampler")) {
             // define sampler array
+            val type = if (!GFX.supportsDepthTextures) GLSLType.withoutShadow(type) else type
             for (index in 0 until arraySize) {
                 code.append(prefix).append(' ')
                 code.append(type.glslName).append(' ')
@@ -117,5 +119,4 @@ class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inO
     val isInput get() = inOutMode != VariableMode.OUT
     val isOutput get() = inOutMode == VariableMode.OUT || inOutMode == VariableMode.INOUT
     val isModified get() = inOutMode == VariableMode.OUT || inOutMode == VariableMode.INOUT || inOutMode == VariableMode.INMOD
-
 }

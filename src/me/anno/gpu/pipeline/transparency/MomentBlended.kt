@@ -10,3 +10,9 @@ class MomentBlended: TransparentPass() {
     }
 
 }
+
+
+// todo there is per-framebuffer blending since OpenGL 4.0 😍
+// todo and it somehow can be used for order-independent transparency
+// (Weighted Blended Order-Independent Transparency by Morgan McGuire Louis Bavoil)
+// glBlendFunci()

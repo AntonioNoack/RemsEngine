@@ -2,7 +2,6 @@ package me.anno.graph.render.compiler
 
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
@@ -16,7 +15,6 @@ import me.anno.graph.render.MaterialReturnNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
-import me.anno.maths.Maths.hasFlag
 
 class MaterialGraphCompiler(
     start: StartNode,

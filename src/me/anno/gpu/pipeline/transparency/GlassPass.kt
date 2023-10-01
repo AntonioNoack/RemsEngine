@@ -10,7 +10,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
@@ -42,9 +42,8 @@ class GlassPass : TransparentPass() {
     companion object {
 
         val GlassRenderer = object : Renderer(
-            "glass", DeferredSettingsV2(
-                listOf(DeferredLayerType.COLOR, DeferredLayerType.EMISSIVE),
-                1, false
+            "glass", DeferredSettings(
+                listOf(DeferredLayerType.COLOR, DeferredLayerType.EMISSIVE)
             )
         ) {
             override fun getPostProcessing(flags: Int): List<ShaderStage> {

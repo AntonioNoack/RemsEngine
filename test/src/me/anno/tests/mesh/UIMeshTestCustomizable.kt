@@ -13,6 +13,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Renderer
@@ -72,7 +73,7 @@ class SimpleMeshTest(
         val samples = min(GFX.maxSamples, 8)
         val msaa = msaa && GFXState.currentBuffer.samples < samples
         val buffer =
-            if (msaa) FBStack["msaa", width, height, 4, BufferQuality.LOW_8, samples, false] else GFXState.currentBuffer
+            if (msaa) FBStack["msaa", width, height, 4, BufferQuality.LOW_8, samples, DepthBufferType.NONE] else GFXState.currentBuffer
         useFrame(x, y, width, height, buffer, renderer) {
             buffer.clearColor(backgroundColor, depth = true)
             pipeline.draw()

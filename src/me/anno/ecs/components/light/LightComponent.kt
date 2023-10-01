@@ -9,13 +9,11 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.framebuffer.CubemapFramebuffer
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
@@ -121,25 +119,31 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 // we currently use a depth bias of 0.005,
                 // which is equal to ~ 1/255,
                 // so an 8 bit depth buffer would be enough
-                val depthBufferType = DepthBufferType.TEXTURE_16
+                val depthBufferType =
+                    if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE_16 else DepthBufferType.INTERNAL
+                val targets = if (GFX.supportsDepthTextures) emptyArray() else arrayOf(TargetType.FP16Target1)
                 this.shadowTextures = Array(targetSize) {
                     if (lightType.shadowMapType == GLSLType.SCubeShadow) {
                         CubemapFramebuffer(
-                            "ShadowCubemap[$it]", resolution, 1, 0,
-                            false, depthBufferType
+                            "ShadowCubemap[$it]", resolution, 1, targets, depthBufferType
                         ).apply {
                             ensure()
-                            depthTexture!!.filtering = GPUFiltering.TRULY_LINEAR
-                            depthTexture!!.depthFunc = depthFunc
+                            val depthTexture = depthTexture
+                            if (depthTexture != null) {
+                                depthTexture.filtering = GPUFiltering.TRULY_LINEAR
+                                depthTexture.depthFunc = depthFunc
+                            }
                         }
                     } else {
                         Framebuffer(
-                            "Shadow[$it]", resolution, resolution, 1, 0,
-                            false, depthBufferType
+                            "Shadow[$it]", resolution, resolution, 1, targets, depthBufferType
                         ).apply {
                             ensure()
-                            depthTexture!!.filtering = GPUFiltering.TRULY_LINEAR
-                            depthTexture!!.depthFunc = depthFunc
+                            val depthTexture = depthTexture
+                            if (depthTexture != null) {
+                                depthTexture.filtering = GPUFiltering.TRULY_LINEAR
+                                depthTexture.depthFunc = depthFunc
+                            }
                         }
                     }
                 }
@@ -215,10 +219,10 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
                 RenderState.calculateDirections(isPerspective)
                 val root = entity.getRoot(Entity::class)
-                pipeline.fillDepth(root, position, worldScale)
+                pipeline.fill(root)
                 useFrame(resolution, resolution, true, texture, renderer) {
-                    texture.clearDepth()
-                    pipeline.defaultStage.drawColors(pipeline)
+                    texture.clearColor(0, depth = true)
+                    pipeline.defaultStage.drawDepths(pipeline)
                 }
             }
         }
@@ -260,7 +264,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     companion object {
         @JvmStatic
         val pipeline by lazy {
-            Pipeline(DeferredSettingsV2(listOf(), 1, false)).apply {
+            Pipeline(DeferredSettings(listOf())).apply {
                 defaultStage.maxNumberOfLights = 0
                 // all stages are the same
                 for (i in 0 until 15) stages.add(defaultStage)

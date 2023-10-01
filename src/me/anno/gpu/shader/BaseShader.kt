@@ -5,8 +5,7 @@ import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.shader.ShaderLib.matMul
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -44,7 +43,7 @@ open class BaseShader(
     var ignoredNameWarnings = HashSet<String>()
 
     private val flatShader = KeyPairMap<Renderer, Int, Shader>()
-    private val deferredShaders = KeyPairMap<DeferredSettingsV2, Int, Shader>()
+    private val deferredShaders = KeyPairMap<DeferredSettings, Int, Shader>()
     private val depthShader = Array(5) {
         lazy {
             createDepthShader(
@@ -172,7 +171,7 @@ open class BaseShader(
 
     /** shader for deferred rendering */
     open fun createDeferredShader(
-        deferred: DeferredSettingsV2,
+        deferred: DeferredSettings,
         flags: Int,
         postProcessing: List<ShaderStage>,
     ): Shader {
@@ -201,7 +200,7 @@ open class BaseShader(
     }
 
     private fun createDeferredShaderById(
-        settings: DeferredSettingsV2,
+        settings: DeferredSettings,
         stateId: Int,
         renderer: Renderer
     ): Shader {

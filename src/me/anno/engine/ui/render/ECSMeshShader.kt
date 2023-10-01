@@ -3,7 +3,7 @@ package me.anno.engine.ui.render
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.anim.BoneData.maxBones
 import me.anno.gpu.GFX
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -570,9 +570,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         val builder = createBuilder()
         builder.addVertex(createVertexStages(flags))
-
-        // for the future, we could respect transparency from textures :)
-        // base.addFragment(ShaderStage("material", emptyList(), ""))
+        builder.addFragment(
+            ShaderStage(
+                "depth", listOf(
+                    Variable(GLSLType.V1F, "finalDepth", VariableMode.OUT)
+                ), "finalDepth = gl_FragCoord.z;\n" // use gl_FragDepth instead?
+            )
+        )
 
         GFX.check()
         val shader = builder.create("depth$flags")
@@ -595,7 +599,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     }
 
     override fun createDeferredShader(
-        deferred: DeferredSettingsV2,
+        deferred: DeferredSettings,
         flags: Int,
         postProcessing: List<ShaderStage>
     ): Shader {

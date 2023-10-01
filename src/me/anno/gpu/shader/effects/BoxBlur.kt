@@ -3,8 +3,10 @@ package me.anno.gpu.shader.effects
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -17,7 +19,7 @@ import kotlin.math.max
 object BoxBlur {
 
     private fun drawBlur(
-        target: Framebuffer,
+        target: IFramebuffer,
         w: Int, h: Int,
         resultIndex: Int,
         isFirst: Boolean,
@@ -49,17 +51,15 @@ object BoxBlur {
 
             // first is y, then x
             drawBlur(
-                FBStack["mask-box-blur-y", w, ih, 4, true, 1, false], w, h, 0,
+                FBStack["mask-box-blur-y", w, ih, 4, true, 1, DepthBufferType.NONE], w, h, 0,
                 true, localTransform, (2 * h) / max(1, ih)
             )
 
             drawBlur(
-                FBStack["mask-box-blur-x", iw, ih, 4, true, 1, false], w, ih, resultIndex,
+                FBStack["mask-box-blur-x", iw, ih, 4, true, 1, DepthBufferType.NONE], w, ih, resultIndex,
                 false, localTransform, (2 * w) / max(1, iw)
             )
 
         }
-
     }
-
 }

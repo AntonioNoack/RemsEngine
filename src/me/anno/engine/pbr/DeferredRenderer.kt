@@ -1,7 +1,8 @@
 package me.anno.engine.pbr
 
+import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.SimpleRenderer
 
 // many lights with many shadow maps would
@@ -18,7 +19,7 @@ import me.anno.gpu.shader.SimpleRenderer
 // done and deferred rendering (no mapping needed, more memory intensive, more lights supported)
 
 object DeferredRenderer : SimpleRenderer(
-    "deferred", DeferredSettingsV2(
+    "deferred", DeferredSettings(
         listOf(
             DeferredLayerType.COLOR, // 3
             DeferredLayerType.NORMAL, // 2
@@ -31,7 +32,7 @@ object DeferredRenderer : SimpleRenderer(
             DeferredLayerType.TRANSLUCENCY, // 1
             DeferredLayerType.ANISOTROPIC, // 1
             // total: 14
-        ), 1, true
+        ) + (if (GFX.supportsDepthTextures) emptyList() else listOf(DeferredLayerType.DEPTH))
     ),
     colorRenderer.getPostProcessing(0)
 )

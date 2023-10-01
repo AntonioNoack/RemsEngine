@@ -16,7 +16,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
@@ -64,17 +64,18 @@ fun main() {
         var interFrames = 2
         val renderPanel = object : Panel(style) {
 
-            val settings = DeferredSettingsV2(
+            val settings = DeferredSettings(
                 listOf(
                     DeferredLayerType.COLOR,
                     DeferredLayerType.MOTION
-                ), 1, false
+                )
             )
 
             val pipeline = Pipeline(settings)
 
-            var data0 = settings.createBaseBuffer()
-            var data1 = settings.createBaseBuffer()
+            val samples = 1
+            var data0 = settings.createBaseBuffer("FrameGen-0", samples)
+            var data1 = settings.createBaseBuffer("FrameGen-1", samples)
 
             var zoom = 0.5f
             val rotation = Vector3f()

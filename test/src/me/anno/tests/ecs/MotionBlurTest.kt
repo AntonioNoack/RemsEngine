@@ -3,6 +3,7 @@ package me.anno.tests.ecs
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.engine.ui.render.RenderMode
@@ -20,7 +21,8 @@ fun main() {
             return 1
         }
     })
-    box.add(MeshComponent(CylinderModel.createMesh(50, 2, top = true, bottom = true)).apply {
+    val cyl = CylinderModel.createMesh(50, 2, top = true, bottom = true, null, 3f, Mesh())
+    box.add(MeshComponent(cyl).apply {
         materials = listOf(Material().apply {
             diffuseMap = getReference("res://icon.png")
             linearFiltering = false

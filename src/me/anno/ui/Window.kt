@@ -88,7 +88,7 @@ open class Window(
     val buffer = Framebuffer(
         "window-${panel.className}",
         1, 1, 1, 1,
-        false, DepthBufferType.TEXTURE_16
+        false, DepthBufferType.INTERNAL
     )
 
     /**

@@ -11,7 +11,8 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.M4x3Delta.m4x3x
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.LightShaders.bindNullDepthTextures
 import me.anno.gpu.pipeline.LightShaders.countPerPixel
@@ -30,7 +31,7 @@ import me.anno.utils.structures.lists.SmallestKList
 import org.joml.Matrix4f
 import org.joml.Vector3d
 
-class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
+class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
 
     // todo add optional iridescence parameter for shading ... it looks really nice on leather and metal :)
     // https://belcour.github.io/blog/research/publication/2017/05/01/brdf-thin-film.html
@@ -52,12 +53,15 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
     val instanced = LightData()
     val nonInstanced = LightData()
 
-    fun bindDraw(source: IFramebuffer, cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double) {
+    fun bindDraw(
+        source: IFramebuffer, depthTexture: Texture2D, depthMask: String,
+        cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double
+    ) {
         bind {
             source.bindTrulyNearestMS(0)
             draw(
                 cameraMatrix, cameraPosition, worldScale,
-                ::getShader, source.depthTexture as Texture2D,
+                ::getShader, depthTexture, depthMask
             )
         }
     }
@@ -115,6 +119,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
         worldScale: Double,
         getShader: (LightType, Boolean) -> Shader,
         depthTexture: Texture2D,
+        depthMask: String,
     ) {
 
         // todo detect, where MSAA is applicable
@@ -125,6 +130,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
         // if (destination is multi-sampled &&) settings is multisampled, bind the multi-sampled textures
 
+        val depthMask1 = singleToVector[depthMask]!!
         nonInstanced.forEachType { lights, type, size ->
 
             val sample = lights[0].light
@@ -158,6 +164,7 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
 
                 // data1: shader specific value (cone angle / size)
                 shader.v1f("data1", light.getShaderV0())
+                shader.v4f("depthMask", depthMask1)
 
                 shader.v1f("cutoff", if (light is DirectionalLight) light.cutoff else 1f)
 
@@ -169,7 +176,8 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                     if (supportsCubicShadows) {
                         val cascades = light.shadowTextures
                         if (cascades != null) {
-                            val texture = cascades[0].depthTexture!!
+                            val cascade = cascades[0]
+                            val texture = cascade.depthTexture ?: cascade.getTexture0()
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
                             texture.bind(cubicIndex0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
@@ -183,7 +191,8 @@ class LightPipelineStage(var deferred: DeferredSettingsV2?) : Saveable() {
                         if (cascades != null) for (j in cascades.indices) {
                             val slot = planarIndex0 + planarSlot
                             if (slot > maxTextureIndex) break
-                            val texture = cascades[j].depthTexture!!
+                            val cascade = cascades[j]
+                            val texture = cascade.depthTexture ?: cascade.getTexture0()
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
                             texture.bind(slot, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)

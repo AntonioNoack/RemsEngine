@@ -7,8 +7,10 @@ import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.BufferQuality
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
@@ -43,7 +45,7 @@ object Bloom {
     private const val minSize = 8
 
     // temporary buffer for this object
-    private val tmpForward = arrayOfNulls<Framebuffer>(maxSteps)
+    private val tmpForward = arrayOfNulls<IFramebuffer>(maxSteps)
 
     private fun forwardPass(source: ITexture2D, strength: Float, offset: Float): Int {
 
@@ -67,7 +69,7 @@ object Bloom {
             // x blur pass
             wi = max((wi + 1) shr 1, 1)
             shaderX.use()
-            val bufferX = FBStack["bloomX", wi, hi, 4, BufferQuality.HIGH_16, 1, false]
+            val bufferX = FBStack["bloomX", wi, hi, 4, BufferQuality.HIGH_16, 1, DepthBufferType.NONE]
             useFrame(bufferX, renderer) {
                 previous.bindTrulyNearest(0)
                 flat01.draw(shaderX)
@@ -77,7 +79,7 @@ object Bloom {
             // y blur pass
             hi = max((hi + 1) shr 1, 1)
             shaderY.use()
-            val bufferY = FBStack["bloomY", wi, hi, 4, BufferQuality.HIGH_16, 1, false]
+            val bufferY = FBStack["bloomY", wi, hi, 4, BufferQuality.HIGH_16, 1, DepthBufferType.NONE]
             useFrame(bufferY, renderer) {
                 previous.bindTrulyNearest(0)
                 flat01.draw(shaderY)

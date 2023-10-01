@@ -5,9 +5,10 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.LightShaders.createMainFragmentStage
 import me.anno.gpu.pipeline.LightShaders.invStage
 import me.anno.gpu.pipeline.LightShaders.uvwStage
@@ -164,7 +165,10 @@ class RenderLightsNode : RenderSceneNode0(
         val depthT = depthTexture.owner
 
         val useDepth = depthT != null
-        val framebuffer = FBStack[name, width, height, 3, BufferQuality.HIGH_16, samples, useDepth]
+        val framebuffer = FBStack[
+            name, width, height, TargetType.FP16Target3, samples,
+            if (useDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
+        ]
 
         GFX.check()
 
@@ -180,7 +184,7 @@ class RenderLightsNode : RenderSceneNode0(
             stage.bind {
                 stage.draw(
                     RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,
-                    ::getShader, depthTexture
+                    ::getShader, depthTexture, depthTexture0.mapping
                 )
             }
         }

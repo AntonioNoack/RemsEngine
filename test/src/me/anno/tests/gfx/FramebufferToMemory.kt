@@ -3,6 +3,7 @@ package me.anno.tests.gfx
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.DrawGradients
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
@@ -13,7 +14,7 @@ fun main() {
     // fixed the bug :)
     val s = 31
     ECSRegistry.initWithGFX(s + s.and(1))
-    val fb = FBStack["", s, s, 4, false, 1, false]
+    val fb = FBStack["", s, s, 4, false, 1, DepthBufferType.NONE]
     GFXState.useFrame(fb) {
         val black = 255 shl 24
         // random color, so we can observe changes in the preview icon

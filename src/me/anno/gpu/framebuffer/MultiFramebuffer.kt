@@ -19,7 +19,7 @@ import me.anno.maths.Maths.min
  *  - when rendering, draw as often as required
  * */
 class MultiFramebuffer(
-    override val name: String,
+    name: String,
     w: Int, h: Int,
     samples: Int, targets: Array<TargetType>,
     depthBufferType: DepthBufferType
@@ -38,6 +38,14 @@ class MultiFramebuffer(
 
     val targetsI: Array<Framebuffer>
     val div = max(1, GFX.maxColorAttachments)
+
+    override var name: String = name
+        set(value) {
+            field = value
+            for (i in targetsI.indices) {
+                targetsI[i].name = "$value/$i"
+            }
+        }
 
     init {
         val targetCount = ceilDiv(targets.size, div)
@@ -157,6 +165,11 @@ class MultiFramebuffer(
         return curr == this || targetsI.any { it.isBound() }
     }
 
-    override val depthTexture get() = targetsI[0].depthTexture
-
+    override var depthTexture
+        get() = targetsI[0].depthTexture
+        set(value) {
+            for (target in targetsI) {
+                target.depthTexture = value
+            }
+        }
 }

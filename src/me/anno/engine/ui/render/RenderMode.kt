@@ -6,6 +6,7 @@ import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.Renderer.Companion.triangleVisRenderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
@@ -75,9 +76,9 @@ class RenderMode(
 
         val CLICK_IDS = RenderMode("ClickIds (Random)", randomIdRenderer)
 
-        val DEPTH = RenderMode("Depth")
+        val DEPTH = RenderMode("Depth", attributeRenderers[DeferredLayerType.DEPTH])
 
-        val NO_DEPTH = RenderMode("No Depth")
+        val NO_DEPTH = RenderMode("No Depth", Renderers.pbrRenderer)
 
         val NON_DEFERRED = RenderMode("Non-Deferred", Renderers.pbrRenderer)
         val MSAA_NON_DEFERRED = RenderMode("MSAA Non-Deferred", Renderers.pbrRenderer)
@@ -162,14 +163,23 @@ class RenderMode(
                 .finish()
         )
 
-        val INVERSE_DEPTH = RenderMode("Inverse Depth")
+        val INVERSE_DEPTH = RenderMode("Inverse Depth", Renderers.pbrRenderer)
         val OVERDRAW = RenderMode("Overdraw", Renderers.overdrawRenderer)
 
         val WITH_DEPTH_PREPASS = RenderMode(
             "With Depth-Prepass",
             QuickPipeline()
-                .then(RenderSceneNode()) // prepass for depth only
-                .then1(RenderSceneNode(), mapOf("Skybox Resolution" to 0)) // actual pass
+                /**
+                 * prepass for depth only: depth is the only value for RenderSceneNode,
+                 * which is accepted as an input too, and such, it will render first only the depth
+                 * (optimization to only render what's needed),
+                 * and then all other attributes;
+                 * */
+                .then1(RenderSceneNode(), mapOf("Skybox Resolution" to 0))
+                /**
+                 * actual scene rendering
+                 * */
+                .then(RenderSceneNode())
                 .then(RenderLightsNode())
                 .then(SSAONode())
                 .then(CombineLightsNode())
@@ -180,7 +190,7 @@ class RenderMode(
         )
 
         val MONO_WORLD_SCALE = RenderMode("Mono World-Scale")
-        val GHOSTING_DEBUG = RenderMode("Ghosting Debug")
+        val GHOSTING_DEBUG = RenderMode("Ghosting Debug", Renderers.pbrRenderer)
 
         val FSR_SQRT2 = RenderMode("FSRx1.41", FSR1Node.createPipeline(0.707f))
         val FSR_X2 = RenderMode("FSRx2", FSR1Node.createPipeline(0.5f))
@@ -238,7 +248,7 @@ class RenderMode(
                 .finish()
         )
 
-        val PHYSICS = RenderMode("Physics")
+        val PHYSICS = RenderMode("Physics", DEFAULT.renderGraph)
 
         val POST_OUTLINE = RenderMode(
             "Post-Outline",
@@ -262,7 +272,7 @@ class RenderMode(
         val DEUTERANOPIA = RenderMode("Deuteranopia", createRenderGraph(ColorBlindnessMode.DEUTERANOPIA))
         val TRITANOPIA = RenderMode("Tritanopia", createRenderGraph(ColorBlindnessMode.TRITANOPIA))
 
-        val RAY_TEST = RenderMode("Raycast Test")
+        val RAY_TEST = RenderMode("Raycast Test", DEFAULT.renderGraph)
 
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",

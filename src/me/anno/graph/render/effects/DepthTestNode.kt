@@ -3,6 +3,7 @@ package me.anno.graph.render.effects
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.GLSLType
@@ -21,7 +22,7 @@ class DepthTestNode : ActionNode(
 ) {
     override fun executeAction() {
         val depth = ((getInput(1) as? Texture)?.tex as? Texture2D) ?: return
-        val result = FBStack[name, depth.width, depth.height, 4, true, 1, false]
+        val result = FBStack[name, depth.width, depth.height, 4, true, 1, DepthBufferType.NONE]
         GFXState.useFrame(result) {
             val shader = shader
             shader.use()

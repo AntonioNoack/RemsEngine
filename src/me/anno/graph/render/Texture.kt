@@ -1,6 +1,8 @@
 package me.anno.graph.render
 
+import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
@@ -53,11 +55,23 @@ class Texture private constructor(
             else Texture(f.getTextureI(i), f.getTextureIMS(i), mapping, type)
         }
 
+        fun texture(f: IFramebuffer, settings: DeferredSettings, type: DeferredLayerType): Texture {
+            val layer = settings.findLayer(type)
+            return if (layer != null) {
+                val i = layer.texIndex
+                val mapping = layer.mapping
+                texture(f, i, mapping, type)
+            } else if (type == DeferredLayerType.DEPTH && GFX.supportsDepthTextures) {
+                depth(f)
+            } else throw IndexOutOfBoundsException("Missing $type in $settings")
+        }
+
         fun depth(f: IFramebuffer): Texture {
             return depth(f, "x", DeferredLayerType.DEPTH)
         }
 
         fun depth(f: IFramebuffer, mapping: String, type: DeferredLayerType?): Texture {
+            if (!GFX.supportsDepthTextures) return texture(f, 1, mapping, type) // via FBStack
             if (f.samples <= 1) return Texture(f.depthTexture!!, null, mapping, type)
 
             val buf0 = (f as? Framebuffer)?.ssBuffer

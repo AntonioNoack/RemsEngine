@@ -8,7 +8,7 @@ import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
@@ -51,7 +51,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Q
     )
 
     val source = sources[0]
-    val pipeline = Pipeline(DeferredSettingsV2(listOf(DeferredLayerType.COLOR), 1, false))
+    val pipeline = Pipeline(DeferredSettings(listOf(DeferredLayerType.COLOR)))
     pipeline.defaultStage = PipelineStage(
         "default", Sorting.NO_SORTING, 0, null, DepthMode.ALWAYS, true,
         CullMode.BOTH, ECSShaderLib.pbrModelShader

@@ -1,7 +1,8 @@
 package me.anno.gpu.shader.builder
 
+import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib
@@ -138,12 +139,15 @@ class MainStage {
                                 "dx = x ? vec4(0,du,0,0) : vec4(du,0,0,0);\n" +
                                 "dy = z ? vec4(0,du,0,0) : vec4(0,0,du,0);\n" +
                                 "for(float j=-2.0;j<2.5;j++){\n" +
-                                "   for(float i=-2.0;i<2.5;i++){\n" +
-                                "       sum += texture($nameIndex, uvw+i*dx+j*dy);\n" +
-                                "   }\n" +
-                                "}\n" +
-                                "return sum*0.04;\n"
+                                "   for(float i=-2.0;i<2.5;i++){\n"
                     )
+                    if (GFX.supportsDepthTextures) {
+                        code.append("sum += texture($nameIndex, uvw+i*dx+j*dy);\n")
+                    } else {
+                        // todo use smoothstep with bias?
+                        code.append("sum += step(texture($nameIndex, uvw.xyz+i*dx.xyz+j*dy.xyz).x,uvw.w);\n")
+                    }
+                    code.append("}}\n return sum*0.04;\n")
                 }
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
                 code.append("}\n")
@@ -156,18 +160,21 @@ class MainStage {
                 for (index in 0 until uniform.arraySize) {
                     val nameIndex = name + index.toString()
                     if (isMoreThanOne) code.append("case ").append(index).append(":\n")
+                    // 5x5 percentage closer filtering for prettier results
                     code.append(
                         "" +
-                                // 5x5 percentage closer filtering for prettier results
                                 "size = textureSize($nameIndex,0);\n" +
                                 "du = 1.0/float(size.x);\n" +
                                 "for(int j=-2;j<=2;j++){\n" +
-                                "   for(int i=-2;i<=2;i++){\n" +
-                                "       sum += texture($nameIndex, uvw+du*vec3(i,j,0.0));\n" +
-                                "   }\n" +
-                                "}\n" +
-                                "return sum*0.04;\n"
+                                "   for(int i=-2;i<=2;i++){\n"
                     )
+                    if (GFX.supportsDepthTextures) {
+                        code.append("sum += texture($nameIndex, uvw+du*vec3(i,j,0.0));\n")
+                    } else {
+                        // todo use smoothstep with bias?
+                        code.append("sum += step(texture($nameIndex, uvw.xy+du*vec2(i,j)).x,uvw.z);\n")
+                    }
+                    code.append("}}\n return sum*0.04;\n")
                 }
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
                 code.append("}\n")
@@ -199,7 +206,7 @@ class MainStage {
 
     fun createCode(
         isFragmentStage: Boolean,
-        outputs: DeferredSettingsV2?,
+        outputs: DeferredSettings?,
         disabledLayers: BitSet?,
         bridgeVariables1: Map<Variable, Variable>
     ): String {
@@ -322,17 +329,6 @@ class MainStage {
             code.append(stage.body)
             if (!code.endsWith('\n')) code.append('\n')
             code.append("}// end of stage ").append(stage.callName).append('\n')
-            // expensive
-            // inlining is better
-            // maybe only because we had this large matrix as a param, but still, it was massively slower (30fps -> 7fps)
-            /*code.append("  ")
-            code.append(stage.callName)
-            code.append("(")
-            for (j in params.indices) {
-                if (j > 0) code.append(',')
-                code.append(params[j].name)
-            }
-            code.append(");\n")*/
         }
 
         if (!isFragmentStage) {
@@ -352,12 +348,10 @@ class MainStage {
                     outputSum == 0 -> {
                         code.append("BuildColor = vec4(1.0);\n")
                     }
-
                     outputSum == 4 && lastOutputs.size == 1 -> {
                         code.append("BuildColor = ")
                             .append(lastOutputs[0].name).append(";\n")
                     }
-
                     outputSum in 1..4 -> {
                         code.append("BuildColor = vec4(")
                         for (i in lastOutputs.indices) {
@@ -369,7 +363,6 @@ class MainStage {
                         }
                         code.append(");\n")
                     }
-
                     else -> {
                         code.append("BuildColor = vec4(finalColor, finalAlpha);\n")
                     }

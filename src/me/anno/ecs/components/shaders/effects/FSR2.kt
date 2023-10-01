@@ -637,7 +637,7 @@ class FSR2 {
         GFX.check()
         // compute average exposure over whole screen (like reduce)
         // https://github.com/GPUOpen-Effects/FidelityFX-FSR2/blob/c8fc17d281665927e414b6b8117873cccbac0990/src/ffx-fsr2-api/shaders/ffx_fsr2_compute_luminance_pyramid.h
-        val currExposure = FBStack["exposure", 1, 1, 4, true, 1, false]
+        val currExposure = FBStack["exposure", 1, 1, 4, true, 1, DepthBufferType.NONE] as Framebuffer
         Reduction.reduce(dstCurrentLuminance.getTexture0(), Reduction.AVG, currExposure)
         useFrame(dstExposure) {
             val shader = exposureShader

@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.Renderer
@@ -108,7 +109,7 @@ object GaussianBlur {
                 // smallerH = max(10, h / subSteps)
                 size = pixelSize * smallerW / w
                 // draw image on smaller thing...
-                val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 4, true, 1, false]// temp[2]
+                val temp2 = FBStack["mask-gaussian-blur-2", smallerW, smallerH, 4, true, 1, DepthBufferType.NONE]
                 useFrame(smallerW, smallerH, false, temp2, Renderer.copyRenderer) {
                     // temp2.clearColor(0, true)
                     // draw texture 0 (masked) onto temp2
@@ -121,12 +122,12 @@ object GaussianBlur {
             if (debug && Key.KEY_I in Input.keysDown) LOGGER.info("$w,$h -> $smallerW,$smallerH")
 
             drawBlur(
-                FBStack["mask-gaussian-blur-0", smallerW, smallerH, 4, true, 1, false], smallerW, smallerH,
+                FBStack["mask-gaussian-blur-0", smallerW, smallerH, 4, true, 1, DepthBufferType.NONE], smallerW, smallerH,
                 0, threshold, true, isFullscreen,
                 localTransform, size, pixelSize
             )
             drawBlur(
-                FBStack["mask-gaussian-blur-1", smallerW, smallerH, 4, true, 1, false], smallerW, smallerH,
+                FBStack["mask-gaussian-blur-1", smallerW, smallerH, 4, true, 1, DepthBufferType.NONE], smallerW, smallerH,
                 resultIndex, 0f, false, isFullscreen,
                 localTransform, size, pixelSize
             )

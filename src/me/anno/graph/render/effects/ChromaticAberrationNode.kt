@@ -2,6 +2,7 @@ package me.anno.graph.render.effects
 
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
@@ -45,7 +46,7 @@ class ChromaticAberrationNode : ActionNode(
             val rOffset = getInput(3) as Vector2f
             val bOffset = getInput(4) as Vector2f
             val fp = color.isHDR
-            val result = FBStack[name, color.width, color.height, 3, fp, 1, false]
+            val result = FBStack[name, color.width, color.height, 3, fp, 1, DepthBufferType.NONE]
             useFrame(result, copyRenderer) {
                 val shader = shader
                 shader.use()

@@ -431,13 +431,11 @@ object Thumbs {
     ) {
         GFX.check()
 
+        val depthType = if (withDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
         val renderTarget = if (GFX.maxSamples > 1 || useCacheFolder) {
-            FBStack[srcFile.name, w, h, 4, false, 4, withDepth]
+            FBStack[srcFile.name, w, h, 4, false, 4, depthType] as Framebuffer
         } else {
-            Framebuffer(
-                srcFile.name, w, h, 1, 1, false,
-                if (withDepth) DepthBufferType.INTERNAL else DepthBufferType.NONE
-            )
+            Framebuffer(srcFile.name, w, h, 1, 1, false, depthType)
         }
 
         renderPurely {

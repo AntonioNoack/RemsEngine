@@ -6,7 +6,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.actions.ActionNode
-import me.anno.utils.Color.white4
+import me.anno.utils.Color.black4
 
 class SSAONode : ActionNode(
     "Screen Space Ambient Occlusion",
@@ -41,16 +41,17 @@ class SSAONode : ActionNode(
         val normal = getInput(4) as? Texture ?: return fail()
         val normalZW = normal.mapping == "zw"
         val normalT = ((normal).tex as? Texture2D) ?: whiteTexture
-        val depthT = ((getInput(5) as? Texture)?.tex as? Texture2D) ?: return fail()
+        val depthT = (getInput(5) as? Texture) ?: return fail()
+        if (depthT.tex !is Texture2D) return fail()
 
         val transform = RenderState.cameraMatrix
         val result = ScreenSpaceAmbientOcclusion
-            .compute(depthT, normalT, normalZW, transform, strength, samples, blur)
+            .compute(depthT.tex, depthT.mapping, normalT, normalZW, transform, strength, samples, blur)
 
         setOutput(1, Texture.texture(result, 0, "r", null))
     }
 
     private fun fail() {
-        setOutput(1, Texture(white4))
+        setOutput(1, Texture(black4))
     }
 }

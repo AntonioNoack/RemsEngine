@@ -6,6 +6,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.GLSLType
@@ -73,13 +74,13 @@ fun main() {
     val useFSR = true
 
     renderPurely {
-        val reconstructed = FBStack["full", source.width, source.height, 3, false, 1, false]
-        val difference = FBStack["diff", source.width, source.height, 3, false, 1, false]
+        val reconstructed = FBStack["full", source.width, source.height, 3, false, 1, DepthBufferType.NONE]
+        val difference = FBStack["diff", source.width, source.height, 3, false, 1, DepthBufferType.NONE]
         val filtering = GPUFiltering.LINEAR
         for (scale in scales) {
             val sw = (source.width / scale).roundToInt()
             val sh = (source.height / scale).roundToInt()
-            val scaledDown = FBStack["scaled", sw, sh, 3, false, 1, false]
+            val scaledDown = FBStack["scaled", sw, sh, 3, false, 1, DepthBufferType.NONE]
             useFrame(scaledDown) {
                 source.bind(0, filtering, Clamping.CLAMP)
                 GFX.copy()

@@ -13,7 +13,7 @@ import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBatchSize
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
@@ -81,7 +81,7 @@ object LightShaders {
     val useMSAA get() = GFXState.currentBuffer.samples > 1
 
     fun combineLighting(
-        deferred: DeferredSettingsV2, applyToneMapping: Boolean, ambientLight: Vector3f,
+        deferred: DeferredSettings, applyToneMapping: Boolean, ambientLight: Vector3f,
         scene: IFramebuffer, light: IFramebuffer, ssao: ITexture2D,
     ) {
         val shader = getCombineLightShader(deferred)
@@ -89,7 +89,7 @@ object LightShaders {
         scene.bindTrulyNearestMS(3)
         val metallic = deferred.findLayer(DeferredLayerType.METALLIC)
         (deferred.findTextureMS(scene, metallic) as? Texture2D ?: blackTexture).bindTrulyNearest(2)
-        shader.v4f("metallicMask", DeferredSettingsV2.singleToVector[metallic?.mapping] ?: black4)
+        shader.v4f("metallicMask", DeferredSettings.singleToVector[metallic?.mapping] ?: black4)
         ssao.bindTrulyNearest(1)
         light.bindTrulyNearestMS(0)
         combineLighting1(shader, applyToneMapping, ambientLight)
@@ -141,7 +141,7 @@ object LightShaders {
                 "   color = vec4(finalColor, 1.0);\n"
     ).add(tonemapGLSL)
 
-    fun getCombineLightShader(settingsV2: DeferredSettingsV2): Shader {
+    fun getCombineLightShader(settingsV2: DeferredSettings): Shader {
         val useMSAA = useMSAA
         val code = if (useMSAA) -1 else -2
         return shaderCache.getOrPut(settingsV2 to code) {
@@ -273,7 +273,7 @@ object LightShaders {
                 "uvw = gl_Position.xyw;\n"
     )
 
-    private val shaderCache = HashMap<Pair<DeferredSettingsV2, Int>, Shader>()
+    private val shaderCache = HashMap<Pair<DeferredSettings, Int>, Shader>()
 
     fun createMainFragmentStage(type: LightType, isInstanced: Boolean): ShaderStage {
         val ws = !isInstanced // with shadows
@@ -421,7 +421,7 @@ object LightShaders {
         ), "camSpaceToLightSpace = mat4x3(invInsTrans0v,invInsTrans1v,invInsTrans2v,invInsTrans3v);\n"
     )
 
-    fun getShader(settingsV2: DeferredSettingsV2, type: LightType): Shader {
+    fun getShader(settingsV2: DeferredSettings, type: LightType): Shader {
         val isInstanced = GFXState.instanced.currentValue
         val useMSAA = useMSAA
         val key = type.ordinal * 4 + useMSAA.toInt(2) + isInstanced.toInt()

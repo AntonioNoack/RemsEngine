@@ -1,8 +1,10 @@
 package me.anno.graph.render.scene
 
 import me.anno.engine.ui.render.RenderView
+import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.graph.NodeOutput
 import me.anno.graph.types.flow.actions.ActionNode
 
 abstract class RenderSceneNode0(name: String, inputs: List<String>, outputs: List<String>) :
@@ -23,5 +25,11 @@ abstract class RenderSceneNode0(name: String, inputs: List<String>, outputs: Lis
         super.onDestroy()
         invalidate()
         framebuffer?.destroy()
+    }
+
+    companion object {
+        fun isOutputUsed(output: NodeOutput): Boolean {
+            return output.others.isNotEmpty()
+        }
     }
 }

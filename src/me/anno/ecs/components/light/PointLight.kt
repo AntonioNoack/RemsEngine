@@ -85,7 +85,7 @@ class PointLight : LightComponent(LightType.POINT) {
         val root = entity.getRoot(Entity::class)
         GFXState.depthMode.use(DepthMode.CLOSE) {
             texture.draw(resolution, Renderer.nothingRenderer) { side ->
-                texture.clearDepth()
+                texture.clearColor(0, depth = true)
                 setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
                 rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rotInvert)
@@ -100,7 +100,7 @@ class PointLight : LightComponent(LightType.POINT) {
                     near / worldScale, far / worldScale, deg90, resolution, resolution, 1.0,
                     position, cameraRotation
                 )
-                pipeline.fillDepth(root, position, worldScale)
+                pipeline.fill(root)
                 pipeline.defaultStage.drawColors(pipeline)
             }
         }

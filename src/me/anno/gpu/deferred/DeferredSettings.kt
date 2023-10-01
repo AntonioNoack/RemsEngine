@@ -13,11 +13,9 @@ import org.joml.Vector4f
 import java.util.*
 import kotlin.math.max
 
-data class DeferredSettingsV2(
-    val layerTypes: List<DeferredLayerType>,
-    val samples: Int,
-    val fpLights: Boolean
-) {
+data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
+
+    // todo shader to blit depth with different resolutions/formats
 
     class Layer(val type: DeferredLayerType, val textureName: String, val texIndex: Int, val mapping: String) {
 
@@ -54,8 +52,13 @@ data class DeferredSettingsV2(
             output.append('.')
             output.append(mapping)
             output.append(" = (")
-            output.append(type.workToData).append('(')
-            output.append(type.glslName).append(')')
+            if (type == DeferredLayerType.DEPTH) {
+                val depthVariableName = if ("gl_FragDepth" in output) "gl_FragDepth" else "gl_FragCoord.z"
+                output.append(depthVariableName)
+            } else {
+                output.append(type.workToData).append('(')
+                output.append(type.glslName).append(')')
+            }
             // append random rounding
             output.append(")*(1.0+defRR*").append(textureName).append("RR.x")
             output.append(")+defRR*").append(textureName).append("RR.y")
@@ -127,12 +130,13 @@ data class DeferredSettingsV2(
         }
     }
 
-    val settingsV1 = DeferredSettingsV1(layers2, fpLights)
+    val settingsV1 = layers2
     val targetTypes = Array(layers2.size) { layers2[it].type }
 
-    fun createBaseBuffer(name: String = "DeferredBuffers-main"): IFramebuffer {
+    fun createBaseBuffer(name: String, samples: Int): IFramebuffer {
         val layers = layers2
-        val depthBufferType = DepthBufferType.TEXTURE
+        val depthBufferType = if(GFX.supportsDepthTextures) DepthBufferType.TEXTURE
+        else DepthBufferType.INTERNAL
         return if (layers.size <= GFX.maxColorAttachments) {
             Framebuffer(
                 name, 1, 1, samples,
@@ -168,7 +172,7 @@ data class DeferredSettingsV2(
     }
 
     fun appendLayerDeclarators(output: StringBuilder, disabledLayers: BitSet?) {
-        val layers = settingsV1.layers
+        val layers = settingsV1
         for (index in layers.indices) {
             if (disabledLayers == null || !disabledLayers[index]) {
                 val type = layers[index]
@@ -236,14 +240,13 @@ data class DeferredSettingsV2(
         return buffer.getTextureIMS(layer.texIndex)
     }
 
-    fun split(index: Int, splitSize: Int): DeferredSettingsV2 {
+    fun split(index: Int, splitSize: Int): DeferredSettings {
         val index0 = index * splitSize
         val index1 = index0 + splitSize
-        return DeferredSettingsV2(
+        return DeferredSettings(
             layerTypes.filter { type ->
                 findLayer(type)!!.texIndex in index0 until index1
-            }, samples,
-            settingsV1.fpLights
+            }
         )
     }
 

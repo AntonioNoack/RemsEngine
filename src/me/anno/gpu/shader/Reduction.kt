@@ -4,6 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -114,7 +115,7 @@ object Reduction {
             val w = ceilDiv(srcTexture.width, reduction)
             val h = ceilDiv(srcTexture.height, reduction)
 
-            val dstFramebuffer = FBStack["reduction", w, h, TargetType.FloatTarget4, 1, false]
+            val dstFramebuffer = FBStack["reduction", w, h, TargetType.FloatTarget4, 1, DepthBufferType.NONE]
             useFrame(dstFramebuffer, Renderer.copyRenderer) {
                 renderPurely {
                     srcTexture.bindTrulyNearest(0)
@@ -213,7 +214,7 @@ object Reduction {
             val dstFramebuffer = if (w == 1 && h == 1) {
                 if (op.normalize) scale = 1f / (texture.width * texture.height)
                 dst
-            } else FBStack["reduction", w, h, TargetType.FloatTarget4, 1, false]
+            } else FBStack["reduction", w, h, TargetType.FloatTarget4, 1, DepthBufferType.NONE]
 
             useFrame(dstFramebuffer, Renderer.copyRenderer) {
                 renderPurely {

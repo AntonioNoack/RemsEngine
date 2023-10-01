@@ -5,7 +5,7 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Sorting
@@ -56,7 +56,7 @@ class RenderSceneNode : RenderSceneNode0(
         framebuffer?.destroy()
     }
 
-    private var settings: DeferredSettingsV2? = null
+    private var settings: DeferredSettings? = null
     lateinit var renderer: Renderer
 
     override fun executeAction() {
@@ -73,24 +73,25 @@ class RenderSceneNode : RenderSceneNode0(
         val applyToneMapping = getInput(7) == true
 
         var settings = settings
-        if (settings == null || settings.samples != samples) {
+        if (settings == null || framebuffer?.samples != samples) {
             enabledLayers.clear()
             val outputs = outputs!!
             for (i in 1 until outputs.size) {
-                val output = outputs[i]
-                if (output.others.isNotEmpty()) {
-                    // todo only enable it, if the value actually will be used
+                if (isOutputUsed(outputs[i])) {
                     enabledLayers.add(DeferredLayerType.values[i - 1])
                 }
                 setOutput(i, null)
             }
 
+            // this node does nothing -> just return
             if (enabledLayers.isEmpty()) return
 
-            enabledLayers.remove(DeferredLayerType.DEPTH)
+            if (GFX.supportsDepthTextures) {
+                enabledLayers.remove(DeferredLayerType.DEPTH)
+            }
 
             // create deferred settings
-            settings = DeferredSettingsV2(enabledLayers, samples, true)
+            settings = DeferredSettings(enabledLayers)
             this.settings = settings
             renderer = SimpleRenderer(
                 "tmp", settings,
@@ -104,7 +105,7 @@ class RenderSceneNode : RenderSceneNode0(
                 )
             )
             framebuffer?.destroy()
-            framebuffer = settings.createBaseBuffer(name)
+            framebuffer = settings.createBaseBuffer(name, samples)
         }
 
         val framebuffer = framebuffer!!
@@ -140,8 +141,10 @@ class RenderSceneNode : RenderSceneNode0(
         }
 
         // get depth texture, and use it
-        val i = DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH) + 1
-        setOutput(i, Texture.depth(framebuffer, "r", DeferredLayerType.DEPTH))
+        if (GFX.supportsDepthTextures) {
+            val i = DeferredLayerType.values.indexOf(DeferredLayerType.DEPTH) + 1
+            setOutput(i, Texture.depth(framebuffer, "r", DeferredLayerType.DEPTH))
+        }
     }
 
     fun clearFramebuffer(framebuffer: IFramebuffer, prepassDepth: Framebuffer?) {

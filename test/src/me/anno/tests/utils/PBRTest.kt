@@ -5,6 +5,7 @@ import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2End
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoDivInlined2Start
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.hidden.HiddenOpenGLContext
@@ -90,7 +91,7 @@ fun main() {
         // random.nextFloat()
     }
     randomTex.createRGBA(randomData, false)
-    val target = FBStack["test", size, size, TargetType.FloatTarget4, 1, false]
+    val target = FBStack["test", size, size, TargetType.FloatTarget4, 1, DepthBufferType.NONE]
     useFrame(target) {
         val shader = testShader
         shader.use()

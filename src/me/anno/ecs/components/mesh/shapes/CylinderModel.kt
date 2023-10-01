@@ -18,12 +18,13 @@ object CylinderModel {
         vs: Int = 2,
         top: Boolean,
         bottom: Boolean,
-        mesh: Mesh = Mesh(),
         // option to use different materials for top, middle and bottom
-        topMiddleBottom: List<FileReference>? = null
+        middleTopBottom: List<FileReference>?,
+        uScale: Float,
+        mesh: Mesh,
     ): Mesh {
 
-        val quadCount = us * vs
+        val quadCount = us * (vs - 1)
         val triangleCount = quadCount * 2 + (us - 2) * (top.toInt() + bottom.toInt())
         val indexCount = triangleCount * 3
 
@@ -32,8 +33,8 @@ object CylinderModel {
         mesh.positions = mesh.positions.resize(3 * vertexCount)
         mesh.normals = mesh.normals.resize(3 * vertexCount)
         mesh.uvs = mesh.uvs.resize(2 * vertexCount)
-        if (topMiddleBottom != null) mesh.materials = topMiddleBottom
-        val materialIds = if (topMiddleBottom != null) mesh.materialIds.resize(vertexCount) else null
+        if (middleTopBottom != null) mesh.materials = middleTopBottom
+        val materialIds = if (middleTopBottom != null) mesh.materialIds.resize(triangleCount) else null
         mesh.materialIds = materialIds
 
         // precalculate the angles
@@ -59,13 +60,10 @@ object CylinderModel {
                 positions[k++] = y
                 normals[k] = su[u]
                 positions[k++] = su[u]
-                uvs[l++] = 3f * (1f - u.toFloat() / us)
+                uvs[l++] = uScale * (1f - u.toFloat() / us)
                 uvs[l++] = v.toFloat() / (vs - 1f)
             }
         }
-
-        val k0 = k / 3
-        materialIds?.fill(1, 0, k0)
 
         if (top) {
             for (u in 0 until us) {
@@ -79,9 +77,6 @@ object CylinderModel {
             }
         }
 
-        val k1 = k / 3
-        materialIds?.fill(1, k0, k1)
-
         if (bottom) {
             for (u in 0 until us) {
                 // calculate position
@@ -94,14 +89,11 @@ object CylinderModel {
             }
         }
 
-        val k2 = k / 3
-        materialIds?.fill(1, k1, k2)
-
-        val indices = IntArray(indexCount)
+        val indices = mesh.indices.resize(indexCount)
         mesh.indices = indices
 
         k = 0
-        for (v in 0 until vs) {
+        for (v in 0 until vs - 1) {
             for (u in 0 until us) {
                 // create quad face
                 val v0 = getIndex(u, v + 1, us)
@@ -117,6 +109,9 @@ object CylinderModel {
             }
         }
 
+        val k0 = k / 3
+        materialIds?.fill(0, 0, k0)
+
         var v0 = (us + 1) * vs
         if (top) {
             // add ring
@@ -129,6 +124,9 @@ object CylinderModel {
             v0 += us
         }
 
+        val k1 = k / 3
+        materialIds?.fill(1, k0, k1)
+
         if (bottom) {
             for (u in 2 until us) {
                 indices[k++] = v0
@@ -136,6 +134,9 @@ object CylinderModel {
                 indices[k++] = v0 + u
             }
         }
+
+        val k2 = k / 3
+        materialIds?.fill(2, k1, k2)
 
         return mesh
     }

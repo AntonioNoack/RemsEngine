@@ -14,7 +14,7 @@ import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -176,7 +176,7 @@ class EnvironmentMap : LightComponentBase() {
         val crossExtends = Vector3d(0.1)
 
         val pipeline by lazy {
-            val pipeline = Pipeline(DeferredSettingsV2(listOf(), 1, false))
+            val pipeline = Pipeline(DeferredSettings(listOf()))
             // we may need a second stage for transparent stuff
             pipeline.defaultStage = PipelineStage(
                 "", Sorting.NO_SORTING, 16, null, DepthMode.CLOSE,

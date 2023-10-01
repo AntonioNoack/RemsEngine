@@ -4,6 +4,7 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.DepthTransforms
@@ -86,7 +87,9 @@ class DepthOfFieldNode : ActionNode(
             focusPoint: Float, focusScale: Float, maxBlurSize: Float, radScale: Float,
             applyToneMapping: Boolean,
         ): IFramebuffer {
-            val coc = FBStack["coc", Maths.ceilDiv(color.width, 2), Maths.ceilDiv(color.height, 2), 4, false, 1, false]
+            val w = Maths.ceilDiv(color.width, 2)
+            val h = Maths.ceilDiv(color.height, 2)
+            val coc = FBStack["coc", w, h, 4, false, 1, DepthBufferType.NONE]
             GFXState.useFrame(coc) {
                 val shader = cocShader
                 shader.use()
@@ -97,7 +100,7 @@ class DepthOfFieldNode : ActionNode(
                 depth.bindTrulyNearest(shader, "depthTex")
                 SimpleBuffer.flat01.draw(shader)
             }
-            val buffer = FBStack["dof", color.width, color.height, 4, true, 1, false]
+            val buffer = FBStack["dof", color.width, color.height, 4, true, 1, DepthBufferType.NONE]
             GFXState.useFrame(buffer) {
                 val shader = dofShader
                 shader.use()

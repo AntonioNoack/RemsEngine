@@ -3,11 +3,13 @@ package me.anno.ecs.components.shaders.effects
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
@@ -43,7 +45,9 @@ class FSR2v2 : ICacheData {
                 Variable(GLSLType.V2F, "prevJitter"),
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),
+                Variable(GLSLType.V4F, "depthMask"),
                 Variable(GLSLType.S2D, "normalTex"),
+                Variable(GLSLType.V1B, "normalZW"),
                 Variable(GLSLType.S2D, "motionTex"),
                 Variable(GLSLType.S2D, "prevColorNWeights"),
                 Variable(GLSLType.S2D, "prevDepths"),
@@ -58,6 +62,7 @@ class FSR2v2 : ICacheData {
             ), "" +
                     "float sq(float x) { return x*x; }\n" +
                     "float dot2(vec3 x) { return dot(x,x); }\n" +
+                    octNormalPacking +
                     "void main(){\n" +
                     // iterate over all 4 old neighbors
                     "   vec4 colorNWeight = vec4(0.0);\n" +
@@ -71,8 +76,10 @@ class FSR2v2 : ICacheData {
                     "           ivec2 srcUV = srcUV0f + ivec2(x,y);\n" +
                     "           if(any(lessThan(srcUV, ivec2(0))) || any(greaterThanEqual(srcUV,displaySizeI))) continue;\n" +
                     "           vec3 fullMotion = texelFetch(motionTex,srcUV,0).xyz;\n" +
-                    "           float depth = log2(max(1e-16, texelFetch(depthTex,srcUV,0).x - fullMotion.z));\n" +
-                    "           vec3 normal = texelFetch(normalTex,srcUV,0).rgb;\n" +
+                    "           float depth0 = dot(texelFetch(depthTex,srcUV,0),depthMask);\n" +
+                    "           float depth = log2(max(1e-16, depth0 - fullMotion.z));\n" +
+                    "           vec4 normal0 = texelFetch(normalTex,srcUV,0);\n" +
+                    "           vec3 normal = UnpackNormal(normalZW ? normal0.zw : normal0.xy);\n" +
                     "           vec2 motion = fullMotion.xy * 0.5 + motion2;\n" +
                     "           vec2 uviX = (uv - motion) * displaySizeF - 0.5,  uviX1 = floor(uviX), duvX = uviX-uviX1;\n" +
                     "           ivec2 uvx = ivec2(uviX1);\n" +
@@ -117,8 +124,10 @@ class FSR2v2 : ICacheData {
                     "               vec2 fg = mix(duv0, 1.0-duv0, vec2(x,y));\n" +
                     "               float w = 1.0/((1.0+sharpness*dot(fg,fg)) * maxWeight);\n" + // weight depending on distance to pixel
                     "               vec3 color = texelFetch(colorTex,srcUV,0).rgb;\n" +
-                    "               float depth = log2(max(1e-16, texelFetch(depthTex,srcUV,0).r));\n" +
-                    "               vec3 normal = texelFetch(normalTex,srcUV,0).rgb;\n" +
+                    "               float depth0 = dot(texelFetch(depthTex,srcUV,0), depthMask);\n" +
+                    "               float depth = log2(max(1e-16, depth0));\n" +
+                    "               vec4 normal0 = texelFetch(normalTex,srcUV,0);\n" +
+                    "               vec3 normal = UnpackNormal(normalZW ? normal0.zw : normal0.xy);\n" +
                     "               colorNWeight += vec4(color * w, w);\n" +
                     "               weightedDepth += vec4(depth, normal) * w;\n" +
                     "           }\n" +
@@ -208,7 +217,9 @@ class FSR2v2 : ICacheData {
     fun calculate(
         color: Texture2D,
         depth: Texture2D,
+        depthMask: String,
         normal: Texture2D,
+        normalZW: Boolean,
         motion: Texture2D, // motion in 3d
         pw: Int, ph: Int,
     ) {
@@ -238,6 +249,9 @@ class FSR2v2 : ICacheData {
             shader.v2i("displaySizeI", data1.width, data1.height)
             shader.v2f("displaySizeF", data1.width.toFloat(), data1.height.toFloat())
             shader.v1f("sharpness", 3f * lastScaleX * lastScaleY) // a guess
+            // todo use these two
+            shader.v1b("normalZW", normalZW)
+            shader.v4f("depthMask", singleToVector[depthMask]!!)
             shader.v1f("maxWeight", 5f)
             flat01.draw(shader)
         }
@@ -250,5 +264,4 @@ class FSR2v2 : ICacheData {
         data0 = data1
         data1 = tmp
     }
-
 }

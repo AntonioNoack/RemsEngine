@@ -2,10 +2,10 @@ package me.anno.graph.render.effects
 
 import me.anno.ecs.components.shaders.effects.ScreenSpaceReflections
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector
+import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.actions.ActionNode
@@ -68,12 +68,13 @@ class SSRNode : ActionNode(
         val metallic = getInput(12) as? Texture
         val roughness = getInput(13) as? Texture
 
-        val depthT = ((getInput(14) as? Texture)?.tex as? Texture2D) ?: return
+        val depthT = getInput(14) as? Texture ?: return
+        if (depthT.tex !is Texture2D) return
 
         val transform = RenderState.cameraMatrix
 
         val samples = 1
-        val framebuffer = FBStack["ssr", width, height, 4, true, samples, false]
+        val framebuffer = FBStack["ssr", width, height, 4, true, samples, DepthBufferType.NONE]
 
         val metallicT = metallic?.tex ?: whiteTexture
         val metallicM = if (metallicT != whiteTexture) singleToVector[metallic!!.mapping]!!
@@ -84,7 +85,8 @@ class SSRNode : ActionNode(
         else roughness?.color?.run { Vector4f(x, 0f, 0f, 0f) } ?: black4
 
         val result = ScreenSpaceReflections.compute(
-            depthT, normalT, normalZW, color, metallicT, metallicM, roughnessT, roughnessM, illuminated,
+            depthT.tex, singleToVector[depthT.mapping]!!,
+            normalT, normalZW, color, metallicT, metallicM, roughnessT, roughnessM, illuminated,
             transform, strength, maskSharpness, wallThickness, fineSteps, applyToneMapping, framebuffer
         )
         setOutput(1, Texture.texture(result, 0))

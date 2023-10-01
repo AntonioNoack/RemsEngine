@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.ecs.components.mesh.shapes.CubemapModel
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.effects.FXAA
@@ -38,7 +39,7 @@ private fun testShader() {
         if (Input.isLeftDown) angle += delta
         if (Input.isRightDown) angle -= delta
         transform.rotateZ(angle)
-        val depth = FBStack["depth", w, h, 4, false, 1, false]
+        val depth = FBStack["depth", w, h, 4, false, 1, DepthBufferType.NONE]
         val mesh = CubemapModel.cubemapModel
         mesh.ensureBuffer()
         GFXState.useFrame(depth) {
@@ -48,7 +49,7 @@ private fun testShader() {
             shader.m4x4("transform", transform)
             mesh.draw(shader)
         }
-        val result = FBStack["result", w, h, 4, false, 1, false]
+        val result = FBStack["result", w, h, 4, false, 1, DepthBufferType.NONE]
         GFXState.useFrame(result) {
             val shader = FXAA.shader.value
             shader.use()

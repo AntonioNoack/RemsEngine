@@ -11,7 +11,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
@@ -60,7 +60,7 @@ class WeightedBlended : TransparentPass() {
 
         private val l0 = DeferredLayerType("result0", "result0", 4, 0)
         private val l1 = DeferredLayerType("result1", "result1", 4, 0)
-        private val l01 = DeferredSettingsV2(listOf(l0, l1), 1, false)
+        private val l01 = DeferredSettings(listOf(l0, l1))
         val applyShader = LazyMap<IntPair, Shader> {
             Shader(
                 "apply0", coordsList, coordsVShader, uvList, listOf(

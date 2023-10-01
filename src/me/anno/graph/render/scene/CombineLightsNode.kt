@@ -6,6 +6,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely2
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.pipeline.LightShaders.combineFStage
 import me.anno.gpu.pipeline.LightShaders.combineLighting1
@@ -121,7 +122,7 @@ class CombineLightsNode : RenderSceneNode0(
 
         val rv = renderView
 
-        val framebuffer = FBStack[name, width, height, 3, BufferQuality.HIGH_16, samples, false]
+        val framebuffer = FBStack[name, width, height, 3, BufferQuality.HIGH_16, samples, DepthBufferType.NONE]
         val renderer = Renderer.copyRenderer
 
         GFX.check()

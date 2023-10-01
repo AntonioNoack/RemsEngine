@@ -3,6 +3,7 @@ package me.anno.graph.render.effects
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -27,7 +28,7 @@ class ToneMappingNode : ActionNode(
         val color = getInput(1) as? Texture
         val result = if (getInput(2) == true) {
             val source = (color?.tex as? Texture2D) ?: return
-            val result = FBStack[name, source.width, source.height, 4, false, 1, false]
+            val result = FBStack[name, source.width, source.height, 4, false, 1, DepthBufferType.NONE]
             GFXState.useFrame(result) {
                 val shader = shader
                 shader.use()

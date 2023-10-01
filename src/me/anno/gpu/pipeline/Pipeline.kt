@@ -21,7 +21,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.set4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -56,9 +56,9 @@ import kotlin.math.max
  * Collects meshes for different passes (opaque, transparency, decals, ...), and for instanced rendering;
  * Makes rendering multiple points of view much cheaper (e.g., for stereo vision for VR)
  * */
-class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
+class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 
-    var deferred: DeferredSettingsV2? = deferred
+    var deferred: DeferredSettings? = deferred
         set(value) {
             field = value
             lightStage.deferred = value
@@ -166,16 +166,6 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
             val stage = findStage(material)
             stage.addInstanced(mesh, renderer, entity, material, index)
         }
-    }
-
-    private fun addMeshInstancedDepth(
-        mesh: Mesh,
-        component: MeshComponentBase,
-        entity: Entity,
-        material: Material,
-        materialIndex: Int
-    ) {
-        defaultStage.addInstanced(mesh, component, entity, material, materialIndex)
     }
 
     fun addLight(light: LightComponent, entity: Entity) {
@@ -381,11 +371,6 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
         }
     }
 
-    fun fillDepth(rootElement: Entity, cameraPosition: Vector3d, worldScale: Double) {
-        rootElement.validateAABBs()
-        subFillDepth(rootElement, cameraPosition, worldScale)
-    }
-
     // todo fix deferred rendering for scenes with many lights
 
     val lights = arrayOfNulls<LightRequest>(RenderView.MAX_FORWARD_LIGHTS)
@@ -490,36 +475,6 @@ class Pipeline(deferred: DeferredSettingsV2?) : Saveable(), ICacheData {
                 if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
                     traverseConditionally(child, run)
                 }
-            }
-        }
-    }
-
-    private fun subFillDepth(entity: Entity, cameraPosition: Vector3d, worldScale: Double) {
-        val components = entity.components
-        for (i in components.indices) {
-            val component = components[i]
-            if (component.isEnabled && component !== ignoredComponent) {
-                if (component is MeshComponentBase && component.castShadows) {
-                    val mesh = component.getMesh()
-                    if (mesh != null) {
-                        if (component.isInstanced) {
-                            for (materialIndex in 0 until mesh.numMaterials) {
-                                val material = MaterialCache[component.materials.getOrNull(materialIndex)
-                                    ?: mesh.materials.getOrNull(materialIndex), defaultMaterial]
-                                addMeshInstancedDepth(mesh, component, entity, material, materialIndex)
-                            }
-                        } else {
-                            addMeshDepth(mesh, component, entity)
-                        }
-                    }
-                }
-            }
-        }
-        val children = entity.children
-        for (i in children.indices) {
-            val child = children[i]
-            if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
-                subFillDepth(child, cameraPosition, worldScale)
             }
         }
     }

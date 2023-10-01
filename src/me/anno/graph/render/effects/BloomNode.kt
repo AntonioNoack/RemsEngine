@@ -2,6 +2,7 @@ package me.anno.graph.render.effects
 
 import me.anno.ecs.components.shaders.effects.Bloom
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
@@ -32,7 +33,7 @@ class BloomNode : ActionNode(
         val color = ((getInput(4) as? Texture)?.tex as? Texture2D) ?: return
 
         val target = if (applyToneMapping) TargetType.UByteTarget4 else TargetType.FP16Target4
-        val result = FBStack[name, color.width, color.height, target, 1, false]
+        val result = FBStack[name, color.width, color.height, target, 1, DepthBufferType.NONE]
         useFrame(result) {
             Bloom.bloom(color, offset, strength, applyToneMapping)
         }

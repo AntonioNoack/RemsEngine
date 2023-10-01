@@ -3,7 +3,7 @@ package me.anno.gpu.shader
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -18,7 +18,7 @@ import me.anno.utils.files.UVChecker
  * defines render targets combined with post-processing
  * @param deferredSettings null if not rendering multiple targets
  * */
-open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? = null) {
+open class Renderer(val name: String, val deferredSettings: DeferredSettings? = null) {
 
     open fun getPostProcessing(flags: Int): List<ShaderStage> = emptyList()
 
@@ -126,6 +126,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettingsV2? 
                 ), "if(finalAlpha<0.01) discard; finalResult = vec4(zDistance, 0.0, zDistance * zDistance, 1.0);\n"
             )
         )
+
         val copyRenderer = Renderer("copy", null)
         val triangleVisRenderer = SimpleRenderer(
             "triangleVis", ShaderStage(

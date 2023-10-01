@@ -38,5 +38,12 @@ enum class GLSLType(val glslName: String, val id: Int, val components: Int, val 
         val integers = arrayOf(V1I, V2I, V3I, V4I)
         val booleans = arrayOf(V1B, V2B, V3B, V4B)
         val values = values()
+        fun withoutShadow(type: GLSLType): GLSLType {
+            return when (type) {
+                S2DShadow -> S2D
+                SCubeShadow -> SCube
+                else -> type
+            }
+        }
     }
 }

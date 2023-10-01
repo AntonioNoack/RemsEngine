@@ -457,7 +457,8 @@ class PipelineStage(
                                         val cascades = light.shadowTextures ?: continue
                                         val slot = cubicIndex0 + cubicSlot
                                         if (slot > maxTextureIndex) continue
-                                        val texture = cascades[0].depthTexture!!
+                                        val cascade = cascades[0]
+                                        val texture = cascade.depthTexture ?: cascade.getTexture0()
                                         // bind the texture, and don't you dare to use mipmapping ^^
                                         // (at least without variance shadow maps)
                                         texture.bind(slot, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
@@ -471,7 +472,8 @@ class PipelineStage(
                                         for (j in cascades.indices) {
                                             val slot = planarIndex0 + planarSlot
                                             if (slot > maxTextureIndex) break
-                                            val texture = cascades[j].depthTexture!!
+                                            val cascade = cascades[j]
+                                            val texture = cascade.depthTexture ?: cascade.getTexture0()
                                             // bind the texture, and don't you dare to use mipmapping ^^
                                             // (at least without variance shadow maps)
                                             texture.bind(slot, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)

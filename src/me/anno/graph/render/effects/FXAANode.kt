@@ -1,6 +1,7 @@
 package me.anno.graph.render.effects
 
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.effects.FXAA
@@ -23,11 +24,10 @@ class FXAANode : ActionNode(
     override fun executeAction() {
         val threshold = getInput(1) as Float
         val color = ((getInput(2) as? Texture)?.tex as? Texture2D) ?: return
-        val framebuffer = FBStack[name, color.width, color.height, 4, false, 1, false]
+        val framebuffer = FBStack[name, color.width, color.height, 4, false, 1, DepthBufferType.NONE]
         useFrame(color.width, color.height, true, framebuffer, copyRenderer) {
             FXAA.render(color, threshold)
         }
-        val result = framebuffer.getTexture0()
-        setOutput(1, Texture(result))
+        setOutput(1, Texture.texture(framebuffer, 0))
     }
 }

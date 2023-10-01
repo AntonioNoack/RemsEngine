@@ -3,6 +3,7 @@ package me.anno.tests.ecs
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.CylinderModel
 import me.anno.ecs.components.mesh.shapes.PlaneModel
@@ -57,7 +58,7 @@ fun main() {
     mirror1.scale = mirror1.scale.set(10.0)
 
     val sample = Entity("Cylinder", scene)
-    sample.add(MeshComponent(CylinderModel.createMesh(32, 2, top = true, bottom = true)))
+    sample.add(MeshComponent(CylinderModel.createMesh(32, 2, top = true, bottom = true, null, 3f, Mesh())))
     sample.position = sample.position.set(0.0, -0.35, 0.0)
     sample.scale = sample.scale.set(0.2)
 

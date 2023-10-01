@@ -2,6 +2,7 @@ package me.anno.gpu.shader.effects
 
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -57,8 +58,8 @@ object ShapedBlur {
 
     fun applyFilter(src0: ITexture2D, shader: Shader, stages: Int, fp: Boolean, scale0: Float = 1f): ITexture2D {
         var src: ITexture2D = src0
-        val dst0 = FBStack["d0", src.width, src.height, 4, fp, 1, false]
-        val dst1 = FBStack["d1", src.width, src.height, 4, fp, 1, false]
+        val dst0 = FBStack["d0", src.width, src.height, 4, fp, 1, DepthBufferType.NONE]
+        val dst1 = FBStack["d1", src.width, src.height, 4, fp, 1, DepthBufferType.NONE]
         shader.use()
         for (i in 0 until stages) {
             val target = if (i.hasFlag(1)) dst1 else dst0

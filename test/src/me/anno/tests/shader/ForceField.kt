@@ -11,6 +11,7 @@ import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFXState
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -83,7 +84,7 @@ fun main() {
                 var depth = findDepthTexture(GFXState.framebuffer.currentValue)
                 if (depth == null) println("no depth was found!")
                 if (Input.isShiftDown && depth is Framebuffer) {
-                    val tmp = FBStack["depth", depth.width, depth.height, 1, true, 1, true]
+                    val tmp = FBStack["depth", depth.width, depth.height, 1, true, 1, DepthBufferType.TEXTURE]
                     depth.copyTo(tmp, GL_DEPTH_BUFFER_BIT)
                     depth = tmp
                 }

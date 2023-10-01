@@ -1,6 +1,6 @@
 package me.anno.gpu.shader.builder
 
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Shader
@@ -9,7 +9,7 @@ import kotlin.math.max
 
 class ShaderBuilder(val name: String) {
 
-    constructor(name: String, settingsV2: DeferredSettingsV2?) : this(name) {
+    constructor(name: String, settingsV2: DeferredSettings?) : this(name) {
         outputs = settingsV2
     }
 
@@ -23,7 +23,7 @@ class ShaderBuilder(val name: String) {
 
     val fragment = MainStage()
 
-    var outputs: DeferredSettingsV2? = null
+    var outputs: DeferredSettings? = null
     var disabledLayers: BitSet? = null
 
     var glslVersion = OpenGLShader.DefaultGLSLVersion
@@ -70,8 +70,6 @@ class ShaderBuilder(val name: String) {
         val (vertexDefined, vertexUniforms) = vertex.findImportsAndDefineValues(null, emptySet(), emptySet())
         fragment.findImportsAndDefineValues(vertex, vertexDefined, vertexUniforms)
 
-        // LOGGER.info("Vertex-Defined: $vertexDefined, Vertex-Uniforms: $vertexUniforms")
-
         // variables, that fragment imports & exports & vertex exports
         val bridgeVariables = HashMap<Variable, Variable>()
         for (variable in vertexDefined) {
@@ -82,7 +80,6 @@ class ShaderBuilder(val name: String) {
                         // the stage uses it -> might be relevant
                         if (stage.variables.any { it.isModified && name == it.name }) {
                             // the stage also exports it ->
-                            // LOGGER.info("Bridge is being created for $variable")
                             bridgeVariables[variable] =
                                 Variable(variable.type, "bridge_${bridgeVariables.size}", variable.arraySize)
                         }

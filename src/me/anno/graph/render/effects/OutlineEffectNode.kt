@@ -2,6 +2,7 @@ package me.anno.graph.render.effects
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
@@ -59,9 +60,9 @@ class OutlineEffectNode : RenderSceneNode0(
         val fillColors1 = fillColors.filterIsInstance<Vector4f>().toTypedArray()
         val lineColors1 = lineColors.filterIsInstance<Vector4f>().toTypedArray()
         val rv = renderView
-        val ids = FBStack["ids", w, h, 1, false, samples, true]
+        val ids = FBStack["ids", w, h, 1, false, samples, DepthBufferType.INTERNAL]
         rv.drawScene(w, h, Renderer.groupRenderer, ids, changeSize = false, hdr = false)
-        val dst = FBStack["outline", w, h, 4, true, samples, false]
+        val dst = FBStack["outline", w, h, 4, true, samples, DepthBufferType.NONE]
         GFXState.useFrame(dst) {
             render(
                 color.tex, ids.getTexture0(),

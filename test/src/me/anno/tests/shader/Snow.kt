@@ -13,6 +13,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.BufferQuality
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
@@ -170,7 +171,7 @@ class SnowNode : ActionNode(
     override fun executeAction() {
         val colorTex = (getInput(1) as Texture).tex
         val depthTex = (getInput(2) as Texture).tex
-        val result = FBStack["snow", colorTex.width, colorTex.height, 4, BufferQuality.HIGH_16, 1, false]
+        val result = FBStack["snow", colorTex.width, colorTex.height, 4, BufferQuality.HIGH_16, 1, DepthBufferType.NONE]
         useFrame(result, Renderer.copyRenderer) {
             val shader = snowShader
             shader.use()

@@ -22,6 +22,7 @@ import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
@@ -359,7 +360,7 @@ open class FileExplorerEntry(
                 )
                 val aspect = w.toFloat() / h
                 if (samples > 1) {
-                    val tmp = FBStack["tmp", w, h, 4, false, 8, true] // msaa; probably should depend on gfx settings
+                    val tmp = FBStack["tmp", w, h, 4, false, 8, DepthBufferType.INTERNAL] // msaa; probably should depend on gfx settings
                     GFXState.useFrame(0, 0, w, h, tmp, Renderers.simpleNormalRenderer) {
                         GFXState.depthMode.use(DepthMode.CLOSE) {
                             tmp.clearColor(backgroundColor, true)

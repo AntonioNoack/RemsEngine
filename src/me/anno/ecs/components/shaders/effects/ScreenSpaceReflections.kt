@@ -4,8 +4,8 @@ import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
-import me.anno.gpu.deferred.DeferredSettingsV2.Companion.singleToVector
+import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
@@ -27,6 +27,8 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.Texture2D
+import me.anno.graph.render.Texture
 import org.joml.Matrix4f
 import org.joml.Vector4f
 
@@ -43,11 +45,12 @@ object ScreenSpaceReflections {
             Variable(GLSLType.S2D, "finalColor"),
             Variable(GLSLType.S2D, "finalIlluminated"),
             Variable(GLSLType.S2D, "finalDepth"),
+            Variable(GLSLType.V4F, "depthMask"),
             Variable(GLSLType.S2D, "finalNormal"),
             // reflectivity = metallic * (1-roughness),
             Variable(GLSLType.S2D, "finalMetallic"),
-            Variable(GLSLType.S2D, "finalRoughness"),
             Variable(GLSLType.V4F, "metallicMask"),
+            Variable(GLSLType.S2D, "finalRoughness"),
             Variable(GLSLType.V4F, "roughnessMask"),
             Variable(GLSLType.V1F, "resolution"),
             Variable(GLSLType.V1I, "steps"),
@@ -94,7 +97,7 @@ object ScreenSpaceReflections {
                     "   vec2  texSize  = vec2(texSizeI);\n" +
                     "   ivec2 uvi = clamp(ivec2(uv*texSize),ivec2(0,0),texSizeI-1);\n" +
 
-                    "   vec3 positionFrom = rawDepthToPosition(uv,texelFetch(finalDepth,uvi,0).r);\n" +
+                    "   vec3 positionFrom = rawDepthToPosition(uv,dot(texelFetch(finalDepth,uvi,0),depthMask));\n" +
 
                     "   vec4 normalData = texture(finalNormal, uv);\n" +
                     "   vec3 normal     = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
@@ -145,7 +148,8 @@ object ScreenSpaceReflections {
 
                     "       dstUV += increment;\n" +
                     "       if(dstUV.x < 0.0 || dstUV.y < 0.0 || dstUV.x >= 1.0 || dstUV.y >= 1.0) break;\n" +
-                    "       positionTo = rawDepthToPosition(dstUV,texelFetch(finalDepth,ivec2(dstUV*texSize),0).r);\n" +
+                    "       float depthTo = dot(texelFetch(finalDepth,ivec2(dstUV*texSize),0),depthMask);\n" +
+                    "       positionTo = rawDepthToPosition(dstUV,depthTo);\n" +
 
                     "       fraction1 = useX ? (dstUV.x - uv.x) / deltaXY.x : (dstUV.y - uv.y) / deltaXY.y;\n" +
 
@@ -173,7 +177,8 @@ object ScreenSpaceReflections {
                     "       float fractionI = mix(fraction0, fraction1, float(i)/float(steps));\n" +
 
                     "       dstUV      = mix(uv, endUV, fractionI);\n" +
-                    "       positionTo = rawDepthToPosition(dstUV,texelFetch(finalDepth,ivec2(dstUV*texSize),0).r);\n" +
+                    "       float depthTo = dot(texelFetch(finalDepth,ivec2(dstUV*texSize),0),depthMask);\n" +
+                    "       positionTo = rawDepthToPosition(dstUV,depthTo);\n" +
 
                     "       viewDistance = (startDistance * endDistance) / mix(endDistance, startDistance, fractionI);\n" +
                     "       depth        = viewDistance - length(positionTo);\n" +
@@ -210,60 +215,12 @@ object ScreenSpaceReflections {
 
     val shader = createShader()
 
-    fun compute(
-        buffer: IFramebuffer,
-        illuminated: ITexture2D,
-        deferred: DeferredSettingsV2,
-        transform: Matrix4f,
-        applyToneMapping: Boolean,
-        dst: Framebuffer = FBStack["ss-reflections", buffer.width, buffer.height, 4, true, 1, false]
-    ) = compute(
-        buffer, illuminated, deferred, transform,
-        1f, 1f, 0.2f,
-        16, applyToneMapping, dst
-    )
-
-    /**
-     * computes screen space reflections from metallic, roughness, normal, position and color buffers
-     * */
-    fun compute(
-        buffer: IFramebuffer,
-        illuminated: ITexture2D,
-        deferred: DeferredSettingsV2,
-        transform: Matrix4f,
-        strength: Float, // 1f
-        maskSharpness: Float, // 1f
-        wallThickness: Float, // 0.2f
-        fineSteps: Int, // 10 are enough, if there are only rough surfaces
-        applyToneMapping: Boolean,
-        dst: Framebuffer = FBStack["ss-reflections", buffer.width, buffer.height, 4, true, 1, false]
-    ): ITexture2D? {
-        // metallic may be on r, g, b, or a
-        val metallicLayer = deferred.findLayer(DeferredLayerType.METALLIC) ?: return null
-        val metallicMask = metallicLayer.mapping
-        val roughnessLayer = deferred.findLayer(DeferredLayerType.ROUGHNESS) ?: return null
-        val roughnessMask = roughnessLayer.mapping
-        val normalTexture = deferred.findTexture(buffer, DeferredLayerType.NORMAL) ?: return null
-        val colorTexture = deferred.findTexture(buffer, DeferredLayerType.COLOR) ?: return null
-        val metallic = deferred.findTexture(buffer, metallicLayer)!!
-        val roughness = deferred.findTexture(buffer, roughnessLayer)!!
-        return compute(
-            buffer.depthTexture!!,
-            normalTexture, deferred.zw(DeferredLayerType.NORMAL),
-            colorTexture, metallic,
-            singleToVector[metallicMask]!!, roughness,
-            singleToVector[roughnessMask]!!, illuminated,
-            transform, strength,
-            maskSharpness, wallThickness, fineSteps, applyToneMapping,
-            dst
-        ).getTexture0()
-    }
-
     /**
      * computes screen space reflections from metallic, roughness, normal, position and color buffers
      * */
     fun compute(
         depth: ITexture2D,
+        depthMask: Vector4f,
         normal: ITexture2D,
         normalZW: Boolean,
         color: ITexture2D,
@@ -278,7 +235,7 @@ object ScreenSpaceReflections {
         wallThickness: Float, // 0.2f
         fineSteps: Int, // 10 are enough, if there are only rough surfaces
         applyToneMapping: Boolean,
-        dst: IFramebuffer = FBStack["ss-reflections", depth.width, depth.height, 4, true, 1, false]
+        dst: IFramebuffer
     ): IFramebuffer {
         // metallic may be on r, g, b, or a
         useFrame(dst, Renderer.copyRenderer) {
@@ -294,6 +251,7 @@ object ScreenSpaceReflections {
             shader.v1b("normalZW", normalZW)
             val n = GPUFiltering.TRULY_LINEAR
             val c = Clamping.CLAMP
+            shader.v4f("depthMask", depthMask)
             shader.v4f("metallicMask", metallicMask)
             shader.v4f("roughnessMask", roughnessMask)
             bindDepthToPosition(shader)

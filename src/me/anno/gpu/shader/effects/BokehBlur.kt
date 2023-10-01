@@ -3,9 +3,7 @@ package me.anno.gpu.shader.effects
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
@@ -35,7 +33,7 @@ object BokehBlur {
 
     private val filterTexture = Texture2D("bokeh", KERNEL_COUNT, 1, 1)
 
-    fun draw(srcTexture: Texture2D, target: Framebuffer, relativeToH: Float, fp: Boolean) {
+    fun draw(srcTexture: Texture2D, target: IFramebuffer, relativeToH: Float, fp: Boolean) {
 
         val w = min(srcTexture.width, target.width)
         val h = min(srcTexture.height, target.height)
@@ -44,10 +42,10 @@ object BokehBlur {
 
         renderPurely {
 
-            val r = FBStack["bokeh-r", w, h, 4, fp, 1, false]
-            val g = FBStack["bokeh-g", w, h, 4, fp, 1, false]
-            val b = FBStack["bokeh-b", w, h, 4, fp, 1, false]
-            val a = FBStack["bokeh-a", w, h, 4, fp, 1, false]
+            val r = FBStack["bokeh-r", w, h, 4, fp, 1, DepthBufferType.NONE]
+            val g = FBStack["bokeh-g", w, h, 4, fp, 1, DepthBufferType.NONE]
+            val b = FBStack["bokeh-b", w, h, 4, fp, 1, DepthBufferType.NONE]
+            val a = FBStack["bokeh-a", w, h, 4, fp, 1, DepthBufferType.NONE]
 
             val pixelRadius = relativeToH * h
             val normRadius = pixelRadius / KERNEL_RADIUS
@@ -78,10 +76,9 @@ object BokehBlur {
 
             }
         }
-
     }
 
-    fun drawChannel(shader: Shader, target: Framebuffer, w: Int, h: Int, channel: Vector4f) {
+    fun drawChannel(shader: Shader, target: IFramebuffer, w: Int, h: Int, channel: Vector4f) {
         useFrame(w, h, false, target) {
             Frame.bind()
             shader.v4f("channelSelection", channel)
@@ -247,7 +244,6 @@ object BokehBlur {
         }
 
         filterTexture.createRGBA(kernelTexture, false)
-
     }
 
     fun destroy() {
@@ -255,5 +251,4 @@ object BokehBlur {
         compositionShader?.destroy()
         perChannelShader?.destroy()
     }
-
 }

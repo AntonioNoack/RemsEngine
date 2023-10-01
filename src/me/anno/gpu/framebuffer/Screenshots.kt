@@ -31,7 +31,7 @@ object Screenshots {
     fun getPixels(
         diameter: Int,
         lx: Int, ly: Int,
-        fb: Framebuffer,
+        fb: IFramebuffer,
         renderer: Renderer,
         buffer: Any,
         format: Int,
@@ -67,7 +67,7 @@ object Screenshots {
     fun getU8RGBAPixels(
         diameter: Int,
         lx: Int, ly: Int,
-        fb: Framebuffer,
+        fb: IFramebuffer,
         renderer: Renderer,
         drawScene: () -> Unit
     ): IntArray {
@@ -91,7 +91,7 @@ object Screenshots {
     fun getFP32RPixels(
         diameter: Int,
         lx: Int, ly: Int,
-        fb: Framebuffer,
+        fb: IFramebuffer,
         renderer: Renderer,
         drawScene: () -> Unit
     ): FloatArray {
@@ -157,7 +157,7 @@ object Screenshots {
 
             GFX.check()
 
-            val fb = FBStack["Screenshot", w, h, 4, false, 8, true]
+            val fb = FBStack["Screenshot", w, h, 4, false, 8, DepthBufferType.INTERNAL]
 
             GFX.check()
 

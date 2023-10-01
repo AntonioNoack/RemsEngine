@@ -3,7 +3,9 @@ package me.anno.tests.poisson
 import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
+import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.image.Image
@@ -83,7 +85,7 @@ fun main() {
 
     HiddenOpenGLContext.createOpenGL(original.width, original.height)
 
-    val originalFB = FBStack["original", original.width, original.height, 3, false, 1, false]
+    val originalFB = FBStack["original", original.width, original.height, 3, false, 1, DepthBufferType.NONE] as Framebuffer
     useFrame(originalFB) {
         GFX.copy(ImageGPUCache[src, false]!!)
     }

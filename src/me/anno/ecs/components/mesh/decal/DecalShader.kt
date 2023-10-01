@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.decal.DecalMaterial.Companion.sett
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -139,7 +139,7 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
     }
 
     override fun createDeferredShader(
-        deferred: DeferredSettingsV2,
+        deferred: DeferredSettings,
         flags: Int,
         postProcessing: List<ShaderStage>
     ): Shader {

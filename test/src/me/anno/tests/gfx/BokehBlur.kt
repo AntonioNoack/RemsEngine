@@ -1,6 +1,7 @@
 package me.anno.tests.gfx
 
 import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.effects.BokehBlur
 import me.anno.image.ImageGPUCache
@@ -10,7 +11,7 @@ import kotlin.math.max
 
 fun main() {
     testDrawing("Bokeh Blur") {
-        val dst = FBStack["bokeh", it.width, it.height, 3, true, 1, false]
+        val dst = FBStack["bokeh", it.width, it.height, 3, true, 1, DepthBufferType.NONE]
         val src = ImageGPUCache[pictures.getChild("4k.jpg"), false]!!
         val window = it.window!!
         DrawTextures.drawTexture(it.x, it.y, it.width, it.height, src) // no idea why that's needed :/

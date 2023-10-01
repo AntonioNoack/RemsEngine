@@ -10,8 +10,10 @@ import me.anno.engine.ui.render.RendererLib.lightCode
 import me.anno.engine.ui.render.RendererLib.skyMapCode
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.BaseShader.Companion.IS_DEFERRED
+import me.anno.gpu.shader.DepthTransforms.depthVars
+import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
@@ -308,6 +310,8 @@ object Renderers {
                     "finalResult.rgb += 0.5;\n"
             DeferredLayerType.NORMAL, DeferredLayerType.TANGENT, DeferredLayerType.BITANGENT ->
                 "finalResult = vec4(${type.glslName}*0.5+0.5, 1.0);\n"
+            DeferredLayerType.DEPTH ->
+                "finalResult = vec4(vec3(fract(log2(max(gl_FragCoord.z, 1e-36)))),1.0);\n"
             else -> {
                 val prefix = if (type == DeferredLayerType.COLOR || type == DeferredLayerType.EMISSIVE) colorToSRGB
                 else ""
@@ -332,11 +336,11 @@ object Renderers {
 
     @JvmField
     val rawAttributeRenderers = LazyMap({ type: DeferredLayerType ->
-        SimpleRenderer(type.name, DeferredSettingsV2(listOf(type), 1, false), emptyList())
+        SimpleRenderer(type.name, DeferredSettings(listOf(type)), emptyList())
     }, DeferredLayerType.values.size)
 
     @JvmField
-    val attributeEffects: Map<Pair<DeferredLayerType, DeferredSettingsV2>, Shader?> =
+    val attributeEffects: Map<Pair<DeferredLayerType, DeferredSettings>, Shader?> =
         LazyMap({ (type, settings) ->
             val layer = settings.findLayer(type)
             if (layer != null) {
@@ -345,8 +349,9 @@ object Renderers {
                     type.name, coordsList, coordsVShader, uvList, listOf(
                         Variable(GLSLType.S2D, "source"),
                         Variable(GLSLType.V4F, "result", VariableMode.OUT)
-                    ), "" +
+                    ) + depthVars, "" +
                             octNormalPacking +
+                            rawToDepth +
                             "void main(){\n" +
                             "   $type2 data = ${type.dataToWork}(texture(source,uv).${layer.mapping});\n" +
                             "   vec3 color = " +

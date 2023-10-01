@@ -3,6 +3,9 @@ package me.anno.graph.render.effects
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
@@ -51,13 +54,18 @@ class GizmoNode : RenderSceneNode0(
         val debug = getInput(6) == true
 
         val colorT = ((getInput(7) as? Texture)?.tex as? Texture2D)
-        val depthT = ((getInput(8) as? Texture)?.tex as? Texture2D)
+        val depth = getInput(8) as? Texture
+        val depthT = (depth?.tex as? Texture2D)
 
-
-        val framebuffer = FBStack[name, width, height, 4, false, samples, true]
+        val readsDepth = isOutputUsed(outputs!![2]) && GFX.maxSamples > 1 // else we can't cast to Framebuffeer
+        val framebuffer = FBStack[
+            name, width, height, 4, false, samples,
+            if (readsDepth) DepthBufferType.TEXTURE else DepthBufferType.INTERNAL
+        ] as Framebuffer
 
         GFX.check()
 
+        framebuffer.ensure()
         GFXState.useFrame(width, height, true, framebuffer, copyRenderer) {
             copyColorAndDepth(colorT, depthT, framebuffer)
             GFXState.depthMode.use(renderView.pipeline.defaultStage.depthMode) {
@@ -68,10 +76,17 @@ class GizmoNode : RenderSceneNode0(
         }
 
         setOutput(1, Texture.texture(framebuffer, 0))
-        setOutput(2, Texture.depth(framebuffer))
+        setOutput(2, if (readsDepth) Texture.depth(framebuffer) else null)
     }
 
     companion object {
+        val settings by lazy {
+            DeferredSettings(
+                if (GFX.supportsDepthTextures) listOf(DeferredLayerType.COLOR, DeferredLayerType.ALPHA) else
+                    listOf(DeferredLayerType.COLOR, DeferredLayerType.ALPHA, DeferredLayerType.DEPTH)
+            )
+        }
+
         fun copyColorAndDepth(colorT: Texture2D?, depthT: Texture2D?, framebuffer: Framebuffer) {
             val color = colorT?.owner
             val depth = depthT?.owner

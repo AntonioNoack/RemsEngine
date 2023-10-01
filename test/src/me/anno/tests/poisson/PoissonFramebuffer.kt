@@ -3,6 +3,7 @@ package me.anno.tests.poisson
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
@@ -154,7 +155,7 @@ class PoissonFramebuffer : PoissonReconstruction<Framebuffer> {
     }
 
     override fun Framebuffer.next(): Framebuffer {
-        return FBStack["pf", width, height, 3, true, 1, false]
+        return FBStack["pf", width, height, 3, true, 1, DepthBufferType.NONE] as Framebuffer
     }
 
     fun Framebuffer.dx(dx: Int, dy: Int, dst: Framebuffer): Framebuffer {

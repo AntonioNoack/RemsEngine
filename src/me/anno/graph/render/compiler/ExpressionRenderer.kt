@@ -3,6 +3,7 @@ package me.anno.graph.render.compiler
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.GLSLType
@@ -90,7 +91,7 @@ interface ExpressionRenderer {
         }
         this.shader = shader
 
-        val buffer = FBStack["expr-renderer", w, h, channels, fp, samples, false]
+        val buffer = FBStack["expr-renderer", w, h, channels, fp, samples, DepthBufferType.NONE]
         GFXState.useFrame(w, h, true, buffer) {
             GFXState.renderPurely {
                 shader.use()

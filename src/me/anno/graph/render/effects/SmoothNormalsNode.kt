@@ -4,6 +4,7 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
@@ -37,7 +38,7 @@ class SmoothNormalsNode : ActionNode(
         val normal = normalTex.tex
         val depth = ((getInput(3) as? Texture)?.tex as? Texture2D) ?: return
         val target = TargetType.FP16Target2 // depends a bit on quality..., could be RG8 for Android
-        val result = FBStack[name, normal.width, normal.height, target, 1, false]
+        val result = FBStack[name, normal.width, normal.height, target, 1, DepthBufferType.NONE]
         if (smoothNormals(normal, normalTex.mapping == "zw", depth, result, radius)) {
             setOutput(1, Texture.texture(result, 0, "xy", DeferredLayerType.NORMAL))
         } else {
@@ -121,7 +122,7 @@ class SmoothNormalsNode : ActionNode(
         ): Boolean {
             if (radius <= 0.5f) return false
             // input = output, so copy normal to avoid data races
-            val tmp = FBStack["tmpNormal", dst.width, dst.height, TargetType.FP16Target3, 1, false]
+            val tmp = FBStack["tmpNormal", dst.width, dst.height, TargetType.FP16Target3, 1, DepthBufferType.NONE]
             GFXState.depthMode.use(DepthMode.ALWAYS) {
                 GFXState.useFrame(tmp) {
                     val shader = unpackShader

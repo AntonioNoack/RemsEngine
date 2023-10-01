@@ -1,12 +1,12 @@
 package me.anno.gpu.shader
 
-import me.anno.gpu.deferred.DeferredSettingsV2
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.builder.ShaderStage
 
 open class SimpleRenderer(
     name: String,
     // null, if not deferred
-    deferredSettings: DeferredSettingsV2?,
+    deferredSettings: DeferredSettings?,
     private val postProcessingImpl: List<ShaderStage>
 ) : Renderer(name, deferredSettings) {
 

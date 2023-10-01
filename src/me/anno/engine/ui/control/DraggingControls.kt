@@ -180,7 +180,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     override fun drawGizmos() {
         GFXState.depthMode.use(DepthMode.ALWAYS) {
-            GFXState.depthMask.use(view.renderMode == RenderMode.DEPTH) {
+            GFXState.depthMask.use(false) {
                 drawGizmos2()
             }
         }
