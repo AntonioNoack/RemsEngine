@@ -1,6 +1,11 @@
 package org.joml
 
-open class Planed(var dirX: Double, var dirY: Double, var dirZ: Double, var distance: Double) {
+open class Planed(
+    @JvmField var dirX: Double,
+    @JvmField var dirY: Double,
+    @JvmField var dirZ: Double,
+    @JvmField var distance: Double
+) {
 
     constructor() : this(0.0, 0.0, 0.0, 0.0)
 

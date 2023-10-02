@@ -3,38 +3,24 @@ package org.joml
 import kotlin.math.*
 
 @Suppress("unused")
-open class Quaterniond {
-    var x = 0.0
-    var y = 0.0
-    var z = 0.0
-    var w: Double
+open class Quaterniond(
+    @JvmField var x: Double,
+    @JvmField var y: Double,
+    @JvmField var z: Double,
+    @JvmField var w: Double
+) {
 
-    constructor() {
-        w = 1.0
-    }
+    constructor() : this(0.0, 0.0, 0.0, 1.0)
 
-    constructor(x: Double, y: Double, z: Double, w: Double) {
-        this.x = x
-        this.y = y
-        this.z = z
-        this.w = w
-    }
+    constructor(source: Quaterniond) : this(source.x, source.y, source.z, source.w)
+    constructor(source: Quaternionf) : this(
+        source.x.toDouble(),
+        source.y.toDouble(),
+        source.z.toDouble(),
+        source.w.toDouble()
+    )
 
-    constructor(source: Quaterniond) {
-        x = source.x
-        y = source.y
-        z = source.z
-        w = source.w
-    }
-
-    constructor(source: Quaternionf) {
-        x = source.x.toDouble()
-        y = source.y.toDouble()
-        z = source.z.toDouble()
-        w = source.w.toDouble()
-    }
-
-    constructor(axisAngle: AxisAngle4f) {
+    constructor(axisAngle: AxisAngle4f) : this() {
         val s = sin(axisAngle.angle.toDouble() * 0.5)
         x = axisAngle.x.toDouble() * s
         y = axisAngle.y.toDouble() * s
@@ -42,7 +28,7 @@ open class Quaterniond {
         w = cos(axisAngle.angle.toDouble() * 0.5)
     }
 
-    constructor(axisAngle: AxisAngle4d) {
+    constructor(axisAngle: AxisAngle4d) : this() {
         val s = sin(axisAngle.angle * 0.5)
         x = axisAngle.x * s
         y = axisAngle.y * s
@@ -1399,57 +1385,52 @@ open class Quaterniond {
         var q2z = q.z
         var q2w = q.w
         var dot = q1x * q2x + q1y * q2y + q1z * q2z + q1w * q2w
-        var absDot = abs(dot)
-        return if (0.999999 < absDot) {
-            dst.set(this)
-        } else {
-            var alphaN: Double
-            var scale0: Double
-            var scale1: Double
-            alphaN = alpha
-            while (absDot < dotThreshold) {
-                scale0 = 0.5
-                scale1 = if (dot >= 0.0) 0.5 else -0.5
-                var s: Float
-                if (alphaN < 0.5) {
-                    q2x = scale0 * q2x + scale1 * q1x
-                    q2y = scale0 * q2y + scale1 * q1y
-                    q2z = scale0 * q2z + scale1 * q1z
-                    q2w = scale0 * q2w + scale1 * q1w
-                    s = JomlMath.invsqrt(q2x * q2x + q2y * q2y + q2z * q2z + q2w * q2w).toFloat()
-                    q2x *= s.toDouble()
-                    q2y *= s.toDouble()
-                    q2z *= s.toDouble()
-                    q2w *= s.toDouble()
-                    alphaN += alphaN
-                } else {
-                    q1x = scale0 * q1x + scale1 * q2x
-                    q1y = scale0 * q1y + scale1 * q2y
-                    q1z = scale0 * q1z + scale1 * q2z
-                    q1w = scale0 * q1w + scale1 * q2w
-                    s = JomlMath.invsqrt(q1x * q1x + q1y * q1y + q1z * q1z + q1w * q1w).toFloat()
-                    q1x *= s.toDouble()
-                    q1y *= s.toDouble()
-                    q1z *= s.toDouble()
-                    q1w *= s.toDouble()
-                    alphaN = alphaN + alphaN - 1.0
-                }
-                dot = q1x * q2x + q1y * q2y + q1z * q2z + q1w * q2w
-                absDot = abs(dot)
-            }
-            scale0 = 1.0 - alphaN
-            scale1 = if (dot >= 0.0) alphaN else -alphaN
-            val resX = scale0 * q1x + scale1 * q2x
-            val resY = scale0 * q1y + scale1 * q2y
-            val resZ = scale0 * q1z + scale1 * q2z
-            val resW = scale0 * q1w + scale1 * q2w
-            val s = JomlMath.invsqrt(resX * resX + resY * resY + resZ * resZ + resW * resW)
-            dst.x = resX * s
-            dst.y = resY * s
-            dst.z = resZ * s
-            dst.w = resW * s
-            dst
+        var absDot = Math.abs(dot)
+        if (1.0 - 1E-6 < absDot) {
+            return dst.set(this)
         }
+        var alphaN = alpha
+        while (absDot < dotThreshold) {
+            val scale0 = 0.5
+            val scale1 = if (dot >= 0.0) 0.5 else -0.5
+            if (alphaN < 0.5) {
+                q2x = scale0 * q2x + scale1 * q1x
+                q2y = scale0 * q2y + scale1 * q1y
+                q2z = scale0 * q2z + scale1 * q1z
+                q2w = scale0 * q2w + scale1 * q1w
+                val s = JomlMath.invsqrt(q2x * q2x + q2y * q2y + q2z * q2z + q2w * q2w)
+                q2x *= s
+                q2y *= s
+                q2z *= s
+                q2w *= s
+                alphaN = alphaN + alphaN
+            } else {
+                q1x = scale0 * q1x + scale1 * q2x
+                q1y = scale0 * q1y + scale1 * q2y
+                q1z = scale0 * q1z + scale1 * q2z
+                q1w = scale0 * q1w + scale1 * q2w
+                val s = JomlMath.invsqrt(q1x * q1x + q1y * q1y + q1z * q1z + q1w * q1w)
+                q1x *= s
+                q1y *= s
+                q1z *= s
+                q1w *= s
+                alphaN = alphaN + alphaN - 1.0
+            }
+            dot = q1x * q2x + q1y * q2y + q1z * q2z + q1w * q2w
+            absDot = Math.abs(dot)
+        }
+        val scale0 = 1.0 - alphaN
+        val scale1 = if (dot >= 0.0) alphaN else -alphaN
+        val resX = scale0 * q1x + scale1 * q2x
+        val resY = scale0 * q1y + scale1 * q2y
+        val resZ = scale0 * q1z + scale1 * q2z
+        val resW = scale0 * q1w + scale1 * q2w
+        val s = JomlMath.invsqrt(resX * resX + resY * resY + resZ * resZ + resW * resW)
+        dst.x = resX * s
+        dst.y = resY * s
+        dst.z = resZ * s
+        dst.w = resW * s
+        return dst
     }
 
     fun lookAlong(dir: Vector3d, up: Vector3d): Quaterniond {
@@ -1856,9 +1837,9 @@ open class Quaterniond {
     }
 
     fun getEulerAnglesZYX(eulerAngles: Vector3d): Vector3d {
-        eulerAngles.x = atan2(y * z + w * x, 0.5 - x * x + y * y)
-        eulerAngles.y = JomlMath.safeAsin(-2.0 * (x * z - w * y))
-        eulerAngles.z = atan2(x * y + w * z, 0.5 - y * y - z * z)
+        eulerAngles.x = Math.atan2(y * z + w * x, 0.5 - x * x - y * y);
+        eulerAngles.y = JomlMath.safeAsin(-2.0 * (x * z - w * y));
+        eulerAngles.z = Math.atan2(x * y + w * z, 0.5 - y * y - z * z);
         return eulerAngles
     }
 

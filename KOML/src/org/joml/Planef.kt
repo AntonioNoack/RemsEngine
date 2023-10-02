@@ -1,6 +1,11 @@
 package org.joml
 
-open class Planef(var dirX: Float, var dirY: Float, var dirZ: Float, var distance: Float) {
+open class Planef(
+    @JvmField var dirX: Float,
+    @JvmField var dirY: Float,
+    @JvmField var dirZ: Float,
+    @JvmField var distance: Float
+) {
 
     constructor() : this(0f, 0f, 0f, 0f)
 

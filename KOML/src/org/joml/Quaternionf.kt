@@ -3,39 +3,19 @@ package org.joml
 import kotlin.math.*
 
 @Suppress("unused")
-open class Quaternionf {
-    var x = 0f
-    var y = 0f
-    var z = 0f
-    var w = 0f
+open class Quaternionf(
+    @JvmField var x: Float,
+    @JvmField var y: Float,
+    @JvmField var z: Float,
+    @JvmField var w: Float
+) {
 
-    constructor() {
-        w = 1f
-    }
+    constructor() : this(0f, 0f, 0f, 1f)
+    constructor(x: Double, y: Double, z: Double, w: Double): this(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat())
+    constructor(source: Quaternionf) : this(source.x, source.y, source.z, source.w)
+    constructor(source: Quaterniond) : this(source.x, source.y, source.z, source.w)
 
-    constructor(x: Double, y: Double, z: Double, w: Double) {
-        this.x = x.toFloat()
-        this.y = y.toFloat()
-        this.z = z.toFloat()
-        this.w = w.toFloat()
-    }
-
-    constructor(x: Float, y: Float, z: Float, w: Float) {
-        this.x = x
-        this.y = y
-        this.z = z
-        this.w = w
-    }
-
-    constructor(source: Quaternionf) {
-        this.set(source)
-    }
-
-    constructor(source: Quaterniond) {
-        this.set(source)
-    }
-
-    constructor(axisAngle: AxisAngle4f) {
+    constructor(axisAngle: AxisAngle4f) : this() {
         val sin = sin(axisAngle.angle * 0.5f)
         val cos = cos(axisAngle.angle * 0.5f)
         x = axisAngle.x * sin
@@ -44,7 +24,7 @@ open class Quaternionf {
         w = cos
     }
 
-    constructor(axisAngle: AxisAngle4d) {
+    constructor(axisAngle: AxisAngle4d) : this() {
         val sin = sin(axisAngle.angle * 0.5)
         val cos = cos(axisAngle.angle * 0.5)
         x = (axisAngle.x * sin).toFloat()
@@ -1398,9 +1378,9 @@ open class Quaternionf {
     }
 
     fun getEulerAnglesZYX(eulerAngles: Vector3f): Vector3f {
-        eulerAngles.x = atan2(y * z + w * x, 0.5f - x * x + y * y)
-        eulerAngles.y = JomlMath.safeAsin(-2f * (x * z - w * y))
-        eulerAngles.z = atan2(x * y + w * z, 0.5f - y * y - z * z)
+        eulerAngles.x = atan2(y * z + w * x, 0.5f - x * x - y * y);
+        eulerAngles.y = JomlMath.safeAsin(-2f * (x * z - w * y));
+        eulerAngles.z = atan2(x * y + w * z, 0.5f - y * y - z * z);
         return eulerAngles
     }
 
@@ -1575,56 +1555,51 @@ open class Quaternionf {
         var q2w = q.w
         var dot = dot(q)
         var absDot = abs(dot)
-        return if (0.999999f < absDot) {
-            dst.set(this)
-        } else {
-            var alphaN: Float
-            var scale0: Float
-            var scale1: Float
-            var s: Float
-            alphaN = alpha
-            while (absDot < dotThreshold) {
-                scale0 = 0.5f
-                scale1 = if (dot >= 0f) 0.5f else -0.5f
-                if (alphaN < 0.5f) {
-                    q2x = scale0 * q2x + scale1 * q1x
-                    q2y = scale0 * q2y + scale1 * q1y
-                    q2z = scale0 * q2z + scale1 * q1z
-                    q2w = scale0 * q2w + scale1 * q1w
-                    s = JomlMath.invsqrt(q2x * q2x + q2y * q2y + q2z * q2z + q2w * q2w)
-                    q2x *= s
-                    q2y *= s
-                    q2z *= s
-                    q2w *= s
-                    alphaN += alphaN
-                } else {
-                    q1x = scale0 * q1x + scale1 * q2x
-                    q1y = scale0 * q1y + scale1 * q2y
-                    q1z = scale0 * q1z + scale1 * q2z
-                    q1w = scale0 * q1w + scale1 * q2w
-                    s = JomlMath.invsqrt(q1x * q1x + q1y * q1y + q1z * q1z + q1w * q1w)
-                    q1x *= s
-                    q1y *= s
-                    q1z *= s
-                    q1w *= s
-                    alphaN = alphaN + alphaN - 1f
-                }
-                dot = q1x * q2x + q1y * q2y + q1z * q2z + q1w * q2w
-                absDot = abs(dot)
-            }
-            scale0 = 1f - alphaN
-            scale1 = if (dot >= 0f) alphaN else -alphaN
-            s = scale0 * q1x + scale1 * q2x
-            val resY = scale0 * q1y + scale1 * q2y
-            val resZ = scale0 * q1z + scale1 * q2z
-            val resW = scale0 * q1w + scale1 * q2w
-            s = JomlMath.invsqrt(s * s + resY * resY + resZ * resZ + resW * resW)
-            dst.x = s * s
-            dst.y = resY * s
-            dst.z = resZ * s
-            dst.w = resW * s
-            dst
+        if (1.0 - 1E-6 < absDot) {
+            return dst.set(this)
         }
+        var alphaN = alpha
+        while (absDot < dotThreshold) {
+            val scale0 = 0.5f
+            val scale1 = if (dot >= 0f) 0.5f else -0.5f
+            if (alphaN < 0.5f) {
+                q2x = scale0 * q2x + scale1 * q1x
+                q2y = scale0 * q2y + scale1 * q1y
+                q2z = scale0 * q2z + scale1 * q1z
+                q2w = scale0 * q2w + scale1 * q1w
+                val s = JomlMath.invsqrt(q2x * q2x + q2y * q2y + q2z * q2z + q2w * q2w)
+                q2x *= s
+                q2y *= s
+                q2z *= s
+                q2w *= s
+                alphaN = alphaN + alphaN
+            } else {
+                q1x = scale0 * q1x + scale1 * q2x
+                q1y = scale0 * q1y + scale1 * q2y
+                q1z = scale0 * q1z + scale1 * q2z
+                q1w = scale0 * q1w + scale1 * q2w
+                val s = JomlMath.invsqrt(q1x * q1x + q1y * q1y + q1z * q1z + q1w * q1w)
+                q1x *= s
+                q1y *= s
+                q1z *= s
+                q1w *= s
+                alphaN = alphaN + alphaN - 1f
+            }
+            dot = q1x * q2x + q1y * q2y + q1z * q2z + q1w * q2w
+            absDot = Math.abs(dot)
+        }
+        val scale0 = 1f - alphaN
+        val scale1 = if (dot >= 0.0f) alphaN else -alphaN
+        val resX = scale0 * q1x + scale1 * q2x
+        val resY = scale0 * q1y + scale1 * q2y
+        val resZ = scale0 * q1z + scale1 * q2z
+        val resW = scale0 * q1w + scale1 * q2w
+        val s = JomlMath.invsqrt(resX * resX + resY * resY + resZ * resZ + resW * resW)
+        dst.x = resX * s
+        dst.y = resY * s
+        dst.z = resZ * s
+        dst.w = resW * s
+        return dst
     }
 
     fun lookAlong(dir: Vector3f, up: Vector3f): Quaternionf {

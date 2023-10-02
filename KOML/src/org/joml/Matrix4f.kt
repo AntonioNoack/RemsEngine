@@ -5487,7 +5487,7 @@ open class Matrix4f {
         return point
     }
 
-    fun perspectiveOrigin(origin: Vector3f): Vector3f {
+    fun perspectiveOrigin(dst: Vector3f): Vector3f {
         val n1x = m03 + m00
         val n1y = m13 + m10
         val n1z = m23 + m20
@@ -5510,10 +5510,10 @@ open class Matrix4f {
         val c12y = n1z * n2x - n1x * n2z
         val c12z = n1x * n2y - n1y * n2x
         val invDot = 1f / (n1x * c23x + n1y * c23y + n1z * c23z)
-        origin.x = -c23x * d1 - c31x * d2 - c12x * d3 * invDot
-        origin.y = -c23y * d1 - c31y * d2 - c12y * d3 * invDot
-        origin.z = -c23z * d1 - c31z * d2 - c12z * d3 * invDot
-        return origin
+        dst.x = (-c23x * d1 - c31x * d2 - c12x * d3) * invDot
+        dst.y = (-c23y * d1 - c31y * d2 - c12y * d3) * invDot
+        dst.z = (-c23z * d1 - c31z * d2 - c12z * d3) * invDot
+        return dst
     }
 
     fun perspectiveInvOrigin(dst: Vector3f): Vector3f {
@@ -5527,13 +5527,13 @@ open class Matrix4f {
     fun perspectiveFov(): Float {
         val n1x = m03 + m01
         val n1y = m13 + m11
-        val n1z = m23 + m21
+        val n1z = m23 + m21 // bottom
         val n2x = m01 - m03
         val n2y = m11 - m13
-        val n2z = m21 - m23
+        val n2z = m21 - m23 // top
         val n1len = sqrt(n1x * n1x + n1y * n1y + n1z * n1z)
         val n2len = sqrt(n2x * n2x + n2y * n2y + n2z * n2z)
-        return acos(n1x * n2x + n1y * n2y + n1z * n2z / (n1len * n2len))
+        return acos((n1x * n2x + n1y * n2y + n1z * n2z) / (n1len * n2len))
     }
 
     fun perspectiveNear(): Float {
