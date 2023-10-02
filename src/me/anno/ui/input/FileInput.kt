@@ -3,14 +3,13 @@ package me.anno.ui.input
 import me.anno.config.DefaultConfig
 import me.anno.input.Input.setClipboardContent
 import me.anno.input.Key
-import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.maths.Maths.mixARGB
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.WrapAlign
@@ -25,8 +24,7 @@ import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
-import me.anno.ui.Style
-import me.anno.utils.files.FileExplorerSelectWrapper
+import me.anno.utils.files.FileChooser
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
 
@@ -66,15 +64,14 @@ open class FileInput(
                         if (file3 == InvalidRef || file3 == file2 || file3.exists) {
                             file2 = file3
                             break
-                        } else {
-                            file2 = file3
-                        }
+                        } else file2 = file3
                     }
-                    val file3 = if (file2 == InvalidRef) null else (file2 as? FileFileRef)?.file
-                    // todo select the file using our own explorer (?), because ours may be better
-                    FileExplorerSelectWrapper.selectFileOrFolder(file3, isDirectory) { file ->
-                        if (file != null) {
-                            setValue(getReference(file), true)
+                    FileChooser.selectFiles(
+                        !isDirectory, isDirectory, false,
+                        file2, false, emptyList()
+                    ) { files ->
+                        if (files.isNotEmpty()) {
+                            setValue(files.first(), true)
                         }
                     }
                 }

@@ -255,7 +255,11 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
             "r" to Vector4f(1f, 0f, 0f, 0f),
             "g" to Vector4f(0f, 1f, 0f, 0f),
             "b" to Vector4f(0f, 0f, 1f, 0f),
-            "a" to Vector4f(0f, 0f, 0f, 1f)
+            "a" to Vector4f(0f, 0f, 0f, 1f),
+            "x" to Vector4f(1f, 0f, 0f, 0f),
+            "y" to Vector4f(0f, 1f, 0f, 0f),
+            "z" to Vector4f(0f, 0f, 1f, 0f),
+            "w" to Vector4f(0f, 0f, 0f, 1f)
         )
     }
 }

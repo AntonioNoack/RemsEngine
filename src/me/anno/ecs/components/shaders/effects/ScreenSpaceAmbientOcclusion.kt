@@ -4,12 +4,9 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
@@ -27,7 +24,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min

@@ -31,7 +31,7 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.treeView.TreeViewEntryPanel
 import me.anno.utils.Sleep
-import me.anno.utils.files.FileExplorerSelectWrapper
+import me.anno.utils.files.FileChooser
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.structures.maps.BiMap
 import me.anno.utils.types.Strings.isArray
@@ -654,9 +654,12 @@ object Input {
 
     fun import() {
         if (lastFile == InvalidRef) lastFile = instance!!.getDefaultFileLocation()
-        FileExplorerSelectWrapper.selectFile((lastFile as? FileFileRef)?.file) { file ->
-            if (file != null) {
-                val fileRef = getReference(file)
+        FileChooser.selectFiles(
+            allowFiles = true, allowFolders = false, allowMultiples = false,
+            lastFile, toSave = false, emptyList()
+        ) { files ->
+            val fileRef = files.firstOrNull()
+            if (fileRef != null) {
                 lastFile = fileRef
                 instance?.importFile(fileRef)
             }
