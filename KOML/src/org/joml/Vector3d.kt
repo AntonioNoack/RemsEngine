@@ -3,55 +3,23 @@ package org.joml
 import kotlin.math.*
 
 @Suppress("unused")
-open class Vector3d {
-    var x = 0.0
-    var y = 0.0
-    var z = 0.0
+open class Vector3d(
+    @JvmField var x: Double,
+    @JvmField var y: Double,
+    @JvmField var z: Double,
+) {
 
-    constructor()
-    constructor(v: Double) {
-        set(v)
-    }
-
-    constructor(x: Double, y: Double, z: Double) {
-        set(x, y, z)
-    }
-
-    constructor(x: Float, y: Float, z: Float) {
-        set(x, y, z)
-    }
-
-    constructor(v: Vector3f) {
-        set(v)
-    }
-
-    constructor(v: Vector3i) {
-        set(v)
-    }
-
-    constructor(v: Vector2f, z: Double) {
-        set(v, z)
-    }
-
-    constructor(v: Vector2i, z: Double) {
-        set(v, z)
-    }
-
-    constructor(v: Vector3d) {
-        set(v)
-    }
-
-    constructor(v: Vector2d, z: Double) {
-        set(v, z)
-    }
-
-    constructor(xyz: DoubleArray) {
-        set(xyz)
-    }
-
-    constructor(xyz: FloatArray) {
-        set(xyz)
-    }
+    constructor() : this(0.0, 0.0, 0.0)
+    constructor(v: Double) : this(v, v, v)
+    constructor(x: Float, y: Float, z: Float) : this(x.toDouble(), y.toDouble(), z.toDouble())
+    constructor(v: Vector3f) : this(v.x, v.y, v.z)
+    constructor(v: Vector3i) : this(v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
+    constructor(v: Vector2f, z: Double) : this(v.x.toDouble(), v.y.toDouble(), z)
+    constructor(v: Vector2i, z: Double) : this(v.x.toDouble(), v.y.toDouble(), z)
+    constructor(v: Vector3d) : this(v.x, v.y, v.z)
+    constructor(v: Vector2d, z: Double) : this(v.x, v.y, z)
+    constructor(xyz: DoubleArray) : this(xyz[0], xyz[1], xyz[2])
+    constructor(xyz: FloatArray) : this(xyz[0], xyz[1], xyz[2])
 
     fun set(v: Vector3d): Vector3d = set(v.x, v.y, v.z)
     fun set(v: Vector3i): Vector3d = set(v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
@@ -549,7 +517,10 @@ open class Vector3d {
         } else sqrt(ls)
     }
 
+    @JvmOverloads
     fun normalize(dst: Vector3d = this) = mul(1.0 / length(), dst)
+
+    @JvmOverloads
     fun normalize(length: Double, dst: Vector3d = this) = mul(length / length(), dst)
 
     fun cross(v: Vector3d, dst: Vector3d = this) = cross(v.x, v.y, v.z, dst)

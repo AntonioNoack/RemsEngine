@@ -4,7 +4,11 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Vector3i(var x: Int, var y: Int, var z: Int) {
+open class Vector3i(
+    @JvmField var x: Int,
+    @JvmField var y: Int,
+    @JvmField var z: Int
+) {
 
     constructor() : this(0, 0, 0)
     constructor(d: Int) : this(d, d, d)

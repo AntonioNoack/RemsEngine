@@ -120,7 +120,7 @@ open class Quaternionf {
         var w = w
         var s: Float
         if (w > 1f) {
-            s = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
+            s = JomlMath.invsqrt(x * x + y * y + z * z + w * w)
             x *= s
             y *= s
             z *= s
@@ -148,7 +148,7 @@ open class Quaternionf {
         var w = w
         var s: Float
         if (w > 1f) {
-            s = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
+            s = JomlMath.invsqrt(x * x + y * y + z * z + w * w)
             x *= s
             y *= s
             z *= s
@@ -718,7 +718,7 @@ open class Quaternionf {
     }
 
     fun transformInverse(x: Float, y: Float, z: Float, dst: Vector3f): Vector3f {
-        val n = 1f / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
+        val n = 1f / lengthSquared()
         val qx = this.x * n
         val qy = this.y * n
         val qz = this.z * n
@@ -768,13 +768,9 @@ open class Quaternionf {
         val zz = this.z * this.z
         val zw = this.z * w
         return dst.set(
-            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy - zw), y, 2f * (xz + yw) * z)),
-            JomlMath.fma(
-                2f * (xy + zw), x, JomlMath.fma(
-                    JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz - xw) * z
-                )
-            ),
-            JomlMath.fma(2f * (xz - yw), x, JomlMath.fma(2f * (yz + xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
+            (-2f * (yy + zz) + 1f) * x + (2f * (xy - zw) * y + 2f * (xz + yw) * z),
+            2f * (xy + zw) * x + ((-2f * (xx + zz) + 1f) * y + 2f * (yz - xw) * z),
+            2f * (xz - yw) * x + (2f * (yz + xw) * y + (-2f * (xx + yy) + 1f) * z)
         )
     }
 
@@ -789,13 +785,9 @@ open class Quaternionf {
         val zz = this.z * this.z
         val zw = this.z * w
         return dst.set(
-            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy + zw), y, 2f * (xz - yw) * z)),
-            JomlMath.fma(
-                2f * (xy - zw), x, JomlMath.fma(
-                    JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz + xw) * z
-                )
-            ),
-            JomlMath.fma(2f * (xz + yw), x, JomlMath.fma(2f * (yz - xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
+            (-2f * (yy + zz) + 1f) * x + (2f * (xy + zw) * y + 2f * (xz - yw) * z),
+            2f * (xy - zw) * x + ((-2f * (xx + zz) + 1f) * y + 2f * (yz + xw) * z),
+            2f * (xz + yw) * x + (2f * (yz - xw) * y + (-2f * (xx + yy) + 1f) * z)
         )
     }
 
@@ -829,7 +821,7 @@ open class Quaternionf {
     }
 
     fun transformInverse(x: Float, y: Float, z: Float, dst: Vector4f): Vector4f {
-        val n = 1f / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
+        val n = 1f / lengthSquared()
         val qx = this.x * n
         val qy = this.y * n
         val qz = this.z * n
@@ -904,13 +896,9 @@ open class Quaternionf {
         val zz = this.z * this.z
         val zw = this.z * w
         return dst.set(
-            JomlMath.fma(JomlMath.fma(-2f, yy + zz, 1f), x, JomlMath.fma(2f * (xy + zw), y, 2f * (xz - yw) * z)),
-            JomlMath.fma(
-                2f * (xy - zw), x, JomlMath.fma(
-                    JomlMath.fma(-2f, xx + zz, 1f), y, 2f * (yz + xw) * z
-                )
-            ),
-            JomlMath.fma(2f * (xz + yw), x, JomlMath.fma(2f * (yz - xw), y, JomlMath.fma(-2f, xx + yy, 1f) * z))
+            (-2f * (yy + zz) + 1f) * x + (2f * (xy + zw) * y + 2f * (xz - yw) * z),
+            2f * (xy - zw) * x + ((-2f * (xx + zz) + 1f) * y + 2f * (yz + xw) * z),
+            2f * (xz + yw) * x + (2f * (yz - xw) * y + (-2f * (xx + yy) + 1f) * z)
         )
     }
 
@@ -1118,7 +1106,7 @@ open class Quaternionf {
     }
 
     fun transformInverse(x: Double, y: Double, z: Double, dst: Vector3d): Vector3d {
-        val n = 1f / JomlMath.fma(this.x, this.x, JomlMath.fma(this.y, this.y, JomlMath.fma(this.z, this.z, w * w)))
+        val n = 1f / lengthSquared()
         val qx = this.x * n
         val qy = this.y * n
         val qz = this.z * n
@@ -1621,7 +1609,7 @@ open class Quaternionf {
                     q1w *= s
                     alphaN = alphaN + alphaN - 1f
                 }
-                dot = JomlMath.fma(q1x, q2x, JomlMath.fma(q1y, q2y, JomlMath.fma(q1z, q2z, q1w * q2w)))
+                dot = q1x * q2x + q1y * q2y + q1z * q2z + q1w * q2w
                 absDot = abs(dot)
             }
             scale0 = 1f - alphaN
@@ -1722,9 +1710,8 @@ open class Quaternionf {
         toDirY: Float,
         toDirZ: Float
     ): Quaternionf {
-        val fn =
-            JomlMath.invsqrt(JomlMath.fma(fromDirX, fromDirX, JomlMath.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
-        val tn = JomlMath.invsqrt(JomlMath.fma(toDirX, toDirX, JomlMath.fma(toDirY, toDirY, toDirZ * toDirZ)))
+        val fn = JomlMath.invsqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ)
+        val tn = JomlMath.invsqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ)
         val fx = fromDirX * fn
         val fy = fromDirY * fn
         val fz = fromDirZ * fn
@@ -1759,7 +1746,7 @@ open class Quaternionf {
             y = cy * isd2
             z = cz * isd2
             w = sd2 * 0.5f
-            val n2 = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
+            val n2 = JomlMath.invsqrt(x * x + y * y + z * z + w * w)
             this.x = x * n2
             this.y = y * n2
             this.z = z * n2
@@ -1782,9 +1769,8 @@ open class Quaternionf {
         toDirZ: Float,
         dst: Quaternionf = this
     ): Quaternionf {
-        val fn =
-            JomlMath.invsqrt(JomlMath.fma(fromDirX, fromDirX, JomlMath.fma(fromDirY, fromDirY, fromDirZ * fromDirZ)))
-        val tn = JomlMath.invsqrt(JomlMath.fma(toDirX, toDirX, JomlMath.fma(toDirY, toDirY, toDirZ * toDirZ)))
+        val fn = JomlMath.invsqrt(fromDirX * fromDirX + fromDirY * fromDirY + fromDirZ * fromDirZ)
+        val tn = JomlMath.invsqrt(toDirX * toDirX + toDirY * toDirY + toDirZ * toDirZ)
         val fx = fromDirX * fn
         val fy = fromDirY * fn
         val fz = fromDirZ * fn
@@ -1817,7 +1803,7 @@ open class Quaternionf {
             y = cy * isd2
             z = cz * isd2
             w = sd2 * 0.5f
-            val n2 = JomlMath.invsqrt(JomlMath.fma(x, x, JomlMath.fma(y, y, JomlMath.fma(z, z, w * w))))
+            val n2 = JomlMath.invsqrt(x * x + y * y + z * z + w * w)
             x *= n2
             y *= n2
             z *= n2
@@ -1897,13 +1883,10 @@ open class Quaternionf {
         val rz = axisZ * invVLength * sinAngle
         val rw = cos(halfAngle)
         return dst.set(
-            JomlMath.fma(w, rx, JomlMath.fma(x, rw, JomlMath.fma(y, rz, -z * ry))), JomlMath.fma(
-                w, ry, JomlMath.fma(-x, rz, JomlMath.fma(y, rw, z * rx))
-            ), JomlMath.fma(
-                w, rz, JomlMath.fma(
-                    x, ry, JomlMath.fma(-y, rx, z * rw)
-                )
-            ), JomlMath.fma(w, rw, JomlMath.fma(-x, rx, JomlMath.fma(-y, ry, -z * rz)))
+            w * rx + x * rw + y * rz - z * ry,
+            w * ry - x * rz + y * rw + z * rx,
+            w * rz + x * ry - y * rx + z * rw,
+            w * rw - x * rx - y * ry - z * rz
         )
     }
 

@@ -5,31 +5,26 @@ import kotlin.math.atan2
 import kotlin.math.hypot
 
 @Suppress("unused")
-open class Vector2d {
-    var x = 0.0
-    var y = 0.0
+open class Vector2d(
+    @JvmField var x: Double,
+    @JvmField var y: Double
+) {
 
-    constructor()
-
-    @JvmOverloads
-    constructor(x: Double, y: Double = x) {
-        this.x = x
-        this.y = y
-    }
-
+    constructor() : this(0.0, 0.0)
+    constructor(v: Double) : this(v, v)
     constructor(v: Vector2d) : this(v.x, v.y)
     constructor(v: Vector2f) : this(v.x.toDouble(), v.y.toDouble())
     constructor(v: Vector2i) : this(v.x.toDouble(), v.y.toDouble())
     constructor(xy: DoubleArray) : this(xy[0], xy[1])
     constructor(xy: FloatArray) : this(xy[0].toDouble(), xy[1].toDouble())
 
-    @JvmOverloads
-    fun set(x: Double, y: Double = x): Vector2d {
+    fun set(x: Double, y: Double): Vector2d {
         this.x = x
         this.y = y
         return this
     }
 
+    fun set(v: Double) = set(v, v)
     fun set(v: Vector2d) = set(v.x, v.y)
     fun set(v: Vector2f) = set(v.x.toDouble(), v.y.toDouble())
     fun set(v: Vector2i) = set(v.x.toDouble(), v.y.toDouble())

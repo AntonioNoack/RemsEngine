@@ -4,7 +4,10 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Vector2i(var x: Int, var y: Int) {
+open class Vector2i(
+    @JvmField var x: Int,
+    @JvmField var y: Int
+) {
 
     constructor() : this(0, 0)
     constructor(d: Int) : this(d, d)
@@ -183,10 +186,13 @@ open class Vector2i(var x: Int, var y: Int) {
     companion object {
         @JvmStatic
         fun lengthSquared(x: Int, y: Int) = x.toLong() * x + y.toLong() * y
+
         @JvmStatic
         fun length(x: Int, y: Int) = sqrt(lengthSquared(x, y).toDouble())
+
         @JvmStatic
         fun distance(x1: Int, y1: Int, x2: Int, y2: Int) = length(x1 - x2, y1 - y2)
+
         @JvmStatic
         fun distanceSquared(x1: Int, y1: Int, x2: Int, y2: Int) = lengthSquared(x1 - x2, y1 - y2)
     }

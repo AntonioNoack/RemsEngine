@@ -6,9 +6,17 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 class AxisAngle4f {
+
+    @JvmField
     var angle = 0f
+
+    @JvmField
     var x = 0f
+
+    @JvmField
     var y = 0f
+
+    @JvmField
     var z = 0f
 
     constructor() {
@@ -511,7 +519,7 @@ class AxisAngle4f {
         val sin = sin(angle)
         val cos = cos(angle)
         val dot = x * v.x + y * v.y + z * v.z
-       return dst.set(
+        return dst.set(
             (v.x * cos + sin * (y * v.z - z * v.y) + (1f - cos) * dot * x),
             (v.y * cos + sin * (z * v.x - x * v.z) + (1f - cos) * dot * y),
             (v.z * cos + sin * (x * v.y - y * v.x) + (1f - cos) * dot * z),

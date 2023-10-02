@@ -5,22 +5,13 @@ import kotlin.math.hypot
 import kotlin.math.sin
 
 @Suppress("unused")
-open class Vector2f {
+open class Vector2f(
+    @JvmField var x: Float,
+    @JvmField var y: Float
+) {
 
-    @JvmField
-    var x = 0f
-
-    @JvmField
-    var y = 0f
-
-    constructor()
-
-    @JvmOverloads
-    constructor(x: Float, y: Float = x) {
-        this.x = x
-        this.y = y
-    }
-
+    constructor() : this(0f, 0f)
+    constructor(v: Float) : this(v, v)
     constructor(v: Vector2f) : this(v.x, v.y)
     constructor(v: Vector2i) : this(v.x.toFloat(), v.y.toFloat())
     constructor(xy: FloatArray) : this(xy[0], xy[1])
@@ -32,9 +23,8 @@ open class Vector2f {
         return this
     }
 
-    @JvmOverloads
-    fun set(x: Double, y: Double = x) = set(x.toFloat(), y.toFloat())
-
+    fun set(v: Double) = set(v, v)
+    fun set(x: Double, y: Double) = set(x.toFloat(), y.toFloat())
     fun set(v: Vector2f) = set(v.x, v.y)
     fun set(v: Vector2i) = set(v.x.toFloat(), v.y.toFloat())
     fun set(v: Vector2d) = set(v.x.toFloat(), v.y.toFloat())

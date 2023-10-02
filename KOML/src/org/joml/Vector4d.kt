@@ -3,7 +3,12 @@ package org.joml
 import kotlin.math.*
 
 @Suppress("unused")
-open class Vector4d(var x: Double, var y: Double, var z: Double, var w: Double) {
+open class Vector4d(
+    @JvmField var x: Double,
+    @JvmField var y: Double,
+    @JvmField var z: Double,
+    @JvmField var w: Double
+) {
 
     constructor() : this(0.0, 0.0, 0.0, 1.0)
     constructor(v: Vector4d) : this(v.x, v.y, v.z, v.w)

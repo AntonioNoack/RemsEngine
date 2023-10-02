@@ -3,7 +3,11 @@ package org.joml
 import kotlin.math.*
 
 @Suppress("unused")
-open class Vector3f(var x: Float, var y: Float, var z: Float) {
+open class Vector3f(
+    @JvmField var x: Float,
+    @JvmField var y: Float,
+    @JvmField var z: Float
+) {
 
     constructor() : this(0f, 0f, 0f)
     constructor(d: Float) : this(d, d, d)
@@ -104,25 +108,15 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return dst
     }
 
-    fun mulProject(mat: Matrix4f, dst: Vector3f = this): Vector3f {
-        val x = x
-        val y = y
-        val z = z
-        val invW = 1f / JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33)))
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30))) * invW
-        dst.y = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31))) * invW
-        dst.z = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32))) * invW
-        return dst
-    }
-
+    fun mulProject(mat: Matrix4f, dst: Vector3f = this) = mulProject(mat, 1f, dst)
     fun mulProject(mat: Matrix4f, w: Float, dst: Vector3f = this): Vector3f {
         val x = x
         val y = y
         val z = z
-        val invW = 1f / JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33 * w)))
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30 * w))) * invW
-        dst.y = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31 * w))) * invW
-        dst.z = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32 * w))) * invW
+        val invW = 1f / (mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33 * w)
+        dst.x = (mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30 * w) * invW
+        dst.y = (mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31 * w) * invW
+        dst.z = (mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32 * w) * invW
         return dst
     }
 
@@ -130,9 +124,9 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val lx = x
         val ly = y
         val lz = z
-        dst.x = JomlMath.fma(mat.m00, lx, JomlMath.fma(mat.m10, ly, mat.m20 * lz))
-        dst.y = JomlMath.fma(mat.m01, lx, JomlMath.fma(mat.m11, ly, mat.m21 * lz))
-        dst.z = JomlMath.fma(mat.m02, lx, JomlMath.fma(mat.m12, ly, mat.m22 * lz))
+        dst.x = mat.m00 * lx + mat.m10 * ly + mat.m20 * lz
+        dst.y = mat.m01 * lx + mat.m11 * ly + mat.m21 * lz
+        dst.z = mat.m02 * lx + mat.m12 * ly + mat.m22 * lz
         return dst
     }
 
@@ -140,12 +134,9 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val lx = x
         val ly = y
         val lz = z
-        dst.x = JomlMath.fma(mat.m00, lx.toDouble(), JomlMath.fma(mat.m10, ly.toDouble(), mat.m20 * lz.toDouble()))
-            .toFloat()
-        dst.y = JomlMath.fma(mat.m01, lx.toDouble(), JomlMath.fma(mat.m11, ly.toDouble(), mat.m21 * lz.toDouble()))
-            .toFloat()
-        dst.z = JomlMath.fma(mat.m02, lx.toDouble(), JomlMath.fma(mat.m12, ly.toDouble(), mat.m22 * lz.toDouble()))
-            .toFloat()
+        dst.x = (mat.m00 * lx + mat.m10 * ly + mat.m20 * lz).toFloat()
+        dst.y = (mat.m01 * lx + mat.m11 * ly + mat.m21 * lz).toFloat()
+        dst.z = (mat.m02 * lx + mat.m12 * ly + mat.m22 * lz).toFloat()
         return dst
     }
 
@@ -153,8 +144,8 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val x = x
         val y = y
         val z = z
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, mat.m20 * z))
-        dst.y = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, mat.m21 * z))
+        dst.x = mat.m00 * x + mat.m10 * y + mat.m20 * z
+        dst.y = mat.m01 * x + mat.m11 * y + mat.m21 * z
         dst.z = z
         return dst
     }
@@ -163,29 +154,31 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val x = x
         val y = y
         val z = z
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m01, y, mat.m02 * z))
-        dst.y = JomlMath.fma(mat.m10, x, JomlMath.fma(mat.m11, y, mat.m12 * z))
-        dst.z = JomlMath.fma(mat.m20, x, JomlMath.fma(mat.m21, y, mat.m22 * z))
+        dst.x = mat.m00 * x + mat.m01 * y + mat.m02 * z
+        dst.y = mat.m10 * x + mat.m11 * y + mat.m12 * z
+        dst.z = mat.m20 * x + mat.m21 * y + mat.m22 * z
         return dst
     }
 
+    @JvmOverloads
     fun mulPosition(mat: Matrix4f, dst: Vector3f = this): Vector3f {
         val x = x
         val y = y
         val z = z
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30)))
-        dst.y = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31)))
-        dst.z = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32)))
+        dst.x = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30
+        dst.y = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31
+        dst.z = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32
         return dst
     }
 
+    @JvmOverloads
     fun mulPosition(mat: Matrix4x3f, dst: Vector3f = this): Vector3f {
         val x = x
         val y = y
         val z = z
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30)))
-        dst.y = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31)))
-        dst.z = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32)))
+        dst.x = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30
+        dst.y = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31
+        dst.z = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32
         return dst
     }
 
@@ -193,9 +186,9 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val x = x
         val y = y
         val z = z
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m01, y, JomlMath.fma(mat.m02, z, mat.m03)))
-        dst.y = JomlMath.fma(mat.m10, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m12, z, mat.m13)))
-        dst.z = JomlMath.fma(mat.m20, x, JomlMath.fma(mat.m21, y, JomlMath.fma(mat.m22, z, mat.m23)))
+        dst.x = mat.m00 * x + mat.m01 * y + mat.m02 * z + mat.m03
+        dst.y = mat.m10 * x + mat.m11 * y + mat.m12 * z + mat.m13
+        dst.z = mat.m20 * x + mat.m21 * y + mat.m22 * z + mat.m23
         return dst
     }
 
@@ -203,10 +196,10 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val x = x
         val y = y
         val z = z
-        val w = JomlMath.fma(mat.m03, x, JomlMath.fma(mat.m13, y, JomlMath.fma(mat.m23, z, mat.m33)))
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, JomlMath.fma(mat.m20, z, mat.m30)))
-        dst.y = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, JomlMath.fma(mat.m21, z, mat.m31)))
-        dst.z = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, JomlMath.fma(mat.m22, z, mat.m32)))
+        val w = mat.m03 * x + mat.m13 * y + mat.m23 * z + mat.m33
+        dst.x = mat.m00 * x + mat.m10 * y + mat.m20 * z + mat.m30
+        dst.y = mat.m01 * x + mat.m11 * y + mat.m21 * z + mat.m31
+        dst.z = mat.m02 * x + mat.m12 * y + mat.m22 * z + mat.m32
         return w
     }
 
@@ -214,12 +207,9 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val x = x
         val y = y
         val z = z
-        dst.x =
-            JomlMath.fma(mat.m00, x.toDouble(), JomlMath.fma(mat.m10, y.toDouble(), mat.m20 * z.toDouble())).toFloat()
-        dst.y =
-            JomlMath.fma(mat.m01, x.toDouble(), JomlMath.fma(mat.m11, y.toDouble(), mat.m21 * z.toDouble())).toFloat()
-        dst.z =
-            JomlMath.fma(mat.m02, x.toDouble(), JomlMath.fma(mat.m12, y.toDouble(), mat.m22 * z.toDouble())).toFloat()
+        dst.x = (mat.m00 * x + mat.m10 * y + mat.m20 * z).toFloat()
+        dst.y = (mat.m01 * x + mat.m11 * y + mat.m21 * z).toFloat()
+        dst.z = (mat.m02 * x + mat.m12 * y + mat.m22 * z).toFloat()
         return dst
     }
 
@@ -227,9 +217,9 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val x = x
         val y = y
         val z = z
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, mat.m20 * z))
-        dst.y = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, mat.m21 * z))
-        dst.z = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, mat.m22 * z))
+        dst.x = mat.m00 * x + mat.m10 * y + mat.m20 * z
+        dst.y = mat.m01 * x + mat.m11 * y + mat.m21 * z
+        dst.z = mat.m02 * x + mat.m12 * y + mat.m22 * z
         return dst
     }
 
@@ -237,9 +227,9 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val x = x
         val y = y
         val z = z
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m10, y, mat.m20 * z))
-        dst.y = JomlMath.fma(mat.m01, x, JomlMath.fma(mat.m11, y, mat.m21 * z))
-        dst.z = JomlMath.fma(mat.m02, x, JomlMath.fma(mat.m12, y, mat.m22 * z))
+        dst.x = mat.m00 * x + mat.m10 * y + mat.m20 * z
+        dst.y = mat.m01 * x + mat.m11 * y + mat.m21 * z
+        dst.z = mat.m02 * x + mat.m12 * y + mat.m22 * z
         return dst
     }
 
@@ -247,19 +237,13 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         val x = x
         val y = y
         val z = z
-        dst.x = JomlMath.fma(mat.m00, x, JomlMath.fma(mat.m01, y, mat.m02 * z))
-        dst.y = JomlMath.fma(mat.m10, x, JomlMath.fma(mat.m11, y, mat.m12 * z))
-        dst.z = JomlMath.fma(mat.m20, x, JomlMath.fma(mat.m21, y, mat.m22 * z))
+        dst.x = mat.m00 * x + mat.m01 * y + mat.m02 * z
+        dst.y = mat.m10 * x + mat.m11 * y + mat.m12 * z
+        dst.z = mat.m20 * x + mat.m21 * y + mat.m22 * z
         return dst
     }
 
-    fun mul(scalar: Float, dst: Vector3f = this): Vector3f {
-        dst.x = x * scalar
-        dst.y = y * scalar
-        dst.z = z * scalar
-        return dst
-    }
-
+    fun mul(scalar: Float, dst: Vector3f = this) = mul(scalar, scalar, scalar, dst)
     fun mul(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
         dst.x = this.x * x
         dst.y = this.y * y
@@ -268,11 +252,7 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     }
 
     fun div(scalar: Float, dst: Vector3f = this): Vector3f {
-        val inv = 1f / scalar
-        dst.x = x * inv
-        dst.y = y * inv
-        dst.z = z * inv
-        return dst
+        return mul(1f / scalar, dst)
     }
 
     fun div(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
@@ -333,6 +313,7 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return dst
     }
 
+    @JvmOverloads
     fun rotateX(angle: Float, dst: Vector3f = this): Vector3f {
         val sin = sin(angle)
         val cos = cos(angle)
@@ -344,6 +325,7 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return dst
     }
 
+    @JvmOverloads
     fun rotateY(angle: Float, dst: Vector3f = this): Vector3f {
         val sin = sin(angle)
         val cos = cos(angle)
@@ -355,6 +337,7 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return dst
     }
 
+    @JvmOverloads
     fun rotateZ(angle: Float, dst: Vector3f = this): Vector3f {
         val sin = sin(angle)
         val cos = cos(angle)
@@ -378,83 +361,42 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         } else sqrt(ls)
     }
 
+    @JvmOverloads
     fun normalize(dst: Vector3f = this) = mul(1f / length(), dst)
+
+    @JvmOverloads
     fun normalize(length: Float, dst: Vector3f = this) = mul(length / length(), dst)
 
-    fun cross(v: Vector3f): Vector3f {
-        val rx = JomlMath.fma(y, v.z, -z * v.y)
-        val ry = JomlMath.fma(z, v.x, -x * v.z)
-        val rz = JomlMath.fma(x, v.y, -y * v.x)
-        x = rx
-        y = ry
-        z = rz
-        return this
-    }
+    @JvmOverloads
+    fun cross(v: Vector3f, dst: Vector3f = this) = cross(v.x, v.y, v.z, dst)
 
-    fun cross(x: Float, y: Float, z: Float): Vector3f {
-        val rx = JomlMath.fma(this.y, z, -this.z * y)
-        val ry = JomlMath.fma(this.z, x, -this.x * z)
-        val rz = JomlMath.fma(this.x, y, -this.y * x)
-        this.x = rx
-        this.y = ry
-        this.z = rz
-        return this
-    }
-
-    fun cross(v: Vector3f, dst: Vector3f = this): Vector3f {
-        val rx = JomlMath.fma(y, v.z, -z * v.y)
-        val ry = JomlMath.fma(z, v.x, -x * v.z)
-        val rz = JomlMath.fma(x, v.y, -y * v.x)
-        dst.x = rx
-        dst.y = ry
-        dst.z = rz
-        return dst
-    }
-
+    @JvmOverloads
     fun cross(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
-        val rx = JomlMath.fma(this.y, z, -this.z * y)
-        val ry = JomlMath.fma(this.z, x, -this.x * z)
-        val rz = JomlMath.fma(this.x, y, -this.y * x)
+        val rx = this.y * z - this.z * y
+        val ry = this.z * x - this.x * z
+        val rz = this.x * y - this.y * x
         dst.x = rx
         dst.y = ry
         dst.z = rz
         return dst
     }
 
-    fun distance(v: Vector3f): Float {
-        val dx = x - v.x
-        val dy = y - v.y
-        val dz = z - v.z
-        return sqrt(JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, dz * dz)))
-    }
-
+    fun distance(v: Vector3f) = distance(v.x, v.y, v.z)
     fun distance(x: Float, y: Float, z: Float): Float {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        return sqrt(JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, dz * dz)))
+        return sqrt(distanceSquared(x, y, z))
     }
 
-    fun distanceSquared(v: Vector3f): Float {
-        val dx = x - v.x
-        val dy = y - v.y
-        val dz = z - v.z
-        return JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, dz * dz))
-    }
-
+    fun distanceSquared(v: Vector3f) = distanceSquared(v.x, v.y, v.z)
     fun distanceSquared(x: Float, y: Float, z: Float): Float {
         val dx = this.x - x
         val dy = this.y - y
         val dz = this.z - z
-        return JomlMath.fma(dx, dx, JomlMath.fma(dy, dy, dz * dz))
+        return dx * dx + dy * dy + dz * dz
     }
 
-    fun dot(v: Vector3f): Float {
-        return JomlMath.fma(x, v.x, JomlMath.fma(y, v.y, z * v.z))
-    }
-
+    fun dot(v: Vector3f) = dot(v.x, v.y, v.z)
     fun dot(x: Float, y: Float, z: Float): Float {
-        return JomlMath.fma(this.x, x, JomlMath.fma(this.y, y, this.z * z))
+        return this.x * x + this.y * y + this.z * z
     }
 
     fun angleCos(v: Vector3f) = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
@@ -469,7 +411,7 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     }
 
     fun angleSigned(v: Vector3f, n: Vector3f): Float {
-        return this.angleSigned(v.x, v.y, v.z, n.x, n.y, n.z)
+        return angleSigned(v.x, v.y, v.z, n.x, n.y, n.z)
     }
 
     fun angleSigned(x: Float, y: Float, z: Float, nx: Float, ny: Float, nz: Float): Float {
@@ -482,13 +424,7 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         )
     }
 
-    fun min(v: Vector3f, dst: Vector3f = this): Vector3f {
-        dst.x = min(x, v.x)
-        dst.y = min(y, v.y)
-        dst.z = min(z, v.z)
-        return dst
-    }
-
+    fun min(v: Vector3f, dst: Vector3f = this) = min(v.x, v.y, v.z, dst)
     fun min(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
         dst.x = min(this.x, x)
         dst.y = min(this.y, y)
@@ -496,16 +432,7 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return dst
     }
 
-    fun max(v: Vector3f, dst: Vector3f = this): Vector3f {
-        val x = x
-        val y = y
-        val z = z
-        dst.x = max(x, v.x)
-        dst.y = max(y, v.y)
-        dst.z = max(z, v.z)
-        return dst
-    }
-
+    fun max(v: Vector3f, dst: Vector3f = this) = max(v.x, v.y, v.z, dst)
     fun max(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
         dst.x = max(this.x, x)
         dst.y = max(this.y, y)
@@ -552,52 +479,21 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
     }
 
     fun equals(v: Vector3f?, delta: Float): Boolean {
-        return if (this === v) {
-            true
-        } else if (v == null) {
-            false
-        } else if (!Runtime.equals(x, v.x, delta)) {
-            false
-        } else if (!Runtime.equals(y, v.y, delta)) {
-            false
-        } else {
-            Runtime.equals(z, v.z, delta)
-        }
+        return if (this === v) true
+        else if (v == null) false
+        else Runtime.equals(x, v.x, delta) && Runtime.equals(y, v.y, delta) && Runtime.equals(z, v.z, delta)
     }
 
     fun equals(x: Float, y: Float, z: Float): Boolean {
-        return if ((this.x) != (x)) {
-            false
-        } else if ((this.y) != (y)) {
-            false
-        } else {
-            (this.z) == (z)
-        }
+        return this.x == x && this.y == y && this.z == z
     }
 
-    fun reflect(normal: Vector3f): Vector3f {
-        val x = normal.x
-        val y = normal.y
-        val z = normal.z
-        val dot = JomlMath.fma(this.x, x, JomlMath.fma(this.y, y, this.z * z))
-        this.x -= (dot + dot) * x
-        this.y -= (dot + dot) * y
-        this.z -= (dot + dot) * z
-        return this
-    }
-
-    fun reflect(x: Float, y: Float, z: Float): Vector3f {
-        val dot = JomlMath.fma(this.x, x, JomlMath.fma(this.y, y, this.z * z))
-        this.x -= (dot + dot) * x
-        this.y -= (dot + dot) * y
-        this.z -= (dot + dot) * z
-        return this
-    }
-
+    @JvmOverloads
     fun reflect(normal: Vector3f, dst: Vector3f = this): Vector3f {
         return this.reflect(normal.x, normal.y, normal.z, dst)
     }
 
+    @JvmOverloads
     fun reflect(x: Float, y: Float, z: Float, dst: Vector3f = this): Vector3f {
         val dot = this.dot(x, y, z)
         dst.x = this.x - (dot + dot) * x
@@ -606,10 +502,7 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
         return dst
     }
 
-    fun half(other: Vector3f): Vector3f {
-        return this.set(this).add(other.x, other.y, other.z).normalize()
-    }
-
+    @JvmOverloads
     fun half(other: Vector3f, dst: Vector3f = this): Vector3f {
         return this.half(other.x, other.y, other.z, dst)
     }
@@ -645,9 +538,9 @@ open class Vector3f(var x: Float, var y: Float, var z: Float) {
 
     @JvmOverloads
     fun lerp(other: Vector3f, t: Float, dst: Vector3f = this): Vector3f {
-        dst.x = JomlMath.fma(other.x - x, t, x)
-        dst.y = JomlMath.fma(other.y - y, t, y)
-        dst.z = JomlMath.fma(other.z - z, t, z)
+        dst.x = (other.x - x) * t + x
+        dst.y = (other.y - y) * t + y
+        dst.z = (other.z - z) * t + z
         return dst
     }
 

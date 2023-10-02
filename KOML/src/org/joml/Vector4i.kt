@@ -1,12 +1,17 @@
 package org.joml
 
 import kotlin.math.abs
-import kotlin.math.min
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 @Suppress("unused")
-open class Vector4i(var x: Int, var y: Int, var z: Int, var w: Int) {
+open class Vector4i(
+    @JvmField var x: Int,
+    @JvmField var y: Int,
+    @JvmField var z: Int,
+    @JvmField var w: Int
+) {
 
     constructor() : this(0, 0, 0, 1)
     constructor(v: Vector4i) : this(v.x, v.y, v.z, v.w)
@@ -15,59 +20,18 @@ open class Vector4i(var x: Int, var y: Int, var z: Int, var w: Int) {
     constructor(s: Int) : this(s, s, s, s)
     constructor(xyzw: IntArray) : this(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
 
-    fun set(v: Vector4i): Vector4i {
-        x = v.x
-        y = v.y
-        z = v.z
-        w = v.w
-        return this
-    }
+    fun set(v: Vector4i) = set(v.x, v.y, v.z, v.w)
+    fun set(v: Vector4d) = set(v.x.toInt(), v.y.toInt(), v.z.toInt(), v.w.toInt())
+    fun set(v: Vector3i, w: Int) = set(v.x, v.y, v.z, w)
+    fun set(v: Vector2i, z: Int, w: Int) = set(v.x, v.y, z, w)
+    fun set(s: Int) = set(s, s, s, s)
+    fun set(v: IntArray) = set(v[0], v[1], v[2], v[3])
 
-    fun set(v: Vector4d): Vector4i {
-        x = v.x.toInt()
-        y = v.y.toInt()
-        z = v.z.toInt()
-        w = v.w.toInt()
-        return this
-    }
-
-    operator fun set(v: Vector3i, w: Int): Vector4i {
-        x = v.x
-        y = v.y
-        z = v.z
-        this.w = w
-        return this
-    }
-
-    operator fun set(v: Vector2i, z: Int, w: Int): Vector4i {
-        x = v.x
-        y = v.y
-        this.z = z
-        this.w = w
-        return this
-    }
-
-    fun set(s: Int): Vector4i {
-        x = s
-        y = s
-        z = s
-        w = s
-        return this
-    }
-
-    operator fun set(x: Int, y: Int, z: Int, w: Int): Vector4i {
+    fun set(x: Int, y: Int, z: Int, w: Int): Vector4i {
         this.x = x
         this.y = y
         this.z = z
         this.w = w
-        return this
-    }
-
-    fun set(xyzw: IntArray): Vector4i {
-        x = xyzw[0]
-        y = xyzw[1]
-        z = xyzw[2]
-        w = xyzw[3]
         return this
     }
 

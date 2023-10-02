@@ -3,9 +3,17 @@ package org.joml
 import kotlin.math.*
 
 class AxisAngle4d {
+
+    @JvmField
     var angle = 0.0
+
+    @JvmField
     var x = 0.0
+
+    @JvmField
     var y = 0.0
+
+    @JvmField
     var z = 0.0
 
     constructor() {
@@ -580,5 +588,4 @@ class AxisAngle4d {
             return x == other.x && y == other.y && z == other.z && a0 == a1
         }
     }
-
 }

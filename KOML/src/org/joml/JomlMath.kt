@@ -31,54 +31,38 @@ object JomlMath {
 
     @JvmStatic
     fun clamp(x: Float, min: Float, max: Float): Float = if (x < min) min else if (x < max) x else max
+
     @JvmStatic
     fun clamp(x: Double, min: Double, max: Double): Double = if (x < min) min else if (x < max) x else max
 
     @JvmStatic
     fun invsqrt(x: Float): Float = 1f / sqrt(x)
+
     @JvmStatic
     fun invsqrt(x: Double): Double = 1.0 / sqrt(x)
-
-    @JvmStatic
-    /** a*b+c */
-    @Deprecated("dirty", replaceWith = ReplaceWith("a*b+c"))
-    fun fma(a: Float, b: Float, c: Float): Float = a * b + c
-
-    @JvmStatic
-    /** a*b+c */
-    @Deprecated("dirty", replaceWith = ReplaceWith("a*b+c"))
-    fun fma(a: Double, b: Double, c: Double): Double = a * b + c
-
-    // for the transition away from fma()
-    @JvmStatic
-    @Deprecated("dirty", replaceWith = ReplaceWith("a+b"))
-    fun fma(a: Float, b: Float): Float = a + b
-    @JvmStatic
-    @Deprecated("dirty", replaceWith = ReplaceWith("a+b"))
-    fun fma(a: Double, b: Double): Double = a + b
-    @JvmStatic
-    @Deprecated("dirty", replaceWith = ReplaceWith("a"))
-    fun fma(a: Float): Float = a
-    @JvmStatic
-    @Deprecated("dirty", replaceWith = ReplaceWith("a"))
-    fun fma(a: Double): Double = a
 
     // can be replaced in the future
     @JvmStatic
     fun isFinite(x: Float): Boolean = x.isFinite()
+
     @JvmStatic
     fun isFinite(x: Double): Boolean = x.isFinite()
+
     @JvmStatic
     fun safeAsin(x: Float): Float = asin(clamp(x, -1f, +1f))
+
     @JvmStatic
     fun safeAsin(x: Double): Double = asin(clamp(x, -1.0, +1.0))
+
     @JvmStatic
     fun safeAcos(x: Float): Float = acos(clamp(x, -1f, +1f))
+
     @JvmStatic
     fun safeAcos(x: Double): Double = acos(clamp(x, -1.0, +1.0))
+
     @JvmStatic
     fun absEqualsOne(x: Float): Boolean = abs(x) == 1f
+
     @JvmStatic
     fun absEqualsOne(x: Double): Boolean = abs(x) == 1.0
-
 }
