@@ -26,6 +26,7 @@ import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.Triangles
+import org.joml.Quaterniond
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -307,10 +308,8 @@ fun main() {
     sun.color.set(5f)
     val sunEntity = Entity("Sun")
     sunEntity.add(sun)
-    sunEntity.scale = Vector3d(2.0)
-    sunEntity.rotation = sunEntity.rotation
-        .identity()
-        .set(sky.sunRotation)
+    sunEntity.setScale(2.0)
+    sunEntity.rotation = Quaterniond(sky.sunRotation)
 
     sunEntity.add(object : Component() {
         override fun onUpdate(): Int {

@@ -235,7 +235,7 @@ fun readMeshFile(input: InputStream, idx: Int, parent: FileReference): Entity {
     } else {
         pos.set(pos1)
     }
-    entity.scale = Vector3d(sx.toDouble(), sy.toDouble(), sz.toDouble())
+    entity.setScale(sx.toDouble(), sy.toDouble(), sz.toDouble())
     entity.add(MeshComponent(mesh))
     return entity
 }

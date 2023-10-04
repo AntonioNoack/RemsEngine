@@ -125,9 +125,9 @@ object Input {
         GLFW.glfwSetDropCallback(window.pointer) { _: Long, count: Int, names: Long ->
             if (count > 0) {
                 // it's important to be executed here, because the strings may be GCed otherwise
-                val files = Array(count) { nameIndex ->
+                val files = (0 until count).mapNotNull { nameIndex ->
                     try {
-                        File(GLFWDropCallback.getName(names, nameIndex))
+                        getReference(GLFWDropCallback.getName(names, nameIndex))
                     } catch (e: Exception) {
                         null
                     }
@@ -139,7 +139,7 @@ object Input {
                     val mouseY = window.mouseY
                     dws.requestFocus(dws.getPanelAt(mouseX, mouseY), true)
                     dws.inFocus0?.apply {
-                        onPasteFiles(mouseX, mouseY, files.filterNotNull().map { getReference(it) })
+                        onPasteFiles(mouseX, mouseY, files)
                     }
                 }
             }
@@ -580,9 +580,9 @@ object Input {
 
         val mouseX = window.mouseX
         val mouseY = window.mouseY
-        val inFocus0 = window.windowStack.inFocus
-        for (i in inFocus0.indices) {
-            inFocus0.getOrNull(i)
+        val inFocus = window.windowStack.inFocus
+        for (i in inFocus.indices) {
+            inFocus.getOrNull(i)
                 ?.onMouseUp(mouseX, mouseY, button)
                 ?: break
         }
@@ -744,7 +744,7 @@ object Input {
         try {
             val data = clipboard.getData(javaFileListFlavor) as? List<*>
             val data2 = data?.filterIsInstance<File>()
-            if (data2 != null && data2.isNotEmpty()) {
+            if (!data2.isNullOrEmpty()) {
                 return data2.map { getReference(it) }
             }
         } catch (_: UnsupportedFlavorException) {
@@ -803,7 +803,7 @@ object Input {
         try {
             val data = clipboard.getData(javaFileListFlavor) as? List<*>
             val data2 = data?.filterIsInstance<File>()
-            if (data2 != null && data2.isNotEmpty()) {
+            if (!data2.isNullOrEmpty()) {
                 // LOGGER.info(data2)
                 panel.onPasteFiles(
                     window.mouseX,

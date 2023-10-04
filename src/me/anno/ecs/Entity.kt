@@ -9,7 +9,6 @@ import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.Renderable
-import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.ISaveable
@@ -17,9 +16,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.studio.Inspectable
-import me.anno.ui.Style
-import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
@@ -178,9 +174,9 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     @NotSerializedProperty
     var collisionMask: Int = 0
 
-    @Docs("Local position, shortcut for transform.localPosition")
     @PositionType
     @SerializedProperty
+    @Docs("Local position, shortcut for transform.localPosition")
     var position: Vector3d
         get() = transform.localPosition
         set(value) {
@@ -189,9 +185,9 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             invalidatePhysics(false)
         }
 
-    @Docs("Local rotation, shortcut for transform.localRotation")
     @RotationType
     @SerializedProperty
+    @Docs("Local rotation, shortcut for transform.localRotation")
     var rotation: Quaterniond
         get() = transform.localRotation
         set(value) {
@@ -200,9 +196,9 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             invalidatePhysics(false)
         }
 
-    @Docs("Local scale, shortcut for transform.localScale")
     @ScaleType
     @SerializedProperty
+    @Docs("Local scale, shortcut for transform.localScale")
     var scale: Vector3d
         get() = transform.localScale
         set(value) {
@@ -210,6 +206,32 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             invalidateAABBsCompletely()
             invalidatePhysics(false)
         }
+
+    fun setPosition(x: Double, y: Double, z: Double): Entity {
+        position = position.set(x, y, z)
+        return this
+    }
+
+    fun setRotation(
+        radiansX: Double,
+        radiansY: Double,
+        radiansZ: Double
+    ): Entity {
+        rotation = rotation
+            .identity()
+            .rotateYXZ(radiansY, radiansX, radiansZ)
+        return this
+    }
+
+    fun setScale(sc: Double): Entity {
+        scale = scale.set(sc)
+        return this
+    }
+
+    fun setScale(sx: Double, sy: Double, sz: Double): Entity {
+        scale = scale.set(sx, sy, sz)
+        return this
+    }
 
     @NotSerializedProperty
     val parentEntity: Entity?
@@ -604,8 +626,9 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         }
     }
 
-    fun addComponent(component: Component) {
+    fun addComponent(component: Component): Entity {
         addComponent(-1, component)
+        return this
     }
 
     fun addComponent(index: Int, component: Component) {
@@ -955,7 +978,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     fun fromOtherLocalToLocal(other: Entity): Matrix4x3d {
         // converts the point from the local coordinates of the other one to our local coordinates
-        return Matrix4x3d(transform.globalTransform).invert().mul(other.transform.globalTransform)
+        return other.fromLocalToOtherLocal(this)
     }
 
     fun fromLocalToOtherLocal(other: Entity): Matrix4x3d {

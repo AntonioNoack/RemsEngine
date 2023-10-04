@@ -553,10 +553,8 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
             is Planed -> writePlaned(name, value, forceSaving)
             is AABBf -> writeAABBf(name, value, forceSaving)
             is AABBd -> writeAABBd(name, value, forceSaving)
-            // files
-            is java.io.File -> writeFile(name, FileReference.getReference(value), forceSaving)
+            // others
             is FileReference -> writeFile(name, value, forceSaving)
-            // null
             null -> writeObject(self, name, null, forceSaving)
             is Enum<*> -> writeEnum(name, value, forceSaving)
             // java-serializable

@@ -91,7 +91,7 @@ fun createTerrain(): Entity {
             wrapper.add(MeshComponent(mesh))
             wrapper.add(MeshCollider(mesh).apply { isConvex = false; margin = 0.0 })
             wrapper.add(Rigidbody())
-            wrapper.position = wrapper.position.set(chunkX * sPerChunk, 0.0, chunkZ * sPerChunk)
+            wrapper.setPosition(chunkX * sPerChunk, 0.0, chunkZ * sPerChunk)
             return wrapper
         }
     }
@@ -173,7 +173,7 @@ fun createPlane(player: LocalPlayer): Entity {
     // add friction
     body.friction = 0.5
 
-    plane.position = plane.position.set(0.0, 2.25, 0.0)
+    plane.setPosition(0.0, 2.25, 0.0)
 
     // add a series of box colliders
     fun addCollider(name: String, pos: Vector3f, halfExt: Vector3f, rx: Float = 0f) {
@@ -203,8 +203,8 @@ fun createPlane(player: LocalPlayer): Entity {
     val base1 = Entity()
     val camera = Camera()
     base1.add(camera)
-    base1.rotation = base1.rotation.identity().rotateY(PI)
-    base1.position = base1.position.set(0.0, 2.0, -10.0)
+    base1.setPosition(0.0, 2.0, -10.0)
+    base1.setRotation(0.0, PI, 0.0)
     val base0 = Entity()
     base0.add(base1)
     base0.add(controller)

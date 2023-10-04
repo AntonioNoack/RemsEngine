@@ -85,8 +85,8 @@ fun createUI(): Panel {
 
     val car0 = Entity()
     val car1 = Entity()
-    car1.position = car1.position.set(0.0, -0.8, 0.0)
-    car1.scale = Vector3d(100.0) // the car somehow is in cm size... even in Blender, so not a bug on our side
+    car1.setPosition(0.0, -0.8, 0.0)
+    car1.setScale(100.0) // the car somehow is in cm size... even in Blender, so not a bug on our side
     val materialList = listOf(carModelMat)
     fun add(entity: Entity, source: FileReference, matList: List<FileReference> = materialList) {
         val comp = MeshComponent(source)
@@ -112,7 +112,7 @@ fun createUI(): Panel {
 
     val vehicle = Vehicle()
     // vehicle.deleteWhenKilledByDepth = true
-    car0.position = car0.position.set(0.0, 3.0, 0.0) // move car into air
+    car0.setPosition(0.0, 3.0, 0.0) // move car into air
     vehicle.centerOfMass.set(0.0, -0.3, 0.0)
     car0.add(vehicle)
     car0.add(MeshCollider(carModelMain).apply {
@@ -157,14 +157,14 @@ fun createUI(): Panel {
             wheel.brakeForceMultiplier = 0.02 // what unit is this value??? why has it to be that low???
             wheelObj.add(wheel)
             wheel.radius = 0.42678
-            wheelObj.position = wheelObj.position.set(x * 0.9, -0.3, if (z > 0) 1.58 else -1.48)
+            wheelObj.setPosition(x * 0.9, -0.3, if (z > 0) 1.58 else -1.48)
             val wheelMesh = Entity()
             wheelMesh.add(MeshComponent(carModelFL).apply { materials = materialList })
             if (x > 0) {
-                wheelMesh.position = wheelMesh.position.set(0.86348, -0.42678, 1.5698)
-                wheelMesh.rotation = Quaterniond().rotateY(PI)
+                wheelMesh.setPosition(0.86348, -0.42678, 1.5698)
+                wheelMesh.setRotation(0.0, PI, 0.0)
             } else {
-                wheelMesh.position = wheelMesh.position.set(-0.86348, -0.42678, -1.5698)
+                wheelMesh.setPosition(-0.86348, -0.42678, -1.5698)
             }
             wheelMesh.scale = wheelMesh.scale.set(100.0)
             wheelObj.add(wheelMesh)
@@ -211,8 +211,8 @@ fun createUI(): Panel {
     orbitControls.camera = camera
     orbitControls.useGlobalSpace = true // less nauseating, when car is rotated
     camEntity.add(orbitControls)
-    camEntity.rotation = camEntity.rotation.rotateY(PI)
-    camBase.position = camBase.position.set(0.4, 0.57, 0.15)
+    camEntity.setRotation(0.0, PI, 0.0)
+    camBase.setPosition(0.4, 0.57, 0.15)
     camBase.add(camEntity)
     car0.add(camBase)
 
@@ -227,7 +227,6 @@ fun createUI(): Panel {
     world.validateTransform()
 
     return list
-
 }
 
 fun main() {

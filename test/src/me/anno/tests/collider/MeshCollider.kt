@@ -10,6 +10,7 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS
+import org.joml.Quaterniond
 
 fun main() {
 
@@ -23,16 +24,16 @@ fun main() {
     val monkey = Entity("Monkey")
     monkey.add(MeshComponent(mesh))
     monkey.add(meshCollider)
-    monkey.position = monkey.position.set(0.0, 2.0, 0.0)
-    monkey.rotation = monkey.rotation.rotateX(0.1).rotateZ(0.1) // rotate a little to avoid symmetry
+    monkey.setPosition(0.0, 2.0, 0.0)
+    monkey.transform.localRotation = Quaterniond().rotateX(0.1).rotateZ(0.1) // rotate a little to avoid symmetry
     val body = Rigidbody()
     body.mass = 1.0
     monkey.add(body)
 
     val floor = Entity("Floor")
     val s = 100.0
-    floor.position = floor.position.set(0.0, -s, 0.0)
-    floor.scale = floor.scale.set(s)
+    floor.setPosition(0.0, -s, 0.0)
+    floor.setScale(s)
     floor.add(BoxCollider())
     floor.add(MeshComponent(flatCube.front))
     floor.add(Rigidbody())

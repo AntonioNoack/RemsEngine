@@ -130,11 +130,11 @@ class SplineCrossing : ProceduralMesh() {
                     val correct = p.getLocalPosition(tmp, 0.0).dot(p.getLocalForward(tmp2)) > 0.0
                     val angle = (correct.toInt() + f.toInt() + useRight.toInt()) * PI
                     val pe = p.entity!!
-                    cloneEntity.position = pe.position
+                    cloneEntity.transform.localPosition = pe.transform.localPosition
                     cloneEntity.rotation = cloneEntity.rotation
                         .set(pe.rotation)
                         .rotateY(angle) // correct coordinate system?
-                    cloneEntity.scale = cloneEntity.scale
+                    cloneEntity.transform.localScale = cloneEntity.transform.localScale
                     cloneEntity.validateTransform()
                     cloneEntity.add(clone)
                     return clone

@@ -131,8 +131,7 @@ fun main() {
                         val bounds = newSample.getBounds()
                         val entity = Entity()
                         entity.add(MeshComponent(newFile))
-                        entity.position = entity.position
-                            .set(
+                        entity.setPosition(
                                 -bounds.centerX.toDouble(),
                                 -bounds.minY.toDouble(),
                                 -bounds.centerZ.toDouble()
@@ -156,14 +155,12 @@ fun main() {
                     )
                     if (hit != null) {
                         // if ray hits something, place pseudo object there
-                        sample.position = sample.position.set(hit.positionWS)
+                        sample.position = hit.positionWS
                         // rotation based on normal :3
                         if (dynamicAngle) nor.set(hit.geometryNormalWS).normalToQuaternion2(rot)
                         else rot.identity()
-                        sample.rotation = sample.rotation
-                            .set(rot)
-                            .rotateY(placingRotation)
-                        sample.scale = sample.scale.set(placingScale)
+                        sample.rotation = sample.rotation.set(rot).rotateY(placingRotation)
+                        sample.setScale(placingScale)
                         hasValidLocation = true
                         var hitEntity = hit.component?.entity
                         while (hitEntity != null && hitEntity.parentEntity != world) {

@@ -14,7 +14,7 @@ fun main() {
         for (y in -s..s) {
             for (x in -s..s) {
                 val mesh = Entity()
-                mesh.position = mesh.position.set(x * v, y * v, z * v)
+                mesh.setPosition(x * v, y * v, z * v)
                 val comp = MeshComponent(meshFile)
                 comp.isInstanced = true
                 mesh.add(comp)

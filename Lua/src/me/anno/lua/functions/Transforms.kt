@@ -80,7 +80,7 @@ fun defineTransformVec3(
 }
 
 val setPosition = defineTransformVec3({ t, a ->
-    t.setLocalPosition(a)
+    t.localPosition = a
     t.smoothUpdate()
 }, { t, a ->
     t.position = a

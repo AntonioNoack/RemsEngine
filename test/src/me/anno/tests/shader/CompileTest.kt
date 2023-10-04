@@ -76,7 +76,7 @@ fun createTestScene(): Entity {
     animation.translations = FloatArray(4 * animation.boneCount * animation.frameCount) { it.toFloat() }
     val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
     val offset = Entity(scene)
-    offset.position = offset.position.set(3.0, 0.0, 0.0)
+    offset.setPosition(3.0, 0.0, 0.0)
     offset.add(AnimRenderer().apply {
         this.meshFile = animatedMesh.ref
         this.skeleton = skeleton.ref

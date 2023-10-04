@@ -27,28 +27,28 @@ fun main() {
     scene.addChild(PrefabCache[downloads.getChild("glass_table.glb")]!!
         .createInstance().apply {
             this as Entity
-            scale = scale.set(0.01)
+            setScale(0.01)
         })
     scene.addChild(PrefabCache[downloads.getChild("sphere-glass-4k-materialtest.glb")]!!
         .createInstance().apply {
             this as Entity
-            position = position.set(1.2, 0.85, -1.0)
+            setPosition(1.2, 0.85, -1.0)
         })
     scene.addChild(PrefabCache[downloads.getChild("glass_bottle-freepoly.org.glb")]!!
         .createInstance().apply {
             this as Entity
-            position = position.set(1.6, 0.75, -0.65)
+            setPosition(1.6, 0.75, -0.65)
         })
     scene.addChild(PrefabCache[documents.getChild("FineSphere.fbx")]!!
         .createInstance().apply {
             this as Entity
-            position = position.set(1.6, 0.85, -1.37)
-            scale = scale.set(0.1)
+            setPosition(1.6, 0.85, -1.37)
+            setScale(0.1)
         })
     if (false) scene.addChild(PrefabCache[downloads.getChild("free_1975_porsche_911_930_turbo.zip/scene.gltf")]!!
         .createInstance().apply {
             this as Entity
-            position = position.set(-1.6, 0.0, -1.43)
+            setPosition(-1.6, 0.0, -1.43)
         })
     scene.add(Skybox())
     scene.simpleTraversal {

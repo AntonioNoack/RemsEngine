@@ -36,7 +36,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         var done = forEachInstancedGroup { mesh, material, group, overrides ->
             val material2 = material ?: Mesh.defaultMaterial
             val stage = pipeline.findStage(material2)
-            val stack = stage.instancedX.getOrPut(mesh, material2) { _, _ -> InstancedStackStatic.Data() }
+            val stack = stage.instancedStatic.getOrPut(mesh, material2) { _, _ -> InstancedStaticStack.Data() }
             stack.data.add(group)
             stack.attr.add(overrides)
             stack.clickIds.add(this.clickId)
@@ -44,7 +44,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         done = done || forEachMeshGroupI32 { mesh, material, matrix ->
             val material2 = material ?: Mesh.defaultMaterial
             val stage = pipeline.findStage(material2)
-            val stack = stage.instancedI32.getOrPut(mesh, material2) { _, _ -> InstancedStackI32.Data() }
+            val stack = stage.instancedI32.getOrPut(mesh, material2) { _, _ -> InstancedI32Stack.Data() }
             if (stack.gfxIds.isEmpty() || (stack.gfxIds.last() != gfxId || stack.matrices.last() != matrix)) {
                 stack.gfxIds.add(stack.size)
                 stack.gfxIds.add(gfxId)
@@ -55,7 +55,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         done = done || forEachMeshGroupTRS { mesh, material ->
             val material2 = material ?: Mesh.defaultMaterial
             val stage = pipeline.findStage(material2)
-            val stack = stage.instancedPSR.getOrPut(mesh, material2) { _, _ -> InstancedStackPSR.Data() }
+            val stack = stage.instancedPSR.getOrPut(mesh, material2) { _, _ -> InstancedPSRStack.Data() }
             if (stack.gfxIds.isEmpty() || stack.gfxIds.last() != gfxId) {
                 stack.gfxIds.add(stack.size)
                 stack.gfxIds.add(gfxId)

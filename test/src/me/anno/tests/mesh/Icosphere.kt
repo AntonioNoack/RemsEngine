@@ -10,7 +10,7 @@ fun main() {
     for (i in 0 until 5) {
         val mesh = IcosahedronModel.createIcosphere(i)
         val child = Entity("LOD $i", scene)
-        child.position = child.position.set(i * 2.5, 0.0, 0.0)
+        child.setPosition(i * 2.5, 0.0, 0.0)
         child.add(MeshComponent(mesh))
     }
     testSceneWithUI("Icosphere", scene)

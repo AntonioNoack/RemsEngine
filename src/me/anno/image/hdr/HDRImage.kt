@@ -11,7 +11,8 @@ import java.io.*
 import kotlin.math.*
 
 /**
- * src/author: https://github.com/aicp7/HDR_file_readin;
+ * src/author: https://github.com/aicp7/HDR_file_readin
+ *
  * modified for our needs
  * This class is used to convert an HDR format image into a three-dimensional float array representing the RGB channels of the original image.
  * */

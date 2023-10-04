@@ -15,7 +15,6 @@ import me.anno.utils.OS
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
 import org.joml.Vector3f
-import java.io.File
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.min
@@ -177,7 +176,7 @@ open class StringMap(
 
     open fun onSyncAccess() {}
 
-    private fun parseFile(str0: String): File {
+    private fun parseFile(str0: String): FileReference {
         var str = str0
             .replace('\\', '/')
         if (str.startsWith("~") && OS.isWindows) {
@@ -194,26 +193,11 @@ open class StringMap(
                     }
             }
 
-        return File(str)
-    }
-
-    @Deprecated("You should use FileReferences")
-    operator fun get(key: String, default: File): File {
-        return when (val value = this[key]) {
-            is File -> value
-            is FileReference -> value.toFile()
-            is String -> parseFile(value)
-            null -> {
-                set(key, default)
-                default
-            }
-            else -> parseFile(value.toString())
-        }
+        return getReference(str)
     }
 
     operator fun get(key: String, default: FileReference): FileReference {
         return when (val value = this[key]) {
-            is File -> getReference(value)
             is FileReference -> value
             is String -> getReference(parseFile(value))
             null -> {

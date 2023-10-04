@@ -48,25 +48,26 @@ fun main() {
     // fixed: gold didn't look like gold :(
     //  - color was yellow, but reflection of white stuff was blue (because of sky, probably...)
 
-    scene.add(Entity("Golden Cube", SDFBox().apply {
-        val golden = Material()
-        golden.diffuseBase.set(0xfd / 255f, 0xb6 / 255f, 0x56 / 255f)
-        golden.metallicMinMax.set(1f)
-        golden.roughnessMinMax.set(1f)
-        sdfMaterials = listOf(golden.ref)
-    }).apply {
-        position = position.set(-2.5, 0.0, 0.0)
-    })
-    scene.add(Entity("Floor", SDFBox()).apply {
-        position = position.set(0.0, -6.0, 0.0)
-        scale = scale.set(5.0)
-    })
+    scene.add(
+        Entity("Golden Cube", SDFBox().apply {
+            val golden = Material()
+            golden.diffuseBase.set(0xfd / 255f, 0xb6 / 255f, 0x56 / 255f)
+            golden.metallicMinMax.set(1f)
+            golden.roughnessMinMax.set(1f)
+            sdfMaterials = listOf(golden.ref)
+        }).setPosition(-2.5, 0.0, 0.0)
+    )
+    scene.add(
+        Entity("Floor", SDFBox())
+            .setPosition(0.0, -6.0, 0.0)
+            .setScale(5.0)
+    )
     val lucy = PrefabCache[downloads.getChild("3d/lucy0.fbx")]?.createInstance() as? Entity
     if (lucy != null) {
         scene.add(lucy.apply {
             name = "Lucy"
-            position = position.set(0.0, -1.0, -2.5)
-            scale = scale.set(2.5)
+            setPosition(0.0, -1.0, -2.5)
+            setScale(2.5)
             val golden = Material()
             golden.diffuseBase.set(0xfd / 255f, 0xb6 / 255f, 0x56 / 255f)
             golden.metallicMinMax.set(1f)
@@ -81,8 +82,8 @@ fun main() {
         for (i in 0..10) {
             val sc = 0.1
             val child = Entity(cubes)
-            child.position = child.position.set((i - 5) * sc * 3.5, -1.0 + sc, 2.5 + (j - 2.5) * sc * 3.5)
-            child.scale = child.scale.set(sc)
+            child.setPosition((i - 5) * sc * 3.5, -1.0 + sc, 2.5 + (j - 2.5) * sc * 3.5)
+            child.setScale(sc)
             child.add(MeshComponent(flatCube.front).apply {
                 materials = listOf(Material().apply {
                     metallicMinMax.set(j / 5f)

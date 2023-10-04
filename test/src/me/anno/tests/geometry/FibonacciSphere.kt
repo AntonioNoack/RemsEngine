@@ -11,7 +11,7 @@ fun main() {
     for (pt in FibonacciSphere.create(12)) {
         val child = Entity()
         child.position = child.position.set(pt)
-        child.scale = child.scale.set(0.03)
+        child.setScale(0.03)
         child.add(MeshComponent(smoothCube.front))
         scene.add(child)
     }

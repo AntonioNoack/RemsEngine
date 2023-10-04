@@ -36,7 +36,7 @@ fun main() {
             for (x in -s..s) {
                 val t = 10.0
                 val box = Entity(MeshComponent(flatCube.front))
-                box.position = box.position.set(x * t, y * t, z * t)
+                box.setPosition(x * t, y * t, z * t)
                 boxes.add(box)
             }
         }

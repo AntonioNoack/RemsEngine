@@ -86,14 +86,14 @@ private fun test2() {
     ground.add(groundRB)
     val groundShape = RectCollider()
     groundShape.halfExtends.set(50f, 5f)
-    ground.position = Vector3d(0.0, -10.0, 0.0)
+    ground.setPosition(0.0, -10.0, 0.0)
     ground.add(groundShape)
     world.add(ground)
     // test gravity and maybe collisions
     val box = Entity()
     val boxRB = Rigidbody2d()
     box.add(boxRB)
-    box.position = Vector3d(0.0, 10.0, 0.0)
+    box.setPosition(0.0, 10.0, 0.0)
     val boxShape = RectCollider()
     boxShape.density = 1f
     boxShape.halfExtends.set(1f, 1f)
@@ -132,12 +132,12 @@ fun test3() {
         ground.add(groundRB)
         val groundShape = RectCollider()
         groundShape.halfExtends.set(500f, strength.toFloat())
-        ground.position = Vector3d(
+        ground.setPosition(
             sin(angle) * width * 0.5,
             cos(angle) * height * 0.5,
             0.0
         )
-        ground.rotation = ground.rotation.rotateZ(angle)
+        ground.setRotation(0.0, 0.0, angle)
         ground.add(groundShape)
         world.add(ground)
     }
@@ -146,12 +146,12 @@ fun test3() {
     for (i in 0 until 100) {
         val box = Entity("Box")
         box.add(Rigidbody2d())
-        box.position = Vector3d(
+        box.setPosition(
             (random.nextDouble() - 0.5) * 600.0,
             (random.nextDouble() - 0.5) * 600.0,
             0.0
         )
-        box.rotation = Quaterniond().rotateZ(random.nextDouble() * PI)
+        box.setRotation(0.0, 0.0, random.nextDouble() * PI)
         val shape = RectCollider()
         shape.density = 1f
         shape.halfExtends.set(20f, 7f)
@@ -162,7 +162,7 @@ fun test3() {
     for (i in 0 until 100) {
         val circle = Entity("Circle")
         circle.add(Rigidbody2d())
-        circle.position = Vector3d(
+        circle.setPosition(
             (random.nextDouble() - 0.5) * 600.0,
             (random.nextDouble() - 0.5) * 600.0,
             0.0
@@ -349,7 +349,6 @@ fun test3() {
                 }
 
                 DrawCurves.lineBatch.finish(v)
-
             }
         }
     }

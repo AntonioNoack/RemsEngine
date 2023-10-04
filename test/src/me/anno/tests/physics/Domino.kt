@@ -72,8 +72,7 @@ fun main() {
                     // to do choose source randomly from random set of sounds
                     // place audio at the correct position
                     val pos = contactManifold.getContactPoint(0).positionWorldOnA
-                    audio.entity!!.position = audio.entity!!.position
-                        .set(pos.x, pos.y, pos.z)
+                    audio.entity!!.setPosition(pos.x, pos.y, pos.z)
                     audio.start()
                 }
             }
@@ -108,7 +107,7 @@ fun main() {
             halfExtends = halfExtends1
             margin = 0.0
         })
-        domino.position = domino.position.set(x.toDouble(), halfExtends1.y, z.toDouble())
+        domino.setPosition(x.toDouble(), halfExtends1.y, z.toDouble())
         dominos.add(domino)
         return domino
     }
@@ -129,7 +128,7 @@ fun main() {
             margin = 0.0
         })
         floor.add(MeshComponent(flatCube.scaled(Vector3f(floorHalfSize.toFloat())).front))
-        floor.position = floor.position.set(0.0, -floorHalfSize, 2 * z * floorHalfSize)
+        floor.setPosition(0.0, -floorHalfSize, 2 * z * floorHalfSize)
         floors.add(floor)
     }
 

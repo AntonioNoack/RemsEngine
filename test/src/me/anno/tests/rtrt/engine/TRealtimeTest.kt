@@ -84,8 +84,8 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Q
                     // clone object to test mesh duplication
                     scene2.transform
                         .translateLocal(dx * i, dy, dz * j)
-                        .rotateYLocal(0.2 * i)
-                        .rotateXLocal(0.2 * j)
+                        .rotateLocalY(0.2 * i)
+                        .rotateLocalX(0.2 * j)
                     scene2.validateTransform()
                     scene2.validateAABBs()
                     pipeline.fill(scene2)

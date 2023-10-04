@@ -14,7 +14,7 @@ import java.text.ParseException
  * Originally called LnkParser
  *
  * Additional information on the format can be found at
- * https://web.archive.org/web/20190625054252/http://www.i2s-lab.com/Papers/The_Windows_Shortcut_File_Format.pdf
+ * https://web.archive.org/web/20070208051731/http://www.i2s-lab.com/Papers/The_Windows_Shortcut_File_Format.pdf
  *
  * Written by: (the stack overflow users, obviously!)
  * Dword fix for offsets within file location structure  by file extension by JS Lair https://stackoverflow.com/users/10297367/js-lair https://github.com/JSLair

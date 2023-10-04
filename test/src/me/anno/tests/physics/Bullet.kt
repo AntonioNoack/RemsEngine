@@ -72,7 +72,7 @@ private fun test2() {
     ground.add(groundRB)
     val groundShape = BoxCollider()
     groundShape.halfExtends.set(50.0, 5.0, 50.0)
-    ground.position = ground.position.set(0.0, -10.0, 0.0)
+    ground.setPosition(0.0, -10.0, 0.0)
     ground.add(groundShape)
     world.add(ground)
     // test gravity and maybe collisions
@@ -80,7 +80,7 @@ private fun test2() {
     box.name = "Box"
     val boxRB = Rigidbody()
     box.add(boxRB)
-    box.position = box.position.set(0.0, 10.0, 0.0)
+    box.setPosition(0.0, 10.0, 0.0)
     val boxShape = BoxCollider()
     boxRB.mass = 1.0
     boxShape.halfExtends.set(1.0)

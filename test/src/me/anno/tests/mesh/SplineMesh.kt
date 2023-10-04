@@ -9,10 +9,7 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.image.ImageWriter
 import me.anno.ui.debug.TestStudio.Companion.testUI
-import org.joml.Quaternionf
-import org.joml.Vector2f
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -42,27 +39,27 @@ fun main() {
         world.add(splineEntity)
 
         val endEntity = Entity("End Piece")
-        endEntity.position = Vector3d(0.0, 3.0, 0.0)
+        endEntity.setPosition(0.0, 3.0, 0.0)
         endEntity.add(SplineCrossing())
-        fun add2(p: Vector3f, r: Quaternionf = Quaternionf()) {
+        fun add2(p: Vector3d, r: Quaterniond = Quaterniond()) {
             val child = Entity()
-            child.position = child.position.set(p)
-            child.rotation = child.rotation.set(r)
+            child.position = p
+            child.rotation = r
             child.add(SplineControlPoint())
             endEntity.add(child)
         }
-        add2(Vector3f())
+        add2(Vector3d())
         world.add(endEntity)
 
         val crossEntity = Entity("Crossing")
-        crossEntity.position = Vector3d(0.0, 6.0, 0.0)
+        crossEntity.setPosition(0.0, 6.0, 0.0)
         crossEntity.add(SplineCrossing())
         val l = 15
         for (i in 0 until l) {
             val angle = i * PI * 2.0 / l
             val child = Entity()
-            child.position = child.position.set(cos(angle) * 20f, 0.0, sin(angle) * 20f)
-            child.rotation = child.rotation.rotateY(-angle + PI * 0.5)
+            child.setPosition(cos(angle) * 20f, 0.0, sin(angle) * 20f)
+            child.setRotation(0.0, -angle + PI * 0.5, 0.0)
             child.add(SplineControlPoint())
             // todo add streets as control
             crossEntity.add(child)
@@ -99,5 +96,4 @@ fun main() {
     }
 
     ImageWriter.writeImageCurve(size, size, false, 255 shl 24, -1, 5, points, "spline1.png")
-
 }

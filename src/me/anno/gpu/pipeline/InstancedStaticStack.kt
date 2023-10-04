@@ -10,8 +10,12 @@ import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongPair
 
-class InstancedStackStatic(capacity: Int = 512) :
-    KeyPairMap<Mesh, Material, InstancedStackStatic.Data>(capacity), DrawableStack {
+/**
+ * instanced stack of buffers of static data,
+ * see MeshSpawner.forEachInstancedGroup()
+ * */
+class InstancedStaticStack(capacity: Int = 512) :
+    KeyPairMap<Mesh, Material, InstancedStaticStack.Data>(capacity), DrawableStack {
 
     class Data {
 

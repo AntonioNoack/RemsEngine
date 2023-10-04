@@ -11,9 +11,9 @@ import kotlin.math.PI
 
 fun main() {
     val decal = Entity("Decal")
-    decal.position = decal.position.set(1.0, 0.0, 0.0)
-    decal.rotation = decal.rotation.rotateY(PI / 2)
-    decal.scale = decal.scale.set(1.0, 1.0, 0.5)
+    decal.setPosition(1.0, 0.0, 0.0)
+    decal.setRotation(0.0, PI / 2, 0.0)
+    decal.setScale(1.0, 1.0, 0.5)
     val decal2 = DecalMeshComponent()
     decal.add(decal2)
     val mat = decal2.material
@@ -22,7 +22,7 @@ fun main() {
     mat.writeColor = true
     mat.writeNormal = true
     val scene = Entity("Object")
-    scene.rotation = scene.rotation.rotateY(PI)
+    scene.setRotation(0.0, PI, 0.0)
     scene.add(SDFSphere().apply {
         sdfMaterials = listOf(Material().apply {
             diffuseBase.set(1f, 0.7f, 0.3f, 1f)

@@ -13,7 +13,8 @@ fun main() {
     child.add(MeshComponent(Shapes.flatCube.front.ref))
     child.add(object : Component() {
         override fun onUpdate(): Int {
-            transform!!.rotateYLocal(120.0.toRadians())
+            val transform = transform!!
+            transform.localRotation = transform.localRotation.rotateY(120.0.toRadians())
             return 40
         }
     })

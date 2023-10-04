@@ -383,79 +383,54 @@ class Transform() : Saveable() {
     }
 
     @Suppress("unused")
-    fun setLocalPosition(v: Vector3d): Transform {
-        return setLocalPosition(v.x, v.y, v.z)
-    }
-
-    @Suppress("unused")
     fun setLocalPosition(x: Double, y: Double, z: Double): Transform {
-        localTransform.setTranslation(x, y, z)
-        localPosition.set(x, y, z)
-        invalidateGlobal()
+        localPosition = localPosition.set(x, y, z)
         return this
     }
 
     @Suppress("unused")
-    fun setGlobalPosition(v: Vector3d): Transform {
-        return setGlobalPosition(v.x, v.y, v.z)
+    fun setLocalScale(scale: Double): Transform {
+        localScale = localScale.set(scale)
+        return this
+    }
+
+    @Suppress("unused")
+    fun setLocalScale(sx: Double, sy: Double, sz: Double): Transform {
+        localScale = localScale.set(sx, sy, sz)
+        return this
     }
 
     @Suppress("unused")
     fun setGlobalPosition(x: Double, y: Double, z: Double): Transform {
-        globalPosition.set(x, y, z)
-        globalTransform.setTranslation(x, y, z)
-        invalidateLocal()
+        globalPosition = globalPosition.set(x, y, z)
         return this
     }
 
     @Suppress("unused")
     fun translateLocal(dx: Double, dy: Double, dz: Double): Transform {
-        localPosition.add(dx, dy, dz)
-        localTransform.setTranslation(localPosition)
-        invalidateGlobal()
+        localPosition = localPosition.add(dx, dy, dz)
         return this
     }
 
     @Suppress("unused")
     fun translateGlobal(dx: Double, dy: Double, dz: Double): Transform {
-        globalPosition.add(dx, dy, dz)
-        globalTransform.setTranslation(globalPosition)
-        invalidateLocal()
+        globalPosition = globalPosition.add(dx, dy, dz)
         return this
     }
 
-    @Suppress("unused")
-    fun resetLocalRotation(): Transform {
-        localRotation = localRotation.identity()
-        localTransform.identity()
-            .setTranslation(localPosition)
-            .scale(localScale)
-        invalidateGlobal()
-        return this
-    }
-
-    fun rotateXLocal(angleRadians: Double): Transform {
+    fun rotateLocalX(angleRadians: Double): Transform {
         localRotation = localRotation.rotateX(angleRadians)
-        recalculateLocal()
         return this
     }
 
-    fun rotateYLocal(angleRadians: Double): Transform {
+    fun rotateLocalY(angleRadians: Double): Transform {
         localRotation = localRotation.rotateY(angleRadians)
-        recalculateLocal()
         return this
     }
 
-    @Suppress("unused")
-    fun rotateZLocal(angleRadians: Double): Transform {
+    fun rotateLocalZ(angleRadians: Double): Transform {
         localRotation = localRotation.rotateZ(angleRadians)
-        recalculateLocal()
         return this
-    }
-
-    private fun recalculateLocal(){
-        localTransform.translationRotateScale(localPosition, localRotation, localScale)
-        invalidateGlobal()
     }
 
     override fun save(writer: BaseWriter) {
@@ -468,5 +443,4 @@ class Transform() : Saveable() {
     override val approxSize get() = 1
 
     override fun isDefaultValue() = false
-
 }

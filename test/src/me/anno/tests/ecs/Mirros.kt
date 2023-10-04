@@ -48,24 +48,24 @@ fun main() {
 
     val mirror0 = Entity("Mirror0", scene)
     mirror0.add(PlanarReflection())
-    mirror0.position = mirror0.position.set(0.0, 0.0, -1.0)
-    mirror0.scale = mirror0.scale.set(10.0)
+    mirror0.setPosition(0.0, 0.0, -1.0)
+    mirror0.setScale(10.0)
 
     val mirror1 = Entity("Mirror1", scene)
     mirror1.add(PlanarReflection())
-    mirror1.position = mirror1.position.set(-1.0, 0.0, 0.0)
-    mirror1.rotation = mirror1.rotation.rotateY(PI / 2)
-    mirror1.scale = mirror1.scale.set(10.0)
+    mirror1.setPosition(-1.0, 0.0, 0.0)
+    mirror1.setRotation(0.0, PI / 2, 0.0)
+    mirror1.setScale(10.0)
 
     val sample = Entity("Cylinder", scene)
     sample.add(MeshComponent(CylinderModel.createMesh(32, 2, top = true, bottom = true, null, 3f, Mesh())))
-    sample.position = sample.position.set(0.0, -0.35, 0.0)
-    sample.scale = sample.scale.set(0.2)
+    sample.setPosition(0.0, -0.35, 0.0)
+    sample.setScale(0.2)
 
     val sample2 = Entity("Cube", scene)
     sample2.add(MeshComponent(flatCube.front))
-    sample2.position = sample2.position.set(0.0, +0.35, -2.0)
-    sample2.scale = sample2.scale.set(0.2)
+    sample2.setPosition(0.0, +0.35, -2.0)
+    sample2.setScale(0.2)
 
     scene.add(Skybox())
     testSceneWithUI("Mirrors", scene)

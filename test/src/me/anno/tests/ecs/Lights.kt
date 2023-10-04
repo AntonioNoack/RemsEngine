@@ -16,6 +16,7 @@ import me.anno.maths.Maths.TAU
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
 import kotlin.math.cos
@@ -43,9 +44,9 @@ fun main() {
 
     val sun = Entity("Sun", lights)
     sun.add(DirectionalLight().apply { shadowMapCascades = 1; color.set(3f) })
-    sun.position = sun.position.set(0.0, -10.0, 0.0)
-    sun.scale = sun.scale.set(50.0)
-    sun.rotation = sun.rotation.rotateY(0.8).rotateX(-0.8)
+    sun.setPosition(0.0, -10.0, 0.0)
+    sun.setScale(50.0)
+    sun.transform.localRotation = Quaterniond().rotateY(0.8).rotateX(-0.8)
 
     val ringOfLights = Entity("Ring Of Lights", lights)
     ringOfLights.add(object : LightSpawner() {
@@ -109,14 +110,14 @@ fun main() {
     // add a floor for testing
     val cubePath = flatCube.front.ref
     val floor = Entity("Floor", scene)
-    floor.position = Vector3d(0.0, -50.0, 0.0)
-    floor.scale = Vector3d(2000.0, 50.0, 2000.0)
+    floor.setPosition(0.0, -50.0, 0.0)
+    floor.setScale(2000.0, 50.0, 2000.0)
     val floorMesh1E = Entity("Metallic", floor)
-    floorMesh1E.position = Vector3d(0.5, 0.0, 0.0)
-    floorMesh1E.scale = Vector3d(0.5, 1.0, 1.0)
+    floorMesh1E.setPosition(0.5, 0.0, 0.0)
+    floorMesh1E.setScale(0.5, 1.0, 1.0)
     val floorMesh2E = Entity("Rough", floor)
-    floorMesh2E.position = Vector3d(-0.5, 0.0, 0.0)
-    floorMesh2E.scale = Vector3d(0.5, 1.0, 1.0)
+    floorMesh2E.setPosition(-0.5, 0.0, 0.0)
+    floorMesh2E.setScale(0.5, 1.0, 1.0)
     floorMesh2E.add(MeshComponent(cubePath))
     floorMesh1E.add(MeshComponent(cubePath).apply {
         materials = listOf(Material().apply {

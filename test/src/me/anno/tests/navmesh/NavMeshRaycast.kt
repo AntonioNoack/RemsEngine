@@ -67,7 +67,7 @@ class AgentController1a(
             findNextTarget()
         }
         // project agent onto surface
-        val lp = entity.position
+        val lp = entity.transform.localPosition
         val start = Vector3d(nextPos)
         start.y = lp.y + crowdAgent.params.height * 0.5
         val dist = crowdAgent.params.height.toDouble()

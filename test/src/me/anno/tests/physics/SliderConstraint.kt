@@ -26,7 +26,7 @@ fun main() {
     val box0 = Entity()
     box0.add(MeshComponent(flatCube.front))
     box0.add(BoxCollider())
-    box0.position = box0.position.set(0.0, 2.3, 0.0)
+    box0.setPosition(0.0, 2.3, 0.0)
     val body0 = Rigidbody()
     body0.mass = 1.0
     box0.add(body0)
@@ -35,7 +35,7 @@ fun main() {
     val box1 = Entity()
     box1.add(MeshComponent(flatCube.front))
     box1.add(BoxCollider())
-    box1.rotation = box1.rotation.rotateX(5.0.toRadians())
+    box1.setRotation(5.0.toRadians(), 0.0, 0.0)
     val body1 = Rigidbody()
     box1.add(body1)
     scene.add(box1)

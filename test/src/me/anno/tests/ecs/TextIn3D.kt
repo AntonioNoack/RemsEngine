@@ -20,7 +20,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes.flat11
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
@@ -262,10 +261,10 @@ class SDFTextureComponent(val text: String, val font: Font, val alignment: AxisA
 fun main() {
 
     val scene = Entity("Scene")
-    fun place(comp: Component, pos: Double) {
-        val ent = Entity(scene)
-        ent.add(comp)
-        ent.position = ent.position.set(0.0, pos, 0.0)
+    fun place(component: Component, pos: Double) {
+        Entity(scene)
+            .setPosition(0.0, pos, 0.0)
+            .add(component)
     }
 
     val font = Font("Verdana", 40f)
