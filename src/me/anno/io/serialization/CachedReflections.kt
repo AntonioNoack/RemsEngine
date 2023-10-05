@@ -219,7 +219,10 @@ class CachedReflections(
                     if (betterName !in map &&
                         map.none { it.key.equals(subName, true) } // might have an upper case start letter...
                     ) {
-                        val setterMethod = methods.firstOrNull { it.name == setterName } ?: continue
+                        val setterMethod = methods.firstOrNull {
+                            it.name == setterName && it.parameterCount == 1 &&
+                                    it.parameters[0].type == getterMethod.returnType
+                        } ?: continue
                         val annotations = getterMethod.annotations.toMutableList()
                         val kotlinAnnotationName = "$name\$annotations"
                         val m = methods.firstOrNull { it.name == kotlinAnnotationName }

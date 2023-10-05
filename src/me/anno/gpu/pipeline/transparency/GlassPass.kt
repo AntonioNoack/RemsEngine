@@ -48,17 +48,27 @@ class GlassPass : TransparentPass() {
         ) {
             override fun getPostProcessing(flags: Int): List<ShaderStage> {
                 val vars = pbrRenderer.getPostProcessing(flags).first().variables.filter { !it.isOutput }
-                return listOf(ShaderStage("glass",
-                    vars, "" +
-                            colorToLinear +
-                            RendererLib.lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
-                            RendererLib.combineLightCode +
-                            RendererLib.skyMapCode +
-                            colorToSRGB +
-                            "finalEmissive = finalColor * finalAlpha;\n" + // reflections
-                            "finalColor = -log(finalColor0) * finalAlpha;\n" + // diffuse tinting ; todo light needs to get tinted by closer glass-panes...
-                            "finalAlpha = 1.0;\n"
-                ))
+                return listOf(
+                    ShaderStage(
+                        "glass",
+                        vars + listOf(Variable(GLSLType.V1F, "IOR")), "" +
+                                colorToLinear +
+                                RendererLib.lightCode + // calculates the light onto this surface, stores diffuseLight and specularLight
+                                RendererLib.combineLightCode +
+                                RendererLib.skyMapCode +
+                                colorToSRGB +
+                                "float fresnel = fresnelSchlick(abs(dot(finalNormal,normalize(finalPosition))), gl_FrontFacing ? 1.0 / IOR : IOR);\n" +
+                                "finalAlpha *= fresnel;\n" +
+                                "finalEmissive = finalColor * finalAlpha;\n" + // reflections
+                                "finalColor = -log(finalColor0) * finalAlpha;\n" + // diffuse tinting ; todo light needs to get tinted by closer glass-panes...
+                                "finalAlpha = 1.0;\n"
+                    ).add("" +
+                            "float fresnelSchlick(float cosine, float ior) {\n" +
+                            "   float r0 = (1.0 - ior) / (1.0 + ior);\n" +
+                            "   r0 = r0 * r0;\n" +
+                            "   return r0 + (1.0 - r0) * pow(1.0 - cosine, 5.0);\n" +
+                            "}\n")
+                )
             }
         }
 
@@ -120,7 +130,5 @@ class GlassPass : TransparentPass() {
         }
 
         tmp.destroy()
-
     }
-
 }

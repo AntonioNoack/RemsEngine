@@ -157,9 +157,9 @@ open class Material : PrefabSaveable(), Renderable {
     @Type("Texture/Reference")
     var sheenNormalMap: FileReference = InvalidRef
 
-    @Docs("Defines refraction strength. Not yet supported.")
+    @Docs("Defines refraction/reflection strength for transparent materials")
     @Range(1.0, 5.0)
-    var indexOfRefraction = 1f
+    var indexOfRefraction = 1.5f
 
     // (useful for Synty meshes, which sometimes have awkward vertex colors)
     @Docs("Whether vertex colors shall be used.")
@@ -204,6 +204,7 @@ open class Material : PrefabSaveable(), Renderable {
         shader.v1f("finalTranslucency", translucency)
         shader.v1f("finalSheen", sheen)
         shader.v1f("sheen", sheen)
+        shader.v1f("IOR", indexOfRefraction)
 
         if (clearCoatColor.w > 0f) {
             shader.v4f("finalClearCoat", clearCoatColor)

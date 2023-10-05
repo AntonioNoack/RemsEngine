@@ -6,21 +6,19 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
-import me.anno.gpu.DepthMode
-import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
-import me.anno.gpu.pipeline.Sorting
-import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.utils.OS.documents
 import me.anno.utils.OS.downloads
 
 fun main() {
 
     // render scene with transparency
+    // todo scene transforms have become non-deterministic
+
+    // todo set IORs
+    // todo can we set an IOR such that a material is always visible?
 
     ECSRegistry.init()
     val scene = Entity()
@@ -80,17 +78,5 @@ fun main() {
         }
         false
     }
-    testSceneWithUI("Scene with Transparency", scene) {
-        // it.renderer.renderMode = RenderMode.FORCE_NON_DEFERRED
-        it.renderer.pipeline.defaultStage.sorting = Sorting.BACK_TO_FRONT
-        it.renderer.pipeline.transparentPass = GlassPass()
-        it.renderer.pipeline.stages.add(
-            PipelineStage(
-                "transparent", Sorting.BACK_TO_FRONT,
-                16, BlendMode.DEFAULT,
-                DepthMode.CLOSE, false, // both true and false are incorrect here
-                CullMode.FRONT, pbrModelShader
-            )
-        )
-    }
+    testSceneWithUI("Scene with Transparency", scene)
 }
