@@ -9,6 +9,7 @@ import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.ecs.components.light.*
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.Skybox
@@ -20,6 +21,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.mesh.Shapes.flatCube
 import me.anno.mesh.assimp.Bone
 import me.anno.tests.ui.UITests
@@ -34,6 +36,9 @@ import org.junit.jupiter.api.Test
 }*/
 
 fun createTestScene(): Entity {
+
+    // todo transparent things for GlassPass test
+
     val scene = Entity()
     scene.add(Skybox())
     scene.add(DirectionalLight())
@@ -87,6 +92,11 @@ fun createTestScene(): Entity {
         this.skeleton = skeleton.ref
         this.animations = listOf(animState)
         this.isInstanced = true
+    })
+    scene.add(MeshComponent(flatCube.front).apply {
+        materials = listOf(Material().apply {
+            pipelineStage = TRANSPARENT_PASS
+        }.ref)
     })
     return scene
 }

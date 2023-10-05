@@ -37,7 +37,9 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.input.Input
+import me.anno.input.Key
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.ui.Panel
@@ -77,7 +79,6 @@ fun main() {
 
     val velocity = State { Framebuffer("velocity", w, h, TargetType.FloatTarget2) }
     val divergence = Framebuffer("divergence", w, h, TargetType.FloatTarget1)
-    val curl = Framebuffer("curl", w, h, TargetType.FloatTarget1)
     val pressure = State { Framebuffer("pressure", w, h, TargetType.FloatTarget1) }
 
     val splatShader = Shader(
@@ -93,49 +94,17 @@ fun main() {
                 "}\n"
     )
 
-    val curlShader = Shader(
-        "curl", coordsList, coordsVShader, uvList, listOf(
-            Variable(GLSLType.V4F, "result", VariableMode.OUT),
-            Variable(GLSLType.V2F, "texelSize"),
-            Variable(GLSLType.S2D, "velocityTex")
+    val splashShader = Shader(
+        "splash", simpleVertexShaderList, simpleVertexShader, uvList,
+        listOf(
+            Variable(GLSLType.V1F, "strength"),
+            Variable(GLSLType.V4F, "result", VariableMode.OUT)
         ), "" +
                 "void main() {\n" +
-                uvs1 +
-                "   float L = texture2D(velocityTex, vL).y;\n" +
-                "   float R = texture2D(velocityTex, vR).y;\n" +
-                "   float T = texture2D(velocityTex, vT).x;\n" +
-                "   float B = texture2D(velocityTex, vB).x;\n" +
-                "   result = vec4(0.5*(R-L-T+B),0.0,0.0,1.0);\n" +
-                "}"
-    )
-
-    val vorticityShader = Shader(
-        "vorticity", coordsList, coordsVShader, uvList, listOf(
-            Variable(GLSLType.V4F, "result", VariableMode.OUT),
-            Variable(GLSLType.V1F, "curl"),
-            Variable(GLSLType.V1F, "dt"),
-            Variable(GLSLType.V2F, "texelSize"),
-            Variable(GLSLType.S2D, "curlTex"),
-            Variable(GLSLType.S2D, "velocityTex")
-        ), "" +
-                "void main() {\n" +
-                uvs1 +
-                "    float L = texture2D(curlTex, vL).x;\n" +
-                "    float R = texture2D(curlTex, vR).x;\n" +
-                "    float T = texture2D(curlTex, vT).x;\n" +
-                "    float B = texture2D(curlTex, vB).x;\n" +
-                "    float C = texture2D(curlTex, uv).x;\n" +
-
-                "    vec2 force = 0.5 * vec2(abs(T) - abs(B), abs(R) - abs(L));\n" +
-                "    force /= length(force) + 0.0001;\n" +
-                "    force *= curl * C;\n" +
-                "    force.y = -force.y;\n" +
-
-                "    vec2 velocity = texture2D(velocityTex, uv).xy;\n" +
-                "    velocity += force * dt;\n" +
-                "    velocity = min(max(velocity, -1000.0), 1000.0);\n" +
-                "    result = vec4(velocity, 0.0, 1.0);\n" +
-                "}"
+                "   vec2 uv1 = uv*2.0-1.0;\n" +
+                "   float dist = dot(uv1,uv1);\n" +
+                "   result = vec4(uv1 * exp(-dist*10.0) * strength, 0.0, 0.0);\n" +
+                "}\n"
     )
 
     val divergenceShader = Shader(
@@ -301,7 +270,8 @@ fun main() {
     var my = 0f
 
     val visuals = listOf(
-        curl to "Curl", divergence to "Div",
+        divergence to "Div",
+        blackTexture.wrapAsFramebuffer() to "",
         pressure.read to "PressureR",
         pressure.write to "PressureW",
         velocity.read to "VelocityR",
@@ -317,7 +287,26 @@ fun main() {
 
             useFrame(copyRenderer) {
 
-                // todo when the user clicks, we should/count spawn an outgoing circle
+                // when the user clicks, we spawn an outgoing circle
+                val pressForce = when {
+                    Input.wasKeyPressed(Key.BUTTON_LEFT) -> +1
+                    Input.wasKeyReleased(Key.BUTTON_LEFT) -> -1
+                    else -> 0
+                }
+                if (pressForce != 0) {
+                    splashShader.apply {
+                        useFrame(velocity.read) {
+                            GFXState.blendMode.use(BlendMode.PURE_ADD) {
+                                use()
+                                v1f("strength", 10f * s * pressForce)
+                                v4f("posSize", lx, ly, s, s)
+                                v4f("tiling", 1f, 1f, 0f, 0f)
+                                m4x4("transform")
+                                flat01.draw(splashShader)
+                            }
+                        }
+                    }
+                }
 
                 // user interaction
                 //  velocity.read -> velocity.write
@@ -325,12 +314,11 @@ fun main() {
                 val dx = mx * force
                 val dy = my * force
                 if (dx != 0f || dy != 0f) {
-                    splatShader.apply {
-                        useFrame(velocity.read) {
-                            GFXState.blendMode.use(BlendMode.PURE_ADD) {
+                    GFXState.blendMode.use(BlendMode.PURE_ADD) {
+                        splatShader.apply {
+                            useFrame(velocity.read) {
                                 use()
                                 v4f("color", dx, dy, 0f, 0f)
-                                val window = it.window!!
                                 v4f("posSize", lx, ly, s, s)
                                 v4f("tiling", 1f, 1f, 0f, 0f)
                                 m4x4("transform")
@@ -340,28 +328,6 @@ fun main() {
                     }
                     mx = 0f
                     my = 0f
-                }
-
-                curlShader.apply {
-                    useFrame(curl) {
-                        use()
-                        v2f("texelSize", ts)
-                        velocity.read.getTexture0().bindTrulyNearest(this, "velocityTex")
-                        flat01.draw(this)
-                    }
-                }
-
-                vorticityShader.apply {
-                    useFrame(velocity.write) {
-                        use()
-                        v2f("texelSize", ts)
-                        velocity.read.getTexture0().bindTrulyNearest(this, "velocityTex")
-                        curl.getTexture0().bindTrulyNearest(this, "curlTex")
-                        v1f("curl", 0.9f)
-                        v1f("dt", dt)
-                        flat01.draw(this)
-                    }
-                    velocity.swap()
                 }
 
                 divergenceShader.apply {
@@ -520,10 +486,11 @@ fun main() {
                 return listOf(stage)
             }
         }
+        val waveHeight = 50f
         val material = Material()
         material.shader = shader
         material.shaderOverrides["heightTex"] = TypeValueV2(GLSLType.S2D) { pressure.read }
-        material.shaderOverrides["waveHeight"] = TypeValue(GLSLType.V1F, 50f)
+        material.shaderOverrides["waveHeight"] = TypeValue(GLSLType.V1F, waveHeight)
         material.pipelineStage = TRANSPARENT_PASS
         material.metallicMinMax.set(1f)
         material.roughnessMinMax.set(0f)
@@ -537,7 +504,7 @@ fun main() {
                 if (ci != null) {
                     val rayDir = ci.getMouseRayDirection()
                     val rayPos = ci.cameraPosition
-                    val dist = -rayPos.y / rayDir.y
+                    val dist = (waveHeight - rayPos.y) / rayDir.y
                     val gx = 0.5f + (rayPos.x + dist * rayDir.x) / w
                     val gz = 0.5f - (rayPos.z + dist * rayDir.z) / h
                     val lx = if (dist > 0f) gx.toFloat() else 0f
@@ -556,6 +523,8 @@ fun main() {
                 return true
             }
         }
+        // we handle collisions ourselves
+        comp.collisionMask = 0
         testSceneWithUI("FluidSim", Entity(comp)) {
             it.editControls = object : DraggingControls(it.renderer) {
                 override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
