@@ -6,9 +6,9 @@ import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
-import me.anno.ui.Style
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max
@@ -157,21 +157,22 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     var isDownIndex = -1
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        // find where the mouse went down
-        for (index in scrollbars.indices) {
-            val scrollbar = scrollbars[index]
-            if (scrollbar.isBeingHovered) {
-                isDownIndex = index
-                return
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) {
+            // find where the mouse went down
+            for (index in scrollbars.indices) {
+                val scrollbar = scrollbars[index]
+                if (scrollbar.isBeingHovered) {
+                    isDownIndex = index
+                    return
+                }
             }
-        }
-        super.onMouseDown(x, y, button)
+        } else super.onKeyDown(x, y, key)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        isDownIndex = -1
-        super.onMouseUp(x, y, button)
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) isDownIndex = -1
+        else super.onKeyUp(x, y, key)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

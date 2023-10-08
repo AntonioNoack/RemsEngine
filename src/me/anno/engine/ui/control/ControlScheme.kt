@@ -79,20 +79,6 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
     open fun fill(pipeline: Pipeline) {}
 
     // transfer events
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        invalidateDrawing()
-        if (control?.onMouseDown(button) == true) return
-        if (editMode?.onEditDown(button) == true) return
-        super.onMouseDown(x, y, button)
-    }
-
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        invalidateDrawing()
-        if (control?.onMouseUp(button) == true) return
-        if (editMode?.onEditUp(button) == true) return
-        super.onMouseUp(x, y, button)
-    }
-
     override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
         invalidateDrawing()
         if (control?.onCharTyped(codepoint) == true) return

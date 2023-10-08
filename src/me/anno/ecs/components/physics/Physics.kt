@@ -99,6 +99,10 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         invalidEntities.add(entity)
     }
 
+    open fun invalidateTransform(entity: Entity) {
+        invalidate(entity)
+    }
+
     fun validate() {
         if (printValidations) LOGGER.debug("validating ${System.identityHashCode(this)}")
         invalidEntities.process2x({ entity ->

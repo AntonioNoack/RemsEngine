@@ -22,11 +22,11 @@ import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.editor.sceneView.Grid.drawSmoothLine
 import me.anno.ui.input.*
 import me.anno.ui.input.components.Checkbox
-import me.anno.ui.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.white
@@ -238,16 +238,16 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
         scrollBottom = bottom
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
         // if we start dragging from a node, and it isn't yet in focus,
         // quickly solve that by making bringing it into focus
-        mapMouseDown(x, y)
-        super.onMouseDown(x, y, button)
+        super.onKeyDown(x, y, key)
+        if (key == Key.BUTTON_LEFT || key == Key.BUTTON_MIDDLE || key == Key.BUTTON_RIGHT) mapMouseDown(x, y)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        super.onMouseUp(x, y, button)
-        mapMouseUp()
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        super.onKeyUp(x, y, key)
+        if (key == Key.BUTTON_LEFT || key == Key.BUTTON_MIDDLE || key == Key.BUTTON_RIGHT) mapMouseUp()
     }
 
     open fun moveIfOnEdge(x: Float, y: Float) {

@@ -67,18 +67,6 @@ open class QuickInputScriptComponent : QuickScriptComponent(), ControlReceiver {
         }
     }
 
-    override fun onMouseDown(button: Key): Boolean {
-        return callBoolFunction(mouseDownScript) {
-            it.set("button", button.toLua())
-        }
-    }
-
-    override fun onMouseUp(button: Key): Boolean {
-        return callBoolFunction(mouseUpScript) {
-            it.set("button", button.toLua())
-        }
-    }
-
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
         return callBoolFunction(mouseMoveScript) {
             it.set("x", LuaValue.valueOf(x.toDouble()))

@@ -6,7 +6,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.OSWindow
-import me.anno.input.Input.isMouseTrapped
+import me.anno.input.Input.isMouseLocked
 import me.anno.input.controller.CalibrationProcedure
 import me.anno.input.controller.ControllerCalibration
 import me.anno.io.config.ConfigBasics
@@ -336,7 +336,7 @@ class Controller(val id: Int) {
                     dy *= speed
 
                     ActionManager.onMouseMoved(window, dx, dy)
-                    if (!isMouseTrapped) {
+                    if (!isMouseLocked) {
                         // only works well, if we have a single player
                         // if we have a mouse user and a controller user, the controller user will win here ...
                         // reset the mouse position, if we used the original mouse again

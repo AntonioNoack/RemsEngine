@@ -14,14 +14,6 @@ class PlayControls(renderer: RenderView) : ControlScheme(renderer) {
         invalidateDrawing()
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        callEvent(UIEvent(window, x, y, true, button, UIEventType.MOUSE_DOWN))
-    }
-
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        callEvent(UIEvent(window, x, y, true, button, UIEventType.MOUSE_UP))
-    }
-
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         callEvent(UIEvent(window, x, y, 0f, 0f, button, -1, true, long, UIEventType.MOUSE_CLICK))
     }

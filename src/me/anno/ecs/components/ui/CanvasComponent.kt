@@ -309,14 +309,6 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
         return findPanel { panel, x, y -> panel.onKeyTyped(x, y, key) }
     }
 
-    override fun onMouseDown(button: Key): Boolean {
-        return findPanel { panel, x, y -> panel.onMouseDown(x, y, button) }
-    }
-
-    override fun onMouseUp(button: Key): Boolean {
-        return findPanel { panel, x, y -> panel.onMouseUp(x, y, button) }
-    }
-
     override fun onMouseClicked(button: Key, long: Boolean): Boolean {
         return findPanel { panel, x, y -> panel.onMouseClicked(x, y, button, long) }
     }

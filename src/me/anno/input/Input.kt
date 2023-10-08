@@ -1,6 +1,5 @@
 package me.anno.input
 
-import me.anno.Time
 import me.anno.Time.nanoTime
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.ui.UIEvent
@@ -106,16 +105,19 @@ object Input {
     val isAltDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_ALT)
     val isSuperDown: Boolean get() = keyModState.hasFlag(GLFW.GLFW_MOD_SUPER)
 
-    var trapMouseWindow: OSWindow? = null
-    var trapMousePanel: Panel? = null
+    var mouseLockWindow: OSWindow? = null
+    var mouseLockPanel: Panel? = null
 
-    val isMouseTrapped: Boolean
+    val isMouseLocked: Boolean
         get() {
-            val window = trapMouseWindow
-            return trapMousePanel != null && window != null &&
-                    window.isInFocus &&
-                    trapMousePanel === window.windowStack.inFocus0
+            return mouseLockWindow?.isInFocus == true &&
+                    mouseLockPanel?.isAnyChildInFocus == true
         }
+
+    fun unlockMouse() {
+        mouseLockWindow = null
+        mouseLockPanel = null
+    }
 
     var layoutFrameCount = 10
     fun needsLayoutUpdate(window: OSWindow) = window.framesSinceLastInteraction < layoutFrameCount
@@ -157,7 +159,7 @@ object Input {
         }
 
         GLFW.glfwSetCursorPosCallback(window.pointer) { _, xPosition, yPosition ->
-            val time = Time.nanoTime
+            val time = nanoTime
             addEvent {
                 if (time > window.lastMouseCorrection)
                     onMouseMove(window, xPosition.toFloat(), yPosition.toFloat())
@@ -452,7 +454,6 @@ object Input {
         //  - sort the list or
         //  - disable multiselect
 
-
         if (!windowWasClosed) {
 
             if (!UIEvent(
@@ -460,7 +461,7 @@ object Input {
                     mouseX, mouseY, 0f, 0f,
                     button, -1,
                     byMouse = true, isLong = false,
-                    UIEventType.MOUSE_DOWN
+                    UIEventType.KEY_DOWN
                 ).call().isCancelled
             ) {
 
@@ -547,14 +548,14 @@ object Input {
                 }
 
                 for (panel in windowStack.inFocus) {
-                    panel.onMouseDown(mouseX, mouseY, button)
+                    panel.onKeyDown(mouseX, mouseY, button)
                     issuedMouseDown = true
                 }
 
                 if (!issuedMouseDown) {
                     val inFocus = window.currentWindow?.panel?.getPanelAt(mouseX.toInt(), mouseY.toInt())
                     inFocus?.requestFocus()
-                    inFocus?.onMouseDown(mouseX, mouseY, button)
+                    inFocus?.onKeyDown(mouseX, mouseY, button)
                 }
 
                 ActionManager.onKeyDown(window, button)
@@ -582,16 +583,14 @@ object Input {
         val mouseY = window.mouseY
         val inFocus = window.windowStack.inFocus
         for (i in inFocus.indices) {
-            inFocus.getOrNull(i)
-                ?.onMouseUp(mouseX, mouseY, button)
-                ?: break
+            inFocus.getOrNull(i)?.onKeyUp(mouseX, mouseY, button) ?: break
         }
 
         ActionManager.onKeyUp(window, button)
         ActionManager.onKeyTyped(window, button)
 
         val longClickMillis = DefaultConfig["longClick", 300]
-        val currentNanos = Time.nanoTime
+        val currentNanos = nanoTime
         val isClick = mouseMovementSinceMouseDown < maxClickDistance && !windowWasClosed
 
         UIEvent(
@@ -599,7 +598,7 @@ object Input {
             window.mouseX,
             window.mouseY, 0f, 0f,
             button, -1, true,
-            false, UIEventType.MOUSE_UP
+            false, UIEventType.KEY_UP
         ).call()
 
         if (isClick) {

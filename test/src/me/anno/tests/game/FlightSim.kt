@@ -130,7 +130,7 @@ fun createPlane(player: LocalPlayer): Entity {
         var speed = 0.0
         val tmp = Vector3d()
         override fun onUpdate(): Int {
-            val dt = Time.deltaTime.toDouble()
+            val dt = Time.deltaTime
             val transform = transform!!
             val lv = body.localVelocity
             speed = mix(speed, if (Input.isShiftDown) 50.0 else 0.0, dt)

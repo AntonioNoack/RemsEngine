@@ -667,20 +667,18 @@ open class PureTextInputML(style: Style) :
         return CursorPosition(indexX, indexY)
     }
 
-    fun onMouseDown(x: Float, indexY: Int) {
-        if (isControlDown) {
-            selectAll()
-        } else {
-            // find the correct location for the cursor
-            cursor1.set(getCursor(x, indexY, true))
-            cursor2.set(cursor1)
-            ensureCursorBounds()
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if ((!isHovered || y >= scrollbarStartY) || key != Key.BUTTON_LEFT) super.onKeyDown(x, y, key)
+        else {
+            if (isControlDown) {
+                selectAll()
+            } else {
+                // find the correct location for the cursor
+                cursor1.set(getCursor(x, getLineIndex(y), true))
+                cursor2.set(cursor1)
+                ensureCursorBounds()
+            }
         }
-    }
-
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        if (!isHovered || y >= scrollbarStartY) return super.onMouseDown(x, y, button)
-        onMouseDown(x, getLineIndex(y))
     }
 
     override fun onDoubleClick(x: Float, y: Float, button: Key) {

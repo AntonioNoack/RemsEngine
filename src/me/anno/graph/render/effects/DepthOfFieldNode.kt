@@ -170,6 +170,7 @@ class DepthOfFieldNode : ActionNode(
                     "   float sizeLimit = centerSize*2.0;\n" +
                     "   float ang = 0.0;\n" +
                     "   float midRadius = min(centerSize, 3.0);\n" +
+                    "   // [loop]\n" + // hlsl instruction
                     "   for (; radius<midRadius; ang += GOLDEN_ANGLE){\n" +
                     "       vec2 tc = uv + vec2(cos(ang), sin(ang)) * pixelSize * radius;\n" +
                     "       vec3 sampleColor = texture(colorTex, tc).rgb;\n" +
@@ -181,6 +182,7 @@ class DepthOfFieldNode : ActionNode(
                     "       tot += 1.0;\n" +
                     "       radius += radScale/radius;\n" +
                     "   }\n" +
+                    "   // [loop]\n" + // hlsl instruction
                     "   for (; radius<centerSize; ang += GOLDEN_ANGLE){\n" +
                     "       vec2 tc = uv + vec2(cos(ang), sin(ang)) * pixelSize * radius;\n" +
                     "       vec4 sampleColor = texture(cocTex, tc);\n" +

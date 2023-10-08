@@ -33,10 +33,10 @@ import me.anno.engine.ui.render.RenderState.cameraPosition
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.buffer.LineBuffer.addLine
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
-import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
@@ -135,9 +135,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             rb.deactivationTime = rigidBody.sleepingTimeThreshold
 
             BodyWithScale(rb, scale)
-
         } else null
-
     }
 
     private fun defineVehicle(entity: Entity, vehicleComp: Vehicle, body: RigidBody) {
@@ -349,7 +347,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             drawAABBs()
             drawVehicles()
         }
-
     }
 
     private fun drawContactPoints() {
@@ -437,7 +434,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         JomlPools.aabbd.sub(1)
         Stack.subTrans(1)
         Stack.subVec(2)
-
     }
 
     private fun drawVehicles() {
@@ -469,7 +465,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                     wheelPosWS, vehicle.getWheelInfo(v).raycastInfo.contactPointWS,
                     worldScale, wheelColor
                 )
-
             }
         }
 
@@ -480,13 +475,23 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
             val action = actions[i] ?: break
             action.debugDraw(debugDraw)
         }
-
     }
 
     override fun invalidate(entity: Entity) {
-        val rb = entity.getComponent(Rigidbody::class, false)?.entity ?: return
+        val rb0 = entity.getComponent(Rigidbody::class, false)
+        val rb = rb0?.entity ?: return
         if (printValidations) LOGGER.debug("Invalidated {}", System.identityHashCode(this))
         invalidEntities.add(rb)
+    }
+
+    override fun invalidateTransform(entity: Entity) {
+        entity.validateTransform() // we need to know the global transform
+        val rigidbody = entity.getComponent(Rigidbody::class, false) ?: return
+        val globalTransform = entity.transform.globalTransform
+        // todo support scale changes, and adjust Entity.scale then, too
+        val scale = globalTransform.getScale(org.joml.Vector3d())
+        val transform = mat4x3ToTransform(globalTransform, scale)
+        rigidbody.bulletInstance?.setWorldTransform(transform)
     }
 
     private var debugDraw: BulletDebugDraw? = null
@@ -583,10 +588,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 basis.m02 * sx, basis.m12 * sy, basis.m22 * sz,
                 origin.x, origin.y, origin.z
             )
-
         }
-
-
     }
-
 }

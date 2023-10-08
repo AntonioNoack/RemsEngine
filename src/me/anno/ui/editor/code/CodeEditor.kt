@@ -560,22 +560,22 @@ open class CodeEditor(style: Style) : Panel(style) {
         onChangeText()
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        if (button == Key.BUTTON_LEFT) {
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) {
             moveCursor(cursor0, x, y)
-        } else super.onMouseDown(x, y, button)
+        } else super.onKeyDown(x, y, key)
+    }
+
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) {
+            moveCursor(cursor1, x, y)
+        } else super.onKeyUp(x, y, key)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (Input.isLeftDown) {
             moveCursor(cursor1, x, y)
         } else super.onMouseMoved(x, y, dx, dy)
-    }
-
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        if (button == Key.BUTTON_LEFT) {
-            moveCursor(cursor1, x, y)
-        } else super.onMouseUp(x, y, button)
     }
 
     fun moveCursor(cursor: CursorPosition, x: Float, y: Float) {

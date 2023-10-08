@@ -83,7 +83,13 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
         drawRect(x - 1, y, 3, 1, black)
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) {
+            mouseDown(x, y)
+        } else super.onKeyDown(x, y, key)
+    }
+
+   private fun mouseDown(x: Float, y: Float) {
         val rx = (x - this.x) / this.width
         val ry = (y - this.y) / this.height
         when (chooser.visualisation) {

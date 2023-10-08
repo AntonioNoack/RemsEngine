@@ -5,8 +5,8 @@
 package me.anno.gpu
 
 import me.anno.Build.isDebug
-import me.anno.Time
 import me.anno.Engine.shutdown
+import me.anno.Time
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
@@ -19,8 +19,8 @@ import me.anno.gpu.debug.OpenGLDebug.getDebugTypeName
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.input.Input
-import me.anno.input.Input.isMouseTrapped
-import me.anno.input.Input.trapMouseWindow
+import me.anno.input.Input.isMouseLocked
+import me.anno.input.Input.mouseLockWindow
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
@@ -370,7 +370,6 @@ object GFXBase {
                 renderFrame()
             }
             StudioBase.instance?.onShutdown()
-
         }
     }
 
@@ -482,12 +481,12 @@ object GFXBase {
             }
         }
 
-        val trapWindow = trapMouseWindow
-        if (isMouseTrapped && trapWindow != null && !trapWindow.shouldClose) {
+        val trapMouseWindow = mouseLockWindow
+        if (trapMouseWindow != null && !trapMouseWindow.shouldClose && isMouseLocked) {
             if (lastTrapWindow == null) {
-                GLFW.glfwSetInputMode(trapWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
-                // GLFW.glfwSetInputMode(trapWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_HIDDEN)
-                lastTrapWindow = trapWindow
+                LOGGER.debug("Locking Mouse")
+                GLFW.glfwSetInputMode(trapMouseWindow.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_DISABLED)
+                lastTrapWindow = trapMouseWindow
             }
             /*val x = trapWindow.mouseX
             val y = trapWindow.mouseY
@@ -500,6 +499,7 @@ object GFXBase {
             }*/
         } else if (lastTrapWindow?.shouldClose == false) {
             GLFW.glfwSetInputMode(lastTrapWindow!!.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL)
+            LOGGER.debug("Unlocking Mouse")
             lastTrapWindow = null
         } else if (Input.mouseMovementSinceMouseDown > 5f && Input.mouseKeysDown.isNotEmpty() && DefaultConfig["ui.enableMouseJumping", true]) {
             // when dragging a value (dragging + selected.isInput), and cursor is on the border, respawn it in the middle of the screen
@@ -531,7 +531,6 @@ object GFXBase {
 
         // glfwWaitEventsTimeout() without args only terminates, if keyboard or mouse state is changed
         GLFW.glfwWaitEventsTimeout(0.0)
-
     }
 
     @JvmStatic
@@ -566,7 +565,6 @@ object GFXBase {
         image.set(w, h, pixels)
         buffer.put(0, image)
         GLFW.glfwSetWindowIcon(window, buffer)
-
     }
 
     @JvmStatic

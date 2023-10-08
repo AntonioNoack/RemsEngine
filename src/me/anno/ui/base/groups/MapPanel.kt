@@ -8,13 +8,13 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
+import me.anno.ui.Style
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawsOverX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawsOverY
 import me.anno.ui.base.scrolling.ScrollableX
 import me.anno.ui.base.scrolling.ScrollableY
 import me.anno.ui.base.scrolling.ScrollbarX
 import me.anno.ui.base.scrolling.ScrollbarY
-import me.anno.ui.Style
 import org.joml.Vector2d
 import org.joml.Vector3d
 import kotlin.math.*
@@ -207,9 +207,11 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         if (hasScrollbarY) drawChild(scrollbarY, x0, y0, x1, y1)
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        mapMouseDown(x, y)
-        if (!isDownOnScrollbarX && !isDownOnScrollbarY) super.onMouseDown(x, y, button)
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT || key == Key.BUTTON_MIDDLE || key == Key.BUTTON_RIGHT) {
+            mapMouseDown(x, y)
+            if (!isDownOnScrollbarX && !isDownOnScrollbarY) super.onKeyDown(x, y, key)
+        } else super.onKeyDown(x, y, key)
     }
 
     fun mapMouseUp() {
@@ -217,9 +219,9 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         isDownOnScrollbarY = false
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        mapMouseUp()
-        super.onMouseUp(x, y, button)
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT || key == Key.BUTTON_MIDDLE || key == Key.BUTTON_RIGHT) mapMouseUp()
+        super.onKeyUp(x, y, key)
     }
 
     private fun drawsOverX(lx0: Int, ly0: Int, lx1: Int = lx0 + 1, ly1: Int = ly0 + 1): Boolean {
@@ -238,5 +240,4 @@ abstract class MapPanel(style: Style) : PanelList(style), ScrollableX, Scrollabl
         dst.z = 0.0
         return dst
     }
-
 }

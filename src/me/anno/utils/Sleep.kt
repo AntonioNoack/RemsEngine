@@ -4,6 +4,7 @@ import me.anno.Engine.shutdown
 import me.anno.gpu.GFX
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /**
  * this class is about waiting for things to get done;
@@ -45,13 +46,13 @@ object Sleep {
 
     @JvmStatic
     @Throws(ShutdownException::class)
-    inline fun waitUntil(canBeKilled: Boolean, limit: Long, key: Any?, condition: () -> Boolean) {
-        if (limit < 0) return waitUntil(canBeKilled, condition)
+    inline fun waitUntil(canBeKilled: Boolean, timeoutNanos: Long, key: Any?, condition: () -> Boolean) {
+        if (timeoutNanos < 0) return waitUntil(canBeKilled, condition)
         val startTime = System.nanoTime()
         while (!condition()) {
             if (canBeKilled && shutdown) throw ShutdownException()
             val time = System.nanoTime() - startTime
-            if (time > limit) throw RuntimeException("Time limit exceeded for $key")
+            if (time > timeoutNanos) throw TimeoutException("Time limit exceeded for $key")
             sleepABit(canBeKilled)
         }
     }

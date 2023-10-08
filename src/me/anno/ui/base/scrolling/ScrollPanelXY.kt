@@ -227,19 +227,21 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     @NotSerializedProperty
     private var isDownOnScrollbarY = 0
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        if (button == Key.BUTTON_LEFT) {
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) {
             val xi = x.toInt()
             val yi = y.toInt()
             isDownOnScrollbarX = if (hasScrollbarX && drawsOverX(xi, yi)) 1 else -1
             isDownOnScrollbarY = if (hasScrollbarY && drawsOverY(xi, yi)) 1 else -1
-        } else super.onMouseDown(x, y, button)
+        } else super.onKeyDown(x, y, key)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        isDownOnScrollbarX = 0
-        isDownOnScrollbarY = 0
-        super.onMouseUp(x, y, button)
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) {
+            isDownOnScrollbarX = 0
+            isDownOnScrollbarY = 0
+        }
+        super.onKeyUp(x, y, key)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

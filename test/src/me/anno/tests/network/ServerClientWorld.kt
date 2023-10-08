@@ -24,13 +24,16 @@ import java.net.InetAddress
 import java.net.Socket
 import kotlin.concurrent.thread
 
-const val port1 = 65113
-val protocol = Protocol("TEST", NetworkProtocol.TCP).apply {
-    register { EnterPacket() }
+const val tcpPort = 65113
+const val udpPort = 65112
+val tcpProtocol = Protocol("TEST", NetworkProtocol.TCP).apply {
+    register { JoinPacket() }
     register { PingPacket() }
     register { MessagePacket() }
     register { ExitPacket() }
 }
+
+val udpProtocol = Protocol("UDP", NetworkProtocol.UDP)
 
 fun main() {
     GFXBase.disableRenderDoc()
@@ -108,17 +111,17 @@ fun createClient(i: Int): Panel {
 }
 
 fun connect(): Socket {
-    return TCPClient.createSocket(InetAddress.getByName("localhost"), port1, protocol)
+    return TCPClient.createSocket(InetAddress.getByName("localhost"), tcpPort, tcpProtocol)
 }
 
-class LocalClient(val instance: Instance) : TCPClient(connect(), protocol, instance.name, instance.uuid)
+class LocalClient(val instance: Instance) : TCPClient(connect(), tcpProtocol, instance.name, instance.uuid)
 
 class LocalServer : Server() {
     override fun onClientConnected(client: TCPClient) {
         super.onClientConnected(client)
-        broadcast(EnterPacket(client.uuid))
+        broadcast(JoinPacket(client.uuid, client.name))
         forAllClients {
-            client.sendTCP(EnterPacket(it.uuid))
+            client.sendTCP(JoinPacket(it.uuid, it.name))
         }
     }
 
@@ -128,15 +131,28 @@ class LocalServer : Server() {
     }
 }
 
-class Instance(val name: String) {
+class Player(val uuid: String, val name: String) {
+    var color = 0
+    var px = 0f
+    var py = 0f
+    var pz = 0f
+}
+
+open class Instance(val name: String) {
 
     var currentId = 0
     var messageLength = 0
     var client: LocalClient? = null
     var server: LocalServer? = null
-    val players = HashSet<String>()
+    val players = HashMap<String, Player>()
     val uuid = Path.generateRandomId()
     val logger = LogManager.getLogger(name)
+
+    open fun onPlayerJoin(player: Player) {
+    }
+
+    open fun onPlayerExit(player: Player) {
+    }
 
     fun start() {
         val id = ++currentId
@@ -144,15 +160,17 @@ class Instance(val name: String) {
             while (id == currentId && !Engine.shutdown) {
                 try {
                     val server = LocalServer()
-                    server.register(protocol)
+                    server.register(tcpProtocol)
+                    server.register(udpProtocol)
                     this.server = server
-                    server.start(port1, -1)
+                    server.start(tcpPort, udpPort)
                 } catch (e: Exception) {
                     server?.close()
                     server = null
                 }
                 try {
                     val client = LocalClient(this)
+                    client.udpPort = udpPort
                     this.client = client
                     client.startClientSide()
                 } catch (e: Exception) {
@@ -175,28 +193,32 @@ class Instance(val name: String) {
         client = null
         server = null
     }
-
 }
 
-class EnterPacket(var uuid: String = "") : Packet("JOIN") {
+class JoinPacket(var uuid: String, var name: String) : Packet("JOIN") {
+
+    constructor() : this("", "")
 
     override fun writeData(server: Server?, client: TCPClient, dos: DataOutputStream) {
         super.writeData(server, client, dos)
         dos.writeUTF(uuid)
+        dos.writeUTF(name)
     }
 
     override fun readData(server: Server?, client: TCPClient, dis: DataInputStream, size: Int) {
         super.readData(server, client, dis, size)
         uuid = dis.readUTF()
+        name = dis.readUTF()
     }
 
     override fun onReceive(server: Server?, client: TCPClient) {
         if (server == null) {
             client as LocalClient
-            client.instance.players.add(uuid)
+            val player = Player(uuid, name)
+            client.instance.players[uuid] = player
+            client.instance.onPlayerJoin(player)
         }
     }
-
 }
 
 class ExitPacket(var uuid: String = "") : Packet("LEFT") {
@@ -214,7 +236,8 @@ class ExitPacket(var uuid: String = "") : Packet("LEFT") {
     override fun onReceive(server: Server?, client: TCPClient) {
         if (server == null) {
             client as LocalClient
-            client.instance.players.remove(uuid)
+            val player = client.instance.players.remove(uuid)
+            if (player != null) client.instance.onPlayerExit(player)
         }
     }
 }
@@ -243,4 +266,7 @@ class MessagePacket : Packet("MSG") {
             client.instance.messageLength += message.length
         }
     }
+
+    override val className: String
+        get() = "MessagePacket"
 }

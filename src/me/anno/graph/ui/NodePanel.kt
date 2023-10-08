@@ -27,6 +27,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mapClamped
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.Font
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList
@@ -34,7 +35,6 @@ import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextStyleable
-import me.anno.ui.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
@@ -403,21 +403,23 @@ class NodePanel(
         return bestCon
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        if (gp !is GraphEditor) return super.onMouseDown(x, y, button)
-        val con = getConnectorAt(x, y)
-        isDragged = false
-        when {
-            button == Key.BUTTON_LEFT && con != null -> {
-                gp.dragged = con
-                gp.invalidateDrawing()
-                gp.requestFocus(true)
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if (gp !is GraphEditor) return super.onKeyDown(x, y, key)
+        if (key == Key.BUTTON_LEFT || key == Key.BUTTON_RIGHT) {
+            val con = getConnectorAt(x, y)
+            isDragged = false
+            when {
+                key == Key.BUTTON_LEFT && con != null -> {
+                    gp.dragged = con
+                    gp.invalidateDrawing()
+                    gp.requestFocus(true)
+                }
+                key == Key.BUTTON_LEFT -> {
+                    isDragged = true
+                }
+                else -> super.onKeyDown(x, y, key)
             }
-            button == Key.BUTTON_LEFT -> {
-                isDragged = true
-            }
-            else -> super.onMouseDown(x, y, button)
-        }
+        } else super.onKeyDown(x, y, key)
     }
 
     var snapExtraX = 0.0
@@ -457,7 +459,7 @@ class NodePanel(
                 // list of all known types
                 val input = connector is NodeInput
                 val idx = (if (input) node.inputs else node.outputs)?.indexOf(connector) ?: -1
-                val idx1 = idx+1
+                val idx1 = idx + 1
                 val knownTypes = (gp.library.allNodes.map { it.first } + (gp.graph?.nodes ?: emptyList()))
                     .asSequence()
                     .map { n ->
@@ -502,8 +504,10 @@ class NodePanel(
         else (old.subList(0, idx) + old.subList(idx + 1)).toTypedArray()
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        if (gp !is GraphEditor) return super.onMouseUp(x, y, button)
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        if (gp !is GraphEditor || (key != Key.BUTTON_LEFT && key != Key.BUTTON_RIGHT)) {
+            return super.onKeyUp(x, y, key)
+        }
         val con0 = gp.dragged
         val con1 = (gp.getPanelAt(x.toInt(), y.toInt()) as? NodePanel)?.getConnectorAt(x, y)
         val window = window
@@ -559,7 +563,7 @@ class NodePanel(
                     }
                 }
             }
-            // else -> super.onMouseUp(x, y, button)
+            // else -> super.onKeyUp(x, y, button)
         }
         isDragged = false
         gp.dragged = null

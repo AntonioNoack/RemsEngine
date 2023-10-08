@@ -16,6 +16,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.base.constraints.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListX
@@ -27,7 +28,6 @@ import me.anno.ui.editor.color.ColorPreviewField
 import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.input.components.ColorPicker
 import me.anno.ui.input.components.TitlePanel
-import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toARGB
 import org.joml.Vector4f
@@ -203,14 +203,14 @@ open class ColorInput(
         return contentView.onPaste(x, y, data, type)
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        super.onMouseDown(x, y, button)
-        mouseIsDown = true
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) mouseIsDown = true
+        super.onKeyDown(x, y, key)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        super.onMouseUp(x, y, button)
-        mouseIsDown = false
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) mouseIsDown = false
+        super.onKeyUp(x, y, key)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

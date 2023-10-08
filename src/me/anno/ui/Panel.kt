@@ -7,6 +7,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
+import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
@@ -472,14 +473,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
         return this
     }
 
-    open fun onMouseDown(x: Float, y: Float, button: Key) {
-        uiParent?.onMouseDown(x, y, button)
-    }
-
-    open fun onMouseUp(x: Float, y: Float, button: Key) {
-        uiParent?.onMouseUp(x, y, button)
-    }
-
     open fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
         for (listener in onClickListeners) {
             if (listener(this, x, y, button, long)) return
@@ -798,6 +791,28 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun onPropertiesChanged() {}
 
     val isRootElement get() = uiParent == null
+
+    /**
+     * traps/locks the cursor to the window;
+     * don't forget to unlock it again
+     *
+     * Unity: Cursor.lockState
+     * Unreal: Mouse Lock Mode
+     *
+     * @return true on success
+     */
+    fun lockMouse(): Boolean {
+        val window = GFX.focusedWindow
+        return if (window != null) {
+            Input.mouseLockWindow = window
+            Input.mouseLockPanel = this
+            true
+        } else false
+    }
+
+    fun unlockMouse() {
+        Input.unlockMouse()
+    }
 
     override fun clone(): Panel {
         val clone = Panel(style)

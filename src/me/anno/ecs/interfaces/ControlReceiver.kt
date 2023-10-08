@@ -16,8 +16,6 @@ interface ControlReceiver {
     fun onKeyUp(key: Key) = false
     fun onKeyTyped(key: Key) = false
 
-    fun onMouseDown(button: Key) = false
-    fun onMouseUp(button: Key) = false
     fun onMouseClicked(button: Key, long: Boolean) = false
 
     fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) = false

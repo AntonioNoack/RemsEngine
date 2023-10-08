@@ -10,10 +10,10 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.studio.StudioBase.Companion.warn
+import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.VectorInputList
-import me.anno.ui.Style
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToDouble.getDouble
@@ -340,9 +340,9 @@ open class FloatVectorInput(
         return this
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        super.onMouseDown(x, y, button)
-        mouseIsDown = true
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        super.onKeyDown(x, y, key)
+        if (key == Key.BUTTON_LEFT) mouseIsDown = true
     }
 
     var mouseIsDown = false
@@ -422,9 +422,9 @@ open class FloatVectorInput(
         }
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        super.onMouseUp(x, y, button)
-        mouseIsDown = false
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        super.onKeyUp(x, y, key)
+        if (key == Key.BUTTON_LEFT) mouseIsDown = false
     }
 
     override fun onEmpty(x: Float, y: Float) {
@@ -464,7 +464,6 @@ open class FloatVectorInput(
                 else -> onEmpty2(value ?: type.defaultValue)
             }
         }
-
     }
 
     fun onEmpty2(defaultValue: Any) {
@@ -497,5 +496,4 @@ open class FloatVectorInput(
     }
 
     override val className: String get() = "FloatVectorInput"
-
 }

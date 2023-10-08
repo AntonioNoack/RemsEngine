@@ -327,6 +327,14 @@ open class Server : Closeable {
         }
     }
 
+    fun broadcastExcept(packet: Packet, client: TCPClient) {
+        forAllClients {
+            if (it !== client) {
+                it.sendTCP(packet)
+            }
+        }
+    }
+
     companion object {
 
         private val LOGGER = LogManager.getLogger(Server::class)
@@ -359,7 +367,5 @@ open class Server : Closeable {
                 )
             } else hex32(i)
         }
-
     }
-
 }

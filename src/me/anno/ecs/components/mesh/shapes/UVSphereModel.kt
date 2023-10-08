@@ -12,7 +12,7 @@ object UVSphereModel {
     /**
      * creates a UV-sphere
      * */
-    fun createUVSphere(us: Int = 10, vs: Int = 10, mesh: Mesh = Mesh()): Mesh {
+    fun createUVSphere(us: Int, vs: Int, mesh: Mesh = Mesh()): Mesh {
 
         val faceCount = us * vs * 2
         val triangleCount = faceCount * 2

@@ -182,7 +182,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         set(value) {
             transform.localPosition = value
             invalidateAABBsCompletely()
-            invalidatePhysics(false)
+            invalidatePhysicsTransform(false)
         }
 
     @RotationType
@@ -193,7 +193,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         set(value) {
             transform.localRotation = value
             invalidateAABBsCompletely()
-            invalidatePhysics(false)
+            invalidatePhysicsTransform(false)
         }
 
     @ScaleType
@@ -204,6 +204,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         set(value) {
             transform.localScale = value
             invalidateAABBsCompletely()
+            // scale is not just transform in bullet, it is scaling the collider
             invalidatePhysics(false)
         }
 
@@ -245,7 +246,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         transform.globalPosition = position
         transform.smoothUpdate()
         invalidateAABBsCompletely()
-        invalidatePhysics(false)
+        invalidatePhysicsTransform(false)
     }
 
     /**
@@ -255,7 +256,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         transform.globalPosition = position
         transform.teleportUpdate()
         invalidateAABBsCompletely()
-        invalidatePhysics(false)
+        invalidatePhysicsTransform(false)
     }
 
     fun canCollide(collisionMask: Int): Boolean {
@@ -264,8 +265,13 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
 
     fun invalidatePhysics(force: Boolean) {
         if (force || hasPhysicsInfluence()) {
-            // LOGGER.debug("inv physics: ${physics != null}, ${rigidbody != null}")
             physics?.invalidate(this)
+        }
+    }
+
+    fun invalidatePhysicsTransform(force: Boolean) {
+        if (force || hasPhysicsInfluence()) {
+            physics?.invalidateTransform(this)
         }
     }
 
@@ -587,6 +593,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         // collision mask
         parent.invalidateCollisionMask()
         invalidateAABBsCompletely()
+        invalidateUpdates()
 
         checkNeedsPhysics()
 

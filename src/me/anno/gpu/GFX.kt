@@ -7,7 +7,6 @@ import me.anno.Time
 import me.anno.audio.streams.AudioStream
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFXState.blendMode
-import me.anno.gpu.GFXState.currentRenderer
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
@@ -21,7 +20,6 @@ import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.FlatShaders.copyShaderMS
 import me.anno.gpu.shader.OpenGLShader
-import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -33,8 +31,6 @@ import me.anno.utils.OS
 import me.anno.utils.structures.Task
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
-import org.joml.Vector3f
-import org.joml.Vector4f
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL30C.*
@@ -429,7 +425,6 @@ object GFX {
             if (workTime > timeLimit) return false // too much work
             FBStack.reset() // so we can reuse resources in different tasks
         }
-
     }
 
     @JvmStatic
@@ -530,17 +525,26 @@ object GFX {
         resetFBStack()
 
         val inst = StudioBase.instance
-        if (inst != null) try {
-            inst.onGameLoop(window, window.width, window.height)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Thread.sleep(250)
+        if (inst != null) {
+            // in case of an error, we have to fix it,
+            // so give us the best chance to do so:
+            //  - on desktop, sleep a little, so we don't get too many errors
+            //  - on web, just crash, we cannot sleep there
+            if (OS.isWeb) {
+                inst.onGameLoop(window, window.width, window.height)
+            } else {
+                try {
+                    inst.onGameLoop(window, window.width, window.height)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Thread.sleep(250)
+                }
+            }
         }
 
         resetFBStack()
 
         check()
-
     }
 
     @JvmStatic
@@ -654,5 +658,4 @@ object GFX {
         }
         discoverOpenGLNames(clazz.superclass ?: return)
     }
-
 }

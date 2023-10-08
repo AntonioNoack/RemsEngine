@@ -1,5 +1,6 @@
 package me.anno.io
 
+import org.joml.Quaternionf
 import org.joml.Vector3f
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -32,14 +33,24 @@ object Writing {
         for (f in array) writeFloat(f)
     }
 
-    fun DataOutputStream.writeVec3(vector: Vector3f) {
-        writeFloat(vector.x)
-        writeFloat(vector.y)
-        writeFloat(vector.z)
+    fun DataOutputStream.writeVec3(v: Vector3f) {
+        writeFloat(v.x)
+        writeFloat(v.y)
+        writeFloat(v.z)
     }
 
-    fun DataInputStream.readVec3(): Vector3f {
-        return Vector3f(readFloat(), readFloat(), readFloat())
+    fun DataOutputStream.writeQuat(v: Quaternionf) {
+        writeFloat(v.x)
+        writeFloat(v.y)
+        writeFloat(v.z)
+        writeFloat(v.w)
     }
 
+    fun DataInputStream.readVec3(dst: Vector3f): Vector3f {
+        return dst.set(readFloat(), readFloat(), readFloat())
+    }
+
+    fun DataInputStream.readQuat(dst: Quaternionf): Quaternionf {
+        return dst.set(readFloat(), readFloat(), readFloat(), readFloat())
+    }
 }

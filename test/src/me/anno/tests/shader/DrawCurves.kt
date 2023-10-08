@@ -89,22 +89,22 @@ fun main() {
                 )
             }
 
-            override fun onMouseDown(x: Float, y: Float, button: Key) {
-                if (button == Key.BUTTON_LEFT) {
+            override fun onKeyDown(x: Float, y: Float, key: Key) {
+                if (key == Key.BUTTON_LEFT) {
                     val lx = windowToCoordsX(x)
                     val ly = windowToCoordsY(y)
                     val maxDistSq = sq(10f / scale.toFloat())
                     selected = global.withIndex()
                         .filter { it.value.distanceSquared(lx, ly) < maxDistSq }
                         .minByOrNull { it.value.distanceSquared(lx, ly) }?.value
-                    if (selected == null) super.onMouseDown(x, y, button)
-                } else super.onMouseDown(x, y, button)
+                    if (selected == null) super.onKeyDown(x, y, key)
+                } else super.onKeyDown(x, y, key)
             }
 
-            override fun onMouseUp(x: Float, y: Float, button: Key) {
-                if (button == Key.BUTTON_LEFT && selected != null) {
+            override fun onKeyUp(x: Float, y: Float, key: Key) {
+                if (key == Key.BUTTON_LEFT && selected != null) {
                     selected = null
-                } else super.onMouseUp(x, y, button)
+                } else super.onKeyUp(x, y, key)
             }
 
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

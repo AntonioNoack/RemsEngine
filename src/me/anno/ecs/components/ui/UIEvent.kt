@@ -23,8 +23,6 @@ class UIEvent(
         return when (type) {
             UIEventType.MOUSE_WHEEL -> "mouse wheel $x $y += $dx $dy ($byMouse)"
             UIEventType.MOUSE_MOVE -> "mouse move $x $y += $dx $dy"
-            UIEventType.MOUSE_DOWN -> "mouse down $key"
-            UIEventType.MOUSE_UP -> "mouse up $key"
             UIEventType.MOUSE_CLICK ->"mouse click $key, $isLong"
             UIEventType.KEY_DOWN -> "key down $key"
             UIEventType.KEY_UP ->  "key up $key"
@@ -52,10 +50,8 @@ class UIEvent(
         return when (type) {
             UIEventType.MOUSE_WHEEL -> r.onMouseWheel(x, y, dx, dy, byMouse)
             UIEventType.MOUSE_MOVE -> r.onMouseMoved(x, y, dx, dy)
-            UIEventType.MOUSE_DOWN -> r.onMouseDown(key)
-            UIEventType.MOUSE_UP -> r.onMouseUp(key)
             UIEventType.MOUSE_CLICK -> r.onMouseClicked(key, isLong)
-            UIEventType.KEY_DOWN -> r.onKeyUp(key)
+            UIEventType.KEY_DOWN -> r.onKeyDown(key)
             UIEventType.KEY_UP -> r.onKeyUp(key)
             UIEventType.KEY_TYPED -> r.onKeyTyped(key)
             UIEventType.CHAR_TYPED -> r.onCharTyped(codepoint)

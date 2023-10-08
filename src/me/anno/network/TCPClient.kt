@@ -3,6 +3,7 @@ package me.anno.network
 import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep.waitUntil
+import org.apache.logging.log4j.LogManager
 import java.io.Closeable
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -11,12 +12,14 @@ import java.net.InetAddress
 import java.net.Socket
 import java.net.SocketException
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeoutException
 import javax.net.ssl.SSLSocketFactory
 import kotlin.concurrent.thread
 
 open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: Int) : Closeable {
 
     companion object {
+        private val LOGGER = LogManager.getLogger(TCPClient::class)
         fun createSocket(address: InetAddress, port: Int, protocol: Protocol): Socket {
             return if (protocol.networkProtocol == NetworkProtocol.TCP_SSL) {
                 SSLSocketFactory.getDefault().createSocket(address, port)
@@ -70,8 +73,8 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
     val randomIdString get() = randomId.toUInt().toString(16)
     var isRunning = false
 
-    fun ensureConnection() {
-        waitUntil(true) { isRunning || isClosed }
+    fun ensureConnection(timeoutMillis: Long) {
+        waitUntil(true, timeoutMillis * MILLIS_TO_NANOS, this) { isRunning || isClosed }
         if (isClosed) throw SocketException("Connection has been closed")
     }
 
@@ -106,16 +109,14 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
                         }
                     }
                 }
-                else -> {
-                    println("dropped packet")
-                }
+                else -> LOGGER.info("Dropped packet: $packet")
             }
         }
     }
 
     fun workPacketTasks(server: Server?) {
         try {
-            ensureConnection()
+            ensureConnection(0)
             var hasData = false
             while (!isClosed) {
                 val packet = writingQueue.poll()
@@ -146,32 +147,42 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
     var debug = false
 
     fun flush() {
-        ensureConnection()
+        try {
+            ensureConnection(1)
+        } catch (ignored: TimeoutException) {
+        }
         synchronized(dos) {
             dos.flush()
         }
     }
 
     @Suppress("unused")
-    fun sendUDP(packet: Packet, protocol: Protocol, receive: Boolean) {
-        sendUDP(null, protocol, packet, receive)
-    }
-
-    fun sendUDP(server: Server?, protocol: Protocol, packet: Packet, receive: Boolean) {
-        if (receive) sendUDP(server, protocol, packet) {}
-        else sendUDP(server, protocol, packet, null)
+    fun sendUDP(packet: Packet, protocol: Protocol, receiveAnswer: Boolean): Packet? {
+        val server = null
+        var answer: Packet? = null
+        if (receiveAnswer) {
+            sendUDP(server, protocol, packet) {
+                answer = it
+            }
+        } else sendUDP(server, protocol, packet, null)
+        return answer
     }
 
     fun sendUDP(packet: Packet, protocol: Protocol, onReceive: ((Packet) -> Unit)?) {
         sendUDP(null, protocol, packet, onReceive)
     }
 
-    fun sendUDP(server: Server?, protocol: Protocol, packet: Packet, onReceive: ((Packet) -> Unit)?) {
+    fun sendUDP(server: Server?, protocol: Protocol, packet: Packet, onReceive: ((Packet) -> Unit)?): Boolean {
         if (server != null) throw SocketException("You need to send a response to a client directly after their request")
-        ensureConnection()
-        val sender = UDPSender(protocol, this)
-        sender.send(packet, onReceive)
-        sender.close()
+        return try {
+            ensureConnection(1) // udp is lossy, so it shouldn't hurt too much xD
+            val sender = UDPSender(protocol, this)
+            sender.send(packet, onReceive)
+            sender.close()
+            true
+        } catch (ignored: TimeoutException) {
+            false
+        }
     }
 
     fun startClientSide(shutdown: () -> Boolean = { false }) {
@@ -208,5 +219,4 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
         dis.close()
         dos.close()
     }
-
 }

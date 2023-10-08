@@ -299,12 +299,12 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
     }
 
     var markedRight = false
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
-        if (button == Key.BUTTON_LEFT) {
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT) {
             cursor0 = getCursorAt(x, y)
             cursor1 = cursor0
             invalidateDrawing()
-        }
+        } else super.onKeyDown(x, y, key)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
@@ -439,7 +439,5 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             } as? CacheData<*>
             return data?.value as? ByteArray
         }
-
     }
-
 }

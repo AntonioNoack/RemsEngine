@@ -15,9 +15,9 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.max
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.Style
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
 import org.joml.Vector2f
@@ -146,10 +146,11 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
                 min(y0, y1) <= child.y + child.height
     }
 
-    override fun onMouseDown(x: Float, y: Float, button: Key) {
+    override fun onKeyDown(x: Float, y: Float, key: Key) {
         // if we start dragging from a node, and it isn't yet in focus,
         // quickly solve that by making bringing it into focus
-        if (!isDownOnScrollbarX && !isDownOnScrollbarY &&
+        if ((key == Key.BUTTON_LEFT || key == Key.BUTTON_RIGHT) &&
+            !isDownOnScrollbarX && !isDownOnScrollbarY &&
             children.none2 { it.isInFocus && it.contains(x, y) }
         ) {
             val match = children.firstOrNull { it is NodePanel && it.getConnectorAt(x, y) != null }
@@ -157,36 +158,38 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
                 mapMouseDown(x, y)
                 match.requestFocus(true)
                 match.isInFocus = true
-                match.onMouseDown(x, y, button)
-            } else if (button == Key.BUTTON_LEFT && Input.isShiftDown) {
+                match.onKeyDown(x, y, key)
+            } else if (key == Key.BUTTON_LEFT && Input.isShiftDown) {
                 mapMouseDown(x, y)
                 selectingStart = Vector2f(x, y)
-            } else super.onMouseDown(x, y, button)
-        } else super.onMouseDown(x, y, button)
+            } else super.onKeyDown(x, y, key)
+        } else super.onKeyDown(x, y, key)
     }
 
-    override fun onMouseUp(x: Float, y: Float, button: Key) {
-        val dragged = dragged
-        if (dragged != null) {
-            val child = getPanelAt(x.toInt(), y.toInt())
-            if (child is NodePanel) child.onMouseUp(x, y, button)
-            else getNodePanel(dragged.node!!).onMouseUp(x, y, button)
-            this.dragged = null
-            invalidateDrawing()
-        } else if (selectingStart != null && button == Key.BUTTON_LEFT) {
-            // select all panels within the border :)
-            var first = true
-            for (i in children.indices) {
-                val child = children[i]
-                if (child is NodePanel && overlapsSelection(child)) {
-                    child.requestFocus(first)
-                    first = false
+    override fun onKeyUp(x: Float, y: Float, key: Key) {
+        if (key == Key.BUTTON_LEFT || key == Key.BUTTON_RIGHT) {
+            val dragged = dragged
+            if (dragged != null) {
+                val child = getPanelAt(x.toInt(), y.toInt())
+                if (child is NodePanel) child.onKeyUp(x, y, key)
+                else getNodePanel(dragged.node!!).onKeyUp(x, y, key)
+                this.dragged = null
+                invalidateDrawing()
+            } else if (selectingStart != null && key == Key.BUTTON_LEFT) {
+                // select all panels within the border :)
+                var first = true
+                for (i in children.indices) {
+                    val child = children[i]
+                    if (child is NodePanel && overlapsSelection(child)) {
+                        child.requestFocus(first)
+                        first = false
+                    }
                 }
-            }
-            invalidateDrawing()
-            this.selectingStart = null
-        } else super.onMouseUp(x, y, button)
-        mapMouseUp()
+                invalidateDrawing()
+                this.selectingStart = null
+            } else super.onKeyUp(x, y, key)
+            mapMouseUp()
+        } else super.onKeyUp(x, y, key)
     }
 
     override fun shallMoveMap(): Boolean = Input.isLeftDown && dragged == null && selectingStart == null
@@ -299,5 +302,4 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
     override fun canDeleteNode(node: Node) = true
 
     override val className: String get() = "GraphEditor"
-
 }

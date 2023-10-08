@@ -101,7 +101,7 @@ fun main() {
         domino.add(Rigidbody().apply {
             mass = mass1
             friction = 0.9
-            restitution = 0.5
+            restitution = 0.0
         })
         domino.add(BoxCollider().apply {
             halfExtends = halfExtends1

@@ -131,10 +131,7 @@ open class Rigidbody : Component() {
             }
         }
 
-    @Docs(
-        "How much energy is absorbed in a collision; relative,\n" +
-                "0 = perfectly bouncy, 1 = all energy absorbed (knead)"
-    )
+    @Docs("How bouncy a body is: 1 = perfectly bouncy, 0 = all energy absorbed (knead)")
     @Range(0.0, 1.0)
     var restitution = 0.1
         set(value) {

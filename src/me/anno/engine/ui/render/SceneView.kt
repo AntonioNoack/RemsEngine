@@ -83,7 +83,6 @@ class SceneView(
             return testScene(scene.ref, init)
         }
 
-        @Suppress("unused")
         fun testScene(scene: FileReference, init: ((SceneView) -> Unit)? = null): Panel {
             val listY = PanelListY(style)
             listY.add(ECSSceneTabs)
@@ -101,7 +100,6 @@ class SceneView(
             return listY
         }
 
-        @Suppress("unused")
         fun testScene2(scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null): Panel {
             scene.prefabPath = Path.ROOT_PATH
             EditorState.prefabSource = scene.ref

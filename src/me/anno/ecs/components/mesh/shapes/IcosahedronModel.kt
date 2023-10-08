@@ -3,15 +3,11 @@ package me.anno.ecs.components.mesh.shapes
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.maths.Maths.PHI
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.TAU
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.utils.types.Arrays.resize
-import kotlin.math.PI
 import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
 
 object IcosahedronModel {
 
@@ -55,13 +51,16 @@ object IcosahedronModel {
      * */
     fun createIcosphere(subDivisions: Int, mesh: Mesh = Mesh()): Mesh {
 
+        // todo create smooth tangent
         // create base shape, and then subdivide the triangles
         val numVertices = indices.size shl (subDivisions * 2)
         val numCoords = numVertices * 3
         val positions = mesh.positions.resize(numCoords)
+        val tangent = mesh.tangents.resize(numVertices * 4)
         val uvs = mesh.uvs.resize(numVertices * 2)
         var k2 = 0
         var k3 = 0
+        var k4 = 0
 
         fun u(x: Float, z: Float, x2: Float, z2: Float): Float {
             return if (x * x + z * z <= 1e-7f) 1f - atan2(z2, x2) / PIf
@@ -70,6 +69,19 @@ object IcosahedronModel {
 
         fun v(x: Float, y: Float, z: Float): Float {
             return 1f - atan2(length(x, z), y) / PIf
+        }
+
+        fun addVertex(x: Float, y: Float, z: Float, u: Float, v: Float) {
+            positions[k3++] = x
+            positions[k3++] = y
+            positions[k3++] = z
+            uvs[k2++] = u
+            uvs[k2++] = v
+            val l0 = 1f / length(x, z)
+            tangent[k4++] = -z * l0
+            tangent[k4++] = 0f
+            tangent[k4++] = +x * l0
+            tangent[k4++] = -1f
         }
 
         fun addTriangle(
@@ -141,21 +153,9 @@ object IcosahedronModel {
                     if (u2x > avg) u2x -= 2f
                 }
                 // add triangle
-                positions[k3++] = x0
-                positions[k3++] = y0
-                positions[k3++] = z0
-                uvs[k2++] = u0x
-                uvs[k2++] = v0
-                positions[k3++] = x1
-                positions[k3++] = y1
-                positions[k3++] = z1
-                uvs[k2++] = u1x
-                uvs[k2++] = v1
-                positions[k3++] = x2
-                positions[k3++] = y2
-                positions[k3++] = z2
-                uvs[k2++] = u2x
-                uvs[k2++] = v2
+                addVertex(x0, y0, z0, u0x, v0)
+                addVertex(x1, y1, z1, u1x, v1)
+                addVertex(x2, y2, z2, u2x, v2)
             }
         }
 
@@ -182,9 +182,10 @@ object IcosahedronModel {
         }
         mesh.positions = positions
         mesh.normals = positions
+        // mesh.tangents = tangent
         mesh.uvs = uvs
         mesh.indices = null
+        mesh.ensureNorTanUVs()
         return mesh
     }
-
 }

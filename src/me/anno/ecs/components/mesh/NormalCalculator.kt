@@ -21,19 +21,17 @@ object NormalCalculator {
 
     fun needsNormalsComputation(normals: FloatArray, stride: Int): Boolean {
         for (j in 0 until normals.size / stride) {
-            val i = j * stride
-            val normalL1 = abs(normals[i]) + abs(normals[i + 1]) + abs(normals[i + 2])
-            if (normalL1 < 0.01f || normalL1.isNaN()) return true
+            if (!isNormalValid(normals, j * stride)) return true
         }
         return false
     }
 
-    fun normalIsInvalid(normals: FloatArray, offset: Int): Boolean {
+    fun isNormalValid(normals: FloatArray, offset: Int): Boolean {
         val nx = normals[offset]
         val ny = normals[offset + 1]
         val nz = normals[offset + 2]
         val length = nx * nx + ny * ny + nz * nz
-        return !(length > 0.7f && length < 1.1f)
+        return length in 0.7f..1.1f
     }
 
     // calculate = pure arithmetics
@@ -111,9 +109,9 @@ object NormalCalculator {
         val size = min(positions.size, normals.size) - 8
         for (i in 0 until size step 9) {
             // check whether the normal update is needed
-            val needsUpdate = normalIsInvalid(normals, i) ||
-                    normalIsInvalid(normals, i + 3) ||
-                    normalIsInvalid(normals, i + 6)
+            val needsUpdate = !isNormalValid(normals, i) ||
+                    !isNormalValid(normals, i + 3) ||
+                    !isNormalValid(normals, i + 6)
             if (needsUpdate) {
                 // flat shading
                 val normal = calculateFlatNormal(positions, i, i + 3, i + 6, a, b, c)
@@ -277,7 +275,6 @@ object NormalCalculator {
         return IntArray(points.size) {
             uniquePoints[points[it]]!!
         }
-
     }
 
     /**
@@ -403,5 +400,4 @@ object NormalCalculator {
         }
         return dst.normalize()
     }
-
 }
