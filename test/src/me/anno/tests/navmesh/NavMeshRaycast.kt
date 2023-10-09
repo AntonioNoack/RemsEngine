@@ -1,6 +1,5 @@
 package me.anno.tests.navmesh
 
-import me.anno.Engine
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -8,8 +7,6 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.recast.NavMesh
-import me.anno.recast.NavMeshAgent
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.Raycast
@@ -17,6 +14,8 @@ import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
+import me.anno.recast.NavMesh
+import me.anno.recast.NavMeshAgent
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
@@ -40,7 +39,7 @@ class AgentController1a(
     crowd: Crowd,
     val flag: Entity,
     mask: Int
-) : NavMeshAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, mask) {
+) : NavMeshAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, mask, 10f, 10f) {
 
     override fun findNextTarget() {
         super.findNextTarget()
@@ -88,7 +87,6 @@ class AgentController1a(
         entity.position = np
         return 1
     }
-
 }
 
 /**

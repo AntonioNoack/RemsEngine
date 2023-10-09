@@ -119,10 +119,7 @@ object Raycast {
                 }
             }
         }
-        return if (result.distance < originalDistance) {
-            result.geometryNormalWS.normalize()
-            result
-        } else null
+        return if (result.distance < originalDistance) result else null
     }
 
     fun raycastCollider(
@@ -382,6 +379,7 @@ object Raycast {
                     result.distance = distance
                     result.positionWS.set(tmpPos)
                     result.geometryNormalWS.set(tmpNor)
+                    result.shadingNormalWS.set(tmpNor)
                 }
             }
         }
@@ -457,6 +455,7 @@ object Raycast {
                 result.distance = distance
                 result.positionWS.set(tmpPos)
                 result.geometryNormalWS.set(tmpNor)
+                result.shadingNormalWS.set(tmpNor)
             }
         }
     }

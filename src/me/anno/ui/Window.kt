@@ -144,17 +144,26 @@ open class Window(
 
         panel.updateVisibility(mouseX.toInt(), mouseY.toInt())
 
+        fun markInFocus(p: Panel) {
+            p.isInFocus = true
+            var pi: Panel? = p
+            while (pi != null) {
+                pi.isAnyChildInFocus = true
+                pi = pi.parent as? Panel
+            }
+        }
+
+        val mlp = Input.mouseLockPanel
+        if (mlp != null && mlp.window == this) {
+            markInFocus(mlp)
+        }
+
         if (this == windowStack.peek()) {
             val inFocus = windowStack.inFocus
             for (index in inFocus.indices) {
                 val p = inFocus[index]
                 if (p.window == this@Window) {
-                    p.isInFocus = true
-                    var pi: Panel? = p
-                    while (pi != null) {
-                        pi.isAnyChildInFocus = true
-                        pi = pi.parent as? Panel
-                    }
+                    markInFocus(p)
                 }
             }
         }

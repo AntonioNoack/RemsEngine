@@ -1,11 +1,10 @@
 package me.anno.image.raw
 
-import me.anno.utils.Color.black
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
-import me.anno.image.hdr.HDRImage
 import me.anno.image.Image
+import me.anno.utils.Color.black
 
 open class GrayscaleImage(
     val src: Image
@@ -53,7 +52,6 @@ open class GrayscaleImage(
                     }
                 }
             }
-            is HDRImage -> src.createMonoTexture(texture, sync, checkRedundancy)
             is ComponentImage -> src.createTexture(texture, sync, checkRedundancy)
             is CachedImage -> createTexture(texture, sync, checkRedundancy, src.base!!)
             is OpaqueImage -> createTexture(texture, sync, checkRedundancy, src.src)
@@ -79,7 +77,5 @@ open class GrayscaleImage(
             // *2^16, >>16
             return (13941 * r + 46873 * g + 4735 * b) shr 16
         }
-
     }
-
 }

@@ -20,7 +20,9 @@ open class NavMeshAgent(
     val random: Random,
     navMesh1: NavMesh,
     crowd: Crowd,
-    val mask: Int
+    val mask: Int,
+    maxSpeed: Float,
+    maxAcceleration: Float,
 ) : Component() {
 
     @NotSerializedProperty
@@ -28,8 +30,6 @@ open class NavMeshAgent(
 
     val params = CrowdAgentParams()
     val crowdAgent: CrowdAgent
-
-    val speed = 10f
 
     init {
 
@@ -39,19 +39,19 @@ open class NavMeshAgent(
 
         params.radius = navMesh1.agentRadius
         params.height = navMesh1.agentHeight
-        params.maxSpeed = speed
-        params.maxAcceleration = 10f
+        params.maxSpeed = maxSpeed
+        params.maxAcceleration = maxAcceleration
         params.collisionQueryRange = navMesh1.agentRadius * 2f
         params.pathOptimizationRange = params.collisionQueryRange * 1.5f
         // other params?
         crowdAgent = crowd.addAgent(currRef.randomPt, params)
-
     }
 
+    var maxRadius = 200f
     open fun findNextTarget() {
         val nextRef = query.findRandomPointWithinCircle(
             currRef.randomRef, crowdAgent.targetPos,
-            200f, filter, random
+            maxRadius, filter, random
         )
         if (nextRef != null) crowdAgent.setTarget(nextRef.randomRef, nextRef.randomPt)
         else lastWarning = "Cannot find random point within circle!"

@@ -110,8 +110,7 @@ object Input {
 
     val isMouseLocked: Boolean
         get() {
-            return mouseLockWindow?.isInFocus == true &&
-                    mouseLockPanel?.isAnyChildInFocus == true
+            return mouseLockWindow?.isInFocus == true && mouseLockPanel != null
         }
 
     fun unlockMouse() {
@@ -470,7 +469,9 @@ object Input {
                 val inFocus0 = windowStack.inFocus0
 
                 var issuedMouseDown = false
-                val mouseTarget = windowStack.getPanelAt(mouseX, mouseY)
+                val mouseTarget =
+                    if (window == mouseLockWindow && mouseLockPanel != null) mouseLockPanel
+                    else windowStack.getPanelAt(mouseX, mouseY)
                 maySelectByClick = if (toggleSinglePanel || selectPanelRange) {
                     val nextSelected = mouseTarget?.getMultiSelectablePanel()
                     val prevSelected = inFocus0?.getMultiSelectablePanel()
@@ -603,10 +604,10 @@ object Input {
 
         if (isClick) {
 
-            if (maySelectByClick) {
+            if (maySelectByClick && mouseLockPanel == null) {
                 val dws = window.windowStack
-                val panelWindow = dws.getPanelAndWindowAt(mouseX, mouseY)
-                dws.requestFocus(panelWindow?.first, true)
+                val panel = dws.getPanelAt(mouseX, mouseY)
+                dws.requestFocus(panel, true)
             }
 
             val longClickNanos = 1_000_000 * longClickMillis

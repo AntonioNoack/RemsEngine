@@ -30,6 +30,7 @@ import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
@@ -458,6 +459,32 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         }
     }
 
+    fun countLines(): Int {
+        val positions = positions
+        val indices = indices
+        return max(
+            if (indices == null) {
+                positions ?: return 0
+                val numPoints = positions.size / 3
+                when (drawMode) {
+                    GL_TRIANGLES -> numPoints
+                    GL_TRIANGLE_STRIP -> (numPoints - 2) * 2
+                    GL_LINES -> numPoints / 2
+                    GL_LINE_STRIP -> numPoints - 1
+                    else -> 0
+                }
+            } else {
+                when (drawMode) {
+                    GL_TRIANGLES -> indices.size
+                    GL_TRIANGLE_STRIP -> (indices.size - 2) * 2
+                    GL_LINES -> indices.size / 2
+                    GL_LINE_STRIP -> indices.size - 1
+                    else -> 0
+                }
+            }, 0
+        )
+    }
+
     fun forEachLineIndex(callback: LineIndexCallback) {
         val positions = positions ?: return
         val indices = indices
@@ -688,8 +715,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             if (GFX.isGFXThread()) buffer?.ensureBuffer()
         }
     }
-
-    fun hasBuffer() = !needsMeshUpdate
 
     fun ensureNorTanUVs() {
 
@@ -1046,12 +1071,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         }
     }
 
-    fun drawMeshPurely(shader: Shader) {
-        ensureBuffer()
-        (triBuffer ?: buffer)?.draw(shader)
-        lineBuffer?.draw(shader)
-    }
-
     fun drawDepth(shader: Shader) {
         // all materials are assumed to behave the same
         // when we have vertex shaders by material, this will become wrong...
@@ -1136,6 +1155,35 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             this.indices = null
             if (calculateNormals) calculateNormals(false)
         }
+    }
+
+    fun makeLineMesh(keepOnlyUniqueLines: Boolean) {
+        val indices = if (keepOnlyUniqueLines) {
+            val lines = HashSet<IntPair>()
+            forEachLineIndex { a, b ->
+                if (a != b) {
+                    lines += IntPair(min(a, b), max(a, b))
+                }
+            }
+            var ctr = 0
+            val indices = indices.resize(lines.size * 2)
+            for (line in lines) {
+                indices[ctr++] = line.first
+                indices[ctr++] = line.second
+            }
+            indices
+        } else {
+            var ctr = 0
+            val indices = indices.resize(countLines() * 2)
+            forEachLineIndex { a, b ->
+                indices[ctr++] = a
+                indices[ctr++] = b
+            }
+            indices
+        }
+        this.indices = indices
+        drawMode = GL_LINES
+        invalidateGeometry()
     }
 
     override fun fill(

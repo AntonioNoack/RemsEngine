@@ -63,7 +63,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.*
 import me.anno.image.ImageScale.scaleMax
-import me.anno.image.hdr.HDRImage
+import me.anno.image.hdr.HDRReader
 import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAImage
@@ -1162,9 +1162,13 @@ object Thumbs {
             generateVOXMeshFrame(srcFile, dstFile, size, callback)
         }
         registerSignature("hdr") { srcFile, dstFile, size, callback ->
-            val src = HDRImage(srcFile)
-            findScale(src, srcFile, size, callback) { dst ->
-                saveNUpload(srcFile, false, dstFile, dst, callback)
+            srcFile.inputStream { it, exc ->
+                if (it != null) {
+                    val src = it.use(HDRReader::read)
+                    findScale(src, srcFile, size, callback) { dst ->
+                        saveNUpload(srcFile, false, dstFile, dst, callback)
+                    }
+                } else callback(null, exc)
             }
         }
         registerSignature("jpg") { srcFile, dstFile, size, callback ->

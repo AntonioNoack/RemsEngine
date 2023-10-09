@@ -28,8 +28,11 @@ import me.anno.gpu.GFXBase
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.SECONDS_TO_NANOS
+import me.anno.maths.Maths.TAU
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.pow
 import me.anno.mesh.Shapes.flatCube
 import me.anno.tests.network.Instance
 import me.anno.tests.network.Player
@@ -47,9 +50,7 @@ import org.apache.logging.log4j.LoggerImpl
 import org.joml.Vector3d
 import org.joml.Vector3f
 import java.util.*
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.exp
+import kotlin.math.*
 
 // create an actual world, where we can walk around with other people
 // make the game logic as simple as possible, so it's easy to follow
@@ -60,10 +61,10 @@ fun main() {
     // todo shooting
     //  - add gun model
     //  - add bullet animation
-    //  - trace bullet path
-    //  - send bullet packet
+    // done: - trace bullet path
+    // done: - send bullet packet
     // todo hitting
-    // todo lives
+    // todo lives or scores
 
     GFXBase.disableRenderDoc()
 
@@ -75,7 +76,7 @@ fun main() {
     sun.shadowMapCascades = 1
     sun.shadowMapResolution = 1024
     val sunE = Entity(scene)
-    sunE.setScale(50.0) // covering the map
+    sunE.setScale(70.0) // covering the map
     sunE.setRotation((-45.0).toRadians(), 0.0, 0.0)
     sunE.add(sun)
     scene.add(AmbientLight().apply {
@@ -215,42 +216,56 @@ fun main() {
         } while (true)
     }
 
+    var rotX = -30.0
+    var rotY = 0.0
+
     selfPlayerEntity.add(object : Component(), ControlReceiver {
 
         val jumpTimeout = (0.1 * SECONDS_TO_NANOS).toLong()
         var lastJumpTime = 0L
 
-        fun shoot() {
-            // shoot bullet
-            val entity = entity!!
-            val pos = Vector3d(entity.position).add(1.05, 0.0, -0.15)
-            val dir = Vector3d(0.0, 0.0, -1.0)
+        private fun findBulletDistance(pos: Vector3d, dir: Vector3d): Double {
             val maxDistance = 1e3
             val hit = Raycast.raycast(
                 scene, pos, dir,
                 0.0, 0.0, maxDistance, Raycast.COLLIDERS,
-                -1, setOf(entity)
+                -1, setOf(entity!!)
             )
-            val distance = hit?.distance ?: maxDistance
+            return hit?.distance ?: maxDistance
+        }
+
+        var shotLeft = false
+        fun shootBullet() {
+            val entity = entity!!
+            val pos = Vector3d().add(if (shotLeft) -1.05 else 1.05, 0.0, -0.15)
+                .rotateX(rotX).rotateY(rotY).add(entity.position)
+            val dir = Vector3d(0.0, 0.0, -1.0)
+                .rotateX(rotX).rotateY(rotY)
+            val distance = findBulletDistance(pos, dir)
             val packet = BulletPacket(onBulletPacket)
             packet.pos.set(pos)
             packet.dir.set(dir)
             packet.distance = distance.toFloat()
             instance.client?.sendUDP(packet, udpProtocol, false)
             onBulletPacket(packet)
+            shotLeft = !shotLeft
+        }
+
+        private fun lockMouse() {
+            RenderView.currentInstance?.uiParent?.lockMouse()
         }
 
         override fun onKeyDown(key: Key): Boolean {
-           return when(key){
+            return when (key) {
                 Key.BUTTON_LEFT -> {
-                    RenderView.currentInstance?.uiParent?.lockMouse()
-                    shoot()
+                    if (Input.isMouseLocked) shootBullet()
+                    else lockMouse()
                     true
                 }
-               Key.KEY_ESCAPE -> {
-                   Input.unlockMouse()
-                   true
-               }
+                Key.KEY_ESCAPE -> {
+                    Input.unlockMouse()
+                    true
+                }
                 else -> super.onKeyDown(key)
             }
         }
@@ -262,10 +277,12 @@ fun main() {
             if (entity.position.y < -10.0 || Input.wasKeyPressed(Key.KEY_R)) {
                 respawn()
             }
-            if (Input.isKeyDown(Key.KEY_W)) rigidbody.applyTorque(-strength, 0.0, 0.0)
-            if (Input.isKeyDown(Key.KEY_S)) rigidbody.applyTorque(+strength, 0.0, 0.0)
-            if (Input.isKeyDown(Key.KEY_A)) rigidbody.applyTorque(0.0, 0.0, +strength)
-            if (Input.isKeyDown(Key.KEY_D)) rigidbody.applyTorque(0.0, 0.0, -strength)
+            val c = cos(rotY) * strength
+            val s = sin(rotY) * strength
+            if (Input.isKeyDown(Key.KEY_W)) rigidbody.applyTorque(-c, 0.0, +s)
+            if (Input.isKeyDown(Key.KEY_S)) rigidbody.applyTorque(+c, 0.0, -s)
+            if (Input.isKeyDown(Key.KEY_A)) rigidbody.applyTorque(+s, 0.0, +c)
+            if (Input.isKeyDown(Key.KEY_D)) rigidbody.applyTorque(+c, 0.0, -c)
             if (Input.isKeyDown(Key.KEY_SPACE) && abs(Time.gameTimeN - lastJumpTime) > jumpTimeout) {
                 // only jump if we are on something
                 val hit = Raycast.raycast(staticScene, entity.position, down, 0.0, 0.0, radius, -1)
@@ -283,37 +300,45 @@ fun main() {
     val selfPlayer = LocalPlayer()
     camera.use(selfPlayer)
     val cameraBase = Entity(scene)
-    val cameraArm = Entity(cameraBase)
-    cameraArm.setPosition(0.0, 3.0, 4.0)
-    cameraArm.setRotation((-30.0).toRadians(), 0.0, 0.0)
+    val cameraBase1 = Entity(cameraBase)
+    val cameraArm = Entity(cameraBase1)
+    cameraArm.setPosition(1.5, 1.0, 4.0)
+    cameraArm.setRotation(0.0, 0.0, 0.0)
     cameraBase.add(object : Component(), ControlReceiver {
-        // todo rotate camera
-        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
-            // todo on click/focus capture mouse
-            return super.onMouseMoved(x, y, dx, dy)
+
+        override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean {
+            cameraArm.position = cameraArm.position.mul(pow(0.98, dy.toDouble()))
+            return true
         }
 
-        var i = 0
+        override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float): Boolean {
+            return if (Input.isMouseLocked) {
+                // rotate camera
+                val speed = 1.0 / RenderView.currentInstance!!.height
+                rotX = clamp(rotX + dy * speed, -PI / 2, PI / 2)
+                rotY = (rotY + dx * speed) % TAU
+                true
+            } else super.onMouseMoved(x, y, dx, dy)
+        }
+
         override fun onUpdate(): Int {
+            // update transforms
             val pos = selfPlayerEntity.position
-            val rot = selfPlayerEntity.rotation
-            val rb = selfPlayerEntity.getComponent(Rigidbody::class)!!
-            val vel = rb.velocity
-            val ang = rb.angularVelocity
-            cameraBase.position = cameraBase.position
-                .lerp(pos, dtTo01(5.0 * Time.deltaTime))
-            // ideally, send this every frame; this is just for testing :)
-            if (i++ > 0) {
-                i = 0
-                instance.client?.sendUDP(PlayerUpdatePacket {}.apply {
-                    position.set(pos)
-                    rotation.set(rot)
-                    linearVelocity.set(vel)
-                    angularVelocity.set(ang)
-                    color = selfColor
-                    // our name is set by the server, we don't have to set/send it ourselves
-                }, udpProtocol, false)
-            }
+            cameraBase.position = cameraBase.position.lerp(pos, dtTo01(5.0 * Time.deltaTime))
+            cameraBase1.setRotation(rotX, rotY, 0.0)
+            // send our data to the other players
+            instance.client?.sendUDP(PlayerUpdatePacket {}.apply {
+                val rot = selfPlayerEntity.rotation
+                val rb = selfPlayerEntity.getComponent(Rigidbody::class)!!
+                val vel = rb.velocity
+                val ang = rb.angularVelocity
+                position.set(pos)
+                rotation.set(rot)
+                linearVelocity.set(vel)
+                angularVelocity.set(ang)
+                color = selfColor
+                // our name is set by the server, we don't have to set/send it ourselves
+            }, udpProtocol, false)
             return 1
         }
     })

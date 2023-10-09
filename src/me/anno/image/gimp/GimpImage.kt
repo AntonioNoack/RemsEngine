@@ -1,8 +1,8 @@
 package me.anno.image.gimp
 
 import me.anno.image.Image
-import me.anno.image.hdr.HDRImage
 import me.anno.image.raw.ByteImage
+import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readBE32
 import me.anno.io.files.FileReference
@@ -175,7 +175,6 @@ class GimpImage {
             }
             return folder
         }
-
     }
 
     var fileVersion = 0
@@ -296,7 +295,7 @@ class GimpImage {
             )
             else -> {
                 LOGGER.warn("Got format $format, just using float image")
-                HDRImage(width, height, 1)
+                FloatImage(width, height, 1)
             }
         }
     }
@@ -351,7 +350,6 @@ class GimpImage {
         // and stuff...
 
         return layer
-
     }
 
     private fun loadBuffer(data: ByteBuffer, layer: Layer): Image? {
@@ -461,7 +459,6 @@ class GimpImage {
         }
 
         fillTileIntoImage(dataType, image, x0, y0, tileWidth, tileHeight, bpp, tileData)
-
     }
 
     private fun mapChannel(c: Int, hasAlpha: Boolean): Int {
@@ -519,7 +516,6 @@ class GimpImage {
         }
 
         fillTileIntoImage(format, image, x0, y0, tileWidth, tileHeight, bpp, tileData)
-
     }
 
     private fun fillTileIntoImage(
@@ -564,7 +560,6 @@ class GimpImage {
         loadBuffer(data, channel)
 
         return channel
-
     }
 
     private fun readOffset(data: ByteBuffer): Int {
@@ -655,5 +650,4 @@ class GimpImage {
             LOGGER.debug("$type ${info.propType}, ${data.getInt(data.position())}/${data.getFloat(data.position())}")
         else LOGGER.debug("$type ${info.propType}, size ${info.propSize}")*/
     }
-
 }

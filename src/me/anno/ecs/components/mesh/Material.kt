@@ -18,6 +18,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.utils.Color.toVecRGBA
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -364,5 +365,12 @@ open class Material : PrefabSaveable(), Renderable {
                 tex
             } else null
         }
+
+        fun diffuse(color: Int): Material {
+            val mat = Material()
+            color.toVecRGBA(mat.diffuseBase)
+            return mat
+        }
+
     }
 }

@@ -1,6 +1,6 @@
 package me.anno.tests.image
 
-import me.anno.image.hdr.HDRImage
+import me.anno.image.hdr.HDRReader
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color.rgb
@@ -31,9 +31,9 @@ fun main() {
     val ref = getReference("C:/XAMPP/htdocs/uvbaker/env/scythian_tombs_2_4k.hdr")
     val exposure = 1f
 
-    val src = HDRImage(ref)
+    val src = ref.inputStreamSync().use(HDRReader::read)
     val dst = IntImage(src.width, src.height, false)
-    val pixels = src.pixels
+    val pixels = src.data
     var j = 0
     val max = 255.5f
     for (i in 0 until src.width * src.height) {

@@ -10,7 +10,7 @@ import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageTransform
-import me.anno.image.hdr.HDRImage
+import me.anno.image.hdr.HDRReader
 import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
@@ -59,13 +59,17 @@ class ImageData(file: FileReference) : ICacheData {
                 cpuImage.createTexture(texture, sync = true, checkRedundancy = true)
                 this.texture = texture
             } else when (Signature.findNameSync(file)) {
-                "hdr" -> {
-                    val img = HDRImage(file)
-                    val w = img.width
-                    val h = img.height
-                    val texture = Texture2D("image-data", w, h, 1)
-                    img.createTexture(texture, sync = false, checkRedundancy = true)
-                    this.texture = texture
+                "hdr" -> file.inputStream { input, exc ->
+                    if (input != null) {
+                        val img = input.use(HDRReader::read)
+                        val w = img.width
+                        val h = img.height
+                        GFX.addGPUTask("hdr", w, h) {
+                            val texture = Texture2D("image-data", img.width, img.height, 1)
+                            img.createTexture(texture, sync = false, checkRedundancy = true)
+                            this.texture = texture
+                        }
+                    } else exc?.printStackTrace()
                 }
                 "dds", "media" -> useFFMPEG(file)
                 else -> {
@@ -165,5 +169,4 @@ class ImageData(file: FileReference) : ICacheData {
         // framebuffer destroys the texture, too
         framebuffer?.destroy() ?: texture?.destroy()
     }
-
 }

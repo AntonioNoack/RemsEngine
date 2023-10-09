@@ -92,6 +92,7 @@ class RayHit {
         globalTransform.transformPosition(hitPosition)
         val hitNormal = geometryNormalWS.set(localNormal)
         globalTransform.transformDirection(hitNormal)
+        shadingNormalWS.set(geometryNormalWS)
         // calculate the world space distance
         val distance = hitPosition.distance(start)
         this.distance = distance
@@ -109,6 +110,7 @@ class RayHit {
         globalTransform?.transformPosition(hitPosition)
         val hitNormal = geometryNormalWS.set(localNormal)
         globalTransform?.transformDirection(hitNormal)
+        shadingNormalWS.set(geometryNormalWS)
         // calculate the world space distance
         val distance = hitPosition.distance(start)
         this.distance = distance
@@ -116,18 +118,4 @@ class RayHit {
         end.set(direction).normalize(distance).add(start)
     }
 
-    fun localToGlobal(
-        globalTransform: Matrix4x3d?,
-        start: Vector3d,
-        direction: Vector3d,
-        end: Vector3d,
-    ) {
-        globalTransform ?: return
-        globalTransform.transformPosition(positionWS)
-        globalTransform.transformDirection(geometryNormalWS)
-        val distance = positionWS.distance(start)
-        this.distance = distance
-        // update the end vector
-        end.set(direction).normalize(distance).add(start)
-    }
 }

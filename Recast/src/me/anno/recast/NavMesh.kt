@@ -72,18 +72,9 @@ class NavMesh : Component() {
     @NotSerializedProperty
     var data: MeshData? = null
 
-    @NotSerializedProperty
-    private var mesh: org.recast4j.detour.NavMesh? = null
-
     @Docs("Only meshes with this collision flag will be considered")
     @SerializedProperty
     var collisionMask: Int = 1
-
-    fun build2() {
-        val data = data ?: build() ?: return
-        this.data = data
-        mesh = mesh ?: org.recast4j.detour.NavMesh(data, maxVerticesPerPoly, 0)
-    }
 
     fun build(): MeshData? {
 

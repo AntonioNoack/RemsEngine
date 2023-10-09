@@ -1,12 +1,10 @@
 package me.anno.tests.navmesh
 
-import me.anno.Engine
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.maths.Maths.dtTo01
@@ -36,7 +34,7 @@ class AgentController1b(
     crowd: Crowd,
     val flag: Entity,
     mask: Int
-) : NavMeshAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, mask) {
+) : NavMeshAgent(meshData, navMesh, query, filter, random, navMesh1, crowd, mask, 10f, 10f) {
 
     override fun findNextTarget() {
         super.findNextTarget()
@@ -81,7 +79,6 @@ fun main() {
 
         val mask = 1 shl 16
         val world = Entity("World")
-        world.add(Skybox())
 
         val agentMeshRef = documents.getChild("CuteGhost.fbx")
         val agentMesh = MeshCache[agentMeshRef, false]!!
@@ -100,7 +97,7 @@ fun main() {
             add(MeshComponent(documents.getChild("NavMeshTest2.obj")).apply {
                 collisionMask = mask
             })
-            scale = scale.set(2.5)
+            setScale(2.5)
         })
 
         val meshData = navMesh1.build() ?: throw IllegalStateException("Failed to build NavMesh")
@@ -117,17 +114,15 @@ fun main() {
 
         val flagMesh = documents.getChild("Flag.fbx")
         for (i in 0 until 2500) {
-            val flag = Entity("Flag")
-            flag.scale = Vector3d(flagScale.toDouble())
+            val flag = Entity("Flag", world)
+            flag.setScale(flagScale.toDouble())
             flag.add(MeshComponent(flagMesh).apply { isInstanced = true })
-            world.add(flag)
-            val agent = Entity("Agent")
+            val agent = Entity("Agent", world)
             agent.add(Entity().apply {
-                scale = Vector3d(agentScale.toDouble())
+                setScale(agentScale.toDouble())
                 add(MeshComponent(agentMeshRef).apply { isInstanced = true })
             })
             agent.add(AgentController1b(meshData, navMesh, query, filter, random, navMesh1, crowd, flag, mask))
-            world.add(agent)
         }
 
         world.addComponent(object : Component() {

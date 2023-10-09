@@ -60,6 +60,9 @@ class SceneView(
         renderer.controlScheme = if (editing) editControls else playControls
     }
 
+    override val className: String
+        get() = "SceneView"
+
     companion object {
 
         fun testSceneWithUI(title: String, source: FileReference, init: ((SceneView) -> Unit)? = null) {

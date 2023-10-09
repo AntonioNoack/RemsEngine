@@ -245,7 +245,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
             debugPoints.add(DebugPoint(Vector3d(view.mouseDirection).mul(20.0).add(start), black or 0xff0000))
         } else {
             val pos = Vector3d(hit.positionWS)
-            val normal = Vector3d(hit.geometryNormalWS).normalize(
+            val normal = hit.geometryNormalWS.normalize(
                 0.05 * hit.positionWS.distance(view.cameraPosition)
             )
             // draw collision point
@@ -372,6 +372,9 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         view.far *= factor
         camera.fovOrthographic *= factor
     }
+
+    override val className: String
+        get() = "ControlScheme"
 
     companion object {
         private val LOGGER = LogManager.getLogger(ControlScheme::class)

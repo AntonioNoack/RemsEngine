@@ -130,7 +130,6 @@ class WindowStack : Stack<Window>() {
         this.y1 = y
         this.w1 = w
         this.h1 = h
-
     }
 
     fun updateTransform(
@@ -152,7 +151,6 @@ class WindowStack : Stack<Window>() {
         this.h1 = h1
 
         updateMousePosition(window)
-
     }
 
     fun updateMousePosition(window: OSWindow) {
@@ -176,7 +174,6 @@ class WindowStack : Stack<Window>() {
         mouseDownY = y1 + (tmp.y * .5f + .5f) * h1
 
         JomlPools.vec3f.sub(1)
-
     }
 
     fun draw(dx: Int, dy: Int, windowW: Int, windowH: Int, didSomething0: Boolean, forceRedraw: Boolean): Boolean {
@@ -225,6 +222,5 @@ class WindowStack : Stack<Window>() {
                 }
             }
         }
-
     }
 }

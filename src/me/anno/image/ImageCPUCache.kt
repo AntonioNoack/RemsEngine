@@ -5,7 +5,7 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.image.exr.EXRReader
 import me.anno.image.gimp.GimpImage
-import me.anno.image.hdr.HDRImage
+import me.anno.image.hdr.HDRReader
 import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.BundledRef
@@ -62,7 +62,7 @@ object ImageCPUCache : CacheSection("BufferedImages") {
     }
 
     init {
-        registerStreamReader("hdr") { HDRImage(it) }
+        registerStreamReader("hdr") { HDRReader.read(it) }
         registerStreamReader("tga") { TGAImage.read(it, false) }
         registerStreamReader("ico") { ICOReader.read(it) }
         registerStreamReader("gimp") { GimpImage.read(it) }

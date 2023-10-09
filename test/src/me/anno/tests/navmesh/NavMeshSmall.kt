@@ -1,6 +1,5 @@
 package me.anno.tests.navmesh
 
-import me.anno.Engine
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -8,11 +7,11 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.recast.NavMesh
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
+import me.anno.recast.NavMesh
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.OS.documents
