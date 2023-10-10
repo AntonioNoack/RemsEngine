@@ -5,13 +5,11 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.*
 import me.anno.image.raw.ByteImage
 import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitForGFXThread
@@ -48,14 +46,14 @@ abstract class GPUFrame(var width: Int, var height: Int, val code: Int) : ICache
         bind(offset, gpuFiltering, clamping)
     }
 
-    fun bind(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<Texture2D>) {
+    fun bind(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<ITexture2D>) {
         val gpuFiltering = if (filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR
         for ((index, texture) in tex.withIndex().reversed()) {
             texture.bind(offset + index, gpuFiltering, clamping)
         }
     }
 
-    fun bind2(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<Framebuffer>) {
+    fun bind2(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<IFramebuffer>) {
         val gpuFiltering = if (filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR
         for ((index, texture) in tex.withIndex().reversed()) {
             texture.bindTexture0(offset + index, gpuFiltering, clamping)
@@ -136,5 +134,4 @@ abstract class GPUFrame(var width: Int, var height: Int, val code: Int) : ICache
         @JvmField
         val creationLimiter = Semaphore(32)
     }
-
 }

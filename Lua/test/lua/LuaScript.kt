@@ -1,4 +1,4 @@
-package me.anno.tests.lua
+package lua
 
 import me.anno.lua.ScriptComponent
 

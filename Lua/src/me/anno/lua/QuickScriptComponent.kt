@@ -8,7 +8,6 @@ import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.lua.ScriptComponent.Companion.getFunction
 import me.anno.lua.ScriptComponent.Companion.toLua
-import me.anno.lua.functions.*
 import org.luaj.vm2.LuaValue
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -56,18 +55,9 @@ open class QuickScriptComponent : Component() {
             globals.set("entity", entity.toLua())
             globals.set("transform", entity?.transform.toLua())
             globals.set("parent", parent.toLua())
-            globals.set("dt", LuaValue.valueOf(Time.deltaTime.toDouble()))
+            globals.set("dt", LuaValue.valueOf(Time.deltaTime))
             globals.set("t", LuaValue.valueOf(Time.gameTime))
-            globals.set("localPlayer", LocalPlayer.currentLocalPlayer.toLua())
-            // todo "call", which calls a function via reflections
-            // define translation, rotation, scale functions and such :)
-            globals.set("getPosition", GetPosition)
-            globals.set("getRotation", GetRotation)
-            globals.set("getScale", GetScale)
-            globals.set("rotateX", RotateX)
-            globals.set("rotateY", RotateY)
-            globals.set("rotateZ", RotateZ)
-            globals.set("setPosition", setPosition)
+            globals.set("player", LocalPlayer.currentLocalPlayer.toLua())
             init(globals)
         }
     }

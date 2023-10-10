@@ -3,6 +3,9 @@ package me.anno
 import me.anno.ui.debug.FrameTimings
 import kotlin.math.min
 
+/**
+ * state of time, for UI, and timelapse-able elements, and nanoTime (everything)
+ * */
 object Time {
 
     /**

@@ -1,6 +1,7 @@
 package me.anno.lua
 
 import me.anno.Build
+import me.anno.Engine
 import me.anno.Time
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
@@ -9,16 +10,19 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.lua.utils.SafeFunction
+import me.anno.lua.utils.WhileTrueYield
 import me.anno.utils.OS
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.luaj.vm2.*
+import org.luaj.vm2.LuaThread.STATUS_DEAD
+import org.luaj.vm2.LuaThread.thread_orphan_check_interval
 import org.luaj.vm2.lib.DebugLib
-import org.luaj.vm2.lib.LibFunction
-import org.luaj.vm2.lib.ZeroArgFunction
 import org.luaj.vm2.lib.jse.CoerceJavaToLua
 import org.luaj.vm2.lib.jse.JsePlatform
+import java.util.*
 
 /**
  * Uses https://github.com/luaj/luaj.
@@ -69,6 +73,21 @@ open class ScriptComponent : Component() {
 
         @JvmField
         val timeout = 20_000L
+
+        val luaThreads = WeakHashMap<LuaThread, Unit>()
+
+        init {
+            // look for dead threads every 50ms
+            thread_orphan_check_interval = 50
+            // on shutdown, set all lua threads to be dead
+            Engine.registerForShutdown {
+                synchronized(luaThreads) {
+                    for (thread in luaThreads.keys) {
+                        thread.state.status = STATUS_DEAD
+                    }
+                }
+            }
+        }
 
         @JvmStatic
         fun getFunction(name: String, source: FileReference, instructionLimit: Int = 10_000): LuaValue? {
@@ -179,49 +198,11 @@ open class ScriptComponent : Component() {
             return (funcObj as? CacheData<*>)?.value as? Pair<Globals, LuaValue>
         }
 
-        object ErrorFunction : ZeroArgFunction() {
-            override fun call(): LuaValue {
-                throw Error("Script run out of limits.")
-            }
-        }
-
-        class SafeFunction(val thread: LuaThread) : ZeroArgFunction() {
-            override fun call(): LuaValue {
-                return thread.resume(LuaValue.NIL).arg(2)
-            }
-        }
-
         @JvmStatic
         private val lDebug = LuaString.valueOf("debug")
 
         @JvmStatic
         private val lSetHook = LuaString.valueOf("set" + "hook")
-
-        class WhileTrueYield(
-            val globals: Globals,
-            val func: LuaValue,
-            val setHook: LuaValue,
-            val instructionLimit: Int
-        ) : LibFunction() {
-            lateinit var thread: LuaThread
-            override fun invoke(varargs: Varargs?): Varargs {
-                while (true) {
-                    val limit = instructionLimit
-                    // reset instruction limit
-                    thread.state.bytecodes = 0
-                    setHook.invoke(
-                        varargs(
-                            thread,
-                            ErrorFunction,
-                            LuaValue.EMPTYSTRING,
-                            LuaValue.valueOf(limit)
-                        )
-                    )
-                    val ret = func.call()
-                    globals.yield(ret)
-                }
-            }
-        }
 
         @JvmStatic
         fun wrapIntoLimited(
@@ -237,12 +218,10 @@ open class ScriptComponent : Component() {
             val func = WhileTrueYield(globals, function, setHook, instructionLimit)
             val thread = LuaThread(globals, func)
             func.thread = thread
+            synchronized(luaThreads) {
+                luaThreads[thread] = Unit
+            }
             return SafeFunction(thread)
-        }
-
-        @JvmStatic
-        fun varargs(vararg v: LuaValue): Varargs {
-            return LuaValue.varargsOf(v)
         }
     }
 }

@@ -3,22 +3,31 @@ package me.anno.gpu.shader
 object ShaderFuncLib {
 
     val randomGLSL = "" +
+            "#ifndef RANDOM_GLSL\n" +
+            "#define RANDOM_GLSL\n" +
             "float random(vec2 co){\n" +
             "    return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);\n" +
-            "}\n"
+            "}\n" +
+            "#endif\n"
 
     @Suppress("unused")
     val reinhardToneMapping = "" +
+            "#ifndef REINHARD\n" +
+            "#define REINHARD\n" +
             "vec3 reinhard(vec3 color){\n" +
             "   return color / (color + 1.0);\n" +
-            "}\n"
+            "}\n" +
+            "#endif\n"
 
     @Suppress("unused")
     val reinhard2ToneMapping = "" +
+            "#ifndef REINHARD2\n" +
+            "#define REINHARD2\n" +
             "vec3 reinhard(vec3 color){\n" +
             "   const float invWhiteSq = ${1.0 / 16.0};\n" +
             "   return (color * (1.0 + color * invWhiteSq)) / (color + 1.0);\n" +
-            "}\n"
+            "}\n" +
+            "#endif\b"
 
     @Suppress("unused")
     val uchimuraToneMapping = "" +
@@ -27,6 +36,8 @@ object ShaderFuncLib {
             // Source: https://www.slideshare.net/nikuque/hdr-theory-and-practicce-jp
             // source^2: https://github.com/dmnsgn/glsl-tone-map/blob/master/uchimura.glsl
             // todo could be simplified a lot...
+            "#ifndef UCHIMURA\n" +
+            "#define UCHIMURA\n" +
             "vec3 uchimura(vec3 x, float P, float a, float m, float l, float c, float b) {\n" +
             "   float l0 = ((P - m) * l) / a;\n" +
             "   float L0 = m - m / a;\n" +
@@ -54,7 +65,8 @@ object ShaderFuncLib {
             "   const float c = 1.33;\n" + // black
             "   const float b = 0.0;\n" + // pedestal
             "   return uchimura(x, P, a, m, l, c, b);\n" +
-            "}"
+            "}\n" +
+            "#endif\n"
 
     // academy color encoding system; e.g., used by UE4
     // says it shall be standard for the film industry
@@ -62,9 +74,10 @@ object ShaderFuncLib {
     val acesToneMapping = "" +
             // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
             // source^2: https://github.com/dmnsgn/glsl-tone-map/blob/master/aces.glsl
+            "#ifndef ACES\n" +
+            "#define ACES\n" +
             "vec3 aces(vec3 x) {\n" +
             "   return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);\n" +
-            "}"
-
-
+            "}\n" +
+            "#endif\n"
 }

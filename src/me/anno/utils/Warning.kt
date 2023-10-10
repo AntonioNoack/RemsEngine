@@ -10,6 +10,9 @@ object Warning {
     @JvmStatic
     private val warned = HashSet<String>()
 
+    /**
+     * warns once
+     * */
     @JvmStatic
     fun warn(key: String) {
         if (key in warned) return

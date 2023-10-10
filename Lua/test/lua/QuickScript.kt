@@ -1,5 +1,6 @@
-package me.anno.tests.lua
+package lua
 
+import me.anno.Engine
 import me.anno.ecs.Entity
 import me.anno.input.Key
 import me.anno.lua.QuickInputScriptComponent
@@ -15,7 +16,8 @@ fun main() {
 
     val qs = QuickScriptComponent()
     e.add(qs)
-    qs.createScript = "print(entity);print(17)"
+    qs.createScript = "print(entity)"
     qs.onCreate()
 
+    Engine.requestShutdown()
 }

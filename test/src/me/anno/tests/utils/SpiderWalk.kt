@@ -62,7 +62,7 @@ fun main() {
     navMesh1.data = meshData
     val navMesh = org.recast4j.detour.NavMesh(meshData, navMesh1.maxVerticesPerPoly, 0)
 
-    scene.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
+    if (false) scene.add(MeshComponent(navMesh1.toMesh(Mesh())!!.apply {
         makeLineMesh(true)
         material = Material().apply {
             cullMode = CullMode.BOTH
@@ -130,17 +130,7 @@ fun main() {
         return beta to (PI - gamma)
     }
 
-    fun test(alpha: Double, delta: Vector2d, beta: Double, gamma: Double) {
-        val (b, g) = calc(alpha, Vector3d(delta, 0.0), 1.0)
-        if (b !in beta - 0.01..beta + 0.01 || g !in gamma - 0.01..gamma + 0.01) {
-            throw IllegalStateException("$alpha, $delta, $beta, $gamma -> $b, $g")
-        }
-    }
-
-    test(0.0, Vector2d(2.0, 0.0), 0.0, 0.0)
-    test(-PI / 2, Vector2d(1.0, 1.0), PI / 2, PI / 2)
-
-    // we would like to know the spider's transform in the future to plan steps
+    // know the spider's transform in the future to plan steps
     val stepFrequency = 3.0
     val futureTransform = Matrix4x3d()
     val predictionDeltaTime = 0.5 / stepFrequency

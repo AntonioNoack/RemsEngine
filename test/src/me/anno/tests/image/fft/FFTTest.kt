@@ -33,6 +33,11 @@ val srgbMap = FloatArray(256) {
 
 fun main() {
 
+    Engine.registerForShutdown {
+        // when using FFT, this has to be called on shutdown...
+        pl.edu.icm.jlargearrays.ConcurrencyUtils.shutdownThreadPoolAndAwaitTermination()
+    }
+
     val clock = Clock()
     val src = ImageCPUCache[desktop.getChild("Moire.jpg"), false]!!
     clock.stop("Load Image")

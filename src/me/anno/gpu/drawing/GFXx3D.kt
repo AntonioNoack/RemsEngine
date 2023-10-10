@@ -49,7 +49,6 @@ object GFXx3D {
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
         ), "" +
-                ShaderFuncLib.randomGLSL +
                 ShaderLib.getTextureLib +
                 ShaderLib.getColorForceFieldLib +
                 "void main(){\n" +
