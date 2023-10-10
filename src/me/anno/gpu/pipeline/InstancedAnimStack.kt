@@ -14,7 +14,7 @@ class InstancedAnimStack : InstancedStack() {
         private val defaultIndices = Vector4f(0f, 0f, 0f, 0f)
     }
 
-    var animData = FloatArray(8 * 16)
+    var animData = FloatArray(transforms.size * 16)
     var animTexture: Texture2D? = null
 
     override fun add(transform: Transform, gfxId: Int) {
@@ -30,12 +30,13 @@ class InstancedAnimStack : InstancedStack() {
             // resize
             val newSize = transforms.size * 2
             val newTransforms = arrayOfNulls<Transform>(newSize)
-            val newClickIds = IntArray(newSize)
             val newAnimData = FloatArray(newSize * 16)
+            val newClickIds = IntArray(newSize)
             System.arraycopy(transforms, 0, newTransforms, 0, size)
-            System.arraycopy(gfxIds, 0, newClickIds, 0, size)
             System.arraycopy(animData, 0, newAnimData, 0, size * 16)
+            System.arraycopy(gfxIds, 0, newClickIds, 0, size)
             transforms = newTransforms
+            animData = newAnimData
             gfxIds = newClickIds
         }
         if (texture != null) this.animTexture = texture
@@ -49,14 +50,17 @@ class InstancedAnimStack : InstancedStack() {
         animData[j++] = currWeights.y
         animData[j++] = currWeights.z
         animData[j++] = currWeights.w
+
         animData[j++] = currIndices.x
         animData[j++] = currIndices.y
         animData[j++] = currIndices.z
         animData[j++] = currIndices.w
+
         animData[j++] = prevWeights.x
         animData[j++] = prevWeights.y
         animData[j++] = prevWeights.z
         animData[j++] = prevWeights.w
+
         animData[j++] = prevIndices.x
         animData[j++] = prevIndices.y
         animData[j++] = prevIndices.z

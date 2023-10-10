@@ -429,8 +429,8 @@ object SDFComposer {
         Variable(GLSLType.V1F, "finalSheen", VariableMode.OUT),
         // just passed from uniforms
         Variable(GLSLType.V1F, "finalTranslucency", VariableMode.INOUT),
-        Variable(GLSLType.V4F, "finalClearCoat", VariableMode.INOUT),
-        Variable(GLSLType.V2F, "finalClearCoatRoughMetallic", VariableMode.INOUT),
+        Variable(GLSLType.V4F, "finalClearCoat", VariableMode.OUT),
+        Variable(GLSLType.V2F, "finalClearCoatRoughMetallic", VariableMode.OUT),
         // for reflections;
         // we could support multiple
         Variable(GLSLType.V1B, "hasReflectionPlane"),

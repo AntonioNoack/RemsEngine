@@ -128,7 +128,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "       finalRoughness = mix(finalRoughness,  1.0, factor);\n" +
                 "       finalMetallic  = mix(finalMetallic,   0.0, factor);\n" +
                 "   }\n" +
-                "};\n"
+                "}\n"
 
         val reflectionMapCalculation = "" +
                 "#ifdef DEFERRED\n" +
@@ -362,9 +362,16 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             variables += Variable(GLSLType.V4F, "tangent", VariableMode.OUT)
 
             variables += Variable(GLSLType.V4F, "colors0", VariableMode.ATTR)
-            variables += Variable(GLSLType.V4F, "colors1", VariableMode.ATTR)
-            variables += Variable(GLSLType.V4F, "colors2", VariableMode.ATTR)
-            variables += Variable(GLSLType.V4F, "colors3", VariableMode.ATTR)
+            if (!flags.hasFlag(IS_ANIMATED) || !flags.hasFlag(IS_INSTANCED)) {
+                variables += Variable(GLSLType.V4F, "colors1", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4F, "colors2", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4F, "colors3", VariableMode.ATTR)
+            } else {
+                // too many attributes, only 16 are supported in OpenGL and DirectX
+                variables += Variable(GLSLType.V4F, "colors1")
+                variables += Variable(GLSLType.V4F, "colors2")
+                variables += Variable(GLSLType.V4F, "colors3")
+            }
             variables += Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT)
             variables += Variable(GLSLType.V4F, "vertexColor1", VariableMode.OUT)
             variables += Variable(GLSLType.V4F, "vertexColor2", VariableMode.OUT)

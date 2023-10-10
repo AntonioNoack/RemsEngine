@@ -45,6 +45,12 @@ open class Shader(
         if (attributes.isEmpty() && ("in " in vertexShader || "attribute " in vertexShader)) {
             LOGGER.warn("Shader '$shaderName' should use Variables")
         }
+        if (attributes.size > GFX.maxAttributes) {
+            throw IllegalArgumentException(
+                "Cannot use more than ${GFX.maxAttributes} attributes" +
+                        " in $name, given: ${attributes.map { it.name }}"
+            )
+        }
     }
 
     var vertexSource = vertexShader

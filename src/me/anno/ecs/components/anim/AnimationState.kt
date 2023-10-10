@@ -67,5 +67,9 @@ class AnimationState(
         writer.writeEnum("repeat", repeat)
     }
 
+    fun clone(): AnimationState {
+        return AnimationState(source, weight, progress, speed, repeat)
+    }
+
     override val className: String get() = "AnimationState"
 }

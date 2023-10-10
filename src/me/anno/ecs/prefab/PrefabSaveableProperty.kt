@@ -42,7 +42,7 @@ class PrefabSaveableProperty(
         if (pi.prefab.isWritable) {
             (panel as? TextStyleable)?.isBold = true
             for (instance in instances) {
-                println("Setting $name to $value for ${getPath(instance)}")
+                // println("Setting $name to $value for ${getPath(instance)}")
                 property[instance] = value
                 pi.change(getPath(instance), instance, name, value)
             }

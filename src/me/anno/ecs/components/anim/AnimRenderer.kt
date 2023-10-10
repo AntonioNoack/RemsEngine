@@ -298,7 +298,7 @@ open class AnimRenderer : MeshComponent() {
         super.copyInto(dst)
         dst as AnimRenderer
         dst.skeleton = skeleton
-        dst.animations = animations
+        dst.animations = animations.map { it.clone() }
         dst.useDefaultAnimation = useDefaultAnimation
         dst.prevIndices.set(prevIndices)
         dst.prevTime = prevTime

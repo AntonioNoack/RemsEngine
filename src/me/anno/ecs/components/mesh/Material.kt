@@ -11,7 +11,10 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.*
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
 import me.anno.image.ImageGPUCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
@@ -136,11 +139,14 @@ open class Material : PrefabSaveable(), Renderable {
     // and is only seen at steep angles
     // this is typically seen on cars
     // if you don't like the monotonicity, you can add your own fresnel effect in the shader
-    @Type("Color4")
-    var clearCoatColor = Vector4f(1f, 1f, 1f, 0f)
+    @Type("Color3")
+    var clearCoatColor = Vector3f(1f, 1f, 1f)
         set(value) {
             field.set(value)
         }
+
+    @Range(0.0, 1.0)
+    var clearCoatStrength = 0f
 
     @Range(0.0, 1.0)
     var clearCoatMetallic = 1f
@@ -207,11 +213,11 @@ open class Material : PrefabSaveable(), Renderable {
         shader.v1f("sheen", sheen)
         shader.v1f("IOR", indexOfRefraction)
 
-        if (clearCoatColor.w > 0f) {
-            shader.v4f("finalClearCoat", clearCoatColor)
-            shader.v2f("finalClearCoatRoughMetallic", clearCoatRoughness, clearCoatMetallic)
+        if (clearCoatStrength > 0f) {
+            shader.v4f("clearCoat", clearCoatColor, clearCoatStrength)
+            shader.v2f("clearCoatRoughMetallic", clearCoatRoughness, clearCoatMetallic)
         } else {
-            shader.v4f("finalClearCoat", 0f)
+            shader.v4f("clearCoat", 0f)
         }
 
         if (shaderOverrides.isNotEmpty()) {
@@ -324,6 +330,7 @@ open class Material : PrefabSaveable(), Renderable {
         dst.metallicMap = metallicMap
         dst.metallicMinMax.set(metallicMinMax)
         dst.clearCoatColor.set(clearCoatColor)
+        dst.clearCoatStrength = clearCoatStrength
         dst.clearCoatRoughness = clearCoatRoughness
         dst.clearCoatMetallic = clearCoatMetallic
         dst.shader = shader
@@ -371,6 +378,5 @@ open class Material : PrefabSaveable(), Renderable {
             color.toVecRGBA(mat.diffuseBase)
             return mat
         }
-
     }
 }
