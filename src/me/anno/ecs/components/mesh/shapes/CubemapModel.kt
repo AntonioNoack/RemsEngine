@@ -6,7 +6,7 @@ import org.joml.Vector3f
 import org.lwjgl.opengl.GL11C.GL_LINES
 
 /**
- * Cubemap model with UVs for typical skymap layout:
+ * Cubemap model with UVs for typical skybox layout:
  *    +y
  * -x -z +x +z
  *    -y

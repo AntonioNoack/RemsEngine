@@ -39,10 +39,7 @@ class Clock(
         lastTime = time
         if (dt > minTime) {
             val nanosPerElement = dt0.toDouble() / elementCount
-            LOGGER.info(
-                "Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s" +
-                        " for ${wasUsedFor()}, ${format(nanosPerElement)}"
-            )
+            LOGGER.info("Used ${formatDt(dt)}s for ${wasUsedFor()}, ${format(nanosPerElement)}")
         }
         return dt
     }
@@ -73,10 +70,7 @@ class Clock(
         lastTime = time
         if (dt > minTime) {
             val nanosPerElement = dt0.toDouble() / elementCount
-            LOGGER.info(
-                "Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s " +
-                        "for $wasUsedFor, ${format(nanosPerElement)}"
-            )
+            LOGGER.info("Used ${formatDt(dt)}s for $wasUsedFor, ${format(nanosPerElement)}")
         }
         return dt
     }
@@ -98,7 +92,7 @@ class Clock(
         val dt = (time - lastTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
-            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for $wasUsedFor")
+            LOGGER.info("Used ${formatDt(dt)}s for $wasUsedFor")
         }
         return dt
     }
@@ -108,9 +102,13 @@ class Clock(
         val dt = (time - lastTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
-            LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s for ${wasUsedFor()}")
+            LOGGER.info("Used ${formatDt(dt)}s for ${wasUsedFor()}")
         }
         return dt
+    }
+
+    private fun formatDt(dt: Double): String {
+        return if (printWholeAccuracy) dt.toString() else dt.f3()
     }
 
     fun total(wasUsedFor: String = "") {
@@ -123,9 +121,9 @@ class Clock(
         lastTime = time
         if (dt > minTime) {
             if (wasUsedFor.isBlank2()) {
-                LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s in total")
+                LOGGER.info("Used ${formatDt(dt)}s in total")
             } else {
-                LOGGER.info("Used ${if (printWholeAccuracy) dt.toString() else dt.f3()}s in total for $wasUsedFor")
+                LOGGER.info("Used ${formatDt(dt)}s in total for $wasUsedFor")
             }
         }
     }
@@ -150,14 +148,6 @@ class Clock(
     companion object {
         @JvmStatic
         private val LOGGER = LogManager.getLogger(Clock::class)
-
-        @JvmStatic
-        fun print(t0: Long, times: List<Pair<Long, String>>) {
-            for ((time, title) in times) {
-                val dt = (time - t0) * 1e-9
-                LOGGER.info("Used ${dt.f3()}s for $title")
-            }
-        }
 
         @JvmStatic
         fun <V> measure(name: String, func: () -> V): V {

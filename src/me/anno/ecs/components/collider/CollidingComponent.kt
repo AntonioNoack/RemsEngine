@@ -19,6 +19,9 @@ abstract class CollidingComponent : Component() {
     /** whether the typeMask includes this type, see Raycast.kt */
     open fun hasRaycastType(typeMask: Int) = true
 
+    /**
+     * returns whether the object was hit
+     * */
     open fun raycast(
         entity: Entity,
         start: Vector3d,

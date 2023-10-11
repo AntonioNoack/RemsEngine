@@ -30,6 +30,7 @@ object Raycast {
     val TRIANGLES = TRIANGLE_FRONT or TRIANGLE_BACK // 3
     val COLLIDERS = 4
     val SDFS = 8
+    val SKY = 16
 
     // todo option for smoothed collision surfaces by their normal
 

@@ -8,18 +8,18 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.Raycast.SKY
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes
 import org.joml.*
 
 open class SkyboxBase : MeshComponentBase() {
-
-    // todo override raytracing for clicking: if ray goes far enough, let it click us
 
     init {
         castShadows = false
@@ -59,7 +59,7 @@ open class SkyboxBase : MeshComponentBase() {
         materials = listOf(material.ref)
     }
 
-    override fun hasRaycastType(typeMask: Int) = false
+    override fun hasRaycastType(typeMask: Int) = typeMask.hasFlag(SKY)
     override fun raycast(
         entity: Entity,
         start: Vector3d,
@@ -70,7 +70,16 @@ open class SkyboxBase : MeshComponentBase() {
         typeMask: Int,
         includeDisabled: Boolean,
         result: RayHit
-    ) = false
+    ): Boolean {
+        return if (result.distance >= 1e308) {
+            result.distance = 1e308
+            result.positionWS.set(direction)
+                .normalize()
+                .mul(1e308) // cannot be multiplied in one step, because it could overflow to Infinity
+            result.component = this
+            true
+        } else false
+    }
 
     override fun fill(
         pipeline: Pipeline,

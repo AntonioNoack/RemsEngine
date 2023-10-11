@@ -73,7 +73,9 @@ object FileChooser {
                 }.toTypedArray()
                 method.invoke(
                     null, allowFiles, allowFolders, allowMultiples,
-                    startFolder1, toSave, filters1, callback
+                    startFolder1, toSave, filters1, { files: List<File> ->
+                        callback(files.map { FileFileRef(it) })
+                    }
                 )
             } else selectFilesUsingJFileChooser(
                 allowFiles, allowFolders, allowMultiples,
