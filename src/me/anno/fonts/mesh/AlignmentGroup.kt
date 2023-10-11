@@ -1,7 +1,7 @@
 package me.anno.fonts.mesh
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.AWTFont
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.maths.Maths
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Strings.joinChars
@@ -12,7 +12,7 @@ class AlignmentGroup(
     val font: AWTFont,
     val charDistance: KeyPairMap<Int, Int, Double>, // |a| = |ab| - |b|
     val charSize: HashMap<Int, Double>,// |a|
-    val buffers: HashMap<Int, StaticBuffer> // triangles of a
+    val buffers: HashMap<Int, Mesh> // triangles of a
 ) {
 
     fun getOffset(ctx: FontRenderContext, previous: Int, current: Int): Double {

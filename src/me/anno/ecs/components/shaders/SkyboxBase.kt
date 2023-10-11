@@ -21,11 +21,6 @@ import org.joml.*
 
 open class SkyboxBase : MeshComponentBase() {
 
-    init {
-        castShadows = false
-        receiveShadows = false
-    }
-
     @SerializedProperty
     var shader: SkyShaderBase?
         get() = material.shader as? SkyShaderBase
@@ -50,6 +45,15 @@ open class SkyboxBase : MeshComponentBase() {
         }
 
     init {
+        // shadow settings: not needed
+        castShadows = false
+        receiveShadows = false
+
+        // aabbs: all
+        localAABB.all()
+        globalAABB.all()
+
+        // rendering properties
         material.shader = defaultShaderBase
         material.shaderOverrides["skyColor"] = TypeValue(GLSLType.V3F, skyColor)
         material.shaderOverrides["worldRot"] = TypeValue(GLSLType.V4F, worldRotation)
@@ -93,11 +97,6 @@ open class SkyboxBase : MeshComponentBase() {
     }
 
     override fun getMesh() = mesh
-
-    init {
-        globalAABB.all()
-        localAABB.all()
-    }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         aabb.all() // skybox is visible everywhere

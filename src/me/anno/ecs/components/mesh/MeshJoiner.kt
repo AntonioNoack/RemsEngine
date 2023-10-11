@@ -72,6 +72,7 @@ abstract class MeshJoiner<V>(
 
         for (element in elements) {
             val model = getMesh(element)
+            model.ensureNorTanUVs()
             numPositions += model.positions!!.size / 3
             numTriangles += model.numPrimitives.toInt()
         }

@@ -353,7 +353,7 @@ object ShaderLib {
 
     val v3Dl = listOf(
         Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-        Variable(GLSLType.V2F, "attr1", VariableMode.ATTR),
+        Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
         Variable(GLSLType.M4x4, "transform"),
         Variable(GLSLType.V4F, "tiling")
     )
@@ -373,7 +373,7 @@ object ShaderLib {
             "   finalPosition = coords;\n" +
             "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
             positionPostProcessing +
-            "   uv = (attr1-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+            "   uv = (uvs-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "   uvw = coords;\n" +
             flatNormal +
             "}"
@@ -431,7 +431,7 @@ object ShaderLib {
 
     val v3DlPolygon = listOf(
         Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-        Variable(GLSLType.V2F, "attr1", VariableMode.ATTR),
+        Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
         Variable(GLSLType.V1F, "inset"),
         Variable(GLSLType.M4x4, "transform")
     )
@@ -439,12 +439,12 @@ object ShaderLib {
     val v3DPolygon = "" +
             "void main(){\n" +
             "   vec2 betterUV = coords.xy;\n" +
-            "   betterUV *= mix(1.0, attr1.r, inset);\n" +
+            "   betterUV *= mix(1.0, uvs.r, inset);\n" +
             "   finalPosition = vec3(betterUV, coords.z);\n" +
             "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
             flatNormal +
             positionPostProcessing +
-            "   uv = attr1.yx;\n" +
+            "   uv = uvs.yx;\n" +
             "}"
 
     // https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
@@ -696,7 +696,6 @@ object ShaderLib {
     val shaderSDFText = createShader(
         "3d-text-withOutline", listOf(
             Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-            Variable(GLSLType.V2F, "attr1", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V2F, "offset"),
             Variable(GLSLType.V2F, "scale"),
@@ -750,8 +749,7 @@ object ShaderLib {
         "filtering",
         "uvProjection",
         "forceFieldUVCount",
-        "textureDeltaUV",
-        "attr1"
+        "textureDeltaUV"
     )
 
     val textShader = BaseShader(

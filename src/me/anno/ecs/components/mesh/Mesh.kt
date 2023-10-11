@@ -1032,6 +1032,10 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     }
 
     fun draw(shader: Shader, materialIndex: Int) {
+        draw(shader, materialIndex, drawDebugLines)
+    }
+
+    fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean) {
         val proceduralLength = proceduralLength
         if (proceduralLength <= 0) {
             ensureBuffer()
@@ -1040,7 +1044,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             when {
                 helperMeshes != null && materialIndex in helperMeshes.indices -> {
                     val helperMesh = helperMeshes[materialIndex] ?: return
-                    if (drawDebugLines) {
+                    if (drawLines) {
                         helperMesh.ensureDebugLines(this)
                         helperMesh.debugLineBuffer?.draw(shader)
                     } else {
@@ -1049,7 +1053,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                     }
                 }
                 materialIndex == 0 -> {
-                    if (drawDebugLines) {
+                    if (drawLines) {
                         ensureDebugLines()
                         debugLineBuffer?.draw(shader)
                     } else {
@@ -1061,7 +1065,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         } else if ((positions?.size ?: 0) == 0) {
             StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
         } else {
-            if (drawDebugLines) {
+            if (drawLines) {
                 ensureDebugLines()
                 debugLineBuffer?.drawInstanced(shader, proceduralLength)
             } else {

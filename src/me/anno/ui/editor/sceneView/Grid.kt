@@ -1,6 +1,7 @@
 package me.anno.ui.editor.sceneView
 
 import me.anno.config.DefaultConfig.style
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.depthMode
@@ -238,8 +239,11 @@ object Grid {
         draw(stack, distance.toDouble())
     }
 
+    /**
+     * draws the mesh as lines; used by Rem's Studio
+     * */
     @Suppress("unused")
-    fun drawBuffer(stack: Matrix4fArrayList, color: Vector4f, buffer: StaticBuffer) {
+    fun drawLineMesh(stack: Matrix4fArrayList, color: Vector4f, mesh: Mesh) {
 
         if (color.w <= 0f) return
 
@@ -250,7 +254,7 @@ object Grid {
         defaultUniforms(shader, color)
         bindWhite(0)
 
-        buffer.draw(shader)
+        mesh.draw(shader, 0, true)
     }
 
     fun drawGrid(stack: Matrix4fArrayList, alpha: Float) {

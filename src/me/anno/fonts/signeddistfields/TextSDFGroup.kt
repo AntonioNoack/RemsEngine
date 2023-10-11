@@ -5,7 +5,6 @@ import me.anno.fonts.AWTFont
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.ImageGPUCache
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Strings.joinChars
@@ -28,7 +27,7 @@ class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
     // still its initialization time should be much faster than FontMesh
     override fun draw(
         startIndex: Int, endIndex: Int,
-        drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
+        drawBuffer: DrawBufferCallback
     ) {
         if (codepoints.isEmpty()) return
         if (charByChar || startIndex > 0 || endIndex < codepoints.size) {
@@ -43,16 +42,16 @@ class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
             val textSDF = cacheData?.value as? TextSDF
             val texture = textSDF?.texture
             if (texture?.isCreated == true) {
-                drawBuffer(null, textSDF, 0f)
+                drawBuffer.draw(null, textSDF, 0f)
             } else {
-                drawBuffer(null, null, 0f)
+                drawBuffer.draw(null, null, 0f)
             }
         }
     }
 
     private fun drawSlowly(
         startIndex: Int, endIndex: Int,
-        drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
+        drawBuffer: DrawBufferCallback
     ) {
         val roundCorners = roundCorners
         for (index in startIndex until endIndex) {
@@ -66,7 +65,7 @@ class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
             } as? CacheData<*>
             if (isFinalRendering && cacheData == null) throw MissingFrameException("")
             val textSDF = cacheData?.value as? TextSDF
-            drawBuffer(null, textSDF, offset)
+            drawBuffer.draw(null, textSDF, offset)
         }
     }
 
@@ -74,5 +73,4 @@ class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
         val sdfTimeout = 30_000L
         val queue = ProcessingQueue("SDFText")
     }
-
 }

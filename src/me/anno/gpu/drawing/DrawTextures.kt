@@ -183,7 +183,7 @@ object DrawTextures {
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         texture.bindUVCorrection(shader)
 
-        UVProjection.Planar.getBuffer().draw(shader)
+        UVProjection.Planar.getMesh().draw(shader, 0)
         GFX.check()
     }
 

@@ -1,9 +1,8 @@
 package me.anno.fonts.mesh
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.fonts.AWTFont
-import me.anno.fonts.signeddistfields.TextSDF
 import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.maths.Maths.distance
 import me.anno.ui.base.DefaultRenderingHints
 import me.anno.utils.OS
@@ -35,7 +34,7 @@ class TextMesh(
     private fun ix(v: Vector2f) = (debugImageSize / 2 + (v.x - 4.8) * 80).toInt()
     private fun iy(v: Vector2f) = (debugImageSize / 2 + (v.y + 4.0) * 80).toInt()
 
-    val buffer: StaticBuffer
+    val buffer = Mesh()
 
     init {
 
@@ -98,7 +97,6 @@ class TextMesh(
 
                     x = x1
                     y = y1
-
                 }
                 PathIterator.SEG_CUBICTO -> {
 
@@ -125,7 +123,6 @@ class TextMesh(
 
                     x = x2
                     y = y2
-
                 }
                 PathIterator.SEG_LINETO -> {
 
@@ -136,7 +133,6 @@ class TextMesh(
 
                     x = x0
                     y = y0
-
                 }
                 PathIterator.SEG_MOVETO -> {
 
@@ -146,7 +142,6 @@ class TextMesh(
 
                     x = x0
                     y = y0
-
                 }
                 PathIterator.SEG_CLOSE -> {
 
@@ -159,7 +154,6 @@ class TextMesh(
                         fragments.add(Fragment(currentShape))
                     }// else crazy...
                     currentShape = ArrayList()
-
                 }
             }
 
@@ -260,7 +254,9 @@ class TextMesh(
             triangles += outer.triangles
         }
 
-        buffer = StaticBuffer("TextMesh", attributes, triangles.size)
+        val numVertices = triangles.size
+        val positions = FloatArray(numVertices * 3)
+        buffer.positions = positions
 
         for (it in outerFragments) {
             minX = min(minX, it.minX)
@@ -274,9 +270,11 @@ class TextMesh(
         // center the text, ignore the characters themselves
 
         val baseScale = DEFAULT_LINE_HEIGHT / (layout.ascent + layout.descent)
+        var i = 0
         for (point in triangles) {
-            buffer.put(point.x * baseScale)
-            buffer.put(point.y * baseScale)
+            positions[i++] = point.x * baseScale
+            positions[i++] = point.y * baseScale
+            positions[i++] = 0f
         }
 
         minX *= baseScale * 0.5f
@@ -284,7 +282,6 @@ class TextMesh(
 
         minX += 0.5f
         maxX += 0.5f
-
     }
 
     fun List<Vector2f>.iterateTriangleLines(iterator: (Vector2f, Vector2f) -> Unit) {
@@ -396,7 +393,6 @@ class TextMesh(
             outer.addAll(bestOuterIndex, inner.subList(0, bestInnerIndex + 1))
             outer.addAll(bestOuterIndex, inner.subList(bestInnerIndex, inner.size))
             outer.add(bestOuterIndex, mergingPoint)
-
         }
 
         fun triangleSize(triangles: List<Vector2f>): Float {
@@ -420,15 +416,11 @@ class TextMesh(
      * start- and endIndex are not supported,
      * as this class is only used for generating the meshes
      * */
-    override fun draw(
-        startIndex: Int, endIndex: Int,
-        drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit
-    ) {
-        drawBuffer(buffer, null, 0f)
+    override fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback) {
+        drawBuffer.draw(buffer, null, 0f)
     }
 
     override fun destroy() {
         buffer.destroy()
     }
-
 }

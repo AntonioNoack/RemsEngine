@@ -1,16 +1,15 @@
 package me.anno.gpu.drawing
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.circle
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01CubeX10
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx2D.disableAdvancedGraphicalFeatures
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderFuncLib
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.maxOutlineColors
 import me.anno.gpu.shader.builder.Variable
@@ -222,32 +221,24 @@ object GFXx3D {
         shader.m4x4("transform", transform)
     }
 
-    fun draw3DText(
-        offset: Vector3f,
-        stack: Matrix4fArrayList, buffer: StaticBuffer, color: Vector4f
-    ) = draw3DText(offset, stack, buffer, color.toARGB())
+    fun draw3DText(offset: Vector3f, stack: Matrix4fArrayList, mesh: Mesh, color: Vector4f) =
+        draw3DText(offset, stack, mesh, color.toARGB())
 
-    fun draw3DText(
-        offset: Vector3f,
-        stack: Matrix4fArrayList, buffer: StaticBuffer, color: Int
-    ) {
+    fun draw3DText(offset: Vector3f, stack: Matrix4fArrayList, mesh: Mesh, color: Int) {
         val shader = shader3DText.value
         shader.use()
         shader3DUniforms(shader, stack, color)
         shader.v3f("offset", offset)
         uploadAttractors0(shader)
-        buffer.draw(shader)
+        mesh.draw(shader, 0)
         GFX.check()
     }
 
-    fun draw3DTextWithOffset(
-        buffer: StaticBuffer,
-        offset: Vector3f
-    ) {
+    fun draw3DTextWithOffset(mesh: Mesh, offset: Vector3f) {
         val shader = shader3DText.value
         shader.use()
         shader.v3f("offset", offset)
-        buffer.draw(shader)
+        mesh.draw(shader, 0)
     }
 
     fun colorGradingUniforms(shader: Shader) {
@@ -269,7 +260,7 @@ object GFXx3D {
         disableAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
-        uvProjection.getBuffer().draw(shader)
+        uvProjection.getMesh().draw(shader, 0)
         GFX.check()
     }
 
@@ -284,7 +275,7 @@ object GFXx3D {
         defineAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
-        uvProjection.getBuffer().draw(shader)
+        uvProjection.getMesh().draw(shader, 0)
         GFX.check()
     }
 
@@ -299,7 +290,7 @@ object GFXx3D {
         defineAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
-        uvProjection.getBuffer().draw(shader)
+        uvProjection.getMesh().draw(shader, 0)
         GFX.check()
     }
 
@@ -322,7 +313,7 @@ object GFXx3D {
         defineAdvancedGraphicalFeatures(shader)
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
-        uvProjection.getBuffer().draw(shader)
+        uvProjection.getMesh().draw(shader, 0)
         GFX.check()
     }
 
@@ -335,7 +326,7 @@ object GFXx3D {
         defineAdvancedGraphicalFeatures(shader)
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
-        uvProjection.getBuffer().draw(shader)
+        uvProjection.getMesh().draw(shader, 0)
         GFX.check()
     }
 
@@ -407,7 +398,7 @@ object GFXx3D {
         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         // if we have a force field applied, subdivide the geometry
         val buffer = if (hasUVAttractors) flat01CubeX10 else flat01Cube
-        buffer.draw(shader)
+        buffer.draw(shader, 0)
         GFX.check()
     }
 

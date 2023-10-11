@@ -3,8 +3,6 @@ package me.anno.fonts
 import me.anno.fonts.mesh.AlignmentGroup.Companion.getAlignments
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextRepBase
-import me.anno.fonts.signeddistfields.TextSDF
-import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.structures.arrays.DoubleArrays.accumulate
 import java.awt.font.FontRenderContext
 import java.awt.font.TextLayout
@@ -45,7 +43,6 @@ open class TextGroup(
         baseScale = TextMesh.DEFAULT_LINE_HEIGHT.toDouble() / (layout.ascent + layout.descent)
         minX = 0f
         maxX = 0f
-
     }
 
     private fun getOffset(ctx: FontRenderContext, previous: Int, current: Int) =
@@ -54,12 +51,11 @@ open class TextGroup(
     override fun destroy() {
     }
 
-    fun draw(drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
+    fun draw(drawBuffer: DrawBufferCallback) {
         draw(0, codepoints.size, drawBuffer)
     }
 
-    override fun draw(startIndex: Int, endIndex: Int, drawBuffer: (StaticBuffer?, TextSDF?, offset: Float) -> Unit) {
+    override fun draw(startIndex: Int, endIndex: Int, drawBuffer: DrawBufferCallback) {
         throw NotImplementedError()
     }
-
 }

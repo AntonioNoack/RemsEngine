@@ -1,9 +1,7 @@
 package me.anno.ecs.components.mesh.shapes
 
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.StaticBuffer
+import me.anno.ecs.components.mesh.Mesh
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C.GL_LINES
 
 /**
  * Cubemap model with UVs for typical skybox layout:
@@ -11,38 +9,31 @@ import org.lwjgl.opengl.GL11C.GL_LINES
  * -x -z +x +z
  *    -y
  * */
-object CubemapModel {
+object CubemapModel : Mesh() {
+    init {
 
-    @JvmStatic
-    private val xAxis = Vector3f(1f, 0f, 0f)
+        val numVertices = 36
+        val positions = FloatArray(numVertices * 3)
+        val uvs = FloatArray(numVertices * 2)
 
-    @JvmStatic
-    private val yAxis = Vector3f(0f, 1f, 0f)
+        var i = 0
+        var j = 0
 
-    @JvmStatic
-    private val zAxis = Vector3f(0f, 0f, 1f)
+        fun put(v0: Vector3f, dx: Vector3f, dy: Vector3f, x: Float, y: Float, u: Float, v: Float) {
+            positions[i++] = v0.x + dx.x * x + dy.x * y
+            positions[i++] = v0.y + dx.y * x + dy.y * y
+            positions[i++] = v0.z + dx.z * x + dy.z * y
+            uvs[j++] = u
+            uvs[j++] = v
+        }
 
-    @JvmStatic
-    fun StaticBuffer.put(v0: Vector3f, dx: Vector3f, dy: Vector3f, x: Float, y: Float, u: Int, v: Int) {
-        put(
-            v0.x + dx.x * x + dy.x * y,
-            v0.y + dx.y * x + dy.y * y,
-            v0.z + dx.z * x + dy.z * y, u / 4f, v / 3f
-        )
-    }
+        fun addFace(u: Int, v: Int, p: Vector3f, dx: Vector3f, dy: Vector3f) {
 
-    @JvmStatic
-    val cubemapModel = StaticBuffer(
-        "cubemap", listOf(
-            Attribute("coords", 3),
-            Attribute("attr1", 2)
-        ), 6 * 6
-    ).apply {
+            val u0 = u / 4f
+            val v0 = v / 3f
 
-        fun addFace(u0: Int, v0: Int, p: Vector3f, dx: Vector3f, dy: Vector3f) {
-
-            val u1 = u0 + 1
-            val v1 = v0 + 1
+            val u1 = (u + 1) / 4f
+            val v1 = (v + 1) / 3f
 
             put(p, dx, dy, -1f, -1f, u1, v0)
             put(p, dx, dy, -1f, +1f, u1, v1)
@@ -51,64 +42,24 @@ object CubemapModel {
             put(p, dx, dy, -1f, -1f, u1, v0)
             put(p, dx, dy, +1f, +1f, u0, v1)
             put(p, dx, dy, +1f, -1f, u0, v0)
-
         }
+
+        val pxAxis = Vector3f(1f, 0f, 0f)
+        val pyAxis = Vector3f(0f, 1f, 0f)
+        val pzAxis = Vector3f(0f, 0f, 1f)
 
         val mxAxis = Vector3f(-1f, 0f, 0f)
         val myAxis = Vector3f(0f, -1f, 0f)
         val mzAxis = Vector3f(0f, 0f, -1f)
 
-        addFace(1, 1, mzAxis, mxAxis, yAxis) // center, front
-        addFace(0, 1, mxAxis, zAxis, yAxis) // left, left
-        addFace(2, 1, xAxis, mzAxis, yAxis) // right, right
-        addFace(3, 1, zAxis, xAxis, yAxis) // 2x right, back
+        addFace(1, 1, mzAxis, mxAxis, pyAxis) // center, front
+        addFace(0, 1, mxAxis, pzAxis, pyAxis) // left, left
+        addFace(2, 1, pxAxis, mzAxis, pyAxis) // right, right
+        addFace(3, 1, pzAxis, pxAxis, pyAxis) // 2x right, back
         addFace(1, 0, myAxis, mxAxis, mzAxis) // top
-        addFace(1, 2, yAxis, mxAxis, zAxis) // bottom
+        addFace(1, 2, pyAxis, mxAxis, pzAxis) // bottom
 
-    }
-
-    @JvmStatic
-    val cubemapLineModel = StaticBuffer(
-        "cubemapLines", listOf(
-            Attribute("coords", 3),
-            Attribute("attr1", 2)
-        ), 6 * 6 * 2
-    ).apply {
-
-        fun addFace(u0: Int, v0: Int, p: Vector3f, dx: Vector3f, dy: Vector3f) {
-            val u1 = u0 + 1
-            val v1 = v0 + 1
-
-            put(p, dx, dy, -1f, -1f, u1, v0)
-            put(p, dx, dy, -1f, +1f, u1, v1)
-            put(p, dx, dy, -1f, +1f, u1, v1)
-
-            put(p, dx, dy, -1f, -1f, u1, v0)
-            put(p, dx, dy, -1f, +1f, u1, v1)
-            put(p, dx, dy, +1f, +1f, u0, v1)
-
-            put(p, dx, dy, +1f, +1f, u0, v1)
-            put(p, dx, dy, +1f, -1f, u0, v0)
-            put(p, dx, dy, +1f, -1f, u0, v0)
-
-            put(p, dx, dy, +1f, +1f, u0, v1)
-            put(p, dx, dy, +1f, -1f, u0, v0)
-            put(p, dx, dy, -1f, -1f, u1, v0)
-
-        }
-
-        val mxAxis = Vector3f(-1f, 0f, 0f)
-        val myAxis = Vector3f(0f, -1f, 0f)
-        val mzAxis = Vector3f(0f, 0f, -1f)
-
-        addFace(1, 1, mzAxis, mxAxis, yAxis) // center, front
-        addFace(0, 1, mxAxis, zAxis, yAxis) // left, left
-        addFace(2, 1, xAxis, mzAxis, yAxis) // right, right
-        addFace(3, 1, zAxis, xAxis, yAxis) // 2x right, back
-        addFace(1, 0, myAxis, mxAxis, mzAxis) // top
-        addFace(1, 2, yAxis, mxAxis, zAxis) // bottom
-
-        drawMode = GL_LINES
-
+        this.positions = positions
+        this.uvs = uvs
     }
 }

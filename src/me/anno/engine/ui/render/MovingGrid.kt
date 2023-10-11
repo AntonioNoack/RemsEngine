@@ -122,8 +122,7 @@ object MovingGrid {
         val mesh = cachedMeshes.getOrPut(size) {
             val text = "$factor${getSuffix(baseSize)}" // format size
             val font = FontManager.getFont(defaultFont)
-            val meshGroup = TextMeshGroup(font, text, 0f, false, debugPieces = false)
-            meshGroup.createMesh(Mesh())
+            TextMeshGroup(font, text, 0f, false, debugPieces = false).getOrCreateMesh()
         }
         init()
             .translate(size, 0.0, -size * 0.02)

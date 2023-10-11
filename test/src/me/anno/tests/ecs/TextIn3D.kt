@@ -87,7 +87,7 @@ class TextMeshComponent(val text: String, val font: Font, val alignment: AxisAli
     override fun generateMesh(mesh: Mesh) {
         val font = FontManager.getFont(this.font)
         val meshGroup = TextMeshGroup(font, text, 0f, false, debugPieces = false)
-        meshGroup.createMesh(mesh)
+        meshGroup.getOrCreateMesh()
         val bounds = mesh.getBounds()
         val scale = 2f / TextMesh.DEFAULT_LINE_HEIGHT
         val dy = -0.5f

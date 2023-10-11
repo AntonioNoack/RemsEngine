@@ -1,5 +1,6 @@
 package me.anno.gpu.buffer
 
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.shader.Shader
 import me.anno.maths.Maths.pow
@@ -67,7 +68,6 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
                         put(+s, +s) // 0
                         put(-l, +l) // 2
                         put(-s, +s) // 3
-
                     }
                 }
             }
@@ -189,20 +189,21 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         val flatLarge = createFlatLarge()
 
         @JvmField
-        val flat01Cube = StaticBuffer(
-            "flat01Cube",
-            listOf(
-                listOf(-1f, -1f, 0f, 0f, 0f),
-                listOf(-1f, +1f, 0f, 0f, 1f),
-                listOf(+1f, +1f, 0f, 1f, 1f),
-                listOf(+1f, -1f, 0f, 1f, 0f)
-            ),
-            listOf(
-                Attribute("coords", 3),
-                Attribute("attr1", 2)
-            ),
-            intArrayOf(0, 1, 2, 0, 2, 3)
-        )
+        val flat01Cube = Mesh().apply {
+            positions = floatArrayOf(
+                -1f, -1f, 0f,
+                -1f, +1f, 0f,
+                +1f, +1f, 0f,
+                +1f, -1f, 0f,
+            )
+            uvs = floatArrayOf(
+                0f, 1f,
+                0f, 0f,
+                1f, 0f,
+                1f, 1f,
+            )
+            indices = intArrayOf(0, 1, 2, 0, 2, 3)
+        }
 
         @JvmStatic
         val flat01CubeX10 by lazy {
@@ -210,35 +211,23 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
             // create a fine grid
             val sizeX = 20
             val sizeY = 20
-            val vertices = FloatArray((sizeX + 1) * (sizeY + 1) * 5)
-            var vi = 0
-            for (i in 0..sizeX) {
-                val i01 = i.toFloat() / sizeX
-                val i11 = i01 * 2 - 1
-                for (j in 0..sizeY) {
-                    val j01 = j.toFloat() / sizeY
-                    val j11 = j01 * 2 - 1
-                    vertices[vi++] = i11
-                    vertices[vi++] = j11
-                    vertices[vi++] = 0f
-                    vertices[vi++] = i01
-                    vertices[vi++] = j01
-                }
-            }
 
             val quadCount = sizeX * sizeY
-            val jointData = FloatArray(quadCount * 6 * 5)
+            val vertexCount = quadCount * 6
+            val positions = FloatArray(vertexCount * 3)
+            val uvs = FloatArray(vertexCount * 2)
 
             val di = 1f / sizeX
             val dj = 1f / sizeY
 
-            var ji = 0
+            var i0 = 0
+            var i1 = 0
             fun put(x: Float, y: Float) {
-                jointData[ji++] = x * 2 - 1
-                jointData[ji++] = y * 2 - 1
-                jointData[ji++] = 0f
-                jointData[ji++] = x
-                jointData[ji++] = y
+                positions[i0++] = x * 2 - 1
+                positions[i0++] = y * 2 - 1
+                positions[i0++] = 0f
+                uvs[i1++] = x
+                uvs[i1++] = y
             }
 
             for (i in 0 until sizeX) {
@@ -253,17 +242,13 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
                     put(i01, j01)
                     put(i01 + di, j01 + dj)
                     put(i01, j01 + dj)
-
                 }
             }
 
-            StaticBuffer(
-                "flat01CubeX10", jointData, listOf(
-                    Attribute("coords", 3),
-                    Attribute("attr1", 2)
-                )
-            )
-
+            val mesh = Mesh()
+            mesh.positions = positions
+            mesh.uvs = uvs
+            mesh
         }
 
         @JvmField
@@ -286,6 +271,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
                 listOf(Attribute("coords", 2)),
                 3 * 2 * n
             )
+
             fun put(index: Int, scaling: Float) {
                 buffer.put(index.toFloat() / n, scaling)
             }
@@ -300,7 +286,5 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
             }
             buffer
         }
-
     }
-
 }

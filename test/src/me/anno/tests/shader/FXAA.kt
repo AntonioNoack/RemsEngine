@@ -40,14 +40,13 @@ private fun testShader() {
         if (Input.isRightDown) angle -= delta
         transform.rotateZ(angle)
         val depth = FBStack["depth", w, h, 4, false, 1, DepthBufferType.NONE]
-        val mesh = CubemapModel.cubemapModel
-        mesh.ensureBuffer()
+        val mesh = CubemapModel
         GFXState.useFrame(depth) {
             depth.clearColor(1f, 0.7f, 0f, 1f)
             val shader = ShaderLib.shader3D.value
             shader.use()
             shader.m4x4("transform", transform)
-            mesh.draw(shader)
+            mesh.draw(shader, 0)
         }
         val result = FBStack["result", w, h, 4, false, 1, DepthBufferType.NONE]
         GFXState.useFrame(result) {
@@ -217,7 +216,6 @@ private fun testEdgeAA() {
             } else {
                 r[i] = baseColor
             }
-
         }
     }
 
@@ -228,5 +226,4 @@ private fun testEdgeAA() {
     /*(points.map { it.x }.joinToString("\n"))
     ("----------------------------------------------------------")
     (points.map { it.y }.joinToString("\n"))*/
-
 }
