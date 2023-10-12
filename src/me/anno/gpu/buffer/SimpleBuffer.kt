@@ -189,7 +189,7 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
         val flatLarge = createFlatLarge()
 
         @JvmField
-        val flat01Cube = Mesh().apply {
+        val flat01Mesh = Mesh().apply {
             positions = floatArrayOf(
                 -1f, -1f, 0f,
                 -1f, +1f, 0f,
@@ -223,8 +223,8 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
             var i0 = 0
             var i1 = 0
             fun put(x: Float, y: Float) {
-                positions[i0++] = x * 2 - 1
-                positions[i0++] = y * 2 - 1
+                positions[i0++] = x * 2f - 1f
+                positions[i0++] = y * 2f - 1f
                 positions[i0++] = 0f
                 uvs[i1++] = x
                 uvs[i1++] = y

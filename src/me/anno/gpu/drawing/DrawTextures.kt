@@ -1,6 +1,7 @@
 package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.FlatShaders.depthShader
@@ -183,7 +184,7 @@ object DrawTextures {
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         texture.bindUVCorrection(shader)
 
-        UVProjection.Planar.getMesh().draw(shader, 0)
+        SimpleBuffer.flat01Mesh.draw(shader, 0)
         GFX.check()
     }
 

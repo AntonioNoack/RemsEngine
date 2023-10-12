@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.circle
-import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Cube
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Mesh
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01CubeX10
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx2D.disableAdvancedGraphicalFeatures
@@ -260,7 +260,7 @@ object GFXx3D {
         disableAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
-        uvProjection.getMesh().draw(shader, 0)
+        uvProjection.mesh.draw(shader, 0)
         GFX.check()
     }
 
@@ -275,7 +275,7 @@ object GFXx3D {
         defineAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
-        uvProjection.getMesh().draw(shader, 0)
+        uvProjection.mesh.draw(shader, 0)
         GFX.check()
     }
 
@@ -290,7 +290,7 @@ object GFXx3D {
         defineAdvancedGraphicalFeatures(shader)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
-        uvProjection.getMesh().draw(shader, 0)
+        uvProjection.mesh.draw(shader, 0)
         GFX.check()
     }
 
@@ -313,7 +313,7 @@ object GFXx3D {
         defineAdvancedGraphicalFeatures(shader)
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
-        uvProjection.getMesh().draw(shader, 0)
+        uvProjection.mesh.draw(shader, 0)
         GFX.check()
     }
 
@@ -326,7 +326,7 @@ object GFXx3D {
         defineAdvancedGraphicalFeatures(shader)
         shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
         texture.bind(0, filtering, clamping)
-        uvProjection.getMesh().draw(shader, 0)
+        uvProjection.mesh.draw(shader, 0)
         GFX.check()
     }
 
@@ -397,7 +397,7 @@ object GFXx3D {
         shader.v2f("scale", scale)
         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         // if we have a force field applied, subdivide the geometry
-        val buffer = if (hasUVAttractors) flat01CubeX10 else flat01Cube
+        val buffer = if (hasUVAttractors) flat01CubeX10 else flat01Mesh
         buffer.draw(shader, 0)
         GFX.check()
     }
