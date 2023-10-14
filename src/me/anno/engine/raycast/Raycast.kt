@@ -187,8 +187,6 @@ object Raycast {
         return false
     }
 
-    // val blasCache = CacheSection("BLAS")
-
     fun raycastTriangleMesh(
         transform: Transform?, mesh: Mesh,
         start: Vector3d, direction: Vector3d, end: Vector3d,
@@ -256,6 +254,8 @@ object Raycast {
                                 globalTransform, localStart, localDir, result.distance.toFloat(),
                                 Vector3f(result.geometryNormalWS), start, direction, end
                             )
+                        } else {
+                            direction.mul(result.distance, result.positionWS).add(start)
                         }
                     }
                 } else {

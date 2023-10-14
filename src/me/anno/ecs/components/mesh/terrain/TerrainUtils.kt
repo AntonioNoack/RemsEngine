@@ -19,7 +19,6 @@ object TerrainUtils {
         fun get(x: Int, y: Int, i: Int, dst: Vector3f)
     }
 
-    @Suppress("unused")
     fun generateRegularQuadHeightMesh(
         width: Int,
         height: Int,

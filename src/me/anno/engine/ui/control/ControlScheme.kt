@@ -6,6 +6,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.collider.CollidingComponent
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
@@ -218,13 +219,9 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
 
     private fun testHits() {
         val world = view.getWorld()
-        // mouseDir.mul(100.0)
         val start = Vector3d(view.cameraPosition)
         val dir = view.mouseDirection
         val maxDistance = view.radius * 1e9
-        // debugRays.add(DebugRay(cam, Vector3d(mouseDir), -1))
-        // .add(camDirection.x * 20, camDirection.y * 20, camDirection.z * 20)
-        // .add(Maths.random()*20-10,Maths.random()*20-10, Maths.random()*20-10)
         val hit = when (world) {
             is Entity -> {
                 Raycast.raycast(
@@ -238,11 +235,17 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
                 if (world.raycast(sampleEntity, start, dir, end, 0.0, 0.0, -1, false, hit)) hit
                 else null
             }
+            is Mesh -> {
+                hit.distance = maxDistance
+                val end = Vector3d(dir).mul(maxDistance).add(start)
+                if (Raycast.raycastTriangleMesh(null, world, start, dir, end, 0.0, 0.0, hit, -1)) hit
+                else null
+            }
             else -> return
         }
         if (hit == null) {
             // draw red point in front of the camera
-            debugPoints.add(DebugPoint(Vector3d(view.mouseDirection).mul(20.0).add(start), black or 0xff0000))
+            debugPoints.add(DebugPoint(Vector3d(dir).mul(20.0).add(start), black or 0xff0000))
         } else {
             val pos = Vector3d(hit.positionWS)
             val normal = hit.geometryNormalWS.normalize(

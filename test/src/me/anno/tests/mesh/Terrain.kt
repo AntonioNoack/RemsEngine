@@ -1,8 +1,6 @@
 package me.anno.tests.mesh
 
-import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.ecs.components.mesh.terrain.TerrainUtils.generateRegularQuadHeightMesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -19,5 +17,5 @@ fun main() {
         TerrainUtils.HeightMap {
             heightMap[(it % width) * s, (it / width) * s]
         }) { -1 }
-    testSceneWithUI("Terrain", Entity(MeshComponent(mesh)))
+    testSceneWithUI("Terrain", mesh)
 }
