@@ -8,19 +8,25 @@ object DebugShapes {
     val debugLines = ArrayList<DebugLine>()
     val debugRays = ArrayList<DebugRay>()
     val debugTexts = ArrayList<DebugText>()
+    val debugAABBs = ArrayList<DebugAABB>()
+    val collections = arrayListOf(
+        debugPoints,
+        debugLines,
+        debugRays,
+        debugTexts,
+        debugAABBs
+    )
 
     fun clear() {
-        debugPoints.clear()
-        debugLines.clear()
-        debugRays.clear()
-        debugTexts.clear()
+        for (i in collections.indices) {
+            collections[i].clear()
+        }
     }
 
     fun removeExpired() {
         val time = Time.nanoTime
-        debugPoints.removeIf { it.timeOfDeath < time }
-        debugLines.removeIf { it.timeOfDeath < time }
-        debugRays.removeIf { it.timeOfDeath < time }
-        debugTexts.removeIf { it.timeOfDeath < time }
+        for (i in collections.indices) {
+            collections[i].removeIf { it.timeOfDeath < time }
+        }
     }
 }

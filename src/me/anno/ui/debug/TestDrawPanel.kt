@@ -1,11 +1,16 @@
 package me.anno.ui.debug
 
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.maths.Maths.clamp
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector3f
 
 /**
  * panel to test drawing functions
@@ -63,6 +68,33 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
                 val panel = TestDrawPanel(draw)
                 init(panel)
                 panel
+            }
+        }
+
+        @JvmStatic
+        fun testDrawingWithControls(title: String, draw: (p: TestDrawPanel, pos: Vector3f, rot: Quaternionf) -> Unit) {
+            val cameraPosition = Vector3f(0f, 2f, -3f)
+            val cameraRotation = Quaternionf()
+            val accumulatedRotation = Vector2f()
+            val velocity = Vector3f()
+            testDrawing(title) {
+                val scale = 5f / it.height
+                accumulatedRotation.add(it.mx * scale, it.my * scale)
+                accumulatedRotation.y = clamp(accumulatedRotation.y, -1.57f, +1.57f)
+                it.mx = 0f
+                it.my = 0f
+                cameraRotation.identity()
+                    .rotateY(accumulatedRotation.x)
+                    .rotateX(accumulatedRotation.y)
+                velocity.set(0f)
+                if (Input.isKeyDown(Key.KEY_W)) velocity.z += 1f
+                if (Input.isKeyDown(Key.KEY_S)) velocity.z -= 1f
+                if (Input.isKeyDown(Key.KEY_A)) velocity.x -= 1f
+                if (Input.isKeyDown(Key.KEY_D)) velocity.x += 1f
+                if (Input.isKeyDown(Key.KEY_Q)) velocity.y -= 1f
+                if (Input.isKeyDown(Key.KEY_E)) velocity.y += 1f
+                cameraPosition.add(velocity.mul(3f * Time.deltaTime.toFloat()).rotate(cameraRotation))
+                draw(it, cameraPosition, cameraRotation)
             }
         }
     }

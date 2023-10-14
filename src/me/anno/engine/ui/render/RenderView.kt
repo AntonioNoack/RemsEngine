@@ -10,10 +10,7 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.SkyboxBase
-import me.anno.ecs.components.shaders.effects.Bloom
 import me.anno.ecs.components.shaders.effects.FSR2v2
-import me.anno.ecs.components.shaders.effects.ScreenSpaceAmbientOcclusion
-import me.anno.ecs.components.shaders.effects.ScreenSpaceReflections
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes
@@ -43,7 +40,6 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
@@ -61,7 +57,6 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
-import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
@@ -117,7 +112,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
 
     private var bloomStrength = 0f // defined by the camera
     private var bloomOffset = 0f // defined by the camera
-    private val useBloom get() = bloomStrength > 0f
 
     var controlScheme: ControlScheme? = null
 
@@ -1041,16 +1035,23 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                 drawAABB(aabb1, if (hit1) aabbColorHovered else aabbColorDefault)
                 if (entity.hasRenderables) for (i in components.indices) {
                     val component = components[i]
-                    if (component.isEnabled && component is MeshComponentBase) {
-                        val aabb2 = component.globalAABB
-                        val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
-                        drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
+                    if (component.isEnabled) {
+                        when (component) {
+                            is MeshComponentBase -> {
+                                val aabb2 = component.globalAABB
+                                val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
+                                drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
+                            }
+                            is MeshSpawner -> {
+                                val aabb2 = component.globalAABB
+                                val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
+                                drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
+                            }
+                        }
                     }
                 }
             }
-
             LineBuffer.drawIf1M(cameraMatrix)
-
         }
 
         if (world is Component) {

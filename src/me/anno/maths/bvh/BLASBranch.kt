@@ -49,5 +49,4 @@ class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABB
         n0.forEach(run)
         n1.forEach(run)
     }
-
 }

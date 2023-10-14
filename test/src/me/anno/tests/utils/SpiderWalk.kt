@@ -17,12 +17,16 @@ import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
+import me.anno.maths.Maths.sq
 import me.anno.mesh.Shapes.flatCube
 import me.anno.recast.NavMesh
 import me.anno.recast.NavMeshAgent
 import me.anno.utils.Color.black
 import me.anno.utils.OS
-import org.joml.*
+import org.joml.Matrix4x3d
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.Vector4d
 import org.recast4j.detour.DefaultQueryFilter
 import org.recast4j.detour.NavMeshQuery
 import org.recast4j.detour.crowd.Crowd
@@ -233,7 +237,7 @@ fun main() {
                             val footThickness = legDimensions.last().y
                             target.y += up - hit.distance - footThickness
                         }
-                        isWalking = lastTarget.distanceSquared(target) > 1e-4
+                        isWalking = lastTarget.distanceSquared(target) > 1e-2 * sq(step)
                         lastTarget.set(target)
                     }
 

@@ -46,9 +46,6 @@ class NavMesh : Component() {
         const val FLAG_ALL = 0xffff // All abilities.
     }
 
-
-    // done draw mesh for debugging
-
     // todo dynamic nav mesh
     // todo crowd navigation
     // todo tiled nav mesh
@@ -90,17 +87,7 @@ class NavMesh : Component() {
         )
 
         val builderConfig = RecastBuilderConfig(config, geometry.meshBoundsMin, geometry.meshBoundsMax)
-
         val built = RecastBuilder().build(geometry, builderConfig)
-
-        if (false) {
-            built.telemetry?.print()
-            built.compactHeightField.apply {
-                IntImage(width, height, IntArray(width * height) {
-                    if (endIndex[it] > index[it]) spans[index[it]].y * 0x10101 else 0
-                }, false).write(desktop.getChild("compactHeight.png"))
-            }
-        }
 
         val mesh = built.mesh
         for (i in 0 until mesh.numPolygons) {
@@ -129,7 +116,6 @@ class NavMesh : Component() {
         p.offMeshConDir = intArrayOf(1)
         p.offMeshConUserID = intArrayOf(0x4567)
         p.offMeshConCount = 1
-        // 0, 0, 0, 0,
         p.bmin = mesh.bmin
         p.bmax = mesh.bmax
         p.walkableHeight = agentHeight
@@ -137,7 +123,7 @@ class NavMesh : Component() {
         p.walkableClimb = agentMaxClimb
         p.cellSize = cellSize
         p.cellHeight = cellHeight
-        p.buildBvTree = true // */
+        p.buildBvTree = true
 
         return NavMeshBuilder.createNavMeshData(p)
 

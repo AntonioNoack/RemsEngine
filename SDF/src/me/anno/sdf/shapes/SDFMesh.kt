@@ -79,7 +79,7 @@ open class SDFMesh : SDFSmoothShape() {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         smartMinBegin(builder, dstIndex)
         val mesh = loadMesh()
-        val blas = if (mesh != null) BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN, 16) else null
+        val blas = if (mesh != null) BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16) else null
         if (blas == null) {
             builder.append("sdBox(pos")
             builder.append(trans.posIndex)

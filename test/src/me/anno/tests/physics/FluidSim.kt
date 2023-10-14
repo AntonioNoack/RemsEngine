@@ -443,10 +443,9 @@ fun main() {
         // generate UVs
         val pos = mesh.positions!!
         val uvs = mesh.uvs.resize(pos.size / 3 * 2)
-        val bdx = mesh.getBounds()
         for (i in uvs.indices step 2) {
-            uvs[i] = (pos[i / 2 * 3] - bdx.minX) / bdx.deltaX
-            uvs[i + 1] = (pos[i / 2 * 3 + 2] - bdx.minZ) / bdx.deltaZ
+            uvs[i] = 0.5f + pos[i / 2 * 3] / w
+            uvs[i + 1] = 0.5f - pos[i / 2 * 3 + 2] / h
         }
         mesh.uvs = uvs
         mesh.invalidateGeometry()
@@ -506,7 +505,7 @@ fun main() {
                     val rayPos = ci.cameraPosition
                     val dist = (waveHeight - rayPos.y) / rayDir.y
                     val gx = 0.5f + (rayPos.x + dist * rayDir.x) / w
-                    val gz = 0.5f - (rayPos.z + dist * rayDir.z) / h
+                    val gz = 0.5f + (rayPos.z + dist * rayDir.z) / h
                     val lx = if (dist > 0f) gx.toFloat() else 0f
                     val ly = if (dist > 0f) gz.toFloat() else 0f
                     step(ci, lx, ly, 0.2f * dist.toFloat() / max(w, h))

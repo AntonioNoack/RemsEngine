@@ -23,8 +23,6 @@ object BVHBuilder {
 
     // we could reduce the number of materials, and draw the materials sequentially with separate TLASes...
 
-    val blasCache = HashMap<Mesh, BLASNode?>()
-
     fun buildTLAS(
         scene: PipelineStage, // filled with meshes
         cameraPosition: Vector3d, worldScale: Double, splitMethod: SplitMethod, maxNodeSize: Int
@@ -51,19 +49,17 @@ object BVHBuilder {
             // to do theoretically, we'd need to respect the material override as well,
             // but idk how to do materials yet...
             val mesh = dri.mesh
-            val blas = blasCache.getOrPut(mesh) {
-                buildBLAS(mesh, splitMethod, maxNodeSize)
-            } ?: continue
+            val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize) ?: continue
+            mesh.raycaster = blas
             val entity = dri.entity
             val transform = entity.transform
             add(mesh, blas, transform)
         }
         // add all instanced objects
         scene.instancedWithIdx.forEach { mesh, _, _, stack ->
-            val blas = blasCache.getOrPut(mesh) {
-                buildBLAS(mesh, splitMethod, maxNodeSize)
-            }
+            val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize)
             if (blas != null) {
+                mesh.raycaster = blas
                 for (i in 0 until stack.size) {
                     val transform = stack.transforms[i]!!
                     add(mesh, blas, transform)
@@ -71,10 +67,9 @@ object BVHBuilder {
             }
         }
         scene.instanced.forEach { mesh, _, _, stack ->
-            val blas = blasCache.getOrPut(mesh) {
-                buildBLAS(mesh, splitMethod, maxNodeSize)
-            }
+            val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize)
             if (blas != null) {
+                mesh.raycaster = blas
                 for (i in 0 until stack.size) {
                     val transform = stack.transforms[i]!!
                     add(mesh, blas, transform)
@@ -89,7 +84,7 @@ object BVHBuilder {
 
     fun buildBLAS(mesh: Mesh, splitMethod: SplitMethod, maxNodeSize: Int): BLASNode? {
         val srcPos = mesh.positions ?: return null
-        if (mesh.normals == null) mesh.calculateNormals(smooth = true)
+        mesh.ensureNorTanUVs()
         val srcNor = mesh.normals!!
         val indices = mesh.indices ?: IntArray(srcPos.size / 3) { it }
         val geometryData = GeometryData(srcPos, srcNor, indices, mesh.color0)
@@ -147,43 +142,7 @@ object BVHBuilder {
                         }
                     }
                     SplitMethod.MEDIAN_APPROX -> {
-
-                        // don't sort, use statistical median
-                        fun sampleRandomly(): Float {
-                            val inst = objects[start + ((end - start) * Math.random()).toInt()]
-                            return inst.centroid[dim]
-                        }
-
-                        mid = (start + end) ushr 1
-
-                        val tries = count.toFloat().log2i() / 2
-                        for (ti in 0 until tries) {
-
-                            var pivot = 0f
-                            for (i in 0 until 5) pivot += sampleRandomly()
-                            pivot *= 0.2f
-
-                            var i = start - 1
-                            var j = end
-                            while (true) {
-                                do {
-                                    j--
-                                } while (objects[j].centroid[dim] < pivot)
-                                do {
-                                    i++
-                                } while (objects[i].centroid[dim] >= pivot)
-                                if (i < j) {
-                                    val tmp = objects[i]
-                                    objects[i] = objects[j]
-                                    objects[j] = tmp
-                                } else break
-                            }
-                            val relative = j - start
-                            if (relative > 0.25f * count && relative < 0.75f * count) { // >50% chance
-                                mid = j
-                                break
-                            }
-                        }
+                        mid = medianApprox(objects, start, end, dim)
                     }
                     SplitMethod.SURFACE_AREA_HEURISTIC -> throw NotImplementedError()
                     SplitMethod.HIERARCHICAL_LINEAR -> throw NotImplementedError()
@@ -198,7 +157,46 @@ object BVHBuilder {
 
             return TLASBranch(dim, n0, n1, bounds)
         }
+    }
 
+    private fun <V : TLASLeaf0> medianApprox(objects: ArrayList<V>, start: Int, end: Int, dim: Int): Int {
+        // don't sort, use statistical median
+        fun sampleRandomly(): Float {
+            val inst = objects[start + ((end - start) * Math.random()).toInt()]
+            return inst.centroid[dim]
+        }
+
+        var mid = (start + end) ushr 1
+        val count = end - start
+        val tries = count.toFloat().log2i() / 2
+        for (ti in 0 until tries) {
+
+            var pivot = 0f
+            for (i in 0 until 5) pivot += sampleRandomly()
+            pivot *= 0.2f
+
+            var i = start - 1
+            var j = end
+            while (true) {
+                do {
+                    j--
+                } while (objects[j].centroid[dim] < pivot)
+                do {
+                    i++
+                } while (objects[i].centroid[dim] >= pivot)
+                if (i < j) {
+                    val tmp = objects[i]
+                    objects[i] = objects[j]
+                    objects[j] = tmp
+                } else break
+            }
+            val relative = j - start
+            if (relative > 0.25f * count && relative < 0.75f * count) { // >50% chance
+                mid = j
+                break
+            }
+        }
+        return mid
     }
 
     private fun recursiveBuildBLAS(
@@ -260,67 +258,12 @@ object BVHBuilder {
                     }
                 }
                 SplitMethod.MEDIAN -> {
-                    // if (start == 0 && end == indices.size / 3) debug(positions, indices, start, end)
                     median(positions, indices, start, end) { a0, b0, c0, a1, b1, c1 ->
                         (a0[dim] + b0[dim] + c0[dim]).compareTo(a1[dim] + b1[dim] + c1[dim])
                     }
-                    //debug(positions, indices, start, mid)
-                    //debug(positions, indices, mid, end)
                 }
                 SplitMethod.MEDIAN_APPROX -> {
-
-                    // don't sort, use statistical median
-
-                    fun eval(idx: Int): Float {
-                        val ai = indices[idx] * 3 + dim
-                        val bi = indices[idx + 1] * 3 + dim
-                        val ci = indices[idx + 2] * 3 + dim
-                        return positions[ai] + positions[bi] + positions[ci]
-                    }
-
-                    fun sampleRandomly(): Float {
-                        val idx = (start + ((end - start) * Math.random()).toInt())
-                        return eval(idx * 3)
-                    }
-
-                    mid = (start + end) ushr 1
-
-                    val tries = count.toFloat().log2i() / 2
-                    for (ti in 0 until tries) {
-
-                        var pivot = 0f
-                        for (i in 0 until 5) pivot += sampleRandomly()
-                        pivot *= 0.2f
-
-                        var i = start - 1
-                        var j = end
-                        while (true) {
-                            do {
-                                j--
-                            } while (j >= 0 && eval(j * 3) < pivot)
-                            do {
-                                i++
-                            } while (i < end && eval(i * 3) >= pivot)
-                            if (i < j) {
-                                val i3 = i * 3
-                                val j3 = j * 3
-                                val t0 = indices[i3]
-                                indices[i3] = indices[j3]
-                                indices[j3] = t0
-                                val t1 = indices[i3 + 1]
-                                indices[i3 + 1] = indices[j3 + 1]
-                                indices[j3 + 1] = t1
-                                val t2 = indices[i3 + 2]
-                                indices[i3 + 2] = indices[j3 + 2]
-                                indices[j3 + 2] = t2
-                            } else break
-                        }
-                        val relative = j - start
-                        if (relative > 0.25f * count && relative < 0.75f * count) { // >50% chance
-                            mid = j
-                            break
-                        }
-                    }
+                    medianApprox(positions, indices, start, end, dim)
                 }
                 SplitMethod.SURFACE_AREA_HEURISTIC -> throw NotImplementedError()
                 SplitMethod.HIERARCHICAL_LINEAR -> throw NotImplementedError()
@@ -334,6 +277,61 @@ object BVHBuilder {
         bounds.union(n1.bounds)
 
         return BLASBranch(dim, n0, n1, bounds)
+    }
+
+    fun medianApprox(positions: FloatArray, indices: IntArray, start: Int, end: Int, dim: Int): Int {
+        fun sample(idx: Int): Float {
+            val ai = indices[idx] * 3 + dim
+            val bi = indices[idx + 1] * 3 + dim
+            val ci = indices[idx + 2] * 3 + dim
+            return positions[ai] + positions[bi] + positions[ci]
+        }
+
+        fun sample(): Float {
+            val idx = (start + ((end - start) * Math.random()).toInt())
+            return sample(idx * 3)
+        }
+
+        var mid = (start + end) ushr 1
+
+        val count = end - start
+        val tries = count.toFloat().log2i() / 2
+        for (ti in 0 until tries) {
+
+            var pivot = 0f
+            for (i in 0 until 5) pivot += sample()
+            pivot *= 0.2f
+
+            var i = start - 1
+            var j = end
+            while (true) {
+                do {
+                    j--
+                } while (j >= 0 && sample(j * 3) < pivot)
+                do {
+                    i++
+                } while (i < end && sample(i * 3) >= pivot)
+                if (i < j) {
+                    val i3 = i * 3
+                    val j3 = j * 3
+                    val t0 = indices[i3]
+                    indices[i3] = indices[j3]
+                    indices[j3] = t0
+                    val t1 = indices[i3 + 1]
+                    indices[i3 + 1] = indices[j3 + 1]
+                    indices[j3 + 1] = t1
+                    val t2 = indices[i3 + 2]
+                    indices[i3 + 2] = indices[j3 + 2]
+                    indices[j3 + 2] = t2
+                } else break
+            }
+            val relative = j - start
+            if (relative > 0.25f * count && relative < 0.75f * count) { // >50% chance
+                mid = j
+                break
+            }
+        }
+        return mid
     }
 
     fun <V> ArrayList<V>.median(
@@ -352,6 +350,7 @@ object BVHBuilder {
             Vector3f, Vector3f, Vector3f
         ) -> Int
     ) {
+        // todo fix performance of this
         // not optimal performance, but at least it will 100% work
         val count = end - start
         val solution = Array(count) { start + it }
@@ -430,7 +429,6 @@ object BVHBuilder {
         }
 
         return i
-
     }
 
     private fun condition2(
@@ -455,6 +453,4 @@ object BVHBuilder {
         val textureHeight = Maths.ceilDiv(requiredPixels, textureWidth)
         return Texture2D(name, textureWidth, textureHeight, 1)
     }
-
-
 }

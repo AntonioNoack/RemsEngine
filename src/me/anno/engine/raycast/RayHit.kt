@@ -28,7 +28,7 @@ class RayHit {
 
     // collision algorithms require a bit of temporary storage for convenience
     // this pre-allocates the maximum, it will require
-    val tmpVector3fs = Array(10) { Vector3f() }
+    val tmpVector3fs = Array(16) { Vector3f() }
     val tmpVector3ds = Array(10) { Vector3d() }
     val tmpVector4fs = Array(3) { Vector4f() }
     val tmpMat4x3d = Matrix4x3d()

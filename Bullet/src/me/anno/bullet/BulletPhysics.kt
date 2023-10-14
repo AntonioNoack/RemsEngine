@@ -42,6 +42,7 @@ import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
+import org.joml.Vector3f
 import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
 import kotlin.math.max
@@ -446,6 +447,26 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         val axle = Stack.newVec()
         val tmp = Stack.newVec()
 
+        fun transform(a: Vector3d, worldScale: Double, dst: Vector3f = Vector3f()): Vector3f {
+            val pos = cameraPosition
+            return dst.set(
+                ((a.x - pos.x) * worldScale).toFloat(),
+                ((a.y - pos.y) * worldScale).toFloat(),
+                ((a.z - pos.z) * worldScale).toFloat()
+            )
+        }
+
+        fun drawLine(a: Vector3d, b: Vector3d, worldScale: Double, color: Int) {
+            val t0 = JomlPools.vec3f.create()
+            val t1 = JomlPools.vec3f.create()
+            addLine(
+                transform(a, worldScale, t0),
+                transform(b, worldScale, t1),
+                color
+            )
+            JomlPools.vec3f.sub(2)
+        }
+
         for (i in 0 until vehicles.size) {
             val vehicle = vehicles[i] ?: break
             for (v in 0 until vehicle.numWheels) {
@@ -460,8 +481,8 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 )
 
                 tmp.add(wheelPosWS, axle)
-                DrawAABB.drawLine(wheelPosWS, tmp, worldScale, wheelColor)
-                DrawAABB.drawLine(
+                drawLine(wheelPosWS, tmp, worldScale, wheelColor)
+                drawLine(
                     wheelPosWS, vehicle.getWheelInfo(v).raycastInfo.contactPointWS,
                     worldScale, wheelColor
                 )

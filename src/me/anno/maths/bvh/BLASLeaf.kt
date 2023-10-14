@@ -30,16 +30,17 @@ class BLASLeaf(
             hit.trisCtr += length
 
             val vs = hit.tmpVector3fs
-            val a = vs[0]
-            val b = vs[1]
-            val c = vs[2]
-            val localHitTmp = vs[3]
-            val localNormalTmp = vs[4]
+            // 0-3 are used by Raycast
+            val a = vs[4]
+            val b = vs[5]
+            val c = vs[6]
+            val localHitTmp = vs[7]
+            val localNormalTmp = vs[8]
 
-            val localHit = vs[5]
-            val localNormal = vs[6]
-            val localNormal2 = vs[7]
-            val barycentrics = vs[8]
+            val localHit = vs[9]
+            val localNormal = vs[10]
+            val localNormal2 = vs[11]
+            val barycentrics = vs[12]
 
             var bestLocalDistance = hit.distance.toFloat()
             val bld0 = bestLocalDistance
@@ -64,6 +65,7 @@ class BLASLeaf(
                     pos, dir, a, b, c, bestLocalDistance,
                     localNormalTmp, localHitTmp, barycentrics
                 )
+
                 if (localDistance < bestLocalDistance) {
                     bestLocalDistance = localDistance
                     // could swap pointers as well
@@ -212,7 +214,6 @@ class BLASLeaf(
                                     group.normalSZ[j] = normals[ai + 2] * u + normals[bi + 2] * v + normals[ci + 2] * w
                                 }
                             }
-
                         }
                     }
                 } else {
@@ -262,5 +263,4 @@ class BLASLeaf(
     }
 
     override fun findGeometryData() = geometry
-
 }

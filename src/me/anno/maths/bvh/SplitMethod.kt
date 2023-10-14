@@ -2,6 +2,8 @@ package me.anno.maths.bvh
 
 enum class SplitMethod {
     MIDDLE,
+
+    @Deprecated("Median Approx is much faster")
     MEDIAN,
     MEDIAN_APPROX, // doesn't sort, uses statistical median; O(n) instead of O(n log n) -> 8x faster for Sponza
     SURFACE_AREA_HEURISTIC,

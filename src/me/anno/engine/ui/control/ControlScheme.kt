@@ -251,7 +251,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
             // draw collision point
             debugPoints.add(DebugPoint(pos, -1))
             // draw collision normal
-            debugLines.add(DebugLine(pos, normal.add(pos), black or 0x00ff00))
+            debugLines.add(DebugLine(pos, normal.add(pos, Vector3d()), black or 0x00ff00))
         }
     }
 

@@ -24,6 +24,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.hasFlag
+import me.anno.maths.bvh.BLASNode
 import me.anno.mesh.FindLines
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
@@ -83,6 +84,9 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         }
     }
 
+    @NotSerializedProperty
+    var raycaster: BLASNode? = null
+
     // use buffers instead, so they can be uploaded directly? no, I like the strided thing...
     // but it may be more flexible... still in Java, FloatArrays are more comfortable
     // -> just use multiple setters for convenience
@@ -102,7 +106,8 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     fun invalidateGeometry() {
         needsMeshUpdate = true
         needsBoundsUpdate = true
-        val ref = ref
+        raycaster = null
+        val ref = refOrNull
         if (ref is InnerTmpFile.InnerTmpPrefabFile) {
             ref.markAsModified()
         }

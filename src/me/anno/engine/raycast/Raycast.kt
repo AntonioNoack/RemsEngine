@@ -8,10 +8,15 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.hasFlag
+import me.anno.maths.bvh.BVHBuilder
+import me.anno.maths.bvh.SplitMethod
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Triangles.computeConeInterpolation
 import me.anno.utils.types.Triangles.rayTriangleIntersection
-import org.joml.*
+import org.joml.Matrix4x3d
+import org.joml.Matrix4x3f
+import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.abs
 
 /**
@@ -164,7 +169,7 @@ object Raycast {
 
         val maxDistance = (end.distance(start) * localDir.length() / direction.length()).toFloat()
 
-        val localNormal = tmp3f[3]
+        val localNormal = tmp3f[2]
         val localDistance = collider.raycast(
             localStart, localDir, testRadiusAtOrigin, testRadiusPerUnit,
             localNormal, maxDistance
@@ -180,7 +185,6 @@ object Raycast {
             }
         }
         return false
-
     }
 
     // val blasCache = CacheSection("BLAS")
@@ -229,35 +233,37 @@ object Raycast {
             val extraDistance = 0.0 // projectRayToAABBFront(localSrt0, localDir0, mesh.aabb, dst = localSrt0)
             // projectRayToAABBBack(localEnd0, localDir0, mesh.aabb, dst = localEnd0)
 
-            val localSrt = tmp0[0].set(localSrt0)
+            val localStart = tmp0[0].set(localSrt0)
             val localEnd = tmp0[1].set(localEnd0)
             val localDir = tmp0[2].set(localDir0)
 
             // if any coordinates of start or end are invalid, work in global coordinates
-            val hasValidCoordinates = localSrt.isFinite && localDir.isFinite
+            val hasValidCoordinates = localStart.isFinite && localDir.isFinite
 
             // the fast method only works, if the numbers have roughly the same order of magnitude
-            val relativePositionsSquared = localSrt.lengthSquared() / localEnd.lengthSquared()
-            val orderOfMagnitudeIsFine = relativePositionsSquared in 1e-6f..1e6f
+            // val relativePositionsSquared = localStart.lengthSquared() / localEnd.lengthSquared()
+            val orderOfMagnitudeIsFine = true // relativePositionsSquared in 1e-6f..1e6f
 
-            // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
-            if (hasValidCoordinates && orderOfMagnitudeIsFine) {
-                // todo doesn't work yet with BLAS
-                /*val blas = blasCache.getFileEntry(mesh.ref, true, 5000, true) { _, _ ->
-                    BVHBuilder.buildBLAS(mesh, SplitMethod.MIDDLE, 16)
-                } as? BLASNode
+            if (hasValidCoordinates && orderOfMagnitudeIsFine && !mesh.hasBones) {
+                val blas = mesh.raycaster ?: BVHBuilder.buildBLAS(mesh, SplitMethod.MEDIAN_APPROX, 16)
                 if (blas != null) {
-                    val localMaxDistance = localSrt.distance(localEnd)
+                    mesh.raycaster = blas
+                    val localMaxDistance = localStart.distance(localEnd)
                     result.distance = localMaxDistance.toDouble()
-                    if (blas.intersect(localSrt, localDir, result)) {
-                        result.localToGlobal(globalTransform, start, direction, end)
+                    if (blas.intersect(localStart, localDir, result)) {
+                        if (globalTransform != null) {
+                            result.setFromLocal(
+                                globalTransform, localStart, localDir, result.distance.toFloat(),
+                                Vector3f(result.geometryNormalWS), start, direction, end
+                            )
+                        }
                     }
-                } else {*/
-                localRaycast(
-                    mesh, globalTransform, inverse, start, direction, end, localSrt, localDir, localEnd,
-                    radiusAtOrigin, radiusPerUnit, result, typeMask, extraDistance, tmp0
-                )
-                // }
+                } else {
+                    localRaycast(
+                        mesh, globalTransform, inverse, start, direction, end, localStart, localDir, localEnd,
+                        radiusAtOrigin, radiusPerUnit, result, typeMask, extraDistance, tmp0
+                    )
+                }
             } else {
                 // mesh is scaled to zero on some axis, need to work in global coordinates
                 // this is quite a bit more expensive, because we need to transform each mesh point into global coordinates
@@ -289,6 +295,7 @@ object Raycast {
         extraDistance: Double, tmp0: Array<Vector3f>,
     ) {
 
+        // todo if it is animated, we should ignore the aabb (or extend it), and must apply the appropriate bone transforms
         val acceptFront = typeMask.hasFlag(TRIANGLE_FRONT)
         val acceptBack = typeMask.hasFlag(TRIANGLE_BACK)
 
@@ -501,5 +508,4 @@ object Raycast {
         }
         return false
     }
-
 }
