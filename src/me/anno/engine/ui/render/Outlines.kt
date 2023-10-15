@@ -52,7 +52,7 @@ object Outlines {
         for (i in components.indices) {
             val component = components[i]
             if (component is MeshComponentBase) {
-                val mesh = component.getMesh() ?: continue
+                val mesh = component.getMeshOrNull() ?: continue
                 drawOutline(component, mesh)
             }
         }

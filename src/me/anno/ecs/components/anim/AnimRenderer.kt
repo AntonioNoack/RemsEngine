@@ -273,7 +273,7 @@ open class AnimRenderer : MeshComponent() {
         radiusAtOrigin: Double, radiusPerUnit: Double,
         typeMask: Int, includeDisabled: Boolean, result: RayHit
     ): Boolean {
-        val mesh = getMesh() ?: return false
+        val mesh = getMeshOrNull() ?: return false
         if (!mesh.hasBones) return false
         updateAnimState()
         val matrices = getMatrices() ?: return super.raycast(

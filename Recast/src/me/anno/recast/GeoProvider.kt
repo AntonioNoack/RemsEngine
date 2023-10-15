@@ -6,7 +6,6 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.pooling.JomlPools
 import org.joml.AABBf
-import org.joml.Matrix4x3f
 import org.joml.Vector3f
 import org.recast4j.recast.ConvexVolume
 import org.recast4j.recast.geom.InputGeomProvider
@@ -25,7 +24,7 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
     init {
         for (it in world.getComponentsInChildren(MeshComponentBase::class)) {
             if (it.collisionMask.hasFlag(mask)) {
-                val mesh = it.getMesh()
+                val mesh = it.getMeshOrNull()
                 if (mesh != null) addMesh(mesh, it)
             }
         }

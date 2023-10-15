@@ -45,8 +45,8 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @SerializedProperty
     var isInstanced = false
 
-    @Docs("Abstract function for you to define your mesh")
-    abstract fun getMesh(): Mesh?
+    @Docs("Abstract function for you to define your mesh; you may return null, if you're not yet ready")
+    abstract fun getMeshOrNull(): Mesh?
 
     @Docs("Overrides the mesh materials")
     @Type("List<Material/Reference>")
@@ -65,8 +65,8 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @NotSerializedProperty
     val globalAABB = AABBd()
 
-    @Docs("Ensure the mesh was loaded")
-    open fun ensureBuffer() {
+    open fun getMesh(): Mesh? {
+        return getMeshOrNull()
     }
 
     override fun hasRaycastType(typeMask: Int): Boolean {
@@ -84,7 +84,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         includeDisabled: Boolean,
         result: RayHit
     ): Boolean {
-        val mesh = getMesh()
+        val mesh = getMeshOrNull()
         return if (mesh != null && Raycast.raycastTriangleMesh(
                 entity.transform, mesh, start, direction, end, radiusAtOrigin,
                 radiusPerUnit, result, typeMask
@@ -99,7 +99,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     override fun onChangeStructure(entity: Entity) {
         super.onChangeStructure(entity)
         entity.invalidateCollisionMask()
-        ensureBuffer()
+        getMesh()
     }
 
     /**
@@ -120,7 +120,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         entity: Entity,
         clickId: Int
     ): Int {
-        val mesh = getMesh()
+        val mesh = getMeshOrNull()
         return if (mesh != null) {
             if (isInstanced && mesh.proceduralLength <= 0) {
                 pipeline.addMeshInstanced(mesh, this, entity)
@@ -141,8 +141,8 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        ensureBuffer()
-        val mesh = getMesh()
+        getMesh()
+        val mesh = getMeshOrNull()
         if (mesh != null) {
             val aabb2 = mesh.getBounds()
             localAABB.set(aabb2)
@@ -167,12 +167,12 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     }
 
     fun draw(shader: Shader, materialIndex: Int) {
-        getMesh()?.draw(shader, materialIndex)
+        getMeshOrNull()?.draw(shader, materialIndex)
     }
 
     @DebugAction
     fun printMesh() {
-        val mesh = getMesh()
+        val mesh = getMeshOrNull()
         if (mesh != null) {
             val pos = mesh.positions ?: return
             LOGGER.debug("Positions: " + Array(pos.size / 3) {

@@ -119,7 +119,6 @@ class FlagMesh : MeshComponent() {
     var dt = 1f / 30f
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        ensureBuffer()
         val mesh = getMesh()
         if (mesh != null) {
             localAABB.setMin(-1.0, -1.0, -1.0).setMax(1.0, 2.0, 1.0)

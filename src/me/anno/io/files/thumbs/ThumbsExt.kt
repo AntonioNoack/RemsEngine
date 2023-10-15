@@ -207,7 +207,7 @@ object ThumbsExt {
         entity.forAll {
             if (it is MeshComponentBase) {
                 // does the CPU part -> not perfect, but maybe good enough
-                it.ensureBuffer()
+                it.getMesh()
             }
         }
     }

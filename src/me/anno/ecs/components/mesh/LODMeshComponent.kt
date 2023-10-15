@@ -49,7 +49,6 @@ class LODMeshComponent() : MeshComponentBase() {
     private var lodScale = 0.5f / log2(scalePerLOD)
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        ensureBuffer()
         if (aabbIndex < 0) {
             for (index in meshes.indices) {
                 val mesh = MeshCache[meshes[index]] ?: continue
@@ -63,7 +62,7 @@ class LODMeshComponent() : MeshComponentBase() {
         return true
     }
 
-    override fun getMesh(): Mesh? {
+    override fun getMeshOrNull(): Mesh? {
         val pos = RenderState.cameraPosition
         val transform = transform
         val index = if (transform != null) {

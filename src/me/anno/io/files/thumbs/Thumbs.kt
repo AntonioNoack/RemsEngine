@@ -705,7 +705,6 @@ object Thumbs {
         comp: MeshComponentBase,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        comp.ensureBuffer()
         val mesh = comp.getMesh() ?: return
         mesh.checkCompleteness()
         mesh.ensureBuffer()

@@ -122,7 +122,7 @@ fun main() {
                     shader.v2f("stripePowers", minZ, stripePower)
                     shader.v1i("subSamples", 25)
 
-                    tree.getMesh().proceduralLength = numStripes
+                    tree.getMeshOrNull().proceduralLength = numStripes
 
                 }
 

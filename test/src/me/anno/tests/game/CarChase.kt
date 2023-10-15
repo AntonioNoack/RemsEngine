@@ -134,7 +134,7 @@ fun createUI(): Panel {
         val c = Vector3d()
         override fun onUpdate(): Int {
             val tr = steeringWheel.transform
-            val mesh = steeringWheelMesh.getMesh()!!.getBounds()
+            val mesh = steeringWheelMesh.getMeshOrNull()!!.getBounds()
             q.identity().rotateZ(-5.0 * controller.lastSteering)
             c.set(mesh.centerX.toDouble(), mesh.centerY.toDouble(), mesh.centerZ.toDouble())
             tr.setOffsetForLocalRotation(q, c)

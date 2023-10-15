@@ -44,7 +44,7 @@ open class MeshComponent() : MeshComponentBase() {
             }
         }
 
-    override fun getMesh(): Mesh? = MeshCache[meshFile]
+    override fun getMeshOrNull(): Mesh? = MeshCache[meshFile]
 
     override fun onUpdate(): Int {
         super.onUpdate()
@@ -53,9 +53,11 @@ open class MeshComponent() : MeshComponentBase() {
         return 1
     }
 
-    override fun ensureBuffer() {
-        super.ensureBuffer()
-        getMesh()?.ensureBuffer()
+    override fun getMesh(): Mesh? {
+        super.getMesh()
+        val mesh = getMeshOrNull()
+        mesh?.ensureBuffer()
+        return mesh
     }
 
     // far into the future:
@@ -78,5 +80,4 @@ open class MeshComponent() : MeshComponentBase() {
     }
 
     override val className: String get() = "MeshComponent"
-
 }

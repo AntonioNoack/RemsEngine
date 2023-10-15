@@ -78,8 +78,8 @@ class ECSSceneTab(
             .rotateX(20.0.toRadians())
         when (root) {
             is MeshComponentBase -> {
-                root.ensureBuffer()
-                resetCamera2(root.getMesh() ?: return)
+                root.getMesh()
+                resetCamera2(root.getMeshOrNull() ?: return)
             }
             is Mesh -> resetCamera2(root)
             is Material, is LightComponentBase -> {

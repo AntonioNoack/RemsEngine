@@ -246,14 +246,14 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         this.clickId = clickId
         ensureValidShader()
         ensureValidBounds()
-        pipeline.addMesh(getMesh(), this, entity)
+        pipeline.addMesh(getMeshOrNull(), this, entity)
         lastDrawn = Time.gameTimeN
         return clickId + 1
     }
 
-    override fun getMesh(): Mesh {
+    override fun getMeshOrNull(): Mesh {
         ensureValidBounds()
-        return super.getMesh()
+        return super.getMeshOrNull()
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {

@@ -41,7 +41,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                     if (ref == ref2) null
                     else get(ref2, async)
                 }
-                is MeshComponentBase -> instance.getMesh()
+                is MeshComponentBase -> instance.getMeshOrNull()
                 is Entity -> {
                     instance.forAll { if (it is Entity) it.validateTransform() }
                     val seq = ArrayList<Component>(64)
@@ -88,7 +88,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
         val meshes = ArrayList<Triple<Mesh, Transform?, List<FileReference>>>()
         for (comp in list) {
             when (comp) {
-                is MeshComponentBase -> addMesh(meshes, comp.getMesh(), comp.transform, comp.materials)
+                is MeshComponentBase -> addMesh(meshes, comp.getMeshOrNull(), comp.transform, comp.materials)
                 is MeshSpawner -> {
                     comp.forEachMesh { mesh, material, transform ->
                         val materialList = if (material == null) emptyList()

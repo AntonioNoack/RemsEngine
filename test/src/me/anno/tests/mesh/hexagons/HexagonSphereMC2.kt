@@ -181,7 +181,7 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
                 comp.fillSpace(scene.transform.globalTransform, aabb)
                 if (aabb.distance(pos) > 1.5f * maxAngleDifference) {
                     scene.remove(child)
-                    val mesh = comp.getMesh()
+                    val mesh = comp.getMeshOrNull()
                     if (mesh != null) destroyMesh(mesh)
                     true
                 } else false

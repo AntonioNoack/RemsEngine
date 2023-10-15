@@ -927,7 +927,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
                     is Entity -> drawOutline(selected)
                     is SkyboxBase -> {}
                     is MeshComponentBase -> {
-                        val mesh = selected.getMesh() ?: continue
+                        val mesh = selected.getMeshOrNull() ?: continue
                         drawOutline(selected, mesh)
                     }
 

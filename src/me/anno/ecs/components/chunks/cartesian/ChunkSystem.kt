@@ -1,7 +1,7 @@
 package me.anno.ecs.components.chunks.cartesian
 
+import me.anno.ecs.Component
 import me.anno.ecs.components.chunks.PlayerLocation
-import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import org.joml.Vector3d.Companion.lengthSquared
 import org.joml.Vector3i
 import kotlin.math.max
@@ -16,7 +16,7 @@ abstract class ChunkSystem<Chunk, Element>(
     val bitsY: Int,
     val bitsZ: Int,
     initialCapacity: Int = 256
-) : Iterable<MutableMap.MutableEntry<Vector3i, Chunk>> {
+) : Component(), Iterable<MutableMap.MutableEntry<Vector3i, Chunk>> {
 
     val chunks = HashMap<Vector3i, Chunk>(initialCapacity)
 
@@ -44,6 +44,9 @@ abstract class ChunkSystem<Chunk, Element>(
         index: Int
     ): Element
 
+    /**
+     * returns whether the element was successfully set
+     * */
     abstract fun setElement(
         container: Chunk, localX: Int, localY: Int, localZ: Int,
         index: Int, element: Element
@@ -244,5 +247,4 @@ abstract class ChunkSystem<Chunk, Element>(
     operator fun Vector3i.component1() = x
     operator fun Vector3i.component2() = y
     operator fun Vector3i.component3() = z
-
 }

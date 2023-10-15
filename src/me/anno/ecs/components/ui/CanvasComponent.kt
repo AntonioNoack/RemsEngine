@@ -152,7 +152,7 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
         internalMesh.indices = indices
     }
 
-    override fun getMesh() = internalMesh
+    override fun getMeshOrNull() = internalMesh
 
     private fun defineMesh() {
         val aspectRatio = width.toFloat() / height.toFloat()

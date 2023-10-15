@@ -15,7 +15,7 @@ abstract class ProceduralMesh : MeshComponentBase() {
 
     val data = Mesh()
 
-    override fun getMesh() = data
+    override fun getMeshOrNull() = data
 
     @NotSerializedProperty
     var needsUpdate1 = true
@@ -39,17 +39,18 @@ abstract class ProceduralMesh : MeshComponentBase() {
         // todo register for rare update? instead of onUpdate()
     }
 
-    override fun ensureBuffer() {
+    override fun getMesh(): Mesh {
         if (needsUpdate1) {
             needsUpdate1 = false
             generateMesh(data)
             data.invalidateGeometry()
             invalidateAABB()
         }
+        return data
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        ensureBuffer()
+        getMesh()
         return super.fillSpace(globalTransform, aabb)
     }
 
@@ -63,7 +64,7 @@ abstract class ProceduralMesh : MeshComponentBase() {
     }
 
     override fun onUpdate(): Int {
-        ensureBuffer()
+        getMesh()
         return 32
     }
 }

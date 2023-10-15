@@ -170,17 +170,17 @@ object DualContouring {
         sx: Int, sy: Int,
         func: Func2d,
         grad: Grad2d = gradient(func)
-    ): List<Vector2f> {
+    ): Pair<List<Vector2f>,List<Vector2f>> {
         val pointsInGrid = (sx + 1) * (sy + 1)
         // calculate all positions and all gradients
         val values = FloatArray(pointsInGrid)
         // fill positions & gradients
-        var vIndex = 0
+        var i = 0
         for (y in 0..sy) {
             val py = y.toFloat()
             for (x in 0..sx) {
                 val px = x.toFloat()
-                values[vIndex++] = func.calc(px, py)
+                values[i++] = func.calc(px, py)
             }
         }
         return contour2d(sx, sy, values, func, grad)
@@ -188,11 +188,12 @@ object DualContouring {
 
     fun contour2d(
         sx: Int, sy: Int,
-        values: FloatArray, func: Func2d, gradient: Grad2d
-    ): List<Vector2f> {
+        values: FloatArray,
+        func: Func2d, gradient: Grad2d
+    ):  Pair<List<Vector2f>,List<Vector2f>>  {
         val vertices = arrayOfNulls<Vector2f>(sx * sy)
         var writeIndex = 0
-        var vIndex = 0
+        var i = 0
         val di = sx + 1
         val qef = QEF2d(0.01f)
         val tmp = Vector2f()
@@ -203,12 +204,12 @@ object DualContouring {
                 val x0 = x.toFloat()
                 val x1 = x0 + 1f
                 findBestVertex2d(
-                    vIndex++, di, values, func, gradient,
+                    i++, di, values, func, gradient,
                     x0, x1, y0, y1, tmp, qef,
                     writeIndex++, vertices
                 )
             }
-            vIndex++
+            i++
         }
         val edges = ArrayList<Vector2f>()
         // dx edges
@@ -237,7 +238,7 @@ object DualContouring {
                 }
             }
         }
-        return edges
+        return edges to vertices.filterNotNull()
     }
 
 }

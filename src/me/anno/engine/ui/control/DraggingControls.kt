@@ -41,7 +41,6 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Floats.toDegrees
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4x3d
 import org.joml.Planed
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -500,7 +499,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                     when (hovComponent) {
                         is DCPaintable -> hovComponent.paint(this, sampleInstance, file)
                         is MeshComponentBase -> {
-                            val mesh = hovComponent.getMesh()
+                            val mesh = hovComponent.getMeshOrNull()
                             val numMaterials = mesh?.numMaterials ?: 1
                             if (numMaterials <= 1) {
                                 // assign material

@@ -304,8 +304,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 
     fun drawSky0(stage: PipelineStage) {
         val sky = skybox
-        val mesh = sky.getMesh()
-        mesh.ensureBuffer()
+        val mesh = sky.getMesh()!!
         val allAABB = JomlPools.aabbd.create()
         val scale = if (RenderState.isPerspective) 1f
         else 2f * max(RenderState.fovXRadians, RenderState.fovYRadians)

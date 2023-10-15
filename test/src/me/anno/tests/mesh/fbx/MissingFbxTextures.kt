@@ -18,7 +18,7 @@ fun main() {
     val scene = getPrefabInstance(path) as Entity
     val matCache = HashSet<FileReference>()
     scene.firstComponentInChildren(MeshComponent::class) {
-        val matRef = it.getMesh()!!.materials.firstOrNull()
+        val matRef = it.getMeshOrNull()!!.materials.firstOrNull()
         if (matRef != null && matCache.add(matRef)) {
             val mat = MaterialCache[matRef]
             val diffuse = mat?.diffuseMap

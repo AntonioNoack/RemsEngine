@@ -53,7 +53,7 @@ fun main() {
         if (it is Entity) {
             for (comp in it.components) {
                 if (comp is MeshComponent) {
-                    val mesh = comp.getMesh() ?: continue
+                    val mesh = comp.getMeshOrNull() ?: continue
                     val material = MaterialCache[mesh.material] ?: continue
                     println(material.name)
                     when (material.name) {

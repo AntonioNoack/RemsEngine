@@ -3,9 +3,6 @@ package me.anno.tests.geometry
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.geometry.DualContouring3d
-import me.anno.sdf.SDFGroup
-import me.anno.sdf.shapes.SDFBox
-import me.anno.sdf.shapes.SDFSphere
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3f
@@ -16,25 +13,16 @@ fun main() {
     val sy = 64
     val sz = 64
 
-    val s = 3.5f
-    val comp = SDFGroup()
-    val d = 0.43f
-    comp.addChild(SDFSphere().apply {
-        position.sub(d, d, 0f)
-    })
-    comp.addChild(SDFBox().apply {
-        position.add(d, d, 0f)
-    })
-    comp.style = SDFGroup.SDFStyle.STAIRS
-    comp.smoothness = 1f
-    comp.type = SDFGroup.CombinationMode.TONGUE
+    val offset = Vector3f(0.5f)
 
+    val s = 0.02f
+    val comp = dualContouringTest()
     val seeds = IntArrayList(8)
     val func = DualContouring3d.Func3d { xi, yi, zi ->
         val pos = JomlPools.vec4f.create()
-        val x = (xi / sx - 0.5f) * s
-        val y = (yi / sy - 0.5f) * s
-        val z = (zi / sz - 0.5f) * s
+        val x = (xi - sx / 2) * s - offset.x
+        val y = (yi - sy / 2) * s - offset.y
+        val z = (zi - sz / 2) * s - offset.z
         val value = comp.computeSDF(pos.set(x, y, z, 0f), seeds)
         JomlPools.vec4f.sub(1)
         value

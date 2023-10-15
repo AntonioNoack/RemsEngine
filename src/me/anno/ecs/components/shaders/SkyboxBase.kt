@@ -96,7 +96,7 @@ open class SkyboxBase : MeshComponentBase() {
         return clickId + 1
     }
 
-    override fun getMesh() = mesh
+    override fun getMeshOrNull() = mesh
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         aabb.all() // skybox is visible everywhere

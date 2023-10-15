@@ -22,7 +22,7 @@ class GPUMesh : MeshComponentBase() {
     var spawnSize = Vector3i()
     var numMaterials = 0
 
-    override fun getMesh(): Mesh? {
+    override fun getMeshOrNull(): Mesh? {
         TODO("Not yet implemented")
     }
 

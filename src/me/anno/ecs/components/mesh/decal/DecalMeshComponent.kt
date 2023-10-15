@@ -34,6 +34,6 @@ class DecalMeshComponent : MeshComponentBase() {
         materials = listOf(material.ref)
     }
 
-    override fun getMesh() = decalMesh
+    override fun getMeshOrNull() = decalMesh
 
 }

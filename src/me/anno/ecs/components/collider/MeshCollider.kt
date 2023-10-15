@@ -42,7 +42,7 @@ open class MeshCollider() : Collider() {
     var mesh: Mesh? = null
         get() {
             if (field == null) field = MeshCache[meshFile]
-            if (field == null) field = entity?.getComponentInChildren(MeshComponentBase::class, false)?.getMesh()
+            if (field == null) field = entity?.getComponentInChildren(MeshComponentBase::class, false)?.getMeshOrNull()
             return field
         }
 
