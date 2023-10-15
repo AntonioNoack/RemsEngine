@@ -362,15 +362,15 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             variables += Variable(GLSLType.V4F, "tangent", VariableMode.OUT)
 
             variables += Variable(GLSLType.V4F, "colors0", VariableMode.ATTR)
-            if (!flags.hasFlag(IS_ANIMATED) || !flags.hasFlag(IS_INSTANCED)) {
-                variables += Variable(GLSLType.V4F, "colors1", VariableMode.ATTR)
-                variables += Variable(GLSLType.V4F, "colors2", VariableMode.ATTR)
-                variables += Variable(GLSLType.V4F, "colors3", VariableMode.ATTR)
-            } else {
+            if ((flags.hasFlag(IS_ANIMATED) || flags.hasFlag(NEEDS_MOTION_VECTORS) && flags.hasFlag(IS_INSTANCED))) {
                 // too many attributes, only 16 are supported in OpenGL and DirectX
                 variables += Variable(GLSLType.V4F, "colors1")
                 variables += Variable(GLSLType.V4F, "colors2")
                 variables += Variable(GLSLType.V4F, "colors3")
+            } else {
+                variables += Variable(GLSLType.V4F, "colors1", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4F, "colors2", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4F, "colors3", VariableMode.ATTR)
             }
             variables += Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT)
             variables += Variable(GLSLType.V4F, "vertexColor1", VariableMode.OUT)
