@@ -122,7 +122,7 @@ abstract class GPUFrame(var width: Int, var height: Int, val code: Int) : ICache
                 bindUVCorrection(shader)
                 GFX.flat01.draw(shader)
                 GFX.check()
-                tex = tmp.textures[0]
+                tex = tmp.textures!![0]
             }
         }
         GFX.check()

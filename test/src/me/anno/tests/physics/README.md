@@ -10,7 +10,7 @@ It then fills in some circles and rectangles, which can be dragged around using 
 
 My Bullet test doesn't have nice visuals yet, it just shows that the integration into the engine works :).
 
-## [Fluid Simulation (WIP)](FluidSim.kt)
+## [Fluid Simulation (WIP)](fluid/FluidSim.kt)
 
 A try to get a fluid simulation working; not yet finished/working.
 

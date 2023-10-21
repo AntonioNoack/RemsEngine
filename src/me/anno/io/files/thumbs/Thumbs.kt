@@ -274,7 +274,7 @@ object Thumbs {
                 useFrame(newTex, copyRenderer) {
                     GFX.copy(tex)
                 }
-                val newTex1 = newTex.textures.first()
+                val newTex1 = newTex.textures!!.first()
                 newTex.destroyExceptTextures(true)
                 callback(newTex1, null)
             }
@@ -465,12 +465,12 @@ object Thumbs {
                 )
                 renderTarget.needsBlit = true
                 renderTarget.copyIfNeeded(newBuffer)
-                val texture = newBuffer.textures[0]
+                val texture = newBuffer.textures!![0]
                 newBuffer.destroyExceptTextures(false)
                 texture.rotation = if (flipY) flipYRot else null
                 callback(texture, null)
             } else {
-                val texture = renderTarget.textures[0]
+                val texture = renderTarget.textures!![0]
                 renderTarget.destroyExceptTextures(true)
                 callback(texture, null)
             }

@@ -153,7 +153,6 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
                 }
             }
         }
-
     }
 
     fun wasReadAsFolder(file: FileReference): InnerFolder? {
@@ -161,9 +160,10 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         return data?.value as? InnerFolder
     }
 
-    fun readAsFolder(file: FileReference, async: Boolean): InnerFile? {
+
+    fun readAsFolder(file: FileReference, timeoutMillis: Long, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
-        val data = getFileEntry(file, false, timeout, async) { file1, _ ->
+        val data = getFileEntry(file, false, timeoutMillis, async) { file1, _ ->
             val signature = Signature.findNameSync(file1)
             val ext = file1.lcExtension
             if (signature == "json" && ext == "json") null
@@ -187,6 +187,10 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         return data?.value as? InnerFile
     }
 
+    fun readAsFolder(file: FileReference, async: Boolean): InnerFile? {
+        return readAsFolder(file, timeoutMillis, async)
+    }
+
     fun splitParent(name: String): Pair<String, String> {
         var path = name.replace('\\', '/')
         while (path.endsWith('/')) path = path.substring(0, path.length - 1)
@@ -195,7 +199,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         return parent to path
     }
 
-    var timeout = 60_000L
+    var timeoutMillis = 60_000L
 
     // opening a packed stream again would be really expensive for large packages
     // is there a better strategy than this?? maybe index a few on every go to load something

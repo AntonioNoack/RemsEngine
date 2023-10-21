@@ -12,6 +12,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.structures.maps.CountMap
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
@@ -174,8 +175,12 @@ class Prefab : Saveable {
         ref: FileReference,
         insertIndex: Int = -1
     ): Path {
-        val index = addCounts.getAndInc(typeChar to parentPath)
+        val index = findNextIndex(typeChar, parentPath)
         return add(CAdd(parentPath, typeChar, className, nameId, ref), insertIndex).getSetterPath(index)
+    }
+
+    fun findNextIndex(typeChar: Char, parentPath: Path): Int {
+        return addCounts.getAndInc(typeChar to parentPath)
     }
 
     @Deprecated("Please use the functions with explicit names")
@@ -189,17 +194,32 @@ class Prefab : Saveable {
         return add(CAdd(parentPath, typeChar, clazzName, nameId, InvalidRef), insertIndex).getSetterPath(index)
     }
 
+    fun canAdd(change: CAdd): Boolean {
+        if (!Build.isShipped) {
+            val key = Pair(change.path, change.nameId)
+            if (addedPaths?.contains(key) == true) return false
+            // todo check branched prefabs for adds as well
+            val sourcePrefab = PrefabCache[prefab]
+            return sourcePrefab?.canAdd(change) ?: true
+        } else {
+            return adds.none2 {
+                it.path == change.path &&
+                        it.nameId == change.nameId
+            }
+        }
+    }
+
     fun add(change: CAdd, insertIndex: Int): CAdd {
         if (!isWritable) throw ImmutablePrefabException(source)
         if (!Build.isShipped) {
             val key = Pair(change.path, change.nameId)
             if (addedPaths?.contains(key) == true)
-                throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
+                throw IllegalArgumentException("Duplicate names are forbidden, path: ${change.path}, nameId: ${change.nameId}")
             // todo check branched prefabs for adds as well
             val sourcePrefab = PrefabCache[prefab]
             if (sourcePrefab != null) {
                 if (sourcePrefab.addedPaths?.contains(key) == true)
-                    throw IllegalArgumentException("Duplicate names are forbidden, ${change.path}, ${change.nameId}")
+                    throw IllegalArgumentException("Duplicate names are forbidden, path: ${change.path}, nameId: ${change.nameId}")
             }
             addedPaths?.add(key)
         }

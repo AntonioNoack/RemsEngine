@@ -34,6 +34,13 @@ interface ITexture2D : ICacheData {
         return if (index >= 0) bindTrulyNearest(index) else false
     }
 
+    fun bindTrulyLinear(index: Int) = bind(index, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+
+    fun bindTrulyLinear(shader: Shader, texName: String): Boolean {
+        val index = shader.getTextureIndex(texName)
+        return if (index >= 0) bindTrulyLinear(index) else false
+    }
+
     fun write(dst: FileReference, flipY: Boolean = false, withAlpha: Boolean = false) {
         createImage(flipY, withAlpha).write(dst)
     }

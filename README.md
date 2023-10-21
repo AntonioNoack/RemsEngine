@@ -169,7 +169,7 @@ Some tests, starting the whole engine, like a small game:
 Some feature tests:
 
 - [Math: SDFTest.kt](test/src/me/anno/tests/collider/SDFColliderTest.kt)
-- [Internal: Hierarchy.kt](test/src/me/anno/tests/ecs/Hierarchy.kt)
+- [Internal: Hierarchy.kt](test/src/me/anno/tests/engine/Hierarchy.kt)
 - [GFX: MarchingSquares.kt](test/src/me/anno/tests/geometry/MarchingSquares.kt)
 - [GFX: Reduction.kt](test/src/me/anno/tests/shader/Reduction.kt)
 - [GFX: FSR.kt](src/me/anno/ecs/components/shaders/effects/FSR.kt)

@@ -75,11 +75,11 @@ class FlagMesh : MeshComponent() {
         // upload initial data
         tex0.destroy()
         tex0.ensure()
-        tex0.textures[0].createRGB(initial, false)
+        tex0.textures!![0].createRGB(initial, false)
 
         tex1.destroy()
         tex1.ensure()
-        tex1.textures[0].createRGB(initial, false)
+        tex1.textures!![0].createRGB(initial, false)
     }
 
     private var prevDt = 0.01f

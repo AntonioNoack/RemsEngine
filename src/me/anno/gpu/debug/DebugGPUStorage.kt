@@ -266,7 +266,7 @@ object DebugGPUStorage {
             ) {
                 create2DListOfPanels("Framebuffers") { list ->
                     for (fb in fbs.sortedBy { it.width * it.height }) {
-                        for (tex in fb.textures) {
+                        for (tex in fb.textures!!) {
                             list.add(TexturePanel(tex.name, tex, true))
                         }
                         val dt = fb.depthTexture

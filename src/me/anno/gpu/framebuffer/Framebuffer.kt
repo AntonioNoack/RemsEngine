@@ -143,7 +143,7 @@ class Framebuffer(
     var internalDepthRenderbuffer = 0
     override var depthTexture: Texture2D? = null
 
-    lateinit var textures: Array<Texture2D>
+    var textures: Array<Texture2D>? = null
 
     override fun checkSession() {
         if (pointer != 0 && session != GFXState.session) {
@@ -153,8 +153,11 @@ class Framebuffer(
             needsBlit = true
             ssBuffer?.checkSession()
             depthTexture?.checkSession()
-            for (texture in textures) {
-                texture.checkSession()
+            val textures = textures
+            if (textures != null) {
+                for (texture in textures) {
+                    texture.checkSession()
+                }
             }
             GFX.check()
             // validate it
@@ -213,7 +216,7 @@ class Framebuffer(
         }
 
         // todo is this fine? might cost a lof ot performance...
-        for (texture in textures) {
+        for (texture in textures!!) {
             texture.hasMipmap = false
             texture.filtering = GPUFiltering.TRULY_NEAREST
         }
@@ -492,7 +495,7 @@ class Framebuffer(
             copyIfNeeded(ssBuffer)
             ssBuffer.bindTextureI(index, offset, nearest, clamping)
         } else {
-            textures[index].bind(offset, nearest, clamping)
+            textures!![index].bind(offset, nearest, clamping)
         }
     }
 
@@ -503,7 +506,7 @@ class Framebuffer(
             copyIfNeeded(ssBuffer)
             ssBuffer.bindTextures(offset, nearest, clamping)
         } else {
-            val textures = textures
+            val textures = textures!!
             for (i in textures.indices) {
                 textures[i].bind(offset + i, nearest, clamping)
             }
@@ -513,15 +516,15 @@ class Framebuffer(
 
     override fun bindTrulyNearestMS(offset: Int) {
         if (withMultisampling) {
-            val tex = textures
-            for (i in tex.indices) {
-                tex[i].bindTrulyNearest(offset + i)
+            val textures = textures!!
+            for (i in textures.indices) {
+                textures[i].bindTrulyNearest(offset + i)
             }
         } else super.bindTrulyNearestMS(offset)
     }
 
     override fun getTextureIMS(index: Int): ITexture2D {
-        return if (samples > 1) textures[index]
+        return if (samples > 1) textures!![index]
         else super.getTextureIMS(index)
     }
 
@@ -568,11 +571,9 @@ class Framebuffer(
     var renderBufferAllocated = 0L
 
     fun destroyTextures(deleteDepth: Boolean) {
-        if (!usesCRBs) for (tex in textures) tex.destroy()
-        else {
-            val crb = colorRenderBuffers
-            if (crb != null) glDeleteRenderbuffers(crb)
-            colorRenderBuffers = null
+        val textures = textures
+        if (textures != null) for (i in textures.indices) {
+            textures[i].destroy()
         }
         if (deleteDepth) destroyDepthTexture()
     }
@@ -598,7 +599,10 @@ class Framebuffer(
             val ssBuffer = ssBuffer!!
             copyIfNeeded(ssBuffer)
             ssBuffer.getTextureI(index)
-        } else textures[index]
+        } else {
+            val textures = textures ?: throw IllegalStateException("Framebuffer hasn't been initialized")
+            textures[index]
+        }
     }
 
     companion object {

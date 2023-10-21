@@ -1,19 +1,17 @@
 package me.anno.io.json
 
-import me.anno.io.files.FileReference
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 
 /**
- * to avoid the import of FasterXML (17MB) or similar, we create our own light-weight solution to reading JSON files;
+ * to avoid the import of FasterXML (17 MB) or similar, we create our own light-weight solution to reading JSON files;
  * this has no reflection support, so it is safe to use (except for OutOfMemoryError), but you have to implement the mapping yourself
  * */
 class JsonReader(val data: InputStream) {
 
     constructor(data: ByteArray) : this(data.inputStream())
     constructor(data: String) : this(data.toByteArray())
-    constructor(file: FileReference) : this(file.inputStreamSync())
 
     var index = 0
     var tmpChar = 0.toChar()
@@ -101,10 +99,10 @@ class JsonReader(val data: InputStream) {
                     when (val next1 = next()) {
                         '\\', 'r', 'n', 't', '"', '\'', 'f', 'b' -> {}
                         'u' -> {
-                            assertTrue(isHex(next()), "expected hex")
-                            assertTrue(isHex(next()), "expected hex")
-                            assertTrue(isHex(next()), "expected hex")
-                            assertTrue(isHex(next()), "expected hex")
+                            assertTrue(isHex(next()), "expected hex for \\u[0]")
+                            assertTrue(isHex(next()), "expected hex for \\u[1]")
+                            assertTrue(isHex(next()), "expected hex for \\u[2]")
+                            assertTrue(isHex(next()), "expected hex for \\u[3]")
                         }
                         else -> throw RuntimeException("Unknown escape sequence \\$next1")
                     }

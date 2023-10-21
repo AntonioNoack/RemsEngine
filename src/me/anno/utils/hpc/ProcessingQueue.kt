@@ -21,14 +21,18 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
     val size get() = tasks.size
 
     val remaining get() = tasks.size
+    val aliveThreads = AtomicInteger(0)
+    val sleepingThreads = AtomicInteger(0)
+    var stopIfDone = false
 
     fun stop() {
         shouldStop = true
         hasBeenStarted = false
     }
 
-    fun stopAndWait(canBeKilled: Boolean) {
-        Sleep.waitUntil(canBeKilled) { tasks.isEmpty() }
+    fun waitUntilDone(canBeKilled: Boolean) {
+        stopIfDone = true
+        Sleep.waitUntil(canBeKilled) { tasks.isEmpty() && aliveThreads.get() == 0 }
         stop()
     }
 
@@ -37,12 +41,20 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
         hasBeenStarted = true
         shouldStop = false
         LOGGER.info("Starting queue $name")
+        aliveThreads.incrementAndGet()
         thread(name = name) {
-            while (!shutdown && !shouldStop) {
+            workLoop@ while (!shutdown && !shouldStop) {
                 try {
                     // will block, until we have new work
                     if (!workItem()) {
+                        if (sleepingThreads.incrementAndGet() == aliveThreads.get()) {
+                            if (stopIfDone) {
+                                sleepingThreads.decrementAndGet()
+                                break@workLoop
+                            }
+                        }
                         sleepShortly(true)
+                        sleepingThreads.decrementAndGet()
                     }
                 } catch (e: ShutdownException) {
                     // nothing to worry about (probably)
@@ -51,6 +63,7 @@ open class ProcessingQueue(val name: String, numThreads: Int = 1) : WorkSplitter
                     e.printStackTrace()
                 }
             }
+            aliveThreads.decrementAndGet()
             LOGGER.info("Finished $name")
         }
     }

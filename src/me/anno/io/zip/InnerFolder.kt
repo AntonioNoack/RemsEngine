@@ -5,6 +5,7 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.utils.structures.lists.UnsafeArrayList
 import java.io.IOException
 import java.io.InputStream
 
@@ -15,8 +16,8 @@ import java.io.InputStream
 open class InnerFolder(
     absolutePath: String,
     relativePath: String,
-    _parent: FileReference
-) : InnerFile(absolutePath, relativePath, true, _parent) {
+    parent: FileReference
+) : InnerFile(absolutePath, relativePath, true, parent) {
 
     constructor(root: FileReference) : this(root.absolutePath, "", root.getParent() ?: InvalidRef)
 
@@ -25,10 +26,9 @@ open class InnerFolder(
 
     var lookup: Map<String, InnerFile>? = null
     val children = HashMap<String, InnerFile>()
-    val childrenList = ArrayList<InnerFile>()
+    val childrenList = UnsafeArrayList<InnerFile>()
 
     operator fun contains(fileName: String) = fileName in children
-
     override fun listChildren(): List<FileReference> = childrenList
 
     override fun invalidate() {

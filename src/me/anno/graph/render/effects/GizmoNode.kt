@@ -94,7 +94,7 @@ class GizmoNode : RenderSceneNode0(
                 framebuffer.clearColor(0, true)
             } else if (depth != null && color === depth) {
                 color.copyColorTo(
-                    framebuffer, color.textures.indexOf(colorT), 0,
+                    framebuffer, color.textures!!.indexOf(colorT), 0,
                     GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT
                 )
             } else {
@@ -102,7 +102,7 @@ class GizmoNode : RenderSceneNode0(
                 else depth.copyTo(framebuffer, GL_DEPTH_BUFFER_BIT)
                 if (color == null) framebuffer.clearColor(0, false)
                 else color.copyColorTo(
-                    framebuffer, color.textures.indexOf(colorT), 0,
+                    framebuffer, color.textures!!.indexOf(colorT), 0,
                     GL_COLOR_BUFFER_BIT
                 )
             }

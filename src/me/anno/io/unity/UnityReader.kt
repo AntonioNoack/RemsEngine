@@ -1,10 +1,9 @@
 package me.anno.io.unity
 
 import me.anno.cache.CacheData
-import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
+import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -497,7 +496,9 @@ object UnityReader {
             val child = path.readPrefab()
             val type = if (child.clazzName == "Entity") 'e' else 'c'
             val nameId = child.getProperty("name") as? String ?: path.nameWithoutExtension // collisions should be rare
-            prefab.add(ROOT_PATH, type, child.clazzName, nameId, path)
+            val add = CAdd(ROOT_PATH, type, child.clazzName, nameId, path)
+            if (!prefab.canAdd(add)) add.nameId = path.nameWithoutExtension
+            prefab.add(add, prefab.findNextIndex(type, ROOT_PATH))
         }
     }
 

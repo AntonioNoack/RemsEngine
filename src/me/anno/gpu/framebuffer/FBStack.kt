@@ -59,7 +59,7 @@ object FBStack : CacheSection("FBStack") {
                     if (readDepth && !GFX.supportsDepthTextures) {
                         framebuffer.ensure() // ensure textures
                         // link depth texture to make things easier
-                        framebuffer.depthTexture = framebuffer.targetsI.last().textures.last()
+                        framebuffer.depthTexture = framebuffer.targetsI.last().textures!!.last()
                     }
                     nextIndex = data.size
                     data.last()
@@ -76,7 +76,7 @@ object FBStack : CacheSection("FBStack") {
                     if (readDepth && !GFX.supportsDepthTextures) {
                         framebuffer.ensure() // ensure textures
                         // link depth texture to make things easier
-                        framebuffer.depthTexture = framebuffer.textures.last()
+                        framebuffer.depthTexture = framebuffer.textures!!.last()
                     }
                     nextIndex = data.size
                     data.last()

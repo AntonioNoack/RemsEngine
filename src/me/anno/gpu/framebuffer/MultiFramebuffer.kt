@@ -122,9 +122,9 @@ class MultiFramebuffer(
         if (withMultisampling) {
             var k = offset
             for (i in targetsI.indices) {
-                val tex = targetsI[i].textures
-                for (j in tex.indices) {
-                    tex[j].bindTrulyNearest(k++)
+                val textures = targetsI[i].textures!!
+                for (j in textures.indices) {
+                    textures[j].bindTrulyNearest(k++)
                 }
             }
         } else super.bindTrulyNearestMS(offset)

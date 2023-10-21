@@ -53,7 +53,7 @@ abstract class InnerFile(
 
     override fun length(): Long = size
 
-    fun markAsModified(){
+    fun markAsModified() {
         lastModified = max(lastModified + 1, System.currentTimeMillis())
     }
 
@@ -146,7 +146,5 @@ abstract class InnerFile(
             registry[""] = file
             return registry
         }
-
     }
-
 }

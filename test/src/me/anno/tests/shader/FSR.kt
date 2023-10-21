@@ -32,7 +32,7 @@ fun main() {
         .write(src.getSibling("${src.nameWithoutExtension}-${size}x.png"))
 
     val sharpened = FBStack["", ow, oh, 4, false, 1, DepthBufferType.NONE]
-    GFXState.useFrame(sharpened) { FSR.sharpen(upscaled.textures.first(), 1f, 0, 0, ow, oh, true) }
+    GFXState.useFrame(sharpened) { FSR.sharpen(upscaled.getTexture0(), 1f, 0, 0, ow, oh, true) }
 
     sharpened.createImage(false, withAlpha = false)
         .write(src.getSibling("${src.nameWithoutExtension}-${size}x-s.png"))
