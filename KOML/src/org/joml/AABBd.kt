@@ -248,7 +248,7 @@ class AABBd(
     /**
      * transforms this matrix, then unions it with base, and places the result in dst
      * */
-    fun transformUnion(m: Matrix4x3d, base: AABBd, dst: AABBd): AABBd {
+    fun transformUnion(m: Matrix4x3d, base: AABBd, dst: AABBd = base): AABBd {
         if (isEmpty()) return dst.set(base)
         val dx = this.maxX - this.minX
         val dy = this.maxY - this.minY

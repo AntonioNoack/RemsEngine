@@ -20,7 +20,7 @@ open class Vector4f(
     constructor(d: Float) : this(d, d, d, d)
     constructor(xyzw: FloatArray) : this(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
 
-    fun set(v: Vector4f) = set(v.x, v.y, v.z, v.z)
+    fun set(v: Vector4f) = set(v.x, v.y, v.z, v.w)
     fun set(v: Vector4i) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     fun set(v: Vector4d) = set(v.x.toFloat(), v.y.toFloat(), v.z.toFloat(), v.w.toFloat())
     fun set(v: Vector3f, w: Float) = set(v.x, v.y, v.z, w)

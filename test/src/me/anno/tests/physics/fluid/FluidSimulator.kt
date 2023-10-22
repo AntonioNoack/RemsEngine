@@ -133,38 +133,54 @@ object FluidSimulator {
 
     val particlesProgram = Shader(
         "particles", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(
-            Variable(GLSLType.V4F, "resultPosition", VariableMode.OUT),
-            Variable(GLSLType.V4F, "resultVelocity", VariableMode.OUT),
-            Variable(GLSLType.V4F, "resultRotation", VariableMode.OUT),
-            Variable(GLSLType.V4F, "resultMetadata", VariableMode.OUT),
+            Variable(GLSLType.V4F, "resultPosition", VariableMode.OUT).apply { slot = 0 },
+            Variable(GLSLType.V4F, "resultVelocity", VariableMode.OUT).apply { slot = 1 },
+            Variable(GLSLType.V4F, "resultRotation", VariableMode.OUT).apply { slot = 2 },
+            Variable(GLSLType.V4F, "resultMetadata", VariableMode.OUT).apply { slot = 3 },
             Variable(GLSLType.V2F, "texelSize"),
             Variable(GLSLType.V1F, "dt"),
-            // fluid data
-            Variable(GLSLType.S2D, "fluidVelocityTex"),
-            Variable(GLSLType.S2D, "fluidPressureTex"),
             // particle data
             Variable(GLSLType.S2D, "positionTex"),
             Variable(GLSLType.S2D, "velocityTex"),
             Variable(GLSLType.S2D, "rotationTex"),
             Variable(GLSLType.S2D, "metadataTex"),
+            // fluid data
+            Variable(GLSLType.S2D, "fluidVelocityTex"),
+            Variable(GLSLType.S2D, "fluidPressureTex"),
         ), "" +
                 // todo flag whether to handle inter-particle collisions?
                 //  doable for small numbers of particles like 20
                 "void main() {\n" +
+                // gather data
                 "   vec3 position = texture(positionTex, uv).xyz;\n" +
                 "   vec3 velocity = texture(velocityTex, uv).xyz;\n" +
                 "   vec3 rotation = texture(rotationTex, uv).xyz;\n" +
                 "   vec4 metadata = texture(metadataTex, uv);\n" +
+                "   vec2 fluidUV = position.xz;\n" +
+                "   vec2 fluidVelocity = texture(fluidVelocityTex, fluidUV).xy;\n" +
+                "   float fluidHeight = texture(fluidPressureTex, fluidUV).x;\n" +
+                "   float radius = metadata.y;\n" +
                 "   float mass = metadata.z;\n" +
-                "   float mixFactor = exp(-dt / mass);\n" +
+                "   float density = metadata.w;\n" +
+                // process data
+                "   float mixFactor = 0.5;\n" +
+                "   float inWater = clamp((fluidHeight - position.y) / radius + 1.0, 0.0, 1.0);\n" +
+                "   float accelerationY = mix(-9.81, (1.0 - density) / density, inWater) * ${1.0 / waveHeight};\n" +
                 // calculate new velocity
                 // todo if not deep enough in fluid, reduce effect of fluid, and add ground friction
                 // todo calculate new rotation based on rotation and gradient of fluid
-                "   vec3 newVelocity = mix(velocity, textureLod(fluidVelocityTex, position.xz, 0.0).xyz, mixFactor);\n" +
+                "   float friction = 3.0;\n" +
+                "   vec3 newVelocity = vec3(mix(velocity.xz, fluidVelocity, mixFactor), (velocity.y + accelerationY * dt) * exp(-dt * friction)).xzy;\n" +
                 "   resultPosition = vec4(position + (velocity + newVelocity) * (0.5 * dt), 0.0);\n" +
+                "   resultPosition.xyz = clamp(resultPosition.xyz, vec3(0.0), vec3(1.0,20.0,1.0));\n" +
+                "   if(resultPosition.x == 0.0) newVelocity.x = +abs(newVelocity.x);\n" +
+                "   if(resultPosition.z == 0.0) newVelocity.z = +abs(newVelocity.z);\n" +
+                "   if(resultPosition.x == 1.0) newVelocity.x = -abs(newVelocity.x);\n" +
+                "   if(resultPosition.z == 1.0) newVelocity.z = -abs(newVelocity.z);\n" +
                 "   resultVelocity = vec4(newVelocity, 0.0);\n" +
                 "   resultRotation = vec4(rotation, 0.0);\n" +
                 "   resultMetadata = metadata;\n" +
+                // todo particles clump too easily... why???
                 "}"
     )
 
@@ -228,8 +244,7 @@ object FluidSimulator {
 
         bindRenderAndSwap(particlesProgram, sim.particles) { particles ->
             v1f("dt", dt)
-            v2f("texelSize", sim.texelSize)
-            sim.velocity.read.getTexture0().bindTrulyLinear(this, "fluidVelocityTex")
+            sim.velocity.read.getTexture0().bindTrulyNearest(this, "fluidVelocityTex")
             sim.pressure.read.getTexture0().bindTrulyNearest(this, "fluidPressureTex")
             particles.getTextureI(0).bindTrulyNearest(this, "positionTex")
             particles.getTextureI(1).bindTrulyNearest(this, "velocityTex")

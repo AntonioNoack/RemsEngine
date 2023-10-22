@@ -3,8 +3,10 @@ package me.anno.tests.physics.fluid
 import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.AnimTexture
-import me.anno.ecs.components.mesh.*
-import me.anno.ecs.components.mesh.terrain.TerrainUtils
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MaterialCache
+import me.anno.ecs.components.mesh.MeshCache
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.RenderView
@@ -14,25 +16,36 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
-import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
+import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
+import me.anno.maths.Maths.mix
+import me.anno.studio.StudioBase
+import me.anno.tests.physics.fluid.FluidMeshShader.createFluidMesh
 import me.anno.tests.physics.fluid.FluidSimulator.splashShader
 import me.anno.tests.physics.fluid.FluidSimulator.splatShader
 import me.anno.ui.Panel
-import me.anno.utils.types.Arrays.resize
+import me.anno.utils.OS.downloads
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import java.util.*
+import kotlin.math.pow
 
 var mx = 0f
 var my = 0f
+
+val cellSize = 0.03f
+val waveHeight = 5f
 
 fun step(it: Panel, lx: Float, ly: Float, s: Float, sim: FluidSimulation) {
 
@@ -48,9 +61,9 @@ fun step(it: Panel, lx: Float, ly: Float, s: Float, sim: FluidSimulation) {
                 else -> 0
             }
             if (pressForce != 0) {
-                splashShader.apply {
-                    useFrame(sim.velocity.read) {
-                        GFXState.blendMode.use(BlendMode.PURE_ADD) {
+                GFXState.blendMode.use(BlendMode.PURE_ADD) {
+                    splashShader.apply {
+                        useFrame(sim.velocity.read) {
                             use()
                             v1f("strength", 10f * s * pressForce)
                             v4f("posSize", lx, ly, s, s)
@@ -63,7 +76,6 @@ fun step(it: Panel, lx: Float, ly: Float, s: Float, sim: FluidSimulation) {
             }
 
             // user interaction
-            //  velocity.read -> velocity.write
             val force = 100f * s / it.height
             val dx = mx * force
             val dy = my * force
@@ -90,30 +102,29 @@ fun step(it: Panel, lx: Float, ly: Float, s: Float, sim: FluidSimulation) {
     }
 }
 
-val fluidMeshShader = object : ECSMeshShader("fluid") {
+class ParticleShader(val sim: FluidSimulation) : ECSMeshShader("particles") {
     override fun createVertexStages(flags: Int): List<ShaderStage> {
         val defines = createDefines(flags)
-        val variables = createVertexVariables(flags)
+        val variables = createVertexVariables(flags) + listOf(
+            Variable(GLSLType.V3F, "areaSize"),
+            Variable(GLSLType.S2D, "positionTex"),
+            Variable(GLSLType.S2D, "rotationTex"),
+            Variable(GLSLType.S2D, "metadataTex"),
+        )
         val stage = ShaderStage(
             "vertex",
-            variables + listOf(
-                Variable(GLSLType.S2D, "heightTex"),
-                Variable(GLSLType.V1F, "waveHeight")
-            ), defines.toString() +
-                    "localPosition = coords + vec3(0,waveHeight * texture(heightTex,uvs).x,0);\n" + // is output, so no declaration needed
+            variables, defines.toString() +
+                    "ivec2 texSize = textureSize(positionTex,0);\n" +
+                    "ivec2 particleUV = ivec2(gl_InstanceID % texSize.x, gl_InstanceID / texSize.x);\n" +
+                    "vec3 particlePos = texelFetch(positionTex, particleUV, 0).xyz - vec3(0.5, 0.0, 0.5);\n" +
+                    "localPosition = particlePos * areaSize + coords;\n" +
                     motionVectorInit +
 
                     instancedInitCode +
 
-                    // normalInitCode +
-                    "#ifdef COLORS\n" +
-                    "   vec2 texSize = textureSize(heightTex,0);\n" +
-                    "   vec2 du = vec2(1.0/texSize.x,0.0), dv = vec2(0.0,1.0/texSize.y);\n" +
-                    "   float dx = texture(heightTex,uvs+du).x - texture(heightTex,uvs-du).x;\n" +
-                    "   float dz = texture(heightTex,uvs+dv).x - texture(heightTex,uvs-dv).x;\n" +
-                    "   normal = normalize(vec3(dx*waveHeight, 1.0, dz*waveHeight));\n" +
-                    "   tangent = tangents;\n" +
-                    "#endif\n" +
+                    animCode0() +
+                    normalInitCode +
+                    animCode1 +
 
                     applyTransformCode +
                     colorInitCode +
@@ -125,40 +136,15 @@ val fluidMeshShader = object : ECSMeshShader("fluid") {
         if (flags.hasFlag(USES_PRS_TRANSFORM)) stage.add(ShaderLib.quatRot)
         return listOf(stage)
     }
-}
 
-fun createFluidMesh(sim: FluidSimulation, waveHeight: Float): Mesh {
-
-    // todo use procedural mesh instead?
-
-    val w = sim.width
-    val h = sim.height
-    val mesh = Mesh()
-    TerrainUtils.generateRegularQuadHeightMesh(
-        w, h, 0, w, false, 1f, mesh,
-        { 0f }, { -1 }
-    )
-    // generate UVs
-    val pos = mesh.positions!!
-    val uvs = mesh.uvs.resize(pos.size / 3 * 2)
-    for (i in uvs.indices step 2) {
-        uvs[i] = 0.5f + pos[i / 2 * 3] / w
-        uvs[i + 1] = 0.5f - pos[i / 2 * 3 + 2] / h
+    override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
+        super.bind(shader, renderer, instanced)
+        val data = sim.particles.read
+        data.getTextureI(0).bindTrulyLinear(shader, "positionTex")
+        data.getTextureI(2).bindTrulyLinear(shader, "rotationTex")
+        data.getTextureI(3).bindTrulyLinear(shader, "metadataTex")
+        shader.v3f("areaSize", sim.width * cellSize, waveHeight, sim.height * cellSize)
     }
-    mesh.uvs = uvs
-    mesh.invalidateGeometry()
-
-    val fluidMaterial = Material()
-    fluidMaterial.shader = fluidMeshShader
-    fluidMaterial.shaderOverrides["heightTex"] = TypeValueV2(GLSLType.S2D) { sim.pressure.read }
-    fluidMaterial.shaderOverrides["waveHeight"] = TypeValue(GLSLType.V1F, waveHeight)
-    fluidMaterial.pipelineStage = TRANSPARENT_PASS
-    fluidMaterial.metallicMinMax.set(1f)
-    fluidMaterial.roughnessMinMax.set(0f)
-    fluidMaterial.diffuseBase.w = 1f
-    fluidMaterial.indexOfRefraction = 1.33f // water
-    mesh.materials = listOf(fluidMaterial.ref)
-    return mesh
 }
 
 /**
@@ -173,18 +159,69 @@ fun main() {
 
     val w = 1024
     val h = 1024
-    val p = 20
+    val p = 1024
     val sim = FluidSimulation(w, h, p)
+
+    val duckModel = downloads.getChild("3d/Rubber Duck.glb")
 
     val init = lazy {
         // initialize textures
         sim.velocity.read.clearColor(0f, 0f, 0f, 1f) // 2d, so -1 = towards bottom right
-        sim.pressure.read.clearColor(0.5f, 0f, 0f, 1f) // 1d, so max level
-        // todo initialize sim.particles randomly
-        sim.particles.read.clearColor(0)
+        sim.pressure.read.clearColor(1f, 0f, 0f, 1f) // 1d, so max level
+        // initialize sim.particles
+        sim.particles.read.clearColor(0) // set everything zero
+        // initialize positions randomly
+        val particleData = sim.particles.read
+        val wi = particleData.width
+        val hi = particleData.height
+        val positions = FloatArray(wi * hi * 3)
+        val random = Random()
+        for (i in 0 until p) {
+            positions[i * 3 + 0] = mix(0.01f, 0.99f, random.nextFloat())
+            positions[i * 3 + 2] = mix(0.01f, 0.99f, random.nextFloat())
+            positions[i * 3 + 1] = 1f
+        }
+        (particleData.getTextureI(0) as Texture2D).createRGB(positions, false)
+        // initialize metadata randomly
+        val metadata = FloatArray(wi * hi * 4) // min-fluid-height, radius, mass
+        for (i in 0 until wi * hi) {
+            val radius = 0.05f / waveHeight // mix(0.1f, 1f, random.nextFloat())
+            val density = 0.2f
+            val volume = 4f / 3f * PIf * radius.pow(3)
+            metadata[i * 4] = radius
+            metadata[i * 4 + 1] = radius
+            metadata[i * 4 + 2] = density * volume // mass
+            metadata[i * 4 + 3] = density
+        }
+        (particleData.getTextureI(3) as Texture2D).createRGBA(metadata, false)
+        // todo set rotation randomly
     }
 
-    val waveHeight = 50f
+    val ducks = Entity("Ducks")
+    val materials = MeshCache[duckModel]!!.materials
+    val shader = ParticleShader(sim)
+    val newMaterials = materials.map {
+        println(MaterialCache[it]!!.run { "$name: $diffuseBase, $this" })
+        val material = MaterialCache[it]!!.clone() as Material
+        material.shader = shader
+        material.ref
+    }
+    for (i in 0 until p) {
+        val duck = object : MeshComponent(duckModel) {
+            // extend theoretical bounds
+            override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+                localAABB.setMin(-sim.width * 0.5 * cellSize, 0.0, -sim.height * 0.5 * cellSize)
+                localAABB.setMax(+sim.width * 0.5 * cellSize, waveHeight.toDouble(), +sim.height * 0.5 * cellSize)
+                localAABB.transform(globalTransform, globalAABB)
+                aabb.union(globalAABB)
+                return true
+            }
+        }
+        duck.isInstanced = true
+        duck.materials = newMaterials
+        ducks.add(duck)
+    }
+
     val mesh = createFluidMesh(sim, waveHeight)
     val comp = object : MeshComponent(mesh) {
 
@@ -193,14 +230,14 @@ fun main() {
             val rayDir = ci.getMouseRayDirection()
             val rayPos = ci.cameraPosition
             val dist = (waveHeight - rayPos.y) / rayDir.y
-            val gx = 0.5f + (rayPos.x + dist * rayDir.x) / w
-            val gz = 0.5f + (rayPos.z + dist * rayDir.z) / h
+            val gx = 0.5f + (rayPos.x + dist * rayDir.x) / (w * cellSize)
+            val gz = 0.5f + (rayPos.z + dist * rayDir.z) / (h * cellSize)
             val lx = if (dist > 0f) gx.toFloat() else 0f
             val ly = if (dist > 0f) gz.toFloat() else 0f
             // initialize, if needed
             init.value
             // step physics
-            step(ci, lx, ly, 0.2f * dist.toFloat() / max(w, h), sim)
+            step(ci, lx, ly, 0.2f * dist.toFloat() / (max(w, h) * cellSize), sim)
         }
 
         override fun onUpdate(): Int {
@@ -219,11 +256,15 @@ fun main() {
             return true
         }
     }
-    val scene = Entity(comp)
+
+    val scene = Entity("Scene", comp)
+    scene.add(ducks)
     // we handle collisions ourselves
     comp.collisionMask = 0
     testSceneWithUI("FluidSim", scene) {
+        StudioBase.instance!!.enableVSync = true
         it.editControls = object : DraggingControls(it.renderer) {
+            override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {}
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
                 super.onMouseMoved(x, y, dx, dy)
                 if (Input.isLeftDown) {

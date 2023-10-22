@@ -105,7 +105,7 @@ object TerrainUtils {
         offset: Int,
         stride: Int,
         flipY: Boolean,
-        cellSizeMeters: Float,
+        cellSize: Float,
         mesh: Mesh,
         heightMap: HeightMap,
         colorMap: ColorMap
@@ -139,9 +139,9 @@ object TerrainUtils {
         for (y in 0 until numPointsZ) {
             var i = y * stride + offset
             for (x in 0 until numPointsX) {
-                positions[j++] = (x - centerX) * cellSizeMeters
+                positions[j++] = (x - centerX) * cellSize
                 positions[j++] = heightMap[i]
-                positions[j++] = (y - centerY) * cellSizeMeters
+                positions[j++] = (y - centerY) * cellSize
                 colors[l++] = colorMap[i]
                 i++
             }

@@ -141,7 +141,6 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        getMesh()
         val mesh = getMeshOrNull()
         if (mesh != null) {
             val aabb2 = mesh.getBounds()
@@ -156,7 +155,13 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     fun fillSpace(mesh: Mesh, transform: Matrix4x3d?, dst: AABBd) {
         // add aabb of that mesh with the transform
         val bounds = mesh.getBounds()
-        if (transform != null) bounds.transformUnion(transform, dst)
+        if (transform != null) bounds.transformUnion(transform, dst, dst)
+        else dst.union(bounds)
+    }
+
+    fun fillSpace(bounds: AABBd, transform: Matrix4x3d?, dst: AABBd) {
+        // add aabb of that mesh with the transform
+        if (transform != null) bounds.transformUnion(transform, dst, dst)
         else dst.union(bounds)
     }
 

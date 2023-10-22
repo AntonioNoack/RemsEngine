@@ -20,6 +20,8 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.TextureLib.blackTexture
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.structures.tuples.IntPair
 
@@ -62,12 +64,14 @@ class GlassPass : TransparentPass() {
                                 "finalEmissive = finalColor * finalAlpha;\n" + // reflections
                                 "finalColor = -log(finalColor0) * finalAlpha;\n" + // diffuse tinting ; todo light needs to get tinted by closer glass-panes...
                                 "finalAlpha = 1.0;\n"
-                    ).add("" +
-                            "float fresnelSchlick(float cosine, float ior) {\n" +
-                            "   float r0 = (1.0 - ior) / (1.0 + ior);\n" +
-                            "   r0 = r0 * r0;\n" +
-                            "   return r0 + (1.0 - r0) * pow(1.0 - cosine, 5.0);\n" +
-                            "}\n")
+                    ).add(
+                        "" +
+                                "float fresnelSchlick(float cosine, float ior) {\n" +
+                                "   float r0 = (1.0 - ior) / (1.0 + ior);\n" +
+                                "   r0 = r0 * r0;\n" +
+                                "   return r0 + (1.0 - r0) * pow(1.0 - cosine, 5.0);\n" +
+                                "}\n"
+                    )
                 )
             }
         }
@@ -111,18 +115,18 @@ class GlassPass : TransparentPass() {
 
         val r0 = GFXState.currentRenderer
 
-        val s0 = r0.deferredSettings!!
+        val s0 = r0.deferredSettings
 
-        val l0 = s0.findLayer(DeferredLayerType.COLOR)!!
-        val l1 = s0.findLayer(DeferredLayerType.EMISSIVE)!!
+        val l0 = s0?.findLayer(DeferredLayerType.COLOR)
+        val l1 = s0?.findLayer(DeferredLayerType.EMISSIVE)
 
         combine {
-            val shader = applyShader[IntPair(l0.texIndex, l1.texIndex)]
+            val shader = applyShader[IntPair(l0?.texIndex ?: 0, l1?.texIndex ?: 1)]
             shader.use()
 
             // bind all textures
-            s0.findTexture(b0, l0)!!.bindTrulyNearest(shader, "diffuseSrcTex")
-            s0.findTexture(b0, l1)!!.bindTrulyNearest(shader, "emissiveSrcTex")
+            (s0?.findTexture(b0, l0) ?: whiteTexture).bindTrulyNearest(shader, "diffuseSrcTex")
+            (s0?.findTexture(b0, l1) ?: blackTexture).bindTrulyNearest(shader, "emissiveSrcTex")
             tmp.getTextureI(0).bindTrulyNearest(shader, "diffuseGlassTex")
             tmp.getTextureI(1).bindTrulyNearest(shader, "emissiveGlassTex")
 
