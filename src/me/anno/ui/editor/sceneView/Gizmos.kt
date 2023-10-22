@@ -32,41 +32,48 @@ object Gizmos {
 
     fun drawScaleGizmos(
         cameraTransform: Matrix4f, position: Vector3d, scale: Double,
-        clickId: Int, chosenId: Int, md: Vector3d
+        clickId: Int, chosenId: Int, mouseDirection: Vector3d
     ): Int {
-        val a = drawMesh(cameraTransform, position, scale, clickId, chosenId, md, scaleRef)
-        val b = drawMesh(cameraTransform, position, scale * 0.35, clickId + 3, chosenId, md, arrowRef1)
+        val a = drawMesh(cameraTransform, position, scale, clickId, chosenId, mouseDirection, scaleRef)
+        val b = drawMesh(cameraTransform, position, scale * 0.35, clickId + 3, chosenId, mouseDirection, arrowRef1)
         return if (b != 0) b.inv().and(7) else a
     }
 
     fun drawRotateGizmos(
         cameraTransform: Matrix4f, position: Vector3d, scale: Double,
-        clickId: Int, chosenId: Int, md: Vector3d
+        clickId: Int, chosenId: Int, mouseDirection: Vector3d
     ): Int {
-        return drawMesh(cameraTransform, position, scale, clickId, chosenId, md, ringRef)
+        return drawMesh(cameraTransform, position, scale, clickId, chosenId, mouseDirection, ringRef)
     }
 
     fun drawTranslateGizmos(
         cameraTransform: Matrix4f, position: Vector3d, scale: Double,
-        clickId: Int, chosenId: Int, md: Vector3d
+        clickId: Int, chosenId: Int, mouseDirection: Vector3d
     ): Int {
-        val a = drawMesh(cameraTransform, position, scale, clickId, chosenId, md, arrowRef)
-        val b = drawMesh(cameraTransform, position, scale * 0.35, clickId + 3, chosenId, md, arrowRef1)
+        val a = drawMesh(cameraTransform, position, scale, clickId, chosenId, mouseDirection, arrowRef)
+        val b = drawMesh(cameraTransform, position, scale * 0.35, clickId + 3, chosenId, mouseDirection, arrowRef1)
         return if (b != 0) b.inv().and(7) else a
     }
 
     fun drawMesh(
         cameraTransform: Matrix4f, position: Vector3d, scale: Double,
-        clickId: Int, chosenId: Int, md: Vector3d, ref: FileReference
+        clickId: Int, chosenId: Int, mouseDirection: Vector3d, ref: FileReference
     ): Int {
         val mesh = MeshCache[ref] ?: return 0
-        val x = drawMesh(cameraTransform, position, rotations[0], scale, colorX, clickId, chosenId, mesh, md)
-        val y = drawMesh(cameraTransform, position, rotations[1], scale, colorY, clickId + 1, chosenId, mesh, md)
-        val z = drawMesh(cameraTransform, position, rotations[2], scale, colorZ, clickId + 2, chosenId, mesh, md)
+        val x = drawMesh(
+            cameraTransform, position, rotations[0], scale,
+            colorX, clickId, chosenId, mesh, mouseDirection
+        )
+        val y = drawMesh(
+            cameraTransform, position, rotations[1], scale,
+            colorY, clickId + 1, chosenId, mesh, mouseDirection
+        )
+        val z = drawMesh(
+            cameraTransform, position, rotations[2], scale,
+            colorZ, clickId + 2, chosenId, mesh, mouseDirection
+        )
         return x.toInt() + y.toInt(2) + z.toInt(4)
     }
-
-    // todo ui does not need lighting, and we can use pbr rendering
 
     val local = Matrix4x3d()
     val localInv = Matrix4x3d()
@@ -83,16 +90,16 @@ object Gizmos {
     fun drawMesh(
         cameraTransform: Matrix4f,
         position: Vector3d, rotation: Quaterniond, scale: Double,
-        color: Int, clickId: Int, chosenId: Int, mesh: Mesh, md: Vector3d
+        color: Int, clickId: Int, chosenId: Int, mesh: Mesh, mouseDirection: Vector3d
     ): Boolean = drawMesh(
         cameraTransform, position, rotation, scale, defaultMaterial,
-        if (clickId == chosenId) -1 else color, mesh, md
+        if (clickId == chosenId) -1 else color, mesh, mouseDirection
     )
 
     fun drawMesh(
         cameraTransform: Matrix4f,
         position: Vector3d, rotation: Quaterniond, scale: Double,
-        material: Material, color: Int, mesh: Mesh, md: Vector3d
+        material: Material, color: Int, mesh: Mesh, mouseDirection: Vector3d
     ): Boolean {
 
         val localTransform = local
@@ -104,7 +111,7 @@ object Gizmos {
         localTransform.invert(localInv)
 
         rayPos.set(cameraPosition)
-        rayDir.set(md)
+        rayDir.set(mouseDirection)
 
         localInv.transformPosition(rayPos)
         localInv.transformDirection(rayDir)

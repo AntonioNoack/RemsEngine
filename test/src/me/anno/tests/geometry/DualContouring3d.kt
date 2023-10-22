@@ -4,29 +4,21 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.geometry.DualContouring3d
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Vector3f
+
+fun sample(xi: Float, yi: Float, zi: Float): Float {
+    val x = (xi - sx / 2) * s - offset.x
+    val y = (yi - sy / 2) * s - offset.y
+    val z = (zi - sz / 2) * s - offset.z
+    val pos = JomlPools.vec4f.create()
+    val value = comp.computeSDF(pos.set(x, y, z, 0f), seeds)
+    JomlPools.vec4f.sub(1)
+    return value
+}
 
 fun main() {
 
-    val sx = 64
-    val sy = 64
-    val sz = 64
-
-    val offset = Vector3f(0.5f)
-
-    val s = 0.02f
-    val comp = dualContouringTest()
-    val seeds = IntArrayList(8)
-    val func = DualContouring3d.Func3d { xi, yi, zi ->
-        val pos = JomlPools.vec4f.create()
-        val x = (xi - sx / 2) * s - offset.x
-        val y = (yi - sy / 2) * s - offset.y
-        val z = (zi - sz / 2) * s - offset.z
-        val value = comp.computeSDF(pos.set(x, y, z, 0f), seeds)
-        JomlPools.vec4f.sub(1)
-        value
-    }
+    val func = DualContouring3d.Func3d { xi, yi, zi -> sample(xi, yi, zi) }
 
     val grad = DualContouring3d.gradient(func)
     val edges = DualContouring3d.contour3d(sx, sy, sz, func, grad)

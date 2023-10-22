@@ -9,27 +9,22 @@ import org.joml.AABBf
 import kotlin.math.sqrt
 
 fun main() {
-    val w = 32
-    val h = 16
-    val t = (w * w + h * h) * 0.1f
-    // val random = Random(1234L)
-    val values = FloatArray(w * h) {
-        val xi = it % w
-        val yi = it / w
-        val x = xi - (w - 1f) / 2f
-        val y = yi - (h - 1f) / 2f
-        (x * x + y * y) * 2f - t
-        // random.nextFloat() - 0.5f
+    val values = FloatArray(sx * sy) {
+        val xi = it % sx
+        val yi = it / sx
+        sample(xi.toFloat(), yi.toFloat(), sz * 0.5f)
     }
-    val polygons = MarchingSquares.march(w, h, values, 0f,
-        AABBf(0f, 0f, 0f, w - 1f, h - 1f, 0f))
+    val polygons = MarchingSquares.march(
+        sx, sy, values, 0f,
+        AABBf(0f, 0f, 0f, sx - 1f, sy - 1f, 0f)
+    )
     val scale = 8
     val f0 = 1f / scale
     val f1 = 3f / scale
-    val field = FloatImage(w, h, 1, values)
-    val fieldScale = 2f / (values.maxOrNull()!! - values.minOrNull()!!)
+    val field = FloatImage(sx, sy, 1, values)
+    val fieldScale = 1f / (values.maxOrNull()!! - values.minOrNull()!!)
     ImageWriter.writeImageFloat(
-        (w - 1) * scale, (h - 1) * scale,
+        (sx - 1) * scale, (sy - 1) * scale,
         "marchingSquares", 32, false
     ) { x, y, _ ->
         val px = x.toFloat() / scale

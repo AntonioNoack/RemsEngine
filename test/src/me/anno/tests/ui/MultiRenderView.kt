@@ -1,7 +1,6 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTab
@@ -18,7 +17,7 @@ fun main() {
         val list = CustomList(false, style)
         ECSSceneTabs.open(ECSSceneTab(flatCube.front.ref, PlayMode.EDITING), true)
         for (i in 0 until 3) {
-            list.add(SceneView(EditorState, PlayMode.EDITING, style))
+            list.add(SceneView(PlayMode.EDITING, style))
         }
         list
     }

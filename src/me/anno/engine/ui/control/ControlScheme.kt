@@ -44,17 +44,17 @@ import kotlin.math.sin
 
 // todo touch controls
 
-open class ControlScheme(val camera: Camera, val library: EditorState, val view: RenderView) :
+open class ControlScheme(val camera: Camera, val view: RenderView) :
     NineTilePanel(style) {
 
-    constructor(view: RenderView) : this(view.editorCamera, view.library, view)
+    constructor(view: RenderView) : this(view.editorCamera, view)
 
     override fun isOpaqueAt(x: Int, y: Int): Boolean = true
 
     val cameraNode = camera.entity!!
 
     val selectedEntities
-        get() = library.selection.mapNotNull {
+        get() = EditorState.selection.mapNotNull {
             when (it) {
                 is Component -> it.entity
                 is Entity -> it
@@ -189,7 +189,7 @@ open class ControlScheme(val camera: Camera, val library: EditorState, val view:
         val (e, c) = view.resolveClick(x, y)
         // show the entity in the property editor
         // but highlight the specific mesh
-        library.select(c ?: e, Input.isShiftDown)
+        EditorState.select(c ?: e, Input.isShiftDown)
     }
 
     open fun drawGizmos() {

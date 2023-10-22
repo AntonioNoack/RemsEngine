@@ -13,7 +13,6 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.Skybox
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
@@ -114,8 +113,9 @@ class CompileTest {
         if (printResults) dst.tryMkdirs()
         val ui = UITests()
         val scene = createTestScene()
-        EditorState.prefabSource = scene.ref
-        val rv = RenderView(EditorState, PlayMode.EDITING, style)
+        val rv = object : RenderView(PlayMode.EDITING, style) {
+            override fun getWorld() = scene
+        }
         ui.prepareUI(rv)
         rv.setPosSize(0, 0, ui.osWindow.width, ui.osWindow.height)
         val tmp = Framebuffer("tmp", rv.width, rv.height, 1, 1, false, DepthBufferType.NONE)

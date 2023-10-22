@@ -84,7 +84,7 @@ fun main() {
         val buildMenu = PanelListX(style)
         val bmWrapper = ScrollPanelX(buildMenu, style)
 
-        val sceneView = SceneView(EditorState, PlayMode.PLAYING, style)
+        val sceneView = SceneView(PlayMode.PLAYING, style)
         val renderView = sceneView.renderer
         renderView.localPlayer = player
 

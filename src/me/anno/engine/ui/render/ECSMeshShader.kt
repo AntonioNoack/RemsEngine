@@ -15,6 +15,7 @@ import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.bvh.RayTracing.loadMat4x3
 import kotlin.math.max
@@ -134,8 +135,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "#ifdef DEFERRED\n" +
                 "   float factor = finalMetallic * (1.0 - finalRoughness);\n" +
                 "   if(factor > 0.0){\n" +
-                // todo why do I need to flip x here???
-                "       vec3 dir = vec3(-1,1,1) * reflect(V0, finalNormal);\n" +
+                "       vec3 dir = $cubemapsAreLeftHanded * reflect(V0, finalNormal);\n" +
                 "       vec3 newColor = vec3(0.0);\n" +
                 // texture is SRGB -> convert to linear
                 // todo like planar reflections, blur LODs (?)

@@ -11,7 +11,7 @@ import me.anno.io.text.TextWriter
 import me.anno.ui.editor.code.codemirror.LanguageStyle
 
 fun main() {
-    NodeLibrary.init()
+    NodeLibrary.registerClasses()
     registerCustomClass(SaveableArray())
     registerCustomClass(LanguageStyle())
     val source = "[{\"class\":\"SetLocalVariableNode\",\"i:*ptr\":1,\"NodeInput[]:inputs\":[3,{\"i:*ptr\":2," +

@@ -10,8 +10,6 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.render.Texture
@@ -53,7 +51,7 @@ class ChromaticAberrationNode : ActionNode(
                 shader.v2f("rOffset", rOffset)
                 shader.v2f("bOffset", bOffset)
                 shader.v4f("params", color.width.toFloat() / color.height, 1f, strength, power)
-                color.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                color.bindTrulyLinear(shader, "colorTex")
                 flat01.draw(shader)
             }
             setOutput(1, Texture(result.getTexture0()))
@@ -76,6 +74,6 @@ class ChromaticAberrationNode : ActionNode(
                     "   vec2 ga = texture(colorTex,uv).ga;\n" +
                     "   result = vec4(texture(colorTex,uv-duv+rOffset).r,ga.x,texture(colorTex,uv+duv+bOffset).b,ga.y);\n" +
                     "}\n"
-        ).setTextureIndices("colorTex", "depthTex") as Shader
+        )
     }
 }

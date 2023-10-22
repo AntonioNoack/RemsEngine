@@ -264,35 +264,42 @@ open class CubemapTexture(
     }
 
     companion object {
+
+        /**
+         * cubemaps are in a left-handed coordinate system in OpenGL, because apparently Renderman did it that way;
+         * the rest of OpenGL is right-handed, so we get a mismatch, which we can fix by multiplying the uvw with this vector
+         * */
+        val cubemapsAreLeftHanded = "vec3(-1.0,1.0,1.0)"
+
         var allocated = 0L
         fun allocate(oldValue: Long, newValue: Long): Long {
             allocated += newValue - oldValue
             return newValue
         }
 
-        fun rotateForCubemap(rot3: Quaterniond, side: Int) {
+        fun rotateForCubemap(dst: Quaterniond, side: Int) {
             // rotate based on direction
             // POSITIVE_X, NEGATIVE_X, POSITIVE_Y, NEGATIVE_Y, POSITIVE_Z, NEGATIVE_Z
             when (side) {
-                0 -> rot3.rotateY(+PI * 0.5)
-                1 -> rot3.rotateY(-PI * 0.5)
-                2 -> rot3.rotateX(+PI * 0.5)
-                3 -> rot3.rotateX(-PI * 0.5)
+                0 -> dst.rotateY(+PI * 0.5)
+                1 -> dst.rotateY(-PI * 0.5)
+                2 -> dst.rotateX(+PI * 0.5)
+                3 -> dst.rotateX(-PI * 0.5)
                 // 4 is already correct
-                5 -> rot3.rotateY(PI)
+                5 -> dst.rotateY(PI)
             }
         }
 
-        fun rotateForCubemap(rot3: Quaternionf, side: Int) {
+        fun rotateForCubemap(dst: Quaternionf, side: Int) {
             // rotate based on direction
             // POSITIVE_X, NEGATIVE_X, POSITIVE_Y, NEGATIVE_Y, POSITIVE_Z, NEGATIVE_Z
             when (side) {
-                0 -> rot3.rotateY(+Maths.PIf * 0.5f)
-                1 -> rot3.rotateY(-Maths.PIf * 0.5f)
-                2 -> rot3.rotateX(+Maths.PIf * 0.5f)
-                3 -> rot3.rotateX(-Maths.PIf * 0.5f)
+                0 -> dst.rotateY(+Maths.PIf * 0.5f)
+                1 -> dst.rotateY(-Maths.PIf * 0.5f)
+                2 -> dst.rotateX(+Maths.PIf * 0.5f)
+                3 -> dst.rotateX(-Maths.PIf * 0.5f)
                 // 4 is already correct
-                5 -> rot3.rotateY(Maths.PIf)
+                5 -> dst.rotateY(Maths.PIf)
             }
         }
     }

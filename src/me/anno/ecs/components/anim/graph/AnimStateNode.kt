@@ -37,7 +37,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         )
 
         fun register() {
-            NodeLibrary.init()
+            NodeLibrary.registerClasses()
             registerCustomClass(AnimStateNode())
         }
     }

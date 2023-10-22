@@ -153,7 +153,7 @@ class ParticleShader(val sim: FluidSimulation) : ECSMeshShader("particles") {
  * adapted from https://github.com/PavelDoGreat/WebGL-Fluid-Simulation/blob/master/script.js
  *
  * todo add terrain (2.5d, without overhangs)
- * todo add small bodies like boats/ducks/... on the surface
+ * done: add small bodies like boats/ducks/... on the surface
  * */
 fun main() {
 

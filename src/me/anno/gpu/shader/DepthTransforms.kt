@@ -34,6 +34,10 @@ object DepthTransforms {
             "   if(d_fovFactor.z < 0.0) return matMul(d_orthoMat, vec4(uv*2.0-1.0,depth,1.0));\n" + // orthographic
             "   return rawCameraDirection(uv) * depth;\n" +
             "}\n" +
+            "vec3 getLocalCameraPosition(vec2 uv){\n" +
+            "   if(d_fovFactor.z < 0.0) return matMul(d_orthoMat, vec4(uv*2.0-1.0,0.0,1.0));\n" + // orthographic
+            "   return vec3(0.0);\n" +
+            "}\n" +
             "vec3 rawDepthToPosition(vec2 uv, float rawDepth){ return depthToPosition(uv, rawToDepth(rawDepth)); }\n" +
             "#endif\n"
 

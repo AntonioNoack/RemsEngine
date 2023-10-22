@@ -337,7 +337,7 @@ fun main() {
     }
     testUI2("Hexagon Sphere") {
         EditorState.prefabSource = entity.ref
-        val main = SceneView(EditorState, PlayMode.EDITING, style)
+        val main = SceneView(PlayMode.EDITING, style)
         main.weight = 1f
         val controls = PanelListY(style)
         controls.add(IntInput("n", "", n, Type.LONG_PLUS, style)

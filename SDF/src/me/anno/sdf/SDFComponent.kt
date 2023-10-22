@@ -13,6 +13,7 @@ import me.anno.engine.raycast.Projection.projectRayToAABBBack
 import me.anno.engine.raycast.Projection.projectRayToAABBFront
 import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.Raycast
+import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.*
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
@@ -936,9 +937,8 @@ open class SDFComponent : ProceduralMesh(), Renderable,
             dropPosition.sub(hovEntity.transform.globalPosition)
             self.addToParent(prefab, hovEntity, 'c', dropPosition, results)
         } else {
-            val library = self.library
-            val root = library.selection.firstInstanceOrNull<SDFGroup>()
-                ?: library.selection.firstInstanceOrNull<Entity>() ?: self.view.getWorld()
+            val root = EditorState.selection.firstInstanceOrNull<SDFGroup>()
+                ?: EditorState.selection.firstInstanceOrNull<Entity>() ?: self.view.getWorld()
             when (root) {
                 is Entity -> {
                     dropPosition.sub(root.transform.globalPosition)

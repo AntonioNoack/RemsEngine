@@ -108,7 +108,9 @@ import kotlin.math.tan
  * a panel that renders the scene;
  * no controls are provided by this class, it just draws
  * */
-open class RenderView(val library: EditorState, var playMode: PlayMode, style: Style) : Panel(style) {
+abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
+
+    abstract fun getWorld(): PrefabSaveable?
 
     private var bloomStrength = 0f // defined by the camera
     private var bloomOffset = 0f // defined by the camera
@@ -324,8 +326,7 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         if (world == null) {
             drawSimpleTextCharByChar(
                 x + width / 2, y + height / 2, 4,
-                if (library.prefabSource == InvalidRef)
-                    "Undefined Scene!" else "Scene Not Found!",
+                "Scene Not Found!",
                 AxisAlignment.CENTER, AxisAlignment.CENTER
             )
         }
@@ -648,14 +649,6 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
         return Pair(clicked as? Entity, clicked as? Component)
     }
 
-    fun getWorld(): PrefabSaveable? {
-        return try {
-            library.prefab?.getSampleInstance()
-        } catch (_: Exception) {
-            null
-        }
-    }
-
     private val tmpRot0 = Quaterniond()
     private val tmpRot1 = Quaterniond()
     fun prepareDrawScene(
@@ -919,10 +912,10 @@ open class RenderView(val library: EditorState, var playMode: PlayMode, style: S
     }
 
     private fun drawSelected() {
-        if (library.selection.isEmpty()) return
+        if (EditorState.selection.isEmpty()) return
         // draw scaled, inverted object (for outline), which is selected
         GFXState.depthMode.use(depthMode) {
-            for (selected in library.selection) {
+            for (selected in EditorState.selection) {
                 when (selected) {
                     is Entity -> drawOutline(selected)
                     is SkyboxBase -> {}

@@ -24,9 +24,8 @@ import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.GameEngineProject
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.RenderView0
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.fonts.FontManager
@@ -641,7 +640,7 @@ object Thumbs {
     }
 
     private val rv by lazy {
-        val rv = RenderView(EditorState, PlayMode.EDITING, style)
+        val rv = RenderView0(PlayMode.EDITING, style)
         rv.enableOrbiting = true
         rv.editorCamera.fovY = 10f.toRadians()
         rv.rotation.identity()

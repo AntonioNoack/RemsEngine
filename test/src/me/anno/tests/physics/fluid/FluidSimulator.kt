@@ -210,10 +210,10 @@ object FluidSimulator {
             sim.velocity.read.getTexture0().bindTrulyNearest(this, "velocityTex")
         }
 
-        if (sim.fluidScaling != 1f) {
+        if (sim.fluidScaling != 0f) {
             bindRenderAndSwap(scalingDownProgram, sim.pressure) { pressure ->
                 pressure.getTexture0().bindTrulyNearest(this, "pressureTex")
-                v1f("scale", sim.fluidScaling) // config
+                v1f("scale", exp(-dt * sim.fluidScaling))
             }
         }
 

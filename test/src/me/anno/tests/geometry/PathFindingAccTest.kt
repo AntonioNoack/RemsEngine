@@ -239,7 +239,7 @@ fun main() {
 
         updateCubes()
 
-        val view = SceneView(EditorState, PlayMode.EDITING, style)
+        val view = SceneView(PlayMode.EDITING, style)
 
         fun raycastPoint(): AccNode? {
             val maxDistance = 1e3

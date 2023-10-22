@@ -508,6 +508,14 @@ object Lists {
         firstOrNull { it is Type } as? Type
 
     @JvmStatic
+    inline fun <reified Type> Iterable<*>.firstInstance() =
+        first { it is Type } as Type
+
+    @JvmStatic
+    inline fun <reified Type> Sequence<*>.firstInstance() =
+        first { it is Type } as Type
+
+    @JvmStatic
     fun <V> Collection<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V> =
         ArrayList(this).sortByTopology(getDependencies)
 

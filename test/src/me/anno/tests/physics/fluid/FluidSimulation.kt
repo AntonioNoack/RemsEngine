@@ -11,7 +11,7 @@ class FluidSimulation(val width: Int, val height: Int, numSurfaceParticles: Int)
     val velocity = RWState { Framebuffer("velocity/$it", width, height, TargetType.FloatTarget2) }
     val divergence = Framebuffer("divergence", width, height, TargetType.FloatTarget1)
     val pressure = RWState { Framebuffer("pressure/$it", width, height, TargetType.FloatTarget1) }
-    var fluidScaling = 1f
+    var fluidScaling = 0f
     var numPressureIterations = 20
     var dissipation = 0.2f // friction factor
 

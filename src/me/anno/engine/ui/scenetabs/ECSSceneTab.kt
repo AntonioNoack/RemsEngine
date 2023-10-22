@@ -237,7 +237,7 @@ class ECSSceneTab(
         // opens window with fullscreen attribute
         val style = style
         val panel = PanelListY(style)
-        panel.add(SceneView(EditorState, PlayMode.PLAY_TESTING, style).apply { weight = 1f })
+        panel.add(SceneView(PlayMode.PLAY_TESTING, style).apply { weight = 1f })
         panel.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
         val window = object : Window(panel, false, windowStack) {
             override fun destroy() {

@@ -254,8 +254,8 @@ fun main() {
         //  - render debug camera view
         //  - render mesh around tested camera
 
-        val sv0 = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
-        val sv1 = SceneView(EditorState, PlayMode.EDITING, DefaultConfig.style)
+        val sv0 = SceneView(PlayMode.EDITING, DefaultConfig.style)
+        val sv1 = SceneView(PlayMode.EDITING, DefaultConfig.style)
         val list = CustomList(false, DefaultConfig.style)
         list.add(sv0, 1f)
         list.add(sv1, 1f)

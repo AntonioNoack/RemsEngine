@@ -4,8 +4,8 @@ import me.anno.ecs.components.light.LightType
 import me.anno.engine.pbr.PBRLibraryGLTF
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.gpu.pipeline.LightShaders.translucencyNL
+import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 
-@Suppress("MayBeConstant")
 object RendererLib {
 
     val skyMapCode = "" +
@@ -16,8 +16,7 @@ object RendererLib {
             "       float maskSharpness = 1.0;\n" + // shouldn't be hardcoded
             "       reflectivity = (reflectivity - 1.0) * maskSharpness + 1.0;\n" +
             "       if(reflectivity > 0.0){\n" +
-            // todo why do I need to flip x here???
-            "           vec3 dir = vec3(-1,1,1) * reflect(V, finalNormal);\n" +
+            "           vec3 dir = $cubemapsAreLeftHanded * reflect(V, finalNormal);\n" +
             "           float lod = finalRoughness * 10.0;\n" +
             "           vec3 skyColor = 0.15 * finalEmissive + finalColor0 * textureLod(reflectionMap, dir, lod).rgb;\n" +
             "           finalColor = mix(finalColor, skyColor, sqrt(reflectivity) * (1.0 - finalOcclusion));\n" +

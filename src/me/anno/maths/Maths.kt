@@ -249,6 +249,12 @@ object Maths {
     fun length(dx: Double, dy: Double, dz: Double) = sqrt(dx * dx + dy * dy + dz * dz)
 
     @JvmStatic
+    fun length(dx: Float, dy: Float, dz: Float, dw: Float) = sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
+
+    @JvmStatic
+    fun length(dx: Double, dy: Double, dz: Double, dw: Double) = sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
+
+    @JvmStatic
     fun distance(x0: Float, y0: Float, x1: Float, y1: Float) = length(x1 - x0, y1 - y0)
 
     @JvmStatic

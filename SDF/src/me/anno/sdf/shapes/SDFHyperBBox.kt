@@ -67,26 +67,36 @@ class SDFHyperBBox : SDFHyperCube() {
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
-    private fun lineSDF(x: Float, y: Float, z: Float): Float {
-        return length(max(x, 0f), max(y, 0f), max(z, 0f)) + min(max(x, max(y, z)), 0f)
+    private fun lineSDF(x: Float, y: Float, z: Float, w: Float): Float {
+        return length(max(x, 0f), max(y, 0f), max(z, 0f), max(w, 0f)) +
+                min(max(max(x, y), max(z, w)), 0f)
     }
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
-        // todo not correct, just 3d
-        val thickness = thickness
         val b = halfExtends
         val k = smoothness * thickness
-        val bx = b.x - k
-        val by = b.y - k
-        val bz = b.z - k
         val e = thickness - k
-        val px = abs(pos.x) - bx
-        val py = abs(pos.y) - by
-        val pz = abs(pos.z) - bz
+        val x = pos.x
+        val y = pos.y
+        val z = pos.z
+        val w = pos.w
+        pos.w = this.w
+        invProject(pos, rotation4di)
+        val px = abs(pos.x) - b.x + k
+        val py = abs(pos.y) - b.y + k
+        val pz = abs(pos.z) - b.z + k
+        val pw = abs(pos.w) - b.w + k
         val qx = abs(px + e) - e
         val qy = abs(py + e) - e
         val qz = abs(pz + e) - e
-        return min(lineSDF(px, qy, qz), min(lineSDF(qx, py, qz), lineSDF(qx, qy, pz))) - k + pos.w
+        val qw = abs(pw + e) - e
+        pos.set(x, y, z, w)
+        return min(
+            lineSDF(px, qy, qz, qw),
+            lineSDF(qx, py, qz, qw),
+            lineSDF(qx, qy, pz, qw),
+            lineSDF(qx, qy, qz, pw)
+        ) - k + w
     }
 
     override fun copyInto(dst: PrefabSaveable) {

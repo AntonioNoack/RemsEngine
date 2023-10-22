@@ -14,6 +14,7 @@ import me.anno.gpu.drawing.Perspective.setPerspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Renderer
+import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
@@ -147,7 +148,7 @@ class PointLight : LightComponent(LightType.POINT) {
                             "   float near = shaderV2;\n" +
                             "   float maxAbsComponent = max(max(abs(lightPos.x),abs(lightPos.y)),abs(lightPos.z));\n" +
                             "   float depthFromShader = near/maxAbsComponent;\n" +
-                            "   lightColor *= texture_array_depth_shadowMapCubic(shadowMapIdx0, lightPos*vec3(1,-1,-1), depthFromShader);\n" +
+                            "   lightColor *= texture_array_depth_shadowMapCubic(shadowMapIdx0, -$cubemapsAreLeftHanded * lightPos, depthFromShader);\n" +
                             "}\n"
                     else "") +
                     "effectiveDiffuse = lightColor * $falloff;\n" +

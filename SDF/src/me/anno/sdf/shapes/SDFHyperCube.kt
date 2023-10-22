@@ -16,6 +16,8 @@ import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Cuboid in 4D.
@@ -94,15 +96,26 @@ open class SDFHyperCube : SDFSmoothShape() {
     }
 
     override fun computeSDFBase(pos: Vector4f, seeds: IntArrayList): Float {
-        // todo not correct, just 3d
-        val r = smoothness
+
+        val c = smoothness
         val b = halfExtends
-        val qx = abs(pos.x) - b.x + r
-        val qy = abs(pos.y) - b.y + r
-        val qz = abs(pos.z) - b.z + r
-        val outer = length(max(0f, qx), max(0f, qy), max(0f, qz))
-        val inner = min(max(qx, max(qy, qz)), 0f)
-        return outer + inner - r + pos.w
+        val x = pos.x
+        val y = pos.y
+        val z = pos.z
+        val w = pos.w
+        pos.w = this.w
+        invProject(pos, rotation4di)
+
+        val qx = abs(pos.x) - b.x + c
+        val qy = abs(pos.y) - b.y + c
+        val qz = abs(pos.z) - b.z + c
+        val qw = abs(pos.w) - b.w + c
+
+        pos.set(x, y, z, w)
+
+        val outer = length(max(0f, qx), max(0f, qy), max(0f, qz), max(0f, qw))
+        val inner = min(max(max(qx, qy), max(qz, qw)), 0f)
+        return outer + inner - c + w
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -116,6 +129,31 @@ open class SDFHyperCube : SDFSmoothShape() {
     override val className: String get() = "SDFHyperCube"
 
     companion object {
+
+        fun invProject(p: Vector4f, r: Vector3f): Vector4f {
+            p.rotateYW(r.y)
+            p.rotateXW(r.x)
+            p.rotateZW(r.z)
+            return p
+        }
+
+        fun Vector4f.rotateXW(angle: Float): Vector4f {
+            val c = cos(angle)
+            val s = sin(angle)
+            return set(x * c - w * s, y, z, x * s + w * c)
+        }
+
+        fun Vector4f.rotateYW(angle: Float): Vector4f {
+            val c = cos(angle)
+            val s = sin(angle)
+            return set(x, y * c - w * s, z, y * s + w * c)
+        }
+
+        fun Vector4f.rotateZW(angle: Float): Vector4f {
+            val c = cos(angle)
+            val s = sin(angle)
+            return set(x, y, z * c - w * s, z * s + w * c)
+        }
 
         const val hyperProjection = "" +
                 // rotate point from 3d into 4d

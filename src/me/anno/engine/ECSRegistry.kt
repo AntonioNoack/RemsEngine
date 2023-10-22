@@ -200,7 +200,7 @@ object ECSRegistry {
             LOGGER.warn("SDF module was not found")
         }
 
-        NodeLibrary.init()
+        NodeLibrary.registerClasses()
 
         if (Build.isDebug) {
             // test classes

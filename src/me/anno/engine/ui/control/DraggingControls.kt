@@ -107,7 +107,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         */
         topLeft.add(TextButton("Snap", false, style)
             .addLeftClickListener {
-                library.select(snappingSettings)
+                EditorState.select(snappingSettings)
             })
         add(topLeft)
     }
@@ -316,7 +316,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             }
             isSelected && Input.isLeftDown && mode != Mode.NOTHING -> {
 
-                val selection = library.selection
+                val selection = EditorState.selection
                 if (selection.isEmpty()) return
                 val prefab = selection.firstInstanceOrNull<PrefabSaveable>()?.root?.prefab ?: return
                 if (!prefab.isWritable) {
@@ -435,7 +435,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     }
 
     val selectedMovables
-        get() = library.selection.mapNotNull {
+        get() = EditorState.selection.mapNotNull {
             when (it) {
                 is DCMovable -> it
                 is Hierarchical<*> -> it.parent as? DCMovable
@@ -547,7 +547,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                     // where? selected / root
                     // done while dragging this, show preview
                     // done place it where the preview was drawn
-                    val root = library.selection.firstInstanceOrNull<Entity>() ?: view.getWorld()
+                    val root = EditorState.selection.firstInstanceOrNull<Entity>() ?: view.getWorld()
                     if (root is Entity) {
                         val position = Vector3d(sampleInstance.transform.localPosition)
                         position.add(dropPosition)

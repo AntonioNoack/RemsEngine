@@ -174,7 +174,7 @@ fun createUI(): Panel {
     }
 
     EditorState.prefabSource = world.ref
-    val sceneView = SceneView(EditorState, PlayMode.PLAYING, style)
+    val sceneView = SceneView(PlayMode.PLAYING, style)
     val renderView = sceneView.renderer
     renderView.renderMode = RenderMode.PHYSICS
     renderView.localPlayer = player

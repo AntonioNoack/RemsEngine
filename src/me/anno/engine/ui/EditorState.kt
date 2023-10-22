@@ -41,7 +41,7 @@ object EditorState {
     val typeList = arrayListOf(
         // todo not all stuff here makes sense
         // todo some stuff is (maybe) missing, e.g. animation panels, particle system editors, ...
-        Type(Dict["Scene View", "ui.customize.sceneView"]) { SceneView(this, PlayMode.EDITING, DefaultConfig.style) },
+        Type(Dict["Scene View", "ui.customize.sceneView"]) { SceneView(PlayMode.EDITING, DefaultConfig.style) },
         Type(Dict["Tree View", "ui.customize.treeView"]) { ECSTreeView(this, DefaultConfig.style) },
         Type(Dict["Properties", "ui.customize.inspector"]) { PropertyInspector({ selection }, DefaultConfig.style) },
         // Dict["Cutting Panel", "ui.customize.cuttingPanel"] to { CuttingView(DefaultConfig.style) },

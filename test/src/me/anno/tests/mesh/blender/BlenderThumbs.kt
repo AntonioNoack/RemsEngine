@@ -14,7 +14,7 @@ fun main() {
         val src = getReference("E:/Documents/Blender")
         val panel = CustomList(false, style)
         panel.add(ECSFileExplorer(src, style))
-        panel.add(SceneView(EditorState, PlayMode.EDITING, style))
+        panel.add(SceneView(PlayMode.EDITING, style))
         panel
     }
 }

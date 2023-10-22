@@ -325,5 +325,19 @@ class RenderMode(
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
         )
+
+        val FOG_TEST =  RenderMode(
+            "Fog Test",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then(HeightExpFogNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
     }
 }

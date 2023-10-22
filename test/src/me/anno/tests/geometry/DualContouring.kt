@@ -5,30 +5,36 @@ import me.anno.image.ImageWriter
 import me.anno.maths.Maths
 import me.anno.maths.geometry.DualContouring
 import me.anno.sdf.SDFComponent
-import me.anno.sdf.SDFGroup
-import me.anno.sdf.shapes.SDFBox
-import me.anno.sdf.shapes.SDFSphere
+import me.anno.sdf.shapes.SDFHyperBBox
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
+import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector2f
 import org.joml.Vector2f.Companion.lengthSquared
+import org.joml.Vector3f
 import kotlin.math.*
 
 fun dualContouringTest(): SDFComponent {
-    val comp = SDFGroup()
-    val epsilon = 1e-3f
-    comp.addChild(SDFSphere().apply {
-        position.add(epsilon)
-    })
-    comp.addChild(SDFBox().apply {
-        position.add(epsilon)
-    })
-    comp.style = SDFGroup.SDFStyle.COLUMNS
-    comp.numStairs = 1f
-    comp.smoothness = 1f
-    comp.type = SDFGroup.CombinationMode.TONGUE
-    return comp
+    val mesh = SDFHyperBBox()
+    mesh.w = 0.35f
+    mesh.thickness = 0.22f
+    mesh.rotation4d = mesh.rotation4d
+        .rotateY((32f).toRadians())
+        .rotateX((-45f).toRadians())
+        .rotateZ((-52f).toRadians())
+    return mesh
 }
+
+val s = 0.05f
+
+val sx = 64
+val sy = 64
+val sz = 64
+
+val offset = Vector3f(0f)
+
+val seeds = IntArrayList(8)
+val comp = dualContouringTest()
 
 fun main() {
 
