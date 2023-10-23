@@ -6,7 +6,7 @@ import me.anno.ecs.components.ui.UIEventType
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Key
 
-class PlayControls(renderer: RenderView) : ControlScheme(renderer) {
+open class PlayControls(renderer: RenderView) : ControlScheme(renderer) {
 
     fun callEvent(event: UIEvent) {
         val ecs = view.getWorld() as? Entity ?: return

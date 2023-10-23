@@ -7,7 +7,7 @@ import me.anno.utils.structures.Iterators.count
 import me.anno.utils.types.Strings.isBlank2
 
 fun main() {
-    val file = getReference("C:\\Users\\Antonio\\Documents\\IdeaProjects\\VideoStudio\\src\\me\\anno")
+    val file = getReference("C:\\Users\\Antonio\\Documents\\IdeaProjects\\RemsEngine\\src\\me\\anno")
     LOGGER.info(countLines(file))
 }
 

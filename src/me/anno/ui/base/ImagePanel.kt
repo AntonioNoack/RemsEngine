@@ -8,8 +8,8 @@ import me.anno.input.Input
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.Style
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.structures.tuples.IntPair
 import kotlin.math.roundToInt
 
@@ -25,7 +25,7 @@ abstract class ImagePanel(style: Style) : Panel(style) {
         STRETCH
     }
 
-    var stretchMode = StretchModes.STRETCH
+    var stretchMode = StretchModes.PADDING
 
     var showAlpha = false
     var flipX = false
@@ -59,6 +59,10 @@ abstract class ImagePanel(style: Style) : Panel(style) {
     var offsetY = 0f
 
     var zoom = 1f
+
+    var minZoom = 1f
+    var maxZoom = 1e3f
+    var zoomSpeed = 0.05f
 
     private fun stretch(texture: ITexture2D): IntPair {
         return when (stretchMode) {
@@ -95,10 +99,6 @@ abstract class ImagePanel(style: Style) : Panel(style) {
         } else super.onMouseMoved(x, y, dx, dy)
     }
 
-    var minZoom = 1f
-    var maxZoom = 1e3f
-    var zoomSpeed = 0.05f
-
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
         val texture = getTexture()
         if (allowZoom && texture != null) {
@@ -119,5 +119,4 @@ abstract class ImagePanel(style: Style) : Panel(style) {
             }
         } else super.onMouseWheel(x, y, dx, dy, byMouse)
     }
-
 }

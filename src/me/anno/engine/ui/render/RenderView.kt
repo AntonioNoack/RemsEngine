@@ -62,7 +62,6 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.RenderGraph
 import me.anno.graph.render.Texture
-import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
@@ -245,11 +244,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         // localPlayer = world.localPlayers.children.firstOrNull() as? LocalPlayer
 
         // todo find which sections shall be rendered for what camera
-        val localPlayer = localPlayer
-        var camera0 = localPlayer?.cameraState?.previousCamera ?: editorCamera
-        val camera1 = localPlayer?.cameraState?.currentCamera ?: editorCamera
-        var blending = localPlayer?.cameraState?.cameraBlendingProgress ?: 0f
-        if (localPlayer == null) updateEditorCameraTransform()
+        val player = localPlayer
+        var camera0 = player?.cameraState?.previousCamera ?: editorCamera
+        val camera1 = player?.cameraState?.currentCamera ?: editorCamera
+        var blending = player?.cameraState?.cameraBlendingProgress ?: 0f
+        if (player == null) updateEditorCameraTransform()
 
         if (blending >= 1f) {
             blending = 1f

@@ -370,24 +370,33 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {
-        writeArray(name, values, force, "S[][]") { arr ->
-            writeArray(arr.size, arr.size - 1) {
-                writeString(arr[it])
-            }
-        }
+        writeArray2D(name, values, force, "S[][]", ::writeString)
+    }
+
+    private fun writeFile(value: FileReference?, workspace: FileReference?) {
+        if (value == null || value == InvalidRef) append("null")
+        else writeString(value.toLocalPath(workspace ?: this.workspace))
     }
 
     override fun writeFile(name: String, value: FileReference?, force: Boolean, workspace: FileReference?) {
         if (force || (value != null && value != InvalidRef)) {
             writeAttributeStart("R", name)
-            if (value == null || value == InvalidRef) append("null")
-            else writeString(value.toLocalPath(workspace ?: this.workspace))
+            writeFile(value, workspace)
         }
     }
 
     override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
         writeArray(name, values, force, "R[]") {
-            writeString(it.toLocalPath(workspace ?: this.workspace))
+            writeFile(it, workspace)
+        }
+    }
+
+    override fun writeFileArray2D(
+        name: String, values: Array<Array<FileReference>>,
+        force: Boolean, workspace: FileReference?
+    ) {
+        writeArray2D(name, values, force, "R[][]") {
+            writeFile(it, workspace)
         }
     }
 
@@ -468,7 +477,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    private fun writeQuaternion(value: Quaternionf) {
+    private fun writeQuaternionf(value: Quaternionf) {
         append('[')
         val x = value.x
         val y = value.y
@@ -484,7 +493,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    private fun writeQuaternion(value: Quaterniond) {
+    private fun writeQuaterniond(value: Quaterniond) {
         append('[')
         val x = value.x
         val y = value.y
@@ -503,33 +512,21 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 1f) {
             writeAttributeStart("q4", name)
-            writeQuaternion(value)
+            writeQuaternionf(value)
         }
     }
 
-    override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) {
-        writeArray(name, values, force, "q4[]") { writeQuaternion(it) }
-    }
+    override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) =
+        writeArray(name, values, force, "q4[]", ::writeQuaternionf)
 
-    override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) {
-        writeArray(name, values, force, "q4[][]") { qs ->
-            writeArray(qs.size, qs.size) {
-                writeQuaternion(qs[it])
-            }
-        }
-    }
+    override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) =
+        writeArray2D(name, values, force, "q4[][]", ::writeQuaternionf)
 
-    override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) {
-        writeArray(name, values, force, "q4d[]") { writeQuaternion(it) }
-    }
+    override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) =
+        writeArray(name, values, force, "q4d[]", ::writeQuaterniond)
 
-    override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) {
-        writeArray(name, values, force, "q4d[][]") { qs ->
-            writeArray(qs.size, qs.size) {
-                writeQuaternion(qs[it])
-            }
-        }
-    }
+    override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) =
+        writeArray2D(name, values, force, "q4d[][]", ::writeQuaterniond)
 
     private fun writeVector2d(value: Vector2d) {
         writeVector2d(value.x, value.y)
@@ -587,7 +584,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 1.0) {
             writeAttributeStart("q4d", name)
-            writeQuaternion(value)
+            writeQuaterniond(value)
         }
     }
 
@@ -628,9 +625,11 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) {
-        writeArray(name, values, force, "v2i[]") { writeVector2i(it) }
-    }
+    override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) =
+        writeArray(name, values, force, "v2i[]", ::writeVector2i)
+
+    override fun writeVector2iArray2D(name: String, values: Array<Array<Vector2i>>, force: Boolean) =
+        writeArray2D(name, values, force, "v2i[][]", ::writeVector2i)
 
     override fun writeVector3i(name: String, value: Vector3i, force: Boolean) {
         if (force || value.x != 0 || value.y != 0 || value.z != 0) {
@@ -639,9 +638,11 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) {
-        writeArray(name, values, force, "v3i[]") { writeVector3i(it) }
-    }
+    override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) =
+        writeArray(name, values, force, "v3i[]", ::writeVector3i)
+
+    override fun writeVector3iArray2D(name: String, values: Array<Array<Vector3i>>, force: Boolean) =
+        writeArray2D(name, values, force, "v3i[][]", ::writeVector3i)
 
     override fun writeVector4i(name: String, value: Vector4i, force: Boolean) {
         if (force || value.x != 0 || value.y != 0) {
@@ -650,9 +651,11 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) {
-        writeArray(name, values, force, "v4i[]") { writeVector4i(it) }
-    }
+    override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) =
+        writeArray(name, values, force, "v4i[]", ::writeVector4i)
+
+    override fun writeVector4iArray2D(name: String, values: Array<Array<Vector4i>>, force: Boolean) =
+        writeArray2D(name, values, force, "v4i[][]", ::writeVector4i)
 
     override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f) {
@@ -661,9 +664,11 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean) {
-        writeArray(name, values, force, "v2[]") { writeVector2f(it) }
-    }
+    override fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean) =
+        writeArray(name, values, force, "v2[]", ::writeVector2f)
+
+    override fun writeVector2fArray2D(name: String, values: Array<Array<Vector2f>>, force: Boolean) =
+        writeArray2D(name, values, force, "v2[][]", ::writeVector2f)
 
     override fun writeVector3f(name: String, value: Vector3f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f) {
@@ -672,9 +677,11 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean) {
-        writeArray(name, values, force, "v3[]") { writeVector3f(it) }
-    }
+    override fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean) =
+        writeArray(name, values, force, "v3[]", ::writeVector3f)
+
+    override fun writeVector3fArray2D(name: String, values: Array<Array<Vector3f>>, force: Boolean) =
+        writeArray2D(name, values, force, "v3[][]", ::writeVector3f)
 
     override fun writeVector4f(name: String, value: Vector4f, force: Boolean) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 0f) {
@@ -683,9 +690,11 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean) {
-        writeArray(name, values, force, "v4[]") { writeVector4f(it) }
-    }
+    override fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean) =
+        writeArray(name, values, force, "v4[]", ::writeVector4f)
+
+    override fun writeVector4fArray2D(name: String, values: Array<Array<Vector4f>>, force: Boolean) =
+        writeArray2D(name, values, force, "v4[][]", ::writeVector4f)
 
     override fun writeVector2d(name: String, value: Vector2d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0) {
@@ -694,9 +703,11 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) {
-        writeArray(name, values, force, "v2d[]") { writeVector2d(it) }
-    }
+    override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) =
+        writeArray(name, values, force, "v2d[]", ::writeVector2d)
+
+    override fun writeVector2dArray2D(name: String, values: Array<Array<Vector2d>>, force: Boolean) =
+        writeArray2D(name, values, force, "v2d[][]", ::writeVector2d)
 
     override fun writeVector3d(name: String, value: Vector3d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0) {
@@ -705,9 +716,11 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean) {
-        writeArray(name, values, force, "v3d[]") { writeVector3d(it) }
-    }
+    override fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean) =
+        writeArray(name, values, force, "v3d[]", ::writeVector3d)
+
+    override fun writeVector3dArray2D(name: String, values: Array<Array<Vector3d>>, force: Boolean) =
+        writeArray2D(name, values, force, "v3d[][]", ::writeVector3d)
 
     override fun writeVector4d(name: String, value: Vector4d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 0.0) {
@@ -716,9 +729,11 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean) {
-        writeArray(name, values, force, "v4d[]") { writeVector4d(it) }
-    }
+    override fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean) =
+        writeArray(name, values, force, "v4d[]", ::writeVector4d)
+
+    override fun writeVector4dArray2D(name: String, values: Array<Array<Vector4d>>, force: Boolean) =
+        writeArray2D(name, values, force, "v4d[][]", ::writeVector4d)
 
     private inline fun writeArray(
         size: Int,
@@ -758,10 +773,20 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
                 close(true)
             }
         }
-
     }
 
-    private fun writeMatrix(value: Matrix3f) {
+    private inline fun <V> writeArray2D(
+        name: String, values: Array<Array<V>>,
+        force: Boolean, type: String, writeValue: (V) -> Unit
+    ) {
+        writeArray(name, values, force, type) { array ->
+            writeArray(array.size, array.size) {
+                writeValue(array[it])
+            }
+        }
+    }
+
+    private fun writeMatrix3x3f(value: Matrix3f) {
         val tmp = tmp16f
         value.get(tmp)
         append('[')
@@ -773,7 +798,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    private fun writeMatrix(value: Matrix4x3f) {
+    private fun writeMatrix4x3f(value: Matrix4x3f) {
         val tmp = tmp16f
         value.get(tmp) // col major
         clamp4x3Relative(tmp)
@@ -785,7 +810,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    private fun writeMatrix(value: Matrix4f) {
+    private fun writeMatrix4x4f(value: Matrix4f) {
         val tmp = tmp16f
         value.get(tmp) // col major
         clamp4x4Relative(tmp)
@@ -797,7 +822,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    private fun writeMatrix(value: Matrix2f) {
+    private fun writeMatrix2x2f(value: Matrix2f) {
         val tmp = tmp16f
         value.get(tmp)
         append('[')
@@ -809,7 +834,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    private fun writeMatrix(value: Matrix3x2f) {
+    private fun writeMatrix3x2f(value: Matrix3x2f) {
         val tmp = tmp16f
         value.get(tmp)
         append('[')
@@ -823,85 +848,60 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeMatrix2x2f(name: String, value: Matrix2f, force: Boolean) {
         writeAttributeStart("m2x2", name)
-        writeMatrix(value)
+        writeMatrix2x2f(value)
     }
 
     override fun writeMatrix3x2f(name: String, value: Matrix3x2f, force: Boolean) {
         writeAttributeStart("m3x2", name)
-        writeMatrix(value)
+        writeMatrix3x2f(value)
     }
 
     override fun writeMatrix3x3f(name: String, value: Matrix3f, force: Boolean) {
         writeAttributeStart("m3x3", name)
-        writeMatrix(value)
+        writeMatrix3x3f(value)
     }
 
     override fun writeMatrix4x3f(name: String, value: Matrix4x3f, force: Boolean) {
         writeAttributeStart("m4x3", name)
-        writeMatrix(value)
+        writeMatrix4x3f(value)
     }
 
     override fun writeMatrix2x2fArray(name: String, values: Array<Matrix2f>, force: Boolean) =
-        writeArray(name, values, force, "m2x2[]") { writeMatrix(it) }
+        writeArray(name, values, force, "m2x2[]", ::writeMatrix2x2f)
 
     override fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2f>, force: Boolean) =
-        writeArray(name, values, force, "m3x2[]") { writeMatrix(it) }
+        writeArray(name, values, force, "m3x2[]", ::writeMatrix3x2f)
 
     override fun writeMatrix3x3fArray(name: String, values: Array<Matrix3f>, force: Boolean) =
-        writeArray(name, values, force, "m3x3[]") { writeMatrix(it) }
+        writeArray(name, values, force, "m3x3[]", ::writeMatrix3x3f)
 
     override fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3f>, force: Boolean) =
-        writeArray(name, values, force, "m4x3[]") { writeMatrix(it) }
+        writeArray(name, values, force, "m4x3[]", ::writeMatrix4x3f)
 
     override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4f>, force: Boolean) =
-        writeArray(name, values, force, "m4x4[]") { writeMatrix(it) }
+        writeArray(name, values, force, "m4x4[]", ::writeMatrix4x4f)
 
-    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>, force: Boolean) {
-        writeArray(name, values, force, "m2x2[][]") { array ->
-            writeArray(array.size, array.size) {
-                writeMatrix(array[it])
-            }
-        }
-    }
+    override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>, force: Boolean) =
+        writeArray2D(name, values, force, "m2x2[][]", ::writeMatrix2x2f)
 
-    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2f>>, force: Boolean) {
-        writeArray(name, values, force, "m3x2[][]") { array ->
-            writeArray(array.size, array.size) {
-                writeMatrix(array[it])
-            }
-        }
-    }
+    override fun writeMatrix3x2fArray2D(name: String, values: Array<Array<Matrix3x2f>>, force: Boolean) =
+        writeArray2D(name, values, force, "m3x2[][]", ::writeMatrix3x2f)
 
-    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3f>>, force: Boolean) {
-        writeArray(name, values, force, "m3x3[][]") { array ->
-            writeArray(array.size, array.size) {
-                writeMatrix(array[it])
-            }
-        }
-    }
+    override fun writeMatrix3x3fArray2D(name: String, values: Array<Array<Matrix3f>>, force: Boolean) =
+        writeArray2D(name, values, force, "m3x3[][]", ::writeMatrix3x3f)
 
-    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3f>>, force: Boolean) {
-        writeArray(name, values, force, "m4x3[][]") { array ->
-            writeArray(array.size, array.size) {
-                writeMatrix(array[it])
-            }
-        }
-    }
+    override fun writeMatrix4x3fArray2D(name: String, values: Array<Array<Matrix4x3f>>, force: Boolean) =
+        writeArray2D(name, values, force, "m4x3[][]", ::writeMatrix4x3f)
 
-    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4f>>, force: Boolean) {
-        writeArray(name, values, force, "m4x4[][]") { array ->
-            writeArray(array.size, array.size) {
-                writeMatrix(array[it])
-            }
-        }
-    }
+    override fun writeMatrix4x4fArray2D(name: String, values: Array<Array<Matrix4f>>, force: Boolean) =
+        writeArray2D(name, values, force, "m4x4[][]", ::writeMatrix4x4f)
 
     override fun writeMatrix4x4f(name: String, value: Matrix4f, force: Boolean) {
         writeAttributeStart("m4x4", name)
-        writeMatrix(value)
+        writeMatrix4x4f(value)
     }
 
-    private fun writeMatrix(value: Matrix2d) {
+    private fun writeMatrix2x2d(value: Matrix2d) {
         val tmp = tmp16d
         value.get(tmp)
         append('[')
@@ -913,7 +913,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    private fun writeMatrix(value: Matrix3x2d) {
+    private fun writeMatrix3x2d(value: Matrix3x2d) {
         val tmp = tmp16d
         value.get(tmp)
         append('[')
@@ -925,7 +925,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    private fun writeMatrix(value: Matrix3d) {
+    private fun writeMatrix3x3d(value: Matrix3d) {
         val tmp = tmp16d
         value.get(tmp)
         append('[')
@@ -937,7 +937,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    private fun writeMatrix(value: Matrix4x3d) {
+    private fun writeMatrix4x3d(value: Matrix4x3d) {
         val tmp = tmp16d
         value.get(tmp) // col major
         clamp4x3Relative(tmp)
@@ -949,7 +949,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    private fun writeMatrix(value: Matrix4d) {
+    private fun writeMatrix4x4d(value: Matrix4d) {
         val tmp = tmp16d
         value.get(tmp) // col major
         clamp4x4Relative(tmp)
@@ -963,83 +963,58 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeMatrix2x2d(name: String, value: Matrix2d, force: Boolean) {
         writeAttributeStart("m2x2d", name)
-        writeMatrix(value)
+        writeMatrix2x2d(value)
     }
 
     override fun writeMatrix3x2d(name: String, value: Matrix3x2d, force: Boolean) {
         writeAttributeStart("m3x2d", name)
-        writeMatrix(value)
+        writeMatrix3x2d(value)
     }
 
     override fun writeMatrix3x3d(name: String, value: Matrix3d, force: Boolean) {
         writeAttributeStart("m3x3d", name)
-        writeMatrix(value)
+        writeMatrix3x3d(value)
     }
 
     override fun writeMatrix4x3d(name: String, value: Matrix4x3d, force: Boolean) {
         writeAttributeStart("m4x3d", name)
-        writeMatrix(value)
+        writeMatrix4x3d(value)
     }
 
     override fun writeMatrix4x4d(name: String, value: Matrix4d, force: Boolean) {
         writeAttributeStart("m4x4d", name)
-        writeMatrix(value)
+        writeMatrix4x4d(value)
     }
 
     override fun writeMatrix2x2dArray(name: String, values: Array<Matrix2d>, force: Boolean) =
-        writeArray(name, values, force, "m2x2d[]") { writeMatrix(it) }
+        writeArray(name, values, force, "m2x2d[]", ::writeMatrix2x2d)
 
     override fun writeMatrix3x2dArray(name: String, values: Array<Matrix3x2d>, force: Boolean) =
-        writeArray(name, values, force, "m3x2d[]") { writeMatrix(it) }
+        writeArray(name, values, force, "m3x2d[]", ::writeMatrix3x2d)
 
     override fun writeMatrix3x3dArray(name: String, values: Array<Matrix3d>, force: Boolean) =
-        writeArray(name, values, force, "m3x3d[]") { writeMatrix(it) }
+        writeArray(name, values, force, "m3x3d[]", ::writeMatrix3x3d)
 
     override fun writeMatrix4x3dArray(name: String, values: Array<Matrix4x3d>, force: Boolean) =
-        writeArray(name, values, force, "m4x3d[]") { writeMatrix(it) }
+        writeArray(name, values, force, "m4x3d[]", ::writeMatrix4x3d)
 
     override fun writeMatrix4x4dArray(name: String, values: Array<Matrix4d>, force: Boolean) =
-        writeArray(name, values, force, "m4x4d[]") { writeMatrix(it) }
+        writeArray(name, values, force, "m4x4d[]", ::writeMatrix4x4d)
 
-    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2d>>, force: Boolean) {
-        writeArray(name, values, force, "m2x2d[][]") { array ->
-            writeArray(array.size, array.size) {
-                writeMatrix(array[it])
-            }
-        }
-    }
+    override fun writeMatrix2x2dArray2D(name: String, values: Array<Array<Matrix2d>>, force: Boolean) =
+        writeArray2D(name, values, force, "m2x2d[][]", ::writeMatrix2x2d)
 
-    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2d>>, force: Boolean) {
-        writeArray(name, values, force, "m3x2d[][]") { array ->
-            writeArray(array.size, array.size) {
-                writeMatrix(array[it])
-            }
-        }
-    }
+    override fun writeMatrix3x2dArray2D(name: String, values: Array<Array<Matrix3x2d>>, force: Boolean) =
+        writeArray2D(name, values, force, "m3x2d[][]", ::writeMatrix3x2d)
 
-    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3d>>, force: Boolean) {
-        writeArray(name, values, force, "m3x3d[][]") { array ->
-            writeArray(array.size, array.size) {
-                writeMatrix(array[it])
-            }
-        }
-    }
+    override fun writeMatrix3x3dArray2D(name: String, values: Array<Array<Matrix3d>>, force: Boolean) =
+        writeArray2D(name, values, force, "m3x3d[][]", ::writeMatrix3x3d)
 
-    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>, force: Boolean) {
-        writeArray(name, values, force, "m4x3d[][]") { array ->
-            writeArray(array.size, array.size) {
-                writeMatrix(array[it])
-            }
-        }
-    }
+    override fun writeMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>, force: Boolean) =
+        writeArray2D(name, values, force, "m4x3d[][]", ::writeMatrix4x3d)
 
-    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>, force: Boolean) {
-        writeArray(name, values, force, "m4x4[][]") { array ->
-            writeArray(array.size, array.size) {
-                writeMatrix(array[it])
-            }
-        }
-    }
+    override fun writeMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>, force: Boolean) =
+        writeArray2D(name, values, force, "m4x4[][]", ::writeMatrix4x4d)
 
     // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
     private fun clamp2x2Relative(tmp: FloatArray, scale: Float = 1e-7f) {
@@ -1148,8 +1123,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         }
     }
 
-    override fun writeAABBf(name: String, value: AABBf, force: Boolean) {
-        writeAttributeStart("AABBf", name)
+    private fun writeAABBf(value: AABBf) {
         append('[')
         append('[')
         append(value.minX)
@@ -1169,8 +1143,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(']')
     }
 
-    override fun writeAABBd(name: String, value: AABBd, force: Boolean) {
-        writeAttributeStart("AABBd", name)
+    private fun writeAABBd(value: AABBd) {
         append('[')
         append('[')
         append(value.minX)
@@ -1187,34 +1160,76 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         append(',')
         append(value.maxZ)
         append(']')
+        append(']')
+    }
+
+    override fun writeAABBf(name: String, value: AABBf, force: Boolean) {
+        writeAttributeStart("AABBf", name)
+        writeAABBf(value)
+    }
+
+    override fun writeAABBd(name: String, value: AABBd, force: Boolean) {
+        writeAttributeStart("AABBd", name)
+        writeAABBd(value)
+    }
+
+    override fun writeAABBfArray(name: String, values: Array<AABBf>, force: Boolean) =
+        writeArray(name, values, force, "AABBf[]", ::writeAABBf)
+
+    override fun writeAABBdArray(name: String, values: Array<AABBd>, force: Boolean) =
+        writeArray(name, values, force, "AABBd[]", ::writeAABBd)
+
+    override fun writeAABBfArray2D(name: String, values: Array<Array<AABBf>>, force: Boolean) =
+        writeArray2D(name, values, force, "AABBf[][]", ::writeAABBf)
+
+    override fun writeAABBdArray2D(name: String, values: Array<Array<AABBd>>, force: Boolean) =
+        writeArray2D(name, values, force, "AABBd[][]", ::writeAABBd)
+
+    fun writePlanef(value: Planef) {
+        append('[')
+        append(value.dirX)
+        append(',')
+        append(value.dirY)
+        append(',')
+        append(value.dirZ)
+        append(',')
+        append(value.distance)
+        append(']')
+    }
+
+    fun writePlaned(value: Planed) {
+        append('[')
+        append(value.dirX)
+        append(',')
+        append(value.dirY)
+        append(',')
+        append(value.dirZ)
+        append(',')
+        append(value.distance)
         append(']')
     }
 
     override fun writePlanef(name: String, value: Planef, force: Boolean) {
         writeAttributeStart("p4", name)
-        append('[')
-        append(value.dirX)
-        append(',')
-        append(value.dirY)
-        append(',')
-        append(value.dirZ)
-        append(',')
-        append(value.distance)
-        append(']')
+        writePlanef(value)
     }
 
     override fun writePlaned(name: String, value: Planed, force: Boolean) {
         writeAttributeStart("p4d", name)
-        append('[')
-        append(value.dirX)
-        append(',')
-        append(value.dirY)
-        append(',')
-        append(value.dirZ)
-        append(',')
-        append(value.distance)
-        append(']')
+        writePlaned(value)
     }
+
+    override fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean) =
+        writeArray(name, values, force, "p4[]", ::writePlanef)
+
+    override fun writePlanedArray(name: String, values: Array<Planed>, force: Boolean) =
+        writeArray(name, values, force, "p4d[]", ::writePlaned)
+
+    override fun writePlanefArray2D(name: String, values: Array<Array<Planef>>, force: Boolean) =
+        writeArray2D(name, values, force, "p4[][]", ::writePlanef)
+
+    override fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean) =
+        writeArray2D(name, values, force, "p4d[][]", ::writePlaned)
 
     override fun writeNull(name: String?) {
         writeAttributeStart("?", name)
@@ -1281,7 +1296,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         force: Boolean
     ) {
         if (force || values?.isNotEmpty() == true) {
-            if (values == null || values.isEmpty()) {
+            if (values.isNullOrEmpty()) {
                 writeAttributeStart("*[]", name)
                 append("[0]")
             } else {
@@ -1317,9 +1332,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         values: Array<Array<V>>,
         force: Boolean
     ) {
-        writeAttributeStart("*[][]", name)
-        writeArray(values.size, values.size) { i ->
-            val arr = values[i]
+        writeArray(name, values, force, "*[][]") { arr ->
             writeArray(arr.size, arr.size) {
                 writeObject(null, null, arr[it], true)
             }
@@ -1337,5 +1350,4 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         writeAttributeStart(className, name)
         append(ptr)
     }
-
 }

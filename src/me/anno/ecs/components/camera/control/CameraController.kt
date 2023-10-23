@@ -7,8 +7,10 @@ import me.anno.ecs.Transform
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.camera.Camera
+import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.RenderView
 import me.anno.input.Input
 import me.anno.input.Input.isKeyDown
 import me.anno.input.Input.isShiftDown
@@ -22,6 +24,22 @@ import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3f
 
 abstract class CameraController : Component(), ControlReceiver {
+
+    companion object {
+        fun setup(controller: CameraController, renderView: RenderView): Entity {
+            val base = Entity("CamBase")
+            val rota = Entity("CamRot")
+            val cam = Camera()
+            base.add(rota)
+            rota.add(cam)
+            base.add(controller)
+            controller.camera = cam
+            val player = LocalPlayer()
+            cam.use(player)
+            renderView.localPlayer = player
+            return base
+        }
+    }
 
     var needsClickToRotate = false
     var rotateLeft = false
@@ -44,10 +62,6 @@ abstract class CameraController : Component(), ControlReceiver {
     @NotSerializedProperty
     var camera: Camera? = null
 
-    @Type("Entity/PrefabSaveable")
-    @NotSerializedProperty
-    var base: Entity? = null
-
     @Range(0.0, 100.0)
     var friction = 5f
 
@@ -63,19 +77,16 @@ abstract class CameraController : Component(), ControlReceiver {
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as CameraController
-        dst.base = getInClone(base, dst)
         dst.camera = getInClone(camera, dst)
     }
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeObject(null, "base", base)
         writer.writeObject(null, "camera", camera)
     }
 
     override fun readObject(name: String, value: ISaveable?) {
         when (name) {
-            "base" -> base = value as? Entity
             "camera" -> camera = value as? Camera
             else -> super.readObject(name, value)
         }
@@ -85,7 +96,6 @@ abstract class CameraController : Component(), ControlReceiver {
      * can prevent velocities from being applied, e.g., when running against a wall (like in Digital Campus)
      * */
     open fun clampVelocity() {
-
     }
 
     open fun clampRotation() {
@@ -127,7 +137,6 @@ abstract class CameraController : Component(), ControlReceiver {
                 val dt = Time.deltaTime.toFloat() * numpadWheelSpeed
                 onMouseWheel(0f, 0f, 0f, dz * dt, false)
             }
-
         }
     }
 
@@ -142,7 +151,7 @@ abstract class CameraController : Component(), ControlReceiver {
 
         val camera = camera
         val camEntity = camera?.entity
-        val base = base
+        val base = entity
 
         lastWarning = when {
             camera == null -> "Camera Missing"
@@ -188,5 +197,4 @@ abstract class CameraController : Component(), ControlReceiver {
             true
         } else false
     }
-
 }

@@ -342,8 +342,9 @@ object Input {
                     } else inFocus0?.onEscapeKey(mouseX, mouseY)
                 } else inFocus0?.onEscapeKey(mouseX, mouseY)
             }
-            else -> inFocus0?.onKeyTyped(mouseX, mouseY, key)
+            else -> {}
         }
+        inFocus0?.onKeyTyped(mouseX, mouseY, key)
     }
 
     fun onMouseMove(window: OSWindow, newX: Float, newY: Float) {

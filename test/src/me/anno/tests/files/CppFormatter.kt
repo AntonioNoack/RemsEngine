@@ -39,7 +39,7 @@ fun format(text: String): String {
         while (k >= 0 && tabs[k].isWhitespace()) {
             k--
         }
-        // if endsWith const or ), remove all those tabs
+        // if endsWith "const" or ")", remove all those tabs
         val last = tabs.subSequence(0, k + 1)
         var l = k // first whitespace
         while (l >= 0 && tabs[l].isLetterOrDigit()) {

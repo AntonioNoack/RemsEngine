@@ -1490,7 +1490,7 @@ open class Matrix4d {
                 "[${f(m02)} ${f(m12)} ${f(m22)} ${f(m32)}] " +
                 "[${f(m03)} ${f(m13)} ${f(m23)} ${f(m33)}]]").addSigns()
 
-    operator fun get(dest: Matrix4d): Matrix4d {
+    fun get(dest: Matrix4d): Matrix4d {
         return dest.set(this)
     }
 

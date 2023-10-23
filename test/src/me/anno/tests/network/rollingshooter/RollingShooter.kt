@@ -282,7 +282,7 @@ fun main() {
             if (Input.isKeyDown(Key.KEY_W)) rigidbody.applyTorque(-c, 0.0, +s)
             if (Input.isKeyDown(Key.KEY_S)) rigidbody.applyTorque(+c, 0.0, -s)
             if (Input.isKeyDown(Key.KEY_A)) rigidbody.applyTorque(+s, 0.0, +c)
-            if (Input.isKeyDown(Key.KEY_D)) rigidbody.applyTorque(+c, 0.0, -c)
+            if (Input.isKeyDown(Key.KEY_D)) rigidbody.applyTorque(-s, 0.0, -c)
             if (Input.isKeyDown(Key.KEY_SPACE) && abs(Time.gameTimeN - lastJumpTime) > jumpTimeout) {
                 // only jump if we are on something
                 val hit = Raycast.raycast(staticScene, entity.position, down, 0.0, 0.0, radius, -1)

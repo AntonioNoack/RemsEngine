@@ -23,10 +23,9 @@ import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.PropertyInspector
 
 @Suppress("MemberVisibilityCanBePrivate")
-class SceneView(
-    playMode: PlayMode, style: Style,
-    val renderer: RenderView = RenderView0(playMode, style)
-) : PanelStack(style) {
+class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
+
+    constructor(playMode: PlayMode, style: Style) : this(RenderView0(playMode, style), style)
 
     var editControls: ControlScheme = DraggingControls(renderer)
         set(value) {

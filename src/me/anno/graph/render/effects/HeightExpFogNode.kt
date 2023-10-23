@@ -24,6 +24,7 @@ import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderSceneNode0
+import me.anno.maths.Maths.max
 import me.anno.maths.Maths.pow
 import org.joml.Vector3f
 
@@ -35,6 +36,7 @@ class HeightExpFogNode : RenderSceneNode0(
         "Float", "Height Fog Sharpness", // how quickly the fog begins (low = slow)
         "Float", "Height Fog Level", // where the height fog starts
         "Vector3f", "Height Fog Color",
+        "Boolean", "Cheap Mixing",
         "Texture", "Illuminated",
         "Texture", "Depth",
     ), listOf("Texture", "Illuminated")
@@ -51,17 +53,18 @@ class HeightExpFogNode : RenderSceneNode0(
     }
 
     override fun executeAction() {
-        val color0 = getInput(6) as? Texture
+        val color0 = getInput(7) as? Texture
         val color = (color0?.tex as? Texture2D)
-        val depth = ((getInput(7) as? Texture)?.tex as? Texture2D)
-        if (color == null || depth == null) {
+        val depth = ((getInput(8) as? Texture)?.tex as? Texture2D)
+        val relativeDistance = max(getInput(1) as Float, 0f)
+        val fogStrength = max(getInput(2) as Float, 0f)
+        if (color == null || depth == null || (relativeDistance.isFinite() && fogStrength == 0f)) {
             setOutput(1, color0 ?: Texture(missingTexture))
         } else {
-            val relativeDistance = getInput(1) as Float
-            val fogStrength = getInput(2) as Float
-            val fogSharpness = getInput(3) as Float
+            val fogSharpness = max(getInput(3) as Float, 0f)
             val fogOffset = getInput(4) as Float
             val fogColor = getInput(5) as Vector3f
+            val cheapMixing = getInput(6) == true
             val result = FBStack[name, color.width, color.height, 3, true, 1, DepthBufferType.NONE]
             useFrame(result, copyRenderer) {
                 val shader = shader
@@ -69,15 +72,19 @@ class HeightExpFogNode : RenderSceneNode0(
                 shader.v1f("fogStrength", fogStrength)
                 shader.v1f("fogSharpness", fogSharpness)
                 shader.v1f("fogOffset", fogOffset)
+                val fx = max(fogColor.x, 0f)
+                val fy = max(fogColor.y, 0f)
+                val fz = max(fogColor.z, 0f)
                 shader.v3f(
                     "fogColor",
-                    pow(fogColor.x, 2.2f),
-                    pow(fogColor.y, 2.2f),
-                    pow(fogColor.z, 2.2f)
+                    if (cheapMixing) fx else pow(fx, 2.2f),
+                    if (cheapMixing) fy else pow(fy, 2.2f),
+                    if (cheapMixing) fz else pow(fz, 2.2f),
                 )
                 shader.v1f("invExpDistance", 1f / relativeDistance)
                 shader.v3f("cameraPosition", RenderState.cameraPosition)
                 shader.v1f("worldScale", RenderState.worldScale)
+                shader.v1b("cheapMixing", cheapMixing)
                 color.bindTrulyNearest(shader, "colorTex")
                 depth.bindTrulyNearest(shader, "depthTex")
                 (renderView.pipeline.bakedSkybox?.getTexture0() ?: whiteCube)
@@ -100,6 +107,7 @@ class HeightExpFogNode : RenderSceneNode0(
                 Variable(GLSLType.V3F, "cameraPosition"),
                 Variable(GLSLType.V1F, "worldScale"),
                 Variable(GLSLType.V3F, "fogColor"),
+                Variable(GLSLType.V1B, "cheapMixing"),
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.SCube, "skyTex"),
@@ -124,18 +132,22 @@ class HeightExpFogNode : RenderSceneNode0(
                     "   float startY = start.y / worldScale + cameraPosition.y, endY = end.y / worldScale + cameraPosition.y;\n" +
                     "   float integralOverHeight = abs((heightFogIntegral(endY) - heightFogIntegral(startY)) / normalize(dir).y);\n" +
                     "   float heightFogAbsorption = exp(-integralOverHeight);\n" +
-                    "   vec3 srcColor = pow(texture(colorTex,uv).xyz,vec3(2.2));\n" +
-                    "   vec3 newColor = mix(fogColor, srcColor, heightFogAbsorption);\n" +
+                    "   vec3 srcColor = texture(colorTex,uv).xyz;\n" +
+                    "   vec3 newColor = cheapMixing ?\n" +
+                    "       mix(fogColor, srcColor, heightFogAbsorption) :\n" +
+                    "       mix(fogColor, pow(srcColor,vec3(2.2)), heightFogAbsorption);\n" +
                     "   if(isFinite){\n" + // don't apply distance-based fog onto sky
                     "       float integralOverDistance = distance * invExpDistance / worldScale;\n" +
                     "       float expFogAbsorption = exp(-integralOverDistance);\n" +
-                    // todo make this srgb/linear-correction optional for weak devices like on Android
-                    // for proper mixing, we have to convert them to linear, and then back
                     // todo better filtering... cubic?
-                    "       vec3 skyColor = pow(textureLod(skyTex,-$cubemapsAreLeftHanded * dir,10.0).xyz,vec3(2.2));\n" +
-                    "       newColor = mix(skyColor, newColor, expFogAbsorption);\n" +
+                    "       vec3 skyColor = textureLod(skyTex,-$cubemapsAreLeftHanded * dir,10.0).xyz;\n" +
+                    "       newColor = cheapMixing ?\n" +
+                    "           mix(skyColor, newColor, expFogAbsorption) :\n" +
+                    "           mix(pow(skyColor,vec3(2.2)), newColor, expFogAbsorption);\n" +
                     "   }\n" +
-                    "   newColor = pow(newColor, vec3(1.0/2.2));\n" +
+                    "   newColor = cheapMixing ?\n" +
+                    "       newColor :\n" +
+                    "       pow(newColor, vec3(1.0/2.2));\n" +
                     "   result = vec4(newColor, 1.0);\n" +
                     "}\n"
         )
