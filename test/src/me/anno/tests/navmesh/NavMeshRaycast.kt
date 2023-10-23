@@ -9,6 +9,8 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
+import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.gpu.CullMode
@@ -71,12 +73,13 @@ class AgentController1a(
         start.y = lp.y + crowdAgent.params.height * 0.5
         val dist = crowdAgent.params.height.toDouble()
         val world = entity.parentEntity!!
-        val hr = Raycast.raycast(
-            world, start, raycastDir, 0.0, 0.0,
-            dist, Raycast.TRIANGLE_FRONT, mask
+        val query = RayQuery(
+            start, raycastDir, start + raycastDir * dist, 0.0, 0.0,
+            Raycast.TRIANGLE_FRONT, mask, false, emptySet(), RayHit(dist)
         )
+        val hr = Raycast.raycastClosestHit(world, query)
         // DebugShapes.debugLines.add(DebugLine(start, Vector3d(raycastDir).mul(dist).add(start), -1))
-        val np = hr?.positionWS ?: Vector3d(nextPos)
+        val np = if (hr) query.result.positionWS else Vector3d(nextPos)
         val dt = Time.deltaTime
         np.lerp(lp, dtTo01(dt * 3.0))
         upDownAngle = mix(upDownAngle, atan((lp.y - np.y) / max(np.distance(lp), 1e-308)), dtTo01(dt * 3.0))

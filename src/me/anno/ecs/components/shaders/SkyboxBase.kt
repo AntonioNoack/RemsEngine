@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast.SKY
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
@@ -64,23 +65,12 @@ open class SkyboxBase : MeshComponentBase() {
     }
 
     override fun hasRaycastType(typeMask: Int) = typeMask.hasFlag(SKY)
-    override fun raycast(
-        entity: Entity,
-        start: Vector3d,
-        direction: Vector3d,
-        end: Vector3d,
-        radiusAtOrigin: Double,
-        radiusPerUnit: Double,
-        typeMask: Int,
-        includeDisabled: Boolean,
-        result: RayHit
-    ): Boolean {
-        return if (result.distance >= 1e308) {
-            result.distance = 1e308
-            result.positionWS.set(direction)
+    override fun raycastClosestHit(query: RayQuery): Boolean {
+        return if (query.result.distance >= 1e308) {
+            query.result.distance = 1e308
+            query.result.positionWS.set(query.direction)
                 .normalize()
                 .mul(1e308) // cannot be multiplied in one step, because it could overflow to Infinity
-            result.component = this
             true
         } else false
     }

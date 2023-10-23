@@ -11,15 +11,15 @@ import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugPoint
 import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
-import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
+import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.EditorState.control
 import me.anno.engine.ui.EditorState.editMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.pipeline.Pipeline.Companion.sampleEntity
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.input.Touch
@@ -65,8 +65,6 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
     val selectedTransforms get() = selectedEntities.map { it.transform }
 
     val isSelected get() = uiParent!!.children.any2 { it.isInFocus }
-
-    private val hit = RayHit()
 
     val dirX = Vector3d()
     val dirY = Vector3d()
@@ -222,39 +220,29 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
         val start = Vector3d(view.cameraPosition)
         val dir = view.mouseDirection
         val maxDistance = view.radius * 1e9
+        val query = RayQuery(
+            start, dir, maxDistance, -1, -1,
+            false, emptySet()
+        )
         val hit = when (world) {
-            is Entity -> {
-                Raycast.raycast(
-                    world, start, dir, 0.0, 0.0, // 1.0 / max(h, 1)
-                    maxDistance, -1, -1, emptySet(), false, hit
-                )
-            }
-            is CollidingComponent -> {
-                hit.distance = maxDistance
-                val end = Vector3d(dir).mul(maxDistance).add(start)
-                if (world.raycast(sampleEntity, start, dir, end, 0.0, 0.0, -1, false, hit)) hit
-                else null
-            }
-            is Mesh -> {
-                hit.distance = maxDistance
-                val end = Vector3d(dir).mul(maxDistance).add(start)
-                if (Raycast.raycastTriangleMesh(null, world, start, dir, end, 0.0, 0.0, hit, -1)) hit
-                else null
-            }
+            is Entity -> Raycast.raycastClosestHit(world, query)
+            is CollidingComponent -> world.raycastClosestHit(query)
+            is Mesh -> RaycastMesh.raycastGlobalMeshClosestHit(query, null, world)
             else -> return
         }
-        if (hit == null) {
-            // draw red point in front of the camera
-            debugPoints.add(DebugPoint(Vector3d(dir).mul(20.0).add(start), black or 0xff0000))
-        } else {
-            val pos = Vector3d(hit.positionWS)
-            val normal = hit.geometryNormalWS.normalize(
-                0.05 * hit.positionWS.distance(view.cameraPosition)
+        if (hit) {
+            val result = query.result
+            val pos = result.positionWS
+            val normal = result.geometryNormalWS.normalize(
+                0.05 * result.positionWS.distance(view.cameraPosition)
             )
             // draw collision point
             debugPoints.add(DebugPoint(pos, -1))
             // draw collision normal
             debugLines.add(DebugLine(pos, normal.add(pos, Vector3d()), black or 0x00ff00))
+        } else {
+            // draw red point in front of the camera
+            debugPoints.add(DebugPoint(Vector3d(dir).mul(20.0).add(start), black or 0xff0000))
         }
     }
 

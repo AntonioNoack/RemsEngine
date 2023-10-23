@@ -15,28 +15,28 @@ class TLASBranch(val axis: Int, val n0: TLASNode, val n1: TLASNode, bounds: AABB
         n1.collectMeshes(result)
     }
 
-    override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+    override fun findClosestHit(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
         hit.tlasCtr++
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
             // put far bvh node on the stack, advance to near
             if (dirIsNeg.and(mask) != 0) {
-                n1.intersect(pos, dir, invDir, dirIsNeg, hit) or n0.intersect(pos, dir, invDir, dirIsNeg, hit)
+                n1.findClosestHit(pos, dir, invDir, dirIsNeg, hit) or n0.findClosestHit(pos, dir, invDir, dirIsNeg, hit)
             } else {
-                n0.intersect(pos, dir, invDir, dirIsNeg, hit) or n1.intersect(pos, dir, invDir, dirIsNeg, hit)
+                n0.findClosestHit(pos, dir, invDir, dirIsNeg, hit) or n1.findClosestHit(pos, dir, invDir, dirIsNeg, hit)
             }
         } else false
     }
 
-    override fun intersect(group: RayGroup) {
+    override fun findClosestHit(group: RayGroup) {
         group.tlasCtr++
         if (group.intersects(bounds)) {
             // put far bvh node on the stack, advance to near
             if (group.dir[axis] < 0f) {
-                n1.intersect(group)
-                n0.intersect(group)
+                n1.findClosestHit(group)
+                n0.findClosestHit(group)
             } else {
-                n0.intersect(group)
-                n1.intersect(group)
+                n0.findClosestHit(group)
+                n1.findClosestHit(group)
             }
         }
     }

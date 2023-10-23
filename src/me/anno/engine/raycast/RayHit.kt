@@ -1,7 +1,6 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.Component
-import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import org.joml.*
 
@@ -12,17 +11,18 @@ import org.joml.*
  * Unreal: HitResult
  * Godot: RayCast? Map with properties
  * */
-class RayHit {
+class RayHit(maxDistance: Double) {
+
+    constructor() : this(Double.POSITIVE_INFINITY)
 
     /**
      * Closest distance
      * */
-    var distance = Double.POSITIVE_INFINITY
+    var distance = maxDistance
 
     /**
      * Closest hit object
      * */
-    var collider: Collider? = null
     var mesh: Mesh? = null
     var component: Component? = null
 
@@ -78,31 +78,27 @@ class RayHit {
 
     fun setFromLocal(
         globalTransform: Matrix4x3d,
-        localStart: Vector3f,
-        localDir: Vector3f,
-        localDistance: Float,
-        localNormal: Vector3f,
-        start: Vector3d,
-        direction: Vector3d,
-        end: Vector3d
+        localStart: Vector3f, localDirection: Vector3f, localDistance: Float, localNormal: Vector3f,
+        query: RayQuery
     ) {
         // transform the local position back
-        val hitPosition = positionWS.set(localDir).mul(localDistance.toDouble()).add(localStart)
+        val hitPosition = positionWS.set(localDirection).mul(localDistance.toDouble()).add(localStart)
         // LOGGER.info("hit position $hitPosition from local hit $localStart + $localDistance * $localDir")
         globalTransform.transformPosition(hitPosition)
         val hitNormal = geometryNormalWS.set(localNormal)
         globalTransform.transformDirection(hitNormal)
         shadingNormalWS.set(geometryNormalWS)
         // calculate the world space distance
-        val distance = hitPosition.distance(start)
+        val distance = hitPosition.distance(query.start)
         this.distance = distance
         // update the end vector
-        end.set(direction).normalize(distance).add(start)
+        query.end.set(query.direction).normalize(distance).add(query.start)
     }
 
     fun setFromLocal(
-        globalTransform: Matrix4x3d?, localHit: Vector3f, localNormal: Vector3f,
-        start: Vector3d, direction: Vector3d, end: Vector3d
+        globalTransform: Matrix4x3d?,
+        localHit: Vector3f, localNormal: Vector3f,
+        query: RayQuery
     ) {
         // transform the local position back
         val hitPosition = positionWS.set(localHit)
@@ -112,10 +108,9 @@ class RayHit {
         globalTransform?.transformDirection(hitNormal)
         shadingNormalWS.set(geometryNormalWS)
         // calculate the world space distance
-        val distance = hitPosition.distance(start)
+        val distance = hitPosition.distance(query.start)
         this.distance = distance
         // update the end vector
-        end.set(direction).normalize(distance).add(start)
+        query.end.set(query.direction).normalize(distance).add(query.start)
     }
-
 }

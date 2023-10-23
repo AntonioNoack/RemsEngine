@@ -5,6 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.*
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.raycast.RayQueryLocal
 import me.anno.image.ImageWriter
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.maths.Maths.fract
@@ -111,8 +112,9 @@ fun renderSDF(collider: Collider, name: String) {
     writeImage(res, res, heavy, name1, false) { x, y ->
         val pos = Vector3f(x, y, 0f).mul(scale).sub(offset)
         val dir = Vector3f().set(pos).mul(-1f).normalize()
-        val distance = collider.raycast(pos, dir, 0f, 0f, null, size * 2f)
-        if (distance.isInfinite()) LOGGER.debug("$x $y -> $pos, $dir -> $distance")
+        val query = RayQueryLocal(pos, dir, size * 2f, 0f, 0f)
+        val distance = collider.raycastClosestHit(query, null)
+        if (distance.isInfinite()) LOGGER.debug("{} {} -> {}, {} -> {}", x, y, pos, dir, distance)
         if (distance < 0f) -255f else distance * (if (heavy) 0.25f else 2f) * 255f / size
     }
 
@@ -126,7 +128,6 @@ fun renderSDF(collider: Collider, name: String) {
         normal.normalize(0.5f).add(0.5f, 0.5f, 0.5f)
         rgba(normal.x, normal.y, normal.z, 1f)
     }
-
 }
 
 fun main() {

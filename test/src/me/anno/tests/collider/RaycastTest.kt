@@ -2,6 +2,7 @@ package me.anno.tests.collider
 
 import me.anno.Engine
 import me.anno.ecs.components.collider.Collider
+import me.anno.engine.raycast.RayQueryLocal
 import me.anno.image.ImageWriter
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
@@ -44,7 +45,8 @@ fun renderCollider(b: Collider, name: String = b.name.ifBlank { b.className }) {
             .rotateX((y - h / 2) * -fovY)
             .rotateY((x - w / 2) * +fovY)
             .rotate(rotation)
-        val dist = b.raycast(start, dir, 0f, 0f, null, 10f)
+        val query = RayQueryLocal(start, dir, 10f, 0f, 0f)
+        val dist = b.raycastClosestHit(query, null)
         JomlPools.vec3f.sub(1)
         dist
         /*  val hit = RayHit()

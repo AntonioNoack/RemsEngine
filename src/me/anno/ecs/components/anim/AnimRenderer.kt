@@ -9,8 +9,7 @@ import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.raycast.RayHit
-import me.anno.engine.raycast.Raycast
+import me.anno.engine.raycast.*
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
@@ -154,7 +153,6 @@ open class AnimRenderer : MeshComponent() {
             lastWarning = null
             animTexture2.bindTrulyNearest(shader, "animTexture")
             return true
-
         } else {
             // what if the weight is less than 1? change to T-pose? no, the programmer can define that himself with an animation
             // val weightNormalization = 1f / max(1e-7f, animationWeights.values.sum())
@@ -265,31 +263,38 @@ open class AnimRenderer : MeshComponent() {
         }
 
         return true
-
     }
 
-    override fun raycast(
-        entity: Entity, start: Vector3d, direction: Vector3d, end: Vector3d,
-        radiusAtOrigin: Double, radiusPerUnit: Double,
-        typeMask: Int, includeDisabled: Boolean, result: RayHit
-    ): Boolean {
+    override fun raycastClosestHit(query: RayQuery): Boolean {
         val mesh = getMeshOrNull() ?: return false
-        if (!mesh.hasBones) return false
+        if (!mesh.hasBones) return super.raycastClosestHit(query)
         updateAnimState()
-        val matrices = getMatrices() ?: return super.raycast(
-            entity, start, direction, end,
-            radiusAtOrigin, radiusPerUnit, typeMask, includeDisabled, result
+        val matrices = getMatrices()
+            ?: return super.raycastClosestHit(query)
+        val original = query.result.distance
+        RaycastSkeletal.raycastGlobalBoneMeshClosestHit(
+            query, transform?.globalTransform,
+            mesh, matrices
         )
-        val original = result.distance
-        Raycast.globalRaycastByBones(
-            result, entity.transform.globalTransform,
-            mesh, start, direction, radiusAtOrigin,
-            radiusPerUnit, typeMask,
-            matrices
+        return if (RaycastMesh.isCloser(query, original)) {
+            query.result.mesh = mesh
+            true
+        } else false
+    }
+
+    override fun raycastAnyHit(query: RayQuery): Boolean {
+        val mesh = getMeshOrNull() ?: return false
+        if (!mesh.hasBones) return super.raycastClosestHit(query)
+        updateAnimState()
+        val matrices = getMatrices()
+            ?: return super.raycastClosestHit(query)
+        val original = query.result.distance
+        RaycastSkeletal.raycastGlobalBoneMeshAnyHit(
+            query, transform?.globalTransform,
+            mesh, matrices
         )
-        return if (Raycast.eval(result, start, direction, end, original)) {
-            result.mesh = mesh
-            result.component = this
+        return if (RaycastMesh.isCloser(query, original)) {
+            query.result.mesh = mesh
             true
         } else false
     }
@@ -326,7 +331,5 @@ open class AnimRenderer : MeshComponent() {
             buffer.position(0)
             shader.m4x3Array(location, buffer)
         }
-
     }
-
 }

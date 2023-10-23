@@ -24,7 +24,7 @@ class BLASLeaf(
     override fun maxDepth() = 1
     override fun forEach(run: (BLASNode) -> Unit) = run(this)
 
-    override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+    override fun findClosestHit(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
         hit.blasCtr++
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
             hit.trisCtr += length
@@ -93,7 +93,7 @@ class BLASLeaf(
         } else false
     }
 
-    override fun intersect(group: RayGroup) {
+    override fun findClosestHit(group: RayGroup) {
         group.blasCtr++
         if (group.intersects(bounds)) {
             group.trisCtr += length

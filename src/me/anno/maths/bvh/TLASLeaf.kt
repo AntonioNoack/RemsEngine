@@ -26,7 +26,7 @@ class TLASLeaf(
         println(Tabs.spaces(depth * 2) + " ${bounds.volume}, $worldToLocal, ${blas.nodeId}")
     }
 
-    override fun intersect(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+    override fun findClosestHit(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
         hit.tlasCtr++
         return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
 
@@ -48,7 +48,7 @@ class TLASLeaf(
 
             hit.distance = localDistance
 
-            val hitSomething = blas.intersect(localPos, localDir, hit)
+            val hitSomething = blas.findClosestHit(localPos, localDir, hit)
             if (hitSomething) {
                 val localToWorld = localToWorld
                 // a better point was found
@@ -68,7 +68,7 @@ class TLASLeaf(
 
     // for TLASes, this function is often just slower :/
     // for BLASes, it can be 4x faster
-    override fun intersect(group: RayGroup) {
+    override fun findClosestHit(group: RayGroup) {
         group.tlasCtr++
         if (group.intersects(bounds)) {
 
@@ -81,7 +81,7 @@ class TLASLeaf(
                     group.dym.mulAdd(group.dys[i], dir, dir)
                     dir.normalize()
                     hit.distance = group.depths[i].toDouble()
-                    if (intersect(group.pos, dir, hit)) {
+                    if (findClosestHit(group.pos, dir, hit)) {
                         group.normalGX[i] = hit.geometryNormalWS.x.toFloat()
                         group.normalGY[i] = hit.geometryNormalWS.y.toFloat()
                         group.normalGZ[i] = hit.geometryNormalWS.z.toFloat()
@@ -154,7 +154,7 @@ class TLASLeaf(
             local.min.set(v0).min(v1)
             local.max.set(v0).max(v1)
 
-            blas.intersect(local)
+            blas.findClosestHit(local)
 
             val localToWorld = localToWorld
             val l2wLengthFactor = 1f / w2lLengthFactor

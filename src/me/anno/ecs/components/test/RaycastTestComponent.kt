@@ -5,6 +5,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
@@ -36,12 +37,13 @@ class RaycastTestComponent : Component() {
         val transform = entity.transform.globalTransform
         val start = transform.transformPosition(Vector3d())
         val direction = transform.transformDirection(Vector3d(0.0, 0.0, 1.0)).normalize()
-        val hit = Raycast.raycast(
-            entity, start, direction, radiusAtOrigin, radiusPerUnit,
-            maxDistance, typeMask, colliderMask
+
+        val query = RayQuery(
+            start, direction, maxDistance, radiusAtOrigin, radiusPerUnit,
+            typeMask, colliderMask, false, emptySet(),
         )
-        if (hit != null) {
-            DebugShapes.debugLines.add(DebugLine(start, hit.positionWS, -1))
+        if (Raycast.raycastClosestHit(entity, query)) {
+            DebugShapes.debugLines.add(DebugLine(start, query.result.positionWS, -1))
         } else {
             DebugShapes.debugLines.add(DebugLine(start, Vector3d(direction).add(start), 0xff0000))
         }
@@ -56,5 +58,4 @@ class RaycastTestComponent : Component() {
     }
 
     override val className: String get() = "RaycastTest"
-
 }

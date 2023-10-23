@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.RenderView
@@ -280,22 +281,20 @@ fun main() {
             override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
                 if (Input.isLeftDown && (dx != 0f || dy != 0f)) {
                     // draw height / paint
-                    val hit = Raycast.raycast(
-                        scene, it.renderer.cameraPosition,
-                        it.renderer.mouseDirection, 0.0, 0.0,
-                        1e9, -1,
-                    )
-                    val comp = hit?.component as? TerrainChunk
+                    val query = RayQuery(it.renderer.cameraPosition, it.renderer.mouseDirection, 1e9)
+                    val hit = Raycast.raycastClosestHit(scene, query)
+                    val comp = query.result.component as? TerrainChunk
                     val mesh = comp?.getMeshOrNull()
-                    if (hit != null && mesh != null) {
+                    if (hit && mesh != null) {
+                        val result = query.result
                         val effect0 = length(dx, dy) / width
-                        val radius = hit.distance * 0.3f
+                        val radius = result.distance * 0.3f
 
-                        val x0 = (hit.positionWS.x - radius) / w
-                        val x1 = (hit.positionWS.x + radius) / w
+                        val x0 = (result.positionWS.x - radius) / w
+                        val x1 = (result.positionWS.x + radius) / w
 
-                        val z0 = (hit.positionWS.z - radius) / h
-                        val z1 = (hit.positionWS.z + radius) / h
+                        val z0 = (result.positionWS.z - radius) / h
+                        val z1 = (result.positionWS.z + radius) / h
 
                         val x0i = floor(x0).toInt()
                         val z0i = floor(z0).toInt()
@@ -304,7 +303,7 @@ fun main() {
 
                         for (zi in z0i..z1i) {
                             for (xi in x0i..x1i) {
-                                edit(xi, zi, effect0, hit)
+                                edit(xi, zi, effect0, result)
                             }
                         }
                     }

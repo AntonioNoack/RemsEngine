@@ -1,7 +1,6 @@
 package me.anno.tests.mesh.hexagons
 
 import com.bulletphysics.collision.shapes.SphereShape
-import me.anno.Engine
 import me.anno.Time
 import me.anno.bullet.HexagonSpherePhysics
 import me.anno.ecs.Entity
@@ -10,6 +9,7 @@ import me.anno.ecs.components.chunks.spherical.HexagonSphere
 import me.anno.ecs.components.chunks.spherical.HexagonTriangleQuery
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -210,7 +210,6 @@ fun main() {
                     save.write(world, file)
                     println("Saved, ${file.length().formatFileSize()}")
                 }
-
             }
 
             // todo show inventory
@@ -220,19 +219,21 @@ fun main() {
                 // resolve click
                 val start = it.renderer.cameraPosition
                 val dir = it.renderer.getMouseRayDirection()
-                val hit = Raycast.raycast(scene, start, dir, 0.0, 0.0, 10.0, -1)
-                if (hit != null) {
+                val query = RayQuery(start, dir, 10.0)
+                val hit = Raycast.raycastClosestHit(scene, query)
+                if (hit) {
+                    val result = query.result
                     val setBlock = button == Key.BUTTON_RIGHT
                     val testBlock = button == Key.BUTTON_MIDDLE
                     if (setBlock) {
                         // move hit back slightly
-                        dir.mulAdd(-sphere.len * 0.05, hit.positionWS, hit.positionWS)
+                        dir.mulAdd(-sphere.len * 0.05, result.positionWS, result.positionWS)
                     } else {
                         // move hit more into the block
-                        hit.geometryNormalWS.mulAdd(-sphere.len * 0.25, hit.positionWS, hit.positionWS)
+                        result.geometryNormalWS.mulAdd(-sphere.len * 0.25, result.positionWS, result.positionWS)
                     }
-                    val hexagon = sphere.findClosestHexagon(Vector3f(hit.positionWS))
-                    val h = hit.positionWS.length().toFloat()
+                    val hexagon = sphere.findClosestHexagon(Vector3f(result.positionWS))
+                    val h = result.positionWS.length().toFloat()
                     val yj = world.yi(h).toInt()
                     if (yj !in 0 until world.sy) return
                     if (testBlock) {
@@ -270,5 +271,4 @@ fun main() {
             }
         }
     }
-
 }

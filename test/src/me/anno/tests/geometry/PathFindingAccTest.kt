@@ -8,6 +8,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.ECSRegistry
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.DraggingControls
@@ -243,18 +244,14 @@ fun main() {
 
         fun raycastPoint(): AccNode? {
             val maxDistance = 1e3
-            val hit = Raycast.raycast(
-                scene,
-                view.renderer.cameraPosition,
-                view.renderer.mouseDirection,
-                0.0, 0.0,
-                maxDistance, -1
-            )
-            return if (hit != null) {
+            val query = RayQuery(view.renderer.cameraPosition, view.renderer.mouseDirection, maxDistance)
+            val hit = Raycast.raycastClosestHit(scene, query)
+            return if (hit) {
+                val result = query.result
                 // convert ws position to local space
-                hit.geometryNormalWS.normalize()
-                val x = (hit.positionWS.x + hit.geometryNormalWS.x + dx).toInt()
-                val z = (hit.positionWS.z + hit.geometryNormalWS.z + dz).toInt()
+                result.geometryNormalWS.normalize()
+                val x = (result.positionWS.x + result.geometryNormalWS.x + dx).toInt()
+                val z = (result.positionWS.z + result.geometryNormalWS.z + dz).toInt()
                 if (x in 0 until sx && z in 0 until sz) {
                     findPoint(x, z)
                 } else null

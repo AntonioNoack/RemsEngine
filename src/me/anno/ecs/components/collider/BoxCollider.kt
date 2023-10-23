@@ -1,6 +1,8 @@
 package me.anno.ecs.components.collider
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.RayQuery
+import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.io.serialization.SerializedProperty
 import org.joml.AABBd
@@ -40,14 +42,11 @@ class BoxCollider : Collider() {
         dst.halfExtends.set(halfExtends)
     }
 
-    override fun raycast(
-        start: Vector3f,
-        direction: Vector3f,
-        radiusAtOrigin: Float,
-        radiusPerUnit: Float,
-        surfaceNormal: Vector3f?,
-        maxDistance: Float
-    ): Float {
+    override fun raycastClosestHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
+
+        val start = query.start
+        val direction = query.direction
+        // todo set surfaceNormal...
 
         // https://jcgt.org/published/0007/03/04/paper-lowres.pdf
         // "A Ray-Box Intersection Algorithm and Efficient Dynamic Voxel Rendering"

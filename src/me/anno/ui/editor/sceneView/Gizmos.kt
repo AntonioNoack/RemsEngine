@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.raycast.Raycast
+import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.GridColors.colorX
 import me.anno.engine.ui.render.GridColors.colorY
@@ -117,7 +118,7 @@ object Gizmos {
         localInv.transformDirection(rayDir)
         rayDir.normalize()
 
-        val hit = Raycast.raycastTriangleMesh(mesh, rayPos, rayDir, Float.POSITIVE_INFINITY, -1)
+        val hit = RaycastMesh.raycastLocalMeshAnyHit(mesh, rayPos, rayDir, Float.POSITIVE_INFINITY, -1)
         drawMesh(cameraTransform, localTransform, material, color, mesh)
         return hit
     }
@@ -195,4 +196,5 @@ object Gizmos {
             )
         }
     }
+
 }

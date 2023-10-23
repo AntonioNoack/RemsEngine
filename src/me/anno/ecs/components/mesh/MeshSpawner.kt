@@ -8,8 +8,7 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.interfaces.Renderable
-import me.anno.engine.raycast.RayHit
-import me.anno.engine.raycast.Raycast
+import me.anno.engine.raycast.*
 import me.anno.engine.raycast.Raycast.TRIANGLES
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.*
@@ -100,7 +99,6 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                         stage.add(this, mesh, entity, matIndex)
                     }
                 }
-
             }
         }
         this.pipeline = null
@@ -142,24 +140,29 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
 
     override fun hasRaycastType(typeMask: Int) = (typeMask and TRIANGLES) != 0
 
-    override fun raycast(
-        entity: Entity, start: Vector3d, direction: Vector3d, end: Vector3d,
-        radiusAtOrigin: Double, radiusPerUnit: Double,
-        typeMask: Int, includeDisabled: Boolean, result: RayHit
-    ): Boolean {
+    override fun raycastClosestHit(query: RayQuery): Boolean {
         var hit = false
         forEachMesh { mesh, _, transform ->
-            if (Raycast.raycastTriangleMesh(
-                    transform, mesh, start, direction, end, radiusAtOrigin,
-                    radiusPerUnit, result, typeMask
-                )
-            ) {
-                result.mesh = mesh
-                result.component = this
+            if (RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)) {
+                query.result.mesh = mesh
                 hit = true
             }
         }
         return hit
+    }
+
+    override fun raycastAnyHit(query: RayQuery): Boolean {
+        try {
+            forEachMesh { mesh, _, transform ->
+                if (RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)) {
+                    query.result.mesh = mesh
+                    throw StopIteration
+                }
+            }
+        } catch (ignored: StopIteration) {
+            return true
+        }
+        return false
     }
 
     @DebugProperty
@@ -247,5 +250,4 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     companion object {
         private val LOGGER = LogManager.getLogger(MeshSpawner::class)
     }
-
 }

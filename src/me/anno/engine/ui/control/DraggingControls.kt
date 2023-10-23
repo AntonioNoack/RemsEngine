@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.*
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
@@ -44,7 +45,9 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Planed
 import org.joml.Vector3d
 import org.joml.Vector3f
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.sign
+import kotlin.math.tan
 
 // done controls
 // done show the scene
@@ -602,10 +605,9 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         var distance = (plane.dot(cd) - plane.dot(cp)) / plane.dot(cd)
         val world = view.getWorld()
         if (world is Entity) {
-            val cast = Raycast.raycast(world, cp, cd, 0.0, 0.0, 1e9, -1)
-            if (cast != null) {
-                distance = cast.distance
-            }
+            val query = RayQuery(cp, cd, 1e9)
+            val cast = Raycast.raycastClosestHit(world, query)
+            if (cast) distance = query.result.distance
         }
         // to do camDirection will only be correct, if this was the last drawn instance
         dst.set(view.mouseDirection).mul(distance).add(view.cameraPosition)

@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.ui.LineShapes.drawLine
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -74,17 +75,14 @@ open class MeshCollider() : Collider() {
      *
      * also sets the surface normal
      * */
-    override fun raycast(
-        start: Vector3f, direction: Vector3f, radiusAtOrigin: Float, radiusPerUnit: Float,
-        surfaceNormal: Vector3f?, maxDistance: Float
-    ): Float {
+    override fun raycastClosestHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
 
         val mesh = mesh ?: return Float.POSITIVE_INFINITY
-        if (!mesh.getBounds().testLine(start, direction))
+        if (!mesh.getBounds().testLine(query.start, query.direction))
             return Float.POSITIVE_INFINITY
 
         // test whether we intersect any triangle of this mesh
-        var bestDistance = maxDistance
+        var bestDistance = query.maxDistance
         val tmpPos = JomlPools.vec3f.create()
         val tmpNor = JomlPools.vec3f.create()
 
@@ -106,13 +104,13 @@ open class MeshCollider() : Collider() {
             c.lerp(mid, scaleUp)
             // check collision of localStart-localEnd with triangle a,b,c
             val localDistance = Triangles.rayTriangleIntersection(
-                start, direction, a, b, c,
-                radiusAtOrigin, radiusPerUnit,
+                query.start, query.direction, a, b, c,
+                query.radiusAtOrigin, query.radiusPerUnit,
                 bestDistance, tmpPos, tmpNor
             )
             if (localDistance < bestDistance) {
                 bestDistance = localDistance
-                neg = tmpNor.dot(direction) > 0f
+                neg = tmpNor.dot(query.direction) > 0f
                 surfaceNormal?.set(tmpNor)
             }
         }

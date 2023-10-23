@@ -10,6 +10,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.terrain.TerrainUtils.generateRegularQuadHeightMesh
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.engine.ECSRegistry
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -132,10 +133,10 @@ fun main() {
                         val entity = Entity()
                         entity.add(MeshComponent(newFile))
                         entity.setPosition(
-                                -bounds.centerX.toDouble(),
-                                -bounds.minY.toDouble(),
-                                -bounds.centerZ.toDouble()
-                            )
+                            -bounds.centerX.toDouble(),
+                            -bounds.minY.toDouble(),
+                            -bounds.centerZ.toDouble()
+                        )
                         val proxy = Entity() // to center the mesh
                         proxy.add(entity)
                         world.add(proxy)
@@ -149,20 +150,19 @@ fun main() {
                     // trace ray onto surface
                     val pos = camEntity.transform.globalPosition
                     val dir = renderView.getMouseRayDirection()
-                    val hit = Raycast.raycast(
-                        world, pos, dir, 0.0,
-                        0.0, 1e6, -1, -1, setOf(sample),
-                    )
-                    if (hit != null) {
+                    val query = RayQuery(pos, dir, 1e6, -1, -1, false, setOf(sample))
+                    val hit = Raycast.raycastClosestHit(world, query)
+                    if (hit) {
+                        val result = query.result
                         // if ray hits something, place pseudo object there
-                        sample.position = hit.positionWS
+                        sample.position = result.positionWS
                         // rotation based on normal :3
-                        if (dynamicAngle) nor.set(hit.geometryNormalWS).normalToQuaternion2(rot)
+                        if (dynamicAngle) nor.set(result.geometryNormalWS).normalToQuaternion2(rot)
                         else rot.identity()
                         sample.rotation = sample.rotation.set(rot).rotateY(placingRotation)
                         sample.setScale(placingScale)
                         hasValidLocation = true
-                        var hitEntity = hit.component?.entity
+                        var hitEntity = result.component?.entity
                         while (hitEntity != null && hitEntity.parentEntity != world) {
                             hitEntity = hitEntity.parentEntity ?: break
                         }

@@ -1,6 +1,7 @@
 package me.anno.ecs.components.collider
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.raycast.RayQueryLocal
 import me.anno.engine.ui.LineShapes.drawSphere
 import me.anno.io.serialization.SerializedProperty
 import org.joml.AABBd
@@ -47,15 +48,11 @@ class SphereCollider : Collider() {
         return deltaPos.length() - radius.toFloat()
     }
 
-    override fun raycast(
-        start: Vector3f, direction: Vector3f,
-        radiusAtOrigin: Float, radiusPerUnit: Float,
-        surfaceNormal: Vector3f?, maxDistance: Float
-    ): Float {
+    override fun raycastClosestHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
         val radius = radius.toFloat()
-        val a = direction.lengthSquared()
-        val b = 2f * start.dot(direction)
-        val c = start.lengthSquared() - radius * radius
+        val a = query.direction.lengthSquared()
+        val b = 2f * query.start.dot(query.direction)
+        val c = query.start.lengthSquared() - radius * radius
         val disc = b * b - 4 * a * c
         return if (disc < 0f) Float.POSITIVE_INFINITY
         else (-b - sqrt(disc)) / (2f * a)
@@ -66,5 +63,4 @@ class SphereCollider : Collider() {
     }
 
     override val className: String get() = "SphereCollider"
-
 }

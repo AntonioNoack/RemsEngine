@@ -12,6 +12,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.Projection.projectRayToAABBBack
 import me.anno.engine.raycast.Projection.projectRayToAABBFront
 import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.control.*
@@ -25,6 +26,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
@@ -321,35 +323,22 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         return typeMask.and(Raycast.TRIANGLES) != 0 || typeMask.and(Raycast.SDFS) != 0
     }
 
-    override fun raycast(
-        entity: Entity,
-        start: Vector3d,
-        direction: Vector3d,
-        end: Vector3d,
-        radiusAtOrigin: Double,
-        radiusPerUnit: Double,
-        typeMask: Int,
-        includeDisabled: Boolean,
-        result: RayHit
-    ): Boolean {
-        return if (typeMask.and(Raycast.SDFS) == 0) {
+    override fun raycastClosestHit(query: RayQuery): Boolean {
+        return if (!query.typeMask.hasFlag(Raycast.SDFS)) {
             // approximately only
-            super.raycast(
-                entity, start, direction, end,
-                radiusAtOrigin, radiusPerUnit,
-                typeMask, includeDisabled, result
-            )
+            super.raycastClosestHit(query)
         } else {
             // raycast
-            val globalTransform = entity.transform.globalTransform // local -> global
+            val result = query.result
+            val globalTransform = transform!!.globalTransform // local -> global
             val globalInv = result.tmpMat4x3d.set(globalTransform).invert()
             val vec3f = result.tmpVector3fs
             val vec3d = result.tmpVector3ds
             val vec4f = result.tmpVector4fs
             // compute ray positions in the wild
-            val localSrt0 = globalInv.transformPosition(start, vec3d[0])
-            val localDir0 = globalInv.transformDirection(direction, vec3d[1]).normalize()
-            val localEnd0 = globalInv.transformPosition(end, vec3d[2])
+            val localSrt0 = globalInv.transformPosition(query.start, vec3d[0])
+            val localDir0 = globalInv.transformDirection(query.direction, vec3d[1]).normalize()
+            val localEnd0 = globalInv.transformPosition(query.end, vec3d[2])
             // project start & end onto aabb for better results in single precision
             val maxLocalDistanceSq0 = localSrt0.distanceSquared(localEnd0)
             val startOffset = projectRayToAABBFront(localSrt0, localDir0, localAABB, dst = localSrt0)
@@ -369,11 +358,7 @@ open class SDFComponent : ProceduralMesh(), Renderable,
                 val localHit = vec3f[3].set(localDir).mul(localDistance).add(localSrt)
                 val localNormal = calcNormal(localHit, vec3f[4], seeds, normalEpsilon)
                 val bestHit = findClosestComponent(vec4f[0].set(localHit, 0f), seeds)
-                result.setFromLocal(
-                    globalTransform,
-                    localHit, localNormal,
-                    start, direction, end
-                )
+                result.setFromLocal(globalTransform, localHit, localNormal, query)
                 result.component = bestHit
                 true
             } else false

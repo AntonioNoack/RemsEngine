@@ -6,6 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -152,16 +153,17 @@ fun main() {
             // move spider along path to target
             // find proper position
             val start = Vector3d(crowdAgent.currentPosition).add(0.0, 10.0, 0.0)
-            val hit = Raycast.raycast(
-                scene, start,
-                Vector3d(0.0, -1.0, 0.0), 0.0, 0.0,
-                40.0, Raycast.TRIANGLE_FRONT, -1, setOf(spider)
+            val query0 =
+                RayQuery(start, Vector3d(0.0, -1.0, 0.0), 40.0, Raycast.TRIANGLE_FRONT, -1, false, setOf(spider))
+            val hit = Raycast.raycastClosestHit(
+                scene, query0
             )
 
-            spider.position = (hit?.positionWS ?: Vector3d(crowdAgent.currentPosition)).add(0.0, 1.0, 0.0)
+            spider.position = (if (hit) query0.result.positionWS else Vector3d(crowdAgent.currentPosition))
+                .add(0.0, 1.0, 0.0)
 
-            if (hit != null) {
-                val newAngle = hit.shadingNormalWS.normalize()
+            if (hit) {
+                val newAngle = query0.result.shadingNormalWS.normalize()
                 angleDictator.lerp(newAngle, dtTo01(5.0 * Time.deltaTime))
             }
             if (velocity.lengthSquared() < 1e-16) velocity.set(1.0, 0.0, 0.0)
@@ -229,13 +231,13 @@ fun main() {
                         futureTransform.transformPosition(zero, target)
                         val up = 5.0
                         val len = 10.0
-                        val hit = Raycast.raycast(
-                            scene, Vector3d(0.0, up, 0.0).add(target), Vector3d(0.0, -1.0, 0.0),
-                            0.0, 0.0, len, -1, -1, setOf(spider)
+                        val query1 = RayQuery(
+                            Vector3d(0.0, up, 0.0).add(target), Vector3d(0.0, -1.0, 0.0), len,
+                            -1, -1, false, setOf(spider)
                         )
-                        if (hit != null) {
+                        if (Raycast.raycastClosestHit(scene, query1)) {
                             val footThickness = legDimensions.last().y
-                            target.y += up - hit.distance - footThickness
+                            target.y += up - query1.result.distance - footThickness
                         }
                         isWalking = lastTarget.distanceSquared(target) > 1e-2 * sq(step)
                         lastTarget.set(target)
@@ -292,13 +294,11 @@ fun main() {
             override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 if (button == Key.BUTTON_LEFT) {
                     val ci = it.renderer
-                    val hit = Raycast.raycast(
-                        scene, ci.cameraPosition, ci.getMouseRayDirection(),
-                        0.0, 0.0, 1e3, -1, -1,
-                        setOf(spider)
+                    val query0 = RayQuery(ci.cameraPosition, ci.getMouseRayDirection(), 1e3,
+                        -1, -1, false, setOf(spider)
                     )
-                    if (hit != null) {
-                        val pt0 = Vector3f(hit.positionWS)
+                    if (Raycast.raycastClosestHit(scene, query0)) {
+                        val pt0 = Vector3f(query0.result.positionWS)
                         val poly = query.findNearestPoly(pt0, Vector3f(1e3f), filter).result
                         val pos = poly?.nearestPos
                         if (poly != null && pos != null) {

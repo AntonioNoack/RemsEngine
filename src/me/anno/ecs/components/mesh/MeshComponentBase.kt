@@ -10,7 +10,9 @@ import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayHit
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
+import me.anno.engine.raycast.RaycastMesh
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.Shader
@@ -73,26 +75,25 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         return typeMask.and(Raycast.TRIANGLES) != 0
     }
 
-    override fun raycast(
-        entity: Entity,
-        start: Vector3d,
-        direction: Vector3d,
-        end: Vector3d,
-        radiusAtOrigin: Double,
-        radiusPerUnit: Double,
-        typeMask: Int,
-        includeDisabled: Boolean,
-        result: RayHit
-    ): Boolean {
+    override fun raycastClosestHit(query: RayQuery): Boolean {
         val mesh = getMeshOrNull()
-        return if (mesh != null && Raycast.raycastTriangleMesh(
-                entity.transform, mesh, start, direction, end, radiusAtOrigin,
-                radiusPerUnit, result, typeMask
-            )
-        ) {
-            result.mesh = mesh
-            result.component = this
-            true
+        return if (mesh != null) {
+            val wasHit = RaycastMesh.raycastGlobalMeshClosestHit(query, transform, mesh)
+            if (wasHit) {
+                query.result.mesh = mesh
+                true
+            } else false
+        } else false
+    }
+
+    override fun raycastAnyHit(query: RayQuery): Boolean {
+        val mesh = getMeshOrNull()
+        return if (mesh != null) {
+            val wasHit = RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)
+            if (wasHit) {
+                query.result.mesh = mesh
+                true
+            } else false
         } else false
     }
 
@@ -202,5 +203,4 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     companion object {
         private val LOGGER = LogManager.getLogger(MeshComponentBase::class)
     }
-
 }

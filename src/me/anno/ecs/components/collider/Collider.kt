@@ -4,8 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.raycast.RayHit
-import me.anno.engine.raycast.Raycast
+import me.anno.engine.raycast.*
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.SerializedProperty
@@ -51,25 +50,12 @@ abstract class Collider : CollidingComponent() {
         return typeMask.and(Raycast.COLLIDERS) != 0
     }
 
-    override fun raycast(
-        entity: Entity,
-        start: Vector3d,
-        direction: Vector3d,
-        end: Vector3d,
-        radiusAtOrigin: Double,
-        radiusPerUnit: Double,
-        typeMask: Int,
-        includeDisabled: Boolean,
-        result: RayHit
-    ): Boolean {
-        return if (Raycast.raycastCollider(
-                entity, this, start, direction, end,
-                radiusAtOrigin, radiusPerUnit, result
-            )
-        ) {
-            result.collider = this
-            true
-        } else false
+    override fun raycastClosestHit(query: RayQuery): Boolean {
+        return RaycastCollider.raycastGlobalColliderClosestHit(query, entity!!, this)
+    }
+
+    override fun raycastAnyHit(query: RayQuery): Boolean {
+        return RaycastCollider.raycastGlobalColliderAnyHit(query, entity!!, this)
     }
 
     override fun onChangeStructure(entity: Entity) {
@@ -222,7 +208,6 @@ abstract class Collider : CollidingComponent() {
         outNormal.add(+d4, +d4, +d4)
 
         return (d1 + d2 + d3 + d4) * 0.25f
-
     }
 
     /**
@@ -241,27 +226,24 @@ abstract class Collider : CollidingComponent() {
      *
      * also sets the surface normal
      * */
-    open fun raycast(
-        start: Vector3f, direction: Vector3f, radiusAtOrigin: Float, radiusPerUnit: Float,
-        surfaceNormal: Vector3f?, maxDistance: Float
-    ): Float {
+    open fun raycastClosestHit(query: RayQueryLocal, surfaceNormal: Vector3f?): Float {
         // todo check if the ray is inside the bounding box:
         // todo I get many false-positives behind the object... why?
         // default implementation is slow, and not perfect:
         // ray casting
         var distance = 0f
-        val pos = Vector3f(start)
+        val pos = Vector3f(query.start)
         var isDone = 0
         var allowedStepDistance = 0f
         for (i in 0 until 16) { // max steps
             allowedStepDistance = getSignedDistance(pos)
             distance += allowedStepDistance
             // we have gone too far -> the ray does not intersect the collider
-            if (distance >= maxDistance) {
+            if (distance >= query.maxDistance) {
                 return Float.POSITIVE_INFINITY
             } else {
                 // we are still in the sector
-                pos.set(direction).mul(distance).add(start)
+                pos.set(query.direction).mul(distance).add(query.start)
                 if (abs(allowedStepDistance) < 1e-3f) {
                     // we found the surface :)
                     isDone++ // we want at least one extra iteration
@@ -272,6 +254,41 @@ abstract class Collider : CollidingComponent() {
             }
         }
         if (abs(allowedStepDistance) > 1f) return Float.POSITIVE_INFINITY
+        // the normal calculation can be 4x more expensive than the normal evaluation -> only do it once
+        if (surfaceNormal != null) getSignedDistance(pos, surfaceNormal)
+        return distance
+    }
+
+    open fun raycastAnyHit(
+        start: Vector3f, direction: Vector3f, radiusAtOrigin: Float, radiusPerUnit: Float,
+        surfaceNormal: Vector3f?, maxDistance: Float
+    ): Float {
+        var distance = 0f
+        val pos = Vector3f(start)
+        var isDone = 0
+        var allowedStepDistance = 0f
+        for (i in 0 until 16) { // max steps
+            allowedStepDistance = getSignedDistance(pos)
+            if (allowedStepDistance < 0) {
+                return distance // we found a hit :3
+            }
+            distance += allowedStepDistance
+            // we have gone too far -> the ray does not intersect the collider
+            if (distance >= maxDistance) {
+                return Float.POSITIVE_INFINITY
+            } else {
+                // we are still in the sector
+                pos.set(direction).mul(distance).add(start)
+                if (allowedStepDistance < 1e-3f) {
+                    // we found the surface :)
+                    isDone++ // we want at least one extra iteration
+                    if (isDone > 1) {
+                        break
+                    }
+                }
+            }
+        }
+        if (allowedStepDistance > 1f) return Float.POSITIVE_INFINITY
         // the normal calculation can be 4x more expensive than the normal evaluation -> only do it once
         if (surfaceNormal != null) getSignedDistance(pos, surfaceNormal)
         return distance
@@ -295,5 +312,4 @@ abstract class Collider : CollidingComponent() {
         const val OUTER_SPHERE_RADIUS_X8 = 1.224744871391589 // sqrt(1.5),
         // what is the inverse of the inner radius of a sphere approximated by 3 rings of 8 segments each
     }
-
 }

@@ -202,7 +202,7 @@ fun fillTile(
     group.hit.tlasCtr = 0
     group.hit.blasCtr = 0
     group.hit.trisCtr = 0
-    bvh.intersect(group)
+    bvh.findClosestHit(group)
     val normal = JomlPools.vec3f.create()
     k = 0
     val tlas = group.tlasCtr + group.hit.tlasCtr
@@ -323,7 +323,7 @@ fun createCPUPanel(
                                 hit.tlasCtr = 0
                                 hit.blasCtr = 0
                                 hit.trisCtr = 0
-                                bvh.intersect(lastPos, dir, hit)
+                                bvh.findClosestHit(lastPos, dir, hit)
                                 val color =
                                     hitToColor(nor.set(hit.shadingNormalWS), dir, hit.tlasCtr, hit.blasCtr, hit.trisCtr)
                                 ints.put(i, mixARGB(ints[i], color, alpha))

@@ -20,6 +20,7 @@ import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
@@ -204,9 +205,10 @@ fun main() {
                 mix(random.nextGaussian() * 10.0, pos0.x, f), maxY,
                 mix(random.nextGaussian() * 10.0, pos0.z, f)
             )
-            val hit = Raycast.raycast(staticScene, newPosition, down, 0.0, 0.0, maxY, -1)
-            if (hit != null) {
-                newPosition.y += radius - hit.distance
+            val query = RayQuery(newPosition, down, maxY)
+            val hit = Raycast.raycastClosestHit(staticScene, query)
+            if (hit) {
+                newPosition.y += radius - query.result.distance
                 entity.position = newPosition
                 val rb = entity.getComponent(Rigidbody::class)!!
                 rb.velocity = Vector3d()
@@ -226,12 +228,12 @@ fun main() {
 
         private fun findBulletDistance(pos: Vector3d, dir: Vector3d): Double {
             val maxDistance = 1e3
-            val hit = Raycast.raycast(
-                scene, pos, dir,
-                0.0, 0.0, maxDistance, Raycast.COLLIDERS,
-                -1, setOf(entity!!)
+            val query = RayQuery(
+                pos, dir, maxDistance, Raycast.COLLIDERS,
+                -1, false, setOf(entity!!)
             )
-            return hit?.distance ?: maxDistance
+            Raycast.raycastClosestHit(scene, query)
+            return query.result.distance
         }
 
         var shotLeft = false
@@ -285,8 +287,8 @@ fun main() {
             if (Input.isKeyDown(Key.KEY_D)) rigidbody.applyTorque(-s, 0.0, -c)
             if (Input.isKeyDown(Key.KEY_SPACE) && abs(Time.gameTimeN - lastJumpTime) > jumpTimeout) {
                 // only jump if we are on something
-                val hit = Raycast.raycast(staticScene, entity.position, down, 0.0, 0.0, radius, -1)
-                if (hit != null) {
+                val query = RayQuery(entity.position, down, radius)
+                if (Raycast.raycastAnyHit(staticScene, query)) {
                     lastJumpTime = Time.gameTimeN
                     rigidbody.applyImpulse(0.0, strength, 0.0)
                 }
