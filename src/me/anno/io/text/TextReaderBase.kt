@@ -908,6 +908,7 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
             "p4d[]" -> obj.readPlanedArray(name, readArray("p4d", planed0) { readPlaned() })
             "p4[][]" -> obj.readPlanefArray2D(name, readArray2D("p4", planef0a) { readPlanef() })
             "p4d[][]" -> obj.readPlanedArray2D(name, readArray2D("p4d", planed0a) { readPlaned() })
+            "S" -> obj.readString(name, readStringValue())
             "S[]" -> obj.readStringArray(name, readArray("String", "") { readStringValue() })
             "S[][]" -> obj.readStringArray2D(name, readArray2D("String[]", emptyArray()) { readStringValue() })
             "R" -> obj.readFile(name, readFile())
