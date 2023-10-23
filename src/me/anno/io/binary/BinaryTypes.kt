@@ -127,9 +127,17 @@ object BinaryTypes {
 
     // other geometric types
     const val AABB32 = 103
+    const val AABB32_ARRAY = 104
+    const val AABB32_ARRAY_2D = 105
     const val AABB64 = 106
+    const val AABB64_ARRAY = 107
+    const val AABB64_ARRAY_2D = 108
     const val PLANE32 = 109
+    const val PLANE32_ARRAY = 110
+    const val PLANE32_ARRAY_2D = 111
     const val PLANE64 = 112
+    const val PLANE64_ARRAY = 113
+    const val PLANE64_ARRAY_2D = 114
 
     // files
     const val FILE = 115

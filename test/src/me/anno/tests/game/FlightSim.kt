@@ -208,7 +208,6 @@ fun createPlane(player: LocalPlayer): Entity {
     val base0 = Entity()
     base0.add(base1)
     base0.add(controller)
-    controller.base = base0
     plane.add(base0)
     camera.use(player)
     // EditorState.control = controller

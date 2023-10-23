@@ -108,6 +108,14 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
     override fun writeVector2fArray(name: String, values: Array<Vector2f>, force: Boolean) = write(name, values)
     override fun writeVector3fArray(name: String, values: Array<Vector3f>, force: Boolean) = write(name, values)
     override fun writeVector4fArray(name: String, values: Array<Vector4f>, force: Boolean) = write(name, values)
+    override fun writeVector2fArray2D(name: String, values: Array<Array<Vector2f>>, force: Boolean) =
+        write(name, values)
+
+    override fun writeVector3fArray2D(name: String, values: Array<Array<Vector3f>>, force: Boolean) =
+        write(name, values)
+
+    override fun writeVector4fArray2D(name: String, values: Array<Array<Vector4f>>, force: Boolean) =
+        write(name, values)
 
     override fun writeVector2d(name: String, value: Vector2d, force: Boolean) {
         if (force || value.x != 0.0 || value.y != 0.0) write(name, value)
@@ -124,6 +132,14 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
     override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) = write(name, values)
     override fun writeVector3dArray(name: String, values: Array<Vector3d>, force: Boolean) = write(name, values)
     override fun writeVector4dArray(name: String, values: Array<Vector4d>, force: Boolean) = write(name, values)
+    override fun writeVector2dArray2D(name: String, values: Array<Array<Vector2d>>, force: Boolean) =
+        write(name, values)
+
+    override fun writeVector3dArray2D(name: String, values: Array<Array<Vector3d>>, force: Boolean) =
+        write(name, values)
+
+    override fun writeVector4dArray2D(name: String, values: Array<Array<Vector4d>>, force: Boolean) =
+        write(name, values)
 
     override fun writeVector2i(name: String, value: Vector2i, force: Boolean) = write(name, value)
     override fun writeVector3i(name: String, value: Vector3i, force: Boolean) = write(name, value)
@@ -131,19 +147,25 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
     override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) = write(name, values)
     override fun writeVector3iArray(name: String, values: Array<Vector3i>, force: Boolean) = write(name, values)
     override fun writeVector4iArray(name: String, values: Array<Vector4i>, force: Boolean) = write(name, values)
+    override fun writeVector2iArray2D(name: String, values: Array<Array<Vector2i>>, force: Boolean) =
+        write(name, values)
+
+    override fun writeVector3iArray2D(name: String, values: Array<Array<Vector3i>>, force: Boolean) =
+        write(name, values)
+
+    override fun writeVector4iArray2D(name: String, values: Array<Array<Vector4i>>, force: Boolean) =
+        write(name, values)
 
     override fun writeMatrix2x2f(name: String, value: Matrix2f, force: Boolean) = write(name, value)
     override fun writeMatrix3x2f(name: String, value: Matrix3x2f, force: Boolean) = write(name, value)
     override fun writeMatrix3x3f(name: String, value: Matrix3f, force: Boolean) = write(name, value)
     override fun writeMatrix4x3f(name: String, value: Matrix4x3f, force: Boolean) = write(name, value)
     override fun writeMatrix4x4f(name: String, value: Matrix4f, force: Boolean) = write(name, value)
-
     override fun writeMatrix2x2fArray(name: String, values: Array<Matrix2f>, force: Boolean) = write(name, values)
     override fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2f>, force: Boolean) = write(name, values)
     override fun writeMatrix3x3fArray(name: String, values: Array<Matrix3f>, force: Boolean) = write(name, values)
     override fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3f>, force: Boolean) = write(name, values)
     override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4f>, force: Boolean) = write(name, values)
-
     override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>, force: Boolean) =
         write(name, values)
 
@@ -189,13 +211,13 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
         if (force || value.x != 0f || value.y != 0f || value.z != 0f || value.w != 1f) write(name, value)
     }
 
-    override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {
-        if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 1.0) write(name, value)
-    }
-
     override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) = write(name, values)
     override fun writeQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>, force: Boolean) =
         write(name, values)
+
+    override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {
+        if (force || value.x != 0.0 || value.y != 0.0 || value.z != 0.0 || value.w != 1.0) write(name, value)
+    }
 
     override fun writeQuaterniondArray(name: String, values: Array<Quaterniond>, force: Boolean) = write(name, values)
     override fun writeQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>, force: Boolean) =
@@ -203,14 +225,30 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
 
     override fun writeAABBf(name: String, value: AABBf, force: Boolean) = write(name, value)
     override fun writeAABBd(name: String, value: AABBd, force: Boolean) = write(name, value)
+    override fun writeAABBfArray(name: String, values: Array<AABBf>, force: Boolean) = write(name, values)
+    override fun writeAABBdArray(name: String, values: Array<AABBd>, force: Boolean) = write(name, values)
+    override fun writeAABBfArray2D(name: String, values: Array<Array<AABBf>>, force: Boolean) = write(name, values)
+    override fun writeAABBdArray2D(name: String, values: Array<Array<AABBd>>, force: Boolean) = write(name, values)
+
     override fun writePlanef(name: String, value: Planef, force: Boolean) = write(name, value)
     override fun writePlaned(name: String, value: Planed, force: Boolean) = write(name, value)
+    override fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean) = write(name, values)
+    override fun writePlanedArray(name: String, values: Array<Planed>, force: Boolean) = write(name, values)
+    override fun writePlanefArray2D(name: String, values: Array<Array<Planef>>, force: Boolean) = write(name, values)
+    override fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean) = write(name, values)
+
     override fun writeFile(name: String, value: FileReference?, force: Boolean, workspace: FileReference?) {
         if (force || (value != null && value != InvalidRef)) write(name, value)
     }
 
     override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) =
         write(name, values)
+
+    override fun writeFileArray2D(
+        name: String, values: Array<Array<FileReference>>,
+        force: Boolean, workspace: FileReference?
+    ) = write(name, values)
+
 
     override fun writeNull(name: String?) = write(name!!, null)
     override fun writePointer(name: String?, className: String, ptr: Int, value: ISaveable) = write(name!!, value)

@@ -140,10 +140,18 @@ open class Saveable : ISaveable {
     override fun readQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>) = readSomething(name, values)
 
     override fun readAABBf(name: String, value: AABBf) = readSomething(name, value)
+    override fun readAABBfArray(name: String, values: Array<AABBf>) = readSomething(name, values)
+    override fun readAABBfArray2D(name: String, values: Array<Array<AABBf>>) = readSomething(name, values)
     override fun readAABBd(name: String, value: AABBd) = readSomething(name, value)
+    override fun readAABBdArray(name: String, values: Array<AABBd>) = readSomething(name, values)
+    override fun readAABBdArray2D(name: String, values: Array<Array<AABBd>>) = readSomething(name, values)
 
     override fun readPlanef(name: String, value: Planef) = readSomething(name, value)
+    override fun readPlanefArray(name: String, values: Array<Planef>) = readSomething(name, values)
+    override fun readPlanefArray2D(name: String, values: Array<Array<Planef>>) = readSomething(name, values)
     override fun readPlaned(name: String, value: Planed) = readSomething(name, value)
+    override fun readPlanedArray(name: String, values: Array<Planed>) = readSomething(name, values)
+    override fun readPlanedArray2D(name: String, values: Array<Array<Planed>>) = readSomething(name, values)
 
     override fun readMap(name: String, value: Map<Any?, Any?>) = readSomething(name, value)
 
@@ -158,5 +166,4 @@ open class Saveable : ISaveable {
         }
 
     override fun toString(): String = TextWriter.toText(this, StudioBase.workspace)// + "@${super.toString()}"
-
 }

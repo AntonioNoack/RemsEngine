@@ -206,14 +206,13 @@ fun main() {
             }
         }
         controls.camera = camera
-        controls.base = camBase
         controls.movementSpeed = 3f
         controls.needsClickToRotate = true
         controls.rotateRight = true
         controls.position.add(0f, 10f, 0f)
 
         camEntity.add(camera)
-        camEntity.add(controls)
+        camBase.add(controls)
         camBase.add(camEntity)
 
         world.add(camBase)

@@ -3,7 +3,11 @@ package me.anno.io.binary
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseReader
 import me.anno.io.binary.BinaryTypes.AABB32
+import me.anno.io.binary.BinaryTypes.AABB32_ARRAY
+import me.anno.io.binary.BinaryTypes.AABB32_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.AABB64
+import me.anno.io.binary.BinaryTypes.AABB64_ARRAY
+import me.anno.io.binary.BinaryTypes.AABB64_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.BOOL
 import me.anno.io.binary.BinaryTypes.BOOL_ARRAY
 import me.anno.io.binary.BinaryTypes.BOOL_ARRAY_2D
@@ -66,7 +70,11 @@ import me.anno.io.binary.BinaryTypes.OBJECT_LIST_UNKNOWN_LENGTH
 import me.anno.io.binary.BinaryTypes.OBJECT_NULL
 import me.anno.io.binary.BinaryTypes.OBJECT_PTR
 import me.anno.io.binary.BinaryTypes.PLANE32
+import me.anno.io.binary.BinaryTypes.PLANE32_ARRAY
+import me.anno.io.binary.BinaryTypes.PLANE32_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.PLANE64
+import me.anno.io.binary.BinaryTypes.PLANE64_ARRAY
+import me.anno.io.binary.BinaryTypes.PLANE64_ARRAY_2D
 import me.anno.io.binary.BinaryTypes.QUATERNION32
 import me.anno.io.binary.BinaryTypes.QUATERNION32_ARRAY
 import me.anno.io.binary.BinaryTypes.QUATERNION32_ARRAY_2D
@@ -323,10 +331,20 @@ class BinaryReader(val input: DataInputStream) : BaseReader() {
                     QUATERNION64_ARRAY_2D -> obj.readQuaterniondArray2D(name, readArray2D { readQuaterniond() })
 
                     AABB32 -> obj.readAABBf(name, readAABBf())
+                    AABB32_ARRAY -> obj.readAABBfArray(name, readArray { readAABBf() })
+                    AABB32_ARRAY_2D -> obj.readAABBfArray2D(name, readArray2D { readAABBf() })
+
                     AABB64 -> obj.readAABBd(name, readAABBd())
+                    AABB64_ARRAY -> obj.readAABBdArray(name, readArray { readAABBd() })
+                    AABB64_ARRAY_2D -> obj.readAABBdArray2D(name, readArray2D { readAABBd() })
 
                     PLANE32 -> obj.readPlanef(name, readPlanef())
+                    PLANE32_ARRAY -> obj.readPlanefArray(name, readArray { readPlanef() })
+                    PLANE32_ARRAY_2D -> obj.readPlanefArray2D(name, readArray2D { readPlanef() })
+
                     PLANE64 -> obj.readPlaned(name, readPlaned())
+                    PLANE64_ARRAY -> obj.readPlanedArray(name, readArray { readPlaned() })
+                    PLANE64_ARRAY_2D -> obj.readPlanedArray2D(name, readArray2D { readPlaned() })
 
                     MATRIX2X2F -> obj.readMatrix2x2f(name, readMatrix2x2f())
                     MATRIX3X2F -> obj.readMatrix3x2f(name, readMatrix3x2f())

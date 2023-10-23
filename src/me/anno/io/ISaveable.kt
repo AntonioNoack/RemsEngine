@@ -154,19 +154,29 @@ interface ISaveable {
     fun readMatrix4x3dArray2D(name: String, values: Array<Array<Matrix4x3d>>)
     fun readMatrix4x4dArray2D(name: String, values: Array<Array<Matrix4d>>)
 
+    // quaternions
     fun readQuaternionf(name: String, value: Quaternionf)
     fun readQuaternionfArray(name: String, values: Array<Quaternionf>)
     fun readQuaternionfArray2D(name: String, values: Array<Array<Quaternionf>>)
-
     fun readQuaterniond(name: String, value: Quaterniond)
     fun readQuaterniondArray(name: String, values: Array<Quaterniond>)
     fun readQuaterniondArray2D(name: String, values: Array<Array<Quaterniond>>)
 
+    // aabbs
     fun readAABBf(name: String, value: AABBf)
+    fun readAABBfArray(name: String, values: Array<AABBf>)
+    fun readAABBfArray2D(name: String, values: Array<Array<AABBf>>)
     fun readAABBd(name: String, value: AABBd)
+    fun readAABBdArray(name: String, values: Array<AABBd>)
+    fun readAABBdArray2D(name: String, values: Array<Array<AABBd>>)
 
+    // planes
     fun readPlanef(name: String, value: Planef)
+    fun readPlanefArray(name: String, values: Array<Planef>)
+    fun readPlanefArray2D(name: String, values: Array<Array<Planef>>)
     fun readPlaned(name: String, value: Planed)
+    fun readPlanedArray(name: String, values: Array<Planed>)
+    fun readPlanedArray2D(name: String, values: Array<Array<Planed>>)
 
     fun readMap(name: String, value: Map<Any?, Any?>)
 
