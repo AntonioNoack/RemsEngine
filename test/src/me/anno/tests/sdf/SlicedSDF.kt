@@ -10,8 +10,10 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
+import me.anno.engine.ui.PlaneShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.shader.*
@@ -89,7 +91,6 @@ fun main() {
             mesh.proceduralLength = 16
             mesh.cullMode = CullMode.BOTH
             JomlPools.aabbf.sub(1)
-
         }
 
         override fun createShader(): Pair<Map<String, TypeValue>, BaseShader> {
@@ -123,7 +124,6 @@ fun main() {
                     shader.v1i("subSamples", 25)
 
                     tree.getMeshOrNull().proceduralLength = numStripes
-
                 }
 
                 override fun createVertexStages(flags: Int): List<ShaderStage> {
@@ -248,7 +248,7 @@ fun main() {
     scene.add(Entity("Floor").apply {
         position = position.set(0.0, -1.0, 0.0)
         scale = scale.set(20.0)
-        val mesh = MeshComponent(documents.getChild("plane.obj"))
+        val mesh = MeshComponent(PlaneModel.createPlane(2, 2))
         mesh.materials = listOf(Material().apply {
             diffuseBase.set(0.05f, 0.05f, 0.05f, 1f)
             cullMode = CullMode.BOTH

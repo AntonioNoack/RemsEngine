@@ -1,8 +1,8 @@
 # ECS-related tests
 
-## [Self-tiling material](AutoTilableMaterial.kt)
+## [Self-tiling material](material/AutoTilableMaterial.kt)
 
-## [Billboards](Billboards.kt)
+## [Billboards](material/Billboards.kt)
 
-## [Serialization Test for prefabs](Change.kt), and [this](Hierarchy.kt)
+## [Serialization Test for prefabs](prefab/Change.kt), and [this](prefab/Hierarchy.kt)
 

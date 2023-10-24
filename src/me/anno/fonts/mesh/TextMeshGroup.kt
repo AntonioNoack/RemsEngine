@@ -36,7 +36,7 @@ class TextMeshGroup(
     var mesh: Mesh? = null
 
     // better for the performance of long texts
-    fun createJoinedMesh() {
+    fun createJoinedMesh(dst: Mesh) {
         val characters = alignment.buffers
         this.mesh = object : MeshJoiner<Int>(false, false, false) {
             override fun getMesh(element: Int): Mesh {
@@ -48,11 +48,11 @@ class TextMeshGroup(
                 val offset = (offsets[element] * baseScale).toFloat()
                 dst.translation(offset, 0f, 0f)
             }
-        }.join(Mesh(), codepoints.indices.toList())
+        }.join(dst, codepoints.indices.toList())
     }
 
     fun getOrCreateMesh(): Mesh {
-        if (mesh == null) createJoinedMesh()
+        if (mesh == null) createJoinedMesh(Mesh())
         return mesh!!
     }
 
