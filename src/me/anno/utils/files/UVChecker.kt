@@ -11,6 +11,7 @@ import me.anno.utils.Color.r
 @JvmField
 val UVChecker = lazy {
 
+    // todo file is only 40kB, so we can use it
     // generate uv checker texture to save 500kB of storage space
 
     // load texture with numbers

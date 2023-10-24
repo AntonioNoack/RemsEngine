@@ -205,6 +205,7 @@ class WindowStack : Stack<Window>() {
         fun printLayout() {
             LOGGER.info("Layout:")
             for (window1 in GFX.focusedWindow?.windowStack ?: return) {
+                println("Window:")
                 window1.panel.printLayout(1)
             }
         }

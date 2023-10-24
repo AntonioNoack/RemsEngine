@@ -21,8 +21,8 @@ import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.SizeLimitingContainer
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
@@ -119,7 +119,8 @@ abstract class WelcomeUI {
         welcome += slc
 
         val scroll = ScrollPanelY(welcome, Padding(5), style)
-        scroll += WrapAlign.Center
+        scroll.alignmentX = AxisAlignment.CENTER
+        scroll.alignmentY = AxisAlignment.CENTER
 
         // todo where is the obstructing block coming from?
         /*scroll.backgroundRadius = 20f

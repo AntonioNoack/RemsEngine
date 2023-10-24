@@ -11,10 +11,10 @@ import org.joml.Vector3f
 
 class TLASLeaf(
     centroid: Vector3f,
-    val localToWorld: Matrix4x3f,   //           12
-    val worldToLocal: Matrix4x3f,   //           12
-    val blas: BLASNode,             //          1-2
-    bounds: AABBf,                  //            6
+    val localToWorld: Matrix4x3f,   //           12 floats
+    val worldToLocal: Matrix4x3f,   //           12 floats
+    val blas: BLASNode,             //          1-2 floats/ints
+    bounds: AABBf,                  //            6 floats
     //                              // total: 31/32 floats = 124/128 bytes
 ) : TLASLeaf0(centroid, bounds) {
 
@@ -32,8 +32,6 @@ class TLASLeaf(
 
             // transform from global to local coordinates
             // and trace the ray inside the local bounds
-
-
             val localPos = JomlPools.vec3f.create()
             val localDir = JomlPools.vec3f.create()
             val localTmp = JomlPools.vec3f.create()

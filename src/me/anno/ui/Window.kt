@@ -13,6 +13,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.Renderer
 import me.anno.input.Input
 import me.anno.input.Key
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
@@ -105,11 +106,15 @@ open class Window(
 
     private fun calculateFullLayout(dx: Int, dy: Int, windowW: Int, windowH: Int) {
         val t0 = System.nanoTime()
-        val width = min(windowW - (x + dx), windowW - dx)
-        val height = min(windowH - (y + dy), windowH - dy)
+        val width = windowW - max(x + dx, dx)
+        val height = windowH - max(y + dy, dy)
         panel.calculateSize(width, height)
+        val width1 = if (isFullscreen || panel.alignmentX == AxisAlignment.FILL) width else min(width, panel.minW)
+        val height1 = if (isFullscreen || panel.alignmentY == AxisAlignment.FILL) height else min(height, panel.minH)
+        val px = x + dx + panel.alignmentX.getOffset(width, width1)
+        val py = y + dy + panel.alignmentY.getOffset(height, height1)
         val t1 = System.nanoTime()
-        panel.setPosSize(x + dx, y + dy, width, height)
+        panel.setPosSize(px, py, width1, height1)
         val t2 = System.nanoTime()
         val dt1 = (t1 - t0) * 1e-9f
         val dt2 = (t2 - t1) * 1e-9f
@@ -224,6 +229,7 @@ open class Window(
             calculateFullLayout(dx, dy, windowW, windowH)
             needsRedraw.add(panel)
         }, { p ->
+            LOGGER.warn("ProcessingNeeds for ${p.className}, ${p.lx0}-${p.lx1}, ${p.ly0}-${p.ly1}")
             p.calculateSize(p.lx1 - p.lx0, p.ly1 - p.ly0)
             p.setPosSize(p.lx0, p.ly0, p.lx1 - p.lx0, p.ly1 - p.ly0)
             addNeedsRedraw(p)

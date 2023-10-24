@@ -15,6 +15,7 @@ import java.net.URI
 import java.net.URL
 import java.net.URLConnection
 import java.util.*
+import kotlin.concurrent.thread
 import kotlin.math.min
 
 
@@ -78,7 +79,9 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
     }
 
     override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
-        callback(toURL().openStream(), null)
+        thread(name = "WebRef") {
+            callback(inputStreamSync(), null)
+        }
     }
 
     override fun inputStreamSync(): InputStream {

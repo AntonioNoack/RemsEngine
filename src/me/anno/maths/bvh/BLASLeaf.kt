@@ -93,6 +93,70 @@ class BLASLeaf(
         } else false
     }
 
+    override fun findAnyHit(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+        hit.blasCtr++
+        if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
+            hit.trisCtr += length
+
+            val vs = hit.tmpVector3fs
+            // 0-3 are used by Raycast
+            val a = vs[4]
+            val b = vs[5]
+            val c = vs[6]
+            val localHitTmp = vs[7]
+            val localNormalTmp = vs[8]
+
+            val localHit = vs[9]
+            val localNormal = vs[10]
+            val localNormal2 = vs[11]
+            val barycentrics = vs[12]
+
+            val bestLocalDistance = hit.distance.toFloat()
+
+            val positions = geometry.positions
+            val indices = geometry.indices
+            val normals = geometry.normals
+
+            var i3 = start * 3
+            val j3 = i3 + length * 3
+            while (i3 < j3) {
+
+                val ai = indices[i3] * 3
+                val bi = indices[i3 + 1] * 3
+                val ci = indices[i3 + 2] * 3
+                a.set(positions, ai)
+                b.set(positions, bi)
+                c.set(positions, ci)
+                i3 += 3
+
+                val localDistance = rayTriangleIntersectionFront(
+                    pos, dir, a, b, c, bestLocalDistance,
+                    localNormalTmp, localHitTmp, barycentrics
+                )
+
+                if (localDistance < bestLocalDistance) {
+                    // could swap pointers as well
+                    localHit.set(localHitTmp)
+                    localNormal.set(localNormalTmp)
+                    // barycentric is only set, if an improvement is found;
+                    // find smooth normals using barycentrics
+                    barycentrics.div(barycentrics.x + barycentrics.y + barycentrics.z)
+                    localNormal2.set(
+                        barycentrics.x * normals[ai] + barycentrics.y * normals[bi] + barycentrics.z * normals[ci],
+                        barycentrics.x * normals[ai + 1] + barycentrics.y * normals[bi + 1] + barycentrics.z * normals[ci + 1],
+                        barycentrics.x * normals[ai + 2] + barycentrics.y * normals[bi + 2] + barycentrics.z * normals[ci + 2],
+                    )
+                    hit.distance = localDistance.toDouble()
+                    hit.geometryNormalWS.set(localNormal)
+                    hit.shadingNormalWS.set(localNormal2)
+                    hit.barycentric.set(barycentrics)
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
     override fun findClosestHit(group: RayGroup) {
         group.blasCtr++
         if (group.intersects(bounds)) {

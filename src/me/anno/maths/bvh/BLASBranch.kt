@@ -20,6 +20,14 @@ class BLASBranch(val axis: Int, val n0: BLASNode, val n1: BLASNode, bounds: AABB
         } else false
     }
 
+    override fun findAnyHit(pos: Vector3f, dir: Vector3f, invDir: Vector3f, dirIsNeg: Int, hit: RayHit): Boolean {
+        hit.blasCtr++
+        return if (bounds.isRayIntersecting(pos, invDir, hit.distance.toFloat())) {
+            n0.findClosestHit(pos, dir, invDir, dirIsNeg, hit) ||
+                    n1.findClosestHit(pos, dir, invDir, dirIsNeg, hit)
+        } else false
+    }
+
     override fun findClosestHit(group: RayGroup) {
         group.blasCtr++
         if (group.intersects(bounds)) {

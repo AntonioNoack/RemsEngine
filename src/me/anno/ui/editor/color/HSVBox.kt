@@ -31,7 +31,6 @@ open class HSVBox(
         when (action) {
             "SelectColor" -> {
                 if (dragged == null) {
-                    val width = lx1 - lx0 // width itself is somehow incorrect...
                     onValueChanged((x - this.x) / width, 1f - (y - this.y) / height)
                     return true
                 }
