@@ -2,7 +2,7 @@ package me.anno.engine.ui.render
 
 import me.anno.config.DefaultConfig.defaultFont
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.ECSShaderLib.simpleShader
 import me.anno.engine.ui.render.GridColors.colorX

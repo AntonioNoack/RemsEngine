@@ -2,7 +2,7 @@ package me.anno.tests.rtrt.other
 
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.shaders.Texture3DBTv2Material

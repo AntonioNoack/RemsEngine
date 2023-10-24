@@ -7,8 +7,10 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFXBase
+import me.anno.maths.Maths.mix
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS.downloads
+import org.joml.Vector3d
 import kotlin.math.PI
 
 /**
@@ -18,22 +20,37 @@ import kotlin.math.PI
  * */
 fun main() {
 
+    // todo dragging vector input is broken
+
     GFXBase.forceLoadRenderDoc()
     ECSRegistry.init()
 
     val scene = Entity("Scene")
+    // scene.add(SkyboxBase().apply { skyColor.set(0f) })
 
     val metallic = Material()
     metallic.metallicMinMax.set(0.9f)
     metallic.roughnessMinMax.set(0.1f)
 
-    val floor = Entity("Floor")
-    val floorMat = Material()
-    floorMat.roughnessMinMax.set(0.1f)
-    floor.add(MeshComponent(flatCube.front).apply { materials = listOf(floorMat.ref) })
-    floor.setPosition(0.0, -0.1, 0.0)
-    floor.setScale(8.0, 0.1, 3.0)
-    scene.add(floor)
+    // if your eyes hurt too much, reduce this number
+    val numStripes = 150
+    val floorHalfSize = Vector3d(8.0, 0.1, 3.0)
+    val floor = Entity("Floor", scene)
+    fun placeFloor(z: Double, r: Float) {
+        val stripe = Entity("Floor", floor)
+        val floorMat = Material()
+        floorMat.roughnessMinMax.set(mix(0.1f, 1f, r))
+        floorMat.metallicMinMax.set(1f - r)
+        stripe.add(MeshComponent(flatCube.front).apply {
+            isInstanced = true
+            materials = listOf(floorMat.ref)
+        })
+        stripe.setPosition(0.0, -floorHalfSize.y, z)
+        stripe.setScale(floorHalfSize.x, floorHalfSize.y, floorHalfSize.z / numStripes)
+    }
+    for (i in 0 until numStripes) {
+        placeFloor(3.0 * ((i + 0.5) * 2.0 / numStripes - 1.0), i.and(1).toFloat())
+    }
 
     fun placeTruck(e: Entity) {
         val truck = Entity("${e.name} Truck")
@@ -48,8 +65,9 @@ fun main() {
     // global lights
     val ambient = AmbientLight()
     ambient.color.set(0.3f)
-    scene.add(ambient)
+    if (false) scene.add(ambient)
 
+    // sunlight
     val sun = Entity("Directional")
     sun.add(DirectionalLight().apply { shadowMapCascades = 1; cutoff = 1e-3f })
     sun.setPosition(-5.0, 0.0, 0.0)

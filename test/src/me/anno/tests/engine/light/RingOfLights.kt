@@ -1,5 +1,6 @@
 package me.anno.tests.engine.light
 
+import me.anno.Build
 import me.anno.ecs.Entity
 import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.DirectionalLight
@@ -7,7 +8,6 @@ import me.anno.ecs.components.light.LightSpawner
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -16,6 +16,7 @@ import me.anno.maths.Maths.TAU
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.utils.OS
+import org.joml.AABBd
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3f
@@ -26,21 +27,20 @@ import kotlin.math.sin
  * recreate colorful test scene with 100k lights from ages ago :3,
  *
  * just with modern methods :3 (faster, more direct, easier API)
- *
- * todo light needs to reflect...
  * */
 fun main() {
 
     ECSRegistry.init()
+    Build.isDebug = false // disable glGetError() calls
 
     val scene = Entity()
-    scene.add(Skybox())
+    // scene.add(SkyboxBase().apply { skyColor.set(0f) })
 
     val truck = Entity("VOX/Truck", scene)
     truck.add(MeshComponent(OS.downloads.getChild("MagicaVoxel/vox/truck.vox")))
 
     val lights = Entity("Lights", scene)
-    lights.add(AmbientLight().apply { color.set(0.25f) })
+    lights.add(AmbientLight().apply { color.set(0f) })
 
     val sun = Entity("Sun", lights)
     sun.add(DirectionalLight().apply { shadowMapCascades = 1; color.set(3f) })
@@ -55,7 +55,7 @@ fun main() {
 
         val superRings = 300
         val elementSize = 10.0
-        val lightLevel = 20f
+        val lightLevel = 2000f
         val numColors = 3
         val colorRepetitions = 3
         val scale = Vector3d(elementSize)
@@ -68,15 +68,18 @@ fun main() {
 
         var firstTurn = true
         override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+            // to do acceleration structure for frustum tests?
             var k = 0
             val dst = pipeline.lightStage.instanced[colors[0]]
             val nr = numColors * colorRepetitions
             val sc = scale.x
             val isc = 1.0 / scale.x
-            val iws = 1.0 / (sc * RenderState.worldScale)
+            val iws = (1.0 / (sc * RenderState.worldScale)).toFloat()
             val dx = isc * RenderState.cameraPosition.x
             val dy = isc * RenderState.cameraPosition.y
             val dz = isc * RenderState.cameraPosition.z
+            val aabb = AABBd()
+            val frustum = pipeline.frustum
             for (j in 0 until superRings) {
                 val radius = 50.0 * (1.0 + j * 0.1)
                 val ringLightCount = (radius * 0.5).toInt()
@@ -88,18 +91,24 @@ fun main() {
                         drawMatrix.setTranslation(radius * cos(angle), positionY, radius * sin(angle))
                         drawMatrix.scale(scale)
                     }
-                    // same as
-                    // .set4x3delta(drawMatrix, RenderState.cameraPosition, RenderState.worldScale).invert()
-                    val iwz = iws.toFloat()
-                    invCamSpaceMatrix.set(
-                        iwz, 0f, 0f,
-                        0f, iwz, 0f,
-                        0f, 0f, iwz,
-                        (dx - drawMatrix.m30 * isc).toFloat(),
-                        (dy - drawMatrix.m31 * isc).toFloat(),
-                        (dz - drawMatrix.m32 * isc).toFloat()
-                    )
-                    dst.add(light, drawMatrix, invCamSpaceMatrix)
+                    val px = drawMatrix.m30
+                    val py = drawMatrix.m31
+                    val pz = drawMatrix.m32
+                    aabb.setMin(px - sc, py - sc, pz - sc)
+                    aabb.setMax(px + sc, py + sc, pz + sc)
+                    if (frustum.isVisible(aabb)) {
+                        // same as
+                        // .set4x3delta(drawMatrix, RenderState.cameraPosition, RenderState.worldScale).invert()
+                        invCamSpaceMatrix.set(
+                            iws, 0f, 0f,
+                            0f, iws, 0f,
+                            0f, 0f, iws,
+                            (dx - px * isc).toFloat(),
+                            (dy - py * isc).toFloat(),
+                            (dz - pz * isc).toFloat()
+                        )
+                        dst.add(light, drawMatrix, invCamSpaceMatrix)
+                    }
                 }
             }
             firstTurn = false

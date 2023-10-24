@@ -87,7 +87,7 @@ object ThumbsExt {
             for (index in materials0.indices) {
                 val m0 = materials1?.getOrNull(index)?.nullIfUndefined()
                 val m1 = m0 ?: materials0.getOrNull(index)
-                val material = MaterialCache[m1, Mesh.defaultMaterial]
+                val material = MaterialCache[m1, Material.defaultMaterial]
                 val shader2 = material.shader?.value ?: shader
                 bindShader(shader2, cameraMatrix, modelMatrix)
                 material.bind(shader2)
@@ -95,7 +95,7 @@ object ThumbsExt {
             }
         } else {
             bindShader(shader, cameraMatrix, modelMatrix)
-            val material = Mesh.defaultMaterial
+            val material = Material.defaultMaterial
             material.bind(shader)
             for (materialIndex in 0 until max(1, materials0.size)) {
                 draw(shader, materialIndex)

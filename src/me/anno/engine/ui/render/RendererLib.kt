@@ -44,7 +44,7 @@ object RendererLib {
             // local space, for falloff and such
             "           lightPos = matMul(camSpaceToLightSpace, vec4(finalPosition,1.0));\n" +
             "           lightNor = normalize(matMul(camSpaceToLightSpace, vec4(finalNormal,0.0)));\n" +
-            "           vec3 camDir = normalize(matMul(camSpaceToLightSpace, vec4(finalPosition, 0.0)));\n" +
+            "           vec3 viewDir = normalize(matMul(camSpaceToLightSpace, vec4(finalPosition, 0.0)));\n" +
             // "       if(!hasSpecular && dot(dir,dir) >= 1.0) continue;\n" +
             "           vec4 data0 = lightData0[i];\n" + // color, type
             "           float data1 = lightData1[i];\n" + // point: radius, spot: angle
@@ -63,10 +63,7 @@ object RendererLib {
                 "$start(lightType == ${it.ordinal}){\n${LightType.getShaderCode(it, co, ws)}}"
             } + "\n" +
             "           if(hasSpecular && dot(effectiveSpecular, vec3(NdotL)) > ${0.5 / 255.0}){\n" +
-            "               vec3 lightDirWS = normalize(matMul(lightMatrices[i],vec4(lightDir,0.0)));\n" +
-            "               vec3 H = normalize(V + lightDirWS);\n" +
-            PBRLibraryGLTF.specularBRDFv2NoDivInlined2 +
-            "               specularLight += effectiveSpecular * computeSpecularBRDF;\n" +
+            "               specularLight += effectiveSpecular;// * computeSpecularBRDF;\n" +
             "           }\n" +
             // translucency; looks good and approximately correct
             // sheen is a fresnel effect, which adds light

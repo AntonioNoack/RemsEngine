@@ -98,6 +98,7 @@ class ShaderBuilder(val name: String) {
         val fragCode = fragment.createCode(true, outputs, disabledLayers, bridgeVariables)
         val varying = (vertex.imported + vertex.exported).toList()
             .filter { it !in bridgeVariables } + bridgeVariables.values
+
         val shader = object : Shader(
             if (suffix == null) name else "$name-$suffix", attributes + vertex.uniforms, vertCode,
             varying, fragment.uniforms.toList(), fragCode
@@ -112,11 +113,8 @@ class ShaderBuilder(val name: String) {
         val textureIndices = ArrayList<String>()
         collectTextureIndices(textureIndices, vertex.uniforms)
         collectTextureIndices(textureIndices, fragment.uniforms)
-        // LOGGER.info("Textures($name): $textureIndices")
         shader.setTextureIndices(textureIndices)
         shader.ignoreNameWarnings(ignored)
-        /*for (stage in vertex.stages) ignore(shader, stage)
-        for (stage in fragment.stages) ignore(shader, stage)*/
         return shader
     }
 

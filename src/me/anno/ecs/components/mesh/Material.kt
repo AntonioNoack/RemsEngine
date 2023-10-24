@@ -236,7 +236,7 @@ open class Material : PrefabSaveable(), Renderable {
         val stage = pipeline.findStage(this)
         val materialSource = root.ref
         mesh.material = materialSource
-        stage.add(Pipeline.sampleMeshComponent, mesh, entity, 0)
+        stage.add(Pipeline.sampleMeshComponent, mesh, entity, this, 0)
         return clickId + 1
     }
 
@@ -345,6 +345,8 @@ open class Material : PrefabSaveable(), Renderable {
     companion object {
 
         var timeout = 1000L
+
+        val defaultMaterial = Material()
 
         fun getTex(image: FileReference): Texture2D? = ImageGPUCache[image, timeout, true]
 

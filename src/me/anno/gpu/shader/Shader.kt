@@ -66,17 +66,12 @@ open class Shader(
         return word in vertexShader || word in fragmentShader
     }
 
-    // shader compile time doesn't really matter... -> move it to the start to preserve ram use?
-    // isn't that much either...
     override fun compile() {
 
-        // LOGGER.debug("$shaderName\nGEOMETRY:\n$geometry\nVERTEX:\n$vertex\nVARYING:\n$varying\nFRAGMENT:\n$fragment")
-
         val varyings = varyings.map {
+            // matrix interpolation is not supported properly on my RTX3070. Although the value should be constant, the matrix is not.
             Varying(
-                if (it.isFlat || it.type.isFlat ||
-                    it.type.glslName.startsWith("mat") // matrix interpolation is not supported properly on my RTX3070. Although the value should be constant, the matrix is not.
-                ) "flat" else "",
+                if (it.isFlat || it.type.isFlat || it.type.glslName.startsWith("mat")) "flat" else "",
                 it.type, it.name
             )
         }
@@ -152,12 +147,11 @@ open class Shader(
         builder.append(matMul)
 
         for (v in varyings) {
-            builder.append(v.modifiers)
-            builder.append(" in ")
-            builder.append(v.type.glslName)
-            builder.append(' ')
-            builder.append(v.fShaderName)
-            builder.append(";\n")
+            if (v.modifiers.isNotEmpty()) {
+                builder.append(v.modifiers).append(" ")
+            }
+            builder.append("in ").append(v.type.glslName)
+                .append(' ').append(v.fShaderName).append(";\n")
         }
 
         var outCtr = 0

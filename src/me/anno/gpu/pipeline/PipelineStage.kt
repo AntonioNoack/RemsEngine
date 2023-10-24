@@ -8,9 +8,7 @@ import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.RenderView
@@ -589,8 +587,8 @@ class PipelineStage(
                 val entity = request.entity
 
                 val transform = entity.transform
+                val material = request.material
                 val materialIndex = request.materialIndex
-                val material = getMaterial(renderer, mesh, materialIndex)
 
                 oc?.start()
 
@@ -758,8 +756,8 @@ class PipelineStage(
 
             val mesh = request.mesh
             val entity = request.entity
+            val material = request.material
             val materialIndex = request.materialIndex
-            val material = getMaterial(request.component, mesh, materialIndex)
 
             val transform = entity.transform
 
@@ -783,7 +781,7 @@ class PipelineStage(
             shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
 
             GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
-                mesh.drawDepth(shader)
+                mesh.draw(shader, materialIndex)
             }
 
             oc?.stop()
@@ -824,15 +822,16 @@ class PipelineStage(
         }
     }
 
-    fun add(component: Component, mesh: Mesh, entity: Entity, materialIndex: Int) {
+    fun add(component: Component, mesh: Mesh, entity: Entity, material: Material, materialIndex: Int) {
         val nextInsertIndex = nextInsertIndex++
         if (nextInsertIndex >= drawRequests.size) {
-            drawRequests.add(DrawRequest(mesh, component, entity, materialIndex))
+            drawRequests.add(DrawRequest(mesh, component, entity, material, materialIndex))
         } else {
             val request = drawRequests[nextInsertIndex]
             request.mesh = mesh
             request.component = component
             request.entity = entity
+            request.material = material
             request.materialIndex = materialIndex
         }
     }
@@ -870,17 +869,6 @@ class PipelineStage(
                 component.currWeights, component.currIndices
             )
         } else stack.add(transform, component.gfxId)
-    }
-
-    @Suppress("unused")
-    fun getMaterial(mesh: Mesh, index: Int): Material {
-        return MaterialCache[mesh.materials.getOrNull(index), defaultMaterial]
-    }
-
-    fun getMaterial(renderer: Component, mesh: Mesh, index: Int): Material {
-        var material = if (renderer is MeshComponentBase) renderer.materials.getOrNull(index) else null
-        material = material ?: mesh.materials.getOrNull(index)
-        return MaterialCache[material, defaultMaterial]
     }
 
     fun getShader(material: Material): Shader {

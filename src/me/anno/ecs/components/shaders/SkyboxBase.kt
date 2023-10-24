@@ -22,7 +22,7 @@ import org.joml.*
 
 open class SkyboxBase : MeshComponentBase() {
 
-    @SerializedProperty
+    @NotSerializedProperty
     var shader: SkyShaderBase?
         get() = material.shader as? SkyShaderBase
         set(value) {

@@ -2,7 +2,7 @@ package me.anno.engine.ui
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX

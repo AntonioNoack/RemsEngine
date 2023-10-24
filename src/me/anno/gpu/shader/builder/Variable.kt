@@ -112,7 +112,7 @@ class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inO
     }
 
     override fun toString(): String {
-        return "${inOutMode.glslName} ${type.glslName} $name"
+        return "${if (isFlat) "flat " else ""}${inOutMode.glslName} ${type.glslName} $name"
     }
 
     val isAttribute get() = inOutMode == VariableMode.ATTR

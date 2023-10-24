@@ -2,7 +2,7 @@ package me.anno.ui.editor.sceneView
 
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh

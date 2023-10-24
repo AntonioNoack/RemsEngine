@@ -2,7 +2,7 @@ package me.anno.sdf
 
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MaterialCache
-import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.ECSMeshShader.Companion.discardByCullingPlane

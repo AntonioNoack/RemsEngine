@@ -144,7 +144,7 @@ open class DeferredLayerType(
         val ID = DeferredLayerType("ID", "finalId", 4, 0)
         // val FLAGS = DeferredLayerType("Flags", "finalFlags", 4, 0)
 
-        val LIGHT_SUM = DeferredLayerType("Light Sum", "finalLight", 0)
+        val LIGHT_SUM = DeferredLayerType("Light Sum", "finalLight", 3, 0)
 
         // is there more, which we could use?
 

@@ -19,17 +19,19 @@ fun main() {
     registerCustomClass(Skybox())
     val scene = Entity()
     scene.add(Entity().apply {
-        add(PlanarReflection())
-        position = position.set(0.0, -0.01, 0.0)
-        rotation = rotation.identity().rotateX(-PI / 2)
+        add(MeshComponent(PlaneModel.createPlane(2, 2)).apply {
+            materials = listOf(Material().apply {
+                metallicMinMax.set(1f)
+                roughnessMinMax.set(0.1f) // changes the used mip level
+            }.ref)
+        })
+        add(Entity().apply {
+            add(PlanarReflection())
+            position = position.set(0.0, -0.01, 0.0)
+            rotation = rotation.identity().rotateX(-PI / 2)
+        })
     })
     scene.add(Skybox())
-    scene.add(MeshComponent(PlaneModel.createPlane(2, 2)).apply {
-        materials = listOf(Material().apply {
-            metallicMinMax.set(1f)
-            roughnessMinMax.set(0.3f) // changes the used mip level
-        }.ref)
-    })
     scene.add(Entity().apply {
         add(MeshComponent(documents.getChild("monkey.obj")))
         position = position.set(0.0, 0.3, 0.0)

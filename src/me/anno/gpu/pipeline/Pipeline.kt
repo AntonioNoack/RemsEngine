@@ -8,7 +8,7 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.mesh.*
-import me.anno.ecs.components.mesh.Mesh.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.components.shaders.SkyboxBase
 import me.anno.ecs.interfaces.Renderable
@@ -36,6 +36,7 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
@@ -138,31 +139,41 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         // todo add it to the transparent pass
     }
 
-    fun addMesh(mesh: Mesh, renderer: MeshComponentBase, entity: Entity) {
+    private fun getMaterial(
+        materialOverrides: List<FileReference>?,
+        materials: List<FileReference>,
+        index: Int
+    ): Material {
+        val m0 = materialOverrides?.getOrNull(index)?.nullIfUndefined()
+        val m1 = m0 ?: materials.getOrNull(index)
+        return MaterialCache[m1, defaultMaterial]
+    }
+
+    fun addMesh(mesh: Mesh, renderer: Component, entity: Entity) {
+        val materialOverrides = (renderer as? MeshComponentBase)?.materials
+        addMesh(mesh, renderer, materialOverrides, entity)
+    }
+
+    fun addMesh(mesh: Mesh, renderer: Component, materialOverrides: List<FileReference>?, entity: Entity) {
         mesh.ensureBuffer()
         val materials = mesh.materials
-        val materialOverrides = renderer.materials
         for (index in 0 until mesh.numMaterials) {
-            val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
-            val m1 = m0 ?: materials.getOrNull(index)
-            val material = MaterialCache[m1, defaultMaterial]
+            val material = getMaterial(materialOverrides, materials, index)
             val stage = findStage(material)
-            stage.add(renderer, mesh, entity, index)
+            stage.add(renderer, mesh, entity, material, index)
         }
     }
 
-    private fun addMeshDepth(mesh: Mesh, renderer: MeshComponentBase, entity: Entity) {
-        defaultStage.add(renderer, mesh, entity, 0)
+    fun addMeshInstanced(mesh: Mesh, renderer: Component, entity: Entity) {
+        val materialOverrides = (renderer as? MeshComponentBase)?.materials
+        addMeshInstanced(mesh, renderer, materialOverrides, entity)
     }
 
-    fun addMeshInstanced(mesh: Mesh, renderer: MeshComponentBase, entity: Entity) {
+    fun addMeshInstanced(mesh: Mesh, renderer: Component, materialOverrides: List<FileReference>?, entity: Entity) {
         mesh.ensureBuffer()
         val materials = mesh.materials
-        val materialOverrides = renderer.materials
         for (index in 0 until mesh.numMaterials) {
-            val m0 = materialOverrides.getOrNull(index)?.nullIfUndefined()
-            val m1 = m0 ?: materials.getOrNull(index)
-            val material = MaterialCache[m1, defaultMaterial]
+            val material = getMaterial(materialOverrides, materials, index)
             val stage = findStage(material)
             stage.addInstanced(mesh, renderer, entity, material, index)
         }

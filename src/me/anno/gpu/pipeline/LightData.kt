@@ -75,10 +75,10 @@ class LightData {
         throw IndexOutOfBoundsException()
     }
 
-    inline fun forEachType(callback: (lights: List<LightRequest>, type: LightType, size: Int) -> Unit) {
+    inline fun forEachType(callback: (lights: List<LightRequest>, size: Int, type: LightType) -> Unit) {
         for (entry in entries) {
             if (entry.index > 0) {
-                callback(entry.values, entry.type, entry.index)
+                callback(entry.values, entry.index, entry.type)
             }
         }
     }

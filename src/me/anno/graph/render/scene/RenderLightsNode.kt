@@ -189,6 +189,6 @@ class RenderLightsNode : RenderSceneNode0(
             }
         }
 
-        setOutput(1, Texture.texture(framebuffer, 0, "r", DeferredLayerType.LIGHT_SUM))
+        setOutput(1, Texture.texture(framebuffer, 0, "rgb", DeferredLayerType.LIGHT_SUM))
     }
 }

@@ -21,7 +21,7 @@ fun main() {
     // todo forward lighting model in editor now looks weird/cheap
 
     // todo if would be nice if we supported FileReference->Material-editing in the same inspector:
-    //  - colors might be scene dependent, and that can be important!
+    //  - colors might be scene-dependent, and that can be important!
     //  -> or open a second scene/window with it
 
     // todo we need an exposure setting or auto-exposure

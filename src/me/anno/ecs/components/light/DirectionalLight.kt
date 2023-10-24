@@ -1,6 +1,7 @@
 package me.anno.ecs.components.light
 
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.components.light.PointLight.Companion.effectiveSpecular
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawArrowZ
@@ -125,7 +126,10 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                             "}\n"
                     else "") +
                     "effectiveDiffuse = lightColor;\n" +
-                    "effectiveSpecular = lightColor;\n"
+                    "if(hasSpecular){\n" +
+                    // good like that?
+                    "   effectiveSpecular = lightColor * pow(max(NdotL, 0.0), 1.0 + 64.0 * (1.0 - finalRoughness));\n" +
+                    "}\n"
         }
     }
 }

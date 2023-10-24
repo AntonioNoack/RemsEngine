@@ -2,6 +2,7 @@ package me.anno.ecs.components.light
 
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.light.PointLight.Companion.falloff
+import me.anno.ecs.components.light.PointLight.Companion.effectiveSpecular
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawCircle
@@ -64,7 +65,7 @@ class CircleLight() : LightComponent(LightType.CIRCLE) {
                     "lightDir = normalize(-lightPos);\n" +
                     "NdotL = dot(lightDir, lightNor);\n" +
                     "effectiveDiffuse = lightColor * $falloff;\n" +
-                    "effectiveSpecular = effectiveDiffuse;\n"
+                    effectiveSpecular
         }
     }
 }

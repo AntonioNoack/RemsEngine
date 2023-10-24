@@ -129,17 +129,26 @@ class PointLight : LightComponent(LightType.POINT) {
 
         val falloff = kotlin.run {
             val cutoff = 0.1
-            "max(0.0, 1.0/(1.0+9.0*dot(lightPos,lightPos)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
+            "max(0.0, 1.0/(1.0+${1.0 / cutoff - 1.0}*dot(lightPos,lightPos)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
         }
+
+        val effectiveSpecular = "" +
+                "if(hasSpecular){\n" +
+                "   effectiveSpecular = effectiveDiffuse;\n" +
+                // 0 = perpendicular, 1 = perfectly aligned for reflection
+                "   float dot = max(-dot(normalize(lightPos), reflect(viewDir, lightNor)), 0.0);\n" +
+                "   float smoothness = 1.0 - finalRoughness;\n" +
+                "   effectiveSpecular *= mix(1.0, 2e4, smoothness) * pow(dot, 1.0 + 64.0 * smoothness);\n" +
+                "}\n"
 
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +
                     // light radius
                     "float lightRadius = shaderV0;\n" +
+                    (if (cutoffContinue != null) "if(dot(lightPos,lightPos)>1.0) { $cutoffContinue; }\n" else "") + // outside
                     "if(lightRadius > 0.0){\n" +
                     "   lightPos *= max(length(lightPos)-lightRadius, 0.001) * (1.0+lightRadius) / length(lightPos);\n" +
                     "}\n" +
-                    (if (cutoffContinue != null) "if(dot(lightPos,lightPos)>1.0) $cutoffContinue;\n" else "") + // outside
                     "lightDir = normalize(-lightPos);\n" +
                     "NdotL = dot(lightDir, lightNor);\n" +
                     // shadow maps; shadows can be in every direction -> use cubemaps
@@ -152,10 +161,7 @@ class PointLight : LightComponent(LightType.POINT) {
                             "}\n"
                     else "") +
                     "effectiveDiffuse = lightColor * $falloff;\n" +
-                    // "dir *= 0.2;\n" + // less falloff by a factor of 5,
-                    // because specular light is more directed and therefore reached farther
-                    // nice in theory, but practically, we would need a larger cube for that
-                    "effectiveSpecular = effectiveDiffuse;\n"
+                    effectiveSpecular
         }
     }
 }

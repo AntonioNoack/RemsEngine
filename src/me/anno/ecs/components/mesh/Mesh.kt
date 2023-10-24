@@ -1080,20 +1080,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         }
     }
 
-    fun drawDepth(shader: Shader) {
-        // all materials are assumed to behave the same
-        // when we have vertex shaders by material, this will become wrong...
-        val proceduralLength = proceduralLength
-        if (proceduralLength <= 0) {
-            ensureBuffer()
-            if (drawDebugLines) {
-                debugLineBuffer?.draw(shader)
-            } else {
-                (triBuffer ?: buffer)?.draw(shader)
-            }
-        } else StaticBuffer.drawArraysNull(shader, drawMode, proceduralLength)
-    }
-
     fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
         if (proceduralLength <= 0) {
             GFX.check()
@@ -1212,7 +1198,6 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                 return mode == RenderMode.LINES || mode == RenderMode.LINES_MSAA
             }
 
-        val defaultMaterial = Material()
         private val defaultMaterials = emptyList<FileReference>()
         private val LOGGER = LogManager.getLogger(Mesh::class)
 

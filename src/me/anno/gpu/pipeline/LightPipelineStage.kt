@@ -131,7 +131,10 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
         // if (destination is multi-sampled &&) settings is multisampled, bind the multi-sampled textures
 
         val depthMask1 = singleToVector[depthMask]!!
-        nonInstanced.forEachType { lights, type, size ->
+
+        var drawnPrimitives = 0L
+        var drawCalls = 0L
+        nonInstanced.forEachType { lights, size, type ->
 
             val sample = lights[0].light
             val mesh = sample.getLightPrimitive()
@@ -206,8 +209,14 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
                 shader.v4f("data2", shadowIdx0, shadowIdx1.toFloat(), light.getShaderV1(), light.getShaderV2())
 
                 mesh.draw(shader, 0)
+
+                drawnPrimitives += mesh.numPrimitives
+                drawCalls++
             }
         }
+
+        PipelineStage.drawnPrimitives += drawnPrimitives
+        PipelineStage.drawCalls += drawCalls
 
         // draw instanced meshes
         if (instanced.isNotEmpty()) {
@@ -215,13 +224,13 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
             this.cameraPosition = cameraPosition
             this.worldScale = worldScale
             GFXState.instanced.use(true) {
-                instanced.forEachType { lights, type, _ ->
+                instanced.forEachType { lights, size, type ->
                     val shader = getShader(type, true)
                     if (type == LightType.DIRECTIONAL) {
                         GFXState.depthMode.use(DepthMode.ALWAYS) {
-                            drawBatches(depthTexture, lights, type, shader)
+                            drawBatches(depthTexture, lights, size, type, shader)
                         }
-                    } else drawBatches(depthTexture, lights, type, shader)
+                    } else drawBatches(depthTexture, lights, size, type, shader)
                 }
             }
         }
@@ -233,11 +242,9 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
 
     fun drawBatches(
         depthTexture: Texture2D,
-        lights: List<LightRequest>,
-        type: LightType, shader: Shader
+        lights: List<LightRequest>, size: Int,
+        type: LightType, shader: Shader,
     ) {
-
-        val size = lights.size
 
         val sample = lights[0].light
         val mesh = sample.getLightPrimitive()
@@ -255,6 +262,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
         // draw them in batches of size <= batchSize
         // converted from for(.. step ..) to while to avoid allocation
         var baseIndex = 0
+        var callCount = 0L
         while (baseIndex < size) {
 
             buffer.clear()
@@ -286,7 +294,11 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
             mesh.drawInstanced(shader, 0, buffer)
 
             baseIndex += batchSize
+            callCount++
         }
+
+        PipelineStage.drawnPrimitives += size * mesh.numPrimitives
+        PipelineStage.drawCalls += callCount
     }
 
     operator fun get(index: Int): LightRequest {

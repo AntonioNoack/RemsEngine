@@ -230,13 +230,13 @@ object LightShaders {
             Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V1B, "isDirectional"),
-            Variable(GLSLType.V3F, "invInsTrans0v", VariableMode.OUT),
-            Variable(GLSLType.V3F, "invInsTrans1v", VariableMode.OUT),
-            Variable(GLSLType.V3F, "invInsTrans2v", VariableMode.OUT),
-            Variable(GLSLType.V3F, "invInsTrans3v", VariableMode.OUT),
-            Variable(GLSLType.V4F, "data0", VariableMode.OUT),
-            Variable(GLSLType.V1F, "data1", VariableMode.OUT),
-            Variable(GLSLType.V4F, "data2", VariableMode.OUT),
+            Variable(GLSLType.V3F, "invInsTrans0v", VariableMode.OUT).flat(),
+            Variable(GLSLType.V3F, "invInsTrans1v", VariableMode.OUT).flat(),
+            Variable(GLSLType.V3F, "invInsTrans2v", VariableMode.OUT).flat(),
+            Variable(GLSLType.V3F, "invInsTrans3v", VariableMode.OUT).flat(),
+            Variable(GLSLType.V4F, "data0", VariableMode.OUT).flat(),
+            Variable(GLSLType.V1F, "data1", VariableMode.OUT).flat(),
+            Variable(GLSLType.V4F, "data2", VariableMode.OUT).flat(),
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT),
         ), "" +
                 "data0 = vec4(lightData0.rgb,0.0);\n" +
@@ -316,7 +316,7 @@ object LightShaders {
                     "vec3 lightColor = data0.rgb;\n" +
                     "vec3 lightPos = matMul(camSpaceToLightSpace, vec4(finalPosition, 1.0));\n" +
                     "vec3 lightNor = normalize(matMul(camSpaceToLightSpace, vec4(finalNormal, 0.0)));\n" +
-                    "vec3 camDir = normalize(matMul(camSpaceToLightSpace, vec4(finalPosition, 0.0)));\n" +
+                    "vec3 viewDir = normalize(matMul(camSpaceToLightSpace, vec4(finalPosition, 0.0)));\n" +
                     "float NdotL = 0.0;\n" + // normal dot light
                     "vec3 effectiveDiffuse = vec3(0.0), effectiveSpecular = vec3(0.0), lightDir = vec3(0.0);\n" +
                     "float shaderV0 = data1, shaderV1 = data2.z, shaderV2 = data2.w;\n" +
@@ -415,10 +415,10 @@ object LightShaders {
 
     val invStage = ShaderStage(
         "invTrans2cs2ls", listOf(
-            Variable(GLSLType.V3F, "invInsTrans0v", VariableMode.IN),
-            Variable(GLSLType.V3F, "invInsTrans1v", VariableMode.IN),
-            Variable(GLSLType.V3F, "invInsTrans2v", VariableMode.IN),
-            Variable(GLSLType.V3F, "invInsTrans3v", VariableMode.IN),
+            Variable(GLSLType.V3F, "invInsTrans0v", VariableMode.IN).flat(),
+            Variable(GLSLType.V3F, "invInsTrans1v", VariableMode.IN).flat(),
+            Variable(GLSLType.V3F, "invInsTrans2v", VariableMode.IN).flat(),
+            Variable(GLSLType.V3F, "invInsTrans3v", VariableMode.IN).flat(),
             Variable(GLSLType.M4x3, "camSpaceToLightSpace", VariableMode.OUT)
         ), "camSpaceToLightSpace = mat4x3(invInsTrans0v,invInsTrans1v,invInsTrans2v,invInsTrans3v);\n"
     )
