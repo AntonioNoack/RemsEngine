@@ -101,14 +101,15 @@ object ECSSceneTabs : ScrollPanelX(style) {
         }
     }
 
+    fun refocus() {
+        PrefabInspector.currentInspector = currentTab?.inspector
+    }
+
     fun focus(tab: ECSSceneTab) {
 
         synchronized(this) {
             currentTab = tab
             PrefabInspector.currentInspector = tab.inspector
-            // root = sceneTab.root
-            // val instance = prefab.getSampleInstance()
-            // EditorState.select(instance, null)
             EditorState.select(null)
             if (tab !in children3) content += tab
             val ws = window?.windowStack
@@ -122,7 +123,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
         }
 
         (uiParent ?: this).invalidateDrawing()
-
     }
 
     val project get() = (StudioBase.instance as? RemsEngine)?.currentProject
@@ -153,7 +153,6 @@ object ECSSceneTabs : ScrollPanelX(style) {
 
             focus(tab)
         }
-
     }
 
     fun updatePrefab(prefab: Prefab, major: Boolean = true) {
@@ -193,5 +192,4 @@ object ECSSceneTabs : ScrollPanelX(style) {
             e.printStackTrace()
         }
     }
-
 }

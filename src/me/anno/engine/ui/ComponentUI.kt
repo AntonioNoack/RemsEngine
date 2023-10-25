@@ -357,8 +357,6 @@ object ComponentUI {
         style: Style
     ): Panel {
 
-        println("createUIByTypeName($name, $type0)")
-
         // nullable types
         if (type0.endsWith('?') || type0.endsWith("?/PrefabSaveable")) {
             val i0 = type0.lastIndexOf('?')
@@ -373,7 +371,6 @@ object ComponentUI {
         val ttt = "" // we could use annotations for that :)
         val value = property.get()
         val default = property.getDefault()
-        // LOGGER.debug("Default for $title: $default")
 
         when (type0) {
             // native types
@@ -1113,14 +1110,12 @@ object ComponentUI {
                         val qi = TextButton("\uD83C\uDFA8", style)
                         qi.setTooltip("Quick-Edit")
                         qi.addLeftClickListener {
-                            val source = property.get() as? FileReference
-                            if (source != null && source.exists) {
-                                val inspector = PrefabInspector(source)
-                                // we need to reset this, when we click on something in the scene
-                                // -> is done on save xD ; todo this process should be more explicit and clear
-                                PrefabInspector.currentInspector = inspector
-                                EditorState.select(inspector.prefab.getSampleInstance())
-                            }
+                            val source = (property.get() as? FileReference)?.nullIfUndefined()
+                            val prefab = PrefabCache[source]
+                            if (prefab != null) {
+                                // todo pressing save shouldn't necessarily close the window
+                                EditorState.selectForeignPrefab(prefab)
+                            } else LOGGER.warn("Prefab couldn't be loaded from $source")
                         }
 
                         fi.addButton(ci)

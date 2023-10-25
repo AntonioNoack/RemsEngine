@@ -19,6 +19,7 @@ import me.anno.engine.ui.EditorState.control
 import me.anno.engine.ui.EditorState.editMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
 import me.anno.input.Key
@@ -187,6 +188,7 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
         val (e, c) = view.resolveClick(x, y)
         // show the entity in the property editor
         // but highlight the specific mesh
+        ECSSceneTabs.refocus()
         EditorState.select(c ?: e, Input.isShiftDown)
     }
 

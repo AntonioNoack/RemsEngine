@@ -3,9 +3,12 @@ package me.anno.engine.ui
 import me.anno.config.DefaultConfig
 import me.anno.ecs.interfaces.ControlReceiver
 import me.anno.ecs.interfaces.CustomEditMode
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.PrefabInspector
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.language.translation.Dict
@@ -55,18 +58,24 @@ object EditorState {
     var lastSelection: Inspectable? = null
 
     fun select(major: Inspectable?, add: Boolean = false) {
-        if (add) {
-            if (major != null) selection += major
-        } else {
-            selection = if (major == null) emptyList() else listOf(major)
-        }
-        // why?
-        lastSelection = major
+        select(if (major != null) listOf(major) else emptyList(), add)
     }
 
     fun select(major: List<Inspectable>, add: Boolean = false) {
+        doSelect(major, add, true)
+    }
+
+    fun selectForeignPrefab(prefab: Prefab) {
+        val major = listOf(prefab.getSampleInstance())
+        PrefabInspector.currentInspector = PrefabInspector(prefab.source)
+        doSelect(major, false, false)
+    }
+
+    private fun doSelect(major: List<Inspectable>, add: Boolean, refocus: Boolean) {
+        if (refocus) ECSSceneTabs.refocus()
         if (add) selection += major
         else selection = major
+        // why?
         lastSelection = major.firstOrNull()
     }
 

@@ -3,6 +3,7 @@ package me.anno.engine.ui
 import me.anno.ecs.Entity
 import me.anno.ecs.prefab.*
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.files.FileReference
@@ -34,13 +35,14 @@ object ECSFileImporter : FileContentImporter<ISaveable>() {
 
         if(parent is PrefabSaveable){
             val inspector = PrefabInspector.currentInspector!!
-            val path = parent.prefabPath!!
+            val path = parent.prefabPath
             val prefab = PrefabCache[file]
             if (prefab != null) {
                 val newPath = Hierarchy.add(prefab, Path.ROOT_PATH, inspector.prefab, path, ' ')
                 if (doSelect && newPath != null) {
                     val root = inspector.prefab.getSampleInstance()
                     val instance = Hierarchy.getInstanceAt(root, newPath)
+                    ECSSceneTabs.refocus()
                     EditorState.select(instance)
                 }
             } else LOGGER.warn("Failed to import $file")

@@ -148,6 +148,7 @@ class PrefabInspector(val reference: FileReference) {
         val isWritable = prefab.isWritable
 
         list.add(TextButton("Select Parent", style).addLeftClickListener {
+            ECSSceneTabs.refocus()
             EditorState.select(instances.map { it.parent }.toHashSet().filterIsInstance<Inspectable>().toList())
         })
 
