@@ -59,8 +59,12 @@ class GameEngineProject() : NamedSaveable() {
 
     val configFile get() = location.getChild("config.json")
 
-    val assetIndex = HashSet<Pair<FileReference, String>>()
+    val assetIndex = HashMap<String, HashSet<FileReference>>()
     var maxIndexDepth = 5
+
+    fun addToIndex(file: FileReference, type: String) {
+        assetIndex.getOrPut(type) { HashSet() }.add(file)
+    }
 
     private var isValid = true
     fun invalidate() {
@@ -190,16 +194,19 @@ class GameEngineProject() : NamedSaveable() {
         if (file.isDirectory) return
         Signature.findName(file) { sign ->
             when (sign) {
-                "png", "jpg", "exr", "qoi", "webp", "dds", "hdr", "ico", "gimp", "bmp" -> assetIndex.add(file to "Image")
-                "blend", "gltf", "dae", "md2", "vox", "fbx", "obj" -> assetIndex.add(file to "Mesh")
-                "media", "gif" -> assetIndex.add(file to "Media")
-                "pdf" -> assetIndex.add(file to "PDF")
-                "ttf", "woff1", "woff2" -> assetIndex.add(file to "")
+                "png", "jpg", "exr", "qoi", "webp", "dds", "hdr", "ico", "gimp", "bmp" -> {
+                    addToIndex(file, "Image") // cpu-side name
+                    addToIndex(file, "Texture") // gpu-side name
+                }
+                "blend", "gltf", "dae", "md2", "vox", "fbx", "obj" -> addToIndex(file, "Mesh")
+                "media", "gif" -> addToIndex(file, "Media")
+                "pdf" -> addToIndex(file, "PDF")
+                "ttf", "woff1", "woff2" -> addToIndex(file, "Font")
                 else -> {
                     // todo specify timeout as 0ms
                     val prefab = PrefabCache[file, false]
                     if (prefab != null) {
-                        assetIndex.add(file to prefab.clazzName)
+                        addToIndex(file, prefab.clazzName)
                     }
                 }
             }

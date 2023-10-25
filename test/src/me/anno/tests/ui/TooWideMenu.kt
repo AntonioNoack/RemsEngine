@@ -11,7 +11,7 @@ import me.anno.ui.utils.ThumbnailPanel
 
 fun main() {
     GFXBase.disableRenderDoc()
-    testUI3("TooWideMenu", TextButton("Click Me", false, style)
+    testUI3("TooWideMenu", TextButton("Click Me", style)
         .addLeftClickListener {
             openMenuByPanels(
                 it.windowStack, NameDesc("TooWide"),

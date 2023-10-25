@@ -40,7 +40,7 @@ object AutoInspector {
             } */
             val title = action.annotations.firstInstanceOrNull<DebugTitle>()?.title ?: action.name.camelCaseToTitle()
             list.add(
-                TextButton(title, false, style)
+                TextButton(title, style)
                     .addLeftClickListener {
                         // could become a little heavy....
                         for (instance in instances) {

@@ -23,7 +23,7 @@ fun main() {
                 true
             }
         }
-        list += TextButton("Open UI", false, DefaultConfig.style)
+        list += TextButton("Open UI", DefaultConfig.style)
             .addLeftClickListener {
                 // open complex menu with groups
                 val g1 = ComplexMenuGroup(

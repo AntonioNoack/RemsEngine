@@ -68,7 +68,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
 
     private fun addMesh(
         meshes: ArrayList<Triple<Mesh, Transform?, List<FileReference>>>,
-        mesh: Mesh?, transform: Transform?, compMaterials: List<FileReference?>?
+        mesh: Mesh?, transform: Transform?, compMaterials: List<FileReference>?
     ) {
         if (mesh != null && mesh.proceduralLength <= 0) {
             val meshMaterials = mesh.materials

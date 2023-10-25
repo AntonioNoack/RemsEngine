@@ -122,7 +122,7 @@ object VisualNovel {
             val self = this
             val graph = graph as StateMachine
             super.createUI(g, list, style)
-            list.add(TextButton("Start", false, style)
+            list.add(TextButton("Start", style)
                 .addLeftClickListener {
                     graph.start(self) // sets self
                     graph.update() // finds first true node

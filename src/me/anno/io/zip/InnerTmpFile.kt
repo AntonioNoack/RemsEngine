@@ -106,6 +106,11 @@ abstract class InnerTmpFile private constructor(
             this.size = size
             this.compressedSize = size
             prefab.source = this
+            synchronized(prefabFiles) {
+                prefabFiles
+                    .getOrPut(prefab.clazzName) { ArrayList() }
+                    .add(WeakReference(this))
+            }
         }
 
         val text by lazy { TextWriter.toText(prefab, InvalidRef) }
@@ -183,6 +188,9 @@ abstract class InnerTmpFile private constructor(
         private val files = ArrayList<WeakReference<InnerTmpFile>>()
 
         @JvmStatic
+        private val prefabFiles = HashMap<String, ArrayList<WeakReference<InnerTmpPrefabFile>>>()
+
+        @JvmStatic
         private val id = AtomicInteger()
 
         @JvmStatic
@@ -206,6 +214,10 @@ abstract class InnerTmpFile private constructor(
                 LOGGER.warn("InnerTmpFile #$uuid was already GCed, '$str'!")
                 return null
             }
+        }
+
+        fun findPrefabs(type: String): List<FileReference> {
+            return prefabFiles[type]?.mapNotNull { it.get() } ?: emptyList()
         }
     }
 }

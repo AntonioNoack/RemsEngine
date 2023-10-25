@@ -113,7 +113,7 @@ class ShaderGraphNode : ActionNode(
     var budget = 1000
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
-        val button = TextButton("Edit", false, style)
+        val button = TextButton("Edit", style)
         // todo prevent the start node from being deletable
         if (g is GraphEditor) {
             button.addLeftClickListener {

@@ -42,19 +42,19 @@ fun main() {
         DefaultConfig["debug.ui.showRedraws"] = true
         val list = PanelList2D(style)
         val master = PanelListY(style)
-        master.add(TextButton("Join All", false, style)
+        master.add(TextButton("Join All", style)
             .addLeftClickListener {
                 list.forAllPanels {
                     if (it is TextButton && it.text == "Join") it.click()
                 }
             })
-        master.add(TextButton("Leave All", false, style)
+        master.add(TextButton("Leave All", style)
             .addLeftClickListener {
                 list.forAllPanels {
                     if (it is TextButton && it.text == "Leave") it.click()
                 }
             })
-        master.add(TextButton("Test Button", false, style)
+        master.add(TextButton("Test Button", style)
             .addLeftClickListener {
             })
         list.add(master)
@@ -81,7 +81,7 @@ fun createClient(i: Int): Panel {
                 ": ${client.players.size}p ${client.messageLength}m"
     })
 
-    controls.add(TextButton("SendMsg", false, style)
+    controls.add(TextButton("SendMsg", style)
         .addLeftClickListener {
             askName(controls.windowStack,
                 NameDesc("Enter Messsage"), "",
@@ -95,7 +95,7 @@ fun createClient(i: Int): Panel {
                 })
         })
 
-    val leaveJoinButton = TextButton("Join", false, style)
+    val leaveJoinButton = TextButton("Join", style)
     controls.add(leaveJoinButton
         .addLeftClickListener {
             if (client.client != null) {

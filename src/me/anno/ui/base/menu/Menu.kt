@@ -106,14 +106,14 @@ object Menu {
         panel.addChangeListener {
             panel.textColor = getColor(it)
         }
-        val submit = TextButton(actionName.name, false, style)
+        val submit = TextButton(actionName.name, style)
         submit.tooltip = actionName.desc
         submit.addLeftClickListener {
             callback(panel.value)
             close(panel)
         }
 
-        val cancel = TextButton("Cancel", false, style)
+        val cancel = TextButton("Cancel", style)
         cancel.addLeftClickListener { close(panel) }
 
         val buttons = PanelListX(style)

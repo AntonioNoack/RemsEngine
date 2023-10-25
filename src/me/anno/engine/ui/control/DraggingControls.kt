@@ -108,7 +108,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             restartButton.isVisible = isPlayTesting
         })
         */
-        topLeft.add(TextButton("Snap", false, style)
+        topLeft.add(TextButton("Snap", style)
             .addLeftClickListener {
                 EditorState.select(snappingSettings)
             })

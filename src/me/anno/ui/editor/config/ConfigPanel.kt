@@ -43,13 +43,13 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
         }
         add(topicTree, 1f)
         add(contentListUI, 3f)
-        searchBar += TextButton(Dict["Close", "ui.general.close"], false, deep)
+        searchBar += TextButton(Dict["Close", "ui.general.close"], deep)
             .addLeftClickListener { windowStack.pop().destroy() }
-        searchBar += TextButton(Dict["Add Field", "ui.general.addField"], false, deep)
+        searchBar += TextButton(Dict["Add Field", "ui.general.addField"], deep)
             .addLeftClickListener {
                 val keyPanel = TextInput("Key", "", lastTopic, style)
                 val valuePanel = TextInput("Value", "", "", style)
-                val submit = TextButton("Set", false, style)
+                val submit = TextButton("Set", style)
                 // todo we also need a way to delete fields
                 submit.addLeftClickListener {
                     if (keyPanel.value.isNotBlank()) {
@@ -69,7 +69,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
                 )
             }
         if (isStyle) {
-            searchBar += TextButton(Dict["Apply", "ui.general.apply"], false, deep).addLeftClickListener {
+            searchBar += TextButton(Dict["Apply", "ui.general.apply"], deep).addLeftClickListener {
                 createTopics()
                 lastTopic = "-"
                 applySearch(searchInput.value)

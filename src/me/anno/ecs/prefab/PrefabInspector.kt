@@ -147,7 +147,7 @@ class PrefabInspector(val reference: FileReference) {
 
         val isWritable = prefab.isWritable
 
-        list.add(TextButton("Select Parent", false, style).addLeftClickListener {
+        list.add(TextButton("Select Parent", style).addLeftClickListener {
             EditorState.select(instances.map { it.parent }.toHashSet().filterIsInstance<Inspectable>().toList())
         })
 
@@ -234,13 +234,13 @@ class PrefabInspector(val reference: FileReference) {
 
         val controlReceiver = instances.firstInstanceOrNull<ControlReceiver>()
         if (controlReceiver != null) {
-            list.add(TextButton("Test Controls", false, style)
+            list.add(TextButton("Test Controls", style)
                 .addLeftClickListener { EditorState.control = controlReceiver })
         }
 
         val customEditModes = instances.filterIsInstance<CustomEditMode>()
         if (customEditModes.isNotEmpty()) {
-            list.add(object : TextButton("Toggle Edit Mode", false, style) {
+            list.add(object : TextButton("Toggle Edit Mode", style) {
 
                 var borderColor = 0
 
@@ -284,7 +284,7 @@ class PrefabInspector(val reference: FileReference) {
                      param.kind
             } */
             val title = action.annotations.firstInstanceOrNull<DebugTitle>()?.title ?: action.name.camelCaseToTitle()
-            list.add(TextButton(title, false, style)
+            list.add(TextButton(title, style)
                 .addLeftClickListener {
                     // could become a little heavy....
                     for (instance in instances) {

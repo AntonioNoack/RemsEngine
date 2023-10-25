@@ -30,8 +30,8 @@ open class TextButton(
         tooltip = title
     }
 
-    constructor(style: Style) : this("", false, style)
-
+    constructor(style: Style) : this("", style)
+    constructor(title: String, style: Style) : this(title, false, style)
     constructor(title: String, description: String, isSquare: Boolean, style: Style) : this(title, isSquare, style) {
         tooltip = description
     }

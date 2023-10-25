@@ -24,6 +24,7 @@ import me.anno.ui.editor.files.FileExplorer.Companion.openInExplorerDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.files.FileChooser
 import me.anno.utils.files.LocalFile.toGlobalFile
 import org.apache.logging.log4j.LogManager
@@ -77,14 +78,22 @@ open class FileInput(
                 }
             }
             tooltip = "Select the file in your default file explorer"
-            textColor = textColor and 0x7fffffff
+            textColor = textColor.withAlpha(0.5f)
             disableFocusColors()
         }
         this += button
         // for a symmetric border
         val border = style.getPadding("borderSize", 2).left
         if (border > 0) this += SpacerPanel(border, 0, style).apply { backgroundColor = 0 }
-        this += base//ScrollPanelX(base, Padding(), style, AxisAlignment.MIN)
+        this += base
+    }
+
+    private val buttons = ArrayList<TextButton>()
+    fun addButton(button: TextButton) {
+        button.textColor = textColor.withAlpha(0.5f)
+        button.disableFocusColors()
+        buttons.add(button)
+        add(base.indexInParent, button)
     }
 
     override var textSize: Float
@@ -115,14 +124,10 @@ open class FileInput(
         get() = base.isInputAllowed
         set(value) {
             base.isInputAllowed = value
-            button.isInputAllowed = value
+            for (button in buttons) {
+                button.isInputAllowed = value
+            }
         }
-
-    /*fun setValue(file: FileReference, notify: Boolean): FileInput {
-        base.setValue(file.toString2(), false)
-        if (notify) changeListener(getReference(file))
-        return this
-    }*/
 
     override fun setValue(newValue: FileReference, notify: Boolean): FileInput {
         base.setValue(newValue.toString2(), false)
@@ -131,7 +136,6 @@ open class FileInput(
     }
 
     private fun FileReference.toString2() = toLocalPath()
-    // toString().replace('\\', '/') // / is easier to type
 
     override val value: FileReference
         get() = if (base.value == f0.absolutePath)

@@ -403,6 +403,21 @@ open class Window(
         }
     }
 
+    fun close(closeAllAbove: Boolean = true) {
+        // todo use this in more places
+        val windowStack = windowStack
+        val idx = windowStack.indexOf(this)
+        if (idx >= 0) {
+            if (closeAllAbove) {
+                for (i in idx until windowStack.size) {
+                    windowStack.pop().destroy()
+                }
+            } else {
+                windowStack.removeAt(idx).destroy()
+            }
+        }
+    }
+
     companion object {
         private const val redrawColor = 0x33ff0000
         private val LOGGER = LogManager.getLogger(Window::class.java)

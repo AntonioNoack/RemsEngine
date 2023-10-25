@@ -24,12 +24,13 @@ import me.anno.ecs.annotations.Range.Companion.minUByte
 import me.anno.ecs.annotations.Range.Companion.minUInt
 import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
-import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.engine.ui.scenetabs.ECSSceneTabs.project
 import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
@@ -37,20 +38,28 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
+import me.anno.io.zip.InnerTmpFile
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.max
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.constraints.SizeLimitingContainer
+import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.editor.code.CodeEditor
+import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.input.*
 import me.anno.utils.Color.rgba
@@ -347,6 +356,8 @@ object ComponentUI {
         range: Range?,
         style: Style
     ): Panel {
+
+        println("createUIByTypeName($name, $type0)")
 
         // nullable types
         if (type0.endsWith('?') || type0.endsWith("?/PrefabSaveable")) {
@@ -966,6 +977,7 @@ object ComponentUI {
                             }
                             "List" -> {
                                 value as List<*>
+                                println("Creating list of $generics")
                                 return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                     override fun onChange() {
                                         property.set(this, values)
@@ -1007,55 +1019,115 @@ object ComponentUI {
                         }
                     }
                     type0.endsWith("/Reference", true) -> {
-                        // val type1 = type0.substring(0, type0.lastIndexOf('/'))
-                        // todo filter the types
-                        // todo index all files of this type in the current project (plus customizable extra directories)
-                        // todo and show them here, with their nice icons
+
+                        val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         val value0 = value as? FileReference ?: InvalidRef
                         val fi = FileInput(title, style, value0, fileInputRightClickOptions).apply {
                             property.init(this)
                             setResetListener {
                                 property.reset(this) as? FileReference ?: InvalidRef
                             }
-                            setChangeListener {
-                                // todo check if this file is ok
-                                // todo if not, undo this change
-                                property.set(this, it)
+                            setChangeListener { property.set(this, it) }
+                        }
+
+                        val ci = TextButton("\uD83D\uDCDA", true, style)
+                        ci.setTooltip("Open File from Project")
+                        ci.addLeftClickListener { button ->
+
+                            val value1 = property.get() as? FileReference ?: InvalidRef
+
+                            // only just now search the results, so the list is always up-to-date
+
+                            // also use all, which are currently in Material-cache? weird cache abuse
+                            // todo also use all, which can be found in currently open FileExplorers (?)
+
+                            val panelList = PanelListY(style)
+                            val options = ArrayList<FileReference>()
+
+                            fun createCategory(title: String, options: List<FileReference>) {
+                                if (options.isNotEmpty()) {
+                                    val optionList = PanelList2D(style)
+                                    // title needs to be bold, or sth like that
+                                    panelList.add(TextPanel(title, style).apply {
+                                        isBold = true
+                                        textSize *= 1.5f
+                                    })
+                                    panelList.add(optionList)
+                                    for (option in options) {
+                                        optionList.add(object : FileExplorerEntry(false, option, style) {
+                                            override fun updateTooltip() {
+                                                // as tooltip texts, show their whole path
+                                                super.updateTooltip()
+                                                tooltip = "${option.toLocalPath()}\n$tooltip"
+                                            }
+
+                                            override fun onDoubleClick(x: Float, y: Float, button: Key) {
+                                                super.onDoubleClick(x, y, button)
+                                                window?.close()
+                                            }
+                                        }.addLeftClickListener {
+                                            fi.setValue(option, true)
+                                        })
+                                    }
+                                }
+                            }
+
+                            val indexedAssets = project?.assetIndex?.get(type1)
+                            if (indexedAssets != null) {
+                                createCategory("In Project", indexedAssets.toList())
+                            }
+
+                            createCategory("Temporary (Debug Only)", InnerTmpFile.findPrefabs(type1))
+
+                            if (value1 != InvalidRef && value1 !in options) {
+                                createCategory("Old Value", listOf(value1))
+                            }
+
+                            // todo button to create temporary instance?
+                            // todo button to create instance in project
+                            // todo search panel
+                            val buttons = TextButton("Cancel", style)
+                                .addLeftClickListener {
+                                    fi.setValue(value1, true)
+                                    it.window?.close()
+                                }
+                            buttons.alignmentX = AxisAlignment.FILL // todo this isn't working
+                            buttons.weight = 1f
+                            val mainList = SizeLimitingContainer(
+                                panelList,
+                                max(button.window!!.width / 3, 200),
+                                -1, style
+                            )
+                            Menu.openMenuByPanels(
+                                button.windowStack, NameDesc("Choose $type1"),
+                                listOf(ScrollPanelY(mainList, style), buttons)
+                            )
+                        }
+
+                        val list = PanelListY(style)
+                        if (!name.isNullOrBlank()) {
+                            list.add(TextPanel(name, style))
+                        }
+                        list.add(fi)
+
+                        val qi = TextButton("\uD83C\uDFA8", style)
+                        qi.setTooltip("Quick-Edit")
+                        qi.addLeftClickListener {
+                            val source = property.get() as? FileReference
+                            if (source != null && source.exists) {
+                                val inspector = PrefabInspector(source)
+                                // we need to reset this, when we click on something in the scene
+                                // -> is done on save xD ; todo this process should be more explicit and clear
+                                PrefabInspector.currentInspector = inspector
+                                EditorState.select(inspector.prefab.getSampleInstance())
                             }
                         }
 
-                        // val clazzName = type0.substring(0, type0.lastIndexOf('/'))
-                        // val project = (StudioBase.instance as? RemsEngine)?.currentProject
-                        val options = ArrayList<Prefab?>()
-                        options.add(null)
-                        // dangerous & slow at the moment :/
-                        /*project?.forAllPrefabs { _, prefab ->
-                            val sample = ISaveable.getSample(prefab.clazzName)
-                            if (sample != null && instanceOf(sample, clazzName)){
-                                options.add(prefab)
-                            }
-                        }*/
-                        val prefab0 = PrefabCache[value as? FileReference]
-                        if (prefab0 != null) options.add(prefab0)
-                        if (options.size > 1) {
-                            // todo show fileExplorer-like previews
-                            val ei = EnumInput(
-                                title, false, prefab0?.source?.absolutePath ?: "null",
-                                options.map { NameDesc(it?.source?.absolutePath ?: "null") }, style
-                            ).apply {
-                                property.init(this)
-                                // todo reset listener for EnumInput
-                                // setResetListener {}
-                                setChangeListener { _, index, _ ->
-                                    property.set(this, options[index]?.source ?: InvalidRef)
-                                }
-                            }
-                            val list = PanelListY(style)
-                            list.add(fi)
-                            list.add(ei)
-                            return list
-                        } else return fi
+                        fi.addButton(ci)
+                        fi.addButton(qi)
+                        return list
                     }
+
                     // actual instance, needs to be local, linked via path
                     // e.g., for physics constraints, events or things like that
                     type0.endsWith("/PrefabSaveable", true) -> {

@@ -3,6 +3,7 @@ package me.anno.io.serialization
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
+import me.anno.utils.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.strings.StringHelper.titlecase
 import java.lang.reflect.Field
@@ -59,7 +60,12 @@ class CachedReflections(
         val value2 = if (value is Array<*> && property[self] !is Array<*>) {
             value.toList()
         } else value
-        return property.set(self, value2)
+        return try {
+            property.set(self, value2)
+        } catch (e: IllegalArgumentException) {
+            LOGGER.warn("$e for ${self.javaClass.name}.$name, it's ${value?.javaClass?.name}")
+            false
+        }
     }
 
     operator fun get(self: Any, name: String): Any? {

@@ -28,7 +28,7 @@ fun main() {
                     return super.formatProgress()
                 }
             })
-            TextButton("Start", false, style)
+            TextButton("Start", style)
                 .addLeftClickListener {
                     val bar = window.addProgressBar("Sample", "Bytes", 1e6)
                     thread {

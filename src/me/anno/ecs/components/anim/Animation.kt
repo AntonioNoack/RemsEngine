@@ -5,6 +5,7 @@ import me.anno.animation.LoopingState
 import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
@@ -31,6 +32,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     @SerializedProperty
     var duration = 1f
 
+    @Type("Skeleton/Reference")
     @SerializedProperty
     var skeleton: FileReference = InvalidRef
 
@@ -133,7 +135,6 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         override fun toString(): String {
             return state.progress.toString()
         }
-
     }
 
     @DebugProperty
@@ -203,5 +204,4 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     }
 
     override val approxSize get() = 100
-
 }

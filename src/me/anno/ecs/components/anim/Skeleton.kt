@@ -2,8 +2,8 @@ package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState.worldScale
@@ -17,7 +17,10 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.mesh.assimp.Bone
 import me.anno.utils.types.Vectors
-import org.joml.*
+import org.joml.AABBf
+import org.joml.Matrix3f
+import org.joml.Matrix4x3f
+import org.joml.Vector3f
 
 class Skeleton : PrefabSaveable(), Renderable {
 
@@ -26,7 +29,7 @@ class Skeleton : PrefabSaveable(), Renderable {
 
     @Type("Map<String, Animation/Reference>")
     @SerializedProperty
-    var animations: HashMap<String, FileReference> = HashMap()
+    var animations: Map<String, FileReference> = HashMap()
 
     @NotSerializedProperty
     private var previewMesh: Mesh? = null
@@ -113,8 +116,7 @@ class Skeleton : PrefabSaveable(), Renderable {
 
     override fun copyInto(dst: PrefabSaveable) {
         dst as Skeleton
-        dst.animations.clear()
-        dst.animations.putAll(animations)
+        dst.animations = HashMap(animations)
         dst.bones = ArrayList(bones)
     }
 
@@ -200,7 +202,5 @@ class Skeleton : PrefabSaveable(), Renderable {
                 }
             }
         }
-
     }
-
 }

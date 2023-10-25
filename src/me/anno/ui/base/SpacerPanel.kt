@@ -2,23 +2,12 @@ package me.anno.ui.base
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.Style
 
-open class SpacerPanel(
-    var sizeX: Int,
-    var sizeY: Int,
-    style: Style
-) : Panel(style.getChild("spacer")) {
+open class SpacerPanel(var sizeX: Int, var sizeY: Int, style: Style) :
+    Panel(style.getChild("spacer")) {
 
     constructor(style: Style) : this(10, 10, style)
-
-    init {
-        when {
-            sizeX == 0 -> layoutConstraints += WrapAlign.TopFill
-            sizeY == 0 -> layoutConstraints += WrapAlign.Left
-        }
-    }
 
     override fun calculateSize(w: Int, h: Int) {
         minW = sizeX
@@ -39,5 +28,4 @@ open class SpacerPanel(
     }
 
     override val className: String get() = "SpacerPanel"
-
 }

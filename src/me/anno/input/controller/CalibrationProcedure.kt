@@ -65,7 +65,7 @@ object CalibrationProcedure {
         }
         // how can we pair the axes? 0/1 = left x/y, 2/3 = right x/y, 4/5 = sticks
         // to do add a mapping for keys, so there is the name, you click on it, and then press the corresponding key
-        panel.add(TextButton("Save", false, style).addLeftClickListener {
+        panel.add(TextButton("Save", style).addLeftClickListener {
             val config = controller.calibration
             for (child in list.children) {
                 if (child is CalibrationPanel) {
