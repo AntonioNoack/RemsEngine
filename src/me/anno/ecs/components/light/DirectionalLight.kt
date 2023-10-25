@@ -128,7 +128,10 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     "effectiveDiffuse = lightColor;\n" +
                     "if(hasSpecular){\n" +
                     // good like that?
-                    "   effectiveSpecular = lightColor * pow(max(NdotL, 0.0), 1.0 + 64.0 * (1.0 - finalRoughness));\n" +
+                    "   float x = max(NdotL, 0.0), y = 1.0 + 256.0 * (1.0 - finalRoughness);\n" +
+                    // pow(x,y) is the shape of sharpness; the divider is the integral from x=0 to x=1 over pow(x,y)*(1-x)
+                    "   float lightEffect = pow(x,y) / (1.0/(y+1.0) - 1.0/(y+2.0));\n" +
+                    "   effectiveSpecular = lightColor * lightEffect;\n" +
                     "}\n"
         }
     }

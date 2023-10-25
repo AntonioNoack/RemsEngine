@@ -31,6 +31,8 @@ import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.bvh.*
+import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
+import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
 import me.anno.maths.bvh.BLASNode.Companion.createBLASBuffer
 import me.anno.maths.bvh.BLASNode.Companion.createBLASTexture
 import me.anno.maths.bvh.BLASNode.Companion.createTriangleBuffer
@@ -158,7 +160,6 @@ fun createControls(
     })
 
     return controls
-
 }
 
 fun fillTile(
@@ -437,7 +438,6 @@ fun createGPUPanel(
         shader.v1i("drawMode", drawMode.id)
         shader.v1i("frameIndex", frameIndex)
         shader.v1f("alpha", 1f / (frameIndex + 1f))
-
     }
 
     fun drawResult(it: Panel, prefix: String) {
@@ -458,7 +458,6 @@ fun createGPUPanel(
 
         val gpuFPS = SECONDS_TO_NANOS / max(1, clockNanos.average)
         DrawTexts.drawSimpleTextCharByChar(it.x + 4, it.y + it.height - 50, 2, "$prefix: $gpuFPS fps, $frameIndex spp")
-
     }
 
     if (useComputeShader) {
@@ -478,7 +477,7 @@ fun createGPUPanel(
                     tlasNodes1 = buffers[3]
                 }
                 is BLASNode -> {
-                    triangles = createTriangleBuffer(listOf(bvh))
+                    triangles = createTriangleBuffer(listOf(bvh), PIXELS_PER_VERTEX)
                     blasNodes = createBLASBuffer(listOf(bvh))
                     shader = createBLASBufferComputeShader(bvh.maxDepth())
                     tlasNodes0 = null
@@ -515,8 +514,8 @@ fun createGPUPanel(
                     tlasNodes = tlasNodes1
                 }
                 is BLASNode -> {
-                    triangles = createTriangleTexture(listOf(bvh))
-                    blasNodes = createBLASTexture(listOf(bvh))
+                    triangles = createTriangleTexture(listOf(bvh), PIXELS_PER_VERTEX)
+                    blasNodes = createBLASTexture(listOf(bvh), PIXELS_PER_TRIANGLE)
                     shader = createBLASTextureComputeShader(bvh.maxDepth())
                     tlasNodes = null
                 }
@@ -549,13 +548,13 @@ fun createGPUPanel(
             is TLASNode -> {
                 val (shader1, meshes) = createTLASTextureGraphicsShader(bvh)
                 shader = shader1
-                triangles = createTriangleTexture(meshes)
-                blasNodes = createBLASTexture(meshes)
+                triangles = createTriangleTexture(meshes, PIXELS_PER_VERTEX)
+                blasNodes = createBLASTexture(meshes, PIXELS_PER_TRIANGLE)
                 tlasNodes = bvh.createTLASTexture()
             }
             is BLASNode -> {
-                triangles = createTriangleTexture(listOf(bvh))
-                blasNodes = createBLASTexture(listOf(bvh))
+                triangles = createTriangleTexture(listOf(bvh), PIXELS_PER_VERTEX)
+                blasNodes = createBLASTexture(listOf(bvh), PIXELS_PER_TRIANGLE)
                 shader = createBLASTextureGraphicsShader(bvh)
                 tlasNodes = null
             }
@@ -580,7 +579,6 @@ fun createGPUPanel(
             drawResult(it, "GT")
         }
     }
-
 }
 
 fun main2(

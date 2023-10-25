@@ -75,7 +75,7 @@ abstract class SDFRandom : PositionMapper() {
         } else lastWarning = "Missing seeds"
 
         return if (dynamic || appliedPortion > 0f) {
-            builder.append(seedName).append("=nextRandI(").append(seedName).append(");\n")
+            builder.append(seedName).append("=nextRandI1(").append(seedName).append(");\n")
             builder.append("if((").append(seedName).append(" & 16777215) < ")
             if (dynamic) builder.appendUniform(uniforms, GLSLType.V1I) { (appliedPortion * 16777215).toInt() }
             else builder.append((appliedPortion * 16777215).toInt())
@@ -177,11 +177,11 @@ abstract class SDFRandom : PositionMapper() {
                 "int twoInputRandom(int x, int y) {\n" +
                 "  return threeInputRandom(x,y,0);\n" +
                 "}\n" +
-                "int   nextRandI(       int i){return 11-i*554899859;}\n" +
-                "float nextRandF( inout int i){float v = float(i&16777215)/16777215.0; i = nextRandI(i); return v; }\n" +
-                "vec2  nextRandF2(inout int i){return vec2(nextRandF(i), nextRandF(i)); }\n" +
-                "vec3  nextRandF3(inout int i){return vec3(nextRandF(i), nextRandF(i), nextRandF(i)); }\n" +
-                "vec4  nextRandF4(inout int i){return vec4(nextRandF(i), nextRandF(i), nextRandF(i), nextRandF(i)); }\n"
+                "int   nextRandI1(      int i){return 11-i*554899859;}\n" +
+                "float nextRandF1(inout int i){float v = float(i&16777215)/16777215.0; i = nextRandI1(i); return v; }\n" +
+                "vec2  nextRandF2(inout int i){return vec2(nextRandF1(i), nextRandF1(i)); }\n" +
+                "vec3  nextRandF3(inout int i){return vec3(nextRandF1(i), nextRandF1(i), nextRandF1(i)); }\n" +
+                "vec4  nextRandF4(inout int i){return vec4(nextRandF1(i), nextRandF1(i), nextRandF1(i), nextRandF1(i)); }\n"
     }
 
 }

@@ -1,12 +1,12 @@
 package me.anno.sdf
 
+import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.sdf.arrays.*
 import me.anno.sdf.modifiers.*
 import me.anno.sdf.random.SDFRandomRotation
 import me.anno.sdf.random.SDFRandomTranslation
 import me.anno.sdf.random.SDFRandomUV
 import me.anno.sdf.shapes.*
-import me.anno.io.ISaveable.Companion.registerCustomClass
 
 object SDFRegistry {
 
@@ -55,6 +55,7 @@ object SDFRegistry {
         registerCustomClass(SDFTriangleGrid())
         registerCustomClass(SDFTwist())
         registerCustomClass(SDFVoronoiArray())
+        registerCustomClass(SDFHeightMap()) // not ready yet
         // physics
         registerCustomClass(SDFCollider())
         // random
@@ -64,5 +65,4 @@ object SDFRegistry {
         // arrays version 2
         registerCustomClass(SDFArray2())
     }
-
 }

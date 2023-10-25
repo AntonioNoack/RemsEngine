@@ -98,6 +98,9 @@ object StringHelper {
     fun String.camelCaseToTitle() =
         splitCamelCase(true)
 
+    /**
+     * converts enum value names into proper titlecase strings
+     * */
     @JvmStatic
     @Suppress("unused")
     fun String.upperSnakeCaseToTitle() =

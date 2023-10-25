@@ -7,8 +7,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 
 open class SkyShader(name: String) : SkyShaderBase(name) {
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
-
+    companion object {
         val funcNoise = "" +
                 "float hash(float);\n" +
                 "float noise(vec3 x){\n" +
@@ -19,12 +18,10 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 "             mix(mix(hash(n + 113.0), hash(n + 114.0), f.x),\n" +
                 "                 mix(hash(n + 270.0), hash(n + 271.0), f.x), f.y), f.z);\n" +
                 "}\n"
-
         val funcHash = "" +
                 "float hash(float n){\n" +
                 "  return fract(sin(n) * 43758.5453123);\n" +
                 "}\n"
-
         val funcFBM = "" +
                 "const mat3 fbmM = mat3(0.0, 1.75,  1.3, -1.8, 0.8, -1.1, -1.3, -1.1, 1.4);\n" +
                 "float noise(vec3);" +
@@ -38,6 +35,8 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 "  return f;\n" +
                 "}\n" +
                 "float fbm(vec2 p){ return fbm(vec3(p, 0.0)); }\n"
+    }
+    override fun createFragmentStages(flags: Int): List<ShaderStage> {
 
         // todo the red clouds in the night sky are a bit awkward
         val stage = ShaderStage(

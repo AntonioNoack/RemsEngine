@@ -8,6 +8,7 @@ import me.anno.maths.bvh.BVHBuilder.createTexture
 import me.anno.utils.types.Floats.formatPercent
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
+import java.nio.FloatBuffer
 
 abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
 
@@ -26,10 +27,13 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
 
         val PIXELS_PER_BLAS_NODE = 2
 
-        fun createTriangleTexture(blas: BLASNode) = createTriangleTexture(listOf(blas))
-        fun createBLASTexture(blas: BLASNode) = createBLASTexture(listOf(blas))
+        fun createTriangleTexture(blas: BLASNode, pixelsPerVertex: Int) =
+            createTriangleTexture(listOf(blas), pixelsPerVertex)
 
-        fun createTriangleTexture(blasList: List<BLASNode>): Texture2D {
+        fun createBLASTexture(blas: BLASNode, pixelsPerTriangle: Int) =
+            createBLASTexture(listOf(blas), pixelsPerTriangle)
+
+        fun createTriangleTexture(blasList: List<BLASNode>, pixelsPerVertex: Int): Texture2D {
             // to do if there are too many triangles, use a texture array?
             // 8k x 8k = 64M pixels = 64M vertices = 21M triangles
             // but that'd also need 64M * 16byte/vertex = 1GB of VRAM
@@ -42,161 +46,112 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             val bytesPerPixel = 16
             val buffer = Texture2D.bufferPool[texture.width * texture.height * bytesPerPixel, false, false]
             val data = buffer.asFloatBuffer()
-            // write triangle into memory
-            var pixelIndex = 0
-            var triangleIndex = 0
-            for (index in blasList.indices) {
-                val blasRoot = blasList[index]
-                blasRoot.forEach {
-                    it.triangleStartIndex = triangleIndex
-                }
-                val geometryData = buffers[index]
-                val positions = geometryData.positions
-                val indices = geometryData.indices
-                val normals = geometryData.normals
-                val colors = geometryData.vertexColors
-                for (i in indices.indices step 3) {
-                    fun put(k: Int) {
-                        data.put(positions[k])
-                        data.put(positions[k + 1])
-                        data.put(positions[k + 2])
-                        data.put(0f) // padding
-                        if (PIXELS_PER_VERTEX > 1) {
-                            data.put(normals[k])
-                            data.put(normals[k + 1])
-                            data.put(normals[k + 2])
-                            data.put(Float.fromBits(if (colors != null) colors[i] else -1))
-                        }
-                    }
-                    put(indices[i] * 3)
-                    put(indices[i + 1] * 3)
-                    put(indices[i + 2] * 3)
-                }
-                pixelIndex += indices.size * PIXELS_PER_VERTEX
-                triangleIndex += indices.size / 3
-            }
+            val pixelIndex = fillTris(blasList, buffers, data, pixelsPerVertex) * PIXELS_PER_TRIANGLE
             LOGGER.info("Filled triangles ${(pixelIndex * 4f / data.capacity()).formatPercent()}%, $texture")
             texture.createRGBA(data, buffer, false)
             Texture2D.bufferPool.returnBuffer(buffer)
             return texture
         }
 
-        val triangleAttr = listOf(
+        fun fillTris(
+            roots: List<BLASNode>, buffers: List<GeometryData>,
+            data: FloatBuffer, pixelsPerVertex: Int
+        ): Int {
+            return fillTris(roots, buffers) { geometry, vertexIndex ->
+                val positions = geometry.positions
+                val k = vertexIndex * 3
+                data.put(positions[k])
+                data.put(positions[k + 1])
+                data.put(positions[k + 2])
+                data.put(0f) // unused padding
+                if (pixelsPerVertex > 1) {
+                    val normals = geometry.normals
+                    val colors = geometry.vertexColors
+                    val color = if (colors != null) colors[vertexIndex] else -1
+                    data.put(normals[k])
+                    data.put(normals[k + 1])
+                    data.put(normals[k + 2])
+                    data.put(Float.fromBits(color))
+                }
+            }
+        }
+
+        fun fillTris(roots: List<BLASNode>, buffers: List<GeometryData>, callback: TrisFiller): Int {
+            // write triangle into memory
+            var triangleIndex = 0
+            for (index in roots.indices) {
+                val blasRoot = roots[index]
+                blasRoot.forEach {
+                    it.triangleStartIndex = triangleIndex
+                }
+                val geometry = buffers[index]
+                val indices = geometry.indices
+                for (i in indices.indices step 3) {
+                    callback.fill(geometry, indices[i])
+                    callback.fill(geometry, indices[i + 1])
+                    callback.fill(geometry, indices[i + 2])
+                }
+                triangleIndex += indices.size / 3
+            }
+            return triangleIndex
+        }
+
+        val triangleAttr1 = listOf(
             Attribute("pos", 3),
             Attribute("pad0", 1),
+        )
+
+        val triangleAttr2 = triangleAttr1 + listOf(
             Attribute("nor", 3),
             Attribute("color", 1)
         )
 
-        fun createTriangleBuffer(blasList: List<BLASNode>): ComputeBuffer {
+        fun createTriangleBuffer(roots: List<BLASNode>, pixelsPerVertex: Int): ComputeBuffer {
             // to do if there are too many triangles, use a texture array?
             // 8k x 8k = 64M pixels = 64M vertices = 21M triangles
             // but that'd also need 64M * 16byte/vertex = 1GB of VRAM
             // todo most meshes don't need such high precision, maybe use u8 or u16 or fp16
-            val buffers = blasList.map { it.findGeometryData() } // positions without index
+            val buffers = roots.map { it.findGeometryData() } // positions without index
             // RGB is not supported by compute shaders (why ever...), so use RGBA
             val numTriangles = buffers.sumOf { it.indices.size / 3 }
-            val buffer = ComputeBuffer("BLAS", triangleAttr, numTriangles * 3)
-            // write triangle into memory
-            var triangleIndex = 0
-            for (index in blasList.indices) {
-                val blasRoot = blasList[index]
-                blasRoot.forEach {
-                    it.triangleStartIndex = triangleIndex
-                }
-                val data2 = buffers[index]
-                val positions = data2.positions
-                val indices = data2.indices
-                val normals = data2.normals
-                val colors = data2.vertexColors
-                val numLocalTriangles = indices.size / 3
-                for (i in indices.indices step 3) {
-                    fun put(k: Int) {
-                        buffer.put(positions[k])
-                        buffer.put(positions[k + 1])
-                        buffer.put(positions[k + 2])
-                        buffer.put(0f) // padding
-                        if (PIXELS_PER_VERTEX > 1) {
-                            buffer.put(normals[k])
-                            buffer.put(normals[k + 1])
-                            buffer.put(normals[k + 2])
-                            buffer.put(Float.fromBits(if (colors != null) colors[i] else -1))
-                        }
-                    }
-                    put(indices[i] * 3)
-                    put(indices[i + 1] * 3)
-                    put(indices[i + 2] * 3)
-                }
-                triangleIndex += numLocalTriangles
+            val attr = when (pixelsPerVertex) {
+                1 -> triangleAttr1
+                2 -> triangleAttr2
+                else -> throw IllegalArgumentException()
             }
+            val buffer = ComputeBuffer("BLAS", attr, numTriangles * 3)
+            // write triangle into memory
+            fillTris(roots, buffers, buffer.nioBuffer!!.asFloatBuffer(), pixelsPerVertex)
+            buffer.isUpToDate = false
             return buffer
         }
 
-        fun createBLASTexture(blasList: List<BLASNode>): Texture2D {
+        fun createBLASTexture(roots: List<BLASNode>, pixelsPerTriangle: Int): Texture2D {
 
             GFX.checkIsGFXThread()
-            // root node
-            // aabb = 6x fp32
-            // child0 can directly follow
-            // child1 needs offset; 1x int32
-            // leaf node
-            // aabb = 6x fp32
-            // start, length = 2x int32
-            // for both types just use 8x4 = 32 bytes
-            // we will find a place for markers about the type :)
+
             val pixelsPerNode = PIXELS_PER_BLAS_NODE
-            val numNodes = blasList.sumOf { it.countNodes() }
+            val numNodes = roots.sumOf { it.countNodes() }
             val texture = createTexture("blas", numNodes, pixelsPerNode)
             val buffer = Texture2D.bufferPool[texture.width * texture.height * 16, false, false]
             val data = buffer.asFloatBuffer()
 
-            var i = 0
-            var nextId = 0
-            for (index in blasList.indices) {
-                val bvh = blasList[index]
-                bvh.forEach {
-                    it.nodeId = nextId++
-                }
-            }
-            // assign indices to all nodes
-            for (index in blasList.indices) {
-                val bvh = blasList[index]
-                bvh.forEach {
+            fillBLAS(roots, pixelsPerTriangle, data)
 
-                    val v0: Int
-                    val v1: Int
-
-                    if (it is BLASBranch) {
-                        v0 = it.n1.nodeId - it.nodeId // next node
-                        v1 = it.axis // not a leaf, 0-2
-                    } else {
-                        it as BLASLeaf
-                        v0 = (it.start + it.triangleStartIndex) * PIXELS_PER_TRIANGLE
-                        // >= 3, < 3 would mean not a single triangle, and that's invalid
-                        v1 = it.length * PIXELS_PER_TRIANGLE
-                    }
-
-                    val bounds = it.bounds
-                    data.put(bounds.minX)
-                    data.put(bounds.minY)
-                    data.put(bounds.minZ)
-                    data.put(Float.fromBits(v0))
-
-                    data.put(bounds.maxX)
-                    data.put(bounds.maxY)
-                    data.put(bounds.maxZ)
-                    data.put(Float.fromBits(v1))
-
-                    i += 8
-
-                }
-            }
-
-            LOGGER.info("Filled BLAS ${(i.toFloat() / data.capacity()).formatPercent()}%, $texture")
+            val usedFloats = numNodes * 8
+            LOGGER.info("Filled BLAS ${(usedFloats.toFloat() / data.capacity()).formatPercent()}%, $texture")
             texture.createRGBA(data, buffer, false)
             Texture2D.bufferPool.returnBuffer(buffer)
             return texture
+        }
 
+        fun createBLASBuffer(nodes: List<BLASNode>): ComputeBuffer {
+            val numNodes = nodes.sumOf { it.countNodes() }
+            val data = ComputeBuffer("BLAS", blasAttr, numNodes)
+            val nioBuffer = data.nioBuffer!!.asFloatBuffer()
+            fillBLAS(nodes, 3, nioBuffer)
+            data.isUpToDate = false
+            return data
         }
 
         val blasAttr = listOf(
@@ -206,7 +161,7 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             Attribute("v1", 1)
         )
 
-        fun createBLASBuffer(BLASs: List<BLASNode>): ComputeBuffer {
+        private fun fillBLASNode(data: FloatBuffer, v0: Int, v1: Int, bounds: AABBf) {
 
             // root node
             // aabb = 6x fp32
@@ -217,20 +172,55 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
             // start, length = 2x int32
             // for both types just use 8x4 = 32 bytes
             // we will find a place for markers about the type :)
-            val numNodes = BLASs.sumOf { it.countNodes() }
-            val data = ComputeBuffer("BLAS", blasAttr, numNodes)
 
-            var i = 0
+            data.put(bounds.minX)
+            data.put(bounds.minY)
+            data.put(bounds.minZ)
+            data.put(Float.fromBits(v0))
+
+            data.put(bounds.maxX)
+            data.put(bounds.maxY)
+            data.put(bounds.maxZ)
+            data.put(Float.fromBits(v1))
+        }
+
+        fun interface BLASFiller {
+            fun fill(v0: Int, v1: Int, bounds: AABBf)
+        }
+
+        fun interface TrisFiller {
+            fun fill(geometry: GeometryData, vertexIndex: Int)
+        }
+
+        fun fillBLAS(
+            roots: List<BLASNode>,
+            multiplier: Int,
+            data: FloatBuffer
+        ) = fillBLAS(roots, multiplier) { v0, v1, bounds ->
+            fillBLASNode(data, v0, v1, bounds)
+        }
+
+        fun fillBLAS(
+            roots: List<BLASNode>,
+            multiplier: Int,
+            callback: BLASFiller
+        ) {
+
+            if (multiplier < 3) {
+                throw IllegalArgumentException("Cannot represent x,y,z this way.")
+            }
+
             var nextId = 0
-            for (index in BLASs.indices) {
-                val bvh = BLASs[index]
+            for (index in roots.indices) {
+                val bvh = roots[index]
                 bvh.forEach {
                     it.nodeId = nextId++
                 }
             }
+
             // assign indices to all nodes
-            for (index in BLASs.indices) {
-                val bvh = BLASs[index]
+            for (index in roots.indices) {
+                val bvh = roots[index]
                 bvh.forEach {
 
                     val v0: Int
@@ -241,31 +231,16 @@ abstract class BLASNode(bounds: AABBf) : BVHNode(bounds) {
                         v1 = it.axis // not a leaf, 0-2
                     } else {
                         it as BLASLeaf
-                        v0 = (it.start + it.triangleStartIndex) * 3
+                        v0 = (it.start + it.triangleStartIndex) * multiplier
                         // >= 3, < 3 would mean not a single triangle, and that's invalid
-                        v1 = it.length * 3
+                        v1 = it.length * multiplier
                     }
 
                     val bounds = it.bounds
-                    data.put(bounds.minX)
-                    data.put(bounds.minY)
-                    data.put(bounds.minZ)
-                    data.put(Float.fromBits(v0))
-
-                    data.put(bounds.maxX)
-                    data.put(bounds.maxY)
-                    data.put(bounds.maxZ)
-                    data.put(Float.fromBits(v1))
-
-                    i += 8
+                    callback.fill(v0, v1, bounds)
 
                 }
             }
-
-            return data
-
         }
-
     }
-
 }

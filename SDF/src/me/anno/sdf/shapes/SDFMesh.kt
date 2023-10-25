@@ -4,13 +4,12 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.bvh.*
-import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
-import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
 import me.anno.maths.bvh.RayTracing.intersectAABB
 import me.anno.sdf.SDFComposer.dot2
 import me.anno.sdf.VariableCounter
@@ -30,6 +29,25 @@ import kotlin.math.sqrt
  * */
 open class SDFMesh : SDFSmoothShape() {
 
+    enum class SDFMeshTechnique {
+        /**
+         * Uses one texture slot for the BVH hierarchy, and one for all vertex positions.
+         * */
+        TEXTURE,
+
+        /**
+         * Generates the AABBs and triangle data as hardcoded branches and instructions in code; this saves a texture slot,
+         * but also needs much longer to compile, and it was 25% slower for Suzanne on my RTX 3070
+         * */
+        IN_CODE,
+
+        /**
+         * Generates the AABBs and triangle data as a const array in code; this saves a texture slot, too, and the ideas was
+         * that this potentially compiles faster... it is 5x slower than the other two methods on my RTX3070;
+         * */
+        CONST_ARRAY
+    }
+
     var meshFile: FileReference = InvalidRef
         set(value) {
             if (field != value) {
@@ -42,12 +60,7 @@ open class SDFMesh : SDFSmoothShape() {
 
     fun loadMesh() = MeshCache[meshFile]
 
-    /**
-     * true: Uses one texture slot for the BVH hierarchy, and one for all vertex positions.
-     * false: Generates the AABB in code; this saves a texture slot,
-     * but also needs much longer to compile, and it was 25% slower for Suzanne on my RTX 3070
-     * */
-    var useTextures = true
+    var technique = SDFMeshTechnique.TEXTURE
         set(value) {
             if (field != value) {
                 invalidateShader()
@@ -86,136 +99,189 @@ open class SDFMesh : SDFSmoothShape() {
             builder.append(",vec3(1.0))")
         } else {
 
-            if (mesh !== lastMesh || !useTextures) {
+            val pixelsPerVertex = 1
+            val pixelsPerTriangle = 3 * pixelsPerVertex
+
+            if (mesh !== lastMesh || technique != SDFMeshTechnique.TEXTURE) {
                 lastBlas?.destroy()
                 lastTris?.destroy()
                 lastBlas = null
                 lastTris = null
+                lastMesh = mesh
             }
 
-            val meshId = (if (useTextures) "M" else "W") + meshFile.absolutePath.hashCode().toHexString()
+            val meshId = when (technique) {
+                SDFMeshTechnique.TEXTURE -> "T"
+                SDFMeshTechnique.IN_CODE -> "C"
+                SDFMeshTechnique.CONST_ARRAY -> "V"
+            } + meshFile.absolutePath.hashCode().toHexString()
 
             functions.add(intersectAABB)
             functions.add(dot2)
             functions.add(udTriangle)
 
-            if (useTextures) {
+            when (technique) {
+                SDFMeshTechnique.TEXTURE -> {
+                    GFX.checkIsGFXThread()
 
-                val blasTexture = lastBlas ?: BLASNode.createBLASTexture(blas)
-                val trisTexture = lastTris ?: BLASNode.createTriangleTexture(blas)
+                    val blasTexture = lastBlas ?: BLASNode.createBLASTexture(blas, pixelsPerTriangle)
+                    val trisTexture = lastTris ?: BLASNode.createTriangleTexture(blas, pixelsPerVertex)
 
-                lastMesh = mesh
-                lastBlas = blasTexture
-                lastTris = trisTexture
+                    lastBlas = blasTexture
+                    lastTris = trisTexture
 
-                val maxDepth = blas.maxDepth()
+                    val funcCode = funcCode
+                        .replace("#MAX_DEPTH", blas.maxDepth().toString())
+                        .replace(
+                            "#PREPARE_TREE",
+                            "uvec2 nodeTexSize = uvec2(textureSize(blas#MESH_ID,0));\n" +
+                                    "uvec2 triTexSize  = uvec2(textureSize(tris#MESH_ID,0));\n"
+                        )
+                        .replace(
+                            "#LOAD_NODE", "" +
+                                    "uint pixelIndex = nodeIndex * ${BLASNode.PIXELS_PER_BLAS_NODE}u;\n" +
+                                    "uint nodeX = pixelIndex % nodeTexSize.x;\n" +
+                                    "uint nodeY = pixelIndex / nodeTexSize.x;\n" +
+                                    "vec4 d0 = texelFetch(blas#MESH_ID, ivec2(nodeX,   nodeY), 0);\n" +
+                                    "vec4 d1 = texelFetch(blas#MESH_ID, ivec2(nodeX+1u,nodeY), 0);\n"
+                        )
+                        .replace(
+                            "#PREPARE_TRIS",
+                            "uint triX = index % triTexSize.x;\n" +
+                                    "uint triY = index / triTexSize.x;\n"
+                        )
+                        .replace(
+                            "#LOAD_TRI", "" +
+                                    // actual load
+                                    "vec3 p0 = texelFetch(tris#MESH_ID, ivec2(triX, triY), 0).rgb;\n" +
+                                    "vec3 p1 = texelFetch(tris#MESH_ID, ivec2(triX+${pixelsPerVertex}u,triY), 0).rgb;\n" +
+                                    "vec3 p2 = texelFetch(tris#MESH_ID, ivec2(triX+${pixelsPerVertex * 2}u,triY), 0).rgb;\n" +
+                                    // index++
+                                    "triX += ${pixelsPerTriangle}u;\n" +
+                                    "if(triX >= triTexSize.x){\n" + // switch to next row of data if needed
+                                    "   triX=0u;triY++;\n" +
+                                    "}\n" +
+                                    "index += ${pixelsPerTriangle}u;"
+                        )
+                        .replace("#MESH_ID", meshId)
 
-                val funcCode = "" +
-                        "float sdf$meshId(vec3 pos, vec3 dir, float s){\n" +
-                        "   float dist = 1e38;\n" +
-                        "   if(dot(dir,dir) < 0.5) dir = vec3(0.0,1.0,0.0);\n" +
-                        "   vec3 invDir = 1.0 / dir;\n" +
-                        "   uvec2 nodeTexSize = uvec2(textureSize(blas$meshId,0));\n" +
-                        "   uvec2 triTexSize  = uvec2(textureSize(tris$meshId,0));\n" +
-                        "   uint nextNodeStack[$maxDepth];\n" +
-                        "   uint nodeIndex = 0u, stackIndex = 0u;\n" +
-                        "   uint k=uint(ZERO);\n" +
-                        "   while(k++<512u){\n" + // could be k<bvh.count() or true or 2^depth
-                        // fetch node data
-                        "       uint pixelIndex = nodeIndex * ${BLASNode.PIXELS_PER_BLAS_NODE}u;\n" +
-                        "       uint nodeX = pixelIndex % nodeTexSize.x;\n" +
-                        "       uint nodeY = pixelIndex / nodeTexSize.x;\n" +
-                        "       vec4 d0 = texelFetch(blas$meshId, ivec2(nodeX,   nodeY), 0);\n" +
-                        "       vec4 d1 = texelFetch(blas$meshId, ivec2(nodeX+1u,nodeY), 0);\n" +
-                        "       if(intersectAABB(pos,invDir,d0.xyz,d1.xyz,s,dist)){\n" + // bounds check
-                        "           uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
-                        "           if(v01.y < 3u) {\n" +
-                        // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
-                        "               if(dir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
-                        "                   nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
-                        "                   nodeIndex++;\n" + // search child next
-                        "               } else {\n" +
-                        "                   nextNodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark other child for later
-                        "                   nodeIndex += v01.x;\n" + // search child next
-                        "               }\n" +
-                        "           } else {\n" +
-                        // this node is a leaf
-                        // check all triangles for intersections
-                        "               uint index = v01.x, end = index + v01.y;\n" +
-                        "               uint triX = index % triTexSize.x;\n" +
-                        "               uint triY = index / triTexSize.x;\n" +
-                        "               for(;index<end;index += ${PIXELS_PER_TRIANGLE}u){\n" + // triangle index -> load triangle data
-                        "                   vec3 p0 = texelFetch(tris$meshId, ivec2(triX, triY), 0).rgb;\n" +
-                        "                   vec3 p1 = texelFetch(tris$meshId, ivec2(triX+${PIXELS_PER_VERTEX}u,triY), 0).rgb;\n" +
-                        "                   vec3 p2 = texelFetch(tris$meshId, ivec2(triX+${PIXELS_PER_VERTEX * 2}u,triY), 0).rgb;\n" +
-                        // todo better distance function with bulb on backside
-                        "                   dist = min(dist, udTriangle(pos,p0,p1,p2));\n" +
-                        "                   triX += ${PIXELS_PER_TRIANGLE}u;\n" +
-                        "                   if(triX >= triTexSize.x){\n" + // switch to next row of data if needed
-                        "                       triX=0u;triY++;\n" +
-                        "                   }\n" +
-                        "               }\n" + // next node
-                        "               if(stackIndex < 1u) break;\n" +
-                        "               nodeIndex = nextNodeStack[--stackIndex];\n" +
-                        "          }\n" +
-                        "       } else {\n" + // next node
-                        "           if(stackIndex < 1u) break;\n" +
-                        "           nodeIndex = nextNodeStack[--stackIndex];\n" +
-                        "       }\n" +
-                        "   }\n" +
-                        "   return dist - s;\n" +
-                        "}\n"
+                    functions.add(funcCode)
+                    uniforms["blas$meshId"] = TypeValue(GLSLType.S2D, blasTexture)
+                    uniforms["tris$meshId"] = TypeValue(GLSLType.S2D, trisTexture)
+                }
+                SDFMeshTechnique.IN_CODE -> {
 
-                functions.add(funcCode)
-                uniforms["blas$meshId"] = TypeValue(GLSLType.S2D, blasTexture)
-                uniforms["tris$meshId"] = TypeValue(GLSLType.S2D, trisTexture)
-            } else {
-
-                val builder1 = StringBuilder()
-                fun build(node: BLASNode) {
-                    val bounds = node.bounds
-                    builder1.append("if(intersectAABB(p,i,vec3(")
-                        .append(bounds.minX).append(',')
-                        .append(bounds.minY).append(',')
-                        .append(bounds.minZ).append("),vec3(")
-                        .append(bounds.maxX).append(',')
-                        .append(bounds.maxY).append(',')
-                        .append(bounds.maxZ).append("),s,r)){\n")
-                    when (node) {
-                        is BLASBranch -> {
-                            build(node.n0)
-                            build(node.n1)
-                        }
-                        is BLASLeaf -> {
-                            val positions = node.geometry.positions
-                            val indices = node.geometry.indices
-                            for (j in node.start until node.start + node.length) {
-                                builder1.append("r=min(r,udTriangle(p")
-                                for (i in 0 until 3) {
-                                    val i3 = indices[j*3 + i] * 3
-                                    builder1.append(",vec3(")
-                                        .append(positions[i3]).append(',')
-                                        .append(positions[i3 + 1]).append(',')
-                                        .append(positions[i3 + 2]).append(')')
+                    val builder1 = StringBuilder()
+                    fun build(node: BLASNode) {
+                        val bounds = node.bounds
+                        builder1.append("if(intersectAABB(p,i,vec3(")
+                            .append(bounds.minX).append(',')
+                            .append(bounds.minY).append(',')
+                            .append(bounds.minZ).append("),vec3(")
+                            .append(bounds.maxX).append(',')
+                            .append(bounds.maxY).append(',')
+                            .append(bounds.maxZ).append("),s,r)){\n")
+                        when (node) {
+                            is BLASBranch -> {
+                                build(node.n0)
+                                build(node.n1)
+                            }
+                            is BLASLeaf -> {
+                                val positions = node.geometry.positions
+                                val indices = node.geometry.indices
+                                for (j in node.start until node.start + node.length) {
+                                    builder1.append("r=min(r,udTriangle(p")
+                                    for (i in 0 until 3) {
+                                        val i3 = indices[j * 3 + i] * 3
+                                        builder1.append(",vec3(")
+                                            .append(positions[i3]).append(',')
+                                            .append(positions[i3 + 1]).append(',')
+                                            .append(positions[i3 + 2]).append(')')
+                                    }
+                                    builder1.append("));\n")
                                 }
-                                builder1.append("));\n")
                             }
                         }
+                        builder1.append("}\n")
                     }
-                    builder1.append("}\n")
+                    build(blas)
+
+                    val funcCode = "" +
+                            "float sdf$meshId(vec3 p, vec3 d, float s){\n" +
+                            "   float r = 1e38;\n" +
+                            "   if(dot(d,d) < 0.5) d = vec3(0.0,1.0,0.0);\n" +
+                            "   vec3 i = 1.0 / d;\n" +
+                            builder1.toString() +
+                            "   return r - s;\n" +
+                            "}\n"
+
+                    functions.add(funcCode)
                 }
-                build(blas)
+                SDFMeshTechnique.CONST_ARRAY -> {
 
-                val funcCode = "" +
-                        "float sdf$meshId(vec3 p, vec3 d, float s){\n" +
-                        "   float r = 1e38;\n" +
-                        "   if(dot(d,d) < 0.5) d = vec3(0.0,1.0,0.0);\n" +
-                        "   vec3 i = 1.0 / d;\n" +
-                        builder1.toString() +
-                        "   return r - s;\n" +
-                        "}\n"
+                    val dataBuilder = StringBuilder()
+                    val numNodes = blas.countNodes()
+                    dataBuilder.append("const vec4 Nodes$meshId[")
+                        .append(numNodes * 2)
+                        .append("] = vec4[")
+                        .append(numNodes * 2)
+                        .append("](")
+                    BLASNode.fillBLAS(listOf(blas), 3) { v0, v1, bounds ->
+                        dataBuilder.append("vec4(")
+                            .append(bounds.minX).append(',')
+                            .append(bounds.minY).append(',')
+                            .append(bounds.minZ).append(',')
+                            .append(Float.fromBits(v0)).append("),vec4(")
+                            .append(bounds.maxX).append(',')
+                            .append(bounds.maxY).append(',')
+                            .append(bounds.maxZ).append(',')
+                            .append(Float.fromBits(v1)).append("),")
+                    }
+                    dataBuilder.setLength(dataBuilder.length - 1)
+                    dataBuilder.append(");\n")
 
-                functions.add(funcCode)
+                    val geometry = blas.findGeometryData()
+                    val numVertices = geometry.indices.size
+                    dataBuilder.append("const vec3 Vertices$meshId[")
+                        .append(numVertices)
+                        .append("] = vec3[")
+                        .append(numVertices)
+                        .append("](")
+                    BLASNode.fillTris(listOf(blas), listOf(geometry)) { _, vertexIndex ->
+                        val positions = geometry.positions
+                        val k = vertexIndex * 3
+                        dataBuilder.append("vec3(")
+                            .append(positions[k]).append(',')
+                            .append(positions[k + 1]).append(',')
+                            .append(positions[k + 2]).append("),")
+                    }
+                    dataBuilder.setLength(dataBuilder.length - 1)
+                    dataBuilder.append(");\n")
+
+                    val funcCode =
+                        dataBuilder.toString() +
+                        funcCode
+                            .replace("#MAX_DEPTH", blas.maxDepth().toString())
+                            .replace("#PREPARE_TREE", "")
+                            .replace("#PREPARE_TRIS", "")
+                            .replace(
+                                "#LOAD_NODE", "" +
+                                        "vec4 d0 = Nodes#MESH_ID[nodeIndex*2u];\n" +
+                                        "vec4 d1 = Nodes#MESH_ID[nodeIndex*2u+1u];\n"
+                            )
+                            .replace(
+                                "#LOAD_TRI", "" +
+                                        // actual load
+                                        "vec3 p0 = Vertices#MESH_ID[index];\n" +
+                                        "vec3 p1 = Vertices#MESH_ID[index+1u];\n" +
+                                        "vec3 p2 = Vertices#MESH_ID[index+2u];\n" +
+                                        // index++
+                                        "index += 3u;" // "pixelsPerTriangle"/"multiplier"
+                            )
+                            .replace("#MESH_ID", meshId)
+
+                    functions.add(funcCode)
+                }
             }
 
             builder.append("sdf$meshId(pos").append(trans.posIndex).append(',')
@@ -258,4 +324,51 @@ open class SDFMesh : SDFSmoothShape() {
     }
 
     override val className: String get() = "SDFMesh"
+
+    companion object {
+
+        val funcCode = "" +
+                "float sdf#MESH_ID(vec3 pos, vec3 dir, float s){\n" +
+                "   float dist = 1e38;\n" +
+                "   if(dot(dir,dir) < 0.5) dir = vec3(0.0,1.0,0.0);\n" +
+                "   vec3 invDir = 1.0 / dir;\n" +
+                "#PREPARE_TREE\n" +
+                "   uint nextNodeStack[#MAX_DEPTH];\n" +
+                "   uint nodeIndex = 0u, stackIndex = 0u;\n" +
+                "   uint k=uint(ZERO);\n" +
+                "   while(k++<512u){\n" + // could be k<bvh.count() or true or 2^depth
+                // fetch node data
+                "#LOAD_NODE\n" +
+                "       if(intersectAABB(pos,invDir,d0.xyz,d1.xyz,s,dist)){\n" + // bounds check
+                "           uvec2 v01 = floatBitsToUint(vec2(d0.a,d1.a));\n" +
+                "           if(v01.y < 3u) {\n" +
+                // check closest one first like in https://github.com/mmp/pbrt-v3/blob/master/src/accelerators/bvh.cpp
+                "               if(dir[v01.y] > 0.0){\n" + // if !dirIsNeg[axis]
+                "                   nextNodeStack[stackIndex++] = v01.x + nodeIndex;\n" + // mark other child for later
+                "                   nodeIndex++;\n" + // search child next
+                "               } else {\n" +
+                "                   nextNodeStack[stackIndex++] = nodeIndex + 1u;\n" + // mark other child for later
+                "                   nodeIndex += v01.x;\n" + // search child next
+                "               }\n" +
+                "           } else {\n" +
+                // this node is a leaf
+                // check all triangles for intersections
+                "               uint index = v01.x, end = index + v01.y;\n" +
+                "#PREPARE_TRIS\n" +
+                "               for(;index<end;){\n" + // triangle index -> load triangle data
+                "#LOAD_TRI\n" +
+                // todo better distance function with bulb on backside
+                "                   dist = min(dist, udTriangle(pos,p0,p1,p2));\n" +
+                "               }\n" + // next node
+                "               if(stackIndex < 1u) break;\n" +
+                "               nodeIndex = nextNodeStack[--stackIndex];\n" +
+                "          }\n" +
+                "       } else {\n" + // next node
+                "           if(stackIndex < 1u) break;\n" +
+                "           nodeIndex = nextNodeStack[--stackIndex];\n" +
+                "       }\n" +
+                "   }\n" +
+                "   return dist - s;\n" +
+                "}\n"
+    }
 }

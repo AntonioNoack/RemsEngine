@@ -171,15 +171,7 @@ object ECSRegistry {
         registerCustomClass(GameEngineProject())
 
         // physics
-        try {
-            val clazz = this::class.java.classLoader
-                .loadClass("me.anno.bullet.PhysicsRegistry")
-            clazz.getMethod("init").invoke(null)
-        } catch (e: ClassNotFoundException) {
-            LOGGER.warn("Bullet was not found", e)
-        } catch (e: NoClassDefFoundError) {
-            LOGGER.warn("Bullet was not found", e)
-        }
+        initIfAvailable("me.anno.bullet.PhysicsRegistry", "BulletPhysics")
 
         // box2d
         registerIfAvailable("me.anno.box2d.Box2dPhysics", "Box2d")
@@ -190,15 +182,7 @@ object ECSRegistry {
         registerCustomClass(TriTerrain())
         registerIfAvailable("me.anno.ecs.components.navigation.NavMesh", "Recast")
 
-        try {
-            val clazz = this::class.java.classLoader
-                .loadClass("me.anno.sdf.SDFRegistry")
-            clazz.getMethod("init").invoke(null)
-        } catch (e: ClassNotFoundException) {
-            LOGGER.warn("SDF module was not found")
-        } catch (e: NoClassDefFoundError) {
-            LOGGER.warn("SDF module was not found")
-        }
+        initIfAvailable("me.anno.sdf.SDFRegistry", "SDF")
 
         NodeLibrary.registerClasses()
 
@@ -206,6 +190,18 @@ object ECSRegistry {
             // test classes
             registerCustomClass(TypeTestComponent())
             registerCustomClass(RaycastTestComponent())
+        }
+    }
+
+    fun initIfAvailable(clazzName: String, moduleName: String?) {
+        try {
+            val clazz = this::class.java.classLoader
+                .loadClass(clazzName)
+            clazz.getMethod("init").invoke(null)
+        } catch (e: ClassNotFoundException) {
+            warnIfUnavailable(moduleName)
+        } catch (e: NoClassDefFoundError) {
+            warnIfUnavailable(moduleName)
         }
     }
 

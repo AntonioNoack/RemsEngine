@@ -11,7 +11,6 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.Projection.projectRayToAABBBack
 import me.anno.engine.raycast.Projection.projectRayToAABBFront
-import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.EditorState
@@ -238,7 +237,7 @@ open class SDFComponent : ProceduralMesh(), Renderable,
 
     @DebugAction
     fun createShaderToyScript() {
-        setClipboardContent(SDFComposer.createShaderToyShader(this))
+        setClipboardContent(ShaderToyExport.createScript(this))
     }
 
     override fun fill(

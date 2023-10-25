@@ -17,7 +17,7 @@ class LinearUVMapper : PositionMapper(), UVMapper {
             if (!(dynamic || SDFComponent.globalDynamic)) invalidateShader()
         }
 
-    var v = Vector4f(0f, -0.5f, 0f, 0.5f)
+    var v = Vector4f(0f, 0f, 0.5f, 0.5f)
         set(value) {
             field.set(value)
             if (!(dynamic || SDFComponent.globalDynamic)) invalidateShader()

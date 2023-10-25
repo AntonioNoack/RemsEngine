@@ -7,24 +7,18 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.sdf.SDFComponent
 import me.anno.sdf.SDFRegistry
 import me.anno.sdf.shapes.*
+import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3f
 
-/**
- * Scene, which shows most SDF shapes
- * */
-fun main() {
+fun createShapesScene(): Entity {
 
-    ECSRegistry.initMeshes()
-    SDFRegistry.init()
-
-    // todo bug: these elements cannot be properly clicked -> all have same clickId
-    // todo bug: even when I select one, the gizmos isn't shown at the right place
     val scene = Entity()
     fun place(shape: SDFComponent, pos: Vector3f) {
         shape.position.set(pos)
         scene.add(shape)
     }
+
     place(SDFBox(), Vector3f(0f, 0f, 5f))
     place(SDFHyperCube().apply {
         rotation4d = rotation4d
@@ -65,9 +59,18 @@ fun main() {
     place(SDFTriangle(), Vector3f(5f, 0f, 20f))
     place(SDFEllipsoid().apply { halfAxes.set(1f, 0.5f, 1f) }, Vector3f(10f, 0f, 20f))
     place(SDFBlob(), Vector3f(10f, 0f, 20f))
-    place(SDFRegular().apply { type = SDFRegular.Type.OCTAHEDRON }, Vector3f(15f, 0f, 20f))
-    place(SDFRegular().apply { type = SDFRegular.Type.DODECAHEDRON }, Vector3f(20f, 0f, 20f))
-    place(SDFRegular().apply { type = SDFRegular.Type.ICOSAHEDRON }, Vector3f(25f, 0f, 20f))
+    place(SDFRegular().apply {
+        name = "Octahedron"
+        type = SDFRegular.Type.OCTAHEDRON
+    }, Vector3f(15f, 0f, 20f))
+    place(SDFRegular().apply {
+        name = "Dodecahedron"
+        type = SDFRegular.Type.DODECAHEDRON
+    }, Vector3f(20f, 0f, 20f))
+    place(SDFRegular().apply {
+        name = "Icosahedron"
+        type = SDFRegular.Type.ICOSAHEDRON
+    }, Vector3f(25f, 0f, 20f))
     place(SDFBezierCurve(), Vector3f(30f, 0f, 20f))
 
     // place(SDFPlane().apply { limit = 20f }, Vector3f(0f, -1.2f, 0f))
@@ -79,19 +82,30 @@ fun main() {
      *
      * Using Susanne as the sample mesh, with 2 small spheres, reduced my performance to 60 fps on a RTX 3070 (BAD!!!).
      * */
-    val sampleMesh = getReference("res://icon.obj")
-    place(SDFMesh().apply {
-        meshFile = sampleMesh
-        normalEpsilon = 1e-5f
-        smoothness = 0.01f
-    }, Vector3f(20f, 0f, 10f))
+    val sampleMesh = getReference("res://icon-lowpoly.obj")
+    for ((index, type) in SDFMesh.SDFMeshTechnique.values().withIndex()) {
+        place(SDFMesh().apply {
+            name = "SDFMesh - ${type.name.upperSnakeCaseToTitle()}"
+            meshFile = sampleMesh
+            normalEpsilon = 1e-5f
+            smoothness = 0.01f
+            technique = type
+        }, Vector3f(20f + 5f * index, 0f, 10f))
+    }
 
-    place(SDFMesh().apply {
-        meshFile = sampleMesh
-        normalEpsilon = 1e-5f
-        smoothness = 0.01f
-        useTextures = false
-    }, Vector3f(25f, 0f, 10f))
+    return scene
+}
 
-    testSceneWithUI("SDF Shapes", scene)
+/**
+ * Scene, which shows most SDF shapes
+ * */
+fun main() {
+
+    ECSRegistry.initMeshes()
+    SDFRegistry.init()
+
+    // todo bug: these elements cannot be properly clicked -> all have same clickId
+    // todo bug: even when I select one, the gizmos isn't shown at the right place
+
+    testSceneWithUI("SDF Shapes", createShapesScene())
 }

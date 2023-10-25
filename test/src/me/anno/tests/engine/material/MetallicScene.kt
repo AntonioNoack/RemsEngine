@@ -16,7 +16,10 @@ import me.anno.utils.OS.downloads
 
 fun main() {
 
-    // todo light reflections missing? idk... probably light model should have small spheres
+    // todo light shine around lamps
+    //  particles in air, and viewing ray really close to light source
+
+
 
     // todo forward lighting model in editor now looks weird/cheap
 

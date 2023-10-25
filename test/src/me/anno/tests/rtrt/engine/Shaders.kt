@@ -12,6 +12,8 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.bvh.BLASNode
+import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
+import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX
 import me.anno.maths.bvh.RayTracing.coloring
 import me.anno.maths.bvh.RayTracing.glslBLASIntersection
 import me.anno.maths.bvh.RayTracing.glslComputeDefines
@@ -246,8 +248,8 @@ fun createTLASTextureComputeShader(bvh: TLASNode): Quad<ComputeShader, Texture2D
         .sortedByDescending { it.countNodes() } // complex meshes first for testing and consistency
         .toList()
 
-    val triangles = BLASNode.createTriangleTexture(meshes)
-    val blasNodes = BLASNode.createBLASTexture(meshes)
+    val triangles = BLASNode.createTriangleTexture(meshes, PIXELS_PER_VERTEX)
+    val blasNodes = BLASNode.createBLASTexture(meshes, PIXELS_PER_TRIANGLE)
     val tlasNodes = bvh.createTLASTexture() // needs to be created after blas nodes
 
     // triangles.write(desktop.getChild("bvh/sponza-tri.png"), false, withAlpha = false)
@@ -293,7 +295,7 @@ fun createTLASBufferComputeShader(tlas: TLASNode): Pair<ComputeShader, Array<Com
         .sortedByDescending { it.countNodes() } // complex meshes first for testing and consistency
         .toList()
 
-    val triangles = BLASNode.createTriangleBuffer(meshes)
+    val triangles = BLASNode.createTriangleBuffer(meshes, PIXELS_PER_VERTEX)
     val blasNodes = BLASNode.createBLASBuffer(meshes)
     val tlasNodes = tlas.createTLASBuffer() // needs to be created after blas nodes
 
