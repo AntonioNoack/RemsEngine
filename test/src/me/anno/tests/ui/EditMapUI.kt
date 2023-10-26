@@ -17,6 +17,9 @@ class EditMapUI : Saveable(), Inspectable {
     @Type("Map<Int,Color3>")
     var map = HashMap<Int, Vector3f>()
 
+    @Type("Color3")
+    var color = Vector3f()
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         saveSerializableProperties(writer)

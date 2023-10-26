@@ -27,7 +27,7 @@ fun main() {
     //  - colors might be scene-dependent, and that can be important!
     //  -> or open a second scene/window with it
 
-    // todo we need an exposure setting or auto-exposure
+    // todo we need an exposure setting or auto-exposure (and desaturation in the dark)
     // fixed: SkyboxBase looked like it's not reflected
     val scene = Entity()
     scene.add(SDFSphere().apply {

@@ -29,7 +29,9 @@ import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.input.components.ColorPicker
 import me.anno.ui.input.components.TitlePanel
 import me.anno.utils.Color.black
+import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toARGB
+import me.anno.utils.Color.withAlpha
 import org.joml.Vector4f
 import kotlin.math.max
 
@@ -39,7 +41,7 @@ open class ColorInput(
     @Suppress("unused_parameter")
     visibilityKey: String,
     oldValue: Vector4f,
-    withAlpha: Boolean,
+    val withAlpha: Boolean,
     val contentView: ColorChooser = ColorChooser(style, withAlpha, ColorPalette(8, 4, style))
 ) : PanelListX(style), InputPanel<Vector4f>, TextStyleable {
 
@@ -49,7 +51,8 @@ open class ColorInput(
     private val previewField = ColorPreviewField(titleView, 2, style)
         .apply {
             addLeftClickListener { if (isInputAllowed) openColorChooser() }
-            color = oldValue.toARGB() or black
+            val oldValue1 = oldValue.toARGB()
+            color = if (withAlpha) oldValue1 else oldValue1.withAlpha(255)
         }
 
     @NotSerializedProperty
@@ -68,7 +71,9 @@ open class ColorInput(
         get() = contentView.getColor()
 
     override fun setValue(newValue: Vector4f, notify: Boolean): ColorInput {
-        previewField.color = newValue.toARGB()
+        val newValue1 = newValue.toARGB()
+        previewField.color = if (withAlpha) newValue1
+        else newValue1.withAlpha(255)
         previewField.invalidateDrawing()
         contentView.setRGBA(newValue, false)
         return this
@@ -146,7 +151,6 @@ open class ColorInput(
         }
     }
 
-    // todo button for color picker.. but where?
     fun pickColor() {
         // color picker
         // - take screenshot of full screen; all screens? could be hard with multiples in non-regular config...
@@ -239,7 +243,7 @@ open class ColorInput(
 
     fun setChangeListener(listener: (r: Float, g: Float, b: Float, a: Float) -> Unit): ColorInput {
         contentView.setChangeRGBListener { r, g, b, a ->
-            previewField.color = Vector4f(r, g, b, a).toARGB()
+            previewField.color = rgba(r, g, b, if (withAlpha) a else 1f)
             listener(r, g, b, a)
         }
         return this

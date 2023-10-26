@@ -7,6 +7,7 @@ import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.utils.Color.a
+import me.anno.utils.Color.toHexColor
 
 class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Style) : Panel(style) {
 

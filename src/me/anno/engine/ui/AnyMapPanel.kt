@@ -24,23 +24,27 @@ open class AnyMapPanel(
 
     override fun createPanel(value: MutablePair<Any?, Any?>): Panel {
 
-        val keyPanel = Ptr<Panel?>(null)
-        val keyProperty = MapPanelProperty(value.first, { value.first = it; onChange() }, keyType, keyPanel)
-        keyPanel.value = ComponentUI.createUIByTypeName("", "", keyProperty, keyType, null, style)
-        keyPanel.value!!.weight = 1f
+        val keyPanelPtr = Ptr<Panel?>(null)
+        val keyProperty = MapPanelProperty(value.first, { value.first = it; onChange() }, keyType, keyPanelPtr)
+        val keyPanel = ComponentUI.createUIByTypeName("", "", keyProperty, keyType, null, style)
+        keyPanel.setTooltip("Key")
+        keyPanelPtr.value = keyPanel
+        keyPanelPtr.value!!.weight = 1f
 
-        val valuePanel = Ptr<Panel?>(null)
-        val valueProperty = MapPanelProperty(value.second, { value.second = it; onChange() }, valueType, valuePanel)
-        valuePanel.value = ComponentUI.createUIByTypeName("", "", valueProperty, valueType, null, style)
-        valuePanel.value!!.weight = 1f
+        val valuePanelPtr = Ptr<Panel?>(null)
+        val valueProperty = MapPanelProperty(value.second, { value.second = it; onChange() }, valueType, valuePanelPtr)
+        val valuePanel = ComponentUI.createUIByTypeName("", "", valueProperty, valueType, null, style)
+        valuePanel.setTooltip("Value")
+        valuePanelPtr.value = valuePanel
+        valuePanelPtr.value!!.weight = 1.618f // ^^
 
         val list = object: PanelListX(style){
             override var isVisible: Boolean
                 get() = InputVisibility[visibilityKey]
                 set(_) {}
         }
-        list.add(keyPanel.value!!)
-        list.add(valuePanel.value!!)
+        list.add(keyPanelPtr.value!!)
+        list.add(valuePanelPtr.value!!)
         return list
     }
 }
