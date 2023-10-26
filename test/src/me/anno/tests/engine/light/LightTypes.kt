@@ -62,11 +62,6 @@ fun main() {
         scene.add(truck)
     }
 
-    // global lights
-    val ambient = AmbientLight()
-    ambient.color.set(0.3f)
-    if (false) scene.add(ambient)
-
     // sunlight
     val sun = Entity("Directional")
     sun.add(DirectionalLight().apply { shadowMapCascades = 1; cutoff = 1e-3f })

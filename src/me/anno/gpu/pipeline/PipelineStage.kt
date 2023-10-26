@@ -503,7 +503,6 @@ class PipelineStage(
         // (for the cheap shaders, which are not deferred)
         shader.m4x4("transform", RenderState.cameraMatrix)
         shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
-        shader.v3f("ambientLight", pipeline.ambient)
         shader.v1b("applyToneMapping", pipeline.applyToneMapping)
         shader.v1f("worldScale", RenderState.worldScale)
         shader.v3f("cameraPosition", RenderState.cameraPosition)

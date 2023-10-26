@@ -261,8 +261,7 @@ object SDFComposer {
     fun ignoreCommonNames(shader: BaseShader) {
         shader.ignoreNameWarnings(
             "sheenNormalMap", "occlusionMap", "metallicMap", "roughnessMap",
-            "emissiveMap", "normalMap", "diffuseMap", "diffuseBase", "emissiveBase", "drawMode", "applyToneMapping",
-            "ambientLight"
+            "emissiveMap", "normalMap", "diffuseMap", "diffuseBase", "emissiveBase", "drawMode", "applyToneMapping"
         )
     }
 

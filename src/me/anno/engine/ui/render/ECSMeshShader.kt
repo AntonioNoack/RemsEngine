@@ -588,7 +588,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         GFX.check()
         val shader = builder.create("depth$flags")
         shader.ignoreNameWarnings(
-            "ambientLight", "applyToneMapping", "worldScale", "cameraPosition",
+            "applyToneMapping", "worldScale", "cameraPosition",
             "cameraRotation", "invLocalTransform", "diffuseBase", "normalStrength",
             "emissiveBase", "roughnessMinMax", "metallicMinMax", "occlusionStrength",
             "finalTranslucency", "finalSheen", "sheen", "finalClearCoat", "randomIdData",

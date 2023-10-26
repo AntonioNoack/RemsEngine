@@ -2,7 +2,6 @@ package me.anno.tests.engine.light
 
 import me.anno.Build
 import me.anno.ecs.Entity
-import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.LightSpawner
 import me.anno.ecs.components.light.PointLight
@@ -40,7 +39,6 @@ fun main() {
     truck.add(MeshComponent(OS.downloads.getChild("MagicaVoxel/vox/truck.vox")))
 
     val lights = Entity("Lights", scene)
-    lights.add(AmbientLight().apply { color.set(0f) })
 
     val sun = Entity("Sun", lights)
     sun.add(DirectionalLight().apply { shadowMapCascades = 1; color.set(3f) })

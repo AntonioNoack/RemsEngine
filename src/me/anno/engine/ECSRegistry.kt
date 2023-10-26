@@ -135,7 +135,6 @@ object ECSRegistry {
         registerCustomClass(SpotLight())
         registerCustomClass(PointLight())
         registerCustomClass(DirectionalLight())
-        registerCustomClass(AmbientLight())
         registerCustomClass(EnvironmentMap())
         registerCustomClass(PlanarReflection())
 

@@ -170,7 +170,7 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
                             )
                             ThumbsExt.bindShader(shader, cameraMatrix, Thumbs.matModelMatrix)
                             sky.material.bind(shader)
-                            sky.draw(shader, 0)
+                            sky.getMesh().draw(shader, 0)
                         }
                     }
                 }

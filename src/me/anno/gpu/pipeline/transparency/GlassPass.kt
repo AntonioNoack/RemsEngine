@@ -3,6 +3,7 @@ package me.anno.gpu.pipeline.transparency
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib
+import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.Renderers.pbrRenderer
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
@@ -71,7 +72,7 @@ class GlassPass : TransparentPass() {
                                 "   r0 = r0 * r0;\n" +
                                 "   return r0 + (1.0 - r0) * pow(1.0 - cosine, 5.0);\n" +
                                 "}\n"
-                    )
+                    ).add(sampleSkyboxForAmbient)
                 )
             }
         }

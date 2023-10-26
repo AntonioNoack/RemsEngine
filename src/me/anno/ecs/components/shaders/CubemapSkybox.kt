@@ -15,7 +15,7 @@ class CubemapSkybox : TextureSkybox() {
         material.shader = defaultShader
     }
 
-    override fun getMeshOrNull(): Mesh = CubemapModel
+    override fun getMesh(): Mesh = CubemapModel
 
     override val className: String
         get() = "CubemapSkybox"

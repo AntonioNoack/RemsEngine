@@ -19,6 +19,10 @@ import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.CubemapTexture
+import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.graph.render.Texture
 import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
@@ -55,7 +59,7 @@ class CombineLightsNode : RenderSceneNode0(
     }
 
     private var shader: Pair<Shader, HashMap<String, TypeValue>>? = null // current number of shaders
-    private fun bindShader(): Shader {
+    private fun bindShader(skybox: CubemapTexture): Shader {
         val shader1 = shader ?: object : GraphCompiler(graph as FlowGraph) {
 
             // not being used, as we only have an expression
@@ -105,6 +109,7 @@ class CombineLightsNode : RenderSceneNode0(
         shader = shader1
         val (shader2, typeValues) = shader1
         shader2.use()
+        skybox.bind(shader2, "skybox", GPUFiltering.LINEAR, Clamping.CLAMP)
         for ((k, v) in typeValues) {
             v.bind(shader2, k)
         }
@@ -120,8 +125,6 @@ class CombineLightsNode : RenderSceneNode0(
 
         val applyToneMapping = getInput(4) == true
 
-        val rv = renderView
-
         val framebuffer = FBStack[name, width, height, 3, BufferQuality.HIGH_16, samples, DepthBufferType.NONE]
         val renderer = Renderer.copyRenderer
 
@@ -129,8 +132,8 @@ class CombineLightsNode : RenderSceneNode0(
 
         GFXState.useFrame(width, height, true, framebuffer, renderer) {
             renderPurely2 {
-                val shader = bindShader()
-                combineLighting1(shader, applyToneMapping, rv.pipeline.ambient)
+                val shader = bindShader(pipeline.bakedSkybox?.getTexture0() ?: blackCube)
+                combineLighting1(shader, applyToneMapping)
             }
         }
 

@@ -10,11 +10,11 @@ import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV3
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.render.DefaultSun
 import me.anno.gpu.shader.GLSLType
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Floats.toRadians
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -22,17 +22,11 @@ import kotlin.math.max
 
 open class Skybox : SkyboxBase() {
 
-    @Type("Color3HDR")
-    @SerializedProperty
-    var sunColor: Vector3f = Vector3f(500f)
-        set(value) {
-            field.set(value)
-        }
+    // todo the sky controls ambient and primary directional light...
+    //  -> make the sky actually control the primary directional light
 
     @SerializedProperty
-    var sunRotation: Quaternionf = Quaternionf()
-        .rotateX((-45f).toRadians()) // 45° from zenith
-        .rotateZ(90f.toRadians()) // 90° from sunset, so noon
+    var sunRotation: Quaternionf = Quaternionf(DefaultSun.defaultSunEntity.rotation)
         set(value) {
             field.set(value)
                 .normalize()
@@ -120,7 +114,6 @@ open class Skybox : SkyboxBase() {
         material.shaderOverrides["cirrusOffset"] = TypeValue(GLSLType.V3F, cirrusOffset)
         material.shaderOverrides["cumulusOffset"] = TypeValue(GLSLType.V3F, cumulusOffset)
         material.shaderOverrides["sphericalSky"] = TypeValue(GLSLType.V1B) { spherical }
-        material.shaderOverrides["sunColor"] = TypeValue(GLSLType.V3F, sunColor)
         material.shaderOverrides["sunDir"] = TypeValueV3(GLSLType.V3F, Vector3f()) {
             it.set(sunBaseDir).rotate(sunRotation)
         }
@@ -157,7 +150,6 @@ open class Skybox : SkyboxBase() {
         dst as Skybox
         dst.sunRotation.set(sunRotation)
         dst.sunBaseDir.set(sunBaseDir)
-        dst.sunColor.set(sunColor)
         dst.cirrus = cirrus
         dst.cumulus = cumulus
         dst.cumulusSpeed.set(cumulusSpeed)
@@ -171,6 +163,7 @@ open class Skybox : SkyboxBase() {
     override val className: String get() = "Skybox"
 
     companion object {
+
         val defaultShader = SkyShader("skybox")
             .apply {
                 ignoreNameWarnings(
@@ -178,11 +171,12 @@ open class Skybox : SkyboxBase() {
                     "roughnessMinMax", "metallicMinMax", "occlusionStrength", "finalTranslucency", "finalClearCoat",
                     "tint", "hasAnimation", "localTransform", "invLocalTransform", "worldScale", "tiling",
                     "forceFieldColorCount", "forceFieldUVCount", "skyColor", "renderSize", "tint",
-                    "reflectionCullingPlane", "ambientLight", "cameraPosition", "cameraRotation",
+                    "reflectionCullingPlane", "cameraPosition", "cameraRotation",
                     "hasReflectionPlane", "numberOfLights", "prevLocalTransform", "finalSheen", "sheen",
                     "applyToneMapping", "tint", "hasVertexColors", "reflectionPlane", "camScale"
                 )
             }
+
         val defaultSky = Skybox()
     }
 }

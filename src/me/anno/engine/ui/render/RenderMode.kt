@@ -189,7 +189,7 @@ class RenderMode(
                 .finish()
         )
 
-        val MONO_WORLD_SCALE = RenderMode("Mono World-Scale")
+        val MONO_WORLD_SCALE = RenderMode("Mono World-Scale", DEFAULT.renderGraph)
         val GHOSTING_DEBUG = RenderMode("Ghosting Debug", Renderers.pbrRenderer)
 
         val FSR_SQRT2 = RenderMode("FSRx1.41", FSR1Node.createPipeline(0.707f))

@@ -3,24 +3,25 @@ package me.anno.ecs.components.shaders
 import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast.SKY
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFXState
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
+import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes
 import org.joml.*
 
-open class SkyboxBase : MeshComponentBase() {
+open class SkyboxBase : CollidingComponent(), Renderable {
 
     @NotSerializedProperty
     var shader: SkyShaderBase?
@@ -45,15 +46,8 @@ open class SkyboxBase : MeshComponentBase() {
             field.set(value)
         }
 
+    val materials: List<FileReference>
     init {
-        // shadow settings: not needed
-        castShadows = false
-        receiveShadows = false
-
-        // aabbs: all
-        localAABB.all()
-        globalAABB.all()
-
         // rendering properties
         material.shader = defaultShaderBase
         material.shaderOverrides["skyColor"] = TypeValue(GLSLType.V3F, skyColor)
@@ -86,7 +80,7 @@ open class SkyboxBase : MeshComponentBase() {
         return clickId + 1
     }
 
-    override fun getMeshOrNull() = mesh
+    open fun getMesh() = mesh
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
         aabb.all() // skybox is visible everywhere

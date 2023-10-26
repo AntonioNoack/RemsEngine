@@ -7,6 +7,7 @@ import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
 import me.anno.engine.ui.render.RendererLib.combineLightCode
 import me.anno.engine.ui.render.RendererLib.lightCode
+import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.RendererLib.skyMapCode
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
@@ -111,7 +112,6 @@ object Renderers {
                         // rendering
                         Variable(GLSLType.V1B, "applyToneMapping"),
                         // light data
-                        Variable(GLSLType.V3F, "ambientLight"),
                         Variable(GLSLType.V1I, "numberOfLights"),
                         Variable(GLSLType.V1B, "receiveShadows"),
                         Variable(GLSLType.M4x3, "lightMatrices", RenderView.MAX_FORWARD_LIGHTS),
@@ -119,6 +119,7 @@ object Renderers {
                         Variable(GLSLType.V4F, "lightData0", RenderView.MAX_FORWARD_LIGHTS),
                         Variable(GLSLType.V1F, "lightData1", RenderView.MAX_FORWARD_LIGHTS),
                         Variable(GLSLType.V4F, "shadowData", RenderView.MAX_FORWARD_LIGHTS),
+                        Variable(GLSLType.SCube, "skybox"),
                         // light maps for shadows
                         // - spotlights, directional lights
                         Variable(GLSLType.S2DShadow, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
@@ -161,7 +162,11 @@ object Renderers {
                             colorToSRGB +
                             "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
                             "   finalResult = vec4(finalColor, finalAlpha);\n"
-                ).add(randomGLSL).add(tonemapGLSL), finalResultStage
+                )
+                    .add(randomGLSL)
+                    .add(tonemapGLSL)
+                    .add(sampleSkyboxForAmbient),
+                finalResultStage
             )
         }
     }

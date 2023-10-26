@@ -106,9 +106,7 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 "vec3 night_extinction = vec3(0.2 - exp(max(sunDir.y, 0.0)) * 0.2);\n" +
                 "vec3 extinction = mix(clamp(day_extinction, 0.0, 1.0), night_extinction, -sunDir.y * 0.2 + 0.5);\n" +
 
-                // original sun was too dim
-                "vec3 brighterSun = sunColor * max(sunDir.y,0.0) * max((mu-.9995)/.0005,0.0);\n" +
-                "vec3 color = rayleigh * mie * extinction + brighterSun;\n" +
+                "vec3 color = rayleigh * mie * extinction;\n" +
 
                 // falloff towards downwards
                 "if(pos0.y < 0.0){\n" +
@@ -125,7 +123,7 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 "     color = mix(color, extinction * density * 5.0, min(density, 1.0) * max(pos.y, 0.0));\n" +
                 "   }\n" +
                 "}\n" +
-                "return color;\n" +
+                "return max(color, vec3(0.0));\n" +
                 "}"
     }
 }

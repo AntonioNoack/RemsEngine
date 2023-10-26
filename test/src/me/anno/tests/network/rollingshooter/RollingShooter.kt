@@ -9,7 +9,6 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.collider.MeshCollider
 import me.anno.ecs.components.collider.SphereCollider
-import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.Material
@@ -80,9 +79,6 @@ fun main() {
     sunE.setScale(70.0) // covering the map
     sunE.setRotation((-45.0).toRadians(), 0.0, 0.0)
     sunE.add(sun)
-    scene.add(AmbientLight().apply {
-        color.set(0.1f)
-    })
 
     val players = Entity("Players", scene)
     val bullets = Entity("Bullet", scene)

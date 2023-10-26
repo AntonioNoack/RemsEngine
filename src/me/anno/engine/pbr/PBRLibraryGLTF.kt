@@ -31,7 +31,7 @@ object PBRLibraryGLTF {
 
     // factor extracted from the BRDF
     // also ambient must be added at the end, or we would need to divide by DxPi4 at the start
-    val specularBRDFv2NoDivInlined2End = "specularLight = specularColor * (specularLight + ambientLight);\n"
+    val specularBRDFv2NoDivInlined2End = "specularLight *= specularColor;\n"
 
     // (specularColor, finalRoughness, V, finalNormal, NdotL, NdotV, H)
     val specularBRDFv2NoDivInlined2 = "" +

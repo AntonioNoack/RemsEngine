@@ -32,6 +32,8 @@ import org.joml.Vector4f
 
 object RenderGraph {
 
+    var throwExceptions = false
+
     // todo inputs / settings:
     //  - stage index/id
     //  - depth sorting
@@ -152,6 +154,7 @@ object RenderGraph {
         } catch (e: ReturnNode.ReturnThrowable) {
             e.node as? ExprReturnNode
         } catch (e: Exception) {
+            if (throwExceptions) throw e
             LOGGER.warn("Error in execution", e)
             return
         }

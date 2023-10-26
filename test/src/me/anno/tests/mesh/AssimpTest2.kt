@@ -153,7 +153,7 @@ fun processMaterial(material: AIMaterial) {
         null
     )
     val path2 = path.dataString() ?: null
-    if (path2 != null && path2.isNotEmpty()) {
+    if (!path2.isNullOrEmpty()) {
         // we have a path :)
         logger.info("texture path: $path2")
     }

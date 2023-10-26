@@ -59,6 +59,7 @@ import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.RenderGraph
 import me.anno.graph.render.Texture
@@ -429,12 +430,13 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
                 // use the existing depth buffer for the 3d ui
                 val dstBuffer0 = baseSameDepth1
+                val skybox = pipeline.bakedSkybox?.getTexture0() ?: blackCube
                 useFrame(w, h, true, dstBuffer0) {
                     // don't write depth
                     GFXState.depthMask.use(false) {
                         combineLighting(
-                            deferred, true, pipeline.ambient,
-                            buffer, lightBuffer, ssao
+                            deferred, true, buffer,
+                            lightBuffer, ssao, skybox
                         )
                     }
                 }
@@ -1179,16 +1181,10 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val aabbColorHovered = 0xffaaaa or black
 
         fun addDefaultLightsIfRequired(pipeline: Pipeline) {
-            if (pipeline.lightStage.size <= 0 && pipeline.ambient.dot(1f, 1f, 1f) <= 0f) {
-                pipeline.ambient.set(0.5f)
+            // todo when we have our directional lights within the skybox somehow, remove this
+            if (pipeline.lightStage.size <= 0) {
                 defaultSun.fill(pipeline, defaultSunEntity, 0)
             }
-        }
-
-        object SSAOSettings {
-            var strength = 1f
-            var samples = max(1, DefaultConfig["gpu.ssao.samples", 128])
-            var enable2x2Blur = true
         }
     }
 }

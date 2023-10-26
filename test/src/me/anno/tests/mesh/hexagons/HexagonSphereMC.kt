@@ -5,7 +5,6 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.chunks.spherical.Hexagon
 import me.anno.ecs.components.chunks.spherical.HexagonSphere
-import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
@@ -244,7 +243,6 @@ fun generateMesh(
             if (lastType > 0 && lastAir) {
                 addSide(lastType, lastY0, sy, air)
             }
-
         }
     }
 
@@ -259,7 +257,6 @@ fun generateMesh(
     colors.clear()
 
     return mesh
-
 }
 
 fun createMesh(visualList: ArrayList<Hexagon>, world: HexagonSphereMCWorld, mesh: Mesh = Mesh()): Mesh {
@@ -318,9 +315,6 @@ fun main() {
         }
     })
 
-    val ambient = AmbientLight()
-    ambient.color.set(0.5f)
-    scene.add(ambient)
     scene.add(sunEntity)
 
     testSceneWithUI("HexSphere MC", scene) {
@@ -331,7 +325,6 @@ fun main() {
             it.playControls = ControllerOnSphere(it.renderer, sky)
         }
     }
-
 }
 
 // todo change light direction to come from sun
@@ -402,7 +395,6 @@ open class ControllerOnSphere(
         sky?.worldRotation?.mul(-rot.x.toFloat(), -rot.y.toFloat(), -rot.z.toFloat(), rot.w.toFloat())
         correctAxes()
     }
-
 }
 
 // todo free: one small world, basic MC-like mechanics

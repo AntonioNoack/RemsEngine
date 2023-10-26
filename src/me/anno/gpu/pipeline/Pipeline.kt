@@ -90,8 +90,6 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 
     val frustum = Frustum()
 
-    val ambient = Vector3f()
-
     var skybox: SkyboxBase = Skybox.defaultSky
     var bakedSkybox: CubemapFramebuffer? = null
 
@@ -105,10 +103,6 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 
     fun disableReflectionCullingPlane() {
         reflectionCullingPlane.set(0.0)
-    }
-
-    fun hasTooManyLights(): Boolean {
-        return lightStage.size > RenderView.MAX_FORWARD_LIGHTS
     }
 
     fun findStage(material: Material): PipelineStage {
@@ -236,7 +230,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
             shader.v1f("meshScale", 1f)
             shader.v1b("isPerspective", false)
             shader.v1b("reversedDepth", false) // depth doesn't matter
-            sky.draw(shader, 0)
+            sky.getMesh().draw(shader, 0)
             JomlPools.quat4f.sub(1)
             JomlPools.mat4f.sub(1)
         }
@@ -315,7 +309,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 
     fun drawSky0(stage: PipelineStage) {
         val sky = skybox
-        val mesh = sky.getMesh()!!
+        val mesh = sky.getMesh()
         val allAABB = JomlPools.aabbd.create()
         val scale = if (RenderState.isPerspective) 1f
         else 2f * max(RenderState.fovXRadians, RenderState.fovYRadians)
@@ -332,7 +326,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
             shader.v4f("tint", -1)
             shader.v1f("finalAlpha", 1f)
             shader.v1i("hasVertexColors", 0)
-            shader.v2i("randomIdData", 6, sky.randomTriangleId)
+            shader.v2i("randomIdData", 6, 123456)
             shader.v1f("meshScale", scale)
             material.bind(shader)
             mesh.draw(shader, i)
@@ -341,7 +335,6 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
     }
 
     fun clear() {
-        ambient.set(0f)
         lightStage.clear()
         defaultStage.clear()
         planarReflections.clear()

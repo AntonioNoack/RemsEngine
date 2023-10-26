@@ -128,10 +128,15 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     "effectiveDiffuse = lightColor;\n" +
                     "if(hasSpecular){\n" +
                     // good like that?
-                    "   float x = max(NdotL, 0.0), y = 1.0 + 256.0 * (1.0 - finalRoughness);\n" +
+                    // NdotL kind of needs to be reset after this...
+                    // todo sheen needs to influence this, too
+                    "   float oldNdotL = NdotL;\n" +
+                    "   NdotL = reflect(viewDir, lightNor).z;\n" +
+                    "   float x = max(NdotL, 0.0), y = 1.0 + 256.0 * pow(1.0 - finalRoughness, 2.0);\n" +
                     // pow(x,y) is the shape of sharpness; the divider is the integral from x=0 to x=1 over pow(x,y)*(1-x)
                     "   float lightEffect = pow(x,y) / (1.0/(y+1.0) - 1.0/(y+2.0));\n" +
                     "   effectiveSpecular = lightColor * lightEffect;\n" +
+                    "   NdotL = oldNdotL;\n" +
                     "}\n"
         }
     }

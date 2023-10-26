@@ -46,7 +46,6 @@ private val testShader = Shader(
             // calculate H and result
             "   vec3 diffuseColor  = finalColor * (1.0 - finalMetallic);\n" +
             "   vec3 specularColor = finalColor * finalMetallic;\n" +
-            "   vec3 ambientLight = vec3(0.0);\n" +
             "   vec3 effectiveSpecular = vec3(1.0), effectiveDiffuse = vec3(1.0);\n" + // light strength
             specularBRDFv2NoDivInlined2Start +
             specularBRDFv2NoDivInlined2 +

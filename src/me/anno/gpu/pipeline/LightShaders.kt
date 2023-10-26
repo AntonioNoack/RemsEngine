@@ -6,6 +6,7 @@ import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToLinear
 import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
+import me.anno.engine.ui.render.RendererLib.sampleSkyboxForAmbient
 import me.anno.engine.ui.render.Renderers
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX
@@ -31,13 +32,10 @@ import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib
+import me.anno.gpu.texture.*
 import me.anno.utils.Color.black4
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Booleans.toInt
-import org.joml.Vector3f
 import org.lwjgl.opengl.GL15C.GL_DYNAMIC_DRAW
 
 object LightShaders {
@@ -81,23 +79,23 @@ object LightShaders {
     val useMSAA get() = GFXState.currentBuffer.samples > 1
 
     fun combineLighting(
-        deferred: DeferredSettings, applyToneMapping: Boolean, ambientLight: Vector3f,
-        scene: IFramebuffer, light: IFramebuffer, ssao: ITexture2D,
+        deferred: DeferredSettings, applyToneMapping: Boolean, scene: IFramebuffer,
+        light: IFramebuffer, ssao: ITexture2D, skybox: CubemapTexture
     ) {
         val shader = getCombineLightShader(deferred)
         shader.use()
         scene.bindTrulyNearestMS(3)
         val metallic = deferred.findLayer(DeferredLayerType.METALLIC)
-        (deferred.findTextureMS(scene, metallic) as? Texture2D ?: TextureLib.blackTexture).bindTrulyNearest(2)
+        (deferred.findTextureMS(scene, metallic) as? Texture2D ?: TextureLib.blackTexture).bindTrulyNearest(3)
         shader.v4f("metallicMask", DeferredSettings.singleToVector[metallic?.mapping] ?: black4)
+        skybox.bind(2, GPUFiltering.LINEAR)
         ssao.bindTrulyNearest(1)
         light.bindTrulyNearestMS(0)
-        combineLighting1(shader, applyToneMapping, ambientLight)
+        combineLighting1(shader, applyToneMapping)
     }
 
-    fun combineLighting1(shader: Shader, applyToneMapping: Boolean, ambientLight: Vector3f) {
+    fun combineLighting1(shader: Shader, applyToneMapping: Boolean) {
         shader.v1b("applyToneMapping", applyToneMapping)
-        shader.v3f("ambientLight", ambientLight)
         bindDepthToPosition(shader)
         flat01.draw(shader)
     }
@@ -126,22 +124,24 @@ object LightShaders {
         "combineLight-f", listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.INMOD),
             Variable(GLSLType.V3F, "finalEmissive", VariableMode.INMOD),
+            Variable(GLSLType.SCube, "skybox"),
+            Variable(GLSLType.V3F, "finalNormal"),
             Variable(GLSLType.V1F, "finalMetallic"),
+            Variable(GLSLType.V1F, "finalRoughness"),
             Variable(GLSLType.V1F, "finalOcclusion"),
             Variable(GLSLType.V1B, "applyToneMapping"),
             Variable(GLSLType.V3F, "finalLight"),
-            Variable(GLSLType.V3F, "ambientLight"),
             Variable(GLSLType.V1F, "ambientOcclusion"),
             Variable(GLSLType.V4F, "color", VariableMode.OUT)
         ), "" +
                 colorToLinear +
-                "   vec3 light = finalLight + ambientLight;\n" +
+                "   vec3 light = finalLight + sampleSkyboxForAmbient(finalNormal, finalMetallic, finalRoughness);\n" +
                 "   float invOcclusion = (1.0 - finalOcclusion) * (1.0 - ambientOcclusion);\n" +
                 "   finalColor = finalColor * light * pow(invOcclusion, 2.0) + finalEmissive * mix(1.0, invOcclusion, finalMetallic);\n" +
                 colorToSRGB +
                 "   if(applyToneMapping) finalColor = tonemap(finalColor);\n" +
                 "   color = vec4(finalColor, 1.0);\n"
-    ).add(tonemapGLSL)
+    ).add(tonemapGLSL).add(sampleSkyboxForAmbient)
 
     fun getCombineLightShader(settingsV2: DeferredSettings): Shader {
         val useMSAA = useMSAA

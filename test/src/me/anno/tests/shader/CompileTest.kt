@@ -46,7 +46,6 @@ fun createTestScene(): Entity {
         shadowMapResolution = 256
     })
     // all types with their shadows (where supported)
-    scene.add(AmbientLight())
     scene.add(SpotLight())
     scene.add(SpotLight().apply {
         shadowMapCascades = 2
@@ -105,6 +104,9 @@ fun createTestScene(): Entity {
  * This can be quite slow the first time you run it, because it will have to compile all shaders (took 41s on my machine).
  * */
 class CompileTest {
+
+    // todo FSR2.2 is currently broken... why??
+
     @Test
     fun runTest() {
         HiddenOpenGLContext.createOpenGL()
@@ -120,15 +122,19 @@ class CompileTest {
         rv.setPosSize(0, 0, ui.osWindow.width, ui.osWindow.height)
         val tmp = Framebuffer("tmp", rv.width, rv.height, 1, 1, false, DepthBufferType.NONE)
         for (mode in RenderMode.values) {
-            rv.renderMode = mode
-            if (printResults) {
-                useFrame(tmp) {
+            try {
+                rv.renderMode = mode
+                if (printResults) {
+                    useFrame(tmp) {
+                        rv.draw(0, 0, rv.width, rv.height)
+                    }
+                    val childName = "${mode.name.toAllowedFilename()}.png"
+                    tmp.getTexture0().write(dst.getChild(childName), true)
+                } else {
                     rv.draw(0, 0, rv.width, rv.height)
                 }
-                val childName = "${mode.name.toAllowedFilename()}.png"
-                tmp.getTexture0().write(dst.getChild(childName), true)
-            } else {
-                rv.draw(0, 0, rv.width, rv.height)
+            } catch (e: Exception) {
+                throw Exception(mode.name, e)
             }
         }
         Engine.requestShutdown()

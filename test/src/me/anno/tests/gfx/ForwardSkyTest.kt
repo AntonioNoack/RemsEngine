@@ -1,7 +1,6 @@
 package me.anno.tests.gfx
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -15,7 +14,6 @@ fun main() {
     val scene = Entity()
     scene.add(MeshComponent(OS.downloads.getChild("3d/DamagedHelmet.glb")))
     scene.add(metalRoughness())
-    scene.add(AmbientLight().apply { color.set(0.1f) })
     testSceneWithUI("Forward Sky", scene) {
         it.renderer.renderMode = RenderMode.NON_DEFERRED
     }

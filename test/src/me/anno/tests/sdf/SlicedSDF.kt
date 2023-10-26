@@ -2,7 +2,6 @@ package me.anno.tests.sdf
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.AnimTexture
-import me.anno.ecs.components.light.AmbientLight
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
@@ -13,7 +12,6 @@ import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.PlaneShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.shader.*
@@ -274,7 +272,6 @@ fun main() {
             shadowMapCascades = 1
             color = color.set(20f)
         })
-        addChild(AmbientLight())
     })
     scene.add(Entity("Point").apply {
         position = position.set(4.0, 2.0, 0.0)
