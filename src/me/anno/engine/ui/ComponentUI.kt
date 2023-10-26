@@ -961,22 +961,9 @@ object ComponentUI {
                 return list
             }
 
-            // todo nice ui inputs for array types and maps
-
-            /*is Map<*, *> -> {
-
-
-
-            }*/
-
-            // todo sort list/map by key or property of the users choice
-            // todo map inputs: a list of pairs of key & value
             // todo tables for structs?
             // todo show changed values with bold font or a different text color
-            // todo ISaveable-s
 
-
-            // is ISaveable -> { list all child properties }
             else -> {
                 when {
                     '<' in type0 -> {
@@ -984,7 +971,6 @@ object ComponentUI {
                         val index1 = type0.lastIndexOf('>')
                         val mainType = type0.substring(0, index0).trim()
                         val generics = type0.substring(index0 + 1, index1).trim()
-                        LOGGER.debug("Generic type $type0 for $name")
                         when (mainType) {
                             "Array" -> {
                                 value as Array<*>
@@ -999,7 +985,6 @@ object ComponentUI {
                             }
                             "List" -> {
                                 value as List<*>
-                                println("Creating list of $generics")
                                 return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                     override fun onChange() {
                                         property.set(this, values)
@@ -1013,7 +998,7 @@ object ComponentUI {
                                 value as Set<*>
                                 return object : AnyArrayPanel(title, visibilityKey, generics, style) {
                                     override fun onChange() {
-                                        property.set(this, values.toHashSet())
+                                        property.set(this, HashSet(values))
                                     }
                                 }.apply {
                                     property.init(this)
@@ -1021,12 +1006,11 @@ object ComponentUI {
                                 }
                             }
                             "Map" -> {
-                                val (genericKey, genericValue) = generics.split(',')
-                                // types must not be generic themselves for this to work... we should fix that...
+                                val (genericKey, genericValue) = generics.split(',').map { it.trim() }
                                 value as Map<*, *>
                                 return object : AnyMapPanel(title, visibilityKey, genericKey, genericValue, style) {
                                     override fun onChange() {
-                                        property.set(this, values.associate { it.first to it.second }.toMutableMap())
+                                        property.set(this, HashMap(values.associate { it.first to it.second }))
                                     }
                                 }.apply {
                                     property.init(this)
@@ -1244,8 +1228,8 @@ object ComponentUI {
             "Double" -> 0.0
             "String" -> ""
             "Vector2f" -> Vector2f()
-            "Vector3f" -> Vector3f()
-            "Vector4f" -> Vector4f()
+            "Vector3f", "Color3", "Color3HDR" -> Vector3f()
+            "Vector4f", "Color4", "Color4HDR" -> Vector4f()
             "Vector2d" -> Vector2d()
             "Vector3d" -> Vector3d()
             "Vector4d" -> Vector4d()
@@ -1261,6 +1245,7 @@ object ComponentUI {
                 try {// just try it, maybe it works :)
                     ISaveable.create(type)
                 } catch (e: Exception) {
+                    LOGGER.warn("Unknown type $type for getDefault()")
                     null
                 }
             }

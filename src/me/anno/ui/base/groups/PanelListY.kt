@@ -12,6 +12,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
     constructor(style: Style) : this(null, style)
 
     private var sumConst = 0
+    private var sumConstWW = 0
     private var sumWeight = 0f
 
     override fun clone(): PanelListY {
@@ -26,6 +27,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         val x = x
         var maxX = x
         var constantSum = 0
+        var constantSumWW = 0
         var weightSum = 0f
 
         val availableW = w - padding.width
@@ -57,14 +59,21 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                     // apply constraints?
                     constantSum += child.minH
                     maxX = max(maxX, child.x + child.minW)
-                    weightSum += max(0f, child.weight)
                     availableH = max(0, availableH - child.minH)
+                    if (child.weight > 0f) {
+                        weightSum += child.weight
+                    } else {
+                        constantSumWW += child.minH
+                    }
                 }
             }
         }
 
         val spaceCount = max(0, children.size - 1)
-        constantSum += spacing * spaceCount
+        val totalSpace = spacing * spaceCount
+        constantSum += totalSpace
+        constantSumWW += totalSpace
+        sumConstWW = constantSumWW
         sumConst = constantSum
         sumWeight = weightSum
 
@@ -123,16 +132,18 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                 }
             } else {
                 var perWeight = 0f
-                val sumWeight = sumWeight
-                val sumConst = sumConst
                 if (availableH > sumConst && sumWeight > 1e-7f) {
-                    val extraAvailable = availableH - sumConst
-                    perWeight = extraAvailable / sumWeight
+                    val availableForWeighted = availableH - sumConstWW
+                    perWeight = availableForWeighted / sumWeight
                 }
                 for (i in children.indices) {
                     val child = children[i]
                     if (child.isVisible) {
-                        var childH = (child.minH + perWeight * max(0f, child.weight)).roundToInt()
+                        var childH = if (perWeight > 0f && child.weight > 0f) {
+                            (child.weight * perWeight).roundToInt()
+                        } else {
+                            child.minH
+                        }
                         val currentH = currentY - y
                         val remainingH = availableH - currentH
                         childH = min(childH, remainingH)

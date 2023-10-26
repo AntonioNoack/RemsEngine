@@ -116,7 +116,6 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
         fun register(signature: Signature) {
             // alternatively could find the correct insert index
             // still would be O(n)
-            // to
             var index = signatures.binarySearch {
                 signature.bytes.size.compareTo(it.bytes.size)
             }

@@ -5,6 +5,7 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.editor.stacked.ArrayPanel
+import me.anno.ui.input.InputVisibility
 import me.anno.utils.structures.tuples.MutablePair
 
 // todo sort list/map by key or property of the users choice
@@ -25,15 +26,19 @@ open class AnyMapPanel(
 
         val keyPanel = Ptr<Panel?>(null)
         val keyProperty = MapPanelProperty(value.first, { value.first = it; onChange() }, keyType, keyPanel)
-        keyPanel.value = ComponentUI.createUI2("", visibilityKey, keyProperty, null, style)!!
+        keyPanel.value = ComponentUI.createUIByTypeName("", "", keyProperty, keyType, null, style)
         keyPanel.value!!.weight = 1f
 
         val valuePanel = Ptr<Panel?>(null)
         val valueProperty = MapPanelProperty(value.second, { value.second = it; onChange() }, valueType, valuePanel)
-        valuePanel.value = ComponentUI.createUI2("", visibilityKey, valueProperty, null, style)!!
+        valuePanel.value = ComponentUI.createUIByTypeName("", "", valueProperty, valueType, null, style)
         valuePanel.value!!.weight = 1f
 
-        val list = PanelListX(style)
+        val list = object: PanelListX(style){
+            override var isVisible: Boolean
+                get() = InputVisibility[visibilityKey]
+                set(_) {}
+        }
         list.add(keyPanel.value!!)
         list.add(valuePanel.value!!)
         return list

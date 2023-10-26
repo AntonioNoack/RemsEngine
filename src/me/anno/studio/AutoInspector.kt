@@ -126,9 +126,6 @@ object AutoInspector {
                     list.add(applyGroupStyle(TextPanel(className ?: "Anonymous", style)))
                 }
 
-                // todo mesh selection, skeleton selection, animation selection, ...
-                // to do more indentation?
-
                 try {
                     val property2 = InspectableProperty(relevantInstances, property, cleanInstance)
                     val panel = ComponentUI.createUI2(name, name, property2, property.range, style) ?: continue
