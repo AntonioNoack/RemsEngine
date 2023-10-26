@@ -4,11 +4,11 @@ import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
 import java.nio.ByteBuffer
 
-@Suppress("SpellCheckingInspection", "unused")
-class BLink(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
+@Suppress("unused")
+open class BLink<Type>(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
 
-    val next get() = getPointer("*next")
-    val prev get() = getPointer("*prev")
+    val next get() = getPointer("*next") as? Type
+    val prev get() = getPointer("*prev") as? Type
 
 }

@@ -4,6 +4,7 @@ import me.anno.mesh.blender.blocks.Block
 import me.anno.mesh.blender.blocks.BlockHeader
 import me.anno.mesh.blender.blocks.BlockTable
 import me.anno.mesh.blender.impl.*
+import me.anno.mesh.blender.impl.values.*
 import me.anno.utils.Color.rgba
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -116,6 +117,12 @@ class BlenderFile(val file: BinaryFile) {
 
     val structByName = structs.associateBy { it.type.name }
 
+    init {
+        for (name in structByName.keys.sorted()) {
+            println("Struct $name: ${structByName[name]!!.byName}")
+        }
+    }
+
     val blockTable: BlockTable
 
     init {
@@ -131,7 +138,6 @@ class BlenderFile(val file: BinaryFile) {
         // shorten the array, if needed
         if (length < offHeapAreas.size) indices = IntArray(length) { indices[it] }
         blockTable = BlockTable(this, blocks.toTypedArray(), indices)
-
     }
 
     private val objectCache = HashMap<Long, BlendData?>()
@@ -163,6 +169,7 @@ class BlenderFile(val file: BinaryFile) {
                 }
             }
         }
+        LOGGER.debug("Instances: ${instances.mapValues { it.value.size }}")
     }
 
     @Suppress("unused")
@@ -212,19 +219,31 @@ class BlenderFile(val file: BinaryFile) {
             "MLoopCol" -> MLoopCol(this, struct, data, position)
             "MEdge" -> MEdge(this, struct, data, position)
             "ID" -> BID(this, struct, data, position)
-            // "Image" -> BImage(this, struct, data, position)
+            "Image" -> BImage(this, struct, data, position)
             "Object" -> BObject(this, struct, data, position)
-            // "bNodeTree" -> BNodeTree(this, struct, data, position)
-            "Link" -> BLink(this, struct, data, position)
+            "bNode" -> BNode(this, struct, data, position)
+            "bNodeLink" -> BNodeLink(this, struct, data, position)
+            "bNodeTree" -> BNodeTree(this, struct, data, position)
+            "bNodeSocket" -> BNodeSocket(this, struct, data, position)
+            "Link" -> BLink<Any>(this, struct, data, position)
             "LinkData" -> BLinkData(this, struct, data, position)
-            "ListBase" -> BListBase(this, struct, data, position)
+            "ListBase" -> BListBase<Any>(this, struct, data, position)
             // "Scene" -> BScene(this, struct, data, position)
             // node trees, collections and such may be interesting
             "CustomData" -> BCustomData(this, struct, data, position)
             "CustomDataExternal" -> BCustomDataExternal(this, struct, data, position)
             "CustomDataLayer" -> BCustomDataLayer(this, struct, data, position)
             // "Brush", "bScreen", "wmWindowManager" -> null // idc
-            else -> null
+            "bNodeSocketValueVector" -> BNSVVector(this, struct, data, position)
+            "bNodeSocketValueBoolean" -> BNSVBoolean(this, struct, data, position)
+            "bNodeSocketValueFloat" -> BNSVFloat(this, struct, data, position)
+            "bNodeSocketValueInt" -> BNSVInt(this, struct, data, position)
+            "bNodeSocketValueRGBA" -> BNSVRGBA(this, struct, data, position)
+            "bNodeSocketValueRotation" -> BNSVRotation(this, struct, data, position)
+            else -> {
+                LOGGER.warn("Skipping instance of class $clazz")
+                null
+            }
         }
     }
 

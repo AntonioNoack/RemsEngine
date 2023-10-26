@@ -4,12 +4,14 @@ import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
 import java.nio.ByteBuffer
 
-@Suppress("SpellCheckingInspection", "unused")
+/**
+ * data carrier of a doubly linked list
+ * https://github.com/Blender/blender/blob/main/source/blender/makesdna/DNA_listBase.h
+ * */
+@Suppress("unused")
 class BLinkData(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position) {
+    BLink<BLinkData>(file, type, buffer, position) {
 
-    val prev get() = getPointer("*prev") as? BLinkData
-    val next get() = getPointer("*next") as? BLinkData
     val data get() = getStructArray("*data")
 
 }

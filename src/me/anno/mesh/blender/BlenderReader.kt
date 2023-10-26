@@ -317,16 +317,13 @@ object BlenderReader {
         if ("Material" in file.instances) {
             val matFolder = folder.createChild("materials", null) as InnerFolder
             for (i in materialsInFile.indices) {
+                println("Material[$i]:")
                 val mat = materialsInFile[i]
-                val name = mat.id.name.substring(2)
-                // LOGGER.debug("material $name")
                 val prefab = Prefab("Material")
-                prefab.setProperty("diffuseBase", Vector4f(mat.r, mat.g, mat.b, mat.a))
-                prefab.setProperty("metallicMinMax", Vector2f(0f, mat.metallic))
-                prefab.setProperty("roughnessMinMax", Vector2f(0f, mat.roughness))
+                BlenderShaderTree.defineDefaultMaterial(prefab, mat)
+                val name = mat.id.name.substring(2)
                 prefab.sealFromModifications()
                 mat.fileRef = matFolder.createPrefabChild("$name.json", prefab)
-                // LOGGER.debug("prev ${mat.id.prev}, next: ${mat.id.next}")
             }
         }
         clock.stop("read ${file.instances["Material"]?.size} materials")
@@ -491,9 +488,8 @@ object BlenderReader {
 
     fun readAsFolder(ref: FileReference, nio: ByteBuffer): InnerFolder {
 
-        // todo 1: the normals are often awkward
-        // todo 2: find equivalent meshes, and replace them for speed
-        // todo 3: read positions, indices, and normals without instantiation
+        // todo 1: find equivalent meshes, and replace them for speed
+        // todo 2: read positions, indices, and normals without instantiation
 
         // transform: +x, +z, -y
         // because we want y up, and Blender has z up
@@ -600,5 +596,4 @@ object BlenderReader {
             }
         }
     }
-
 }
