@@ -2,11 +2,9 @@ package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.gimp.GimpImage
-import me.anno.io.zip.InnerTmpFile
 import me.anno.io.zip.SignatureFile
 import me.anno.utils.Color.hex8
 import me.anno.utils.structures.lists.Lists.firstOrNull2
-import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 import java.nio.ByteBuffer
 import kotlin.math.min
@@ -41,9 +39,17 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
         ByteArray(bytes.size) { bytes[it].toByte() }
     )
 
+    val order = if (offset < 0) {
+        // bad format: no identifier, so test it last
+        1024 + bytes.size
+    } else {
+        // test long ones first, because they are more specific
+        bytes.size
+    }
+
     fun matches(bytes: ByteBuffer): Boolean {
         val position = bytes.position()
-        val size = bytes.remaining()
+        val size = min(bytes.remaining(), maxSampleSize)
         if (offset >= size) return false
         if (offset < 0) {
             // search the signature instead of requiring it
@@ -65,11 +71,12 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
     }
 
     fun matches(bytes: ByteArray): Boolean {
+        val size = min(bytes.size, maxSampleSize)
         if (offset >= bytes.size) return false
         if (offset < 0) {
             // search the signature instead of requiring it
-            search@ for (offset in 0 until bytes.size - this.bytes.size) {
-                for (i in 0 until min(bytes.size - offset, this.bytes.size)) {
+            search@ for (offset in 0 until size - this.bytes.size) {
+                for (i in 0 until min(size - offset, this.bytes.size)) {
                     if (bytes[i + offset] != this.bytes[i]) {
                         continue@search
                     }
@@ -78,7 +85,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             }
             return false
         } else {
-            for (i in 0 until min(bytes.size - offset, this.bytes.size)) {
+            for (i in 0 until min(size - offset, this.bytes.size)) {
                 if (bytes[i + offset] != this.bytes[i]) return false
             }
             return true
@@ -90,13 +97,16 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
     companion object {
 
         const val sampleSize = 128
+        const val maxSampleSize = 4096
 
         fun findName(bytes: ByteBuffer) = find(bytes)?.name
         fun find(bytes: ByteBuffer): Signature? {
             val nonHashed = signatures
             for (i in nonHashed.indices) {
                 val s = nonHashed[i]
-                if (s.matches(bytes)) return s
+                if (s.matches(bytes)) {
+                    return s
+                }
             }
             return null
         }
@@ -117,7 +127,8 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             // alternatively could find the correct insert index
             // still would be O(n)
             var index = signatures.binarySearch {
-                signature.bytes.size.compareTo(it.bytes.size)
+                // todo is this the correct way?
+                signature.order.compareTo(it.order)
             }
             if (index < 0) index = -1 - index
             signatures.add(index, signature)
@@ -280,9 +291,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             Signature("url", 0, "[InternetShortcut]")
         ).apply {
             // first long ones, then short ones; to be more specific first
-            sortByDescending { it.bytes.size }
+            sortBy { it.order }
         }
-
     }
-
 }

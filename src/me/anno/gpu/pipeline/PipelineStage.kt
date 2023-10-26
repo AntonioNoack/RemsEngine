@@ -691,25 +691,34 @@ class PipelineStage(
             val layers = deferred.layers2
             for (index in layers.indices) {
                 val layer = layers[index]
-                val m: Float
+                val m: Float // (1+m)*x+n
                 val n: Float
-                when (layer.type.internalFormat) {
-                    GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 -> {
+                when (Texture2D.fileType(layer.type.internalFormat)) {
+                    GL_UNSIGNED_BYTE.inv() -> {
                         m = 0f
                         n = 1f / ((1L shl 8) - 1f)
                     }
-
-                    GL_R16, GL_RG16, GL_RGB16, GL_RGBA16 -> {
+                    GL_BYTE.inv() -> {
+                        m = 0f
+                        n = 1f / ((1L shl 7) - 1f)
+                    }
+                    GL_UNSIGNED_SHORT.inv() -> {
                         m = 0f
                         n = 1f / ((1L shl 16) - 1f)
                     }
-
-                    GL_R32I, GL_RG32I, GL_RGB32I, GL_RGBA32I -> {
+                    GL_SHORT.inv() -> {
+                        m = 0f
+                        n = 1f / ((1L shl 15) - 1f)
+                    }
+                    GL_UNSIGNED_INT.inv() -> {
                         m = 0f
                         n = 1f / ((1L shl 32) - 1f)
                     }
-
-                    GL_R16F, GL_RG16F, GL_RGB16F, GL_RGBA16F -> {
+                    GL_INT.inv() -> {
+                        m = 0f
+                        n = 1f / ((1L shl 31) - 1f)
+                    }
+                    GL_HALF_FLOAT -> {
                         m = 1f / 2048f // 11 bits of mantissa
                         n = 0f
                     }

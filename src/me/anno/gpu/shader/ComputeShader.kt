@@ -107,7 +107,7 @@ class ComputeShader(
      * for array textures to bind a single layer
      * */
     fun bindTexture(slot: Int, texture: Texture2D, mode: ComputeTextureMode, layer: Int) {
-        bindTexture(slot, texture, mode, layer)
+        bindTexture1(slot, texture, mode, layer)
     }
 
     fun bindTexture(slot: Int, texture: Texture3D, mode: ComputeTextureMode) {

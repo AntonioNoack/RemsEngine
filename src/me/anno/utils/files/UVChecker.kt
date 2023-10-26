@@ -32,14 +32,14 @@ val UVChecker = lazy {
     val canvas = image.data
 
     val colors = intArrayOf(
-        0x0b5d7b,
-        0x5cd5c0,
-        0xffe27e,
-        0xfe8e6f,
-        0xd22a65,
-        0x282828,
-        0x7f7f7f,
-        0xd6d6d6,
+        0x0b5d7b or black,
+        0x5cd5c0 or black,
+        0xffe27e or black,
+        0xfe8e6f or black,
+        0xd22a65 or black,
+        0x282828 or black,
+        0x7f7f7f or black,
+        0xd6d6d6 or black,
     )
 
     // second step: generate background

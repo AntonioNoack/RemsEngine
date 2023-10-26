@@ -13,6 +13,7 @@ import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.texture.Texture2D.Companion.activeSlot
 import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
+import me.anno.gpu.texture.Texture2D.Companion.numChannels
 import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.gpu.texture.callbacks.I3B
@@ -84,9 +85,8 @@ open class Texture3D(
         clamping(clamping)
         isHDR = hdr
         GFX.check()
-        when (internalFormat) {
-            GL_R8, GL_R16, GL_R16F,
-            GL_R32F -> swizzleMonochrome()
+        if (numChannels(internalFormat) == 1) {
+            swizzleMonochrome()
         }
         if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)
     }
@@ -138,8 +138,8 @@ open class Texture3D(
     @Suppress("unused")
     fun createRGB8(data: IntArray) {
         beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGB8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
-        afterUpload(GL_RGB8, 3, false)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        afterUpload(GL_RGBA8, 3, false)
     }
 
     fun createBGRA8(data: ByteBuffer) {
@@ -151,8 +151,8 @@ open class Texture3D(
     @Suppress("unused")
     fun createBGR8(data: ByteBuffer) {
         beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGB8, width, height, depth, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
-        afterUpload(GL_RGB8, 4, false)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, depth, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
+        afterUpload(GL_RGBA8, 4, false)
     }
 
     fun createMonochrome(data: ByteArray) {

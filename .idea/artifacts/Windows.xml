@@ -2,7 +2,6 @@
   <artifact type="jar" name="Windows">
     <output-path>$PROJECT_DIR$/out/artifacts/Windows</output-path>
     <root id="archive" name="RemsEngine.jar">
-      <element id="module-output" name="Engine" />
       <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-stdlib.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-reflect.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$APPLICATION_HOME_DIR$/plugins/Kotlin/kotlinc/lib/kotlin-test.jar" path-in-jar="/" />
@@ -39,15 +38,15 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/compress/xz-1.9.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/javaFx/OpenWithExplorer.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/recast4j/Recast4j.jar" path-in-jar="/" />
-      <element id="module-output" name="KOML" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/luaj-jse-3.0.2.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows-x86.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows-arm64.jar" path-in-jar="/" />
-      <element id="module-output" name="Bullet" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/webp-imageio-0.1.6.jar" path-in-jar="/" />
-      <element id="library" level="project" name="webp-imageio-0.1.6" />
+      <element id="module-output" name="Engine" />
+      <element id="module-output" name="KOML" />
+      <element id="module-output" name="Bullet" />
     </root>
   </artifact>
 </component>

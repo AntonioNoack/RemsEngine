@@ -1,6 +1,7 @@
 package me.anno.engine.ui
 
 import me.anno.engine.Ptr
+import me.anno.maths.Maths.GOLDEN_RATIOf
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
@@ -28,15 +29,15 @@ open class AnyMapPanel(
         val keyProperty = MapPanelProperty(value.first, { value.first = it; onChange() }, keyType, keyPanelPtr)
         val keyPanel = ComponentUI.createUIByTypeName("", "", keyProperty, keyType, null, style)
         keyPanel.setTooltip("Key")
+        keyPanel.weight = 1f
         keyPanelPtr.value = keyPanel
-        keyPanelPtr.value!!.weight = 1f
 
         val valuePanelPtr = Ptr<Panel?>(null)
         val valueProperty = MapPanelProperty(value.second, { value.second = it; onChange() }, valueType, valuePanelPtr)
         val valuePanel = ComponentUI.createUIByTypeName("", "", valueProperty, valueType, null, style)
         valuePanel.setTooltip("Value")
+        valuePanel.weight = GOLDEN_RATIOf
         valuePanelPtr.value = valuePanel
-        valuePanelPtr.value!!.weight = 1.618f // ^^
 
         val list = object: PanelListX(style){
             override var isVisible: Boolean

@@ -27,8 +27,8 @@ class TargetType(
         // luminance_alpha neither
         val UByteTarget1 = TargetType("u1", GL_R8, GL_RED, GL_UNSIGNED_BYTE, 1, 1, false)
         val UByteTarget2 = TargetType("u2", GL_RG8, GL_RG, GL_UNSIGNED_BYTE, 2, 2, false)
-        val UByteTarget3 = TargetType("u3", GL_RGB8, GL_RGB, GL_UNSIGNED_BYTE, 3, 3, false)
         val UByteTarget4 = TargetType("u4", GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, 4, false)
+        val UByteTarget3 = UByteTarget4 // 3 isn't supported well
         val UByteTargets = arrayOf(UByteTarget1, UByteTarget2, UByteTarget3, UByteTarget4)
 
         val FloatTarget1 = if (!supportsF32Targets) UByteTarget1

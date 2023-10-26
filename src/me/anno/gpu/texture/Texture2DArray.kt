@@ -160,8 +160,8 @@ open class Texture2DArray(
     @Suppress("unused")
     fun createRGB8(data: IntArray) {
         beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGB8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
-        afterUpload(GL_RGB8, 3, false)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        afterUpload(GL_RGBA8, 3, false)
     }
 
     fun createBGRA8(data: ByteBuffer) {
@@ -173,8 +173,8 @@ open class Texture2DArray(
     @Suppress("unused")
     fun createBGR8(data: ByteBuffer) {
         beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGB8, width, height, d, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
-        afterUpload(GL_RGB8, 4, false)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
+        afterUpload(GL_RGBA8, 4, false)
     }
 
     fun createMonochrome(data: ByteArray) {

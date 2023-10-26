@@ -140,9 +140,9 @@ val commonFunctions = glslIntersections + quatRot + loadMat4x3 + glslRandomGen +
 fun createBLASTextureComputeShader(maxDepth: Int): ComputeShader {
     return ComputeShader(
         "bvh-traversal", Vector2i(16), commonUniforms, "" +
-                "layout(rgba32f, binding = 0) uniform image2D triangles;\n" +
-                "layout(rgba32f, binding = 1) uniform image2D nodes;\n" +
-                "layout(rgba32f, binding = 3) uniform image2D dst;\n" +
+                "layout(rgba32f, binding = 0) readonly  uniform image2D triangles;\n" +
+                "layout(rgba32f, binding = 1) readonly  uniform image2D nodes;\n" +
+                "layout(rgba32f, binding = 3) writeonly uniform image2D dst;\n" +
                 "#define Infinity 1e15\n" +
                 commonFunctions +
                 "#define BLAS_DEPTH $maxDepth\n" +
@@ -264,10 +264,10 @@ fun createTLASTextureComputeShader(bvh: TLASNode): Quad<ComputeShader, Texture2D
     return Quad(
         ComputeShader(
             "bvh-traversal", Vector2i(16), commonUniforms, "" +
-                    "layout(rgba32f, binding = 0) uniform image2D triangles;\n" +
-                    "layout(rgba32f, binding = 1) uniform image2D blasNodes;\n" +
-                    "layout(rgba32f, binding = 2) uniform image2D tlasNodes;\n" +
-                    "layout(rgba32f, binding = 3) uniform image2D dst;\n" +
+                    "layout(rgba32f, binding = 0) readonly  uniform image2D triangles;\n" +
+                    "layout(rgba32f, binding = 1) readonly  uniform image2D blasNodes;\n" +
+                    "layout(rgba32f, binding = 2) readonly  uniform image2D tlasNodes;\n" +
+                    "layout(rgba32f, binding = 3) writeonly uniform image2D dst;\n" +
                     "#define Infinity 1e15\n" +
                     commonFunctions +
                     "#define nodes blasNodes\n" +

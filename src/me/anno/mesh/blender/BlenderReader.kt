@@ -22,6 +22,7 @@ import kotlin.math.PI
  *  - done meshes
  *  - todo skeletons
  *  - todo animations
+ *  - todo embedded textures
  *  - done materials
  *  - done scene hierarchy
  * create a test scene with different layouts, and check that everything is in the right place

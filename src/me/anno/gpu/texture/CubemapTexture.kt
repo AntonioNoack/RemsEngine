@@ -101,7 +101,7 @@ open class CubemapTexture(
         beforeUpload(3, sides[0].size)
         val size = size
         val byteBuffer = Texture2D.bufferPool[size * size * 3, false, false]
-        val internalFormat = GL_RGB8
+        val internalFormat = GL_RGBA8
         for (i in 0 until 6) {
             byteBuffer.position(0)
             byteBuffer.put(sides[i])

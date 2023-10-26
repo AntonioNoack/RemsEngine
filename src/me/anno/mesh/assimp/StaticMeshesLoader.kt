@@ -28,6 +28,7 @@ import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.assimp.*
 import org.lwjgl.assimp.Assimp.*
+import org.lwjgl.system.MemoryUtil
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
@@ -427,14 +428,15 @@ object StaticMeshesLoader {
         )
         var path0 = path.dataString() ?: return InvalidRef
         if (path0.isBlank2()) return InvalidRef
+
         path0 = path0.replace('\\', '/')
         if (path0.startsWith('*')) {
             val index = path0.substring(1).toIntOrNull() ?: return InvalidRef
             if (index !in 0 until aiScene.mNumTextures()) return InvalidRef
             return loadedTextures.getOrNull(index) ?: InvalidRef
         }
+
         if (path0.startsWith("./")) path0 = path0.substring(2)
-        // LOGGER.debug("Resolving {}, loaded: {}, mfl: {}", path0, loadedTextures, missingFilesLookup.values.filter { it.lcExtension in "png,jpg,psd,bmp" }.toHashSet())
         // replace double slashes
         val path1 = path0.replace("//", "/")
         // check whether it may be a global path, not a local one
@@ -525,6 +527,7 @@ object StaticMeshesLoader {
 
         val fileName = findNextFileName(parentFolder, fileName0, fileExt0, 3, '-')
 
+        LOGGER.debug("Creating texture $fileName0, $fileExt0 -> $fileName, $isCompressed")
         return if (isCompressed) {
             // width is the buffer size in bytes
             // the last bytes will be filled automatically with zeros :)
@@ -538,28 +541,14 @@ object StaticMeshesLoader {
         }
     }
 
-    fun ByteBuffer.toByteArray(): ByteArray {
-        return ByteArray(limit()) { get(it) }
-    }
-
-    fun ByteBuffer.toByteArray(dst: ByteArray): ByteArray {
-        get(dst, 0, dst.size)
-        return dst
-    }
-
     private fun bufferToBytes(buffer: AITexel.Buffer, size: Int): ByteArray {
         val bytes = ByteArray(size)
-        var j = 0
         if (buffer.remaining() != size / 4) {
             LOGGER.warn("Size doesn't match, ${buffer.position()}, ${buffer.capacity()}, ${buffer.remaining()} vs ${size / 4}")
         }
-        for (i in 0 until buffer.remaining()) {
-            bytes[j++] = buffer.b()
-            bytes[j++] = buffer.g()
-            bytes[j++] = buffer.r()
-            bytes[j++] = buffer.a()
-            buffer.get()
-        }
+        // ~10x faster than doing a Java-like copy
+        val unsafeBuffer = MemoryUtil.memByteBuffer(buffer.address(), size)
+        unsafeBuffer.get(bytes)
         return bytes
     }
 

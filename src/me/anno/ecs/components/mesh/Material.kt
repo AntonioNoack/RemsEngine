@@ -344,7 +344,8 @@ open class Material : PrefabSaveable(), Renderable {
 
     companion object {
 
-        var timeout = 1000L
+        // what is a good timeout???
+        var timeout = 30000L
 
         val defaultMaterial = Material()
 

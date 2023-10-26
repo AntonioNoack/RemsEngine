@@ -84,13 +84,12 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-opengl-natives-macos.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-openal-natives-linux-arm64.jar" path-in-jar="/" />
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/lwjgl-tinyexr-natives-windows.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/webp-imageio-0.1.6.jar" path-in-jar="/" />
       <element id="module-output" name="KOML" />
       <element id="module-output" name="Bullet" />
       <element id="module-output" name="SDF" />
       <element id="module-output" name="PDF" />
-      <element id="extracted-dir" path="$PROJECT_DIR$/lib/webp-imageio-0.1.6.jar" path-in-jar="/" />
       <element id="module-output" name="Recast" />
-      <element id="library" level="project" name="webp-imageio-0.1.6" />
       <element id="module-output" name="Lua" />
       <element id="module-output" name="Box2d" />
     </root>

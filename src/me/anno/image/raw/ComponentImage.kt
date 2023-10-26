@@ -5,11 +5,16 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
 import me.anno.utils.Color.black
+import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferByte
 
 class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
     Image(src.width, src.height, 1, false) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ComponentImage::class)
+    }
 
     val shift = when (channel) {
         'r' -> 16
@@ -85,7 +90,9 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         } else {
             if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
             GFX.addGPUTask("ComponentImage", width, height) {
-                texture.createMonochrome(bytes, checkRedundancy = false)
+                if (!texture.isDestroyed) {
+                    texture.createMonochrome(bytes, checkRedundancy = false)
+                } else LOGGER.warn("Image was already destroyed")
             }
         }
     }
@@ -98,5 +105,4 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
     override fun getRGB(index: Int): Int {
         return (getValue(index) * 0x10101) or black
     }
-
 }
