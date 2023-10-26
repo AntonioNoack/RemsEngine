@@ -148,4 +148,7 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
         dst.spacing = spacing
         dst.maxColumns = maxColumns
     }
+
+    override val className: String
+        get() = "PanelList2D"
 }

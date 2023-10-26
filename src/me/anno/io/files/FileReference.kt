@@ -2,7 +2,6 @@ package me.anno.io.files
 
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
-import me.anno.cache.FileCache
 import me.anno.cache.ICacheData
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX
@@ -29,7 +28,6 @@ import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.logging.log4j.LogManager
 import java.awt.Desktop
 import java.io.*
-import java.lang.IllegalArgumentException
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
@@ -286,7 +284,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
                 }
             }
         }
-
     }
 
     private var isValid = true
@@ -718,14 +715,14 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     }
 
     val windowsLnk: Lazy<WindowsShortcut?> = lazy {
-        if (lcExtension == "lnk" && WindowsShortcut.isPotentialValidLink(this)) {
-            try {
-                WindowsShortcut(this)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        } else null
+        try {
+            if (lcExtension == "lnk" && WindowsShortcut.isPotentialValidLink(this)) {
+                WindowsShortcut.getSync(this)
+            } else null
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     open val isSomeKindOfDirectory get() = isDirectory || windowsLnk.value != null || isPacked.value

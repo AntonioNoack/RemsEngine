@@ -115,9 +115,6 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         } else super.onPasteFiles(x, y, files)
     }
 
-
-    // todo no option is showing up to delete stuff, when multiple files are selected
-
     private fun pastePrefab(data: String): Boolean {
         try {
             val read = TextReader.read(data, StudioBase.workspace, true)
@@ -176,12 +173,15 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
 
         @Suppress("MemberVisibilityCanBePrivate")
         fun addOptionToCreateFile(name: String, fileContent: String) {
-            folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, folder ->
-                val file = findNextFile(folder, name, "json", 1, 0.toChar(), 0)
-                if (file == InvalidRef) {
-                    msg(p.windowStack, NameDesc("Directory is not writable"))
-                } else file.writeText(fileContent)
-                invalidateFileExplorers(p)
+            folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, files ->
+                val first = files.firstOrNull()
+                if (first?.isDirectory == true) {
+                    val file = findNextFile(first, name, "json", 1, 0.toChar(), 0)
+                    if (file == InvalidRef) {
+                        msg(p.windowStack, NameDesc("Directory is not writable"))
+                    } else file.writeText(fileContent)
+                    invalidateFileExplorers(p)
+                } else LOGGER.warn("Not a directory")
             })
         }
 
@@ -196,8 +196,13 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         }
 
         init {
-            val openAsScene = FileExplorerOption(openAsSceneDesc) { p, file ->
-                ECSSceneTabs.open(file, PlayMode.EDITING, true)
+            val openAsScene = FileExplorerOption(openAsSceneDesc) { p, files ->
+                for (file in files) {
+                    ECSSceneTabs.open(
+                        file, PlayMode.EDITING,
+                        setActive = (file == files.first())
+                    )
+                }
                 invalidateFileExplorers(p)
             }
             fileOptions.add(openAsScene)

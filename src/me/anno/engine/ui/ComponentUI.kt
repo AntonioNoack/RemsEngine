@@ -25,9 +25,10 @@ import me.anno.ecs.annotations.Range.Companion.minUInt
 import me.anno.ecs.annotations.Range.Companion.minULong
 import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.prefab.PrefabCache
-import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
+import me.anno.engine.ui.AssetImport.deepCopyImport
+import me.anno.engine.ui.AssetImport.shallowCopyImport
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.engine.ui.scenetabs.ECSSceneTabs.project
@@ -53,7 +54,7 @@ import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu
-import me.anno.ui.base.menu.Menu.msg
+import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
@@ -64,6 +65,7 @@ import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.input.*
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toVecRGBA
+import me.anno.utils.OS
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
@@ -82,26 +84,49 @@ object ComponentUI {
     private val LOGGER = LogManager.getLogger(ComponentUI::class)
 
     val fileInputRightClickOptions = listOf(
-        // todo create menu of files with same type in project, e.g., image files, meshes or sth like that
-        FileExplorerOption(NameDesc("Open Scene")) { _, it -> ECSSceneTabs.open(it, PlayMode.EDITING, true) },
-        // create mutable scene, = import
-        FileExplorerOption(NameDesc("Import")) { panel, it ->
-            val prefab = PrefabCache[it]
-            if (prefab == null) msg(
-                panel.windowStack,
-                NameDesc("Cannot import ${it.name}", "Because it cannot be loaded as a scene", "")
-            )
-            else {
-                // todo import options: place it into which folder?
-                // todo create sub folders? for materials / meshes / animations (if that is relevant to the resource)
-                // todo if it already exists: ask for replace
-                // todo for all to-generate-files: ask for replace / new-rename / abort all
-                // todo then open the scene
+        FileExplorerOption(NameDesc("Open Scene")) { _, files ->
+            for (file in files) {
+                ECSSceneTabs.open(
+                    file, PlayMode.EDITING,
+                    setActive = (file == files.first())
+                )
             }
+        },
+        FileExplorerOption(
+            NameDesc(
+                "Deep-Copy-Import", "Make this file [mutable, project-indexed] by transferring it to the project",
+                ""
+            )
+        ) { _, files -> deepCopyImport(StudioBase.workspace, files, null) },
+        FileExplorerOption(
+            NameDesc(
+                "Shallow-Copy-Import", "Make this file [mutable, project-indexed] by transferring it to the project",
+                ""
+            )
+        ) { _, files -> shallowCopyImport(StudioBase.workspace, files, null) },
+
+        // todo test whether this actually works
+        // (on both Windows and Linux)
+        FileExplorerOption(
+            NameDesc(
+                "Link", "Make this file [project-indexed] by linking it to the project",
+                ""
+            )
+        ) { panel, files ->
+            val file = files.first()
+            // todo ask file instead
+            val ext = if (OS.isWindows) "url" else "desktop"
+            askName(panel.windowStack, NameDesc(),
+                if (file.isDirectory) file.name
+                else "${file.nameWithoutExtension}.$ext",
+                NameDesc("Link"), { -1 }, { newName ->
+                    val dst = StudioBase.workspace.getChild(newName)
+                    if (file != dst) {
+                        AssetImport.createLink(file, dst)
+                    } else LOGGER.warn("Cannot link file to itself")
+                })
         }
     )
-
-    // todo mesh input, skeleton selection, animation selection, ...
 
     // todo position control+x is not working (reset on right click is working)
 
@@ -1051,7 +1076,7 @@ object ComponentUI {
                                     })
                                     panelList.add(optionList)
                                     for (option in options) {
-                                        optionList.add(object : FileExplorerEntry(false, option, style) {
+                                        optionList.add(object : FileExplorerEntry(option, style) {
                                             override fun updateTooltip() {
                                                 // as tooltip texts, show their whole path
                                                 super.updateTooltip()

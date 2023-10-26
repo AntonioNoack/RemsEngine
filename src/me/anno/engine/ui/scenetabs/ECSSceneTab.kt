@@ -13,7 +13,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView
@@ -35,6 +34,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.dragging.Draggable
 import me.anno.utils.Color.black
+import me.anno.utils.Color.white
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
@@ -42,8 +42,6 @@ import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Quaterniond
 import org.joml.Vector3d
-
-// todo darken panels when in play-testing mode
 
 class ECSSceneTab(
     val inspector: PrefabInspector,
@@ -59,7 +57,6 @@ class ECSSceneTab(
     ) : this(PrefabInspector(file), file, playMode, name)
 
     init {
-        // LOGGER.info("Created tab with ${inspector.prefab.countTotalChanges(true)}+ changes")
         padding.set(6, 2, 6, 2)
     }
 
@@ -212,7 +209,7 @@ class ECSSceneTab(
                     MenuOption(NameDesc("Copy Path")) { Input.setClipboardContent(file.absolutePath) },
                     MenuOption(NameDesc("Copy Name")) { Input.setClipboardContent(file.name) },
                     MenuOption(NameDesc("Close")) { ECSSceneTabs.close(this, true) },
-                    MenuOption(NameDesc("Close All")) {
+                    MenuOption(NameDesc("Close All Others")) {
                         val tabs = ECSSceneTabs.children3.reversed()
                         for (tab in tabs) {
                             if (tab != this) {
@@ -252,7 +249,8 @@ class ECSSceneTab(
     override fun onUpdate() {
         super.onUpdate()
         backgroundColor = when {
-            ECSSceneTabs.currentTab == this -> 0xff777777.toInt()
+            ECSSceneTabs.currentTab == this -> mixARGB(originalBGColor, white, 0.2f)
+            ECSSceneTabs.currentTab?.playMode == PlayMode.PLAY_TESTING -> mixARGB(originalBGColor, black, 0.1f)
             else -> mixARGB(originalBGColor, black, 0.2f)
         }
         if (ECSSceneTabs.currentTab == this && needsStart) {

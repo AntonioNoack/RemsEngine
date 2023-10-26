@@ -114,26 +114,53 @@ open class FileExplorer(
 
     open fun getFolderOptions(): List<FileExplorerOption> = emptyList()
 
-    open fun openOptions(file: FileReference) {
-        if (file.exists) {
-            openMenu(windowStack, getFileOptions().map {
-                MenuOption(it.nameDesc) {
-                    it.onClick(this, file)
-                }
-            })
-        } else LOGGER.warn("File cannot be accessed currently")
+    open fun openOptions(files: List<FileReference>) {
+        openMenu(windowStack, getFileOptions().map {
+            MenuOption(it.nameDesc) {
+                it.onClick(this, files)
+            }
+        })
     }
 
     open fun getFileOptions(): List<FileExplorerOption> {
         // todo add option to open json in specialized json editor...
-        val rename = FileExplorerOption(renameDesc) { _, _ -> onGotAction(0f, 0f, 0f, 0f, "Rename", false) }
-        val openInExplorer = FileExplorerOption(openInExplorerDesc) { _, it -> it.openInExplorer() }
-        val openInStandard = FileExplorerOption(openInStandardProgramDesc) { _, it -> it.openInStandardProgram() }
-        val editInStandard = FileExplorerOption(editInStandardProgramDesc) { _, it -> it.editInStandardProgram() }
-        val copyPath = FileExplorerOption(copyPathDesc) { _, it -> setClipboardContent(it.absolutePath) }
-        val copyName = FileExplorerOption(copyNameDesc) { _, it -> setClipboardContent(it.name) }
-        val delete = FileExplorerOption(deleteDesc) { p, it -> deleteFileMaybe(p, it) }
+        val rename = FileExplorerOption(renameDesc) { _, files ->
+            val sample = content2d.children.firstOrNull() as? FileExplorerEntry
+            sample?.rename(files)
+        }
+        val openInExplorer = FileExplorerOption(openInExplorerDesc) { _, files ->
+            for (file in files) {
+                file.openInExplorer()
+            }
+        }
+        val openInStandard = FileExplorerOption(openInStandardProgramDesc) { _, files ->
+            for (file in files) {
+                file.openInStandardProgram()
+            }
+        }
+        val editInStandard = FileExplorerOption(editInStandardProgramDesc) { _, files ->
+            for (file in files) {
+                file.editInStandardProgram()
+            }
+        }
+        val copyPath = FileExplorerOption(copyPathDesc) { _, files ->
+            setClipboardContent(files.joinToString {
+                enquoteIfNecessary(it.absolutePath)
+            })
+        }
+        val copyName = FileExplorerOption(copyNameDesc) { _, files ->
+            setClipboardContent(files.joinToString {
+                enquoteIfNecessary(it.name)
+            })
+        }
+        val delete = FileExplorerOption(deleteDesc) { p, files -> deleteFileMaybe(p, files) }
         return listOf(rename, openInExplorer, openInStandard, editInStandard, copyPath, copyName, delete)
+    }
+
+    fun enquoteIfNecessary(str: String): String {
+        return if (' ' in str || '"' in str) {
+            "\"${str.replace("\"", "\\\"")}\""
+        } else str
     }
 
     open fun onDoubleClick(file: FileReference) {}
@@ -586,12 +613,8 @@ open class FileExplorer(
     }
 
     override fun onGotAction(
-        x: Float,
-        y: Float,
-        dx: Float,
-        dy: Float,
-        action: String,
-        isContinuous: Boolean
+        x: Float, y: Float, dx: Float, dy: Float,
+        action: String, isContinuous: Boolean
     ): Boolean {
         when (action) {
             "OpenOptions" -> {
@@ -639,7 +662,7 @@ open class FileExplorer(
                 )
                 val folder = getFolderOptions().map {
                     MenuOption(it.nameDesc) {
-                        it.onClick(this, folder)
+                        it.onClick(this, listOf(folder))
                     }
                 }
                 openMenu(windowStack, if (folder.isEmpty()) base else base + menuSeparator1 + folder)
@@ -826,6 +849,13 @@ open class FileExplorer(
             "Delete",
             "Delete this file",
             "ui.file.delete"
+        )
+
+        @JvmField
+        val pasteDesc = NameDesc(
+            "Paste",
+            "Paste your clipboard",
+            "ui.file.paste"
         )
     }
 }

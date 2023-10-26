@@ -81,6 +81,7 @@ import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
+import me.anno.io.utils.WindowsShortcut
 import me.anno.io.zip.InnerFolderCache
 import me.anno.maths.Maths.clamp
 import me.anno.studio.StudioBase
@@ -1274,13 +1275,6 @@ object Thumbs {
             }
         }
 
-        val windowsLink = srcFile.windowsLnk.value
-        if (windowsLink != null) {
-            val dst = getReference(windowsLink.absolutePath)
-            generate(dst, size, callback)
-            return
-        }
-
         Signature.findName(srcFile) { signature ->
             val reader = readerBySignature[signature]
             if (reader != null) {
@@ -1358,26 +1352,30 @@ object Thumbs {
                                 generateMaterialFrame(srcFile, dstFile, Material(), size, callback)
                             }
                         }
-                        "url" -> {
-                            // try to read the url, and redirect to the icon
-                            val lineLengthLimit = 1024
-                            srcFile.readLines(lineLengthLimit) { lines, exc ->
-                                if (lines != null) {
-                                    val iconFileLine = lines.firstOrNull { it.startsWith("IconFile=", true) }
-                                    if (iconFileLine != null) {
-                                        val iconFile = iconFileLine
-                                            .substring(9)
-                                            .trim() // against \r
-                                            .replace('\\', '/')
-                                        // LOGGER.info("Found icon file from URL '$srcFile': '$iconFile'")
-                                        generate(getReference(iconFile), size, callback)
-                                    }
-                                    lines.close()
-                                } else exc?.printStackTrace()
+                        "lnk" -> {
+                            WindowsShortcut.get(srcFile) { link, exc ->
+                                if (link != null) {
+                                    val iconFile = link.iconPath ?: link.absolutePath
+                                    generate(getReference(iconFile), size, callback)
+                                } else callback(null, exc)
                             }
                         }
-                        "lnk", "desktop" -> {
-                            // not images, and I don't know yet how to get the image from them
+                        "url" -> {
+                            // try to read the url, and redirect to the icon
+                            findIconLineInTxtLink(srcFile, size, "IconFile=", callback)
+                        }
+                        "desktop" -> {
+                            // sample data by https://help.ubuntu.com/community/UnityLaunchersAndDesktopFiles:
+                            //[Desktop Entry]
+                            //Version=1.0
+                            //Name=BackMeUp
+                            //Comment=Back up your data with one click
+                            //Exec=/home/alex/Documents/backup.sh
+                            //Icon=/home/alex/Pictures/backup.png
+                            //Terminal=false
+                            //Type=Application
+                            //Categories=Utility;Application;
+                            findIconLineInTxtLink(srcFile, size, "Icon=", callback)
                         }
                         "ico" -> srcFile.inputStream { it, exc ->
                             if (it != null) {
@@ -1395,6 +1393,28 @@ object Thumbs {
                     LOGGER.warn("Could not load image from $srcFile: ${e.message}")
                 }
             }
+        }
+    }
+
+    private fun findIconLineInTxtLink(
+        srcFile: FileReference,
+        size: Int,
+        prefix: String,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ) {
+        val lineLengthLimit = 1024
+        srcFile.readLines(lineLengthLimit) { lines, exc ->
+            if (lines != null) {
+                val iconFileLine = lines.firstOrNull { it.startsWith(prefix, true) }
+                if (iconFileLine != null) {
+                    val iconFile = iconFileLine
+                        .substring(prefix.length)
+                        .trim() // against \r
+                        .replace('\\', '/')
+                    generate(getReference(iconFile), size, callback)
+                }
+                lines.close()
+            } else exc?.printStackTrace()
         }
     }
 

@@ -11,6 +11,7 @@ import me.anno.io.text.TextWriter
 import me.anno.studio.StudioBase
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.toAllowedFilename
+import me.anno.utils.OS
 import me.anno.utils.files.Files
 import org.apache.logging.log4j.LogManager
 
@@ -22,18 +23,18 @@ object AssetImport {
         fun copy(srcFile: FileReference, dstFolder: FileReference, srcPrefab: Prefab, depth: Int): Prefab
     }
 
-    fun shallowCopyImport(current: FileReference, files: List<FileReference>, fe: FileExplorer) {
+    fun shallowCopyImport(current: FileReference, files: List<FileReference>, fe: FileExplorer?) {
         for (src in files) shallowCopyImport(current, src)
         onCopyFinished(current, fe)
     }
 
-    fun deepCopyImport(current: FileReference, files: List<FileReference>, fe: FileExplorer) {
+    fun deepCopyImport(current: FileReference, files: List<FileReference>, fe: FileExplorer?) {
         for (src in files) deepCopyImport(current, src)
         onCopyFinished(current, fe)
     }
 
-    fun onCopyFinished(current: FileReference, fe: FileExplorer) {
-        fe.invalidate()
+    fun onCopyFinished(current: FileReference, fe: FileExplorer?) {
+        fe?.invalidate()
         LastModifiedCache.invalidate(current)
         // update icon of current folder... hopefully this works
         Thumbs.invalidate(current)
@@ -277,5 +278,29 @@ object AssetImport {
         dstFile.getParent()?.tryMkdirs()
         dstFile.writeText(data)
         return dstFile
+    }
+
+    fun createLink(original: FileReference, linkLocation: FileReference) {
+        val data = if (OS.isWindows) {
+            // create .url file
+            // are they supported for static files, too???
+            if (original.absolutePath.contains("://")) {
+                "[InternetShortcut]\n" +
+                        "URL=$original\n"
+            } else {
+                "[InternetShortcut]\n" +
+                        "URL=file://$original\n"
+            }
+        } else {
+            // create .desktop file
+            // sample data by https://help.ubuntu.com/community/UnityLaunchersAndDesktopFiles:
+            "[Desktop Entry]\n" +
+                    "Version=1.0\n" +
+                    "Name=${original.name}\n" +
+                    "Exec=${original.absolutePath}\n" +
+                    "Icon=${original.absolutePath}\n" +
+                    "Type=Link\n"
+        }
+        linkLocation.writeText(data)
     }
 }

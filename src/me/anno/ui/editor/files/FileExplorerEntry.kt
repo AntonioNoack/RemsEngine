@@ -4,7 +4,6 @@ import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.openal.AudioTasks
 import me.anno.audio.streams.AudioFileStreamOpenAL
-import me.anno.cache.instances.LastModifiedCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.shaders.effects.FSR
@@ -59,6 +58,15 @@ import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.dragging.Draggable
+import me.anno.ui.editor.files.FileExplorerIcons.docsPath
+import me.anno.ui.editor.files.FileExplorerIcons.emptyFolderPath
+import me.anno.ui.editor.files.FileExplorerIcons.exePath
+import me.anno.ui.editor.files.FileExplorerIcons.folderPath
+import me.anno.ui.editor.files.FileExplorerIcons.imagePath
+import me.anno.ui.editor.files.FileExplorerIcons.musicPath
+import me.anno.ui.editor.files.FileExplorerIcons.textPath
+import me.anno.ui.editor.files.FileExplorerIcons.videoPath
+import me.anno.ui.editor.files.FileExplorerIcons.zipPath
 import me.anno.utils.Color.black
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
@@ -84,9 +92,6 @@ open class FileExplorerEntry(
     private val explorer: FileExplorer?,
     val isParent: Boolean, file: FileReference, style: Style
 ) : PanelGroup(style.getChild("fileEntry")) {
-
-    constructor(isParent: Boolean, file: FileReference, style: Style) :
-            this(null, isParent, file, style)
 
     constructor(file: FileReference, style: Style) :
             this(null, false, file, style)
@@ -360,7 +365,8 @@ open class FileExplorerEntry(
                 )
                 val aspect = w.toFloat() / h
                 if (samples > 1) {
-                    val tmp = FBStack["tmp", w, h, 4, false, 8, DepthBufferType.INTERNAL] // msaa; probably should depend on gfx settings
+                    val tmp =
+                        FBStack["tmp", w, h, 4, false, 8, DepthBufferType.INTERNAL] // msaa; probably should depend on gfx settings
                     GFXState.useFrame(0, 0, w, h, tmp, Renderers.simpleNormalRenderer) {
                         GFXState.depthMode.use(DepthMode.CLOSE) {
                             tmp.clearColor(backgroundColor, true)
@@ -556,7 +562,8 @@ open class FileExplorerEntry(
                         val prefab = PrefabCache[file, true]
                         if (prefab != null) {
                             ttt.append('\n').append(prefab.clazzName)
-                            if (prefab.prefab != InvalidRef) ttt.append(" : ").append(prefab.prefab.toLocalPath()).append('\n')
+                            if (prefab.prefab != InvalidRef) ttt.append(" : ").append(prefab.prefab.toLocalPath())
+                                .append('\n')
                             else ttt.append(", ")
                             ttt.append(prefab.adds.size).append("+, ").append(prefab.sets.size).append("*")
                         } else {
@@ -712,19 +719,51 @@ open class FileExplorerEntry(
                     } else return false
                 } else return false
             }
-            "Rename" -> {
-                val file = getReferenceOrTimeout(path)
-                val title = NameDesc("Rename To...", "", "ui.file.rename2")
-                askName(windowStack, x.toInt(), y.toInt(), title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
-            }
-            "OpenInExplorer" -> getReferenceOrTimeout(path).openInExplorer()
-            "OpenInStandardProgram" -> getReferenceOrTimeout(path).openInStandardProgram()
-            "EditInStandardProgram" -> getReferenceOrTimeout(path).editInStandardProgram()
-            "Delete" -> deleteFileMaybe(this, getReferenceOrTimeout(path))
-            "OpenOptions" -> explorer?.openOptions(getReferenceOrTimeout(path)) ?: return false
+            "Rename" -> rename(findInFocusReferences())
+            "OpenInExplorer" -> openInExplorer(findInFocusReferences())
+            "OpenInStandardProgram" -> openInStandardProgram(findInFocusReferences())
+            "EditInStandardProgram" -> editInStandardProgram(findInFocusReferences())
+            "Delete" -> deleteFileMaybe(this, findInFocusReferences())
+            "OpenOptions" -> explorer?.openOptions(findInFocusReferences()) ?: return false
             else -> return super.onGotAction(x, y, dx, dy, action, isContinuous)
         }
         return true
+    }
+
+    fun editInStandardProgram(files: List<FileReference>) {
+        for (file in files) {
+            file.editInStandardProgram()
+        }
+    }
+
+    fun openInStandardProgram(files: List<FileReference>) {
+        for (file in files) {
+            file.openInStandardProgram()
+        }
+    }
+
+    fun openInExplorer(files: List<FileReference>) {
+        for (file in files) {
+            file.openInExplorer()
+        }
+    }
+
+    fun rename(files: List<FileReference>) {
+        // todo name multiple files???
+        val file = files.firstOrNull() ?: return
+        val title = NameDesc("Rename To...", "", "ui.file.rename2")
+        askName(windowStack, title, file.name, NameDesc("Rename"), { -1 }, ::renameTo)
+    }
+
+    fun findInFocusReferences(): List<FileReference> {
+        val hits = ArrayList<FileReference>()
+        hits.add(getReferenceOrTimeout(path))
+        for (sibling in siblings) {
+            if (sibling !== this && sibling is FileExplorerEntry && sibling.isInFocus) {
+                hits.add(getReferenceOrTimeout(sibling.path))
+            }
+        }
+        return hits
     }
 
     fun renameTo(newName: String) {
@@ -758,45 +797,8 @@ open class FileExplorerEntry(
     }
 
     override fun onDeleteKey(x: Float, y: Float) {
-        val file = getReferenceOrTimeout(path)
-        // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
-        val files = parent!!.children.mapNotNull {
-            if (it is FileExplorerEntry && it.isInFocus)
-                getReferenceOrTimeout(it.path) else null
-        }
-        if (files.size <= 1) {
-            // ask, then delete (or cancel)
-            deleteFileMaybe(this, file)
-        } else if (files.first() === file) {
-            // ask, then delete all (or cancel)
-            val matches = siblings.count { (it is FileExplorerEntry && it.isInFocus) || it === this }
-            val title = NameDesc(
-                "Delete these files? (${matches}x, ${
-                    files.sumOf { it.length() }.formatFileSize()
-                })", "", "ui.file.delete.ask.many"
-            )
-            val moveToTrash = MenuOption(
-                NameDesc(
-                    "Yes",
-                    "Move the file to the trash",
-                    "ui.file.delete.yes"
-                )
-            ) {
-                moveToTrash(files.map { it.toFile() }.toTypedArray())
-                explorer?.invalidate()
-            }
-            val deletePermanently = MenuOption(
-                NameDesc(
-                    "Yes, permanently",
-                    "Deletes all selected files; forever; files cannot be recovered",
-                    "ui.file.delete.many.permanently"
-                )
-            ) {
-                for (i in files.indices) files[i].deleteRecursively()
-                explorer?.invalidate()
-            }
-            openMenu(windowStack, title, listOf(moveToTrash, dontDelete, deletePermanently))
-        }
+        val files = findInFocusReferences()
+        deleteFiles(this, files, explorer)
     }
 
     override fun onCopyRequested(x: Float, y: Float): String? {
@@ -896,32 +898,6 @@ open class FileExplorerEntry(
         @JvmStatic
         private val charMMSS = ComparableStringBuilder("mm:ss/mm:ss")
 
-        @JvmField
-        val folderPath = getReference("res://file/folder.png")
-
-        @JvmField
-        val musicPath = getReference("res://file/music.png")
-
-        @JvmField
-        val textPath = getReference("res://file/text.png")
-
-        @JvmField
-        val imagePath = getReference("res://file/image.png")
-
-        @JvmField
-        val videoPath = getReference("res://file/video.png")
-
-        @JvmField
-        val emptyFolderPath = getReference("res://file/empty_folder.png")
-
-        @JvmField
-        val exePath = getReference("res://file/executable.png")
-
-        @JvmField
-        val docsPath = getReference("res://file/document.png")
-
-        @JvmField
-        val zipPath = getReference("res://file/compressed.png")
 
         @JvmStatic
         val dontDelete
@@ -934,42 +910,8 @@ open class FileExplorerEntry(
             ) {}
 
         @JvmStatic
-        fun deleteFileMaybe(panel: Panel, file: FileReference) {
-            val title = NameDesc(
-                "Delete this file? (${file.length().formatFileSize()})",
-                "",
-                "ui.file.delete.ask"
-            )
-            val moveToTrash = MenuOption(
-                NameDesc(
-                    "Yes",
-                    "Move the file to the trash",
-                    "ui.file.delete.yes"
-                )
-            ) {
-                val file2 = file.toFile()
-                moveToTrash(file2)
-                FileExplorer.invalidateFileExplorers(panel)
-                LastModifiedCache.invalidate(file2)
-            }
-            val deletePermanently = MenuOption(
-                NameDesc(
-                    "Yes, permanently",
-                    "Deletes the file; file cannot be recovered",
-                    "ui.file.delete.permanent"
-                )
-            ) {
-                file.deleteRecursively()
-                FileExplorer.invalidateFileExplorers(panel)
-            }
-            openMenu(
-                panel.windowStack,
-                title, listOf(
-                    moveToTrash,
-                    dontDelete,
-                    deletePermanently
-                )
-            )
+        fun deleteFileMaybe(panel: Panel, files: List<FileReference>) {
+            deleteFiles(panel, files, null)
         }
 
         @JvmStatic
@@ -994,6 +936,42 @@ open class FileExplorerEntry(
                 relativeTime * 360f * 2,
                 Vector4f(1f, 1f, 1f, 0.2f)
             )
+        }
+
+        fun deleteFiles(panel: Panel, files: List<FileReference>, explorer: FileExplorer?) {
+            // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
+            // ask, then delete all (or cancel)
+            val title = if(files.size == 1){
+                NameDesc("Delete this file? (${files.first().length().formatFileSize()})",
+                    "", "ui.file.delete.ask.one")
+            } else {
+                NameDesc(
+                    "Delete these files? (${files.size}x, ${
+                        files.sumOf { it.length() }.formatFileSize()
+                    } total)", "", "ui.file.delete.ask.many"
+                )
+            }
+            val moveToTrash = MenuOption(
+                NameDesc(
+                    "Yes, move to trash",
+                    "Move the files to the trash. Better save than sorry.",
+                    "ui.file.delete.yes"
+                )
+            ) {
+                moveToTrash(files.map { it.toFile() }.toTypedArray())
+                explorer?.invalidate()
+            }
+            val deletePermanently = MenuOption(
+                NameDesc(
+                    "Yes, permanently",
+                    "Deletes all selected files; forever; files cannot be recovered",
+                    "ui.file.delete.many.permanently"
+                )
+            ) {
+                for (i in files.indices) files[i].deleteRecursively()
+                explorer?.invalidate()
+            }
+            openMenu(panel.windowStack, title, listOf(deletePermanently, moveToTrash, dontDelete))
         }
     }
 }

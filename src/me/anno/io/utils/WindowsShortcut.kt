@@ -3,12 +3,14 @@ package me.anno.io.utils
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.hasFlag
 import me.anno.utils.types.InputStreams.readNBytes2
-import java.io.*
+import java.io.IOException
+import java.io.InputStream
 import java.nio.charset.StandardCharsets
 import java.text.ParseException
 
 /**
  * Represents a Windows shortcut (typically visible to Java only as a '.lnk' file).
+ * Official file format documentation: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-shllink/16cb4ca1-9339-4d0c-a68d-bf1d6cc0f943
  *
  * Retrieved 2011-09-23 from http://stackoverflow.com/questions/309495/windows-shortcut-lnk-parser-in-java/672775#672775
  * Originally called LnkParser
@@ -29,9 +31,11 @@ import java.text.ParseException
  * And somewhat based on code from the book 'Swing Hacks: Tips and Tools for Killer GUIs' by Joshua Marinacci and Chris Adamson
  * ISBN: 0-596-00907-0
  * http://www.oreilly.com/catalog/swinghks/
+ *
+ * todo lnk files can have custom icons... parse them
  */
 @Suppress("SpellCheckingInspection")
-class WindowsShortcut {
+class WindowsShortcut(data: ByteArray) {
 
     /**
      * Tests if the shortcut points to a directory.
@@ -77,21 +81,10 @@ class WindowsShortcut {
     var commandLineArguments: String? = null
         private set
 
-    @Suppress("unused")
-    constructor()
+    var iconPath: String? = null
+        private set
 
-    constructor(file: FileReference) {
-        file.inputStreamSync().use { input: InputStream ->
-            parseLink(input.readNBytes2(maxLength, false))
-        }
-    }
-
-    /**
-     * Gobbles up link data by parsing it and storing info in member fields
-     *
-     * @param data all the bytes from the .lnk file
-     */
-    private fun parseLink(data: ByteArray) {
+    init {
         try {
             if (!isMagicPresent(data)) throw IOException("Invalid shortcut; magic is missing")
 
@@ -156,7 +149,14 @@ class WindowsShortcut {
             if (flags.hasFlag(32)) {
                 val stringLen = readLE16(data, nextStringStart) shl 1 // times 2 because UTF-16
                 commandLineArguments = readUTF16LE(data, nextStringStart + 2, stringLen)
-                // next_string_start = next_string_start + string_len + 2
+                nextStringStart += stringLen + 2
+            }
+
+            // if file has link, retrieve it
+            if (flags.hasFlag(64)) {
+                val stringLen = readLE16(data, nextStringStart) shl 1 // times 2 because UTF-16
+                iconPath = readUTF16LE(data, nextStringStart + 2, stringLen)
+                nextStringStart += stringLen + 2
             }
         } catch (e: ArrayIndexOutOfBoundsException) {
             throw ParseException("Could not be parsed, probably not a valid WindowsShortcut", 0)
@@ -170,6 +170,21 @@ class WindowsShortcut {
          * prevents loading gigabytes for corrupted link files
          * */
         private const val maxLength = 1 shl 16
+
+        fun get(file: FileReference, callback: (WindowsShortcut?, Exception?) -> Unit) {
+            file.inputStream { it, exc ->
+                if (it != null) {
+                    val data = it.readNBytes2(maxLength, false)
+                    callback(WindowsShortcut(data), null)
+                } else callback(null, exc)
+            }
+        }
+
+        fun getSync(file: FileReference): WindowsShortcut {
+            val it = file.inputStreamSync()
+            val data = it.readNBytes2(maxLength, false)
+            return WindowsShortcut(data)
+        }
 
         /**
          * Provides a quick test to see if this could be a valid link
@@ -216,6 +231,5 @@ class WindowsShortcut {
         @JvmStatic
         private fun readLE32(bytes: ByteArray, off: Int) =
             readLE16(bytes, off + 2) shl 16 or readLE16(bytes, off)
-
     }
 }
