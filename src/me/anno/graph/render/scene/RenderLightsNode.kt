@@ -94,7 +94,7 @@ class RenderLightsNode : RenderSceneNode0(
                         val nameI = names[i].glslName
                         val exprI = expr(inputs!![firstInputIndex + i])
                         "$nameI = $exprI;\n"
-                    }
+                    } + "if(finalDepth > 1e38) discard;\n" // sky doesn't need lighting
 
                 defineLocalVars(builder)
 

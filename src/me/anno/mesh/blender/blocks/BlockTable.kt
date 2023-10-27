@@ -70,7 +70,7 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
         return block.header.address + (positionInFile - block.positionInFile)
     }
 
-    fun getBlock(file: BlenderFile, address: Long): Block? {
+    fun findBlock(file: BlenderFile, address: Long): Block? {
         if (address == 0L) return null
         var i = binarySearch(address)
         if (i >= 0) {

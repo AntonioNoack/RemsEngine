@@ -8,6 +8,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCallback
+import me.anno.maths.Maths.sq
 import me.anno.mesh.blender.impl.*
 import me.anno.utils.Clock
 import me.anno.utils.structures.arrays.ExpandingFloatArray
@@ -65,7 +66,7 @@ object BlenderReader {
 
     fun addTriangle(
         positions: FloatArray, positions2: ExpandingFloatArray,
-        normals: FloatArray, normals2: ExpandingFloatArray,
+        normals: FloatArray?, normals2: ExpandingFloatArray?,
         uvs2: ExpandingFloatArray,
         v0: Int, v1: Int, v2: Int,
         uvs: BInstantList<MLoopUV>,
@@ -77,9 +78,11 @@ object BlenderReader {
         positions2.addUnsafe(positions, v03, 3)
         positions2.addUnsafe(positions, v13, 3)
         positions2.addUnsafe(positions, v23, 3)
-        normals2.addUnsafe(normals, v03, 3)
-        normals2.addUnsafe(normals, v13, 3)
-        normals2.addUnsafe(normals, v23, 3)
+        if (normals != null && normals2 != null) {
+            normals2.addUnsafe(normals, v03, 3)
+            normals2.addUnsafe(normals, v13, 3)
+            normals2.addUnsafe(normals, v23, 3)
+        }
         // println("$v0 $v1 $v2 $uv0 $uv1 $uv2 ${positions[v03]} ${normals[v03]}")
         val uv0x = uvs[uv0]
         uvs2.addUnsafe(uv0x.u)
@@ -95,7 +98,7 @@ object BlenderReader {
     fun joinPositionsAndUVs(
         vertexCount: Int,
         positions: FloatArray,
-        normals: FloatArray,
+        normals: FloatArray?,
         polygons: BInstantList<MPoly>,
         loopData: BInstantList<MLoop>,
         uvs: BInstantList<MLoopUV>,
@@ -103,7 +106,7 @@ object BlenderReader {
         prefab: Prefab
     ) {
         val positions2 = ExpandingFloatArray(vertexCount * 3)
-        val normals2 = ExpandingFloatArray(vertexCount * 3)
+        val normals2 = if (normals != null) ExpandingFloatArray(vertexCount * 3) else null
         val uvs2 = ExpandingFloatArray(vertexCount * 2)
         var uvIndex = 0
         var matIndex = 0
@@ -227,9 +230,9 @@ object BlenderReader {
                 }
             }
         }
-        prefab.setProperty("positions", positions2.toFloatArray())
-        prefab.setProperty("normals", normals2.toFloatArray())
-        prefab.setProperty("uvs", uvs2.toFloatArray())
+        prefab["positions"] = positions2.toFloatArray()
+        prefab["normals"] = normals2?.toFloatArray()
+        prefab["uvs"] = uvs2.toFloatArray()
     }
 
     fun collectIndices(
@@ -304,7 +307,7 @@ object BlenderReader {
                 }
             }
         }
-        prefab.setProperty("indices", indices.toIntArray())
+        prefab["indices"] = indices.toIntArray()
     }
 
     fun readAsFolder(ref: FileReference, callback: InnerFolderCallback) {
@@ -318,18 +321,19 @@ object BlenderReader {
     private fun readImages(file: BlenderFile, folder: InnerFolder, clock: Clock) {
         @Suppress("unchecked_cast")
         val imagesInFile = file.instances["Image"] as? List<BImage> ?: return
+        val texFolder = folder.createChild("textures", null) as InnerFolder
         for (image in imagesInFile) {
-            val str = image.run {
-                "$id, $name, views: $views, " +
-                        "gen: [$genX,$genY,$genZ,$genType,${genColor.joinToString()}]"
-            }
-            LOGGER.debug("Image: $str")
-            if (image.name.isNotBlank()) {
+            LOGGER.debug(image)
+            val rawImageData = image.packedFiles.first?.packedFile?.data
+            if (rawImageData != null) {
+                val newName = "${image.id.realName}.png"
+                image.reference = texFolder.createByteChild(newName, rawImageData)
+            } else if (image.name.isNotBlank()) {
+                // prefer external files, if they exist?
                 image.reference = file.folder.getChild(image.name)
-            } else {
-                // todo get image data...
             }
         }
+        clock.stop("reading images")
     }
 
     private fun readMaterials(file: BlenderFile, folder: InnerFolder, clock: Clock) {
@@ -357,7 +361,6 @@ object BlenderReader {
             val prefab = Prefab("Mesh")
             val vertices = mesh.vertices ?: continue // how can there be meshes without vertices?
             val positions = FloatArray(vertices.size * 3)
-            val normals = FloatArray(vertices.size * 3)
             val materials = mesh.materials ?: emptyArray()
             val polygons = mesh.polygons ?: BInstantList.emptyList()
             val loopData = mesh.loops ?: BInstantList.emptyList()
@@ -387,8 +390,9 @@ object BlenderReader {
                     if(wei) wei = wei.getData();
                     * */
             val hasNormals = vertices.size > 0 && vertices[0].noOffset >= 0
-            if (postTransform) {
+            val normals: FloatArray? = if (postTransform) {
                 if (hasNormals) {
+                    val normals = FloatArray(vertices.size * 3)
                     for (i in 0 until vertices.size) {
                         val v = vertices[i]
                         val i3 = i * 3
@@ -399,6 +403,8 @@ object BlenderReader {
                         normals[i3 + 1] = v.ny
                         normals[i3 + 2] = v.nz
                     }
+                    prefab["normals"] = normals
+                    normals
                 } else {
                     for (i in 0 until vertices.size) {
                         val v = vertices[i]
@@ -407,9 +413,11 @@ object BlenderReader {
                         positions[i3 + 1] = v.y
                         positions[i3 + 2] = v.z
                     }
+                    null
                 }
             } else {
                 if (hasNormals) {
+                    val normals = FloatArray(vertices.size * 3)
                     for (i in 0 until vertices.size) {
                         val v = vertices[i]
                         val i3 = i * 3
@@ -420,6 +428,8 @@ object BlenderReader {
                         normals[i3 + 1] = +v.nz
                         normals[i3 + 2] = -v.ny
                     }
+                    prefab.setProperty("normals", normals)
+                    normals
                 } else {
                     for (i in 0 until vertices.size) {
                         val v = vertices[i]
@@ -428,10 +438,10 @@ object BlenderReader {
                         positions[i3 + 1] = +v.z
                         positions[i3 + 2] = -v.y
                     }
+                    null
                 }
             }
             prefab.setProperty("positions", positions)
-            prefab.setProperty("normals", normals)
             // LOGGER.debug("loop uvs: " + mesh.loopUVs?.size)
             val uvs = mesh.loopUVs ?: BInstantList.emptyList()
             // todo vertex colors
@@ -563,7 +573,7 @@ object BlenderReader {
             prefab.setUnsafe(path, "position", translation)
         val rotation = localMatrix.getUnnormalizedRotation(Quaterniond())
         if (!postTransform) rotation.set(rotation.x, rotation.z, -rotation.y, rotation.w)
-        if (isRoot && postTransform) rotation.rotateLocalX(-PI / 2) // todo correct?
+        if (isRoot && postTransform) rotation.rotateLocalX(-PI / 2)
         if (rotation.w != 1.0)
             prefab.setUnsafe(path, "rotation", rotation)
         val scale = localMatrix.getScale(Vector3d())
@@ -590,29 +600,28 @@ object BlenderReader {
             BObject.BObjectType.OB_LAMP -> {
                 val light = obj.data as? BLamp
                 if (light != null) {
-                    var extraSize = 1f
                     val name = obj.id.realName
+                    val path1 = prefab.add(path, 'e', "Entity", name)
+                    val extraSize = Vector3d(1.0)
                     val c = when (light.type) {
                         0 -> {
-                            extraSize = light.pointRadius
-                            prefab.add(path, 'c', "PointLight", name)
+                            extraSize.set(light.pointRadius.toDouble())
+                            prefab.add(path1, 'c', "PointLight", name)
                         }
                         1 -> { // sun
-                            prefab.add(path, 'c', "DirectionalLight", name)
+                            prefab.add(path1, 'c', "DirectionalLight", name)
                         }
                         2 -> {
-                            extraSize = light.spotRadius
-                            prefab.add(path, 'c', "SpotLight", name)
+                            extraSize.set(light.spotRadius.toDouble())
+                            prefab.add(path1, 'c', "SpotLight", name)
                         }
                         // AreaLight
-                        // todo extract size for area light; todo can be both circle light or rectangle light, depends on areaType (square, rect, circle, ellipse)
                         4 -> {
                             when (light.areaShape.toInt()) {
                                 0 -> {
                                     // square
-                                    val w = light.areaSizeX
-                                    extraSize = w * 10f
-                                    prefab.add(path, 'c', "RectangleLight", name).apply {
+                                    extraSize.set(light.areaSizeX * 10.0)
+                                    prefab.add(path1, 'c', "RectangleLight", name).apply {
                                         prefab.setUnsafe(this, "width", 0.1f)
                                         prefab.setUnsafe(this, "height", 0.1f)
                                     }
@@ -621,26 +630,25 @@ object BlenderReader {
                                     // rectangle
                                     val w = light.areaSizeX
                                     val h = light.areaSizeY
-                                    extraSize = max(w, h) * 10f
-                                    prefab.add(path, 'c', "RectangleLight", name).apply {
-                                        prefab.setUnsafe(this, "width", w / extraSize)
-                                        prefab.setUnsafe(this, "height", h / extraSize)
+                                    extraSize.set(max(w, h) * 10.0)
+                                    prefab.add(path1, 'c', "RectangleLight", name).apply {
+                                        prefab.setUnsafe(this, "width", 0.1f * w / max(w, h))
+                                        prefab.setUnsafe(this, "height", 0.1f * h / max(w, h))
                                     }
                                 }
                                 4 -> {
                                     // circle
-                                    val w = light.areaSizeX
-                                    extraSize = w * 10f
-                                    prefab.add(path, 'c', "CircleLight", name).apply {
+                                    extraSize.set(light.areaSizeX * 10.0)
+                                    prefab.add(path1, 'c', "CircleLight", name).apply {
                                         prefab.setUnsafe(this, "radius", 0.1f)
                                     }
                                 }
                                 5 -> {
-                                    // ellipse; not yet supported as such in Rem's Engine
-                                    val w = light.areaSizeX
-                                    val h = light.areaSizeY
-                                    extraSize = max(w, h) * 10f
-                                    prefab.add(path, 'c', "CircleLight", name).apply {
+                                    // ellipse
+                                    val w = light.areaSizeX * 10.0
+                                    val h = light.areaSizeY * 10.0
+                                    extraSize.set(w, max(w, h), h)
+                                    prefab.add(path1, 'c', "CircleLight", name).apply {
                                         prefab.setUnsafe(this, "radius", 0.1f)
                                     }
                                 }
@@ -649,10 +657,10 @@ object BlenderReader {
                         }
                         else -> null // deprecated or not supported
                     }
-                    // todo additional scale...
+                    prefab[path1, "scale"] = extraSize
                     if (c != null) {
-                        // additional scale by brightness? probably would be a good idea
-                        val e = light.energy
+                        // scale energy by 1/scale², because we follow the 1/distance² law in light-local space
+                        val e = light.energy * 0.01f / sq(max(extraSize.x, extraSize.z).toFloat())
                         prefab.setUnsafe(c, "color", Vector3f(light.r, light.g, light.b).mul(e))
                         prefab.setUnsafe(c, "shadowMapCascades", light.cascadeCount)
                         prefab.setUnsafe(c, "shadowMapPower", light.cascadeExponent.toDouble())

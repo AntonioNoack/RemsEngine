@@ -102,6 +102,13 @@ object BlenderShaderTree {
                             return white4 to source.getChild(slot)
                         }
                     }
+                    "ShaderNodeValToRGB" -> {
+                        val value1 = findTintedMap(lookup(node, "Fac"))
+                        if (value1 != null) {
+                            // kinda...
+                            return Pair(Vector4f(value1.first.x), value1.second)
+                        }
+                    }
                     null -> return getDefault(socket.defaultValue)
                     else -> LOGGER.warn("Unknown node type ${node.type}")
                 }
@@ -124,83 +131,105 @@ object BlenderShaderTree {
                     if (emissive1 != null) strength.mul(emissive1.first.x) // this is just a scalar
                     prefab["emissiveBase"] = strength
                 }
-                when (shaderNode.type) {
-                    // types: https://docs.blender.org/api/current/bpy.types.html
-                    "ShaderNodeBsdfPrincipled" -> {
-                        // todo extract all properties as far as possible
-                        val diffuse = findTintedMap(lookup(shaderNode, "Base Color"))
-                        if (diffuse != null) {
-                            prefab["diffuseBase"] = diffuse.first
-                            prefab["diffuseMap"] = diffuse.second
+
+                fun findData(shaderNode: BNode) {
+                    when (shaderNode.type) {
+                        // types: https://docs.blender.org/api/current/bpy.types.html
+                        "ShaderNodeBsdfPrincipled" -> {
+                            // todo extract all properties as far as possible
+                            val diffuse = findTintedMap(lookup(shaderNode, "Base Color"))
+                            if (diffuse != null) {
+                                prefab["diffuseBase"] = diffuse.first
+                                prefab["diffuseMap"] = diffuse.second
+                            }
+                            // todo can we find out mappings? are they used at all?
+                            val metallic = findTintedMap(lookup(shaderNode, "Metallic"))
+                            if (metallic != null) {
+                                prefab["metallicMap"] = metallic.second
+                                prefab["metallicMinMax"] = Vector2f(0f, metallic.first.x)
+                            }
+                            val roughness = findTintedMap(lookup(shaderNode, "Roughness"))
+                            if (roughness != null) {
+                                prefab["roughnessMap"] = roughness.second
+                                prefab["roughnessMinMax"] = Vector2f(0f, roughness.first.x)
+                            }
+                            val normals = findTintedMap(lookup(shaderNode, "Normal"))
+                            if (normals != null) {
+                                prefab["normalMap"] = normals.second
+                                prefab["normalStrength"] = normals.first.x
+                            }
+                            val emissive = findTintedMap(lookup(shaderNode, "Emission"))
+                            val emissive1 = findTintedMap(lookup(shaderNode, "Emission Strength"))
+                            if (emissive != null || emissive1 != null) {
+                                setMultiplicativeEmissive(emissive, emissive1)
+                            }
+                            // awkward... transmission exists, too
+                            // val alpha = findTintedMap()
                         }
-                        // todo can we find out mappings? are they used at all?
-                        val metallic = findTintedMap(lookup(shaderNode, "Metallic"))
-                        if (metallic != null) {
-                            prefab["metallicMap"] = metallic.second
-                            prefab["metallicMinMax"] = Vector2f(0f, metallic.first.x)
+                        "ShaderNodeBsdfDiffuse" -> {
+                            // todo test this
+                            val diffuse = findTintedMap(lookup(shaderNode, "Color"))
+                            if (diffuse != null) {
+                                prefab["diffuseBase"] = diffuse.first
+                                prefab["diffuseMap"] = diffuse.second
+                            }
+                            val roughness = findTintedMap(lookup(shaderNode, "Roughness"))
+                            if (roughness != null) {
+                                prefab["roughnessMap"] = roughness.second
+                                prefab["roughnessMinMax"] = Vector2f(0f, roughness.first.x)
+                            }
+                            val normals = findTintedMap(lookup(shaderNode, "Normal"))
+                            if (normals != null) {
+                                prefab["normalMap"] = normals.second
+                                prefab["normalStrength"] = normals.first.x
+                            }
                         }
-                        val roughness = findTintedMap(lookup(shaderNode, "Roughness"))
-                        if (roughness != null) {
-                            prefab["roughnessMap"] = roughness.second
-                            prefab["roughnessMinMax"] = Vector2f(0f, roughness.first.x)
+                        "ShaderNodeBsdfGlass" -> {
+                            // todo test these all, whether their names actually exist like that
+                            prefab["pipelineStage"] = TRANSPARENT_PASS
+                            val diffuse = findTintedMap(lookup(shaderNode, "Color"))
+                            if (diffuse != null) {
+                                prefab["diffuseBase"] = diffuse.first
+                                prefab["diffuseMap"] = diffuse.second
+                            }
+                            val roughness = findTintedMap(lookup(shaderNode, "Roughness"))
+                            if (roughness != null) {
+                                prefab["roughnessMap"] = roughness.second
+                                prefab["roughnessMinMax"] = Vector2f(0f, roughness.first.x)
+                            }
+                            val ior = findTintedMap(lookup(shaderNode, "IOR"))
+                            if (ior != null) prefab["indexOfRefraction"] = ior.first.x
                         }
-                        val normals = findTintedMap(lookup(shaderNode, "Normal"))
-                        if (normals != null) {
-                            prefab["normalMap"] = normals.second
-                            prefab["normalStrength"] = normals.first.x
+                        "ShaderNodeEmission" -> {
+                            val map = findTintedMap(lookup(shaderNode, "Color"))
+                            val strength = findTintedMap(lookup(shaderNode, "Strength"))
+                            if (map != null || strength != null) {
+                                setMultiplicativeEmissive(map, strength)
+                            }
                         }
-                        val emissive = findTintedMap(lookup(shaderNode, "Emission"))
-                        val emissive1 = findTintedMap(lookup(shaderNode, "Emission Strength"))
-                        if (emissive != null || emissive1 != null) {
-                            setMultiplicativeEmissive(emissive, emissive1)
+                        "ShaderNodeMixShader" -> {
+                            // go both paths...
+                            for (input in shaderNode.inputs) {
+                                if (input.name == "Shader") { // true for both; but not for "Fac"
+                                    val output = inputs[shaderNode to input]?.first
+                                    if (output != null) findData(output)
+                                }
+                            }
                         }
-                        // awkward... transmission exists, too
-                        // val alpha = findTintedMap()
+                        "ShaderNodeAddShader" -> {
+                            // go both paths...
+                            for (input in shaderNode.inputs) {
+                                if (input.name == "Shader") { // true for both
+                                    val output = inputs[shaderNode to input]?.first
+                                    if (output != null) findData(output)
+                                }
+                            }
+                        }
+                        else -> LOGGER.warn("Unknown/unsupported shader node: ${shaderNode.type}")
+                        // ...
                     }
-                    "ShaderNodeBsdfDiffuse" -> {
-                        // todo test this
-                        val diffuse = findTintedMap(lookup(shaderNode, "Color"))
-                        if (diffuse != null) {
-                            prefab["diffuseBase"] = diffuse.first
-                            prefab["diffuseMap"] = diffuse.second
-                        }
-                        val roughness = findTintedMap(lookup(shaderNode, "Roughness"))
-                        if (roughness != null) {
-                            prefab["roughnessMap"] = roughness.second
-                            prefab["roughnessMinMax"] = Vector2f(0f, roughness.first.x)
-                        }
-                        val normals = findTintedMap(lookup(shaderNode, "Normal"))
-                        if (normals != null) {
-                            prefab["normalMap"] = normals.second
-                            prefab["normalStrength"] = normals.first.x
-                        }
-                    }
-                    "ShaderNodeBsdfGlass" -> {
-                        // todo test these all, whether their names actually exist like that
-                        prefab["pipelineStage"] = TRANSPARENT_PASS
-                        val diffuse = findTintedMap(lookup(shaderNode, "Color"))
-                        if (diffuse != null) {
-                            prefab["diffuseBase"] = diffuse.first
-                            prefab["diffuseMap"] = diffuse.second
-                        }
-                        val roughness = findTintedMap(lookup(shaderNode, "Roughness"))
-                        if (roughness != null) {
-                            prefab["roughnessMap"] = roughness.second
-                            prefab["roughnessMinMax"] = Vector2f(0f, roughness.first.x)
-                        }
-                        val ior = findTintedMap(lookup(shaderNode, "IOR"))
-                        if (ior != null) prefab["indexOfRefraction"] = ior.first.x
-                    }
-                    "ShaderNodeEmission" -> {
-                        val map = findTintedMap(lookup(shaderNode, "Color"))
-                        val strength = findTintedMap(lookup(shaderNode, "Strength"))
-                        if (map != null || strength != null) {
-                            setMultiplicativeEmissive(map, strength)
-                        }
-                    }
-                    else -> LOGGER.warn("Unknown/unsupported shader node: ${shaderNode.type}")
-                    // ...
                 }
+                findData(shaderNode)
                 println(prefab.sets)
             } else LOGGER.warn("Surface Socket missing")
         }

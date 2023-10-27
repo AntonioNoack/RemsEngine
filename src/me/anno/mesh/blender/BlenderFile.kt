@@ -121,7 +121,8 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
 
     init {
         for (name in structByName.keys.sorted()) {
-            println("Struct $name: ${structByName[name]!!.byName}")
+            val struct = structByName[name]!!
+            println("Struct $name[${struct.type.size}]: ${struct.byName}")
         }
     }
 
@@ -223,6 +224,8 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             "ID" -> BID(this, struct, data, position)
             "Image" -> BImage(this, struct, data, position)
             "ImageView" -> BImageView(this, struct, data, position)
+            "ImagePackedFile" -> BImagePackedFile(this, struct, data, position)
+            "PackedFile" -> BPackedFile(this, struct, data, position)
             "Object" -> BObject(this, struct, data, position)
             "Lamp" -> BLamp(this, struct, data, position)
             "bNode" -> BNode(this, struct, data, position)

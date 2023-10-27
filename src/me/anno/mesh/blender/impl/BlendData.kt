@@ -6,9 +6,8 @@ import me.anno.mesh.blender.DNAStruct
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.nio.ByteBuffer
-import kotlin.math.min
 
-@Suppress("SpellCheckingInspection", "unused")
+@Suppress("unused")
 open class BlendData(
     val file: BlenderFile,
     val dnaStruct: DNAStruct,
@@ -40,7 +39,7 @@ open class BlendData(
         field ?: return null
         val pointer = pointer(field.offset)
         if (pointer == 0L) return null
-        val block = file.blockTable.getBlock(file, pointer) ?: return null
+        val block = file.blockTable.findBlock(file, pointer) ?: return null
         // all elements will be pointers to material
         val remainingSize = block.header.size - (pointer - block.header.address)
         val length = (remainingSize / file.pointerSize).toInt()
@@ -71,13 +70,19 @@ open class BlendData(
     fun mat4x4(name: String): Matrix4f = mat4x4(getOffset(name))
 
     fun getField(name: String) = dnaStruct.byName[name]
-    fun getOffset(name: String) =
-        dnaStruct.byName[name]?.offset
-            ?: dnaStruct.byName[name.split('[')[0]]?.offset
-            ?: kotlin.run {
-                LOGGER.warn("field $name is unknown, available: ${dnaStruct.byName}")
-                -1
-            }
+    fun getOffset(name: String): Int {
+        val byName = getField(name)
+        if (byName != null) return byName.offset
+        val bracketIndex = name.indexOf('[')
+        if (bracketIndex >= 0) {
+            val byName1 = dnaStruct.byName[name.substring(0, bracketIndex)]
+            if (byName1 != null) return byName1.offset
+        }
+        if (name != "no[3]") {
+            LOGGER.warn("field $name is unknown, available: ${dnaStruct.byName}")
+        }// else no[3] is expected to be missing from newer Blender files
+        return -1
+    }
 
     fun getOffsetOrNull(name: String) = dnaStruct.byName[name]?.offset
 
@@ -101,14 +106,29 @@ open class BlendData(
 
     fun string(name: String, limit: Int): String = string(getOffset(name), limit)
     fun string(offset: Int, limit: Int): String {
-        val str = StringBuilder(min(64, limit))
         val position = position + offset
-        for (i in 0 until limit) {
-            val char = buffer.get(position + i)
-            if (char.toInt() == 0) break
-            str.append(char.toInt().and(255).toChar())
+        for (len in 0 until limit) {
+            val char = buffer.get(position + len)
+            if (char.toInt() == 0) {
+                return getRawString(position, len)
+            }
         }
-        return str.toString()
+        return getRawString(position, limit)
+    }
+
+    private fun getRawString(position: Int, length: Int): String {
+        return String(raw(position, length))
+    }
+
+    fun raw(position: Int, length: Int): ByteArray {
+        val bytes = ByteArray(length)
+        val pos = buffer.position()
+        // read bytes
+        buffer.position(position)
+        buffer.get(bytes)
+        // reset position
+        buffer.position(pos)
+        return bytes
     }
 
     fun pointer(offset: Int) = if (file.pointerSize == 4) int(offset).toLong() else long(offset)
@@ -119,7 +139,7 @@ open class BlendData(
         // in-side object struct, e.g. ID
         val block = file.blockTable.getBlockAt(position)
         val address = block.header.address + (position - block.positionInFile) + field.offset
-        val sameBlock = file.blockTable.getBlock(file, address)
+        val sameBlock = file.blockTable.findBlock(file, address)
         if (sameBlock != block) throw IllegalStateException("$position -> $address -> other, $sameBlock != $block")
         var className = field.type.name
         val type = file.dnaTypeByName[className]!!
@@ -140,7 +160,7 @@ open class BlendData(
         if (field.decoratedName.startsWith("*")) {
             var address = pointer(field.offset)
             if (address == 0L) return null
-            val block = file.blockTable.getBlock(file, address) ?: return null
+            val block = file.blockTable.findBlock(file, address) ?: return null
             var className = field.type.name
             val type = file.dnaTypeByName[className]!!
             var typeSize = type.size
@@ -178,7 +198,7 @@ open class BlendData(
         if (field.decoratedName.startsWith("*")) {
             val address = pointer(field.offset)
             if (address == 0L) return null
-            val block = file.blockTable.getBlock(file, address) ?: return null
+            val block = file.blockTable.findBlock(file, address) ?: return null
             var className = field.type.name
             val type = file.dnaTypeByName[className]!!
             var typeSize = type.size
@@ -206,7 +226,7 @@ open class BlendData(
         return if (field.decoratedName.startsWith("*")) {
             val address = pointer(field.offset)
             if (address == 0L) return null
-            val block = file.blockTable.getBlock(file, address) ?: return null
+            val block = file.blockTable.findBlock(file, address) ?: return null
             var className = field.type.name
             val type = file.dnaTypeByName[className]!!
             var typeSize = type.size

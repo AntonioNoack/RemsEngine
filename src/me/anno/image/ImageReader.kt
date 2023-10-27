@@ -8,6 +8,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import me.anno.io.zip.InnerFolder
 import net.sf.image4j.codec.ico.ICOReader
+import java.io.IOException
 
 /**
  * an easy interface to read any image as rgba and individual channels
@@ -71,7 +72,7 @@ object ImageReader {
     @JvmStatic
     private fun createComponent(file: FileReference, folder: InnerFolder, name: String, createImage: (Image) -> Image) {
         folder.createLazyImageChild(name, lazy {
-            val src = ImageCPUCache[file, false]!!
+            val src = ImageCPUCache[file, false] ?: throw IOException("Missing image of $file")
             createImage(src)
         })
     }

@@ -9,7 +9,7 @@ import java.nio.ByteBuffer
 /**
  * https://github.com/blender/blender/blob/master/source/blender/makesdna/DNA_image_types.h
  * */
-@Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST", "SpellCheckingInspection")
 class BImage(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
 
@@ -17,15 +17,39 @@ class BImage(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: I
     val name = string("name[1024]", 1024)
         .replace('\\', '/')
 
-    val views = inside("views") as BListBase<BImageView>
+    //val views = inside("views") as BListBase<BImageView>
 
+    // old stuff
     val genX = int("gen_x")
     val genY = int("gen_y")
-    val genZ = short("gen_depth")
-    val genType = byte("gen_type")
-    val genColor = floats("gen_color[4]", 4)
+    //val genZ = short("gen_depth")
+    //val genType = byte("gen_type")
+    //val genColor = floats("gen_color[4]", 4)
+
+    /**
+     * IMA_SRC_FILE = 1,
+     * IMA_SRC_SEQUENCE = 2, // used in both cases for my thing...
+     * IMA_SRC_MOVIE = 3,
+     * IMA_SRC_GENERATED = 4,
+     * IMA_SRC_VIEWER = 5, // used for 'Render Result'
+     * IMA_SRC_TILED = 6,
+     * */
+    val source = short("source")
+
+    /**
+     * IMA_TYPE_IMAGE = 0,
+     * IMA_TYPE_MULTILAYER = 1,
+     * /* generated */
+     * IMA_TYPE_UV_TEST = 2,
+     * /* viewers */
+     * IMA_TYPE_R_RESULT = 4,
+     * IMA_TYPE_COMPOSITE = 5,
+     * */
+    val type = short("type")
 
     var reference: FileReference = InvalidRef
+
+    val packedFiles = inside("packedfiles") as BListBase<BImagePackedFile>
 
     /**
      * {id=ID(192)@0, name[1024]=char(1)@192, *cache=MovieCache(0)@1216, *gputexture[3][2]=GPUTexture(0)@1224,
@@ -45,7 +69,8 @@ class BImage(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: I
      * */
 
     override fun toString(): String {
-        return "Image@${position.toString(16)} { '$reference' }"
+        return "Image@${position.toString(16)} { $id, $name, $genX x $genY, " +
+                "source: $source, type: $type, packed: $packedFiles }"
     }
 
 }

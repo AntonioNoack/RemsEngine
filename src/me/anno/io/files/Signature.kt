@@ -92,7 +92,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
         }
     }
 
-    override fun toString() = "\"$name\" by [${bytes.joinToString { hex8(it.toInt()) }}] + $offset"
+    override fun toString() = "Signature { \"$name\" by [${bytes.joinToString { hex8(it.toInt()) }}] + $offset }"
 
     companion object {
 

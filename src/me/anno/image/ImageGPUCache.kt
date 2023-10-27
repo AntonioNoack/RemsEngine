@@ -24,7 +24,12 @@ object ImageGPUCache : CacheSection("Images") {
         if (file is ImageReadable && file.readImage() is GPUImage) return true
         if (file == InvalidRef) return true
         if (file.isDirectory || !file.exists) return true
-        val entry = getEntry(file, timeout, asyncGenerator, ImageGPUCache::generateImageData)
+        val entry = try {
+            getEntry(file, timeout, asyncGenerator, ImageGPUCache::generateImageData)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return true
+        }
         return when {
             entry == null -> false
             entry !is ImageData -> true
@@ -43,7 +48,8 @@ object ImageGPUCache : CacheSection("Images") {
         if (file is ImageReadable) {
             val image = file.readImage()
             if (image is GPUImage) {
-                val texture = image.texture as? Texture2D ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
+                val texture =
+                    image.texture as? Texture2D ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
                 return if (!texture.isDestroyed && texture.isCreated) texture else null
             }
         }
@@ -115,5 +121,4 @@ object ImageGPUCache : CacheSection("Images") {
         tex.create(img, false)
         return tex
     }
-
 }

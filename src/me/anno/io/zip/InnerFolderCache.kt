@@ -166,7 +166,6 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
 
     fun readAsFolder(file: FileReference, timeoutMillis: Long, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
-        LOGGER.debug("Reading {} as folder", file)
         val data = getFileEntry(file, false, timeoutMillis, async) { file1, _ ->
             val signature = Signature.findNameSync(file1)
             val ext = file1.lcExtension

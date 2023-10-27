@@ -12,15 +12,15 @@ import java.nio.ByteBuffer
 class BListBase<Type>(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position), Iterable<Type> {
 
-    val first get() = getPointer("*first") as? BLink<Type>
-    val last get() = getPointer("*last") as? BLink<Type>
+    val first get() = getPointer("*first") as? Type
+    val last get() = getPointer("*last") as? Type
 
     val size: Int
         get() {
             var element = first
             var size = 0
             while (element != null) {
-                element = element.next as? BLink<Type>
+                element = (element as BLink<Type>).next
                 size++
             }
             return size
@@ -31,7 +31,7 @@ class BListBase<Type>(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, po
         val result = ArrayList<Type>(size)
         while (element != null) {
             result.add(element as Type)
-            element = element.next as? BLink<Type>
+            element = (element as BLink<Type>).next
         }
         return result
     }
@@ -45,8 +45,8 @@ class BListBase<Type>(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, po
 
             override fun next(): Type {
                 val value = element!!
-                element = value.next as? BLink<Type>
-                return value as Type
+                element = (value as BLink<Type>).next
+                return value
             }
         }
     }
