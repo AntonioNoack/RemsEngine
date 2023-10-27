@@ -33,6 +33,7 @@ import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.input.Input
 import me.anno.io.Saveable
+import me.anno.maths.Maths.fract
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Matrices.set4x3Delta
 import org.joml.AABBd
@@ -686,6 +687,7 @@ class PipelineStage(
         val deferred = renderer.deferredSettings
         val target = GFXState.currentBuffer
         if (deferred != null && target is Framebuffer) {
+            shader.v1f("defRRT", fract(Time.gameTime))
             // define all randomnesses: depends on framebuffer
             // and needs to be set for all shaders
             val layers = deferred.layers2

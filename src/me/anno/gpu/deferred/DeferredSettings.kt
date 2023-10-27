@@ -47,7 +47,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                 .append('.').append(mapping).append(");\n")
         }
 
-        fun appendLayer(output: StringBuilder) {
+        fun appendLayer(output: StringBuilder, defRR: String) {
             output.append(textureName)
             output.append('.')
             output.append(mapping)
@@ -60,8 +60,8 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                 output.append(type.glslName).append(')')
             }
             // append random rounding
-            output.append(")*(1.0+defRR*").append(textureName).append("RR.x")
-            output.append(")+defRR*").append(textureName).append("RR.y")
+            output.append(")*(1.0+").append(defRR).append("*").append(textureName).append("RR.x")
+            output.append(")+").append(defRR).append("*").append(textureName).append("RR.y")
             output.append(";\n")
         }
     }
@@ -173,6 +173,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
 
     fun appendLayerDeclarators(output: StringBuilder, disabledLayers: BitSet?) {
         val layers = settingsV1
+        output.append("uniform float defRRT;\n")
         for (index in layers.indices) {
             if (disabledLayers == null || !disabledLayers[index]) {
                 val type = layers[index]
@@ -181,17 +182,18 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                 output.append(") out vec4 ")
                 output.append(type.name)
                 output.append(";\n")
-                output.append("uniform vec2 ").append(type.name).append("RR;\n")
+                output.append("uniform vec2 ").append(type.nameRR).append(";\n")
             }
         }
     }
 
     fun appendLayerWriters(output: StringBuilder, disabledLayers: BitSet?) {
-        output.append("float defRR = random(0.001 * gl_FragCoord.xy)-0.5;\n")
         for (index in layers.indices) {
+            val defRR = "defRR$index"
+            output.append("float $defRR = random(0.001 * gl_FragCoord.xy + vec2($index.0,defRRT))-0.5;\n")
             val layer = layers[index]
             if (disabledLayers == null || !disabledLayers[layer.texIndex]) {
-                layer.appendLayer(output)
+                layer.appendLayer(output, defRR)
             }
         }
         for ((index, name, map) in emptySlots) {

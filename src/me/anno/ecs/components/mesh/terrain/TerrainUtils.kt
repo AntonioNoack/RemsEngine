@@ -8,29 +8,27 @@ import org.joml.Vector3f
 object TerrainUtils {
 
     fun interface ColorMap {
-        operator fun get(index: Int): Int
+        operator fun get(xi: Int, zi: Int): Int
     }
 
     fun interface HeightMap {
-        operator fun get(index: Int): Float
+        operator fun get(xi: Int, zi: Int): Float
     }
 
     fun interface NormalMap {
-        fun get(x: Int, y: Int, i: Int, dst: Vector3f)
+        fun get(xi: Int, zi: Int, dst: Vector3f)
     }
 
     fun generateRegularQuadHeightMesh(
         width: Int,
         height: Int,
-        offset: Int,
-        stride: Int,
         flipY: Boolean,
         cellSizeMeters: Float,
         mesh: Mesh,
         heightMap: HeightMap,
         normalMap: NormalMap,
-        colorMap: ColorMap
-    ) {
+        colorMap: ColorMap? = null
+    ): Mesh {
 
         generateRegularQuadHeightMesh(width, height, flipY, cellSizeMeters, mesh)
         generateQuadIndices(width, height, flipY, mesh)
@@ -38,30 +36,39 @@ object TerrainUtils {
         val vertexCount = width * height
         val positions = mesh.positions!!
         val normals = mesh.normals!!
-        val colors = mesh.color0.resize(vertexCount)
+        val colors = if (colorMap != null) mesh.color0.resize(vertexCount)
+        else null
 
         mesh.positions = positions
         mesh.normals = normals
         mesh.color0 = colors
 
-        var j = 0
-        var l = 0
 
-        // define mesh normals, heights and colors
+        // define mesh normals and heights
+        var j = 0
         val normal = JomlPools.vec3f.borrow()
         for (y in 0 until height) {
-            var i = y * stride + offset
             for (x in 0 until width) {
-                normalMap.get(x, y, i, normal)
-                positions[j + 1] = heightMap[i]
+                normalMap.get(x, y, normal)
+                positions[j + 1] = heightMap[x, y]
                 normals[j++] = normal.x
                 normals[j++] = normal.y
                 normals[j++] = normal.z
-                colors[l++] = colorMap[i++]
+            }
+        }
+
+        // define mesh colors
+        if (colorMap != null && colors != null) {
+            var l = 0
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    colors[l++] = colorMap[x, y]
+                }
             }
         }
 
         mesh.invalidateGeometry()
+        return mesh
     }
 
     fun generateQuadIndices(width: Int, height: Int, flipY: Boolean, mesh: Mesh) {
@@ -102,14 +109,12 @@ object TerrainUtils {
     fun generateRegularQuadHeightMesh(
         numPointsX: Int,
         numPointsZ: Int,
-        offset: Int,
-        stride: Int,
         flipY: Boolean,
         cellSize: Float,
         mesh: Mesh,
         heightMap: HeightMap,
-        colorMap: ColorMap
-    ) {
+        colorMap: ColorMap? = null
+    ): Mesh {
 
         generateQuadIndices(numPointsX, numPointsZ, flipY, mesh)
 
@@ -121,7 +126,8 @@ object TerrainUtils {
         val numCoords = vertexCount * 3
         val positions = mesh.positions.resize(numCoords)
         val normals = mesh.normals.resize(numCoords)
-        val colors = mesh.color0.resize(vertexCount)
+        val colors = if (colorMap != null) mesh.color0.resize(vertexCount)
+        else null
 
         mesh.positions = positions
         mesh.normals = normals
@@ -132,22 +138,28 @@ object TerrainUtils {
         // center mesh
         val centerX = numPointsX * 0.5f
         val centerY = numPointsZ * 0.5f
-        var j = 0
-        var l = 0
 
         // define mesh positions
-        for (y in 0 until numPointsZ) {
-            var i = y * stride + offset
-            for (x in 0 until numPointsX) {
-                positions[j++] = (x - centerX) * cellSize
-                positions[j++] = heightMap[i]
-                positions[j++] = (y - centerY) * cellSize
-                colors[l++] = colorMap[i]
-                i++
+        var j = 0
+        for (zi in 0 until numPointsZ) {
+            for (xi in 0 until numPointsX) {
+                positions[j++] = (xi - centerX) * cellSize
+                positions[j++] = heightMap[xi, zi]
+                positions[j++] = (zi - centerY) * cellSize
+            }
+        }
+
+        if (colorMap != null && colors != null) {
+            var l = 0
+            for (zi in 0 until numPointsZ) {
+                for (xi in 0 until numPointsX) {
+                    colors[l++] = colorMap[xi, zi]
+                }
             }
         }
 
         mesh.invalidateGeometry()
+        return mesh
     }
 
     fun generateRegularQuadHeightMesh(
@@ -156,10 +168,11 @@ object TerrainUtils {
         flipY: Boolean,
         cellSizeMeters: Float,
         mesh: Mesh,
-    ) {
+    ): Mesh {
         generateQuadIndices(numPointsX, numPointsZ, flipY, mesh)
         generateQuadVertices(numPointsX, numPointsZ, cellSizeMeters, mesh)
         mesh.invalidateGeometry()
+        return mesh
     }
 
     fun generateQuadVertices(numPointsX: Int, numPointsZ: Int, cellSizeMeters: Float, mesh: Mesh) {
@@ -179,12 +192,12 @@ object TerrainUtils {
         var j = 0
 
         // define mesh positions
-        for (y in 0 until numPointsZ) {
-            for (x in 0 until numPointsX) {
-                positions[j++] = (x - centerX) * cellSizeMeters
+        for (zi in 0 until numPointsZ) {
+            for (xi in 0 until numPointsX) {
+                positions[j++] = (xi - centerX) * cellSizeMeters
                 normals[j] = 1f
                 positions[j++] = 0f
-                positions[j++] = (y - centerY) * cellSizeMeters
+                positions[j++] = (zi - centerY) * cellSizeMeters
             }
         }
     }
@@ -203,5 +216,6 @@ object TerrainUtils {
             uvs[j++] = (pos[i + 2] - mz) * fz
         }
         mesh.uvs = uvs
+        mesh.invalidateGeometry()
     }
 }

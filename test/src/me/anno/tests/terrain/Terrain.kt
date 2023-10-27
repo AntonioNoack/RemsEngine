@@ -46,14 +46,13 @@ class TerrainChunk(
 
     override fun generateMesh(mesh: Mesh) {
         val s = 0.1f
-        TerrainUtils.generateRegularQuadHeightMesh(w + 1, h + 1, 0, w + 1, false, 1f,
-            mesh, {
-                val xi = it % (w + 1)
-                val zi = it / (w + 1)
+        TerrainUtils.generateRegularQuadHeightMesh(
+            w + 1, h + 1, false, 1f,
+            mesh, { xi, zi ->
                 val x = xi + dx
                 val y = zi + dz
                 sin(x) * sin(y) + 10f * cos(x * s) * cos(y * s)
-            }, { _, _, _, dst -> dst.set(0f, 1f, 0f) }, { -1 })
+            })
         mesh.calculateNormals(true)
     }
 }

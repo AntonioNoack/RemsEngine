@@ -58,10 +58,7 @@ object FluidMeshShader : ECSMeshShader("fluid") {
         val w = sim.width
         val h = sim.height
         val mesh = Mesh()
-        TerrainUtils.generateRegularQuadHeightMesh(
-            w, h, 0, w, false, cellSize, mesh,
-            { 0f }, { -1 }
-        )
+        TerrainUtils.generateRegularQuadHeightMesh(w, h, false, cellSize, mesh)
         // generate UVs
         val pos = mesh.positions!!
         val uvs = mesh.uvs.resize(pos.size / 3 * 2)

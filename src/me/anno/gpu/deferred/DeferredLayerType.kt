@@ -88,7 +88,7 @@ open class DeferredLayerType(
          * */
         val NORMAL = DeferredLayerType(
             "Normal", "finalNormal",
-            3, 2, BufferQuality.MEDIUM_12, false,
+            3, 2, BufferQuality.HIGH_32, false,
             0x77ff77.toVecRGBA(), "PackNormal", "UnpackNormal"
         )
 

@@ -233,8 +233,10 @@ fun main() {
     }.ref
 
     val cellSize = size * invMaxDensity / (terrainSize - 1)
-    TerrainUtils.generateRegularQuadHeightMesh(terrainSize, terrainSize, 0, terrainSize, false, cellSize, terrainMesh,
-        { heightMap.getSmooth((it % terrainSize).toFloat(), (it / terrainSize).toFloat()) }, { -1 })
+    TerrainUtils.generateRegularQuadHeightMesh(
+        terrainSize, terrainSize, false, cellSize, terrainMesh,
+        { xi, zi -> heightMap.getSmooth(xi.toFloat(), zi.toFloat()) }
+    )
     TerrainUtils.fillUVs(terrainMesh)
 
     val scene = Entity()

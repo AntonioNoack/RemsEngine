@@ -77,15 +77,14 @@ fun createTerrain(): Entity {
             val mesh = Mesh()
             val dx = chunkX * nPerChunkM1
             val dz = chunkZ * nPerChunkM1
-            TerrainUtils.generateRegularQuadHeightMesh(nPerChunk, nPerChunk, 0, nPerChunk, false,
-                sPerUnit, mesh, { idx ->
-                    val xi = idx and 63
-                    val zi = idx ushr 6
+            TerrainUtils.generateRegularQuadHeightMesh(
+                nPerChunk, nPerChunk, false, sPerUnit, mesh,
+                { xi, zi ->
                     val x = (xi + dx - 32).toFloat()
                     val z = (zi + dz - 32).toFloat()
                     val amplitude = 1f - 1f / (1f + (x * x + z * z) * 1e-3f)
                     noise.getSmooth(x, z) * amplitude
-                }, { -1 })
+                })
             mesh.materials = grassMatList
             val wrapper = Entity()
             wrapper.add(MeshComponent(mesh))
