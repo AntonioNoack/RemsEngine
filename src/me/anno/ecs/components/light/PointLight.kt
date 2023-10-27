@@ -127,10 +127,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
     companion object {
 
-        val falloff = kotlin.run {
-            val cutoff = 0.1
-            "max(0.0, 1.0/(1.0+${1.0 / cutoff - 1.0}*dot(lightPos,lightPos)) - $cutoff)*${1.0 / (1.0 - cutoff)}"
-        }
+        val falloff = "pow((1.0/length(lightPos)-1.0),2.0)"
 
         val effectiveSpecular = "" +
                 "if(hasSpecular){\n" +

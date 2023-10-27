@@ -1,7 +1,9 @@
-package me.anno.mesh.blender.impl
+package me.anno.mesh.blender.impl.nodes
 
 import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.impl.BListBase
+import me.anno.mesh.blender.impl.BlendData
 import java.nio.ByteBuffer
 
 /**
@@ -19,6 +21,10 @@ class BNodeTree(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position
     val type = string("idname[64]", 64)
 
     override fun toString(): String {
-        return "BNodeTree { $type, $nodes, $links }"
+        return "bNodeTree { $type, nodes: [\n${
+                    nodes.joinToString("") { "  $it\n" }
+                }], links: [\n${
+                    links.joinToString("") { "  $it\n" }
+                }] }"
     }
 }

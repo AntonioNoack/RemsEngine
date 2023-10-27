@@ -1,9 +1,11 @@
 package me.anno.mesh.blender
 
+import me.anno.io.files.FileReference
 import me.anno.mesh.blender.blocks.Block
 import me.anno.mesh.blender.blocks.BlockHeader
 import me.anno.mesh.blender.blocks.BlockTable
 import me.anno.mesh.blender.impl.*
+import me.anno.mesh.blender.impl.nodes.*
 import me.anno.mesh.blender.impl.values.*
 import me.anno.utils.Color.rgba
 import org.apache.logging.log4j.LogManager
@@ -14,7 +16,7 @@ import java.nio.ByteOrder
 // which was inspired by the Java library http://homac.cakelab.org/projects/JavaBlend/spec.html
 // I rewrote it, because they generate the classes automatically, and it was soo bloated.
 // also it was not easy to read/use, and did not support reading input streams / byte arrays, only files
-class BlenderFile(val file: BinaryFile) {
+class BlenderFile(val file: BinaryFile, val folder: FileReference) {
 
     // read file header
     var version = 0
@@ -169,7 +171,7 @@ class BlenderFile(val file: BinaryFile) {
                 }
             }
         }
-        LOGGER.debug("Instances: ${instances.mapValues { it.value.size }}")
+        LOGGER.debug("Instances: {}", instances.mapValues { it.value.size })
     }
 
     @Suppress("unused")
@@ -220,7 +222,9 @@ class BlenderFile(val file: BinaryFile) {
             "MEdge" -> MEdge(this, struct, data, position)
             "ID" -> BID(this, struct, data, position)
             "Image" -> BImage(this, struct, data, position)
+            "ImageView" -> BImageView(this, struct, data, position)
             "Object" -> BObject(this, struct, data, position)
+            "Lamp" -> BLamp(this, struct, data, position)
             "bNode" -> BNode(this, struct, data, position)
             "bNodeLink" -> BNodeLink(this, struct, data, position)
             "bNodeTree" -> BNodeTree(this, struct, data, position)
@@ -240,6 +244,9 @@ class BlenderFile(val file: BinaryFile) {
             "bNodeSocketValueInt" -> BNSVInt(this, struct, data, position)
             "bNodeSocketValueRGBA" -> BNSVRGBA(this, struct, data, position)
             "bNodeSocketValueRotation" -> BNSVRotation(this, struct, data, position)
+            "TexMapping" -> BTexMapping(this, struct, data, position)
+            "NodeTexBase" -> BNodeTexBase(this, struct, data, position)
+            "NodeTexImage" -> BNodeTexImage(this, struct, data, position)
             else -> {
                 LOGGER.warn("Skipping instance of class $clazz")
                 null

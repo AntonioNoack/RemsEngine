@@ -23,9 +23,12 @@ import me.anno.mesh.obj.MTLReader
 import me.anno.mesh.obj.OBJReader
 import me.anno.mesh.vox.VOXReader
 import me.anno.utils.files.LocalFile.toGlobalFile
+import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
 object InnerFolderCache : CacheSection("InnerFolderCache") {
+
+    private val LOGGER = LogManager.getLogger(InnerFolderCache::class)
 
     // cache all content? if less than a certain file size
     // cache the whole hierarchy [? only less than a certain depth level - not done]
@@ -163,6 +166,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
 
     fun readAsFolder(file: FileReference, timeoutMillis: Long, async: Boolean): InnerFile? {
         if (file is InnerFile && file.folder != null) return file.folder
+        LOGGER.debug("Reading {} as folder", file)
         val data = getFileEntry(file, false, timeoutMillis, async) { file1, _ ->
             val signature = Signature.findNameSync(file1)
             val ext = file1.lcExtension

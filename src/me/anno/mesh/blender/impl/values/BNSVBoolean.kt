@@ -10,7 +10,7 @@ import java.nio.ByteBuffer
  * */
 class BNSVBoolean(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BNSValue(file, type, buffer, position) {
-    val value = byte(getOffset("value")) != 0.toByte()
+    val value = byte("value") != 0.toByte()
 
     override fun toString(): String {
         return value.toString()

@@ -1,7 +1,8 @@
-package me.anno.mesh.blender.impl
+package me.anno.mesh.blender.impl.nodes
 
 import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.impl.BLink
 import me.anno.mesh.blender.impl.values.BNSValue
 import java.nio.ByteBuffer
 
@@ -24,7 +25,7 @@ class BNodeSocket(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, positi
     // val description = string("description[64]", 64)
 
     override fun toString(): String {
-        return "BNodeSocket { $name: $type, default: $defaultValue }"
+        return "bNodeSocket { $name: $type, default: $defaultValue }"
     }
 
     // {*next=bNodeSocket(464)@0, *prev=bNodeSocket(464)@8, *prop=IDProperty(136)@16, identifier[64]=char(1)@24,

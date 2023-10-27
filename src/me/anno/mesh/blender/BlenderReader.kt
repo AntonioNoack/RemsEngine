@@ -13,9 +13,13 @@ import me.anno.utils.Clock
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.joml.Vector3f
 import java.nio.ByteBuffer
 import kotlin.math.PI
+import kotlin.math.max
 
 /**
  * extract the relevant information from a blender file:
@@ -311,20 +315,34 @@ object BlenderReader {
         }
     }
 
+    private fun readImages(file: BlenderFile, folder: InnerFolder, clock: Clock) {
+        @Suppress("unchecked_cast")
+        val imagesInFile = file.instances["Image"] as? List<BImage> ?: return
+        for (image in imagesInFile) {
+            val str = image.run {
+                "$id, $name, views: $views, " +
+                        "gen: [$genX,$genY,$genZ,$genType,${genColor.joinToString()}]"
+            }
+            LOGGER.debug("Image: $str")
+            if (image.name.isNotBlank()) {
+                image.reference = file.folder.getChild(image.name)
+            } else {
+                // todo get image data...
+            }
+        }
+    }
+
     private fun readMaterials(file: BlenderFile, folder: InnerFolder, clock: Clock) {
         @Suppress("unchecked_cast")
-        val materialsInFile = file.instances["Material"] as? List<BMaterial> ?: emptyList()
-        if ("Material" in file.instances) {
-            val matFolder = folder.createChild("materials", null) as InnerFolder
-            for (i in materialsInFile.indices) {
-                println("Material[$i]:")
-                val mat = materialsInFile[i]
-                val prefab = Prefab("Material")
-                BlenderShaderTree.defineDefaultMaterial(prefab, mat)
-                val name = mat.id.name.substring(2)
-                prefab.sealFromModifications()
-                mat.fileRef = matFolder.createPrefabChild("$name.json", prefab)
-            }
+        val materialsInFile = file.instances["Material"] as? List<BMaterial> ?: return
+        val matFolder = folder.createChild("materials", null) as InnerFolder
+        for (i in materialsInFile.indices) {
+            val mat = materialsInFile[i]
+            val prefab = Prefab("Material")
+            BlenderShaderTree.defineDefaultMaterial(prefab, mat)
+            val name = mat.id.realName
+            prefab.sealFromModifications()
+            mat.fileRef = matFolder.createPrefabChild("$name.json", prefab)
         }
         clock.stop("read ${file.instances["Material"]?.size} materials")
     }
@@ -464,7 +482,7 @@ object BlenderReader {
                 // add a pseudo root
                 for (index in roots.indices) {
                     val bObject = roots[index]
-                    val name = bObject.id.name.substring(2)
+                    val name = bObject.id.realName
                     val path = Path(Path.ROOT_PATH, name, index, 'e')
                     paths[bObject] = path
                     createObject(prefab, bObject, path, false)
@@ -500,10 +518,11 @@ object BlenderReader {
         clock.stop("put into other array")
         val binaryFile = BinaryFile(nio)
         val folder = InnerFolder(ref)
-        val file = BlenderFile(binaryFile)
+        val file = BlenderFile(binaryFile, ref.getParent() ?: InvalidRef)
         clock.stop("read blender file")
         // data.printTypes()
 
+        readImages(file, folder, clock)
         readMaterials(file, folder, clock)
         readMeshes(file, folder, clock)
 
@@ -516,7 +535,7 @@ object BlenderReader {
 
     fun makeObject(prefab: Prefab, obj: BObject, paths: HashMap<BObject, Path>): Path {
         return paths.getOrPut(obj) {
-            val name = obj.id.name.substring(2)
+            val name = obj.id.realName
             val parent = makeObject(prefab, obj.parent!!, paths)
             val childIndex = prefab.adds.count { it.path == parent && it.type == 'e' }
             val path = Path(parent, name, childIndex, 'e')
@@ -556,14 +575,14 @@ object BlenderReader {
             }
             BObject.BObjectType.OB_MESH -> {
                 // add mesh component
-                val c = prefab.add(path, 'c', "MeshComponent", obj.id.name)
+                val c = prefab.add(path, 'c', "MeshComponent", obj.id.realName)
                 prefab.setUnsafe(c, "meshFile", (obj.data as BMesh).fileRef)
                 // materials would be nice... but somehow they are always null
             }
             BObject.BObjectType.OB_CAMERA -> {
                 val cam = obj.data as? BCamera
                 if (cam != null) {
-                    val c = prefab.add(path, 'c', "Camera", obj.id.name)
+                    val c = prefab.add(path, 'c', "Camera", obj.id.realName)
                     prefab.setUnsafe(c, "near", cam.near.toDouble())
                     prefab.setUnsafe(c, "far", cam.far.toDouble())
                 }
@@ -571,20 +590,73 @@ object BlenderReader {
             BObject.BObjectType.OB_LAMP -> {
                 val light = obj.data as? BLamp
                 if (light != null) {
-                    val clazzName = when (light.type) {
-                        0 -> "PointLight"
-                        1 -> "DirectionalLight" // sun
-                        2 -> "SpotLight"
-                        4 -> "SpotLight" // todo area light
+                    var extraSize = 1f
+                    val name = obj.id.realName
+                    val c = when (light.type) {
+                        0 -> {
+                            extraSize = light.pointRadius
+                            prefab.add(path, 'c', "PointLight", name)
+                        }
+                        1 -> { // sun
+                            prefab.add(path, 'c', "DirectionalLight", name)
+                        }
+                        2 -> {
+                            extraSize = light.spotRadius
+                            prefab.add(path, 'c', "SpotLight", name)
+                        }
+                        // AreaLight
+                        // todo extract size for area light; todo can be both circle light or rectangle light, depends on areaType (square, rect, circle, ellipse)
+                        4 -> {
+                            when (light.areaShape.toInt()) {
+                                0 -> {
+                                    // square
+                                    val w = light.areaSizeX
+                                    extraSize = w * 10f
+                                    prefab.add(path, 'c', "RectangleLight", name).apply {
+                                        prefab.setUnsafe(this, "width", 0.1f)
+                                        prefab.setUnsafe(this, "height", 0.1f)
+                                    }
+                                }
+                                1 -> {
+                                    // rectangle
+                                    val w = light.areaSizeX
+                                    val h = light.areaSizeY
+                                    extraSize = max(w, h) * 10f
+                                    prefab.add(path, 'c', "RectangleLight", name).apply {
+                                        prefab.setUnsafe(this, "width", w / extraSize)
+                                        prefab.setUnsafe(this, "height", h / extraSize)
+                                    }
+                                }
+                                4 -> {
+                                    // circle
+                                    val w = light.areaSizeX
+                                    extraSize = w * 10f
+                                    prefab.add(path, 'c', "CircleLight", name).apply {
+                                        prefab.setUnsafe(this, "radius", 0.1f)
+                                    }
+                                }
+                                5 -> {
+                                    // ellipse; not yet supported as such in Rem's Engine
+                                    val w = light.areaSizeX
+                                    val h = light.areaSizeY
+                                    extraSize = max(w, h) * 10f
+                                    prefab.add(path, 'c', "CircleLight", name).apply {
+                                        prefab.setUnsafe(this, "radius", 0.1f)
+                                    }
+                                }
+                                else -> null
+                            }
+                        }
                         else -> null // deprecated or not supported
                     }
-                    if (clazzName != null) {
+                    // todo additional scale...
+                    if (c != null) {
                         // additional scale by brightness? probably would be a good idea
-                        val c = prefab.add(path, 'c', clazzName, obj.id.name)
-                        val e = light.energy * 0.01f // 100 W is ~ our brightness
+                        val e = light.energy
                         prefab.setUnsafe(c, "color", Vector3f(light.r, light.g, light.b).mul(e))
                         prefab.setUnsafe(c, "shadowMapCascades", light.cascadeCount)
-                        prefab.setUnsafe(c, "shadowMapPower", light.cascadeExponent)
+                        prefab.setUnsafe(c, "shadowMapPower", light.cascadeExponent.toDouble())
+                        prefab.setUnsafe(c, "autoUpdate", false)
                     }
                 } else LOGGER.warn("obj.data of a lamp was not a lamp: ${obj.data?.run { this::class.simpleName }}")
             }

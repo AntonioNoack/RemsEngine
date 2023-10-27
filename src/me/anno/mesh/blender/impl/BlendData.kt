@@ -29,8 +29,8 @@ open class BlendData(
     fun double(offset: Int) = buffer.getDouble(position + offset)
 
     fun floats(offset: Int, size: Int): FloatArray {
-        return FloatArray(size) {
-            float(offset + it * 4)
+        return FloatArray(size) { index ->
+            float(offset + index.shl(2))
         }
     }
 
@@ -81,6 +81,7 @@ open class BlendData(
 
     fun getOffsetOrNull(name: String) = dnaStruct.byName[name]?.offset
 
+    fun byte(name: String): Byte = byte(getOffset(name))
     fun short(name: String): Short = short(getOffset(name))
     fun int(name: String): Int = int(getOffset(name))
     fun float(name: String): Float = float(getOffset(name))
@@ -229,5 +230,4 @@ open class BlendData(
     companion object {
         private val LOGGER = LogManager.getLogger(BlendData::class)
     }
-
 }

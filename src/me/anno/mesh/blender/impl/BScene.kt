@@ -4,7 +4,7 @@ import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
 import java.nio.ByteBuffer
 
-@Suppress("SpellCheckingInspection", "unused")
+@Suppress("unused")
 class BScene(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
 

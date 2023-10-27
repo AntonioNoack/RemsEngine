@@ -117,6 +117,14 @@ open class InnerFolder(
             ?: InnerLazyPrefabFile("$absolutePath/$name", relativePath, this, content)
     }
 
+    fun createLazyImageChild(name: String, content: Lazy<Image>, registry: HashMap<String, InnerFile>? = null): InnerFile {
+        val child = children[name]
+        if (child != null) return child
+        val relativePath = getSubName(name)
+        return registry?.getOrPut(relativePath) { createLazyImageChild(name, content, null) }
+            ?: InnerLazyImageFile("$absolutePath/$name", relativePath, this, content)
+    }
+
     fun createByteChild(name: String, content: ByteArray, registry: HashMap<String, InnerFile>? = null): InnerFile {
         val child = children[name]
         if (child != null) return child

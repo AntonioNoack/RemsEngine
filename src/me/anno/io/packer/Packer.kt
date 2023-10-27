@@ -1,10 +1,12 @@
 package me.anno.io.packer
 
 import me.anno.cache.instances.LastModifiedCache
+import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.createZipFile
 import me.anno.io.zip.GetStreamCallback
 import me.anno.io.zip.InnerImageFile
+import me.anno.io.zip.InnerLazyImageFile
 import me.anno.io.zip.InnerZipFile
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.f1
@@ -166,15 +168,15 @@ object Packer {
             // write data
             zos.putNextEntry(entry)
             try {
-                if (resource is InnerImageFile) {
+                if (resource is ImageReadable) {
                     // don't save it as bmp, use png instead
                     // if the original was a jpg, we should use jpg
                     val originalWasJpeg = resource.absolutePath.contains(".jpg/", true) ||
                             resource.absolutePath.contains(".jpeg/", true)
                     val extension = if (originalWasJpeg) "jpg" else "png"
-                    val bi = resource.content.createBufferedImage()
+                    val bi = resource.readImage().createBufferedImage()
                     ImageIO.write(bi, extension, zos)
-                    doneSize += resource.compressedSize
+                    doneSize += entry.size // is this available here???
                     reportProgress(doneSize, totalSize)
                 } else {
                     // will only work in synchronous environments!

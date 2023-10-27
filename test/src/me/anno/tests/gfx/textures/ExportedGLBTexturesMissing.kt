@@ -9,7 +9,7 @@ fun main() {
     // todo performance is bad, then textures are loading
     //  > image creation is taking lots of time; probably mipmap generation
     Build.isDebug = false // disable glGetError()
-    testSceneWithUI("GLB missing textures", downloads.getChild("Blender 2.glb"))
+    testSceneWithUI("GLB missing textures", downloads.getChild("Futuristic Shop Scene.glb"))
 }
 
 // todo Rem's Studio is using bad (non-fx) file chooser... fix that

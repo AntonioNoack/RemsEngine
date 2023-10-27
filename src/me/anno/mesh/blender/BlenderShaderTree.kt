@@ -4,16 +4,21 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.mesh.blender.impl.BImage
 import me.anno.mesh.blender.impl.BMaterial
-import me.anno.mesh.blender.impl.BNode
-import me.anno.mesh.blender.impl.BNodeSocket
-import me.anno.mesh.blender.impl.BNodeTree
+import me.anno.mesh.blender.impl.nodes.BNode
+import me.anno.mesh.blender.impl.nodes.BNodeSocket
+import me.anno.mesh.blender.impl.nodes.BNodeTree
 import me.anno.mesh.blender.impl.values.*
+import me.anno.utils.Color.white4
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
+/**
+ * Converts a node tree of the "Shading" section in Blender to a Rem's Engine Material as far as possible.
+ * */
 object BlenderShaderTree {
 
     private val LOGGER = LogManager.getLogger(BlenderShaderTree::class)
@@ -30,7 +35,7 @@ object BlenderShaderTree {
 
     // todo read textures for roughness, metallic, emissive, and such
     fun defineDefaultMaterial(prefab: Prefab, nodeTree: BNodeTree) {
-        println("node tree: $nodeTree")
+        LOGGER.debug(nodeTree)
         val nodes = nodeTree.nodes.toList()
         val links = nodeTree.links
         val outputNode = nodes.firstOrNull {
@@ -60,25 +65,47 @@ object BlenderShaderTree {
                 } to InvalidRef
             }
 
-            fun findTintedMap(value: Pair<BNode?, BNodeSocket>?): Pair<Vector4f, FileReference>? {
-                val (node, socket) = value ?: return null
-                when (node?.type) {
-                    // "ShaderNodeTexImage"
-                    "ShaderNodeRGB" -> {
-                        val output = node.findOutputSocket("Color")
-                        return getDefault(output?.defaultValue)
-                    }
-                    null -> return getDefault(socket.defaultValue)
-                    else -> LOGGER.warn("Unknown node type ${node.type}")
-                }
-                return null
-            }
-
             fun lookup(node: BNode, name: String): Pair<BNode?, BNodeSocket>? {
                 val socket = node.findInputSocket(name)
                 return inputs[node to socket] ?: if (socket != null) {
                     null to socket
                 } else null
+            }
+
+            fun multiply(value: Pair<Vector4f, FileReference>, strength: Float?): Pair<Vector4f, FileReference> {
+                if (strength == null) return value
+                return Pair(value.first * strength, value.second)
+            }
+
+            fun findTintedMap(value: Pair<BNode?, BNodeSocket>?): Pair<Vector4f, FileReference>? {
+                val (node, socket) = value ?: return null
+                when (node?.type) {
+                    // todo can we get a bunch of Blender files to test this?
+                    "ShaderNodeRGB" -> {
+                        val output = node.findOutputSocket("Color")
+                        return getDefault(output?.defaultValue)
+                    }
+                    "ShaderNodeNormalMap" -> {
+                        // to do check normal space... only tangent is truly supported
+                        val color = findTintedMap(lookup(node, "Color"))
+                        if (color != null) {
+                            val strength = findTintedMap(lookup(node, "Strength"))
+                            return multiply(color, strength?.first?.x)
+                        }
+                    }
+                    "ShaderNodeTexImage" -> {
+                        // UVs: "Vector",
+                        // Output: "Color"/"Alpha" -> use the correct slot (given by socket)
+                        val slot = if (value.second.name == "Alpha") "a.png" else "rgb.png"
+                        val source = (node.id as? BImage)?.reference?.nullIfUndefined()
+                        if (source != null) {
+                            return white4 to source.getChild(slot)
+                        }
+                    }
+                    null -> return getDefault(socket.defaultValue)
+                    else -> LOGGER.warn("Unknown node type ${node.type}")
+                }
+                return null
             }
 
             // only first is relevant, because Shader nodes only have a single output
@@ -165,10 +192,10 @@ object BlenderShaderTree {
                         if (ior != null) prefab["indexOfRefraction"] = ior.first.x
                     }
                     "ShaderNodeEmission" -> {
-                        val emissive = findTintedMap(lookup(shaderNode, "Color"))
-                        val emissive1 = findTintedMap(lookup(shaderNode, "Strength"))
-                        if (emissive != null || emissive1 != null) {
-                            setMultiplicativeEmissive(emissive, emissive1)
+                        val map = findTintedMap(lookup(shaderNode, "Color"))
+                        val strength = findTintedMap(lookup(shaderNode, "Strength"))
+                        if (map != null || strength != null) {
+                            setMultiplicativeEmissive(map, strength)
                         }
                     }
                     else -> LOGGER.warn("Unknown/unsupported shader node: ${shaderNode.type}")

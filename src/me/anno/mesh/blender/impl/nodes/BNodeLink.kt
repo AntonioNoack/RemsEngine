@@ -1,7 +1,8 @@
-package me.anno.mesh.blender.impl
+package me.anno.mesh.blender.impl.nodes
 
 import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
+import me.anno.mesh.blender.impl.BLink
 import java.nio.ByteBuffer
 
 @Suppress("unused", "SpellCheckingInspection")
@@ -16,7 +17,9 @@ class BNodeLink(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position
     // flag, multi_input_socket_index
 
     override fun toString(): String {
-        return "BNodeLink { from: [$fromNode, $fromSocket], to: [$toNode, $toSocket] }"
+        return "bNodeLink { " +
+                "from: ${fromNode.type}@${fromNode.position.toString(16)}/'${fromSocket.name}', " +
+                "to: ${toNode.type}@${fromNode.position.toString(16)}/'${toSocket.name}' }"
     }
 
 }
