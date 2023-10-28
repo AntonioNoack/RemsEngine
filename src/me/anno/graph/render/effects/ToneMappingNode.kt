@@ -42,7 +42,7 @@ class ToneMappingNode : ActionNode(
 
     companion object {
         val shader = Shader(
-            "tonemapping", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+            "tonemapping", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(Variable(GLSLType.S2D, "source"), Variable(GLSLType.V4F, "result", VariableMode.OUT)),
             tonemapGLSL +
                     "void main(){\n" +

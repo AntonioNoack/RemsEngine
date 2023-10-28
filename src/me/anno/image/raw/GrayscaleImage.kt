@@ -1,6 +1,7 @@
 package me.anno.image.raw
 
 import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
@@ -50,6 +51,9 @@ open class GrayscaleImage(val src: Image) :
                         texture.createMonochrome(bytes, checkRedundancy = false)
                     }
                 }
+            }
+            is GPUImage -> {
+                TextureMapper.mapTexture(src.texture, texture, "lll1", TargetType.UByteTarget1)
             }
             is ComponentImage -> src.createTexture(texture, sync, checkRedundancy)
             is CachedImage -> createTexture(texture, sync, checkRedundancy, src.base!!)

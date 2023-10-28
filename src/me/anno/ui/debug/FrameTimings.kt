@@ -67,8 +67,8 @@ object FrameTimings : Panel(DefaultConfig.style.getChild("fps")) {
 
     private val shader = BaseShader(
         "frameTimes",
-        ShaderLib.simpleVertexShaderV2List,
-        ShaderLib.simpleVertexShaderV2, ShaderLib.uvList, listOf(
+        ShaderLib.uiVertexShaderList,
+        ShaderLib.uiVertexShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V4F, "background"),
             Variable(GLSLType.S2D, "tex"),

@@ -13,7 +13,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Reduction
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -25,7 +25,7 @@ import java.util.*
 // fixed it :)
 
 private val testShader = Shader(
-    "brdf-baseline", coordsList, coordsVShader, uvList,
+    "brdf-baseline", coordsList, coordsUVVertexShader, uvList,
     listOf(
         Variable(GLSLType.S2D, "randomTex"),
         Variable(GLSLType.V4F, "result", VariableMode.OUT)

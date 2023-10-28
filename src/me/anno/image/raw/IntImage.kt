@@ -119,9 +119,9 @@ open class IntImage(
             // for testing, convert the data into a byte buffer
             // -> 33% faster, partially because of wrong alignment and using 25% less data effectively
             texture.createTiled(
-                if (hasAlphaChannel) TargetType.UByteTarget4 else TargetType.UByteTarget3,
                 TargetType.UByteTarget4,
-                dataI, data1
+                TargetType.UByteTarget4,
+                dataI, data1, numChannels
             )
         }
     }
@@ -142,5 +142,4 @@ open class IntImage(
         System.arraycopy(data, 0, clone, 0, data.size)
         return clone
     }
-
 }

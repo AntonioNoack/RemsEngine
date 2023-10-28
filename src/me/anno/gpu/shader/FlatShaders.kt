@@ -3,7 +3,7 @@ package me.anno.gpu.shader
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.shader.ShaderLib.blacklist
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -12,7 +12,7 @@ import kotlin.math.PI
 object FlatShaders {
 
     val copyShader = Shader(
-        "copy", coordsList, coordsVShader, uvList, listOf(
+        "copy", coordsList, coordsUVVertexShader, uvList, listOf(
             Variable(GLSLType.S2D, "tex"),
             Variable(GLSLType.V1F, "alpha"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)
@@ -20,7 +20,7 @@ object FlatShaders {
     ).apply { ignoreNameWarnings("samples", "posSize") }
 
     val copyShaderMS = Shader(
-        "copyMS", coordsList, coordsVShader, uvList, listOf(
+        "copyMS", coordsList, coordsUVVertexShader, uvList, listOf(
             Variable(GLSLType.S2DMS, "tex"),
             Variable(GLSLType.V1F, "alpha"),
             Variable(GLSLType.V1I, "samples"),
@@ -98,8 +98,8 @@ object FlatShaders {
 
     val flatShaderTexture = BaseShader(
         "flatShaderTexture",
-        ShaderLib.simpleVertexShaderV2List,
-        ShaderLib.simpleVertexShaderV2, uvList,
+        ShaderLib.uiVertexShaderList,
+        ShaderLib.uiVertexShader, uvList,
         listOf(
             Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
             Variable(GLSLType.V4F, "color"),
@@ -120,8 +120,8 @@ object FlatShaders {
 
     val flatShaderTexture3D = BaseShader(
         "flatShaderTexture3D",
-        ShaderLib.simpleVertexShaderV2List,
-        ShaderLib.simpleVertexShaderV2, uvList,
+        ShaderLib.uiVertexShaderList,
+        ShaderLib.uiVertexShader, uvList,
         listOf(
             Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
             Variable(GLSLType.V4F, "color"),
@@ -142,7 +142,7 @@ object FlatShaders {
     )
 
     val depthShader = BaseShader(
-        "depth", ShaderLib.simpleVertexShaderV2List, ShaderLib.simpleVertexShaderV2, uvList, listOf(
+        "depth", ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader, uvList, listOf(
             Variable(GLSLType.S2D, "tex")
         ), "" +
                 "void main(){\n" +

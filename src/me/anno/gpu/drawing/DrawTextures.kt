@@ -146,9 +146,12 @@ object DrawTextures {
     ) = drawTexture(x, y, w, h, texture, false, color, tiling, applyToneMapping)
 
     fun drawTransparentBackground(x: Int, y: Int, w: Int, h: Int, numVerticalStripes: Float = 5f) {
-        val tiling = JomlPools.vec4f.borrow()
+        val tiling = JomlPools.vec4f.create()
         tiling.set(numVerticalStripes * w.toFloat() / h.toFloat(), numVerticalStripes, 0f, 0f)
-        drawTexture(x, y, w, h, TextureLib.colorShowTexture, -1, tiling, false)
+        val texture = TextureLib.colorShowTexture
+        texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
+        drawTexture(x, y, w, h, texture, -1, tiling, false)
+        JomlPools.vec4f.sub(1)
     }
 
     fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?) {

@@ -1,8 +1,8 @@
 package me.anno.image
 
 import me.anno.cache.AsyncCacheData
+import me.anno.gpu.GFX
 import me.anno.gpu.texture.TextureLib.blackTexture
-import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.raw.*
 import me.anno.io.files.BundledRef
@@ -97,7 +97,7 @@ object ImageReader {
         folder.createLazyImageChild(name, lazy {
             val src = ImageCPUCache[file, false] ?: throw IOException("Missing image of $file")
             createImage(src)
-        }, lazy {
+        }, {
             val src = ImageGPUCache[file, false] ?: throw IOException("Missing image of $file")
             createImage(GPUImage(src))
         })
@@ -106,15 +106,14 @@ object ImageReader {
     @JvmStatic
     private fun createComponent(
         file: FileReference, folder: InnerFolder, name: String,
-        swizzle: String, inverse: Boolean = false
+        swizzle: String, inverse: Boolean
     ) {
         when (swizzle.length) {
             1 -> createComponent(file, folder, name) {
                 when {
-                    it.numChannels == 0 -> GPUImage(missingTexture)
-                    (swizzle == "a" && !it.hasAlphaChannel) -> GPUImage(whiteTexture)
+                    (swizzle == "a" && !it.hasAlphaChannel) -> GPUImage(if (inverse) blackTexture else whiteTexture)
                     (swizzle == "b" && it.numChannels < 3) || (swizzle == "g" && it.numChannels < 2) ->
-                        GPUImage(blackTexture)
+                        GPUImage(if (inverse) whiteTexture else blackTexture)
                     else -> ComponentImage(it, inverse, swizzle[0])
                 }
             }
@@ -186,7 +185,6 @@ object ImageReader {
             }
         }
     }
-
 
     private fun tryFFMPEG(file: FileReference, signature: String?, callback: ImageCallback) {
         return if (file is FileFileRef) {

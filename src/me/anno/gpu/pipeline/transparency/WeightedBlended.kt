@@ -18,7 +18,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -63,7 +63,7 @@ class WeightedBlended : TransparentPass() {
         private val l01 = DeferredSettings(listOf(l0, l1))
         val applyShader = LazyMap<IntPair, Shader> {
             Shader(
-                "apply0", coordsList, coordsVShader, uvList, listOf(
+                "apply0", coordsList, coordsUVVertexShader, uvList, listOf(
                     Variable(GLSLType.V1B, "perTargetBlending"),
                     Variable(GLSLType.S2D, "accuTexture"),
                     Variable(GLSLType.S2D, "revealTexture"),

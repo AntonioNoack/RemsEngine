@@ -114,7 +114,7 @@ fun main() {
             )
 
             val normShader = Shader(
-                "mix", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+                "mix", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
                 listOf(
                     Variable(GLSLType.V1F, "dt"),
                     Variable(GLSLType.S2D, "colorTexX"),

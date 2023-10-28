@@ -269,7 +269,7 @@ class FSR2 {
 
     val depthClipShader = Shader(
         "depth-clip",
-        ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+        ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
         listOf(
             Variable(GLSLType.S2D, "dilatedDepthTex"),
             Variable(GLSLType.S2D, "dilatedMotionTex"),
@@ -355,7 +355,7 @@ class FSR2 {
     }
 
     val accumulateShader = Shader(
-        "accumulate", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+        "accumulate", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
         listOf(
             Variable(GLSLType.S2D, "prepInputColor"),
             Variable(GLSLType.V2F, "downScaleFactor"),
@@ -585,7 +585,7 @@ class FSR2 {
 
     val autoExposureShader = Shader(
         "auto-exposure",
-        ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+        ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
         listOf(
             Variable(GLSLType.S2D, "tex"),
             Variable(GLSLType.V4F, "exposure", VariableMode.OUT)
@@ -600,7 +600,7 @@ class FSR2 {
 
     val exposureShader = Shader(
         "exposure",
-        ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+        ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
         listOf(
             Variable(GLSLType.S2D, "currTex"),
             Variable(GLSLType.S2D, "prevTex"),
@@ -651,7 +651,7 @@ class FSR2 {
     }
 
     val adjustInputShader = Shader(
-        "adjust-input", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+        "adjust-input", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
         listOf(
             Variable(GLSLType.S2D, "colorTex"),
             Variable(GLSLType.S2D, "exposureTex"),

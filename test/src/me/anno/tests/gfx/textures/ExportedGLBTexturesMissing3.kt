@@ -10,6 +10,6 @@ import org.apache.logging.log4j.LogManager
 fun main() {
     ECSRegistry.init()
     Build.isDebug = false
-    LogManager.setLevel(null, Level.ALL)
+    LogManager.define(null, Level.ALL)
     testSceneWithUI(".blend with materials", downloads.getChild("The Junk Shop.blend"))
 }

@@ -5,10 +5,7 @@ import me.anno.fonts.FontManager.TextCache
 import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.OpenGLBuffer
-import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Frame
-import me.anno.gpu.framebuffer.IFramebuffer
-import me.anno.gpu.framebuffer.NullFramebuffer
+import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
@@ -287,4 +284,22 @@ object GFXState {
         renderer: Renderer, render: () -> Unit
     ) = useFrame(x, y, w, h, currentBuffer, renderer, render)
 
+    private val tmp = Framebuffer("tmp", 1, 1, 1, 0, false, DepthBufferType.NONE)
+
+    /**
+     * render onto that texture
+     * */
+    fun useFrame(texture: Texture2D, level: Int, render: () -> Unit) {
+        tmp.width = texture.width
+        tmp.height = texture.height
+        if (tmp.pointer == 0 || tmp.session != session) {
+            tmp.pointer = glGenFramebuffers()
+        }
+        useFrame(tmp) {
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture.target, texture.pointer, level)
+            Framebuffer.drawBuffers1(0)
+            tmp.checkIsComplete()
+            render()
+        }
+    }
 }

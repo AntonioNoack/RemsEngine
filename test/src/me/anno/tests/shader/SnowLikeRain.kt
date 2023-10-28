@@ -10,7 +10,7 @@ import me.anno.gpu.GFX.flat01
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -30,7 +30,7 @@ fun main() {
 
         // 2d
         val shader = Shader(
-            "rain", coordsList, coordsVShader, uvList, listOf(
+            "rain", coordsList, coordsUVVertexShader, uvList, listOf(
                 Variable(GLSLType.V1F, "time"),
                 Variable(GLSLType.V2F, "uvScale"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)

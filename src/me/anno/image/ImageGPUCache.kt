@@ -3,10 +3,7 @@ package me.anno.image
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.cache.data.ImageToTexture
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.LateinitTexture
-import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.Texture3D
+import me.anno.gpu.texture.*
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -48,8 +45,9 @@ object ImageGPUCache : CacheSection("ImageGPU") {
         if (file is ImageReadable) {
             val image = file.readGPUImage()
             if (image is GPUImage) {
-                val texture =
-                    image.texture as? Texture2D ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
+                val texture = image.texture as? Texture2D
+                    ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
+                if (texture is TextureLib.IndestructibleTexture2D) texture.ensureExists()
                 return if (!texture.isDestroyed && texture.isCreated) texture else null
             }
         }

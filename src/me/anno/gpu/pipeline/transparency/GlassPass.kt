@@ -80,7 +80,7 @@ class GlassPass : TransparentPass() {
         // override diffuseColor and finalEmissive in shader
         val applyShader = LazyMap<IntPair, Shader> {
             Shader(
-                "applyGlass", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(
+                "applyGlass", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                     Variable(GLSLType.S2D, "diffuseSrcTex"),
                     Variable(GLSLType.S2D, "emissiveSrcTex"),
                     Variable(GLSLType.S2D, "diffuseGlassTex"),

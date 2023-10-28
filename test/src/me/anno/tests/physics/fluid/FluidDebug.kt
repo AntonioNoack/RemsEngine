@@ -14,8 +14,8 @@ object FluidDebug {
 
     private val textureRShader = BaseShader(
         "flatShaderTexture",
-        ShaderLib.simpleVertexShaderV2List,
-        ShaderLib.simpleVertexShaderV2, ShaderLib.uvList,
+        ShaderLib.uiVertexShaderList,
+        ShaderLib.uiVertexShader, ShaderLib.uvList,
         listOf(Variable(GLSLType.S2D, "tex")), "" +
                 "void main(){\n" +
                 "   float col = texture(tex, uv).x;\n" +
@@ -29,8 +29,8 @@ object FluidDebug {
 
     private val textureRGShader = BaseShader(
         "flatShaderTexture",
-        ShaderLib.simpleVertexShaderV2List,
-        ShaderLib.simpleVertexShaderV2, ShaderLib.uvList,
+        ShaderLib.uiVertexShaderList,
+        ShaderLib.uiVertexShader, ShaderLib.uvList,
         listOf(Variable(GLSLType.S2D, "tex")), "" +
                 "void main(){\n" +
                 "   vec2 col = texture(tex, uv).xy;\n" +

@@ -216,9 +216,12 @@ class Framebuffer(
         }
 
         // todo is this fine? might cost a lof ot performance...
-        for (texture in textures!!) {
-            texture.hasMipmap = false
-            texture.filtering = GPUFiltering.TRULY_NEAREST
+        val textures = textures
+        if (textures != null) {
+            for (texture in textures) {
+                texture.hasMipmap = false
+                texture.filtering = GPUFiltering.TRULY_NEAREST
+            }
         }
         depthTexture?.hasMipmap = false
         depthTexture?.filtering = GPUFiltering.TRULY_NEAREST

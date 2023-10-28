@@ -39,7 +39,7 @@ class FSR2v2 : ICacheData {
     companion object {
 
         val updateShader = Shader(
-            "reproject", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+            "reproject", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V2F, "currJitter"),
                 Variable(GLSLType.V2F, "prevJitter"),
@@ -148,7 +148,7 @@ class FSR2v2 : ICacheData {
         }
 
         val displayShader = Shader(
-            "display", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+            "display", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.S2D, "colorNWeights"),
                 Variable(GLSLType.S2D, "depths"),

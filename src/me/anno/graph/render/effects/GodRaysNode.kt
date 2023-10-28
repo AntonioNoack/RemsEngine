@@ -77,7 +77,7 @@ class GodRaysNode : ActionNode(
 
     companion object {
         val shader = Shader(
-            "god-rays", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+            "god-rays", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V2F, "lightPos"),
                 Variable(GLSLType.V3F, "falloff"),

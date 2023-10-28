@@ -1,6 +1,5 @@
 package me.anno.gpu.texture
 
-import me.anno.cache.ICacheData
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.utils.Color.black
 
@@ -20,7 +19,7 @@ object TextureLib {
             super.destroy()
         }
 
-        private fun checkExistence() {
+        fun ensureExists() {
             checkSession()
             if (!isCreated || isDestroyed) {
                 isDestroyed = false
@@ -43,17 +42,17 @@ object TextureLib {
         }
 
         override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
-            checkExistence()
+            ensureExists()
             return super.bind(index, filtering, clamping)
         }
 
         override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
-            checkExistence()
+            ensureExists()
             return super.bind(index, filtering, clamping)
         }
 
         override fun bindTrulyNearest(index: Int): Boolean {
-            checkExistence()
+            ensureExists()
             return super.bindTrulyNearest(index)
         }
     }
@@ -124,7 +123,6 @@ object TextureLib {
             checkExistence()
             return super.bind(index, filtering, clamping)
         }
-
     }
 
     class IndestructibleTexture2DArray(
@@ -154,7 +152,6 @@ object TextureLib {
             checkExistence()
             return super.bind(index, filtering, clamping)
         }
-
     }
 
     private val white = byteArrayOf(-1, -1, -1, -1)
@@ -197,5 +194,4 @@ object TextureLib {
         blackTexture.doDestroy()
         missingTexture.doDestroy()
     }
-
 }

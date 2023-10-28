@@ -1,9 +1,9 @@
 package me.anno.tests.gfx.textures
 
-import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.invisibleTexture
 import me.anno.image.raw.IntImage
-import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
+import me.anno.tests.gfx.testTexture
 import me.anno.utils.files.UVChecker
 import kotlin.concurrent.thread
 
@@ -19,11 +19,10 @@ fun main() {
         thread { texture.createRGBA(image.data, false) }
         texture
     }
-    testDrawing("Async Texture") {
-        it.clear()
+    testTexture("Async Texture", false) {
         val texture = callOnce.value
         if (texture.isCreated) {
-            drawTexture(it.x, it.y, it.width, it.height, texture)
-        }
+            texture
+        } else invisibleTexture
     }
 }

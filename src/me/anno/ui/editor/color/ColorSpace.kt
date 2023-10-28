@@ -2,6 +2,8 @@ package me.anno.ui.editor.color
 
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.uiVertexShader
+import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.language.translation.NameDesc
@@ -29,12 +31,8 @@ abstract class ColorSpace(
     fun getShader(type: ColorVisualisation): Shader {
         val oldShader = shaders[type]
         if (oldShader != null) return oldShader
-        val vertexShader = "" +
-                "void main(){\n" +
-                "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.-1., 0.0, 1.0));\n" +
-                "   uv = coords;\n" +
-                "}"
-        val varyingShader = listOf(Variable(GLSLType.V2F, "uv"))
+        val vertexShader = uiVertexShader
+        val varyingShader = uvList
         val fragmentShader = when (type) {
             ColorVisualisation.WHEEL -> {
                 glsl.value +

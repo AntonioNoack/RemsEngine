@@ -71,7 +71,7 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
     tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions, seeds)
     return uniforms to BaseShader("raycasting",
         ShaderLib.coordsList,
-        ShaderLib.coordsVShader,
+        ShaderLib.coordsUVVertexShader,
         ShaderLib.uvList,
         listOf(
             Variable(GLSLType.M3x3, "camMatrix"),

@@ -94,7 +94,7 @@ class OutlineNode : ActionNode(
 
     companion object {
         val shader = Shader(
-            "outline", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+            "outline", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V2F, "duv"),
                 Variable(GLSLType.V2F, "strength"),

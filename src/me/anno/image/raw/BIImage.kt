@@ -22,11 +22,9 @@ fun BufferedImage.toImage(): Image {
         }
         return ByteImage(width, height, ByteImage.Format.R, bytes)
     } else {
-        return IntImage(
-            width, height,
-            getRGB(0, 0, width, height, null, 0, width),
-            colorModel.hasAlpha()
-        )
+        val pixels = getRGB(0, 0, width, height, null, 0, width)
+        val hasAlpha = colorModel.hasAlpha() && pixels.any { it.ushr(24) != 255 }
+        return IntImage(width, height, pixels, hasAlpha)
     }
 }
 

@@ -181,7 +181,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         if (mesh != null) {
             val pos = mesh.positions ?: return
             if (!LOGGER.isDebugEnabled) {
-                LogManager.setLevel(LOGGER.prefix, Level.DEBUG)
+                LogManager.define(LOGGER.prefix, Level.DEBUG)
             }
             LOGGER.debug("Positions: {}", Array(pos.size / 3) {
                 val i = it * 3

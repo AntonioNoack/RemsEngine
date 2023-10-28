@@ -50,26 +50,28 @@ object ShaderLib {
     const val maxOutlineColors = 6
 
     val coordsList = listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR))
-    const val coordsVShader = "" +
+    
+    const val coordsVertexShader = "" +
+            "void main(){\n" +
+            "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
+            "}"
+
+    const val coordsUVVertexShader = "" +
             "void main(){\n" +
             "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
             "   uv = coords;\n" +
             "}"
-
-    const val simplestVertexShader = "" +
-            "void main(){\n" +
-            "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
-            "}"
-
+    
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
-    val simpleVertexShaderList = coordsList + listOf(
+    val uiVertexShaderList = coordsList + listOf(
         Variable(GLSLType.V4F, "posSize"),
         Variable(GLSLType.V4F, "tiling"),
         Variable(GLSLType.M4x4, "transform"),
     )
-    const val simpleVertexShader = "" +
+
+    const val uiVertexShader = "" +
             "void main(){\n" +
-            "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.5, 1.0));\n" +
+            "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.0, 1.0));\n" +
             "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "}"
 
@@ -84,19 +86,6 @@ object ShaderLib {
             "  return brightness < limit;\n" +
             "}\n" +
             "bool dither2x2(float brightness) { return dither2x2(brightness, gl_FragCoord.xy); }\n"
-
-    val simpleVertexShaderV2List = listOf(
-        Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
-        Variable(GLSLType.V4F, "posSize"),
-        Variable(GLSLType.V4F, "tiling"),
-        Variable(GLSLType.M4x4, "transform")
-    )
-
-    const val simpleVertexShaderV2 = "" +
-            "void main(){\n" +
-            "   gl_Position = matMul(transform, vec4((posSize.xy + coords * posSize.zw)*2.0-1.0, 0.5, 1.0));\n" +
-            "   uv = (coords-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
-            "}"
 
     val brightness = "" +
             "float brightness(vec3 color){\n" +
@@ -362,11 +351,7 @@ object ShaderLib {
         Variable(GLSLType.V2F, "coords", VariableMode.ATTR)
     )
 
-    const val v2D = "" +
-            "void main(){\n" +
-            "   gl_Position = vec4(coords*2.0-1.0, 0.0, 1.0);\n" +
-            "   uv = coords;\n" +
-            "}"
+    const val v2D = coordsVertexShader
 
     const val v3D = "" +
             "void main(){\n" +

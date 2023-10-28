@@ -127,7 +127,7 @@ class DepthOfFieldNode : ActionNode(
                 "}"
 
         val cocShader = Shader(
-            "coc", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+            "coc", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "focusScale"),
                 Variable(GLSLType.V1F, "focusPoint"),
@@ -145,7 +145,7 @@ class DepthOfFieldNode : ActionNode(
         )
 
         val dofShader = Shader(
-            "dof", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+            "dof", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1F, "focusScale"),
                 Variable(GLSLType.V1F, "focusPoint"),

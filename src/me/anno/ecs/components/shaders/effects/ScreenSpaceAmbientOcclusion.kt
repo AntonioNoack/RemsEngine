@@ -16,7 +16,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.ShaderLib.uvList
@@ -102,7 +102,7 @@ object ScreenSpaceAmbientOcclusion {
         val srcType = if (ms) GLSLType.S2DMS else GLSLType.S2D
         return Shader(
             "ssao",
-            coordsList, coordsVShader, uvList, listOf(
+            coordsList, coordsUVVertexShader, uvList, listOf(
                 Variable(GLSLType.V1F, "strength"),
                 Variable(GLSLType.V1I, "numSamples"),
                 Variable(GLSLType.V1I, "mask"),
@@ -170,7 +170,7 @@ object ScreenSpaceAmbientOcclusion {
     }
 
     private val blurShader = Shader(
-        "ssao-blur", coordsList, coordsVShader, uvList,
+        "ssao-blur", coordsList, coordsUVVertexShader, uvList,
         listOf(
             Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT),
             Variable(GLSLType.S2D, "source"),

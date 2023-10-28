@@ -70,7 +70,7 @@ class MotionBlurNode : ActionNode(
     companion object {
         // definitely not ideal; we'd need to smear moving objects instead of smearing on moving objects
         val shader = Shader(
-            "MotionBlur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+            "MotionBlur", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V1I, "maxSamples"),
                 Variable(GLSLType.V1F, "shutter"),

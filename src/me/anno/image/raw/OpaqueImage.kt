@@ -42,6 +42,9 @@ open class OpaqueImage(val src: Image) :
                         texture.createBGR(data2, false)
                     }
                 }
+                is GPUImage -> {
+                    TextureMapper.mapTexture(src.texture, texture, "rgb1", TargetType.UByteTarget4)
+                }
                 is ByteImage -> {
                     val data = src.data
                     val buffer = Texture2D.bufferPool[data.size, false, false]

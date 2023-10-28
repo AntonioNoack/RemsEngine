@@ -4,7 +4,7 @@ import me.anno.gpu.GFX.flat01
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -32,7 +32,7 @@ object FXAA {
 
     val shader = lazy {
         Shader(
-            "FXAA", coordsList, coordsVShader, uvList, listOf(
+            "FXAA", coordsList, coordsUVVertexShader, uvList, listOf(
                 Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
                 Variable(GLSLType.S2D, "colorTex"),
                 Variable(GLSLType.V1B, "showEdges"),

@@ -6,8 +6,8 @@ import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
-import me.anno.gpu.shader.ShaderLib.simpleVertexShader
-import me.anno.gpu.shader.ShaderLib.simpleVertexShaderList
+import me.anno.gpu.shader.ShaderLib.uiVertexShader
+import me.anno.gpu.shader.ShaderLib.uiVertexShaderList
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -29,7 +29,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "upscale", simpleVertexShaderList, simpleVertexShader, uvList, listOf(
+            "upscale", uiVertexShaderList, uiVertexShader, uvList, listOf(
                 Variable(GLSLType.V2F, "dstWH"),
                 Variable(GLSLType.V3F, "background"),
                 Variable(GLSLType.S2D, "source"),
@@ -101,7 +101,7 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "sharpen", simpleVertexShaderList, simpleVertexShader, uvList, emptyList(), "" +
+            "sharpen", uiVertexShaderList, uiVertexShader, uvList, emptyList(), "" +
                     "out vec4 glFragColor;\n" +
                     "uniform vec2 dstWH;\n" +
                     "uniform float sharpness;\n" +

@@ -1,6 +1,7 @@
 package me.anno.image.gimp
 
 import me.anno.image.Image
+import me.anno.image.ImageReader
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
@@ -95,8 +96,7 @@ class GimpImage {
             val w = gimpImage.width
             val h = gimpImage.height
             // todo if the source has HDR contents, use HDR here as well
-            val result = IntImage(w, h, hasAlpha)
-            val dst = result.data
+            val dst = IntArray(w * h)
             for (layer in gimpImage.layers) {
                 val image = layer.image
                 if (layer.isVisible && image != null && layer.opacity > 0) {
@@ -112,7 +112,7 @@ class GimpImage {
                         for (y in y0 until y1) {
                             var dstIndex = x0 + y * w
                             var srcIndex = (x0 - dx) + (y - dy) * layer.width
-                            layer.blendSpace
+                            // layer.blendSpace
                             for (x in x0 until x1) {
                                 // todo theoretically, we would need to apply the correct blending function here
                                 val color = image.getRGB(srcIndex++)
@@ -131,7 +131,8 @@ class GimpImage {
                     }
                 }
             }
-            return result
+            val reallyHasAlpha = hasAlpha && dst.any { it.ushr(24) != 255 }
+            return IntImage(w, h, dst, reallyHasAlpha)
         }
 
         private fun readImage(data: ByteBuffer): GimpImage {
@@ -159,21 +160,27 @@ class GimpImage {
         fun readAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
             file.inputStream { it, exc ->
                 if (it != null) {
-                    callback(readAsFolder(file, it), null)
+                    readAsFolder(file, it, callback)
                 } else callback(null, exc)
             }
         }
 
-        fun readAsFolder(file: FileReference, input: InputStream): InnerFolder {
+        fun readAsFolder(file: FileReference, input: InputStream, callback: (InnerFolder?, Exception?) -> Unit) {
             val info = readImage(input)
-            val folder = InnerFolder(file)
-            for (layer in info.layers) {
-                val image = layer.image
-                if (image != null) {
-                    folder.createImageChild(layer.name + ".png", image)
-                }
+            ImageReader.readAsFolder(file) { folder, exc ->
+                if (folder != null) {
+                    val subFolder = folder.createChild("layers", "layers")
+                    val layers = info.layers
+                    for (i in layers.indices) {
+                        val layer = layers[i]
+                        val image = layer.image
+                        if (image != null) {
+                            subFolder.createImageChild(layer.name + ".png", image)
+                        }
+                    }
+                    callback(folder, null)
+                } else callback(null, exc)
             }
-            return folder
         }
     }
 

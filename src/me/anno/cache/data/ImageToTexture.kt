@@ -47,13 +47,13 @@ class ImageToTexture(file: FileReference) : ICacheData {
 
     init {
         if (file is ImageReadable) {
-            val texture = Texture2D("image-data", 1024, 1024, 1)
+            val texture = Texture2D("i2t/ir/${file.name}", 1024, 1024, 1)
             texture.create(file.toString(), file.readGPUImage(), true)
             this.texture = texture
         } else {
             val cpuImage = ImageCPUCache.getImageWithoutGenerator(file)
             if (cpuImage != null) {
-                val texture = Texture2D("image-data", cpuImage.width, cpuImage.height, 1)
+                val texture = Texture2D("i2t/ci/${file.name}", cpuImage.width, cpuImage.height, 1)
                 cpuImage.createTexture(texture, sync = true, checkRedundancy = true)
                 this.texture = texture
             } else when (Signature.findNameSync(file)) {
@@ -63,7 +63,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
                         val w = img.width
                         val h = img.height
                         GFX.addGPUTask("hdr", w, h) {
-                            val texture = Texture2D("image-data", img.width, img.height, 1)
+                            val texture = Texture2D("i2t/hdr/${file.name}", img.width, img.height, 1)
                             img.createTexture(texture, sync = false, checkRedundancy = true)
                             this.texture = texture
                         }
@@ -76,7 +76,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
                     waitUntil(true) { async.hasValue }
                     val image = async.value
                     if (image != null) {
-                        val texture = Texture2D("image-data", image.width, image.height, 1)
+                        val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
                         texture.create(file.toString(), image, true)
                         texture.rotation = getRotation(file)
                         this.texture = texture
@@ -109,7 +109,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
         val img = file.inputStreamSync().use { stream: InputStream ->
             TGAImage.read(stream, false)
         }
-        val texture = Texture2D("image-data", img.width, img.height, 1)
+        val texture = Texture2D("i2t/tga/${file.name}", img.width, img.height, 1)
         texture.create(img, sync = false, checkRedundancy = true)
         this.texture = texture
     }
@@ -136,7 +136,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
     private fun tryGetImage1(file: FileReference) {
         val image = tryGetImage(file)
         if (image != null) {
-            val texture = Texture2D("image-data", 1024, 1024, 1)
+            val texture = Texture2D("i2t/bi/${file.name}", 1024, 1024, 1)
             texture.create(file.toString(), image, checkRedundancy = true)
             texture.rotation = getRotation(file)
             this.texture = texture
@@ -151,6 +151,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
     }
 
     private fun tryGetImage(file: FileReference, stream: InputStream): Image? {
+        LOGGER.warn("tryGetImage($file)")
         if (file is ImageReadable) return file.readGPUImage()
         // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
         val image = try {

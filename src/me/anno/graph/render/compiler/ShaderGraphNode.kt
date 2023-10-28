@@ -9,7 +9,7 @@ import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -163,7 +163,7 @@ class ShaderGraphNode : ActionNode(
                 val fragmentVariables = typeValues.map { (k, v) -> Variable(v.type, k) } + extraVariables +
                         listOf(Variable(GLSLType.V4F, "result1", VariableMode.OUT))
                 shader = Shader(
-                    name, coordsList, coordsVShader, uvList,
+                    name, coordsList, coordsUVVertexShader, uvList,
                     fragmentVariables,
                     extraFunctions.toString() +
                             locals + body +

@@ -131,12 +131,15 @@ object DrawRectangles {
         }
     }
 
-    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, thicknessX: Int = 1, thicknessY: Int = thicknessX) {
+    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, thickness: Int) {
+        drawBorder(x, y, w, h, color, thickness, thickness)
+    }
+
+    fun drawBorder(x: Int, y: Int, w: Int, h: Int, color: Int, thicknessX: Int, thicknessY: Int) {
         if (color.a() == 0) return
         drawRect(x, y, w, thicknessY, color)
         drawRect(x, y + h - thicknessY, w, thicknessY, color)
         drawRect(x, y, thicknessX, h, color)
         drawRect(x + w - thicknessX, y, thicknessX, h, color)
     }
-
 }

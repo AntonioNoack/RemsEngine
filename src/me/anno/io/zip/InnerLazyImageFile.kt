@@ -11,13 +11,13 @@ import java.nio.charset.Charset
 
 open class InnerLazyImageFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
-    val cpuImage: Lazy<Image>, val gpuImage: Lazy<Image>,
+    val cpuImage: Lazy<Image>, val gpuImage: () -> Image,
 ) : InnerFile(absolutePath, relativePath, false, _parent), ImageReadable, SignatureFile {
 
     override var signature: Signature? = Signature.bmp
 
     override fun hasInstantGPUImage(): Boolean {
-        return gpuImage.isInitialized() && super.hasInstantGPUImage()
+        return false
     }
 
     override fun hasInstantCPUImage(): Boolean {
@@ -38,7 +38,7 @@ open class InnerLazyImageFile(
     }
 
     override fun readGPUImage(): Image {
-        return gpuImage.value
+        return gpuImage()
     }
 
     override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {

@@ -9,7 +9,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.simplestVertexShader
+import me.anno.gpu.shader.ShaderLib.coordsVertexShader
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
@@ -167,7 +167,7 @@ object Reduction {
         return shaderByType.getOrPut(op) {
             val v0 = "vec4(${op.startValue.x}, ${op.startValue.y}, ${op.startValue.z}, ${op.startValue.w})"
             Shader(
-                "reduce-${op.name}", coordsList, simplestVertexShader, emptyList(), emptyList(), "" +
+                "reduce-${op.name}", coordsList, coordsVertexShader, emptyList(), emptyList(), "" +
                         "uniform sampler2D src;\n" +
                         "uniform float scale;\n" +
                         "#define reduce(a,b) ${op.function}\n" +

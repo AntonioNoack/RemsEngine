@@ -67,7 +67,7 @@ interface ExpressionRenderer {
                             listOf(Variable(GLSLType.V4F, "result", VariableMode.OUT)) +
                             DepthTransforms.depthVars
                     shader = Shader(
-                        "ExpressionRenderer", ShaderLib.coordsList, ShaderLib.coordsVShader,
+                        "ExpressionRenderer", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader,
                         ShaderLib.uvList, variables, extraFunctions.toString() +
                                 builder.toString() +
                                 "void main(){\n" +

@@ -29,7 +29,7 @@ abstract class ImagePanel(style: Style) : Panel(style) {
 
     var showAlpha = false
     var flipX = false
-    var flipY = false
+    var flipY = true
 
     var allowMovement = false
     var allowZoom = false
@@ -89,7 +89,7 @@ abstract class ImagePanel(style: Style) : Panel(style) {
         val texture = getTexture() ?: return
         calculateSizes(texture)
         if (showAlpha) DrawTextures.drawTransparentBackground(lix, liy, liw, lih)
-        drawTexture(lix, liy + lih, liw, -lih, texture, -1, null)
+        drawTexture(lix, liy, liw, lih, texture, -1, null, flipY)
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {

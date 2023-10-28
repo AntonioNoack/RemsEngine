@@ -57,6 +57,7 @@ open class TestDrawPanel(val draw: (p: TestDrawPanel) -> Unit) : Panel(style) {
     }
 
     companion object {
+
         @JvmStatic
         fun testDrawing(title: String, draw: (p: TestDrawPanel) -> Unit) {
             testUI3(title) { TestDrawPanel(draw) }

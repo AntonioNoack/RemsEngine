@@ -1,6 +1,7 @@
 package me.anno.image.raw
 
 import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
@@ -57,45 +58,51 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
     }
 
     override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
-        val size = width * height
-        val bytes = bufferPool[size, false, false]
-        when (src) {
-            is IntImage -> {
-                // use direct data access
-                val data = src.data
-                if (inverse) {
-                    for (i in 0 until size) {
-                        bytes.put(i, (255 - data[i].shr(shift)).toByte())
-                    }
-                } else {
-                    for (i in 0 until size) {
-                        bytes.put(i, data[i].shr(shift).toByte())
-                    }
-                }
-            }
-            is GPUImage -> {
-                TODO("use shader to create texture")
-            }
-            else -> {
-                if (inverse) {
-                    for (i in 0 until size) {
-                        bytes.put(i, (255 - src.getRGB(i).shr(shift)).toByte())
-                    }
-                } else {
-                    for (i in 0 until size) {
-                        bytes.put(i, src.getRGB(i).shr(shift).toByte())
-                    }
-                }
-            }
-        }
-        if (sync && GFX.isGFXThread()) {
-            texture.createMonochrome(bytes, checkRedundancy)
+        if (src is GPUImage) {
+            val m = if (inverse) channel.uppercaseChar() else channel
+            TextureMapper.mapTexture(
+                src.texture, texture, "$m$m${m}1",
+                // todo if source has float precision, use that
+                TargetType.UByteTarget4
+            )
         } else {
-            if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
-            GFX.addGPUTask("ComponentImage", width, height) {
-                if (!texture.isDestroyed) {
-                    texture.createMonochrome(bytes, checkRedundancy = false)
-                } else LOGGER.warn("Image was already destroyed")
+            val size = width * height
+            val bytes = bufferPool[size, false, false]
+            when (src) {
+                is IntImage -> {
+                    // use direct data access
+                    val data = src.data
+                    if (inverse) {
+                        for (i in 0 until size) {
+                            bytes.put(i, (255 - data[i].shr(shift)).toByte())
+                        }
+                    } else {
+                        for (i in 0 until size) {
+                            bytes.put(i, data[i].shr(shift).toByte())
+                        }
+                    }
+                }
+                else -> {
+                    if (inverse) {
+                        for (i in 0 until size) {
+                            bytes.put(i, (255 - src.getRGB(i).shr(shift)).toByte())
+                        }
+                    } else {
+                        for (i in 0 until size) {
+                            bytes.put(i, src.getRGB(i).shr(shift).toByte())
+                        }
+                    }
+                }
+            }
+            if (sync && GFX.isGFXThread()) {
+                texture.createMonochrome(bytes, checkRedundancy)
+            } else {
+                if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
+                GFX.addGPUTask("ComponentImage", width, height) {
+                    if (!texture.isDestroyed) {
+                        texture.createMonochrome(bytes, checkRedundancy = false)
+                    } else LOGGER.warn("Image was already destroyed")
+                }
             }
         }
     }
@@ -107,5 +114,9 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
 
     override fun getRGB(index: Int): Int {
         return (getValue(index) * 0x10101) or black
+    }
+
+    override fun toString(): String {
+        return "ComponentImage { $src, ${if (inverse) "1-" else ""}$channel }"
     }
 }

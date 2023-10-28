@@ -8,6 +8,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -26,11 +27,7 @@ import kotlin.math.max
 object MipmapCalculator {
 
     val shader = Shader(
-        "mipmap", coordsList, "void main(){\n" +
-                "   gl_Position = vec4(coords*2.0-1.0, 0.5, 1.0);\n" +
-                "   uv = coords;\n" +
-                "}",
-        uvList, listOf(
+        "mipmap", coordsList, coordsUVVertexShader, uvList, listOf(
             Variable(GLSLType.S2D, "srcTex"),
             Variable(GLSLType.V1F, "lod"),
             Variable(GLSLType.V4F, "result", VariableMode.OUT)

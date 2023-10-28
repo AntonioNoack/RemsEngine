@@ -7,8 +7,8 @@ import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.FlatShaders.flatShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2
-import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2List
+import me.anno.gpu.shader.ShaderLib.uiVertexShader
+import me.anno.gpu.shader.ShaderLib.uiVertexShaderList
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.utils.Color.a
@@ -47,7 +47,7 @@ object DrawRounded {
     val bottomRight = corner(false, my = false)
 
     val roundedShader = BaseShader(
-        "roundedRectShader", simpleVertexShaderV2List, simpleVertexShaderV2, uvList,
+        "roundedRectShader", uiVertexShaderList, uiVertexShader, uvList,
         listOf(
             Variable(GLSLType.V4F, "centerColor"),
             Variable(GLSLType.V4F, "outlineColor"),

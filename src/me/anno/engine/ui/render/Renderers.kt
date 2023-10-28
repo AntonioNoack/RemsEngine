@@ -20,7 +20,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.SimpleRenderer
@@ -351,7 +351,7 @@ object Renderers {
             if (layer != null) {
                 val type2 = GLSLType.floats[type.workDims - 1].glslName
                 Shader(
-                    type.name, coordsList, coordsVShader, uvList, listOf(
+                    type.name, coordsList, coordsUVVertexShader, uvList, listOf(
                         Variable(GLSLType.S2D, "source"),
                         Variable(GLSLType.V4F, "result", VariableMode.OUT)
                     ) + depthVars, "" +

@@ -809,7 +809,8 @@ open class Texture2D(
         creationType: TargetType,
         uploadingType: TargetType,
         dataI: Buffer,
-        data1: ByteBuffer?
+        data1: ByteBuffer?,
+        numChannels: Int,
     ) {
         val width = width
         val height = height
@@ -819,6 +820,7 @@ open class Texture2D(
             GFX.addGPUTask("IntImage", width, height) {
                 if (!isDestroyed) {
                     create(creationType)
+                    this.numChannels = numChannels
                     isCreated = false // mark as non-finished
                 } else LOGGER.warn("Image was already destroyed")
             }

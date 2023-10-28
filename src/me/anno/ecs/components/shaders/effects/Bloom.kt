@@ -18,7 +18,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -145,7 +145,7 @@ object Bloom {
             else blur.append("),0).rgb)\n")
         }
         return Shader(
-            "bloom0", coordsList, coordsVShader, uvList,
+            "bloom0", coordsList, coordsUVVertexShader, uvList,
             listOf(
                 Variable(GLSLType.V4F, "fragColor", VariableMode.OUT),
                 Variable(GLSLType.V1F, "offset"),
@@ -183,7 +183,7 @@ object Bloom {
 
     private val compositionShader = lazy {
         Shader(
-            "bloom", coordsList, coordsVShader, uvList,
+            "bloom", coordsList, coordsUVVertexShader, uvList,
             listOf(
                 Variable(GLSLType.V4F, "result", VariableMode.OUT),
                 Variable(GLSLType.V1B, "applyToneMapping"),

@@ -3,11 +3,6 @@ package me.anno.ecs.components.shaders.effects
 import me.anno.engine.ui.render.Renderers.tonemapGLSL
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
-import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
@@ -18,7 +13,7 @@ import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.coordsList
-import me.anno.gpu.shader.ShaderLib.coordsVShader
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.ShaderLib.uvList
@@ -27,8 +22,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
-import me.anno.graph.render.Texture
 import org.joml.Matrix4f
 import org.joml.Vector4f
 
@@ -75,7 +68,7 @@ object ScreenSpaceReflections {
                 "return;\n"
 
         return Shader(
-            "ss-reflections", coordsList, coordsVShader, uvList, variables, "" +
+            "ss-reflections", coordsList, coordsUVVertexShader, uvList, variables, "" +
 
                     functions.joinToString("\n") +
 

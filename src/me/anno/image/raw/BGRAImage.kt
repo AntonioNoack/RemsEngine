@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.maths.Maths.convertABGR2ARGB
@@ -29,9 +30,9 @@ class BGRAImage(val base: Image) :
 
     override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
         if (base is GPUImage) {
-            TODO("use a shader to transform this")
-        } else {
-            super.createTexture(texture, sync, checkRedundancy)
-        }
+            // todo if source has float precision, use that
+            val type = UByteTargets[base.numChannels - 1]
+            TextureMapper.mapTexture(base.texture, texture, "bgra", type)
+        } else super.createTexture(texture, sync, checkRedundancy)
     }
 }

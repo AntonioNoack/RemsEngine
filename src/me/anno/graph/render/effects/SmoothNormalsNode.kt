@@ -49,7 +49,7 @@ class SmoothNormalsNode : ActionNode(
     companion object {
 
         private val unpackShader = Shader(
-            "smoothNormals-unpack", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(
+            "smoothNormals-unpack", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                 Variable(GLSLType.S2D, "normalTex"),
                 Variable(GLSLType.V1B, "normalZW"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT),
@@ -65,7 +65,7 @@ class SmoothNormalsNode : ActionNode(
         }
 
         private val blurShader = Shader(
-            "smoothNormals-blur", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(
+            "smoothNormals-blur", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                 Variable(GLSLType.S2D, "normalTex"),
                 Variable(GLSLType.S2D, "baseTex"),
                 Variable(GLSLType.S2D, "depthTex"),

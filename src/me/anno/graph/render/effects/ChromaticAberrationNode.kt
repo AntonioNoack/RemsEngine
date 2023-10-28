@@ -60,7 +60,7 @@ class ChromaticAberrationNode : ActionNode(
 
     companion object {
         val shader = Shader(
-            "chromatic", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList,
+            "chromatic", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
             listOf(
                 Variable(GLSLType.V2F, "rOffset"),
                 Variable(GLSLType.V2F, "bOffset"),

@@ -1,7 +1,7 @@
 package me.anno.gpu.shader
 
-import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2
-import me.anno.gpu.shader.ShaderLib.simpleVertexShaderV2List
+import me.anno.gpu.shader.ShaderLib.uiVertexShader
+import me.anno.gpu.shader.ShaderLib.uiVertexShaderList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 
@@ -9,7 +9,7 @@ object FlatSymbols {
 
     val flatShaderHalfArrow = BaseShader(
         "flatShaderHalfArrow",
-        simpleVertexShaderV2List, simpleVertexShaderV2, ShaderLib.uvList, listOf(
+        uiVertexShaderList, uiVertexShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V4F, "backgroundColor"),
             Variable(GLSLType.V1F, "smoothness"),
@@ -31,7 +31,7 @@ object FlatSymbols {
 
     val flatShaderCircle = BaseShader(
         "flatShaderCircle",
-        simpleVertexShaderV2List, simpleVertexShaderV2, ShaderLib.uvList, listOf(
+        uiVertexShaderList, uiVertexShader, ShaderLib.uvList, listOf(
             Variable(GLSLType.V4F, "innerColor"),
             Variable(GLSLType.V4F, "circleColor"),
             Variable(GLSLType.V4F, "backgroundColor"),

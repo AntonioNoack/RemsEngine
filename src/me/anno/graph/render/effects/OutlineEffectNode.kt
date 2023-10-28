@@ -120,7 +120,7 @@ class OutlineEffectNode : RenderSceneNode0(
 
 
         val shader = Shader(
-            "outlines", ShaderLib.coordsList, ShaderLib.coordsVShader, ShaderLib.uvList, listOf(
+            "outlines", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                 Variable(GLSLType.V1I, "radius"),
                 Variable(GLSLType.V1F, "radSq"),
                 Variable(GLSLType.V1F, "invRadSq"),

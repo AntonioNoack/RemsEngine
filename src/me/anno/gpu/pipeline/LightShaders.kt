@@ -26,6 +26,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -118,8 +119,9 @@ object LightShaders {
     val combineVStage = ShaderStage(
         "combineLight-v",
         coordsList + Variable(GLSLType.V2F, "uv", VariableMode.OUT),
-        "gl_Position = vec4(coords*2.0-1.0,0.5,1.0); uv = coords;\n"
+        "gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\nuv = coords;\n"
     )
+
     val combineFStage = ShaderStage(
         "combineLight-f", listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.INMOD),

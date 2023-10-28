@@ -34,11 +34,11 @@ object LogManager {
     @JvmStatic
     @Suppress("unused")
     fun enableLogger(logger: String?) {
-        setLevel(logger, defaultLevel)
+        define(logger, defaultLevel)
     }
 
     @JvmStatic
-    fun setLevel(logger: String?, level: Level) {
+    fun define(logger: String?, level: Level) {
         if (logger == null) defaultLevel = level
         else logLevels[logger] = level
     }
