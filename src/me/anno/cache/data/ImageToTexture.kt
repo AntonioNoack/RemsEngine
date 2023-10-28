@@ -1,15 +1,13 @@
 package me.anno.cache.data
 
+import me.anno.cache.AsyncCacheData
 import me.anno.cache.ICacheData
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.Image
-import me.anno.image.ImageCPUCache
-import me.anno.image.ImageReadable
-import me.anno.image.ImageTransform
+import me.anno.image.*
 import me.anno.image.hdr.HDRReader
 import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAImage
@@ -17,13 +15,14 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
+import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.types.Strings.getImportType
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 import javax.imageio.ImageIO
 
-class ImageData(file: FileReference) : ICacheData {
+class ImageToTexture(file: FileReference) : ICacheData {
 
     companion object {
 
@@ -31,7 +30,7 @@ class ImageData(file: FileReference) : ICacheData {
         val imageTimeout get() = DefaultConfig["ui.image.frameTimeout", 5000L]
 
         @JvmStatic
-        private val LOGGER = LogManager.getLogger(ImageData::class)
+        private val LOGGER = LogManager.getLogger(ImageToTexture::class)
 
         @JvmStatic
         fun getRotation(src: FileReference): ImageTransform? {
@@ -44,13 +43,12 @@ class ImageData(file: FileReference) : ICacheData {
     }
 
     var texture: Texture2D? = null
-    var framebuffer: Framebuffer? = null
     var hasFailed = false
 
     init {
         if (file is ImageReadable) {
             val texture = Texture2D("image-data", 1024, 1024, 1)
-            texture.create(file.toString(), file.readImage(), true)
+            texture.create(file.toString(), file.readGPUImage(), true)
             this.texture = texture
         } else {
             val cpuImage = ImageCPUCache.getImageWithoutGenerator(file)
@@ -73,7 +71,10 @@ class ImageData(file: FileReference) : ICacheData {
                 }
                 "dds", "media" -> useFFMPEG(file)
                 else -> {
-                    val image = ImageCPUCache[file, 50, false]
+                    val async = AsyncCacheData<Image?>()
+                    ImageReader.readImage(file, async, true)
+                    waitUntil(true) { async.hasValue }
+                    val image = async.value
                     if (image != null) {
                         val texture = Texture2D("image-data", image.width, image.height, 1)
                         texture.create(file.toString(), image, true)
@@ -145,12 +146,12 @@ class ImageData(file: FileReference) : ICacheData {
     }
 
     private fun tryGetImage(file: FileReference): Image? {
-        if (file is ImageReadable) return file.readImage()
+        if (file is ImageReadable) return file.readGPUImage()
         return tryGetImage(file, file.inputStreamSync())
     }
 
     private fun tryGetImage(file: FileReference, stream: InputStream): Image? {
-        if (file is ImageReadable) return file.readImage()
+        if (file is ImageReadable) return file.readGPUImage()
         // try ImageIO first, then Imaging, then give up (we could try FFMPEG, but idk, whether it supports sth useful)
         val image = try {
             ImageIO.read(stream)
@@ -166,7 +167,6 @@ class ImageData(file: FileReference) : ICacheData {
     }
 
     override fun destroy() {
-        // framebuffer destroys the texture, too
-        framebuffer?.destroy() ?: texture?.destroy()
+        texture?.destroy()
     }
 }

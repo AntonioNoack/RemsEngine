@@ -168,7 +168,8 @@ abstract class InnerTmpFile private constructor(
 
         override fun readBytesSync(): ByteArray = bytes.value
 
-        override fun readImage(): Image = image
+        override fun readCPUImage(): Image = image
+        override fun readGPUImage(): Image = image
     }
 
     abstract class InnerTmpAudioFile : InnerTmpFile("mp3"), AudioReadable {

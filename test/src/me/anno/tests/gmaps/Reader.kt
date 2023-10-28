@@ -89,7 +89,8 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
             texture.internalFormat = format
             texture.createdW = width
             texture.createdH = height
-            texture.afterUpload(false, 4)
+            // bytes per pixel isn't really correct, just a (bad) guess
+            texture.afterUpload(false, 4, 4)
         }
     }
 }

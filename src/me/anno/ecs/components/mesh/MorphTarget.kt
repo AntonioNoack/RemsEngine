@@ -4,6 +4,9 @@ import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 
 // normals as well?
+/**
+ * not yet properly supported!!!
+ * */
 class MorphTarget(name: String, var positions: FloatArray, var weight: Float = 0f) : NamedSaveable() {
 
     constructor() : this("", FloatArray(0))

@@ -197,7 +197,7 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
             lastPointer = fb.pointer
             val prefab = Prefab("Material")
             val texture = fb.getTexture0()
-            val image = GPUImage(texture, 4, true, hasOwnership = false)
+            val image = GPUImage(texture, 4, true)
             val texturePath = InnerTmpFile.InnerTmpImageFile(image)
             val materialPath = InnerTmpFile.InnerTmpPrefabFile(prefab)
             prefab.setProperty("diffuseMap", texturePath)

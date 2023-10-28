@@ -261,7 +261,16 @@ object ThumbsExt {
                     .filter { !ImageGPUCache.hasImageOrCrashed(it, timeout, true) }
                     .forEach { LOGGER.warn("Missing texture $it") }
                 true
-            } else textures.all { ImageGPUCache.hasImageOrCrashed(it, timeout, true) }
+            } else {
+                // all images should be requested every time, so we can load them in parallel
+                var hasAll = true
+                for (texture in textures) {
+                    if (!ImageGPUCache.hasImageOrCrashed(texture, timeout, true)) {
+                        hasAll = false
+                    }
+                }
+                hasAll
+            }
         }
     }
 }

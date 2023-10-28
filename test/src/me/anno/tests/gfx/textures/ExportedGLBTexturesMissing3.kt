@@ -8,5 +8,5 @@ import me.anno.utils.OS.downloads
 fun main() {
     ECSRegistry.init()
     Build.isDebug = false
-    testSceneWithUI(".blend with materials", downloads.getChild("Futuristic Shop Scene.blend"))
+    testSceneWithUI(".blend with materials", downloads.getChild("The Junk Shop.blend"))
 }

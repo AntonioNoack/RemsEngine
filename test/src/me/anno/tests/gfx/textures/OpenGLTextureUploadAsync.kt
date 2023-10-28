@@ -12,7 +12,7 @@ fun main() {
     // "No context is current or a function that is not available in the current context was called"
     // separate thread to upload textures...
     val src = UVChecker.value
-    val image = src.readImage() as IntImage
+    val image = src.readCPUImage() as IntImage
     val callOnce = lazy {
         val texture = Texture2D("test", image.width, image.height, 1)
         texture.ensurePointer()

@@ -30,9 +30,6 @@ abstract class Image(
     var hasAlphaChannel: Boolean
 ) : ICacheData {
 
-    // todo fill this in, everywhere
-    var source: FileReference = InvalidRef
-
     override fun toString(): String {
         return "${javaClass.name}@${
             System.identityHashCode(this).toHexColor()

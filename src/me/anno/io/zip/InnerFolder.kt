@@ -3,6 +3,7 @@ package me.anno.io.zip
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.Image
+import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.structures.lists.UnsafeArrayList
@@ -118,11 +119,15 @@ open class InnerFolder(
     }
 
     fun createLazyImageChild(name: String, content: Lazy<Image>, registry: HashMap<String, InnerFile>? = null): InnerFile {
+        return createLazyImageChild(name, content, content, registry)
+    }
+
+    fun createLazyImageChild(name: String, cpuImage: Lazy<Image>, gpuImage: Lazy<Image>, registry: HashMap<String, InnerFile>? = null): InnerFile {
         val child = children[name]
         if (child != null) return child
         val relativePath = getSubName(name)
-        return registry?.getOrPut(relativePath) { createLazyImageChild(name, content, null) }
-            ?: InnerLazyImageFile("$absolutePath/$name", relativePath, this, content)
+        return registry?.getOrPut(relativePath) { createLazyImageChild(name, cpuImage, gpuImage, null) }
+            ?: InnerLazyImageFile("$absolutePath/$name", relativePath, this, cpuImage, gpuImage)
     }
 
     fun createByteChild(name: String, content: ByteArray, registry: HashMap<String, InnerFile>? = null): InnerFile {

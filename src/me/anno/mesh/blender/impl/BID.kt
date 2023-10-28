@@ -12,9 +12,9 @@ class BID(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int)
     val next get() = getPointer("*next")
     val prev get() = getPointer("*prev")
 
-    val name = string("name[66]", 66)
-    val typeName = name.substring(0, min(name.length, 2))
-    val realName = name.substring(min(name.length, 2))
+    // val name = string("name[66]", 66)
+    val typeName get() = string("name[66]", 2)
+    val realName get() = string(getOffset("name[66]") + 2, 64)
 
     // tags, flags, ...
     override fun toString(): String {

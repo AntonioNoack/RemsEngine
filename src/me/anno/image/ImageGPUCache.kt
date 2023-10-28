@@ -2,7 +2,7 @@ package me.anno.image
 
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
-import me.anno.cache.data.ImageData
+import me.anno.cache.data.ImageToTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.LateinitTexture
 import me.anno.gpu.texture.Texture2D
@@ -16,12 +16,12 @@ import me.anno.utils.Sleep.waitForGFXThread
 import org.apache.logging.log4j.LogManager
 import kotlin.math.sqrt
 
-object ImageGPUCache : CacheSection("Images") {
+object ImageGPUCache : CacheSection("ImageGPU") {
 
     private val LOGGER = LogManager.getLogger(ImageGPUCache::class)
 
     fun hasImageOrCrashed(file: FileReference, timeout: Long, asyncGenerator: Boolean): Boolean {
-        if (file is ImageReadable && file.readImage() is GPUImage) return true
+        if (file is ImageReadable && file.hasInstantGPUImage()) return true
         if (file == InvalidRef) return true
         if (file.isDirectory || !file.exists) return true
         val entry = try {
@@ -32,7 +32,7 @@ object ImageGPUCache : CacheSection("Images") {
         }
         return when {
             entry == null -> false
-            entry !is ImageData -> true
+            entry !is ImageToTexture -> true
             entry.hasFailed -> true
             entry.texture?.isCreated == true -> true
             else -> false
@@ -46,7 +46,7 @@ object ImageGPUCache : CacheSection("Images") {
     operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): Texture2D? {
         if (file == InvalidRef) return null
         if (file is ImageReadable) {
-            val image = file.readImage()
+            val image = file.readGPUImage()
             if (image is GPUImage) {
                 val texture =
                     image.texture as? Texture2D ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
@@ -62,7 +62,7 @@ object ImageGPUCache : CacheSection("Images") {
         val imageData = getEntry(
             file, timeout, asyncGenerator,
             ImageGPUCache::generateImageData
-        ) as? ImageData ?: return null
+        ) as? ImageToTexture ?: return null
         if (!imageData.hasFailed && imageData.texture?.isCreated != true && !asyncGenerator && !OS.isWeb) {
             // the texture was forced to be loaded -> wait for it
             waitForGFXThread(true) {
@@ -79,7 +79,7 @@ object ImageGPUCache : CacheSection("Images") {
         return getImage(getReference(file), timeout, asyncGenerator)
     }*/
 
-    private fun generateImageData(file: FileReference) = ImageData(file)
+    private fun generateImageData(file: FileReference) = ImageToTexture(file)
 
     fun getLateinitTexture(
         key: Any,

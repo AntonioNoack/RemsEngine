@@ -69,8 +69,11 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
             audioSampleCount = file.sampleCount
             audioDuration = file.duration
             duration = audioDuration
+        } else if (file is ImageReadable && file.hasInstantGPUImage()) {
+            val image = file.readGPUImage()
+            setImage(image.width, image.height)
         } else if (file is ImageReadable) {
-            val image = file.readImage()
+            val image = file.readCPUImage()
             setImage(image.width, image.height)
         } else when (val signature1 = signature ?: Signature.findNameSync(file)) {
             "gimp" -> {

@@ -96,10 +96,10 @@ object BlenderShaderTree {
                     "ShaderNodeTexImage" -> {
                         // UVs: "Vector",
                         // Output: "Color"/"Alpha" -> use the correct slot (given by socket)
-                        val slot = if (value.second.name == "Alpha") "a.png" else "rgb.png"
-                        val source = (node.id as? BImage)?.reference?.nullIfUndefined()
-                        if (source != null) {
-                            return white4 to source.getChild(slot)
+                        val source0 = (node.id as? BImage)?.reference?.nullIfUndefined()
+                        val source1 = if (value.second.name == "Alpha") source0?.getChild("a.png") else source0
+                        if (source1 != null) {
+                            return white4 to source1
                         }
                     }
                     "ShaderNodeValToRGB" -> {
@@ -230,7 +230,7 @@ object BlenderShaderTree {
                     }
                 }
                 findData(shaderNode)
-                println(prefab.sets)
+                LOGGER.debug(prefab.sets)
             } else LOGGER.warn("Surface Socket missing")
         }
     }

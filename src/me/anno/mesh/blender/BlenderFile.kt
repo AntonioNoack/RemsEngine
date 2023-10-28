@@ -2,7 +2,6 @@ package me.anno.mesh.blender
 
 import me.anno.io.files.FileReference
 import me.anno.mesh.blender.blocks.Block
-import me.anno.mesh.blender.blocks.BlockHeader
 import me.anno.mesh.blender.blocks.BlockTable
 import me.anno.mesh.blender.impl.*
 import me.anno.mesh.blender.impl.nodes.*
@@ -48,22 +47,20 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     private val firstBlockOffset = file.offset()
 
     // read blocks
-    val blocks: ArrayList<Block>
+    val blocks = ArrayList<Block>()
 
     init {
-        val blocks = ArrayList<Block>()
-        this.blocks = blocks
         file.offset(firstBlockOffset)
-        var blockHeader = BlockHeader(file)
-        while (blockHeader.code != ENDB) {
-            blocks.add(Block(blockHeader, file.index))
-            file.skip(blockHeader.size)
-            blockHeader = BlockHeader(file)
+        while (true) {
+            val block = Block(file)
+            if (block.code == ENDB) break
+            file.skip(block.size)
+            blocks.add(block)
         }
     }
 
     init {
-        val offset = blocks.first { it.header.code == DNA1 }.positionInFile
+        val offset = blocks.first { it.code == DNA1 }.positionInFile
         file.offset(offset)
     }
 
@@ -120,9 +117,11 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     val structByName = structs.associateBy { it.type.name }
 
     init {
-        for (name in structByName.keys.sorted()) {
-            val struct = structByName[name]!!
-            println("Struct $name[${struct.type.size}]: ${struct.byName}")
+        if (LOGGER.isDebugEnabled) {
+            for (name in structByName.keys.sorted()) {
+                val struct = structByName[name]!!
+                LOGGER.debug("Struct {}[{}]: {}", name, struct.type.size, struct.byName)
+            }
         }
     }
 
@@ -151,18 +150,17 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     init {
         // println("read blocks, now instantiating:")
         for (block in blockTable.blockList) {
-            val header = block.header
-            val code = header.code
+            val code = block.code
             if (code != DNA1 && code != ENDB && code != TEST) {
-                val struct = structs[header.sdnaIndex]
+                val struct = structs[block.sdnaIndex]
                 val blendFields = struct.fields
                 // println("block ${header.address} contains ${header.count}x ${struct.type.name}")
                 if (blendFields.isNotEmpty() && blendFields.first().type.name == "ID") {
                     // maybe we should create multiple instances, if there are multiples
                     val name = struct.type.name
                     // println("  $name")
-                    for (i in 0 until header.count) {
-                        val address = block.header.address + struct.type.size * i
+                    for (i in 0 until block.count) {
+                        val address = block.address + struct.type.size * i
                         val instance = getOrCreate(struct, struct.type.name, block, address)
                         if (instance != null) {
                             instances.getOrPut(name) { ArrayList() }

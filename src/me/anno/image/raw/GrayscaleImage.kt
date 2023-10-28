@@ -6,9 +6,8 @@ import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
 import me.anno.utils.Color.black
 
-open class GrayscaleImage(
-    val src: Image
-) : Image(src.width, src.height, 1, false) {
+open class GrayscaleImage(val src: Image) :
+    Image(src.width, src.height, 1, false) {
 
     override fun getRGB(index: Int): Int = (getLuminance(src.getRGB(index)) * 0x10101) or black
 

@@ -1,8 +1,8 @@
 package me.anno.io.files.thumbs
 
 import me.anno.Build
-import me.anno.cache.data.ImageData
-import me.anno.cache.data.ImageData.Companion.imageTimeout
+import me.anno.cache.data.ImageToTexture
+import me.anno.cache.data.ImageToTexture.Companion.imageTimeout
 import me.anno.cache.instances.SVGMeshCache
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig.style
@@ -339,7 +339,7 @@ object Thumbs {
         dst: Image,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        val rotation = if (checkRotation) ImageData.getRotation(srcFile) else null
+        val rotation = if (checkRotation) ImageToTexture.getRotation(srcFile) else null
         val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
         dst.createTexture(texture, sync = false, checkRedundancy = true)
         texture.rotation = rotation
@@ -1037,7 +1037,7 @@ object Thumbs {
                         LOGGER.warn("Could not read $dstFile")
                         false
                     } else {
-                        val rotation = ImageData.getRotation(srcFile)
+                        val rotation = ImageToTexture.getRotation(srcFile)
                         addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
                             val texture = Texture2D(srcFile.name, image.toImage(), true)
                             texture.rotation = rotation
@@ -1264,7 +1264,7 @@ object Thumbs {
 
         when (srcFile) {
             is ImageReadable -> {
-                val image = srcFile.readImage()
+                val image = if(useCacheFolder) srcFile.readCPUImage() else srcFile.readGPUImage()
                 transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
                 return
             }

@@ -174,7 +174,7 @@ object Packer {
                     val originalWasJpeg = resource.absolutePath.contains(".jpg/", true) ||
                             resource.absolutePath.contains(".jpeg/", true)
                     val extension = if (originalWasJpeg) "jpg" else "png"
-                    val bi = resource.readImage().createBufferedImage()
+                    val bi = resource.readCPUImage().createBufferedImage()
                     ImageIO.write(bi, extension, zos)
                     doneSize += entry.size // is this available here???
                     reportProgress(doneSize, totalSize)

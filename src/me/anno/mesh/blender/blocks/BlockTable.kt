@@ -1,17 +1,19 @@
 package me.anno.mesh.blender.blocks
 
 import me.anno.mesh.blender.BlenderFile
+import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
 class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStructs: IntArray?) {
 
     companion object {
         private const val HEAP_BASE = 4096L
+        private val LOGGER = LogManager.getLogger(BlockTable::class)
     }
 
     constructor(file: BlenderFile) : this(file, null, null)
 
-    val sorted = blocks?.sortedBy { it.header.address }?.toMutableList() ?: ArrayList()
+    val sorted = blocks?.sortedBy { it.address }?.toMutableList() ?: ArrayList()
     val blockList = blocks?.toMutableList() ?: ArrayList()
 
     var offHeapAreas: HashMap<Int, BlockTable>? = null
@@ -28,7 +30,7 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
                 val b = sorted[i]
                 for (index in offHeapStructs.indices) {
                     val sdnaIndex = offHeapStructs[index]
-                    if (b.header.sdnaIndex == sdnaIndex) {
+                    if (b.sdnaIndex == sdnaIndex) {
                         offHeapAreas!![sdnaIndex]!!.add(b)
                         sorted.removeAt(i)
                         i--
@@ -40,16 +42,16 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
         }
         if (sorted.isNotEmpty()) {
             val first = sorted.first()
-            if (first.header.address <= HEAP_BASE) throw IllegalStateException()
+            if (first.address <= HEAP_BASE) throw IllegalStateException()
         }
     }
 
     fun binarySearch(address: Long): Int {
-        return sorted.binarySearch { it.header.address.compareTo(address) }
+        return sorted.binarySearch { it.address.compareTo(address) }
     }
 
     fun binarySearch(block: Block): Int {
-        return binarySearch(block.header.address)
+        return binarySearch(block.address)
     }
 
     fun add(block: Block) {
@@ -67,7 +69,7 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
 
     fun getAddressAt(positionInFile: Int): Long {
         val block = getBlockAt(positionInFile)
-        return block.header.address + (positionInFile - block.positionInFile)
+        return block.address + (positionInFile - block.positionInFile)
     }
 
     fun findBlock(file: BlenderFile, address: Long): Block? {
@@ -83,20 +85,19 @@ class BlockTable(val file: BlenderFile, val blocks: Array<Block>?, offHeapStruct
             i = -i - 2
             if (i >= 0) {
                 val b = sorted[i]
-                val endAddress = b.header.address + b.header.size
+                val endAddress = b.address + b.size
                 if (address < endAddress) {
                     // block found
                     return b
                 } else {
-                    println(
-                        "block out of bounds: $address >= ${b.header.address} + ${b.header.size} " +
-                                "(type: ${file.structs[b.header.sdnaIndex].type.name}), " +
-                                "next block: ${sorted.getOrNull(i + 1)?.header?.address}"
+                    LOGGER.debug(
+                        "Block out of bounds: $address >= ${b.address} + ${b.size} " +
+                                "(type: ${file.structs[b.sdnaIndex].type.name}), " +
+                                "next block: ${sorted.getOrNull(i + 1)?.address}"
                     )
                 }
             }
             return null
         }
     }
-
 }

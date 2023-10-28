@@ -41,7 +41,7 @@ open class BlendData(
         if (pointer == 0L) return null
         val block = file.blockTable.findBlock(file, pointer) ?: return null
         // all elements will be pointers to material
-        val remainingSize = block.header.size - (pointer - block.header.address)
+        val remainingSize = block.size - (pointer - block.address)
         val length = (remainingSize / file.pointerSize).toInt()
         if (length == 0) return null
         val positionInFile = block.positionInFile
@@ -138,14 +138,14 @@ open class BlendData(
         field ?: return null
         // in-side object struct, e.g. ID
         val block = file.blockTable.getBlockAt(position)
-        val address = block.header.address + (position - block.positionInFile) + field.offset
+        val address = block.address + (position - block.positionInFile) + field.offset
         val sameBlock = file.blockTable.findBlock(file, address)
         if (sameBlock != block) throw IllegalStateException("$position -> $address -> other, $sameBlock != $block")
         var className = field.type.name
         val type = file.dnaTypeByName[className]!!
         val struct: DNAStruct
         if (type.size == 0 || type.name == "void") {
-            struct = file.structs[block.header.sdnaIndex]
+            struct = file.structs[block.sdnaIndex]
             className = struct.type.name
         } else {
             struct = file.structByName[className]!!
@@ -166,14 +166,14 @@ open class BlendData(
             var typeSize = type.size
             val struct: DNAStruct
             if (type.size == 0 || type.name == "void") {
-                struct = file.structs[block.header.sdnaIndex]
+                struct = file.structs[block.sdnaIndex]
                 className = struct.type.name
                 typeSize = file.pointerSize
             } else {
                 struct = file.structByName[className]!!
             }
-            val addressInBlock = address - block.header.address
-            val remainingSize = block.header.size - addressInBlock
+            val addressInBlock = address - block.address
+            val remainingSize = block.size - addressInBlock
             val length = remainingSize / typeSize
             if (length > 1000) LOGGER.warn("Instantiating $length ${struct.type.name} instances, use the BInstantList, if possible")
             // if(length > 1000000) throw RuntimeException()
@@ -204,14 +204,14 @@ open class BlendData(
             var typeSize = type.size
             val struct: DNAStruct
             if (type.size == 0 || type.name == "void") {
-                struct = file.structs[block.header.sdnaIndex]
+                struct = file.structs[block.sdnaIndex]
                 className = struct.type.name
                 typeSize = file.pointerSize
             } else {
                 struct = file.structByName[className]!!
             }
-            val addressInBlock = address - block.header.address
-            val remainingSize = block.header.size - addressInBlock
+            val addressInBlock = address - block.address
+            val remainingSize = block.size - addressInBlock
             val length = (remainingSize / typeSize).toInt()
 
             @Suppress("unchecked_cast")
@@ -232,14 +232,14 @@ open class BlendData(
             var typeSize = type.size
             val struct: DNAStruct
             if (type.size == 0 || type.name == "void") {
-                struct = file.structs[block.header.sdnaIndex]
+                struct = file.structs[block.sdnaIndex]
                 className = struct.type.name
                 typeSize = file.pointerSize
             } else {
                 struct = file.structByName[className]!!
             }
-            val addressInBlock = address - block.header.address
-            val remainingSize = block.header.size - addressInBlock
+            val addressInBlock = address - block.address
+            val remainingSize = block.size - addressInBlock
             remainingSize / typeSize
             file.getOrCreate(struct, className, block, address)
         } else {

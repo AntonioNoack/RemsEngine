@@ -34,9 +34,8 @@ class InnerImageFile(
         createBMP(content)
     }
 
-    override fun readImage(): Image {
-        return content
-    }
+    override fun readCPUImage(): Image = content
+    override fun readGPUImage(): Image = content
 
     override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
         callback(bytes, null)
@@ -61,5 +60,4 @@ class InnerImageFile(
     override fun inputStreamSync(): InputStream {
         return ByteArrayInputStream(bytes)
     }
-
 }

@@ -73,6 +73,9 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
                     }
                 }
             }
+            is GPUImage -> {
+                TODO("use shader to create texture")
+            }
             else -> {
                 if (inverse) {
                     for (i in 0 until size) {

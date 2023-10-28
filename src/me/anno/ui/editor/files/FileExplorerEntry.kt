@@ -550,8 +550,14 @@ open class FileExplorerEntry(
                                 (if (name != null) "\"$name\"\n" else "") +
                                 "${prefab.clazzName}, ${prefab.countTotalChanges(true)} Changes"
                     }
-                    file is ImageReadable -> {
-                        val image = file.readImage()
+                    file is ImageReadable && file.hasInstantGPUImage() -> {
+                        val image = file.readGPUImage()
+                        file.name + "\n" +
+                                "${image.width} x ${image.height}"
+                    }
+
+                    file is ImageReadable && file.hasInstantCPUImage() -> {
+                        val image = file.readCPUImage()
                         file.name + "\n" +
                                 "${image.width} x ${image.height}"
                     }

@@ -60,10 +60,13 @@ object ECSRegistry {
         registerCustomClass(Material())
         registerCustomClass(MeshComponent())
         registerCustomClass(AnimRenderer())
+        registerCustomClass(AnimationState())
         registerCustomClass(ImportedAnimation())
         registerCustomClass(BoneByBoneAnimation())
         registerCustomClass(Skeleton())
+        registerCustomClass(Bone())
         registerCustomClass(Retargeting())
+        registerCustomClass(MorphTarget())
     }
 
     @JvmStatic
@@ -73,6 +76,35 @@ object ECSRegistry {
         registerCustomClass(CAdd())
         registerCustomClass(CSet())
         registerCustomClass(Prefab())
+    }
+
+    @JvmStatic
+    fun initLights() {
+        registerCustomClass(SpotLight())
+        registerCustomClass(PointLight())
+        registerCustomClass(DirectionalLight())
+        registerCustomClass(EnvironmentMap())
+        registerCustomClass(PlanarReflection())
+        registerCustomClass(CircleLight())
+        registerCustomClass(RectangleLight())
+        registerCustomClass(Skybox())
+    }
+
+    @JvmStatic
+    fun init3dColliders() {
+        registerCustomClass(BoxCollider())
+        registerCustomClass(CapsuleCollider())
+        registerCustomClass(ConeCollider())
+        registerCustomClass(ConvexCollider())
+        registerCustomClass(CylinderCollider())
+        registerCustomClass(MeshCollider())
+        registerCustomClass(SphereCollider())
+    }
+
+    @JvmStatic
+    fun init2dColliders() {
+        registerCustomClass(RectCollider())
+        registerCustomClass(CircleCollider())
     }
 
     @JvmStatic
@@ -128,42 +160,16 @@ object ECSRegistry {
 
         // animated meshes
         AnimStateNode.register()
-        registerCustomClass(AnimationState())
         registerCustomClass(AnimController())
 
-        // lights
-        registerCustomClass(SpotLight())
-        registerCustomClass(PointLight())
-        registerCustomClass(DirectionalLight())
-        registerCustomClass(EnvironmentMap())
-        registerCustomClass(PlanarReflection())
-        registerCustomClass(CircleLight())
-        registerCustomClass(RectangleLight())
+        initLights()
 
-        registerCustomClass(Skybox())
-
-        // audio, currently not well tested
+        // audio
         registerCustomClass(AudioComponent())
 
-        // 3d colliders
-        registerCustomClass(BoxCollider())
-        registerCustomClass(CapsuleCollider())
-        registerCustomClass(ConeCollider())
-        registerCustomClass(ConvexCollider())
-        registerCustomClass(CylinderCollider())
-        registerCustomClass(MeshCollider())
-        registerCustomClass(SphereCollider())
-
-        // 2d colliders
-        registerCustomClass(RectCollider())
-        registerCustomClass(CircleCollider())
-
-        // skeletons and such
-        registerCustomClass(MorphTarget())
-        registerCustomClass(Skeleton())
-        registerCustomClass(Bone())
-        registerCustomClass(ImportedAnimation())
-        registerCustomClass(BoneByBoneAnimation())
+        // colliders
+        init3dColliders()
+        init2dColliders()
 
         // prefab system
         initPrefabs()

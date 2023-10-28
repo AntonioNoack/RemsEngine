@@ -1,5 +1,6 @@
 package me.anno.image.raw
 
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.maths.Maths.convertABGR2ARGB
 
@@ -26,4 +27,11 @@ class BGRAImage(val base: Image) :
         return convertABGR2ARGB(base.getRGB(index))
     }
 
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+        if (base is GPUImage) {
+            TODO("use a shader to transform this")
+        } else {
+            super.createTexture(texture, sync, checkRedundancy)
+        }
+    }
 }

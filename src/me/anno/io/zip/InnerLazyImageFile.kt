@@ -11,15 +11,17 @@ import java.nio.charset.Charset
 
 open class InnerLazyImageFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
-    image: Lazy<Image>
+    val cpuImage: Lazy<Image>, val gpuImage: Lazy<Image>,
 ) : InnerFile(absolutePath, relativePath, false, _parent), ImageReadable, SignatureFile {
 
     override var signature: Signature? = Signature.bmp
 
-    val image = lazy {
-        val image2 = image.value
-        image2.source = this
-        image2
+    override fun hasInstantGPUImage(): Boolean {
+        return gpuImage.isInitialized() && super.hasInstantGPUImage()
+    }
+
+    override fun hasInstantCPUImage(): Boolean {
+        return cpuImage.isInitialized() && super.hasInstantCPUImage()
     }
 
     init {
@@ -28,15 +30,19 @@ open class InnerLazyImageFile(
     }
 
     val bytes by lazy {
-        BMPWriter.createBMP(readImage())
+        BMPWriter.createBMP(readCPUImage())
     }
 
-    override fun readImage(): Image {
-        return image.value
+    override fun readCPUImage(): Image {
+        return cpuImage.value
+    }
+
+    override fun readGPUImage(): Image {
+        return gpuImage.value
     }
 
     override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {
-        callback(bytes, null)
+        callback(readBytesSync(), null)
     }
 
     override fun readBytesSync(): ByteArray {
