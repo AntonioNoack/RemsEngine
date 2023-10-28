@@ -12,7 +12,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
-import me.anno.mesh.assimp.Bone
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads

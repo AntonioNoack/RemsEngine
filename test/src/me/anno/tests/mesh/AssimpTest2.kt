@@ -10,7 +10,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.mesh.assimp.Bone
+import me.anno.ecs.components.anim.Bone
 import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.mesh.assimp.findAllBones
 import me.anno.utils.Color.a01

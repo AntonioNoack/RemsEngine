@@ -16,26 +16,38 @@ class ImportedAnimation : Animation() {
     override val numFrames: Int
         get() = frames.size
 
-    override fun getMatrices(index: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f> {
+    override fun getMatrices(frameIndex: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f> {
 
         // find the correct frames for interpolation and lerp them
-        val (fraction, index0, index1) = calculateMonotonousTime(index, frames.size)
+        val (fraction, index0, index1) = calculateMonotonousTime(frameIndex, frames.size)
 
         val frame0 = frames[index0]
         val frame1 = frames[index1]
 
         for (i in 0 until min(dst.size, min(frame0.size, frame1.size))) {
-            val dstI = dst[i]
-            dstI.set(frame0[i])
-            dstI.lerp(frame1[i], fraction)
+            frame0[i].lerp(frame1[i], fraction, dst[i])
         }
 
         return dst
-
     }
 
-    override fun getMatrices(index: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f> {
-        return frames[index]
+    override fun getMatrix(frameIndex: Float, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f? {
+        val (fraction, index0, index1) = calculateMonotonousTime(frameIndex, frames.size)
+        val dstI = dst[boneId]
+        val frame0 = frames[index0]
+        val frame1 = frames[index1]
+        if (boneId < min(frame0.size, frame1.size)) {
+            frames[index0][boneId].lerp(frames[index1][boneId], fraction, dstI)
+        }
+        return dst[boneId]
+    }
+
+    override fun getMatrices(frameIndex: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f> {
+        return frames[frameIndex]
+    }
+
+    override fun getMatrix(frameIndex: Int, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f? {
+        return frames[frameIndex].getOrNull(boneId)
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -108,5 +120,4 @@ class ImportedAnimation : Animation() {
             return result
         }
     }
-
 }

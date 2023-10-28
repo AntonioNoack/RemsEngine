@@ -392,15 +392,15 @@ open class FileExplorerEntry(
                 return
             }
         }
-        val img0 = Thumbs.getThumbnail(file, w, true)
-        val img1 = img0 ?: getDefaultIcon()
-        val image = img1 ?: whiteTexture
-        val rot = (image as? Texture2D)?.rotation
-        image.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+        val image0 = Thumbs.getThumbnail(file, w, true)
+        val image1 = image0 ?: getDefaultIcon()
+        val image2 = if (image1 == null || (image1 is Texture2D && !image1.isCreated)) whiteTexture else image1
+        val rot = (image2 as? Texture2D)?.rotation
+        image2.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         if (rot == null || rot.isNull()) {
-            drawTexture(x0, y0, x1, y1, image)
+            drawTexture(x0, y0, x1, y1, image2)
         } else if (rot.angleCW == 0 && rot.mirrorVertical && !rot.mirrorHorizontal) {
-            drawTexture(x0, y1, x1, y0, image)
+            drawTexture(x0, y1, x1, y0, image2)
         } else {
             // todo draw image without overflowing into other things
             // todo maybe use transform for that :)
@@ -411,7 +411,7 @@ open class FileExplorerEntry(
 
             // transform.rotateY(45f.toRadians())
 
-            drawTexture(x0, y0, x1, y1, image)
+            drawTexture(x0, y0, x1, y1, image2)
 
             transform.popMatrix()
             /* GFX.clip2(x0, y0, x1, y1) {

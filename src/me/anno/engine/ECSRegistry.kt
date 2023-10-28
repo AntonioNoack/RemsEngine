@@ -44,7 +44,7 @@ import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
-import me.anno.mesh.assimp.Bone
+import me.anno.ecs.components.anim.Bone
 import me.anno.ui.UIRegistry
 import me.anno.utils.LOGGER
 
@@ -67,6 +67,7 @@ object ECSRegistry {
         registerCustomClass(Bone())
         registerCustomClass(Retargeting())
         registerCustomClass(MorphTarget())
+        registerCustomClass(AttachToBoneComponent())
     }
 
     @JvmStatic

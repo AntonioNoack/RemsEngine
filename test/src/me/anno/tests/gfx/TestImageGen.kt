@@ -34,7 +34,7 @@ import me.anno.io.files.thumbs.Thumbs.generateSkeletonFrame
 import me.anno.io.files.thumbs.Thumbs.generateSomething
 import me.anno.io.files.thumbs.Thumbs.generateVOXMeshFrame
 import me.anno.io.files.thumbs.Thumbs.generateVideoFrame
-import me.anno.mesh.assimp.Bone
+import me.anno.ecs.components.anim.Bone
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents

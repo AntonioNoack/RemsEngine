@@ -11,7 +11,6 @@ import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.mesh.assimp.Bone
 import me.anno.studio.StudioBase
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
@@ -151,9 +150,9 @@ class BoneByBoneAnimation() : Animation() {
         }
     }
 
-    override fun getMatrices(index: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
+    override fun getMatrices(frameIndex: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
         val skeleton = SkeletonCache[skeleton] ?: return null
-        val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(index, frameCount)
+        val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(frameIndex, frameCount)
         val bones = skeleton.bones
         val tmpPos = JomlPools.vec3f.borrow()
         val tmpRot = JomlPools.quat4f.borrow()
@@ -166,18 +165,53 @@ class BoneByBoneAnimation() : Animation() {
         return dst
     }
 
-    override fun getMatrices(index: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
+    override fun getMatrix(frameIndex: Float, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f? {
+        val skeleton = SkeletonCache[skeleton] ?: return null
+        val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(frameIndex, frameCount)
+        val bones = skeleton.bones
+        val tmpPos = JomlPools.vec3f.borrow()
+        val tmpRot = JomlPools.quat4f.borrow()
+        fun calculateRecursively(boneId: Int) {
+            val bone = bones[boneId]
+            val parentId = bone.parentId
+            if (parentId in dst.indices) calculateRecursively(boneId)
+            getTranslation(fraction, frameIndex0, frameIndex1, boneId, tmpPos)
+            getRotation(fraction, frameIndex0, frameIndex1, boneId, tmpRot)
+            toImported(bone, dst.getOrNull(parentId), tmpPos, tmpRot, dst[boneId])
+        }
+        calculateRecursively(boneId)
+        return dst[boneId]
+    }
+
+    override fun getMatrices(frameIndex: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
         val skeleton = SkeletonCache[skeleton] ?: return null
         val bones = skeleton.bones
         val tmpPos = JomlPools.vec3f.borrow()
         val tmpRot = JomlPools.quat4f.borrow()
         for (boneId in 0 until min(dst.size, bones.size)) {
             val bone = bones[boneId]
-            getTranslation(index, boneId, tmpPos)
-            getRotation(index, boneId, tmpRot)
+            getTranslation(frameIndex, boneId, tmpPos)
+            getRotation(frameIndex, boneId, tmpRot)
             toImported(bone, dst.getOrNull(bone.parentId), tmpPos, tmpRot, dst[boneId])
         }
         return dst
+    }
+
+    override fun getMatrix(frameIndex: Int, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f? {
+        val skeleton = SkeletonCache[skeleton] ?: return null
+        val bones = skeleton.bones
+        val tmpPos = JomlPools.vec3f.borrow()
+        val tmpRot = JomlPools.quat4f.borrow()
+        fun calculateRecursively(boneId: Int) {
+            val bone = bones[boneId]
+            val parentId = bone.parentId
+            if (parentId in dst.indices) calculateRecursively(boneId)
+            getTranslation(frameIndex, boneId, tmpPos)
+            getRotation(frameIndex, boneId, tmpRot)
+            toImported(bone, dst.getOrNull(parentId), tmpPos, tmpRot, dst[boneId])
+        }
+        calculateRecursively(boneId)
+        return dst[boneId]
     }
 
     // use this? idk...
@@ -393,7 +427,6 @@ class BoneByBoneAnimation() : Animation() {
             }
 
             Engine.requestShutdown()
-
         }
     }
 }

@@ -1,5 +1,6 @@
 package me.anno.mesh.assimp
 
+import me.anno.ecs.components.anim.Bone
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.mesh.assimp.StaticMeshesLoader.convert

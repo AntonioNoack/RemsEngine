@@ -406,6 +406,20 @@ class Transform() : Saveable() {
         return this
     }
 
+    fun setGlobal(matrix: Matrix4x3d) {
+        val parent = parent
+        if (parent == null) {
+            // easy
+            setLocal(matrix)
+        } else {
+            // a little more complex
+            val tmp = localTransform // overridden anyway
+            parent.globalTransform.invert(tmp)
+            tmp.mul(matrix)
+            setLocal(tmp)
+        }
+    }
+
     @Suppress("unused")
     fun translateLocal(dx: Double, dy: Double, dz: Double): Transform {
         localPosition = localPosition.add(dx, dy, dz)

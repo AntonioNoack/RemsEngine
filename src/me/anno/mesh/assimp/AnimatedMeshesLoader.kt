@@ -2,10 +2,7 @@ package me.anno.mesh.assimp
 
 import me.anno.animation.LoopingState
 import me.anno.ecs.Transform
-import me.anno.ecs.components.anim.Animation
-import me.anno.ecs.components.anim.AnimationState
-import me.anno.ecs.components.anim.BoneByBoneAnimation
-import me.anno.ecs.components.anim.ImportedAnimation
+import me.anno.ecs.components.anim.*
 import me.anno.ecs.components.mesh.Mesh.Companion.MAX_WEIGHTS
 import me.anno.ecs.components.mesh.MorphTarget
 import me.anno.ecs.prefab.Prefab

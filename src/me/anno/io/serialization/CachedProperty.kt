@@ -118,7 +118,7 @@ class CachedProperty(
     companion object {
         private val LOGGER = LogManager.getLogger(CachedProperty::class)
         private fun hide(it: HideInInspector, name: String, clazz: KClass<*>): (Any) -> Boolean {
-            if (it.hideIfVariableIsTrue.isBlank2()) return { _ -> false }
+            if (it.hideIfVariableIsTrue.isBlank2()) return { _ -> true }
             else {
                 @Suppress("unchecked_cast")
                 val getter1 = clazz.memberProperties

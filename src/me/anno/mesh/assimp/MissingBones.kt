@@ -1,5 +1,6 @@
 package me.anno.mesh.assimp
 
+import me.anno.ecs.components.anim.Bone
 import me.anno.mesh.assimp.StaticMeshesLoader.convert
 import me.anno.utils.types.Matrices.sampleDistanceSquared
 import org.apache.logging.log4j.LogManager

@@ -1,5 +1,6 @@
 package me.anno.mesh.assimp
 
+import me.anno.ecs.components.anim.Bone
 import me.anno.mesh.assimp.StaticMeshesLoader.convert
 import org.joml.Matrix4x3f
 import org.lwjgl.assimp.*

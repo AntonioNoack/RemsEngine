@@ -39,9 +39,9 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     @DebugProperty
     abstract val numFrames: Int
 
-    fun calculateMonotonousTime(index: Float, frameCount: Int): Triple<Float, Int, Int> {
+    fun calculateMonotonousTime(frameIndex: Float, frameCount: Int): Triple<Float, Int, Int> {
 
-        val timeF = fract(index / frameCount) * frameCount
+        val timeF = fract(frameIndex / frameCount) * frameCount
 
         val index0 = timeF.toInt() % frameCount
         val index1 = (index0 + 1) % frameCount
@@ -51,8 +51,11 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         return Triple(fraction, index0, index1)
     }
 
-    abstract fun getMatrices(index: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
-    abstract fun getMatrices(index: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
+    abstract fun getMatrices(frameIndex: Float, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
+    abstract fun getMatrices(frameIndex: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>?
+
+    abstract fun getMatrix(frameIndex: Float, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f?
+    abstract fun getMatrix(frameIndex: Int, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f?
 
     fun getMappedAnimation(skel: FileReference): BoneByBoneAnimation {
         val dstSkel = SkeletonCache[skel] ?: throw IllegalStateException("Missing Skeleton $skel for retargeting")
@@ -66,6 +69,16 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     ): Array<Matrix4x3f>? {
         if (dstSkeleton == skeleton) return getMatrices(frameIndex, dst)
         return getMappedAnimation(dstSkeleton).getMappedMatrices(frameIndex, dst, dstSkeleton)
+    }
+
+    fun getMappedMatrix(
+        frameIndex: Float,
+        boneId: Int,
+        dst: Array<Matrix4x3f>,
+        dstSkeleton: FileReference
+    ): Matrix4x3f? {
+        if (dstSkeleton == skeleton) return getMatrix(frameIndex, boneId, dst)
+        return getMappedAnimation(dstSkeleton).getMappedMatrix(frameIndex, boneId, dst, dstSkeleton)
     }
 
     fun getMappedMatrices(
@@ -87,6 +100,15 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         if (base != null) return base
         for (i in dst.indices) dst[i].identity()
         return dst
+    }
+
+    fun getMappedMatrixSafely(
+        frameIndex: Float,
+        boneId: Int,
+        dst: Array<Matrix4x3f>,
+        dstSkeleton: FileReference,
+    ): Matrix4x3f {
+        return getMappedMatrix(frameIndex, boneId, dst, dstSkeleton) ?: dst[0].identity()
     }
 
     fun getMappedMatricesSafely(

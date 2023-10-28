@@ -22,7 +22,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.mesh.Shapes.flatCube
-import me.anno.mesh.assimp.Bone
+import me.anno.ecs.components.anim.Bone
 import me.anno.tests.ui.UITests
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS.desktop

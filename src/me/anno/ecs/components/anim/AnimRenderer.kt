@@ -9,7 +9,9 @@ import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.raycast.*
+import me.anno.engine.raycast.RayQuery
+import me.anno.engine.raycast.RaycastMesh
+import me.anno.engine.raycast.RaycastSkeletal
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
@@ -17,7 +19,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Matrix4x3f
-import org.joml.Vector3d
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
@@ -197,6 +198,32 @@ open class AnimRenderer : MeshComponent() {
                 for (j in matrices.indices) {
                     matrices[j].lerp(matrix[j], relativeWeight)
                 }
+            }
+            sumWeight += max(0f, weight)
+        }
+        return matrices
+    }
+
+
+    /**
+     * gets the animation matrices; thread-unsafe, can only be executed on gfx thread
+     * */
+    fun getMatrix(boneId: Int): Matrix4x3f? {
+        var matrices: Matrix4x3f? = null
+        var sumWeight = 0f
+        val animations = animations
+        val skeleton = skeleton
+        for (index in animations.indices) {
+            val animSource = animations[index]
+            val weight = animSource.weight
+            val relativeWeight = weight / (sumWeight + weight)
+            val animation = AnimationCache[animSource.source] ?: continue
+            val frameIndex = (animSource.progress * animation.numFrames) / animation.duration
+            if (matrices == null) {
+                matrices = animation.getMappedMatrixSafely(frameIndex, boneId, tmpMapping0, skeleton)
+            } else if (relativeWeight > 0f) {
+                val matrix = animation.getMappedMatrixSafely(frameIndex, boneId, tmpMapping1, skeleton)
+                matrices.lerp(matrix, relativeWeight)
             }
             sumWeight += max(0f, weight)
         }

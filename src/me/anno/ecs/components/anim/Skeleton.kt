@@ -15,7 +15,6 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
-import me.anno.mesh.assimp.Bone
 import me.anno.utils.types.Vectors
 import org.joml.AABBf
 import org.joml.Matrix3f
