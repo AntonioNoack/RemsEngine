@@ -53,6 +53,7 @@
       <element id="extracted-dir" path="$PROJECT_DIR$/lib/customized/recast4j/Recast4j.jar" path-in-jar="/" />
       <element id="module-output" name="KOML" />
       <element id="module-output" name="Bullet" />
+      <element id="module-output" name="Tests" />
     </root>
   </artifact>
 </component>

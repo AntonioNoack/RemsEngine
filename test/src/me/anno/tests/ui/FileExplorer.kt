@@ -9,6 +9,7 @@ import me.anno.gpu.shader.OpenGLShader.Companion.UniformCacheSize
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.utils.OS.pictures
@@ -26,21 +27,25 @@ fun main() {
             }
         }
     } else {
-        // test, that I was using for DX11, too
-        // there, with limited features, I'm getting 1000 fps
-        // might be us using compute shaders... no, same fps
-        try {
-            // we have our own cache
-            UniformCacheSize = 0
-            GFXBase.useSeparateGLFWThread = false
-            testUI("Engine in OpenGL") {
-                StudioBase.instance?.enableVSync = false
-                FileExplorer(pictures, style)
-            }
-        } catch (e: Throwable) {
-            e.printStackTrace()
-        }
-        Engine.requestShutdown()
-        exitProcess(0)
+        runFileExplorerTest()
     }
+}
+
+fun runFileExplorerTest() {
+    // test, that I was using for DX11, too
+    // there, with limited features, I'm getting 1000 fps
+    // might be us using compute shaders... no, same fps
+    try {
+        // we have our own cache
+        UniformCacheSize = 0
+        GFXBase.useSeparateGLFWThread = false
+        testUI3("Engine in OpenGL") {
+            StudioBase.instance?.enableVSync = false
+            FileExplorer(pictures, style)
+        }
+    } catch (e: Throwable) {
+        e.printStackTrace()
+    }
+    Engine.requestShutdown()
+    exitProcess(0)
 }

@@ -396,7 +396,7 @@ open class FileExplorerEntry(
         val img1 = img0 ?: getDefaultIcon()
         val image = img1 ?: whiteTexture
         val rot = (image as? Texture2D)?.rotation
-        image.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+        image.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         if (rot == null || rot.isNull()) {
             drawTexture(x0, y0, x1, y1, image)
         } else if (rot.angleCW == 0 && rot.mirrorVertical && !rot.mirrorHorizontal) {
@@ -947,9 +947,11 @@ open class FileExplorerEntry(
         fun deleteFiles(panel: Panel, files: List<FileReference>, explorer: FileExplorer?) {
             // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
             // ask, then delete all (or cancel)
-            val title = if(files.size == 1){
-                NameDesc("Delete this file? (${files.first().length().formatFileSize()})",
-                    "", "ui.file.delete.ask.one")
+            val title = if (files.size == 1) {
+                NameDesc(
+                    "Delete this file? (${files.first().length().formatFileSize()})",
+                    "", "ui.file.delete.ask.one"
+                )
             } else {
                 NameDesc(
                     "Delete these files? (${files.size}x, ${
