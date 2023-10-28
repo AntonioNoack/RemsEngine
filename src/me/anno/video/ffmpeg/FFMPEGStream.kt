@@ -1,7 +1,7 @@
 package me.anno.video.ffmpeg
 
 import me.anno.Engine
-import me.anno.Time
+import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
 import me.anno.utils.Sleep.acquire
@@ -9,9 +9,9 @@ import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.hpc.HeavyProcessing.numThreads
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.process.BetterProcessBuilder
-import me.anno.utils.types.Floats.f3
 import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
 import me.anno.video.formats.cpu.CPUFrameReader
+import me.anno.video.formats.gpu.GPUFrame
 import me.anno.video.formats.gpu.GPUFrameReader
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
@@ -57,11 +57,14 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             w: Int, h: Int, startFrame: Int, frameCount: Int, fps: Double,
             originalWidth: Int, // meta?.videoWidth
             originalFPS: Double, // meta?.videoFPS ?: 0.0001
-            totalFrameCount: Int
-        ): GPUFrameReader {
-            return getImageSequence(
+            totalFrameCount: Int,
+            nextFrameCallback: (GPUFrame) -> Unit,
+            finishedCallback: (List<GPUFrame>) -> Unit
+        ) {
+            getImageSequence(
                 input, signature, w, h, startFrame / fps, frameCount, fps,
-                originalWidth, originalFPS, totalFrameCount
+                originalWidth, originalFPS, totalFrameCount,
+                nextFrameCallback, finishedCallback
             )
         }
 
@@ -73,16 +76,16 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             w: Int, h: Int, startTime: Double, frameCount: Int, fps: Double,
             originalWidth: Int, // meta?.videoWidth
             originalFPS: Double, // meta?.videoFPS ?: 0.0001
-            totalFrameCount: Int
-        ): GPUFrameReader {
-            val video = GPUFrameReader(input, (startTime * fps).roundToInt(), frameCount)
-            video.run(
+            totalFrameCount: Int,
+            nextFrameCallback: (GPUFrame) -> Unit,
+            finishedCallback: (List<GPUFrame>) -> Unit
+        ) {
+            GPUFrameReader(input, (startTime * fps).roundToInt(), frameCount, nextFrameCallback, finishedCallback).run(
                 *getImageSequenceArguments(
                     input, signature, w, h, startTime, frameCount, fps,
                     originalWidth, originalFPS, totalFrameCount
                 ).toTypedArray()
             )
-            return video
         }
 
         @JvmStatic
@@ -91,10 +94,11 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double,
             originalWidth: Int, // meta?.videoWidth
             originalFPS: Double, // meta?.videoFPS ?: 0.0001
-            totalFrameCount: Int
-        ): CPUFrameReader {
-            val video = CPUFrameReader(input, frameIndex, frameCount)
-            video.run(
+            totalFrameCount: Int,
+            nextFrameCallback: (Image) -> Unit,
+            finishedCallback: (List<Image>) -> Unit
+        ) {
+            CPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
                 *getImageSequenceArguments(
                     input, signature, w, h,
                     frameIndex / max(fps, 1e-3), frameCount, fps,
@@ -102,7 +106,26 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                     totalFrameCount
                 ).toTypedArray()
             )
-            return video
+        }
+
+        @JvmStatic
+        fun getImageSequenceGPU(
+            input: FileReference, signature: String?,
+            w: Int, h: Int, frameIndex: Int, frameCount: Int, fps: Double,
+            originalWidth: Int, // meta?.videoWidth
+            originalFPS: Double, // meta?.videoFPS ?: 0.0001
+            totalFrameCount: Int,
+            nextFrameCallback: (GPUFrame) -> Unit,
+            finishedCallback: (List<GPUFrame>) -> Unit
+        ) {
+            GPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
+                *getImageSequenceArguments(
+                    input, signature, w, h,
+                    frameIndex / max(fps, 1e-3), frameCount, fps,
+                    originalWidth, originalFPS,
+                    totalFrameCount
+                ).toTypedArray()
+            )
         }
 
         @JvmStatic
@@ -133,7 +156,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
             // todo support 10bit color?
             args.add("-pix_fmt")
-            args.add(if (signature == "dds" || signature == "webp") "argb" else "bgr24")
+            args.add(if (signature == "dds" || signature == "webp") "bgra" else "bgr24")
 
             args.add("-vframes")
             args.add(frameCount.toString())
@@ -198,7 +221,7 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
 
         if (isProcessCountLimited) acquire(true, processLimiter)
 
-        LOGGER.info("${(Time.nanoTime * 1e-9f).f3()} ${arguments.joinToString(" ")}")
+        LOGGER.info(arguments.joinToString(" "))
 
         val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, arguments.size + 1, true)
         if (arguments.isNotEmpty()) builder += "-hide_banner"

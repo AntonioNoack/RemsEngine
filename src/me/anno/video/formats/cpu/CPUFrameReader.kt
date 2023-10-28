@@ -8,10 +8,10 @@ import java.io.IOException
 import java.io.InputStream
 
 class CPUFrameReader(
-    file: FileReference,
-    frame0: Int,
-    bufferLength: Int
-) : FrameReader<Image>(file, frame0, bufferLength) {
+    file: FileReference, frame0: Int, bufferLength: Int,
+    nextFrameCallback: (Image) -> Unit,
+    finishedCallback: (List<Image>) -> Unit
+) : FrameReader<Image>(file, frame0, bufferLength, nextFrameCallback, finishedCallback) {
 
     override fun readFrame(w: Int, h: Int, input: InputStream): Image? {
         try {
@@ -44,5 +44,4 @@ class CPUFrameReader(
         frames.clear()
         isDestroyed = true
     }
-
 }

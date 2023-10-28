@@ -72,11 +72,6 @@ object ImageGPUCache : CacheSection("ImageGPU") {
         return if (texture != null && texture.isCreated) texture else null
     }
 
-    /*fun getImage(file: File, timeout: Long, asyncGenerator: Boolean): Texture2D? {
-        warn("Use FileReference, please; because it is faster when hashing")
-        return getImage(getReference(file), timeout, asyncGenerator)
-    }*/
-
     private fun generateImageData(file: FileReference) = ImageToTexture(file)
 
     fun getLateinitTexture(

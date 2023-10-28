@@ -50,7 +50,7 @@ object ShaderLib {
     const val maxOutlineColors = 6
 
     val coordsList = listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR))
-    
+
     const val coordsVertexShader = "" +
             "void main(){\n" +
             "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
@@ -61,7 +61,7 @@ object ShaderLib {
             "   gl_Position = vec4(coords*2.0-1.0,0.5,1.0);\n" +
             "   uv = coords;\n" +
             "}"
-    
+
     val uvList = listOf(Variable(GLSLType.V2F, "uv"))
     val uiVertexShaderList = coordsList + listOf(
         Variable(GLSLType.V4F, "posSize"),
@@ -347,12 +347,6 @@ object ShaderLib {
         Variable(GLSLType.V4F, "tiling")
     )
 
-    val v2Dl = listOf(
-        Variable(GLSLType.V2F, "coords", VariableMode.ATTR)
-    )
-
-    const val v2D = coordsVertexShader
-
     const val v3D = "" +
             "void main(){\n" +
             "   finalPosition = coords;\n" +
@@ -473,7 +467,7 @@ object ShaderLib {
 
     fun createSwizzleShader2D(swizzle: String): Shader {
         return Shader(
-            "2d${swizzle.ifEmpty { ".rgba" }}", v2Dl, v2D, y2D, listOf(
+            "2d${swizzle.ifEmpty { ".rgba" }}", coordsList, coordsUVVertexShader, uvList, listOf(
                 Variable(GLSLType.S2D, "tex"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT),
             ), "void main(){ result = texture(tex, uv)$swizzle; }"
@@ -638,7 +632,7 @@ object ShaderLib {
 
     val shader2DYUV = Shader(
         "2d-yuv",
-        v2Dl, v2D, y2D, listOf(
+        coordsList, coordsVertexShader, y2D, listOf(
             Variable(GLSLType.V2F, "uvCorrection"),
             Variable(GLSLType.S2D, "texY"),
             Variable(GLSLType.S2D, "texUV"),

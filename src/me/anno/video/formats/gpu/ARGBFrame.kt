@@ -10,7 +10,7 @@ import me.anno.utils.Sleep.acquire
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 
-class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 0) {
+class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 4, 0) {
 
     private val rgba = Texture2D("rgba", w, h, 1)
 
@@ -19,6 +19,7 @@ class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 0) {
         val data = input.readNBytes2(s0, Texture2D.bufferPool)
 
         // change from argb to rgba
+        var hasAlpha = false
         for (i in 0 until s0 step 4) {
             val a = data[i]
             val r = data[i + 1]
@@ -28,7 +29,9 @@ class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 0) {
             data.put(i + 1, g)
             data.put(i + 2, b)
             data.put(i + 3, a)
+            hasAlpha = hasAlpha || a.toInt() != -1
         }
+        numChannels = if (hasAlpha) 4 else 3
 
         blankDetector.putRGBA(data)
         acquire(true, creationLimiter)
@@ -45,5 +48,4 @@ class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 0) {
     override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
         rgba.bind(offset, nearestFiltering, clamping)
     }
-
 }

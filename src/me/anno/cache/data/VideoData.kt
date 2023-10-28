@@ -31,23 +31,32 @@ class VideoData(
             )
     }
 
-    // what about video webp? I think it's pretty rare...
-    val stream = FFMPEGStream.getImageSequence(
-        file, signature, w, h, bufferIndex * bufferLength,
-        if (file.name.endsWith(".webp", true)) 1 else bufferLength, fps,
-        originalWidth, originalFPS,
-        numTotalFramesInSrc
-    )
+    init {
+        // what about video webp? I think it's pretty rare...
+        FFMPEGStream.getImageSequence(
+            file, signature, w, h, bufferIndex * bufferLength,
+            if (file.name.endsWith(".webp", true)) 1 else bufferLength, fps,
+            originalWidth, originalFPS,
+            numTotalFramesInSrc, {
+                if (isDestroyed) it.destroy()
+                else frames.add(it)
+            }, {}
+        )
+    }
 
-    val frames = stream.frames
+    val frames = ArrayList<GPUFrame>()
 
     fun getFrame(localIndex: Int, needsToBeCreated: Boolean): GPUFrame? {
         val frame = frames.getOrNull(localIndex)
         return if (!needsToBeCreated || frame?.isCreated == true) frame else null
     }
 
+    private var isDestroyed = false
     override fun destroy() {
-        stream.destroy()
+        isDestroyed = true
+        for (frame in frames) {
+            frame.destroy()
+        }
     }
 
     companion object {

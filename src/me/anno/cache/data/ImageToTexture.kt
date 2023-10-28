@@ -5,7 +5,6 @@ import me.anno.cache.ICacheData
 import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.*
 import me.anno.image.hdr.HDRReader
@@ -14,8 +13,8 @@ import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
-import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.types.Strings.getImportType
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
@@ -73,7 +72,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
                 else -> {
                     val async = AsyncCacheData<Image?>()
                     ImageReader.readImage(file, async, true)
-                    waitUntil(true) { async.hasValue }
+                    waitForGFXThread(true) { async.hasValue }
                     val image = async.value
                     if (image != null) {
                         val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)

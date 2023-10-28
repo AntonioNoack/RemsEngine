@@ -3,11 +3,10 @@ package me.anno.video.formats.gpu
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.framebuffer.DepthBufferType
-import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.IFramebuffer
+import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
-import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.*
 import me.anno.image.raw.ByteImage
@@ -19,7 +18,7 @@ import java.io.InputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.Semaphore
 
-abstract class GPUFrame(var width: Int, var height: Int, val code: Int) : ICacheData {
+abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, val code: Int) : ICacheData {
 
     init {
         if (width < 1 || height < 1) throw IllegalArgumentException("Cannot create empty frames")
@@ -110,24 +109,32 @@ abstract class GPUFrame(var width: Int, var height: Int, val code: Int) : ICache
         image.write(file)
     }
 
+    /**
+     * Creates a new texture, which contains the image data of the frame
+     * */
     fun toTexture(): Texture2D {
+        return toTexture(Texture2D("GpuFrame", width, height, 1))
+    }
+
+    /**
+     * Creates a new texture, which contains the image data of the frame
+     * */
+    fun toTexture(texture: Texture2D): Texture2D {
         GFX.checkIsGFXThread()
-        val tmp = Framebuffer("webp-temp", width, height, 1, 1, false, DepthBufferType.NONE)
-        lateinit var tex: Texture2D
-        GFXState.useFrame(tmp, Renderer.copyRenderer) {
+        texture.create(TargetType.UByteTargets[numChannels - 1])
+        texture.numChannels = numChannels
+        GFXState.useFrame(texture, 0) {
             GFXState.renderPurely {
                 val shader = get2DShader()
                 shader.use()
                 bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
                 bindUVCorrection(shader)
-                GFX.flat01.draw(shader)
+                SimpleBuffer.flat01.draw(shader)
                 GFX.check()
-                tex = tmp.textures!![0]
             }
         }
         GFX.check()
-        tmp.destroyExceptTextures(false)
-        return tex
+        return texture
     }
 
     companion object {

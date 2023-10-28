@@ -39,8 +39,17 @@ object LogManager {
 
     @JvmStatic
     fun define(logger: String?, level: Level) {
-        if (logger == null) defaultLevel = level
-        else logLevels[logger] = level
+        logLevels[logger] = level
+    }
+
+    @JvmStatic
+    fun default(level: Level) {
+        defaultLevel = level
+    }
+
+    @JvmStatic
+    fun logAll() {
+        default(Level.ALL)
     }
 
     @JvmStatic

@@ -7,11 +7,11 @@ import java.io.EOFException
 import java.io.InputStream
 
 class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
-
     override fun load(input: InputStream) {
         val s0 = width * height
         val data = Texture2D.bufferPool[s0 * 4, false, false]
         data.position(0)
+        var hasAlpha = false
         for (i in 0 until s0) {
             val r = input.read()
             val g = input.read()
@@ -25,7 +25,9 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
             data.put(g.toByte())
             data.put(b.toByte())
             data.put(a.toByte()) // offset is required
+            hasAlpha = hasAlpha || a < 255
         }
+        numChannels = if (hasAlpha) 4 else 3
         data.flip()
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("RGBA", width, height) {
@@ -33,5 +35,4 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
             creationLimiter.release()
         }
     }
-
 }

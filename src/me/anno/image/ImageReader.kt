@@ -1,7 +1,6 @@
 package me.anno.image
 
 import me.anno.cache.AsyncCacheData
-import me.anno.gpu.GFX
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.raw.*
@@ -13,7 +12,7 @@ import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.SignatureFile
 import me.anno.maths.Maths
 import me.anno.utils.OS
-import me.anno.utils.Sleep
+import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
 import net.sf.image4j.codec.ico.ICOReader
@@ -143,20 +142,20 @@ object ImageReader {
             file.readBytes { bytes, exc ->
                 exc?.printStackTrace()
                 if (bytes != null) {
-                    readImage(file, data, bytes)
+                    readImage(file, data, bytes, forGPU)
                 } else data.value = null
             }
         } else Signature.findName(file) { signature ->
-            readImage(file, data, signature)
+            readImage(file, data, signature, forGPU)
         }
     }
 
-    fun readImage(file: FileReference, data: AsyncCacheData<Image?>, bytes: ByteArray) {
+    fun readImage(file: FileReference, data: AsyncCacheData<Image?>, bytes: ByteArray, forGPU: Boolean) {
         val signature = Signature.findName(bytes)
         if (shouldIgnore(signature)) {
             data.value = null
         } else if (shouldUseFFMPEG(signature, file)) {
-            tryFFMPEG(file, signature) { it, e ->
+            tryFFMPEG(file, signature, forGPU) { it, e ->
                 data.value = it
                 e?.printStackTrace()
             }
@@ -166,11 +165,11 @@ object ImageReader {
         }
     }
 
-    fun readImage(file: FileReference, data: AsyncCacheData<Image?>, signature: String?) {
+    fun readImage(file: FileReference, data: AsyncCacheData<Image?>, signature: String?, forGPU: Boolean) {
         if (shouldIgnore(signature)) {
             data.value = null
         } else if (shouldUseFFMPEG(signature, file)) {
-            tryFFMPEG(file, signature) { it, e ->
+            tryFFMPEG(file, signature, forGPU) { it, e ->
                 data.value = it
                 e?.printStackTrace()
             }
@@ -186,24 +185,43 @@ object ImageReader {
         }
     }
 
-    private fun tryFFMPEG(file: FileReference, signature: String?, callback: ImageCallback) {
-        return if (file is FileFileRef) {
+    private fun frameIndex(meta: FFMPEGMetadata): Int {
+        return Maths.min(20, (meta.videoFrameCount - 1) / 3)
+    }
+
+    private fun tryFFMPEG(file: FileReference, signature: String?, forGPU: Boolean, callback: ImageCallback) {
+        if (file is FileFileRef) {
             val meta = FFMPEGMetadata.getMeta(file, false)!!
-            val sequence = FFMPEGStream.getImageSequenceCPU(
-                file, signature, meta.videoWidth, meta.videoHeight,
-                Maths.min(20, (meta.videoFrameCount - 1) / 3),
-                1, meta.videoFPS, meta.videoWidth, meta.videoFPS,
-                meta.videoFrameCount
-            )
-            Sleep.waitUntil(true) { sequence.frames.size > 0 || sequence.isFinished }
-            callback(sequence.frames.first(), null)
+            if (forGPU) {
+                FFMPEGStream.getImageSequenceGPU(
+                    file, signature, meta.videoWidth, meta.videoHeight,
+                    frameIndex(meta), 1, meta.videoFPS,
+                    meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
+                        val frame = frames.firstOrNull()
+                        if (frame != null) {
+                            waitForGFXThread(true) { frame.isCreated || frame.isDestroyed }
+                            callback(GPUFrameImage(frame), null)
+                        } else callback(null, IOException("No frame was found"))
+                    }
+                )
+            } else {
+                FFMPEGStream.getImageSequenceCPU(
+                    file, signature, meta.videoWidth, meta.videoHeight,
+                    frameIndex(meta), 1, meta.videoFPS,
+                    meta.videoWidth, meta.videoFPS, meta.videoFrameCount, {}, { frames ->
+                        val frame = frames.firstOrNull()
+                        if (frame != null) callback(frame, null)
+                        else callback(null, IOException("No frame was found"))
+                    }
+                )
+            }
         } else {
             // todo when we have native ffmpeg, don't copy the file
             val tmp = FileFileRef.createTempFile("4ffmpeg", file.extension)
             file.readBytes { bytes, e ->
                 if (bytes != null) {
                     tmp.writeBytes(bytes)
-                    tryFFMPEG(FileReference.getReference(tmp), signature, callback)
+                    tryFFMPEG(FileReference.getReference(tmp), signature, forGPU, callback)
                     tmp.delete()
                 } else callback(null, e)
             }

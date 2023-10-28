@@ -54,7 +54,6 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.colorRenderer
-import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.LateinitTexture
@@ -270,13 +269,12 @@ object Thumbs {
                 // fail, we were too slow waiting for a GFX queue call
                 generate(srcFile, size, callback)
             } else {
-                val newTex = Framebuffer(srcFile.name, w, h, arrayOf(TargetType.UByteTarget4))
-                useFrame(newTex, copyRenderer) {
+                val newTex = Texture2D(srcFile.name, w, h, 1)
+                newTex.createRGBA()
+                useFrame(newTex, 0) {
                     GFX.copy(tex)
                 }
-                val newTex1 = newTex.textures!!.first()
-                newTex.destroyExceptTextures(true)
-                callback(newTex1, null)
+                callback(newTex, null)
             }
         } else addGPUTask("Copy", size, size) {
             copyTexIfPossible(srcFile, size, tex, callback)
@@ -1264,7 +1262,7 @@ object Thumbs {
 
         when (srcFile) {
             is ImageReadable -> {
-                val image = if(useCacheFolder) srcFile.readCPUImage() else srcFile.readGPUImage()
+                val image = if (useCacheFolder) srcFile.readCPUImage() else srcFile.readGPUImage()
                 transformNSaveNUpload(srcFile, false, image, dstFile, size, callback)
                 return
             }
@@ -1493,16 +1491,14 @@ object Thumbs {
                         val w = (length + 1) * sx
                         val h = (lines.size + 1) * sy
                         addGPUTask("textThumbs", w, h) {
-                            val tex = Framebuffer(
-                                "textThumbs", w, h, 1,
-                                arrayOf(TargetType.UByteTarget3), DepthBufferType.NONE
-                            )
                             val transform = GFXx2D.transform
                             transform.identity().scale(1f, -1f, 1f)
-                            useFrame(tex) {
+                            val tex = Texture2D("textThumbs", w, h, 1)
+                            tex.create(TargetType.UByteTarget3)
+                            useFrame(tex, 0) {
                                 val tc = black
                                 val bg = -1
-                                tex.clearColor(bg)
+                                it.clearColor(bg)
                                 val x = sx.shr(1)
                                 for (yi in lines.indices) {
                                     val line = lines[yi].trimEnd()
@@ -1515,8 +1511,7 @@ object Thumbs {
                                 }
                             }
                             transform.identity()
-                            tex.destroyExceptTextures(false)
-                            callback(tex.getTexture0(), null)
+                            callback(tex, null)
                         }
                     }
                 }

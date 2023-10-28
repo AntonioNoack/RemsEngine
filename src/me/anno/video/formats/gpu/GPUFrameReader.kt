@@ -10,10 +10,10 @@ import java.io.IOException
 import java.io.InputStream
 
 class GPUFrameReader(
-    file: FileReference,
-    frame0: Int,
-    bufferLength: Int
-) : FrameReader<GPUFrame>(file, frame0, bufferLength) {
+    file: FileReference, frame0: Int, bufferLength: Int,
+    nextFrameCallback: (GPUFrame) -> Unit,
+    finishedCallback: (List<GPUFrame>) -> Unit
+) : FrameReader<GPUFrame>(file, frame0, bufferLength, nextFrameCallback, finishedCallback) {
 
     override fun readFrame(w: Int, h: Int, input: InputStream): GPUFrame? {
         var frame: GPUFrame? = null

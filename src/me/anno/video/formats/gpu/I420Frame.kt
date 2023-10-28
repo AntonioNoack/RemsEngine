@@ -11,7 +11,7 @@ import me.anno.utils.Sleep
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 
-class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 2) {
+class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
 
     // this is correct, confirmed by example
     private val w2 get() = (width + 1) / 2

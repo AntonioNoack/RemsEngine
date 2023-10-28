@@ -19,6 +19,8 @@ abstract class FrameReader<FrameType>(
     file: FileReference,
     val frame0: Int,
     val bufferLength: Int,
+    val nextFrameCallback: (FrameType) -> Unit,
+    val finishedCallback: (List<FrameType>) -> Unit
 ) : FFMPEGStream(file, isProcessCountLimited = !file.extension.isFFMPEGOnlyExtension()) {
 
     val frames = ArrayList<FrameType>(bufferLength)
@@ -60,6 +62,7 @@ abstract class FrameReader<FrameType>(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+        finishedCallback(frames)
     }
 
     fun waitForMetadata() {
@@ -93,6 +96,7 @@ abstract class FrameReader<FrameType>(
                 synchronized(frames) {
                     frames.add(frame)
                 }
+                nextFrameCallback(frame)
             } else onError()
         }
         if (isDestroyed) destroy()
@@ -115,5 +119,4 @@ abstract class FrameReader<FrameType>(
         @JvmStatic
         private val LOGGER = LogManager.getLogger(FrameReader::class.java)
     }
-
 }

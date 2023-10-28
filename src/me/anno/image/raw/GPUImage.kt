@@ -14,7 +14,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
     constructor(texture: Texture2D) : this(texture, texture.numChannels)
 
     override fun getRGB(index: Int): Int {
-        val msg = "GPUImage.get() is highly inefficient!!!"
+        val msg = "GPUImage.getRGB() is highly inefficient!!!"
         LOGGER.warn(msg, RuntimeException(msg))
         // is not flipping correct?
         return (texture as Texture2D).createImage(false, hasAlphaChannel)
