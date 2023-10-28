@@ -500,8 +500,8 @@ open class PureTextInputML(style: Style) :
     }
 
     fun deleteAfter() {
-        if (lastDelete != Time.nanoTime) {
-            lastDelete = Time.nanoTime
+        if (lastDelete != Time.gameTimeN) {
+            lastDelete = Time.gameTimeN
             moveRight()
             deleteBefore()
         }
@@ -749,8 +749,8 @@ open class PureTextInputML(style: Style) :
 
     private var lastDelete = 0L
     private fun likeBackspaceKey() {
-        if (lastDelete != Time.nanoTime) {
-            lastDelete = Time.nanoTime
+        if (lastDelete != Time.gameTimeN) {
+            lastDelete = Time.gameTimeN
             deleteBefore()
         }
     }
