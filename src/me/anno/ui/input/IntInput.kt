@@ -6,8 +6,8 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.pow
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
-import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.Style
+import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToLong
 import kotlin.math.max
 import kotlin.math.round
@@ -67,7 +67,9 @@ open class IntInput(
         return try {
             val trimmed = text.trim()
             val parsed = if (trimmed.isEmpty()) 0L
-            else trimmed.toLongOrNull() ?: SimpleExpressionParser.parseDouble(trimmed)?.roundToLong()
+            else (if (trimmed.startsWith("0x")) trimmed.substring(2).toLongOrNull(16)
+            else if (trimmed.startsWith("0b")) trimmed.substring(2).toLongOrNull(2)
+            else trimmed.toLongOrNull()) ?: SimpleExpressionParser.parseDouble(trimmed)?.roundToLong()
             if (parsed == null) null else AnyToLong.getLong(type.clamp(parsed), 0L)
         } catch (ignored: Exception) {
             null

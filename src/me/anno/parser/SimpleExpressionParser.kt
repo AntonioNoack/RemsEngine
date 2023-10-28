@@ -76,16 +76,28 @@ object SimpleExpressionParser {
             when (val char = this[i]) {
                 in '0'..'9', '.' -> {
                     putRemaining()
+
+                    var allowedDigits = "0123456789"
+
+                    if (i + 2 < length && this[i + 1] == 'x') {
+                        allowedDigits = "0123456789abcdefABCDEF"
+                        i += 2
+                    } else if (i + 2 < length && this[i + 1] == 'b') {
+                        allowedDigits = "01"
+                        i += 2
+                    }
+
                     var j = i
                     var hadComma = char == '.'
                     searchDigits@ while (++j < length) {
                         when (this[j]) {
-                            in '0'..'9' -> {
+                            in allowedDigits -> {
                             }
                             '.' -> {
-                                if (hadComma) throw RuntimeException("Cannot have two commas in a number")
+                                if (hadComma) throw NumberFormatException("Cannot have two commas in a number")
                                 hadComma = true
                             }
+                            // todo binary exponent (?)
                             'e', 'E' -> {
                                 j = findExponent(j)
                                 break@searchDigits
@@ -94,7 +106,12 @@ object SimpleExpressionParser {
                         }
                     }
                     val number = substring(i, j)
-                    list += number.toDoubleOrNull() ?: throw RuntimeException("Invalid number: $number")
+                    list += when (allowedDigits.length) {
+                        10 -> number.toDoubleOrNull()
+                        22 -> number.toLongOrNull(16)?.toDouble()
+                        2 -> number.toLongOrNull(2)?.toDouble()
+                        else -> throw NotImplementedError()
+                    } ?: throw NumberFormatException("Invalid number: $number")
                     i = j - 1
                     i0 = i + 1
                 }
@@ -120,13 +137,11 @@ object SimpleExpressionParser {
                 else -> {
                 }
             }
-
         }
 
         putRemaining()
 
         return list
-
     }
 
     private fun MutableList<Any>.joinSigns(): Boolean {
@@ -583,7 +598,6 @@ object SimpleExpressionParser {
             }
 
             return parts
-
         } catch (e: Exception) {
             val msg = e.message
             if (msg != null && msg !in knownMessages) {
@@ -606,5 +620,4 @@ object SimpleExpressionParser {
             }
         }
     }
-
 }
