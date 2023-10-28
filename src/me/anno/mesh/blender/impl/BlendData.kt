@@ -190,10 +190,10 @@ open class BlendData(
     }
 
 
-    fun <V : BlendData> getQuickStructArray(name: String): BInstantList<V>? =
-        getQuickStructArray(dnaStruct.byName[name])
+    fun <V : BlendData> getInstantList(name: String): BInstantList<V>? =
+        getInstantList(dnaStruct.byName[name])
 
-    fun <V : BlendData> getQuickStructArray(field: DNAField?): BInstantList<V>? {
+    fun <V : BlendData> getInstantList(field: DNAField?): BInstantList<V>? {
         field ?: return null
         if (field.decoratedName.startsWith("*")) {
             val address = pointer(field.offset)

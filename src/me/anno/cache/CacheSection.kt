@@ -285,7 +285,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             entry.hasGenerator = true
             if (asyncGenerator) {
                 val name = "$name<$key0,$key1>"
-                LOGGER.debug("Started $name")
+                LOGGER.debug("Started {}", name)
                 thread(name = name) {
                     try {
                         val value = generateSafely(key0, key1, generator)
@@ -298,7 +298,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     } catch (ignored: ShutdownException) {
                         // don't care
                     }
-                    LOGGER.debug("Finished $name")
+                    LOGGER.debug("Finished {}", name)
                 }
             } else {
                 val value = generateSafely(key0, key1, generator)
@@ -338,17 +338,17 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
             entry.hasGenerator = true
             if (asyncGenerator) {
                 val name = "$name<$key>"
-                LOGGER.debug("Started $name")
+                LOGGER.debug("Started {}", name)
                 thread(name = name) {
                     val value = generateSafely(key, generator)
                     if (value is Exception && value !is ShutdownException) throw value
                     value as? ICacheData
                     entry.data = value as? ICacheData
                     if (entry.hasBeenDestroyed) {
-                        LOGGER.warn("Value for $name<$key> was directly destroyed")
+                        LOGGER.warn("Value for {}<{}> was directly destroyed", name, key)
                         entry.data?.destroy()
                     }
-                    LOGGER.debug("Finished $name")
+                    LOGGER.debug("Finished {}", name)
                 }
             } else {
                 val value = generateSafely(key, generator)

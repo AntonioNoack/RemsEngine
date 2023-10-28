@@ -19,4 +19,11 @@ class MVert(file: BlenderFile, dnaStruct: DNAStruct, buffer: ByteBuffer, positio
     val ny get() = short(noOffset + 2) / 32767f
     val nz get() = short(noOffset + 4) / 32767f
 
+    override fun toString(): String {
+        return if (noOffset >= 0) {
+            "MVert { ($x,$y,$z), ($nx,$ny,$nz) }"
+        } else {
+            "MVert { ($x,$y,$z) }"
+        }
+    }
 }

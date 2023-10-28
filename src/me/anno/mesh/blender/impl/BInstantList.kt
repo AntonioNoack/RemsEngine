@@ -1,5 +1,11 @@
 package me.anno.mesh.blender.impl
 
+/**
+ * saves allocations by using a pseudo-instance, whose position gets adjusted every time an element is accessed;
+ * for this to work, all properties inside the child class need to be dynamic getters
+ *
+ * called "InstantList", because its elements only contain valid data for the instant
+ * */
 class BInstantList<V : BlendData>(val size: Int, val instance: V?) {
 
     val indices = 0 until size

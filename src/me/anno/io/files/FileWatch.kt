@@ -99,7 +99,7 @@ object FileWatch {
                             .replace('\\', '/')
                         val absolutePath = "$folder/$fileName"
                         FileReference.invalidate(absolutePath)
-                        LOGGER.debug("$kind $absolutePath")
+                        LOGGER.debug("{} {}", kind, absolutePath)
 
                         // they say the directory is no longer valid...
                         // but are all of them that?, so do we really have to quit?

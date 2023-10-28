@@ -23,17 +23,17 @@ class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
 
     // dvert = deform group vertices
 
-    val vertices = getQuickStructArray<MVert>("*mvert")
-    val polygons = getQuickStructArray<MPoly>("*mpoly")
-    val loops = getQuickStructArray<MLoop>("*mloop")
-    val loopUVs = getQuickStructArray<MLoopUV>("*mloopuv")
-    val loopColor = getQuickStructArray<MLoopCol>("*mloopcol") // todo support this; correct type?
+    val vertices = getInstantList<MVert>("*mvert")
+    val polygons = getInstantList<MPoly>("*mpoly")
+    val loops = getInstantList<MLoop>("*mloop")
+    val loopUVs = getInstantList<MLoopUV>("*mloopuv")
+    val loopColor = getInstantList<MLoopCol>("*mloopcol")
     // old
     // val mFaces = ptr("*mface")
     // val mtFaces = ptr("*mtface")
     // val tFaces = ptr("*tface")
-    val edges = getQuickStructArray<MEdge>("*medge")
-    val colors = getQuickStructArray<MLoopCol>("*mcol")
+    val edges = getInstantList<MEdge>("*medge")
+    val colors = getInstantList<MLoopCol>("*mcol")
 
     // texture space (?)
     // val location get() = vec3f("loc[3]")

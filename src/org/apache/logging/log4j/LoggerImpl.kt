@@ -38,28 +38,41 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
         }
     }
 
+    private fun interleave(msg: String, arg0: Any?): String {
+        val index = msg.indexOf("{}")
+        return if (index >= 0) {
+            val arg = arg0.toString()
+            val builder = StringBuilder(msg.length + arg.length)
+            builder.append(msg, 0, index)
+            builder.append(arg)
+            builder.append(msg, index + 2, msg.length)
+            builder.toString()
+        } else msg
+    }
+
     private val suffix = if (prefix == null) "" else ":$prefix"
 
     fun print(prefix: String, msg: String) {
-        if (LogManager.isEnabled(this)) {
-            for (line in msg.split('\n')) {
-                val line2 = "[${getTimeStamp()},$prefix$suffix] $line"
-                if (prefix == "ERR!" || prefix == "WARN") {
-                    System.err.println(line2)
-                } else {
-                    println(line2)
-                }
+        for (line in msg.split('\n')) {
+            val line2 = "[${getTimeStamp()},$prefix$suffix] $line"
+            if (prefix == "ERR!" || prefix == "WARN") {
+                System.err.println(line2)
+            } else {
+                println(line2)
             }
         }
     }
 
     override fun info(msg: String) {
-        print("INFO", msg)
+        if (isInfoEnabled) {
+            print("INFO", msg)
+        }
     }
 
     override fun info(msg: String, vararg obj: Any?) {
-        if (LogManager.isEnabled(this))
+        if (isInfoEnabled) {
             info(interleave(msg, obj))
+        }
     }
 
     override fun info(marker: Marker, msg: String) {
@@ -67,132 +80,187 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     }
 
     override fun info(msg: String, thrown: Throwable) {
-        info(msg)
-        thrown.printStackTrace()
+        if (isInfoEnabled) {
+            info(msg)
+            thrown.printStackTrace()
+        }
     }
 
     override fun debug(msg: String) {
-        print("DEBUG", msg)
+        if (isDebugEnabled) {
+            print("DEBUG", msg)
+        }
     }
 
     override fun debug(msg: String, e: Throwable) {
-        print("DEBUG", msg)
-        e.printStackTrace()
+        if (isDebugEnabled) {
+            print("DEBUG", msg)
+            e.printStackTrace()
+        }
+    }
+
+    override fun debug(o: Any?) {
+        if (isDebugEnabled) {
+            debug(o.toString())
+        }
+    }
+
+    override fun debug(o: Any?, throwable: Throwable?) {
+        if (isDebugEnabled) {
+            if (throwable == null) debug(o)
+            else debug(o.toString(), throwable)
+        }
+    }
+
+    open fun debug(msg: String, obj: Any?) {
+        if (isDebugEnabled) {
+            debug(interleave(msg, obj))
+        }
+    }
+
+    override fun debug(msg: String, vararg obj: Any?) {
+        if (isDebugEnabled) {
+            debug(interleave(msg, obj))
+        }
     }
 
     override fun error(msg: String) {
-        print("ERR!", msg)
+        if (isErrorEnabled) {
+            print("ERR!", msg)
+        }
     }
 
     override fun error(msg: String, vararg obj: Any?) {
-        if (LogManager.isEnabled(this))
+        if (isErrorEnabled) {
             error(interleave(msg, obj))
+        }
     }
 
     override fun error(msg: String, thrown: Throwable) {
-        error(msg)
-        thrown.printStackTrace()
+        if (isErrorEnabled) {
+            error(msg)
+            thrown.printStackTrace()
+        }
+    }
+
+    override fun error(o: Any?) {
+        if (isErrorEnabled) {
+            error(o.toString())
+        }
+    }
+
+    override fun error(o: Any?, throwable: Throwable?) {
+        if (isErrorEnabled) {
+            if (throwable == null) error(o)
+            else error(o.toString(), throwable)
+        }
     }
 
     override fun severe(msg: String) {
-        print("SEVERE", msg)
+        if (isSevereEnabled) {
+            print("SEVERE", msg)
+        }
     }
 
     override fun severe(msg: String, vararg obj: Any?) {
-        if (LogManager.isEnabled(this))
+        if (isSevereEnabled) {
             error(interleave(msg, obj))
+        }
     }
 
     override fun severe(msg: String, thrown: Throwable) {
-        error(msg)
-        thrown.printStackTrace()
+        if (isSevereEnabled) {
+            error(msg)
+            thrown.printStackTrace()
+        }
     }
 
     override fun fatal(msg: String) {
-        print("FATAL", msg)
+        if (isFatalEnabled) {
+            print("FATAL", msg)
+        }
     }
 
     override fun fatal(msg: String, vararg obj: Any?) {
-        if (LogManager.isEnabled(this))
+        if (isFatalEnabled) {
             fatal(interleave(msg, obj))
+        }
     }
 
     override fun fatal(msg: String, thrown: Throwable) {
-        fatal(msg)
-        thrown.printStackTrace()
+        if (isFatalEnabled) {
+            fatal(msg)
+            thrown.printStackTrace()
+        }
     }
 
     override fun warn(msg: String) {
-        synchronized(lastWarned) {
-            val time = Time.nanoTime
-            if (msg !in lastWarned || (lastWarned[msg]!! - time) > warningTimeoutNanos) {
-                lastWarned[msg] = time
-                print("WARN", msg)
+        if (isWarnEnabled) {
+            synchronized(lastWarned) {
+                val time = Time.nanoTime
+                if (msg !in lastWarned || (lastWarned[msg]!! - time) > warningTimeoutNanos) {
+                    lastWarned[msg] = time
+                    print("WARN", msg)
+                }
             }
         }
     }
 
     override fun warn(msg: String, vararg obj: Any?) {
-        if (LogManager.isEnabled(this))
+        if (isWarnEnabled) {
             warn(interleave(msg, obj))
+        }
     }
 
     override fun warn(msg: String, thrown: Throwable) {
-        warn(msg)
-        thrown.printStackTrace()
+        if (isWarnEnabled) {
+            warn(msg)
+            thrown.printStackTrace()
+        }
     }
 
     override fun warn(o: Any?) {
-        if (o is Throwable) {
-            warn("", o)
-        } else {
-            warn(o.toString())
+        if (isWarnEnabled) {
+            if (o is Throwable) {
+                @Suppress("KotlinPlaceholderCountMatchesArgumentCount")
+                warn("", o)
+            } else {
+                warn(o.toString())
+            }
         }
     }
 
     override fun warn(o: Any?, throwable: Throwable?) {
-        if (throwable == null) warn(o.toString())
-        else warn(o.toString(), throwable)
+        if (isWarnEnabled) {
+            if (throwable == null) warn(o.toString())
+            else warn(o.toString(), throwable)
+        }
     }
 
     override fun fatal(o: Any?) {
-        fatal(o.toString())
+        if (isFatalEnabled) {
+            fatal(o.toString())
+        }
     }
 
     override fun fatal(o: Any?, throwable: Throwable?) {
-        if (throwable == null) fatal(o.toString())
-        else fatal(o.toString(), throwable)
+        if (isFatalEnabled) {
+            if (throwable == null) fatal(o.toString())
+            else fatal(o.toString(), throwable)
+        }
     }
 
     override fun info(msg: Any?) {
-        info(msg.toString())
+        if (isInfoEnabled) {
+            info(msg.toString())
+        }
     }
 
     override fun info(o: Any?, throwable: Throwable?) {
-        if (throwable == null) info(o)
-        else info(o.toString(), throwable)
-    }
-
-    override fun error(o: Any?) {
-        error(o.toString())
-    }
-
-    override fun error(o: Any?, throwable: Throwable?) {
-        if (throwable == null) error(o)
-        else error(o.toString(), throwable)
-    }
-
-    override fun debug(o: Any?) {
-        debug(o.toString())
-    }
-
-    override fun debug(o: Any?, throwable: Throwable?) {
-        if (throwable == null) debug(o)
-        else debug(o.toString(), throwable)
-    }
-
-    override fun debug(msg: String, vararg obj: Any?) {
-        debug(interleave(msg, obj))
+        if (isInfoEnabled) {
+            if (throwable == null) info(o)
+            else info(o.toString(), throwable)
+        }
     }
 
     override fun trace(o: Any?) {
@@ -204,33 +272,37 @@ open class LoggerImpl(val prefix: String?) : Logger, Log {
     }
 
     override fun isLoggable(level: Level): Boolean {
-        return LogManager.isEnabled(this)
+        return LogManager.isEnabled(this, level.intValue())
     }
 
     override fun isTraceEnabled(): Boolean {
-        return LogManager.isEnabled(this)
+        return LogManager.isEnabled(this, org.apache.logging.log4j.Level.TRACE)
     }
 
     override fun isDebugEnabled(): Boolean {
-        return LogManager.isEnabled(this)
+        return LogManager.isEnabled(this, org.apache.logging.log4j.Level.DEBUG)
     }
 
     override fun isInfoEnabled(): Boolean {
-        return LogManager.isEnabled(this)
+        return LogManager.isEnabled(this, org.apache.logging.log4j.Level.INFO)
     }
 
     override fun isWarnEnabled(): Boolean {
-        return LogManager.isEnabled(this)
+        return LogManager.isEnabled(this, org.apache.logging.log4j.Level.WARN)
     }
 
     override fun isFatalEnabled(): Boolean {
-        return LogManager.isEnabled(this)
+        return LogManager.isEnabled(this, org.apache.logging.log4j.Level.FATAL)
     }
 
     override fun isErrorEnabled(): Boolean {
-        return LogManager.isEnabled(this)
+        return LogManager.isEnabled(this, org.apache.logging.log4j.Level.ERROR)
     }
 
+    val isSevereEnabled
+        get(): Boolean {
+            return LogManager.isEnabled(this, org.apache.logging.log4j.Level.SEVERE)
+        }
 
     // override fun warn(marker: Marker, msg: String, vararg obj: java.lang.Object): Unit = warn(msg, obj)
     companion object {

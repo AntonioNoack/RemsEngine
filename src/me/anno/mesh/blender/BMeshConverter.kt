@@ -51,7 +51,6 @@ object BMeshConverter {
                     normals[i3 + 1] = v.ny
                     normals[i3 + 2] = v.nz
                 }
-                prefab["normals"] = normals
                 normals
             } else {
                 for (i in 0 until vertices.size) {
@@ -76,7 +75,6 @@ object BMeshConverter {
                     normals[i3 + 1] = +v.nz
                     normals[i3 + 2] = -v.ny
                 }
-                prefab.setProperty("normals", normals)
                 normals
             } else {
                 for (i in 0 until vertices.size) {
@@ -90,6 +88,8 @@ object BMeshConverter {
             }
         }
         prefab.setProperty("positions", positions)
+        prefab.setProperty("normals", normals)
+
         val uvs = src.loopUVs ?: BInstantList.emptyList()
         // todo vertex colors
         val hasUVs = uvs.any { it.u != 0f || it.v != 0f }
@@ -100,8 +100,8 @@ object BMeshConverter {
                 else -> size - 2
             }
         }
+        val materialIndices = if (materials.size > 1) IntArray(triCount) else null
         if (hasUVs) {// non-indexed, because we don't support separate uv and position indices
-            val materialIndices = if (materials.size > 1) IntArray(triCount) else null
             joinPositionsAndUVs(
                 triCount * 3,
                 positions, normals,
@@ -110,7 +110,6 @@ object BMeshConverter {
             )
             if (materialIndices != null) prefab.setProperty("materialIds", materialIndices)
         } else {
-            val materialIndices = if (materials.size > 1) IntArray(triCount) else null
             collectIndices(positions, polygons, loopData, materialIndices, prefab)
             if (materialIndices != null) prefab.setProperty("materialIds", materialIndices)
         }

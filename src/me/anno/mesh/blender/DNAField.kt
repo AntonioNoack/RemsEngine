@@ -10,7 +10,6 @@ class DNAField(val index: Int, val decoratedName: String, val type: DNAType) {
     var isPointer = decoratedName.startsWith("*")
 
     override fun toString(): String {
-        return "${type.name}(${type.size})@$offset"
+        return "$type@$offset"
     }
-
 }

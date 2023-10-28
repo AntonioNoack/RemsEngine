@@ -9,7 +9,6 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.raycast.RayHit
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
@@ -20,10 +19,10 @@ import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
+import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
-import org.joml.Vector3d
 import org.joml.Vector3f
 
 abstract class MeshComponentBase : CollidingComponent(), Renderable {
@@ -181,11 +180,14 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         val mesh = getMeshOrNull()
         if (mesh != null) {
             val pos = mesh.positions ?: return
-            LOGGER.debug("Positions: " + Array(pos.size / 3) {
+            if (!LOGGER.isDebugEnabled) {
+                LogManager.setLevel(LOGGER.prefix, Level.DEBUG)
+            }
+            LOGGER.debug("Positions: {}", Array(pos.size / 3) {
                 val i = it * 3
                 Vector3f(pos[i], pos[i + 1], pos[i + 2])
-            }.joinToString())
-            LOGGER.debug("Indices: ${mesh.indices?.joinToString()}")
+            }.toList())
+            LOGGER.debug("Indices: {}", mesh.indices?.joinToString())
         } else {
             LOGGER.warn("Mesh is null")
         }

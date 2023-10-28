@@ -3,7 +3,6 @@ package me.anno.ecs.components.physics
 import cz.advel.stack.Stack
 import me.anno.Engine
 import me.anno.Time
-import me.anno.utils.Color.black
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugAction
@@ -18,6 +17,7 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.debug.FrameTimings
+import me.anno.utils.Color.black
 import me.anno.utils.structures.sets.ParallelHashSet
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
@@ -95,7 +95,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     open fun invalidate(entity: Entity) {
-        if (printValidations) LOGGER.debug("invalidated ${System.identityHashCode(this)}")
+        if (printValidations) LOGGER.debug("Invalidated {}", System.identityHashCode(this))
         invalidEntities.add(entity)
     }
 
@@ -104,7 +104,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     fun validate() {
-        if (printValidations) LOGGER.debug("validating ${System.identityHashCode(this)}")
+        if (printValidations) LOGGER.debug("Validating {}", System.identityHashCode(this))
         invalidEntities.process2x({ entity ->
             remove(entity, false)
             removeConstraints(entity)
@@ -233,7 +233,11 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                     // stop if received updates for no more than 1-3s
                     val targetTime = Time.nanoTime
                     if (abs(targetTime - lastUpdate) > simulationTimeoutMillis * MILLIS_TO_NANOS) {
-                        LOGGER.debug("Stopping work, ${(targetTime - lastUpdate) / 1e6} > $simulationTimeoutMillis")
+                        LOGGER.debug(
+                            "Stopping work, {} > {}",
+                            (targetTime - lastUpdate) / 1e6,
+                            simulationTimeoutMillis
+                        )
                         break
                     }
 
@@ -361,7 +365,6 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                 deadRigidBodies.add(rigidbody)
                 continue
             }
-
         }
 
         updateWheels()
@@ -382,11 +385,9 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         }
 
         // clock.total("physics step", 0.1)
-
     }
 
-    open fun updateWheels(){
-
+    open fun updateWheels() {
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -398,5 +399,4 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         dst.synchronousPhysics = synchronousPhysics
         dst.gravity.set(gravity)
     }
-
 }

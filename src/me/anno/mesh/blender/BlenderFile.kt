@@ -120,7 +120,8 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         if (LOGGER.isDebugEnabled) {
             for (name in structByName.keys.sorted()) {
                 val struct = structByName[name]!!
-                LOGGER.debug("Struct {}[{}]: {}", name, struct.type.size, struct.byName)
+                LOGGER.debug("Struct {}({}): { {} }", name, struct.type.size,
+                    struct.byName.entries.joinToString { "${it.key}: ${it.value.type.name}" })
             }
         }
     }

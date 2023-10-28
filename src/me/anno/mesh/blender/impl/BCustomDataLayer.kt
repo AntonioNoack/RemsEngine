@@ -13,6 +13,6 @@ class BCustomDataLayer(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, p
     val active = int("active")
     val uid = int("uid")
     val name get() = string("name[64]", 64)
-    val data = getQuickStructArray<BlendData>("*data") // void
+    val data = getInstantList<BlendData>("*data") // void
 
 }

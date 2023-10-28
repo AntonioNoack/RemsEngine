@@ -123,11 +123,18 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
                     "tga" -> setImage(file.inputStreamSync().use { stream: InputStream -> TGAImage.findSize(stream) })
                     "ico" -> setImage(file.inputStreamSync().use { stream: InputStream -> ICOReader.findSize(stream) })
                     // else unknown
-                    else -> LOGGER.debug("${file.absolutePath.shorten(200)} has unknown extension and signature: '$signature1'")
+                    else -> LOGGER.debug(
+                        "{} has unknown extension and signature: '{}'",
+                        file.absolutePath,
+                        signature1
+                    )
                 }
             }
             // todo xml/svg
-            else -> LOGGER.debug("${file.absolutePath.shorten(200)}'s signature wasn't registered in FFMPEGMetadata.kt: '$signature1'")
+            else -> LOGGER.debug(
+                "{}'s signature wasn't registered in FFMPEGMetadata.kt: '{}'",
+                file.absolutePath, signature1
+            )
         }
     }
 
@@ -248,11 +255,9 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
                     LOGGER.warn("$file: Corrected by setting duration to $duration s and fps to $videoFPS")
                 }
             }
-
         }
 
         LOGGER.info("Loaded info about $file: $duration * $videoFPS = $videoFrameCount frames / $audioDuration * $audioSampleRate = $audioSampleCount samples")
-
     }
 
     // not working for the problematic file 001.gif
@@ -278,7 +283,6 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
         val time = data.split("time=")[1].split(" ")[0]
         // frame=206723 fps=1390 q=-0.0 Lsize=N/A time=00:57:28.87 bitrate=N/A speed=23.2x
         return time.parseTime()
-
     }
 
     fun String.parseFraction(): Double {
@@ -327,5 +331,4 @@ class FFMPEGMetadata(val file: FileReference, signature: String?) : ICacheData {
             } as? FFMPEGMetadata
         }
     }
-
 }

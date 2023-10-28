@@ -26,6 +26,9 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
+// todo MatCap material (I imagine they could be really useful for mobile)
+//  https://learn.foundry.com/modo/content/help/pages/shading_lighting/shader_items/matcap.html
+//  https://github.com/nidorx/matcaps
 open class Material : PrefabSaveable(), Renderable {
 
     // to do most properties here could be defined by the shader, not this class

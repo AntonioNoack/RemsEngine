@@ -72,7 +72,7 @@ abstract class FrameReader<FrameType>(
             else {
                 val t = System.nanoTime()
                 if (abs(t - lt) > 1e9) {
-                    LOGGER.debug("Waiting for metadata on $file, $width x $height, $codec")
+                    LOGGER.debug("Waiting for metadata on {}, {} x {}, {}", file, width, height, codec)
                     lt = t
                 }
                 width != 0 && height != 0 && codec.isNotEmpty()

@@ -270,7 +270,7 @@ object NormalCalculator {
             uniquePoints[points[i]] = i
         }
 
-        LOGGER.debug("Merged ${points.size} into ${uniquePoints.size} points")
+        LOGGER.debug("Merged {} into {} points", points.size, uniquePoints.size)
 
         return IntArray(points.size) {
             uniquePoints[points[it]]!!

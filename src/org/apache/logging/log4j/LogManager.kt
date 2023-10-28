@@ -9,26 +9,43 @@ import kotlin.reflect.KClass
 object LogManager {
 
     @JvmStatic
-    private val disabled = HashSet<String?>()
+    private val logLevels = HashMap<String?, Level?>()
 
     @JvmStatic
-    fun isEnabled(logger: LoggerImpl): Boolean {
-        return !disabled.contains(logger.prefix)
+    private var defaultLevel = Level.INFO
+
+    @JvmStatic
+    fun isEnabled(logger: LoggerImpl, level: Level): Boolean {
+        val value = logLevels[logger.prefix] ?: defaultLevel
+        return level <= value
+    }
+
+    @JvmStatic
+    fun isEnabled(logger: LoggerImpl, level: Int): Boolean {
+        val value = logLevels[logger.prefix] ?: defaultLevel
+        return level <= value.value
     }
 
     @JvmStatic
     fun disableLogger(logger: String?) {
-        disabled.add(logger)
+        logLevels[logger] = Level.OFF
     }
 
     @JvmStatic
     @Suppress("unused")
     fun enableLogger(logger: String?) {
-        disabled.remove(logger)
+        setLevel(logger, defaultLevel)
+    }
+
+    @JvmStatic
+    fun setLevel(logger: String?, level: Level) {
+        if (logger == null) defaultLevel = level
+        else logLevels[logger] = level
     }
 
     @JvmStatic
     private val logger = LoggerImpl(null)
+
     @JvmStatic
     private val loggers = HashMap<String, LoggerImpl>()
 
@@ -39,7 +56,6 @@ object LogManager {
 
     @JvmStatic
     fun getLogger(clazz: KClass<*>): LoggerImpl {
-        // "Inited " + clazz.getSimpleName()
         return getLogger(clazz.simpleName)
     }
 

@@ -1,11 +1,6 @@
 package me.anno.mesh.blender
 
-class DNAStruct(
-    val index: Int,
-    val type: DNAType,
-    val fields: Array<DNAField>,
-    pointerSize: Int
-) {
+class DNAStruct(val index: Int, val type: DNAType, val fields: Array<DNAField>, pointerSize: Int) {
 
     init {
         var pointer = 0

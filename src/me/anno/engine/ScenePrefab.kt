@@ -24,7 +24,7 @@ object ScenePrefab : InnerLazyPrefabFile(
 
             val logger = LogManager.getLogger(ScenePrefab::class)
 
-            logger.debug("creating ScenePrefab from thread ${Thread.currentThread().name}")
+            logger.debug("creating ScenePrefab from thread {}", Thread.currentThread().name)
 
             ensureMutableLists()
 
