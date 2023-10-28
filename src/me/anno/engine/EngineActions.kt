@@ -233,10 +233,10 @@ object EngineActions {
         register["PureTextInputML.rightArrow.typed", "MoveRight"]
         register["PureTextInputML.upArrow.typed", "MoveUp"]
         register["PureTextInputML.downArrow.typed", "MoveDown"]
-
-        // PureTextInput
-        register["PureTextInput.leftArrow.typed", "MoveLeft"]
-        register["PureTextInput.rightArrow.typed", "MoveRight"]
+        register["PureTextInputML.leftArrow.typed.s", "MoveLeft"]
+        register["PureTextInputML.rightArrow.typed.s", "MoveRight"]
+        register["PureTextInputML.upArrow.typed.s", "MoveUp"]
+        register["PureTextInputML.downArrow.typed.s", "MoveDown"]
 
         register["ConsoleInput.upArrow.typed", "MoveUp"]
         register["ConsoleInput.downArrow.typed", "MoveDown"]

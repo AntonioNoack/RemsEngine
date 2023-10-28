@@ -10,6 +10,7 @@ import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.Style
 import me.anno.utils.types.Strings.isBlank2
 
+// todo number input should understand binary and hex
 abstract class NumberInput<BaseType>(
     style: Style,
     title: String,

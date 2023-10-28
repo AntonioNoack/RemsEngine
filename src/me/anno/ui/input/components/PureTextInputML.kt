@@ -54,8 +54,6 @@ open class PureTextInputML(style: Style) :
             }
         }
 
-    var isDragging = false
-
     var lineLimit = Int.MAX_VALUE
 
     // todo update all children, when this is overridden
@@ -197,6 +195,8 @@ open class PureTextInputML(style: Style) :
 
                 override fun onCharTyped2(x: Float, y: Float, key: Int) = this@PureTextInputML.onCharTyped(x, y, key)
                 override fun onEnterKey2(x: Float, y: Float) = this@PureTextInputML.onEnterKey(x, y)
+                override fun onKeyDown(x: Float, y: Float, key: Key) = this@PureTextInputML.onKeyDown(x, y, key)
+                override fun onKeyUp(x: Float, y: Float, key: Key) = this@PureTextInputML.onKeyUp(x, y, key)
 
                 override fun setCursor(position: Int) {
                     // set cursor after replacement
@@ -230,9 +230,10 @@ open class PureTextInputML(style: Style) :
         invalidateLayout()
     }
 
+    private var lastClick = 0L
     override fun onUpdate() {
         super.onUpdate()
-        val blinkVisible = ((Time.nanoTime / 500_000_000L) % 2L == 0L)
+        val blinkVisible = (((Time.gameTimeN - lastClick) / 500_000_000L) % 2L == 0L)
         val isInFocus = isAnyChildInFocus
         val oldShowBars = showBars
         showBars = isInFocus && (blinkVisible || wasJustChanged)
@@ -502,8 +503,13 @@ open class PureTextInputML(style: Style) :
     fun deleteAfter() {
         if (lastDelete != Time.gameTimeN) {
             lastDelete = Time.gameTimeN
-            moveRight()
-            deleteBefore()
+            if (cursor1 != cursor2) {
+                deleteSelection()
+                update(true)
+            } else {
+                moveRight()
+                deleteBefore()
+            }
         }
     }
 
@@ -532,17 +538,24 @@ open class PureTextInputML(style: Style) :
     }
 
     private fun moveRight() {
-        val useC2 = Input.isShiftDown
-        val oldCursor = if (useC2) cursor2 else cursor1
+        val isSelectingText = Input.isShiftDown
+        val oldCursor = if (isSelectingText) cursor2 else max(cursor1, cursor2)
         val currentLine = lines[oldCursor.y]
-        val newCursor = if (oldCursor.x < currentLine.size) {
-            // we can move right
-            CursorPosition(oldCursor.x + 1, oldCursor.y)
-        } else {
-            // we need to move down
-            CursorPosition(0, min(oldCursor.y + 1, lines.lastIndex))
+        val newCursor = when {
+            !isSelectingText && cursor1 != cursor2 -> {
+                // remove current selection first
+                oldCursor
+            }
+            oldCursor.x < currentLine.size -> {
+                // we can move right
+                CursorPosition(oldCursor.x + 1, oldCursor.y)
+            }
+            else -> {
+                // we need to move down
+                CursorPosition(0, min(oldCursor.y + 1, lines.lastIndex))
+            }
         }
-        if (useC2) {
+        if (isSelectingText) {
             cursor2.set(newCursor)
         } else {
             cursor1.set(newCursor)
@@ -553,19 +566,23 @@ open class PureTextInputML(style: Style) :
     }
 
     private fun moveLeft() {
-        val useC2 = Input.isShiftDown
-        val oldCursor = if (useC2) cursor2 else cursor1
-        val newCursor = if (oldCursor.x > 0) {
-            // we can move left
-            CursorPosition(oldCursor.x - 1, oldCursor.y)
-        } else if (oldCursor.y > 0) {
-            // we need to move down
-            CursorPosition(0, oldCursor.y - 1)
-        } else {
-            // we cannot move at all
-            oldCursor
+        val isSelecting = Input.isShiftDown
+        val oldCursor = if (isSelecting) cursor2 else min(cursor1, cursor2)
+        val newCursor = when {
+            !isSelecting && cursor1 != cursor2 -> {
+                // remove current selection first
+                oldCursor
+            }
+            oldCursor.x > 0 -> {
+                // we can move left
+                CursorPosition(oldCursor.x - 1, oldCursor.y)
+            }
+            else -> {
+                // we need to move down, if possible
+                CursorPosition(0, max(oldCursor.y - 1, 0))
+            }
         }
-        if (useC2) {
+        if (isSelecting) {
             cursor2.set(newCursor)
         } else {
             cursor1.set(newCursor)
@@ -642,7 +659,6 @@ open class PureTextInputML(style: Style) :
 
         if (dragged != null) return
 
-        isDragging = !isControlDown && isLeftDown
         invalidateDrawing()
 
         if (!isControlDown && isLeftDown) {
@@ -668,8 +684,10 @@ open class PureTextInputML(style: Style) :
     }
 
     override fun onKeyDown(x: Float, y: Float, key: Key) {
-        if ((!isHovered || y >= scrollbarStartY) || key != Key.BUTTON_LEFT) super.onKeyDown(x, y, key)
-        else {
+        lastClick = Time.gameTimeN
+        if ((!isHovered || y >= scrollbarStartY) || key != Key.BUTTON_LEFT) {
+            super.onKeyDown(x, y, key)
+        } else {
             if (isControlDown) {
                 selectAll()
             } else {

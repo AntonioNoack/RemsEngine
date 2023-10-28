@@ -82,7 +82,7 @@ object Strings {
         var index = list.binarySearch { it.compareTo(localX) }
         if (index < 0) index = -1 - index
         // find the closer neighbor
-        if (index > 0 && index < characters.size && abs(list[index - 1] - localX) < abs(list[index] - localX)) {
+        if (index > 0 && index <= characters.size && abs(list[index - 1] - localX) < abs(list[index] - localX)) {
             index--
         }
         return index
@@ -100,7 +100,7 @@ object Strings {
         var index = list.binarySearch { it.compareTo(localX) }
         if (index < 0) index = -1 - index
         // find the closer neighbor
-        if (index > 0 && index < characters.size && abs(list[index - 1] - localX) < abs(list[index] - localX)) {
+        if (index > 0 && index <= characters.size && abs(list[index - 1] - localX) < abs(list[index] - localX)) {
             index--
         }
         return index

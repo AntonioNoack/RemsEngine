@@ -449,65 +449,58 @@ object Input {
         val windowStack = window.windowStack
         val panelWindow = windowStack.getPanelAndWindowAt(mouseX, mouseY)
         onClickIntoWindow(window, button, panelWindow)
+        if (windowWasClosed) return
 
         // todo the selection order for multiselect not always makes sense (e.g. not for graph panels) ->
         //  - sort the list or
         //  - disable multiselect
 
-        if (!windowWasClosed) {
+        if (!UIEvent(
+                window.currentWindow,
+                mouseX, mouseY, 0f, 0f,
+                button, -1,
+                byMouse = true, isLong = false,
+                UIEventType.KEY_DOWN
+            ).call().isCancelled
+        ) {
 
-            if (!UIEvent(
-                    window.currentWindow,
-                    mouseX, mouseY, 0f, 0f,
-                    button, -1,
-                    byMouse = true, isLong = false,
-                    UIEventType.KEY_DOWN
-                ).call().isCancelled
-            ) {
+            println("mouse down, event wasn't cancelled")
 
-                val toggleSinglePanel = isControlDown
-                val selectPanelRange = isShiftDown
-                val inFocus0 = windowStack.inFocus0
+            val toggleSinglePanel = isControlDown
+            val selectPanelRange = isShiftDown
+            val inFocus0 = windowStack.inFocus0
 
-                var issuedMouseDown = false
-                val mouseTarget =
-                    if (window == mouseLockWindow && mouseLockPanel != null) mouseLockPanel
-                    else windowStack.getPanelAt(mouseX, mouseY)
-                maySelectByClick = if (toggleSinglePanel || selectPanelRange) {
-                    val nextSelected = mouseTarget?.getMultiSelectablePanel()
-                    val prevSelected = inFocus0?.getMultiSelectablePanel()
-                    val commonParent = prevSelected?.uiParent
-                    if (nextSelected != null && commonParent != null && commonParent === nextSelected.uiParent) {
-                        issuedMouseDown = true
-                        if (inFocus0 !== prevSelected) windowStack.requestFocus(prevSelected, true)
-                        if (toggleSinglePanel) {
-                            if (nextSelected.isInFocus) {
-                                windowStack.inFocus -= nextSelected
-                            } else {
-                                nextSelected.requestFocus(false)
-                            }
-                            nextSelected.invalidateDrawing()
+            var issuedMouseDown = false
+            val mouseTarget =
+                if (window == mouseLockWindow && mouseLockPanel != null) mouseLockPanel
+                else windowStack.getPanelAt(mouseX, mouseY)
+            maySelectByClick = if (toggleSinglePanel || selectPanelRange) {
+                val nextSelected = mouseTarget?.getMultiSelectablePanel()
+                val prevSelected = inFocus0?.getMultiSelectablePanel()
+                val commonParent = prevSelected?.uiParent
+                if (nextSelected != null && commonParent != null && commonParent === nextSelected.uiParent) {
+                    issuedMouseDown = true
+                    if (inFocus0 !== prevSelected) windowStack.requestFocus(prevSelected, true)
+                    if (toggleSinglePanel) {
+                        if (nextSelected.isInFocus) {
+                            windowStack.inFocus -= nextSelected
                         } else {
-                            val index0 = prevSelected.indexInParent
-                            val index1 = nextSelected.indexInParent
-                            // todo we should use the last selected as reference point...
-                            val minIndex = min(index0, index1)
-                            val maxIndex = max(index0, index1)
-                            for (index in minIndex..maxIndex) {
-                                val child = commonParent.children[index]
-                                child.requestFocus(false)
-                                child.invalidateDrawing()
-                            }
+                            nextSelected.requestFocus(false)
                         }
-                        false
+                        nextSelected.invalidateDrawing()
                     } else {
-                        if (mouseTarget != null && mouseTarget.isInFocus) {
-                            true
-                        } else {
-                            windowStack.requestFocus(mouseTarget, true)
-                            false
+                        val index0 = prevSelected.indexInParent
+                        val index1 = nextSelected.indexInParent
+                        // todo we should use the last selected as reference point...
+                        val minIndex = min(index0, index1)
+                        val maxIndex = max(index0, index1)
+                        for (index in minIndex..maxIndex) {
+                            val child = commonParent.children[index]
+                            child.requestFocus(false)
+                            child.invalidateDrawing()
                         }
                     }
+                    false
                 } else {
                     if (mouseTarget != null && mouseTarget.isInFocus) {
                         true
@@ -516,57 +509,64 @@ object Input {
                         false
                     }
                 }
-
-                val mouseYi = mouseY.toInt()
-                if (button == Key.BUTTON_RIGHT && mouseYi in 0 until window.progressbarHeightSum) {
-                    val idx = mouseYi / window.progressbarHeight
-                    val progressBar = window.progressBars.getOrNull(idx)
-                    if (progressBar != null) {
-                        val notifyWhenFinishedTitle = NameDesc(
-                            if (progressBar.notifyWhenFinished) "Don't notify when finished"
-                            else "Notify when finished"
-                        )
-                        Menu.openMenu(
-                            windowStack,
-                            NameDesc(progressBar.name),
-                            listOf(
-                                MenuOption(notifyWhenFinishedTitle) {
-                                    progressBar.notifyWhenFinished = !progressBar.notifyWhenFinished
-                                },
-                                MenuOption(NameDesc("Hide")) {
-                                    window.progressBars.remove(progressBar)
-                                    window.invalidateLayout()
-                                },
-                                MenuOption(NameDesc("Cancel")) {
-                                    progressBar.cancel(false)
-                                    // the user interacted, and knows what he was doing,
-                                    // so close much quicker than usual
-                                    progressBar.endShowDuration = 300 * MILLIS_TO_NANOS
-                                }
-                            )
-                        )
-                        issuedMouseDown = true
-                    }
+            } else {
+                if (mouseTarget != null && mouseTarget.isInFocus) {
+                    true
+                } else {
+                    windowStack.requestFocus(mouseTarget, true)
+                    false
                 }
-
-                for (panel in windowStack.inFocus) {
-                    panel.onKeyDown(mouseX, mouseY, button)
-                    issuedMouseDown = true
-                }
-
-                if (!issuedMouseDown) {
-                    val inFocus = window.currentWindow?.panel?.getPanelAt(mouseX.toInt(), mouseY.toInt())
-                    inFocus?.requestFocus()
-                    inFocus?.onKeyDown(mouseX, mouseY, button)
-                }
-
-                ActionManager.onKeyDown(window, button)
             }
 
-            mouseStart = nanoTime
-            mouseKeysDown.add(button)
-            keysDown[button] = nanoTime
+            val mouseYi = mouseY.toInt()
+            if (button == Key.BUTTON_RIGHT && mouseYi in 0 until window.progressbarHeightSum) {
+                val idx = mouseYi / window.progressbarHeight
+                val progressBar = window.progressBars.getOrNull(idx)
+                if (progressBar != null) {
+                    val notifyWhenFinishedTitle = NameDesc(
+                        if (progressBar.notifyWhenFinished) "Don't notify when finished"
+                        else "Notify when finished"
+                    )
+                    Menu.openMenu(
+                        windowStack,
+                        NameDesc(progressBar.name),
+                        listOf(
+                            MenuOption(notifyWhenFinishedTitle) {
+                                progressBar.notifyWhenFinished = !progressBar.notifyWhenFinished
+                            },
+                            MenuOption(NameDesc("Hide")) {
+                                window.progressBars.remove(progressBar)
+                                window.invalidateLayout()
+                            },
+                            MenuOption(NameDesc("Cancel")) {
+                                progressBar.cancel(false)
+                                // the user interacted, and knows what he was doing,
+                                // so close much quicker than usual
+                                progressBar.endShowDuration = 300 * MILLIS_TO_NANOS
+                            }
+                        )
+                    )
+                    issuedMouseDown = true
+                }
+            }
+
+            for (panel in windowStack.inFocus) {
+                panel.onKeyDown(mouseX, mouseY, button)
+                issuedMouseDown = true
+            }
+
+            if (!issuedMouseDown) {
+                val inFocus = window.currentWindow?.panel?.getPanelAt(mouseX.toInt(), mouseY.toInt())
+                inFocus?.requestFocus()
+                inFocus?.onKeyDown(mouseX, mouseY, button)
+            }
+
+            ActionManager.onKeyDown(window, button)
         }
+
+        mouseStart = nanoTime
+        mouseKeysDown.add(button)
+        keysDown[button] = nanoTime
     }
 
     fun onMouseRelease(window: OSWindow, button: Key) {
