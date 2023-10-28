@@ -31,6 +31,8 @@ class VideoData(
             )
     }
 
+    val frames = ArrayList<GPUFrame>()
+
     init {
         // what about video webp? I think it's pretty rare...
         FFMPEGStream.getImageSequence(
@@ -43,8 +45,6 @@ class VideoData(
             }, {}
         )
     }
-
-    val frames = ArrayList<GPUFrame>()
 
     fun getFrame(localIndex: Int, needsToBeCreated: Boolean): GPUFrame? {
         val frame = frames.getOrNull(localIndex)

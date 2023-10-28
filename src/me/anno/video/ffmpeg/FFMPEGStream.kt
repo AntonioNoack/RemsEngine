@@ -80,12 +80,17 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             nextFrameCallback: (GPUFrame) -> Unit,
             finishedCallback: (List<GPUFrame>) -> Unit
         ) {
-            GPUFrameReader(input, (startTime * fps).roundToInt(), frameCount, nextFrameCallback, finishedCallback).run(
-                *getImageSequenceArguments(
-                    input, signature, w, h, startTime, frameCount, fps,
-                    originalWidth, originalFPS, totalFrameCount
-                ).toTypedArray()
-            )
+            thread(name = "$input/${w}x${h}/$startTime") {
+                GPUFrameReader(
+                    input, (startTime * fps).roundToInt(),
+                    frameCount, nextFrameCallback, finishedCallback
+                ).run(
+                    *getImageSequenceArguments(
+                        input, signature, w, h, startTime, frameCount, fps,
+                        originalWidth, originalFPS, totalFrameCount
+                    ).toTypedArray()
+                )
+            }
         }
 
         @JvmStatic
@@ -98,14 +103,16 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             nextFrameCallback: (Image) -> Unit,
             finishedCallback: (List<Image>) -> Unit
         ) {
-            CPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
-                *getImageSequenceArguments(
-                    input, signature, w, h,
-                    frameIndex / max(fps, 1e-3), frameCount, fps,
-                    originalWidth, originalFPS,
-                    totalFrameCount
-                ).toTypedArray()
-            )
+            thread(name = "$input/${w}x${h}/$frameIndex") {
+                CPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
+                    *getImageSequenceArguments(
+                        input, signature, w, h,
+                        frameIndex / max(fps, 1e-3), frameCount, fps,
+                        originalWidth, originalFPS,
+                        totalFrameCount
+                    ).toTypedArray()
+                )
+            }
         }
 
         @JvmStatic
@@ -118,14 +125,16 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
             nextFrameCallback: (GPUFrame) -> Unit,
             finishedCallback: (List<GPUFrame>) -> Unit
         ) {
-            GPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
-                *getImageSequenceArguments(
-                    input, signature, w, h,
-                    frameIndex / max(fps, 1e-3), frameCount, fps,
-                    originalWidth, originalFPS,
-                    totalFrameCount
-                ).toTypedArray()
-            )
+            thread(name = "$input/${w}x${h}/$frameIndex") {
+                GPUFrameReader(input, frameIndex, frameCount, nextFrameCallback, finishedCallback).run(
+                    *getImageSequenceArguments(
+                        input, signature, w, h,
+                        frameIndex / max(fps, 1e-3), frameCount, fps,
+                        originalWidth, originalFPS,
+                        totalFrameCount
+                    ).toTypedArray()
+                )
+            }
         }
 
         @JvmStatic
