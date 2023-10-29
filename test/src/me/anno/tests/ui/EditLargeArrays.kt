@@ -1,9 +1,9 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
-import me.anno.engine.ui.AnyArrayPanel2
-import me.anno.engine.ui.ComponentUI
-import me.anno.engine.ui.ComponentUI.writeTo
+import me.anno.engine.ui.input.AnyArrayPanel2
+import me.anno.engine.ui.input.ComponentUI
+import me.anno.engine.ui.input.ComponentUI.writeTo
 import me.anno.io.ISaveable.Companion.getReflections
 import me.anno.studio.Inspectable
 import me.anno.studio.InspectableProperty

@@ -643,6 +643,7 @@ object Input {
         // normally, this should be consumed
         // but there might be situations, where it isn't, so
         // then set it to null just in case
+        println("setting dragged to null")
         dragged = null
     }
 

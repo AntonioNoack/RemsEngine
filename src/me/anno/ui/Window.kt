@@ -128,6 +128,10 @@ open class Window(
         acceptsClickAway = { boolean }
     }
 
+    /**
+     * returns whether the window can be closed, when that button was clicked outside this window's domain;
+     * can be used as a listener for this event
+     * */
     @Suppress("UNUSED_ANONYMOUS_PARAMETER")
     var acceptsClickAway = { mouseButton: Key -> canBeClosedByUser }
 

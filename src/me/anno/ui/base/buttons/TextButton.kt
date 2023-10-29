@@ -12,9 +12,12 @@ import me.anno.input.Input.keysDown
 import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
+import me.anno.ui.Panel
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.Style
+import me.anno.ui.base.text.TextStyleable
+import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
@@ -24,10 +27,15 @@ open class TextButton(
     title: String,
     var isSquare: Boolean,
     style: Style
-) : TextPanel(title, style.getChild("button")) {
+) : TextPanel(title, style.getChild("button")), InputPanel<Unit> {
 
     init {
         tooltip = title
+    }
+
+    override val value: Unit get() = Unit
+    override fun setValue(newValue: Unit, notify: Boolean): Panel {
+        return this
     }
 
     constructor(style: Style) : this("", style)
@@ -51,10 +59,9 @@ open class TextButton(
 
     init {
         padding += borderSize
-        add(WrapAlign.LeftTop)
     }
 
-    var isInputAllowed = true
+    override var isInputAllowed = true
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)

@@ -1,6 +1,7 @@
 package me.anno.ecs.components.anim
 
 import me.anno.ecs.Component
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
@@ -30,6 +31,7 @@ class BoneAttachmentComponent() : Component() {
         findBone()
     }
 
+    @DebugAction
     fun findBone() {
         bone = SkeletonCache[animRenderer?.skeleton]
             ?.bones?.firstOrNull { it.name == boneName }

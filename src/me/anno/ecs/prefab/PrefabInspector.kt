@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.RemsEngine.Companion.collectSelected
 import me.anno.engine.RemsEngine.Companion.restoreSelected
-import me.anno.engine.ui.ComponentUI
+import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawRectangles
@@ -132,7 +132,8 @@ class PrefabInspector(val reference: FileReference) {
 
         val pathInformation = instances.joinToString("\n") {
             "${it.prefabPath}@${it.prefab?.source}, " +
-                    "${it.className}@${hex32(System.identityHashCode(it))}"
+                    "${it.className}@${hex32(System.identityHashCode(it))}\n" +
+                    "#${hex32(it.prefabPath.hashCode())}"
         }
         list += TextPanel(pathInformation, style)
 

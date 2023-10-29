@@ -1,6 +1,6 @@
 package me.anno.extensions
 
-import me.anno.engine.ui.ComponentUI.instanceOf
+import me.anno.engine.ui.input.ComponentUI.instanceOf
 import me.anno.extensions.plugins.Plugin
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef

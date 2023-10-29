@@ -4,13 +4,11 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabInspector.Companion.currentInspector
 import me.anno.ecs.prefab.PrefabInspector.Companion.formatWarning
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.render.RenderView
-import me.anno.engine.ui.scenetabs.ECSSceneTab
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
@@ -70,9 +68,9 @@ class ECSTreeView(val library: EditorState, style: Style) :
                 return false
             }
         }
-        println("Input: ${element.prefab?.adds}")
+        LOGGER.info("Input: ${element.prefab?.adds}")
         Hierarchy.add(prefab, prefabPath, element, type, index)
-        println("Output: ${element.prefab?.adds}")
+        LOGGER.info("Output: ${element.prefab?.adds}")
         return true
     }
 

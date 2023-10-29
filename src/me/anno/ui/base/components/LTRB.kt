@@ -15,16 +15,23 @@ open class LTRB(var left: Int, var top: Int, var right: Int, var bottom: Int) : 
         bottom = all
     }
 
-    fun set(left: Int, top: Int, right: Int, bottom: Int){
+    fun set(other: LTRB) {
+        left = other.left
+        top = other.top
+        right = other.right
+        bottom = other.bottom
+    }
+
+    fun set(left: Int, top: Int, right: Int, bottom: Int) {
         this.left = left
         this.top = top
         this.right = right
         this.bottom = bottom
     }
 
-    fun add(all: Int) =add(all,all,all,all)
+    fun add(all: Int) = add(all, all, all, all)
 
-    fun add(left: Int, top: Int, right: Int, bottom: Int){
+    fun add(left: Int, top: Int, right: Int, bottom: Int) {
         this.left += left
         this.top += top
         this.right += right
@@ -50,5 +57,4 @@ open class LTRB(var left: Int, var top: Int, var right: Int, var bottom: Int) : 
     }
 
     override val className: String get() = "LTRB"
-
 }

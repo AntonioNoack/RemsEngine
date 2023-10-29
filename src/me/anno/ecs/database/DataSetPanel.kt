@@ -1,7 +1,7 @@
 package me.anno.ecs.database
 
 import me.anno.engine.IProperty
-import me.anno.engine.ui.ComponentUI
+import me.anno.engine.ui.input.ComponentUI
 import me.anno.io.ISaveable
 import me.anno.io.serialization.CachedReflections
 import me.anno.ui.Panel

@@ -1,7 +1,7 @@
-package me.anno.engine.ui
+package me.anno.engine.ui.input
 
 import me.anno.engine.Ptr
-import me.anno.maths.Maths.GOLDEN_RATIOf
+import me.anno.maths.Maths
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListX
@@ -10,6 +10,7 @@ import me.anno.ui.input.InputVisibility
 import me.anno.utils.structures.tuples.MutablePair
 
 // todo sort list/map by key or property of the users choice
+
 /**
  * UI for editing maps
  * */
@@ -36,7 +37,7 @@ open class AnyMapPanel(
         val valueProperty = MapPanelProperty(value.second, { value.second = it; onChange() }, valueType, valuePanelPtr)
         val valuePanel = ComponentUI.createUIByTypeName("", "", valueProperty, valueType, null, style)
         valuePanel.setTooltip("Value")
-        valuePanel.weight = GOLDEN_RATIOf
+        valuePanel.weight = Maths.GOLDEN_RATIOf
         valuePanelPtr.value = valuePanel
 
         val list = object: PanelListX(style){

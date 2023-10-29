@@ -1,4 +1,4 @@
-package me.anno.engine.ui
+package me.anno.engine.ui.input
 
 import me.anno.animation.Type
 import me.anno.ecs.annotations.ListType
@@ -27,11 +27,9 @@ import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
-import me.anno.engine.ui.AssetImport.deepCopyImport
-import me.anno.engine.ui.AssetImport.shallowCopyImport
+import me.anno.engine.ui.*
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.engine.ui.scenetabs.ECSSceneTabs.project
 import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
@@ -41,8 +39,7 @@ import me.anno.io.text.TextReader
 import me.anno.io.text.TextWriter
 import me.anno.io.zip.InnerTmpFile
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.max
+import me.anno.maths.Maths
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -54,7 +51,6 @@ import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu
-import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
@@ -63,7 +59,7 @@ import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
 import me.anno.ui.input.*
-import me.anno.utils.Color.rgba
+import me.anno.utils.Color
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.OS
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
@@ -97,13 +93,13 @@ object ComponentUI {
                 "Deep-Copy-Import", "Make this file [mutable, project-indexed] by transferring it to the project",
                 ""
             )
-        ) { _, files -> deepCopyImport(StudioBase.workspace, files, null) },
+        ) { _, files -> AssetImport.deepCopyImport(StudioBase.workspace, files, null) },
         FileExplorerOption(
             NameDesc(
                 "Shallow-Copy-Import", "Make this file [mutable, project-indexed] by transferring it to the project",
                 ""
             )
-        ) { _, files -> shallowCopyImport(StudioBase.workspace, files, null) },
+        ) { _, files -> AssetImport.shallowCopyImport(StudioBase.workspace, files, null) },
 
         // todo test whether this actually works
         // (on both Windows and Linux)
@@ -116,7 +112,7 @@ object ComponentUI {
             val file = files.first()
             // todo ask file instead
             val ext = if (OS.isWindows) "url" else "desktop"
-            askName(panel.windowStack, NameDesc(),
+            Menu.askName(panel.windowStack, NameDesc(),
                 if (file.isDirectory) file.name
                 else "${file.nameWithoutExtension}.$ext",
                 NameDesc("Link"), { -1 }, { newName ->
@@ -416,7 +412,7 @@ object ComponentUI {
             // todo char
             "Byte" -> {
                 val type = Type(default as Byte,
-                    { clamp(it.toLong(), range.minByte().toLong(), range.maxByte().toLong()).toByte() }, { it })
+                    { Maths.clamp(it.toLong(), range.minByte().toLong(), range.maxByte().toLong()).toByte() }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue((value as Byte).toInt(), false)
@@ -429,7 +425,7 @@ object ComponentUI {
             }
             "UByte" -> {
                 val type = Type(default as UByte,
-                    { clamp(it.toLong(), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
+                    { Maths.clamp(it.toLong(), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
@@ -443,7 +439,7 @@ object ComponentUI {
             }
             "Short" -> {
                 val type = Type(default as Short,
-                    { clamp(it.toLong(), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
+                    { Maths.clamp(it.toLong(), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
@@ -457,7 +453,7 @@ object ComponentUI {
             }
             "UShort" -> {
                 val type = Type(default as UShort,
-                    { clamp(it.toLong(), range.minUShort().toLong(), range.maxUShort().toLong()).toUShort() },
+                    { Maths.clamp(it.toLong(), range.minUShort().toLong(), range.maxUShort().toLong()).toUShort() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
@@ -476,12 +472,12 @@ object ComponentUI {
                         askForReset(property) { it as Int; setValue(it.toVecRGBA(), false) }
                         setResetListener { (property.reset(this) as Int).toVecRGBA() }
                         setChangeListener { r, g, b, a ->
-                            property.set(this, rgba(r, g, b, a))
+                            property.set(this, Color.rgba(r, g, b, a))
                         }
                     }
                 } else {
                     val type = Type(default as? Int ?: 0,
-                        { clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()) }, { it })
+                        { Maths.clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()) }, { it })
                     return IntInput(title, visibilityKey, type, style).apply {
                         property.init(this)
                         setValue(value as Int, false)
@@ -495,7 +491,7 @@ object ComponentUI {
             }
             "UInt" -> {
                 val type = Type(default as? UInt ?: 0u,
-                    { clamp(it.toLong(), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() }, { it })
+                    { Maths.clamp(it.toLong(), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue((value as UInt).toLong(), false)
@@ -508,7 +504,7 @@ object ComponentUI {
             }
             "Long" -> {
                 val type = Type(default as? Long ?: 0L,
-                    { clamp(it.toLong(), range.minLong(), range.maxLong()) }, { it })
+                    { Maths.clamp(it.toLong(), range.minLong(), range.maxLong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue(value as Long, false)
@@ -521,7 +517,7 @@ object ComponentUI {
             }
             "ULong" -> {// not fully supported
                 val type = Type(default as? ULong ?: 0uL,
-                    { clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
+                    { Maths.clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue((value as ULong).toLong(), false)
@@ -535,7 +531,7 @@ object ComponentUI {
             // todo slider type, which returns a float in 01 range
             "Float" -> {
                 val type = Type(AnyToFloat.getFloat(default, 0f),
-                    { clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() }, { it })
+                    { Maths.clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue(value as Float, false)
@@ -548,7 +544,7 @@ object ComponentUI {
             }
             "Double" -> {
                 val type = Type(default as? Double ?: 0.0,
-                    { clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
+                    { Maths.clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
                     property.init(this)
                     setValue(value as Double, false)
@@ -747,7 +743,7 @@ object ComponentUI {
                 fun b2l(b: Vector3f): Vector4f {
                     var length = b.length()
                     if (length == 0f) length = 1f
-                    val power = clamp(ln(length) / ln(maxPower) * 0.5f + 0.5f, 0f, 1f)
+                    val power = Maths.clamp(ln(length) / ln(maxPower) * 0.5f + 0.5f, 0f, 1f)
                     return Vector4f(b.x, b.y, b.z, power)
                 }
 
@@ -791,7 +787,8 @@ object ComponentUI {
                 // todo special types
                 // todo operations: translate, rotate, scale
                 for (i in 0 until 4) {
-                    panel.add(FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
+                    panel.add(
+                        FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
                         .apply {
                             // todo correct change listener
                             addChangeListener { x, y, z, w ->
@@ -1078,7 +1075,7 @@ object ComponentUI {
                                 }
                             }
 
-                            val indexedAssets = project?.assetIndex?.get(type1)
+                            val indexedAssets = ECSSceneTabs.project?.assetIndex?.get(type1)
                             if (indexedAssets != null) {
                                 createCategory("In Project", indexedAssets.toList())
                             }
@@ -1101,7 +1098,7 @@ object ComponentUI {
                             buttons.weight = 1f
                             val mainList = SizeLimitingContainer(
                                 panelList,
-                                max(button.window!!.width / 3, 200),
+                                Maths.max(button.window!!.width / 3, 200),
                                 -1, style
                             )
                             Menu.openMenuByPanels(
@@ -1134,12 +1131,12 @@ object ComponentUI {
 
                     // actual instance, needs to be local, linked via path
                     // e.g., for physics constraints, events or things like that
-                    type0.endsWith("/PrefabSaveable", true) -> {
+                    type0.endsWith("/SameSceneRef", true) -> {
                         val type1 = type0.substring(0, type0.lastIndexOf('/'))
                         value as PrefabSaveable?
                         // todo find the class somehow...
                         val clazz = ISaveable.getClass(type1) ?: throw IllegalStateException("Missing class $type1")
-                        return PrefabSaveableInput(title, clazz, value, style)
+                        return SameSceneRefInput(title, visibilityKey, clazz, value, style)
                             .apply {
                                 property.init(this)
                                 setResetListener {

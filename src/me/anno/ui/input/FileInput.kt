@@ -62,7 +62,7 @@ open class FileInput(
         button.apply {
             addLeftClickListener {
                 if (isInputAllowed) {
-                    var file2 = value
+                    var file2 = this@FileInput.value
                     while (file2 != InvalidRef && !file2.exists) {
                         val file3 = file2.getParent() ?: InvalidRef
                         if (file3 == InvalidRef || file3 == file2 || file3.exists) {

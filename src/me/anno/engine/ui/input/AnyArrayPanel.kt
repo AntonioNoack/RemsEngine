@@ -1,4 +1,4 @@
-package me.anno.engine.ui
+package me.anno.engine.ui.input
 
 import me.anno.engine.Ptr
 import me.anno.ui.Panel

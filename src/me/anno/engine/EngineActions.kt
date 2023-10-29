@@ -204,8 +204,8 @@ object EngineActions {
         register["FileExplorer.right.down", "OpenOptions"]
         register["FileExplorer.mouseBackward.down", "Back"]
         register["FileExplorer.mouseForward.down", "Forward"]
-        register["TreeViewPanel.left.press", "DragStart"]
-        register["TreeViewPanel.f2.down", "Rename"]
+        register["TreeViewEntryPanel.left.press", "DragStart"]
+        register["TreeViewEntryPanel.f2.down", "Rename"]
         register["StackPanel.left.press", "DragStart"]
 
         register["HSVBox.left.down", "SelectColor"]

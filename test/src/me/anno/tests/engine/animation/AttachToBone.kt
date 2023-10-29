@@ -20,6 +20,9 @@ import org.apache.logging.log4j.LogManager
  * */
 fun main() {
 
+    // todo drag things into Type/SameSceneRef
+    //  - drag ECS nodes in general...
+
     val scene = Entity("Scene")
 
     // this mesh, including animation is from Mixamo

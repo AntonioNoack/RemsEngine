@@ -2,7 +2,7 @@ package me.anno.studio
 
 import me.anno.ecs.annotations.DebugTitle
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.engine.ui.ComponentUI
+import me.anno.engine.ui.input.ComponentUI
 import me.anno.io.ISaveable
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton

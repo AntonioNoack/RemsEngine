@@ -12,6 +12,7 @@ import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
+import me.anno.utils.Color.white
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
@@ -121,7 +122,7 @@ abstract class TreeView<V : Any>(
     }
 
     open fun getLocalColor(element: V, isHovered: Boolean, isInFocus: Boolean): Int {
-        return -1
+        return white
     }
 
     override fun onPropertiesChanged() {
@@ -147,6 +148,7 @@ abstract class TreeView<V : Any>(
         (panel as Panel).isVisible = true
         val isCollapsed = isCollapsed(element)
         val search = search
+        // todo go down some levels for search, if not all are searched
         var isIncludedInSearch = search == null || fulfillsSearch(element, name, ttt.value, search)
         if (!isCollapsed) {
             val children = getChildren(element)

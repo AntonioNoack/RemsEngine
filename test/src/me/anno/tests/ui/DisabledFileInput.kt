@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveableProperty
 import me.anno.ecs.prefab.PrefabInspector
-import me.anno.engine.ui.ComponentUI
+import me.anno.engine.ui.input.ComponentUI
 import me.anno.gpu.GFXBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.input.InputPanel

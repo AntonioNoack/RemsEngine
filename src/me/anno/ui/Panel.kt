@@ -327,7 +327,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         isInFocus = false
         isAnyChildInFocus = false
         canBeSeen = (uiParent?.canBeSeen != false) && isVisible && lx1 > lx0 && ly1 > ly0
-        isHovered = mx in lx0 until lx1 && my in ly0 until ly1
+        isHovered = canBeSeen && mx in lx0 until lx1 && my in ly0 until ly1
     }
 
     fun findMissingParents(parent: PanelGroup? = null) {
@@ -731,6 +731,22 @@ open class Panel(val style: Style) : PrefabSaveable() {
 
     fun any(predicate: (Panel) -> Boolean): Boolean {
         return firstOfAll(predicate) != null
+    }
+
+    fun firstOfHierarchical(filter: (Panel) -> Boolean, predicate: (Panel) -> Boolean): Panel? {
+        if (!filter(this)) return null
+        if (predicate(this)) return this
+        if (this is PanelGroup) {
+            for (child in children) {
+                val first = child.firstOfAll(predicate)
+                if (first != null) return first
+            }
+        }
+        return null
+    }
+
+    fun anyHierarchical(filter: (Panel) -> Boolean, predicate: (Panel) -> Boolean): Boolean {
+        return firstOfHierarchical(filter, predicate) != null
     }
 
     override val listOfAll: Sequence<Panel>
