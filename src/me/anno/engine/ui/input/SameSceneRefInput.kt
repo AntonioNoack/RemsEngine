@@ -20,10 +20,9 @@ import me.anno.ui.input.InputVisibility
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
-
-// todo click, then open tree view to select it (?)
 
 /**
  * input panel for drag-dropping references to instances in the same scene
@@ -42,18 +41,21 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
             set(_) {}
     }
 
-    val openSceneSelection = TextButton("\uD83D\uDCC1", true, style).apply {
-        setTooltip("Open scene tree to select value.")
+    val valueButton = TextButton(formatDisplay(value0, true), style).apply {
+        setTooltip("Current Value; click to open scene tree to select value.")
     }
 
     fun containsType(element: Any?): Boolean {
-        return element is PrefabSaveable && element.listChildTypes().any { type ->
-            element.getChildListByType(type).any2 {
+        return element is PrefabSaveable && element.listChildTypes().sumOf { type ->
+            element.getChildListByType(type).count2 {
                 clazz.isInstance(it)
             }
-        }
+        } == 1
     }
 
+    /**
+     * shows the status
+     * */
     val linkIcon = object : TextPanel("\uD83D\uDD17", style) {
 
         fun isDraggingGoodType(): Int {
@@ -61,6 +63,7 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
             return when {
                 clazz.isInstance(dragged) -> 5
                 containsType(dragged) -> 4
+                dragged != null -> -2
                 // check if hovered element is potentially it xD
                 rootPanel.anyHierarchical({ it.isHovered }) {
                     it is TreeViewEntryPanel<*> && clazz.isInstance(it.getElement())
@@ -86,31 +89,14 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
         }
 
         override val effectiveTextColor: Int
-            get() = mixARGB(
-                super.effectiveTextColor,
-                if (lastType < 0) 0xff0000 or black
-                else 0x00ff00 or black,
-                when (lastType) {
-                    5 -> 1.0f
-                    4 -> 0.7f
-                    3 -> 0.8f
-                    2 -> 0.4f
-                    -1 -> 0.5f
-                    else -> 0f
-                }
-            )
+            get() = getColor(super.effectiveTextColor, lastType)
     }.apply {
-        padding.set(openSceneSelection.padding)
+        padding.set(valueButton.padding)
         setTooltip("Drag entities or components of matching type (${clazz.javaClass.simpleName}) here.")
     }
 
-    val nameDisplayPanel = TextPanel(formatDisplay(value0), style).apply {
-        padding.set(openSceneSelection.padding)
-    }
-
     init {
-        nameDisplayPanel.setTooltip("Current Value")
-        openSceneSelection.addLeftClickListener {
+        valueButton.addLeftClickListener {
             // open tree view to select an element without drag'n'drop
             val oldValue: Type = value
             val panel = SameSceneRefTreeView(this)
@@ -139,9 +125,15 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
             }
         }
 
+        // right click to reset it
+        addRightClickListener {
+            Menu.openMenu(windowStack, listOf(MenuOption(NameDesc("Reset")) {
+                value = resetListener()
+            }))
+        }
+
         list.add(linkIcon)
-        list.add(openSceneSelection)
-        list.add(nameDisplayPanel)
+        list.add(valueButton)
 
         add(list)
     }
@@ -150,21 +142,12 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
 
     override var value: Type = value0
 
-    fun formatDisplay(value: PrefabSaveable?): String {
-        value ?: return "null"
-        return "${value.name.ifBlank2(value.className)} #${hex32(hashCode(value))}"
-    }
-
-    fun hashCode(value: PrefabSaveable): Int {
-        return value.prefabPath.hashCode()
-    }
-
     override fun setValue(newValue: Type, notify: Boolean): Panel {
         value = newValue
         if (notify) {
             changeListener(newValue)
         }
-        nameDisplayPanel.text = formatDisplay(newValue)
+        valueButton.text = formatDisplay(newValue, true)
         return this
     }
 
@@ -176,15 +159,6 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
     private var resetListener: () -> Type = { value0 }
     fun setResetListener(resetListener: () -> Type) {
         this.resetListener = resetListener
-    }
-
-    init {
-        // right click to reset it
-        addRightClickListener {
-            Menu.openMenu(windowStack, listOf(MenuOption(NameDesc("Reset")) {
-                value = resetListener()
-            }))
-        }
     }
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
@@ -217,5 +191,32 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
 
     companion object {
         private val LOGGER = LogManager.getLogger(SameSceneRefInput::class)
+
+        fun formatDisplay(value: PrefabSaveable?, forPrimary: Boolean): String {
+            val prefix = if (forPrimary) "\uD83D\uDCC1 " else ""
+            value ?: return "${prefix}null"
+            return "$prefix${value.name.ifBlank2(value.className)} #${hex32(hashCode(value))}"
+        }
+
+        fun hashCode(value: PrefabSaveable): Int {
+            return value.prefabPath.hashCode()
+        }
+
+        fun getColor(baseColor: Int, type: Int): Int {
+            return mixARGB(
+                baseColor,
+                if (type < 0) 0xff0000 or black // bad -> red
+                else 0x00ff00 or black, // good -> green
+                when (type) {
+                    5 -> 1.0f
+                    4 -> 0.7f
+                    3 -> 0.8f
+                    2 -> 0.4f
+                    -1 -> 0.5f
+                    -2 -> 1.0f
+                    else -> 0f
+                }
+            )
+        }
     }
 }

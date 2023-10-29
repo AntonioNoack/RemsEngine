@@ -2,9 +2,9 @@ package me.anno.engine.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.maths.Maths
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.utils.Color.white
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.flatten
 import org.apache.logging.log4j.LogManager
@@ -26,12 +26,12 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
     }
 
     override fun getLocalColor(element: PrefabSaveable, isHovered: Boolean, isInFocus: Boolean): Int {
-        val base = super.getLocalColor(element, isHovered, isInFocus)
-        return when {
-            sameSceneRefInput.clazz.isInstance(element) -> base
-            sameSceneRefInput.containsType(element) -> Maths.mixARGB(backgroundColor, base, 0.75f)
-            else -> Maths.mixARGB(backgroundColor, base, 0.50f)
+        val type = when {
+            sameSceneRefInput.clazz.isInstance(element) -> 5
+            sameSceneRefInput.containsType(element) -> 4
+            else -> 0
         }
+        return SameSceneRefInput.getColor(white, type)
     }
 
     override fun isValidElement(element: Any?): Boolean {
@@ -44,10 +44,7 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
 
     override fun canBeInserted(parent: PrefabSaveable, element: PrefabSaveable, index: Int): Boolean = false
     override fun canBeRemoved(element: PrefabSaveable): Boolean = false
-
-    override fun stringifyForCopy(element: PrefabSaveable): String {
-        return sameSceneRefInput.formatDisplay(element)
-    }
+    override fun stringifyForCopy(element: PrefabSaveable): String = getName(element)
 
     // todo disable this somehow...
     override fun setName(element: PrefabSaveable, name: String) {
@@ -55,7 +52,7 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
     }
 
     override fun getName(element: PrefabSaveable): String {
-        return sameSceneRefInput.formatDisplay(element)
+        return SameSceneRefInput.formatDisplay(element, false)
     }
 
     override fun destroy(element: PrefabSaveable) {}
