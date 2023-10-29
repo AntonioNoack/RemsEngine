@@ -39,14 +39,6 @@ open class MeshCollider() : Collider() {
     @SerializedProperty
     var margin = 0.04
 
-    @Type("Mesh/PrefabSaveable")
-    var mesh: Mesh? = null
-        get() {
-            if (field == null) field = MeshCache[meshFile]
-            if (field == null) field = entity?.getComponentInChildren(MeshComponentBase::class, false)?.getMeshOrNull()
-            return field
-        }
-
     val meshTransform = Matrix4x3f()
 
     @DebugProperty
@@ -54,20 +46,21 @@ open class MeshCollider() : Collider() {
 
     @DebugProperty
     val meshAABB: AABBf?
-        get() {
-            val mesh = mesh
-            mesh?.getBounds()
-            return mesh?.aabb
-        }
+        get() = mesh?.getBounds()
 
     @Type("MeshComponent/Reference")
     var meshFile: FileReference = InvalidRef
-        set(value) {
-            field = value
-            mesh = MeshCache[value] ?: mesh
-        }
 
     var isValid = false
+
+    val mesh: Mesh?
+        get() {
+            if (meshFile == InvalidRef) {
+                meshFile = entity?.getComponentInChildren(MeshComponentBase::class, false)
+                    ?.getMeshOrNull()?.ref ?: InvalidRef
+            }
+            return MeshCache[meshFile]
+        }
 
     /**
      * returns +Inf, if not
@@ -118,7 +111,6 @@ open class MeshCollider() : Collider() {
         JomlPools.vec3f.sub(6)
 
         return if (neg) -bestDistance else bestDistance
-
     }
 
     /**
@@ -231,25 +223,20 @@ open class MeshCollider() : Collider() {
     }
 
     override fun union(globalTransform: Matrix4x3d, aabb: AABBd, tmp: Vector3d, preferExact: Boolean) {
-        val mesh = mesh
-        if (mesh != null) {
-            val mat = JomlPools.mat4x3d.borrow()
-            mat.set(globalTransform)
-            mat.mul(meshTransform)
-            mesh.forEachPoint(preferExact) { x, y, z ->
-                tmp.set(x.toDouble(), y.toDouble(), z.toDouble())
-                mat.transformPosition(tmp)
-                aabb.union(tmp)
-            }
-        } else super.union(globalTransform, aabb, tmp, preferExact)
+        val mesh = mesh ?: return super.union(globalTransform, aabb, tmp, preferExact)
+        val mat = JomlPools.mat4x3d.borrow()
+        mat.set(globalTransform)
+        mat.mul(meshTransform)
+        mesh.forEachPoint(preferExact) { x, y, z ->
+            tmp.set(x.toDouble(), y.toDouble(), z.toDouble())
+            mat.transformPosition(tmp)
+            aabb.union(tmp)
+        }
     }
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as MeshCollider
-        // todo getInClone returns an error for thumbnail test on
-        // getReference("Downloads/up/PolygonSciFiCity_Unity_Project_2017_4.unitypackage/f9a80be48a6254344b5f885cfff4bbb0/64472554668277586.json")
-        dst.mesh = mesh // getInClone(mesh, clone)
         dst.meshFile = meshFile
         dst.isConvex = isConvex
         dst.margin = margin
@@ -257,5 +244,4 @@ open class MeshCollider() : Collider() {
     }
 
     override val className: String get() = "MeshCollider"
-
 }

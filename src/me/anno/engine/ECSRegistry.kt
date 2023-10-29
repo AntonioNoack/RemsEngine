@@ -67,7 +67,7 @@ object ECSRegistry {
         registerCustomClass(Bone())
         registerCustomClass(Retargeting())
         registerCustomClass(MorphTarget())
-        registerCustomClass(AttachToBoneComponent())
+        registerCustomClass(BoneAttachmentComponent())
     }
 
     @JvmStatic

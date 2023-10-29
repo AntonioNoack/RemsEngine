@@ -66,7 +66,11 @@ open class OSWindow(var title: String) {
     var mouseTargetX = Double.NaN
     var mouseTargetY = Double.NaN
     var lastMouseTargetNanos = 0L
-    var lastMouseCorrection = Time.nanoTime
+
+    /**
+     * when the mouse last was teleported for convenience
+     * */
+    var lastMouseTeleport = 0L
 
     var savedWidth = 300
     var savedHeight = 300

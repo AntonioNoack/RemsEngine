@@ -109,9 +109,7 @@ object Input {
     var mouseLockPanel: Panel? = null
 
     val isMouseLocked: Boolean
-        get() {
-            return mouseLockWindow?.isInFocus == true && mouseLockPanel != null
-        }
+        get() = mouseLockWindow?.isInFocus == true && mouseLockPanel != null
 
     fun unlockMouse() {
         mouseLockWindow = null
@@ -146,22 +144,14 @@ object Input {
             }
         }
 
-        /*GLFW.glfwSetCharCallback(window) { _, _ ->
-            addEvent {
-                // LOGGER.info("char event $codepoint")
-            }
-        } */
-
         // key typed callback
         GLFW.glfwSetCharModsCallback(window.pointer) { _, codepoint, mods ->
             addEvent { onCharTyped(window, codepoint, mods) }
         }
 
         GLFW.glfwSetCursorPosCallback(window.pointer) { _, xPosition, yPosition ->
-            val time = nanoTime
-            addEvent {
-                if (time > window.lastMouseCorrection)
-                    onMouseMove(window, xPosition.toFloat(), yPosition.toFloat())
+            if (nanoTime > window.lastMouseTeleport) {
+                addEvent { onMouseMove(window, xPosition.toFloat(), yPosition.toFloat()) }
             }
         }
 
@@ -213,19 +203,20 @@ object Input {
         keysWentUp.clear()
     }
 
-    // val inFocus0 get() = defaultWindowStack?.inFocus0
-
     fun onCharTyped(window: OSWindow, codepoint: Int, mods: Int) {
         window.framesSinceLastInteraction = 0
         KeyNames.onCharTyped(codepoint)
-        if (!UIEvent(
-                window.currentWindow,
-                window.mouseX, window.mouseY, 0f, 0f,
-                Key.KEY_UNKNOWN, codepoint,
-                byMouse = false, isLong = false,
-                UIEventType.CHAR_TYPED,
-            ).call().isCancelled
-        ) window.windowStack.inFocus0?.onCharTyped(window.mouseX, window.mouseY, codepoint)
+        val event = UIEvent(
+            window.currentWindow,
+            window.mouseX, window.mouseY, 0f, 0f,
+            Key.KEY_UNKNOWN, codepoint,
+            byMouse = false, isLong = false,
+            UIEventType.CHAR_TYPED,
+        ).call()
+        if (!event.isCancelled) {
+            window.windowStack.inFocus0
+                ?.onCharTyped(window.mouseX, window.mouseY, codepoint)
+        }
         keyModState = mods
     }
 
@@ -233,14 +224,15 @@ object Input {
         window.framesSinceLastInteraction = 0
         keysDown[key] = nanoTime
         keysWentDown += key
-        if (!UIEvent(
-                window.currentWindow,
-                window.mouseX,
-                window.mouseY, key,
-                UIEventType.KEY_DOWN
-            ).call().isCancelled
-        ) {
-            window.windowStack.inFocus0?.onKeyDown(window.mouseX, window.mouseY, key)
+        val event = UIEvent(
+            window.currentWindow,
+            window.mouseX,
+            window.mouseY, key,
+            UIEventType.KEY_DOWN
+        ).call()
+        if (!event.isCancelled) {
+            window.windowStack.inFocus0
+                ?.onKeyDown(window.mouseX, window.mouseY, key)
             ActionManager.onKeyDown(window, key)
             onKeyTyped(window, key)
         }
@@ -250,13 +242,13 @@ object Input {
         window.framesSinceLastInteraction = 0
         keyUpCtr++
         keysWentUp += key
-        if (!UIEvent(
-                window.currentWindow,
-                window.mouseX,
-                window.mouseY, key,
-                UIEventType.KEY_UP
-            ).call().isCancelled
-        ) {
+        val event = UIEvent(
+            window.currentWindow,
+            window.mouseX,
+            window.mouseY, key,
+            UIEventType.KEY_UP
+        ).call()
+        if (!event.isCancelled) {
             window.windowStack.inFocus0?.onKeyUp(window.mouseX, window.mouseY, key)
             ActionManager.onKeyUp(window, key)
         }
@@ -267,13 +259,15 @@ object Input {
 
         window.framesSinceLastInteraction = 0
 
-        if (UIEvent(
-                window.currentWindow,
-                window.mouseX,
-                window.mouseY, key,
-                UIEventType.KEY_TYPED
-            ).call().isCancelled
-        ) return
+        val event = UIEvent(
+            window.currentWindow,
+            window.mouseX,
+            window.mouseY, key,
+            UIEventType.KEY_TYPED
+        ).call()
+        if (event.isCancelled) {
+            return
+        }
 
         ActionManager.onKeyTyped(window, key)
 
@@ -365,7 +359,7 @@ object Input {
             window.mouseY = newY
         }
 
-        UIEvent(
+        val event = UIEvent(
             window.currentWindow,
             window.mouseX, window.mouseY, dx, dy,
             Key.KEY_UNKNOWN, -1,
@@ -373,17 +367,21 @@ object Input {
             UIEventType.MOUSE_MOVE
         ).call()
 
-        for (panel in window.windowStack.inFocus) {
-            panel.onMouseMoved(newX, newY, dx, dy)
+        if (!event.isCancelled) {
+            for (panel in window.windowStack.inFocus) {
+                panel.onMouseMoved(newX, newY, dx, dy)
+            }
+            ActionManager.onMouseMoved(window, dx, dy)
         }
-        ActionManager.onMouseMoved(window, dx, dy)
     }
 
     var userCanScrollX = false
     fun onMouseWheel(window: OSWindow, dx: Float, dy: Float, byMouse: Boolean) {
         mouseWheelSumX += dx
         mouseWheelSumY += dy
-        if (length(dx, dy) > 0f) window.framesSinceLastInteraction = 0
+        if (length(dx, dy) > 0f) {
+            window.framesSinceLastInteraction = 0
+        }
         addEvent {
             val mouseX = window.mouseX
             val mouseY = window.mouseY
@@ -455,16 +453,15 @@ object Input {
         //  - sort the list or
         //  - disable multiselect
 
-        if (!UIEvent(
-                window.currentWindow,
-                mouseX, mouseY, 0f, 0f,
-                button, -1,
-                byMouse = true, isLong = false,
-                UIEventType.KEY_DOWN
-            ).call().isCancelled
-        ) {
+        val event = UIEvent(
+            window.currentWindow,
+            mouseX, mouseY, 0f, 0f,
+            button, -1,
+            byMouse = true, isLong = false,
+            UIEventType.KEY_DOWN
+        ).call()
 
-            println("mouse down, event wasn't cancelled")
+        if (!event.isCancelled) {
 
             val toggleSinglePanel = isControlDown
             val selectPanelRange = isShiftDown
@@ -595,7 +592,7 @@ object Input {
         val currentNanos = nanoTime
         val isClick = mouseMovementSinceMouseDown < maxClickDistance && !windowWasClosed
 
-        UIEvent(
+        val event = UIEvent(
             window.currentWindow,
             window.mouseX,
             window.mouseY, 0f, 0f,
@@ -603,7 +600,7 @@ object Input {
             false, UIEventType.KEY_UP
         ).call()
 
-        if (isClick) {
+        if (!event.isCancelled && isClick) {
 
             if (maySelectByClick && mouseLockPanel == null) {
                 val dws = window.windowStack
@@ -616,14 +613,15 @@ object Input {
                     length(mouseX - lastClickX, mouseY - lastClickY) < maxClickDistance
 
             val inFocus0 = window.windowStack.inFocus0
-            if (!UIEvent(
-                    window.currentWindow,
-                    window.mouseX,
-                    window.mouseY, 0f, 0f,
-                    button, -1, true,
-                    false, UIEventType.MOUSE_CLICK
-                ).call().isCancelled
-            ) {
+            val clickEvent = UIEvent(
+                window.currentWindow,
+                window.mouseX,
+                window.mouseY, 0f, 0f,
+                button, -1, true,
+                false, UIEventType.MOUSE_CLICK
+            ).call()
+
+            if (!clickEvent.isCancelled) {
                 if (isDoubleClick) {
                     ActionManager.onKeyDoubleClick(window, button)
                     inFocus0?.onDoubleClick(mouseX, mouseY, button)

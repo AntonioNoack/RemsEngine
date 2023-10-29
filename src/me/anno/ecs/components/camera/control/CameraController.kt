@@ -58,8 +58,7 @@ abstract class CameraController : Component(), ControlReceiver {
     var movementSpeed = 1f
     var rotationSpeed = 1f
 
-    @Type("Camera/PrefabSaveable")
-    @NotSerializedProperty
+    @Type("Camera/SameSceneRef")
     var camera: Camera? = null
 
     @Range(0.0, 100.0)

@@ -2,7 +2,7 @@ package me.anno.tests.engine.animation
 
 import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.AnimRenderer
-import me.anno.ecs.components.anim.AttachToBoneComponent
+import me.anno.ecs.components.anim.BoneAttachmentComponent
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel
@@ -26,8 +26,11 @@ fun main() {
     val character = PrefabCache[downloads.getChild("3d/Talking On Phone.fbx")]?.createInstance() as Entity
     scene.add(character)
 
-    // a floor for fun
-    scene.add(Entity("Floor", MeshComponent(PlaneModel.createPlane(2, 2))))
+    // a floor for decoration
+    scene.add(
+        Entity("Floor", MeshComponent(PlaneModel.createPlane(2, 2)))
+            .setScale(2.5)
+    )
 
     // find first AnimRenderer, so we can attach the calculation there
     val renderer = character.getComponentInChildren(AnimRenderer::class, false)!!
@@ -38,7 +41,7 @@ fun main() {
         setRotation((-8.4).toRadians(), (-0.4).toRadians(), (+38.5).toRadians())
         setScale(0.146 * 0.5, 0.072 * 0.5, 0.00765 * 0.5)
     })
-    prop.add(AttachToBoneComponent("RightHand", renderer))
+    prop.add(BoneAttachmentComponent("RightHand", renderer))
 
     LogManager.logAll()
     testSceneWithUI("Attach To Bone", scene)

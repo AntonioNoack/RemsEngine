@@ -14,6 +14,7 @@ class SSAONode : ActionNode(
         // todo add width and height?
         "Int", "Samples",
         "Float", "Strength",
+        "Float", "Radius Scale",
         "Bool", "Blur",
         "Texture", "Normal", // optional
         "Texture", "Depth",
@@ -25,9 +26,8 @@ class SSAONode : ActionNode(
     init {
         setInput(1, 64) // samples
         setInput(2, 1f) // strength
-        setInput(3, true) // blur
-        setInput(4, null) // normals
-        setInput(5, null) // depth
+        setInput(3, 0.2f) // radius scale
+        setInput(4, true) // blur
     }
 
     override fun executeAction() {
@@ -36,17 +36,18 @@ class SSAONode : ActionNode(
         if (samples < 1) return fail()
 
         val strength = getInput(2) as Float
-        val blur = getInput(3) == true
+        val radiusScale = getInput(3) as Float
+        val blur = getInput(4) == true
 
-        val normal = getInput(4) as? Texture ?: return fail()
+        val normal = getInput(5) as? Texture ?: return fail()
         val normalZW = normal.mapping == "zw"
         val normalT = ((normal).tex as? Texture2D) ?: whiteTexture
-        val depthT = (getInput(5) as? Texture) ?: return fail()
+        val depthT = (getInput(6) as? Texture) ?: return fail()
         if (depthT.tex !is Texture2D) return fail()
 
         val transform = RenderState.cameraMatrix
         val result = ScreenSpaceAmbientOcclusion
-            .compute(depthT.tex, depthT.mapping, normalT, normalZW, transform, strength, samples, blur)
+            .compute(depthT.tex, depthT.mapping, normalT, normalZW, transform, strength, radiusScale, samples, blur)
 
         setOutput(1, Texture.texture(result, 0, "r", null))
     }

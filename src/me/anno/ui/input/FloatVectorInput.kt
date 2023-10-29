@@ -4,8 +4,8 @@ import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.input.Input.isControlDown
+import me.anno.input.Input.isLeftDown
 import me.anno.input.Input.isShiftDown
-import me.anno.input.Key
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
@@ -340,15 +340,9 @@ open class FloatVectorInput(
         return this
     }
 
-    override fun onKeyDown(x: Float, y: Float, key: Key) {
-        super.onKeyDown(x, y, key)
-        if (key == Key.BUTTON_LEFT) mouseIsDown = true
-    }
-
-    var mouseIsDown = false
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
-        if (mouseIsDown) {
+        if (isLeftDown && isAnyChildInFocus) {
             val ws = windowStack
             val size = 20f * shiftSlowdown / max(ws.width, ws.height)
             val dx0 = dx * size
@@ -387,17 +381,17 @@ open class FloatVectorInput(
                         setValue(Vector3d(vxd + dy0 * scaleFactor, vyd + dx0 * scaleFactor, vzd), true)
                     }
                 }
-                /*Type.SCALE -> {
+                Type.SCALE -> {
                     val scaleFactor = 1.03f
                     if (isControlDown) {
                         val scaleX = pow(scaleFactor, dx0)
                         val scaleY = pow(scaleFactor, -dy0)
-                        setValue(Vector3f(vx * scaleX, vy * scaleY, vz), true)
+                        setValue(Vector3f(vx * scaleX, vy * scaleY, vz * scaleX), true)
                     } else {
                         val scale = pow(scaleFactor, delta)
                         setValue(Vector3f(vx * scale, vy * scale, vz * scale), true)
                     }
-                }*/
+                }
                 Type.COLOR -> {
                     val scaleFactor = 1.10f
                     val scale = pow(scaleFactor, delta)
@@ -420,11 +414,6 @@ open class FloatVectorInput(
                 }
             }
         }
-    }
-
-    override fun onKeyUp(x: Float, y: Float, key: Key) {
-        super.onKeyUp(x, y, key)
-        if (key == Key.BUTTON_LEFT) mouseIsDown = false
     }
 
     override fun onEmpty(x: Float, y: Float) {

@@ -104,6 +104,7 @@ object ScreenSpaceAmbientOcclusion {
             "ssao",
             coordsList, coordsUVVertexShader, uvList, listOf(
                 Variable(GLSLType.V1F, "strength"),
+                Variable(GLSLType.V1F, "radiusScale"),
                 Variable(GLSLType.V1I, "numSamples"),
                 Variable(GLSLType.V1I, "mask"),
                 Variable(GLSLType.M4x4, "transform"),
@@ -129,6 +130,7 @@ object ScreenSpaceAmbientOcclusion {
                     "   vec3 origin = rawDepthToPosition(uv, depth0);\n" +
                     "   float radius = length(origin);\n" +
                     "   if(radius < 1e18){\n" + // sky and such can be skipped automatically
+                    "       radius *= radiusScale;\n" +
                     "       vec4 normalData = getPixel(finalNormal, uv);\n" +
                     "       vec3 normal = UnpackNormal(normalZW ? normalData.zw : normalData.xy);\n" +
                     // reverse back sides, e.g., for plants
@@ -230,8 +232,9 @@ object ScreenSpaceAmbientOcclusion {
         normalZW: Boolean,
         transform: Matrix4f,
         strength: Float,
+        radiusScale: Float,
         samples: Int,
-        enableBlur: Boolean,
+        enableBlur: Boolean
     ): IFramebuffer {
 
         var random4x4 = random4x4
@@ -269,6 +272,7 @@ object ScreenSpaceAmbientOcclusion {
             shader.v1i("mask", if (enableBlur) 3 else 0)
             shader.v1b("normalZW", normalZW)
             shader.v4f("depthMask", singleToVector[depthMask]!!)
+            shader.v1f("radiusScale", radiusScale)
             // draw
             GFX.flat01.draw(shader)
             GFX.check()
@@ -301,12 +305,14 @@ object ScreenSpaceAmbientOcclusion {
         normalZW: Boolean,
         transform: Matrix4f,
         strength: Float,
+        radiusScale: Float,
         samples: Int,
-        enableBlur: Boolean,
+        enableBlur: Boolean
     ): IFramebuffer {
         return renderPurely {
             val tmp = calculate(
-                depth, depthMask, normal, normalZW, transform, strength,
+                depth, depthMask, normal, normalZW,
+                transform, strength, radiusScale,
                 min(samples, MAX_SAMPLES), enableBlur
             )
             if (enableBlur) average(tmp) else tmp

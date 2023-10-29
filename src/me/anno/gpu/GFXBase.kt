@@ -517,7 +517,7 @@ object GFXBase {
                             GLFW.glfwSetCursorPos(window.pointer, centerX, centerY)
                             window.mouseX = centerX.toFloat()
                             window.mouseY = centerY.toFloat()
-                            window.lastMouseCorrection = Time.nanoTime + 5_000_000 // 5ms safety delay
+                            window.lastMouseTeleport = Time.nanoTime + 5_000_000 // 5ms safety delay
                         }
                     }
                 }
