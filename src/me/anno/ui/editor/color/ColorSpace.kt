@@ -3,9 +3,9 @@ package me.anno.ui.editor.color
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.uiVertexShader
+import me.anno.gpu.shader.ShaderLib.uiVertexShaderList
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
-import me.anno.gpu.shader.builder.VariableMode
 import me.anno.language.translation.NameDesc
 import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
 import me.anno.ui.editor.color.spaces.HSLuv
@@ -31,8 +31,6 @@ abstract class ColorSpace(
     fun getShader(type: ColorVisualisation): Shader {
         val oldShader = shaders[type]
         if (oldShader != null) return oldShader
-        val vertexShader = uiVertexShader
-        val varyingShader = uvList
         val fragmentShader = when (type) {
             ColorVisualisation.WHEEL -> {
                 glsl.value +
@@ -94,15 +92,8 @@ abstract class ColorSpace(
             }
         }
         val newShader = Shader(
-            "$naming-${type.naming}",
-            listOf(
-                Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
-                Variable(GLSLType.V4F, "posSize"),
-                Variable(GLSLType.M4x4, "transform")
-            ),
-            vertexShader,
-            varyingShader,
-            listOf(
+            "${naming.englishName}-${type.naming.englishName}",
+            uiVertexShaderList, uiVertexShader, uvList, listOf(
                 Variable(GLSLType.V2F, "ringSL"),
                 Variable(GLSLType.V3F, "v0"),
                 Variable(GLSLType.V3F, "du"),

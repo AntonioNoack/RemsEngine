@@ -19,7 +19,6 @@ import me.anno.ui.input.InputPanel
 import me.anno.ui.input.InputVisibility
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
-import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.count2
 import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
@@ -132,6 +131,8 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
             }))
         }
 
+        titleView?.setTooltip("Link to '${clazz.simpleName}' instance in scene")
+
         list.add(linkIcon)
         list.add(valueButton)
 
@@ -165,7 +166,6 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
         when (type) {
             "PrefabSaveable" -> {
                 val instance = StudioBase.dragged?.getOriginal() as? PrefabSaveable
-                LOGGER.info("Dropping $instance :)")
                 if (instance == null) {
                     LOGGER.warn("Dragged instance was not PrefabSaveable")
                 } else if (clazz.isInstance(instance)) {
@@ -182,7 +182,10 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
                             }
                         }
                     }
-                    LOGGER.warn("Incorrect type: ${instance.name} is not instance of $clazz, and none of its direct children is either")
+                    LOGGER.warn(
+                        "Incorrect type: {} is not instance of {}, and none of its direct children is either",
+                        formatDisplay(instance, false), clazz
+                    )
                 }
             }
             else -> super.onPaste(x, y, data, type)

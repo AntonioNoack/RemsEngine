@@ -43,6 +43,8 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3f
+import java.lang.IllegalArgumentException
+import java.lang.IndexOutOfBoundsException
 import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
 import kotlin.math.max
@@ -201,9 +203,11 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         val constraints = rigidbody.constraints
         for (i in constraints.indices) {
             val constraint = constraints[i]
-            // ensure the constraint exists
-            val rigidbody2 = constraint.entity!!.getComponent(Rigidbody::class, false)!!
-            addConstraint(constraint, getRigidbody(rigidbody2)!!, rigidbody2, rigidbody)
+            if (constraint.isEnabled) {
+                // ensure the constraint exists
+                val rigidbody2 = constraint.entity!!.getComponent(Rigidbody::class, false)!!
+                addConstraint(constraint, getRigidbody(rigidbody2)!!, rigidbody2, rigidbody)
+            }
         }
 
         // create all constraints
@@ -298,7 +302,22 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     var fixedStep = 1.0 / 120.0 // 0.0 for flexible steps
 
     override fun worldStepSimulation(step: Double) {
-        world?.stepSimulation(step, maxSubSteps, if (fixedStep <= 0.0) step else fixedStep)
+        try {
+            Stack.reset(false)
+            world?.stepSimulation(step, maxSubSteps, if (fixedStep <= 0.0) step else fixedStep)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
+        } catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+            LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
+        } catch (e: IndexOutOfBoundsException) {
+            e.printStackTrace()
+            LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
+        } catch (e: OutOfMemoryError) {
+            e.printStackTrace()
+            LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
+        }
     }
 
     override fun isActive(rigidbody: RigidBody): Boolean {

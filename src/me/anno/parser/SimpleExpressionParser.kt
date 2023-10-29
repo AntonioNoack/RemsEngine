@@ -223,6 +223,17 @@ object SimpleExpressionParser {
         return false
     }
 
+    private fun MutableList<Any>.applyShortMultiplies(): Boolean {
+       for (i in 1 until size) {
+            val a = this[i - 1] as? Double ?: continue
+            val b = this[i] as? Double ?: continue
+            this[i - 1] = a * b
+            removeAt(i)
+            return true
+        }
+        return false
+    }
+
     private fun MutableList<Any>.applyMultiplication(): Boolean {
         loop@ for (i in 2 until size) {
             val isMultiplication = when (this[i - 1]) {
@@ -573,12 +584,11 @@ object SimpleExpressionParser {
             parts.replaceConstants(additionalConstants)
             parts.replaceConstants(constants)
 
-            // return simplify2(parts)
-
             // simplify the expression until empty
             // performance of long strings is improved by CountingList and skipping of steps
             while (parts.size > 1) {
                 if ('%' in parts && parts.applyPercentages()) continue
+                if (parts.applyShortMultiplies()) continue
                 if (parts.findVectors()) continue
                 if ('(' in parts) {
                     if (parts.applyFunctions()) continue

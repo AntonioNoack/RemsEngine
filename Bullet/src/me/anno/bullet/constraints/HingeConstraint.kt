@@ -2,9 +2,12 @@ package me.anno.bullet.constraints
 
 import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.linearmath.Transform
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import javax.vecmath.Vector3d
+import kotlin.math.PI
 
 class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.HingeConstraint>() {
 
@@ -13,7 +16,7 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
         set(value) {
             if (field != value && value in 0..2) {
                 field = value
-                invalidateRigidbody()
+                invalidateConstraint()
             }
         }
 
@@ -59,13 +62,17 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
             updateLimits()
         }
 
-    var lowerLimit = -1e300
+    @Range(-3.1416, 3.1416)
+    @Docs("Minimum allowed angle in radians; only works if strictly less than upperLimit")
+    var lowerLimit = 0.0
         set(value) {
             field = value
             updateLimits()
         }
 
-    var upperLimit = +1e300
+    @Range(-3.1416, 3.1416)
+    @Docs("Maximum allowed angle in radians; only works if strictly more than lowerLimit")
+    var upperLimit = PI / 2
         set(value) {
             field = value
             updateLimits()
@@ -112,5 +119,4 @@ class HingeConstraint : Constraint<com.bulletphysics.dynamics.constraintsolver.H
     }
 
     override val className: String get() = "HingeConstraint"
-
 }

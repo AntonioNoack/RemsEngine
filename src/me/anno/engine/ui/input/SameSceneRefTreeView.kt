@@ -22,7 +22,10 @@ class SameSceneRefTreeView<V : PrefabSaveable?>(val sameSceneRefInput: SameScene
     private val notCollapsed = HashSet<PrefabSaveable>()
     override fun listSources(): List<PrefabSaveable> {
         val instance = ECSSceneTabs.currentTab?.inspector?.prefab?.getSampleInstance()
-        return if (instance != null) listOf(instance) else emptyList()
+        return if (instance != null) {
+            notCollapsed.add(instance)
+            listOf(instance)
+        } else emptyList()
     }
 
     override fun getLocalColor(element: PrefabSaveable, isHovered: Boolean, isInFocus: Boolean): Int {

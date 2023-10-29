@@ -187,7 +187,7 @@ object Functions {
 
         constants["pi"] = PI
         constants["e"] = Math.E
-        constants["°"] = Math.toDegrees(1.0)
+        constants["°"] = Math.toRadians(1.0)
 
         functions0["rand"] = { Maths.random() }
 
@@ -289,8 +289,5 @@ object Functions {
             harmonics as Vector
             harmonics.data.withIndex().sumByDouble { (index, it) -> it * sin((index + 1f) * w0) }
         }*/
-
     }
-
-
 }

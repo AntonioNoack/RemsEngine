@@ -342,7 +342,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
 
         this.timeNanos += dt
 
-        // is not correct for the physics, but we use it for gfx only anyway
+        // is incorrect for the physics, but we use it for gfx only anyway
         // val time = Engine.gameTime
 
         val deadEntities = ArrayList<Entity>()

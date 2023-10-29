@@ -169,14 +169,15 @@ object LineShapes {
         // all bits that can flip
         val transform = getDrawMatrix(entity)
         val positions = tmpVec3d
+        val hx = halfExtends?.x ?: 1.0
+        val hy = halfExtends?.y ?: 1.0
+        val hz = halfExtends?.z ?: 1.0
         for (i in 0 until 8) {
-            val position = positions[i]
-            position.set(
-                if ((i.and(1) != 0)) -1.0 else +1.0,
-                if ((i.and(2) != 0)) -1.0 else +1.0,
-                if ((i.and(4) != 0)) -1.0 else +1.0
+            val position = positions[i].set(
+                if ((i.and(1) != 0)) -hx else +hx,
+                if ((i.and(2) != 0)) -hy else +hy,
+                if ((i.and(4) != 0)) -hz else +hz
             )
-            if (halfExtends != null) position.mul(halfExtends)
             transform?.transformPosition(position)
         }
 

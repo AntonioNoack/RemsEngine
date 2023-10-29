@@ -121,9 +121,7 @@ abstract class TreeView<V : Any>(
         selectElements(elements)
     }
 
-    open fun getLocalColor(element: V, isHovered: Boolean, isInFocus: Boolean): Int {
-        return white
-    }
+    open fun getLocalColor(element: V, isHovered: Boolean, isInFocus: Boolean): Int = white
 
     override fun onPropertiesChanged() {
         invalidateLayout()

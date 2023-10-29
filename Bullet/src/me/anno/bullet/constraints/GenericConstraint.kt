@@ -4,6 +4,7 @@ import com.bulletphysics.dynamics.RigidBody
 import com.bulletphysics.dynamics.constraintsolver.Generic6DofConstraint
 import com.bulletphysics.linearmath.Transform
 import me.anno.bullet.BulletPhysics.Companion.castB
+import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.Vector3d
@@ -24,17 +25,22 @@ class GenericConstraint() : Constraint<Generic6DofConstraint>() {
             }
         }
 
-    /**
-     * upper < lower = free
-     * upper = lower = locked
-     * lower < upper = limited
-     * */
+    @Docs(
+        "upper < lower = free\n" +
+                "upper = lower = locked\n" +
+                "lower < upper = limited"
+    )
     var lowerLimit = Vector3d()
         set(value) {
             field.set(value)
             bulletInstance?.setLinearLowerLimit(castB(value))
         }
 
+    @Docs(
+        "upper < lower = free\n" +
+                "upper = lower = locked\n" +
+                "lower < upper = limited"
+    )
     var upperLimit = Vector3d()
         set(value) {
             field.set(value)
@@ -79,5 +85,4 @@ class GenericConstraint() : Constraint<Generic6DofConstraint>() {
     }
 
     override val className: String get() = "GenericConstraint"
-
 }

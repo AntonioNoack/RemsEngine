@@ -3,6 +3,7 @@ package me.anno.ui.editor.color
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
+import me.anno.gpu.drawing.GFXx2D.noTiling
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
@@ -169,6 +170,7 @@ open class ColorChooser(
         val shader = colorSpace.getShader(spaceStyle)
         shader.use()
         posSize(shader, x, y + h, w, -h)
+        noTiling(shader)
         val sharpness = min(w, h) * 0.25f + 1f
         when (spaceStyle) {
             ColorVisualisation.WHEEL -> {
