@@ -933,7 +933,7 @@ class SVGMesh {
             file.inputStream { it, exc ->
                 if (it != null) {
                     val svg = SVGMesh()
-                    svg.parse(XMLReader().parse(it) as XMLNode)
+                    svg.parse(XMLReader().read(it) as XMLNode)
                     it.close()
                     val mesh = svg.mesh // may be null if the parsing failed / the svg is blank
                     if (mesh != null) {

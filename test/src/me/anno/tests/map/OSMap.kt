@@ -78,7 +78,7 @@ class OSMap(s0: Int = 65536, s1: Int = 1024, s2: Int = 256) {
  * */
 fun readOSM0(input: InputStream, shallReadTags: Boolean = false, map: OSMap = OSMap()): OSMap {
 
-    val xml = XMLReader().parse(input) as XMLNode
+    val xml = XMLReader().read(input) as XMLNode
     val boundsNode = xml.children.first { it is XMLNode && it.type == "bounds" } as XMLNode
     map.minX = boundsNode["minlon"]!!.toDouble()
     map.minY = boundsNode["minlat"]!!.toDouble()
@@ -217,7 +217,7 @@ fun readOSM1(file: InputStream, shallReadTags: Boolean = false, map: OSMap = OSM
         "from", "to", "via", "part"
     ).associateWith { it }
 
-    XMLScanner().parse(file, { type ->
+    XMLScanner().scan(file, { type ->
         shallReadTags || type != "tag"
     }, { type ->
         when (type) {

@@ -148,8 +148,8 @@ open class XMLReader {
         }
     }
 
-    fun parse(input: InputStream) = parse(-1, input)
-    fun parse(firstChar: Int, input: InputStream): Any? {
+    fun read(input: InputStream) = read(-1, input)
+    fun read(firstChar: Int, input: InputStream): Any? {
         val first = if (firstChar < 0) input.skipSpaces() else firstChar
         if (first == '<'.code) {
             val type = input.readTypeUntilSpaceOrEnd(type0).toString()
@@ -162,12 +162,12 @@ open class XMLReader {
                     // read until ?>
                     // or <?xpacket end="w"?>
                     input.readUntil("?>")
-                    return parse(-1, input)
+                    return read(-1, input)
                 }
                 type.startsWith("!--") -> {
                     // search until -->
                     input.readUntil("-->")
-                    return parse(-1, input)
+                    return read(-1, input)
                 }
                 type.startsWith("!doctype", true) -> {
                     var ctr = 1
@@ -177,7 +177,7 @@ open class XMLReader {
                             '>'.code -> ctr--
                         }
                     }
-                    return parse(-1, input)
+                    return read(-1, input)
                 }
                 type.startsWith("![cdata[", true) -> {
                     val value = input.getStringUntil("]]>")
@@ -222,7 +222,7 @@ open class XMLReader {
                     // read the body (all children)
                     var next: Int = -1
                     children@ while (true) {
-                        val child = parse(next, input)
+                        val child = read(next, input)
                         next = -1
                         when (child) {
                             endElement -> return xmlNode

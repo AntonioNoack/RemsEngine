@@ -105,11 +105,11 @@ class GLTFWriter(
     private fun <K> write(name: String, map: Map<K, Int>, write: (K) -> Unit) {
         if (map.isNotEmpty()) {
             writer.attr(name)
-            writer.open(true)
+            writer.beginArray()
             for ((k, _) in map.entries.sortedBy { it.value }) {
                 write(k)
             }
-            writer.close(true)
+            writer.endArray()
         }
     }
 
@@ -237,7 +237,7 @@ class GLTFWriter(
     }
 
     private fun writeSampler(filtering: GPUFiltering, clamping: Clamping) {
-        writer.open(false)
+        writer.beginObject()
         writer.attr("magFilter")
         writer.write(filtering.mag)
         writer.attr("minFilter")
@@ -246,21 +246,21 @@ class GLTFWriter(
         writer.write(clamping.mode)
         writer.attr("wrapT")
         writer.write(clamping.mode)
-        writer.close(false)
+        writer.endObject()
     }
 
     private fun writeBufferViews() {
         writer.attr("bufferViews")
-        writer.open(true)
+        writer.beginArray()
         for (i in views.indices) {
             val view = views[i]
             writeBufferView(view)
         }
-        writer.close(true)
+        writer.endArray()
     }
 
     private fun writeBufferView(bufferView: BufferView) {
-        writer.open(false)
+        writer.beginObject()
         writer.attr("buffer")
         writer.write(0)
         writer.attr("byteOffset")
@@ -275,7 +275,7 @@ class GLTFWriter(
             writer.attr("target")
             writer.write(bufferView.target)
         }
-        writer.close(false)
+        writer.endObject()
     }
 
     private fun writeEntityAttributes(node: Entity) {
@@ -325,9 +325,9 @@ class GLTFWriter(
 
     private fun writeMaterial(material: Material) {
         // https://github.com/KhronosGroup/glTF/blob/main/specification/2.0/schema/material.schema.json
-        writer.open(false)
+        writer.beginObject()
         writer.attr("pbrMetallicRoughness")
-        writer.open(false)
+        writer.beginObject()
         val sampler = if (
             material.emissiveMap.exists ||
             material.diffuseMap.exists ||
@@ -344,10 +344,10 @@ class GLTFWriter(
         } else -1
         if (material.diffuseMap.exists) {
             writer.attr("baseColorTexture")
-            writer.open(false)
+            writer.beginObject()
             writer.attr("index")
             writer.write(getTextureIndex(material.diffuseMap, sampler))
-            writer.close(false)
+            writer.endObject()
         }
         val color = material.diffuseBase
         if (color != white4) {
@@ -369,17 +369,17 @@ class GLTFWriter(
         writer.write(material.metallicMinMax.y)
         writer.attr("roughnessFactor")
         writer.write(material.roughnessMinMax.y)
-        writer.close(false)
+        writer.endObject()
         if (material.isDoubleSided) {
             writer.attr("doubleSided")
             writer.write(true)
         }
         if (material.emissiveMap.exists) {
             writer.attr("emissiveTexture")
-            writer.open(false)
+            writer.beginObject()
             writer.attr("index")
             writer.write(getTextureIndex(material.emissiveMap, sampler))
-            writer.close(false)
+            writer.endObject()
         }
         if (material.emissiveBase != black3) {
             writer.attr("emissiveFactor")
@@ -387,19 +387,19 @@ class GLTFWriter(
         }
         if (material.normalMap.exists) {
             writer.attr("normalTexture")
-            writer.open(false)
+            writer.beginObject()
             writer.attr("index")
             writer.write(getTextureIndex(material.normalMap, sampler))
-            writer.close(false)
+            writer.endObject()
         }
         if (material.occlusionMap.exists) {
             writer.attr("occlusionTexture")
-            writer.open(false)
+            writer.beginObject()
             writer.attr("index")
             writer.write(getTextureIndex(material.occlusionMap, sampler))
-            writer.close(false)
+            writer.endObject()
         }
-        writer.close(false)
+        writer.endObject()
     }
 
     private fun writeMeshes() {
@@ -409,7 +409,7 @@ class GLTFWriter(
     }
 
     private fun writeMesh(mesh: Mesh, materialOverrides: List<FileReference>) {
-        writer.open(false)
+        writer.beginObject()
 
         mesh.getBounds()
         mesh.ensureNorTanUVs()
@@ -431,11 +431,11 @@ class GLTFWriter(
         val colorI = if (color != null) createColorView(color) else null
 
         writer.attr("primitives")
-        writer.open(true)
+        writer.beginArray()
 
         fun writeMeshAttributes() {
             writer.attr("attributes")
-            writer.open(false)
+            writer.beginObject()
 
             writer.attr("POSITION")
             writer.write(posI)
@@ -457,7 +457,7 @@ class GLTFWriter(
 
             // todo skinning and animation support
 
-            writer.close(false) // attr
+            writer.endObject() // attr
         }
 
         // for each material add a primitive
@@ -487,12 +487,12 @@ class GLTFWriter(
             writeMesh1(mesh.indices, getMaterial(0), ::writeMeshAttributes)
         }
 
-        writer.close(true) // primitives[]
-        writer.close(false) // mesh
+        writer.endArray() // primitives[]
+        writer.endObject() // mesh
     }
 
     private fun writeMesh1(indices: IntArray?, material: Material?, writeMeshAttributes: () -> Unit) {
-        writer.open(false)
+        writer.beginObject()
         writer.attr("mode")
         writer.write(4) // triangles
 
@@ -507,11 +507,11 @@ class GLTFWriter(
         }
 
         writeMeshAttributes()
-        writer.close(false) // primitive
+        writer.endObject() // primitive
     }
 
     private fun writeMeshHelper(helper: Mesh.HelperMesh, material: Material?, writeMeshAttributes: () -> Unit) {
-        writer.open(false)
+        writer.beginObject()
         writer.attr("mode")
         writer.write(4) // triangles
 
@@ -525,7 +525,7 @@ class GLTFWriter(
         writer.write(createIndicesView(GL_UNSIGNED_INT, indices))
 
         writeMeshAttributes()
-        writer.close(false) // primitive
+        writer.endObject() // primitive
     }
 
     private fun writeTextures() {
@@ -535,25 +535,25 @@ class GLTFWriter(
     }
 
     private fun writeTexture(source: Int, sampler: Int) {
-        writer.open(false)
+        writer.beginObject()
         writer.attr("source")
         writer.write(source)
         writer.attr("sampler")
         writer.write(sampler)
-        writer.close(false)
+        writer.endObject()
     }
 
     private fun writeAccessors() {
         writer.attr("accessors")
-        writer.open(true)
+        writer.beginArray()
         for (i in accessors.indices) {
             writeAccessor(accessors[i], i)
         }
-        writer.close(true)
+        writer.endArray()
     }
 
     private fun writeAccessor(acc: Accessor, i: Int) {
-        writer.open(false)
+        writer.beginObject()
         writer.attr("bufferView")
         writer.write(i)
         writer.attr("type")
@@ -572,7 +572,7 @@ class GLTFWriter(
             writer.attr("max")
             writer.copyRaw(acc.max)
         }
-        writer.close(false)
+        writer.endObject()
     }
 
     private fun writeImages(dst: FileReference) {
@@ -583,7 +583,7 @@ class GLTFWriter(
     }
 
     private fun writeImage(dstParent: FileReference, src: FileReference) {
-        writer.open(false)
+        writer.beginObject()
         // if contains inaccessible assets, pack them, or write them to same directory
         val sameFolder = src.getParent() == dstParent
         val packed = src is InnerFile
@@ -600,7 +600,7 @@ class GLTFWriter(
                 writeURI(path)
             }
         }
-        writer.close(false)
+        writer.endObject()
     }
 
     private fun writeURI(uri: String) {
@@ -630,11 +630,11 @@ class GLTFWriter(
 
     private fun writeNodes() {
         writer.attr("nodes")
-        writer.open(true)
+        writer.beginArray()
         for ((i, node) in nodes.withIndex()) {
             writeNode(i, node)
         }
-        writer.close(true)
+        writer.endArray()
     }
 
     private fun writeMeshCompAttributes(node: MeshComponent) {
@@ -652,7 +652,7 @@ class GLTFWriter(
     }
 
     private fun writeNode(i: Int, node: Any) {
-        writer.open(false)
+        writer.beginObject()
 
         when (node) {
             is Entity -> writeEntityAttributes(node)
@@ -662,46 +662,46 @@ class GLTFWriter(
         val childrenI = children.getOrNull(i)
         if (!childrenI.isNullOrEmpty()) {
             writer.attr("children")
-            writer.open(true)
+            writer.beginArray()
             for (child in childrenI) {
                 writer.write(child)
             }
-            writer.close(true)
+            writer.endArray()
         }
 
-        writer.close(false)
+        writer.endObject()
     }
 
     private fun writeScenes() {
         writer.attr("scenes")
-        writer.open(true)
-        writer.open(false) // scenes[0]
+        writer.beginArray()
+        writer.beginObject() // scenes[0]
         writer.attr("nodes")
-        writer.open(true)
+        writer.beginArray()
         writer.write(0) // only root nodes
-        writer.close(true) // nodes
-        writer.close(false) // scenes[0]
-        writer.close(true) // scenes
+        writer.endArray() // nodes
+        writer.endObject() // scenes[0]
+        writer.endArray() // scenes
     }
 
     private fun writeHeader() {
         writer.attr("asset")
-        writer.open(false)
+        writer.beginObject()
         writer.attr("generator")
         writer.write("Rem's Engine")
         writer.attr("version")
         writer.write("2.0")
-        writer.close(false)
+        writer.endObject()
     }
 
     private fun writeBuffers() {
         writer.attr("buffers")
-        writer.open(true) // buffers
-        writer.open(false) // buffers[0]
+        writer.beginArray() // buffers
+        writer.beginObject() // buffers[0]
         writer.attr("byteLength")
         writer.write(binary.size())
-        writer.close(false) // buffers[0]
-        writer.close(true) // buffers
+        writer.endObject() // buffers[0]
+        writer.endArray() // buffers
     }
 
     private fun writeSceneIndex() {
@@ -730,7 +730,7 @@ class GLTFWriter(
 
         collectNodes(scene)
 
-        writer.open(false)
+        writer.beginObject()
 
         writeHeader()
         writeSceneIndex()
@@ -745,7 +745,7 @@ class GLTFWriter(
         writeAccessors()
         writeBuffers()
 
-        writer.close(false)
+        writer.endObject()
         writer.finish()
 
         writeChunks(dst)

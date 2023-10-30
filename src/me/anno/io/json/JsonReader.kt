@@ -1,5 +1,6 @@
 package me.anno.io.json
 
+import me.anno.io.xml.ComparableStringBuilder
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -8,7 +9,7 @@ import java.io.InputStream
  * to avoid the import of FasterXML (17 MB) or similar, we create our own light-weight solution to reading JSON files;
  * this has no reflection support, so it is safe to use (except for OutOfMemoryError), but you have to implement the mapping yourself
  * */
-class JsonReader(val data: InputStream) {
+open class JsonReader(val data: InputStream) {
 
     constructor(data: ByteArray) : this(data.inputStream())
     constructor(data: String) : this(data.toByteArray())
@@ -42,20 +43,25 @@ class JsonReader(val data: InputStream) {
         tmpChar = char
     }
 
+    val type0 = ComparableStringBuilder()
     fun readString(): String {
-        val str = StringBuilder()
+        return readString(type0).toString()
+    }
+
+    fun readString(builder: ComparableStringBuilder): ComparableStringBuilder {
+        builder.clear()
         while (true) {
             when (val next0 = next()) {
                 '\\' -> {
                     when (val next1 = next()) {
-                        '\\' -> str.append('\\')
-                        'r' -> str.append('\r')
-                        'n' -> str.append('\n')
-                        't' -> str.append('\t')
-                        '"' -> str.append('"')
-                        '\'' -> str.append('\'')
-                        'f' -> str.append(12.toChar())
-                        'b' -> str.append('\b')
+                        '\\' -> builder.append('\\')
+                        'r' -> builder.append('\r')
+                        'n' -> builder.append('\n')
+                        't' -> builder.append('\t')
+                        '"' -> builder.append('"')
+                        '\'' -> builder.append('\'')
+                        'f' -> builder.append(12.toChar())
+                        'b' -> builder.append('\b')
                         'u' -> {
                             val a = next()
                             val b = next()
@@ -63,15 +69,13 @@ class JsonReader(val data: InputStream) {
                             val d = next()
                             if (!isHex(a) || !isHex(b) || !isHex(c) || !isHex(d))
                                 throw JsonFormatException("Expected 4 hex characters after \\u")
-                            str.append((toHex(a, b).shl(8) + toHex(c, d)).toChar())
+                            builder.append((toHex(a, b).shl(8) + toHex(c, d)).toChar())
                         }
                         else -> throw RuntimeException("Unknown escape sequence \\$next1")
                     }
                 }
-                '"' -> return str.toString()
-                else -> {
-                    str.append(next0)
-                }
+                '"' -> return builder
+                else -> builder.append(next0)
             }
         }
     }
@@ -169,7 +173,7 @@ class JsonReader(val data: InputStream) {
                     assertEquals(skipSpace(), ':')
                     if (filter == null || filter(name)) {
                         obj[name] = readSomething(skipSpace(), filter)
-                    } else skipSomething(skipSpace())
+                    } else skipSomething()
                     next = skipSpace()
                 }
                 ',' -> next = skipSpace()
@@ -187,7 +191,7 @@ class JsonReader(val data: InputStream) {
                 '"' -> {
                     skipString() // name
                     assertEquals(skipSpace(), ':')
-                    skipSomething(skipSpace())
+                    skipSomething()
                     next = skipSpace()
                 }
                 ',' -> next = skipSpace()
@@ -228,7 +232,7 @@ class JsonReader(val data: InputStream) {
         }
     }
 
-    fun skipSomething(next: Char) {
+    fun skipSomething(next: Char = skipSpace()) {
         when (next) {
             in '0'..'9', '.', '+', '-' -> skipNumber(false)
             '"' -> skipString()
@@ -285,15 +289,15 @@ class JsonReader(val data: InputStream) {
     // Java/Kotlin's defaults assert only works with arguments
     // we want ours to always work
     // we can't really put it elsewhere without prefix, because Kotlin will use the wrong import...
-    private fun assert(i: Char, c1: Char, c2: Char) {
+    protected fun assert(i: Char, c1: Char, c2: Char) {
         if (i != c1 && i != c2) throw JsonFormatException("Expected $c1 or $c2, but got $i")
     }
 
-    private fun assertTrue(c: Boolean, msg: String) {
+    protected fun assertTrue(c: Boolean, msg: String) {
         if (!c) throw IOException(msg)
     }
 
-    private fun assertEquals(a: Char, b: Char) {
+    protected fun assertEquals(a: Char, b: Char) {
         if (a != b) throw IOException("$a != $b")
     }
 }

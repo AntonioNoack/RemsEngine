@@ -8,8 +8,7 @@ import java.io.OutputStream
  * simple class to write JSON content; if you write Saveables, consider BinaryWriter and TextWriter first!
  * used in Rem's Studio to save UI layout
  * */
-@Suppress("unused")
-class JsonWriter(val output: OutputStream) {
+open class JsonWriter(val output: OutputStream) {
 
     private var first = true
     private var isKeyValue = false
@@ -70,14 +69,25 @@ class JsonWriter(val output: OutputStream) {
         writeString(value)
     }
 
-    fun open(array: Boolean) {
+    fun beginArray() {
         next()
-        output.write(if (array) '['.code else '{'.code)
+        output.write('['.code)
         first = true
     }
 
-    fun close(array: Boolean) {
-        output.write(if (array) ']'.code else '}'.code)
+    fun beginObject() {
+        next()
+        output.write('{'.code)
+        first = true
+    }
+
+    fun endArray() {
+        output.write(']'.code)
+        first = false
+    }
+
+    fun endObject() {
+        output.write('}'.code)
         first = false
     }
 
@@ -86,44 +96,43 @@ class JsonWriter(val output: OutputStream) {
     }
 
     fun write(v: Vector2f) {
-        open(true)
+        beginArray()
         write(v.x)
         write(v.y)
-        close(true)
+        endArray()
     }
 
     fun write(v: Vector3f) {
-        open(true)
+        beginArray()
         write(v.x)
         write(v.y)
         write(v.z)
-        close(true)
+        endArray()
     }
 
     fun write(v: Vector3d) {
-        open(true)
+        beginArray()
         write(v.x)
         write(v.y)
         write(v.z)
-        close(true)
+        endArray()
     }
 
     fun write(v: Vector4f) {
-        open(true)
+        beginArray()
         write(v.x)
         write(v.y)
         write(v.z)
         write(v.w)
-        close(true)
+        endArray()
     }
 
     fun write(q: Quaterniond) {
-        open(true)
+        beginArray()
         write(q.x)
         write(q.y)
         write(q.z)
         write(q.w)
-        close(true)
+        endArray()
     }
-
 }

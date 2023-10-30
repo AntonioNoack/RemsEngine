@@ -67,7 +67,7 @@ object StaticMeshesLoader {
         if (sign == "dae" && aiGetVersionMajor() < 5) {
             // Assimp 4.1 is extremely picky when parsing Collada XML for no valid reason
             // Assimp 5.2 fixes that (but also breaks my animation code)
-            val xml = XMLReader().parse(file.inputStreamSync())!!
+            val xml = XMLReader().read(file.inputStreamSync())!!
             fun clean(xml: Any): Any {
                 return if (xml is XMLNode) {
                     for (i in xml.children.indices) {

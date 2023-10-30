@@ -4,6 +4,8 @@ import me.anno.utils.types.Strings
 
 object XMLWriter {
 
+    // todo step-by-step XML writer like for JSON
+
     fun write(xml: XMLNode, indentation: String? = " ", closeEmptyTypes: Boolean = false): String {
         val builder = StringBuilder(64)
         builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>")

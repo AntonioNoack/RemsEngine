@@ -26,7 +26,7 @@ fun main() {
 }
 
 fun compressSVG(src: FileReference, dst: FileReference) {
-    val svg = XMLReader().parse(src.inputStreamSync()) as XMLNode
+    val svg = XMLReader().read(src.inputStreamSync()) as XMLNode
     val viewBox = svg["viewBox"]!!.split(' ').map { it.toFloat() }
     val bld = ComparableStringBuilder(src.length().toInt())
     val dw = 999
