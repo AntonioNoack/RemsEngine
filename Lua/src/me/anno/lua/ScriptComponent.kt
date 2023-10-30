@@ -183,7 +183,7 @@ open class ScriptComponent : Component() {
         @Suppress("unchecked_cast")
         fun getFunction(code: String, key: Any?, init: (scope: LuaValue) -> Unit): Pair<Globals, LuaValue>? {
             if (code.isBlank2()) return null
-            val funcObj = luaCache.getEntry(code, key, timeout, false) { code1, _ ->
+            val funcObj = luaCache.getDualEntry(code, key, timeout, false) { code1, _ ->
                 val vm = global.get()
                 val func = try {
                     val func = vm.load(code1)

@@ -3,7 +3,6 @@ package me.anno.ecs.components.anim
 import me.anno.cache.CacheSection
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.io.files.FileReference
-import me.anno.utils.structures.tuples.LongPair
 
 object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
 
@@ -32,9 +31,9 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
         val s0 = animation.ref
         val s1 = dstSkeleton.ref
         val anim = animTexCache.getEntry(
-            Pair(s0, s1), LongPair(s0.lastModified, s1.lastModified),
+            DualFileKey(s0, s1),
             timeout, false
-        ) { _, _ ->
+        ) {
             val retargeting = Retargeting.getRetargeting(animation.skeleton, dstSkeleton.ref)
                 ?: throw NullPointerException("Missing retargeting from ${animation.skeleton} to ${dstSkeleton.ref}")
             val bbb = if (animation is BoneByBoneAnimation) animation
@@ -43,5 +42,4 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
         } as? BoneByBoneAnimation ?: throw NullPointerException("Mapping failed")
         return anim
     }
-
 }

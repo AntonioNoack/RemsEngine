@@ -22,8 +22,8 @@ import kotlin.concurrent.thread
 
 open class CacheSection(val name: String) : Comparable<CacheSection> {
 
-    val cache = HashMap<Any, CacheEntry>(512)
-    val dualCache = KeyPairMap<Any, Any, CacheEntry>(512)
+    val cache = HashMap<Any?, CacheEntry>(512)
+    val dualCache = KeyPairMap<Any?, Any?, CacheEntry>(512)
 
     override fun compareTo(other: CacheSection): Int {
         return name.compareTo(other.name)
@@ -41,7 +41,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    inline fun remove(crossinline filter: (Any, CacheEntry) -> Boolean): Int {
+    inline fun remove(crossinline filter: (Any?, CacheEntry) -> Boolean): Int {
         synchronized(cache) {
             return cache.removeIf2 { k, v ->
                 if (filter(k, v)) {
@@ -52,7 +52,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    inline fun removeDual(crossinline filter: (Any, Any, CacheEntry) -> Boolean): Int {
+    inline fun removeDual(crossinline filter: (Any?, Any?, CacheEntry) -> Boolean): Int {
         synchronized(dualCache) {
             return dualCache.removeIf { k1, k2, v ->
                 if (filter(k1, k2, v)) {
@@ -69,7 +69,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun removeDualEntry(key1: Any, key2: Any) {
+    fun removeEntry(key1: Any, key2: Any) {
         synchronized(dualCache) {
             dualCache.removeIf { k1, k2, v ->
                 if (k1 == key1 && k2 == key2) {
@@ -80,53 +80,39 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun removeFileEntry(file: FileReference) = removeDualEntry(file, file.lastModified)
+    fun removeFileEntry(file: FileReference) = removeEntry(file, file.lastModified)
 
     fun getFileEntry(
-        file: FileReference,
-        allowDirectories: Boolean,
-        timeout: Long,
-        asyncGenerator: Boolean,
+        file: FileReference, allowDirectories: Boolean,
+        timeout: Long, asyncGenerator: Boolean,
         generator: (FileReference, Long) -> ICacheData?
     ): ICacheData? {
         if (!file.exists || (!allowDirectories && file.isDirectory)) return null
-        return getEntry(file, file.lastModified, timeout, asyncGenerator, generator)
+        return getDualEntry(file, file.lastModified, timeout, asyncGenerator, generator)
     }
 
     fun <V> getEntry(
-        file: FileReference,
-        allowDirectories: Boolean,
-        key: V,
-        timeout: Long,
-        asyncGenerator: Boolean,
+        file: FileReference, allowDirectories: Boolean,
+        key: V, timeout: Long, asyncGenerator: Boolean,
         generator: (FileReference, V) -> ICacheData?
     ): ICacheData? {
         if (!file.exists || (!allowDirectories && file.isDirectory)) return null
-        return getEntry(file, key, timeout, asyncGenerator, generator)
+        return getDualEntry(file, key, timeout, asyncGenerator, generator)
     }
 
-    fun getEntry(
-        major: String,
-        minor: String,
-        sub: Int,
-        timeout: Long,
-        asyncGenerator: Boolean,
-        generator: (Triple<String, String, Int>) -> ICacheData?
-    ) = getEntry(Triple(major, minor, sub), timeout, asyncGenerator, generator)
-
     /**
-     * get the value, no matter whether it actually exists
-     * useful for LODs, if others work as well, just are not as good
+     * get the value, without generating it if it doesn't exist;
+     * delta is added to its timeout, when necessary, so it stays loaded
      * */
-    fun getEntryWithoutGenerator(key: Any, delta: Long = 1L): ICacheData? {
+    fun getEntryWithoutGenerator(key: Any?, delta: Long = 1L): ICacheData? {
         val entry = synchronized(cache) { cache[key] } ?: return null
         if (delta > 0L) entry.update(delta)
         return entry.data
     }
 
     /**
-     * get the value, no matter whether it actually exists
-     * useful for LODs, if others work as well, just are not as good
+     * get the value, without generating it if it doesn't exist;
+     * delta is added to its timeout, when necessary, so it stays loaded
      * */
     fun getDualEntryWithoutGenerator(key1: Any, key2: Any, delta: Long = 1L): ICacheData? {
         val entry = synchronized(dualCache) { dualCache[key1, key2] } ?: return null
@@ -135,8 +121,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     /**
-     * get the value, no matter whether it actually exists
-     * useful for LODs, if others work as well, just are not as good
+     * returns whether a value is present
      * */
     fun hasEntry(key: Any, delta: Long = 1L): Boolean {
         val entry = synchronized(cache) { cache[key] } ?: return false
@@ -145,8 +130,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     /**
-     * get the value, no matter whether it actually exists
-     * useful for LODs, if others work as well, just are not as good
+     * returns whether a value is present
      * */
     fun hasDualEntry(key1: Any, key2: Any, delta: Long = 1L): Boolean {
         val entry = synchronized(dualCache) { dualCache[key1, key2] } ?: return false
@@ -155,18 +139,30 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     /**
-     * get the value, no matter whether it actually exists
-     * useful for LODs, if others work as well, just are not as good
+     * returns whether a value is present
      * */
-    fun hasFileEntry(key: FileReference, delta: Long = 1L) =
+    fun hasFileEntry(key: FileReference, delta: Long = 1L): Boolean =
         hasDualEntry(key, key.lastModified, delta)
 
-    fun override(key: Any, data: ICacheData?, timeoutMillis: Long) {
+    fun override(key: Any?, newValue: ICacheData?, timeoutMillis: Long) {
         checkKey(key)
         val oldValue = synchronized(cache) {
             val entry = CacheEntry(timeoutMillis)
-            entry.data = data
+            entry.data = newValue
             cache.put(key, entry)
+        }
+        oldValue?.destroy()
+    }
+
+    fun override(key0: Any?, key1: Any?, newValue: ICacheData?, timeoutMillis: Long) {
+        checkKey(key0)
+        checkKey(key1)
+        val oldValue = synchronized(dualCache) {
+            val entry = CacheEntry(timeoutMillis)
+            entry.data = newValue
+            val oldValue = dualCache[key0, key1]
+            dualCache[key0, key1] = entry
+            oldValue
         }
         oldValue?.destroy()
     }
@@ -184,7 +180,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return data
     }
 
-    private fun <V, W> generateSafely(key0: V, key1: W, generator: (V, W) -> ICacheData?): Any? {
+    private fun <V, W> generateDualSafely(key0: V, key1: W, generator: (V, W) -> ICacheData?): Any? {
         var data: ICacheData? = null
         try {
             data = generator(key0, key1)
@@ -199,26 +195,22 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return data
     }
 
-    private fun checkKey(key: Any) {
+    private fun checkKey(key: Any?) {
         if (Build.isDebug) {
-            if (key != key) throw IllegalStateException("${key.javaClass.name}.equals() is incorrect!")
-            if (key.hashCode() != key.hashCode()) throw IllegalStateException("${key.javaClass.name}.hashCode() is inconsistent!")
+            if (key != key) throw IllegalStateException("${key?.javaClass?.name}.equals() is incorrect!")
+            if (key.hashCode() != key.hashCode()) throw IllegalStateException("${key?.javaClass?.name}.hashCode() is inconsistent!")
         }// else we assume that it's fine
     }
 
     private val limiter = AtomicInteger()
     fun <V> getEntryLimited(
-        key: V,
-        timeout: Long,
-        asyncGenerator: Boolean,
-        limit: Int,
-        generator: (V) -> ICacheData
+        key: V, timeout: Long, asyncGenerator: Boolean,
+        limit: Int, generator: (V) -> ICacheData
     ): ICacheData? {
-        if (key == null) return null
         val accessTry = limiter.getAndIncrement()
         return if (accessTry < limit) {
             // we're good to go, and can make our request
-            getEntryWithCallback(key, timeout, asyncGenerator, {
+            getEntryWithIfNotGeneratingCallback(key, timeout, asyncGenerator, {
                 val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
                 if (value is Exception) throw value
@@ -227,22 +219,18 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } else {
             limiter.decrementAndGet()
             // get the value without generator
-            getEntryWithoutGenerator(key)
+            getEntryWithoutGenerator(key, 1L)
         }
     }
 
     fun <V> getEntryLimited(
-        key: V,
-        timeout: Long,
-        queue: ProcessingQueue?,
-        limit: Int,
-        generator: (V) -> ICacheData
+        key: V, timeout: Long, queue: ProcessingQueue?,
+        limit: Int, generator: (V) -> ICacheData
     ): ICacheData? {
-        if (key == null) return null
         val accessTry = limiter.getAndIncrement()
         return if (accessTry < limit) {
             // we're good to go, and can make our request
-            getEntryWithCallback(key, timeout, queue, {
+            getEntryWithIfNotGeneratingCallback(key, timeout, queue, {
                 val value = generateSafely(key, generator)
                 limiter.decrementAndGet()
                 if (value is Exception) throw value
@@ -251,20 +239,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         } else {
             limiter.decrementAndGet()
             // get the value without generator
-            getEntryWithoutGenerator(key)
+            getEntryWithoutGenerator(key, 1L)
         }
     }
 
-    fun <V, W> getEntryWithCallback(
-        key0: V,
-        key1: W,
-        timeoutMillis: Long,
-        asyncGenerator: Boolean,
+    fun <V, W> getDualEntryWithIfNotGeneratingCallback(
+        key0: V, key1: W,
+        timeoutMillis: Long, asyncGenerator: Boolean,
         generator: (key0: V, key1: W) -> ICacheData?,
         ifNotGenerating: (() -> Unit)?
     ): ICacheData? {
-
-        if (key0 == null || key1 == null) throw IllegalStateException("Key must not be null")
 
         checkKey(key0)
         checkKey(key1)
@@ -288,7 +272,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                 LOGGER.debug("Started {}", name)
                 thread(name = name) {
                     try {
-                        val value = generateSafely(key0, key1, generator)
+                        val value = generateDualSafely(key0, key1, generator)
                         entry.data = value as? ICacheData
                         if (value is Exception) throw value
                         if (entry.hasBeenDestroyed) {
@@ -301,7 +285,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     LOGGER.debug("Finished {}", name)
                 }
             } else {
-                val value = generateSafely(key0, key1, generator)
+                val value = generateDualSafely(key0, key1, generator)
                 entry.data = value as? ICacheData
                 if (value is Exception) throw value
             }
@@ -311,14 +295,12 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return if (entry.hasBeenDestroyed) null else entry.data
     }
 
-    fun <V> getEntryWithCallback(
+    fun <V> getEntryWithIfNotGeneratingCallback(
         key: V, timeoutMillis: Long,
         asyncGenerator: Boolean,
         generator: (V) -> ICacheData?,
         ifNotGenerating: (() -> Unit)?
     ): ICacheData? {
-
-        if (key == null) throw IllegalStateException("Key must not be null")
 
         checkKey(key)
 
@@ -361,7 +343,116 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         return if (entry.hasBeenDestroyed) null else entry.data
     }
 
-    private fun waitMaybe(async: Boolean, entry: CacheEntry, key0: Any, key1: Any?) {
+    fun <V> getEntryAsync(
+        key: V, timeoutMillis: Long,
+        asyncGenerator: Boolean,
+        generator: (V) -> ICacheData?,
+        resultCallback: (ICacheData?, Exception?) -> Unit
+    ) {
+
+        checkKey(key)
+
+        // new, async cache
+        // only the key needs to be locked, not the whole cache
+
+        val entry = synchronized(cache) {
+            val entry = cache.getOrPut(key) { CacheEntry(timeoutMillis) }
+            if (entry.hasBeenDestroyed) entry.reset(timeoutMillis)
+            entry
+        }
+
+        val needsGenerator = entry.needsGenerator
+        entry.update(timeoutMillis)
+
+        fun callback() {
+            resultCallback(
+                if (entry.hasBeenDestroyed) null
+                else entry.data, null
+            )
+        }
+
+        if (needsGenerator) {
+            entry.hasGenerator = true
+            if (asyncGenerator) {
+                val name = "$name<$key>"
+                LOGGER.debug("Started {}", name)
+                thread(name = name) {
+                    val value = generateSafely(key, generator)
+                    entry.data = value as? ICacheData
+                    LOGGER.debug("Finished {}", name)
+                    callback()
+                }
+            } else {
+                val value = generateSafely(key, generator)
+                entry.data = value as? ICacheData
+                callback()
+            }
+        } else {
+            if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
+                thread(name = "WaitingFor<$key>") {
+                    entry.waitForValue(key)
+                    callback()
+                }
+            } else callback()
+        }
+    }
+
+    fun <V, W> getDualEntryAsync(
+        key0: V, key1: W, timeoutMillis: Long,
+        asyncGenerator: Boolean,
+        generator: (V, W) -> ICacheData?,
+        resultCallback: (ICacheData?, Exception?) -> Unit
+    ) {
+
+        checkKey(key0)
+        checkKey(key1)
+
+        // new, async cache
+        // only the key needs to be locked, not the whole cache
+
+        val entry = synchronized(dualCache) {
+            val entry = dualCache.getOrPut(key0, key1) { _, _ -> CacheEntry(timeoutMillis) }
+            if (entry.hasBeenDestroyed) entry.reset(timeoutMillis)
+            entry
+        }
+
+        val needsGenerator = entry.needsGenerator
+        entry.update(timeoutMillis)
+
+        fun callback() {
+            resultCallback(
+                if (entry.hasBeenDestroyed) null
+                else entry.data, null
+            )
+        }
+
+        if (needsGenerator) {
+            entry.hasGenerator = true
+            if (asyncGenerator) {
+                val name = "$name<$key0,$key1>"
+                LOGGER.debug("Started {}", name)
+                thread(name = name) {
+                    val value = generateDualSafely(key0, key1, generator)
+                    entry.data = value as? ICacheData
+                    LOGGER.debug("Finished {}", name)
+                    callback()
+                }
+            } else {
+                val value = generateDualSafely(key0, key1, generator)
+                entry.data = value as? ICacheData
+                callback()
+            }
+        } else {
+            if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
+                thread(name = "WaitingFor<$key0, $key1>") {
+                    entry.waitForValue(key0 to key1)
+                    callback()
+                }
+            } else callback()
+        }
+    }
+
+    private fun waitMaybe(async: Boolean, entry: CacheEntry, key0: Any?, key1: Any?) {
         if (!async && entry.generatorThread != Thread.currentThread()) {
             // else no need/sense in waiting
             if (entry.waitForValue2()) {
@@ -373,21 +464,21 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    private fun onLongWaitStart(key: Any, entry: CacheEntry) {
+    private fun onLongWaitStart(key: Any?, entry: CacheEntry) {
         val msg = "Waiting for $name[$key] by ${entry.generatorThread.name} " +
                 "from ${Thread.currentThread().name}"
         if (Thread.currentThread() == GFX.glThread) println(msg) // extra warning
         LOGGER.warn(msg)
     }
 
-    private fun onLongWaitEnd(key: Any, entry: CacheEntry) {
+    private fun onLongWaitEnd(key: Any?, entry: CacheEntry) {
         val msg = "Finished waiting for $name[$key] by ${entry.generatorThread.name} " +
                 "from ${Thread.currentThread().name}"
         if (Thread.currentThread() == GFX.glThread) println(msg) // extra warning
         LOGGER.warn(msg)
     }
 
-    fun <V> getEntryWithCallback(
+    fun <V> getEntryWithIfNotGeneratingCallback(
         key: V, timeoutMillis: Long,
         queue: ProcessingQueue?,
         generator: (V) -> ICacheData?,
@@ -434,15 +525,16 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun <V> getEntry(key: V, timeoutMillis: Long, asyncGenerator: Boolean, generator: (V) -> ICacheData?): ICacheData? =
-        getEntryWithCallback(key, timeoutMillis, asyncGenerator, generator, null)
+        getEntryWithIfNotGeneratingCallback(key, timeoutMillis, asyncGenerator, generator, null)
 
-    fun <V, W> getEntry(
+    fun <V, W> getDualEntry(
         key0: V, key1: W, timeoutMillis: Long, asyncGenerator: Boolean,
         generator: (V, W) -> ICacheData?
-    ): ICacheData? = getEntryWithCallback(key0, key1, timeoutMillis, asyncGenerator, generator, null)
+    ): ICacheData? =
+        getDualEntryWithIfNotGeneratingCallback(key0, key1, timeoutMillis, asyncGenerator, generator, null)
 
     fun <V> getEntry(key: V, timeoutMillis: Long, queue: ProcessingQueue?, generator: (V) -> ICacheData?): ICacheData? =
-        getEntryWithCallback(key, timeoutMillis, queue, generator, null)
+        getEntryWithIfNotGeneratingCallback(key, timeoutMillis, queue, generator, null)
 
     fun update() {
         synchronized(cache) {
@@ -466,8 +558,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     companion object {
 
         @JvmStatic
-        private val remover = object : Maps.Remover<Any, CacheEntry>() {
-            override fun filter(key: Any, value: CacheEntry): Boolean {
+        private val remover = object : Maps.Remover<Any?, CacheEntry>() {
+            override fun filter(key: Any?, value: CacheEntry): Boolean {
                 return if (nanoTime > value.timeoutNanoTime) {
                     value.destroy()
                     true

@@ -32,11 +32,9 @@ class Retargeting : NamedSaveable() {
         fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Retargeting? {
             if (srcSkeleton == dstSkeleton) return null
             val data = cache.getEntry(
-                Pair(srcSkeleton, dstSkeleton),
-                LongPair(srcSkeleton.lastModified, dstSkeleton.lastModified),
-                timeout,
-                false
-            ) { k12, _ ->
+                DualFileKey(srcSkeleton, dstSkeleton),
+                timeout, false
+            ) { k12 ->
 
                 // todo hash skeleton instead of skeleton path
                 val hash1 = srcSkeleton.hashCode()
@@ -45,7 +43,7 @@ class Retargeting : NamedSaveable() {
                 val config = "retargeting-$hash1-$hash2.json"
                 val config1 = ConfigBasics.getConfigFile(config)
 
-                LOGGER.debug("Getting retargeting $k12")
+                LOGGER.debug("Getting retargeting {}", k12)
 
                 val ret: Retargeting
                 if (config1.exists) {
@@ -53,8 +51,8 @@ class Retargeting : NamedSaveable() {
                         ?: Retargeting()
                 } else {
                     ret = Retargeting()
-                    ret.srcSkeleton = k12.first
-                    ret.dstSkeleton = k12.second
+                    ret.srcSkeleton = k12.file0
+                    ret.dstSkeleton = k12.file1
                     config1.getParent()?.tryMkdirs()
                     config1.writeText(TextWriter.toText(ret, InvalidRef))
                 }
