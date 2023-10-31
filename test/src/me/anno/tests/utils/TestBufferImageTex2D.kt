@@ -7,6 +7,8 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
+import me.anno.graph.hdb.HDBKey
+import me.anno.image.raw.GPUImage
 import me.anno.image.raw.toImage
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.utils.OS.desktop
@@ -32,8 +34,11 @@ fun main() {
     val magnification = 1
 
     Thumbs.renderToImage(
-        srcFile, false, desktop.getChild("result.png"), false,
-        Renderer.colorRenderer, true, { _, exc -> exc?.printStackTrace() },
+        srcFile, false, HDBKey.InvalidKey, false,
+        Renderer.colorRenderer, true, { result, exc ->
+            if (result is Texture2D) GPUImage(result).write(desktop.getChild("result.png"))
+            exc?.printStackTrace()
+        },
         formats.size * testImage.width * magnification, testImage.height * magnification
     ) {
         GFXState.currentBuffer.clearColor(0, false)
@@ -57,5 +62,4 @@ fun main() {
             drawSimpleTextCharByChar(x, 0, 1, "$format")
         }
     }
-
 }

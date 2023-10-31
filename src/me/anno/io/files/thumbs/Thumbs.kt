@@ -59,6 +59,10 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.LateinitTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.graph.hdb.ByteSlice
+import me.anno.graph.hdb.HDBKey
+import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
+import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.image.*
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.hdr.HDRReader
@@ -82,11 +86,11 @@ import me.anno.io.text.TextReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.io.zip.InnerFolderCache
+import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.clamp
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
 import me.anno.utils.Color.black
-import me.anno.utils.Color.hex4
 import me.anno.utils.Color.white4
 import me.anno.utils.OS
 import me.anno.utils.ShutdownException
@@ -109,6 +113,7 @@ import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import javax.imageio.ImageIO
 import javax.swing.ImageIcon
@@ -126,27 +131,25 @@ object Thumbs {
     // todo right click option in file explorer to invalidate a thumbs image
     // todo right click option for images: open large image viewer panel
 
-    @JvmStatic
     private val LOGGER = LogManager.getLogger(Thumbs::class)
 
-    @JvmStatic
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
 
-    @JvmStatic
+    private val hdb = HierarchicalDatabase(
+        "Thumbs", folder, 5_000_000, 10_000L,
+        2 * 7 * 24 * 64 * 64 * 1000L
+    )
+
     private val sizes = intArrayOf(32, 64, 128, 256, 512)
 
-    @JvmStatic
     private val neededSizes = IntArray(sizes.last() + 1)
     private const val timeout = 5000L
 
     // todo disable this, when everything works
-    @JvmField
     var useCacheFolder = !Build.isDebug
 
-    // png/bmp/jpg?
-    private const val destinationFormat = "png"
+    private const val destinationFormat = "jpg"
 
-    @JvmField
     val sphereMesh = UVSphereModel.createUVSphere(30, 30)
 
     init {
@@ -298,28 +301,10 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun FileReference.getCacheFile(size: Int, callback: (FileReference) -> Unit) {
-        getFileHash { hash ->
-            callback(createCacheFile(hash, size))
-        }
-    }
-
-    @JvmStatic
-    private fun createCacheFile(hash: Long, size: Int): FileReference {
-        val dstFormat = destinationFormat
-        val str1 = CharArray(16 + 1 + dstFormat.length) { '0' }
-        for (i in 0 until 16) {
-            val base4 = hash.shr((15 - i) * 4).and(15)
-            str1[i] = hex4(base4)
-        }
-        str1[16] = '.'
-        for (i in dstFormat.indices) {
-            str1[i + 17] = dstFormat[i]
-        }
-        // LOGGER.info("$hash -> ${String(str1)}")
-        return folder.getChild("$size")
-            .getChild(String(str1, 0, 2))
-            .getChild(String(str1, 2, str1.size - 2))
+    private fun createCacheKey(srcFile: FileReference, hash: Long, size: Int): HDBKey {
+        if (srcFile is InnerTmpFile) return InvalidKey
+        val split = srcFile.absolutePath.split('/')
+        return HDBKey(split.subList(0, max(split.lastIndex, 0)), hash * 31 + size)
     }
 
     @JvmStatic
@@ -348,13 +333,18 @@ object Thumbs {
     fun saveNUpload(
         srcFile: FileReference,
         checkRotation: Boolean,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         dst: Image,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        if (useCacheFolder) {
-            dstFile.getParent()?.tryMkdirs()
-            dst.write(dstFile)
+        if (dstFile != InvalidKey) {
+            val bos = ByteArrayOutputStream()
+            dst.write(bos, destinationFormat)
+            bos.close()
+            // todo we could skip toByteArray() by using our own type,
+            //  and putting a ByteSlice
+            val bytes = bos.toByteArray()
+            hdb.put(dstFile, bytes)
         }
         upload(srcFile, checkRotation, dst, callback)
     }
@@ -364,7 +354,7 @@ object Thumbs {
         srcFile: FileReference,
         checkRotation: Boolean,
         src: Image,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -393,7 +383,7 @@ object Thumbs {
     fun renderToImage(
         src: FileReference,
         checkRotation: Boolean,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         withDepth: Boolean,
         renderer: Renderer = colorRenderer,
         flipY: Boolean,
@@ -419,7 +409,7 @@ object Thumbs {
     private fun renderToImagePart2(
         srcFile: FileReference,
         checkRotation: Boolean,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         withDepth: Boolean,
         renderer: Renderer,
         flipY: Boolean,
@@ -481,7 +471,7 @@ object Thumbs {
     @JvmStatic
     fun generateVideoFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit,
         wantedTime: Double
@@ -521,7 +511,7 @@ object Thumbs {
     @JvmStatic
     fun generateSVGFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -555,7 +545,7 @@ object Thumbs {
     @JvmStatic
     fun generateVOXMeshFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -568,7 +558,7 @@ object Thumbs {
     @JvmStatic
     fun generateEntityFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         scene: Entity,
         callback: (ITexture2D?, Exception?) -> Unit
@@ -656,7 +646,7 @@ object Thumbs {
     @JvmStatic
     fun generateColliderFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         collider: Collider,
         callback: (ITexture2D?, Exception?) -> Unit
@@ -673,7 +663,7 @@ object Thumbs {
     @JvmStatic
     fun generateMeshFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         mesh: Mesh,
         callback: (ITexture2D?, Exception?) -> Unit
@@ -698,7 +688,7 @@ object Thumbs {
     @JvmStatic
     fun generateMeshFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         comp: MeshComponentBase,
         callback: (ITexture2D?, Exception?) -> Unit
@@ -724,7 +714,7 @@ object Thumbs {
     @JvmStatic
     fun generateMeshFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         comp: Renderable,
         callback: (ITexture2D?, Exception?) -> Unit
@@ -744,7 +734,7 @@ object Thumbs {
     @JvmStatic
     fun generateMaterialFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -755,7 +745,7 @@ object Thumbs {
     @JvmStatic
     fun generateMaterialFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         material: Material,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
@@ -802,7 +792,7 @@ object Thumbs {
     @JvmStatic
     fun generateMaterialFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         materials: List<FileReference>,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
@@ -831,7 +821,7 @@ object Thumbs {
     @JvmStatic
     fun renderMultiWindowImage(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         count: Int, size: Int,
         // whether the aspect ratio of the parts can be adjusted to keep the result quadratic
         // if false, the result will be rectangular
@@ -869,7 +859,7 @@ object Thumbs {
     @JvmStatic
     fun generateSkeletonFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         skeleton: Skeleton,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
@@ -897,7 +887,7 @@ object Thumbs {
     @JvmStatic
     fun generateAnimationFrame(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         animation: Animation,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
@@ -984,7 +974,7 @@ object Thumbs {
     fun generateSomething(
         asset: ISaveable?,
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -1019,37 +1009,32 @@ object Thumbs {
         }
     }
 
-    @JvmStatic
     fun shallReturnIfExists(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: ByteSlice?,
+        callback: (ITexture2D?, Exception?) -> Unit,
+    ): Boolean {
+        dstFile ?: return false
+        val stream = dstFile.stream()
+        val image = ImageIO.read(stream) ?: return false
+        val rotation = ImageToTexture.getRotation(srcFile)
+        addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
+            val texture = Texture2D(srcFile.name, image.toImage(), true)
+            texture.rotation = rotation
+            callback(texture, null)
+        }
+        return true
+    }
+
+    fun shallReturnIfExists(
+        srcFile: FileReference,
+        dstFile: HDBKey,
         callback: (ITexture2D?, Exception?) -> Unit,
         callback1: (Boolean) -> Unit
     ) {
-        if (dstFile.exists) {
-            // LOGGER.info("cached preview for $srcFile exists")
-            dstFile.inputStream { it, _ ->
-                val hasImage = if (it != null) {
-                    val image = ImageIO.read(it)
-                    if (image == null) {
-                        LOGGER.warn("Could not read $dstFile")
-                        false
-                    } else {
-                        val rotation = ImageToTexture.getRotation(srcFile)
-                        addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
-                            val texture = Texture2D(srcFile.name, image.toImage(), true)
-                            texture.rotation = rotation
-                            callback(texture, null)
-                        }
-                        true
-                    }
-                } else {
-                    LOGGER.warn("Could not read $dstFile")
-                    false
-                }
-                callback1(hasImage)
-            }
-        } else callback1(false)
+        hdb.get(dstFile, true) {
+            callback1(shallReturnIfExists(srcFile, it, callback))
+        }
     }
 
     @JvmStatic
@@ -1091,8 +1076,8 @@ object Thumbs {
         if (max(sw, sh) < size) {
             size /= 2
             if (size < 3) return
-            val dstFile = createCacheFile(hash, size)
-            shallReturnIfExists(srcFile, dstFile, callback) { shallReturn ->
+            val key = createCacheKey(srcFile, hash, size)
+            shallReturnIfExists(srcFile, key, callback) { shallReturn ->
                 if (!shallReturn) {
                     findScale(src, srcFile, size, hash, callback, callback1)
                 }
@@ -1108,30 +1093,31 @@ object Thumbs {
     private fun generate(srcFile: FileReference, size: Int, callback: (ITexture2D?, Exception?) -> Unit) {
         if (size < 3) return
         if (useCacheFolder) {
-            srcFile.getCacheFile(size) { dstFile ->
-                shallReturnIfExists(srcFile, dstFile, callback) { shallReturn ->
-                    if (!shallReturn) {
+            srcFile.getFileHash { hash ->
+                val dstFile = createCacheKey(srcFile, hash, size)
+                hdb.get(dstFile, false) { byteSlice ->
+                    if (!shallReturnIfExists(srcFile, byteSlice, callback)) {
                         generate(srcFile, size, dstFile, callback)
                     }
                 }
             }
         } else {
-            generate(srcFile, size, InvalidRef, callback)
+            generate(srcFile, size, InvalidKey, callback)
         }
     }
 
     @JvmStatic
     private val readerBySignature =
-        HashMap<String, (FileReference, FileReference, Int, (ITexture2D?, Exception?) -> Unit) -> Unit>()
+        HashMap<String, (FileReference, HDBKey, Int, (ITexture2D?, Exception?) -> Unit) -> Unit>()
 
     @JvmStatic
     private val readerByExtension =
-        HashMap<String, (FileReference, FileReference, Int, (ITexture2D?, Exception?) -> Unit) -> Unit>()
+        HashMap<String, (FileReference, HDBKey, Int, (ITexture2D?, Exception?) -> Unit) -> Unit>()
 
     @JvmStatic
     fun registerSignature(
         signature: String,
-        reader: (srcFile: FileReference, dstFile: FileReference, size: Int, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
+        reader: (srcFile: FileReference, dstFile: HDBKey, size: Int, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
     ) {
         readerBySignature[signature] = reader
     }
@@ -1144,7 +1130,7 @@ object Thumbs {
     @JvmStatic
     fun registerExtension(
         extension: String,
-        reader: (srcFile: FileReference, dstFile: FileReference, size: Int, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
+        reader: (srcFile: FileReference, dstFile: HDBKey, size: Int, callback: (ITexture2D?, Exception?) -> Unit) -> Unit
     ) {
         readerByExtension[extension] = reader
     }
@@ -1221,7 +1207,7 @@ object Thumbs {
 
     fun generateVideoFrame0(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -1232,7 +1218,7 @@ object Thumbs {
     private fun generate(
         srcFile: FileReference,
         size: Int,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
 
@@ -1418,7 +1404,7 @@ object Thumbs {
 
     fun generateSomething(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -1430,7 +1416,7 @@ object Thumbs {
 
     fun generateFontPreview(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -1457,7 +1443,7 @@ object Thumbs {
     @JvmStatic
     private fun generateTextImage(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -1522,7 +1508,7 @@ object Thumbs {
     @JvmStatic
     private fun generateImage(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
@@ -1556,7 +1542,7 @@ object Thumbs {
     @JvmStatic
     private fun generateSystemIcon(
         srcFile: FileReference,
-        dstFile: FileReference,
+        dstFile: HDBKey,
         size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {

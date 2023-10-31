@@ -23,10 +23,10 @@ object BMPWriter {
         var j = pixelDataStart
         for (i in 0 until width * height) {
             val color = buffer[i]
-            dst[j++] = (color shr 24).toByte()
-            dst[j++] = (color shr 16).toByte()
-            dst[j++] = (color shr 8).toByte()
             dst[j++] = color.toByte()
+            dst[j++] = (color shr 8).toByte()
+            dst[j++] = (color shr 16).toByte()
+            dst[j++] = (color shr 24).toByte()
         }
         return dst
     }
@@ -70,8 +70,8 @@ object BMPWriter {
         // 4 bytes unused
         write32(pixelDataStart, 0xA)
         write32(0x6C, 0xE) // bytes in the DIB header
-        write32(width, 0x12)
-        write32(height, 0x16)
+        write32(+width, 0x12)
+        write32(-height, 0x16) // flip upside down
         write16(1, 0x1A) // 1 plane
         write16(32, 0x1C) // 32 bits
         write32(3, 0x1E) // no compression used

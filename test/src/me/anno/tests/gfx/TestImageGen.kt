@@ -2,14 +2,10 @@ package me.anno.tests.gfx
 
 import me.anno.Engine
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.AnimRenderer
-import me.anno.ecs.components.anim.BoneByBoneAnimation
-import me.anno.ecs.components.anim.ImportedAnimation
-import me.anno.ecs.components.anim.Skeleton
-import me.anno.ecs.components.mesh.MeshCache
-import me.anno.ecs.components.anim.SkeletonCache
+import me.anno.ecs.components.anim.*
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -19,9 +15,12 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.texture.Texture2D
+import me.anno.graph.hdb.HDBKey
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageGPUCache
 import me.anno.image.ImageScale.scaleMax
+import me.anno.image.raw.GPUImage
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -34,7 +33,6 @@ import me.anno.io.files.thumbs.Thumbs.generateSkeletonFrame
 import me.anno.io.files.thumbs.Thumbs.generateSomething
 import me.anno.io.files.thumbs.Thumbs.generateVOXMeshFrame
 import me.anno.io.files.thumbs.Thumbs.generateVideoFrame
-import me.anno.ecs.components.anim.Bone
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.documents
@@ -55,14 +53,20 @@ fun init() {
 fun testAssimpMeshFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    generateSomething(file, file.dst(), size) { _, exc -> exc?.printStackTrace() }
+    generateSomething(file, HDBKey.InvalidKey, size) { result, exc ->
+        if (result is Texture2D) GPUImage(result).write(file.dst())
+        exc?.printStackTrace()
+    }
 }
 
 fun testEntityMeshFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     val entity = PrefabCache.getPrefabInstance(file) as Entity
-    generateEntityFrame(file, file.dst(), size, entity) { _, exc -> exc?.printStackTrace() }
+    generateEntityFrame(file, HDBKey.InvalidKey, size, entity) { result, exc ->
+        if (result is Texture2D) GPUImage(result).write(file.dst())
+        exc?.printStackTrace()
+    }
 }
 
 @Suppress("unused")
@@ -70,7 +74,10 @@ fun testSkeletonFrame(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     val skeleton = SkeletonCache[file]!!
-    generateSkeletonFrame(file, file.dst(), skeleton, size) { _, exc -> exc?.printStackTrace() }
+    generateSkeletonFrame(file, HDBKey.InvalidKey, skeleton, size) { result, exc ->
+        if (result is Texture2D) GPUImage(result).write(file.dst())
+        exc?.printStackTrace()
+    }
 }
 
 @Suppress("unused")
@@ -88,8 +95,12 @@ fun testImage(file: FileReference) {
         ImageIO.write(smaller, "png", it)
     }
     // also write image to the gpu, and then get it back to test the uploading
-    Thumbs.renderToImage(file, false, file.dst2(), false, Renderer.copyRenderer, true,
-        { _, exc -> exc?.printStackTrace() }, w, h
+    Thumbs.renderToImage(
+        file, false, HDBKey.InvalidKey, false, Renderer.copyRenderer, true,
+        { result, exc ->
+            if (result is Texture2D) GPUImage(result).write(file.dst2())
+            exc?.printStackTrace()
+        }, w, h
     ) {
         val texture = ImageGPUCache[file, 10_000, false]!!
         drawTexture(0, 0, w, h, texture, -1, null)
@@ -101,24 +112,34 @@ fun testImage(file: FileReference) {
 @Suppress("unused")
 fun testFFMPEGImage(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    generateVideoFrame(file, file.dst(), size, { _, exc -> exc?.printStackTrace() }, 0.0)
+    generateVideoFrame(file, HDBKey.InvalidKey, size, { result, exc ->
+        if (result is Texture2D) GPUImage(result).write(file.dst())
+        exc?.printStackTrace()
+    }, 0.0)
 }
 
 @Suppress("unused")
 fun testSVG(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    generateSVGFrame(file, file.dst(), size) { _, exc -> exc?.printStackTrace() }
+    generateSVGFrame(file, HDBKey.InvalidKey, size) { result, exc ->
+        if (result is Texture2D) GPUImage(result).write(file.dst())
+        exc?.printStackTrace()
+    }
 }
 
 @Suppress("unused")
 fun testMeshFrame(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
     val mesh = MeshCache[file]!!
-    generateMeshFrame(file, file.dst(), size, mesh) { _, exc -> exc?.printStackTrace() }
+    generateMeshFrame(file, HDBKey.InvalidKey, size, mesh) { result, exc ->
+        if (result is Texture2D) GPUImage(result).write(file.dst())
+        exc?.printStackTrace()
+    }
 }
 
 fun testMaterial(file: FileReference) {
-    generateMaterialFrame(file, desktop.getChild(file.nameWithoutExtension + ".png"), size) { _, exc ->
+    generateMaterialFrame(file, HDBKey.InvalidKey, size) { result, exc ->
+        if (result is Texture2D) GPUImage(result).write(desktop.getChild(file.nameWithoutExtension + ".png"))
         exc?.printStackTrace()
     }
 }
@@ -126,7 +147,10 @@ fun testMaterial(file: FileReference) {
 @Suppress("unused")
 fun testVOXMeshFrame(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    generateVOXMeshFrame(file, file.dst(), size) { _, exc -> exc?.printStackTrace() }
+    generateVOXMeshFrame(file, HDBKey.InvalidKey, size) { result, exc ->
+        if (result is Texture2D) GPUImage(result).write(file.dst())
+        exc?.printStackTrace()
+    }
 }
 
 fun main() {
@@ -234,5 +258,4 @@ fun main() {
     clock.total("")
 
     Engine.requestShutdown()
-
 }

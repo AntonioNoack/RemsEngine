@@ -28,13 +28,17 @@ object Ints {
 
             start = 1
 
-            if (firstChar == '-') {
-                isNegative = true
-                limit = Long.MIN_VALUE
-            } else if (firstChar == '+') {
-                isNegative = false
-                limit = -Long.MAX_VALUE
-            } else return default
+            when (firstChar) {
+                '-' -> {
+                    isNegative = true
+                    limit = Long.MIN_VALUE
+                }
+                '+' -> {
+                    isNegative = false
+                    limit = -Long.MAX_VALUE
+                }
+                else -> return default
+            }
         } else {
             start = 0
             isNegative = false
@@ -65,5 +69,4 @@ object Ints {
 
         return if (isNegative) result else -result
     }
-
 }

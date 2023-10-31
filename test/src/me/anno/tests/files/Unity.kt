@@ -7,7 +7,10 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.texture.Texture2D
+import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.image.ImageCPUCache
+import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.json.JsonFormatter
@@ -48,8 +51,13 @@ fun testRendering(file: FileReference, size: Int = 512, index: Int) {
     LOGGER.debug(sample)
     Thumbs.generateSomething(
         prefab, file,
-        OS.desktop.getChild("$index.png"), size
-    ) { _, exc -> exc?.printStackTrace() }
+        InvalidKey, size
+    ) { result, exc ->
+        if (result is Texture2D) {
+            GPUImage(result).write(OS.desktop.getChild("$index.png"))
+        }
+        exc?.printStackTrace()
+    }
 }
 
 fun smallRenderTest() {
@@ -76,7 +84,6 @@ fun smallRenderTest() {
     }
 
     Engine.requestShutdown()
-
 }
 
 fun sceneRenderTest() {
@@ -134,7 +141,6 @@ m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
     }
 
     Engine.requestShutdown()
-
 }
 
 fun main() {
@@ -265,7 +271,6 @@ fun main() {
             }
 
             override fun onPaste(x: Float, y: Float, data: String, type: String) {
-
             }
         }
     }

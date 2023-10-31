@@ -5,8 +5,9 @@ import me.anno.io.json.JsonScanner
 import me.anno.utils.types.Ints.toLongOrDefault
 import me.anno.utils.types.Strings.toInt
 import java.io.InputStream
+import kotlin.math.max
 
-class IndexReader(input: InputStream, val lookupStorageFile: (Int) -> StorageFile?) : JsonScanner(input) {
+class IndexReader(input: InputStream, val lookupStorageFile: (sfIndex: Int) -> StorageFile?) : JsonScanner(input) {
 
     fun readFolder(folder: Folder) {
         scanObject { name ->
@@ -21,13 +22,17 @@ class IndexReader(input: InputStream, val lookupStorageFile: (Int) -> StorageFil
                     folder.children[child.name] = child
                 }
                 "n" -> folder.name = readString()
-                "i" -> folder.storageFile = lookupStorageFile(readNumber().toInt())
+                "i" -> {
+                    val sf = lookupStorageFile(readNumber().toInt())
+                    folder.storageFile = sf
+                    sf?.folders?.add(folder)
+                }
                 else -> skipSomething()
             }
         }
         val sf = folder.storageFile
         if (sf != null) {
-            sf.size += folder.files.values.size
+            sf.size = max(sf.size, folder.files.values.maxOfOrNull { it.range.last + 1 } ?: 0)
         }
     }
 
@@ -35,8 +40,8 @@ class IndexReader(input: InputStream, val lookupStorageFile: (Int) -> StorageFil
         var lastAccessed = 0L
         var start = 0
         var length = 0
-        scanObject {
-            when (it) {
+        scanObject { key ->
+            when (key) {
                 "a" -> lastAccessed = readNumber().toLong()
                 "s" -> start = readNumber().toInt()
                 "l" -> length = readNumber().toInt()

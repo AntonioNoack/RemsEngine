@@ -1,9 +1,11 @@
 package me.anno.tests.graph
 
+import me.anno.Engine
+import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HierarchicalDatabase
-import me.anno.studio.StudioBase
+import me.anno.io.Streams.readText
+import me.anno.utils.LOGGER
 import me.anno.utils.OS.desktop
-import me.anno.utils.OS.pictures
 import org.apache.logging.log4j.LogManager
 
 fun main() {
@@ -27,16 +29,42 @@ fun main() {
 
     LogManager.logAll()
 
-    val timeout: Long = 1000 // Int.MAX_VALUE.toLong()
-    val instance = HierarchicalDatabase("Test", desktop.getChild("db"), 10_000, timeout, timeout)
-    instance.get(listOf(), 0L, false) {
-        println("got key: ${it?.size}")
+    val timeout: Long = Int.MAX_VALUE.toLong()
+    val instance = HierarchicalDatabase(
+        "Test", desktop.getChild("db"),
+        100_000, timeout, timeout, "txt"
+    )
 
-        if (true) {
-            val sampleData = pictures.getChild("4k.jpg").readBytesSync()
-            instance.put(listOf(), 0L, sampleData)
-        }
-        StudioBase.workEventTasks()
+    // instance.clear()
+
+    val samples = ("Ethan,Olivia,Jackson,Sophia,Liam")
+            .split(',')
+
+    val sampleKeys = samples.map { sample ->
+        HDBKey(listOf(sample), sample.hashCode().toLong())
     }
 
+    val sampleData = samples.map {
+        it.toByteArray()
+    }
+
+    for (i in samples.indices) {
+        val data = sampleData[i]
+        instance.put(sampleKeys[i], data)
+    }
+
+    for (i in samples.indices) {
+        val name = "${sampleKeys[i].path}[$i]"
+        instance.get(sampleKeys[i], false) { bytes ->
+            if (bytes == null) {
+                println("Missing $name")
+            } else if (sampleData[i].contentEquals(bytes.stream().readBytes())) {
+                println("$name is fine")
+            } else {
+                println("$name was saved incorrectly: ${bytes.stream().readText()}")
+            }
+        }
+    }
+
+    Engine.requestShutdown()
 }

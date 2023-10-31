@@ -1,16 +1,19 @@
 package me.anno.tests.mesh
 
 import me.anno.Engine
+import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.components.anim.Skeleton
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.OpenGLBuffer.Companion.bindBuffer
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.texture.Texture2D
+import me.anno.graph.hdb.HDBKey
+import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.mesh.assimp.AnimatedMeshesLoader
-import me.anno.ecs.components.anim.Bone
 import me.anno.mesh.assimp.StaticMeshesLoader
 import me.anno.mesh.assimp.findAllBones
 import me.anno.utils.Color.a01
@@ -52,7 +55,10 @@ fun main() {
     // check what is the result using the animations
     // loadSkeletonFromAnimations(aiScene, rootNode, createNodeCache(rootNode), boneList, boneMap)
     val dst0 = getReference(desktop, "byAnimation.png")
-    Thumbs.generateSkeletonFrame(dst0, dst0, skeleton, size) { _, exc -> exc?.printStackTrace() }
+    Thumbs.generateSkeletonFrame(dst0, HDBKey.InvalidKey, skeleton, size) { result, exc ->
+        if (result is Texture2D) GPUImage(result).write(dst0)
+        exc?.printStackTrace()
+    }
     println("by animation: ${boneList.map { it.name }}")
 
 
@@ -63,11 +69,13 @@ fun main() {
 
     findAllBones(aiScene, rootNode, boneList, boneMap)
     val dst1 = getReference(desktop, "byTree.png")
-    Thumbs.generateSkeletonFrame(dst1, dst1, skeleton, size) { _, exc -> exc?.printStackTrace() }
+    Thumbs.generateSkeletonFrame(dst1, HDBKey.InvalidKey, skeleton, size) { result, exc ->
+        if (result is Texture2D) GPUImage(result).write(dst1)
+        exc?.printStackTrace()
+    }
     println("by tree, full: ${boneList.map { it.name }}")
 
     Engine.requestShutdown()
-
 }
 
 @Suppress("unused", "SpellCheckingInspection")
@@ -107,9 +115,7 @@ fun oldTest() {
         }
 
         logger.info("${scene.mNumMaterials()} materials + ${scene.mNumMeshes()} meshes")
-
     } else logger.info("failed to load scene")
-
 }
 
 fun createMeshComponent(mesh: AIMesh) {
@@ -130,7 +136,6 @@ fun processBuffer(buffer: AIVector3D.Buffer): StaticBuffer {
     )
 
     return buffer2
-
 }
 
 fun processMaterial(material: AIMaterial) {
@@ -172,7 +177,6 @@ fun processMaterial(material: AIMaterial) {
     }
 
     // ...
-
 }
 
 

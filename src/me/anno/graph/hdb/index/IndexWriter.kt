@@ -5,14 +5,15 @@ import me.anno.io.json.JsonWriter
 import java.io.OutputStream
 
 class IndexWriter(stream: OutputStream) : JsonWriter(stream) {
-    fun write(folder: Folder) {
+
+    fun writeFolder(folder: Folder) {
         beginObject()
         attr("n")
         write(folder.name)
         attr("c")
         beginArray()
         for (child in folder.children.values) {
-            write(child)
+            writeFolder(child)
         }
         endArray()
         val sf = folder.storageFile

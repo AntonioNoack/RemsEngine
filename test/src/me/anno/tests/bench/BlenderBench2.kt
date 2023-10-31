@@ -4,9 +4,9 @@ import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.hidden.HiddenOpenGLContext
+import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.image.ImageCPUCache
 import me.anno.image.ImageGPUCache
-import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.mesh.blender.BlenderReader
 import me.anno.utils.Clock
@@ -35,7 +35,7 @@ fun main() {
         val prefab = (folder.getChild("Scene.json") as PrefabReadable).readPrefab()
         val scene = prefab.getSampleInstance() as Entity
         var done = false
-        Thumbs.generateEntityFrame(source, InvalidRef, 64, scene) { result, exc ->
+        Thumbs.generateEntityFrame(source, InvalidKey, 64, scene) { result, exc ->
             done = true
             result?.destroy()
             exc?.printStackTrace()

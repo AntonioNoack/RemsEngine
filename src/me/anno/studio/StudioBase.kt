@@ -402,6 +402,23 @@ abstract class StudioBase(
 
         val shiftSlowdown get() = if (Input.isAltDown) 5f else if (Input.isShiftDown) 0.2f else 1f
 
+        init {
+            Engine.registerForShutdown {
+                finishEventTasks()
+            }
+        }
+
+        fun finishEventTasks() {
+            workEventTasks()
+            while (scheduledTasks.isNotEmpty()) {
+                try {
+                    scheduledTasks.poll()!!.second.invoke()
+                } catch (e: Throwable) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
         fun workEventTasks() {
             while (scheduledTasks.isNotEmpty()) {
                 try {

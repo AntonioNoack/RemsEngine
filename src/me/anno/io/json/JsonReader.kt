@@ -302,7 +302,7 @@ open class JsonReader(val data: InputStream) {
         if (!c) throw IOException(msg)
     }
 
-    protected fun assertEquals(a: Char, b: Char) {
-        if (a != b) throw IOException("$a != $b")
+    protected fun assertEquals(value: Char, expected: Char) {
+        if (value != expected) throw IOException("Expected $expected, but got $value")
     }
 }

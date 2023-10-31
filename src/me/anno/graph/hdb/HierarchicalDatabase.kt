@@ -3,13 +3,14 @@ package me.anno.graph.hdb
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.graph.hdb.allocator.FileAllocation
+import me.anno.graph.hdb.allocator.ReplaceType
 import me.anno.graph.hdb.index.*
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.utils.structures.maps.Maps.removeIf
+import org.apache.logging.log4j.LogManager
 import java.io.RandomAccessFile
-import kotlin.concurrent.thread
 
 /**
  * hierarchical database, where keys are paths plus hashes,
@@ -23,7 +24,10 @@ class HierarchicalDatabase(
     val targetFileSize: Int,
     val cacheTimeoutMillis: Long,
     deletionTimeMillis: Long,
-) : CacheSection(name) {
+    val dataExtension: String = "bin",
+) {
+
+    val cache = CacheSection("HDB-$name")
 
     private val root = Folder("")
     private val storageFiles = HashMap<Int, StorageFile>()
@@ -40,10 +44,10 @@ class HierarchicalDatabase(
         if (indexFile.exists) {
             indexFile.inputStream { stream, exc ->
                 if (stream != null) {
-                    IndexReader(stream) { index ->
+                    IndexReader(stream) { sfIndex ->
                         synchronized(storageFiles) {
-                            storageFiles.getOrPut(index) {
-                                StorageFile(index)
+                            storageFiles.getOrPut(sfIndex) {
+                                StorageFile(sfIndex)
                             }
                         }
                     }.readFolder(root)
@@ -56,7 +60,7 @@ class HierarchicalDatabase(
     fun storeIndex() {
         synchronized(this) {
             indexFile.outputStream(false).use { stream ->
-                IndexWriter(stream).write(root)
+                IndexWriter(stream).writeFolder(root)
             }
         }
     }
@@ -86,12 +90,13 @@ class HierarchicalDatabase(
         synchronized(storageFiles) {
             val files = storage.listChildren() ?: emptyList()
             for (file in files) {
-                if (file.lcExtension == "bin") {
+                if (file == indexFile || file.isDirectory) continue
+                if (file.lcExtension == dataExtension) {
                     val index = file.nameWithoutExtension.toIntOrNull() ?: continue
                     if (index !in storageFiles || storageFiles[index]?.size == 0) {
                         file.delete()
                     }
-                }
+                } else file.delete()
             }
         }
     }
@@ -145,11 +150,15 @@ class HierarchicalDatabase(
     }
 
     private fun getFile(sfIndex: Int): FileReference {
-        return storage.getChild("$sfIndex.bin")
+        return storage.getChild("$sfIndex.$dataExtension")
     }
 
-    fun deleteAll() {
+    fun clear() {
         storage.deleteRecursively()
+    }
+
+    fun get(key: HDBKey, async: Boolean, callback: (ByteSlice?) -> Unit) {
+        return get(key.path, key.hash, async, callback)
     }
 
     fun get(path: List<String>, hash: Long, async: Boolean, callback: (ByteSlice?) -> Unit) {
@@ -164,20 +173,21 @@ class HierarchicalDatabase(
         } else {
             val sf = folder.storageFile ?: return callback(null)
             if (async) {
-                val bytes = getDataSync(sf) ?: return callback(null)
-                callback(ByteSlice(bytes, file.range))
-            } else {
                 getDataAsync(sf) { bytes ->
                     val slice = if (bytes != null) ByteSlice(bytes, file.range) else null
                     callback(slice)
                 }
+            } else {
+                val bytes = getDataSync(sf) ?: return callback(null)
+                callback(ByteSlice(bytes, file.range))
             }
         }
     }
 
     private fun getDataSync(sf: StorageFile): ByteArray? {
         val file = getFile(sf.index)
-        val data = getEntry(file, cacheTimeoutMillis, false) {
+        if (!file.exists) return null
+        val data = cache.getEntry(file, cacheTimeoutMillis, false) {
             CacheData(it.readBytesSync())
         } as? CacheData<*>
         return data?.value as? ByteArray
@@ -185,7 +195,7 @@ class HierarchicalDatabase(
 
     private fun getDataAsync(sf: StorageFile, callback: (ByteArray?) -> Unit) {
         val key = sf.index
-        getEntryAsync(key, cacheTimeoutMillis, true, {
+        cache.getEntryAsync(key, cacheTimeoutMillis, true, {
             val file = getFile(it)
             if (file.exists) {
                 CacheData(file.readBytesSync())
@@ -196,7 +206,12 @@ class HierarchicalDatabase(
         })
     }
 
-    fun put(path: List<String>, hash: Long, value: ByteArray) {
+    fun put(key: HDBKey, value: ByteArray) {
+        put(key.path, key.hash, ByteSlice(value))
+    }
+
+    fun put(path: List<String>, hash: Long, value: ByteSlice) {
+
         var folder = root
         for (i in path.indices) {
             folder = folder.children.getOrPut(path[i]) {
@@ -208,6 +223,7 @@ class HierarchicalDatabase(
         if (sf == null) {
             sf = findStorageFile(value.size)
             folder.storageFile = sf
+            sf.folders.add(folder)
         }
 
         synchronized(this) {
@@ -217,23 +233,32 @@ class HierarchicalDatabase(
         scheduleIndexUpdate()
     }
 
-    private fun addFile(hash: Long, value: ByteArray, sf: StorageFile, folder: Folder) {
-        val oldData = getDataSync(sf) ?: ByteArray(0)
-        if (oldData.size < sf.size) deleteBecauseCorrupted(sf)
-        sf.size += value.size
+    private fun addFile(hash: Long, value: ByteSlice, sf: StorageFile, folder: Folder) {
 
-        val file = File(System.currentTimeMillis(), value.indices)
+        val oldData = getDataSync(sf) ?: B0
+        if (oldData.size < sf.size) {
+            LOGGER.warn("Missing data ${oldData.size} < ${sf.size}")
+            deleteBecauseCorrupted(sf)
+        }
+
         folder.files.remove(hash)
-        val (_, data) = FileAllocation.insert(folder.files.values, file, value, value.size, oldData.size, oldData)
+        val file = File(System.currentTimeMillis(), value.range)
+        val (type, data) = FileAllocation.insert(
+            sf.files, file,
+            value.bytes, value.range,
+            oldData.size, oldData
+        )
         folder.files[hash] = file
 
         val file1 = getFile(sf.index)
-        override(file1, CacheData(data), cacheTimeoutMillis)
+        sf.size = data.size
 
-        if (file1.exists) {
+        cache.override(file1, CacheData(data), cacheTimeoutMillis)
+
+        if (type == ReplaceType.InsertInto && file1.exists) {
             val writer = RandomAccessFile(file1.absolutePath, "rw")
             writer.seek(file.range.first.toLong())
-            writer.write(value)
+            writer.write(value.bytes, value.range.first, value.size)
             writer.close()
         } else {
             storage.tryMkdirs()
@@ -255,13 +280,16 @@ class HierarchicalDatabase(
     private fun findStorageFile(size: Int): StorageFile {
         // find a storage file with enough space available
         synchronized(storageFiles) {
-            for (file in storageFiles.values) {
-                if (file.size + size <= targetFileSize) {
-                    return file
+            val maxLevel = targetFileSize - size
+            if (maxLevel >= 0) {
+                for (file in storageFiles.values) {
+                    if (file.size <= maxLevel) {
+                        return file
+                    }
                 }
             }
             // none was found, so create a new one
-            val maxOldIndex = storageFiles.values.maxOfOrNull { it.index } ?: 0
+            val maxOldIndex = storageFiles.values.maxOfOrNull { it.index } ?: -1
             val newFile = StorageFile(maxOldIndex + 1)
             storageFiles[newFile.index] = newFile
             return newFile
@@ -271,23 +299,21 @@ class HierarchicalDatabase(
     private var lastUpdate = 0L
     private var needsUpdate = false
     private fun scheduleIndexUpdate() {
-        runUpdateMaybe()
+        if (needsUpdate) return
+        needsUpdate = true
+        runIndexUpdate()
     }
 
-    private fun runUpdateMaybe() {
+    private fun runIndexUpdate() {
+        if (!needsUpdate) return
         val time = System.nanoTime()
         if (time - lastUpdate > 1000L * MILLIS_TO_NANOS) {
             lastUpdate = time
             needsUpdate = false
             storeIndex()
         } else {
-            if (needsUpdate) return
-            needsUpdate = true
-            thread(name = "Saving Maybe?") {
-                Thread.sleep(500L)
-                addEvent {
-                    scheduleIndexUpdate()
-                }
+            addEvent(500L) {
+                runIndexUpdate()
             }
         }
     }
@@ -305,5 +331,6 @@ class HierarchicalDatabase(
 
     companion object {
         private val B0 = ByteArray(0)
+        private val LOGGER = LogManager.getLogger(HierarchicalDatabase::class)
     }
 }

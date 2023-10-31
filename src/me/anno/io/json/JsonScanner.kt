@@ -20,21 +20,22 @@ open class JsonScanner : JsonReader {
                     next = skipSpace()
                 }
                 ',' -> next = skipSpace()
-                else -> assert(next, '}', '"')
+                else -> assert(next, '}', '"') // fail
             }
         }
     }
 
     fun scanArray(readElement: () -> Unit) {
         assertEquals(skipSpace(), '[')
-        var next = skipSpace()
         while (true) {
-            when (next) {
+            when (val next = skipSpace()) {
                 ']' -> return
                 ',' -> {}
-                else -> readElement()
+                else -> {
+                    putBack(next)
+                    readElement()
+                }
             }
-            next = skipSpace()
         }
     }
 }
