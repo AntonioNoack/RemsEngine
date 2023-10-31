@@ -33,6 +33,7 @@ object FurShader : ECSMeshShader("Fur") {
         val defines = createDefines(flags)
         val variables = createVertexVariables(flags) + listOf(
             Variable(GLSLType.V1F, "hairLength"),
+            Variable(GLSLType.V1F, "relativeHairLength"),
             Variable(GLSLType.V3F, "hairGravity"),
             Variable(GLSLType.V1I, "instanceId", VariableMode.OUT)
         )
@@ -40,7 +41,10 @@ object FurShader : ECSMeshShader("Fur") {
             "vertex",
             variables, defines.toString() +
                     "instanceId = gl_InstanceID;\n" +
-                    "localPosition = coords + (normals + hairGravity) * float(instanceId) * hairLength;\n" +
+                    "float instanceIdF = float(instanceId);\n" +
+                    // normalization is better to keep the hair length unaffected by gravity
+                    // this square dependency on the relative height makes nice curves
+                    "localPosition = coords + normalize(normals + hairGravity * (instanceIdF * relativeHairLength)) * instanceIdF * hairLength;\n" +
                     motionVectorInit +
 
                     instancedInitCode +
@@ -62,29 +66,41 @@ object FurShader : ECSMeshShader("Fur") {
     }
 
     override fun createFragmentStages(flags: Int): List<ShaderStage> {
-        return listOf(
-            ShaderStage(
-                "furStage", listOf(
-                    Variable(GLSLType.V1F, "hairDensity"),
-                    Variable(GLSLType.V1F, "relativeHairLength"),
-                    Variable(GLSLType.V1F, "hairSharpness"),
-                    Variable(GLSLType.V3F, "localPosition"),
-                    Variable(GLSLType.V3F, "normal"),
-                    Variable(GLSLType.V1I, "instanceId")
-                ), "" +
-                        // discard if not hair
-                        "if(instanceId > 0) {\n" +
-                        "   vec3 hairSeed0 = localPosition * hairDensity;\n" +
-                        "   vec3 hairSeed = round(hairSeed0);\n" +
-                        "   vec3 hairSeedFract = (hairSeed0 - hairSeed) * hairSharpness;\n" +
-                        "   vec3 normal1 = gl_FrontFacing ? normal : -normal;\n" +
-                        // orthogonalize to normal
-                        "   hairSeedFract -= dot(normalize(normal1), hairSeedFract);\n" +
-                        "   float hairRandom = fract(sin(dot(hairSeed, vec3(1.29898, 0.41414, 0.95153))) * 43758.5453);\n" +
-                        "   if(hairRandom * (1.0 - length(hairSeedFract)) < float(instanceId) * relativeHairLength) discard;\n" +
-                        "}\n"
-            )
-        ) + super.createFragmentStages(flags)
+        // discards pixels that don't belong to the currently processed hair
+        val furDiscardStage = ShaderStage(
+            "furStage", listOf(
+                Variable(GLSLType.V1F, "hairDensity"),
+                Variable(GLSLType.V1F, "relativeHairLength"),
+                Variable(GLSLType.V1F, "hairSharpness"),
+                Variable(GLSLType.V3F, "localPosition"),
+                Variable(GLSLType.V3F, "normal"),
+                Variable(GLSLType.V1I, "instanceId")
+            ), "" +
+                    // discard if not hair
+                    "if(instanceId > 0) {\n" +
+                    "   vec3 hairSeed0 = localPosition * hairDensity;\n" +
+                    "   vec3 hairSeed = round(hairSeed0);\n" +
+                    "   vec3 hairSeedFract = (hairSeed0 - hairSeed) * hairSharpness;\n" +
+                    "   vec3 normal1 = gl_FrontFacing ? normal : -normal;\n" +
+                    // orthogonalize to normal
+                    "   hairSeedFract -= dot(normalize(normal1), hairSeedFract);\n" +
+                    "   float hairRandom = fract(sin(dot(hairSeed, vec3(1.29898, 0.41414, 0.95153))) * 43758.5453);\n" +
+                    "   if(hairRandom * (1.0 - length(hairSeedFract)) < float(instanceId) * relativeHairLength) discard;\n" +
+                    "}\n"
+        )
+        // increase natural occlusion at the bottom
+        val furOcclusionStage = ShaderStage(
+            "furOcclusion", listOf(
+                Variable(GLSLType.V1F, "relativeHairLength"),
+                Variable(GLSLType.V1F, "hairSharpness"),
+                Variable(GLSLType.V1I, "instanceId"),
+                Variable(GLSLType.V1F, "finalTranslucency"),
+                Variable(GLSLType.V1F, "finalOcclusion", VariableMode.OUT)
+            ), "" +
+                    "float hairHeight = float(instanceId) * relativeHairLength;\n" +
+                    "finalOcclusion = (1.0 - finalTranslucency) * (1.0 - hairHeight) / (1.2 + 0.7 * hairSharpness);\n"
+        )
+        return listOf(furDiscardStage) + super.createFragmentStages(flags) + furOcclusionStage
     }
 }
 
@@ -104,6 +120,9 @@ class FurMeshRenderer(var meshInstance: Mesh) : MeshComponentBase() {
 
     @Range(-1.0, 1.0)
     var hairGravity = Vector3f(0f, -0.5f, 0f)
+        set(value) {
+            field.set(value)
+        }
 
     @Suppress("SetterBackingFieldAssignment")
     var material = Material()
