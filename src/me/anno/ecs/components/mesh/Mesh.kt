@@ -698,14 +698,16 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
     var hasHighPrecisionNormals = false
 
-    /** can be set to false to use tangents as an additional data channel; notice the RGB[-1,1] limit though */
+    /** can be set false to use tangents as an additional data channel; notice the RGB[-1,1] limit though */
     var checkTangents = true
 
     fun getBounds(): AABBf {
-        synchronized(this) {
-            if (proceduralLength <= 0 && needsBoundsUpdate) {
+        if (needsBoundsUpdate) {
+            if (positions != null) {
                 needsBoundsUpdate = false
                 calculateAABB()
+            } else {
+                aabb.all()
             }
         }
         return aabb

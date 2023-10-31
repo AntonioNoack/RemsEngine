@@ -454,7 +454,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         val stage = ShaderStage(
             "vertex",
             variables, defines.toString() +
-                    "localPosition = coords;\n" + // is output, so no declaration needed
+                    "localPosition = coords;\n" +
                     motionVectorInit +
 
                     instancedInitCode +
