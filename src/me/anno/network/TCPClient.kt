@@ -65,7 +65,7 @@ open class TCPClient(val socket: Socket, val protocol: Protocol, var randomId: I
 
     /**
      * client time minus own system time,
-     * so how many nano seconds, the clock of the client is ahead
+     * so how many nanoseconds, the clock of the client is ahead
      * */
     var localTimeOffset = 0L
 

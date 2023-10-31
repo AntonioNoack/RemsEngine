@@ -44,11 +44,12 @@ open class JsonReader(val data: InputStream) {
     }
 
     val type0 = ComparableStringBuilder()
-    fun readString(): String {
-        return readString(type0).toString()
+    fun readString(readOpeningQuotes: Boolean = true): String {
+        return readString(type0, readOpeningQuotes).toString()
     }
 
-    fun readString(builder: ComparableStringBuilder): ComparableStringBuilder {
+    fun readString(builder: ComparableStringBuilder, readOpeningQuotes: Boolean = true): ComparableStringBuilder {
+        if (readOpeningQuotes) assertEquals(skipSpace(), '"')
         builder.clear()
         while (true) {
             when (val next0 = next()) {
@@ -117,26 +118,30 @@ open class JsonReader(val data: InputStream) {
         }
     }
 
-    fun readNumber(): String {
-        var str = ""
+    fun readNumber(builder: ComparableStringBuilder): CharSequence {
+        builder.clear()
         var isFirst = true
         while (true) {
             when (val next = if (isFirst) skipSpace() else next()) {
                 in '0'..'9', '+', '-', '.', 'e', 'E' -> {
-                    str += next
+                    builder.append(next)
                 }
                 '_' -> {}
                 '"' -> {
-                    if (str.isEmpty()) return readString()
+                    if (builder.isEmpty()) return readString(false)
                     else throw RuntimeException("Unexpected symbol \" inside number!")
                 }
                 else -> {
                     tmpChar = next
-                    return str
+                    return builder
                 }
             }
             isFirst = false
         }
+    }
+
+    fun readNumber(): String {
+        return readNumber(type0).toString()
     }
 
     fun skipNumber(readOpeningChar: Boolean = true) {
@@ -169,7 +174,7 @@ open class JsonReader(val data: InputStream) {
             when (next) {
                 '}' -> return obj
                 '"' -> {
-                    val name = readString()
+                    val name = readString(false)
                     assertEquals(skipSpace(), ':')
                     if (filter == null || filter(name)) {
                         obj[name] = readSomething(skipSpace(), filter)
@@ -206,7 +211,7 @@ open class JsonReader(val data: InputStream) {
                 putBack(next)
                 readNumber()
             }
-            '"' -> readString()
+            '"' -> readString(false)
             '[' -> readArray(false)
             '{' -> readObject(false, filter)
             't', 'T' -> {

@@ -38,17 +38,17 @@ public class FileExplorerSelect extends Application {
 			boolean allowFiles, boolean allowFolders, boolean allowMultiples,
 			File initial, boolean toSave, String[][] extensionFilters, Function1<List<File>, Unit> callback
 	) {
-		FileExplorerSelect.initial = initial == null || initial.isDirectory() ? initial : initial.getParentFile();
-		FileExplorerSelect.callback = callback;
-		FileExplorerSelect.extensionFilters = extensionFilters;
-		FileExplorerSelect.toSave = toSave;
-		FileExplorerSelect.allowMultiples = allowMultiples;
+		me.anno.utils.files.FileExplorerSelect.initial = initial == null || initial.isDirectory() ? initial : initial.getParentFile();
+		me.anno.utils.files.FileExplorerSelect.callback = callback;
+		me.anno.utils.files.FileExplorerSelect.extensionFilters = extensionFilters;
+		me.anno.utils.files.FileExplorerSelect.toSave = toSave;
+		me.anno.utils.files.FileExplorerSelect.allowMultiples = allowMultiples;
 		if (!isLaunched) {
 			isLaunched = true;
 			launch();
 		} else {
 			isDirectory = allowFolders && !allowFiles;
-			Platform.runLater(FileExplorerSelect::select);
+			Platform.runLater(me.anno.utils.files.FileExplorerSelect::select);
 		}
 	}
 
@@ -56,7 +56,7 @@ public class FileExplorerSelect extends Application {
 	public void start(Stage stage) {
 
 		try {
-			InputStream stream = FileExplorerSelect.class.getClassLoader().getResourceAsStream("icon.png");
+			InputStream stream = me.anno.utils.files.FileExplorerSelect.class.getClassLoader().getResourceAsStream("icon.png");
 			if (stream == null) throw new FileNotFoundException("icon.png");
 			image = new javafx.scene.image.Image(stream);
 		} catch (IOException e) {
@@ -66,7 +66,7 @@ public class FileExplorerSelect extends Application {
 		if (image != null) stage.getIcons().add(image);
 
 		setImplicitExit(false);
-		FileExplorerSelect.stage = stage;
+		me.anno.utils.files.FileExplorerSelect.stage = stage;
 		select();
 	}
 

@@ -44,7 +44,7 @@ class CacheEntry private constructor(
     }
 
     /**
-     * @param limitNanos sleeping time in nano seconds, default: 0.5s
+     * @param limitNanos sleeping time in nanoseconds, default: 0.5s
      * @return whether you need to keep waiting
      * */
     fun waitForValue2(limitNanos: Long = 500_000_000): Boolean {
@@ -62,7 +62,7 @@ class CacheEntry private constructor(
             data?.destroy()
             data = null
         } else {
-            RuntimeException("Cannot destroy things twice! ${this::class.qualifiedName}, by ${deletingThreadName} from ${Thread.currentThread().name}")
+            RuntimeException("Cannot destroy things twice! ${this::class.qualifiedName}, by $deletingThreadName from ${Thread.currentThread().name}")
                 .printStackTrace()
         }
     }

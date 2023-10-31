@@ -154,7 +154,7 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         oldValue?.destroy()
     }
 
-    fun override(key0: Any?, key1: Any?, newValue: ICacheData?, timeoutMillis: Long) {
+    fun overrideDual(key0: Any?, key1: Any?, newValue: ICacheData?, timeoutMillis: Long) {
         checkKey(key0)
         checkKey(key1)
         val oldValue = synchronized(dualCache) {
@@ -196,9 +196,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     private fun checkKey(key: Any?) {
-        if (Build.isDebug) {
-            if (key != key) throw IllegalStateException("${key?.javaClass?.name}.equals() is incorrect!")
-            if (key.hashCode() != key.hashCode()) throw IllegalStateException("${key?.javaClass?.name}.hashCode() is inconsistent!")
+        if (Build.isDebug && key != null) {
+            @Suppress("KotlinConstantConditions")
+            if (key != key) throw IllegalStateException("${key.javaClass.name}.equals() is incorrect!")
+            if (key.hashCode() != key.hashCode()) throw IllegalStateException("${key.javaClass.name}.hashCode() is inconsistent!")
         }// else we assume that it's fine
     }
 
@@ -364,10 +365,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         val needsGenerator = entry.needsGenerator
         entry.update(timeoutMillis)
 
-        fun callback() {
+        fun callback(exception: Exception?) {
             resultCallback(
                 if (entry.hasBeenDestroyed) null
-                else entry.data, null
+                else entry.data, exception
             )
         }
 
@@ -380,20 +381,20 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     val value = generateSafely(key, generator)
                     entry.data = value as? ICacheData
                     LOGGER.debug("Finished {}", name)
-                    callback()
+                    callback(value as? Exception)
                 }
             } else {
                 val value = generateSafely(key, generator)
                 entry.data = value as? ICacheData
-                callback()
+                callback(value as? Exception)
             }
         } else {
             if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
                 thread(name = "WaitingFor<$key>") {
                     entry.waitForValue(key)
-                    callback()
+                    callback(null)
                 }
-            } else callback()
+            } else callback(null)
         }
     }
 
@@ -419,10 +420,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         val needsGenerator = entry.needsGenerator
         entry.update(timeoutMillis)
 
-        fun callback() {
+        fun callback(exception: Exception?) {
             resultCallback(
                 if (entry.hasBeenDestroyed) null
-                else entry.data, null
+                else entry.data, exception
             )
         }
 
@@ -435,20 +436,20 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
                     val value = generateDualSafely(key0, key1, generator)
                     entry.data = value as? ICacheData
                     LOGGER.debug("Finished {}", name)
-                    callback()
+                    callback(value as? Exception)
                 }
             } else {
                 val value = generateDualSafely(key0, key1, generator)
                 entry.data = value as? ICacheData
-                callback()
+                callback(value as? Exception)
             }
         } else {
             if (!entry.hasValue && entry.generatorThread != Thread.currentThread()) {
                 thread(name = "WaitingFor<$key0, $key1>") {
                     entry.waitForValue(key0 to key1)
-                    callback()
+                    callback(null)
                 }
-            } else callback()
+            } else callback(null)
         }
     }
 
