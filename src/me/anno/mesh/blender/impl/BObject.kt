@@ -19,6 +19,7 @@ class BObject(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: 
 
     val data get() = getPointer("*data") // type specific
 
+    val modifiers = inside("modifiers") as BListBase<*>
 
     enum class BObjectType(val id: Int) {
 
@@ -48,7 +49,10 @@ class BObject(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: 
 
         OB_VOLUME(29);
 
+    }
 
+    override fun toString(): String {
+        return "BObject { $id, data: $data }"
     }
 
     companion object {

@@ -6,7 +6,7 @@ import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
 import java.nio.ByteBuffer
 
-@Suppress("SpellCheckingInspection", "unused")
+@Suppress("SpellCheckingInspection", "unused", "UNCHECKED_CAST")
 class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
 
@@ -46,5 +46,10 @@ class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     val lData get() = inside("ldata") as BCustomData
 
     var fileRef: FileReference = InvalidRef
+
+    // vertex groups:
+    // in old files in MDeformVert
+    val vertexGroupNames = inside("vertex_group_names") as BListBase<BDeformGroup>
+    val oldVertexGroups = getInstantList<MDeformVert>("*dvert")
 
 }

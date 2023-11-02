@@ -8,7 +8,7 @@ import me.anno.io.files.Signature
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCallback
 import me.anno.maths.Maths.sq
-import me.anno.mesh.blender.BMeshConverter.convertBMesh
+import me.anno.mesh.blender.BlenderMeshConverter.convertBMesh
 import me.anno.mesh.blender.impl.*
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
@@ -25,7 +25,8 @@ import kotlin.math.max
  *  - done meshes
  *  - todo skeletons
  *  - todo animations
- *  - todo embedded textures
+ *  - todo vertex weights
+ *  - done embedded textures
  *  - done materials
  *  - done scene hierarchy
  * create a test scene with different layouts, and check that everything is in the right place
@@ -73,7 +74,7 @@ object BlenderReader {
         for (i in materialsInFile.indices) {
             val mat = materialsInFile[i] as BMaterial
             val prefab = Prefab("Material")
-            BlenderShaderTree.defineDefaultMaterial(prefab, mat)
+            BlenderMaterialConverter.defineDefaultMaterial(prefab, mat)
             val name = mat.id.realName
             prefab.sealFromModifications()
             mat.fileRef = matFolder.createPrefabChild("$name.json", prefab)
@@ -206,6 +207,7 @@ object BlenderReader {
                 // add mesh component
                 val c = prefab.add(path, 'c', "MeshComponent", obj.id.realName)
                 prefab.setUnsafe(c, "meshFile", (obj.data as BMesh).fileRef)
+                LOGGER.debug("Modifiers for mesh {}/{}: {}", obj.id.realName, path.nameId, obj.modifiers)
                 // materials would be nice... but somehow they are always null
             }
             BObject.BObjectType.OB_CAMERA -> {
@@ -286,6 +288,11 @@ object BlenderReader {
                         prefab.setUnsafe(c, "autoUpdate", false)
                     }
                 } else LOGGER.warn("obj.data of a lamp was not a lamp: ${obj.data?.run { this::class.simpleName }}")
+            }
+            BObject.BObjectType.OB_ARMATURE -> {
+                val armature = obj.data as BArmature
+                LOGGER.debug("Found armature, {}", armature)
+                LOGGER.debug(armature.bones)
             }
             // todo armatures...
             // todo volumes?

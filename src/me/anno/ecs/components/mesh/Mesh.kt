@@ -808,8 +808,8 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         if (hasColor3) attributes += Attribute("colors3", AttributeType.UINT8_NORM, 4)
 
         if (hasBones) {
-            attributes += Attribute("weights", AttributeType.UINT8_NORM, MAX_WEIGHTS)
-            attributes += Attribute("indices", AttributeType.UINT8, MAX_WEIGHTS, true)
+            attributes += Attribute("boneWeights", AttributeType.UINT8_NORM, MAX_WEIGHTS)
+            attributes += Attribute("boneIndices", AttributeType.UINT8, MAX_WEIGHTS, true)
         }
 
         val name = refOrNull?.absolutePath ?: name.ifEmpty { "Mesh" }

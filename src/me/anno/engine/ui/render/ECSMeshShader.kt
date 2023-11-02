@@ -279,25 +279,25 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
         fun animationCode() = if (useAnimTextures) {
             "" +
-                    "jointMat  = getAnimMatrix(indices.x) * weights.x;\n" +
-                    "jointMat += getAnimMatrix(indices.y) * weights.y;\n" +
-                    "jointMat += getAnimMatrix(indices.z) * weights.z;\n" +
-                    "jointMat += getAnimMatrix(indices.w) * weights.w;\n"
+                    "jointMat  = getAnimMatrix(boneIndices.x) * boneWeights.x;\n" +
+                    "jointMat += getAnimMatrix(boneIndices.y) * boneWeights.y;\n" +
+                    "jointMat += getAnimMatrix(boneIndices.z) * boneWeights.z;\n" +
+                    "jointMat += getAnimMatrix(boneIndices.w) * boneWeights.w;\n"
         } else {
             "" +
-                    "jointMat  = jointTransforms[indices.x] * weights.x;\n" +
-                    "jointMat += jointTransforms[indices.y] * weights.y;\n" +
-                    "jointMat += jointTransforms[indices.z] * weights.z;\n" +
-                    "jointMat += jointTransforms[indices.w] * weights.w;\n"
+                    "jointMat  = jointTransforms[boneIndices.x] * boneWeights.x;\n" +
+                    "jointMat += jointTransforms[boneIndices.y] * boneWeights.y;\n" +
+                    "jointMat += jointTransforms[boneIndices.z] * boneWeights.z;\n" +
+                    "jointMat += jointTransforms[boneIndices.w] * boneWeights.w;\n"
         }
 
         fun animationCode2() = if (useAnimTextures) {
             "" +
                     "mat4x3 jointMat2;\n" +
-                    "jointMat2  = getAnimMatrix(indices.x,prevAnimIndices,prevAnimWeights) * weights.x;\n" +
-                    "jointMat2 += getAnimMatrix(indices.y,prevAnimIndices,prevAnimWeights) * weights.y;\n" +
-                    "jointMat2 += getAnimMatrix(indices.z,prevAnimIndices,prevAnimWeights) * weights.z;\n" +
-                    "jointMat2 += getAnimMatrix(indices.w,prevAnimIndices,prevAnimWeights) * weights.w;\n" +
+                    "jointMat2  = getAnimMatrix(boneIndices.x,prevAnimIndices,prevAnimWeights) * boneWeights.x;\n" +
+                    "jointMat2 += getAnimMatrix(boneIndices.y,prevAnimIndices,prevAnimWeights) * boneWeights.y;\n" +
+                    "jointMat2 += getAnimMatrix(boneIndices.z,prevAnimIndices,prevAnimWeights) * boneWeights.z;\n" +
+                    "jointMat2 += getAnimMatrix(boneIndices.w,prevAnimIndices,prevAnimWeights) * boneWeights.w;\n" +
                     "prevLocalPosition = matMul(jointMat2, vec4(coords, 1.0));\n"
         } else {
             "prevLocalPosition = localPosition;\n"
@@ -391,8 +391,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             variables += Variable(GLSLType.V4F, "instanceGfxId", VariableMode.ATTR)
             variables += Variable(GLSLType.V4F, "gfxId", VariableMode.OUT)
             if (isAnimated && useAnimTextures) {
-                variables += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
-                variables += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4F, "boneWeights", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4I, "boneIndices", VariableMode.ATTR)
                 variables += Variable(GLSLType.V4F, "animWeights", VariableMode.ATTR)
                 variables += Variable(GLSLType.V4F, "animIndices", VariableMode.ATTR)
                 variables += Variable(GLSLType.S2D, "animTexture")
@@ -408,8 +408,8 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
             // attributes
             if (isAnimated) {
-                variables += Variable(GLSLType.V4F, "weights", VariableMode.ATTR)
-                variables += Variable(GLSLType.V4I, "indices", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4F, "boneWeights", VariableMode.ATTR)
+                variables += Variable(GLSLType.V4I, "boneIndices", VariableMode.ATTR)
                 if (useAnimTextures) {
                     variables += Variable(GLSLType.V4F, "animWeights")
                     variables += Variable(GLSLType.V4F, "animIndices")

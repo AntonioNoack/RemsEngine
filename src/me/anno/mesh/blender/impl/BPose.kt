@@ -4,7 +4,9 @@ import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
 import java.nio.ByteBuffer
 
-@Suppress("SpellCheckingInspection", "unused")
+@Suppress("unused")
 // armature pose
 class BPose(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
-    BlendData(file, type, buffer, position)
+    BlendData(file, type, buffer, position) {
+
+}

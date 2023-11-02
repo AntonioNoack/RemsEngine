@@ -1,12 +1,13 @@
 package me.anno.engine.ui.render
 
 import me.anno.engine.ui.render.Renderers.attributeRenderers
+import me.anno.engine.ui.render.Renderers.boneIndicesRenderer
+import me.anno.engine.ui.render.Renderers.boneWeightsRenderer
 import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.Renderer.Companion.randomIdRenderer
 import me.anno.gpu.shader.Renderer.Companion.triangleVisRenderer
 import me.anno.gpu.shader.Renderer.Companion.uvRenderer
@@ -326,7 +327,7 @@ class RenderMode(
                 .finish()
         )
 
-        val FOG_TEST =  RenderMode(
+        val FOG_TEST = RenderMode(
             "Fog Test",
             QuickPipeline()
                 .then(RenderSceneNode())
@@ -339,5 +340,8 @@ class RenderMode(
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
         )
+
+        val BONE_INDICES = RenderMode("Bone Indices", boneIndicesRenderer)
+        val BONE_WEIGHTS = RenderMode("Bone Weights", boneWeightsRenderer)
     }
 }

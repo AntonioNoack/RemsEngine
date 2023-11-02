@@ -71,7 +71,9 @@ class ShaderBuilder(val name: String) {
         fragment.findImportsAndDefineValues(vertex, vertexDefined, vertexUniforms)
 
         // variables, that fragment imports & exports & vertex exports
-        val bridgeVariables = HashMap<Variable, Variable>()
+        val bridgeVariablesV2F = HashMap<Variable, Variable>()
+        val bridgeVariablesI2F = HashMap<Variable, Variable>()
+        var bridgeIndex = 0
         for (variable in vertexDefined) {
             val name = variable.name
             if (vertex.stages.any { it.variables.any { v -> v.name == name && v.isOutput } }) {
@@ -80,8 +82,8 @@ class ShaderBuilder(val name: String) {
                         // the stage uses it -> might be relevant
                         if (stage.variables.any { it.isModified && name == it.name }) {
                             // the stage also exports it ->
-                            bridgeVariables[variable] =
-                                Variable(variable.type, "bridge_${bridgeVariables.size}", variable.arraySize)
+                            bridgeVariablesV2F[variable] =
+                                Variable(variable.type, "bridge_${bridgeIndex++}", variable.arraySize)
                         }
                     }/* else if (stage.variables.any { it.isOutput && name == it.name }) {
                         // this stage outputs it, but does not import it -> theoretically,
@@ -89,15 +91,24 @@ class ShaderBuilder(val name: String) {
                         // in practice, idk whether variable shadowing is allowed like that
                     }*/
                 }
+            } else if (vertex.stages.any { it.variables.any { v -> v.name == name && !v.isOutput } }) {
+                for (stage in fragment.stages) {
+                    if (stage.variables.any { it.isInput && name == it.name }) {
+                        bridgeVariablesI2F[variable] =
+                            Variable(variable.type, "bridge_${bridgeIndex++}", variable.arraySize)
+                    }
+                }
             }
         }
 
         // create the code
-        val vertCode = vertex.createCode(false, outputs, disabledLayers, bridgeVariables)
+        val vertCode = vertex.createCode(false, outputs, disabledLayers, bridgeVariablesV2F, bridgeVariablesI2F)
         val attributes = vertex.attributes
-        val fragCode = fragment.createCode(true, outputs, disabledLayers, bridgeVariables)
+        val fragCode = fragment.createCode(true, outputs, disabledLayers, bridgeVariablesV2F, bridgeVariablesI2F)
         val varying = (vertex.imported + vertex.exported).toList()
-            .filter { it !in bridgeVariables } + bridgeVariables.values
+            .filter { it !in bridgeVariablesV2F && it !in bridgeVariablesI2F } +
+                bridgeVariablesV2F.values +
+                bridgeVariablesI2F.values
 
         val shader = object : Shader(
             if (suffix == null) name else "$name-$suffix", attributes + vertex.uniforms, vertCode,
@@ -161,5 +172,4 @@ class ShaderBuilder(val name: String) {
             return result.toString()
         }
     }
-
 }

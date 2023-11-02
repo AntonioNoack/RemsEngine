@@ -208,7 +208,8 @@ class MainStage {
         isFragmentStage: Boolean,
         outputs: DeferredSettings?,
         disabledLayers: BitSet?,
-        bridgeVariables1: Map<Variable, Variable>
+        bridgeVariablesV2F: Map<Variable, Variable>,
+        bridgeVariablesI2F: Map<Variable, Variable>
     ): String {
 
         // set what is all defined
@@ -286,18 +287,23 @@ class MainStage {
 
         // assign bridge variables/varyings
         if (isFragmentStage) {
-            for ((local, varying) in bridgeVariables1) {
+            for ((local, varying) in bridgeVariablesV2F) {
                 local.declare0(code, null)
-                code.append("=").append(varying.name).append("; // bridge1\n")
+                code.append("=").append(varying.name).append("; // bridge-step#1\n")
+                defined += local
+            }
+            for ((local, varying) in bridgeVariablesI2F) {
+                local.declare0(code, null)
+                code.append("=").append(varying.name).append("; // bridge-step#2\n")
                 defined += local
             }
             for (variable in bridgeVariables2) {
                 variable.declare0(code, null)
-                code.append("=get_").append(variable.name).append("(); // bridge2\n")
+                code.append("=get_").append(variable.name).append("(); // bridge-step#3\n")
                 defined += variable
             }
         } else {
-            for ((local, _) in bridgeVariables1) {
+            for ((local, _) in bridgeVariablesV2F) {
                 local.declare(code, null, true)
                 defined += local
             }
@@ -332,8 +338,11 @@ class MainStage {
         }
 
         if (!isFragmentStage) {
-            for ((local, varying) in bridgeVariables1) {
-                code.append(varying.name).append('=').append(local.name).append(";\n")
+            for ((local, varying) in bridgeVariablesV2F) {
+                code.append(varying.name).append('=').append(local.name).append("; // bridge-step#7\n")
+            }
+            for ((local, varying) in bridgeVariablesI2F) {
+                code.append(varying.name).append('=').append(local.name).append("; // bridge-step#8\n")
             }
         }
 

@@ -23,6 +23,16 @@ class BInstantList<V : BlendData>(val size: Int, val instance: V?) {
         }
     }
 
+    fun subList(startIndex: Int, endIndex: Int): BInstantList<V> {
+        if (startIndex < 0 || endIndex > size || startIndex > endIndex)
+            throw IndexOutOfBoundsException()
+        if (startIndex == 0 && endIndex == size) return this
+        if (instance == null) return this // kinda ok...
+        // set position to trick our constructor
+        instance.position = position0 + startIndex * typeSize
+        return BInstantList(endIndex - startIndex, instance)
+    }
+
     operator fun get(index: Int): V {
         instance!!
         instance.position = position0 + typeSize * index
@@ -44,8 +54,11 @@ class BInstantList<V : BlendData>(val size: Int, val instance: V?) {
         return sum
     }
 
+    override fun toString(): String {
+        return (0 until size).map { get(it).toString() }.toString()
+    }
+
     companion object {
         fun <V : BlendData> emptyList() = BInstantList<V>(0, null)
     }
-
 }

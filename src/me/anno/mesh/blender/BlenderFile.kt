@@ -11,10 +11,12 @@ import org.apache.logging.log4j.LogManager
 import java.io.IOException
 import java.nio.ByteOrder
 
-// blender file reader inspired by Blend.js (https://github.com/AntonioNoack/BlendJS),
-// which was inspired by the Java library http://homac.cakelab.org/projects/JavaBlend/spec.html
-// I rewrote it, because they generate the classes automatically, and it was soo bloated.
-// also it was not easy to read/use, and did not support reading input streams / byte arrays, only files
+/**
+ * Blender file reader inspired by Blend.js (https://github.com/AntonioNoack/BlendJS),
+ * which was inspired by the Java library http://homac.cakelab.org/projects/JavaBlend/spec.html
+ * I rewrote it, because they generate the classes automatically, and it was soo bloated.
+ * also it was not easy to read/use, and did not support reading input streams / byte arrays, only files
+ * */
 class BlenderFile(val file: BinaryFile, val folder: FileReference) {
 
     // read file header
@@ -57,14 +59,10 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             file.skip(block.size)
             blocks.add(block)
         }
-    }
 
-    init {
         val offset = blocks.first { it.code == DNA1 }.positionInFile
         file.offset(offset)
-    }
 
-    init {
         file.consumeIdentifier('S', 'D', 'N', 'A')
         file.consumeIdentifier('N', 'A', 'M', 'E')
     }
@@ -220,6 +218,8 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             "MLoopUV" -> MLoopUV(this, struct, data, position)
             "MLoopCol" -> MLoopCol(this, struct, data, position)
             "MEdge" -> MEdge(this, struct, data, position)
+            "MDeformVert" -> MDeformVert(this, struct, data, position)
+            "MDeformWeight" -> MDeformWeight(this, struct, data, position)
             "ID" -> BID(this, struct, data, position)
             "Image" -> BImage(this, struct, data, position)
             "ImageView" -> BImageView(this, struct, data, position)
@@ -246,6 +246,10 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             "bNodeSocketValueInt" -> BNSVInt(this, struct, data, position)
             "bNodeSocketValueRGBA" -> BNSVRGBA(this, struct, data, position)
             "bNodeSocketValueRotation" -> BNSVRotation(this, struct, data, position)
+            "bArmature" -> BArmature(this, struct, data, position)
+            "bDeformGroup" -> BDeformGroup(this, struct, data, position)
+            "ArmatureModifierData" -> BArmatureModifierData(this, struct, data, position)
+            "Bone" -> BBone(this, struct, data, position)
             "TexMapping" -> BTexMapping(this, struct, data, position)
             "NodeTexBase" -> BNodeTexBase(this, struct, data, position)
             "NodeTexImage" -> BNodeTexImage(this, struct, data, position)
@@ -270,9 +274,6 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             val posPath = nextPositions.removeAt(0)
             val position = posPath.first
             val address = blockTable.getAddressAt(position)
-            // println(mat.id.name.substring(2))
-            // val position = mat.position
-            // val address = mat.address
             // 4 byte alignment is typically given
             for (searchPosition in 0 until limit step 4) {
                 if (nio.getLong(searchPosition) == address) {
@@ -288,7 +289,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
                         if (positionsOfInterest.add(structPosition)) {
                             val newPath = "$typeName[$localIndex].${field.decoratedName}/${posPath.second}"
                             nextPositions.add(structPosition to newPath)
-                            println("found ref at $newPath")
+                            LOGGER.info("found ref at $newPath")
                         }
                     }
                 }

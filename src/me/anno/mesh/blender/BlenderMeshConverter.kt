@@ -7,11 +7,22 @@ import me.anno.io.files.InvalidRef
 import me.anno.mesh.blender.impl.*
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 
-object BMeshConverter {
+object BlenderMeshConverter {
+
+    private val LOGGER = LogManager.getLogger(BlenderMeshConverter::class)
 
     fun convertBMesh(src: BMesh): Prefab? {
+
+        if (LOGGER.isDebugEnabled) {
+            // todo find the assigned Armature modifier to extract the bone hierarchy, so we can sort the bones properly
+            //  (in case they are not; haven't found confirmation for them being in the correct order yet)
+            println("[BlenderMeshConverter] Converting Mesh")
+            println(src.vertexGroupNames) // = bone names
+            println(src.oldVertexGroups) // = bone indices and bone weights :3
+        }
 
         val vertices = src.vertices ?: return null // how can there be meshes without vertices?
         val positions = FloatArray(vertices.size * 3)

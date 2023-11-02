@@ -302,6 +302,33 @@ object Renderers {
     }
 
     @JvmField
+    val boneIndicesRenderer = SimpleRenderer("bone-indices", ShaderStage("bi", listOf(
+        Variable(GLSLType.V4I, "boneIndices"),
+        Variable(GLSLType.V4F, "boneWeights"),
+        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+    ), "" +
+            "finalResult =\n" +
+            "boneIdToColor(boneIndices.x) * boneWeights.x +\n" +
+            "boneIdToColor(boneIndices.y) * boneWeights.y +\n" +
+            "boneIdToColor(boneIndices.z) * boneWeights.z +\n" +
+            "boneIdToColor(boneIndices.w) * boneWeights.w;\n")
+        .add("vec4 boneIdToColor(int index) {\n" + // there are max 256 bones, soo...
+                "   float base = sqrt(float(1+((index>>4)&15)) / 16.0);\n" +
+                "   float base1 = base * 0.33;\n" +
+                "   float g = float((index>>0)&3) * base1;\n" +
+                "   float b = float((index>>2)&3) * base1;\n" +
+                "   return vec4(base, base-g, base-b, 1.0);\n" +
+                "}\n")
+    )
+
+    @JvmField
+    val boneWeightsRenderer = SimpleRenderer("bone-weights", ShaderStage("bw",
+        listOf(
+            Variable(GLSLType.V4F, "boneWeights"),
+            Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+        ), "finalResult = vec4(boneWeights.xyz, 1.0);\n"))
+
+    @JvmField
     val attributeRenderers = LazyMap({ type: DeferredLayerType ->
         val variables = listOf(
             Variable(GLSLType.floats[type.workDims - 1], type.glslName, VariableMode.IN),

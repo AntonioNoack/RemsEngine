@@ -19,9 +19,9 @@ import org.joml.Vector4f
 /**
  * Converts a node tree of the "Shading" section in Blender to a Rem's Engine Material as far as possible.
  * */
-object BlenderShaderTree {
+object BlenderMaterialConverter {
 
-    private val LOGGER = LogManager.getLogger(BlenderShaderTree::class)
+    private val LOGGER = LogManager.getLogger(BlenderMaterialConverter::class)
 
     fun defineDefaultMaterial(prefab: Prefab, mat: BMaterial) {
         prefab["diffuseBase"] = Vector4f(mat.r, mat.g, mat.b, mat.a)
