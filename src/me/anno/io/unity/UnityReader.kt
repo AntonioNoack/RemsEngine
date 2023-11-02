@@ -207,16 +207,16 @@ object UnityReader {
     private fun readMaterial(node: YAMLNode, guid: String, prefab: Prefab, project: UnityProject) {
         val propertyMap = node["SavedProperties"]
         val isDoubleSided = node["DoubleSidedGI"]?.value != "0"
-        if (isDoubleSided) prefab.setProperty("cullMode", CullMode.BOTH)
+        if (isDoubleSided) prefab["cullMode"] = CullMode.BOTH
         if (propertyMap != null) {
             val floats = propertyMap["Floats"]
             if (floats != null) {
                 val metallic = floats.getFloat("Metallic")
                 // mapping correct???...
-                if (metallic != null) prefab.setProperty("metallicMinMax", Vector2f(metallic))
+                if (metallic != null) prefab["metallicMinMax"] = Vector2f(metallic)
                 val glossiness = floats.getFloat("Glossiness")
                 if (glossiness != null) {// todo mapping correct??
-                    prefab.setProperty("roughnessMinMax", Vector2f(0f, 1f - glossiness))
+                    prefab["roughnessMinMax"] = Vector2f(0f, 1f - glossiness)
                 }
                 // val hasShadows = floats.getFloat("ReceiveShadows")
                 // could be used in the future for material, which shall not receive shadows :)
@@ -225,21 +225,21 @@ object UnityReader {
             if (colors != null) {
                 // color vs baseColor?
                 val color = colors.getColorAsVector4f("Color") ?: colors.getColorAsVector4f("BaseColor")
-                if (color != null) prefab.setProperty("diffuseBase", color)
+                if (color != null) prefab["diffuseBase"] = color
                 val emissive = colors.getColorAsVector3f("EmissionColor")
-                if (emissive != null) prefab.setProperty("emissiveBase", emissive)
+                if (emissive != null) prefab["emissiveBase"] = emissive
             } else LOGGER.warn("Missing colors")
             val textures = propertyMap["TexEnvs"]?.packListEntries()
             if (textures != null) {
                 val diffuse = decodePath(guid, textures["MainTex"]?.get("Texture"), project)
-                if (diffuse != InvalidRef) prefab.setProperty("diffuseMap", diffuse)
+                if (diffuse != InvalidRef) prefab["diffuseMap"] = diffuse
                 // todo metallic/gloss-map...
                 val occlusion = decodePath(guid, textures["OcclusionMap"]?.get("Texture"), project)
-                if (occlusion != InvalidRef) prefab.setProperty("occlusionMap", occlusion)
+                if (occlusion != InvalidRef) prefab["occlusionMap"] = occlusion
                 // todo normal map
                 // = DetailNormalMap? no, that's secondary data
                 val emissive = decodePath(guid, textures["EmissionMap"]?.get("Texture"), project)
-                if (emissive != InvalidRef) prefab.setProperty("emissiveMap", emissive)
+                if (emissive != InvalidRef) prefab["emissiveMap"] = emissive
                 // todo bump map
                 // ...
             } else LOGGER.warn("Missing textures")
@@ -261,9 +261,9 @@ object UnityReader {
         val localRot = node["LocalRotation"]?.getQuaternion(1e-7)
         val localSca = node["LocalScale"]?.getVector3dScale(1e-7)
 
-        if (localPos != null) prefab.setProperty("position", localPos)
-        if (localRot != null) prefab.setProperty("rotation", localRot)
-        if (localSca != null) prefab.setProperty("scale", localSca)
+        if (localPos != null) prefab["position"] = localPos
+        if (localRot != null) prefab["rotation"] = localRot
+        if (localSca != null) prefab["scale"] = localSca
 
         // these changes are properties of the "Prefab" node, not the transform...
         val mods = node["Modification"]
@@ -296,7 +296,7 @@ object UnityReader {
                 val value = change["Value"]?.value // e.g. 1.723
 
                 when (path) {
-                    "Name" -> prefab.setProperty("name", value ?: continue)
+                    "Name" -> prefab["name"] = value ?: continue
                     // position
                     "LocalPosition.x" -> position.x = value?.toDoubleOrNull() ?: continue
                     "LocalPosition.y" -> position.y = value?.toDoubleOrNull() ?: continue
@@ -329,15 +329,15 @@ object UnityReader {
             }
 
             if (position.lengthSquared() != 0.0) {
-                prefab.setProperty("position", position)
+                prefab["position"] = position
             }
 
             if (scale.distanceSquared(1.0, 1.0, 1.0) > 1e-7) {
-                prefab.setProperty("scale", scale)
+                prefab["scale"] = scale
             }
 
             if (abs(rotation.w - 1.0) > 1e-7) {
-                prefab.setProperty("rotation", rotation)
+                prefab["rotation"] = rotation
             }
 
             // LOGGER.debug("pos rot sca: $position, $rotation, $scale by $changes")
@@ -350,7 +350,7 @@ object UnityReader {
     fun defineMaterial(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject) {
         prefab.clazzName = "Material"
         val name = node["Name"]?.value
-        if (name != null) prefab.setProperty("name", name)
+        if (name != null) prefab["name"] = name
         readMaterial(node, guid, prefab, project)
     }
 
@@ -373,7 +373,7 @@ object UnityReader {
         val size = node.getVector3dScale(1e-5)
         // physics material?
         val isEnabled = node.getBool("Enabled")
-        if (isEnabled == false) prefab.setProperty("isEnabled", isEnabled)
+        if (isEnabled == false) prefab["isEnabled"] = isEnabled
         val path = if (center != null) {
             prefab.clazzName = "Entity"
             prefab[ROOT_PATH, "position"] = center
@@ -408,7 +408,7 @@ object UnityReader {
         // physics material?
         prefab.clazzName = "MeshCollider"
         val isEnabled = node.getBool("Enabled")
-        if (isEnabled == false) prefab.setProperty("isEnabled", isEnabled)
+        if (isEnabled == false) prefab["isEnabled"] = isEnabled
         // todo program triggers...
         // val isTrigger = node.getBool("IsTrigger")
         // if (isTrigger != null) prefab.set(ROOT_PATH, "isTrigger", isTrigger) // mmh...
@@ -422,7 +422,7 @@ object UnityReader {
     fun defineMeshFilter(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject): FileReference {
         // later add a Unity-MeshRenderer or similar for the list of materials
         prefab.clazzName = "MeshComponent"
-        prefab.setProperty("meshFile", decodePath(guid, node["Mesh"], project))
+        prefab["meshFile"] = decodePath(guid, node["Mesh"], project)
         return decodePath(guid, node["GameObject"], project)
     }
 
@@ -457,7 +457,7 @@ object UnityReader {
         prefab.clazzName = "Mesh"
         val indexBuffer = node["IndexBuffer"]?.value?.parseIndexBuffer()
         if (indexBuffer != null) {
-            prefab.setProperty("indices", indexBuffer)
+            prefab["indices"] = indexBuffer
         }
         val vertexData = node["VertexData"]
         if (vertexData != null) {
@@ -485,7 +485,7 @@ object UnityReader {
                         positions[indexOut + 1] = +data.getFloat(indexIn + 4)
                         positions[indexOut + 2] = +data.getFloat(indexIn + 8)
                     }
-                    prefab.setProperty("positions", positions)
+                    prefab["positions"] = positions
                 }
             }
         }
@@ -495,7 +495,7 @@ object UnityReader {
         if (path is PrefabReadable) {
             val child = path.readPrefab()
             val type = if (child.clazzName == "Entity") 'e' else 'c'
-            val nameId = child.getProperty("name") as? String ?: path.nameWithoutExtension // collisions should be rare
+            val nameId = child["name"] as? String ?: path.nameWithoutExtension // collisions should be rare
             val add = CAdd(ROOT_PATH, type, child.clazzName, nameId, path)
             if (!prefab.canAdd(add)) add.nameId = path.nameWithoutExtension
             prefab.add(add, prefab.findNextIndex(type, ROOT_PATH))
@@ -517,7 +517,7 @@ object UnityReader {
                 val prefab = Prefab("Entity")
                 val file = InnerPrefabFile(folder.absolutePath + "/" + fileId, fileId, folder, prefab)
                 prefab.source = file
-                prefab.setProperty("name", node.key)
+                prefab["name"] = node.key
                 file
             }
         }
@@ -573,19 +573,19 @@ object UnityReader {
                     // todo are those properties with the spaces correct?
                     prefab.clazzName = "Camera"
                     val near = node["Near Clip Plane"]?.getFloat()
-                    if (near != null) prefab.setProperty("near", near)
+                    if (near != null) prefab["near"] = near
                     val far = node["Far Clip Plane"]?.getFloat()
-                    if (far != null) prefab.setProperty("far", far)
+                    if (far != null) prefab["far"] = far
                     if (node["Orthographic"]?.getBool() == true) {
-                        prefab.setProperty("isPerspective", false)
+                        prefab["isPerspective"] = false
                     }
                     val fov = node["Field Of View"]?.getFloat()
                     if (fov != null) {
-                        prefab.setProperty("fovY", fov)
+                        prefab["fovY"] = fov
                     }
                     val fov2 = node["Orthographic Size"]?.getFloat()
                     if (fov2 != null) {
-                        prefab.setProperty("fovOrthographic", fov2)
+                        prefab["fovOrthographic"] = fov2
                     }
                 }
                 "Light" -> {
@@ -594,7 +594,7 @@ object UnityReader {
                     // todo find out all light types
                     // 1 = directional light
                     prefab.clazzName = "DirectionalLight"
-                    prefab.setProperty("color", color)
+                    prefab["color"] = color
                 }
                 "Material" -> defineMaterial(prefab, node, guid, project)
                 "BoxCollider" -> defineBoxCollider(prefab, node)
@@ -737,10 +737,10 @@ object UnityReader {
                     if (prefab3 != null) {
                         file.hide() // no longer visibly used
                         val isActive = node.getBool("IsActive")
-                        if (isActive == false) prefab.setProperty("isEnabled", false)
+                        if (isActive == false) prefab["isEnabled"] = false
                         val name = node["Name"]?.value
                         if (name != null) {
-                            prefab3.setProperty("name", name)
+                            prefab3["name"] = name
                         }
                     }
                 }

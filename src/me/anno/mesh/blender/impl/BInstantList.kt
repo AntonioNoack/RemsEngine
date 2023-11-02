@@ -1,12 +1,14 @@
 package me.anno.mesh.blender.impl
 
+import kotlin.math.max
+
 /**
  * saves allocations by using a pseudo-instance, whose position gets adjusted every time an element is accessed;
  * for this to work, all properties inside the child class need to be dynamic getters
  *
  * called "InstantList", because its elements only contain valid data for the instant
  * */
-class BInstantList<V : BlendData>(val size: Int, val instance: V?) {
+class BInstantList<V : BlendData>(val size: Int, val instance: V?) : Iterable<V> {
 
     val indices = 0 until size
 
@@ -48,14 +50,16 @@ class BInstantList<V : BlendData>(val size: Int, val instance: V?) {
         return false
     }
 
-    fun sumOf(lambda: (V) -> Int): Int {
-        var sum = 0
-        for (i in 0 until size) sum += lambda(this[i])
-        return sum
-    }
-
     override fun toString(): String {
         return (0 until size).map { get(it).toString() }.toString()
+    }
+
+    override fun iterator(): Iterator<V> {
+        return object : Iterator<V> {
+            private var index = 0
+            override fun hasNext(): Boolean = index < size
+            override fun next(): V = get(index++)
+        }
     }
 
     companion object {

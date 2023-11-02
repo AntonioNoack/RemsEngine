@@ -104,8 +104,9 @@ open class BlendData(
         } else defaultValue
     }
 
-    fun string(name: String, limit: Int): String = string(getOffset(name), limit)
-    fun string(offset: Int, limit: Int): String {
+    fun string(name: String, limit: Int): String? = string(getOffset(name), limit)
+    fun string(offset: Int, limit: Int): String? {
+        if(offset< 0) return null
         val position = position + offset
         for (len in 0 until limit) {
             val char = buffer.get(position + len)

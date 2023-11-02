@@ -100,6 +100,14 @@ class Prefab : Saveable {
         return sum
     }
 
+    override operator fun get(propertyName: String): Any? {
+        return this[ROOT_PATH, propertyName]
+    }
+
+    operator fun get(property: String, depth: Int): Any? {
+        return this[ROOT_PATH, property, depth]
+    }
+
     operator fun get(path: Path, property: String, depth: Int = maxPrefabDepth): Any? {
         val sample = sets[path, property]
         if (sample != null) return sample
@@ -277,18 +285,6 @@ class Prefab : Saveable {
         if (sampleInstance != null && isValid) {
             CSet.apply(sampleInstance, path, name, value)
         }
-    }
-
-    fun setProperty(name: String, value: Any?) {
-        set(ROOT_PATH, name, value)
-    }
-
-    fun setProperty(path: Path, name: String, value: Any?) {
-        set(path, name, value)
-    }
-
-    fun getProperty(name: String): Any? {
-        return sets[ROOT_PATH, name]
     }
 
     @Suppress("PropertyName")

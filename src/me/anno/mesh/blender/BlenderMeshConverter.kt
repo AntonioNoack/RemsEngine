@@ -5,6 +5,7 @@ import me.anno.fonts.mesh.Triangulation
 import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.blender.impl.*
+import me.anno.utils.structures.arrays.ExpandingByteArray
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.apache.logging.log4j.LogManager
@@ -16,12 +17,12 @@ object BlenderMeshConverter {
 
     fun convertBMesh(src: BMesh): Prefab? {
 
-        if (LOGGER.isDebugEnabled) {
+        if (false && LOGGER.isDebugEnabled) {
             // todo find the assigned Armature modifier to extract the bone hierarchy, so we can sort the bones properly
             //  (in case they are not; haven't found confirmation for them being in the correct order yet)
             println("[BlenderMeshConverter] Converting Mesh")
             println(src.vertexGroupNames) // = bone names
-            println(src.oldVertexGroups) // = bone indices and bone weights :3
+            println(src.vertexGroups) // = bone indices and bone weights :3
         }
 
         val vertices = src.vertices ?: return null // how can there be meshes without vertices?
@@ -31,8 +32,8 @@ object BlenderMeshConverter {
         val loopData = src.loops ?: BInstantList.emptyList()
 
         val prefab = Prefab("Mesh")
-        prefab.setProperty("materials", materials.map { it as BMaterial?; it?.fileRef ?: InvalidRef })
-        prefab.setProperty("cullMode", CullMode.BOTH)
+        prefab["materials"] = materials.map { it as BMaterial?; it?.fileRef ?: InvalidRef }
+        prefab["cullMode"] = CullMode.BOTH
 
         // todo bone hierarchy,
         // todo bone animations
@@ -98,10 +99,13 @@ object BlenderMeshConverter {
                 null
             }
         }
-        prefab.setProperty("positions", positions)
-        prefab.setProperty("normals", normals)
 
-        val uvs = src.loopUVs ?: BInstantList.emptyList()
+        @Suppress("UNCHECKED_CAST")
+        val newUVs = src.lData.layers
+            ?.firstOrNull { it.name == "UVMap" }?.data as? BInstantList<MLoopUV>
+
+        val uvs = src.loopUVs ?: newUVs ?: BInstantList.emptyList()
+
         // todo vertex colors
         val hasUVs = uvs.any { it.u != 0f || it.v != 0f }
         val triCount = polygons.sumOf {
@@ -111,52 +115,27 @@ object BlenderMeshConverter {
                 else -> size - 2
             }
         }
+
+        val boneWeights = src.vertexGroups
         val materialIndices = if (materials.size > 1) IntArray(triCount) else null
-        if (hasUVs) {// non-indexed, because we don't support separate uv and position indices
+        if (hasUVs || boneWeights != null) {// non-indexed, because we don't support separate uv and position indices
             joinPositionsAndUVs(
                 triCount * 3,
                 positions, normals,
                 polygons, loopData, uvs,
+                boneWeights,
                 materialIndices, prefab
             )
-            if (materialIndices != null) prefab.setProperty("materialIds", materialIndices)
         } else {
-            collectIndices(positions, polygons, loopData, materialIndices, prefab)
-            if (materialIndices != null) prefab.setProperty("materialIds", materialIndices)
+            collectIndices(
+                positions, normals,
+                polygons, loopData,
+                materialIndices, prefab
+            )
         }
+        if (materialIndices != null) prefab["materialIds"] = materialIndices
         prefab.sealFromModifications()
         return prefab
-    }
-
-    private fun addTriangle(
-        positions: FloatArray, positions2: ExpandingFloatArray,
-        normals: FloatArray?, normals2: ExpandingFloatArray?,
-        uvs2: ExpandingFloatArray,
-        v0: Int, v1: Int, v2: Int,
-        uvs: BInstantList<MLoopUV>,
-        uv0: Int, uv1: Int, uv2: Int
-    ) {
-        val v03 = v0 * 3
-        val v13 = v1 * 3
-        val v23 = v2 * 3
-        positions2.addUnsafe(positions, v03, 3)
-        positions2.addUnsafe(positions, v13, 3)
-        positions2.addUnsafe(positions, v23, 3)
-        if (normals != null && normals2 != null) {
-            normals2.addUnsafe(normals, v03, 3)
-            normals2.addUnsafe(normals, v13, 3)
-            normals2.addUnsafe(normals, v23, 3)
-        }
-        // println("$v0 $v1 $v2 $uv0 $uv1 $uv2 ${positions[v03]} ${normals[v03]}")
-        val uv0x = uvs[uv0]
-        uvs2.addUnsafe(uv0x.u)
-        uvs2.addUnsafe(uv0x.v)
-        val uv1x = uvs[uv1]
-        uvs2.addUnsafe(uv1x.u)
-        uvs2.addUnsafe(uv1x.v)
-        val uv2x = uvs[uv2]
-        uvs2.addUnsafe(uv2x.u)
-        uvs2.addUnsafe(uv2x.v)
     }
 
     fun joinPositionsAndUVs(
@@ -166,15 +145,100 @@ object BlenderMeshConverter {
         polygons: BInstantList<MPoly>,
         loopData: BInstantList<MLoop>,
         uvs: BInstantList<MLoopUV>,
+        boneWeights: BInstantList<MDeformVert>?,
         materialIndices: IntArray?,
-        prefab: Prefab
+        prefab: Prefab,
     ) {
+
         val positions2 = ExpandingFloatArray(vertexCount * 3)
         val normals2 = if (normals != null) ExpandingFloatArray(vertexCount * 3) else null
         val uvs2 = ExpandingFloatArray(vertexCount * 2)
+        val boneIndices2 = if (boneWeights != null) ExpandingByteArray(vertexCount * 4) else null
+        val boneWeights2 = if (boneWeights != null) ExpandingFloatArray(vertexCount * 4) else null
+
         var uvIndex = 0
         var matIndex = 0
-        //var complexCtr = 0
+
+        val weightSums = HashMap<Int, Float>()
+        val numUvs = uvs.size
+
+        fun addTriangle(
+            v0: Int, v1: Int, v2: Int,
+            uv0: Int, uv1: Int, uv2: Int,
+        ) {
+
+            val v03 = v0 * 3
+            val v13 = v1 * 3
+            val v23 = v2 * 3
+
+            // positions
+            positions2.addUnsafe(positions, v03, 3)
+            positions2.addUnsafe(positions, v13, 3)
+            positions2.addUnsafe(positions, v23, 3)
+
+            // normals
+            if (normals != null && normals2 != null) {
+                normals2.addUnsafe(normals, v03, 3)
+                normals2.addUnsafe(normals, v13, 3)
+                normals2.addUnsafe(normals, v23, 3)
+            }
+
+            // uvs
+            if (uv0 < numUvs && uv1 < numUvs && uv2 < numUvs) {
+                val uv0x = uvs[uv0]
+                println("pushing $uv0 -> ${uv0x.u},${uv0x.v}")
+                uvs2.addUnsafe(uv0x.u)
+                uvs2.addUnsafe(uv0x.v)
+                val uv1x = uvs[uv1]
+                uvs2.addUnsafe(uv1x.u)
+                uvs2.addUnsafe(uv1x.v)
+                val uv2x = uvs[uv2]
+                uvs2.addUnsafe(uv2x.u)
+                uvs2.addUnsafe(uv2x.v)
+            } else {
+                uvs2.skip(6)
+            }
+
+            // bone weights / indices
+            if (boneWeights != null &&
+                boneWeights2 != null &&
+                boneIndices2 != null
+            ) {
+
+                for (vi in listOf(v0, v1, v2)) {
+                    for (w in boneWeights[vi].weights) {
+                        if (w.vertexGroupIndex < 256) {
+                            weightSums[w.vertexGroupIndex] =
+                                (weightSums[w.vertexGroupIndex] ?: 0f) + w.weight
+                        }
+                    }
+                }
+
+                // find most important 4 indices
+                val bestIndices = weightSums.entries
+                    .sortedBy { it.value }
+                    .run {
+                        IntArray(4) {
+                            this.getOrNull(it)?.key ?: -1
+                        }
+                    }
+
+                boneIndices2.ensureExtra(4 * 3)
+                // then assign their weights
+                for (vi in listOf(v0, v1, v2)) {
+                    for (idx in bestIndices) {
+                        val weight = boneWeights[vi]
+                            .weights.firstOrNull { it.vertexGroupIndex == idx }
+                            ?.weight ?: 0f
+                        boneIndices2.addUnsafe(idx.toByte())
+                        boneWeights2.addUnsafe(weight)
+                    }
+                }
+
+                weightSums.clear()
+            }
+        }
+
         for (i in polygons.indices) {
             val polygon = polygons[i]
             val loopStart = polygon.loopStart
@@ -185,12 +249,7 @@ object BlenderMeshConverter {
                 1 -> {// point
                     val v = loopData[loopStart].v
                     val uv = uvIndex++
-                    addTriangle(
-                        positions, positions2,
-                        normals, normals2,
-                        uvs2, v, v, v,
-                        uvs, uv, uv, uv
-                    )
+                    addTriangle(v, v, v, uv, uv, uv)
                     materialIndices?.set(matIndex++, materialIndex)
                 }
                 2 -> {// line
@@ -198,14 +257,7 @@ object BlenderMeshConverter {
                     val v1 = loopData[loopStart + 1].v
                     val uv0 = uvIndex++
                     val uv1 = uvIndex++
-                    addTriangle(
-                        positions, positions2,
-                        normals, normals2,
-                        uvs2,
-                        v0, v1, v1,
-                        uvs,
-                        uv0, uv1, uv1
-                    )
+                    addTriangle(v0, v1, v1, uv0, uv1, uv1)
                     materialIndices?.set(matIndex++, materialIndex)
                 }
                 3 -> {// triangle
@@ -215,12 +267,7 @@ object BlenderMeshConverter {
                     val uv0 = uvIndex++
                     val uv1 = uvIndex++
                     val uv2 = uvIndex++
-                    addTriangle(
-                        positions, positions2,
-                        normals, normals2,
-                        uvs2, v0, v1, v2,
-                        uvs, uv0, uv1, uv2
-                    )
+                    addTriangle(v0, v1, v2, uv0, uv1, uv2)
                     materialIndices?.set(matIndex++, materialIndex)
                 }
                 4 -> {// quad, simple
@@ -232,18 +279,8 @@ object BlenderMeshConverter {
                     val uv1 = uvIndex++
                     val uv2 = uvIndex++
                     val uv3 = uvIndex++
-                    addTriangle(
-                        positions, positions2,
-                        normals, normals2,
-                        uvs2, v0, v1, v2,
-                        uvs, uv0, uv1, uv2
-                    )
-                    addTriangle(
-                        positions, positions2,
-                        normals, normals2,
-                        uvs2, v2, v3, v0,
-                        uvs, uv2, uv3, uv0
-                    )
+                    addTriangle(v0, v1, v2, uv0, uv1, uv2)
+                    addTriangle(v2, v3, v0, uv2, uv3, uv0)
                     if (materialIndices != null) {
                         materialIndices[matIndex++] = materialIndex
                         materialIndices[matIndex++] = materialIndex
@@ -277,14 +314,7 @@ object BlenderMeshConverter {
                         val uv0 = uvIndex0 + i0
                         val uv1 = uvIndex0 + i1
                         val uv2 = uvIndex0 + i2
-                        addTriangle(
-                            positions, positions2,
-                            normals, normals2,
-                            uvs2,
-                            v0, v1, v2,
-                            uvs,
-                            uv0, uv1, uv2
-                        )
+                        addTriangle(v0, v1, v2, uv0, uv1, uv2)
                     }
                     if (materialIndices != null) {
                         for (idx0 in triangles.indices step 3) {
@@ -295,12 +325,19 @@ object BlenderMeshConverter {
             }
         }
         prefab["positions"] = positions2.toFloatArray()
-        prefab["normals"] = normals2?.toFloatArray()
         prefab["uvs"] = uvs2.toFloatArray()
+        if (normals2 != null) {
+            prefab["normals"] = normals2.toFloatArray()
+        }
+        if (boneWeights2 != null && boneIndices2 != null) {
+            prefab["boneWeights"] = boneWeights2.toFloatArray()
+            prefab["boneIndices"] = boneIndices2.toByteArray()
+        }
     }
 
     fun collectIndices(
         positions: FloatArray,
+        normals: FloatArray?,
         polygons: BInstantList<MPoly>,
         loopData: BInstantList<MLoop>,
         materialIndices: IntArray?,
@@ -371,6 +408,8 @@ object BlenderMeshConverter {
                 }
             }
         }
+        prefab["positions"] = positions
+        prefab["normals"] = normals
         prefab["indices"] = indices.toIntArray()
     }
 }

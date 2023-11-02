@@ -288,7 +288,7 @@ object StaticMeshesLoader {
         val nameStr = AIString.calloc()
         aiGetMaterialString(aiMaterial, AI_MATKEY_NAME, 0, 0, nameStr)
         val name = nameStr.dataString()
-        prefab.setProperty("name", name)
+        prefab["name"] = name
 
         LOGGER.debug("Material $name")
 
@@ -300,8 +300,8 @@ object StaticMeshesLoader {
             texturesDir, missingFilesLookup, textureLookup
         )
         if (diffuseMap != InvalidRef) {
-            prefab.setProperty("diffuseMap", diffuseMap)
-            if (opacity != 1f) prefab.setProperty("diffuseBase", Vector4f(1f, 1f, 1f, opacity))
+            prefab["diffuseMap"] = diffuseMap
+            if (opacity != 1f) prefab["diffuseBase"] = Vector4f(1f, 1f, 1f, opacity)
         } else {
             // I think the else-if is the correct thing here; the storm-trooper is too dark otherwise
             // diffuse
@@ -322,9 +322,9 @@ object StaticMeshesLoader {
             )
             if (diffuse != null) {
                 diffuse.w = opacity
-                prefab.setProperty("diffuseBase", diffuse)
+                prefab["diffuseBase"] = diffuse
             } else if (opacity != 1f) {
-                prefab.setProperty("diffuseBase", Vector4f(1f, 1f, 1f, opacity))
+                prefab["diffuseBase"] = Vector4f(1f, 1f, 1f, opacity)
             }
         }
 
@@ -335,21 +335,21 @@ object StaticMeshesLoader {
             emissive.mul(20f) // for brighter colors; 5.0 is our default because of Reinhard tonemapping
             // 4x, because we want it to be impressive ^^, and to actually feel like glowing;
             // the original 1 should be 100%, so I think it's kind of appropriate
-            prefab.setProperty("emissiveBase", Vector3f(emissive.x, emissive.y, emissive.z))
+            prefab["emissiveBase"] = Vector3f(emissive.x, emissive.y, emissive.z)
         }
 
         val emissiveMap = findTexture(
             aiScene, aiMaterial, loadedTextures, aiTextureType_EMISSIVE,
             texturesDir, missingFilesLookup, textureLookup
         )
-        if (emissiveMap != InvalidRef) prefab.setProperty("emissiveMap", emissiveMap)
+        if (emissiveMap != InvalidRef) prefab["emissiveMap"] = emissiveMap
 
         // normal
         val normalMap = findTexture(
             aiScene, aiMaterial, loadedTextures, aiTextureType_NORMALS,
             texturesDir, missingFilesLookup, textureLookup
         )
-        if (normalMap != InvalidRef) prefab.setProperty("normalMap", normalMap)
+        if (normalMap != InvalidRef) prefab["normalMap"] = normalMap
 
         // metallic / roughness
         val metallicRoughness = findTexture(
@@ -359,13 +359,13 @@ object StaticMeshesLoader {
         )
 
         val ior = getFloat(aiMaterial, AI_MATKEY_REFRACTI, 1f)
-        if (ior > 1f) prefab.setProperty("indexOfRefraction", ior)
+        if (ior > 1f) prefab["indexOfRefraction"] = ior
 
         if (metallicRoughness != InvalidRef) {
-            prefab.setProperty("metallicMap", getReference(metallicRoughness, "b.png"))
-            prefab.setProperty("roughnessMap", getReference(metallicRoughness, "g.png"))
-            prefab.setProperty("roughnessMinMax", Vector2f(0.1f, 1f))
-            prefab.setProperty("metallicMinMax", Vector2f(0f, 1f))
+            prefab["metallicMap"] = getReference(metallicRoughness, "b.png")
+            prefab["roughnessMap"] = getReference(metallicRoughness, "g.png")
+            prefab["roughnessMinMax"] = Vector2f(0.1f, 1f)
+            prefab["metallicMinMax"] = Vector2f(0f, 1f)
         } else {
 
             // assimp only supports a single roughness/metallic property :/
@@ -377,16 +377,16 @@ object StaticMeshesLoader {
             // val shininessStrength = getFloat(aiMaterial, AI_MATKEY_SHININESS_STRENGTH) // always 0.0
             // LOGGER.info("roughness: $shininess x $shininessStrength")
             val roughnessBase = shininessToRoughness(shininessExponent)
-            prefab.setProperty("roughnessMinMax", Vector2f(0f, roughnessBase))
+            prefab["roughnessMinMax"] = Vector2f(0f, roughnessBase)
 
             val metallic = getFloat(aiMaterial, AI_MATKEY_REFLECTIVITY, 0f) // 0.0, rarely 0.5
-            if (metallic != 0f) prefab.setProperty("metallicMinMax", Vector2f(0f, metallic))
+            if (metallic != 0f) prefab["metallicMinMax"] = Vector2f(0f, metallic)
         }
 
         val extraData = extraDataMap?.get(name)
         if (extraData != null) {
-            prefab.setProperty("metallicMinMax", Vector2f(0f, extraData.metallic))
-            prefab.setProperty("roughnessMinMax", Vector2f(0f, extraData.roughness))
+            prefab["metallicMinMax"] = Vector2f(0f, extraData.metallic)
+            prefab["roughnessMinMax"] = Vector2f(0f, extraData.roughness)
         }
 
         // other stuff
@@ -398,8 +398,8 @@ object StaticMeshesLoader {
             aiScene, aiMaterial, loadedTextures, aiTextureType_LIGHTMAP,
             texturesDir, missingFilesLookup, textureLookup
         )
-        if (displacementMap != InvalidRef) prefab.setProperty("displacementMap", displacementMap)
-        if (occlusionMap != InvalidRef) prefab.setProperty("occlusionMap", occlusionMap)
+        if (displacementMap != InvalidRef) prefab["displacementMap"] = displacementMap
+        if (occlusionMap != InvalidRef) prefab["occlusionMap"] = occlusionMap
 
         return prefab
     }
@@ -571,37 +571,37 @@ object StaticMeshesLoader {
         val prefab = Prefab("Mesh")
         val name = aiMesh.mName().dataString()
         if (name.isNotEmpty()) {
-            prefab.setProperty("name", name)
+            prefab["name"] = name
         }
 
-        prefab.setProperty("positions", positions)
-        prefab.setProperty("indices", indices)
+        prefab["positions"] = positions
+        prefab["indices"] = indices
 
         val normals = processNormals(aiMesh, vertexCount)
         if (normals != null) {
-            prefab.setProperty("normals", normals)
+            prefab["normals"] = normals
             val tangents = processTangents(aiMesh, vertexCount, normals)
             if (tangents != null) {
-                prefab.setProperty("tangents", tangents)
+                prefab["tangents"] = tangents
             }
         }
 
         val uvs = processUVs(aiMesh, vertexCount)
         if (uvs != null && uvs.any { it != 0f }) {
-            prefab.setProperty("uvs", uvs)
+            prefab["uvs"] = uvs
         }
 
         for (i in 0 until 8) {
             val colorI = processVertexColors(aiMesh, i, vertexCount)
             if (colorI != null && colorI.any { it != -1 }) {
-                prefab.setProperty(if (i == 0) "color0" else "color$i", colorI)
+                prefab[if (i == 0) "color0" else "color$i"] = colorI
             }
         }
 
         val materialIdx = aiMesh.mMaterialIndex()
         if (materialIdx in materials.indices) {
             val ref = materials[materialIdx]
-            prefab.setProperty("materials", listOf(ref))
+            prefab["materials"] = listOf(ref)
         }
 
         return prefab

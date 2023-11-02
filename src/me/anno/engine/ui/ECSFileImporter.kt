@@ -16,7 +16,7 @@ object ECSFileImporter : FileContentImporter<ISaveable>() {
 
     override fun setName(element: ISaveable, name: String) {
         when(element){
-            is Prefab -> element.setProperty("name",name)
+            is Prefab -> element["name"] = name
             is PrefabSaveable -> element.name = name
             is NamedSaveable -> element.name = name
         }

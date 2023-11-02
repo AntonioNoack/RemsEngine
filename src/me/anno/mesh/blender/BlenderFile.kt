@@ -253,6 +253,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             "TexMapping" -> BTexMapping(this, struct, data, position)
             "NodeTexBase" -> BNodeTexBase(this, struct, data, position)
             "NodeTexImage" -> BNodeTexImage(this, struct, data, position)
+            "vec2s" -> BVector2f(this, struct, data, position)
             else -> {
                 LOGGER.warn("Skipping instance of class $clazz")
                 null

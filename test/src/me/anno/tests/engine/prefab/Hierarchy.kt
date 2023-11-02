@@ -96,8 +96,8 @@ class HierarchyTests {
         val names = Array(n) { "child$it" }
         for (i in 0 until n) {
             val child = prefab.add(Path.ROOT_PATH, 'c', clazz, names[i])
-            prefab.setProperty(child, "description", "desc$i")
-            prefab.setProperty(child, "lightSize", i.toDouble())
+            prefab[child, "description"] = "desc$i"
+            prefab[child, "lightSize"] = i.toDouble()
         }
         assertEquals(prefab.adds.size, n)
         assertEquals(prefab.sets.size, 2 * n)

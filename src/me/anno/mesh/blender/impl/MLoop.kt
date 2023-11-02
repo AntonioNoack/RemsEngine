@@ -12,4 +12,9 @@ class MLoop(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
 
     val v get() = int(vOffset)
     val e get() = int(eOffset)
+
+    override fun toString(): String {
+        return "MLoop { $v, $e }"
+    }
+
 }

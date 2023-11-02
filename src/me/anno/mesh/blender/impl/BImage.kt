@@ -14,8 +14,7 @@ class BImage(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: I
     BlendData(file, type, buffer, position) {
 
     val id = inside("id") as BID
-    val name = string("name[1024]", 1024)
-        .replace('\\', '/')
+    val name = string("name[1024]", 1024)?.replace('\\', '/') ?: ""
 
     //val views = inside("views") as BListBase<BImageView>
 

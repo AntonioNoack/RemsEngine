@@ -185,7 +185,7 @@ object AnimatedMeshesLoader {
         val animationReferences = if (hasSkeleton || hasAnimations) {
 
             val skeleton = Prefab("Skeleton")
-            skeleton.setProperty("bones", boneList.toTypedArray())
+            skeleton["bones"] = boneList.toTypedArray()
             val skeletonPath = root.createPrefabChild("Skeleton.json", skeleton)
 
             val nodeCache = createNodeCache(rootNode)
@@ -279,9 +279,9 @@ object AnimatedMeshesLoader {
         // correct scale?
         transform.mul(Matrix4x3d(matrix.transpose()))
 
-        prefab.setProperty("position", transform.getTranslation(Vector3d()))
-        prefab.setProperty("rotation", transform.getUnnormalizedRotation(Quaterniond()))
-        prefab.setProperty("scale", transform.getScale(Vector3d()))
+        prefab["position"] = transform.getTranslation(Vector3d())
+        prefab["rotation"] = transform.getUnnormalizedRotation(Quaterniond())
+        prefab["scale"] = transform.getScale(Vector3d())
     }
 
     private fun fixBoneOrder(boneList: ArrayList<Bone>, meshes: List<Prefab>) {
@@ -576,15 +576,15 @@ object AnimatedMeshesLoader {
     ): Prefab {
         val instance = BoneByBoneAnimation(imported)
         val prefab = Prefab("BoneByBoneAnimation")
-        prefab[ROOT_PATH, "name"] = imported.name
-        prefab[ROOT_PATH, "duration"] = imported.duration
-        prefab[ROOT_PATH, "skeleton"] = imported.skeleton
-        prefab[ROOT_PATH, "frameCount"] = imported.numFrames
-        prefab[ROOT_PATH, "boneCount"] = numBones
-        prefab[ROOT_PATH, "translations"] = instance.translations
-        prefab[ROOT_PATH, "rotations"] = instance.rotations
-        if (globalTransform != null) prefab[ROOT_PATH, "globalTransform"] = globalTransform
-        if (globalInverseTransform != null) prefab[ROOT_PATH, "globalInvTransform"] = globalInverseTransform
+        prefab["name"] = imported.name
+        prefab["duration"] = imported.duration
+        prefab["skeleton"] = imported.skeleton
+        prefab["frameCount"] = imported.numFrames
+        prefab["boneCount"] = numBones
+        prefab["translations"] = instance.translations
+        prefab["rotations"] = instance.rotations
+        if (globalTransform != null) prefab["globalTransform"] = globalTransform
+        if (globalInverseTransform != null) prefab["globalInvTransform"] = globalInverseTransform
         return prefab
     }
 
@@ -715,12 +715,12 @@ object AnimatedMeshesLoader {
         val prefab = StaticMeshesLoader.createMeshPrefab(aiMesh, materials)
         val boneData = processBones(aiMesh, boneList, boneMap, aiMesh.mNumVertices())
         if (boneData != null) {
-            prefab.setProperty("boneIndices", boneData.first)
-            prefab.setProperty("boneWeights", boneData.second)
+            prefab["boneIndices"] = boneData.first
+            prefab["boneWeights"] = boneData.second
         }
         val morphTargets = loadMorphTargets(aiMesh)
         if (morphTargets.isNotEmpty()) {
-            prefab.setProperty("morphTargets", morphTargets)
+            prefab["morphTargets"] = morphTargets
         }
         return prefab
     }

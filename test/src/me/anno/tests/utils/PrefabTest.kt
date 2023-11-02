@@ -62,10 +62,10 @@ fun test1() {
 
     val basePrefab = Prefab("Entity")
 
-    basePrefab.setProperty("name", "Gustav")
+    basePrefab["name"] = "Gustav"
     assert(basePrefab.getSampleInstance().name, "Gustav")
 
-    basePrefab.setProperty("isCollapsed", false)
+    basePrefab["isCollapsed"] = false
     assert(basePrefab.getSampleInstance().isCollapsed, false)
 
     basePrefab.add(Path.ROOT_PATH, 'c', "MeshComponent", "MC")
@@ -78,7 +78,7 @@ fun test1() {
     assert(prefab.getSampleInstance().isCollapsed, false)
 
     // remove
-    prefab.setProperty("name", "Herbert")
+    prefab["name"] = "Herbert"
     assert(prefab.getSampleInstance().name, "Herbert")
 
     val child = prefab.add(Path.ROOT_PATH, 'e', "Entity", "SomeChild", basePrefabFile)

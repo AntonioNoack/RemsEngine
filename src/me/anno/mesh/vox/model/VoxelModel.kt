@@ -163,9 +163,9 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
         val prefab = Prefab("Mesh")
 
         prefab._sampleInstance = mesh
-        prefab.setProperty("positions", mesh.positions)
-        prefab.setProperty("normals", mesh.normals)
-        prefab.setProperty("color0", mesh.color0)
+        prefab["positions"] = mesh.positions
+        prefab["normals"] = mesh.normals
+        prefab["color0"] = mesh.color0
 
         return prefab
     }

@@ -18,12 +18,13 @@ fun main() {
     //  - bones
     //  - vertex weights
 
-    // todo uvs are also broken :(
     LogManager.logAll()
     val source = documents.getChild("Blender/AnimTest.blend")
-    BlenderReader.readAsFolder(source) { folder, _ ->
-        if (false) testSceneWithUI("Blender Animations", folder!!.getChild("Scene.json")) {
-            it.renderer.renderMode = RenderMode.BONE_INDICES
-        }
+    BlenderReader.readAsFolder(source) { folder, exc ->
+        if (folder != null) {
+            testSceneWithUI("Blender Animations", folder.getChild("Scene.json")) {
+                it.renderer.renderMode = RenderMode.BONE_INDICES
+            }
+        } else exc?.printStackTrace()
     }
 }

@@ -34,7 +34,7 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                     // because material files will always be much shorter than the actual geometry
                     when (val name = readUntilSpace()) {
                         "newmtl" -> {
-                            material?.setProperty("diffuseBase", color)
+                            material?.set("diffuseBase", color)
                             skipSpaces()
                             val materialName = readUntilSpace()
                             material = Prefab("Material")
@@ -45,7 +45,7 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                         }
                         /*"Ka" -> material.ambientColor = readVector3f()*/ // ???
                         "Kd" -> color.set(readVector3f(), color.w)
-                        "Ke" -> material?.setProperty("emissiveBase", readVector3f())
+                        "Ke" -> material?.set("emissiveBase", readVector3f())
                         // "Ks" -> material.specularColor = readVector3f()
                         // metallic
                         "Ns" -> {
@@ -53,7 +53,7 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                             val exponent = readValue()
                             val smoothness = sqrt(exponent / 1000f)
                             val roughness = clamp(1f - smoothness)
-                            material?.setProperty("roughnessMinMax", Vector2f(0f, roughness))
+                            material?.set("roughnessMinMax", Vector2f(0f, roughness))
                         }
                         "d" -> {
                             color.w = readValue()
@@ -62,8 +62,8 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                         /*"map_Ka" -> // ???
                             material!!.setProperty("diffuseMap", readFile(file))
                             material.ambientTexture = readFile(file)*/
-                        "map_Kd" -> material!!.setProperty("diffuseMap", readFile(file))
-                        "map_Ke" -> material!!.setProperty("emissiveMap", readFile(file))
+                        "map_Kd" -> material!!["diffuseMap"] = readFile(file)
+                        "map_Ke" -> material!!["emissiveMap"] = readFile(file)
                         "map_Ks" -> {
                             // to do roughness or metallic?
                             // not used by Blender in my small experiment
@@ -87,7 +87,7 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
                             if (v == 3) {
                                 // metallic, at least as Blender output
                                 // 2 = just roughness
-                                material?.setProperty("metallicMinMax", Vector2f(0f, 1f))
+                                material?.set("metallicMinMax", Vector2f(0f, 1f))
                             }
                             /**
                              * TR = transparency,
@@ -123,7 +123,7 @@ class MTLReader(val file: FileReference, input: InputStream) : TextFileReader(in
             }
         } catch (_: EOFException) {
         }
-        material?.setProperty("diffuseBase", color)
+        material?.set("diffuseBase", color)
         reader.close()
     }
 

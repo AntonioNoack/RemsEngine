@@ -26,6 +26,10 @@ class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     val vertices = getInstantList<MVert>("*mvert")
     val polygons = getInstantList<MPoly>("*mpoly")
     val loops = getInstantList<MLoop>("*mloop")
+
+    // in newer Blender versions, this apparently has become a custom data layer,
+    //  however we find those; src: https://projects.blender.org/blender/blender/commit/6c774feba2c9a1eb5834646f597a0f2c63177914
+    // -> in my sample mesh, I found it in lData with name 'UVMap' as MLoopUV, too :)
     val loopUVs = getInstantList<MLoopUV>("*mloopuv")
     val loopColor = getInstantList<MLoopCol>("*mloopcol")
     // old
@@ -50,6 +54,6 @@ class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     // vertex groups:
     // in old files in MDeformVert
     val vertexGroupNames = inside("vertex_group_names") as BListBase<BDeformGroup>
-    val oldVertexGroups = getInstantList<MDeformVert>("*dvert")
+    val vertexGroups = getInstantList<MDeformVert>("*dvert")
 
 }

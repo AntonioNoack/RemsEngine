@@ -442,9 +442,9 @@ object MitsubaReader {
                                 when {
                                     // is x ever up?
                                     abs(up.y) > 0.9f && up.y < 0f ->
-                                        prefab.setProperty("rotation", Quaterniond().rotateX(PI))
+                                        prefab["rotation"] = Quaterniond().rotateX(PI)
                                     abs(up.z) > 0.9f ->
-                                        prefab.setProperty("rotation", Quaterniond().rotateX(-sign(up.z) * PI / 2.0))
+                                        prefab["rotation"] = Quaterniond().rotateX(-sign(up.z) * PI / 2.0)
                                 }
                             }
                         }
@@ -456,14 +456,12 @@ object MitsubaReader {
                         if (lookAt != null) {
                             val origin = nodeToVec(lookAt["origin"])
                             if (origin != null) {
-                                prefab.setProperty(cameraEntity, "position", Vector3d(origin))
+                                prefab[cameraEntity, "position"] = Vector3d(origin)
                                 val target = nodeToVec(lookAt["target"])
                                 if (target != null) {
                                     val up = nodeToVec(lookAt["up"]) ?: Vector3f(0f, 1f, 0f)
-                                    prefab.setProperty(
-                                        cameraEntity, "rotation",
+                                    prefab[cameraEntity, "rotation"] =
                                         Quaterniond(Quaternionf().lookAlong(target.sub(origin), up))
-                                    )
                                 }
                             }
                         }
@@ -473,8 +471,8 @@ object MitsubaReader {
                             val value = data["value"]
                             val float = value?.toFloatOrNull()
                             when (data["name"]) {
-                                "farClip" -> if (float != null) prefab.setProperty(camera, "far", float.toDouble())
-                                "nearClip" -> if (float != null) prefab.setProperty(camera, "near", float.toDouble())
+                                "farClip" -> if (float != null) prefab[camera, "far"] = float.toDouble()
+                                "nearClip" -> if (float != null) prefab[camera, "near"] = float.toDouble()
                                 "fov" -> {
                                     if (float != null) {
                                         val xAxis = child.children.filterIsInstance<XMLNode>()
@@ -500,10 +498,10 @@ object MitsubaReader {
                                                     }
                                                 }
                                                 val valueY = tan(atan(float.toRadians() / 2f) * height / width) * 2f
-                                                prefab.setProperty(camera, "fovY", valueY.toDegrees())
+                                                prefab[camera, "fovY"] = valueY.toDegrees()
                                             }
                                         } else {
-                                            prefab.setProperty(camera, "fovY", float)
+                                            prefab[camera, "fovY"] = float
                                         }
                                     }
                                 }

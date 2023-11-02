@@ -99,7 +99,7 @@ abstract class InnerTmpFile private constructor(
     class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json") :
         InnerTmpFile(name, ext), PrefabReadable {
 
-        constructor(prefab: Prefab) : this(prefab, prefab.getProperty("name") as? String ?: "")
+        constructor(prefab: Prefab) : this(prefab, prefab["name"] as? String ?: "")
 
         init {
             val size = Int.MAX_VALUE.toLong()
