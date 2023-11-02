@@ -27,7 +27,9 @@ import me.anno.ecs.annotations.Range.Companion.minUShort
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
-import me.anno.engine.ui.*
+import me.anno.engine.ui.AssetImport
+import me.anno.engine.ui.DetectiveWriter
+import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.input.Key
@@ -66,8 +68,6 @@ import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AnyToFloat
-import me.anno.utils.types.Floats.toDegrees
-import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.luaj.vm2.LuaError
@@ -753,17 +753,22 @@ object ComponentUI {
                     val power = maxPower.pow(l.w * 2f - 1f)
                     return Vector3f(l.x, l.y, l.z).mul(power)
                 }
-                return ColorInput(style, title, visibilityKey, b2l(value), type0 == "Color3HDR")
-                    .apply {
-                        property.init(this)
-                        // todo reset listener for color inputs
-                        // todo brightness should have different background than alpha
-                        // setResetListener { property.reset(this) }
-                        askForReset(property) { setValue(b2l(it as Vector3f), false) }
-                        setChangeListener { r, g, b, a ->
-                            property.set(this, l2b(Vector4f(r, g, b, a)))
-                        }
+                return object : ColorInput(style, title, visibilityKey, b2l(value), type0 == "Color3HDR") {
+                    override fun onCopyRequested(x: Float, y: Float): String? {
+                        if(type0 == "Color3") return super.onCopyRequested(x, y)
+                        val v = l2b(this.value)
+                        return "vec3(${v.x},${v.y},${v.z})"
                     }
+                }.apply {
+                    property.init(this)
+                    // todo reset listener for color inputs
+                    // todo brightness should have different background than alpha
+                    // setResetListener { property.reset(this) }
+                    askForReset(property) { setValue(b2l(it as Vector3f), false) }
+                    setChangeListener { r, g, b, a ->
+                        property.set(this, l2b(Vector4f(r, g, b, a)))
+                    }
+                }
             }
             "Color4", "Color4HDR" -> {
                 value as Vector4f
@@ -791,12 +796,12 @@ object ComponentUI {
                 for (i in 0 until 4) {
                     panel.add(
                         FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
-                        .apply {
-                            // todo correct change listener
-                            addChangeListener { x, y, z, w ->
-                                value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
+                            .apply {
+                                // todo correct change listener
+                                addChangeListener { x, y, z, w ->
+                                    value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
+                                }
                             }
-                        }
                     )
                 }
                 // todo reset listener

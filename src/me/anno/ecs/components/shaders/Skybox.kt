@@ -141,7 +141,9 @@ open class Skybox : SkyboxBase() {
                 wr.w.toDouble()
             ) // todo correct order... not working
         // todo set color based on angle, including red in the twilight
-        sun1.color.set(brightness * max(sunDir.y, 0f))
+        val light = brightness * max(sunDir.y, 1e-9f)
+        val old = max(sun1.color.x, max(sun1.color.y, sun1.color.z))
+        sun1.color.mul(light / old)
         sun.transform.teleportUpdate()
     }
 

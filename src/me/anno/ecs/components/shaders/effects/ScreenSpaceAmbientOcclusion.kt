@@ -25,14 +25,19 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Matrix4f
 import java.util.*
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+
+// todo this is too dark on some regions on curved region on flat angles
+//  - maybe the normals are close to being backwards?
+
+// todo bilateral filtering for MSAA data
 
 object ScreenSpaceAmbientOcclusion {
 
@@ -55,12 +60,18 @@ object ScreenSpaceAmbientOcclusion {
         var j = 0
         val data = sampleKernel0
         for (i in 0 until samples) {
-            val f01 = i / (samples - 1f)
-            val x = random.nextFloat() * 2f - 1f
-            val y = random.nextFloat() * 2f - 1f
-            val z = random.nextFloat() // half sphere
-            val scale = f01 * f01 * 0.9f + 0.1f
-            val f = scale / sqrt(x * x + y * y + z * z)
+            val f01 = (i + 1f) / samples
+            var x: Float
+            var y: Float
+            var z: Float
+            do {
+                x = random.nextFloat() * 2f - 1f
+                y = random.nextFloat() * 2f - 1f
+                z = random.nextFloat() // half sphere
+                val dot2 = x * x + y * y + z * z
+            } while (dot2 < 0.01f || dot2 > 1f)
+            val scale = f01 * f01
+            val f = scale / length(x, y, z)
             data[j++] = x * f
             data[j++] = y * f
             data[j++] = z * f
@@ -175,53 +186,43 @@ object ScreenSpaceAmbientOcclusion {
         "ssao-blur", coordsList, coordsUVVertexShader, uvList,
         listOf(
             Variable(GLSLType.V4F, "glFragColor", VariableMode.OUT),
-            Variable(GLSLType.S2D, "source"),
-            Variable(GLSLType.V2F, "delta")
+            Variable(GLSLType.S2D, "dataTex"),
+            Variable(GLSLType.S2D, "depthTex"),
+            Variable(GLSLType.V4F, "depthMask"),
+            Variable(GLSLType.S2D, "normalTex"),
+            Variable(GLSLType.V1B, "normalZW"),
+            Variable(GLSLType.V2F, "duv"),
         ), "" +
-                "#ifdef HLSL\n" +
-                // we could use the actual gather method...
-                "vec4 gather(vec2 uv) {\n" +
-                "   vec2 delta1 = delta * 0.5;\n" +
-                "   return vec4(\n" +
-                "       textureLod(source,uv,0.0).x,\n" +
-                "       textureLod(source,uv+vec2(delta1.x,0.0),0.0).x,\n" +
-                "       textureLod(source,uv+vec2(0.0,delta1.y),0.0).x,\n" +
-                "       textureLod(source,uv+delta1,0.0).x\n" +
-                "   );\n" +
+                octNormalPacking +
+                "float getDepth(vec2 uv){\n" +
+                "   float depth = dot(texture(depthTex,uv), depthMask);\n" +
+                "   return log2(max(depth,1e-38));\n" +
                 "}\n" +
-                "#endif\n" +
+                "vec3 getNormal(vec2 uv){\n" +
+                "   vec4 raw = texture(normalTex,uv);\n" +
+                "   return UnpackNormal(normalZW ? raw.zw : raw.xy);\n" +
+                "}\n" +
                 "void main(){\n" +
-                "   float sum1;\n" +
-                if (OS.isWeb) {
-                    "" +
-                            "   sum1 = 0.0;\n" +
-                            "   for(int j=-1;j<3;j++){\n" +
-                            "       for(int i=-1;i<3;i++){\n" +
-                            "           sum1 += texture(source,uv+vec2(i,j)*delta).x;\n" +
-                            "       }\n" +
-                            "   }\n"
-                } else {
-                    "" +
-                            "   vec2 uv0 = uv-delta;\n" +
-                            "   vec2 uv1 = uv+delta;\n" +
-                            "#ifdef HLSL\n" +
-                            "   vec4 sum = \n" + // sum over 4x4 area
-                            "       gather(vec2(uv0.x,uv0.y)) +\n" +
-                            "       gather(vec2(uv1.x,uv0.y)) +\n" +
-                            "       gather(vec2(uv0.x,uv1.y)) +\n" +
-                            "       gather(vec2(uv1.x,uv1.y));\n" +
-                            "#else\n" +
-                            "   vec4 sum = \n" + // sum over 4x4 area
-                            "       textureGather(source,vec2(uv0.x,uv0.y),0) +\n" +
-                            "       textureGather(source,vec2(uv1.x,uv0.y),0) +\n" +
-                            "       textureGather(source,vec2(uv0.x,uv1.y),0) +\n" +
-                            "       textureGather(source,vec2(uv1.x,uv1.y),0);\n" +
-                            "#endif\n" +
-                            "   sum1 = (sum.x+sum.y+sum.z+sum.w);\n"
-                } +
-                "   glFragColor = vec4(sum1 * ${1.0 / 16.0});\n" +
+                // bilateral blur (use normal and depth as weights)
+                "   float  valueSum = 0.0;\n" +
+                "   float weightSum = 0.0;\n" +
+                "   float d0 = getDepth(uv);\n" +
+                "   vec3  n0 = getNormal(uv);\n" +
+                "   for(int j=-2;j<=2;j++){\n" +
+                "       for(int i=-2;i<=2;i++){\n" +
+                "           vec2 ij = vec2(i,j);\n" +
+                "           vec2 uvi = uv+ij*duv;\n" +
+                "           float value = texture(dataTex,uvi).x;\n" +
+                "           float di = getDepth(uvi);\n" +
+                "           vec3  ni = getNormal(uvi);\n" +
+                "           float weight = max(1.0-abs(di-d0),0.0) * max(dot(n0,ni),0.0) / (1.0 + dot(ij,ij));\n" +
+                "            valueSum += weight * value;\n" +
+                "           weightSum += weight;\n" +
+                "       }\n" +
+                "   }\n" +
+                "   glFragColor = vec4(valueSum / weightSum);\n" +
                 "}"
-    ).apply { glslVersion = 400 } // 400 for textureGather
+    )
 
     private var lastSamples = 0
 
@@ -281,7 +282,11 @@ object ScreenSpaceAmbientOcclusion {
         return dst
     }
 
-    private fun average(data: IFramebuffer): IFramebuffer {
+    private fun average(
+        data: IFramebuffer,
+        normals: ITexture2D, normalZW: Boolean,
+        depth: ITexture2D, depthMask: String
+    ): IFramebuffer {
         if (!DefaultConfig["gpu.ssao.blur", true]) return data
         val w = data.width
         val h = data.height
@@ -290,8 +295,12 @@ object ScreenSpaceAmbientOcclusion {
             GFX.check()
             val shader = blurShader
             shader.use()
-            data.bindTrulyNearest(0)
-            shader.v2f("delta", 1f / w, 1f / h)
+            shader.v1b("normalZW", normalZW)
+            shader.v4f("depthMask", singleToVector[depthMask]!!)
+            data.getTexture0().bindTrulyNearest(shader, "dataTex")
+            normals.bindTrulyNearest(shader, "normalTex")
+            depth.bindTrulyNearest(shader, "depthTex")
+            shader.v2f("duv", 1f / w, 1f / h)
             GFX.flat01.draw(shader)
             GFX.check()
         }
@@ -315,7 +324,7 @@ object ScreenSpaceAmbientOcclusion {
                 transform, strength, radiusScale,
                 min(samples, MAX_SAMPLES), enableBlur
             )
-            if (enableBlur) average(tmp) else tmp
+            if (enableBlur) average(tmp, normal, normalZW, depth, depthMask) else tmp
         }
     }
 }

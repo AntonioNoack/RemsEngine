@@ -3,9 +3,11 @@ package me.anno.tests.utils
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
@@ -48,13 +50,23 @@ import kotlin.math.min
  * */
 fun main() {
 
-    val scene = Entity()
-    val terrain = Entity(scene)
+    val scene = Entity("Scene")
+    val terrain = Entity("Terrain", scene)
     terrain.add(MeshComponent(OS.documents.getChild("NavMeshTest2.obj")))
     terrain.setScale(2.5)
 
     val navMesh1 = NavMesh()
     scene.add(navMesh1)
+
+    val sunE = Entity("Sun", scene).setScale(100.0)
+    val sun = DirectionalLight()
+    sun.shadowMapCascades = 1
+    sun.color.set(2.5f, 1.7f, 1.3f)
+    sunE.add(sun)
+
+    val sky = Skybox()
+    sky.applyOntoSun(sunE, sun, 20f)
+    scene.add(sky)
 
     navMesh1.cellSize = 2f
     navMesh1.cellHeight = 5f
@@ -294,7 +306,8 @@ fun main() {
             override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
                 if (button == Key.BUTTON_LEFT) {
                     val ci = it.renderer
-                    val query0 = RayQuery(ci.cameraPosition, ci.getMouseRayDirection(), 1e3,
+                    val query0 = RayQuery(
+                        ci.cameraPosition, ci.getMouseRayDirection(), 1e3,
                         -1, -1, false, setOf(spider)
                     )
                     if (Raycast.raycastClosestHit(scene, query0)) {
