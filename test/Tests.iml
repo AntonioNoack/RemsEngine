@@ -17,7 +17,6 @@
     <orderEntry type="library" name="JBullet2x64" level="project" />
     <orderEntry type="library" name="Recast" level="project" />
     <orderEntry type="library" name="Apache Compress 4 Zips" level="project" />
-    <orderEntry type="library" name="KOML" level="project" />
     <orderEntry type="library" name="PDFBox" level="project" />
     <orderEntry type="module" module-name="PDF" />
     <orderEntry type="library" name="LWJGL-323" level="project" />
@@ -29,5 +28,6 @@
     <orderEntry type="library" name="OpenXR" level="project" />
     <orderEntry type="module" module-name="Recast" />
     <orderEntry type="module" module-name="Box2d" />
+    <orderEntry type="module" module-name="KOML" />
   </component>
 </module>

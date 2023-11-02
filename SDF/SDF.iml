@@ -8,7 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Engine" />
-    <orderEntry type="library" name="KOML" level="project" />
     <orderEntry type="library" name="JBullet2x64" level="project" />
+    <orderEntry type="module" module-name="KOML" />
   </component>
 </module>

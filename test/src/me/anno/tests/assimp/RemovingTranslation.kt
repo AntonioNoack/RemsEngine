@@ -25,7 +25,6 @@ fun Matrix4x3f.f2y(): String {
             "                          |${t.z.f2x()}|"
 }
 
-@Suppress("SpellCheckingInspection")
 fun main() {
 
     ECSRegistry.init()

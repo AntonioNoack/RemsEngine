@@ -195,10 +195,19 @@ the engine works :).
 All libraries are shipped with the engine :).
 Use any IDE you want, with Java and Kotlin support. Best use IntelliJ IDEA.
 
-First build the KOML module, and compile the artifact.
-Then build the main module :).
+Then run any of the tests you want 😊.
 
-If you want PDF support, compile the PDF module, and add it to your project, or add it to the plugins or mods folder.
+Some parts of the engine have been packed into modules.
+This is the preferred way to create a game, or extension.
+Currently extracted modules:
+- PDF (pdf document to image converter),
+- SDF (signed distance functions),
+- Bullet (3d physics),
+- Box2d (2d physics),
+- Recast (path finding)
+
+So if you need them, don't forget to import them into your project.
+(either as a compiled artifact = .jar, or as an Intellij module)
 
 ## Ship It
 

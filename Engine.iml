@@ -41,7 +41,6 @@
     <orderEntry type="library" name="JBox2d" level="project" />
     <orderEntry type="library" name="Coroutines" level="project" />
     <orderEntry type="library" name="Recast" level="project" />
-    <orderEntry type="library" name="KOML" level="project" />
     <orderEntry type="library" name="LWJGL-323" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library name="JUnit5.8.1">
@@ -60,5 +59,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="webp-imageio-0.1.6" level="project" />
+    <orderEntry type="module" module-name="KOML" />
   </component>
 </module>
