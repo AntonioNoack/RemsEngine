@@ -148,7 +148,9 @@ object Thumbs {
     // todo disable this, when everything works
     var useCacheFolder = !Build.isDebug
 
-    private const val destinationFormat = "jpg"
+    // todo choose jpg/png depending on where alpha is present;
+    //  use webp if possible
+    private const val destinationFormat = "png"
 
     val sphereMesh = UVSphereModel.createUVSphere(30, 30)
 

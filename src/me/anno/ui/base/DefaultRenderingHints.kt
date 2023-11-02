@@ -1,5 +1,6 @@
 package me.anno.ui.base
 
+import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
 import java.awt.Font
 import java.awt.Graphics2D
@@ -19,7 +20,8 @@ object DefaultRenderingHints {
     )
 
     init {
-        val desktopHints = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints")
+        val desktopHints = if(OS.isWindows) Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints")
+        else null // crashes on Linux Mint with a segfault, so I'd guess it's only fine on Windows
         LOGGER.info("Hints for font rendering: $desktopHints")
         val hints = (desktopHints as? Map<*, *>
             ?: mapOf(RenderingHints.KEY_TEXT_ANTIALIASING to RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB)

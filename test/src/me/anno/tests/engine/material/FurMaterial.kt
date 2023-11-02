@@ -86,6 +86,12 @@ object FurShader : ECSMeshShader("Fur") {
                     "   hairSeedFract -= dot(normalize(normal1), hairSeedFract);\n" +
                     "   float hairRandom = fract(sin(dot(hairSeed, vec3(1.29898, 0.41414, 0.95153))) * 43758.5453);\n" +
                     "   if(hairRandom * (1.0 - length(hairSeedFract)) < float(instanceId) * relativeHairLength) discard;\n" +
+                    // todo calculate better normals? necessary if we want a smooth, metallic bunny ^^
+                    //  - depends on angle from hairSeedFract
+                    //  - depends on normal, gravity, and relativeHairLength
+                    //  - needs to be transformed from local to global space, too
+
+                    // todo set translucency to zero for base layer?
                     "}\n"
         )
         // increase natural occlusion at the bottom
@@ -131,13 +137,14 @@ class FurMeshRenderer(var meshInstance: Mesh) : MeshComponentBase() {
         }
 
     init {
-        meshInstance.materials = meshInstance.materials.map { material.ref }
         material.shaderOverrides["relativeHairLength"] = TypeValue(GLSLType.V1F) { 1f / numShells }
         material.shaderOverrides["hairLength"] = TypeValue(GLSLType.V1F) { hairLength / numShells }
         material.shaderOverrides["hairGravity"] = TypeValue(GLSLType.V3F, hairGravity)
         material.shaderOverrides["hairDensity"] = TypeValue(GLSLType.V1F) { hairDensity }
         material.shaderOverrides["hairSharpness"] = TypeValue(GLSLType.V1F) { hairSharpness }
         material.shader = FurShader
+        // override material in mesh with fur material for all material slots (bunny only has one, but other things might have more)
+        meshInstance.materials = meshInstance.materials.map { material.ref }
     }
 
     override fun getMeshOrNull(): Mesh {
@@ -145,3 +152,5 @@ class FurMeshRenderer(var meshInstance: Mesh) : MeshComponentBase() {
         return meshInstance
     }
 }
+
+// todo implement screen-space global illumination like Blender Eevee Next
