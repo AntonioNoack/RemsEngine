@@ -12,7 +12,7 @@ class BCustomData(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, positi
     val size = int("totsize")
     val numLayers = int("totlayer")
     val maxLayer = int("maxlayer")
-    val layers = getStructArray("*layers")?.toList() as? List<BCustomDataLayer>
+    val layers = getStructArray("*layers")?.toList() as? List<BCustomDataLayer> ?: emptyList()
 
     override fun toString(): String {
         return "BCustomData { layers: ${layers}, external: $external }"

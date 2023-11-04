@@ -18,4 +18,8 @@ class MEdge(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     // val bweight = char("bweight")
     // val flag = short("flag")
 
+    override fun toString(): String {
+        return "MEdge { $v1 - $v2 }"
+    }
+
 }

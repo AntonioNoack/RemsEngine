@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.mesh.blender.impl.BID
 import me.anno.mesh.blender.impl.BImage
 import me.anno.mesh.blender.impl.BMaterial
 import me.anno.mesh.blender.impl.nodes.BNode
@@ -23,18 +24,18 @@ object BlenderMaterialConverter {
 
     private val LOGGER = LogManager.getLogger(BlenderMaterialConverter::class)
 
-    fun defineDefaultMaterial(prefab: Prefab, mat: BMaterial) {
+    fun defineDefaultMaterial(prefab: Prefab, mat: BMaterial, imageMap: Map<String, FileReference>) {
         prefab["diffuseBase"] = Vector4f(mat.r, mat.g, mat.b, mat.a)
         prefab["metallicMinMax"] = Vector2f(0f, mat.metallic)
         prefab["roughnessMinMax"] = Vector2f(0f, mat.roughness)
         val nodeTree = mat.nodeTree
         if (nodeTree != null) {
-            defineDefaultMaterial(prefab, nodeTree)
+            defineDefaultMaterial(prefab, nodeTree, imageMap)
         }
     }
 
     // todo read textures for roughness, metallic, emissive, and such
-    fun defineDefaultMaterial(prefab: Prefab, nodeTree: BNodeTree) {
+    fun defineDefaultMaterial(prefab: Prefab, nodeTree: BNodeTree, imageMap: Map<String, FileReference>) {
         LOGGER.debug(nodeTree)
         val nodes = nodeTree.nodes.toList()
         val links = nodeTree.links
@@ -96,11 +97,14 @@ object BlenderMaterialConverter {
                     "ShaderNodeTexImage" -> {
                         // UVs: "Vector",
                         // Output: "Color"/"Alpha" -> use the correct slot (given by socket)
-                        val source0 = (node.id as? BImage)?.reference?.nullIfUndefined()
-                        val source1 = if (value.second.name == "Alpha") source0?.getChild("a.png") else source0
-                        if (source1 != null) {
-                            return white4 to source1
+                        val imageName = when(val nid = node.id){
+                            is BID -> nid.realName
+                            is BImage -> nid.id.realName
+                            else -> return null
                         }
+                        val source0 = imageMap[imageName] ?: return null
+                        val source1 = if (value.second.name == "Alpha") source0.getChild("a.png") else source0
+                        return white4 to source1
                     }
                     "ShaderNodeValToRGB" -> {
                         val value1 = findTintedMap(lookup(node, "Fac"))
@@ -138,6 +142,7 @@ object BlenderMaterialConverter {
                         "ShaderNodeBsdfPrincipled" -> {
                             // todo extract all properties as far as possible
                             val diffuse = findTintedMap(lookup(shaderNode, "Base Color"))
+                            LOGGER.info("ShaderNodeBsdfPrincipled.diffuse: $diffuse")
                             if (diffuse != null) {
                                 prefab["diffuseBase"] = diffuse.first
                                 prefab["diffuseMap"] = diffuse.second
@@ -167,7 +172,6 @@ object BlenderMaterialConverter {
                             // val alpha = findTintedMap()
                         }
                         "ShaderNodeBsdfDiffuse" -> {
-                            // todo test this
                             val diffuse = findTintedMap(lookup(shaderNode, "Color"))
                             if (diffuse != null) {
                                 prefab["diffuseBase"] = diffuse.first

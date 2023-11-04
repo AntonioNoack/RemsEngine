@@ -46,8 +46,6 @@ class BImage(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: I
      * */
     val type = short("type")
 
-    var reference: FileReference = InvalidRef
-
     val packedFiles = inside("packedfiles") as BListBase<BImagePackedFile>
 
     /**

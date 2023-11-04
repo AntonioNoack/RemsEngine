@@ -23,16 +23,6 @@ class BInstantList<V : BlendData>(val size: Int, val instance: V?) : Iterable<V>
         }
     }
 
-    fun subList(startIndex: Int, endIndex: Int): BInstantList<V> {
-        if (startIndex < 0 || endIndex > size || startIndex > endIndex)
-            throw IndexOutOfBoundsException()
-        if (startIndex == 0 && endIndex == size) return this
-        if (instance == null) return this // kinda ok...
-        // set position to trick our constructor
-        instance.position = position0 + startIndex * typeSize
-        return BInstantList(endIndex - startIndex, instance)
-    }
-
     /**
      * Gets a temporary instance to that value at that index.
      * This instance becomes invalid, when get() is called on this list with a different index.

@@ -16,4 +16,8 @@ class MPoly(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     val loopSize get() = int(sizeOffset)
     val materialIndex get() = short(matOffset)
 
+    override fun toString(): String {
+        return "MPoly { $loopStart += $loopSize, mat: $materialIndex }"
+    }
+
 }

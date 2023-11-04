@@ -146,7 +146,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
         blockTable = BlockTable(this, blocks.toTypedArray(), indices)
     }
 
-    private val objectCache = HashMap<Long, BlendData?>()
+    private val objectCache = HashMap<String, HashMap<Long, BlendData?>>()
 
     // read all main instances
     val instances = HashMap<String, ArrayList<BlendData>>(64)
@@ -162,7 +162,6 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
                 if (blendFields.isNotEmpty() && blendFields.first().type.name == "ID") {
                     // maybe we should create multiple instances, if there are multiples
                     val name = struct.type.name
-                    // println("  $name")
                     for (i in 0 until block.count) {
                         val address = block.address + struct.type.size * i
                         val instance = getOrCreate(struct, struct.type.name, block, address)
@@ -204,7 +203,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
     }
 
     fun getOrCreate(struct: DNAStruct, clazz: String, block: Block, address: Long): BlendData? {
-        return objectCache.getOrPut(address) {
+        return objectCache.getOrPut(clazz) { HashMap() }.getOrPut(address) {
             create(struct, clazz, block, address)
         }
     }

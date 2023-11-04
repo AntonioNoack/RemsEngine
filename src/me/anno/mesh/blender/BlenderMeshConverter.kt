@@ -17,14 +17,6 @@ object BlenderMeshConverter {
 
     fun convertBMesh(src: BMesh): Prefab? {
 
-        if (false && LOGGER.isDebugEnabled) {
-            // todo find the assigned Armature modifier to extract the bone hierarchy, so we can sort the bones properly
-            //  (in case they are not; haven't found confirmation for them being in the correct order yet)
-            println("[BlenderMeshConverter] Converting Mesh")
-            println(src.vertexGroupNames) // = bone names
-            println(src.vertexGroups) // = bone indices and bone weights :3
-        }
-
         val vertices = src.vertices ?: return null // how can there be meshes without vertices?
         val positions = FloatArray(vertices.size * 3)
         val materials = src.materials ?: emptyArray()
@@ -86,11 +78,24 @@ object BlenderMeshConverter {
             }
         }
 
+        if (LOGGER.isDebugEnabled) {
+            LOGGER.debug(src.fData.layers)
+            LOGGER.debug(src.eData.layers)
+            LOGGER.debug(src.vData.layers)
+            LOGGER.debug(src.pData.layers)
+            LOGGER.debug(src.lData.layers)
+        }
+
+        val newUVs0 = src.lData.layers
+            .firstOrNull { it.data.firstOrNull() is MLoopUV }
+
+        // todo find normals for newer files; no[3] is extinct
+
         @Suppress("UNCHECKED_CAST")
-        val newUVs = src.lData.layers
-            ?.firstOrNull { it.name == "UVMap" }?.data as? BInstantList<MLoopUV>
+        val newUVs = newUVs0?.data as? BInstantList<MLoopUV>
 
         val uvs = src.loopUVs ?: newUVs ?: BInstantList.emptyList()
+        LOGGER.info("UVs: ${src.loopUVs} ?: ${src.lData.layers.map { it.name }} ?: empty")
 
         // todo vertex colors
         val hasUVs = uvs.any { it.u != 0f || it.v != 0f }
@@ -338,6 +343,7 @@ object BlenderMeshConverter {
         prefab["uvs"] = uvs2.toFloatArray()
         if (normals2 != null) {
             prefab["normals"] = normals2.toFloatArray()
+            LOGGER.debug("Normals: ${normals2.toFloatArray().joinToString()}")
         }
         if (boneWeights2 != null && boneIndices2 != null) {
             prefab["boneWeights"] = boneWeights2.toFloatArray()
@@ -420,6 +426,12 @@ object BlenderMeshConverter {
                 }
             }
         }
+        prefab["positions"] = positions
+        if (normals != null) {
+            prefab["normals"] = normals
+            LOGGER.debug("Normals: ${normals.joinToString()}")
+        }
+        prefab["indices"] = indices.toIntArray()
         if (boneWeights != null) {
             val vertexCount = positions.size / 3
             val boneIndices2 = ExpandingIntArray(vertexCount * 4)
@@ -435,8 +447,5 @@ object BlenderMeshConverter {
             prefab["boneWeights"] = boneWeights2.toFloatArray()
             prefab["boneIndices"] = boneIndices2.toIntArray()
         }
-        prefab["positions"] = positions
-        prefab["normals"] = normals
-        prefab["indices"] = indices.toIntArray()
     }
 }

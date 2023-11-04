@@ -192,7 +192,7 @@ open class BlendData(
             struct = file.structByName[className]!!
         }
         // don't get, because the ptr may be defined, and that would be ourselves, if offset = 0
-        return file.create(struct, className, block, address)
+        return file.getOrCreate(struct, className, block, address)
     }
 
     fun getStructArray(name: String): Array<BlendData?>? = getStructArray(dnaStruct.byName[name])
@@ -255,6 +255,7 @@ open class BlendData(
             val remainingSize = block.size - addressInBlock
             val length = min((remainingSize / typeSize).toInt(), maxSize)
 
+            // todo getOrCreate() isn't working... why?
             @Suppress("unchecked_cast")
             val instance = file.create(struct, className, block, address) as? V ?: return null
             return BInstantList(length, instance)

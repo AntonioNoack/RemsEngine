@@ -13,9 +13,9 @@ class BCustomDataLayer(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, p
     val active = int("active")
     val uid = int("uid")
     val name get() = string("name[64]", 64) ?: string("name[68]", 68) // newer versions have slightly more budget
-    val data = getInstantList<BlendData>("*data") // void
+    val data = getInstantList<BlendData>("*data") ?: BInstantList.emptyList()
 
     override fun toString(): String {
-        return "BCustomDataLayer { '$name', type: ${data?.instance?.javaClass?.name}, data: $data }"
+        return "BCustomDataLayer { '$name', type: ${data.instance?.javaClass?.name}, data: ${data.size}x, sample: ${data.firstOrNull()} }"
     }
 }

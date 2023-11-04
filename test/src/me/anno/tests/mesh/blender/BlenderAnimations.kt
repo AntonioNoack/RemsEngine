@@ -19,12 +19,13 @@ fun main() {
     //  - armature
     //  - bones
     //  - vertex weights
-    // todo bones or their animations aren't correct yet
 
     LogManager.logAll()
-    LogManager.disableLogger("BlenderMaterialConverter")
+    // LogManager.disableLogger("BlenderMaterialConverter")
+    // LogManager.disableLogger("BlenderReader")
 
-    val source = documents.getChild("Blender/AnimTest.blend")
+    // todo textures aren't loading properly for AnimTest2
+    val source = documents.getChild("Blender/AnimTest2.blend")
     BlenderReader.readAsFolder(source) { folder, exc ->
         if (folder != null) {
             testSceneWithUI("Blender Animations", folder.getChild("Scene.json")) {
