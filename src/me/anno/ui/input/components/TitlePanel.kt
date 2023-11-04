@@ -4,25 +4,15 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel
 
+/**
+ * TextPanel that redirects copy/paste operations to its controlling panel.
+ * Copy is most important here.
+ * */
 class TitlePanel(title: String, var owner: Panel, style: Style) : TextPanel(title, style) {
-
-    override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        owner.onMouseMoved(x, y, dx, dy)
-    }
-
-    override fun onPaste(x: Float, y: Float, data: String, type: String) {
-        owner.onPaste(x, y, data, type)
-    }
-
-    override fun onEmpty(x: Float, y: Float) {
-        owner.onEmpty(x, y)
-    }
 
     override fun onCopyRequested(x: Float, y: Float): Any? {
         return owner.onCopyRequested(x, y)
     }
 
-    override fun onEnterKey(x: Float, y: Float) {
-        return owner.onEnterKey(x, y)
-    }
+    override val className: String get() = "TitlePanel"
 }

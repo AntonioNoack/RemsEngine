@@ -302,7 +302,7 @@ enum class Key(val id: Int) {
     ;
 
     fun isClickKey() = when (this) {
-        KEY_ENTER, KEY_KP_ENTER, KEY_ARROW_UP, KEY_ARROW_DOWN -> true
+        KEY_ENTER, KEY_KP_ENTER -> true
         else -> false
     }
 

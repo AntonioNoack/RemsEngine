@@ -65,7 +65,7 @@ open class PureTextInputML(style: Style) :
                 field = value
                 val children = actualChildren
                 for (i in children.indices) {
-                    (children[i] as? CorrectingTextInput ?: continue).enableSpellcheck = value
+                    (children[i] as? CorrectingTextPanel ?: continue).enableSpellcheck = value
                 }
             }
         }
@@ -182,7 +182,7 @@ open class PureTextInputML(style: Style) :
         }
         val content = content as PanelList
         while (lines.size > children.size) {// add new TextInput panels
-            val panel = object : CorrectingTextInput(style) {
+            val panel = object : CorrectingTextPanel(style) {
 
                 override val className: String get() = "PureTextInputML/CorrectingTextInput"
 

@@ -169,7 +169,7 @@ Some tests, starting the whole engine, like a small game:
 Some feature tests:
 
 - [Math: SDFTest.kt](test/src/me/anno/tests/collider/SDFColliderTest.kt)
-- [Internal: Hierarchy.kt](test/src/me/anno/tests/engine/Hierarchy.kt)
+- [Internal: Hierarchy.kt](test/src/me/anno/tests/engine/prefab/Hierarchy.kt)
 - [GFX: MarchingSquares.kt](test/src/me/anno/tests/geometry/MarchingSquares.kt)
 - [GFX: Reduction.kt](test/src/me/anno/tests/shader/Reduction.kt)
 - [GFX: FSR.kt](src/me/anno/ecs/components/shaders/effects/FSR.kt)
@@ -178,7 +178,7 @@ Some feature tests:
 - [UI: AnimTest.kt](test/src/me/anno/tests/ui/AnimTest.kt)
 - [Snake Game](test/src/me/anno/tests/game/Snake.kt), [Running Web Demo](https://remsengine.phychi.com/jvm2wasm/snake/)
 
-You can find most examples in the "tests" folder. In total, there are more than 200 handwritten tests for you to see how
+You can find most examples in the "tests" folder. In total, there are more than 400 handwritten tests for you to see how
 the engine works :).
 
 ## Ports

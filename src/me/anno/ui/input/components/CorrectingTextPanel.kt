@@ -13,7 +13,7 @@ import me.anno.utils.Color.black
 import me.anno.utils.types.Strings.joinChars
 import kotlin.streams.toList
 
-abstract class CorrectingTextInput(style: Style) : TextPanel("", style) {
+abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
 
     var drawingOffset = 0
     var allowFirstLowercase = true

@@ -73,7 +73,9 @@ open class SettingCategory(
     }
 
     override fun onKeyTyped(x: Float, y: Float, key: Key) {
-        if (key.isClickKey()) toggle()
+        if (key.isClickKey() && (isInFocus || titlePanel.isInFocus)) {
+            toggle()
+        } else super.onKeyTyped(x, y, key)
     }
 
     override fun acceptsChar(char: Int) = Key.byId(char).isClickKey() // not ideal...

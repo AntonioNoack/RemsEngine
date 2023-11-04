@@ -12,12 +12,12 @@ fun main() {
     ECSRegistry.initPrefabs()
     ECSRegistry.initMeshes()
 
+    // load and display animated Blender files correctly:
     // done:
-    //  - load and display animated Blender files correctly:
-    //    - pose
-    //    - armature
-    //    - bones
-    //    - vertex weights
+    //  - pose
+    //  - armature
+    //  - bones
+    //  - vertex weights
 
     LogManager.logAll()
     val source = documents.getChild("Blender/AnimTest2.blend")
