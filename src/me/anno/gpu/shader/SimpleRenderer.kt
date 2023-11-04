@@ -16,5 +16,5 @@ open class SimpleRenderer(
     constructor(name: String, postProcessingImpl: List<ShaderStage>) :
             this(name, null, postProcessingImpl)
 
-    override fun getPostProcessing(flags: Int): List<ShaderStage> = postProcessingImpl
+    override fun getPixelPostProcessing(flags: Int): List<ShaderStage> = postProcessingImpl
 }

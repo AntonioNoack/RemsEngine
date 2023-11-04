@@ -22,6 +22,8 @@ class BBone(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     val tail = floats("tail[3]", 3)
     val boneMat = floats("bone_mat[3][3]", 9)
 
+    val restPose = floats("arm_mat[4][4]", 16)
+
     /*
     *  *next: Bone, *prev: Bone, *prop: IDProperty, *parent: Bone, childbase: ListBase,
     * name[64]: char, roll: float, head[3]: float, tail[3]: float, bone_mat[3][3]: float, flag: int,

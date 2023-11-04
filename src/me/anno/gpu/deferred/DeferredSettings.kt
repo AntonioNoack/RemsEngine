@@ -159,13 +159,15 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         fragmentVariables: List<Variable>,
         fragmentShader: String,
         textures: List<String>?,
-        postProcessing: List<ShaderStage>
+        vertexPostProcessing: List<ShaderStage>,
+        pixelPostProcessing: List<ShaderStage>
     ): Shader {
         val vertex = if (instanced) "#define INSTANCED;\n$vertexShader" else vertexShader
         val builder = ShaderBuilder(shaderName, this)
         builder.addVertex(ShaderStage("def-vs", vertexVariables + varyings, vertex))
+        builder.addVertex(vertexPostProcessing)
         builder.addFragment(ShaderStage("def-fs", fragmentVariables + varyings, fragmentShader))
-        builder.addFragment(postProcessing)
+        builder.addFragment(pixelPostProcessing)
         val shader = builder.create(null)
         shader.setTextureIndices(textures)
         return shader

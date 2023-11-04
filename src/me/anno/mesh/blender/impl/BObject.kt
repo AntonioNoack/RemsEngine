@@ -18,6 +18,8 @@ class BObject(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: 
     val finalWSMatrix get() = mat4x4("obmat[4][4]")
 
     val data get() = getPointer("*data") // type specific
+    val pose get() = getPointer("*pose") as? BPose // current pose set in armature
+    val action get() = getPointer("*action") as? BAction // currently set action (=currently playing animation)
 
     val modifiers = inside("modifiers") as BListBase<*>
 

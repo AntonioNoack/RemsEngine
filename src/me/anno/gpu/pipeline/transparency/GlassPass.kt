@@ -49,8 +49,8 @@ class GlassPass : TransparentPass() {
                 listOf(DeferredLayerType.COLOR, DeferredLayerType.EMISSIVE)
             )
         ) {
-            override fun getPostProcessing(flags: Int): List<ShaderStage> {
-                val vars = pbrRenderer.getPostProcessing(flags).first().variables.filter { !it.isOutput }
+            override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
+                val vars = pbrRenderer.getPixelPostProcessing(flags).first().variables.filter { !it.isOutput }
                 return listOf(
                     ShaderStage(
                         "glass",

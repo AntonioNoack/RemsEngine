@@ -20,9 +20,6 @@ import org.apache.logging.log4j.LogManager
  * */
 fun main() {
 
-    // todo drag things into Type/SameSceneRef
-    //  - drag ECS nodes in general...
-
     val scene = Entity("Scene")
 
     // this mesh, including animation is from Mixamo
@@ -36,7 +33,7 @@ fun main() {
     )
 
     // find first AnimRenderer, so we can attach the calculation there
-    val renderer = character.getComponentInChildren(AnimRenderer::class, false)!!
+    val renderer = character.getComponentInChildren(AnimRenderer::class)!!
 
     val prop = Entity("Phone", scene)
     prop.add(Entity(MeshComponent(flatCube.front, Material.diffuse(black))).apply {

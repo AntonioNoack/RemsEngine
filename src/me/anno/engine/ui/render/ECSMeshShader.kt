@@ -324,14 +324,17 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
     }
 
-    open fun createBase(flags: Int, postProcessing: List<ShaderStage>): ShaderBuilder {
+    open fun createBase(
+        flags: Int,
+        vertexPostProcessing: List<ShaderStage>,
+        pixelPostProcessing: List<ShaderStage>
+    ): ShaderBuilder {
         val builder = createBuilder()
-        builder.addVertex(
-            createVertexStages(flags)
-        )
+        builder.addVertex(createVertexStages(flags))
         builder.addVertex(createRandomIdStage())
+        builder.addVertex(vertexPostProcessing)
         builder.addFragment(createFragmentStages(flags))
-        builder.addFragment(postProcessing)
+        builder.addFragment(pixelPostProcessing)
         return builder
     }
 
@@ -599,8 +602,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return shader
     }
 
-    override fun createForwardShader(flags: Int, postProcessing: List<ShaderStage>): Shader {
-        val shader = createBase(flags, postProcessing).create("fwd$flags")
+    override fun createForwardShader(
+        flags: Int,
+        vertexPostProcessing: List<ShaderStage>,
+        pixelPostProcessing: List<ShaderStage>
+    ): Shader {
+        val shader = createBase(flags, vertexPostProcessing, pixelPostProcessing)
+            .create("fwd$flags")
         finish(shader)
         return shader
     }
@@ -608,9 +616,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     override fun createDeferredShader(
         deferred: DeferredSettings,
         flags: Int,
-        postProcessing: List<ShaderStage>
+        vertexPostProcessing: List<ShaderStage>,
+        pixelPostProcessing: List<ShaderStage>
     ): Shader {
-        val base = createBase(flags, postProcessing)
+        val base = createBase(flags, vertexPostProcessing, pixelPostProcessing)
         base.outputs = deferred
         // build & finish
         val shader = base.create("def$flags")

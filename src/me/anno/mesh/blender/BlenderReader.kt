@@ -1,5 +1,6 @@
 package me.anno.mesh.blender
 
+import me.anno.ecs.components.anim.Bone
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
@@ -7,15 +8,14 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCallback
+import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.sq
 import me.anno.mesh.blender.BlenderMeshConverter.convertBMesh
 import me.anno.mesh.blender.impl.*
 import me.anno.utils.Clock
+import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
-import org.joml.Matrix4f
-import org.joml.Quaterniond
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 import java.nio.ByteBuffer
 import kotlin.math.PI
 import kotlin.math.max
@@ -174,6 +174,41 @@ object BlenderReader {
         }
     }
 
+    fun createSkeleton(armature: BArmature): Prefab {
+        val prefab = Prefab("Skeleton")
+        val blenderBones = ArrayList<BBone>()
+        val boneToIndex = HashMap<BBone, Int>()
+        fun index(bone: BBone) {
+            blenderBones.add(bone)
+            boneToIndex[bone] = boneToIndex.size
+            for (child in bone.children) {
+                index(child)
+            }
+        }
+        for (bone in armature.bones) {
+            index(bone)
+        }
+        if (blenderBones.size > 256) {
+            LOGGER.warn("Cannot handle more than 256 bones")
+        }
+        prefab["bones"] = blenderBones.mapIndexed { index, bone ->
+            val parentIndex = boneToIndex[bone.parent] ?: -1
+            val newBone = Bone(index, parentIndex, bone.name!!)
+            val data = bone.restPose // todo is this the bind pose? (probably not)
+            newBone.setBindPose(
+                newBone.bindPose.set(
+                    // this looks to be correct :)
+                    data[0], data[1], data[2],
+                    data[4], data[5], data[6],
+                    data[8], data[9], data[10],
+                    data[12], data[13], data[14]
+                )
+            )
+            newBone
+        }
+        return prefab
+    }
+
     fun createObject(prefab: Prefab, obj: BObject, path: Path, isRoot: Boolean) {
         if (path != Path.ROOT_PATH) {
             prefab.add(
@@ -205,8 +240,24 @@ object BlenderReader {
             }
             BObject.BObjectType.OB_MESH -> {
                 // add mesh component
-                val c = prefab.add(path, 'c', "MeshComponent", obj.id.realName)
-                prefab.setUnsafe(c, "meshFile", (obj.data as BMesh).fileRef)
+                val armatureObject = obj.modifiers
+                    .firstInstanceOrNull<BArmatureModifierData>()
+                    ?.armatureObject
+                val armatureModifier = armatureObject?.data as? BArmature
+                // todo find all animations
+                if (armatureModifier != null) {
+                    val skeleton = createSkeleton(armatureModifier)
+                    val c = prefab.add(path, 'c', "AnimRenderer", obj.id.realName)
+                    // todo create proper location for skeleton
+                    prefab[c, "meshFile"] = (obj.data as BMesh).fileRef
+                    prefab[c, "skeleton"] = InnerTmpFile.InnerTmpPrefabFile(skeleton)
+                    LOGGER.debug("Armature Pose: {}", armatureObject.pose)
+                    LOGGER.debug("Armature Action: {}", armatureObject.action)
+                    LOGGER.debug("Object Action: {}", obj.action)
+                } else {
+                    val c = prefab.add(path, 'c', "MeshComponent", obj.id.realName)
+                    prefab[c, "meshFile"] = (obj.data as BMesh).fileRef
+                }
                 LOGGER.debug("Modifiers for mesh {}/{}: {}", obj.id.realName, path.nameId, obj.modifiers)
                 // materials would be nice... but somehow they are always null
             }
@@ -294,7 +345,6 @@ object BlenderReader {
                 LOGGER.debug("Found armature, {}", armature)
                 LOGGER.debug(armature.bones)
             }
-            // todo armatures...
             // todo volumes?
             // todo curves?
             else -> {

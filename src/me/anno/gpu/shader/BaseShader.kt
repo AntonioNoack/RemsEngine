@@ -68,7 +68,8 @@ open class BaseShader(
     /** shader for forward rendering */
     open fun createForwardShader(
         flags: Int,
-        postProcessing: List<ShaderStage>,
+        vertexPostProcessing: List<ShaderStage>,
+        pixelPostProcessing: List<ShaderStage>,
     ): Shader {
 
         var extraStage: ShaderStage? = null
@@ -105,15 +106,15 @@ open class BaseShader(
         }
 
         builder.addVertex(vs)
+        builder.addVertex(vertexPostProcessing)
         builder.addFragment(fs)
         builder.addFragment(extraStage)
-        builder.addFragment(postProcessing)
+        builder.addFragment(pixelPostProcessing)
         // builder.addFragment(ColorAlphaStage.createShaderStage())
 
         val shader = builder.create("fwd$flags")
         finish(shader, 330)
         return shader
-
     }
 
     val value: Shader
@@ -128,13 +129,16 @@ open class BaseShader(
                 depthShader[if (limited) 4 else stateId and 3].value
             } else when (val deferred = renderer.deferredSettings) {
                 null -> {
-                    flatShader.getOrPut(renderer, stateId) { r, stateId2 ->
+                    flatShader.getOrPut(renderer, stateId) { renderer2, stateId2 ->
                         val flags = stateId2.hasFlag(1).toInt(IS_INSTANCED) +
                                 stateId2.hasFlag(2).toInt(IS_ANIMATED) +
                                 stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
                                 stateId2.hasFlag(8).toInt(USES_PRS_TRANSFORM) +
                                 NEEDS_COLORS
-                        createForwardShader(flags, r.getPostProcessing(flags))
+                        createForwardShader(flags,
+                            renderer2.getVertexPostProcessing(flags),
+                            renderer2.getPixelPostProcessing(flags)
+                        )
                     }
                 }
                 else -> createDeferredShaderById(deferred, stateId, renderer)
@@ -173,7 +177,8 @@ open class BaseShader(
     open fun createDeferredShader(
         deferred: DeferredSettings,
         flags: Int,
-        postProcessing: List<ShaderStage>,
+        vertexPostProcessing: List<ShaderStage>,
+        pixelPostProcessing: List<ShaderStage>,
     ): Shader {
         val shader = deferred.createShader(
             name,
@@ -184,7 +189,8 @@ open class BaseShader(
             fragmentVariables,
             fragmentShader,
             textures,
-            postProcessing
+            vertexPostProcessing,
+            pixelPostProcessing
         )
         finish(shader)
         return shader
@@ -210,8 +216,11 @@ open class BaseShader(
                     stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
                     stateId2.hasFlag(8).toInt(USES_PRS_TRANSFORM) +
                     NEEDS_COLORS + IS_DEFERRED
-            val postProcessing = renderer.getPostProcessing(flags)
-            createDeferredShader(settings2, flags, postProcessing)
+            createDeferredShader(
+                settings2, flags,
+                renderer.getVertexPostProcessing(flags),
+                renderer.getPixelPostProcessing(flags)
+            )
         }
     }
 
@@ -261,5 +270,4 @@ open class BaseShader(
                         renderer.deferredSettings != null && DeferredLayerType.MOTION in renderer.deferredSettings.layerTypes)
             }
     }
-
 }

@@ -20,7 +20,8 @@ import me.anno.utils.files.UVChecker
  * */
 open class Renderer(val name: String, val deferredSettings: DeferredSettings? = null) {
 
-    open fun getPostProcessing(flags: Int): List<ShaderStage> = emptyList()
+    open fun getVertexPostProcessing(flags: Int): List<ShaderStage> = emptyList()
+    open fun getPixelPostProcessing(flags: Int): List<ShaderStage> = emptyList()
 
     open fun uploadDefaultUniforms(shader: Shader) {}
 
@@ -29,10 +30,9 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings? = 
         return cache!!.getOrPut(index.shl(16) + spliceSize) {
             val settings = deferredSettings.split(index, spliceSize)
             object : Renderer("$name/$index/$spliceSize", settings) {
-                override fun getPostProcessing(flags: Int) = this@Renderer.getPostProcessing(flags)
-                override fun uploadDefaultUniforms(shader: Shader) {
-                    this@Renderer.uploadDefaultUniforms(shader)
-                }
+                override fun getVertexPostProcessing(flags: Int) = this@Renderer.getVertexPostProcessing(flags)
+                override fun getPixelPostProcessing(flags: Int) = this@Renderer.getPixelPostProcessing(flags)
+                override fun uploadDefaultUniforms(shader: Shader) = this@Renderer.uploadDefaultUniforms(shader)
             }
         }
     }

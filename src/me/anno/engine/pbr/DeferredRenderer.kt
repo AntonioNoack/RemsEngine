@@ -34,5 +34,5 @@ object DeferredRenderer : SimpleRenderer(
             // total: 14
         ) + (if (GFX.supportsDepthTextures) emptyList() else listOf(DeferredLayerType.DEPTH))
     ),
-    colorRenderer.getPostProcessing(0)
+    colorRenderer.getPixelPostProcessing(0)
 )

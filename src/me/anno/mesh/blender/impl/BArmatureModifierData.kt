@@ -14,9 +14,9 @@ class BArmatureModifierData(file: BlenderFile, type: DNAStruct, buffer: ByteBuff
     * { modifier: ModifierData, deformflag: short, multi: short, _pad2[4]: char, *object: Object, (*vert_coords_prev)(): float, defgrp_name[64]: char }
     * */
 
-    val object1 = getPointer("*object")
+    val armatureObject = getPointer("*object") as? BObject
 
     override fun toString(): String {
-        return "ArmatureModifierData { $object1 }"
+        return "ArmatureModifierData { $armatureObject }"
     }
 }

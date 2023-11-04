@@ -16,9 +16,12 @@ fun main() {
     //  - pose
     //  - armature
     //  - bones
+    // done:
     //  - vertex weights
 
     LogManager.logAll()
+    LogManager.disableLogger("BlenderMaterialConverter")
+
     val source = documents.getChild("Blender/AnimTest.blend")
     BlenderReader.readAsFolder(source) { folder, exc ->
         if (folder != null) {

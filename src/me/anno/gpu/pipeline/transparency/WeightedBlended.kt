@@ -90,8 +90,8 @@ class WeightedBlended : TransparentPass() {
         }
 
         object Renderer0 : Renderer(name0, l01) {
-            override fun getPostProcessing(flags: Int): List<ShaderStage> {
-                val vars = Renderers.pbrRenderer.getPostProcessing(flags).first().variables.filter { !it.isOutput } +
+            override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
+                val vars = Renderers.pbrRenderer.getPixelPostProcessing(flags).first().variables.filter { !it.isOutput } +
                         listOf(
                             Variable(GLSLType.V4F, "result0", VariableMode.OUT),
                             Variable(GLSLType.V4F, "result1", VariableMode.OUT),
@@ -112,8 +112,8 @@ class WeightedBlended : TransparentPass() {
         }
 
         object Renderer1 : Renderer(name1, l01) {
-            override fun getPostProcessing(flags: Int): List<ShaderStage> {
-                val vars = Renderers.pbrRenderer.getPostProcessing(flags).first().variables.filter { !it.isOutput } +
+            override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
+                val vars = Renderers.pbrRenderer.getPixelPostProcessing(flags).first().variables.filter { !it.isOutput } +
                         listOf(
                             Variable(GLSLType.V4F, "result0", VariableMode.OUT),
                             Variable(GLSLType.V4F, "result1", VariableMode.OUT),

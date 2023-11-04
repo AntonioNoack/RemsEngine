@@ -4,6 +4,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.fonts.mesh.Triangulation
 import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
+import me.anno.maths.Maths.max
 import me.anno.mesh.blender.impl.*
 import me.anno.utils.structures.arrays.ExpandingByteArray
 import me.anno.utils.structures.arrays.ExpandingFloatArray
@@ -118,24 +119,69 @@ object BlenderMeshConverter {
 
         val boneWeights = src.vertexGroups
         val materialIndices = if (materials.size > 1) IntArray(triCount) else null
-        if (hasUVs || boneWeights != null) {// non-indexed, because we don't support separate uv and position indices
+        if (hasUVs) {// non-indexed, because we don't support separate uv and position indices
             joinPositionsAndUVs(
                 triCount * 3,
                 positions, normals,
                 polygons, loopData, uvs,
-                boneWeights,
-                materialIndices, prefab
+                boneWeights, materialIndices, prefab
             )
         } else {
             collectIndices(
                 positions, normals,
                 polygons, loopData,
-                materialIndices, prefab
+                boneWeights, materialIndices, prefab
             )
         }
         if (materialIndices != null) prefab["materialIds"] = materialIndices
         prefab.sealFromModifications()
         return prefab
+    }
+
+    fun addBoneWeight(gi: Byte, gw: Float, bestBones: ByteArray, bestWeights: FloatArray) {
+        for (i in 0 until 4) {
+            if (gw > bestWeights[i]) {
+                // move all other weights back
+                for (j in 3 downTo i + 1) {
+                    bestWeights[j] = bestWeights[j - 1]
+                    bestBones[j] = bestBones[j - 1]
+                }
+                bestBones[i] = gi
+                bestWeights[i] = gw
+                return
+            }
+        }
+    }
+
+    fun addBoneWeights(
+        boneWeights: BInstantList<MDeformVert>, vi: Int,
+        bestBones: ByteArray, bestWeights: FloatArray
+    ) {
+        for (w in boneWeights[vi].weights) {
+            val gi = w.vertexGroupIndex
+            if (gi >= 256) continue // not supported
+            val gw = w.weight
+            addBoneWeight(gi.toByte(), gw, bestBones, bestWeights)
+        }
+    }
+
+    fun fillInBones(
+        boneWeights: BInstantList<MDeformVert>, vi: Int,
+        bestBones: ByteArray, bestWeights: FloatArray,
+        boneIndices2: ExpandingByteArray,
+        boneWeights2: ExpandingFloatArray
+    ) {
+        addBoneWeights(boneWeights, vi, bestBones, bestWeights)
+
+        // then assign their weights
+        val weightSum = 1f / max(1e-38f, (bestWeights[0] + bestWeights[1]) + (bestWeights[2] + bestWeights[3]))
+        for (i in 0 until 4) {
+            boneIndices2.addUnsafe(bestBones[i])
+            boneWeights2.addUnsafe(bestWeights[i] * weightSum)
+        }
+
+        bestWeights.fill(0f)
+        bestBones.fill(0)
     }
 
     fun joinPositionsAndUVs(
@@ -159,7 +205,8 @@ object BlenderMeshConverter {
         var uvIndex = 0
         var matIndex = 0
 
-        val weightSums = HashMap<Int, Float>()
+        val bestBones = ByteArray(4)
+        val bestWeights = FloatArray(4)
         val numUvs = uvs.size
 
         fun addTriangle(
@@ -186,7 +233,6 @@ object BlenderMeshConverter {
             // uvs
             if (uv0 < numUvs && uv1 < numUvs && uv2 < numUvs) {
                 val uv0x = uvs[uv0]
-                println("pushing $uv0 -> ${uv0x.u},${uv0x.v}")
                 uvs2.addUnsafe(uv0x.u)
                 uvs2.addUnsafe(uv0x.v)
                 val uv1x = uvs[uv1]
@@ -204,38 +250,10 @@ object BlenderMeshConverter {
                 boneWeights2 != null &&
                 boneIndices2 != null
             ) {
-
-                for (vi in listOf(v0, v1, v2)) {
-                    for (w in boneWeights[vi].weights) {
-                        if (w.vertexGroupIndex < 256) {
-                            weightSums[w.vertexGroupIndex] =
-                                (weightSums[w.vertexGroupIndex] ?: 0f) + w.weight
-                        }
-                    }
-                }
-
-                // find most important 4 indices
-                val bestIndices = weightSums.entries
-                    .sortedBy { it.value }
-                    .run {
-                        IntArray(4) {
-                            this.getOrNull(it)?.key ?: -1
-                        }
-                    }
-
                 boneIndices2.ensureExtra(4 * 3)
-                // then assign their weights
-                for (vi in listOf(v0, v1, v2)) {
-                    for (idx in bestIndices) {
-                        val weight = boneWeights[vi]
-                            .weights.firstOrNull { it.vertexGroupIndex == idx }
-                            ?.weight ?: 0f
-                        boneIndices2.addUnsafe(idx.toByte())
-                        boneWeights2.addUnsafe(weight)
-                    }
-                }
-
-                weightSums.clear()
+                fillInBones(boneWeights, v0, bestBones, bestWeights, boneIndices2, boneWeights2)
+                fillInBones(boneWeights, v1, bestBones, bestWeights, boneIndices2, boneWeights2)
+                fillInBones(boneWeights, v2, bestBones, bestWeights, boneIndices2, boneWeights2)
             }
         }
 
@@ -340,6 +358,7 @@ object BlenderMeshConverter {
         normals: FloatArray?,
         polygons: BInstantList<MPoly>,
         loopData: BInstantList<MLoop>,
+        boneWeights: BInstantList<MDeformVert>?,
         materialIndices: IntArray?,
         prefab: Prefab
     ) {
@@ -407,6 +426,21 @@ object BlenderMeshConverter {
                     }
                 }
             }
+        }
+        if (boneWeights != null) {
+            val vertexCount = positions.size / 3
+            val boneIndices2 = ExpandingByteArray(vertexCount * 4)
+            val boneWeights2 = ExpandingFloatArray(vertexCount * 4)
+            val bestBones = ByteArray(4)
+            val bestWeights = FloatArray(4)
+            for (i in 0 until vertexCount) {
+                fillInBones(
+                    boneWeights, i, bestBones, bestWeights,
+                    boneIndices2, boneWeights2
+                )
+            }
+            prefab["boneWeights"] = boneWeights2.toFloatArray()
+            prefab["boneIndices"] = boneIndices2.toByteArray()
         }
         prefab["positions"] = positions
         prefab["normals"] = normals
