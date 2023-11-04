@@ -8,13 +8,20 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.types.InputStreams.readNBytes2
+import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 
 class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 4, 0) {
 
+    companion object {
+        private val LOGGER = LogManager.getLogger(ARGBFrame::class)
+    }
+
     private val rgba = Texture2D("rgba", w, h, 1)
 
     override fun load(input: InputStream) {
+        if (isDestroyed) return
+
         val s0 = width * height * 4
         val data = input.readNBytes2(s0, Texture2D.bufferPool)
 
@@ -36,7 +43,9 @@ class ARGBFrame(w: Int, h: Int) : GPUFrame(w, h, 4, 0) {
         blankDetector.putRGBA(data)
         acquire(true, creationLimiter)
         GFX.addGPUTask("RGBA", width, height) {
-            rgba.createRGBA(data, true)
+            if (!isDestroyed && !rgba.isDestroyed) {
+                rgba.createRGBA(data, true)
+            } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }
     }

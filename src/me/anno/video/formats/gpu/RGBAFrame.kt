@@ -3,11 +3,18 @@ package me.anno.video.formats.gpu
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
+import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
 
 class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
+    companion object {
+        private val LOGGER = LogManager.getLogger(RGBAFrame::class)
+    }
+
     override fun load(input: InputStream) {
+        if (isDestroyed) return
+
         val s0 = width * height
         val data = Texture2D.bufferPool[s0 * 4, false, false]
         data.position(0)
@@ -31,7 +38,9 @@ class RGBAFrame(w: Int, h: Int) : RGBFrame(w, h) {
         data.flip()
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("RGBA", width, height) {
-            rgb.createRGBA(data, true)
+            if (!isDestroyed && !rgb.isDestroyed) {
+                rgb.createRGBA(data, true)
+            } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }
     }

@@ -1,12 +1,13 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.ShaderLib.shader3DYUV
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.shader2DYUV
+import me.anno.gpu.shader.ShaderLib.shader3DYUV
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.utils.LOGGER
 import me.anno.utils.Sleep
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
@@ -18,14 +19,19 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
     private val uv = Texture2D("i444-uv-frame", width, height, 1)
 
     override fun load(input: InputStream) {
+        if (isDestroyed) return
+
         val s0 = width * height
         val yData = input.readNBytes2(s0, Texture2D.bufferPool)
         blankDetector.putChannel(yData, 0)
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("I444-Y", width, height) {
-            y.createMonochrome(yData, true)
+            if (!isDestroyed && !y.isDestroyed) {
+                y.createMonochrome(yData, true)
+            } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }
+
         val uData = input.readNBytes2(s0, Texture2D.bufferPool)
         blankDetector.putChannel(uData, 1)
         val vData = input.readNBytes2(s0, Texture2D.bufferPool)
@@ -35,7 +41,9 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
         // create the uv texture
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("I444-UV", width, height) {
-            uv.createRG(interlaced, true)
+            if (!isDestroyed && !uv.isDestroyed) {
+                uv.createRG(interlaced, true)
+            } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }
     }

@@ -7,14 +7,21 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
+import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.InputStream
 
 open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, 3, -1) {
 
+    companion object {
+        private val LOGGER = LogManager.getLogger(RGBFrame::class)
+    }
+
     val rgb = Texture2D("rgb-frame", w, h, 1)
 
     override fun load(input: InputStream) {
+        if (isDestroyed) return
+
         val s0 = width * height
         val data = Texture2D.bufferPool[s0 * 4, false, false]
         data.position(0)
@@ -35,7 +42,9 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, 3, -1) {
         blankDetector.putRGBA(data)
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("RGB", width, height) {
-            rgb.createRGB(data, true)
+            if (!isDestroyed && !rgb.isDestroyed) {
+                rgb.createRGB(data, true)
+            } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }
     }
@@ -47,5 +56,4 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, 3, -1) {
     override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
         rgb.bind(offset, nearestFiltering, clamping)
     }
-
 }

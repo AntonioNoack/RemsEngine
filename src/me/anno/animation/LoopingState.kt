@@ -39,6 +39,7 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
         }
 
         override fun get(time: Long, duration: Long): Long {
+            if (duration == 0L) return 0L
             val t = time % duration
             return if (t < 0) t + duration else t
         }
@@ -103,5 +104,4 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
         @JvmStatic
         fun getState(id: Int) = values().firstOrNull { it.id == id } ?: PLAY_ONCE
     }
-
 }

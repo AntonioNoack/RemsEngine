@@ -9,9 +9,14 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.utils.Sleep
 import me.anno.utils.types.InputStreams.readNBytes2
+import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 
 class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(I420Frame::class)
+    }
 
     // this is correct, confirmed by example
     private val w2 get() = (width + 1) / 2
@@ -21,6 +26,8 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
     private val uv = Texture2D("i420-uv-frame", w2, h2, 1)
 
     override fun load(input: InputStream) {
+        if (isDestroyed) return
+
         val s0 = width * height
         val s1 = w2 * h2
         // load and create y plane
@@ -28,7 +35,9 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
         blankDetector.putChannel(yData, 0)
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("I420-Y", width, height) {
-            y.createMonochrome(yData, true)
+            if (!isDestroyed && !y.isDestroyed) {
+                y.createMonochrome(yData, true)
+            } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }
         // merge and create u/v planes
@@ -41,7 +50,9 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
         // create the uv texture
         Sleep.acquire(true, creationLimiter)
         GFX.addGPUTask("I420-UV", w2, h2) {
-            uv.createRG(interlaced, true)
+            if (!isDestroyed && !uv.isDestroyed) {
+                uv.createRG(interlaced, true)
+            } else LOGGER.warn(frameAlreadyDestroyed)
             creationLimiter.release()
         }
     }
