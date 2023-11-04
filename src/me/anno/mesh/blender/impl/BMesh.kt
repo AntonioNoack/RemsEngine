@@ -6,6 +6,9 @@ import me.anno.mesh.blender.BlenderFile
 import me.anno.mesh.blender.DNAStruct
 import java.nio.ByteBuffer
 
+/**
+ * https://github.com/blender/blender/blob/master/source/blender/makesdna/DNA_mesh_types.h#L52
+ * */
 @Suppress("SpellCheckingInspection", "unused", "UNCHECKED_CAST")
 class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {

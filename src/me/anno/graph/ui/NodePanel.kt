@@ -340,9 +340,9 @@ class NodePanel(
         val dragged = (gp as? GraphEditor)?.dragged
         val canConnect = dragged == null || gp.graph?.canConnectTo(dragged, con) ?: true
         val radius2 = if (canConnect) mapClamped(
-            length(px - mouseX, py - mouseY),
             0.9f * radius, 1.3f * radius,
-            radius * 1.2f, radius
+            radius * 1.2f, radius,
+            length(px - mouseX, py - mouseY)
         ) else radius
         val innerRadius = if (con.others.isEmpty()) min(0.8f, (radius - 2f) / radius) else 0f
         val bg = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff

@@ -339,10 +339,15 @@ object Maths {
     }
 
     @JvmStatic
-    fun mapClamped(input: Float, inputMin: Float, inputMax: Float, outputMin: Float, outputMax: Float): Float {
-        val f0 = unmix(inputMin, inputMax, input)
+    fun mapClamped(aIn: Float, bIn: Float, aOut: Float, bOut: Float, f: Float): Float {
+        val f0 = unmix(aIn, bIn, f)
         val f1 = clamp(f0, 0f, 1f)
-        return mix(outputMin, outputMax, f1)
+        return mix(aOut, bOut, f1)
+    }
+
+    @JvmStatic
+    fun map(aIn: Float, bIn: Float, aOut: Float, bOut: Float, f: Float): Float {
+        return mix(aOut, bOut, unmix(aIn, bIn, f))
     }
 
     @JvmStatic

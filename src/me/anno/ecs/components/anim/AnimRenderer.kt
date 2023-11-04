@@ -6,24 +6,33 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.raycast.RaycastSkeletal
+import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
+import me.anno.ui.editor.sceneView.Gizmos
 import org.joml.Matrix4x3f
 import org.joml.Vector4f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Renders a skeletal animation
+ * */
 open class AnimRenderer : MeshComponent() {
 
     // todo in debug mode, we could render the skeleton as well/instead :)
@@ -324,6 +333,25 @@ open class AnimRenderer : MeshComponent() {
             query.result.mesh = mesh
             true
         } else false
+    }
+
+    override fun onDrawGUI(all: Boolean) {
+        super.onDrawGUI(all)
+        if (all) {
+            // draw animated skeleton as debug mesh
+            val skeleton = SkeletonCache[skeleton] ?: return
+            val matrices = getMatrices() ?: return
+            Thumbs.buildAnimatedSkeleton(skeleton, matrices) { mesh ->
+                useFrame(simpleNormalRenderer) {
+                    Gizmos.drawMesh(
+                        RenderState.cameraMatrix,
+                        transform?.getDrawMatrix(),
+                        Material.defaultMaterial, -1,
+                        mesh
+                    )
+                }
+            }
+        }
     }
 
     override fun copyInto(dst: PrefabSaveable) {

@@ -119,7 +119,12 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             for (name in structByName.keys.sorted()) {
                 val struct = structByName[name]!!
                 LOGGER.debug("Struct {}({}): { {} }", name, struct.type.size,
-                    struct.byName.entries.joinToString { "${it.key}: ${it.value.type.name}" })
+                    struct.byName.entries
+                        .filter {
+                            !it.key.startsWith("_pad") &&
+                                    !it.key.startsWith("*_pad")
+                        }
+                        .joinToString { "${it.key}: ${it.value.type.name}" })
             }
         }
     }
@@ -235,7 +240,7 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             "LinkData" -> BLinkData(this, struct, data, position)
             "ListBase" -> BListBase<Any>(this, struct, data, position)
             // "Scene" -> BScene(this, struct, data, position)
-            // node trees, collections and such may be interesting
+            // collections and such may be interesting
             "CustomData" -> BCustomData(this, struct, data, position)
             "CustomDataExternal" -> BCustomDataExternal(this, struct, data, position)
             "CustomDataLayer" -> BCustomDataLayer(this, struct, data, position)
@@ -254,7 +259,11 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             "bPoseChannel" -> BPoseChannel(this, struct, data, position)
             "bAction" -> BAction(this, struct, data, position)
             "bActionChannel" -> BActionChannel(this, struct, data, position)
+            "bActionGroup" -> BActionGroup(this, struct, data, position)
+            "AnimData" -> BAnimData(this, struct, data, position)
             "FCurve" -> FCurve(this, struct, data, position)
+            "FPoint" -> FPoint(this, struct, data, position)
+            "BezTriple" -> BezTriple(this, struct, data, position)
             "TexMapping" -> BTexMapping(this, struct, data, position)
             "NodeTexBase" -> BNodeTexBase(this, struct, data, position)
             "NodeTexImage" -> BNodeTexImage(this, struct, data, position)

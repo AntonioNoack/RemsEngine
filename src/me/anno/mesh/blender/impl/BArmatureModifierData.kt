@@ -11,7 +11,8 @@ class BArmatureModifierData(file: BlenderFile, type: DNAStruct, buffer: ByteBuff
     BModifierData(file, type, buffer, position) {
 
     /*
-    * { modifier: ModifierData, deformflag: short, multi: short, _pad2[4]: char, *object: Object, (*vert_coords_prev)(): float, defgrp_name[64]: char }
+    * modifier: ModifierData, deformflag: short, multi: short,
+    * *object: Object, (*vert_coords_prev)(): float, defgrp_name[64]: char
     * */
 
     val armatureObject = getPointer("*object") as? BObject

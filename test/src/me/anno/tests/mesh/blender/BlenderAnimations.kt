@@ -13,11 +13,13 @@ fun main() {
     ECSRegistry.initMeshes()
 
     // todo load and display animated Blender files correctly
+    //  - extract frame-rate from project somehow...
+    // done:
     //  - pose
     //  - armature
     //  - bones
-    // done:
     //  - vertex weights
+    // todo bones or their animations aren't correct yet
 
     LogManager.logAll()
     LogManager.disableLogger("BlenderMaterialConverter")

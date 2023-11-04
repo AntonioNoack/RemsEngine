@@ -1,7 +1,5 @@
 package me.anno.mesh.blender.impl
 
-import kotlin.math.max
-
 /**
  * saves allocations by using a pseudo-instance, whose position gets adjusted every time an element is accessed;
  * for this to work, all properties inside the child class need to be dynamic getters
@@ -35,12 +33,23 @@ class BInstantList<V : BlendData>(val size: Int, val instance: V?) : Iterable<V>
         return BInstantList(endIndex - startIndex, instance)
     }
 
+    /**
+     * Gets a temporary instance to that value at that index.
+     * This instance becomes invalid, when get() is called on this list with a different index.
+     *
+     * Accordingly, this method is not thread-safe.
+     * */
     operator fun get(index: Int): V {
-        instance!!
+        if (index !in 0 until size)
+            throw IndexOutOfBoundsException("$index !in 0 until $size")
+        val instance = instance!!
         instance.position = position0 + typeSize * index
         return instance
     }
 
+    /**
+     * Checks if any instance fulfills the criterion; not thread-safe.
+     * */
     inline fun any(lambda: (V) -> Boolean): Boolean {
         for (i in 0 until size) {
             if (lambda(this[i])) {

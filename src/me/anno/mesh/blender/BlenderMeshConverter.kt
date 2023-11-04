@@ -6,7 +6,6 @@ import me.anno.gpu.CullMode
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.max
 import me.anno.mesh.blender.impl.*
-import me.anno.utils.structures.arrays.ExpandingByteArray
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.apache.logging.log4j.LogManager
@@ -36,20 +35,6 @@ object BlenderMeshConverter {
         prefab["materials"] = materials.map { it as BMaterial?; it?.fileRef ?: InvalidRef }
         prefab["cullMode"] = CullMode.BOTH
 
-        // todo bone hierarchy,
-        // todo bone animations
-        // todo bone indices & weights (vertex groups)
-        // val layers = mesh.lData.layers ?: emptyArray()
-        // val uvLayers = layers.firstOrNull { it as BCustomDataLayer; it.type == 16 } as? BCustomDataLayer
-        // val weights = layers.firstOrNull { it as BCustomDataLayer; it.type == 17 } as? BCustomDataLayer
-        @Suppress("SpellCheckingInspection")
-                /*
-                * var layers = data.getLdata().getLayers();
-                var uvs = layers.filter(map => map.getType() == 16)[0];
-                if(uvs) uvs = uvs.getData();
-                var wei = layers.filter(map => map.getType() == 17)[0];
-                if(wei) wei = wei.getData();
-                * */
         val hasNormals = vertices.size > 0 && vertices[0].noOffset >= 0
         val normals: FloatArray? = if (BlenderReader.postTransform) {
             if (hasNormals) {
@@ -119,18 +104,21 @@ object BlenderMeshConverter {
 
         val boneWeights = src.vertexGroups
         val materialIndices = if (materials.size > 1) IntArray(triCount) else null
+        val numVertexGroups = boneWeights?.size ?: 0
         if (hasUVs) {// non-indexed, because we don't support separate uv and position indices
             joinPositionsAndUVs(
                 triCount * 3,
                 positions, normals,
                 polygons, loopData, uvs,
-                boneWeights, materialIndices, prefab
+                boneWeights, numVertexGroups,
+                materialIndices, prefab
             )
         } else {
             collectIndices(
                 positions, normals,
                 polygons, loopData,
-                boneWeights, materialIndices, prefab
+                boneWeights, numVertexGroups,
+                materialIndices, prefab
             )
         }
         if (materialIndices != null) prefab["materialIds"] = materialIndices
@@ -138,7 +126,7 @@ object BlenderMeshConverter {
         return prefab
     }
 
-    fun addBoneWeight(gi: Byte, gw: Float, bestBones: ByteArray, bestWeights: FloatArray) {
+    fun addBoneWeight(gi: Int, gw: Float, bestBones: IntArray, bestWeights: FloatArray) {
         for (i in 0 until 4) {
             if (gw > bestWeights[i]) {
                 // move all other weights back
@@ -155,23 +143,26 @@ object BlenderMeshConverter {
 
     fun addBoneWeights(
         boneWeights: BInstantList<MDeformVert>, vi: Int,
-        bestBones: ByteArray, bestWeights: FloatArray
+        bestBones: IntArray, bestWeights: FloatArray,
+        numVertexGroups: Int
     ) {
         for (w in boneWeights[vi].weights) {
             val gi = w.vertexGroupIndex
-            if (gi >= 256) continue // not supported
             val gw = w.weight
-            addBoneWeight(gi.toByte(), gw, bestBones, bestWeights)
+            if (gi in 0 until numVertexGroups) {
+                addBoneWeight(gi, gw, bestBones, bestWeights)
+            }
         }
     }
 
     fun fillInBones(
         boneWeights: BInstantList<MDeformVert>, vi: Int,
-        bestBones: ByteArray, bestWeights: FloatArray,
-        boneIndices2: ExpandingByteArray,
-        boneWeights2: ExpandingFloatArray
+        bestBones: IntArray, bestWeights: FloatArray,
+        boneIndices2: ExpandingIntArray,
+        boneWeights2: ExpandingFloatArray,
+        numVertexGroups: Int
     ) {
-        addBoneWeights(boneWeights, vi, bestBones, bestWeights)
+        addBoneWeights(boneWeights, vi, bestBones, bestWeights, numVertexGroups)
 
         // then assign their weights
         val weightSum = 1f / max(1e-38f, (bestWeights[0] + bestWeights[1]) + (bestWeights[2] + bestWeights[3]))
@@ -192,6 +183,7 @@ object BlenderMeshConverter {
         loopData: BInstantList<MLoop>,
         uvs: BInstantList<MLoopUV>,
         boneWeights: BInstantList<MDeformVert>?,
+        numVertexGroups: Int,
         materialIndices: IntArray?,
         prefab: Prefab,
     ) {
@@ -199,13 +191,13 @@ object BlenderMeshConverter {
         val positions2 = ExpandingFloatArray(vertexCount * 3)
         val normals2 = if (normals != null) ExpandingFloatArray(vertexCount * 3) else null
         val uvs2 = ExpandingFloatArray(vertexCount * 2)
-        val boneIndices2 = if (boneWeights != null) ExpandingByteArray(vertexCount * 4) else null
+        val boneIndices2 = if (boneWeights != null) ExpandingIntArray(vertexCount * 4) else null
         val boneWeights2 = if (boneWeights != null) ExpandingFloatArray(vertexCount * 4) else null
 
         var uvIndex = 0
         var matIndex = 0
 
-        val bestBones = ByteArray(4)
+        val bestBones = IntArray(4)
         val bestWeights = FloatArray(4)
         val numUvs = uvs.size
 
@@ -251,9 +243,9 @@ object BlenderMeshConverter {
                 boneIndices2 != null
             ) {
                 boneIndices2.ensureExtra(4 * 3)
-                fillInBones(boneWeights, v0, bestBones, bestWeights, boneIndices2, boneWeights2)
-                fillInBones(boneWeights, v1, bestBones, bestWeights, boneIndices2, boneWeights2)
-                fillInBones(boneWeights, v2, bestBones, bestWeights, boneIndices2, boneWeights2)
+                fillInBones(boneWeights, v0, bestBones, bestWeights, boneIndices2, boneWeights2, numVertexGroups)
+                fillInBones(boneWeights, v1, bestBones, bestWeights, boneIndices2, boneWeights2, numVertexGroups)
+                fillInBones(boneWeights, v2, bestBones, bestWeights, boneIndices2, boneWeights2, numVertexGroups)
             }
         }
 
@@ -349,7 +341,7 @@ object BlenderMeshConverter {
         }
         if (boneWeights2 != null && boneIndices2 != null) {
             prefab["boneWeights"] = boneWeights2.toFloatArray()
-            prefab["boneIndices"] = boneIndices2.toByteArray()
+            prefab["boneIndices"] = boneIndices2.toIntArray()
         }
     }
 
@@ -359,6 +351,7 @@ object BlenderMeshConverter {
         polygons: BInstantList<MPoly>,
         loopData: BInstantList<MLoop>,
         boneWeights: BInstantList<MDeformVert>?,
+        numVertexGroups: Int,
         materialIndices: IntArray?,
         prefab: Prefab
     ) {
@@ -429,18 +422,18 @@ object BlenderMeshConverter {
         }
         if (boneWeights != null) {
             val vertexCount = positions.size / 3
-            val boneIndices2 = ExpandingByteArray(vertexCount * 4)
+            val boneIndices2 = ExpandingIntArray(vertexCount * 4)
             val boneWeights2 = ExpandingFloatArray(vertexCount * 4)
-            val bestBones = ByteArray(4)
+            val bestBones = IntArray(4)
             val bestWeights = FloatArray(4)
             for (i in 0 until vertexCount) {
                 fillInBones(
                     boneWeights, i, bestBones, bestWeights,
-                    boneIndices2, boneWeights2
+                    boneIndices2, boneWeights2, numVertexGroups
                 )
             }
             prefab["boneWeights"] = boneWeights2.toFloatArray()
-            prefab["boneIndices"] = boneIndices2.toByteArray()
+            prefab["boneIndices"] = boneIndices2.toIntArray()
         }
         prefab["positions"] = positions
         prefab["normals"] = normals

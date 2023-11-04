@@ -11,22 +11,20 @@ import java.nio.ByteBuffer
 class BArmature(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
 
-        // {
-        // id: ID, *adt: AnimData, bonebase: ListBase,
-        // *bonehash: GHash, // look up bones by name
-        //
-        // *edbo: ListBase, *act_bone: Bone, *act_edbone: EditBone,
-        // needs_flush_to_id: char,
-        //
-        // flag: int, drawtype: int, deformflag: short, pathflag: short,
-        // layer_used: int, layer: int, layer_protected: int, axes_position: float
-        // }
+    // id: ID, *adt: AnimData, bonebase: ListBase,
+    // *bonehash: GHash, // look up bones by name
+    //
+    // *edbo: ListBase, *act_bone: Bone, *act_edbone: EditBone,
+    // needs_flush_to_id: char,
+    //
+    // flag: int, drawtype: int, deformflag: short, pathflag: short,
+    // layer_used: int, layer: int, layer_protected: int, axes_position: float
 
     val id = inside("id") as BID
     val bones = inside("bonebase") as BListBase<BBone>
+    val adt = getPointer("*adt")
 
     override fun toString(): String {
-        return "Armature { $id, $bones }"
+        return "Armature { $id, $adt, $bones }"
     }
-
 }

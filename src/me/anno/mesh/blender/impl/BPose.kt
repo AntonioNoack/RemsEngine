@@ -12,7 +12,7 @@ import java.nio.ByteBuffer
 class BPose(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: Int) :
     BlendData(file, type, buffer, position) {
 
-    // chanbase: ListBase, *chanhash: GHash, **chan_array: bPoseChannel, flag: short, _pad[2]: char, ctime: float,
+    // chanbase: ListBase, *chanhash: GHash, **chan_array: bPoseChannel, flag: short, ctime: float,
     // stride_offset[3]: float, cyclic_offset[3]: float, agroups: ListBase, active_group: int, iksolver: int,
     // *ikdata: void, *ikparam: void, avs: bAnimVizSettings
 
@@ -20,6 +20,6 @@ class BPose(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
     val channels = inside("chanbase") as BListBase<BPoseChannel>
 
     override fun toString(): String {
-        return "bPose { time: $time, channels: $channels }"
+        return "bPose { time: $time, channels: [${channels.joinToString { "\n  $it" }}\n] }"
     }
 }

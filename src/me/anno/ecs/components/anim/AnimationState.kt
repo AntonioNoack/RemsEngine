@@ -3,12 +3,15 @@ package me.anno.ecs.components.anim
 import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.ecs.annotations.Range
+import me.anno.ecs.annotations.Type
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.studio.Inspectable
 
 class AnimationState(
+    @Type("Animation/Reference")
     var source: FileReference,
     @Range(0.0, 1.0)
     var weight: Float,
@@ -16,7 +19,7 @@ class AnimationState(
     var progress: Float,
     var speed: Float,
     var repeat: LoopingState
-) : Saveable() {
+) : Saveable(), Inspectable {
 
     constructor() : this(InvalidRef, 0f, 0f, 1f, LoopingState.PLAY_LOOP)
 

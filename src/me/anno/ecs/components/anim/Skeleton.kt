@@ -15,11 +15,9 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
+import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors
-import org.joml.AABBf
-import org.joml.Matrix3f
-import org.joml.Matrix4x3f
-import org.joml.Vector3f
+import org.joml.*
 
 class Skeleton : PrefabSaveable(), Renderable {
 
@@ -158,12 +156,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             val dirX = Vector3f()
             val dirY = Vector3f()
             val dirZ = Vector3f()
-            // estimate the size
-            val bounds = AABBf()
-            for (boneId in bones.indices) {
-                bounds.union(bonePositions[boneId])
-            }
-            val sizeEstimate = length(bounds.deltaX, bounds.deltaY, bounds.deltaZ)
+            val sizeEstimate = fillInSizeEstimate(bones, bonePositions)
             val maxBoneThickness = 0.2f * sizeEstimate
             var firstBone = true
             for (boneId in bones.indices) {
@@ -200,6 +193,14 @@ class Skeleton : PrefabSaveable(), Renderable {
                     }
                 }
             }
+        }
+
+        fun fillInSizeEstimate(bones: List<Bone>, bonePositions: Array<Vector3f>): Float {
+            val bounds = JomlPools.aabbf.borrow()
+            for (boneId in bones.indices) {
+                bounds.union(bonePositions[boneId])
+            }
+            return length(bounds.deltaX, bounds.deltaY, bounds.deltaZ)
         }
     }
 }

@@ -12,12 +12,11 @@ class MDeformVert(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, positi
     BlendData(file, type, buffer, position) {
 
     // { *dw: MDeformWeight, totweight: int, flag: int }
-    val weights get() = getInstantList<MDeformWeight>("*dw")?.subList(0, numWeights) ?: BInstantList.emptyList()
+    val weights get() = getInstantList<MDeformWeight>("*dw", numWeights) ?: BInstantList.emptyList()
     val numWeights get() = int("totweight")
-    // val flag get() = int("flag")
 
     override fun toString(): String {
-        return "MDeformVert($weights)"
+        return "MDeformVert@$position($weights)"
     }
 
 }

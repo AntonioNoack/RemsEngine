@@ -1,7 +1,12 @@
 package me.anno.mesh.blender
 
+import me.anno.animation.LoopingState
+import me.anno.ecs.components.anim.Animation
+import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.Bone
+import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -9,13 +14,17 @@ import me.anno.io.files.Signature
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerFolderCallback
 import me.anno.io.zip.InnerTmpFile
+import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
 import me.anno.mesh.blender.BlenderMeshConverter.convertBMesh
 import me.anno.mesh.blender.impl.*
 import me.anno.utils.Clock
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix4f
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.joml.Vector3f
 import java.nio.ByteBuffer
 import kotlin.math.PI
 import kotlin.math.max
@@ -47,10 +56,10 @@ object BlenderReader {
     }
 
     private fun readImages(file: BlenderFile, folder: InnerFolder, clock: Clock) {
-        val imagesInFile = file.instances["Image"] ?: return
+        val instances = file.instances["Image"] ?: return
         val texFolder = folder.createChild("textures", null) as InnerFolder
-        for (image in imagesInFile) {
-            image as BImage
+        for (i in instances.indices) {
+            val image = instances[i] as BImage
             val rawImageData = image.packedFiles.first?.packedFile?.data
             if (rawImageData != null) {
                 val name = image.id.realName
@@ -69,10 +78,10 @@ object BlenderReader {
     }
 
     private fun readMaterials(file: BlenderFile, folder: InnerFolder, clock: Clock) {
-        val materialsInFile = file.instances["Material"] ?: return
+        val instances = file.instances["Material"] ?: return
         val matFolder = folder.createChild("materials", null) as InnerFolder
-        for (i in materialsInFile.indices) {
-            val mat = materialsInFile[i] as BMaterial
+        for (i in instances.indices) {
+            val mat = instances[i] as BMaterial
             val prefab = Prefab("Material")
             BlenderMaterialConverter.defineDefaultMaterial(prefab, mat)
             val name = mat.id.realName
@@ -83,15 +92,93 @@ object BlenderReader {
     }
 
     private fun readMeshes(file: BlenderFile, folder: InnerFolder, clock: Clock) {
-        if ("Mesh" !in file.instances) return
+        val instances = file.instances["Mesh"] ?: return
         val meshFolder = folder.createChild("meshes", null) as InnerFolder
-        for (mesh in file.instances["Mesh"]!!) {
-            mesh as BMesh
+        for (i in instances.indices) {
+            val mesh = instances[i] as BMesh
             val name = mesh.id.realName
             val prefab = convertBMesh(mesh) ?: continue
             mesh.fileRef = meshFolder.createPrefabChild("$name.json", prefab)
         }
         clock.stop("read meshes")
+    }
+
+    /*private fun readAnimations(file: BlenderFile, folder: InnerFolder, clock: Clock) {
+        val instances = file.instances["bAction"] ?: return
+        val animFolder = folder.createChild("animations", null) as InnerFolder
+        for (i in instances.indices) {
+            readAnimation(instances[i] as BAction, emptyList())
+        }
+        clock.stop("read animations")
+    }*/
+
+    private fun readAnimation(action: BAction, givenBones: List<Bone>, skeleton: FileReference): Animation? {
+        val curves = action.curves // animated values
+        if (curves.any { it.path.startsWith("pose.bones[\"") }) {
+
+            val numFrames = (curves.maxOfOrNull { it.lastKeyframeIndex } ?: 0f).toInt() + 1
+            val curveByName = curves.associateBy { it.path to it.arrayIndex }
+
+            val numBones = givenBones.size
+            val translations = FloatArray(numFrames * numBones * 3)
+            val rotations = FloatArray(numFrames * numBones * 4)
+
+            for (i in rotations.indices step 4) {
+                rotations[i + 3] = 1f
+            }
+
+            for (boneIdx in givenBones.indices) {
+                val boneName = givenBones[boneIdx].name
+                val keyT = "pose.bones[\"$boneName\"].location"
+                if ((keyT to 0) in curveByName) {
+                    val x = curveByName[keyT to 0]!!
+                    val y = curveByName[keyT to 1]!!
+                    val z = curveByName[keyT to 2]!!
+                    var idx = boneIdx * 3
+                    for (fi in 0 until numFrames) {
+                        val kf = fi.toFloat()
+                        // todo is translation missing scale? the pelvis isn't moving
+                        translations[idx] = x.getValueAt(kf)
+                        translations[idx + 1] = y.getValueAt(kf)
+                        translations[idx + 2] = z.getValueAt(kf)
+                        idx += numBones * 3
+                    }
+                }
+                val keyR = "pose.bones[\"$boneName\"].rotation_quaternion"
+                if ((keyR to 0) in curveByName) {
+                    val w = curveByName[keyR to 0]!!
+                    val x = curveByName[keyR to 1]!!
+                    val y = curveByName[keyR to 2]!!
+                    val z = curveByName[keyR to 3]!!
+                    var idx = boneIdx * 4
+                    for (fi in 0 until numFrames) {
+                        val kf = fi.toFloat()
+                        // todo why inverse?
+                        val xf = -x.getValueAt(kf)
+                        val yf = -y.getValueAt(kf)
+                        val zf = -z.getValueAt(kf)
+                        val wf = w.getValueAt(kf)
+                        val invLen = 1f / length(xf, yf, zf, wf)
+                        rotations[idx] = xf * invLen
+                        rotations[idx + 1] = yf * invLen
+                        rotations[idx + 2] = zf * invLen
+                        rotations[idx + 3] = wf * invLen
+                        idx += numBones * 4
+                    }
+                }
+            }
+
+            val animation = BoneByBoneAnimation()
+            animation.translations = translations
+            animation.rotations = rotations
+            animation.boneCount = givenBones.size
+            animation.frameCount = numFrames
+            animation.skeleton = skeleton
+            val frameRate = 24f // todo find frame-rate
+            animation.duration = numFrames / frameRate
+            return animation
+        } else return null
+        // LOGGER.debug("Action[{}]: {}", i, action)
     }
 
     private fun extractHierarchy(file: BlenderFile): Prefab {
@@ -155,6 +242,7 @@ object BlenderReader {
         readImages(file, folder, clock)
         readMaterials(file, folder, clock)
         readMeshes(file, folder, clock)
+        // readAnimations(file, folder, clock)
 
         val prefab = extractHierarchy(file)
         prefab.sealFromModifications()
@@ -163,7 +251,7 @@ object BlenderReader {
         return folder
     }
 
-    fun makeObject(prefab: Prefab, obj: BObject, paths: HashMap<BObject, Path>): Path {
+    private fun makeObject(prefab: Prefab, obj: BObject, paths: HashMap<BObject, Path>): Path {
         return paths.getOrPut(obj) {
             val name = obj.id.realName
             val parent = makeObject(prefab, obj.parent!!, paths)
@@ -174,13 +262,18 @@ object BlenderReader {
         }
     }
 
-    fun createSkeleton(armature: BArmature): Prefab {
+    private fun createSkeleton(
+        armature: BArmature,
+        vertexGroups: List<String>,
+        srcBoneIndices: IntArray
+    ): Pair<Prefab, ByteArray> {
         val prefab = Prefab("Skeleton")
         val blenderBones = ArrayList<BBone>()
-        val boneToIndex = HashMap<BBone, Int>()
+        val boneToIndex = HashMap<String, Int>()
         fun index(bone: BBone) {
+            val name = bone.name ?: return
             blenderBones.add(bone)
-            boneToIndex[bone] = boneToIndex.size
+            boneToIndex[name] = boneToIndex.size
             for (child in bone.children) {
                 index(child)
             }
@@ -192,7 +285,7 @@ object BlenderReader {
             LOGGER.warn("Cannot handle more than 256 bones")
         }
         prefab["bones"] = blenderBones.mapIndexed { index, bone ->
-            val parentIndex = boneToIndex[bone.parent] ?: -1
+            val parentIndex = boneToIndex[bone.parent?.name] ?: -1
             val newBone = Bone(index, parentIndex, bone.name!!)
             val data = bone.restPose // todo is this the bind pose? (probably not)
             newBone.setBindPose(
@@ -206,7 +299,29 @@ object BlenderReader {
             )
             newBone
         }
-        return prefab
+        val mappedIndices = mapBoneIndices(vertexGroups, boneToIndex, srcBoneIndices)
+        return Pair(prefab, mappedIndices)
+    }
+
+    private fun mapBoneIndices(
+        vertexGroups: List<String>,
+        boneToIndex: Map<String, Int>,
+        vertexGroupIndices: IntArray
+    ): ByteArray {
+        val boneMapping = ByteArray(vertexGroups.size)
+        for (vgIndex in boneMapping.indices) {
+            val newBoneIndex = boneToIndex[vertexGroups[vgIndex]]
+            LOGGER.info("Mapping ${vertexGroups[vgIndex]} to $newBoneIndex")
+            boneMapping[vgIndex] = (newBoneIndex ?: 0).toByte()
+        }
+        val dstBoneIndices = ByteArray(vertexGroupIndices.size)
+        for (i in vertexGroupIndices.indices) {
+            val srcIndex = vertexGroupIndices[i]
+            if (srcIndex in boneMapping.indices) {
+                dstBoneIndices[i] = boneMapping[srcIndex]
+            } else LOGGER.warn("Index out of bounds: $srcIndex !in ${boneMapping.indices}")
+        }
+        return dstBoneIndices
     }
 
     fun createObject(prefab: Prefab, obj: BObject, path: Path, isRoot: Boolean) {
@@ -245,18 +360,49 @@ object BlenderReader {
                     ?.armatureObject
                 val armatureModifier = armatureObject?.data as? BArmature
                 // todo find all animations
-                if (armatureModifier != null) {
-                    val skeleton = createSkeleton(armatureModifier)
-                    val c = prefab.add(path, 'c', "AnimRenderer", obj.id.realName)
+                val blenderMesh = obj.data as BMesh
+                val meshFile = blenderMesh.fileRef
+                val meshPrefab = (meshFile as PrefabReadable).readPrefab()
+                val boneIndices = meshPrefab["boneIndices"] as? IntArray
+                if (armatureModifier != null && boneIndices != null) {
+
+                    // todo proper file for this
+                    val subPrefab = Prefab("Mesh", meshFile)
+                    val meshFile2 = InnerTmpFile.InnerTmpPrefabFile(subPrefab)
+
+                    // create skeleton and map vertex indices
+                    val (skeleton, mappedBoneIndices) = createSkeleton(
+                        armatureModifier,
+                        blenderMesh.vertexGroupNames
+                            .map { it.name ?: "" },
+                        boneIndices
+                    )
+                    subPrefab["boneIndices"] = mappedBoneIndices
+
                     // todo create proper location for skeleton
-                    prefab[c, "meshFile"] = (obj.data as BMesh).fileRef
-                    prefab[c, "skeleton"] = InnerTmpFile.InnerTmpPrefabFile(skeleton)
+                    val skeletonRef = InnerTmpFile.InnerTmpPrefabFile(skeleton)
+                    val c = prefab.add(path, 'c', "AnimRenderer", obj.id.realName)
+
+                    prefab[c, "meshFile"] = meshFile2
+                    prefab[c, "skeleton"] = skeletonRef
                     LOGGER.debug("Armature Pose: {}", armatureObject.pose)
                     LOGGER.debug("Armature Action: {}", armatureObject.action)
                     LOGGER.debug("Object Action: {}", obj.action)
+                    LOGGER.debug("Object AnimData: {}", obj.animData)
+                    LOGGER.debug("Armature AnimData: {}", armatureObject.animData) // this is defined :3
+                    val action = armatureObject.animData?.action ?: obj.animData?.action // obj.animData just in case
+                    if (action != null) {
+                        @Suppress("UNCHECKED_CAST")
+                        val animation = readAnimation(action, skeleton["bones"] as List<Bone>, skeletonRef)
+                        if (animation != null) {
+                            // todo proper location for animation
+                            val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
+                            prefab[c, "animations"] = listOf(animState)
+                        }
+                    }
                 } else {
                     val c = prefab.add(path, 'c', "MeshComponent", obj.id.realName)
-                    prefab[c, "meshFile"] = (obj.data as BMesh).fileRef
+                    prefab[c, "meshFile"] = meshFile
                 }
                 LOGGER.debug("Modifiers for mesh {}/{}: {}", obj.id.realName, path.nameId, obj.modifiers)
                 // materials would be nice... but somehow they are always null

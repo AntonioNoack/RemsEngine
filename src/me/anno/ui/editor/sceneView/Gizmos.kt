@@ -1,10 +1,9 @@
 package me.anno.ui.editor.sceneView
 
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshCache
-import me.anno.engine.raycast.Raycast
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.GridColors.colorX
@@ -124,7 +123,7 @@ object Gizmos {
     }
 
     fun drawMesh(
-        cameraTransform: Matrix4f, localTransform: Matrix4x3d,
+        cameraTransform: Matrix4f, localTransform: Matrix4x3d?,
         material: Material, color: Int, mesh: Mesh
     ) {
         val shader = (material.shader ?: pbrModelShader).value
@@ -133,7 +132,8 @@ object Gizmos {
         shader.m4x3delta("localTransform", localTransform, cameraPosition, worldScale)
         if (shader["invLocalTransform"] >= 0) {
             val tmp = JomlPools.mat4x3d.borrow()
-            tmp.set(localTransform).invert()
+            if (localTransform != null) localTransform.invert(tmp)
+            else tmp.identity()
             val tmp2 = JomlPools.mat4x3f.borrow().set(tmp)
             shader.m4x3("invLocalTransform", tmp2)
         }
@@ -196,5 +196,4 @@ object Gizmos {
             )
         }
     }
-
 }

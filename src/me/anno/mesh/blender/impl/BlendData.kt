@@ -6,6 +6,7 @@ import me.anno.mesh.blender.DNAStruct
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4f
 import java.nio.ByteBuffer
+import kotlin.math.min
 
 @Suppress("unused")
 open class BlendData(
@@ -43,6 +44,27 @@ open class BlendData(
         // all elements will be pointers to material
         val remainingSize = block.size - (pointer - block.address)
         val length = (remainingSize / file.pointerSize).toInt()
+        if (length == 0) return null
+        val positionInFile = block.positionInFile
+        val data = file.file.data
+        return Array(length) {
+            val posInFile = positionInFile + it * file.pointerSize
+            val ptr = if (file.file.is64Bit) data.getLong(posInFile)
+            else data.getInt(posInFile).toLong()
+            file.getOrCreate(file.structByName[field.type.name]!!, field.type.name, block, ptr)
+        }
+    }
+
+    // fields starting with **
+    fun getPointerArray(name: String, size: Int) = getPointerArray(getField(name), size)
+    fun getPointerArray(field: DNAField?, size: Int): Array<BlendData?>? {
+        field ?: return null
+        val pointer = pointer(field.offset)
+        if (pointer == 0L) return null
+        val block = file.blockTable.findBlock(file, pointer) ?: return null
+        // all elements will be pointers to material
+        val remainingSize = block.size - (pointer - block.address)
+        val length = min((remainingSize / file.pointerSize).toInt(), size)
         if (length == 0) return null
         val positionInFile = block.positionInFile
         val data = file.file.data
@@ -106,7 +128,7 @@ open class BlendData(
 
     fun string(name: String, limit: Int): String? = string(getOffset(name), limit)
     fun string(offset: Int, limit: Int): String? {
-        if(offset< 0) return null
+        if (offset < 0) return null
         val position = position + offset
         for (len in 0 until limit) {
             val char = buffer.get(position + len)
@@ -119,6 +141,24 @@ open class BlendData(
 
     private fun getRawString(position: Int, length: Int): String {
         return String(raw(position, length))
+    }
+
+    fun charPointer(name: String): String? = charPointer(getOffset(name))
+    fun charPointer(offset: Int): String? {
+        if (offset < 0) return null
+        val address = pointer(offset)
+        if (address == 0L) return null
+        val block = file.blockTable.findBlock(file, address) ?: return null
+        val addressInBlock = address - block.address
+        val remainingSize = (block.size - addressInBlock).toInt()
+        val position = (address + block.dataOffset).toInt()
+        for (i in 0 until remainingSize) {
+            if (buffer.get(position + i) == 0.toByte()) {
+                return getRawString(position, i)
+            }
+        }
+        // return max size string
+        return getRawString(position, remainingSize)
     }
 
     fun raw(position: Int, length: Int): ByteArray {
@@ -191,10 +231,10 @@ open class BlendData(
     }
 
 
-    fun <V : BlendData> getInstantList(name: String): BInstantList<V>? =
-        getInstantList(dnaStruct.byName[name])
+    fun <V : BlendData> getInstantList(name: String, maxSize: Int = Int.MAX_VALUE): BInstantList<V>? =
+        getInstantList(dnaStruct.byName[name], maxSize)
 
-    fun <V : BlendData> getInstantList(field: DNAField?): BInstantList<V>? {
+    fun <V : BlendData> getInstantList(field: DNAField?, maxSize: Int): BInstantList<V>? {
         field ?: return null
         if (field.decoratedName.startsWith("*")) {
             val address = pointer(field.offset)
@@ -213,10 +253,10 @@ open class BlendData(
             }
             val addressInBlock = address - block.address
             val remainingSize = block.size - addressInBlock
-            val length = (remainingSize / typeSize).toInt()
+            val length = min((remainingSize / typeSize).toInt(), maxSize)
 
             @Suppress("unchecked_cast")
-            val instance = file.getOrCreate(struct, className, block, address) as? V ?: return null
+            val instance = file.create(struct, className, block, address) as? V ?: return null
             return BInstantList(length, instance)
         } else throw RuntimeException()
     }

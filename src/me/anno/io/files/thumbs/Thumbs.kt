@@ -946,28 +946,49 @@ object Thumbs {
     ) {
         // todo center on bounds by all frames combined
         val skeleton = SkeletonCache[animation.skeleton] ?: return
-        val mesh = Mesh()
-        val bones = skeleton.bones
-        val meshVertices = Texture2D.floatArrayPool[bones.size * boneMeshVertices.size, false, true]
-        mesh.positions = meshVertices
-        val (skinningMatrices, animPositions) = threadLocalBoneMatrices.get()
+        val (skinningMatrices, _) = threadLocalBoneMatrices.get()
         // generate the matrices
         animation.getMatrices(frameIndex, skinningMatrices)
+        drawAnimatedSkeleton(skeleton, skinningMatrices, aspect)
+    }
+
+    @JvmStatic
+    fun drawAnimatedSkeleton(
+        skeleton: Skeleton,
+        skinningMatrices: Array<Matrix4x3f>,
+        aspect: Float
+    ) {
+        buildAnimatedSkeleton(skeleton, skinningMatrices) { mesh ->
+            mesh.drawAssimp(
+                aspect, null,
+                useMaterials = false,
+                centerMesh = true,
+                normalizeScale = true
+            )
+        }
+    }
+
+    @JvmStatic
+    fun buildAnimatedSkeleton(
+        skeleton: Skeleton,
+        skinningMatrices: Array<Matrix4x3f>,
+        useGeneratedMesh: (Mesh) -> Unit,
+    ) {
+        val mesh = Mesh()
+        val bones = skeleton.bones
+        val (_, animPositions) = threadLocalBoneMatrices.get()
         // apply the matrices to the bone positions
         for (i in 0 until min(animPositions.size, bones.size)) {
             val position = animPositions[i].set(bones[i].bindPosition)
             skinningMatrices[i].transformPosition(position)
         }
+        val meshVertices = Texture2D.floatArrayPool[bones.size * boneMeshVertices.size, false, true]
+        mesh.positions = meshVertices
         generateSkeleton(bones, animPositions, meshVertices, null)
         mesh.invalidateGeometry()
         // draw the skeleton in that portion of the frame
         mesh.ensureBuffer()
-        mesh.drawAssimp(
-            aspect, null,
-            useMaterials = false,
-            centerMesh = true,
-            normalizeScale = true
-        )
+        useGeneratedMesh(mesh)
         Texture2D.floatArrayPool.returnBuffer(meshVertices)
         mesh.destroy()
     }
