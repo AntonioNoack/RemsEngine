@@ -9,6 +9,11 @@ class BScene(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: I
     BlendData(file, type, buffer, position) {
 
     val id = inside("id") as BID
-    val nodeTree = getStructArray("*nodetree")
+    // val nodeTree = getStructArray("*nodetree")
+    val renderData = inside("r") as BRenderData
+
+    override fun toString(): String {
+        return "Scene { $id, $renderData }"
+    }
 
 }

@@ -111,15 +111,6 @@ object BlenderReader {
         clock.stop("read meshes")
     }
 
-    /*private fun readAnimations(file: BlenderFile, folder: InnerFolder, clock: Clock) {
-        val instances = file.instances["bAction"] ?: return
-        val animFolder = folder.createChild("animations", null) as InnerFolder
-        for (i in instances.indices) {
-            readAnimation(instances[i] as BAction, emptyList())
-        }
-        clock.stop("read animations")
-    }*/
-
     private fun readAnimation(action: BAction, givenBones: List<Bone>, skeleton: FileReference): Animation? {
         val curves = action.curves // animated values
         if (curves.any { it.path.startsWith("pose.bones[\"") }) {
@@ -184,8 +175,7 @@ object BlenderReader {
             animation.boneCount = givenBones.size
             animation.frameCount = numFrames
             animation.skeleton = skeleton
-            val frameRate = 24f // todo find frame-rate
-            animation.duration = numFrames / frameRate
+            animation.duration = numFrames / fps
             return animation
         } else return null
         // LOGGER.debug("Action[{}]: {}", i, action)
@@ -231,6 +221,8 @@ object BlenderReader {
         return prefab
     }
 
+    var fps = 30f
+
     fun readAsFolder(ref: FileReference, nio: ByteBuffer): InnerFolder {
 
         // todo 1: find equivalent meshes, and replace them for speed
@@ -248,6 +240,13 @@ object BlenderReader {
         val file = BlenderFile(binaryFile, ref.getParent() ?: InvalidRef)
         clock.stop("read blender file")
         // data.printTypes()
+
+        for (scene in file.instances["Scene"] ?: emptyList()) {
+            scene as BScene
+            LOGGER.debug("Scene: {}", scene)
+            val renderData = scene.renderData
+            fps = renderData.frsSec / renderData.frsSecBase
+        }
 
         val imageMap = readImages(file, folder, clock)
         readMaterials(file, folder, clock, imageMap)

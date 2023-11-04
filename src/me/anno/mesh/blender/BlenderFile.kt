@@ -238,7 +238,8 @@ class BlenderFile(val file: BinaryFile, val folder: FileReference) {
             "Link" -> BLink<Any>(this, struct, data, position)
             "LinkData" -> BLinkData(this, struct, data, position)
             "ListBase" -> BListBase<Any>(this, struct, data, position)
-            // "Scene" -> BScene(this, struct, data, position)
+            "Scene" -> BScene(this, struct, data, position)
+            "RenderData" -> BRenderData(this, struct, data, position)
             // collections and such may be interesting
             "CustomData" -> BCustomData(this, struct, data, position)
             "CustomDataExternal" -> BCustomDataExternal(this, struct, data, position)

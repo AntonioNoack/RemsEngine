@@ -12,19 +12,14 @@ fun main() {
     ECSRegistry.initPrefabs()
     ECSRegistry.initMeshes()
 
-    // todo load and display animated Blender files correctly
-    //  - extract frame-rate from project somehow...
     // done:
-    //  - pose
-    //  - armature
-    //  - bones
-    //  - vertex weights
+    //  - load and display animated Blender files correctly:
+    //    - pose
+    //    - armature
+    //    - bones
+    //    - vertex weights
 
     LogManager.logAll()
-    // LogManager.disableLogger("BlenderMaterialConverter")
-    // LogManager.disableLogger("BlenderReader")
-
-    // todo textures aren't loading properly for AnimTest2
     val source = documents.getChild("Blender/AnimTest2.blend")
     BlenderReader.readAsFolder(source) { folder, exc ->
         if (folder != null) {
