@@ -11,11 +11,8 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.minWeight
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
@@ -23,19 +20,12 @@ import kotlin.math.round
 
 open class ScrollPanelY(
     child: Panel, padding: Padding,
-    style: Style,
-    alignX: AxisAlignment
+    style: Style
 ) : PanelContainer(child, padding, style), ScrollableY {
 
     constructor(style: Style) : this(PanelListY(style), style)
-    constructor(child: Panel, style: Style) : this(child, Padding(), style, AxisAlignment.MIN)
-    constructor(child: Panel, padding: Padding, style: Style) : this(child, padding, style, AxisAlignment.MIN)
-    constructor(padding: Padding, align: AxisAlignment, style: Style) : this(PanelListY(style), padding, style, align)
-
-    init {
-        child += WrapAlign(alignX, AxisAlignment.MIN)
-        weight = minWeight
-    }
+    constructor(child: Panel, style: Style) : this(child, Padding(), style)
+    constructor(padding: Padding, style: Style) : this(PanelListY(style), padding, style)
 
     @NotSerializedProperty
     var lastScrollPosY = -1.0
@@ -187,7 +177,7 @@ open class ScrollPanelY(
     }
 
     override fun clone(): ScrollPanelY {
-        val clone = ScrollPanelY(child.clone(), padding, style, alignmentX)
+        val clone = ScrollPanelY(child.clone(), padding, style)
         copyInto(clone)
         return clone
     }

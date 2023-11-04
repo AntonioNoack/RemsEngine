@@ -14,7 +14,6 @@ import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -274,7 +273,7 @@ object Menu {
         val list = PanelListY(style)
         list += WrapAlign.LeftTop
 
-        val container = object : ScrollPanelY(list, Padding(1), style, AxisAlignment.MIN) {
+        val container = object : ScrollPanelY(list, Padding(1), style) {
             override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
                 val window = window
                 val char = codepoint.toChar()

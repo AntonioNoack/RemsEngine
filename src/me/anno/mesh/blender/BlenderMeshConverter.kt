@@ -95,7 +95,7 @@ object BlenderMeshConverter {
         val newUVs = newUVs0?.data as? BInstantList<MLoopUV>
 
         val uvs = src.loopUVs ?: newUVs ?: BInstantList.emptyList()
-        LOGGER.info("UVs: ${src.loopUVs} ?: ${src.lData.layers.map { it.name }} ?: empty")
+        // LOGGER.info("UVs: ${src.loopUVs} ?: ${src.lData.layers.map { it.name }} ?: empty")
 
         // todo vertex colors
         val hasUVs = uvs.any { it.u != 0f || it.v != 0f }

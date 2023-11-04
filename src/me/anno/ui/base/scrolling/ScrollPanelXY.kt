@@ -270,8 +270,6 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
 
     companion object {
 
-        const val minWeight = 0.0001f
-
         val scrollSpeed get() = DefaultConfig["ui.scroll.speed", 30f]
 
         @Suppress("unused_parameter")

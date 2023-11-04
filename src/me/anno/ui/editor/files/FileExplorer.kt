@@ -20,7 +20,6 @@ import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
@@ -318,8 +317,8 @@ open class FileExplorer(
             invalidate()
         }
 
-        uContent += ScrollPanelY(favourites, Padding(1), style, AxisAlignment.MIN)
-        uContent += ScrollPanelY(content2d, Padding(1), style, AxisAlignment.MIN).apply {
+        uContent += ScrollPanelY(favourites, Padding(1), style)
+        uContent += ScrollPanelY(content2d, Padding(1), style).apply {
             weight = 1f
         }
     }
