@@ -17,7 +17,6 @@ import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -32,7 +31,6 @@ import org.joml.*
 import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.set
 import kotlin.math.max
 
 /**
@@ -139,10 +137,10 @@ object SDFComposer {
         val materialCode = buildMaterialCode(tree, materials, uniforms)
 
         val shader = object : SDFShader(tree) {
-            override fun createFragmentStages(flags: Int): List<ShaderStage> {
+            override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
                 // instancing is not supported
                 val fragmentVariables = fragmentVariables1 + uniforms.map { (k, v) -> Variable(v.type, k) }
-                val defines = createDefines(flags, StringBuilder()).toString()
+                val defines = concatDefines(key, StringBuilder()).toString()
                 val stage = ShaderStage(
                     name, fragmentVariables, defines +
 
@@ -246,10 +244,10 @@ object SDFComposer {
             bindDepthToPosition(shader)
         }
 
-        override fun createDepthShader(flags: Int): Shader {
+        override fun createDepthShader(key: ShaderKey): Shader {
             val builder1 = createBuilder()
-            builder1.addVertex(createVertexStages(flags))
-            builder1.addFragment(createFragmentStages(flags))
+            builder1.addVertex(createVertexStages(key))
+            builder1.addFragment(createFragmentStages(key))
             GFX.check()
             val shader = builder1.create()
             shader.glslVersion = glslVersion

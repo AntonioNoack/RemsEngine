@@ -1,6 +1,8 @@
 package me.anno.ecs.components.shaders
 
 import me.anno.cache.CacheSection
+import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
@@ -87,8 +89,8 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             "   return vec4(yuv2rgb(yuv.xyz), yuv.a);\n" +
             "}\n"
 
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
-        val vars = createFragmentVariables(flags).filter { it.name != "uv" }.toMutableList()
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
+        val vars = createFragmentVariables(key).filter { it.name != "uv" }.toMutableList()
         vars.add(Variable(GLSLType.V1B, "anisotropic"))
         vars.add(Variable(GLSLType.V3F, "tileOffset"))
         vars.add(Variable(GLSLType.V3F, "tilingU"))

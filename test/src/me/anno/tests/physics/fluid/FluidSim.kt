@@ -2,7 +2,6 @@ package me.anno.tests.physics.fluid
 
 import me.anno.Time
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.AnimTexture
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.MeshCache
@@ -20,14 +19,13 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.studio.StudioBase
@@ -103,38 +101,28 @@ fun step(it: Panel, lx: Float, ly: Float, s: Float, sim: FluidSimulation) {
 }
 
 class ParticleShader(val sim: FluidSimulation) : ECSMeshShader("particles") {
-    override fun createVertexStages(flags: Int): List<ShaderStage> {
-        val defines = createDefines(flags)
-        val variables = createVertexVariables(flags) + listOf(
+    override fun createVertexStages(key: ShaderKey): List<ShaderStage> {
+        val variables = createAnimVariables(key) + listOf(
             Variable(GLSLType.V3F, "areaSize"),
             Variable(GLSLType.S2D, "positionTex"),
             Variable(GLSLType.S2D, "rotationTex"),
             Variable(GLSLType.S2D, "metadataTex"),
+            Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
         )
-        val stage = ShaderStage(
+        val vertexPosOverrideStage = ShaderStage(
             "vertex",
-            variables, defines.toString() +
+            variables, "" +
                     "ivec2 texSize = textureSize(positionTex,0);\n" +
                     "ivec2 particleUV = ivec2(gl_InstanceID % texSize.x, gl_InstanceID / texSize.x);\n" +
                     "vec3 particlePos = texelFetch(positionTex, particleUV, 0).xyz - vec3(0.5, 0.0, 0.5);\n" +
-                    "localPosition = particlePos * areaSize + coords;\n" +
-                    motionVectorInit +
-
-                    instancedInitCode +
-
-                    animCode0() +
-                    normalInitCode +
-                    animCode1 +
-
-                    applyTransformCode +
-                    colorInitCode +
-                    "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                    motionVectorCode +
-                    ShaderLib.positionPostProcessing
+                    "localPosition = particlePos * areaSize + coords;\n"
         )
-        if (flags.hasFlag(IS_ANIMATED) && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
-        if (flags.hasFlag(USES_PRS_TRANSFORM)) stage.add(ShaderLib.quatRot)
-        return listOf(stage)
+        return createDefines(key) +
+                loadVertex(key) +
+                vertexPosOverrideStage +
+                animateVertex(key) +
+                transformVertex(key) +
+                finishVertex(key)
     }
 
     override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {

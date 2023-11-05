@@ -4,27 +4,47 @@ import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.AttributeType
+import me.anno.gpu.pipeline.InstancedI32Stack
+import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.mesh.Shapes.flatCube
-import me.anno.utils.structures.arrays.ExpandingIntArray
 import org.joml.AABBd
 import org.joml.Matrix4x3d
 import org.joml.Vector3f
 import kotlin.math.sin
 
+class TestI32Stack(val space: Float) : InstancedI32Stack(
+    MeshInstanceData(
+        listOf(
+            ShaderStage(
+                "i32-pos", listOf(
+                    Variable(GLSLType.V1I, "instanceI32"),
+                    Variable(GLSLType.V3F, "localPosition"),
+                    Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
+                ),
+                "finalPosition = localPosition + vec3(0.0,0.0,float(instanceI32)*$space);\n"
+            )
+        ),
+        MeshInstanceData.DEFAULT.transformNorTan,
+        MeshInstanceData.DEFAULT.transformColors,
+        MeshInstanceData.DEFAULT.transformMotionVec
+    )
+)
+
 /**
- * Shows how to create an i32-MeshSpawner
+ * Shows how to use an i32-MeshSpawner
  *
- * test build-up/changing i32 size
- * -> fixed a bug :)
+ * todo this is broken :(
  * */
 fun main() {
 
@@ -35,35 +55,8 @@ fun main() {
     val space = (width + height).toDouble()
 
     val mesh = flatCube.linear(Vector3f(), Vector3f(width, height, thickness)).front
+    val material = defaultMaterial
 
-    val shader1 = object : ECSMeshShader("i32") {
-        override fun createVertexStages(flags: Int): List<ShaderStage> {
-            val defines = createDefines(flags)
-            val variables = createVertexVariables(flags) +
-                    Variable(GLSLType.V1I, "instanceI32", VariableMode.ATTR)
-            val stage = ShaderStage(
-                "vertex",
-                variables, defines.toString() +
-                        "localPosition = coords + vec3(0.0,0.0,float(instanceI32)*$space);\n" + // is output, so no declaration needed
-                        motionVectorInit +
-
-                        instancedInitCode +
-
-                        animCode0() +
-                        normalInitCode +
-                        animCode1 +
-
-                        applyTransformCode +
-                        colorInitCode +
-                        "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                        motionVectorCode +
-                        ShaderLib.positionPostProcessing
-            )
-            return listOf(stage)
-        }
-    }
-
-    val material = Material().apply { shader = shader1 }
     val spawner = object : MeshSpawner() {
 
         val count get() = ((sin(Time.gameTime) + 1.0) * 30).toInt()
@@ -83,13 +76,18 @@ fun main() {
             }
         }
 
-        override fun forEachMeshGroupI32(run: (Mesh, Material?, Matrix4x3d) -> ExpandingIntArray): Boolean {
-            val list = run(mesh, material, transform!!.globalTransform)
-            for (i in 0 until count) list.add(i)
-            return true
+        override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+            lastDrawn = Time.gameTimeN
+            this.clickId = clickId
+            val stack = getOrPutI32Stack(pipeline, mesh, material, TestI32Stack::class) {
+                TestI32Stack(space.toFloat())
+            }
+            val buffer = stack.begin(gfxId, transform!!.globalTransform)
+            for (i in 0 until count) buffer.add(i)
+            stack.end()
+            return clickId + 1
         }
     }
 
     testSceneWithUI("I32 Spawner", Entity(spawner))
-
 }

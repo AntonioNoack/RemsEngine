@@ -8,19 +8,19 @@ import me.anno.maths.Maths.hasFlag
 
 object PlanarShader : ECSMeshShader("planar") {
 
-    override fun createFragmentVariables(flags: Int): ArrayList<Variable> {
-        val list = super.createFragmentVariables(flags)
+    override fun createFragmentVariables(key: ShaderKey): ArrayList<Variable> {
+        val list = super.createFragmentVariables(key)
         list.add(Variable(GLSLType.V3F, "tilingU"))
         list.add(Variable(GLSLType.V3F, "tilingV"))
         list.add(Variable(GLSLType.V3F, "tileOffset"))
         return list
     }
 
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(flags)
+                createFragmentVariables(key)
                     .filter { it.name != "uv" },
                 discardByCullingPlane +
 

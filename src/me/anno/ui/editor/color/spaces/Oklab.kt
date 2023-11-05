@@ -2,6 +2,7 @@ package me.anno.ui.editor.color.spaces
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.buffer.DrawMode
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.cbrt
 import me.anno.ui.editor.color.ColorSpace
@@ -92,6 +93,6 @@ fun main() {
     val mesh = Mesh()
     mesh.positions = positions
     mesh.color0 = colors
-    mesh.drawMode = GL_POINTS
+    mesh.drawMode = DrawMode.POINTS
     testSceneWithUI("Oklab", mesh)
 }

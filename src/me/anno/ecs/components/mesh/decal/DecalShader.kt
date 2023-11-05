@@ -1,10 +1,11 @@
 package me.anno.ecs.components.mesh.decal
 
+import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.ecs.components.mesh.decal.DecalMaterial.Companion.sett
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
@@ -20,7 +21,7 @@ import me.anno.utils.structures.lists.Lists.any2
 import java.util.*
 
 class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshShader("decal") {
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val sett = sett
         val availableLayers = sett?.layers?.toHashSet() ?: emptySet()
         val availableLayers2 = sett?.layers2?.toHashSet() ?: emptySet()
@@ -34,8 +35,8 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                 Variable(GLSLType.V2F, "windowSize"),
                 Variable(GLSLType.V4F, "decalSharpness"),
                 Variable(GLSLType.V2F, "uv", VariableMode.OUT),
-                Variable(GLSLType.V3F, "normal", VariableMode.INOUT),
-                Variable(GLSLType.V3F, "tangent", VariableMode.INOUT),
+                Variable(GLSLType.V3F, "finalNormal", VariableMode.INOUT),
+                Variable(GLSLType.V3F, "finalTangent", VariableMode.INOUT),
                 Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                 Variable(GLSLType.V3F, "localPosition", VariableMode.OUT),
                 Variable(GLSLType.V1F, "alphaMultiplier", VariableMode.OUT),
@@ -47,7 +48,7 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
         for (layer in availableLayers) {
             variables.add(Variable(floats[layer.type.workDims - 1], "${layer.type.glslName}_in2", VariableMode.OUT))
         }
-        val originalStage = super.createFragmentStages(flags)
+        val originalStage = super.createFragmentStages(key)
         // can a decal modify the depth? it shouldn't ...
         return listOf(
             // inputs
@@ -138,17 +139,12 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
         return disabled
     }
 
-    override fun createDeferredShader(
-        deferred: DeferredSettings,
-        flags: Int,
-        vertexPostProcessing: List<ShaderStage>,
-        pixelPostProcessing: List<ShaderStage>
-    ): Shader {
-        val base = createBase(flags, vertexPostProcessing, pixelPostProcessing)
-        base.outputs = deferred
+    override fun createDeferredShader(key: ShaderKey): Shader {
+        val base = createBase(key)
+        base.outputs = key.renderer.deferredSettings
         base.disabledLayers = getDisabledLayers()
         // build & finish
-        val shader = base.create("dcl$flags")
+        val shader = base.create("dcl${key.flags}")
         finish(shader)
         return shader
     }

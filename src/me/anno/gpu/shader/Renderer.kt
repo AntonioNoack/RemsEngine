@@ -18,7 +18,9 @@ import me.anno.utils.files.UVChecker
  * defines render targets combined with post-processing
  * @param deferredSettings null if not rendering multiple targets
  * */
-open class Renderer(val name: String, val deferredSettings: DeferredSettings? = null) {
+open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
+
+    constructor(name: String): this(name, null)
 
     open fun getVertexPostProcessing(flags: Int): List<ShaderStage> = emptyList()
     open fun getPixelPostProcessing(flags: Int): List<ShaderStage> = emptyList()
@@ -120,10 +122,11 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings? = 
         val depthRenderer = SimpleRenderer(
             "depth", ShaderStage(
                 "depth", listOf(
-                    Variable(GLSLType.V1F, "zDistance"),
                     Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
-                ), "if(finalAlpha<0.01) discard; finalResult = vec4(zDistance, 0.0, zDistance * zDistance, 1.0);\n"
+                ), "if(finalAlpha<0.01) { discard; }\n" +
+                        "float zDistance = 1.0 / gl_FragCoord.w;\n" +
+                        "finalResult = vec4(zDistance, 0.0, zDistance * zDistance, 1.0);\n"
             )
         )
 

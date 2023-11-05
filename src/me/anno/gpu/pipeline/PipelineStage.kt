@@ -248,15 +248,13 @@ class PipelineStage(
         }
 
     val instanced = InstancedStack.Impl()
-    val instancedPSR = InstancedPSRStack()
+    val instancedPSR = InstancedTRSStack()
     val instancedStatic = InstancedStaticStack()
-    val instancedI32 = InstancedI32Stack()
 
     val instances = arrayListOf<DrawableStack>(
         instanced,
         instancedPSR,
         instancedStatic,
-        instancedI32,
         // if you need extra types, e.g., for MeshSpawner, just add them :)
         // (a helper function for that (and finding it again) might be added in the future)
     )
@@ -603,7 +601,7 @@ class PipelineStage(
 
         // instanced rendering of all kinds
         for (i in instances.indices) {
-            val (dt, dc) = instances[i].draw(pipeline, this, needsLightUpdateForEveryMesh, time, false)
+            val (dt, dc) = instances[i].draw0(pipeline, this, needsLightUpdateForEveryMesh, time, false)
             drawnPrimitives += dt
             drawCalls += dc
         }
@@ -630,82 +628,83 @@ class PipelineStage(
 
         val hasAnimation = (renderer as? MeshComponentBase)?.hasAnimation ?: false
         GFXState.animated.use(hasAnimation) {
+            GFXState.vertexData.use(mesh.vertexData) {
 
-            val transform = entity.transform
+                val transform = entity.transform
 
-            oc?.start()
+                oc?.start()
 
-            val shader = getShader(material)
-            shader.use()
-            bindRandomness(shader)
+                val shader = getShader(material)
+                shader.use()
+                bindRandomness(shader)
 
-            val previousMaterialByShader = lastMaterial.put(shader, material)
-            if (previousMaterialByShader == null) {
-                initShader(shader, pipeline)
-            }
-
-            val receiveShadows = if (renderer is MeshComponentBase) renderer.receiveShadows else true
-            if (hasLights) {
-                if (previousMaterialByShader == null ||
-                    needsLightUpdateForEveryMesh ||
-                    receiveShadows != lastReceiveShadows
-                ) {
-                    // upload all light data
-                    val aabb = tmpAABBd.set(mesh.getBounds()).transform(transform.getDrawMatrix())
-                    setupLights(pipeline, shader, aabb, receiveShadows)
-                    lastReceiveShadows = receiveShadows
+                val previousMaterialByShader = lastMaterial.put(shader, material)
+                if (previousMaterialByShader == null) {
+                    initShader(shader, pipeline)
                 }
+
+                val receiveShadows = if (renderer is MeshComponentBase) renderer.receiveShadows else true
+                if (hasLights) {
+                    if (previousMaterialByShader == null ||
+                        needsLightUpdateForEveryMesh ||
+                        receiveShadows != lastReceiveShadows
+                    ) {
+                        // upload all light data
+                        val aabb = tmpAABBd.set(mesh.getBounds()).transform(transform.getDrawMatrix())
+                        setupLights(pipeline, shader, aabb, receiveShadows)
+                        lastReceiveShadows = receiveShadows
+                    }
+                }
+
+                setupLocalTransform(shader, transform, Time.gameTimeN)
+
+                // the state depends on textures (global) and uniforms (per shader),
+                // so test both
+                if (previousMaterialByShader != material || previousMaterialInScene != material) {
+                    // bind textures for the material
+                    // bind all default properties, e.g. colors, roughness, metallic, clear coat/sheen, ...
+                    material.bind(shader)
+                    previousMaterialInScene = material
+                }
+
+                mesh.ensureBuffer()
+
+                // only if the entity or mesh changed
+                // not if the material has changed
+                // this updates the skeleton and such
+                if (entity !== lastEntity ||
+                    lastMesh !== mesh ||
+                    lastShader !== shader ||
+                    lastComp?.javaClass != renderer.javaClass
+                ) {
+                    val hasAnim = if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
+                        renderer.defineVertexTransform(shader, entity, mesh)
+                    else false
+                    shader.v1b("hasAnimation", hasAnim)
+                    lastEntity = entity
+                    lastMesh = mesh
+                    lastShader = shader
+                    lastComp = renderer
+                }
+
+                shader.v4f("tint", -1)
+                shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
+                shader.v4f("gfxId", renderer.gfxId)
+                shader.v2i(
+                    "randomIdData",
+                    if (mesh.proceduralLength > 0) 3 else 0,
+                    if (renderer is MeshComponentBase) renderer.randomTriangleId else 0
+                )
+
+                GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
+                    mesh.draw(shader, materialIndex)
+                }
+
+                oc?.stop()
+
+                drawnPrimitives += mesh.numPrimitives
+                drawCalls++
             }
-
-            setupLocalTransform(shader, transform, Time.gameTimeN)
-
-            // the state depends on textures (global) and uniforms (per shader),
-            // so test both
-            if (previousMaterialByShader != material || previousMaterialInScene != material) {
-                // bind textures for the material
-                // bind all default properties, e.g. colors, roughness, metallic, clear coat/sheen, ...
-                material.bind(shader)
-                previousMaterialInScene = material
-            }
-
-            mesh.ensureBuffer()
-
-            // only if the entity or mesh changed
-            // not if the material has changed
-            // this updates the skeleton and such
-            if (entity !== lastEntity ||
-                lastMesh !== mesh ||
-                lastShader !== shader ||
-                lastComp?.javaClass != renderer.javaClass
-            ) {
-                val hasAnim = if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
-                    renderer.defineVertexTransform(shader, entity, mesh)
-                else false
-                shader.v1b("hasAnimation", hasAnim)
-                lastEntity = entity
-                lastMesh = mesh
-                lastShader = shader
-                lastComp = renderer
-            }
-
-            shader.v4f("tint", -1)
-            shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
-            shader.v4f("gfxId", renderer.gfxId)
-            shader.v2i(
-                "randomIdData",
-                if (mesh.proceduralLength > 0) 3 else 0,
-                if (renderer is MeshComponentBase) renderer.randomTriangleId else 0
-            )
-
-            GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
-                mesh.draw(shader, materialIndex)
-            }
-
-            oc?.stop()
-
-            drawnPrimitives += mesh.numPrimitives
-            drawCalls++
-
         }
     }
 
@@ -831,7 +830,7 @@ class PipelineStage(
 
         // draw instanced meshes
         for (i in instances.indices) {
-            val (dt, dc) = instances[i].draw(pipeline, this, false, time, true)
+            val (dt, dc) = instances[i].draw0(pipeline, this, false, time, true)
             drawnPrimitives += dt
             drawCalls += dc
         }
@@ -888,7 +887,7 @@ class PipelineStage(
         material: Material,
         materialIndex: Int
     ) {
-        val stack = instanced.getOrPut(mesh, material, materialIndex) { mesh1, _, _ ->
+        val stack = instanced.data.getOrPut(mesh, material, materialIndex) { mesh1, _, _ ->
             if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
         }
         addToStack(stack, component, transform)

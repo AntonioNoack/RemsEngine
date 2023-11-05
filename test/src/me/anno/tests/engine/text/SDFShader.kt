@@ -7,16 +7,16 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 
 object SDFShader : ECSMeshShader("SDF") {
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(flags) +
+                createFragmentVariables(key) +
                         listOf(
                             Variable(GLSLType.V4F, "cameraRotation"),
                             Variable(GLSLType.V1B, "invertSDF")
                         ),
-                createDefines(flags).toString() +
+                concatDefines(key).toString() +
                         discardByCullingPlane +
                         // step by step define all material properties
                         // to do smoothstep (? would need transparency, and that's an issue...)

@@ -2,6 +2,7 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -15,8 +16,12 @@ import kotlin.math.min
 /**
  * instanced stack, where attributes can be derived from an i32 value each
  * */
-class InstancedI32Stack(capacity: Int = 512) :
-    KeyPairMap<Mesh, Material, InstancedI32Stack.Data>(capacity), DrawableStack {
+open class InstancedI32Stack(
+    instanceData: MeshInstanceData,
+    capacity: Int = 512
+) : DrawableStack(instanceData) {
+
+    val data = KeyPairMap<Mesh, Material, Data>(capacity)
 
     class Data {
 
@@ -31,9 +36,18 @@ class InstancedI32Stack(capacity: Int = 512) :
             matrices.clear()
         }
 
+        fun begin(gfxId: Int, matrix: Matrix4x3d): ExpandingIntArray {
+            gfxIds.add(gfxId)
+            matrices.add(matrix)
+            return data
+        }
+
+        fun end() {
+            gfxIds.add(data.size)
+        }
     }
 
-    override fun draw(
+    override fun draw1(
         pipeline: Pipeline,
         stage: PipelineStage,
         needsLightUpdateForEveryMesh: Boolean,
@@ -41,11 +55,13 @@ class InstancedI32Stack(capacity: Int = 512) :
     ): LongPair {
         var drawnPrimitives = 0L
         var drawCalls = 0L
-        for ((mesh, list) in values) {
-            for ((material, values) in list) {
-                if (values.size > 0) {
-                    drawCalls += draw(stage, mesh, material, pipeline, values, depth)
-                    drawnPrimitives += mesh.numPrimitives * values.size.toLong()
+        for ((mesh, list) in data.values) {
+            GFXState.vertexData.use(mesh.vertexData) {
+                for ((material, values) in list) {
+                    if (values.size > 0) {
+                        drawCalls += draw(stage, mesh, material, pipeline, values, depth)
+                        drawnPrimitives += mesh.numPrimitives * values.size.toLong()
+                    }
                 }
             }
         }
@@ -84,7 +100,7 @@ class InstancedI32Stack(capacity: Int = 512) :
         material.bind(shader)
         shader.v4f("tint", -1)
         shader.v1b("hasAnimation", false)
-        shader.v1i("hasVertexColors", if(material.enableVertexColors) mesh.hasVertexColors else 0)
+        shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
         shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
         GFX.check()
 
@@ -130,14 +146,13 @@ class InstancedI32Stack(capacity: Int = 512) :
                 }
                 drawCalls++
                 baseIndex = endIndex
-
             }
         }
         return drawCalls
     }
 
     override fun clear() {
-        for ((_, l1) in values) {
+        for ((_, l1) in data.values) {
             for ((_, stack) in l1) {
                 stack.clear()
             }
@@ -145,7 +160,6 @@ class InstancedI32Stack(capacity: Int = 512) :
     }
 
     override fun size1(): Long {
-        return values.values.sumOf { it.size.toLong() }
+        return data.values.values.sumOf { it.size.toLong() }
     }
-
 }

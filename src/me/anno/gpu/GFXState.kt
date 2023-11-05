@@ -1,6 +1,8 @@
 package me.anno.gpu
 
 import me.anno.cache.instances.VideoCache
+import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.fonts.FontManager.TextCache
 import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.blending.BlendMode
@@ -110,13 +112,6 @@ object GFXState {
         }
     }
 
-    val instanced = object : SecureStack<Boolean>(false) {
-        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
-            // nothing changes on the OpenGL side,
-            // just the shaders need to be modified
-        }
-    }
-
     /**
      * a flag for shaders whether their animated version (slower) is used
      * */
@@ -128,14 +123,14 @@ object GFXState {
     }
 
     /**
-     * a flag for shaders whether their limited-transform version (faster for 10k+ instances) is used
+     * defines how localPosition, and normal are loaded from mesh attributes
      * */
-    val prsTransform = object : SecureStack<Boolean>(false) {
-        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
-            // nothing changes on the OpenGL side,
-            // just the shaders need to be modified
-        }
-    }
+    val vertexData = SecureStack(MeshVertexData.DEFAULT)
+
+    /**
+     * defines how the instanced transform is derived from available attributes (depends on InstancedStack)
+     * */
+    val instanceData = SecureStack(MeshInstanceData.DEFAULT)
 
     val cullMode = object : SecureStack<CullMode>(CullMode.BOTH) {
         override fun onChangeValue(newValue: CullMode, oldValue: CullMode) {

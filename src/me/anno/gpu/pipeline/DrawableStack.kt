@@ -1,13 +1,27 @@
 package me.anno.gpu.pipeline
 
+import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.gpu.GFXState
 import me.anno.utils.structures.tuples.LongPair
 
-interface DrawableStack {
+abstract class DrawableStack(val instanceData: MeshInstanceData) {
+
+    fun draw0(
+        pipeline: Pipeline,
+        stage: PipelineStage,
+        needsLightUpdateForEveryMesh: Boolean,
+        time: Long,
+        depth: Boolean
+    ): LongPair {
+        return GFXState.instanceData.use(instanceData) {
+            draw1(pipeline, stage, needsLightUpdateForEveryMesh, time, depth)
+        }
+    }
 
     /**
      * draws; returns number of triangles drawn
      * */
-    fun draw(
+    abstract fun draw1(
         pipeline: Pipeline,
         stage: PipelineStage,
         needsLightUpdateForEveryMesh: Boolean,
@@ -15,8 +29,7 @@ interface DrawableStack {
         depth: Boolean
     ): LongPair
 
-    fun clear()
+    abstract fun clear()
 
-    fun size1(): Long
-
+    abstract fun size1(): Long
 }

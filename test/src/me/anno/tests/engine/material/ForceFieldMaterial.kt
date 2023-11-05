@@ -58,17 +58,16 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
         (depth?.depthTexture ?: depthTexture).bindTrulyNearest(shader, "depthTex")
     }
 
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(flags) + listOf(
+                createFragmentVariables(key) + listOf(
                     Variable(GLSLType.S2D, "depthTex"),
-                    Variable(GLSLType.V1F, "zDistance"),
                     Variable(GLSLType.V1F, "worldScale"),
                     Variable(GLSLType.V1F, "uvScroll")
                 ) + depthVars,
-                createDefines(flags).toString() +
+                concatDefines(key).toString() +
                         discardByCullingPlane +
                         "float alpha0 = 1.0 - texture(diffuseMap, vec2(16.0,8.0) * uv + uvScroll).x;\n" +
                         "finalColor = diffuseBase.xyz;//mix(diffuseBase.xyz, vec3(1.0), alpha0);\n" +
@@ -80,6 +79,7 @@ object ForceFieldShader : ECSMeshShader("ForceField") {
                         "float fresnel = pow(1.0 - abs(dot(V0,finalNormal)), 3.0);\n" +
                         "ivec2 depthUV = ivec2(gl_FragCoord.xy);\n" +
                         "float sampledDepth = rawToDepth(texelFetch(depthTex,depthUV,0).x);\n" +
+                        "float zDistance = 1.0 / gl_FragCoord.w;\n" +
                         "float distanceToSurface = abs(sampledDepth - zDistance)/worldScale;\n" +
                         "float betterFresnel = fresnel + max(1.0-4.0*distanceToSurface, 0.0);\n" +
                         "betterFresnel = min(pow(betterFresnel,3.0), 1.0);\n" +

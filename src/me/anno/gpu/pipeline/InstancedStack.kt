@@ -3,6 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -53,9 +54,44 @@ open class InstancedStack {
         gfxIds[index] = gfxId
     }
 
-    companion object {
+    class Impl(capacity: Int = 512) : DrawableStack(MeshInstanceData.DEFAULT_INSTANCED) {
 
-        fun draw(
+        val data = KeyTripleMap<Mesh, Material, Int, InstancedStack>(capacity)
+
+        override fun size1(): Long {
+            return data.values.values.sumOf { it.size.toLong() }
+        }
+
+        override fun draw1(
+            pipeline: Pipeline,
+            stage: PipelineStage,
+            needsLightUpdateForEveryMesh: Boolean,
+            time: Long,
+            depth: Boolean
+        ): LongPair {
+            var drawnPrimitives = 0L
+            var drawCalls = 0L
+            // draw instanced meshes
+            for ((mesh, list) in data.values) {
+                GFXState.vertexData.use(mesh.vertexData) {
+                    for ((material, materialIndex, values) in list) {
+                        if (values.isNotEmpty()) {
+                            cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
+                                drawCalls += drawInstances(
+                                    mesh, material, materialIndex,
+                                    pipeline, stage, needsLightUpdateForEveryMesh,
+                                    time, values, depth
+                                )
+                            }
+                            drawnPrimitives += mesh.numPrimitives * values.size.toLong()
+                        }
+                    }
+                }
+            }
+            return LongPair(drawnPrimitives, drawCalls)
+        }
+
+        private fun drawInstances(
             mesh: Mesh, material: Material, materialIndex: Int,
             pipeline: Pipeline, stage: PipelineStage, needsLightUpdateForEveryMesh: Boolean,
             time: Long, instances: InstancedStack, depth: Boolean
@@ -247,50 +283,12 @@ open class InstancedStack {
             return drawCalls
         }
 
-    }
-
-    class Impl(capacity: Int = 512) : KeyTripleMap<Mesh, Material, Int, InstancedStack>(capacity), DrawableStack {
-
-        override fun size1(): Long {
-            return values.values.sumOf { it.size.toLong() }
-        }
-
-        override fun draw(
-            pipeline: Pipeline,
-            stage: PipelineStage,
-            needsLightUpdateForEveryMesh: Boolean,
-            time: Long,
-            depth: Boolean
-        ): LongPair {
-            var drawnPrimitives = 0L
-            var drawCalls = 0L
-            // draw instanced meshes
-            GFXState.instanced.use(true) {
-                for ((mesh, list) in values) {
-                    for ((material, materialIndex, values) in list) {
-                        if (values.isNotEmpty()) {
-                            cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
-                                drawCalls += Companion.draw(
-                                    mesh, material, materialIndex,
-                                    pipeline, stage, needsLightUpdateForEveryMesh,
-                                    time, values, depth
-                                )
-                            }
-                            drawnPrimitives += mesh.numPrimitives * values.size.toLong()
-                        }
-                    }
-                }
-            }
-            return LongPair(drawnPrimitives, drawCalls)
-        }
-
         override fun clear() {
-            for ((_, values) in values) {
+            for ((_, values) in data.values) {
                 for ((_, _, value) in values) {
                     value.clear()
                 }
             }
         }
     }
-
 }

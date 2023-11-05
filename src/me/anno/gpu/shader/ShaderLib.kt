@@ -333,10 +333,6 @@ object ShaderLib {
             "}\n" +
             "vec4 getTexture(sampler2D tex, vec2 uv){ return getTexture(tex, uv, textureDeltaUV); }\n"
 
-    // used in depth-renderer
-    const val positionPostProcessing = "" +
-            "   zDistance = gl_Position.w;\n"
-
     const val flatNormal = "" +
             "   normal = vec3(0.0, 0.0, 1.0);\n"
 
@@ -351,7 +347,6 @@ object ShaderLib {
             "void main(){\n" +
             "   finalPosition = coords;\n" +
             "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-            positionPostProcessing +
             "   uv = (uvs-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
             "   uvw = coords;\n" +
             flatNormal +
@@ -363,7 +358,6 @@ object ShaderLib {
         Variable(GLSLType.V2F, "uv"),
         Variable(GLSLType.V3F, "uvw"),
         Variable(GLSLType.V3F, "finalPosition"),
-        Variable(GLSLType.V1F, "zDistance"),
         Variable(GLSLType.V3F, "normal")
     )
 
@@ -393,13 +387,11 @@ object ShaderLib {
             "   finalPosition = vec3(coords*2.0-1.0, 0.0);\n" +
             "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
             "   uv = gl_Position.xyw;\n" +
-            positionPostProcessing +
             "}"
 
     val y3DMasked = listOf(
         Variable(GLSLType.V3F, "uv"),
-        Variable(GLSLType.V3F, "finalPosition"),
-        Variable(GLSLType.V1F, "zDistance")
+        Variable(GLSLType.V3F, "finalPosition")
     )
 
     // make this customizable?
@@ -422,7 +414,6 @@ object ShaderLib {
             "   finalPosition = vec3(betterUV, coords.z);\n" +
             "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
             flatNormal +
-            positionPostProcessing +
             "   uv = uvs.yx;\n" +
             "}"
 
@@ -498,7 +489,6 @@ object ShaderLib {
                 "   finalPosition = aLocalPosition;\n" +
                 "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 flatNormal +
-                positionPostProcessing +
                 "   color0 = aColor0;\n" +
                 "   color1 = aColor1;\n" +
                 "   color2 = aColor2;\n" +
@@ -659,8 +649,7 @@ object ShaderLib {
         "" +
                 "void main(){" +
                 "   gl_Position = matMul(transform, vec4(coords, 1.0));\n" +
-                positionPostProcessing +
-                "}", listOf(Variable(GLSLType.V1F, "zDistance")),
+                "}", emptyList(),
         listOf(
             Variable(GLSLType.V4F, "color"),
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
@@ -686,7 +675,6 @@ object ShaderLib {
                 "   vec2 pseudoUV2 = getForceFieldUVs(localPos0*.5+.5);\n" +
                 "   finalPosition = vec3($hasForceFieldUVs ? pseudoUV2*2.0-1.0 : localPos0, 0);\n" +
                 "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                positionPostProcessing +
                 "}", y3D, listOf(
             Variable(GLSLType.S2D, "tex"),
             Variable(GLSLType.V4F, "colors", maxOutlineColors),

@@ -36,12 +36,12 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 "}\n" +
                 "float fbm(vec2 p){ return fbm(vec3(p, 0.0)); }\n"
     }
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
 
         // todo the red clouds in the night sky are a bit awkward
         val stage = ShaderStage(
             "sky", listOf(
-                Variable(GLSLType.V3F, "normal", VariableMode.IN),
+                Variable(GLSLType.V3F, "normal"),
                 Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
@@ -59,7 +59,7 @@ open class SkyShader(name: String) : SkyShaderBase(name) {
                 Variable(GLSLType.V4F, "worldRot"),
                 Variable(GLSLType.V1B, "sphericalSky"),
                 Variable(GLSLType.V3F, "sunColor"),
-            ), createDefines(flags).toString() +
+            ), concatDefines(key).toString() +
                     // sky no longer properly defined for y > 0
                     "finalNormal = normalize(-normal);\n" +
                     "#ifdef COLORS\n" +

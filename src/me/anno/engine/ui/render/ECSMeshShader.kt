@@ -3,11 +3,9 @@ package me.anno.engine.ui.render
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.anim.BoneData.maxBones
 import me.anno.gpu.GFX
-import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.brightness
 import me.anno.gpu.shader.ShaderLib.parallaxMapping
 import me.anno.gpu.shader.ShaderLib.quatRot
@@ -201,60 +199,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 "   finalMotion = currPosition.xyz/currPosition.w - prevPosition.xyz/prevPosition.w;\n" +
                 "#endif\n"
 
-        val applyTransformCode = "" +
-                "#ifdef PRS_TRANSFORM\n" +
-                "   finalPosition = quatRot(localPosition, instanceRot) * instancePosSize.w + instancePosSize.xyz;\n" +
-                "   #ifdef COLORS\n" +
-                // scale not needed, because scale is scalar in this case
-                "       normal = quatRot(normal, instanceRot);\n" +
-                "       tangent.xyz = quatRot(tangent.xyz, instanceRot);\n" +
-                "   #endif\n" + // colors
-                "#else\n" +
-                "   finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
-                "   #ifdef COLORS\n" +
-                "       normal = normalize(matMul(localTransform, vec4(normal,0.0)));\n" +
-                "       tangent.xyz = normalize(matMul(localTransform, vec4(tangent.xyz,0.0)));\n" +
-                "   #endif\n" + // colors
-                "#endif\n"
-
-        val normalInitCode = "" +
-                "       #ifdef COLORS\n" +
-                "           normal = normals;\n" +
-                "           tangent = tangents;\n" +
-                "       #endif\n"
-
-        val colorInitCode = "" +
-                "#ifdef COLORS\n" +
-                "   vertexColor0 = (hasVertexColors & 1) != 0 ? colors0 : vec4(1.0);\n" +
-                "   vertexColor1 = (hasVertexColors & 2) != 0 ? colors1 : vec4(1.0);\n" +
-                "   vertexColor2 = (hasVertexColors & 4) != 0 ? colors2 : vec4(1.0);\n" +
-                "   vertexColor3 = (hasVertexColors & 8) != 0 ? colors3 : vec4(1.0);\n" +
-                "   uv = uvs;\n" +
-                "#endif\n"
-
-        val motionVectorInit = "" +
-                "#ifdef MOTION_VECTORS\n" +
-                "   vec3 prevLocalPosition = localPosition;\n" +
-                "#endif\n"
+        val glPositionCode = "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n"
 
         val motionVectorCode = "" +
                 "#ifdef MOTION_VECTORS\n" +
                 "   currPosition = gl_Position;\n" +
-                "   #ifdef PRS_TRANSFORM\n" +
-                "       prevPosition = matMul(prevTransform, vec4(finalPosition, 1.0));\n" +
-                "   #else\n" +
-                "       prevPosition = matMul(prevTransform, vec4(matMul(prevLocalTransform, vec4(prevLocalPosition, 1.0)), 1.0));\n" +
-                "   #endif\n" +
+                "   prevPosition = matMul(prevTransform, prevPosition);\n" +
                 "#endif\n"
-
-        val instancedInitCode = "" +
-                "#ifdef INSTANCED\n" +
-                "   gfxId = instanceGfxId;\n" +
-                "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
-                "   #ifdef MOTION_VECTORS\n" +
-                "       mat4x3 prevLocalTransform = mat4x3(instancePrevTrans0,instancePrevTrans1,instancePrevTrans2,instancePrevTrans3);\n" +
-                "   #endif\n" +
-                "#endif\n" // instanced
 
         fun animCode0() = "" +
                 "#ifdef ANIMATED\n" +
@@ -266,14 +217,9 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 animationCode2() +
                 "       #endif\n" +
                 "       #ifdef COLORS\n" +
-                "           normal = matMul(jointMat, vec4(normals,0.0));\n" +
-                "           tangent = vec4(matMul(jointMat, vec4(tangents.xyz,0.0)), tangents.w);\n" +
+                "           normal = matMul(jointMat, vec4(normal,0.0));\n" +
+                "           tangent = vec4(matMul(jointMat, vec4(tangent.xyz,0.0)), tangent.w);\n" +
                 "       #endif\n" +
-                "   } else {\n" +
-                "#endif\n" // animated
-
-        val animCode1 = "" +
-                "#ifdef ANIMATED\n" +
                 "   }\n" +
                 "#endif\n" // animated
 
@@ -324,76 +270,25 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
     }
 
-    open fun createBase(
-        flags: Int,
-        vertexPostProcessing: List<ShaderStage>,
-        pixelPostProcessing: List<ShaderStage>
-    ): ShaderBuilder {
+    open fun createBase(key: ShaderKey): ShaderBuilder {
         val builder = createBuilder()
-        builder.addVertex(createVertexStages(flags))
+        val flags = key.flags
+        builder.addVertex(createVertexStages(key))
         builder.addVertex(createRandomIdStage())
-        builder.addVertex(vertexPostProcessing)
-        builder.addFragment(createFragmentStages(flags))
-        builder.addFragment(pixelPostProcessing)
+        builder.addVertex(key.renderer.getVertexPostProcessing(flags))
+        builder.addFragment(createFragmentStages(key))
+        builder.addFragment(key.renderer.getPixelPostProcessing(flags))
         return builder
     }
 
-    open fun createVertexVariables(flags: Int): ArrayList<Variable> {
+    open fun createAnimVariables(key: ShaderKey): ArrayList<Variable> {
 
+        val flags = key.flags
         val variables = ArrayList<Variable>(32)
-        variables += Variable(GLSLType.V3F, "coords", VariableMode.ATTR)
-
-        // uniforms
-        variables += Variable(GLSLType.M4x4, "transform")
-        if (flags.hasFlag(NEEDS_COLORS)) {
-            variables += Variable(GLSLType.V1I, "hasVertexColors")
-        }
-
-        // outputs
-        variables += Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
-        variables += Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
-        variables += Variable(GLSLType.V1F, "zDistance", VariableMode.OUT)
-
-        if (flags.hasFlag(NEEDS_COLORS)) {
-            variables += Variable(GLSLType.V2F, "uvs", VariableMode.ATTR)
-            variables += Variable(GLSLType.V2F, "uv", VariableMode.OUT)
-
-            variables += Variable(GLSLType.V3F, "normals", VariableMode.ATTR)
-            variables += Variable(GLSLType.V3F, "normal", VariableMode.OUT)
-
-            variables += Variable(GLSLType.V4F, "tangents", VariableMode.ATTR)
-            variables += Variable(GLSLType.V4F, "tangent", VariableMode.OUT)
-
-            variables += Variable(GLSLType.V4F, "colors0", VariableMode.ATTR)
-            if ((flags.hasFlag(IS_ANIMATED) || flags.hasFlag(NEEDS_MOTION_VECTORS) && flags.hasFlag(IS_INSTANCED))) {
-                // too many attributes, only 16 are supported in OpenGL and DirectX
-                variables += Variable(GLSLType.V4F, "colors1")
-                variables += Variable(GLSLType.V4F, "colors2")
-                variables += Variable(GLSLType.V4F, "colors3")
-            } else {
-                variables += Variable(GLSLType.V4F, "colors1", VariableMode.ATTR)
-                variables += Variable(GLSLType.V4F, "colors2", VariableMode.ATTR)
-                variables += Variable(GLSLType.V4F, "colors3", VariableMode.ATTR)
-            }
-            variables += Variable(GLSLType.V4F, "vertexColor0", VariableMode.OUT)
-            variables += Variable(GLSLType.V4F, "vertexColor1", VariableMode.OUT)
-            variables += Variable(GLSLType.V4F, "vertexColor2", VariableMode.OUT)
-            variables += Variable(GLSLType.V4F, "vertexColor3", VariableMode.OUT)
-        }
 
         val isInstanced = flags.hasFlag(IS_INSTANCED)
-        val isAnimated = flags.hasFlag(IS_ANIMATED)
-        if (flags.hasFlag(USES_PRS_TRANSFORM)) {
-            variables += Variable(GLSLType.V4F, "instancePosSize", VariableMode.ATTR)
-            variables += Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR)
-        } else if (isInstanced) {
-            variables += Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR)
-            variables += Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR)
-            variables += Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR)
-            variables += Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR)
-            variables += Variable(GLSLType.V4F, "instanceGfxId", VariableMode.ATTR)
-            variables += Variable(GLSLType.V4F, "gfxId", VariableMode.OUT)
-            if (isAnimated && useAnimTextures) {
+        if (isInstanced) {
+            if (useAnimTextures) {
                 variables += Variable(GLSLType.V4F, "boneWeights", VariableMode.ATTR)
                 variables += Variable(GLSLType.V4I, "boneIndices", VariableMode.ATTR)
                 variables += Variable(GLSLType.V4F, "animWeights", VariableMode.ATTR)
@@ -410,74 +305,120 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
             //          bones x 3 rows for matrix
 
             // attributes
-            if (isAnimated) {
-                variables += Variable(GLSLType.V4F, "boneWeights", VariableMode.ATTR)
-                variables += Variable(GLSLType.V4I, "boneIndices", VariableMode.ATTR)
-                if (useAnimTextures) {
-                    variables += Variable(GLSLType.V4F, "animWeights")
-                    variables += Variable(GLSLType.V4F, "animIndices")
-                    variables += Variable(GLSLType.S2D, "animTexture")
-                    variables += Variable(GLSLType.V1B, "hasAnimation")
-                } else {
-                    // not required for the instanced rendering, because this is instance specific,
-                    // and therefore not supported for instanced rendering
-                    variables += Variable(GLSLType.M4x3, "jointTransforms", maxBones)
-                    variables += Variable(GLSLType.V1B, "hasAnimation")
-                }
+            variables += Variable(GLSLType.V4F, "boneWeights", VariableMode.ATTR)
+            variables += Variable(GLSLType.V4I, "boneIndices", VariableMode.ATTR)
+            if (useAnimTextures) {
+                variables += Variable(GLSLType.V4F, "animWeights")
+                variables += Variable(GLSLType.V4F, "animIndices")
+                variables += Variable(GLSLType.S2D, "animTexture")
+                variables += Variable(GLSLType.V1B, "hasAnimation")
+            } else {
+                // not required for the instanced rendering, because this is instance specific,
+                // and therefore not supported for instanced rendering
+                variables += Variable(GLSLType.M4x3, "jointTransforms", maxBones)
+                variables += Variable(GLSLType.V1B, "hasAnimation")
             }
-            variables += Variable(GLSLType.M4x3, "localTransform")
-            // Variable(GLSLType.V4F, "weight", false),
         }
 
         if (flags.hasFlag(NEEDS_MOTION_VECTORS)) {
-            variables += Variable(GLSLType.M4x4, "prevTransform")
-            if (isInstanced) {
-                variables += Variable(GLSLType.V3F, "instancePrevTrans0", VariableMode.ATTR)
-                variables += Variable(GLSLType.V3F, "instancePrevTrans1", VariableMode.ATTR)
-                variables += Variable(GLSLType.V3F, "instancePrevTrans2", VariableMode.ATTR)
-                variables += Variable(GLSLType.V3F, "instancePrevTrans3", VariableMode.ATTR)
-            } else {
-                variables += Variable(GLSLType.M4x3, "prevLocalTransform")
-            }
-            if (isAnimated) {
-                val type = if (isInstanced) VariableMode.ATTR else VariableMode.IN
-                variables += Variable(GLSLType.V4F, "prevAnimWeights", type)
-                variables += Variable(GLSLType.V4F, "prevAnimIndices", type)
-            }
-            variables += Variable(GLSLType.V4F, "currPosition", VariableMode.OUT)
-            variables += Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT)
+            val type = if (isInstanced) VariableMode.ATTR else VariableMode.IN
+            variables += Variable(GLSLType.V4F, "prevAnimWeights", type)
+            variables += Variable(GLSLType.V4F, "prevAnimIndices", type)
         }
 
         return variables
     }
 
-    open fun createVertexStages(flags: Int): List<ShaderStage> {
-        val defines = createDefines(flags)
-        val variables = createVertexVariables(flags)
-        val stage = ShaderStage(
-            "vertex",
-            variables, defines.toString() +
-                    "localPosition = coords;\n" +
-                    motionVectorInit +
+    /**
+     * loads localPosition, localNormal, localTangent and such from vertex data
+     * */
+    fun loadVertex(key: ShaderKey): List<ShaderStage> {
+        val vertexData = key.vertexData
+        val flags = key.flags
+        return vertexData.loadPosition +
+                f(vertexData.loadNorTan, flags.hasFlag(NEEDS_COLORS)) +
+                f(vertexData.loadColors, flags.hasFlag(NEEDS_COLORS)) +
+                f(vertexData.loadMotionVec, flags.hasFlag(NEEDS_MOTION_VECTORS))
+    }
 
-                    instancedInitCode +
+    /**
+     * creates pre-processor defines, that may be needed for optimization,
+     * or to detect whether some variables are truly available
+     * */
+    fun createDefines(key: ShaderKey): ShaderStage {
+        return ShaderStage("v-def", emptyList(), concatDefines(key).toString())
+    }
 
-                    animCode0() +
-                    normalInitCode +
-                    animCode1 +
+    /**
+     * transforms the vertex from local space into camera-space,
+     * based on instanced rendering if applicable
+     * */
+    fun transformVertex(key: ShaderKey): List<ShaderStage> {
+        val flags = key.flags
+        val instanceData = key.instanceData
+        return instanceData.transformPosition +
+                f(instanceData.transformNorTan, flags.hasFlag(NEEDS_COLORS)) +
+                f(instanceData.transformColors, flags.hasFlag(NEEDS_COLORS)) +
+                f(instanceData.transformMotionVec, flags.hasFlag(NEEDS_MOTION_VECTORS))
+    }
 
-                    applyTransformCode +
-                    colorInitCode +
-                    "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                    motionVectorCode +
-                    ShaderLib.positionPostProcessing
-        )
-        if (flags.hasFlag(IS_ANIMATED) && useAnimTextures) stage.add(getAnimMatrix)
-        if (flags.hasFlag(USES_PRS_TRANSFORM)) stage.add(quatRot)
+    /**
+     * calculates gl_Position, and currPosition/prevPosition for motion vectors if needed
+     * */
+    fun finishVertex(key: ShaderKey): ShaderStage {
+        return if (!key.flags.hasFlag(NEEDS_MOTION_VECTORS)) {
+            // easy default
+            ShaderStage(
+                "v-finish", listOf(
+                    Variable(GLSLType.M4x4, "transform"),
+                    Variable(GLSLType.V3F, "finalPosition"),
+                ), glPositionCode
+            )
+        } else {
+            // default plus pass motion vector data to fragment stages
+            ShaderStage(
+                "v-vec-finish", listOf(
+                    Variable(GLSLType.M4x4, "transform"),
+                    Variable(GLSLType.M4x4, "prevTransform"),
+                    Variable(GLSLType.V3F, "finalPosition"),
+                    Variable(GLSLType.V4F, "currPosition", VariableMode.OUT),
+                    Variable(GLSLType.V4F, "prevPosition", VariableMode.INOUT)
+                ), glPositionCode + motionVectorCode
+            )
+        }
+    }
+
+    /**
+     * applies skeletal animation onto the vertex, if needed
+     * */
+    fun animateVertex(key: ShaderKey): List<ShaderStage> {
+        val flags = key.flags
+        if (!flags.hasFlag(IS_ANIMATED)) return emptyList()
+        val stage = ShaderStage("v-anim", createAnimVariables(key), animCode0())
+        if (useAnimTextures) stage.add(getAnimMatrix)
         return listOf(stage)
     }
 
-    open fun createFragmentVariables(flags: Int): ArrayList<Variable> {
+    open fun createVertexStages(key: ShaderKey): List<ShaderStage> {
+        return createDefines(key) +
+                loadVertex(key) +
+                animateVertex(key) +
+                transformVertex(key) +
+                finishVertex(key)
+    }
+
+    fun f(stage: ShaderStage, condition: Boolean): List<ShaderStage> {
+        return if (condition) listOf(stage)
+        else emptyList()
+    }
+
+    fun f(list: List<ShaderStage>, condition: Boolean): List<ShaderStage> {
+        return if (condition) list
+        else emptyList()
+    }
+
+    open fun createFragmentVariables(key: ShaderKey): ArrayList<Variable> {
+        val flags = key.flags
         val list = arrayListOf(
             // input textures
             Variable(GLSLType.S2D, "diffuseMap"),
@@ -540,12 +481,13 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
     }
 
     // just like the gltf pbr shader define all material properties
-    open fun createFragmentStages(flags: Int): List<ShaderStage> {
-        return listOf(
+    open fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
+        val mvd = key.vertexData
+        return mvd.onFragmentShader + listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(flags) + listOf(Variable(GLSLType.V4F, "cameraRotation")),
-                createDefines(flags).toString() +
+                createFragmentVariables(key) + listOf(Variable(GLSLType.V4F, "cameraRotation")),
+                concatDefines(key).toString() +
                         discardByCullingPlane +
                         // step by step define all material properties
                         // to do weak devices like phones shouldn't use this
@@ -576,10 +518,11 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         )
     }
 
-    override fun createDepthShader(flags: Int): Shader {
+    override fun createDepthShader(key: ShaderKey): Shader {
 
+        val flags = key.flags
         val builder = createBuilder()
-        builder.addVertex(createVertexStages(flags))
+        builder.addVertex(createVertexStages(key))
         builder.addFragment(
             ShaderStage(
                 "depth", listOf(
@@ -602,27 +545,17 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return shader
     }
 
-    override fun createForwardShader(
-        flags: Int,
-        vertexPostProcessing: List<ShaderStage>,
-        pixelPostProcessing: List<ShaderStage>
-    ): Shader {
-        val shader = createBase(flags, vertexPostProcessing, pixelPostProcessing)
-            .create("fwd$flags")
+    override fun createForwardShader(key: ShaderKey): Shader {
+        val shader = createBase(key).create("fwd${key.flags}")
         finish(shader)
         return shader
     }
 
-    override fun createDeferredShader(
-        deferred: DeferredSettings,
-        flags: Int,
-        vertexPostProcessing: List<ShaderStage>,
-        pixelPostProcessing: List<ShaderStage>
-    ): Shader {
-        val base = createBase(flags, vertexPostProcessing, pixelPostProcessing)
-        base.outputs = deferred
+    override fun createDeferredShader(key: ShaderKey): Shader {
+        val base = createBase(key)
+        base.outputs = key.renderer.deferredSettings
         // build & finish
-        val shader = base.create("def$flags")
+        val shader = base.create("def${key.flags}")
         finish(shader)
         return shader
     }

@@ -42,7 +42,6 @@ object GFXx3D {
                 "   finalPosition = ${ShaderLib.hasForceFieldUVs} ? vec3(pseudoUV2*2.0-1.0, coords.z + offset.z) : localPos0;\n" +
                 "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 ShaderLib.flatNormal +
-                ShaderLib.positionPostProcessing +
                 "   vertexId = gl_VertexID;\n" +
                 "}", ShaderLib.y3D + listOf(Variable(GLSLType.V1I, "vertexId").flat()), listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
@@ -69,7 +68,6 @@ object GFXx3D {
                 "   finalPosition = vec3(betterUV, 0.0);\n" +
                 "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
                 ShaderLib.flatNormal +
-                ShaderLib.positionPostProcessing +
                 "}", ShaderLib.y3D, listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)

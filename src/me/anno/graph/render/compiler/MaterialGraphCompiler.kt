@@ -206,8 +206,8 @@ class MaterialGraphCompiler(
                 }
             }
 
-            override fun createFragmentStages(flags: Int): List<ShaderStage> {
-                val vars = usedVars + super.createFragmentVariables(flags)
+            override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
+                val vars = usedVars + super.createFragmentVariables(key)
                 return listOf(
                     ShaderStage(
                         "calc", vars,

@@ -1,6 +1,5 @@
 package me.anno.tests.physics.fluid
 
-import me.anno.ecs.components.anim.AnimTexture
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.TypeValue
@@ -9,28 +8,26 @@ import me.anno.ecs.components.mesh.terrain.TerrainUtils
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
-import me.anno.maths.Maths.hasFlag
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.utils.types.Arrays.resize
 
 object FluidMeshShader : ECSMeshShader("fluid") {
-    override fun createVertexStages(flags: Int): List<ShaderStage> {
-        val defines = createDefines(flags)
-        val variables = createVertexVariables(flags)
-        val stage = ShaderStage(
+    override fun createVertexStages(key: ShaderKey): List<ShaderStage> {
+        val variables = createAnimVariables(key)
+        val fluidYAndNormalStage = ShaderStage(
             "vertex",
             variables + listOf(
                 Variable(GLSLType.S2D, "heightTex"),
-                Variable(GLSLType.V1F, "waveHeight")
-            ), defines.toString() +
-                    "localPosition = coords + vec3(0,waveHeight * texture(heightTex,uvs).x,0);\n" + // is output, so no declaration needed
-                    motionVectorInit +
-
-                    instancedInitCode +
-
-                    // normalInitCode +
+                Variable(GLSLType.V1F, "waveHeight"),
+                Variable(GLSLType.V2F, "uvs"),
+                Variable(GLSLType.V3F, "localPosition", VariableMode.INOUT),
+                Variable(GLSLType.V3F, "normal", VariableMode.OUT),
+                Variable(GLSLType.V4F, "tangent", VariableMode.OUT),
+                Variable(GLSLType.V4F, "tangents")
+            ), "" +
+                    "localPosition.y += waveHeight * texture(heightTex,uvs).x;\n" + // is output, so no declaration needed
                     "#ifdef COLORS\n" +
                     "   vec2 texSize = textureSize(heightTex,0);\n" +
                     "   vec2 du = vec2(1.0/texSize.x,0.0), dv = vec2(0.0,1.0/texSize.y);\n" +
@@ -38,17 +35,13 @@ object FluidMeshShader : ECSMeshShader("fluid") {
                     "   float dz = texture(heightTex,uvs+dv).x - texture(heightTex,uvs-dv).x;\n" +
                     "   normal = normalize(vec3(dx*waveHeight, 1.0, dz*waveHeight));\n" +
                     "   tangent = tangents;\n" +
-                    "#endif\n" +
-
-                    applyTransformCode +
-                    colorInitCode +
-                    "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                    motionVectorCode +
-                    ShaderLib.positionPostProcessing
+                    "#endif\n"
         )
-        if (flags.hasFlag(IS_ANIMATED) && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
-        if (flags.hasFlag(USES_PRS_TRANSFORM)) stage.add(ShaderLib.quatRot)
-        return listOf(stage)
+        return createDefines(key) +
+                loadVertex(key) +
+                fluidYAndNormalStage +
+                transformVertex(key) +
+                finishVertex(key)
     }
 
     fun createFluidMesh(sim: FluidSimulation, waveHeight: Float): Mesh {
@@ -83,5 +76,4 @@ object FluidMeshShader : ECSMeshShader("fluid") {
         mesh.materials = listOf(fluidMaterial.ref)
         return mesh
     }
-
 }

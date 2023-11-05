@@ -31,7 +31,7 @@ object ECSShaderLib {
     }
 
     // todo create standard list of names to ignore LOL
-    val pbrModelShader = ECSMeshShader("model").ignoreNameWarnings(
+    val pbrModelShader = ECSMeshShader("ECSMeshShader").ignoreNameWarnings(
         "finalSheen", "finalTranslucency", "metallicMinMax",
         "emissiveBase", "normalStrength",
         "occlusionStrength", "invLocalTransform",

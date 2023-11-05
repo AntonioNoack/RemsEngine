@@ -14,6 +14,7 @@ import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
+import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
@@ -160,7 +161,7 @@ fun main() {
             var frameIndex = Int.MAX_VALUE
 
             val ptBuffer = Mesh().apply {
-                drawMode = GL_POINTS
+                drawMode = DrawMode.POINTS
             }
 
             val accu = Framebuffer("accu", 1, 1, TargetType.FloatTarget4, DepthBufferType.INTERNAL)

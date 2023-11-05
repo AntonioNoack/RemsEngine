@@ -8,6 +8,8 @@ import me.anno.image.gimp.GimpImage
 import me.anno.image.hdr.HDRReader
 import me.anno.image.tar.TGAImage
 import me.anno.io.files.FileReference
+import me.anno.utils.Sleep.waitForGFXThread
+import me.anno.utils.Sleep.waitUntil
 import me.saharnooby.qoi.QOIImage
 import net.sf.image4j.codec.ico.ICOReader
 import java.io.InputStream
@@ -75,7 +77,8 @@ object ImageCPUCache : CacheSection("ImageCPU") {
             val data = AsyncCacheData<Image?>()
             ImageReader.readImage(file, data, false)
             data
-        }
-        return if (data is AsyncCacheData<*>) data.value as? Image else null
+        } as? AsyncCacheData<*> ?: return null
+        if (!async) waitUntil(true) { data.hasValue }
+        return data.value as? Image
     }
 }

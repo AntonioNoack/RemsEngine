@@ -9,10 +9,10 @@ import me.anno.io.files.FileReference
  * */
 interface IMesh {
 
-    val numMaterials: Int
-    val materials: List<FileReference>
+    val numMaterials: Int get() = 1
+    val materials: List<FileReference> get() = emptyList()
+    val vertexData: MeshVertexData get() = MeshVertexData.DEFAULT
 
     fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean)
     fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer)
-
 }

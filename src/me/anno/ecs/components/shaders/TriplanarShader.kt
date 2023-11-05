@@ -8,8 +8,8 @@ import me.anno.maths.Maths.hasFlag
 
 object TriplanarShader : ECSMeshShader("triplanar") {
 
-    override fun createFragmentVariables(flags: Int): ArrayList<Variable> {
-        val list = super.createFragmentVariables(flags)
+    override fun createFragmentVariables(key: ShaderKey): ArrayList<Variable> {
+        val list = super.createFragmentVariables(key)
         list.add(Variable(GLSLType.V4F, "primaryTiling"))
         list.add(Variable(GLSLType.V1F, "sharpness"))
         list.add(Variable(GLSLType.V1F, "blendPreferY"))
@@ -18,11 +18,11 @@ object TriplanarShader : ECSMeshShader("triplanar") {
         return list
     }
 
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(flags),
+                createFragmentVariables(key),
                 discardByCullingPlane +
                         // step by step define all material properties
                         normalTanBitanCalculation +

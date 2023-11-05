@@ -12,6 +12,7 @@ import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.SignatureFile
 import me.anno.maths.Maths
 import me.anno.utils.OS
+import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.video.ffmpeg.FFMPEGMetadata
 import me.anno.video.ffmpeg.FFMPEGStream

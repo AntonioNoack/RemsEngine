@@ -2,16 +2,13 @@ package me.anno.tests.engine.material
 
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.anim.AnimTexture
 import me.anno.ecs.components.mesh.*
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.maths.Maths.hasFlag
 import me.anno.utils.OS.downloads
 import org.joml.Vector3f
 
@@ -27,58 +24,50 @@ fun main() {
 }
 
 object FurShader : ECSMeshShader("Fur") {
-    override fun createVertexStages(flags: Int): List<ShaderStage> {
+    override fun createVertexStages(key: ShaderKey): List<ShaderStage> {
         // return super.createVertexStages(flags)
         // extrude by hair length along normals
-        val defines = createDefines(flags)
-        val variables = createVertexVariables(flags) + listOf(
+        val variables = createAnimVariables(key) + listOf(
             Variable(GLSLType.V1F, "hairLength"),
             Variable(GLSLType.V1F, "relativeHairLength"),
             Variable(GLSLType.V3F, "hairGravity"),
-            Variable(GLSLType.V1I, "instanceId", VariableMode.OUT)
+            Variable(GLSLType.V3F, "normal"),
+            Variable(GLSLType.V1I, "instanceId", VariableMode.OUT),
+            Variable(GLSLType.V3F, "localPosition", VariableMode.INOUT),
+            Variable(GLSLType.V3F, "seedBase", VariableMode.OUT),
         )
-        val stage = ShaderStage(
+        val hullStage = ShaderStage(
             "vertex",
-            variables, defines.toString() +
+            variables, "" +
                     "instanceId = gl_InstanceID;\n" +
                     "float instanceIdF = float(instanceId);\n" +
                     // normalization is better to keep the hair length unaffected by gravity
                     // this square dependency on the relative height makes nice curves
-                    "localPosition = coords + normalize(normals + hairGravity * (instanceIdF * relativeHairLength)) * instanceIdF * hairLength;\n" +
-                    motionVectorInit +
-
-                    instancedInitCode +
-
-                    animCode0() +
-                    normalInitCode +
-                    animCode1 +
-
-                    applyTransformCode +
-                    colorInitCode +
-                    "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                    motionVectorCode +
-                    ShaderLib.positionPostProcessing +
-                    "localPosition = coords;\n" // restore for seed finding
+                    "seedBase = localPosition;\n" +
+                    "localPosition += normalize(normal + hairGravity * (instanceIdF * relativeHairLength)) * instanceIdF * hairLength;\n"
         )
-        if (flags.hasFlag(IS_ANIMATED) && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
-        if (flags.hasFlag(USES_PRS_TRANSFORM)) stage.add(ShaderLib.quatRot)
-        return listOf(stage)
+        return createDefines(key) +
+                loadVertex(key) +
+                hullStage +
+                animateVertex(key) +
+                transformVertex(key) +
+                finishVertex(key)
     }
 
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         // discards pixels that don't belong to the currently processed hair
         val furDiscardStage = ShaderStage(
             "furStage", listOf(
                 Variable(GLSLType.V1F, "hairDensity"),
                 Variable(GLSLType.V1F, "relativeHairLength"),
                 Variable(GLSLType.V1F, "hairSharpness"),
-                Variable(GLSLType.V3F, "localPosition"),
+                Variable(GLSLType.V3F, "seedBase"),
                 Variable(GLSLType.V3F, "normal"),
-                Variable(GLSLType.V1I, "instanceId")
+                Variable(GLSLType.V1I, "instanceId"),
             ), "" +
                     // discard if not hair
                     "if(instanceId > 0) {\n" +
-                    "   vec3 hairSeed0 = localPosition * hairDensity;\n" +
+                    "   vec3 hairSeed0 = seedBase * hairDensity;\n" +
                     "   vec3 hairSeed = round(hairSeed0);\n" +
                     "   vec3 hairSeedFract = (hairSeed0 - hairSeed) * hairSharpness;\n" +
                     "   vec3 normal1 = gl_FrontFacing ? normal : -normal;\n" +
@@ -106,7 +95,7 @@ object FurShader : ECSMeshShader("Fur") {
                     "float hairHeight = float(instanceId) * relativeHairLength;\n" +
                     "finalOcclusion = (1.0 - finalTranslucency) * (1.0 - hairHeight) / (1.2 + 0.7 * hairSharpness);\n"
         )
-        return listOf(furDiscardStage) + super.createFragmentStages(flags) + furOcclusionStage
+        return listOf(furDiscardStage) + super.createFragmentStages(key) + furOcclusionStage
     }
 }
 

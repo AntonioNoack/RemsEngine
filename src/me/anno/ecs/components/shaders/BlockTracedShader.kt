@@ -1,5 +1,7 @@
 package me.anno.ecs.components.shaders
 
+import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
@@ -22,10 +24,10 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
 
     // needs to be adjusted as well for accurate shadows
     // I hope this gets optimized well, because no material data is actually required...
-    override fun createDepthShader(flags: Int): Shader {
+    override fun createDepthShader(key: ShaderKey): Shader {
         val builder = createBuilder()
-        builder.addVertex(createVertexStages(flags))
-        builder.addFragment(createFragmentStages(flags))
+        builder.addVertex(createVertexStages(key))
+        builder.addFragment(createFragmentStages(key))
         GFX.check()
         val shader = builder.create("depth")
         shader.glslVersion = glslVersion
@@ -47,8 +49,8 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                 "finalRoughness = 0.5;\n"
     }
 
-    override fun createFragmentVariables(flags: Int): ArrayList<Variable> {
-        val list = super.createFragmentVariables(flags)
+    override fun createFragmentVariables(key: ShaderKey): ArrayList<Variable> {
+        val list = super.createFragmentVariables(key)
         list.addAll(
             listOf(
                 // input varyings
@@ -64,10 +66,11 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
         return list
     }
 
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
+        val flags = key.flags
         return listOf(
             ShaderStage(
-                "block-traced shader", createFragmentVariables(flags), "" +
+                "block-traced shader", createFragmentVariables(key), "" +
                         // step by step define all material properties
                         "vec3 bounds0 = vec3(bounds), halfBounds = bounds0 * 0.5;\n" +
                         "vec3 bounds1 = vec3(bounds-1);\n" +

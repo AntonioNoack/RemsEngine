@@ -40,18 +40,20 @@ open class ByteImage(
             }
             Format.RGBA -> {
                 val i = index * 4
-                rgba(data[i], data[i + 1], data[i + 2], data[i + 3])
+                val a = if (hasAlphaChannel) data[i + 3] else -1
+                rgba(data[i], data[i + 1], data[i + 2], a)
             }
             Format.ARGB -> {
                 val i = index * 4
-                argb(data[i], data[i + 1], data[i + 2], data[i + 3])
+                val a = if (hasAlphaChannel) data[i + 3] else -1
+                argb(data[i], data[i + 1], data[i + 2], a)
             }
             Format.BGRA -> {
                 val i = index * 4
                 val b = data[i]
                 val g = data[i + 1]
                 val r = data[i + 2]
-                val a = data[i + 3]
+                val a = if (hasAlphaChannel) data[i + 3] else -1
                 argb(a, r, g, b)
             }
             else -> throw NotImplementedError()
@@ -83,7 +85,9 @@ open class ByteImage(
                 if (hasAlphaChannel && hasAlpha(data)) texture.createRGBA(data, checkRedundancy)
                 else texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, data)
             }
-            Format.BGRA -> texture.createBGRA(data, checkRedundancy)
+            Format.BGRA -> {
+                texture.createBGRA(data, checkRedundancy)
+            }
             else -> throw NotImplementedError()
         }
     }
@@ -99,5 +103,4 @@ open class ByteImage(
             return false
         }
     }
-
 }

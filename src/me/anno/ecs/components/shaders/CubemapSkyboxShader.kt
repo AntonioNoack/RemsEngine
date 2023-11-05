@@ -6,8 +6,8 @@ import me.anno.gpu.shader.builder.Variable
 
 class CubemapSkyboxShader(name: String) : SkyShaderBase(name) {
 
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
-        val stages = super.createFragmentStages(flags)
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
+        val stages = super.createFragmentStages(key)
         stages.last().variables += listOf(
             Variable(GLSLType.S2D, "skyTexture"),
             Variable(GLSLType.V1B, "applyInverseToneMapping"),

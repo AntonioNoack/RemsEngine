@@ -9,16 +9,16 @@ import me.anno.gpu.shader.builder.Variable
 // averaging filter to get better results?
 // kills small details and corners, but the edges look better :)
 object SDFAvgShader : ECSMeshShader("SDF-AVG") {
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(flags) +
+                createFragmentVariables(key) +
                         listOf(
                             Variable(GLSLType.V4F, "cameraRotation"),
                             Variable(GLSLType.V1B, "invertSDF")
                         ),
-                createDefines(flags).toString() +
+                concatDefines(key).toString() +
                         discardByCullingPlane +
                         // step by step define all material properties
                         "vec2 duv = 0.5/textureSize(diffuseMap,0), duv1 = vec2(duv.x,-duv.y);\n" +

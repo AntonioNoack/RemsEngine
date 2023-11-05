@@ -312,11 +312,17 @@ class MainStage {
         // write all stages
         for (i in stages.indices) {
             val stage = stages[i]
-            code.append("// start of stage ").append(stage.callName).append('\n')
             val params = stage.variables
+            var first = true
             // if this function defines a variable, which has been undefined before, define it
             for (param in params.sortedBy { it.type }) {
                 if (param.isModified && param !in defined) {
+
+                    if (first) {
+                        first = false
+                        code.append("// --- ").append(stage.callName).append(" ---\n")
+                    }
+
                     // write default value if name matches deferred layer
                     // if the shader works properly, it is overridden anyway
                     val dlt = DeferredLayerType.byName[param.name]
@@ -331,10 +337,11 @@ class MainStage {
                     defined += param
                 }
             }
-            code.append("{// stage ").append(stage.callName).append('\n')
+            if (first) code.append("{ // --- ").append(stage.callName).append(" ---\n")
+            else code.append("{\n")
             code.append(stage.body)
             if (!code.endsWith('\n')) code.append('\n')
-            code.append("}// end of stage ").append(stage.callName).append('\n')
+            code.append("}\n")
         }
 
         if (!isFragmentStage) {

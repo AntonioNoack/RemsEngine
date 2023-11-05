@@ -6,7 +6,7 @@ class ShaderStage(
     var body: String
 ) {
 
-    constructor(callName: String,variables: List<Variable>, varyings: List<Variable>, vertex: Boolean, body: String) :
+    constructor(callName: String, variables: List<Variable>, varyings: List<Variable>, vertex: Boolean, body: String) :
             this(
                 callName,
                 variables + varyings.map { Variable(it, if (vertex) VariableMode.OUT else VariableMode.IN) },
@@ -54,6 +54,14 @@ class ShaderStage(
         }
     }
 
+    operator fun plus(other: ShaderStage): List<ShaderStage> {
+        return listOf(this, other)
+    }
+
+    operator fun plus(other: List<ShaderStage>): List<ShaderStage> {
+        return listOf(this) + other
+    }
+
     companion object {
         @JvmStatic
         fun extractMain(str: String): String {
@@ -65,5 +73,4 @@ class ShaderStage(
             else str
         }
     }
-
 }

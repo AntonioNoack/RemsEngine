@@ -1,7 +1,6 @@
 package me.anno.tests.sdf
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.AnimTexture
 import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.light.SpotLight
@@ -18,7 +17,6 @@ import me.anno.gpu.shader.*
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes
 import me.anno.sdf.SDFComposer
 import me.anno.sdf.SDFGroup
@@ -124,32 +122,28 @@ fun main() {
                     tree.getMeshOrNull().proceduralLength = numStripes
                 }
 
-                override fun createVertexStages(flags: Int): List<ShaderStage> {
-                    val defines = createDefines(flags)
-                    val variables = createVertexVariables(flags) + listOf(
-                        Variable(GLSLType.M3x3, "displayTransform"),
-                        Variable(GLSLType.V2F, "stripePowers"),
-                        Variable(GLSLType.V2F, "distanceBounds", VariableMode.OUT)
-                    )
+                override fun createVertexStages(key: ShaderKey): List<ShaderStage> {
                     val stage = ShaderStage(
                         "vertex",
-                        variables, defines.toString() +
+                        listOf(
+                            Variable(GLSLType.M3x3, "displayTransform"),
+                            Variable(GLSLType.V2F, "stripePowers"),
+                            Variable(GLSLType.V2F, "distanceBounds", VariableMode.OUT),
+                            Variable(GLSLType.V3F, "localPosition", VariableMode.INOUT),
+                        ), "" +
                                 // calculate plane coordinates and z,dz for evaluation
                                 "distanceBounds.x = 0.0;//stripePowers.x * pow(2.0, 1.0 + stripePowers.y * float(gl_InstanceID));\n" +
                                 "distanceBounds.y = 1000.0;//distanceBounds.x * stripePowers.y;\n" +
-                                "localPosition = coords;// matMul(displayTransform, vec3(coords.xy, 0.0));\n" +
-                                motionVectorInit +
-                                normalInitCode +
-                                applyTransformCode +
-                                "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                                ShaderLib.positionPostProcessing
+                                "// localPosition = matMul(displayTransform, vec3(localPosition.xy, 0.0));\n"
                     )
-                    if (flags.hasFlag(IS_ANIMATED) && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
-                    if (flags.hasFlag(USES_PRS_TRANSFORM)) stage.add(ShaderLib.quatRot)
-                    return listOf(stage)
+                    return createDefines(key) +
+                            loadVertex(key) +
+                            stage +
+                            transformVertex(key) +
+                            finishVertex(key)
                 }
 
-                override fun createFragmentStages(flags: Int): List<ShaderStage> {
+                override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
                     // instancing is not supported
                     val fragmentVariables = SDFComposer.fragmentVariables1 +
                             uniforms.map { (k, v) -> Variable(v.type, k) } +

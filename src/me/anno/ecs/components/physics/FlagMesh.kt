@@ -2,7 +2,6 @@ package me.anno.ecs.components.physics
 
 import me.anno.Time
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.anim.AnimTexture
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
@@ -24,7 +23,6 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.maths.Maths
 import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.FullNoise
 import me.anno.utils.structures.maps.LazyMap
@@ -236,48 +234,38 @@ class FlagMesh : MeshComponent() {
         )
 
         val shader = object : ECSMeshShader("cloth") {
-            override fun createVertexStages(flags: Int): List<ShaderStage> {
-                val defines = createDefines(flags)
-                val variables = createVertexVariables(flags)
-                    .filter { it.name != "coords" } + listOf(
-                    Variable(GLSLType.V2F, "duv"),
-                    Variable(GLSLType.V1F, "coordsFract"),
-                    Variable(GLSLType.S2D, "coords0Tex"),
-                    Variable(GLSLType.S2D, "coords1Tex")
-                )
-                val stage = ShaderStage(
-                    "vertex", variables, defines.toString() +
-                            "vec3 coords = mix(texture(coords0Tex,uvs).rgb,texture(coords1Tex,uvs).rgb,coordsFract);\n" +
-                            "localPosition = coords;\n" + // is output, so no declaration needed
-                            motionVectorInit +
-
-                            instancedInitCode +
-
-                            animCode0() +
+            override fun createVertexStages(key: ShaderKey): List<ShaderStage> {
+                val flagMovingStage = ShaderStage(
+                    "vertex", listOf(
+                        Variable(GLSLType.V2F, "duv"),
+                        Variable(GLSLType.V1F, "coordsFract"),
+                        Variable(GLSLType.S2D, "coords0Tex"),
+                        Variable(GLSLType.S2D, "coords1Tex"),
+                        Variable(GLSLType.V2F, "uvs"),
+                        Variable(GLSLType.V3F, "localPosition", VariableMode.OUT),
+                        Variable(GLSLType.V3F, "normal", VariableMode.OUT),
+                        Variable(GLSLType.V4F, "tangent", VariableMode.OUT),
+                    ), "" +
+                            "localPosition = mix(texture(coords0Tex,uvs).rgb,texture(coords1Tex,uvs).rgb,coordsFract);\n" +
                             // calculate normals and tangents
-                            "       #ifdef COLORS\n" +
-                            "           vec2 du = vec2(duv.x,0.0), dv = vec2(0.0,duv.y);\n" +
+                            "#ifdef COLORS\n" +
+                            "    vec2 du = vec2(duv.x,0.0), dv = vec2(0.0,duv.y);\n" +
                             // is dx the correct axis for tan or bitan?
-                            "           vec3 tan0 = texture(coords0Tex,uvs+du).rgb - texture(coords0Tex,uvs-du).rgb;\n" +
-                            "           vec3 tan1 = texture(coords1Tex,uvs+du).rgb - texture(coords1Tex,uvs-du).rgb;\n" +
-                            "           vec3 tan = normalize(mix(tan0,tan1,coordsFract));\n" +
-                            "           vec3 bit0 = texture(coords0Tex,uvs+dv).rgb - texture(coords0Tex,uvs-dv).rgb;\n" +
-                            "           vec3 bit1 = texture(coords1Tex,uvs+dv).rgb - texture(coords1Tex,uvs-dv).rgb;\n" +
-                            "           vec3 bit = mix(bit0,bit1,coordsFract);\n" +
-                            "           normal = normalize(cross(bit,tan));\n" +
-                            "           tangent = vec4(tan,1.0);\n" +
-                            "       #endif\n" +
-                            animCode1 +
-
-                            applyTransformCode +
-                            colorInitCode +
-                            "gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                            motionVectorCode +
-                            ShaderLib.positionPostProcessing
+                            "    vec3 tan0 = texture(coords0Tex,uvs+du).rgb - texture(coords0Tex,uvs-du).rgb;\n" +
+                            "    vec3 tan1 = texture(coords1Tex,uvs+du).rgb - texture(coords1Tex,uvs-du).rgb;\n" +
+                            "    vec3 tan = normalize(mix(tan0,tan1,coordsFract));\n" +
+                            "    vec3 bit0 = texture(coords0Tex,uvs+dv).rgb - texture(coords0Tex,uvs-dv).rgb;\n" +
+                            "    vec3 bit1 = texture(coords1Tex,uvs+dv).rgb - texture(coords1Tex,uvs-dv).rgb;\n" +
+                            "    vec3 bit = mix(bit0,bit1,coordsFract);\n" +
+                            "    normal = normalize(cross(bit,tan));\n" +
+                            "    tangent = vec4(tan,1.0);\n" +
+                            "#endif\n"
                 )
-                if (flags.hasFlag(IS_ANIMATED) && AnimTexture.useAnimTextures) stage.add(getAnimMatrix)
-                if (flags.hasFlag(USES_PRS_TRANSFORM)) stage.add(ShaderLib.quatRot)
-                return listOf(stage)
+                return createDefines(key) +
+                        loadVertex(key) +
+                        flagMovingStage +
+                        transformVertex(key) +
+                        finishVertex(key)
             }
         }
     }

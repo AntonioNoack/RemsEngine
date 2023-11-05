@@ -2,7 +2,6 @@ package me.anno.ecs.components.shaders
 
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -12,26 +11,31 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
 
     companion object {
         val motionVectorCode2 = "" +
-                motionVectorInit +
                 "#ifdef MOTION_VECTORS\n" +
                 "   currPosition = gl_Position;\n" +
-                "   prevPosition = matMul(prevTransform, vec4(prevLocalPosition, 1.0));\n" +
+                "   prevPosition = matMul(prevTransform, vec4(localPosition, 1.0));\n" +
                 "#endif\n"
     }
 
-    override fun createVertexStages(flags: Int): List<ShaderStage> {
-        val defines = createDefines(flags).toString()
+    override fun createVertexStages(key: ShaderKey): List<ShaderStage> {
+        val defines = concatDefines(key).toString()
         return listOf(
             ShaderStage(
-                "vertex",
-                createVertexVariables(flags) +
-                        listOf(
-                            Variable(GLSLType.V1F, "meshScale"),
-                            Variable(GLSLType.V1B, "reversedDepth"),
-                            Variable(GLSLType.V1B, "isPerspective"),
-                            Variable(GLSLType.V4F, "currPosition", VariableMode.OUT),
-                            Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
-                        ),
+                "vertex", listOf(
+                    Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
+                    Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
+                    Variable(GLSLType.V3F, "localPosition", VariableMode.OUT),
+                    Variable(GLSLType.V3F, "normal", VariableMode.OUT),
+                    Variable(GLSLType.V1F, "meshScale"),
+                    Variable(GLSLType.V1B, "reversedDepth"),
+                    Variable(GLSLType.V1B, "isPerspective"),
+                    Variable(GLSLType.V4F, "currPosition", VariableMode.OUT),
+                    Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
+                    Variable(GLSLType.M4x4, "transform"),
+                    Variable(GLSLType.M4x4, "prevTransform"),
+                    Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
+                    Variable(GLSLType.V2F, "uv", VariableMode.OUT)
+                ),
                 defines +
                         "localPosition = coords;\n" +
                         "finalPosition = meshScale * localPosition;\n" +
@@ -44,38 +48,35 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
                         // uvs are used in CubemapSkybox
                         "#ifdef COLORS\n" +
                         "   uv = uvs;\n" +
-                        "#endif\n" +
-                        ShaderLib.positionPostProcessing
+                        "#endif\n"
             )
         )
     }
 
-    override fun createFragmentStages(flags: Int): List<ShaderStage> {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         // todo the red clouds in the night sky are a bit awkward
         val stage = ShaderStage(
             "skyBase", listOf(
-                Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
+                Variable(GLSLType.V3F, "finalNormal", VariableMode.INOUT),
                 Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
                 Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalEmissive", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalMotion", VariableMode.OUT),
-                Variable(GLSLType.V3F, "normal"),
                 Variable(GLSLType.V4F, "currPosition"),
                 Variable(GLSLType.V4F, "prevPosition"),
                 Variable(GLSLType.V4F, "worldRot"),
                 Variable(GLSLType.V3F, "skyColor"),
                 Variable(GLSLType.V4F, "currPosition"),
                 Variable(GLSLType.V4F, "prevPosition"),
-            ), createDefines(flags).toString() +
+            ), concatDefines(key).toString() +
                     // sky no longer properly defined for y > 0
-                    "finalNormal = normalize(-normal);\n" +
+                    "finalNormal = normalize(finalNormal);\n" +
                     // sky color can be quite expensive to compute, so only do so if we need it
                     "#ifdef COLORS\n" +
                     "   finalColor = vec3(0.0);\n" +
-                    "   finalEmissive = getSkyColor(quatRot(finalNormal, worldRot));\n" +
+                    "   finalEmissive = getSkyColor(-quatRot(finalNormal, worldRot));\n" +
                     "#endif\n" +
-                    "finalNormal = -finalNormal;\n" +
                     "finalPosition = finalNormal * 1e20;\n" +
                     finalMotionCalculation
         )

@@ -1,20 +1,19 @@
 package me.anno.gpu.shader
 
 import me.anno.cache.ICacheData
+import me.anno.ecs.components.mesh.MeshInstanceData
+import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.Lists.none2
-import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.isBlank2
 
@@ -42,35 +41,32 @@ open class BaseShader(
     var textures: List<String>? = null
     var ignoredNameWarnings = HashSet<String>()
 
-    private val flatShader = KeyPairMap<Renderer, Int, Shader>()
-    private val deferredShaders = KeyPairMap<DeferredSettings, Int, Shader>()
-    private val depthShader = Array(5) {
-        lazy {
-            createDepthShader(
-                it.hasFlag(1).toInt(IS_INSTANCED) +
-                        it.hasFlag(2).toInt(IS_ANIMATED) +
-                        it.hasFlag(4).toInt(USES_PRS_TRANSFORM)
-            )
-        }
-    }
+    data class ShaderKey(
+        val renderer: Renderer,
+        val vertexData: MeshVertexData,
+        val instanceData: MeshInstanceData,
+        val flags: Int
+    )
+
+    private val shaders = HashMap<ShaderKey, Shader>()
 
     /** shader for rendering the depth, e.g., for pre-depth */
-    open fun createDepthShader(flags: Int): Shader {
+    open fun createDepthShader(key: ShaderKey): Shader {
         if (vertexShader.isBlank2()) throw RuntimeException()
         var vertexShader = vertexShader
         val builder = StringBuilder()
-        createDefines(flags, builder)
+        concatDefines(key, builder)
         builder.append(vertexShader)
         vertexShader = builder.toString()
         return Shader(name, vertexVariables, vertexShader, varyings, fragmentVariables, "void main(){}")
     }
 
     /** shader for forward rendering */
-    open fun createForwardShader(
-        flags: Int,
-        vertexPostProcessing: List<ShaderStage>,
-        pixelPostProcessing: List<ShaderStage>,
-    ): Shader {
+    open fun createForwardShader(key: ShaderKey): Shader {
+
+        val flags = key.flags
+        val vertexPostProcessing = key.renderer.getVertexPostProcessing(flags)
+        val pixelPostProcessing = key.renderer.getPixelPostProcessing(flags)
 
         var extraStage: ShaderStage? = null
         if (fragmentVariables.none2 { it.isOutput } && fragmentShader.contains("gl_FragColor")) {
@@ -121,30 +117,24 @@ open class BaseShader(
         get() {
             GFX.check()
             val renderer = GFXState.currentRenderer
-            val instanced = GFXState.instanced.currentValue
             val animated = GFXState.animated.currentValue
-            val limited = GFXState.prsTransform.currentValue
-            val stateId = min(instanced.toInt() + animated.toInt(2) + motionVectors.toInt(4) + limited.toInt(8), 8)
-            val shader = if (renderer == Renderer.nothingRenderer) {
-                depthShader[if (limited) 4 else stateId and 3].value
-            } else when (val deferred = renderer.deferredSettings) {
-                null -> {
-                    flatShader.getOrPut(renderer, stateId) { renderer2, stateId2 ->
-                        val flags = stateId2.hasFlag(1).toInt(IS_INSTANCED) +
-                                stateId2.hasFlag(2).toInt(IS_ANIMATED) +
-                                stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
-                                stateId2.hasFlag(8).toInt(USES_PRS_TRANSFORM) +
-                                NEEDS_COLORS
-                        createForwardShader(flags,
-                            renderer2.getVertexPostProcessing(flags),
-                            renderer2.getPixelPostProcessing(flags)
-                        )
-                    }
-                }
-                else -> createDeferredShaderById(deferred, stateId, renderer)
+            val instanceData = GFXState.instanceData.currentValue
+            val vertexData = GFXState.vertexData.currentValue
+            val isDepth = renderer == Renderer.nothingRenderer
+            val flags = animated.toInt(IS_ANIMATED) +
+                    motionVectors.toInt(NEEDS_MOTION_VECTORS) +
+                    (!isDepth).toInt(NEEDS_COLORS)
+            val key = ShaderKey(renderer, vertexData, instanceData, flags)
+            val shader = shaders.getOrPut(key) {
+                val r = key.renderer
+                val d = r.deferredSettings
+                if (isDepth) createDepthShader(key)
+                else if (d != null) createDeferredShader(key)
+                else createForwardShader(key)
             }
             GFX.check()
             if (shader.use()) {
+                val instanced = instanceData !== MeshInstanceData.DEFAULT
                 bind(shader, renderer, instanced)
                 GFX.check()
             }
@@ -174,12 +164,9 @@ open class BaseShader(
     }
 
     /** shader for deferred rendering */
-    open fun createDeferredShader(
-        deferred: DeferredSettings,
-        flags: Int,
-        vertexPostProcessing: List<ShaderStage>,
-        pixelPostProcessing: List<ShaderStage>,
-    ): Shader {
+    open fun createDeferredShader(key: ShaderKey): Shader {
+        val deferred = key.renderer.deferredSettings!!
+        val flags = key.flags
         val shader = deferred.createShader(
             name,
             flags.hasFlag(IS_INSTANCED),
@@ -189,8 +176,8 @@ open class BaseShader(
             fragmentVariables,
             fragmentShader,
             textures,
-            vertexPostProcessing,
-            pixelPostProcessing
+            key.renderer.getVertexPostProcessing(flags),
+            key.renderer.getPixelPostProcessing(flags)
         )
         finish(shader)
         return shader
@@ -205,26 +192,8 @@ open class BaseShader(
         GFX.check()
     }
 
-    private fun createDeferredShaderById(
-        settings: DeferredSettings,
-        stateId: Int,
-        renderer: Renderer
-    ): Shader {
-        return deferredShaders.getOrPut(settings, stateId) { settings2, stateId2 ->
-            val flags = stateId2.hasFlag(1).toInt(IS_INSTANCED) +
-                    stateId2.hasFlag(2).toInt(IS_ANIMATED) +
-                    stateId2.hasFlag(4).toInt(NEEDS_MOTION_VECTORS) +
-                    stateId2.hasFlag(8).toInt(USES_PRS_TRANSFORM) +
-                    NEEDS_COLORS + IS_DEFERRED
-            createDeferredShader(
-                settings2, flags,
-                renderer.getVertexPostProcessing(flags),
-                renderer.getPixelPostProcessing(flags)
-            )
-        }
-    }
-
-    open fun createDefines(flags: Int, dst: StringBuilder = StringBuilder()): StringBuilder {
+    open fun concatDefines(key: ShaderKey, dst: StringBuilder = StringBuilder()): StringBuilder {
+        val flags = key.flags
         if (flags.hasFlag(IS_INSTANCED)) dst.append("#define INSTANCED\n")
         if (flags.hasFlag(IS_ANIMATED)) dst.append("#define ANIMATED\n")
         if (flags.hasFlag(IS_DEFERRED)) dst.append("#define DEFERRED\n")
@@ -235,15 +204,8 @@ open class BaseShader(
     }
 
     override fun destroy() {
-        for (list in flatShader) {
-            for ((_, shader) in list) {
-                shader.destroy()
-            }
-        }
-        for (list in deferredShaders) {
-            for ((_, shader) in list) {
-                shader.destroy()
-            }
+        for (shader in shaders.values) {
+            shader.destroy()
         }
     }
 
@@ -260,6 +222,7 @@ open class BaseShader(
          * an optimized transform, where only position, rotation, and uniform scale are supported;
          * for instanced rendering without motion, and reduced memory-bandwidth usage
          * */
+        @Deprecated("This flag is no longer used, TRS is possible in different ways")
         const val USES_PRS_TRANSFORM = 32
 
         val motionVectors
@@ -269,6 +232,5 @@ open class BaseShader(
                         renderer == rawAttributeRenderers[DeferredLayerType.MOTION] ||
                         renderer.deferredSettings != null && DeferredLayerType.MOTION in renderer.deferredSettings.layerTypes)
             }
-
     }
 }

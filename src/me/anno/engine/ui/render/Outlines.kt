@@ -1,9 +1,9 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.gpu.CullMode
@@ -27,7 +27,6 @@ object Outlines {
     val whiteRenderer = SimpleRenderer(
         "white", ShaderStage(
             "white", listOf(
-                Variable(GLSLType.V1F, "zDistance"),
                 Variable(GLSLType.V1F, "finalAlpha"),
                 Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
             ), "if(finalAlpha<0.01) discard; finalResult = vec4(1.0);\n"

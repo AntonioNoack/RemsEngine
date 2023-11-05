@@ -2,6 +2,7 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -14,8 +15,9 @@ import me.anno.utils.structures.tuples.LongPair
  * instanced stack of buffers of static data,
  * see MeshSpawner.forEachInstancedGroup()
  * */
-class InstancedStaticStack(capacity: Int = 512) :
-    KeyPairMap<Mesh, Material, InstancedStaticStack.Data>(capacity), DrawableStack {
+class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData.DEFAULT_INSTANCED) {
+
+    val data = KeyPairMap<Mesh, Material, Data>(capacity)
 
     class Data {
 
@@ -29,14 +31,13 @@ class InstancedStaticStack(capacity: Int = 512) :
             attr.clear()
             clickIds.clear()
         }
-
     }
 
     override fun size1(): Long {
-        return values.values.sumOf { it.size.toLong() }
+        return data.values.values.sumOf { it.size.toLong() }
     }
 
-    override fun draw(
+    override fun draw1(
         pipeline: Pipeline,
         stage: PipelineStage,
         needsLightUpdateForEveryMesh: Boolean,
@@ -45,53 +46,13 @@ class InstancedStaticStack(capacity: Int = 512) :
         var drawnPrimitives = 0L
         var drawCalls = 0L
         // draw instanced meshes
-        GFXState.instanced.use(true) {
-            for ((mesh, list) in values) {
+        for ((mesh, list) in data.values) {
+            GFXState.vertexData.use(mesh.vertexData) {
                 for ((material, stack) in list) {
                     for (i in 0 until stack.size) {
-
-                        mesh.ensureBuffer()
-
-                        val shader = stage.getShader(material)
-                        shader.use()
-
-                        material.bind(shader)
-
-                        val attr = stack.attr[i]
-                        if (attr.isNotEmpty()) {
-                            for ((uniformName, valueType) in attr) {
-                                valueType.bind(shader, uniformName)
-                            }
-                        }
-
-                        stage.bindRandomness(shader)
-
-                        // update material and light properties
-                        val previousMaterial = PipelineStage.lastMaterial.put(shader, material)
-                        if (previousMaterial == null) {
-                            stage.initShader(shader, pipeline)
-                        }
-
-                        if (previousMaterial == null) {
-                            val aabb = PipelineStage.tmpAABBd
-                            aabb.clear()
-                            // pipeline.frustum.union(aabb)
-                            stage.setupLights(pipeline, shader, aabb, true)
-                        }
-
-                        shader.v4f("tint", -1)
-                        shader.v1b("hasAnimation", false)
-                        shader.v1i("hasVertexColors", if(material.enableVertexColors) mesh.hasVertexColors else 0)
-                        shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
-                        GFX.check()
-
-                        shader.v4f("gfxId", stack.clickIds[i])
-                        GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
-                            mesh.drawInstanced(shader, 0, stack.data[i])
-                        }
+                        drawStack(pipeline, stage, mesh, material, stack, i)
                         drawnPrimitives += mesh.numPrimitives * stack.data[i].elementCount.toLong()
                         drawCalls++
-
                     }
                 }
             }
@@ -99,12 +60,57 @@ class InstancedStaticStack(capacity: Int = 512) :
         return LongPair(drawnPrimitives, drawCalls)
     }
 
+    fun drawStack(
+        pipeline: Pipeline, stage: PipelineStage,
+        mesh: Mesh, material: Material,
+        stack: Data, indexIntoStack: Int,
+    ) {
+        mesh.ensureBuffer()
+
+        val shader = stage.getShader(material)
+        shader.use()
+
+        material.bind(shader)
+
+        val attr = stack.attr[indexIntoStack]
+        if (attr.isNotEmpty()) {
+            for ((uniformName, valueType) in attr) {
+                valueType.bind(shader, uniformName)
+            }
+        }
+
+        stage.bindRandomness(shader)
+
+        // update material and light properties
+        val previousMaterial = PipelineStage.lastMaterial.put(shader, material)
+        if (previousMaterial == null) {
+            stage.initShader(shader, pipeline)
+        }
+
+        if (previousMaterial == null) {
+            val aabb = PipelineStage.tmpAABBd
+            aabb.clear()
+            // pipeline.frustum.union(aabb)
+            stage.setupLights(pipeline, shader, aabb, true)
+        }
+
+        shader.v4f("tint", -1)
+        shader.v1b("hasAnimation", false)
+        shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
+        shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
+        GFX.check()
+
+        shader.v4f("gfxId", stack.clickIds[indexIntoStack])
+        GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
+            mesh.drawInstanced(shader, 0, stack.data[indexIntoStack])
+        }
+    }
+
     override fun clear() {
-        for ((_, values) in values) {
+        for ((_, values) in data.values) {
             for ((_, value) in values) {
                 value.clear()
             }
         }
     }
-
 }

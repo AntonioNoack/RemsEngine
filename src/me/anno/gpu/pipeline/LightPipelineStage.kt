@@ -3,6 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.*
+import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
@@ -223,7 +224,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
             this.cameraMatrix = cameraMatrix
             this.cameraPosition = cameraPosition
             this.worldScale = worldScale
-            GFXState.instanced.use(true) {
+            GFXState.instanceData.use(MeshInstanceData.DEFAULT_INSTANCED) {
                 instanced.forEachType { lights, size, type ->
                     val shader = getShader(type, true)
                     if (type == LightType.DIRECTIONAL) {

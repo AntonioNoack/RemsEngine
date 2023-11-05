@@ -2,6 +2,7 @@ package me.anno.gpu.pipeline
 
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
@@ -14,8 +15,10 @@ import me.anno.utils.structures.tuples.LongPair
 /**
  * instanced stack, supporting position, uniform scale, and rotation
  * */
-class InstancedPSRStack(capacity: Int = 64) :
-    KeyPairMap<Mesh, Material, InstancedPSRStack.Data>(capacity), DrawableStack {
+class InstancedTRSStack(capacity: Int = 64) :
+    DrawableStack(MeshInstanceData.TRS) {
+
+    val data = KeyPairMap<Mesh, Material, Data>(capacity)
 
     class Data {
         val size get() = posSizeRot.size ushr 3
@@ -27,7 +30,7 @@ class InstancedPSRStack(capacity: Int = 64) :
         }
     }
 
-    override fun draw(
+    override fun draw1(
         pipeline: Pipeline,
         stage: PipelineStage,
         needsLightUpdateForEveryMesh: Boolean,
@@ -35,8 +38,8 @@ class InstancedPSRStack(capacity: Int = 64) :
     ): LongPair {
         var drawnPrimitives = 0L
         var drawCalls = 0L
-        GFXState.prsTransform.use(true) {
-            for ((mesh, list) in values) {
+        for ((mesh, list) in data.values) {
+            GFXState.vertexData.use(mesh.vertexData) {
                 for ((material, values) in list) {
                     if (values.size > 0) {
                         drawCalls += draw(stage, mesh, material, pipeline, values, depth)
@@ -80,7 +83,7 @@ class InstancedPSRStack(capacity: Int = 64) :
         material.bind(shader)
         shader.v4f("tint", -1)
         shader.v1b("hasAnimation", false)
-        shader.v1i("hasVertexColors", if(material.enableVertexColors) mesh.hasVertexColors else 0)
+        shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
         shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
         GFX.check()
 
@@ -146,14 +149,13 @@ class InstancedPSRStack(capacity: Int = 64) :
                 }
                 baseIndex = endIndex
                 drawCalls++
-
             }
         }
         return drawCalls
     }
 
     override fun clear() {
-        for ((_, values) in values) {
+        for ((_, values) in data.values) {
             for ((_, value) in values) {
                 value.clear()
             }
@@ -161,7 +163,6 @@ class InstancedPSRStack(capacity: Int = 64) :
     }
 
     override fun size1(): Long {
-        return values.values.sumOf { it.size.toLong() }
+        return data.values.values.sumOf { it.size.toLong() }
     }
-
 }

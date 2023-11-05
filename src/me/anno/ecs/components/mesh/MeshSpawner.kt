@@ -17,9 +17,12 @@ import me.anno.gpu.pipeline.*
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Matrix4x3d
+import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
 
 @Docs("Displays many meshes at once without Entities; can be used for particle systems and such")
 abstract class MeshSpawner : CollidingComponent(), Renderable {
@@ -35,50 +38,15 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
         lastDrawn = Time.gameTimeN
         this.clickId = clickId
-        var done = forEachInstancedGroup { mesh, material, group, overrides ->
-            val material2 = material ?: Material.defaultMaterial
-            val stage = pipeline.findStage(material2)
-            val stack = stage.instancedStatic.getOrPut(mesh, material2) { _, _ -> InstancedStaticStack.Data() }
-            stack.data.add(group)
-            stack.attr.add(overrides)
-            stack.clickIds.add(this.clickId)
-        }
-        done = done || forEachMeshGroupI32 { mesh, material, matrix ->
-            val material2 = material ?: Material.defaultMaterial
-            val stage = pipeline.findStage(material2)
-            val stack = stage.instancedI32.getOrPut(mesh, material2) { _, _ -> InstancedI32Stack.Data() }
-            if (stack.gfxIds.isEmpty() || (stack.gfxIds.last() != gfxId || stack.matrices.last() != matrix)) {
-                stack.gfxIds.add(stack.size)
-                stack.gfxIds.add(gfxId)
-                stack.matrices.add(matrix)
-            }
-            stack.data
-        }
-        done = done || forEachMeshGroupTRS { mesh, material ->
-            val material2 = material ?: Material.defaultMaterial
-            val stage = pipeline.findStage(material2)
-            val stack = stage.instancedPSR.getOrPut(mesh, material2) { _, _ -> InstancedPSRStack.Data() }
-            if (stack.gfxIds.isEmpty() || stack.gfxIds.last() != gfxId) {
-                stack.gfxIds.add(stack.size)
-                stack.gfxIds.add(gfxId)
-            }
-            stack.posSizeRot
-        }
-        lastStack = null
-        done = done || forEachMeshGroup { mesh, material ->
-            val material2 = material ?: Material.defaultMaterial
-            val stage = pipeline.findStage(material2)
-            val stack = stage.instanced.getOrPut(mesh, material2, 0) { mesh1, _, _ ->
-                if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
-            }
-            validateLastStack()
-            lastStack = stack
-            lastStackIndex = stack.size
-            stack
-        }
-        validateLastStack()
-        this.pipeline = pipeline
-        if (!done) forEachMesh { mesh, materialOverride, transform ->
+        instancedGroupFill(pipeline) ||
+                instancedTRSFill(pipeline) ||
+                instancedMeshGroupFill(pipeline) ||
+                instancedFill(pipeline, entity)
+        return clickId + 1
+    }
+
+    fun instancedFill(pipeline: Pipeline, entity: Entity): Boolean {
+        forEachMesh { mesh, materialOverride, transform ->
 
             mesh.ensureBuffer()
             transform.validate()
@@ -92,7 +60,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                         ?: Material.defaultMaterial
                     val stage = pipeline.findStage(material)
                     if (mesh.proceduralLength <= 0) {
-                        val stack = stage.instanced.getOrPut(mesh, material, matIndex) { mesh1, _, _ ->
+                        val stack = stage.instanced.data.getOrPut(mesh, material, matIndex) { mesh1, _, _ ->
                             if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
                         }
                         stage.addToStack(stack, this, transform)
@@ -105,11 +73,50 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                 }
             }
         }
-        this.pipeline = null
-        return clickId + 1
+        return true
     }
 
-    private var pipeline: Pipeline? = null
+    fun instancedMeshGroupFill(pipeline: Pipeline): Boolean {
+        lastStack = null
+        val result = forEachMeshGroup { mesh, material ->
+            val material2 = material ?: Material.defaultMaterial
+            val stage = pipeline.findStage(material2)
+            val stack = stage.instanced.data.getOrPut(mesh, material2, 0) { mesh1, _, _ ->
+                if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
+            }
+            validateLastStack()
+            lastStack = stack
+            lastStackIndex = stack.size
+            stack
+        }
+        validateLastStack()
+        return result
+    }
+
+    fun instancedTRSFill(pipeline: Pipeline): Boolean {
+        return forEachMeshGroupTRS { mesh, material ->
+            val material2 = material ?: Material.defaultMaterial
+            val stage = pipeline.findStage(material2)
+            val stack = stage.instancedPSR.data.getOrPut(mesh, material2) { _, _ -> InstancedTRSStack.Data() }
+            if (stack.gfxIds.isEmpty() || stack.gfxIds.last() != gfxId) {
+                stack.gfxIds.add(stack.size)
+                stack.gfxIds.add(gfxId)
+            }
+            stack.posSizeRot
+        }
+    }
+
+    fun instancedGroupFill(pipeline: Pipeline): Boolean {
+        return forEachInstancedGroup { mesh, material, group, overrides ->
+            val material2 = material ?: Material.defaultMaterial
+            val stage = pipeline.findStage(material2)
+            val stack = stage.instancedStatic.data.getOrPut(mesh, material2) { _, _ -> InstancedStaticStack.Data() }
+            stack.data.add(group)
+            stack.attr.add(overrides)
+            stack.clickIds.add(this.clickId)
+        }
+    }
+
     private var lastStack: InstancedStack? = null
     private var lastStackIndex = 0
 
@@ -235,21 +242,21 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      * */
     open fun forEachInstancedGroup(run: (Mesh, Material?, StaticBuffer, Map<String, TypeValue>) -> Unit) = false
 
-    /**
-     * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
-     * if this is implemented, return true; and forEachMeshGroupPSR just will be a fallback;
-     *
-     * each element must be added as int32, which then must be interpreted in the Material.shader
-     *
-     * useful, if there are thousands of pre-grouped meshes with the same material, which also are within a small grid (or similar);
-     * reduced overhead and memory bandwidth
-     *
-     * Example Function. You can implement your own pipeline stages with customized attributes for your specialized scenarios,
-     * see InstancedStackU32, if you're interested
-     *
-     * might be removed in the future, because you could use forEachInstancedGroup without performance loss
-     * */
-    open fun forEachMeshGroupI32(run: (Mesh, Material?, Matrix4x3d) -> ExpandingIntArray) = false
+    fun <V : InstancedI32Stack> getOrPutI32Stack(
+        pipeline: Pipeline,
+        mesh: Mesh,
+        material: Material,
+        clazz: KClass<V>,
+        createInstance: () -> V = { clazz.createInstance() }
+    ): InstancedI32Stack.Data {
+        val stage = pipeline.findStage(material)
+        var list = stage.instances.firstOrNull2 { clazz.isInstance(it) } as? InstancedI32Stack
+        if (list == null) {
+            list = createInstance()
+            stage.instances.add(list)
+        }
+        return list.data.getOrPut(mesh, Material.defaultMaterial) { _, _ -> InstancedI32Stack.Data() }
+    }
 
     companion object {
         private val LOGGER = LogManager.getLogger(MeshSpawner::class)

@@ -1,6 +1,7 @@
 package me.anno.gpu.pipeline
 
 import me.anno.ecs.components.light.LightType
+import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColor
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorEnd
 import me.anno.engine.pbr.PBRLibraryGLTF.specularBRDFv2NoColorStart
@@ -426,7 +427,7 @@ object LightShaders {
     )
 
     fun getShader(settingsV2: DeferredSettings, type: LightType): Shader {
-        val isInstanced = GFXState.instanced.currentValue
+        val isInstanced = GFXState.instanceData.currentValue != MeshInstanceData.DEFAULT
         val useMSAA = useMSAA
         val key = type.ordinal * 4 + useMSAA.toInt(2) + isInstanced.toInt()
         return shaderCache.getOrPut(settingsV2 to key) {
