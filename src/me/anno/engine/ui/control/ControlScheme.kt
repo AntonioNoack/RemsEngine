@@ -45,10 +45,10 @@ import kotlin.math.sin
 
 // todo touch controls
 
-open class ControlScheme(val camera: Camera, val view: RenderView) :
+open class ControlScheme(val camera: Camera, val renderView: RenderView) :
     NineTilePanel(style) {
 
-    constructor(view: RenderView) : this(view.editorCamera, view)
+    constructor(renderView: RenderView) : this(renderView.editorCamera, renderView)
 
     override fun isOpaqueAt(x: Int, y: Int): Boolean = true
 
@@ -132,7 +132,7 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
 
     // less than 90, so we always know forward when computing movement
     val limit = 90.0 - 0.001
-    val rotationTarget = view.rotation.getEulerAnglesYXZ(Vector3d())
+    val rotationTarget = renderView.rotation.getEulerAnglesYXZ(Vector3d())
 
     override fun onUpdate() {
         super.onUpdate()
@@ -145,7 +145,7 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
             .rotateY(rotationTarget.y.toRadians())
             .rotateX(rotationTarget.x.toRadians())
             .rotateZ(rotationTarget.z.toRadians())
-        view.rotation.slerp(tmp, Maths.dtTo01(deltaTime * 25.0))
+        renderView.rotation.slerp(tmp, Maths.dtTo01(deltaTime * 25.0))
         invalidateDrawing()
     }
 
@@ -185,7 +185,7 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
 
     private fun selectObjectAtCursor(x: Float, y: Float) {
         // select the clicked thing in the scene
-        val (e, c) = view.resolveClick(x, y)
+        val (e, c) = renderView.resolveClick(x, y)
         // show the entity in the property editor
         // but highlight the specific mesh
         ECSSceneTabs.refocus()
@@ -218,10 +218,10 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
     }
 
     private fun testHits() {
-        val world = view.getWorld()
-        val start = Vector3d(view.cameraPosition)
-        val dir = view.mouseDirection
-        val maxDistance = view.radius * 1e9
+        val world = renderView.getWorld()
+        val start = Vector3d(renderView.cameraPosition)
+        val dir = renderView.mouseDirection
+        val maxDistance = renderView.radius * 1e9
         val query = RayQuery(
             start, dir, maxDistance, -1, -1,
             false, emptySet()
@@ -236,7 +236,7 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
             val result = query.result
             val pos = result.positionWS
             val normal = result.geometryNormalWS.normalize(
-                0.05 * result.positionWS.distance(view.cameraPosition)
+                0.05 * result.positionWS.distance(renderView.cameraPosition)
             )
             // draw collision point
             debugPoints.add(DebugPoint(pos, -1))
@@ -249,7 +249,7 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
     }
 
     open fun checkMovement() {
-        val view = view
+        val view = renderView
         val dt = deltaTime
         val factor = clamp(20.0 * dt, 0.0, 1.0)
         val velocity = velocity.mul(1.0 - factor)
@@ -294,7 +294,7 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
             dirY.set(0.0, 1.0, 0.0).mul(m)
             dirZ.set(0.0, 0.0, 1.0).mul(m)
         }
-        view.position.add(
+        renderView.position.add(
             dirX.dot(dx, dy, dz),
             dirY.dot(dx, dy, dz),
             dirZ.dot(dx, dy, dz)
@@ -304,7 +304,7 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
     // to do call events before we draw the scene? that way we would not get the 1-frame delay
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         // no background
-        if (view.renderMode == RenderMode.RAY_TEST) {
+        if (renderView.renderMode == RenderMode.RAY_TEST) {
             testHits()
         }
         parseTouchInput()
@@ -340,7 +340,7 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
                 else -> {
 
                     // move the camera around
-                    val speed = -3f * view.radius / windowStack.height
+                    val speed = -3f * renderView.radius / windowStack.height
 
                     val dx = Touch.avgDeltaX() * speed
                     val dy = Touch.avgDeltaY() * speed
@@ -360,9 +360,9 @@ open class ControlScheme(val camera: Camera, val view: RenderView) :
     }
 
     fun zoom(factor: Float) {
-        view.radius *= factor
-        view.near *= factor
-        view.far *= factor
+        renderView.radius *= factor
+        renderView.near *= factor
+        renderView.far *= factor
         camera.fovOrthographic *= factor
     }
 

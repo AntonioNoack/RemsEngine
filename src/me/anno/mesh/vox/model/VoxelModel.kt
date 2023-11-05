@@ -15,9 +15,9 @@ import kotlin.math.roundToInt
 
 abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
-    val centerX = sizeX * 0.5f
-    val centerY = sizeY * 0.5f
-    val centerZ = sizeZ * 0.5f
+    var centerX = sizeX * 0.5f
+    var centerY = sizeY * 0.5f
+    var centerZ = sizeZ * 0.5f
 
     val size = sizeX * sizeY * sizeZ
 

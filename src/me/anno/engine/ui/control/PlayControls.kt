@@ -9,7 +9,7 @@ import me.anno.input.Key
 open class PlayControls(renderer: RenderView) : ControlScheme(renderer) {
 
     fun callEvent(event: UIEvent) {
-        val ecs = view.getWorld() as? Entity ?: return
+        val ecs = renderView.getWorld() as? Entity ?: return
         ecs.onUIEvent(event)
         invalidateDrawing()
     }

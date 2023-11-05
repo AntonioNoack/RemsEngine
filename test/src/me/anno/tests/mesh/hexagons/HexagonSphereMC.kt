@@ -372,10 +372,10 @@ open class ControllerOnSphere(
     }
 
     override fun updateViewRotation() {
-        view.rotation.identity()
+        renderView.rotation.identity()
             .lookAlong(forward, up)
             .invert()
-        view.updateEditorCameraTransform()
+        renderView.updateEditorCameraTransform()
         invalidateDrawing()
     }
 

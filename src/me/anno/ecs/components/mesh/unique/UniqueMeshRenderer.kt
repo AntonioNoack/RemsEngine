@@ -1,8 +1,8 @@
-package me.anno.ecs.components.mesh
+package me.anno.ecs.components.mesh.unique
 
 import me.anno.cache.ICacheData
-import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.*
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.Buffer
@@ -15,9 +15,6 @@ import me.anno.graph.hdb.allocator.size
 import me.anno.io.files.FileReference
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBd
-import org.joml.AABBf
-import org.joml.Matrix4x3d
 import org.lwjgl.opengl.GL31C.*
 
 /**
@@ -29,8 +26,8 @@ abstract class UniqueMeshRenderer<Key>(
     override val vertexData: MeshVertexData,
     material: Material,
     val drawMode: DrawMode
-) : Component(), IMesh, ICacheData,
-    AllocationManager<UniqueMeshRenderer.MeshEntry, StaticBuffer> {
+) : MeshSpawner(), IMesh, ICacheData,
+    AllocationManager<MeshEntry, StaticBuffer> {
 
     abstract fun getData(key: Key, mesh: Mesh): StaticBuffer?
 
@@ -39,27 +36,12 @@ abstract class UniqueMeshRenderer<Key>(
 
     val stride = attributes.sumOf { it.byteSize }
 
-    class MeshEntry(
-        val buffer: StaticBuffer,
-        var range: IntRange
-    )
 
     val entryLookup = HashMap<Key, MeshEntry>()
     val entries = ArrayList<MeshEntry>()
 
     private var buffer0 = StaticBuffer("umr0", attributes, 0, GL_DYNAMIC_DRAW)
     private var buffer1 = StaticBuffer("urm1", attributes, 0, GL_DYNAMIC_DRAW)
-
-    private val bounds = AABBf()
-    override fun getBounds(): AABBf {
-        // todo keep properly track of bounds?
-        return bounds.all()
-    }
-
-    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        aabb.all()
-        return true
-    }
 
     override var numPrimitives: Long = 0
 
@@ -68,14 +50,23 @@ abstract class UniqueMeshRenderer<Key>(
     }
 
     val clock = Clock()
-    fun add(key: Key, mesh: Mesh) {
-        if (key in entryLookup) return
-        val data = getData(key, mesh) ?: return
-        val entry = MeshEntry(data, 0 until data.vertexCount)
+
+    fun set(key: Key, entry: MeshEntry): Boolean {
+        val old = entryLookup[key]
+        if (old != null) remove(key)
+        return add(key, entry)
+    }
+
+    fun add(key: Key, entry: MeshEntry): Boolean {
+        if (key in entryLookup) return false
         val b0 = buffer0
         val b1 = buffer1
         clock.start()
-        val bx = insert(entries, entry, data, entry.range, b0.vertexCount, b0, false).second
+        val bx = insert(
+            entries, entry, entry.buffer,
+            entry.range, b0.vertexCount, b0,
+            false
+        ).second
         clock.stop("Insert", 0.01)
         entryLookup[key] = entry
         entries.add(entry)
@@ -83,12 +74,16 @@ abstract class UniqueMeshRenderer<Key>(
         if (bx !== b0 && bx !== b1) throw IllegalArgumentException()
         this.buffer1 = if (bx === b1) b0 else b1
         this.buffer0 = if (bx === b1) b1 else b0
+        invalidateAABB()
+        return true
     }
 
     fun remove(key: Key): Boolean {
         val entry = entryLookup.remove(key) ?: return false
         entries.remove(entry)
         numPrimitives -= entry.buffer.vertexCount
+        entry.mesh?.destroy()
+        entry.buffer.destroy()
         invalidate()
         return true
     }
@@ -108,6 +103,10 @@ abstract class UniqueMeshRenderer<Key>(
     override fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean) {
         if (numPrimitives == 0L) return
         val buffer = buffer0
+        if (!buffer.isUpToDate) {
+            LOGGER.warn("Buffer ${System.identityHashCode(buffer)} isn't ready")
+            return
+        }
         buffer.drawLength = numPrimitives.toInt()
         buffer.bind(shader)
         var i0 = 0
@@ -139,9 +138,9 @@ abstract class UniqueMeshRenderer<Key>(
     override fun allocate(newSize: Int): StaticBuffer {
         val buffer = buffer1
         buffer.vertexCount = newSize
-        val cl = Clock()
+        val clock = Clock()
         buffer.uploadEmpty(newSize.toLong() * stride)
-        cl.stop("UploadEmpty")
+        clock.stop("UploadEmpty")
         return buffer
     }
 
@@ -189,8 +188,9 @@ abstract class UniqueMeshRenderer<Key>(
     override fun destroy() {
         buffer0.destroy()
         buffer1.destroy()
-        for ((_, mesh) in entryLookup) {
-            mesh.buffer.destroy()
+        for ((_, entry) in entryLookup) {
+            entry.buffer.destroy()
+            entry.mesh?.destroy()
         }
     }
 

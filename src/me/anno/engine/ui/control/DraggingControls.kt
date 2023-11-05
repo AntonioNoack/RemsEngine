@@ -65,7 +65,7 @@ import kotlin.math.tan
 // automatically attach it to that object, that is being targeted? mmh.. no, use the selection for that
 // done draw the gizmos
 
-open class DraggingControls(view: RenderView) : ControlScheme(view) {
+open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) {
 
     var mode = Mode.TRANSLATING
 
@@ -75,9 +75,9 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     // todo we could snap rotations, and maybe scale, as well
 
     val drawModeInput = EnumInput(
-        "Draw Mode", "", view.renderMode.name, RenderMode.values.map { NameDesc(it.name) }, style
+        "Draw Mode", "", renderView.renderMode.name, RenderMode.values.map { NameDesc(it.name) }, style
     ).setChangeListener { _, index, _ ->
-        view.renderMode = RenderMode.values[index]
+        renderView.renderMode = RenderMode.values[index]
     }
 
     val snappingSettings = SnappingSettings()
@@ -118,7 +118,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
     override fun onUpdate() {
         super.onUpdate()
         if (dragged != null) invalidateDrawing() // might be displayable
-        drawModeInput.setValue(NameDesc(view.renderMode.name), false)
+        drawModeInput.setValue(NameDesc(renderView.renderMode.name), false)
     }
 
     override fun fill(pipeline: Pipeline) {
@@ -190,7 +190,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     private var gizmoMask: Int = 0
     private fun drawGizmos2() {
-        val md = view.getMouseRayDirection()
+        val md = renderView.getMouseRayDirection()
         val chosenId = when (gizmoMask) {
             // single axis
             1 -> 0
@@ -212,10 +212,10 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             // todo gizmos for sdf components
             // todo like Unity allow more gizmos than that?
             if (selected is Entity) {
-                val scale = view.radius * 0.15
+                val scale = renderView.radius * 0.15
                 val transform = selected.transform.globalTransform
                 transform.getTranslation(pos)
-                val cam = view.cameraMatrix
+                val cam = renderView.cameraMatrix
                 val mask = when (mode) {
                     Mode.TRANSLATING -> Gizmos.drawTranslateGizmos(cam, pos, scale, 0, chosenId, md)
                     Mode.ROTATING -> Gizmos.drawRotateGizmos(cam, pos, scale, 0, chosenId, md)
@@ -235,11 +235,11 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     open fun resetCamera() {
         // reset the camera
-        view.rotation.identity()
-        view.position.set(0.0)
-        view.radius = 50.0
-        view.near = 1e-3
-        view.far = 1e10
+        renderView.rotation.identity()
+        renderView.position.set(0.0)
+        renderView.radius = 50.0
+        renderView.near = 1e-3
+        renderView.far = 1e10
         camera.fovOrthographic = 5f
         camera.fovY = 90f
         camera.isPerspective = true
@@ -309,12 +309,12 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
             }
             isSelected && Input.isMiddleDown -> {
                 // move camera
-                val fovYRadians = view.editorCamera.fovY
-                val speed = tan(fovYRadians * 0.5) * view.radius / height
+                val fovYRadians = renderView.editorCamera.fovY
+                val speed = tan(fovYRadians * 0.5) * renderView.radius / height
                 val camTransform = camera.transform!!
                 val globalCamTransform = camTransform.globalTransform
                 val offset = globalCamTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
-                view.position.sub(offset)
+                renderView.position.sub(offset)
                 camera.invalidateAABB()
             }
             isSelected && Input.isLeftDown && mode != Mode.NOTHING -> {
@@ -332,7 +332,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                  **/
                 // for that transform dx,dy into global space,
                 // and then update the local space
-                val fovYRadians = view.editorCamera.fovY
+                val fovYRadians = renderView.editorCamera.fovY
                 val speed = tan(fovYRadians * 0.5) / height
                 val camTransform = camera.transform!!.globalTransform
                 val offset = JomlPools.vec3d.create()
@@ -348,7 +348,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
 
                 // rotate around the direction
                 // we could use the average mouse position as center; this probably would be easier
-                val dir = view.getMouseRayDirection()
+                val dir = renderView.getMouseRayDirection()
                 val rx = (x - (this.x + this.width * 0.5)) // [-w/2,+w/2]
                 val ry = (y - (this.y + this.height * 0.5)) // [-h/2,+h/2]
                 val rotationAngle = PI * (rx * dy - ry * dx) / (length(rx, ry) * height)
@@ -488,7 +488,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
 
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val hovered by lazy { // get hovered element
-            view.resolveClick(x, y)
+            renderView.resolveClick(x, y)
         }
         val hovEntity = hovered.first
         val hovComponent = hovered.second
@@ -550,7 +550,7 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
                     // where? selected / root
                     // done while dragging this, show preview
                     // done place it where the preview was drawn
-                    val root = EditorState.selection.firstInstanceOrNull<Entity>() ?: view.getWorld()
+                    val root = EditorState.selection.firstInstanceOrNull<Entity>() ?: renderView.getWorld()
                     if (root is Entity) {
                         val position = Vector3d(sampleInstance.transform.localPosition)
                         position.add(dropPosition)
@@ -599,18 +599,18 @@ open class DraggingControls(view: RenderView) : ControlScheme(view) {
         // todo depending on mode, use other strategies to find zero-point on object
         // to do use mouse wheel to change height? maybe...
         // done depending on settings, we also can use snapping
-        val cp = view.cameraPosition
-        val cd = view.mouseDirection
+        val cp = renderView.cameraPosition
+        val cd = renderView.mouseDirection
         val plane = Planed(0.0, 1.0, 0.0, 0.0)
         var distance = (plane.dot(cd) - plane.dot(cp)) / plane.dot(cd)
-        val world = view.getWorld()
+        val world = renderView.getWorld()
         if (world is Entity) {
             val query = RayQuery(cp, cd, 1e9)
             val cast = Raycast.raycastClosestHit(world, query)
             if (cast) distance = query.result.distance
         }
         // to do camDirection will only be correct, if this was the last drawn instance
-        dst.set(view.mouseDirection).mul(distance).add(view.cameraPosition)
+        dst.set(renderView.mouseDirection).mul(distance).add(renderView.cameraPosition)
         snappingSettings.applySnapping(dst)
         return dst
     }
