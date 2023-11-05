@@ -13,6 +13,7 @@ import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
+import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
@@ -46,9 +47,11 @@ import kotlin.math.floor
  *
  * (Minecraft like)
  *
- * todo dynamic chunk unloading
+ * done dynamic chunk unloading
  * done load/save system
  * done block placing
+ *
+ * todo first person player controller with simple physics
  * */
 fun main() {
 
@@ -201,7 +204,11 @@ fun main() {
         val worker = ProcessingQueue("chunks")
 
         // load world in spiral pattern
-        val loadingPattern = spiral2d(10, 0, true).iterator()
+        val loadingRadius = 10
+        val loadingPattern = spiral2d(loadingRadius, 0, true).toList()
+        val unloadingPattern = (2..4).map {
+            spiral2d(loadingRadius + it, 0, false)
+        }.flatMap { it }
 
         fun generate(key: Vector3i) {
 
@@ -229,12 +236,31 @@ fun main() {
             }
         }
 
+        val hasRequested = HashSet<Vector3i>()
+
         override fun onUpdate(): Int {
             // load next mesh
             if (worker.remaining == 0) {
-                if (loadingPattern.hasNext()) {
-                    val idx = loadingPattern.next()
-                    worker += { generate(idx) }
+                val delta = Vector3i()
+                val ci = RenderView.currentInstance
+                if (ci != null) {
+                    val pos = ci.cameraPosition
+                    delta.set((pos.x / csx).toInt(), 0, (pos.z / csz).toInt())
+                }
+                // load chunks
+                for (idx in loadingPattern) {
+                    val vec = Vector3i(idx).add(delta)
+                    if (hasRequested.add(vec)) {
+                        worker += { generate(vec) }
+                        break
+                    }
+                }
+                // unload chunks
+                for (idx in unloadingPattern) {
+                    val vec = Vector3i(idx).add(delta)
+                    if (hasRequested.remove(vec)) {
+                        chunkRenderer.remove(vec)
+                    }
                 }
             }
             return 1
