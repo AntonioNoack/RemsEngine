@@ -49,48 +49,71 @@ object SpiralPattern {
     }
 
     @Suppress("unused")
-    fun spiral3d(radius: Int, fillBlock: Boolean): List<Vector3i> {
-        val size = 2 * radius + 1
-        val result = ArrayList<Vector3i>(size * size * size)
-        for (r in 0 until if (fillBlock) radius * 2 else radius) {
-            if (r < radius) spiral2d(r, 0, result)
-            // first build floor, then ceiling
-            for (dy in 1 until radius) {
-                val r2 = r - dy
-                if (r2 < radius) spiral2d(r2, -dy, result)
-            }
-            for (dy in 1 until radius) {
-                val r2 = r - dy
-                if (r2 < radius) spiral2d(r2, +dy, result)
+    fun spiral3d(radius: Int, fillBlock: Boolean): Sequence<Vector3i> {
+        return sequence {
+            for (r in 0 until if (fillBlock) radius * 2 else radius) {
+                if (r < radius) yieldAll(spiral2d(r, 0, false))
+                // first build floor, then ceiling
+                for (dy in 1 until radius) {
+                    val r2 = r - dy
+                    if (r2 < radius) {
+                        yieldAll(spiral2d(r2, -dy, false))
+                    }
+                }
+                for (dy in 1 until radius) {
+                    val r2 = r - dy
+                    if (r2 < radius) {
+                        yieldAll(spiral2d(r2, +dy, false))
+                    }
+                }
             }
         }
-        return result
     }
 
-    fun spiral2d(radius: Int, y: Int, result: ArrayList<Vector3i> = ArrayList((8 * radius + 4))): List<Vector3i> {
-        if (radius == 0) {
-            result.add(Vector3i(0, y, 0))
-        } else {
-            // center to right on the top
-            for (x in 0 until radius) {
-                result.add(Vector3i(x, y, radius))
-            }
-            // top to bottom on the right
-            for (z in radius downTo -radius + 1) {
-                result.add(Vector3i(radius, y, z))
-            }
-            // right to left at the bottom
-            for (x in radius downTo -radius + 1) {
-                result.add(Vector3i(x, y, -radius))
-            }
-            // bottom to top at the left
-            for (z in -radius until radius) {
-                result.add(Vector3i(-radius, y, z))
-            }
-            for (x in -radius until 0) {
-                result.add(Vector3i(x, y, radius))
+    fun spiral2dStack(radius: Int, y0: Int, y1: Int, full: Boolean): Sequence<Vector3i> {
+        return sequence {
+            val base = spiral2d(radius, y0, full).iterator()
+            while (base.hasNext()) {
+                val sample = base.next()
+                yield(sample)
+                for (y in y0 + 1 until y1) {
+                    val clone = Vector3i(sample)
+                    clone.y = y
+                    yield(clone)
+                }
             }
         }
-        return result
+    }
+
+    fun spiral2d(radius: Int, y: Int, full: Boolean): Sequence<Vector3i> {
+        return sequence {
+            if (full) {
+                for (r in 0 until radius) {
+                    yieldAll(spiral2d(r, y, false))
+                }
+            } else if (radius == 0) {
+                yield(Vector3i(0, y, 0))
+            } else {
+                // center to right on the top
+                for (x in 0 until radius) {
+                    yield(Vector3i(x, y, radius))
+                }
+                // top to bottom on the right
+                for (z in radius downTo -radius + 1) {
+                    yield(Vector3i(radius, y, z))
+                }
+                // right to left at the bottom
+                for (x in radius downTo -radius + 1) {
+                    yield(Vector3i(x, y, -radius))
+                }
+                // bottom to top at the left
+                for (z in -radius until radius) {
+                    yield(Vector3i(-radius, y, z))
+                }
+                for (x in -radius until 0) {
+                    yield(Vector3i(x, y, radius))
+                }
+            }
+        }
     }
 }

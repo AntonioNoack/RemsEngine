@@ -246,7 +246,7 @@ class HierarchicalDatabase(
         val (type, data) = FileAllocation.insert(
             sf.files, file,
             value.bytes, value.range,
-            oldData.size, oldData
+            oldData.size, oldData, true
         )
         folder.files[hash] = file
 

@@ -96,7 +96,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @NotSerializedProperty
     private var needsBoundsUpdate = true
 
-    var cullMode = CullMode.FRONT
+    override var cullMode = CullMode.FRONT
 
     /**
      * call this function, when you have changed the geometry;
@@ -115,7 +115,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     // todo also we need a renderer, which can handle morphing
     // todo or we need to compute it on the cpu
 
-    var proceduralLength = 0
+    override var proceduralLength = 0
 
     var inverseOutline = false
 
@@ -670,10 +670,10 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     }
 
     var hasUVs = false
-    var hasVertexColors = 0
-    var hasBonesInBuffer = false
+    override var hasVertexColors = 0
+    override var hasBonesInBuffer = false
 
-    val numPrimitives
+    override val numPrimitives
         get(): Long {
             val indices = indices
             val positions = positions
@@ -704,7 +704,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     /** can be set false to use tangents as an additional data channel; notice the RGB[-1,1] limit though */
     var checkTangents = true
 
-    fun getBounds(): AABBf {
+    override fun getBounds(): AABBf {
         if (needsBoundsUpdate) {
             if (positions != null) {
                 needsBoundsUpdate = false
@@ -719,7 +719,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     /**
      * upload the data to the gpu, if it has changed
      * */
-    fun ensureBuffer() {
+    override fun ensureBuffer() {
         synchronized(this) {
             if (needsMeshUpdate) updateMesh()
             if (GFX.isGFXThread()) buffer?.ensureBuffer()

@@ -12,6 +12,10 @@ object FileAllocation : AllocationManager<File, ByteArray> {
         key.range = to
     }
 
+    override fun copy(from: Int, fromData: ByteArray, to: IntRange, toData: ByteArray) {
+        System.arraycopy(fromData, from, toData, to.first, to.size)
+    }
+
     override fun getRange(key: File): IntRange {
         return key.range
     }

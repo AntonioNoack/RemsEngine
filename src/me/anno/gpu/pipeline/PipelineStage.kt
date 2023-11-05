@@ -7,6 +7,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.AnimRenderer
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.PointLight
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -512,7 +513,7 @@ class PipelineStage(
     }
 
     var lastEntity: Entity? = null
-    var lastMesh: Mesh? = null
+    var lastMesh: IMesh? = null
     var lastShader: Shader? = null
     var lastComp: Component? = null
     var lastReceiveShadows = false
@@ -618,7 +619,7 @@ class PipelineStage(
         renderer: Component,
         material: Material,
         materialIndex: Int,
-        mesh: Mesh
+        mesh: IMesh
     ) {
 
         val oqp = occlusionQueryPrepass
@@ -697,7 +698,7 @@ class PipelineStage(
                 )
 
                 GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
-                    mesh.draw(shader, materialIndex)
+                    mesh.draw(shader, materialIndex, Mesh.drawDebugLines)
                 }
 
                 oc?.stop()
@@ -769,7 +770,7 @@ class PipelineStage(
     fun drawDepths(pipeline: Pipeline) {
 
         var lastEntity: Entity? = null
-        var lastMesh: Mesh? = null
+        var lastMesh: IMesh? = null
 
         var drawnPrimitives = 0L
         var drawCalls = 0L
@@ -817,7 +818,7 @@ class PipelineStage(
             shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
 
             GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
-                mesh.draw(shader, materialIndex)
+                mesh.draw(shader, materialIndex, Mesh.drawDebugLines)
             }
 
             oc?.stop()
@@ -858,7 +859,7 @@ class PipelineStage(
         }
     }
 
-    fun add(component: Component, mesh: Mesh, entity: Entity, material: Material, materialIndex: Int) {
+    fun add(component: Component, mesh: IMesh, entity: Entity, material: Material, materialIndex: Int) {
         val nextInsertIndex = nextInsertIndex++
         if (nextInsertIndex >= drawRequests.size) {
             drawRequests.add(DrawRequest(mesh, component, entity, material, materialIndex))

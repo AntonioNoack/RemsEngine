@@ -5,34 +5,46 @@ import me.anno.maths.Maths.min
 
 interface AllocationManager<Key, Data : Any> {
 
+    // todo metadata to remember dense areas...
+
     fun insert(
-        elements: Collection<Key>,
+        elements: ArrayList<Key>,
         newKey: Key, newData: Data, newDataRange: IntRange,
-        available: Int, oldData: Data
+        available: Int, oldData: Data,
+        allowReturningNewData: Boolean
     ): Pair<ReplaceType, Data> {
 
+        val newSize = newDataRange.size
         if (elements.isEmpty()) {
-            // easy: just replace
-            return ReplaceType.WriteCompletely to newData
+            return if (allowReturningNewData) {
+                // easy: just replace
+                ReplaceType.WriteCompletely to newData
+            } else {
+                ReplaceType.Append to append(
+                    elements,
+                    newKey, newData, newDataRange,
+                    newSize, available, oldData
+                )
+            }
         }
 
-        val inOrder = elements.sortedBy { getRange(it).first }
+        elements.sortBy { getRange(it).first }
 
-        val newSize = newDataRange.size
         val newDataStart = newDataRange.first
 
         // check if 0th place is ok
-        val r0 = getRange(inOrder.first())
+        val r0 = getRange(elements.first())
         if (newSize < r0.first) {
+            println("insert into 0")
             val newRange = 0 until newSize
             copy(newKey, newDataStart, newData, newRange, oldData)
             return ReplaceType.InsertInto to oldData
         }
 
         // check if we can insert it in-between
-        for (i in 1 until inOrder.size) {
-            val ri = getRange(inOrder[i - 1])
-            val rj = getRange(inOrder[i])
+        for (i in 1 until elements.size) {
+            val ri = getRange(elements[i - 1])
+            val rj = getRange(elements[i])
             val start = ri.first + ri.size
             if (start + newSize <= rj.first) {
                 val newRange = start until start + newSize
@@ -42,7 +54,7 @@ interface AllocationManager<Key, Data : Any> {
         }
 
         // check if at the end is ok
-        val re = getRange(inOrder.last())
+        val re = getRange(elements.last())
         val start = re.first + re.size
         if (start + newSize < available) {
             val newRange = start until start + newSize
@@ -63,9 +75,9 @@ interface AllocationManager<Key, Data : Any> {
         newKey: Key, newData: Data, newDataRange: IntRange, newSize: Int,
         available: Int, oldData: Data
     ): Data {
+        val newData1 = pack(elements, newKey, available, oldData)
         val start = sumSize(elements)
         val newRange = start until start + newSize
-        val newData1 = pack(elements, newKey, available, oldData)
         copy(newKey, newDataRange.first, newData, newRange, newData1)
         return newData1
     }
@@ -94,10 +106,14 @@ interface AllocationManager<Key, Data : Any> {
             copy(keys, oldRange.first, oldData, newRange, newData)
             pos += oldRange.size
         }
+        deallocate(oldData)
         return newData
     }
 
-    fun isCompact(elements: Collection<Key>): Int? {
+    /**
+     * returns whether the data is compact, and if so, how many elements it contains
+     * */
+    fun getCompactSizeIfCompact(elements: Collection<Key>): Int? {
         if (elements.isEmpty()) return 0
         val first = getRange(elements.first())
         var min = first.first
@@ -114,31 +130,34 @@ interface AllocationManager<Key, Data : Any> {
     }
 
     fun pack(elements: Collection<Key>, elementX: Key, available: Int, oldData: Data): Data {
-        val compact = isCompact(elements)
         val extraSize = getRange(elementX).size
-        if (compact != null) {
-            val requiredSize = compact + extraSize
-            return if (available >= requiredSize) {
-                oldData
-            } else {
+        val compactSize = getCompactSizeIfCompact(elements)
+        if (compactSize != null) {
+            val requiredSize = compactSize + extraSize
+            if (available >= requiredSize) {
+                return oldData
+            } else if (allocationKeepsOldData()) {
+                // it is compact, but we need extra storage...
                 val allocSize = roundUpStorage(requiredSize)
                 val newData = allocate(allocSize)
-                System.arraycopy(oldData, 0, newData, 0, compact)
-                newData
+                copy(0, oldData, 0 until compactSize, newData)
+                deallocate(oldData)
+                return newData
             }
-        } else {
-            val requiredSize = sumSize(elements) + extraSize
-            val allocSize = roundUpStorage(requiredSize)
-            val newData = allocate(allocSize)
-            var pos = 0
-            for (keys in elements) {
-                val oldRange = getRange(keys)
-                val newRange = pos until pos + oldRange.size
-                copy(keys, oldRange.first, oldData, newRange, newData)
-                pos += oldRange.size
-            }
-            return newData
         }
+
+        val requiredSize = sumSize(elements) + extraSize
+        val allocSize = roundUpStorage(requiredSize)
+        val newData = allocate(allocSize)
+        var pos = 0
+        for (keys in elements) {
+            val oldRange = getRange(keys)
+            val newRange = pos until pos + oldRange.size
+            copy(keys, oldRange.first, oldData, newRange, newData)
+            pos += oldRange.size
+        }
+        deallocate(oldData)
+        return newData
     }
 
     fun roundUpStorage(requiredSize: Int): Int {
@@ -148,6 +167,9 @@ interface AllocationManager<Key, Data : Any> {
     fun getRange(key: Key): IntRange
 
     fun allocate(newSize: Int): Data
+    fun deallocate(data: Data) {}
+    fun allocationKeepsOldData(): Boolean = true
 
     fun copy(key: Key, from: Int, fromData: Data, to: IntRange, toData: Data)
+    fun copy(from: Int, fromData: Data, to: IntRange, toData: Data)
 }

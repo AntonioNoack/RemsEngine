@@ -6,6 +6,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
@@ -112,7 +113,7 @@ open class AnimRenderer : MeshComponent() {
         }
     }
 
-    override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: Mesh): Boolean {
+    override fun defineVertexTransform(shader: Shader, entity: Entity, mesh: IMesh): Boolean {
 
         val skeleton = SkeletonCache[skeleton]
         if (skeleton == null) {

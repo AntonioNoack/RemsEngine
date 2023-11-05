@@ -143,12 +143,12 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         return MaterialCache[m1, defaultMaterial]
     }
 
-    fun addMesh(mesh: Mesh, renderer: Component, entity: Entity) {
+    fun addMesh(mesh: IMesh, renderer: Component, entity: Entity) {
         val materialOverrides = (renderer as? MeshComponentBase)?.materials
         addMesh(mesh, renderer, materialOverrides, entity)
     }
 
-    fun addMesh(mesh: Mesh, renderer: Component, materialOverrides: List<FileReference>?, entity: Entity) {
+    fun addMesh(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, entity: Entity) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         for (index in 0 until mesh.numMaterials) {
@@ -440,8 +440,9 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         for (i in components.indices) {
             val component = components[i]
             if (component.isEnabled && component !== ignoredComponent && component is Renderable) {
-                if (component !is MeshComponentBase || frustum.isVisible(component.globalAABB))
+                if (component !is MeshComponentBase || frustum.isVisible(component.globalAABB)) {
                     clickId = component.fill(this, entity, clickId)
+                }
             }
         }
         val children = entity.children

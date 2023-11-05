@@ -86,7 +86,30 @@ abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: Lis
             glObjectLabel(GL_BUFFER, pointer, name)
             GFX.check()
         }
+    }
 
+    open fun uploadEmpty(newLimit: Long) {
+
+        checkSession()
+
+        GFX.check()
+
+        if (pointer == 0) pointer = glGenBuffers()
+        if (pointer == 0) throw OutOfMemoryError("Could not generate OpenGL Buffer")
+
+        bindBuffer(type, pointer)
+
+        locallyAllocated = allocate(locallyAllocated, newLimit)
+        glBufferData(type, newLimit, usage)
+
+        GFX.check()
+        isUpToDate = true
+
+        if (Build.isDebug) {
+            DebugGPUStorage.buffers.add(this)
+            glObjectLabel(GL_BUFFER, pointer, name)
+            GFX.check()
+        }
     }
 
     /**
@@ -289,7 +312,5 @@ abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: Lis
             allocated += newValue - oldValue
             return newValue
         }
-
     }
-
 }

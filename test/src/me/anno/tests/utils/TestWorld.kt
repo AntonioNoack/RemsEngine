@@ -135,13 +135,27 @@ object TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
         return mesh
     }
 
-    fun createTriangleMesh(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): MeshComponent {
+    fun createTriangleMesh1(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): Mesh {
         val mesh = Mesh()
         object : VoxelModel(sx, sy, sz) {
             override fun getBlock(x: Int, y: Int, z: Int) =
                 getElementAt(x0 + x, y0 + y, z0 + z).toInt()
         }.createMesh(palette, null, null, mesh)
-        return MeshComponent(mesh)
+        return mesh
     }
 
+    fun createTriangleMesh2(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): Mesh {
+        val mesh = Mesh()
+        object : VoxelModel(sx, sy, sz) {
+            override fun getBlock(x: Int, y: Int, z: Int) =
+                getElementAt(x0 + x, y0 + y, z0 + z).toInt()
+        }.createMesh(palette, null, { x, y, z ->
+            getElementAt(x0 + x, y0 + y, z0 + z).toInt() != 0
+        }, mesh)
+        return mesh
+    }
+
+    fun createTriangleMesh(x0: Int, y0: Int, z0: Int, sx: Int, sy: Int, sz: Int): MeshComponent {
+        return MeshComponent(createTriangleMesh1(x0, y0, z0, sx, sy, sz))
+    }
 }

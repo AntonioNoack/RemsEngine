@@ -48,7 +48,7 @@ object BVHBuilder {
             val dri = dr[index]
             // to do theoretically, we'd need to respect the material override as well,
             // but idk how to do materials yet...
-            val mesh = dri.mesh
+            val mesh = dri.mesh as? Mesh ?: continue
             val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize) ?: continue
             mesh.raycaster = blas
             val entity = dri.entity
