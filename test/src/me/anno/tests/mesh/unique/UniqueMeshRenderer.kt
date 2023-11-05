@@ -22,15 +22,21 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.graph.hdb.ByteSlice
+import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.patterns.SpiralPattern.spiral2d
+import me.anno.mesh.vox.model.VoxelModel
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.tests.utils.TestWorld
+import me.anno.utils.OS.documents
 import me.anno.utils.hpc.ProcessingQueue
 import org.joml.AABBf
 import org.joml.Vector3i
+import java.io.ByteArrayOutputStream
 import java.lang.Math.floorDiv
+import java.lang.Math.floorMod
 import kotlin.math.floor
 
 /**
@@ -41,6 +47,7 @@ import kotlin.math.floor
  * (Minecraft like)
  *
  * todo dynamic chunk unloading
+ * done load/save system
  * done block placing
  * */
 fun main() {
@@ -82,9 +89,68 @@ fun main() {
         ),
     )
 
-    val world = TestWorld
-    val csx = 64
-    val csy = 32
+    class SaveLoadSystem {
+
+        val db = HierarchicalDatabase(
+            "blocks",
+            documents.getChild("RemsEngine/Tests/UniqueMeshRenderer"),
+            10_000_000,
+            30_000L, 0L
+        )
+
+        val hash = 0L
+
+        fun getPath(chunkId: Vector3i): List<String> {
+            return listOf("${chunkId.x},${chunkId.y},${chunkId.z}")
+        }
+
+        fun get(chunkId: Vector3i, async: Boolean, callback: (HashMap<Vector3i, Byte>) -> Unit) {
+            db.get(getPath(chunkId), hash, async) { slice ->
+                if (slice != null) {
+                    slice.stream().use { stream ->
+                        val answer = HashMap<Vector3i, Byte>()
+                        while (true) {
+                            val x = stream.read()
+                            val y = stream.read()
+                            val z = stream.read()
+                            val b = stream.read()
+                            if (b < 0) break
+                            answer[Vector3i(x, y, z)] = b.toByte()
+                        }
+                        callback(answer)
+                    }
+                } else callback(HashMap())
+            }
+        }
+
+        fun put(chunkId: Vector3i, blocks: Map<Vector3i, Byte>) {
+            val stream = ByteArrayOutputStream(blocks.size * 4)
+            for ((k, v) in blocks) {
+                stream.write(k.x)
+                stream.write(k.y)
+                stream.write(k.z)
+                stream.write(v.toInt())
+            }
+            val bytes = stream.toByteArray()
+            db.put(getPath(chunkId), hash, ByteSlice(bytes))
+        }
+    }
+
+    val saveSystem = SaveLoadSystem()
+    val world = object : TestWorld() {
+        override fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: ByteArray) {
+            super.generateChunk(chunkX, chunkY, chunkZ, chunk)
+            saveSystem.get(Vector3i(chunkX, chunkY, chunkZ), false) { data ->
+                for ((k, v) in data) {
+                    chunk[getIndex(k.x, k.y, k.z)] = v
+                }
+            }
+        }
+    }
+
+    val csx = world.sizeX
+    val csy = world.sizeY
+    val csz = world.sizeZ
 
     val material = defaultMaterial
 
@@ -99,7 +165,7 @@ fun main() {
                 transform.setLocalPosition(
                     (key.x * csx).toDouble(),
                     (key.y * csy).toDouble(),
-                    (key.z * csx).toDouble(),
+                    (key.z * csz).toDouble(),
                 )
                 run(entry.mesh!!, material, transform)
             }
@@ -118,7 +184,7 @@ fun main() {
             val data = buffer.nioBuffer!!
             val dx = key.x * csx
             val dy = key.y * csy
-            val dz = key.z * csx
+            val dz = key.z * csz
             for (i in 0 until buffer.vertexCount) {
                 data.putInt(dx + pos[i * 3].toInt())
                 data.putInt(dy + pos[i * 3 + 1].toInt())
@@ -135,13 +201,28 @@ fun main() {
         val worker = ProcessingQueue("chunks")
 
         // load world in spiral pattern
-        val loadingPattern = spiral2d(5, 0, true).iterator()
+        val loadingPattern = spiral2d(10, 0, true).iterator()
 
         fun generate(key: Vector3i) {
+
             val x0 = key.x * csx
             val y0 = key.y * csy
-            val z0 = key.z * csx
-            val mesh = world.createTriangleMesh2(x0, y0, z0, csx, csy, csx)
+            val z0 = key.z * csz
+
+            val model = object : VoxelModel(csx, csy, csz) {
+                override fun getBlock(x: Int, y: Int, z: Int): Int {
+                    return world.getElementAt(x0 + x, y0 + y, z0 + z).toInt()
+                }
+            }
+
+            model.centerX = 0f
+            model.centerY = 0f
+            model.centerZ = 0f
+
+            val mesh = model.createMesh(world.palette, null, { x, y, z ->
+                world.getElementAt(x0 + x, y0 + y, z0 + z).toInt() != 0
+            })
+
             val data = chunkRenderer.getData(key, mesh)
             if (data != null) addEvent { // change back to GPU thread
                 chunkRenderer.set(key, MeshEntry(mesh, data))
@@ -177,12 +258,39 @@ fun main() {
                 return Vector3i(floor(pos.x).toInt(), floor(pos.y).toInt(), floor(pos.z).toInt())
             }
 
-            fun invalidateChunkAt(coords: Vector3i) {
-                coords.set(
+            fun setBlock(coords: Vector3i, block: Byte) {
+                world.setElementAt(coords.x, coords.y, coords.z, true, block)
+                val chunkId = coordsToChunkId(coords)
+                invalidateChunkAt(chunkId)
+                val localCoords = Vector3i(
+                    floorMod(coords.x, csx),
+                    floorMod(coords.y, csy),
+                    floorMod(coords.z, csz),
+                )
+                // when we're on the edge, and we remove a block (set a transparent one), we need to invalidate our neighbors, too
+                if (block == TestWorld.air) {
+                    if (localCoords.x == 0) invalidateChunkAt(Vector3i(chunkId).sub(1, 0, 0))
+                    if (localCoords.y == 0) invalidateChunkAt(Vector3i(chunkId).sub(0, 1, 0))
+                    if (localCoords.z == 0) invalidateChunkAt(Vector3i(chunkId).sub(0, 0, 1))
+                    if (localCoords.x == csx - 1) invalidateChunkAt(Vector3i(chunkId).add(1, 0, 0))
+                    if (localCoords.y == csy - 1) invalidateChunkAt(Vector3i(chunkId).add(0, 1, 0))
+                    if (localCoords.z == csz - 1) invalidateChunkAt(Vector3i(chunkId).add(0, 0, 1))
+                }
+                saveSystem.get(chunkId, true) { changesInChunk ->
+                    changesInChunk[localCoords] = block
+                    saveSystem.put(chunkId, changesInChunk)
+                }
+            }
+
+            fun coordsToChunkId(coords: Vector3i): Vector3i {
+                return Vector3i(
                     floorDiv(coords.x, csx),
                     floorDiv(coords.y, csy),
-                    floorDiv(coords.z, csx)
+                    floorDiv(coords.z, csz)
                 )
+            }
+
+            fun invalidateChunkAt(coords: Vector3i) {
                 chunkLoader.worker += {
                     chunkLoader.generate(coords)
                 }
@@ -203,20 +311,17 @@ fun main() {
                         Key.BUTTON_LEFT -> {
                             // remove block
                             val coords = getCoords(query, +1e-3)
-                            world.setElementAt(coords.x, coords.y, coords.z, true, 0)
-                            invalidateChunkAt(coords)
+                            setBlock(coords, 0)
                         }
                         Key.BUTTON_RIGHT -> {
                             // add block
                             val coords = getCoords(query, -1e-3)
-                            world.setElementAt(coords.x, coords.y, coords.z, true, inHandBlock)
-                            invalidateChunkAt(coords)
+                            setBlock(coords, inHandBlock)
                         }
                         Key.BUTTON_MIDDLE -> {
                             // get block
                             val coords = getCoords(query, +1e-3)
                             inHandBlock = world.getElementAt(coords.x, coords.y, coords.z, true) ?: 0
-                            invalidateChunkAt(coords)
                         }
                         else -> {}
                     }

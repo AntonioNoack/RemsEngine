@@ -65,6 +65,13 @@ abstract class ChunkSystem<Chunk, Element>(
         } else chunks[key]
     }
 
+    fun removeChunk(chunkX: Int, chunkY: Int, chunkZ: Int): Chunk? {
+        val key = Vector3i(chunkX, chunkY, chunkZ)
+        return synchronized(chunks) {
+            chunks.remove(key)
+        }
+    }
+
     open fun getChunkAt(globalX: Double, globalY: Double, globalZ: Double, generateIfMissing: Boolean): Chunk? {
         val cx = globalX.toInt() shr bitsX
         val cy = globalY.toInt() shr bitsY

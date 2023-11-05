@@ -65,9 +65,15 @@ class HierarchicalDatabase(
         }
     }
 
+    /**
+     * Deletes older files than millisTimeout milliseconds.
+     * If millisTimeout <= 0, nothing will get deleted.
+     * */
     fun cleanup(millisTimeout: Long) {
         synchronized(this) {
-            val wasChanged = cleanup(System.currentTimeMillis() - millisTimeout, root)
+            val lastValidTime = System.currentTimeMillis() - millisTimeout
+            val useTimeout = millisTimeout > 0
+            val wasChanged = cleanup(lastValidTime, useTimeout, root)
             cleanDirtyStorageFiles()
             if (wasChanged) {
                 storeIndex()
@@ -101,17 +107,19 @@ class HierarchicalDatabase(
         }
     }
 
-    private fun cleanup(timeout: Long, folder: Folder): Boolean {
+    private fun cleanup(lastValidTime: Long, useTimeout: Boolean, folder: Folder): Boolean {
         var wasChangedOverall = false
         for (child in folder.children.values) {
-            if (cleanup(timeout, child)) {
+            if (cleanup(lastValidTime, useTimeout, child)) {
                 wasChangedOverall = true
             }
         }
         // clean up
-        val numFilesRemoved = folder.files.removeIf { (_, file) ->
-            file.lastAccessedMillis < timeout
-        }
+        val numFilesRemoved = if (useTimeout) {
+            folder.files.removeIf { (_, file) ->
+                file.lastAccessedMillis < lastValidTime
+            }
+        } else 0
         val numChildrenRemoved = folder.children.removeIf { (_, child) ->
             child.children.isEmpty() && child.files.isEmpty()
         }
@@ -184,11 +192,17 @@ class HierarchicalDatabase(
         }
     }
 
+    private fun loadData(sf: Int): CacheData<ByteArray>? {
+        val file = getFile(sf)
+        return if (file.exists) {
+            CacheData(file.readBytesSync())
+        } else null
+    }
+
     private fun getDataSync(sf: StorageFile): ByteArray? {
-        val file = getFile(sf.index)
-        if (!file.exists) return null
-        val data = cache.getEntry(file, cacheTimeoutMillis, false) {
-            CacheData(it.readBytesSync())
+        val key = sf.index
+        val data = cache.getEntry(key, cacheTimeoutMillis, false) {
+            loadData(it)
         } as? CacheData<*>
         return data?.value as? ByteArray
     }
@@ -196,10 +210,7 @@ class HierarchicalDatabase(
     private fun getDataAsync(sf: StorageFile, callback: (ByteArray?) -> Unit) {
         val key = sf.index
         cache.getEntryAsync(key, cacheTimeoutMillis, true, {
-            val file = getFile(it)
-            if (file.exists) {
-                CacheData(file.readBytesSync())
-            } else null
+            loadData(it)
         }, { data, exc ->
             callback((data as? CacheData<*>)?.value as? ByteArray)
             exc?.printStackTrace()
@@ -253,7 +264,7 @@ class HierarchicalDatabase(
         val file1 = getFile(sf.index)
         sf.size = data.size
 
-        cache.override(file1, CacheData(data), cacheTimeoutMillis)
+        cache.override(sf.index, CacheData(data), cacheTimeoutMillis)
 
         if (type == ReplaceType.InsertInto && file1.exists) {
             val writer = RandomAccessFile(file1.absolutePath, "rw")

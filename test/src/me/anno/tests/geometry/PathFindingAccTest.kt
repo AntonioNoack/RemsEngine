@@ -53,7 +53,7 @@ fun main() {
     // slightly better, ~2x more expensive
     val useSecondaryHops = false
 
-    val world = TestWorld
+    val world = TestWorld()
 
     // if you use raytracing, make these smaller :D
     val sx = 512
@@ -69,7 +69,7 @@ fun main() {
 
     fun findPoint(x: Int, z: Int): AccNode? {
         for (y in 0 until 256) {
-            if (TestWorld.canStand(x, y, z)) {
+            if (world.canStand(x, y, z)) {
                 return AccNode(x, y, z, false)
             }
         }
@@ -109,10 +109,10 @@ fun main() {
                 // could be optimized
                 for (dy in -1..1) {
                     val y = from.y + dy
-                    if (TestWorld.canStand(from.x, y, from.z + 1)) callback(AccNode(from.x, y, from.z + 1, false))
-                    if (TestWorld.canStand(from.x, y, from.z - 1)) callback(AccNode(from.x, y, from.z - 1, false))
-                    if (TestWorld.canStand(from.x + 1, y, from.z)) callback(AccNode(from.x + 1, y, from.z, false))
-                    if (TestWorld.canStand(from.x - 1, y, from.z)) callback(AccNode(from.x - 1, y, from.z, false))
+                    if (world.canStand(from.x, y, from.z + 1)) callback(AccNode(from.x, y, from.z + 1, false))
+                    if (world.canStand(from.x, y, from.z - 1)) callback(AccNode(from.x, y, from.z - 1, false))
+                    if (world.canStand(from.x + 1, y, from.z)) callback(AccNode(from.x + 1, y, from.z, false))
+                    if (world.canStand(from.x - 1, y, from.z)) callback(AccNode(from.x - 1, y, from.z, false))
                 }
             }// else throw IllegalArgumentException("Proxies neighbor or out-of-bounds requested, $from")
         }
@@ -173,9 +173,9 @@ fun main() {
 
         val mesh = if (rayTracing) {
             // slower, currently less color support, but avoids triangles ^^
-            TestWorld.createRaytracingMeshV2(x0, y0, z0, sx, sy, sz)
+            world.createRaytracingMeshV2(x0, y0, z0, sx, sy, sz)
         } else {
-            TestWorld.createTriangleMesh(x0, y0, z0, sx, sy, sz)
+            world.createTriangleMesh(x0, y0, z0, sx, sy, sz)
         }
 
         val scene = Entity()

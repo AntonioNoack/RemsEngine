@@ -18,15 +18,17 @@ import me.anno.utils.structures.maps.Maps.flatten
 /**
  * a voxel test world, that can be used for testing
  * */
-object TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
+open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
+    companion object {
 
-    const val air = 0.toByte()
-    var dirt = 1.toByte()
-    var grass = 2.toByte()
+        val air = 0.toByte()
+        var dirt = 1.toByte()
+        var grass = 2.toByte()
 
-    // raytracing currently only supports two colors with my default shader
-    var log = 3.toByte()
-    var leaves = 4.toByte()
+        // raytracing currently only supports two colors with my default shader
+        var log = 3.toByte()
+        var leaves = 4.toByte()
+    }
 
     var dirtColor = 0x684530 or black
     var grassColor = 0x2f8d59 or black
@@ -94,7 +96,7 @@ object TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
                         if (x - x0 in 2 until sizeX - 2 &&
                             y - y0 in 1 until sizeY - 7 &&
                             z - z0 in 2 until sizeZ - 2 &&
-                            treeRandom.get(x.toFloat(), y.toFloat(), z.toFloat()) < treeChance
+                            treeRandom[x.toFloat(), y.toFloat(), z.toFloat()] < treeChance
                         ) plantTree(chunk, x - x0, y - y0, z - z0)
                     }
                     index -= dy

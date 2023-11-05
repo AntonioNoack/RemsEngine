@@ -35,7 +35,6 @@ interface AllocationManager<Key, Data : Any> {
         // check if 0th place is ok
         val r0 = getRange(elements.first())
         if (newSize < r0.first) {
-            println("insert into 0")
             val newRange = 0 until newSize
             copy(newKey, newDataStart, newData, newRange, oldData)
             return ReplaceType.InsertInto to oldData

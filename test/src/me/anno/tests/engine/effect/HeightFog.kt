@@ -51,7 +51,7 @@ fun main() {
     val node = mode.renderGraph!!.nodes.firstInstance<HeightExpFogNode>()
     val settings = HeightExpFogSettings(node)
     val scene = Entity("Scene")
-    scene.add(TestWorld.createTriangleMesh(0, 0, 0, 256, 32, 512))
+    scene.add(TestWorld().createTriangleMesh(0, 0, 0, 256, 32, 512))
     scene.add(settings)
     EditorState.select(settings) // select this for testing
     testSceneWithUI("HeightFog", scene) {
