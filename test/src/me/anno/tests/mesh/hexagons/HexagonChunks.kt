@@ -10,10 +10,10 @@ import me.anno.engine.debug.DebugShapes.debugTexts
 import me.anno.engine.debug.DebugText
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
+import me.anno.gpu.buffer.DrawMode
 import me.anno.utils.Color.toVecRGB
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3d
-import org.lwjgl.opengl.GL11C
 
 private fun createMesh(color: Int): Mesh {
     val mesh = Mesh()
@@ -81,7 +81,7 @@ fun createLineMesh(mesh: Mesh, hexagons: List<Hexagon>) {
     var li = 0
     val positions = mesh.positions.resize(6 * 3 * hexagons.size)
     val indices = mesh.indices.resize(6 * 2 * hexagons.size)
-    mesh.drawMode = GL11C.GL_LINES
+    mesh.drawMode = DrawMode.LINES
     mesh.positions = positions
     mesh.indices = indices
     mesh.normals = positions

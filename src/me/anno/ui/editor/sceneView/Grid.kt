@@ -6,6 +6,7 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.buffer.Attribute
+import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
@@ -22,7 +23,6 @@ import org.joml.Matrix4f
 import org.joml.Matrix4fArrayList
 import org.joml.Vector3f
 import org.joml.Vector4f
-import org.lwjgl.opengl.GL20.GL_LINES
 import kotlin.math.*
 
 object Grid {
@@ -40,7 +40,7 @@ object Grid {
 
         lineBuffer.put(+1f, 0f, 0f)
         lineBuffer.put(-1f, 0f, 0f)
-        lineBuffer.drawMode = GL_LINES
+        lineBuffer.drawMode = DrawMode.LINES
 
         for (i in -100..100) {
             val v = 0.01f * i
@@ -49,7 +49,7 @@ object Grid {
             gridBuffer.put(+1f, 0f, v)
             gridBuffer.put(-1f, 0f, v)
         }
-        gridBuffer.drawMode = GL_LINES
+        gridBuffer.drawMode = DrawMode.LINES
 
         val x = sphereBuffer.vertexCount / 6
         for (i in 0 until x) {
@@ -70,7 +70,7 @@ object Grid {
             val a1 = (i + 1) * TAUf / x
             sphereBuffer.put(cos(a1), sin(a1), 0f)
         }
-        sphereBuffer.drawMode = GL_LINES
+        sphereBuffer.drawMode = DrawMode.LINES
     }
 
     fun drawSmoothLine(

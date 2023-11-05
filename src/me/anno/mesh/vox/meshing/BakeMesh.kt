@@ -29,7 +29,9 @@ object BakeMesh {
                 }
             }
         } else {
-            for (i in isSolid.indices) isSolid[i] = colors[i] != 0
+            for (i in isSolid.indices) {
+                isSolid[i] = colors[i] != 0
+            }
         }
 
         val removed = removeSolidInnerBlocks(model, side, colors, isSolid, outsideIsSolid)
@@ -59,7 +61,6 @@ object BakeMesh {
         }
 
         return removed
-
     }
 
     fun getSizeInfo(x: Int, y: Int, z: Int, model: VoxelModel): Int {
@@ -175,5 +176,4 @@ object BakeMesh {
         // LOGGER.info("Removed ${(ctr*100f/wasSolid).f1()}% of $wasSolid blocks")
         return ctr.toFloat() / max(1, wasSolid)
     }
-
 }

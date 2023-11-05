@@ -22,7 +22,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
         }
 
     var elementsType = GL_UNSIGNED_INT
-    var drawMode = -1
+    var drawMode: DrawMode? = null
 
     private var hasWarned = false
 
@@ -113,11 +113,11 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
         // GFX.check()
     }
 
-    override fun draw(shader: Shader) = draw(shader, if (drawMode < 0) base.drawMode else drawMode)
-    fun draw(shader: Shader, mode: Int) {
+    override fun draw(shader: Shader) = draw(shader, drawMode ?: base.drawMode)
+    fun draw(shader: Shader, drawMode: DrawMode) {
         bind(shader) // defines drawLength
         if (base.drawLength > 0) {
-            glDrawElements(mode, indices.size, elementsType, 0)
+            glDrawElements(drawMode.id, indices.size, elementsType, 0)
             unbind()
             GFX.check()
         }
@@ -183,20 +183,20 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
     }
 
     override fun drawInstanced(shader: Shader, instanceData: Buffer) {
-        drawInstanced(shader, instanceData, if (drawMode < 0) base.drawMode else drawMode)
+        drawInstanced(shader, instanceData, drawMode ?: base.drawMode)
     }
 
-    fun drawInstanced(shader: Shader, instanceData: Buffer, mode: Int) {
+    fun drawInstanced(shader: Shader, instanceData: Buffer, drawMode: DrawMode) {
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
-        glDrawElementsInstanced(mode, indices.size, elementsType, 0, instanceData.drawLength)
+        glDrawElementsInstanced(drawMode.id, indices.size, elementsType, 0, instanceData.drawLength)
         unbind()
     }
 
     override fun drawInstanced(shader: Shader, instanceCount: Int) {
         bindInstanced(shader, null)
         glDrawElementsInstanced(
-            if (drawMode < 0) base.drawMode else drawMode,
+            (drawMode ?: base.drawMode).id,
             indices.size,
             elementsType,
             0,
@@ -206,19 +206,14 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
     }
 
     @Suppress("unused")
-    fun drawSimpleInstanced(shader: Shader, mode: Int, count: Int) {
+    fun drawSimpleInstanced(shader: Shader, drawMode: DrawMode, count: Int) {
         bind(shader) // defines drawLength
         if (base.drawLength > 0) {
-            glDrawElementsInstanced(mode, indices.size, elementsType, 0, count)
+            glDrawElementsInstanced(drawMode.id, indices.size, elementsType, 0, count)
             unbind()
             GFX.check()
         }
     }
-
-    /*override fun unbind() {
-        super.unbind()
-        // bindVAO(0)
-    }*/
 
     override fun destroy() {
         if (Build.isDebug) DebugGPUStorage.buffers.remove(this)

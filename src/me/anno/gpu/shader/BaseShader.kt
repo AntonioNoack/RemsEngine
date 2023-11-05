@@ -269,5 +269,6 @@ open class BaseShader(
                         renderer == rawAttributeRenderers[DeferredLayerType.MOTION] ||
                         renderer.deferredSettings != null && DeferredLayerType.MOTION in renderer.deferredSettings.layerTypes)
             }
+
     }
 }

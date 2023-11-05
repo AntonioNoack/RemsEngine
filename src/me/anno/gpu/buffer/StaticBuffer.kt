@@ -1,6 +1,5 @@
 package me.anno.gpu.buffer
 
-import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.image.svg.SVGMesh
 import me.anno.utils.pooling.ByteBufferPool
@@ -91,21 +90,15 @@ open class StaticBuffer(name: String, attributes: List<Attribute>, var vertexCou
             putInt(3)
         }
 
-        fun drawArraysNull(shader: Shader, mode: Int, length: Int) {
+        fun drawArraysNull(shader: Shader, mode: DrawMode, length: Int) {
             // we need a null array, or bind bogus data, because drivers don't like this
             // https://stackoverflow.com/questions/8039929/opengl-drawarrays-without-binding-vbo
             nullBuffer.drawMode = mode
             nullBuffer.ensureBuffer()
             nullBuffer.apply {
-                val baseLength = when (mode) {
-                    GL_POINTS -> 1
-                    GL_LINES, GL_LINE_STRIP, GL_LINE_LOOP -> 2
-                    GL_TRIANGLES, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN -> 3
-                    GL_QUADS -> 4
-                    else -> throw RuntimeException("DrawMode ${GFX.getName(mode)} is not supported")
-                }
+                val baseLength = mode.minLength
                 bind(shader)
-                glDrawArraysInstanced(mode, 0, baseLength, length)
+                glDrawArraysInstanced(mode.id, 0, baseLength, length)
                 unbind(shader)
             }
         }

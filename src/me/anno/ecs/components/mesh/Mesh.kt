@@ -39,13 +39,12 @@ import org.joml.AABBf
 import org.joml.Matrix4f
 import org.joml.Vector3d
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C.*
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 // open, so you can define your own attributes
-open class Mesh : PrefabSaveable(), Renderable, ICacheData {
+open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
 
     // a single helper mesh could be used to represent the default indices...
     class HelperMesh(val indices: IntArray) : ICacheData {
@@ -64,7 +63,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
 
             lineIndices = lineIndices ?: FindLines.findLines(mesh, indices, mesh.positions)
             lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
-            lineBuffer?.drawMode = GL_LINES
+            lineBuffer?.drawMode = DrawMode.LINES
         }
 
         fun ensureDebugLines(mesh: Mesh) {
@@ -73,7 +72,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                 invalidDebugLines = false
                 debugLineIndices = FindLines.getAllLines(mesh, indices)
                 debugLineBuffer = replaceBuffer(buffer, debugLineIndices, debugLineBuffer)
-                debugLineBuffer?.drawMode = GL_LINES
+                debugLineBuffer?.drawMode = DrawMode.LINES
             }
         }
 
@@ -195,11 +194,9 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     @HideInInspector
     var indices: IntArray? = null
 
-    // allow multiple materials? should make our life easier :), we just need to split the indices...
-    // todo filter file references for a specific type for ui
     @SerializedProperty
     @Type("List<Material/Reference>")
-    var materials: List<FileReference> = defaultMaterials
+    override var materials: List<FileReference> = defaultMaterials
 
     @HideInInspector
     @NotSerializedProperty
@@ -217,7 +214,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     @HideInInspector
     var materialIds: IntArray? = null
 
-    var numMaterials = 1
+    override var numMaterials = 1
 
     @NotSerializedProperty
     var helperMeshes: Array<HelperMesh?>? = null
@@ -226,10 +223,8 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
     /**
      * how the positions / indices are drawn;
      * implementations might only support GL_TRIANGLES, so be careful, and always prefer GL_TRIANGLES!
-     *
-     * quads may not even be supported by the platform (e.g., Web or Android)
      * */
-    var drawMode = GL_TRIANGLES
+    var drawMode = DrawMode.TRIANGLES
 
     @DebugProperty
     val aabb = AABBf()
@@ -423,28 +418,31 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         val indices = indices
         if (indices == null) {
             when (drawMode) {
-                GL_TRIANGLES -> {
+                DrawMode.TRIANGLES -> {
                     for (i in 0 until positions.size / 9) {
                         val i3 = i * 3
                         callback.run(i3, i3 + 1, i3 + 2)
                     }
                 }
-                GL_TRIANGLE_STRIP -> {
+                DrawMode.TRIANGLE_STRIP -> {
                     for (i in 2 until positions.size / 3) {
                         val i3 = i * 3
                         callback.run(i3, i3 + 1, i3 + 2)
                     }
                 }
+                else -> {
+                    // no triangles are present
+                }
             }
         } else {
             if (indices.size < 3) return
             when (drawMode) {
-                GL_TRIANGLES -> {
+                DrawMode.TRIANGLES -> {
                     for (i in indices.indices step 3) {
                         callback.run(indices[i], indices[i + 1], indices[i + 2])
                     }
                 }
-                GL_TRIANGLE_STRIP -> {
+                DrawMode.TRIANGLE_STRIP -> {
                     var a = indices[0]
                     var b = indices[1]
                     for (i in 2 until indices.size) {
@@ -460,6 +458,9 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         b = c
                     }
                 }
+                else -> {
+                    // no triangles are present
+                }
             }
         }
     }
@@ -472,18 +473,18 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                 positions ?: return 0
                 val numPoints = positions.size / 3
                 when (drawMode) {
-                    GL_TRIANGLES -> numPoints
-                    GL_TRIANGLE_STRIP -> (numPoints - 2) * 2
-                    GL_LINES -> numPoints / 2
-                    GL_LINE_STRIP -> numPoints - 1
+                    DrawMode.TRIANGLES -> numPoints
+                    DrawMode.TRIANGLE_STRIP -> (numPoints - 2) * 2
+                    DrawMode.LINES -> numPoints / 2
+                    DrawMode.LINE_STRIP -> numPoints - 1
                     else -> 0
                 }
             } else {
                 when (drawMode) {
-                    GL_TRIANGLES -> indices.size
-                    GL_TRIANGLE_STRIP -> (indices.size - 2) * 2
-                    GL_LINES -> indices.size / 2
-                    GL_LINE_STRIP -> indices.size - 1
+                    DrawMode.TRIANGLES -> indices.size
+                    DrawMode.TRIANGLE_STRIP -> (indices.size - 2) * 2
+                    DrawMode.LINES -> indices.size / 2
+                    DrawMode.LINE_STRIP -> indices.size - 1
                     else -> 0
                 }
             }, 0
@@ -496,33 +497,36 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         if (indices == null) {
             val numPoints = positions.size / 3
             when (drawMode) {
-                GL_TRIANGLES -> {
+                DrawMode.TRIANGLES -> {
                     for (i3 in 0 until numPoints - 2 step 3) {
                         callback.run(i3, i3 + 1)
                         callback.run(i3 + 1, i3 + 2)
                         callback.run(i3 + 2, i3)
                     }
                 }
-                GL_TRIANGLE_STRIP -> {
+                DrawMode.TRIANGLE_STRIP -> {
                     for (c in 2 until numPoints) {
                         callback.run(c - 2, c)
                         callback.run(c - 1, c)
                     }
                 }
-                GL_LINES -> {
+                DrawMode.LINES -> {
                     for (i in 0 until numPoints step 2) {
                         callback.run(i, i + 1)
                     }
                 }
-                GL_LINE_STRIP -> {
+                DrawMode.LINE_STRIP -> {
                     for (i in 1 until numPoints) {
                         callback.run(i - 1, i)
                     }
                 }
+                else -> {
+                    // no lines present
+                }
             }
         } else {
             when (drawMode) {
-                GL_TRIANGLES -> {
+                DrawMode.TRIANGLES -> {
                     for (i in 0 until indices.size - 2 step 3) {
                         val a = indices[i]
                         val b = indices[i + 1]
@@ -532,7 +536,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         callback.run(c, a)
                     }
                 }
-                GL_TRIANGLE_STRIP -> {
+                DrawMode.TRIANGLE_STRIP -> {
                     var a = indices[0]
                     var b = indices[1]
                     for (i in 2 until indices.size) {
@@ -545,12 +549,12 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         b = c
                     }
                 }
-                GL_LINES -> {
+                DrawMode.LINES -> {
                     for (i in 0 until indices.size - 1 step 2) {
                         callback.run(indices[i], indices[i + 1])
                     }
                 }
-                GL_LINE_STRIP -> {
+                DrawMode.LINE_STRIP -> {
                     var a = indices[0]
                     for (i in 1 until indices.size) {
                         val b = indices[i]
@@ -558,14 +562,13 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         a = b
                     }
                 }
+                else -> {}
             }
         }
     }
 
     fun forEachTriangle(
-        a: Vector3f,
-        b: Vector3f,
-        c: Vector3f,
+        a: Vector3f, b: Vector3f, c: Vector3f,
         callback: (a: Vector3f, b: Vector3f, c: Vector3f) -> Unit
     ) {
         val positions = positions ?: return
@@ -573,7 +576,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         if (indices != null) {
             if (indices.size < 3) return
             when (drawMode) {
-                GL_TRIANGLES -> {
+                DrawMode.TRIANGLES -> {
                     for (i in 0 until indices.size - 2 step 3) {
                         a.set(positions, indices[i] * 3)
                         b.set(positions, indices[i + 1] * 3)
@@ -581,7 +584,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         callback(a, b, c)
                     }
                 }
-                GL_TRIANGLE_STRIP -> {
+                DrawMode.TRIANGLE_STRIP -> {
                     var ai = indices[0] * 3
                     var bi = indices[1] * 3
                     for (i in 2 until indices.size) {
@@ -600,10 +603,11 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         bi = ci
                     }
                 }
+                else -> {}
             }
         } else {
             when (drawMode) {
-                GL_TRIANGLES -> {
+                DrawMode.TRIANGLES -> {
                     var i = 0
                     val s = positions.size - 8
                     while (i < s) {
@@ -614,7 +618,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         i += 9
                     }
                 }
-                GL_TRIANGLE_STRIP -> {
+                DrawMode.TRIANGLE_STRIP -> {
                     var ai = 0
                     var bi = 3
                     for (i in 2 until positions.size / 3) {
@@ -633,16 +637,16 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
                         bi = ci
                     }
                 }
+                else -> {}
             }
         }
     }
 
     fun forEachTriangle(
-        a: Vector3d,
-        b: Vector3d,
-        c: Vector3d,
+        a: Vector3d, b: Vector3d, c: Vector3d,
         callback: (a: Vector3d, b: Vector3d, c: Vector3d) -> Unit
     ) {
+        // todo this only supports DrawMode.TRIANGLES
         val positions = positions ?: return
         val indices = indices
         if (indices != null) {
@@ -675,24 +679,23 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             val positions = positions
             val drawMode = drawMode
             val baseLength = if (indices != null) {
-                when (drawMode) {
-                    GL_TRIANGLE_STRIP -> max(0, indices.size - 2)
-                    else -> indices.size / 3
-                }
-            } else if (positions != null) numPrimitivesByType(positions.size, drawMode) else 0
+                numPrimitivesByType(indices.size * 3, drawMode)
+            } else if (positions != null) {
+                numPrimitivesByType(positions.size, drawMode)
+            } else 0
             val size = proceduralLength
             return if (size <= 0) baseLength.toLong()
             else if (baseLength > 0) baseLength.toLong() * size
             else numPrimitivesByType(size, drawMode).toLong()
         }
 
-    fun numPrimitivesByType(size: Int, drawMode: Int): Int {
+    fun numPrimitivesByType(numPositionValues: Int, drawMode: DrawMode): Int {
         return when (drawMode) {
-            GL_POINTS -> size / 3
-            GL_LINES -> size / 6
-            GL_LINE_STRIP -> max(0, size / 3 - 1)
-            GL_TRIANGLE_STRIP -> max(0, size / 3 - 2)
-            else -> size / 9
+            DrawMode.POINTS -> numPositionValues / 3
+            DrawMode.LINES -> numPositionValues / 6
+            DrawMode.LINE_STRIP -> max(0, numPositionValues / 3 - 1)
+            DrawMode.TRIANGLE_STRIP -> max(0, numPositionValues / 3 - 2)
+            else -> numPositionValues / 9
         }
     }
 
@@ -921,7 +924,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         // find regular lines
         lineIndices = lineIndices ?: FindLines.findLines(this, indices, positions)
         lineBuffer = replaceBuffer(buffer, lineIndices, lineBuffer)
-        lineBuffer?.drawMode = GL_LINES
+        lineBuffer?.drawMode = DrawMode.LINES
 
         invalidDebugLines = true
     }
@@ -944,7 +947,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             invalidDebugLines = false
             debugLineIndices = FindLines.getAllLines(this, indices)
             debugLineBuffer = replaceBuffer(buffer, debugLineIndices, debugLineBuffer)
-            debugLineBuffer?.drawMode = GL_LINES
+            debugLineBuffer?.drawMode = DrawMode.LINES
         }
     }
 
@@ -955,7 +958,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         // split indices / data, would be of advantage here
         val length = materialIds.maxOrNull()!! + 1
         if (length == 1) return
-        if (drawMode != GL_TRIANGLES) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
+        if (drawMode != DrawMode.TRIANGLES) throw IllegalStateException("Multi-material meshes only supported on triangle meshes; got $drawMode")
         if (length > 1000) throw IllegalStateException("Material Id must be less than 1000!")
         val helperMeshes = arrayOfNulls<HelperMesh>(length)
         val indices = indices
@@ -1042,7 +1045,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         draw(shader, materialIndex, drawDebugLines)
     }
 
-    fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean) {
+    override fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean) {
         val proceduralLength = proceduralLength
         if (proceduralLength <= 0) {
             ensureBuffer()
@@ -1082,7 +1085,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
         }
     }
 
-    fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
+    override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
         if (proceduralLength <= 0) {
             GFX.check()
             ensureBuffer()
@@ -1179,7 +1182,7 @@ open class Mesh : PrefabSaveable(), Renderable, ICacheData {
             indices
         }
         this.indices = indices
-        drawMode = GL_LINES
+        drawMode = DrawMode.LINES
         invalidateGeometry()
     }
 

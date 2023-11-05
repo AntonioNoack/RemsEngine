@@ -293,48 +293,4 @@ open class InstancedStack {
         }
     }
 
-    class ImplIdx(capacity: Int = 512) :
-        KeyTripleMap<Mesh, Material, Int, InstancedStack>(capacity), DrawableStack {
-
-        override fun draw(
-            pipeline: Pipeline,
-            stage: PipelineStage,
-            needsLightUpdateForEveryMesh: Boolean,
-            time: Long,
-            depth: Boolean
-        ): LongPair {
-            var drawnPrimitives = 0L
-            var drawCalls = 0L
-            // draw instanced meshes
-            GFXState.instanced.use(true) {
-                for ((mesh, list) in values) {
-                    for ((material, materialIndex, values) in list) {
-                        if (values.isNotEmpty()) {
-                            drawCalls += Companion.draw(
-                                mesh, material, materialIndex,
-                                pipeline, stage, needsLightUpdateForEveryMesh,
-                                time, values, depth
-                            )
-                            drawnPrimitives += mesh.numPrimitives * values.size.toLong()
-                        }
-                    }
-                }
-            }
-            return LongPair(drawnPrimitives, drawCalls)
-        }
-
-        override fun clear() {
-            for ((_, values) in values) {
-                for ((_, _, value) in values) {
-                    value.clear()
-                }
-            }
-        }
-
-        override fun size1(): Long {
-            return values.values.sumOf { it.size.toLong() }
-        }
-
-    }
-
 }

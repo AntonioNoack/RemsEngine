@@ -1,10 +1,9 @@
 package me.anno.mesh
 
 import me.anno.ecs.components.mesh.Mesh
+import me.anno.gpu.buffer.DrawMode
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C.GL_POINTS
-import org.lwjgl.opengl.GL11C.GL_TRIANGLES
 
 object FindLines {
 
@@ -35,7 +34,7 @@ object FindLines {
     }
 
     fun getAllLines(mesh: Mesh, old: IntArray? = null): IntArray? {
-        if (mesh.drawMode == GL_POINTS) return null
+        if (mesh.drawMode == DrawMode.POINTS) return null
         var lineCount = 0
         mesh.forEachLineIndex { _, _ -> lineCount++ }
         if (lineCount == 0) return null
@@ -113,7 +112,7 @@ object FindLines {
     }
 
     fun findLines(mesh: Mesh, indices: IntArray?, positions: FloatArray?): IntArray? {
-        if (mesh.drawMode != GL_TRIANGLES) return null
+        if (mesh.drawMode != DrawMode.TRIANGLES) return null
         var lineCount = 0
         if (indices == null) {
             // compare vertices

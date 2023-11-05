@@ -68,7 +68,7 @@ object LineBuffer {
     const val lineSize = 2 * (3 * 4 + 4)
 
     init {
-        buffer.drawMode = GL_LINES
+        buffer.drawMode = DrawMode.LINES
     }
 
     var bytes: ByteBuffer

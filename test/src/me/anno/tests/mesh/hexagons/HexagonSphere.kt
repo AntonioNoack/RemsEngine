@@ -11,6 +11,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
+import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.image.ImageCPUCache
@@ -27,7 +28,6 @@ import me.anno.utils.Color.r01
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Arrays.resize
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C.GL_LINES
 import kotlin.concurrent.thread
 import kotlin.math.atan2
 import kotlin.math.hypot
@@ -241,7 +241,7 @@ fun createNiceMesh1(
 fun createConnectionMesh(mesh: Mesh, hexagons: List<Hexagon>, len: Float) {
     val numConnections = hexagons.size * 6
     val positions = mesh.positions.resize(numConnections * 6)
-    mesh.drawMode = GL_LINES
+    mesh.drawMode = DrawMode.LINES
     val dir = Vector3f()
     val dirX = Vector3f()
     val rx = 0.1f

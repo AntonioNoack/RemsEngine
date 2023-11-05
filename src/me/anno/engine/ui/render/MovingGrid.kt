@@ -12,11 +12,11 @@ import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths
 import org.joml.Matrix4d
 import org.joml.Matrix4f
-import org.lwjgl.opengl.GL11C.GL_LINES
 import kotlin.math.*
 
 object MovingGrid {
@@ -110,7 +110,7 @@ object MovingGrid {
         }
 
         gridMesh.positions = positions
-        gridMesh.drawMode = GL_LINES
+        gridMesh.drawMode = DrawMode.LINES
 
     }
 

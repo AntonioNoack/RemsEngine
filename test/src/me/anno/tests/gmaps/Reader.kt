@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
+import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.image.ImageGPUCache
@@ -273,5 +274,5 @@ fun comp2(mesh: Mesh, offset: Int, stride: Int, data: ByteArray, texWidth: Int, 
 fun idx(mesh: Mesh, elements: ShortArray) {
     // mesh.indices = elements.stripToIndexed()
     mesh.indices = IntArray(elements.size) { elements[it].toInt() and 0xffff }
-    mesh.drawMode = GL_TRIANGLE_STRIP
+    mesh.drawMode = DrawMode.TRIANGLE_STRIP
 }

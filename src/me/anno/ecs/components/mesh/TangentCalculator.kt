@@ -1,9 +1,8 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.gpu.buffer.DrawMode
 import me.anno.utils.pooling.JomlPools
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C.GL_TRIANGLES
-import org.lwjgl.opengl.GL11C.GL_TRIANGLE_STRIP
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.sign
@@ -206,7 +205,7 @@ object TangentCalculator {
     ) {
         // first an allocation free check
         val drawMode = mesh.drawMode
-        if (drawMode != GL_TRIANGLES && drawMode != GL_TRIANGLE_STRIP) return
+        if (drawMode != DrawMode.TRIANGLES && drawMode != DrawMode.TRIANGLE_STRIP) return
         if (uvs == null || tangents == null) return
         if (NormalCalculator.needsNormalsComputation(tangents, 4)) {
             if (mesh.indices == null) {

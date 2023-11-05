@@ -1,5 +1,6 @@
 package me.anno.ecs.components.mesh
 
+import me.anno.gpu.buffer.DrawMode
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
@@ -9,8 +10,6 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles
 import org.joml.Vector3f
-import org.lwjgl.opengl.GL11C.GL_TRIANGLES
-import org.lwjgl.opengl.GL11C.GL_TRIANGLE_STRIP
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -130,10 +129,10 @@ object NormalCalculator {
         return computeNormalsNonIndexed(positions, normals)
     }
 
-    fun checkNormals(mesh: Mesh, positions: FloatArray, normals: FloatArray, indices: IntArray?, drawMode: Int) {
+    fun checkNormals(mesh: Mesh, positions: FloatArray, normals: FloatArray, indices: IntArray?, drawMode: DrawMode) {
         // first an allocation free check
         when (drawMode) {
-            GL_TRIANGLES -> {
+            DrawMode.TRIANGLES -> {
                 if (needsNormalsComputation(normals, 3)) {
                     if (indices == null) {
                         computeNormalsNonIndexed(positions, normals)
@@ -142,7 +141,7 @@ object NormalCalculator {
                     }
                 }
             }
-            GL_TRIANGLE_STRIP -> {
+            DrawMode.TRIANGLE_STRIP -> {
                 if (needsNormalsComputation(normals, 3)) {
                     if (indices == null) {
                         computeNormalsNonIndexedStrip(positions, normals)
@@ -150,6 +149,9 @@ object NormalCalculator {
                         computeNormalsIndexed(mesh, positions, normals, indices)
                     }
                 }
+            }
+            else -> {
+                // normals cannot be computed
             }
         }
     }

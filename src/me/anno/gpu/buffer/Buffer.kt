@@ -14,7 +14,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
 
     constructor(name: String, attributes: List<Attribute>) : this(name, attributes, GL_STATIC_DRAW)
 
-    var drawMode = GL_TRIANGLES
+    var drawMode = DrawMode.TRIANGLES
     var drawLength
         get() = elementCount
         set(value) {
@@ -108,10 +108,10 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
     }
 
     override fun draw(shader: Shader) = draw(shader, drawMode)
-    open fun draw(shader: Shader, mode: Int) {
+    open fun draw(shader: Shader, drawMode: DrawMode) {
         bind(shader) // defines drawLength
         if (drawLength > 0) {
-            draw(mode, 0, drawLength)
+            draw(drawMode, 0, drawLength)
             unbind(shader)
             GFX.check()
         }
@@ -132,18 +132,18 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
         drawInstanced(shader, instanceData, drawMode)
     }
 
-    open fun drawInstanced(shader: Shader, instanceData: Buffer, mode: Int) {
+    open fun drawInstanced(shader: Shader, instanceData: Buffer, drawMode: DrawMode) {
         ensureBuffer()
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
-        glDrawArraysInstanced(mode, 0, drawLength, instanceData.drawLength)
+        glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceData.drawLength)
         unbind(shader)
     }
 
     override fun drawInstanced(shader: Shader, instanceCount: Int) {
         ensureBuffer()
         bindInstanced(shader, null)
-        glDrawArraysInstanced(drawMode, 0, drawLength, instanceCount)
+        glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceCount)
         unbind(shader)
     }
 
@@ -169,14 +169,14 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
         draw(drawMode, first, length)
     }
 
-    open fun draw(mode: Int, first: Int, length: Int) {
-        glDrawArrays(mode, first, length)
+    open fun draw(drawMode: DrawMode, first: Int, length: Int) {
+        glDrawArrays(drawMode.id, first, length)
     }
 
-    open fun drawSimpleInstanced(shader: Shader, mode: Int = drawMode, count: Int) {
+    open fun drawSimpleInstanced(shader: Shader, drawMode: DrawMode, count: Int) {
         bind(shader) // defines drawLength
         if (drawLength > 0) {
-            glDrawArraysInstanced(mode, 0, drawLength, count)
+            glDrawArraysInstanced(drawMode.id, 0, drawLength, count)
             unbind(shader)
             GFX.check()
         }
