@@ -64,7 +64,7 @@ fun main() {
 
     // sunlight
     val sun = Entity("Directional")
-    sun.add(DirectionalLight().apply { shadowMapCascades = 1; cutoff = 1e-3f })
+    sun.add(DirectionalLight().apply { shadowMapCascades = 2; cutoff = 1e-3f })
     sun.setPosition(-5.0, 0.0, 0.0)
     sun.setRotation(-PI * 0.5, 0.0, 0.0)
     scene.add(sun)

@@ -63,9 +63,11 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
         }
     }
 
-    fun removeEntry(key: Any) {
+    fun removeEntry(key: Any): ICacheData? {
         synchronized(cache) {
-            cache.remove(key)?.destroy()
+            val v = cache.remove(key)
+            v?.destroy()
+            return v?.data
         }
     }
 

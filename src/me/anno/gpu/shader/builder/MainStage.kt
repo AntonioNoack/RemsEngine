@@ -7,6 +7,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
 import java.util.*
@@ -85,17 +86,34 @@ class MainStage {
     fun defineUniformSamplerArrayFunctions(code: StringBuilder, uniform: Variable) {
 
         val isMoreThanOne = uniform.arraySize > 1 // if there is only one value, we can optimize it
-        val isCubemap = uniform.type == GLSLType.SCube || uniform.type == GLSLType.SCubeShadow
-        val isShadow = uniform.type == GLSLType.S2DShadow || uniform.type == GLSLType.SCubeShadow
+        val isCubemap = when (uniform.type) {
+            GLSLType.SCube, GLSLType.SCubeShadow -> true
+            else -> false
+        }
+        val isShadow = when (uniform.type) {
+            GLSLType.S2DShadow,
+            GLSLType.SCubeShadow,
+            GLSLType.S2DAShadow -> true
+            else -> false
+        }
+        val isArray = when (uniform.type) {
+            GLSLType.S2DA, GLSLType.S2DAShadow -> true
+            else -> false
+        }
         val name = uniform.name
 
         // base color function
         if (!isShadow) {
             code.append("vec4 texture_array_")
             code.append(name)
+            val dim = 2 + isCubemap.toInt() + isArray.toInt()
             code.append(
-                if (isCubemap) "(int index, vec3 uv){\n"
-                else "(int index, vec2 uv){\n"
+                when (dim) {
+                    2 -> "(int index, vec2 uv){\n"
+                    3 -> "(int index, vec3 uv){\n"
+                    4 -> "(int index, vec4 uv){\n"
+                    else -> throw NotImplementedError()
+                }
             )
             if (isMoreThanOne) code.append("switch(index){\n")
             for (index in 0 until uniform.arraySize) {
@@ -121,6 +139,7 @@ class MainStage {
             code.append(name)
             // todo base bias on the normal as suggested by https://digitalrune.github.io/DigitalRune-Documentation/html/3f4d959e-9c98-4a97-8d85-7a73c26145d7.htm ? :)
             if (isCubemap) {
+                if (isArray) throw NotImplementedError()
                 code.append("(int index, vec3 uv, float depth){\n")
                 code.append("float bias = 0.005;\n")
                 code.append("vec4 uvw = vec4(uv,depth+bias);\n")
@@ -131,7 +150,7 @@ class MainStage {
                     if (isMoreThanOne) code.append("case ").append(index).append(": ")
                     code.append(
                         "" +
-                                "size = textureSize($nameIndex,0); du=0.5/float(size.x);\n" +
+                                "du=0.5/float(textureSize($nameIndex,0).x);\n" +
                                 "u = abs(uvw.xyz);\n" +
                                 "x = u.x >= u.y && u.x > u.z;\n" +
                                 "z = !x && u.z >= u.y;\n" +
@@ -152,10 +171,16 @@ class MainStage {
                 if (isMoreThanOne) code.append("default: return 0.0;\n}\n")
                 code.append("}\n")
             } else {
-                code.append("(int index, vec2 uv, float depth){\n")
-                code.append("float bias = 0.005;\n")
-                code.append("vec3 uvw = vec3(uv*.5+.5,depth+bias);\n")
-                code.append("ivec2 size;float sum,du;\n")
+                if (isArray) {
+                    code.append("(int index, vec3 uv, float depth){\n")
+                    code.append("float bias = 0.005;\n")
+                    code.append("vec4 uvw = vec4(uv*.5+.5,depth+bias);\n")
+                } else {
+                    code.append("(int index, vec2 uv, float depth){\n")
+                    code.append("float bias = 0.005;\n")
+                    code.append("vec3 uvw = vec3(uv*.5+.5,depth+bias);\n")
+                }
+                code.append("float sum,du;\n")
                 if (isMoreThanOne) code.append("switch(index){\n")
                 for (index in 0 until uniform.arraySize) {
                     val nameIndex = name + index.toString()
@@ -163,16 +188,17 @@ class MainStage {
                     // 5x5 percentage closer filtering for prettier results
                     code.append(
                         "" +
-                                "size = textureSize($nameIndex,0);\n" +
-                                "du = 1.0/float(size.x);\n" +
+                                "du = 1.0/float(textureSize($nameIndex,0).x);\n" +
                                 "for(int j=-2;j<=2;j++){\n" +
                                 "   for(int i=-2;i<=2;i++){\n"
                     )
                     if (GFX.supportsDepthTextures) {
-                        code.append("sum += texture($nameIndex, uvw+du*vec3(i,j,0.0));\n")
+                        code.append("sum += texture(").append(nameIndex).append(", uvw+du*")
+                        code.append(if (isArray) "vec4(i,j,0.0,0.0));\n" else "vec3(i,j,0.0));\n")
                     } else {
                         // todo use smoothstep with bias?
-                        code.append("sum += step(texture($nameIndex, uvw.xy+du*vec2(i,j)).x,uvw.z);\n")
+                        code.append("sum += step(texture(").append(nameIndex).append(", uvw.xy+du*")
+                        code.append(if (isArray) "vec3(i,j,0.0)).x,uvw.z);\n" else "vec2(i,j)).x,uvw.z);\n")
                     }
                     code.append("}}\n return sum*0.04;\n")
                 }
@@ -182,7 +208,9 @@ class MainStage {
         }
 
         // texture size function
-        code.append("ivec2 texture_array_size_")
+        code.append(if (isArray) "ivec3 " else "ivec2 ")
+        code.append("texture_array_size_")
+        if (isArray) code.append("2d_")
         code.append(name)
         code.append("(int index, int lod){\n")
         if (isMoreThanOne) code.append("switch(index){\n")
@@ -198,8 +226,9 @@ class MainStage {
             code.append(", lod);\n")
         }
         if (isMoreThanOne) {
-            code.append("default: return ivec2(1);\n")
-            code.append("}\n")
+            code.append("default: return ")
+                .append(if (isArray) "ivec3(1,1,1)" else "ivec2(1,1)")
+                .append(";\n}\n")
         }
         code.append("}\n")
     }

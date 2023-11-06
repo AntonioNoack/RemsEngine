@@ -1,7 +1,5 @@
 package me.anno.ecs.components.shaders
 
-import me.anno.ecs.components.mesh.MeshInstanceData
-import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType

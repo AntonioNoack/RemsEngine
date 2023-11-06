@@ -14,9 +14,14 @@ import me.anno.sdf.SDFComponent
 import me.anno.sdf.SDFTransform
 import me.anno.sdf.VariableCounter
 import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 open class SDFShape : SDFComponent(), DCPaintable {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(SDFShape::class)
+    }
 
     var dynamicSize = false
         set(value) {

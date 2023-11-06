@@ -4,7 +4,7 @@ package me.anno.ecs.components.chunks.cartesian
  * single chunk system, where each chunk is an element
  * */
 abstract class SingleChunkSystem<Element>(initialCapacity: Int = 256) :
-    ChunkSystem<Element, Element>(0, 0, 0, initialCapacity) {
+    ChunkSystem<Element, Element>(0, 0, 0) {
 
     override fun setElement(
         container: Element,

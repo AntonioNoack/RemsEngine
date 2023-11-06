@@ -49,12 +49,11 @@ class PointLight : LightComponent(LightType.POINT) {
         worldScale: Double,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
-        dstCameraDirection: Vector3d,
+        cameraRotation: Quaterniond,
+        cameraDirection: Vector3d,
         drawTransform: Matrix4x3d,
         pipeline: Pipeline,
-        resolution: Int,
-        position: Vector3d,
-        rotation: Quaterniond
+        resolution: Int
     ) {
     }
 
@@ -74,7 +73,7 @@ class PointLight : LightComponent(LightType.POINT) {
         RenderState.worldScale = worldScale
         // only fill pipeline once?
 
-        val texture = shadowTextures!![0] as CubemapFramebuffer
+        val result = shadowTextures!! as CubemapFramebuffer
 
         val far = 1.0
 
@@ -85,8 +84,8 @@ class PointLight : LightComponent(LightType.POINT) {
         val cameraMatrix = RenderState.cameraMatrix
         val root = entity.getRoot(Entity::class)
         GFXState.depthMode.use(DepthMode.CLOSE) {
-            texture.draw(resolution, Renderer.nothingRenderer) { side ->
-                texture.clearColor(0, depth = true)
+            result.draw(resolution, Renderer.nothingRenderer) { side ->
+                result.clearColor(0, depth = true)
                 setPerspective(cameraMatrix, deg90.toFloat(), 1f, near.toFloat(), far.toFloat(), 0f, 0f)
                 rotateForCubemap(rot3.identity(), side)
                 rot3.mul(rotInvert)

@@ -35,21 +35,20 @@ class SpotLight() : LightComponent(LightType.SPOT) {
         worldScale: Double,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
-        dstCameraDirection: Vector3d,
+        cameraRotation: Quaterniond,
+        cameraDirection: Vector3d,
         drawTransform: Matrix4x3d,
         pipeline: Pipeline,
-        resolution: Int,
-        position: Vector3d,
-        rotation: Quaterniond
+        resolution: Int
     ) {
         val far = 1.0
         val coneAngle = coneAngle * cascadeScale
         val fovYRadians = 2.0 * atan(coneAngle)
         setPerspective2(dstCameraMatrix, coneAngle.toFloat(), near.toFloat(), far.toFloat(), 0f, 0f)
-        dstCameraMatrix.rotate(Quaternionf(rotation).invert())
+        dstCameraMatrix.rotate(Quaternionf(cameraRotation).invert())
         pipeline.frustum.definePerspective(
             near / worldScale, far / worldScale, fovYRadians, resolution, resolution,
-            1.0, position, rotation
+            1.0, dstCameraPosition, cameraRotation
         )
     }
 
@@ -109,15 +108,17 @@ class SpotLight() : LightComponent(LightType.SPOT) {
                             "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
                             "   #define shadowMapPower shaderV1\n" +
                             "   vec2 nextDir = shadowDir * shadowMapPower;\n" +
+                            "   float layerIdx = 0.0;\n" +
                             "   while(abs(nextDir.x)<1.0 && abs(nextDir.y)<1.0 && shadowMapIdx0+1<shadowMapIdx1){\n" +
                             "       shadowMapIdx0++;\n" +
+                            "       layerIdx++;\n" +
                             "       shadowDir = nextDir;\n" +
                             "       nextDir *= shadowMapPower;\n" +
                             "   }\n" +
                             "   float near = shaderV2;\n" +
                             "   float depthFromShader = -near/lightPos.z;\n" +
                             // do the shadow map function and compare
-                            "    lightColor *= texture_array_depth_shadowMapPlanar(shadowMapIdx0, shadowDir.xy, depthFromShader);\n" +
+                            "    lightColor *= texture_array_depth_shadowMapPlanar(shadowMapIdx0, vec3(shadowDir.xy,layerIdx), depthFromShader);\n" +
                             "}\n"
                     else "") +
                     "effectiveDiffuse = lightColor * $falloff;\n" +

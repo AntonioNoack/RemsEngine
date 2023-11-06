@@ -39,7 +39,9 @@ interface IFramebuffer {
 
     fun destroy()
 
-    fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer
+    fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer {
+        return attachFramebufferToDepth(name, createTargets(targetCount, fpTargets))
+    }
 
     fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer
 
@@ -195,6 +197,10 @@ interface IFramebuffer {
 
     companion object {
         private val tmp4f = ByteBuffer.allocateDirect(16).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
+        fun createTargets(targetCount: Int, fpTargets: Boolean): Array<TargetType> {
+            val target = if (fpTargets) TargetType.FloatTarget4 else TargetType.UByteTarget4
+            return Array(targetCount) { target }
+        }
     }
 
 }

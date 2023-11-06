@@ -132,7 +132,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
 
     // less than 90, so we always know forward when computing movement
     val limit = 90.0 - 0.001
-    val rotationTarget = renderView.rotation.getEulerAnglesYXZ(Vector3d())
+    val rotationTarget = renderView.orbitRotation.getEulerAnglesYXZ(Vector3d())
 
     override fun onUpdate() {
         super.onUpdate()
@@ -145,7 +145,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
             .rotateY(rotationTarget.y.toRadians())
             .rotateX(rotationTarget.x.toRadians())
             .rotateZ(rotationTarget.z.toRadians())
-        renderView.rotation.slerp(tmp, Maths.dtTo01(deltaTime * 25.0))
+        renderView.orbitRotation.slerp(tmp, Maths.dtTo01(deltaTime * 25.0))
         invalidateDrawing()
     }
 
@@ -266,7 +266,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
         if (velocity.lengthSquared() > 0.0001 * sq(radius)) {
             moveCamera(velocity.x * dt, velocity.y * dt, velocity.z * dt)
         }
-        val position = view.position
+        val position = view.orbitCenter
         if (!position.isFinite) {
             LOGGER.warn("Invalid position $position from $velocity * mat($dirX, $dirY, $dirZ)")
             position.set(0.0)
@@ -294,7 +294,7 @@ open class ControlScheme(val camera: Camera, val renderView: RenderView) :
             dirY.set(0.0, 1.0, 0.0).mul(m)
             dirZ.set(0.0, 0.0, 1.0).mul(m)
         }
-        renderView.position.add(
+        renderView.orbitCenter.add(
             dirX.dot(dx, dy, dz),
             dirY.dot(dx, dy, dz),
             dirZ.dot(dx, dy, dz)

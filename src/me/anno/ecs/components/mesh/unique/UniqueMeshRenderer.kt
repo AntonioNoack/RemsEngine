@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh.unique
 
 import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.mesh.*
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
@@ -13,8 +14,12 @@ import me.anno.gpu.shader.Shader
 import me.anno.graph.hdb.allocator.AllocationManager
 import me.anno.graph.hdb.allocator.size
 import me.anno.io.files.FileReference
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBd
+import org.joml.AABBf
+import org.joml.Matrix4x3d
 import org.lwjgl.opengl.GL31C.*
 
 /**
@@ -36,17 +41,40 @@ abstract class UniqueMeshRenderer<Key>(
 
     val stride = attributes.sumOf { it.byteSize }
 
-
     val entryLookup = HashMap<Key, MeshEntry>()
     val entries = ArrayList<MeshEntry>()
 
     private var buffer0 = StaticBuffer("umr0", attributes, 0, GL_DYNAMIC_DRAW)
     private var buffer1 = StaticBuffer("urm1", attributes, 0, GL_DYNAMIC_DRAW)
 
+    @DebugProperty
+    @NotSerializedProperty
     override var numPrimitives: Long = 0
 
     override fun ensureBuffer() {
         // not really anything to do for now...
+    }
+
+    private val boundsF = AABBf()
+    override fun getBounds(): AABBf = boundsF
+
+    override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
+        // calculate local aabb
+        val local = boundsF
+        local.clear()
+        for (i in entries.indices) {
+            val entry = entries[i]
+            local.union(entry.bounds)
+        }
+        localAABB.set(local)
+
+        // calculate global aabb
+        val global = globalAABB
+        local.transform(globalTransform, global)
+
+        // add the result to the output
+        aabb.union(global)
+        return true
     }
 
     val clock = Clock()

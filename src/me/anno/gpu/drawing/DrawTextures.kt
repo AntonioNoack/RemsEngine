@@ -4,11 +4,13 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx2D.posSize
+import me.anno.gpu.shader.FlatShaders.depthArrayShader
 import me.anno.gpu.shader.FlatShaders.depthShader
 import me.anno.gpu.shader.FlatShaders.flatShader2dArraySlice
 import me.anno.gpu.shader.FlatShaders.flatShader3dSlice
 import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
 import me.anno.gpu.shader.FlatShaders.flatShaderTexture
+import me.anno.gpu.shader.FlatShaders.flatShaderTextureArray
 import me.anno.gpu.texture.*
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.toInt
@@ -55,6 +57,33 @@ object DrawTextures {
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
         val tex = texture as? Texture2D
+        texture.bind(
+            0,
+            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.clamping ?: Clamping.CLAMP
+        )
+        GFX.flat01.draw(shader)
+        GFX.check()
+    }
+
+    fun drawTextureArray(
+        x: Int, y: Int, w: Int, h: Int,
+        texture: Texture2DArray, layer: Float,
+        ignoreAlpha: Boolean, color: Int = -1, tiling: Vector4f? = null,
+        applyToneMapping: Boolean = false
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = flatShaderTextureArray.value
+        shader.use()
+        posSize(shader, x, y, w, h)
+        defineAdvancedGraphicalFeatures(shader)
+        shader.v4f("color", color)
+        shader.v1i("alphaMode", ignoreAlpha.toInt())
+        shader.v1b("applyToneMapping", applyToneMapping)
+        shader.v1f("layer", layer)
+        GFXx2D.tiling(shader, tiling)
+        val tex = texture as? Texture2DArray
         texture.bind(
             0,
             tex?.filtering ?: GPUFiltering.NEAREST,
@@ -111,6 +140,26 @@ object DrawTextures {
         tex?.depthFunc = null
         GFX.flat01.draw(shader)
         tex?.depthFunc = depthFunc
+        GFX.check()
+    }
+
+    fun drawDepthTextureArray(
+        x: Int, y: Int, w: Int, h: Int,
+        texture: Texture2DArray, layer: Float
+    ) {
+        if (w == 0 || h == 0) return
+        GFX.check()
+        val shader = depthArrayShader.value
+        shader.use()
+        posSize(shader, x, y + h - 1, w, -h)
+        defineAdvancedGraphicalFeatures(shader)
+        GFXx2D.noTiling(shader)
+        shader.v1f("layer", layer)
+        texture.bind(0, texture.filtering, texture.clamping)
+        val depthFunc = texture.depthFunc
+        texture.depthFunc = null
+        GFX.flat01.draw(shader)
+        texture.depthFunc = depthFunc
         GFX.check()
     }
 

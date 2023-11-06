@@ -28,6 +28,7 @@ enum class GLSLType(val glslName: String, val id: Int, val components: Int, val 
     SCube("samplerCube", 22, 1000, false),
     SCubeShadow("samplerCubeShadow", 23, 1000, false),
     S2DA("sampler2DArray", 24, 1000, false),
+    S2DAShadow("sampler2DArrayShadow", 25, 1000, false),
     // S3DA("sampler3DArray", 25, 1000, false),// not necessarily supported
     ;
 

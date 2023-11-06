@@ -168,8 +168,8 @@ class ECSSceneTab(
                     it.radius = radius
                     it.near = 1e-3 * radius
                     it.far = 1e10 * radius
-                    it.position.set(position)
-                    it.rotation.set(rotation)
+                    it.orbitCenter.set(position)
+                    it.orbitRotation.set(rotation)
                 }
             }
         }
@@ -181,8 +181,8 @@ class ECSSceneTab(
                 window.panel.forAll {
                     if (it is RenderView) {
                         radius = it.radius
-                        position.set(it.position)
-                        rotation.set(it.rotation)
+                        position.set(it.orbitCenter)
+                        rotation.set(it.orbitRotation)
                         // early exit
                         throw RuntimeException()
                     }

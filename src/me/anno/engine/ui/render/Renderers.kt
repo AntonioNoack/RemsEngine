@@ -122,7 +122,7 @@ object Renderers {
                         Variable(GLSLType.SCube, "skybox"),
                         // light maps for shadows
                         // - spotlights, directional lights
-                        Variable(GLSLType.S2DShadow, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
+                        Variable(GLSLType.S2DAShadow, "shadowMapPlanar", MAX_PLANAR_LIGHTS),
                         // - point lights
                         Variable(GLSLType.SCubeShadow, "shadowMapCubic", MAX_CUBEMAP_LIGHTS),
                         // reflection plane for rivers or perfect mirrors

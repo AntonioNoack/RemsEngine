@@ -291,7 +291,7 @@ object LightShaders {
                 Variable(GLSLType.V4F, "data2"), // only if with shadows
                 // light maps for shadows
                 // - spotlights, directional lights
-                Variable(GLSLType.S2DShadow, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
+                Variable(GLSLType.S2DAShadow, "shadowMapPlanar", Renderers.MAX_PLANAR_LIGHTS),
                 // - point lights
                 Variable(GLSLType.SCubeShadow, "shadowMapCubic", 1),
                 Variable(GLSLType.V1B, "receiveShadows"),

@@ -5,7 +5,6 @@ import me.anno.ecs.Transform
 import me.anno.ecs.components.light.*
 import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
-import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFXState
@@ -26,6 +25,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.Saveable
 import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.SmallestKList
@@ -175,39 +175,28 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
                 shader.m4x3delta("lightSpaceToCamSpace", transform)
                 shader.m4x3("camSpaceToLightSpace", light.invCamSpaceMatrix)
 
-                var shadowIdx1 = 0
-                if (light is PointLight) {
-                    if (supportsCubicShadows) {
-                        val cascades = light.shadowTextures
-                        if (cascades != null) {
-                            val cascade = cascades[0]
-                            val texture = cascade.depthTexture ?: cascade.getTexture0()
+                var i1 = 0f
+                val textures = light.shadowTextures
+                if (textures != null) {
+                    val texture = textures.depthTexture ?: textures.getTexture0()
+                    if (light is PointLight) {
+                        if (supportsCubicShadows) {
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
                             texture.bind(cubicIndex0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
-                            shadowIdx1 = 1 // end index
+                            i1 = 1f // end index
                         }
-                    }
-                } else {
-                    if (supportsPlanarShadows) {
-                        var planarSlot = 0
-                        val cascades = light.shadowTextures
-                        if (cascades != null) for (j in cascades.indices) {
-                            val slot = planarIndex0 + planarSlot
-                            if (slot > maxTextureIndex) break
-                            val cascade = cascades[j]
-                            val texture = cascade.depthTexture ?: cascade.getTexture0()
+                    } else {
+                        if (supportsPlanarShadows) {
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
-                            texture.bind(slot, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
-                            if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
+                            texture.bind(planarIndex0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                            i1 = (texture as Texture2DArray).layers.toFloat() // end index
                         }
-                        shadowIdx1 = planarSlot // end index
                     }
                 }
 
-                val shadowIdx0 = 0f
-                shader.v4f("data2", shadowIdx0, shadowIdx1.toFloat(), light.getShaderV1(), light.getShaderV2())
+                shader.v4f("data2", 0f, i1, light.getShaderV1(), light.getShaderV2())
 
                 mesh.draw(shader, 0)
 

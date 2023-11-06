@@ -11,7 +11,6 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.pipeline.Pipeline
@@ -19,6 +18,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
@@ -66,6 +66,12 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
     var needsUpdate1 = true
     var autoUpdate = true
 
+    @HideInInspector
+    @NotSerializedProperty
+    var shadowTextures: IFramebuffer? = null
+
+    var depthFunc = DepthMode.CLOSE
+
     override fun fill(
         pipeline: Pipeline,
         entity: Entity,
@@ -95,67 +101,53 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     abstract fun getLightPrimitive(): Mesh
 
-    @HideInInspector
-    @NotSerializedProperty
-    var shadowTextures: Array<IFramebuffer>? = null
-
-    var depthFunc = DepthMode.CLOSE
-
     fun ensureShadowBuffers() {
         if (hasShadow) {
             // only a single one is supported for PointLights,
             // because more makes no sense
             val isPointLight = lightType == LightType.POINT
             if (isPointLight) shadowMapCascades = 1
-            val shadowCascades = shadowTextures
+            val shadowTextures = shadowTextures
             val targetSize = shadowMapCascades
             val resolution = shadowMapResolution
-            if (shadowCascades == null || shadowCascades.size != targetSize ||
-                (shadowCascades.firstOrNull()?.depthTexture as? Texture2D)?.depthFunc != depthFunc
+            if (shadowTextures == null ||
+                (shadowTextures is Texture2DArray && shadowTextures.layers != targetSize) ||
+                (shadowTextures.depthTexture as? Texture2D)?.depthFunc != depthFunc
             ) {
-                if (shadowCascades != null) for (i in shadowCascades.indices) {
-                    shadowCascades[i].destroy()
-                }
+                shadowTextures?.destroy()
                 // we currently use a depth bias of 0.005,
                 // which is equal to ~ 1/255,
                 // so an 8 bit depth buffer would be enough
                 val depthBufferType =
                     if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE_16 else DepthBufferType.INTERNAL
                 val targets = if (GFX.supportsDepthTextures) emptyArray() else arrayOf(TargetType.FP16Target1)
-                this.shadowTextures = Array(targetSize) {
-                    if (lightType.shadowMapType == GLSLType.SCubeShadow) {
-                        CubemapFramebuffer(
-                            "ShadowCubemap[$it]", resolution, 1, targets, depthBufferType
-                        ).apply {
-                            ensure()
-                            val depthTexture = depthTexture
-                            if (depthTexture != null) {
-                                depthTexture.filtering = GPUFiltering.TRULY_LINEAR
-                                depthTexture.depthFunc = depthFunc
-                            }
+                this.shadowTextures = if (lightType.shadowMapType == GLSLType.SCubeShadow) {
+                    CubemapFramebuffer(
+                        "ShadowCubemap", resolution, 1, targets, depthBufferType
+                    ).apply {
+                        ensure()
+                        val depthTexture = depthTexture
+                        if (depthTexture != null) {
+                            depthTexture.filtering = GPUFiltering.TRULY_LINEAR
+                            depthTexture.depthFunc = depthFunc
                         }
-                    } else {
-                        Framebuffer(
-                            "Shadow[$it]", resolution, resolution, 1, targets, depthBufferType
-                        ).apply {
-                            ensure()
-                            val depthTexture = depthTexture
-                            if (depthTexture != null) {
-                                depthTexture.filtering = GPUFiltering.TRULY_LINEAR
-                                depthTexture.depthFunc = depthFunc
-                            }
+                    }
+                } else {
+                    FramebufferArray(
+                        "Shadow", resolution, resolution, targetSize, 1, targets, depthBufferType
+                    ).apply {
+                        ensure()
+                        val depthTexture = depthTexture
+                        if (depthTexture != null) {
+                            depthTexture.filtering = GPUFiltering.TRULY_LINEAR
+                            depthTexture.depthFunc = depthFunc
                         }
                     }
                 }
             }
         } else {
-            val st = shadowTextures
-            if (st != null) {
-                for (it in st) {
-                    it.destroy()
-                }
-                shadowTextures = null
-            }
+            shadowTextures?.destroy()
+            shadowTextures = null
         }
     }
 
@@ -176,9 +168,9 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         cascadeScale: Double, worldScale: Double,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
-        dstCameraDirection: Vector3d,
+        cameraRotation: Quaterniond, cameraDirection: Vector3d,
         drawTransform: Matrix4x3d, pipeline: Pipeline,
-        resolution: Int, position: Vector3d, rotation: Quaterniond
+        resolution: Int,
     )
 
     open fun updateShadowMaps() {
@@ -186,7 +178,6 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         lastDrawn = Time.gameTimeN
 
         val pipeline = pipeline
-        pipeline.clear()
         val entity = entity!!
         entity.validateTransform()
 
@@ -197,33 +188,32 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         val position = global.getTranslation(RenderState.cameraPosition)
         val rotation = global.getUnnormalizedRotation(RenderState.cameraRotation)
         val worldScale = SQRT3 / global.getScaleLength()
-        rotation.transform(RenderState.cameraDirection.set(0.0, 0.0, -1.0))
+        val direction = rotation.transform(RenderState.cameraDirection.set(0.0, 0.0, -1.0))
         RenderState.worldScale = worldScale
-        val shadowTextures = shadowTextures
+        val result = shadowTextures as FramebufferArray
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
         val renderer = Renderer.nothingRenderer
+        val tmpPos = Vector3d(position)
         GFXState.depthMode.use(DepthMode.CLOSE) {
-            for (i in 0 until shadowMapCascades) {
+            result.draw(renderer) { i ->
+                if (i > 0) { // reset position and rotation
+                    position.set(tmpPos)
+                }
+                pipeline.clear()
                 val cascadeScale = shadowMapPower.pow(-i.toDouble())
-                val texture = shadowTextures!![i]
                 updateShadowMap(
                     cascadeScale, worldScale,
                     RenderState.cameraMatrix,
-                    RenderState.cameraPosition,
-                    RenderState.cameraDirection,
-                    drawTransform,
-                    pipeline, resolution,
-                    position, rotation
+                    position, rotation, direction,
+                    drawTransform, pipeline, resolution
                 )
                 val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
                 RenderState.calculateDirections(isPerspective)
                 val root = entity.getRoot(Entity::class)
                 pipeline.fill(root)
-                useFrame(resolution, resolution, true, texture, renderer) {
-                    texture.clearColor(0, depth = true)
-                    pipeline.defaultStage.drawDepths(pipeline)
-                }
+                result.clearColor(0, depth = true)
+                pipeline.defaultStage.drawDepths(pipeline)
             }
         }
     }
@@ -252,13 +242,8 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
 
     override fun destroy() {
         super.destroy()
-        val st = shadowTextures
-        if (st != null) {
-            for (it in st) {
-                it.destroy()
-            }
-            shadowTextures = null
-        }
+        shadowTextures?.destroy()
+        shadowTextures = null
     }
 
     companion object {

@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.Build
 import me.anno.cache.ICacheData
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
@@ -34,7 +35,7 @@ open class Texture2DArray(
     var name: String,
     override var width: Int,
     override var height: Int,
-    var d: Int
+    var layers: Int
 ) : ICacheData, ITexture2D {
 
     var pointer = 0
@@ -42,8 +43,10 @@ open class Texture2DArray(
 
     var isCreated = false
     var isDestroyed = false
-    var filtering = GPUFiltering.NEAREST
+    var filtering = GPUFiltering.TRULY_LINEAR
     var clamping = Clamping.CLAMP
+
+    var needsMipmaps = false
 
     override val samples: Int get() = 1
 
@@ -76,16 +79,20 @@ open class Texture2DArray(
         isDestroyed = false
     }
 
-    private fun beforeUpload(alignment: Int) {
+    private fun bindBeforeUpload() {
         ensurePointer()
         forceBind()
+    }
+
+    private fun bindBeforeUpload(alignment: Int) {
+        bindBeforeUpload()
         setWriteAlignment(alignment)
     }
 
     private fun afterUpload(internalFormat: Int, bpp: Int, hdr: Boolean) {
         isCreated = true
         this.internalFormat = internalFormat
-        locallyAllocated = allocate(locallyAllocated, width.toLong() * height.toLong() * d.toLong() * bpp)
+        locallyAllocated = allocate(locallyAllocated, width.toLong() * height.toLong() * layers.toLong() * bpp)
         filtering(filtering)
         clamping(clamping)
         isHDR = hdr
@@ -99,15 +106,26 @@ open class Texture2DArray(
 
     @Suppress("unused")
     fun createRGBA8() {
-        beforeUpload(width * 4)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+        bindBeforeUpload(width * 4)
+        glTexImage3D(
+            GL_TEXTURE_3D,
+            0,
+            GL_RGBA8,
+            width,
+            height,
+            layers,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            null as ByteBuffer?
+        )
         afterUpload(GL_RGBA8, 4, false)
     }
 
     @Suppress("unused")
     fun createRGBAFP32() {
-        beforeUpload(width * 16)
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, width, height, d, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
+        bindBeforeUpload(width * 16)
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA32F, width, height, layers, 0, GL_RGBA, GL_FLOAT, null as ByteBuffer?)
         afterUpload(GL_RGBA32F, 16, true)
     }
 
@@ -130,7 +148,7 @@ open class Texture2DArray(
 
     fun create(images: Array<Image>, sync: Boolean) {
         // todo we could detect monochrome and such :)
-        val intData = IntArray(width * height * d)
+        val intData = IntArray(width * height * layers)
         var i0 = 0
         for (image in images) {
             val data = image.createIntImage().data
@@ -146,39 +164,39 @@ open class Texture2DArray(
             }
         }
         if (sync) createRGBA8(intData)
-        else GFX.addGPUTask("Texture3D.create()", width, height * d) {
+        else GFX.addGPUTask("Texture3D.create()", width, height * layers) {
             createRGBA8(intData)
         }
     }
 
     fun createRGBA8(data: IntArray) {
-        beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        bindBeforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
     }
 
     @Suppress("unused")
     fun createRGB8(data: IntArray) {
-        beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        bindBeforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 3, false)
     }
 
     fun createBGRA8(data: ByteBuffer) {
-        beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
+        bindBeforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, layers, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
     }
 
     @Suppress("unused")
     fun createBGR8(data: ByteBuffer) {
-        beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
+        bindBeforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, layers, 0, GL_BGRA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
     }
 
     fun createMonochrome(data: ByteArray) {
-        if (width * height * d != data.size) throw RuntimeException("incorrect size!")
+        if (width * height * layers != data.size) throw RuntimeException("incorrect size!")
         val byteBuffer = bufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
@@ -190,7 +208,7 @@ open class Texture2DArray(
     fun createMonochrome(getValue: I3B) {
         val w = width
         val h = height
-        val d = d
+        val d = layers
         val size = w * h * d
         val byteBuffer = bufferPool[size, false, false]
         for (z in 0 until d) {
@@ -208,7 +226,7 @@ open class Texture2DArray(
     fun createRGBA8(getValue: I3I) {
         val w = width
         val h = height
-        val d = d
+        val d = layers
         val size = 4 * w * h * d
         val byteBuffer = bufferPool[size, false, false]
         for (z in 0 until d) {
@@ -224,16 +242,16 @@ open class Texture2DArray(
     }
 
     fun createMonochrome(data: ByteBuffer) {
-        if (width * height * d != data.remaining()) throw RuntimeException("incorrect size!")
-        beforeUpload(width)
-        glTexImage3D(target, 0, GL_R8, width, height, d, 0, GL_RED, GL_UNSIGNED_BYTE, data)
+        if (width * height * layers != data.remaining()) throw RuntimeException("incorrect size!")
+        bindBeforeUpload(width)
+        glTexImage3D(target, 0, GL_R8, width, height, layers, 0, GL_RED, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_R8, 1, false)
     }
 
     fun create(type: TargetType, data: ByteArray? = null) {
         // might be incorrect for RGB!!
-        if (data != null && type.bytesPerPixel != 3 && width * height * d * type.bytesPerPixel != data.size)
-            throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $d * ${type.bytesPerPixel} bpp")
+        if (data != null && type.bytesPerPixel != 3 && width * height * layers * type.bytesPerPixel != data.size)
+            throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $layers * ${type.bytesPerPixel} bpp")
         val byteBuffer = if (data != null) {
             val byteBuffer = bufferPool[data.size, false, false]
             byteBuffer.position(0)
@@ -241,9 +259,9 @@ open class Texture2DArray(
             byteBuffer.position(0)
             byteBuffer
         } else null
-        beforeUpload(width)
+        bindBeforeUpload(width)
         glTexImage3D(
-            target, 0, type.internalFormat, width, height, d, 0,
+            target, 0, type.internalFormat, width, height, layers, 0,
             type.uploadFormat, type.fillType, byteBuffer
         )
         bufferPool.returnBuffer(byteBuffer)
@@ -251,7 +269,7 @@ open class Texture2DArray(
     }
 
     fun createRGBA(data: FloatArray) {
-        if (width * height * d * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $d * 4 bpp")
+        if (width * height * layers * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $layers * 4 bpp")
         val byteBuffer = bufferPool[data.size * 4, false, false]
         byteBuffer.order(ByteOrder.nativeOrder())
         byteBuffer.position(0)
@@ -263,29 +281,33 @@ open class Texture2DArray(
 
     fun createRGBA(floatBuffer: FloatBuffer, byteBuffer: ByteBuffer) {
         // rgba32f as internal format is extremely important... otherwise the value is cropped
-        beforeUpload(width * 16)
-        glTexImage3D(target, 0, GL_RGBA32F, width, height, d, 0, GL_RGBA, GL_FLOAT, floatBuffer)
+        bindBeforeUpload(width * 16)
+        glTexImage3D(target, 0, GL_RGBA32F, width, height, layers, 0, GL_RGBA, GL_FLOAT, floatBuffer)
         bufferPool.returnBuffer(byteBuffer)
         afterUpload(GL_RGBA32F, 16, true)
     }
 
     fun createRGBA(data: ByteArray) {
-        if (width * height * d * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $d * 4 bpp")
+        if (width * height * layers * 4 != data.size) throw RuntimeException("incorrect size!, got ${data.size}, expected $width * $height * $layers * 4 bpp")
         val byteBuffer = bufferPool[data.size, false, false]
         byteBuffer.position(0)
         byteBuffer.put(data)
         byteBuffer.flip()
-        beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
+        bindBeforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, byteBuffer)
         bufferPool.returnBuffer(byteBuffer)
         afterUpload(GL_RGBA8, 4, false)
     }
 
     fun createRGBA(data: ByteBuffer) {
-        if (width * height * d * 4 != data.remaining()) throw RuntimeException("incorrect size!, got ${data.remaining()}, expected $width * $height * $d * 4 bpp")
-        beforeUpload(width * 4)
-        glTexImage3D(target, 0, GL_RGBA8, width, height, d, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        if (width * height * layers * 4 != data.remaining()) throw RuntimeException("incorrect size!, got ${data.remaining()}, expected $width * $height * $layers * 4 bpp")
+        bindBeforeUpload(width * 4)
+        glTexImage3D(target, 0, GL_RGBA8, width, height, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, data)
         afterUpload(GL_RGBA8, 4, false)
+    }
+
+    fun createDepth(lowQuality: Boolean = false) {
+        create(if (lowQuality) TargetType.DEPTH16 else TargetType.DEPTH32F)
     }
 
     fun ensureFiltering(nearest: GPUFiltering, clamping: Clamping) {
@@ -295,6 +317,17 @@ open class Texture2DArray(
 
     var hasMipmap = false
     var autoUpdateMipmaps = true
+
+    var depthFunc: DepthMode? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                bindBeforeUpload()
+                val mode = if (value == null) GL_NONE else GL_COMPARE_REF_TO_TEXTURE
+                glTexParameteri(target, GL_TEXTURE_COMPARE_MODE, mode)
+                if (value != null) glTexParameteri(target, GL_TEXTURE_COMPARE_FUNC, value.id)
+            }
+        }
 
     fun filtering(filtering: GPUFiltering) {
         if (!hasMipmap && filtering.needsMipmap && (width > 1 || height > 1)) {
@@ -308,7 +341,7 @@ open class Texture2DArray(
             // whenever the base mipmap is changed, the mipmaps will be updated :)
             // todo it seems like this needs to be called manually in WebGL
             glTexParameteri(target, GL14.GL_GENERATE_MIPMAP, if (autoUpdateMipmaps) GL_TRUE else GL_FALSE)
-            // is called afterwards anyway
+            // is called afterward anyway
             // glTexParameteri(tex2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
         }
         glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filtering.min)
@@ -366,14 +399,14 @@ open class Texture2DArray(
     }
 
     override fun createImage(flipY: Boolean, withAlpha: Boolean) =
-        VRAMToRAM.createImage(width * d, height, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->
+        VRAMToRAM.createImage(width * layers, height, VRAMToRAM.zero, flipY, withAlpha) { x2, y2, w2, _ ->
             drawSlice(x2, y2, w2, withAlpha)
         }
 
     private fun drawSlice(x2: Int, y2: Int, w2: Int, withAlpha: Boolean) {
         val z0 = x2 / width
         val z1 = (x2 + w2 - 1) / width
-        drawSlice(x2, y2, z0 / maxOf(1f, d - 1f), withAlpha)
+        drawSlice(x2, y2, z0 / maxOf(1f, layers - 1f), withAlpha)
         if (z1 > z0) {
             // todo we have to draw two slices
             // drawSlice(x2, y2, z0 / maxOf(1f, d - 1f), withAlpha)

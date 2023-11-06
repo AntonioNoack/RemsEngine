@@ -534,7 +534,7 @@ class AWTFont(val font: Font) {
         backgroundColor: Int,
         extraPadding: Int
     ) {
-        val image = BufferedImage(texture.width, texture.height * texture.d, 1)
+        val image = BufferedImage(texture.width, texture.height * texture.layers, 1)
         val gfx = image.graphics as Graphics2D
         gfx.prepareGraphics(font, portableImages)
         if (backgroundColor != 0) {

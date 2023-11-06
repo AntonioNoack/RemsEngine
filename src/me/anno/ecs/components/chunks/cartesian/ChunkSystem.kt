@@ -1,5 +1,7 @@
 package me.anno.ecs.components.chunks.cartesian
 
+import me.anno.cache.CacheData
+import me.anno.cache.CacheSection
 import me.anno.ecs.Component
 import me.anno.ecs.components.chunks.PlayerLocation
 import org.joml.Vector3d.Companion.lengthSquared
@@ -14,11 +16,42 @@ import kotlin.math.min
 abstract class ChunkSystem<Chunk, Element>(
     val bitsX: Int,
     val bitsY: Int,
-    val bitsZ: Int,
-    initialCapacity: Int = 256
-) : Component(), Iterable<MutableMap.MutableEntry<Vector3i, Chunk>> {
+    val bitsZ: Int
+) : Component() {
 
-    val chunks = HashMap<Vector3i, Chunk>(initialCapacity)
+    var timeoutMillis = 10_000L
+    private val chunks = CacheSection("Chunks")
+
+    fun getOrPut(key: Vector3i, put: (Vector3i) -> Chunk): Chunk {
+        val data = chunks.getEntry(key, timeoutMillis, false) {
+            CacheData(put(it))
+        } as CacheData<*>
+        @Suppress("UNCHECKED_CAST")
+        return data.value as Chunk
+    }
+
+    fun get(key: Vector3i): Chunk? {
+        val data = chunks.getEntryWithoutGenerator(key) as? CacheData<*> ?: return null
+        @Suppress("UNCHECKED_CAST")
+        return data.value as Chunk
+    }
+
+    fun remove(key: Vector3i): Chunk? {
+        val data = chunks.removeEntry(key) as? CacheData<*> ?: return null
+        @Suppress("UNCHECKED_CAST")
+        return data.value as Chunk
+    }
+
+    fun removeIf(condition: (key: Vector3i, value: Chunk) -> Boolean) {
+        chunks.remove { key, value ->
+            val key1 = key as? Vector3i
+            val value1 = value.data as CacheData<*>
+
+            @Suppress("UNCHECKED_CAST")
+            val value2 = value1.value as? Chunk
+            key1 != null && value2 != null && condition(key1, value2)
+        }
+    }
 
     val sizeX = 1 shl bitsX
     val sizeY = 1 shl bitsY
@@ -55,20 +88,18 @@ abstract class ChunkSystem<Chunk, Element>(
     open fun getChunk(chunkX: Int, chunkY: Int, chunkZ: Int, generateIfMissing: Boolean): Chunk? {
         val key = Vector3i(chunkX, chunkY, chunkZ)
         return if (generateIfMissing) {
-            synchronized(chunks) {
-                chunks.getOrPut(key) {
-                    val chunk = createChunk(chunkX, chunkY, chunkZ, totalSize)
-                    onCreateChunk(chunk, chunkX, chunkY, chunkZ)
-                    chunk
-                }
+            getOrPut(key) {
+                val chunk = createChunk(chunkX, chunkY, chunkZ, totalSize)
+                onCreateChunk(chunk, chunkX, chunkY, chunkZ)
+                chunk
             }
-        } else chunks[key]
+        } else get(key)
     }
 
     fun removeChunk(chunkX: Int, chunkY: Int, chunkZ: Int): Chunk? {
         val key = Vector3i(chunkX, chunkY, chunkZ)
         return synchronized(chunks) {
-            chunks.remove(key)
+            remove(key)
         }
     }
 
@@ -207,7 +238,7 @@ abstract class ChunkSystem<Chunk, Element>(
             val sx2 = sizeX * 0.5
             val sy2 = sizeY * 0.5
             val sz2 = sizeZ * 0.5
-            chunks.entries.removeIf { (pos, chunk) ->
+            removeIf { pos, chunk ->
                 val px = (pos.x shl bitsX) + sx2
                 val py = (pos.y shl bitsY) + sy2
                 val pz = (pos.z shl bitsZ) + sz2
@@ -226,7 +257,8 @@ abstract class ChunkSystem<Chunk, Element>(
                 Vector3i(0, 0, -1),
                 Vector3i(0, 0, +1),
             )
-            for ((pos, _) in chunks) {
+            for ((pos, _) in chunks.cache) {
+                pos as Vector3i
                 val px = (pos.x shl bitsX) + sx2
                 val py = (pos.y shl bitsY) + sy2
                 val pz = (pos.z shl bitsZ) + sz2
@@ -248,8 +280,6 @@ abstract class ChunkSystem<Chunk, Element>(
     open fun onCreateChunk(chunk: Chunk, chunkX: Int, chunkY: Int, chunkZ: Int) {}
 
     open fun onDestroyChunk(chunk: Chunk, chunkX: Int, chunkY: Int, chunkZ: Int) {}
-
-    override fun iterator() = chunks.iterator()
 
     operator fun Vector3i.component1() = x
     operator fun Vector3i.component2() = y

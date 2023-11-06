@@ -580,7 +580,7 @@ object Thumbs {
             if (!bounds.isEmpty() && bounds.volume.isFinite()) {
                 // todo why 500?
                 rv.radius = 500.0 * max(bounds.deltaX, max(bounds.deltaY, bounds.deltaZ))
-                rv.position.set(bounds.centerX, bounds.centerY, bounds.centerZ)
+                rv.orbitCenter.set(bounds.centerX, bounds.centerY, bounds.centerZ)
                 rv.updateEditorCameraTransform()
                 // calculate ideal transform like previously
                 // for that, calculate bounds on screen, then rescale/recenter
@@ -616,7 +616,7 @@ object Thumbs {
                 rv.radius /= 500.0 * max(visualBounds.deltaX, visualBounds.deltaY)
             } else {
                 rv.radius = 1.0
-                rv.position.set(0.0)
+                rv.orbitCenter.set(0.0)
             }
             rv.near = rv.radius * 0.01
             rv.far = rv.radius * 2.0
@@ -634,7 +634,7 @@ object Thumbs {
         val rv = RenderView0(PlayMode.EDITING, style)
         rv.enableOrbiting = true
         rv.editorCamera.fovY = 10f.toRadians()
-        rv.rotation.identity()
+        rv.orbitRotation.identity()
             .rotateY(25.0.toRadians())
             .rotateX((-15.0).toRadians())
         rv.pipeline.defaultStage.cullMode = CullMode.BOTH

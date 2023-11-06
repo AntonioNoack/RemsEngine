@@ -149,7 +149,7 @@ fun main() {
     ECSRegistry.initMeshes()
 
     testSceneWithUI("HexSphere MC/2", Entity(HSChunkLoader(sphere, world))) {
-        it.renderer.position.set(0.0, 1.0, 0.0)
+        it.renderer.orbitCenter.set(0.0, 1.0, 0.0)
         it.renderer.radius = 10.0 * sphere.len
         it.renderer.near = it.renderer.radius * 0.01
         it.renderer.far = it.renderer.radius * 1e5

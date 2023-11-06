@@ -1,20 +1,22 @@
 package me.anno.tests.mesh.unique
 
-import me.anno.Build
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
+import me.anno.ecs.components.light.DirectionalLight
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.ecs.components.mesh.unique.MeshEntry
 import me.anno.ecs.components.mesh.unique.UniqueMeshRenderer
+import me.anno.ecs.components.shaders.Skybox
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.DrawMode
@@ -23,22 +25,19 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.graph.hdb.ByteSlice
-import me.anno.graph.hdb.HierarchicalDatabase
 import me.anno.input.Key
 import me.anno.maths.Maths
 import me.anno.maths.patterns.SpiralPattern.spiral2d
 import me.anno.mesh.vox.model.VoxelModel
-import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.tests.utils.TestWorld
-import me.anno.utils.OS.documents
 import me.anno.utils.hpc.ProcessingQueue
 import org.joml.AABBf
 import org.joml.Vector3i
-import java.io.ByteArrayOutputStream
 import java.lang.Math.floorDiv
 import java.lang.Math.floorMod
+import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.round
 
 /**
  * load/unload a big voxel world without much stutter;
@@ -52,23 +51,21 @@ import kotlin.math.floor
  * done block placing
  *
  * todo first person player controller with simple physics
+ * todo inventory system
  * */
 fun main() {
 
-    Build.isDebug = false
-
     val attributes = listOf(
-        Attribute("coords", AttributeType.SINT32, 3, true),
+        Attribute("coords", 3),
         Attribute("colors0", AttributeType.UINT8_NORM, 4)
     )
-    val vertexData = MeshVertexData(
+    val blockVertexData = MeshVertexData(
         listOf(
             ShaderStage(
                 "coords", listOf(
-                    Variable(GLSLType.V3I, "coords", VariableMode.ATTR),
+                    Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
                     Variable(GLSLType.V3F, "localPosition", VariableMode.OUT)
-                ), "" +
-                        "localPosition = vec3(coords);\n" // stupidly simple xD
+                ), "localPosition = coords;\n"
             )
         ),
         listOf(
@@ -92,54 +89,7 @@ fun main() {
         ),
     )
 
-    class SaveLoadSystem {
-
-        val db = HierarchicalDatabase(
-            "blocks",
-            documents.getChild("RemsEngine/Tests/UniqueMeshRenderer"),
-            10_000_000,
-            30_000L, 0L
-        )
-
-        val hash = 0L
-
-        fun getPath(chunkId: Vector3i): List<String> {
-            return listOf("${chunkId.x},${chunkId.y},${chunkId.z}")
-        }
-
-        fun get(chunkId: Vector3i, async: Boolean, callback: (HashMap<Vector3i, Byte>) -> Unit) {
-            db.get(getPath(chunkId), hash, async) { slice ->
-                if (slice != null) {
-                    slice.stream().use { stream ->
-                        val answer = HashMap<Vector3i, Byte>()
-                        while (true) {
-                            val x = stream.read()
-                            val y = stream.read()
-                            val z = stream.read()
-                            val b = stream.read()
-                            if (b < 0) break
-                            answer[Vector3i(x, y, z)] = b.toByte()
-                        }
-                        callback(answer)
-                    }
-                } else callback(HashMap())
-            }
-        }
-
-        fun put(chunkId: Vector3i, blocks: Map<Vector3i, Byte>) {
-            val stream = ByteArrayOutputStream(blocks.size * 4)
-            for ((k, v) in blocks) {
-                stream.write(k.x)
-                stream.write(k.y)
-                stream.write(k.z)
-                stream.write(v.toInt())
-            }
-            val bytes = stream.toByteArray()
-            db.put(getPath(chunkId), hash, ByteSlice(bytes))
-        }
-    }
-
-    val saveSystem = SaveLoadSystem()
+    val saveSystem = SaveLoadSystem("UniqueMeshRenderer")
     val world = object : TestWorld() {
         override fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: ByteArray) {
             super.generateChunk(chunkX, chunkY, chunkZ, chunk)
@@ -151,16 +101,22 @@ fun main() {
         }
     }
 
+    world.timeoutMillis = 250
+
     val csx = world.sizeX
     val csy = world.sizeY
     val csz = world.sizeZ
 
     val material = defaultMaterial
 
-    class ChunkRenderer : UniqueMeshRenderer<Vector3i>(attributes, vertexData, material, DrawMode.TRIANGLES) {
+    class ChunkRenderer : UniqueMeshRenderer<Vector3i>(attributes, blockVertexData, material, DrawMode.TRIANGLES) {
 
         override val hasVertexColors: Int get() = 1
 
+        /**
+         * defines what the world looks like for Raycasting,
+         * and for AABBs
+         * */
         override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
             var i = 0
             for ((key, entry) in entryLookup) {
@@ -174,24 +130,19 @@ fun main() {
             }
         }
 
-        private val boundsF = AABBf().all()
-        override fun getBounds(): AABBf {
-            return boundsF.set(localAABB)
-        }
-
         override fun getData(key: Vector3i, mesh: Mesh): StaticBuffer? {
             if (mesh.numPrimitives == 0L) return null
             val pos = mesh.positions!!
             val col = mesh.color0!!
-            val buffer = StaticBuffer("cnk", attributes, pos.size / 3)
+            val buffer = StaticBuffer("chunk$key", attributes, pos.size / 3)
             val data = buffer.nioBuffer!!
             val dx = key.x * csx
             val dy = key.y * csy
             val dz = key.z * csz
             for (i in 0 until buffer.vertexCount) {
-                data.putInt(dx + pos[i * 3].toInt())
-                data.putInt(dy + pos[i * 3 + 1].toInt())
-                data.putInt(dz + pos[i * 3 + 2].toInt())
+                data.putFloat(dx + pos[i * 3])
+                data.putFloat(dy + pos[i * 3 + 1])
+                data.putFloat(dz + pos[i * 3 + 2])
                 data.putInt(Maths.convertABGR2ARGB(col[i]))
             }
             buffer.isUpToDate = false
@@ -204,17 +155,18 @@ fun main() {
         val worker = ProcessingQueue("chunks")
 
         // load world in spiral pattern
-        val loadingRadius = 10
-        val loadingPattern = spiral2d(loadingRadius, 0, true).toList()
-        val unloadingPattern = (2..4).map {
-            spiral2d(loadingRadius + it, 0, false)
-        }.flatMap { it }
+        val loadingRadius = 3
+        val spiralPattern = spiral2d(loadingRadius + 5, 0, true).toList()
+        val loadingPattern = spiralPattern.filter { it.length() < loadingRadius - 0.5f }
+        val unloadingPattern = spiralPattern.filter { it.length() > loadingRadius + 1.5f }
 
-        fun generate(key: Vector3i) {
+        val loadedChunks = HashSet<Vector3i>()
 
-            val x0 = key.x * csx
-            val y0 = key.y * csy
-            val z0 = key.z * csz
+        fun generateChunk(chunkId: Vector3i) {
+
+            val x0 = chunkId.x * csx
+            val y0 = chunkId.y * csy
+            val z0 = chunkId.z * csz
 
             val model = object : VoxelModel(csx, csy, csz) {
                 override fun getBlock(x: Int, y: Int, z: Int): Int {
@@ -230,38 +182,60 @@ fun main() {
                 world.getElementAt(x0 + x, y0 + y, z0 + z).toInt() != 0
             })
 
-            val data = chunkRenderer.getData(key, mesh)
-            if (data != null) addEvent { // change back to GPU thread
-                chunkRenderer.set(key, MeshEntry(mesh, data))
+            val data = chunkRenderer.getData(chunkId, mesh)
+            if (data != null) {
+                val bounds = mesh.getBounds()
+                bounds.translate(x0.toFloat(), y0.toFloat(), z0.toFloat())
+                addGPUTask("ChunkUpload", 1) { // change back to GPU thread
+                    chunkRenderer.set(chunkId, MeshEntry(mesh, bounds, data))
+                }
             }
         }
 
-        val hasRequested = HashSet<Vector3i>()
+        fun AABBf.translate(dx: Float, dy: Float, dz: Float) {
+            minX += dx
+            minY += dy
+            minZ += dz
+            maxX += dx
+            maxY += dy
+            maxZ += dz
+        }
+
+        fun loadChunks(center: Vector3i) {
+            for (idx in loadingPattern) {
+                val vec = Vector3i(idx).add(center)
+                if (loadedChunks.add(vec)) {
+                    worker += { generateChunk(vec) }
+                    break
+                }
+            }
+        }
+
+        fun unloadChunks(center: Vector3i) {
+            for (idx in unloadingPattern) {
+                val vec = Vector3i(idx).add(center)
+                if (loadedChunks.remove(vec)) {
+                    chunkRenderer.remove(vec)
+                }
+            }
+        }
+
+        fun getPlayerChunkId(): Vector3i {
+            val delta = Vector3i()
+            val ci = RenderView.currentInstance
+            if (ci != null) {
+                val pos = ci.orbitCenter // around where the camera orbits
+                delta.set((pos.x / csx).toInt(), 0, (pos.z / csz).toInt())
+            }
+            return delta
+        }
 
         override fun onUpdate(): Int {
             // load next mesh
             if (worker.remaining == 0) {
-                val delta = Vector3i()
-                val ci = RenderView.currentInstance
-                if (ci != null) {
-                    val pos = ci.cameraPosition
-                    delta.set((pos.x / csx).toInt(), 0, (pos.z / csz).toInt())
-                }
-                // load chunks
-                for (idx in loadingPattern) {
-                    val vec = Vector3i(idx).add(delta)
-                    if (hasRequested.add(vec)) {
-                        worker += { generate(vec) }
-                        break
-                    }
-                }
-                // unload chunks
-                for (idx in unloadingPattern) {
-                    val vec = Vector3i(idx).add(delta)
-                    if (hasRequested.remove(vec)) {
-                        chunkRenderer.remove(vec)
-                    }
-                }
+                val chunkId = getPlayerChunkId()
+                loadChunks(chunkId)
+                unloadChunks(chunkId)
             }
             return 1
         }
@@ -272,6 +246,33 @@ fun main() {
     val scene = Entity("Scene")
     scene.add(chunkRenderer)
     scene.add(chunkLoader)
+
+    val sun = DirectionalLight()
+    sun.shadowMapCascades = 3
+    val sunEntity = Entity("Sun")
+        .setScale(100.0)
+    sunEntity.add(object : Component() {
+        // move shadows with player
+        // todo only update every so often
+        override fun onUpdate(): Int {
+            val rv = RenderView.currentInstance
+            if (rv != null) {
+                sunEntity.transform.localPosition =
+                    sunEntity.transform.localPosition
+                        .set(rv.orbitCenter)
+                        .apply { y = csy * 0.5 }
+                        .round()
+                sunEntity.validateTransform()
+            }
+            return 1
+        }
+    })
+    sunEntity.add(sun)
+    val sky = Skybox()
+    sky.applyOntoSun(sunEntity, sun, 50f)
+    scene.add(sky)
+    scene.add(sunEntity)
+
     testSceneWithUI("Unique Mesh Renderer", scene) {
         it.editControls = object : DraggingControls(it.renderer) {
 
@@ -318,7 +319,7 @@ fun main() {
 
             fun invalidateChunkAt(coords: Vector3i) {
                 chunkLoader.worker += {
-                    chunkLoader.generate(coords)
+                    chunkLoader.generateChunk(coords)
                 }
             }
 
@@ -331,6 +332,7 @@ fun main() {
                     1e3
                 )
                 // todo also implement cheaper raytracing (to show how) going block by block
+                //  then we can throw away the meshes and save even more memory :3
                 val hitSomething = Raycast.raycastClosestHit(scene, query)
                 if (hitSomething) {
                     when (button) {

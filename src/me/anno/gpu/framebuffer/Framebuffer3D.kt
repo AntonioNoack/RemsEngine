@@ -239,10 +239,6 @@ class Framebuffer3D(
     override fun getTexture0() = textures[0]
     override fun getTextureI(index: Int) = textures[index]
 
-    override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer {
-        throw NotImplementedError()
-    }
-
     override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
         throw NotImplementedError()
     }

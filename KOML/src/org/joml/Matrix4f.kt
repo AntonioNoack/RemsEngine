@@ -2903,24 +2903,18 @@ open class Matrix4f {
     }
 
     fun orthoLH(
-        left: Float,
-        right: Float,
-        bottom: Float,
-        top: Float,
-        zNear: Float,
-        zFar: Float,
+        left: Float, right: Float,
+        bottom: Float, top: Float,
+        zNear: Float, zFar: Float,
         dst: Matrix4f
     ): Matrix4f {
         return this.orthoLH(left, right, bottom, top, zNear, zFar, false, dst)
     }
 
     fun setOrtho(
-        left: Float,
-        right: Float,
-        bottom: Float,
-        top: Float,
-        zNear: Float,
-        zFar: Float,
+        left: Float, right: Float,
+        bottom: Float, top: Float,
+        zNear: Float, zFar: Float,
         zZeroToOne: Boolean
     ): Matrix4f {
         identity()

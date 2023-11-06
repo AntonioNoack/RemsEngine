@@ -41,6 +41,7 @@ import me.anno.utils.structures.arrays.IntArrayList
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.floor
@@ -969,7 +970,7 @@ open class SDFComponent : ProceduralMesh(), Renderable,
 
     companion object {
 
-        // private val LOGGER = LogManager.getLogger(SDFComponent::class)
+        private val LOGGER = LogManager.getLogger(SDFComponent::class)
 
         var globalDynamic = Build.isDebug
 

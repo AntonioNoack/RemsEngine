@@ -235,8 +235,8 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
 
     open fun resetCamera() {
         // reset the camera
-        renderView.rotation.identity()
-        renderView.position.set(0.0)
+        renderView.orbitRotation.identity()
+        renderView.orbitCenter.set(0.0)
         renderView.radius = 50.0
         renderView.near = 1e-3
         renderView.far = 1e10
@@ -314,7 +314,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 val camTransform = camera.transform!!
                 val globalCamTransform = camTransform.globalTransform
                 val offset = globalCamTransform.transformDirection(Vector3d(dx * speed, -dy * speed, 0.0))
-                renderView.position.sub(offset)
+                renderView.orbitCenter.sub(offset)
                 camera.invalidateAABB()
             }
             isSelected && Input.isLeftDown && mode != Mode.NOTHING -> {

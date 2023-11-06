@@ -7,7 +7,7 @@ abstract class MapChunkSystem<Element>(
     bitsX: Int, bitsY: Int, bitsZ: Int,
     val defaultElement: Element,
     initialCapacity: Int = 256
-) : ChunkSystem<HashMap<Int, Element>, Element>(bitsX, bitsY, bitsZ, initialCapacity) {
+) : ChunkSystem<HashMap<Int, Element>, Element>(bitsX, bitsY, bitsZ) {
 
     abstract fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: HashMap<Int, Element>)
 

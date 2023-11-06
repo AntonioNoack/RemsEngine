@@ -1,11 +1,9 @@
 package me.anno.engine.ui.render
 
+import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
-import me.anno.ecs.components.light.EnvironmentMap
-import me.anno.ecs.components.light.LightComponent
-import me.anno.ecs.components.light.LightComponentBase
-import me.anno.ecs.components.light.PlanarReflection
+import me.anno.ecs.components.light.*
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.EditorState
 import me.anno.gpu.GFXState
@@ -16,12 +14,14 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.Texture2DArray
 import me.anno.input.Input
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import org.joml.Vector3d
+import kotlin.math.floor
 import kotlin.math.min
 
 object DebugRendering {
@@ -43,10 +43,11 @@ object DebugRendering {
             val s = min(w, h) / 3
             var texture: ITexture2D? = null
             var isDepth = false
-            val flipY = light is PlanarReflection
+            val flipY = light is PlanarReflection || light is DirectionalLight
             when (light) {
                 is LightComponent -> {
-                    texture = light.shadowTextures?.firstOrNull()?.depthTexture
+                    val tex = light.shadowTextures
+                    texture = tex?.depthTexture ?: tex?.getTexture0()
                     isDepth = true
                 }
                 is EnvironmentMap -> texture = light.texture?.textures?.firstOrNull()
@@ -54,9 +55,24 @@ object DebugRendering {
             }
             // draw the texture
             if (texture is Texture2D && texture.isDestroyed) return
+            if (texture is Texture2DArray && texture.isDestroyed) return
+            if (texture is CubemapTexture && texture.isDestroyed) return
             when (texture) {
                 is CubemapTexture -> {
                     DrawTextures.drawProjection(x, y + h - s, s * 3 / 2, s, texture, true, -1, false, isDepth)
+                }
+                is Texture2DArray -> {
+                    val layer = floor(Time.gameTime % texture.layers).toFloat()
+                    if (Input.isShiftDown && light is PlanarReflection) {
+                        DrawTextures.drawTextureArray(x, y, w, h, texture, layer, true, 0x33ffffff, null)
+                    } else if (isDepth) {
+                        DrawTextures.drawDepthTextureArray(x, y + h, s, -s, texture, layer)
+                    } else if (flipY) {
+                        DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
+                    } else {
+                        DrawTextures.drawTextureArray(x, y + h, s, -s, texture, layer, true, -1, null)
+                    }
+                    DrawTexts.drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
                 }
                 is ITexture2D -> {
                     if (Input.isShiftDown && light is PlanarReflection) {

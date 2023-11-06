@@ -199,7 +199,6 @@ open class BaseShader(
         if (flags.hasFlag(IS_DEFERRED)) dst.append("#define DEFERRED\n")
         if (flags.hasFlag(NEEDS_COLORS)) dst.append("#define COLORS\n")
         if (flags.hasFlag(NEEDS_MOTION_VECTORS)) dst.append("#define MOTION_VECTORS\n")
-        if (flags.hasFlag(USES_PRS_TRANSFORM)) dst.append("#define PRS_TRANSFORM\n")
         return dst
     }
 
@@ -217,13 +216,6 @@ open class BaseShader(
 
         const val NEEDS_COLORS = 8
         const val NEEDS_MOTION_VECTORS = 16
-
-        /**
-         * an optimized transform, where only position, rotation, and uniform scale are supported;
-         * for instanced rendering without motion, and reduced memory-bandwidth usage
-         * */
-        @Deprecated("This flag is no longer used, TRS is possible in different ways")
-        const val USES_PRS_TRANSFORM = 32
 
         val motionVectors
             get(): Boolean {

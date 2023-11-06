@@ -5,27 +5,34 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
+import me.anno.gpu.framebuffer.IFramebuffer.Companion.createTargets
 import me.anno.gpu.shader.Renderer
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Texture2DArray
 import org.lwjgl.opengl.GL30C.*
 
-class CubemapFramebuffer(
-    override var name: String, var size: Int,
-    override val samples: Int, // todo when we support multi-sampled cubemaps, also support them here
+class FramebufferArray(
+    override var name: String,
+    override var width: Int,
+    override var height: Int,
+    var layers: Int,
+    override val samples: Int, // todo when we support multi-sampled 2d-arrays, also support them here
     val targets: Array<TargetType>,
     val depthBufferType: DepthBufferType
 ) : IFramebuffer {
 
     constructor(
-        name: String, size: Int,
+        name: String,
+        width: Int,
+        height: Int,
+        layers: Int,
         samples: Int,
         targetCount: Int,
         fpTargets: Boolean,
         depthBufferType: DepthBufferType
     ) : this(
-        name, size, samples, if (fpTargets)
+        name, width, height, layers, samples, if (fpTargets)
             Array(targetCount) { TargetType.FloatTarget4 } else
             Array(targetCount) { TargetType.UByteTarget4 }, depthBufferType
     )
@@ -36,14 +43,12 @@ class CubemapFramebuffer(
     override var pointer = 0
     var session = 0
     var depthRenderBuffer = 0
-    override var depthTexture: CubemapTexture? = null
-    var depthAttachment: CubemapFramebuffer? = null
+    override var depthTexture: Texture2DArray? = null
+    var depthAttachment: FramebufferArray? = null
 
-    override val width: Int get() = size
-    override val height: Int get() = size
     override val numTextures: Int = targets.size
 
-    lateinit var textures: Array<CubemapTexture>
+    lateinit var textures: Array<Texture2DArray>
 
     var autoUpdateMipmaps = true
 
@@ -77,11 +82,7 @@ class CubemapFramebuffer(
 
     override fun bindDirectly() = bind()
     override fun bindDirectly(w: Int, h: Int) {
-        bindDirectly(w)
-    }
-
-    fun bindDirectly(size: Int) {
-        checkSize(size)
+        checkSize(w, h)
         bind()
     }
 
@@ -92,9 +93,10 @@ class CubemapFramebuffer(
         glDisable(GL_MULTISAMPLE)
     }
 
-    private fun checkSize(newSize: Int) {
-        if (newSize != size) {
-            size = newSize
+    private fun checkSize(w: Int, h: Int) {
+        if (w != width || h != height) {
+            width = w
+            height = h
             GFX.check()
             destroy()
             GFX.check()
@@ -114,7 +116,7 @@ class CubemapFramebuffer(
         //stack.push(this)
         GFX.check()
         textures = Array(targets.size) { index ->
-            val texture = CubemapTexture("$name-$index", size, samples)
+            val texture = Texture2DArray("$name-$index", width, height, layers)
             texture.autoUpdateMipmaps = autoUpdateMipmaps
             texture.create(targets[index])
             GFX.check()
@@ -124,9 +126,9 @@ class CubemapFramebuffer(
         val textures = textures
         for (index in textures.indices) {
             val texture = textures[index]
-            glFramebufferTexture2D(
+            glFramebufferTextureLayer(
                 GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index,
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X, texture.pointer, 0
+                texture.pointer, 0, 0
             )
         }
         GFX.check()
@@ -137,20 +139,28 @@ class CubemapFramebuffer(
             }
             DepthBufferType.INTERNAL -> createDepthBuffer()
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
-                val texture = CubemapTexture("$name-depth", size, samples)
+                GFX.check()
+                val texture = Texture2DArray("$name-depth", width, height, layers)
                 texture.autoUpdateMipmaps = autoUpdateMipmaps
                 texture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
-                glFramebufferTexture2D(
+                GFX.check()
+                glFramebufferTextureLayer(
                     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                    GL_TEXTURE_CUBE_MAP_POSITIVE_X, texture.pointer, 0
+                    texture.pointer, 0, 0
                 )
+                GFX.check()
                 this.depthTexture = texture
             }
             DepthBufferType.ATTACHMENT -> {
-                val target = GL_TEXTURE_CUBE_MAP_POSITIVE_X
+                GFX.check()
                 val texPointer = depthAttachment?.depthTexture?.pointer
                     ?: throw IllegalStateException("Depth Attachment was not found in $name, ${depthAttachment}.${depthAttachment?.depthTexture}")
-                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target, texPointer, 0)
+                GFX.check()
+                glFramebufferTextureLayer(
+                    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                    texPointer, 0, 0
+                )
+                GFX.check()
                 // throw IllegalArgumentException("attachment depth not yet supported for cubemaps")
             }
         }
@@ -158,13 +168,14 @@ class CubemapFramebuffer(
         check()
     }
 
+    // todo we would need multiple of them, right?
     private fun createDepthBuffer() {
         val renderBuffer = glGenRenderbuffers()
         depthRenderBuffer = renderBuffer
         if (renderBuffer < 0) throw RuntimeException()
         glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer)
-        if (samples > 1) glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT, size, size)
-        else glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, size, size)
+        if (samples > 1) glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT, width, height)
+        else glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height)
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderBuffer)
     }
 
@@ -174,26 +185,6 @@ class CubemapFramebuffer(
             throw RuntimeException("Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}")
         }
     }
-
-    /*fun bindTexture0(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
-        bindTextureI(0, offset, nearest, clamping)
-    }
-
-    fun bindTextureI(index: Int, offset: Int) {
-        bindTextureI(index, offset, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
-    }
-
-    fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
-        textures[index].bind(offset, nearest, clamping)
-    }
-
-    fun bindTextures(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
-        GFX.check()
-        for ((index, texture) in textures.withIndex()) {
-            texture.bind(offset + index, nearest, clamping)
-        }
-        GFX.check()
-    }*/
 
     override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
         checkSession()
@@ -223,14 +214,13 @@ class CubemapFramebuffer(
         }
     }
 
-    fun updateAttachments(face: Int) {
-        val tex2D = GL_TEXTURE_CUBE_MAP_POSITIVE_X + face
+    fun updateAttachments(layer: Int) {
         val textures = textures
         for (index in textures.indices) {
             val texture = textures[index]
-            glFramebufferTexture2D(
+            glFramebufferTextureLayer(
                 GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index,
-                tex2D, texture.pointer, 0
+                texture.pointer, 0, layer
             )
         }
         GFX.check()
@@ -238,34 +228,28 @@ class CubemapFramebuffer(
         GFX.check()
         if (depthBufferType == DepthBufferType.TEXTURE || depthBufferType == DepthBufferType.TEXTURE_16) {
             val depthTexture = depthTexture!!
-            glFramebufferTexture2D(
+            glFramebufferTextureLayer(
                 GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                tex2D, depthTexture.pointer, 0
+                depthTexture.pointer, 0, layer
             )
         }
         GFX.check()
     }
 
-    fun draw(size: Int, renderer: Renderer, renderSide: (side: Int) -> Unit) {
-        useFrame(size, size, true, this, renderer) {
-            renderSides(renderSide)
-        }
-    }
-
-    fun draw(renderer: Renderer, renderSide: (side: Int) -> Unit) {
+    fun draw(renderer: Renderer, renderSide: (layer: Int) -> Unit) {
         useFrame(this, renderer) {
             renderSides(renderSide)
         }
     }
 
-    private fun renderSides(render: (side: Int) -> Unit) {
+    private fun renderSides(render: (layer: Int) -> Unit) {
         Frame.bind()
-        for (side in 0 until 6) {
+        for (layer in 0 until layers) {
             // update all attachments, updating the framebuffer texture targets
-            updateAttachments(side)
+            updateAttachments(layer)
             val status = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)
             if (status != GL_FRAMEBUFFER_COMPLETE) throw IllegalStateException("Framebuffer incomplete $status")
-            render(side)
+            render(layer)
         }
         depthTexture?.needsMipmaps = true
         for (i in textures.indices) textures[i].needsMipmaps = true
@@ -273,11 +257,11 @@ class CubemapFramebuffer(
 
     override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
         return if (targets.size <= GFX.maxColorAttachments) {
-            val buffer = CubemapFramebuffer(name, size, samples, targets, DepthBufferType.ATTACHMENT)
+            val buffer = FramebufferArray(name, width, height, layers, samples, targets, DepthBufferType.ATTACHMENT)
             buffer.depthAttachment = this
             buffer
         } else {
-            TODO("Cubemaps with attachment depth not yet implemented for ${targets.size} > ${GFX.maxColorAttachments}")
+            TODO("Framebuffer arrays with attachment depth not yet implemented for ${targets.size} > ${GFX.maxColorAttachments}")
             /*val buffer = MultiFramebuffer(name, size, samples, targetCount, fpTargets, DepthBufferType.ATTACHMENT)
             for (it in buffer.targetsI) it.depthAttachment = this
             buffer*/
@@ -285,6 +269,5 @@ class CubemapFramebuffer(
     }
 
     override fun toString(): String =
-        "FBCubemap[n=$name, i=$pointer, size=$size t=${targets.joinToString()} d=$depthBufferType]"
-
+        "FBArray[n=$name, i=$pointer, w=$width, h=$height, d=$layers, t=${targets.joinToString()} d=$depthBufferType]"
 }

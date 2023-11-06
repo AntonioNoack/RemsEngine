@@ -36,7 +36,7 @@ object MovingGrid {
         alphas[1] = 1f
         alphas[0] = 1f - alphas[2]
         val radius1 = Maths.pow(10.0, floorLog + 1)
-        val position = RenderView.currentInstance?.position ?: RenderState.cameraPosition
+        val position = RenderView.currentInstance?.orbitCenter ?: RenderState.cameraPosition
 
         for (i in 0 until 3) {
 

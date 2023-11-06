@@ -2,7 +2,6 @@ package me.anno.engine.ui.render
 
 // this list of imports is insane XD
 import me.anno.Time
-import me.anno.config.DefaultConfig
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -138,8 +137,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         worldScale = if (renderMode == RenderMode.MONO_WORLD_SCALE) 1.0 else 1.0 / radius
     }
 
-    val position = Vector3d()
-    val rotation = Quaterniond()
+    val orbitCenter = Vector3d()
+    val orbitRotation = Quaterniond()
         .rotateX(20.0.toRadians())
 
     private val deferred = DeferredRenderer.deferredSettings!!
@@ -195,17 +194,17 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val camera = editorCamera
         val cameraNode = editorCameraNode
 
-        if (!position.isFinite) LOGGER.warn("Invalid position $position")
-        if (!rotation.isFinite) LOGGER.warn("Invalid rotation $rotation")
+        if (!orbitCenter.isFinite) LOGGER.warn("Invalid position $orbitCenter")
+        if (!orbitRotation.isFinite) LOGGER.warn("Invalid rotation $orbitRotation")
 
         camera.far = far
         camera.near = near
 
         val tmp3d = JomlPools.vec3d.borrow()
         cameraNode.transform.localPosition =
-            if (enableOrbiting) rotation.transform(tmp3d.set(0.0, 0.0, radius)).add(position)
-            else position
-        cameraNode.transform.localRotation = rotation
+            if (enableOrbiting) orbitRotation.transform(tmp3d.set(0.0, 0.0, radius)).add(orbitCenter)
+            else orbitCenter
+        cameraNode.transform.localRotation = orbitRotation
         cameraNode.transform.teleportUpdate()
         cameraNode.validateTransform()
     }

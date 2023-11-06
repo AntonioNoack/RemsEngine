@@ -32,12 +32,11 @@ class RectangleLight() : LightComponent(LightType.RECTANGLE) {
         worldScale: Double,
         dstCameraMatrix: Matrix4f,
         dstCameraPosition: Vector3d,
-        dstCameraDirection: Vector3d,
+        cameraRotation: Quaterniond,
+        cameraDirection: Vector3d,
         drawTransform: Matrix4x3d,
         pipeline: Pipeline,
-        resolution: Int,
-        position: Vector3d,
-        rotation: Quaterniond
+        resolution: Int
     ) {
     }
 

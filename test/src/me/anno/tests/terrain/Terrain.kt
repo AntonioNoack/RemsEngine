@@ -207,8 +207,8 @@ class TerrainChunkSystem(val childrenContainer: Entity) : ChunkSystem<TerrainChu
 
     fun manageChunkLoading() {
         val rv = RenderView.currentInstance ?: return
-        val x0 = (rv.position.x / w).toInt()
-        val z0 = (rv.position.z / h).toInt()
+        val x0 = (rv.orbitCenter.x / w).toInt()
+        val z0 = (rv.orbitCenter.z / h).toInt()
         for (zi in -10..10) {
             for (xi in -10..10) {
                 val visible = xi * xi + zi * zi < 81

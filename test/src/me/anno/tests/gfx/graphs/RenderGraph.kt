@@ -26,7 +26,7 @@ fun main() {
 
         val sv = SceneView(PlayMode.EDITING, style)
         val rv = sv.renderer
-        rv.position.set(0.0, 0.0, -5.0)
+        rv.orbitCenter.set(0.0, 0.0, -5.0)
         rv.updateEditorCameraTransform()
 
         val list = CustomList(false, style)

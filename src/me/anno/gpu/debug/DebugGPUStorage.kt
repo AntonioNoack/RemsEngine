@@ -150,7 +150,7 @@ object DebugGPUStorage {
     }
 
     class TexturePanel2DA(name: String, val tex: Texture2DArray) :
-        TexturePanelBase("$name, ${tex.width} x ${tex.height} x ${tex.d}") {
+        TexturePanelBase("$name, ${tex.width} x ${tex.height} x ${tex.layers}") {
 
         override fun getTexW(): Int = tex.width
         override fun getTexH(): Int = tex.height
@@ -170,8 +170,8 @@ object DebugGPUStorage {
             // b) when hovering
             // todo calculate min/max?
             val z = if (isHovered) clamp((window!!.mouseX - x) / w)
-            else fract(Time.nanoTime / max(5f, tex.d / 3f)).toFloat()
-            val zi = (z * (tex.d + 1)).toInt()
+            else fract(Time.nanoTime / max(5f, tex.layers / 3f)).toFloat()
+            val zi = (z * (tex.layers + 1)).toInt()
             // todo why is every 2nd slice missing??
             DrawTextures.draw2dArraySlice(
                 x, y, w, h, zi,
@@ -239,7 +239,7 @@ object DebugGPUStorage {
                 )
             ) {
                 create2DListOfPanels("Texture2D[]s") { list ->
-                    for (tex in tex2da.sortedBy { it.width * it.height * it.d }) {
+                    for (tex in tex2da.sortedBy { it.width * it.height * it.layers }) {
                         list.add(TexturePanel2DA(tex.name, tex))
                     }
                 }

@@ -87,10 +87,6 @@ class MultiFramebuffer(
         }
     }
 
-    override fun attachFramebufferToDepth(name: String, targetCount: Int, fpTargets: Boolean): IFramebuffer {
-        return targetsI[0].attachFramebufferToDepth(name, targetCount, fpTargets)
-    }
-
     override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>): IFramebuffer {
         return targetsI[0].attachFramebufferToDepth(name, targets)
     }

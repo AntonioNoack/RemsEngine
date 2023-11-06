@@ -338,7 +338,7 @@ open class ControllerOnSphere(
 
     val forward = Vector3d(0.0, 0.0, -1.0)
     val right = Vector3d(1.0, 0.0, 0.0)
-    val position = rv.position
+    val position = rv.orbitCenter
     val up = Vector3d()
 
     init {
@@ -372,7 +372,7 @@ open class ControllerOnSphere(
     }
 
     override fun updateViewRotation() {
-        renderView.rotation.identity()
+        renderView.orbitRotation.identity()
             .lookAlong(forward, up)
             .invert()
         renderView.updateEditorCameraTransform()

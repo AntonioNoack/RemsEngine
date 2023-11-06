@@ -109,9 +109,34 @@ object FlatShaders {
                 tonemapGLSL +
                 "void main(){\n" +
                 "   vec4 col = color;\n" +
-                "   if(alphaMode == 0) col *= texture(tex, uv);\n" +
-                "   else if(alphaMode == 1) col.rgb *= texture(tex, uv).rgb;\n" +
-                "   else col.rgb *= texture(tex, uv).a;\n" +
+                "   vec4 data = texture(tex, uv);\n" +
+                "   if(alphaMode == 0) col *= data;\n" +
+                "   else if(alphaMode == 1) col.rgb *= data.rgb;\n" +
+                "   else col.rgb *= data.a;\n" +
+                "   if(!(col.x >= -1e38 && col.x <= 1e38)) col = vec4(1.0,0.0,1.0,1.0);\n" +
+                "   if(applyToneMapping) col = tonemap(col);\n" +
+                "   gl_FragColor = col;\n" +
+                "}"
+    )
+
+    val flatShaderTextureArray = BaseShader(
+        "flatShaderTexture",
+        ShaderLib.uiVertexShaderList,
+        ShaderLib.uiVertexShader, uvList,
+        listOf(
+            Variable(GLSLType.V1I, "alphaMode"), // 0 = rgba, 1 = rgb, 2 = a
+            Variable(GLSLType.V4F, "color"),
+            Variable(GLSLType.V1F, "layer"),
+            Variable(GLSLType.V1B, "applyToneMapping"),
+            Variable(GLSLType.S2DA, "tex"),
+        ), "" +
+                tonemapGLSL +
+                "void main(){\n" +
+                "   vec4 col = color;\n" +
+                "   vec4 data = texture(tex, vec3(uv,layer));\n" +
+                "   if(alphaMode == 0) col *= data;\n" +
+                "   else if(alphaMode == 1) col.rgb *= data.rgb;\n" +
+                "   else col.rgb *= data.a;\n" +
                 "   if(!(col.x >= -1e38 && col.x <= 1e38)) col = vec4(1.0,0.0,1.0,1.0);\n" +
                 "   if(applyToneMapping) col = tonemap(col);\n" +
                 "   gl_FragColor = col;\n" +
@@ -147,6 +172,23 @@ object FlatShaders {
         ), "" +
                 "void main(){\n" +
                 "   float depth0 = texture(tex, uv).x;\n" +
+                "   float depth1 = 0.1 + 0.9 * fract(log2(abs(depth0)));\n" +
+                "   gl_FragColor = vec4(depth0 > 0.0 ? vec3(depth1) : vec3(depth1, 0.0, 0.0), 1.0);\n" +
+                "}"
+    ).apply {
+        ignoreNameWarnings(
+            "cgSlope", "cgOffset", "cgPower", "cgSaturation", "forceFieldUVCount",
+            "forceFieldColorCount"
+        )
+    }
+
+    val depthArrayShader = BaseShader(
+        "depth", ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader, uvList, listOf(
+            Variable(GLSLType.S2DA, "tex"),
+            Variable(GLSLType.V1F, "layer")
+        ), "" +
+                "void main(){\n" +
+                "   float depth0 = texture(tex, vec3(uv,layer)).x;\n" +
                 "   float depth1 = 0.1 + 0.9 * fract(log2(abs(depth0)));\n" +
                 "   gl_FragColor = vec4(depth0 > 0.0 ? vec3(depth1) : vec3(depth1, 0.0, 0.0), 1.0);\n" +
                 "}"

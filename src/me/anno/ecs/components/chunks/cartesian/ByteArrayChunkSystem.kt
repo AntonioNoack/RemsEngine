@@ -7,7 +7,7 @@ abstract class ByteArrayChunkSystem(
     bitsX: Int, bitsY: Int, bitsZ: Int,
     val defaultElement: Byte,
     initialCapacity: Int = 256
-) : ChunkSystem<ByteArray, Byte>(bitsX, bitsY, bitsZ, initialCapacity) {
+) : ChunkSystem<ByteArray, Byte>(bitsX, bitsY, bitsZ) {
 
     abstract fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: ByteArray)
 
