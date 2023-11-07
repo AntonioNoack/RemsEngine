@@ -14,6 +14,7 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 import org.lwjgl.opengl.GL30C.*
+import org.lwjgl.opengl.GL31C
 import org.lwjgl.opengl.GL43C.GL_BUFFER
 import org.lwjgl.opengl.GL43C.glObjectLabel
 import java.nio.ByteBuffer
@@ -112,9 +113,55 @@ abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: Lis
         }
     }
 
+    fun copyElementsTo(toBuffer: OpenGLBuffer, from: Long, to: Long, size: Long) {
+        if (size == 0L) return
+        if (stride != toBuffer.stride) {
+            throw IllegalArgumentException("Buffers have mismatched strides")
+        }
+        copyBytesTo(toBuffer, from * stride, to * stride, size * stride)
+    }
+
+    fun copyBytesTo(toBuffer: OpenGLBuffer, from: Long, to: Long, size: Long) {
+
+        // initial checks
+        if (size == 0L) return
+        if (toBuffer === this && from == to) return
+        if (size < 0) {
+            throw IllegalArgumentException("Size must be non-negative")
+        }
+
+        // just in case, ensure the buffers have data;
+        // might fail us on Android, where OpenGL can lose its session
+        ensureBuffer()
+        toBuffer.ensureBuffer()
+
+        if (LOGGER.isDebugEnabled) {
+            LOGGER.debug("Copying from $name to ${toBuffer.name}: from $from to $to, x$size")
+        }
+
+        if (locallyAllocated < from + size || toBuffer.locallyAllocated < to + size) {
+            throw IllegalStateException("Illegal copy $from to $to, $from + $size vs $locallyAllocated / $to + $size vs ${toBuffer.locallyAllocated}")
+        } else if (pointer == 0 || toBuffer.pointer == 0) {
+            throw IllegalStateException("Buffer hasn't been created yet")
+        }
+
+        GFX.check()
+        glBindBuffer(GL31C.GL_COPY_READ_BUFFER, pointer)
+        glBindBuffer(GL31C.GL_COPY_WRITE_BUFFER, toBuffer.pointer)
+        GL31C.glCopyBufferSubData(
+            GL31C.GL_COPY_READ_BUFFER,
+            GL31C.GL_COPY_WRITE_BUFFER,
+            from, to, size
+        )
+        GFX.check()
+    }
+
     /**
      * free this buffer on the CPU side;
      * you will no longer be able to implicitly, partially update it (-> state frozen)
+     *
+     * if you just need a GPU-only buffer, use uploadEmpty()
+     *
      * todo except explicitly, implement that
      * */
     fun freeze(force: Boolean = false) {

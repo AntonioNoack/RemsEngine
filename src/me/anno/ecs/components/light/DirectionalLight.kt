@@ -8,7 +8,6 @@ import me.anno.engine.debug.DebugShapes
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawBox
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.input.Input
 import me.anno.mesh.Shapes
 import org.joml.*
 
@@ -34,8 +33,6 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         return true
     }
 
-    var experimental = 1.0
-
     override fun updateShadowMap(
         cascadeScale: Double,
         worldScale: Double,
@@ -47,39 +44,41 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         pipeline: Pipeline,
         resolution: Int
     ) {
+
+        // todo allow to set the focus point non-centered?
+
         // cascade style must only influence xy, not z
         dstCameraMatrix.set(drawTransform).invert()
         dstCameraMatrix.setTranslation(0f, 0f, 0f)
-        val sx = (1.0 / (cascadeScale * worldScale)).toFloat()
+        val sx = (1.0 / (cascadeScale * worldScale))
         val sz = (1.0 / (worldScale))
 
         // z must be mapped from [-1,1] to [0,1]
         // additionally it must be scaled to match the world size
-        dstCameraMatrix.scaleLocal(sx, sx, (sz * 0.5).toFloat())
+        dstCameraMatrix.scaleLocal(sx.toFloat(), sx.toFloat(), (sz * 0.5).toFloat())
         dstCameraMatrix.m32((1.0 / cascadeScale).toFloat()) // w
 
+        // is this correct if cascadeScale != 1.0?
+        // should be
+        pipeline.frustum.defineOrthographic(
+            drawTransform, resolution,
+            dstCameraPosition, cameraRotation
+        )
+
         // offset camera position accordingly
-        if (Input.isShiftDown) {
-            cameraDirection.mulAdd(
-                -((if (cascadeScale != 1.0) experimental
-                else 1.0)) / (worldScale),
-                dstCameraPosition, dstCameraPosition
-            )
-        } else {
-            cameraDirection.mulAdd(
-                -(2.0 / cascadeScale - 1.0) / (worldScale),
-                dstCameraPosition, dstCameraPosition
-            )
-        }
+        cameraDirection.mulAdd(
+            -(2.0 / cascadeScale - 1.0) / (worldScale),
+            dstCameraPosition, dstCameraPosition
+        )
 
         // reconstructMatrixBoundsForTesting(dstCameraMatrix, worldScale, dstCameraPosition)
-
-        // todo these planes look incorrect
-        pipeline.frustum.defineOrthographic(drawTransform, resolution, dstCameraPosition, cameraRotation)
-        pipeline.frustum.showPlanes()
     }
 
-    fun reconstructMatrixBoundsForTesting(dstCameraMatrix: Matrix4f, worldScale: Double, dstCameraPosition: Vector3d){
+    /**
+     * tests whether the calculated matrix is correct:
+     * visualizes the bounds of what will be rendered
+     * */
+    fun reconstructMatrixBoundsForTesting(dstCameraMatrix: Matrix4f, worldScale: Double, dstCameraPosition: Vector3d) {
         val pts = ArrayList<Vector3f>(8)
         for (x in listOf(-1f, 1f)) {
             for (y in listOf(-1f, 1f)) {
@@ -88,8 +87,8 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                 }
             }
         }
-        val inv = Matrix4f()
-        dstCameraMatrix.invert(inv)
+
+        val inv = dstCameraMatrix.invert(Matrix4f())
         for (pt in pts) {
             inv.transformPosition(pt)
             pt.mul(1f / worldScale.toFloat())

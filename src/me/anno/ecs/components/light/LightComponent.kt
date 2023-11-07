@@ -23,6 +23,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.max
+import me.anno.utils.pooling.JomlPools
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.pow
@@ -185,16 +186,18 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
         val drawTransform = transform.getDrawMatrix()
         val resolution = shadowMapResolution
         val global = transform.globalTransform
+        // val originalPosition = Vector3d(RenderState.cameraPosition) // test frustum
         val position = global.getTranslation(RenderState.cameraPosition)
         val rotation = global.getUnnormalizedRotation(RenderState.cameraRotation)
         val worldScale = SQRT3 / global.getScaleLength()
         val direction = rotation.transform(RenderState.cameraDirection.set(0.0, 0.0, -1.0))
+        // val originalWorldScale = RenderState.worldScale // test frustum
         RenderState.worldScale = worldScale
         val result = shadowTextures as FramebufferArray
         val shadowMapPower = shadowMapPower
         // only fill pipeline once? probably better...
         val renderer = Renderer.nothingRenderer
-        val tmpPos = Vector3d(position)
+        val tmpPos = JomlPools.vec3d.create().set(position)
         GFXState.depthMode.use(DepthMode.CLOSE) {
             result.draw(renderer) { i ->
                 if (i > 0) { // reset position and rotation
@@ -208,6 +211,13 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                     position, rotation, direction,
                     drawTransform, pipeline, resolution
                 )
+                /* test frustum, breaks cascades though (because cameraMatrix isn't reset)
+                    RenderState.cameraPosition.set(originalPosition)
+                    RenderState.worldScale = originalWorldScale
+                    pipeline.frustum.showPlanes()
+                    RenderState.worldScale = worldScale
+                    position.set(tmpPos)
+                */
                 val isPerspective = abs(RenderState.cameraMatrix.m33) < 0.5f
                 RenderState.calculateDirections(isPerspective)
                 val root = entity.getRoot(Entity::class)
@@ -216,6 +226,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 pipeline.defaultStage.drawDepths(pipeline)
             }
         }
+        JomlPools.vec3d.sub(1)
     }
 
     /**

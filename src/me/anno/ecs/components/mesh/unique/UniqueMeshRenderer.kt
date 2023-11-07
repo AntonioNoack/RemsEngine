@@ -23,8 +23,10 @@ import org.joml.Matrix4x3d
 import org.lwjgl.opengl.GL31C.*
 
 /**
- * todo Mesh, but each one is only rendered once,
- *  and all use the same material -> can be rendered in a single draw call
+ * renderer for static geometry, that still can be partially loaded/unloaded
+ *
+ * all instances must use the same material (for now),
+ * but we do support fully custom MeshVertexData
  * */
 abstract class UniqueMeshRenderer<Key>(
     val attributes: List<Attribute>,
@@ -183,34 +185,7 @@ abstract class UniqueMeshRenderer<Key>(
     }
 
     override fun copy(from: Int, fromData: StaticBuffer, to: IntRange, toData: StaticBuffer) {
-        if (to.size == 0) return
-        if (from == to.first && fromData === toData) return
-
-        GFX.check()
-        fromData.ensureBuffer()
-        toData.ensureBuffer()
-
-        // println("copying from ${fromData.pointer} to ${toData.pointer}: from $from to $to / ${fromData.vertexCount}/${toData.vertexCount}")
-        if (fromData.vertexCount < to.size) {
-            LOGGER.warn("Illegal copy $from to $to, ${fromData.vertexCount}x / ${toData.vertexCount}x")
-            return
-        }
-
-        if (fromData.pointer == 0 || toData.pointer == 0) {
-            LOGGER.warn("Illegal data")
-            return
-        }
-
-        glBindBuffer(GL_COPY_READ_BUFFER, fromData.pointer)
-        glBindBuffer(GL_COPY_WRITE_BUFFER, toData.pointer)
-        glCopyBufferSubData(
-            GL_COPY_READ_BUFFER,
-            GL_COPY_WRITE_BUFFER,
-            from.toLong(),
-            to.first.toLong() * stride,
-            to.size.toLong() * stride
-        )
-        GFX.check()
+        fromData.copyElementsTo(toData, from.toLong(), to.first.toLong(), to.size.toLong())
     }
 
     override fun destroy() {
