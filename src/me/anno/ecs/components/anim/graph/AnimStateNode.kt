@@ -2,7 +2,7 @@ package me.anno.ecs.components.anim.graph
 
 import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.ecs.components.anim.AnimRenderer
+import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.prefab.PrefabSaveable
@@ -66,7 +66,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         return this // continuing this animation
     }
 
-    fun updateRenderer(previous: AnimStateNode?, target: AnimRenderer) {
+    fun updateRenderer(previous: AnimStateNode?, target: AnimMeshComponent) {
         val targetSize = if (previous == null) 1 else 2
         if (target.animations.size != targetSize) {
             target.animations = if (previous == null) {

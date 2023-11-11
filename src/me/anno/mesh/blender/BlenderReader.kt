@@ -390,7 +390,7 @@ object BlenderReader {
 
                     // todo create proper location for skeleton
                     val skeletonRef = InnerTmpFile.InnerTmpPrefabFile(skeleton)
-                    val c = prefab.add(path, 'c', "AnimRenderer", obj.id.realName)
+                    val c = prefab.add(path, 'c', "AnimMeshComponent", obj.id.realName)
 
                     prefab[c, "meshFile"] = meshFile2
                     prefab[c, "skeleton"] = skeletonRef

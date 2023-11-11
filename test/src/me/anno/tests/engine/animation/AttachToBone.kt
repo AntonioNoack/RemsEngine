@@ -1,7 +1,7 @@
 package me.anno.tests.engine.animation
 
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.AnimRenderer
+import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.BoneAttachmentComponent
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
@@ -32,8 +32,8 @@ fun main() {
             .setScale(2.5)
     )
 
-    // find first AnimRenderer, so we can attach the calculation there
-    val renderer = character.getComponentInChildren(AnimRenderer::class)!!
+    // find first AnimMeshComponent, so we can attach the calculation there
+    val renderer = character.getComponentInChildren(AnimMeshComponent::class)!!
 
     val prop = Entity("Phone", scene)
     prop.add(Entity(MeshComponent(flatCube.front, Material.diffuse(black))).apply {

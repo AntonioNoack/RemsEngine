@@ -8,7 +8,6 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
@@ -34,7 +33,7 @@ import kotlin.math.min
 /**
  * Renders a skeletal animation
  * */
-open class AnimRenderer : MeshComponent() {
+open class AnimMeshComponent : MeshComponent() {
 
     // todo in debug mode, we could render the skeleton as well/instead :)
 
@@ -357,7 +356,7 @@ open class AnimRenderer : MeshComponent() {
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
-        dst as AnimRenderer
+        dst as AnimMeshComponent
         dst.skeleton = skeleton
         dst.animations = animations.map { it.clone() }
         dst.useDefaultAnimation = useDefaultAnimation
@@ -368,7 +367,7 @@ open class AnimRenderer : MeshComponent() {
         dst.currWeights.set(currWeights)
     }
 
-    override val className: String get() = "AnimRenderer"
+    override val className: String get() = "AnimMeshComponent"
 
     companion object {
 

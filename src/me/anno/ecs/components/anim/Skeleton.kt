@@ -72,7 +72,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             val shaderSupportsSkinning = location >= 0
             shader.v1b("hasAnimation", shaderSupportsSkinning)
             if (shaderSupportsSkinning) {
-                AnimRenderer.upload(shader, location, skinningMatrices)
+                AnimMeshComponent.upload(shader, location, skinningMatrices)
             }
         } else {
             shader.v1b("hasAnimation", false)

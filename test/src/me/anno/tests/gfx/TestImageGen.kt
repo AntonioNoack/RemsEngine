@@ -180,7 +180,7 @@ fun main() {
 
     registerCustomClass(Bone())
     registerCustomClass(Skeleton())
-    registerCustomClass(AnimRenderer())
+    registerCustomClass(AnimMeshComponent())
     registerCustomClass(ImportedAnimation())
     registerCustomClass(BoneByBoneAnimation())
 

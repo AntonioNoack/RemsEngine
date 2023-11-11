@@ -4,7 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Docs
-import me.anno.ecs.components.anim.AnimRenderer
+import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.PlayMode
@@ -24,7 +24,7 @@ class AnimController : Component() {
     var graphInstance: StateMachine? = null
 
     @NotSerializedProperty
-    private var renderer: AnimRenderer? = null
+    private var renderer: AnimMeshComponent? = null
 
     @NotSerializedProperty
     private var lastGraphSource: FileReference = InvalidRef
@@ -53,7 +53,7 @@ class AnimController : Component() {
 
     override fun onChangeStructure(entity: Entity) {
         super.onChangeStructure(entity)
-        renderer = entity.getComponent(AnimRenderer::class)
+        renderer = entity.getComponent(AnimMeshComponent::class)
     }
 
     override fun onUpdate(): Int {

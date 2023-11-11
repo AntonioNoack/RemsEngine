@@ -221,7 +221,7 @@ object AnimatedMeshesLoader {
 
             // create an animation node to show the first animation
             if (meshes.isEmpty() && animMap.isNotEmpty()) {
-                val animPath = hierarchy.add(ROOT_PATH, 'c', "AnimRenderer", "AnimRenderer")
+                val animPath = hierarchy.add(ROOT_PATH, 'c', "AnimMeshComponent", "AnimMeshComponent")
                 hierarchy.setUnsafe(animPath, "skeleton", skeletonPath)
                 if (sampleAnimations != null) hierarchy.setUnsafe(animPath, "animations", sampleAnimations)
             }
@@ -372,7 +372,7 @@ object AnimatedMeshesLoader {
     ): Prefab {
         val adds = hierarchyPrefab.adds
         for (change in adds) {
-            if (change.clazzName == "AnimRenderer") {
+            if (change.clazzName == "AnimMeshComponent") {
                 val indexInEntity = adds.filter { it.path == change.path }.indexOfFirst { it === change }
                 val path = change.path.added(change.nameId, indexInEntity, 'c')
                 hierarchyPrefab.setUnsafe(path, "skeleton", skeletonPath)

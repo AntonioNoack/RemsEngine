@@ -3,7 +3,7 @@ package me.anno.tests.engine.animation
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.AnimRenderer
+import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel
@@ -36,7 +36,7 @@ class FoxSpeedController : Component() {
 
     fun updateSpeed() {
         val speed = speed.toFloat()
-        entity?.forAllComponentsInChildren(AnimRenderer::class) {
+        entity?.forAllComponentsInChildren(AnimMeshComponent::class) {
             it.animations.first().speed = speed
         }
     }
@@ -123,7 +123,7 @@ fun main() {
             entity.setRotation(0.0, if (dir < 0) angle else angle + PI, 0.0)
             entity.setScale(0.01)
             val randomProgress = random.nextFloat() * 100f
-            entity.forAllComponentsInChildren(AnimRenderer::class) {
+            entity.forAllComponentsInChildren(AnimMeshComponent::class) {
                 for (state in it.animations) {
                     val duration = AnimationCache[state.source]!!.duration
                     state.progress = randomProgress * duration

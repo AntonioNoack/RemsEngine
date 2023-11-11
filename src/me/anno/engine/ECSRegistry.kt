@@ -59,7 +59,7 @@ object ECSRegistry {
         registerCustomClass(Mesh())
         registerCustomClass(Material())
         registerCustomClass(MeshComponent())
-        registerCustomClass(AnimRenderer())
+        registerCustomClass(AnimMeshComponent())
         registerCustomClass(AnimationState())
         registerCustomClass(ImportedAnimation())
         registerCustomClass(BoneByBoneAnimation())

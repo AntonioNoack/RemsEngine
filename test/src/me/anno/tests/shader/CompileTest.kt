@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.animation.LoopingState
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.AnimRenderer
+import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.BoneByBoneAnimation
 import me.anno.ecs.components.anim.Skeleton
@@ -80,12 +80,12 @@ fun createTestScene(): Entity {
     val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
     val offset = Entity(scene)
     offset.setPosition(3.0, 0.0, 0.0)
-    offset.add(AnimRenderer().apply {
+    offset.add(AnimMeshComponent().apply {
         this.meshFile = animatedMesh.ref
         this.skeleton = skeleton.ref
         this.animations = listOf(animState)
     })
-    offset.add(AnimRenderer().apply {
+    offset.add(AnimMeshComponent().apply {
         this.meshFile = animatedMesh.ref
         this.skeleton = skeleton.ref
         this.animations = listOf(animState)

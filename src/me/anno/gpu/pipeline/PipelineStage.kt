@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.anim.AnimRenderer
+import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.light.PlanarReflection
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.IMesh
@@ -892,7 +892,7 @@ class PipelineStage(
 
     fun addToStack(stack: InstancedStack, component: Component, transform: Transform) {
         if (stack is InstancedAnimStack &&
-            component is AnimRenderer &&
+            component is AnimMeshComponent &&
             component.updateAnimState()
         ) {
             val texture = component.getAnimTexture()

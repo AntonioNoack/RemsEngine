@@ -127,7 +127,7 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
         val bones = skeleton.bones
         val mesh = Mesh()
-        val renderer = AnimRenderer()
+        val renderer = AnimMeshComponent()
         val state = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
 
         init {

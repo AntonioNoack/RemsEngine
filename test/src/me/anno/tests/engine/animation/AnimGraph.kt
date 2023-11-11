@@ -3,7 +3,7 @@ package me.anno.tests.engine.animation
 import me.anno.animation.LoopingState
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.AnimRenderer
+import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.graph.AnimController
 import me.anno.ecs.components.anim.graph.AnimStateNode
@@ -29,7 +29,7 @@ fun main() {
     registerCustomClass { StateMachine() }
 
     val entity = Entity()
-    val renderer = AnimRenderer()
+    val renderer = AnimMeshComponent()
     val graph = StateMachine()
     val controller = AnimController()
     controller.graphSource = graph.ref

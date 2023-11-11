@@ -44,7 +44,7 @@ class AnimationState(
 
     private var lastDt = 0f
     private var lastTime = 0L
-    fun update(ar: AnimRenderer, dt: Float, async: Boolean) {
+    fun update(ar: AnimMeshComponent, dt: Float, async: Boolean) {
         if (lastDt == dt && lastTime == Time.gameTimeN) {
             return // duplicate call
         } else {

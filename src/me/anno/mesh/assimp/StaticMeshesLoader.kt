@@ -144,7 +144,7 @@ object StaticMeshesLoader {
 
         val meshCount = aiNode.mNumMeshes()
         if (meshCount > 0) {
-            val rendererClass = if (hasSkeleton) "AnimRenderer" else "MeshComponent"
+            val rendererClass = if (hasSkeleton) "AnimMeshComponent" else "MeshComponent"
             val meshIndices = aiNode.mMeshes()!!
             for (i in 0 until meshCount) {
                 val mesh = sceneMeshes[meshIndices[i]]

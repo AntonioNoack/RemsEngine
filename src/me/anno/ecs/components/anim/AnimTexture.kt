@@ -13,7 +13,7 @@ import kotlin.math.min
 //  this would allow us to render animated meshes instanced as well <3, and with independent animations [just manually created animations would need extra care]
 //  b) or separate the shader all together
 
-// done integrate this into AnimRenderer
+// done integrate this into AnimMeshComponent
 // done merge this into ECSMeshShader
 // todo merge multiple skeletons if needed, so we don't have duplicate textures
 // todo compact animation if no movement takes place

@@ -387,7 +387,7 @@ class BoneByBoneAnimation() : Animation() {
             }
 
             // create test scene
-            val mesh = AnimRenderer()
+            val mesh = AnimMeshComponent()
             mesh.skeleton = animation.skeleton
             mesh.animations = listOf(AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
             mesh.meshFile = meshFile

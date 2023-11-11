@@ -144,8 +144,6 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
                     "NdotL = lightNor.z;\n" + // dot(lightDirWS, globalNormal) = dot(lightDirLS, localNormal)
                     "lightColor *= max(NdotL, 0.0);\n" + // light looks much better with it
                     (if (withShadows) "" +
-                            // todo instead of Texture2DShadow[], we now have Texture2DArrayShadow[]
-                            //  -> first get size to count how many element we have
                             "if(shadowMapIdx0 < shadowMapIdx1 && receiveShadows){\n" +
                             // when we are close to the edge, we blend in
                             "   float edgeFactor = min(20.0*(1.0-max(abs(lightPos.x),abs(lightPos.y))),1.0);\n" +

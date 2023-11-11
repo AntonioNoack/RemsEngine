@@ -165,6 +165,7 @@ class CachedReflections(
                         partialResult.add(name)
                     }
                 }
+                partialResult.sort()
                 result.add(clazz2 to partialResult)
                 if (doneNames.size >= targetSize) break // done :)
             }
