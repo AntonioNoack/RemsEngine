@@ -10,8 +10,8 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.SimpleRenderer
+import me.anno.gpu.shader.renderer.Renderer
+import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode

@@ -2,7 +2,7 @@ package me.anno.tests.sdf
 
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.sdf.arrays.SDFArrayMapper
 import me.anno.sdf.random.SDFRandomTranslation
 import me.anno.sdf.shapes.SDFBox
@@ -19,6 +19,6 @@ fun main() {
     shape.addChild(array)
     shape.addChild(SDFRandomTranslation())
 
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testSceneWithUI("SDFRandomTranslation", shape)
 }

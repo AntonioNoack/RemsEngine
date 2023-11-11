@@ -7,13 +7,12 @@ import me.anno.engine.ui.control.DCPaintable
 import me.anno.engine.ui.control.DraggingControls
 import me.anno.gpu.GFXState.currentRenderer
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.sdf.SDFComponent
 import me.anno.sdf.SDFTransform
 import me.anno.sdf.VariableCounter
-import me.anno.utils.LOGGER
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 

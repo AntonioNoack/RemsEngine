@@ -9,7 +9,7 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.video.FrameTask.Companion.missingResource
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread

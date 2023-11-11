@@ -1,7 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFXBase.disableRenderDoc
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.ActionManager
 import me.anno.studio.StudioBase
 import me.anno.ui.base.components.Padding

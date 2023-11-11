@@ -12,7 +12,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.SimpleRenderer
+import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode

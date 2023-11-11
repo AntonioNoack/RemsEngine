@@ -289,7 +289,7 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
             else if (isInFocus && enableFocusColor) focusTextColor
             else textColor
 
-    override fun getCursor(): Long? = if (onClickListeners.isEmpty()) super.getCursor() else Cursor.drag
+    override fun getCursor(): Cursor? = if (onClickListeners.isEmpty()) super.getCursor() else Cursor.drag
 
     override fun getPrintSuffix(): String = "\"${text.shorten(20)}\""
 

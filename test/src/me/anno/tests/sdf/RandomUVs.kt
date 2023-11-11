@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.sdf.TwoDims
 import me.anno.sdf.arrays.SDFArrayMapper
 import me.anno.sdf.arrays.SDFHexGrid
@@ -55,6 +55,6 @@ fun main() {
     println(Matrix2d(m).transpose())
     println(m.invert().transpose())
 
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     SceneView.testSceneWithUI("SDFRandomUV", entity)
 }

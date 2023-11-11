@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.mesh.Shapes.flatCube
 import java.util.*
 
@@ -15,7 +15,7 @@ import java.util.*
  * */
 fun main() {
 
-    GFXBase.forceLoadRenderDoc()
+    forceLoadRenderDoc()
 
     val scene = Entity("Scene")
     val floor = Entity("Floor", scene)

@@ -10,10 +10,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.image.ImageWriter
 import me.anno.input.Input
-import me.anno.sdf.SDFComponent
-import me.anno.sdf.SDFComposer
-import me.anno.sdf.SDFGroup
-import me.anno.sdf.VariableCounter
+import me.anno.sdf.*
 import me.anno.sdf.arrays.SDFArrayMapper
 import me.anno.sdf.arrays.SDFHexGrid
 import me.anno.sdf.modifiers.*
@@ -69,7 +66,8 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
     val shapeDependentShader = StringBuilder()
     val seeds = ArrayList<String>()
     tree.buildShader(shapeDependentShader, 0, VariableCounter(1), 0, uniforms, functions, seeds)
-    return uniforms to BaseShader("raycasting",
+    return uniforms to BaseShader(
+        "raycasting",
         ShaderLib.coordsList,
         ShaderLib.coordsUVVertexShader,
         ShaderLib.uvList,
@@ -110,7 +108,8 @@ fun createTestShader(tree: SDFComponent): Pair<HashMap<String, TypeValue>, BaseS
                 "   vec3 normal = calcNormal(hit, ray.x * sdfNormalEpsilon, ray.x);\n" +
                 // "   gl_FragColor = vec4(vec3(me.anno.tests.dot(normal,sunDir)*.4+.8), 1.0);\n" +
                 "   gl_FragColor = vec4(normal*.5+.5, 1.0);\n" +
-                "}")
+                "}"
+    )
 }
 
 fun testGPU(finalShape: SDFComponent, camPosition: Vector3f, fovFactor: Float) {
@@ -253,7 +252,7 @@ fun createShape(): SDFComponent {
     val finalShape = SDFGroup()
     // finalShape.addChild(group1)
     finalShape.addChild(group2)
-    finalShape.type = SDFGroup.CombinationMode.UNION
+    finalShape.combinationMode = CombinationMode.UNION
     finalShape.smoothness = 0.5f
     val array = SDFArrayMapper()
     array.cellSize.set(4f)
@@ -280,5 +279,4 @@ fun main() {
     val fovFactor = tan(fovDegrees.toRadians() * 0.5f)
     testCPU(finalShape, camPosition, fovFactor)
     testGPU(finalShape, camPosition, fovFactor)
-
 }

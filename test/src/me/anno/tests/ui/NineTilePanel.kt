@@ -1,7 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -11,7 +11,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.black
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI3("NineTilePanel") {
         val alignments = arrayOf(
             AxisAlignment.MIN,
@@ -46,7 +46,6 @@ fun main() {
                             minW = 100
                             minH = 100
                         }
-
                     })
                 }
             }

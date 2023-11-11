@@ -7,7 +7,6 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.LineShapes
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFXBase
 import me.anno.mesh.Shapes.flatCube
 import org.joml.AABBd
 import org.joml.AABBf
@@ -15,8 +14,6 @@ import org.joml.Matrix4x3d
 import org.joml.Vector3f
 
 fun main() {
-
-    GFXBase.loadRenderDoc()
 
     val scene = Entity()
 

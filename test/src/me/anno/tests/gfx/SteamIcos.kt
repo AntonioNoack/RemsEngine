@@ -1,7 +1,7 @@
 package me.anno.tests.gfx
 
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXBase.disableRenderDoc
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.base.buttons.ImageButton
 import me.anno.ui.base.components.Padding

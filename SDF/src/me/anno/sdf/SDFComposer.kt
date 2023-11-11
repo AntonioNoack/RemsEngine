@@ -1,8 +1,8 @@
 package me.anno.sdf
 
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.ECSMeshShader.Companion.discardByCullingPlane
@@ -15,11 +15,11 @@ import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.maths.Maths.length
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.defineUniform
@@ -27,7 +27,8 @@ import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.sdf.shapes.SDFShape
 import me.anno.sdf.uv.UVMapper
 import me.anno.utils.pooling.JomlPools
-import org.joml.*
+import org.joml.Vector2f
+import org.joml.Vector3f
 import java.util.*
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -141,6 +142,7 @@ object SDFComposer {
                 // instancing is not supported
                 val fragmentVariables = fragmentVariables1 + uniforms.map { (k, v) -> Variable(v.type, k) }
                 val defines = concatDefines(key, StringBuilder()).toString()
+                val renderer = key.renderer
                 val stage = ShaderStage(
                     name, fragmentVariables, defines +
 
@@ -168,31 +170,36 @@ object SDFComposer {
                             "finalAlpha = 0.0;\n" +
                             "if(ray.x >= 0.0){\n" + // outside objects
                             "   ray = raycast(localPos, localDir, steps);\n" +
-                            "   if(debugMode == ${DebugMode.NUM_STEPS.id}){\n" +
-                            showNumberOfSteps +
-                            "   } else {\n" +
-                            "       float distOnY = -localPos.y / localDir.y;\n" +
-                            "       vec3 localHit = localPos + distOnY * localDir;\n" +
-                            "       bool inPlane = all(greaterThan(localHit.xz,localMin.xz)) && all(lessThan(localHit.xz,localMax.xz));\n" +
-                            // in this mode, just adding a plane might be best
-                            "       if(debugMode == ${DebugMode.SDF_ON_Y.id} && ((distOnY > 0.0 && distOnY < ray.x) || ray.y < 0.0) && inPlane){\n" +
-                            sdfOnY +
-                            "       } else if(ray.y < 0.0){ discard; } else {\n" +
-                            // proper material calculation
-                            "           vec3 localHit = localPos + ray.x * localDir;\n" +
-                            "           vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
-                            // todo normal could be guessed from depth aka dFdx(ray.x),dFdy(ray.x)
-                            // todo calculate tangent from dFdx(uv) and dFdy(uv)
-                            "           finalNormal = normalize(matMul(localTransform, vec4(localNormal,0.0)));\n" +
-                            "           finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" + // convert localHit to global hit
-                            discardByCullingPlane + // respect reflection plane
-                            "           vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
-                            "           gl_FragDepth = newVertex.z/newVertex.w;\n" +
-                            // step by step define all material properties
-                            "           finalUV = ray.zw;\n" +
-                            materialCode +
-                            "       }\n" +
-                            "   }\n" +
+                            (if (renderer == SDFRegistry.NumStepsRenderer) {
+                                showNumberOfSteps
+                            } else {
+                                "" +
+                                        "float distOnY = -localPos.y / localDir.y;\n" +
+                                        "vec3 localHit = localPos + distOnY * localDir;\n" +
+                                        // in this mode, just adding a plane might be best
+                                        (if (renderer == SDFRegistry.SDFOnYRenderer) {
+                                            "" +
+                                                    "bool inPlane = all(greaterThan(localHit.xz,localMin.xz)) && all(lessThan(localHit.xz,localMax.xz));\n" +
+                                                    "if(((distOnY > 0.0 && distOnY < ray.x) || ray.y < 0.0) && inPlane){\n" +
+                                                    sdfOnY +
+                                                    "} else "
+                                        } else "") +
+                                        "if(ray.y < 0.0){ discard; } else {\n" +
+                                        // proper material calculation
+                                        "   vec3 localHit = localPos + ray.x * localDir;\n" +
+                                        "   vec3 localNormal = calcNormal(localPos, localDir, localHit, ray.x * sdfNormalEpsilon, ray.x);\n" +
+                                        // todo normal could be guessed from depth aka dFdx(ray.x),dFdy(ray.x)
+                                        // todo calculate tangent from dFdx(uv) and dFdy(uv)
+                                        "   finalNormal = normalize(matMul(localTransform, vec4(localNormal,0.0)));\n" +
+                                        "   finalPosition = matMul(localTransform, vec4(localHit, 1.0));\n" + // convert localHit to global hit
+                                        discardByCullingPlane + // respect reflection plane
+                                        "   vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
+                                        "   gl_FragDepth = newVertex.z/newVertex.w;\n" +
+                                        // step by step define all material properties
+                                        "   finalUV = ray.zw;\n" +
+                                        materialCode +
+                                        "}\n"
+                            }) +
                             "} else discard;\n" + // inside an object
 
                             v0 +
@@ -236,7 +243,6 @@ object SDFComposer {
             shader.v3f("localMax", b.getMax(tmp3).mul(s))
 
             shader.v1b("perspectiveCamera", RenderState.isPerspective)
-            shader.v1i("debugMode", tree.debugMode.id)
             shader.v1b("renderIds", GFXState.currentRenderer == Renderer.idRenderer)
 
             shader.v2f("renderSize", GFXState.currentBuffer.width.toFloat(), GFXState.currentBuffer.height.toFloat())

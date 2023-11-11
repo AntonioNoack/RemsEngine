@@ -3,12 +3,12 @@ package me.anno.tests.gfx
 import me.anno.cache.data.ImageToTexture.Companion.imageTimeout
 import me.anno.cache.instances.SVGMeshCache
 import me.anno.config.DefaultConfig
-import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.gpu.drawing.SVGxGFX
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
@@ -25,7 +25,7 @@ import org.joml.Matrix4fArrayList
 
 fun main() {
 
-    GFXBase.forceLoadRenderDoc()
+    forceLoadRenderDoc()
     testUI3("SVG") {
 
         // val srcFile = downloads.getChild("2d/tiger.svg")
@@ -68,7 +68,6 @@ fun main() {
                         defaultMaterial.bind(shader)
                         shader.v1i("hasVertexColors", mesh.hasVertexColors)
                         mesh.draw(shader, 0)
-
                     } else {
                         // old method, uses specialized shader
                         val buffer = SVGMeshCache[srcFile, imageTimeout, false]!!

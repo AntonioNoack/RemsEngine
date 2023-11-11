@@ -2,7 +2,7 @@ package me.anno.tests.game
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts.drawText
 import me.anno.input.Key
@@ -215,6 +215,6 @@ class Snake : Panel(style) {
 }
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI3("Snake") { Snake() }
 }

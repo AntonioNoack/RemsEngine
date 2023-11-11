@@ -2,7 +2,7 @@ package me.anno.tests.shader
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.ShaderCache
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.ui.Panel
@@ -38,7 +38,7 @@ private fun compileCachedShaders() {
 fun main() {
     // glProgramBinary() doesn't work with RenderDoc :/
     if (true) {
-        GFXBase.disableRenderDoc()
+        disableRenderDoc()
         testUI3("ShaderCache") {
             compileCachedShaders()
             Panel(DefaultConfig.style)

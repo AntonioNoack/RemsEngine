@@ -1,6 +1,7 @@
 package me.anno.ui.base.buttons
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
@@ -13,10 +14,8 @@ import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
-import me.anno.ui.base.constraints.WrapAlign
-import me.anno.ui.base.text.TextPanel
 import me.anno.ui.Style
-import me.anno.ui.base.text.TextStyleable
+import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
@@ -155,7 +154,7 @@ open class TextButton(
     override fun acceptsChar(char: Int) = Key.byId(char).isClickKey() // not ideal...
     override fun isKeyInput() = true
 
-    override fun getCursor(): Long? {
+    override fun getCursor(): Cursor? {
         return if (isInputAllowed) super.getCursor()
         else null
     }

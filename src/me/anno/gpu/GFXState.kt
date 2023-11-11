@@ -9,8 +9,8 @@ import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.shader.OpenGLShader
-import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.Renderer.Companion.colorRenderer
+import me.anno.gpu.shader.renderer.Renderer
+import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageGPUCache
 import me.anno.utils.structures.stacks.SecureStack

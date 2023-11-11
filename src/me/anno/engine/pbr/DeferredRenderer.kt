@@ -3,7 +3,7 @@ package me.anno.engine.pbr
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.shader.SimpleRenderer
+import me.anno.gpu.shader.renderer.SimpleRenderer
 
 // many lights with many shadow maps would
 // - require many heavy updates

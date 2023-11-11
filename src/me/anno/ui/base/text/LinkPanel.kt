@@ -34,7 +34,7 @@ open class LinkPanel(link: String, style: Style) : TextPanel(link, style.getChil
         URL(text).openInBrowser()
     }
 
-    override fun getCursor(): Long? = Cursor.hand
+    override fun getCursor(): Cursor? = Cursor.hand
 
     override fun clone(): LinkPanel {
         val clone = LinkPanel(text, style)

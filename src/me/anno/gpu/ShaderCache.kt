@@ -24,6 +24,10 @@ import java.util.zip.InflaterInputStream
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * OpenGL supports writing shaders to file, so they can be loaded instead of compiled.
+ * This can save lots of time ofc.
+ * */
 object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
     "ShaderCache.json", "shaders", "ShaderCache"
 ) {

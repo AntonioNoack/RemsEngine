@@ -1,16 +1,18 @@
-package me.anno.gpu.shader
+package me.anno.gpu.shader.renderer
 
-import me.anno.engine.ui.render.ECSMeshShader.Companion.colorToSRGB
-import me.anno.engine.ui.render.Renderers.attributeRenderers
+import me.anno.engine.ui.render.ECSMeshShader
+import me.anno.engine.ui.render.Renderers
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderFuncLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.gpu.texture.TextureLib
 import me.anno.image.ImageGPUCache
 import me.anno.utils.files.UVChecker
 
@@ -55,7 +57,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
                     Variable(GLSLType.V4F, "SPResult", VariableMode.OUT),
                 ),
                 "" +
-                        colorToSRGB +
+                        ECSMeshShader.colorToSRGB +
                         "SPResult = vec4(finalColor\n" +
                         "   #ifndef IS_TINTED\n * tint.rgb\n #endif\n," +
                         "clamp(finalAlpha\n #ifndef IS_TINTED\n * tint.a\n #endif\n, 0.0, 1.0));\n"
@@ -73,7 +75,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
                     Variable(GLSLType.V4F, "SPResult", VariableMode.OUT),
                 ),
                 "" +
-                        colorToSRGB +
+                        ECSMeshShader.colorToSRGB +
                         "vec3 tmpCol = finalColor\n" +
                         "#ifndef IS_TINTED\n" +
                         " * tint.rgb\n" +
@@ -115,7 +117,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
                         "   random(vec2(id,1.0)),\n" +
                         "   random(vec2(id,5.0)),\n" +
                         "   random(vec2(id,9.0)), 1.0);\n"
-            ).add(randomGLSL)
+            ).add(ShaderFuncLib.randomGLSL)
         )
 
         val nothingRenderer = SimpleRenderer("depth", ShaderStage("", emptyList(), ""))
@@ -143,7 +145,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
                         "float flRandomId = float(randomId);\n" +
                         "vec2 seed = vec2(sin(flRandomId), cos(flRandomId));\n" +
                         "finalResult = vec4(random(seed.xy), random(seed.yx), random(100.0 - seed.yx), 1.0);\n"
-            ).add(randomGLSL)
+            ).add(ShaderFuncLib.randomGLSL)
         )
 
         val uvRenderer = object : SimpleRenderer(
@@ -157,11 +159,11 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
         ) {
             override fun uploadDefaultUniforms(shader: Shader) {
                 super.uploadDefaultUniforms(shader)
-                val checkerTex = ImageGPUCache[UVChecker.value, true] ?: whiteTexture
+                val checkerTex = ImageGPUCache[UVChecker.value, true] ?: TextureLib.whiteTexture
                 checkerTex.bind(shader, "checkerTex", GPUFiltering.LINEAR, Clamping.REPEAT)
             }
         }
 
-        val motionVectorRenderer get() = attributeRenderers[DeferredLayerType.MOTION]
+        val motionVectorRenderer get() = Renderers.attributeRenderers[DeferredLayerType.MOTION]
     }
 }

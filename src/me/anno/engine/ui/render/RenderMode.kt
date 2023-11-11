@@ -7,10 +7,10 @@ import me.anno.engine.ui.render.Renderers.frontBackRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.deferred.DeferredLayerType
-import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.Renderer.Companion.randomIdRenderer
-import me.anno.gpu.shader.Renderer.Companion.triangleVisRenderer
-import me.anno.gpu.shader.Renderer.Companion.uvRenderer
+import me.anno.gpu.shader.renderer.Renderer
+import me.anno.gpu.shader.renderer.Renderer.Companion.randomIdRenderer
+import me.anno.gpu.shader.renderer.Renderer.Companion.triangleVisRenderer
+import me.anno.gpu.shader.renderer.Renderer.Companion.uvRenderer
 import me.anno.graph.render.QuickPipeline
 import me.anno.graph.render.effects.*
 import me.anno.graph.render.effects.ColorBlindnessNode.Companion.createRenderGraph
@@ -28,9 +28,11 @@ class RenderMode(
     val renderGraph: FlowGraph? = null,
 ) {
 
+    constructor(renderer: Renderer) : this(renderer.name, renderer, null)
     constructor(name: String, renderer: Renderer) : this(name, renderer, null)
     constructor(name: String, renderGraph: FlowGraph?) : this(name, null, renderGraph)
     constructor(name: String, dlt: DeferredLayerType) : this(name, attributeRenderers[dlt])
+    constructor(name: String, base: RenderMode) : this(name, base.renderer, base.renderGraph)
 
     init {
         values.add(this)
@@ -190,7 +192,7 @@ class RenderMode(
                 .finish()
         )
 
-        val MONO_WORLD_SCALE = RenderMode("Mono World-Scale", DEFAULT.renderGraph)
+        val MONO_WORLD_SCALE = RenderMode("Mono World-Scale", DEFAULT)
         val GHOSTING_DEBUG = RenderMode("Ghosting Debug", Renderers.pbrRenderer)
 
         val FSR_SQRT2 = RenderMode("FSRx1.41", FSR1Node.createPipeline(0.707f))
@@ -229,8 +231,8 @@ class RenderMode(
                 .finish()
         )
 
-        val LINES = RenderMode("Lines", DEFAULT.renderGraph)
-        val LINES_MSAA = RenderMode("Lines MSAA", MSAA_DEFERRED.renderGraph)
+        val LINES = RenderMode("Lines", DEFAULT)
+        val LINES_MSAA = RenderMode("Lines MSAA", MSAA_DEFERRED)
         val FRONT_BACK = RenderMode("Front/Back", frontBackRenderer)
 
         /** visualize the triangle structure by giving each triangle its own color */
@@ -249,7 +251,7 @@ class RenderMode(
                 .finish()
         )
 
-        val PHYSICS = RenderMode("Physics", DEFAULT.renderGraph)
+        val PHYSICS = RenderMode("Physics", DEFAULT)
 
         val POST_OUTLINE = RenderMode(
             "Post-Outline",
@@ -273,7 +275,7 @@ class RenderMode(
         val DEUTERANOPIA = RenderMode("Deuteranopia", createRenderGraph(ColorBlindnessMode.DEUTERANOPIA))
         val TRITANOPIA = RenderMode("Tritanopia", createRenderGraph(ColorBlindnessMode.TRITANOPIA))
 
-        val RAY_TEST = RenderMode("Raycast Test", DEFAULT.renderGraph)
+        val RAY_TEST = RenderMode("Raycast Test", DEFAULT)
 
         val DEPTH_OF_FIELD = RenderMode(
             "Depth Of Field",

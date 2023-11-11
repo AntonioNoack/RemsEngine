@@ -24,7 +24,7 @@ import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testScene2
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.maths.Maths.SECONDS_TO_NANOS
@@ -66,7 +66,7 @@ fun main() {
     // todo hitting
     // todo lives or scores
 
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
 
     val scene = Entity()
     scene.add(BulletPhysics())

@@ -1,10 +1,11 @@
 package me.anno.ui.input.components
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.Cursor
 import me.anno.input.Key
+import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
-import me.anno.ui.Style
 
 class EnumValuePanel(title: String, private var owner: EnumInput, style: Style) :
     TextPanel(title, style.getChild("italic")) {
@@ -25,7 +26,7 @@ class EnumValuePanel(title: String, private var owner: EnumInput, style: Style) 
 
     override fun clone() = EnumValuePanel(this)
 
-    override fun getCursor(): Long? {
+    override fun getCursor(): Cursor? {
         return if (owner.isInputAllowed) super.getCursor()
         else null
     }

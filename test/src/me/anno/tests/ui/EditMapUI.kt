@@ -2,7 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.annotations.Type
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.studio.Inspectable
@@ -33,7 +33,7 @@ class EditMapUI : Saveable(), Inspectable {
 }
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     val instance = EditMapUI()
     instance.map[0] = white3
     instance.map[14654] = black3

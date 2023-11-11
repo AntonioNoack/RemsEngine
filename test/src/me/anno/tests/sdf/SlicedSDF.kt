@@ -17,6 +17,7 @@ import me.anno.gpu.shader.*
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.mesh.Shapes
 import me.anno.sdf.SDFComposer
 import me.anno.sdf.SDFGroup

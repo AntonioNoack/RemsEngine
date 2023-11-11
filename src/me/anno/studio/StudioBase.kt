@@ -9,14 +9,13 @@ import me.anno.cache.CacheSection
 import me.anno.config.DefaultConfig
 import me.anno.extensions.ExtensionLoader
 import me.anno.gpu.Cursor
-import me.anno.gpu.Cursor.useCursor
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.OSWindow
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.NullFramebuffer
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.input.ActionManager
 import me.anno.input.Input
 import me.anno.input.ShowKeys
@@ -144,8 +143,6 @@ abstract class StudioBase(
             tick("Audio manager")
         }
 
-        Cursor.init()
-
         ExtensionLoader.load()
 
         createUI()
@@ -192,7 +189,6 @@ abstract class StudioBase(
 
     open fun onShutdown() {
         ExtensionLoader.unload()
-        Cursor.destroy()
         Engine.requestShutdown()
         onGameClose()
     }
@@ -297,7 +293,7 @@ abstract class StudioBase(
     }
 
     fun updateCursor(window: OSWindow, hoveredPanel: Panel?) {
-        hoveredPanel?.getCursor()?.useCursor(window)
+        (hoveredPanel?.getCursor() ?: Cursor.default)?.useCursor(window)
     }
 
     open fun drawUIOverlay(window: OSWindow, w: Int, h: Int): Boolean {

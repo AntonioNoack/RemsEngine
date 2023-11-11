@@ -1,11 +1,11 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.ui.Panel
 import me.anno.ui.debug.PureTestStudio.Companion.testPureUI
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testPureUI("FPSPanelSpeed", Panel(style))
 }

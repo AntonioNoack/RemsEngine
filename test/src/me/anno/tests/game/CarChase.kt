@@ -20,7 +20,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.CullMode
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Input
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -230,6 +230,6 @@ fun createUI(): Panel {
 
 fun main() {
     // todo bug: why are meshes and materials not automatically reloading?
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI3("CarChase") { createUI() }
 }

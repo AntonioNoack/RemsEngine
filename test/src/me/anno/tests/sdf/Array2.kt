@@ -4,6 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.Material
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView
+import me.anno.sdf.CombinationMode
 import me.anno.sdf.SDFGroup
 import me.anno.sdf.arrays.SDFArray2
 import me.anno.sdf.arrays.SDFArrayMapper
@@ -35,7 +36,7 @@ fun main() {
                     materialId = 1
                     position.set(0f, 0f, 50f)
                 })
-                type = SDFGroup.CombinationMode.DIFFERENCE1
+                combinationMode = CombinationMode.DIFFERENCE1
             })
             modulatorIndex = 1
             sdfMaterials = listOf(

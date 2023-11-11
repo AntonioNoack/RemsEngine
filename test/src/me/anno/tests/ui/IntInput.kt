@@ -2,7 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.input.Key
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.input.IntInput
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI("IntInput", IntInput("Quality", "", Type.VIDEO_QUALITY_CRF, style))
 }
 

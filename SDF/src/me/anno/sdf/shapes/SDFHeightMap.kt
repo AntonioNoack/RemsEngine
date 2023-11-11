@@ -22,8 +22,8 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.sq
-import me.anno.sdf.SDFGroup.Companion.sdMax
-import me.anno.sdf.SDFGroup.Companion.smoothMinCubic
+import me.anno.sdf.SDFCombiningFunctions.sdMax
+import me.anno.sdf.SDFCombiningFunctions.smoothMinCubic
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.shapes.SDFBox.Companion.sdBox
 import me.anno.utils.Color.black

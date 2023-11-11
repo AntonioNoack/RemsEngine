@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.maths.Maths
 import me.anno.ui.base.SpyPanel
 import me.anno.ui.base.buttons.TextButton
@@ -15,7 +15,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI2
 import kotlin.concurrent.thread
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     if (true) {
         testUI("Progress Bar") {
             var offset = 0f

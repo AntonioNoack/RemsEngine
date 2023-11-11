@@ -4,7 +4,7 @@ import me.anno.Engine
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.change.Path
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
 import me.anno.network.*
 import me.anno.network.packets.PingPacket
@@ -36,7 +36,7 @@ val tcpProtocol = Protocol("TEST", NetworkProtocol.TCP).apply {
 val udpProtocol = Protocol("UDP", NetworkProtocol.UDP)
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI3("ServerClientWorld") {
         StudioBase.instance?.enableVSync = true
         DefaultConfig["debug.ui.showRedraws"] = true

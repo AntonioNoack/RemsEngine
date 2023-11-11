@@ -182,7 +182,7 @@ open class EnumInput(
         setValue(options[index], index, true)
     }
 
-    override fun getCursor(): Long? {
+    override fun getCursor(): Cursor? {
         return if (isInputAllowed) Cursor.drag
         else null
     }

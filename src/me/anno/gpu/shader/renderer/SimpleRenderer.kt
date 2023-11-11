@@ -1,4 +1,4 @@
-package me.anno.gpu.shader
+package me.anno.gpu.shader.renderer
 
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.builder.ShaderStage

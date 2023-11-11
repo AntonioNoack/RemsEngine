@@ -466,7 +466,7 @@ open class FloatVectorInput(
         // also we decided the value ourselves, so we know the value
     }
 
-    override fun getCursor(): Long = Cursor.drag
+    override fun getCursor(): Cursor = Cursor.drag
 
     override fun clone(): FloatVectorInput {
         val clone = FloatVectorInput(title, visibilityKey, type, style, createComponent)

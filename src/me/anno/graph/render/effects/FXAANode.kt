@@ -3,7 +3,7 @@ package me.anno.graph.render.effects
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.shader.Renderer.Companion.copyRenderer
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture

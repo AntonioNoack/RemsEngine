@@ -3,6 +3,7 @@ package me.anno.sdf.arrays
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
+import me.anno.sdf.CombinationMode
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.arrays.SDFArrayMapper.Companion.sdArray
 import me.anno.sdf.random.SDFRandom.Companion.randLib
@@ -163,7 +164,12 @@ class SDFArray2 : SDFGroupArray() {
         functions: HashSet<String>,
         seeds: ArrayList<String>
     ) {
-        val (func, smoothness, groove, stairs) = appendGroupHeader(functions, uniforms, CombinationMode.UNION, style)
+        val (func, smoothness, groove, stairs) = appendGroupHeader(
+            functions,
+            uniforms,
+            CombinationMode.UNION,
+            joiningStyle
+        )
         builder.append("if(first").append(innerDstIndex).append("){first").append(innerDstIndex)
             .append("=false;res$outerDstIndex=res$innerDstIndex;}else{\n")
         appendMerge(builder, outerDstIndex, innerDstIndex, func, smoothness, groove, stairs)
@@ -183,5 +189,4 @@ class SDFArray2 : SDFGroupArray() {
     }
 
     override val className: String get() = "SDFArray2"
-
 }

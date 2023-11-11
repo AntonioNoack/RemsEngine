@@ -121,7 +121,7 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
             base.isInputAllowed = value
         }
 
-    override fun getCursor(): Long = Cursor.drag
+    override fun getCursor(): Cursor = Cursor.drag
 
     override fun isKeyInput() = true
 

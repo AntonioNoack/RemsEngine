@@ -2,7 +2,7 @@ package me.anno.tests.rtrt.other
 
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.ui.debug.TestDrawPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI2
@@ -28,7 +28,7 @@ fun fract(i: Int, n: Int): Int {
 }
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI2("Hilbert Curve") {
         var n = 4096
         val input = IntInput("", "", n, Type.LONG_PLUS, style)

@@ -1,7 +1,3 @@
-/*
- * Copyright LWJGL. All rights reserved.
- * License terms: https://www.lwjgl.org/license
- */
 package me.anno.gpu
 
 import me.anno.Build.isDebug
@@ -12,6 +8,7 @@ import me.anno.gpu.GFX.checkIsGFXThread
 import me.anno.gpu.GFX.focusedWindow
 import me.anno.gpu.GFX.getErrorTypeName
 import me.anno.gpu.Logo.drawLogo
+import me.anno.gpu.RenderDoc.loadRenderDoc
 import me.anno.gpu.debug.LWJGLDebugCallback
 import me.anno.gpu.debug.OpenGLDebug.getDebugSeverityName
 import me.anno.gpu.debug.OpenGLDebug.getDebugSourceName
@@ -52,13 +49,7 @@ import kotlin.math.abs
 import kotlin.math.max
 
 /**
- * Showcases how you can use multithreading in a GLFW application
- * to separate the (blocking) winproc handling from the render loop.
- *
- * @author Kai Burjack
- *
- * modified by Antonio Noack
- * including all os natives has luckily only very few overhead :) (&lt; 1 MiB)
+ * Manages creating windows, and a LWJGL/OpenGL context
  *
  * todo rebuild and recompile the glfw driver, which handles the touch input, so the input can be assigned to the window
  * (e.g., add 1 to the pointer)
@@ -101,42 +92,6 @@ object GFXBase {
     } catch (e: AWTException) {
         e.printStackTrace()
         null
-    }
-
-    /** must be executed before OpenGL-init;
-     * must be disabled for Nvidia Nsight */
-    @JvmStatic
-    private var disableRenderDoc = false
-
-    @JvmStatic
-    fun disableRenderDoc() {
-        disableRenderDoc = true
-    }
-
-    @JvmStatic
-    fun loadRenderDoc() {
-        val enabled = DefaultConfig["debug.renderdoc.enabled", isDebug]
-        if (enabled && !disableRenderDoc) {
-            forceLoadRenderDoc()
-        }
-    }
-
-    @JvmStatic
-    fun forceLoadRenderDoc(renderDocPath: String? = null) {
-        if (OS.isWeb) return // not supported
-        val path = renderDocPath ?: DefaultConfig["debug.renderdoc.path", "C:/Program Files/RenderDoc/renderdoc.dll"]
-        try {
-            // if renderdoc is installed on linux, or given in the path, we could use it as well with loadLibrary()
-            // at least this is the default location for RenderDoc
-            if (getReference(path).exists) {
-                LOGGER.info("Loading RenderDoc")
-                System.load(path)
-                usesRenderDoc = true
-            } else LOGGER.warn("Did not find RenderDoc, searched '$path'")
-        } catch (e: Exception) {
-            LOGGER.warn("Could not initialize RenderDoc")
-            e.printStackTrace()
-        }
     }
 
     @JvmStatic
@@ -544,10 +499,15 @@ object GFXBase {
 
     @JvmStatic
     fun setIcon(window: Long, srcImage: Image) {
-
-        val image = GLFWImage.malloc()
+        val image = imageToGLFW(srcImage)
         val buffer = GLFWImage.malloc(1)
+        buffer.put(0, image)
+        GLFW.glfwSetWindowIcon(window, buffer)
+    }
 
+    @JvmStatic
+    fun imageToGLFW(srcImage: Image): GLFWImage {
+        val image = GLFWImage.malloc()
         val w = srcImage.width
         val h = srcImage.height
         val pixels = BufferUtils.createByteBuffer(w * h * 4)
@@ -563,8 +523,7 @@ object GFXBase {
         }
         pixels.flip()
         image.set(w, h, pixels)
-        buffer.put(0, image)
-        GLFW.glfwSetWindowIcon(window, buffer)
+        return image
     }
 
     @JvmStatic

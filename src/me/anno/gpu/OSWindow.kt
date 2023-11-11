@@ -15,7 +15,8 @@ import org.lwjgl.glfw.GLFWKeyCallback
 import kotlin.math.abs
 
 /**
- * on some platforms like Android, there only will be a single one
+ * Handles an OS-level window.
+ * On some platforms like Android, there only will be a single one
  * */
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 open class OSWindow(var title: String) {
@@ -35,7 +36,7 @@ open class OSWindow(var title: String) {
 
     val windowStack = WindowStack()
 
-    var lastCursor = 0L
+    var lastCursor: Cursor? = null
 
     // where the mouse is
     // the default is before any mouse move was registered:

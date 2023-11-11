@@ -4,7 +4,7 @@ import me.anno.animation.Type
 import me.anno.animation.Type.Companion.SCALE
 import me.anno.animation.Type.Companion.VEC3D
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI2
 import me.anno.ui.input.FloatInput
@@ -15,7 +15,7 @@ import me.anno.ui.input.components.PureTextInput
 
 fun main() {
     // arrow keys were broken because of class names / action manager
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     val ti = PureTextInput(style).setValue("103212", false) // works
     val fi = FloatInput("Float", "", 103212f, Type.DOUBLE, style) // broken
     val ii = IntInput("Int", "", 103212, style) // broken

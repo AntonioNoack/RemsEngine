@@ -2,7 +2,7 @@ package me.anno.tests.utils
 
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawTexts
@@ -149,7 +149,7 @@ fun main() {
 
     // traverse graph, and open/close children
     // draw each node as a circle
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI3("Dependencies") {
         object : MapPanel(style) {
 
@@ -320,8 +320,6 @@ fun main() {
                 super.onMouseMoved(x, y, dx, dy)
                 invalidateLayout()
             }
-
         }
     }
-
 }

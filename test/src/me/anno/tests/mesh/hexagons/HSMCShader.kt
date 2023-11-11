@@ -2,7 +2,7 @@ package me.anno.tests.mesh.hexagons
 
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.dither2x2
 import me.anno.gpu.shader.builder.ShaderStage
@@ -11,9 +11,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2DArray
-import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteTex2da
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageCPUCache
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.pictures

@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.maths.Maths.mix
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS.downloads
@@ -22,7 +23,7 @@ fun main() {
 
     // todo dragging vector input is broken
 
-    GFXBase.forceLoadRenderDoc()
+    forceLoadRenderDoc()
     ECSRegistry.init()
 
     val scene = Entity("Scene")

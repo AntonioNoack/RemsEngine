@@ -2,7 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.components.mesh.Material
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.language.translation.NameDesc
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.menu.Menu.openMenuByPanels
@@ -10,7 +10,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.utils.ThumbnailPanel
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI3("TooWideMenu", TextButton("Click Me", style)
         .addLeftClickListener {
             openMenuByPanels(

@@ -1,44 +1,61 @@
 package me.anno.gpu
 
+import me.anno.cache.ICacheData
+import me.anno.gpu.GFXBase.imageToGLFW
+import me.anno.image.Image
 import org.lwjgl.glfw.GLFW.*
 
-object Cursor {
+class Cursor : ICacheData {
 
-    // const val default = 0L
-    var hResize = 0L
-    var vResize = 0L
-    var editText = 0L
-    var drag = 0L
-    val hand get() = drag
-    var crossHair = 0L
-    var arrow = 0L
+    private var image: Image? = null
+    private var centerX = 0
+    private var centerY = 0
+    private var glfwType = -1
+    private var pointer = 0L
 
-    fun init() {
-        hResize = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR)
-        vResize = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR)
-        editText = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR)
-        drag = glfwCreateStandardCursor(GLFW_HAND_CURSOR)
-        crossHair = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR)
-        arrow = glfwCreateStandardCursor(GLFW_ARROW_CURSOR)
+    constructor(image: Image) : this(image, image.width / 2, image.height / 2)
+    constructor(image: Image, centerX: Int, centerY: Int) {
+        this.image = image
+        this.centerX = centerX
+        this.centerY = centerY
     }
 
-    fun Long.useCursor(window: OSWindow) {
+    private constructor(glfwType: Int) {
+        this.glfwType = glfwType
+    }
+
+    private fun create() {
+        val image = image
+        pointer = if (image != null) {
+            glfwCreateCursor(imageToGLFW(image), centerX, centerY)
+        } else if (glfwType != 0) {
+            glfwCreateStandardCursor(glfwType)
+        } else 0L
+    }
+
+    fun useCursor(window: OSWindow) {
+        if (this.pointer == 0L) create()
         // the cursor is only updating when moving the mouse???
         // bug in the api maybe, how to fix that? -> we can't really fix that
         // -> don't use it as an important feature
         if (this == window.lastCursor) return
-        glfwSetCursor(window.pointer, this)
+        glfwSetCursor(window.pointer, this.pointer)
         window.lastCursor = this
     }
 
-    fun destroy() {
+    override fun destroy() {
         // crashes
-        /*0L.useCursor()
-        for(cursor in listOf(
-            hResize, vResize, editText, drag, crossHair
-        )){
-            glfwDestroyCursor(cursor)
-        }*/
+        // glfwDestroyCursor(pointer)
     }
 
+    companion object {
+        val default = Cursor(0)
+        val hResize = Cursor(GLFW_HRESIZE_CURSOR)
+        val vResize = Cursor(GLFW_VRESIZE_CURSOR)
+        val editText = Cursor(GLFW_IBEAM_CURSOR)
+        val hand = Cursor(GLFW_HAND_CURSOR)
+        val drag = hand
+        val crossHair = Cursor(GLFW_CROSSHAIR_CURSOR)
+        val arrow = Cursor(GLFW_ARROW_CURSOR)
+    }
 }

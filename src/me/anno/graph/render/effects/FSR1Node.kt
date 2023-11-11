@@ -4,7 +4,7 @@ import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
-import me.anno.gpu.shader.Renderer.Companion.copyRenderer
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.render.QuickPipeline
 import me.anno.graph.render.Texture

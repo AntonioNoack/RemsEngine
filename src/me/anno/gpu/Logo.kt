@@ -17,6 +17,9 @@ import me.anno.utils.Sleep.waitUntilDefined
 import java.io.IOException
 import kotlin.math.min
 
+/**
+ * Draws the Rem logo when the engine starts.
+ * */
 @Suppress("unused")
 object Logo {
 
@@ -95,7 +98,6 @@ object Logo {
 
         GFX.check()
         return success
-
     }
 
     var mesh: Mesh? = null

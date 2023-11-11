@@ -103,7 +103,7 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
         setValue(keyFile.toString(), true)
     }
 
-    override fun getCursor(): Long = Cursor.drag
+    override fun getCursor(): Cursor = Cursor.drag
     override fun isKeyInput() = true
 
     override fun clone(): TextInputML {

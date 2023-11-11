@@ -8,9 +8,9 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.raycast.RayHit
 import me.anno.gpu.GFX
-import me.anno.gpu.GFXBase.forceLoadRenderDoc
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01

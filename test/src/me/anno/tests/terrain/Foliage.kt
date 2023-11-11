@@ -13,7 +13,7 @@ import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.*
 import me.anno.gpu.CullMode
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.quatRot

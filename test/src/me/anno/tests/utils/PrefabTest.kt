@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.EditorState
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.JsonFormatter
 import me.anno.io.text.TextReader
@@ -26,7 +26,7 @@ fun main() {
     test1()
     test2()
 
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
 
     val sample = Entity()
 
@@ -46,7 +46,6 @@ fun main() {
         PrefabInspector(sample.ref).inspect(sample, list, style)
         list
     }*/
-
 }
 
 fun test1() {
@@ -112,5 +111,4 @@ fun test2() {
 
     val copied = TextReader.read(text, InvalidRef, false).first() as Prefab
     logger.info(copied.getSampleInstance())
-
 }

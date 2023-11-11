@@ -2,7 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering

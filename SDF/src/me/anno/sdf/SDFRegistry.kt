@@ -1,5 +1,9 @@
 package me.anno.sdf
 
+import me.anno.engine.ui.render.RenderMode
+import me.anno.engine.ui.render.Renderers.previewRenderer
+import me.anno.gpu.shader.renderer.InheritedRenderer
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.sdf.arrays.*
 import me.anno.sdf.modifiers.*
@@ -8,9 +12,13 @@ import me.anno.sdf.random.SDFRandomTranslation
 import me.anno.sdf.random.SDFRandomUV
 import me.anno.sdf.shapes.*
 
+@Suppress("unused")
 object SDFRegistry {
 
-    // like on http://mercury.sexy/hg_sdf/
+    val NumStepsRenderer = InheritedRenderer("Num SDF Steps", previewRenderer)
+    val NumStepsRenderMode = RenderMode(NumStepsRenderer)
+    val SDFOnYRenderer = InheritedRenderer("SDF on Y", previewRenderer)
+    val SDFOnYRenderMode = RenderMode(SDFOnYRenderer)
 
     @JvmStatic
     fun init() {

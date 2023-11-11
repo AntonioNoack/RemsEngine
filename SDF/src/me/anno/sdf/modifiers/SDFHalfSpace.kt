@@ -4,11 +4,11 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
+import me.anno.sdf.SDFCombiningFunctions.sMaxCubic
+import me.anno.sdf.SDFCombiningFunctions.smoothMinCubic
 import me.anno.sdf.SDFComponent.Companion.appendUniform
 import me.anno.sdf.SDFComponent.Companion.appendVec
 import me.anno.sdf.SDFComponent.Companion.globalDynamic
-import me.anno.sdf.SDFGroup.Companion.sMaxCubic
-import me.anno.sdf.SDFGroup.Companion.smoothMinCubic
 import me.anno.sdf.VariableCounter
 import me.anno.sdf.modifiers.SDFMirror.Companion.normalize3
 import org.joml.AABBf

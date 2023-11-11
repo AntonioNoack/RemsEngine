@@ -2,6 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.studio.StudioBase.Companion.addEvent
 import me.anno.ui.anim.AnimTextPanel
 import me.anno.ui.base.groups.PanelListY
@@ -13,7 +14,7 @@ import kotlin.math.sin
  * a test, where we open three extra windows
  * */
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI("MultiWindow Shared/2") {
         addEvent {
             for (title in listOf("your", "grace", "is welcome")) {

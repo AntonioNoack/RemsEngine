@@ -276,7 +276,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         }
     }
 
-    override fun getCursor(): Long? {
+    override fun getCursor(): Cursor? {
         val scrollbars = scrollbars
         for (index in scrollbars.indices) {
             val scrollbar = scrollbars[index]

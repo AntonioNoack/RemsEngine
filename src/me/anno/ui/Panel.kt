@@ -4,6 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.Cursor
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawRounded.drawRoundedRect
@@ -565,7 +566,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         uiParent?.onMouseBackKey(x, y)
     }
 
-    open fun getCursor(): Long? = uiParent?.getCursor() ?: 0L
+    open fun getCursor(): Cursor? = uiParent?.getCursor()
 
     open fun getTooltipPanel(x: Float, y: Float): Panel? = tooltipPanel
     open fun getTooltipText(x: Float, y: Float): String? = tooltip

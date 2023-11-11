@@ -1,7 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.files.FileReference
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.editor.files.FileContentImporter
@@ -42,7 +42,7 @@ fun main() {
     val root = Element()
     val selected = HashSet<Element>()
 
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI3("Tree View") {
         object : TreeView<Element>(object : FileContentImporter<Element>() {
 

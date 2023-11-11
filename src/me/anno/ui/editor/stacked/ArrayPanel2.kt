@@ -88,7 +88,7 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
         return -1
     }
 
-    override fun getCursor(): Long? {
+    override fun getCursor(): Cursor? {
         return if (getButtonIndex(x, y) < 0) null
         else Cursor.hand
     }

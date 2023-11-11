@@ -13,7 +13,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.Perspective.setPerspective
 import me.anno.gpu.framebuffer.CubemapFramebuffer
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
 import me.anno.io.serialization.SerializedProperty

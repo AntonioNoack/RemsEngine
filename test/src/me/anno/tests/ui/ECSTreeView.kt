@@ -3,10 +3,10 @@ package me.anno.tests.ui
 import me.anno.ecs.Entity
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     ECSRegistry.initMeshes()
     val sample = Entity("Root")
     sample.add(Entity("Child 1")) // added before taking reference

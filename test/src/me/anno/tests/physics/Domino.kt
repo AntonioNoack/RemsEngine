@@ -10,7 +10,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.RenderMode
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS.music
@@ -143,7 +143,7 @@ fun main() {
         rotation = rotation.rotateX((-20.0).toRadians())
     }
 
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testSceneWithUI("Dominos", scene) {
         DefaultConfig["debug.ui.showRedraws"] = false
         it.renderer.renderMode = RenderMode.PHYSICS

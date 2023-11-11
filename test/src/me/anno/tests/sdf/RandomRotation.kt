@@ -2,7 +2,7 @@ package me.anno.tests.sdf
 
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.sdf.arrays.SDFArrayMapper
 import me.anno.sdf.random.SDFRandomRotation
 import me.anno.sdf.shapes.SDFBox
@@ -22,6 +22,6 @@ fun main() {
     shape.addChild(array)
     shape.addChild(rot)
 
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testSceneWithUI("SDF Random Rotation", shape)
 }

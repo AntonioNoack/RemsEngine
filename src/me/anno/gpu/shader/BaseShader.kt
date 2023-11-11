@@ -11,6 +11,7 @@ import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.utils.structures.lists.Lists.none2

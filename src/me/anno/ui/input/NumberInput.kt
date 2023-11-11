@@ -141,6 +141,6 @@ abstract class NumberInput<BaseType>(
         }
     }
 
-    override fun getCursor(): Long = Cursor.drag
+    override fun getCursor(): Cursor = Cursor.drag
 
 }

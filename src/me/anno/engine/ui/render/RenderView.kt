@@ -52,10 +52,10 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
 import me.anno.gpu.shader.DepthTransforms
-import me.anno.gpu.shader.Renderer
-import me.anno.gpu.shader.Renderer.Companion.copyRenderer
-import me.anno.gpu.shader.Renderer.Companion.depthRenderer
-import me.anno.gpu.shader.Renderer.Companion.idRenderer
+import me.anno.gpu.shader.renderer.Renderer
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
+import me.anno.gpu.shader.renderer.Renderer.Companion.depthRenderer
+import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackCube

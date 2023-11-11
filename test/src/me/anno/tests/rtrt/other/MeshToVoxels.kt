@@ -18,7 +18,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Renderer
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture3D
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures

@@ -1,7 +1,7 @@
 package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.lua.ui.LuaAnimTextPanel
 import me.anno.maths.Maths
 import me.anno.maths.noise.FullNoise
@@ -121,7 +121,7 @@ class AnimTextPanelTest(useLua: Boolean) : PanelListY(DefaultConfig.style) {
 
 fun main() {
     // inspired by https://www.youtube.com/watch?v=3QXGM84ZfSw
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     testUI("AnimTextPanel") {
         AnimTextPanelTest(true)
     }

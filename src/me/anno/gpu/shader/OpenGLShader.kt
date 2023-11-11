@@ -18,6 +18,9 @@ import org.lwjgl.opengl.GL43C.GL_SHADER
 import org.lwjgl.opengl.GL43C.glObjectLabel
 import java.nio.FloatBuffer
 
+/**
+ * base class for shaders, e.g. for ComputeShader or Shader
+ * */
 abstract class OpenGLShader(val name: String) : ICacheData {
 
     companion object {

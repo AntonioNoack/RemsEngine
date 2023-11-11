@@ -1,7 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.GFXBase
+import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.ui.Panel
 import me.anno.ui.Panel.Companion.CORNER_TOP_LEFT
@@ -9,7 +9,7 @@ import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.types.Booleans.toInt
 
 fun main() {
-    GFXBase.disableRenderDoc()
+    disableRenderDoc()
     val panel = Panel(style)
     panel.x = 10
     panel.y = 10
