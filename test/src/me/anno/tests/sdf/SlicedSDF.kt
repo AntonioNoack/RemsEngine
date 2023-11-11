@@ -221,6 +221,7 @@ fun main() {
                                 "finalPosition = matMul(localTransform, vec4(localPosition, 1.0));\n" +
                                 // depth calculation isn't really necessary and could be skipped
                                 "vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" + // calculate depth
+                                "#define CUSTOM_DEPTH\n" +
                                 "gl_FragDepth = newVertex.z/newVertex.w;\n"
                     )
                     functions.add(SDFBox.sdBox)

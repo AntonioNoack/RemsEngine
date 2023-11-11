@@ -6,10 +6,10 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.GFXBase
 import me.anno.gpu.RenderDoc.forceLoadRenderDoc
 import me.anno.maths.Maths.mix
 import me.anno.mesh.Shapes.flatCube
+import me.anno.sdf.shapes.SDFSphere
 import me.anno.utils.OS.downloads
 import org.joml.Vector3d
 import kotlin.math.PI
@@ -20,8 +20,6 @@ import kotlin.math.PI
  * except for EnvironmentMap, which is kind of a light
  * */
 fun main() {
-
-    // todo dragging vector input is broken
 
     forceLoadRenderDoc()
     ECSRegistry.init()
@@ -54,13 +52,19 @@ fun main() {
     }
 
     fun placeTruck(e: Entity) {
-        val truck = Entity("${e.name} Truck")
+        val truck = Entity("${e.name} Truck", scene)
         val mesh = MeshComponent(downloads.getChild("MagicaVoxel/vox/truck.vox"))
         mesh.materials = listOf(metallic.ref)
         truck.add(mesh)
         truck.setPosition(e.transform.localPosition.x, 0.0, 0.0)
         truck.setScale(1.0 / 64.0)
-        scene.add(truck)
+        // add an SDF sphere to test shadows there, too
+        // todo shadow-detection of spot light and directional light isn't really correct yet:
+        //  there is artifacts from incorrect depth values
+        val sphere = SDFSphere()
+        sphere.position.set(e.transform.localPosition.x.toFloat() - 0.35f, 0.1f, -0.2f)
+        sphere.scale = 0.08f
+        scene.add(sphere)
     }
 
     // sunlight

@@ -261,7 +261,7 @@ class PipelineStage(
     )
 
     fun bindDraw(pipeline: Pipeline) {
-        bind { drawColors(pipeline) }
+        bind { draw(pipeline) }
     }
 
     fun bind(draw: () -> Unit) {
@@ -518,7 +518,7 @@ class PipelineStage(
     var needsLightUpdateForEveryMesh = false
 
     @Suppress("unused")
-    fun drawColors(pipeline: Pipeline) {
+    fun draw(pipeline: Pipeline) {
 
         // the dotViewDir may be easier to calculate, and technically more correct, but it has one major flaw:
         // it changes when the cameraDirection is changing. This ofc is not ok, since it would resort the entire list,
@@ -576,7 +576,7 @@ class PipelineStage(
         // draw non-instanced meshes
         for (index in 0 until nextInsertIndex) {
             val request = drawRequests[index]
-            drawColors(
+            draw(
                 pipeline,
                 request.entity,
                 request.component,
@@ -609,7 +609,7 @@ class PipelineStage(
         Companion.drawCalls += drawCalls
     }
 
-    fun drawColors(
+    fun draw(
         pipeline: Pipeline,
         entity: Entity,
         renderer: Component,
@@ -757,85 +757,6 @@ class PipelineStage(
                 shader.v2f(layer.nameRR, m, n)
             }
         }
-    }
-
-    /**
-     * drawing only the depth of a scene;
-     * for light-shadows or pre-depth
-     * */
-    fun drawDepths(pipeline: Pipeline) {
-
-        var lastEntity: Entity? = null
-        var lastMesh: IMesh? = null
-
-        var drawnPrimitives = 0L
-        var drawCalls = 0L
-        val time = Time.gameTimeN
-
-        val shader = defaultShader.value
-        shader.use()
-
-        initShader(shader, pipeline)
-
-        // draw non-instanced meshes
-        val cullMode = cullMode
-        for (index in 0 until nextInsertIndex) {
-
-            val request = drawRequests[index]
-            val renderer = request.component
-
-            val oc = (renderer as? MeshComponentBase)?.occlusionQuery
-            oc?.start()
-
-            val mesh = request.mesh
-            val entity = request.entity
-            val material = request.material
-            val materialIndex = request.materialIndex
-
-            val transform = entity.transform
-
-            setupLocalTransform(shader, transform, time)
-
-            mesh.ensureBuffer()
-
-            // only if the entity or mesh changed
-            // not if the material has changed
-            // this updates the skeleton and such
-            if (entity !== lastEntity || lastMesh !== mesh) {
-                val hasAnim = if (renderer is MeshComponentBase && mesh.hasBonesInBuffer)
-                    renderer.defineVertexTransform(shader, entity, mesh)
-                else false
-                shader.v1b("hasAnimation", hasAnim)
-                lastEntity = entity
-                lastMesh = mesh
-            }
-
-            shader.v4f("tint", -1)
-            shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
-
-            GFXState.cullMode.use(mesh.cullMode * material.cullMode * cullMode) {
-                mesh.draw(shader, materialIndex, Mesh.drawDebugLines)
-            }
-
-            oc?.stop()
-
-            drawnPrimitives += mesh.numPrimitives
-            drawCalls++
-        }
-
-        GFX.check()
-
-        // draw instanced meshes
-        for (i in instances.indices) {
-            val (dt, dc) = instances[i].draw0(pipeline, this, false, time, true)
-            drawnPrimitives += dt
-            drawCalls += dc
-        }
-
-        GFX.check()
-
-        Companion.drawnPrimitives += drawnPrimitives
-        Companion.drawCalls += drawCalls
     }
 
     private var hadTooMuchSpace = 0

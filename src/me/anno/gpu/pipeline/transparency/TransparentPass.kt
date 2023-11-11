@@ -52,7 +52,7 @@ abstract class TransparentPass : ICacheData {
         for (i in stages.indices) {
             val stage = stages[i]
             if (stage.blendMode != null)
-                stage.drawColors(pipeline)
+                stage.draw(pipeline)
         }
     }
 

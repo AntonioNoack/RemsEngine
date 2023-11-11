@@ -16,17 +16,17 @@ import me.anno.gpu.shader.BaseShader.Companion.IS_DEFERRED
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.uvList
-import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
+import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.utils.pooling.ByteBufferPool
@@ -302,44 +302,55 @@ object Renderers {
     }
 
     @JvmField
-    val boneIndicesRenderer = object: Renderer("bone-indices"){
+    val boneIndicesRenderer = object : Renderer("bone-indices") {
         override fun getVertexPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(
-                ShaderStage("bif", listOf(
-                    Variable(GLSLType.V4I, "boneIndices"),
-                    Variable(GLSLType.V4F, "boneWeights"),
-                    Variable(GLSLType.V4F, "boneColor", VariableMode.OUT)
-                ), "" +
-                        "boneColor =\n" +
-                        "boneIdToColor(boneIndices.x) * boneWeights.x +\n" +
-                        "boneIdToColor(boneIndices.y) * boneWeights.y +\n" +
-                        "boneIdToColor(boneIndices.z) * boneWeights.z +\n" +
-                        "boneIdToColor(boneIndices.w) * boneWeights.w;\n")
-                    .add("vec4 boneIdToColor(int index) {\n" + // there are max 256 bones, soo...
-                            "   float base = sqrt(float(1+((index>>4)&15)) / 16.0);\n" +
-                            "   float base1 = base * 0.33;\n" +
-                            "   float g = float((index>>0)&3) * base1;\n" +
-                            "   float b = float((index>>2)&3) * base1;\n" +
-                            "   return vec4(base, base-g, base-b, 1.0);\n" +
-                            "}\n")
+                ShaderStage(
+                    "bif", listOf(
+                        Variable(GLSLType.V4I, "boneIndices"),
+                        Variable(GLSLType.V4F, "boneWeights"),
+                        Variable(GLSLType.V4F, "boneColor", VariableMode.OUT)
+                    ), "" +
+                            "boneColor =\n" +
+                            "boneIdToColor(boneIndices.x) * boneWeights.x +\n" +
+                            "boneIdToColor(boneIndices.y) * boneWeights.y +\n" +
+                            "boneIdToColor(boneIndices.z) * boneWeights.z +\n" +
+                            "boneIdToColor(boneIndices.w) * boneWeights.w;\n"
+                )
+                    .add(
+                        "vec4 boneIdToColor(int index) {\n" + // there are max 256 bones, soo...
+                                "   float base = sqrt(float(1+((index>>4)&15)) / 16.0);\n" +
+                                "   float base1 = base * 0.33;\n" +
+                                "   float g = float((index>>0)&3) * base1;\n" +
+                                "   float b = float((index>>2)&3) * base1;\n" +
+                                "   return vec4(base, base-g, base-b, 1.0);\n" +
+                                "}\n"
+                    )
             )
         }
+
         override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(
-                ShaderStage("biv", listOf(
-                    Variable(GLSLType.V4F, "boneColor"),
-                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
-                ), "finalResult = boneColor;\n")
+                ShaderStage(
+                    "biv", listOf(
+                        Variable(GLSLType.V4F, "boneColor"),
+                        Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                    ), "finalResult = boneColor;\n"
+                )
             )
         }
     }
 
     @JvmField
-    val boneWeightsRenderer = SimpleRenderer("bone-weights", ShaderStage("bw",
-        listOf(
-            Variable(GLSLType.V4F, "boneWeights"),
-            Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
-        ), "finalResult = vec4(boneWeights.xyz, 1.0);\n"))
+    val boneWeightsRenderer = SimpleRenderer(
+        "bone-weights", ShaderStage(
+            "bw",
+            listOf(
+                Variable(GLSLType.V4F, "boneWeights"),
+                Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+            ), "finalResult = vec4(boneWeights.xyz, 1.0);\n"
+        )
+    )
 
     @JvmField
     val attributeRenderers = LazyMap({ type: DeferredLayerType ->
@@ -356,7 +367,11 @@ object Renderers {
             DeferredLayerType.NORMAL, DeferredLayerType.TANGENT, DeferredLayerType.BITANGENT ->
                 "finalResult = vec4(${type.glslName}*0.5+0.5, 1.0);\n"
             DeferredLayerType.DEPTH ->
-                "finalResult = vec4(vec3(fract(log2(max(gl_FragCoord.z, 1e-36)))),1.0);\n"
+                "float depth = gl_FragCoord.z;\n" +
+                        "#ifdef CUSTOM_DEPTH\n" +
+                        "   depth = gl_FragDepth;\n" +
+                        "#endif\n" +
+                        "finalResult = vec4(vec3(fract(log2(max(depth, 1e-36)))),1.0);\n"
             else -> {
                 val prefix = if (type == DeferredLayerType.COLOR || type == DeferredLayerType.EMISSIVE) colorToSRGB
                 else ""

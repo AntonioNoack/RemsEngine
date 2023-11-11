@@ -17,6 +17,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 import me.anno.gpu.texture.CubemapTexture.Companion.rotateForCubemap
 import me.anno.io.serialization.SerializedProperty
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.SQRT3
 import me.anno.mesh.Shapes
 import me.anno.utils.pooling.JomlPools
@@ -81,6 +82,10 @@ class PointLight : LightComponent(LightType.POINT) {
         val rotInvert = rotation.invert(JomlPools.quat4d.create())
         val rot3 = JomlPools.quat4d.create()
 
+        // important for SDF shapes
+        RenderState.fovXRadians = PIf * 0.5f
+        RenderState.fovYRadians = PIf * 0.5f
+
         val cameraMatrix = RenderState.cameraMatrix
         val root = entity.getRoot(Entity::class)
         GFXState.depthMode.use(DepthMode.CLOSE) {
@@ -101,7 +106,7 @@ class PointLight : LightComponent(LightType.POINT) {
                     position, cameraRotation
                 )
                 pipeline.fill(root)
-                pipeline.defaultStage.drawColors(pipeline)
+                pipeline.drawWithoutSky()
             }
         }
 

@@ -2,7 +2,6 @@ package me.anno.engine.ui.render
 
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.anim.BoneData.maxBones
-import me.anno.gpu.GFX
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
@@ -482,8 +481,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     // just like the gltf pbr shader define all material properties
     open fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
-        val mvd = key.vertexData
-        return mvd.onFragmentShader + listOf(
+        return key.vertexData.onFragmentShader + listOf(
             ShaderStage(
                 "material",
                 createFragmentVariables(key) + listOf(Variable(GLSLType.V4F, "cameraRotation")),
@@ -504,45 +502,20 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                         "   uv = parallaxMapUVs(parallaxMap, uv, viewDir * vec3(-1,-1,1), 0.05);\n" +
                         "}\n" +*/
                         baseColorCalculation +
-                        normalTanBitanCalculation +
-                        normalMapCalculation +
-                        emissiveCalculation +
-                        occlusionCalculation +
-                        metallicCalculation +
-                        roughnessCalculation +
-                        v0 + sheenCalculation +
-                        clearCoatCalculation +
-                        reflectionCalculation +
+                        (if (key.flags.hasFlag(NEEDS_COLORS)) {
+                            normalTanBitanCalculation +
+                                    normalMapCalculation +
+                                    emissiveCalculation +
+                                    occlusionCalculation +
+                                    metallicCalculation +
+                                    roughnessCalculation +
+                                    v0 + sheenCalculation +
+                                    clearCoatCalculation +
+                                    reflectionCalculation
+                        } else "") +
                         finalMotionCalculation
             ).add(quatRot).add(brightness).add(parallaxMapping)
         )
-    }
-
-    override fun createDepthShader(key: ShaderKey): Shader {
-
-        val flags = key.flags
-        val builder = createBuilder()
-        builder.addVertex(createVertexStages(key))
-        builder.addFragment(
-            ShaderStage(
-                "depth", listOf(
-                    Variable(GLSLType.V1F, "finalDepth", VariableMode.OUT)
-                ), "finalDepth = gl_FragCoord.z;\n" // use gl_FragDepth instead?
-            )
-        )
-
-        GFX.check()
-        val shader = builder.create("depth$flags")
-        shader.ignoreNameWarnings(
-            "applyToneMapping", "worldScale", "cameraPosition",
-            "cameraRotation", "invLocalTransform", "diffuseBase", "normalStrength",
-            "emissiveBase", "roughnessMinMax", "metallicMinMax", "occlusionStrength",
-            "finalTranslucency", "finalSheen", "sheen", "finalClearCoat", "randomIdData",
-            "renderSize", "reflectionCullingPlane", "hasReflectionPlane", "numberOfLights"
-        )
-        shader.glslVersion = glslVersion
-        GFX.check()
-        return shader
     }
 
     override fun createForwardShader(key: ShaderKey): Shader {

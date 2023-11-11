@@ -51,17 +51,6 @@ open class BaseShader(
 
     private val shaders = HashMap<ShaderKey, Shader>()
 
-    /** shader for rendering the depth, e.g., for pre-depth */
-    open fun createDepthShader(key: ShaderKey): Shader {
-        if (vertexShader.isBlank2()) throw RuntimeException()
-        var vertexShader = vertexShader
-        val builder = StringBuilder()
-        concatDefines(key, builder)
-        builder.append(vertexShader)
-        vertexShader = builder.toString()
-        return Shader(name, vertexVariables, vertexShader, varyings, fragmentVariables, "void main(){}")
-    }
-
     /** shader for forward rendering */
     open fun createForwardShader(key: ShaderKey): Shader {
 
@@ -129,8 +118,7 @@ open class BaseShader(
             val shader = shaders.getOrPut(key) {
                 val r = key.renderer
                 val d = r.deferredSettings
-                if (isDepth) createDepthShader(key)
-                else if (d != null) createDeferredShader(key)
+                if (d != null) createDeferredShader(key)
                 else createForwardShader(key)
             }
             GFX.check()

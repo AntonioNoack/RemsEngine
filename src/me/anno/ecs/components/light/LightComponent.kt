@@ -223,7 +223,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
                 val root = entity.getRoot(Entity::class)
                 pipeline.fill(root)
                 result.clearColor(0, depth = true)
-                pipeline.defaultStage.drawDepths(pipeline)
+                pipeline.drawWithoutSky()
             }
         }
         JomlPools.vec3d.sub(1)

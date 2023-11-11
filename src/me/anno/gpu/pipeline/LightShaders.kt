@@ -242,6 +242,7 @@ object LightShaders {
             Variable(GLSLType.V4F, "data2", VariableMode.OUT).flat(),
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT),
         ), "" +
+                // todo if is spot light, we need to extend/shrink the cone
                 "data0 = vec4(lightData0.rgb,0.0);\n" +
                 "data1 = lightData1;\n" +
                 "data2 = shadowData;\n" +
@@ -268,6 +269,7 @@ object LightShaders {
             Variable(GLSLType.V1F, "cutoff"),
             Variable(GLSLType.V3F, "uvw", VariableMode.OUT)
         ), "" +
+                // todo if is spot light, we need to extend/shrink the cone
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                 "if(cutoff <= 0.0){\n" +
                 "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +

@@ -27,6 +27,7 @@ import org.joml.Vector4f
 
 // https://lettier.github.io/3d-game-shaders-for-beginners/screen-space-reflection.html
 // https://github.com/lettier/3d-game-shaders-for-beginners/blob/master/demonstration/shaders/fragment/screen-space-reflection.frag
+// todo these are broken for orthographic rendering
 // todo these are too sharp, make them blurry when the material is rough
 object ScreenSpaceReflections {
 

@@ -24,7 +24,6 @@ import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Outlines.drawOutline
 import me.anno.engine.ui.render.Renderers.attributeRenderers
-import me.anno.engine.ui.render.Renderers.cheapRenderer
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.CullMode
@@ -862,46 +861,14 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         changeSize: Boolean,
         hdr: Boolean
     ) {
-
         GFX.check()
-
         pipeline.applyToneMapping = !hdr
-
-        val depthPrepass = renderMode == RenderMode.WITH_DEPTH_PREPASS
-        if (depthPrepass) {
-            useFrame(w, h, changeSize, dst, cheapRenderer) {
-
-                Frame.bind()
-
-                GFXState.depthMode.use(depthMode) {
-                    setClearDepth()
-                    dst.clearDepth()
-                    // doesn't work, makes everything gray :/
-                    /*GFXState.blendMode.use(null) {
-                        GFXState.depthMask.use(false) {
-                            pipeline.drawSky0(pipeline.skybox, stage0)
-                        }
-                    }*/
-                }
-
-                GFXState.depthMode.use(depthMode) {
-                    GFXState.blendMode.use(null) {
-                        stage0.drawDepths(pipeline)
-                    }
-                }
-                stage0.depthMode = DepthMode.EQUALS
-
-            }
-        }
-
         useFrame(w, h, changeSize, dst, renderer) {
 
-            if (!depthPrepass) {
-                Frame.bind()
-                GFXState.depthMode.use(depthMode) {
-                    setClearDepth()
-                    dst.clearDepth()
-                }
+            Frame.bind()
+            GFXState.depthMode.use(depthMode) {
+                setClearDepth()
+                dst.clearDepth()
             }
 
             GFX.check()

@@ -1,9 +1,7 @@
 package me.anno.ecs.components.shaders
 
 import me.anno.engine.ui.render.ECSMeshShader
-import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.maths.Maths.hasFlag
@@ -19,19 +17,6 @@ import me.anno.maths.Maths.hasFlag
  * (this one is recursive = expensive)
  * */
 abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
-
-    // needs to be adjusted as well for accurate shadows
-    // I hope this gets optimized well, because no material data is actually required...
-    override fun createDepthShader(key: ShaderKey): Shader {
-        val builder = createBuilder()
-        builder.addVertex(createVertexStages(key))
-        builder.addFragment(createFragmentStages(key))
-        GFX.check()
-        val shader = builder.create("depth")
-        shader.glslVersion = glslVersion
-        GFX.check()
-        return shader
-    }
 
     open fun initProperties(instanced: Boolean): String = ""
     open fun processBlock(instanced: Boolean): String = ""
@@ -138,6 +123,7 @@ abstract class BlockTracedShader(name: String) : ECSMeshShader(name) {
                         // must be used for correct mirror rendering
                         discardByCullingPlane +
                         "vec4 newVertex = matMul(transform, vec4(finalPosition, 1.0));\n" +
+                        "#define CUSTOM_DEPTH\n" +
                         "gl_FragDepth = newVertex.z/newVertex.w;\n" +
                         computeMaterialProperties(flags.hasFlag(IS_INSTANCED)) +
                         v0 + sheenCalculation +

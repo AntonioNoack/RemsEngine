@@ -1,12 +1,13 @@
 package me.anno.ecs.components.light
 
 import me.anno.ecs.annotations.Range
-import me.anno.ecs.components.light.PointLight.Companion.falloff
 import me.anno.ecs.components.light.PointLight.Companion.effectiveSpecular
+import me.anno.ecs.components.light.PointLight.Companion.falloff
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.LineShapes.drawArrowZ
 import me.anno.engine.ui.LineShapes.drawCone
+import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.drawing.Perspective.setPerspective2
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.io.serialization.SerializedProperty
@@ -50,6 +51,9 @@ class SpotLight() : LightComponent(LightType.SPOT) {
             near / worldScale, far / worldScale, fovYRadians, resolution, resolution,
             1.0, dstCameraPosition, cameraRotation
         )
+        // required for SDF shapes
+        RenderState.fovXRadians = fovYRadians.toFloat()
+        RenderState.fovYRadians = fovYRadians.toFloat()
     }
 
     override fun drawShape() {
@@ -57,8 +61,9 @@ class SpotLight() : LightComponent(LightType.SPOT) {
         drawArrowZ(entity, 0.0, -1.0)
     }
 
-    // for deferred rendering, this could be optimized
-    override fun getLightPrimitive(): Mesh = pyramidMesh
+    override fun getLightPrimitive(): Mesh {
+        return pyramidMesh
+    }
 
     override fun clone() = SpotLight(this)
 
@@ -73,17 +78,15 @@ class SpotLight() : LightComponent(LightType.SPOT) {
 
     companion object {
 
-        private val pyramidMesh = Mesh()
-
-        init {
-            pyramidMesh.positions = floatArrayOf(
+        private val pyramidMesh = Mesh().apply {
+            positions = floatArrayOf(
                 -1f, -1f, -1f,
                 -1f, +1f, -1f,
                 +1f, -1f, -1f,
                 +1f, +1f, -1f,
                 +0f, +0f, +0f
             )
-            pyramidMesh.indices = intArrayOf(
+            indices = intArrayOf(
                 0, 1, 3,
                 0, 3, 2,
                 0, 4, 1,
@@ -92,6 +95,10 @@ class SpotLight() : LightComponent(LightType.SPOT) {
                 2, 4, 0
             )
         }
+
+        // todo this mesh is only correct for a specific angle;
+        //  we need to adjust it to the correct angle
+
 
         fun getShaderCode(cutoffContinue: String?, withShadows: Boolean): String {
             return "" +
