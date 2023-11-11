@@ -5,7 +5,7 @@ import me.anno.utils.Sleep
 import me.anno.utils.hpc.HeavyProcessing
 import me.anno.utils.types.Floats.f3
 import me.anno.utils.types.Strings.formatTime
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import me.anno.video.ffmpeg.FFMPEGStream
 import java.nio.ShortBuffer
 import kotlin.math.abs

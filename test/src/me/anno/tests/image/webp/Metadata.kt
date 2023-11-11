@@ -3,7 +3,7 @@ package me.anno.tests.image.webp
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import me.anno.utils.OS.pictures
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import javax.imageio.ImageIO
 
 fun main() {

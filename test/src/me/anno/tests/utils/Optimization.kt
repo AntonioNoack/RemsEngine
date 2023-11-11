@@ -3,8 +3,10 @@ package me.anno.tests.utils
 import me.anno.maths.Maths
 import me.anno.maths.Optimization
 
+/**
+ * test gradient descent of Optimization.simplexAlgorithm
+ * */
 fun main() {
-    // test gradient descent
     val t0 = System.nanoTime()
     fun himmelblau(x: Double, y: Double): Double {
         return Maths.sq(x * x + y - 11) + Maths.sq(x + y * y - 7)
@@ -16,7 +18,7 @@ fun main() {
     * f(-3.779310,-3.283186)=0.0
     * f(3.584428,-1.848126)=0.0
     * */
-    val solution = Optimization.simplexAlgorithm(doubleArrayOf(0.0, 0.0), 1.0, 1e-6, 500) {
+    val solution = Optimization.simplexAlgorithm(doubleArrayOf(0.0, 0.0), 1.0, 1e-16, 500) {
         himmelblau(it[0], it[1])
     }.second
     val t1 = System.nanoTime()

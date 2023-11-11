@@ -9,7 +9,7 @@ import me.anno.io.config.ConfigEntry
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
-import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.Events.addEvent
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.types.Ints.toIntOrDefault
@@ -83,6 +83,7 @@ open class StringMap(
 
     // parameter can be called key or parameterName
     // both are requested by Map and Saveable
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override operator fun get(key: String): Any? {
         synchronized(this) {
             onSyncAccess()

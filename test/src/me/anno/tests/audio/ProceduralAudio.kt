@@ -4,7 +4,7 @@ import me.anno.ecs.components.audio.AudioComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.TAUf
-import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.Events.addEvent
 import kotlin.math.sin
 
 fun main() {

@@ -76,8 +76,8 @@ import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
-import me.anno.video.ffmpeg.FFMPEGMetadata
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4fArrayList
@@ -118,7 +118,7 @@ open class FileExplorerEntry(
     var maxFrameIndex = 0
     var scale = 1
     var previewFPS = 1.0
-    var meta: FFMPEGMetadata? = null
+    var meta: MediaMetadata? = null
     var listMode = false
 
     var showTitle = true
@@ -862,7 +862,7 @@ open class FileExplorerEntry(
         private var audio: AudioFileStreamOpenAL? = null
         val hoverPlaybackDelay = 0.5
 
-        fun startPlayback(file: FileReference, meta: FFMPEGMetadata) {
+        fun startPlayback(file: FileReference, meta: MediaMetadata) {
             stopAnyPlayback()
             audio = AudioFileStreamOpenAL(
                 file, LoopingState.PLAY_LOOP,

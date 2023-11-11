@@ -16,7 +16,7 @@ import me.anno.utils.Color.toHexColor
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 import me.anno.video.VideoCreator
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 
 fun main() {
     HiddenOpenGLContext.createOpenGL(2048)

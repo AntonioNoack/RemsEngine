@@ -9,7 +9,7 @@ import me.anno.utils.Sleep.waitUntil
 import me.anno.utils.hpc.HeavyProcessing.numThreads
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.process.BetterProcessBuilder
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import me.anno.video.formats.cpu.CPUFrameReader
 import me.anno.video.formats.gpu.GPUFrame
 import me.anno.video.formats.gpu.GPUFrameReader

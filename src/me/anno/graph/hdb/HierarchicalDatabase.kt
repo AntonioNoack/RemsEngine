@@ -7,7 +7,7 @@ import me.anno.graph.hdb.allocator.ReplaceType
 import me.anno.graph.hdb.index.*
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.Events.addEvent
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import java.io.RandomAccessFile

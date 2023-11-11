@@ -249,12 +249,12 @@ class PipelineStage(
         }
 
     val instanced = InstancedStack.Impl()
-    val instancedPSR = InstancedTRSStack()
+    val instancedTRS = InstancedTRSStack()
     val instancedStatic = InstancedStaticStack()
 
     val instances = arrayListOf<DrawableStack>(
         instanced,
-        instancedPSR,
+        instancedTRS,
         instancedStatic,
         // if you need extra types, e.g., for MeshSpawner, just add them :)
         // (a helper function for that (and finding it again) might be added in the future)

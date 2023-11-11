@@ -188,8 +188,8 @@ abstract class WorkSplitter(val numThreads: Int) {
         minTilesPerThread: Int,
         tiledTask: Task2d
     ) {
-        val tilesX = Maths.ceilDiv(x1 - x0, tileSize)
-        val tilesY = Maths.ceilDiv(y1 - y0, tileSize)
+        val tilesX = ceilDiv(x1 - x0, tileSize)
+        val tilesY = ceilDiv(y1 - y0, tileSize)
         val count = tilesX * tilesY
         val threadCount = Maths.clamp(count / max(1, minTilesPerThread), 1, numThreads)
         val (threadCountX, threadCountY) = splitWork(tilesX, tilesY, threadCount)

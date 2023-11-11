@@ -12,9 +12,8 @@ import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.SignatureFile
 import me.anno.maths.Maths
 import me.anno.utils.OS
-import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitForGFXThread
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
 import net.sf.image4j.codec.ico.ICOReader
 import org.apache.commons.imaging.Imaging
@@ -186,13 +185,13 @@ object ImageReader {
         }
     }
 
-    private fun frameIndex(meta: FFMPEGMetadata): Int {
+    private fun frameIndex(meta: MediaMetadata): Int {
         return Maths.min(20, (meta.videoFrameCount - 1) / 3)
     }
 
     private fun tryFFMPEG(file: FileReference, signature: String?, forGPU: Boolean, callback: ImageCallback) {
         if (file is FileFileRef) {
-            val meta = FFMPEGMetadata.getMeta(file, false)!!
+            val meta = MediaMetadata.getMeta(file, false)!!
             if (forGPU) {
                 FFMPEGStream.getImageSequenceGPU(
                     file, signature, meta.videoWidth, meta.videoHeight,

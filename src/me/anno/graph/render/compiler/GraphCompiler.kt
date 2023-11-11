@@ -42,7 +42,7 @@ import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.utils.Color.white4
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -445,7 +445,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
             typeValues[name] =
                 TypeValueV2(GLSLType.S2D) {
                     val file = node.file
-                    val meta = FFMPEGMetadata.getMeta(file, true)
+                    val meta = MediaMetadata.getMeta(file, true)
                     if (meta != null && meta.hasVideo) {
                         val time1 = Time.nanoTime
                         if (time1 != g.lastInvalidation) {

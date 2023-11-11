@@ -6,7 +6,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.types.Arrays.resize
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import kotlin.math.max
 
 // todo video plane? :D

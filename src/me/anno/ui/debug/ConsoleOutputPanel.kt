@@ -6,7 +6,7 @@ import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths.mixARGB
-import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.Events.addEvent
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.buttons.TextButton

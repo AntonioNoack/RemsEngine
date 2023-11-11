@@ -12,8 +12,8 @@ import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
 import me.anno.video.BlankFrameDetector
 import me.anno.video.VideoProxyCreator
 import me.anno.video.VideoProxyCreator.framesPerSlice
-import me.anno.video.ffmpeg.FFMPEGMetadata
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min
@@ -183,7 +183,7 @@ object VideoCache : CacheSection("Videos") {
     fun getVideoFrame(
         file: FileReference, scale: Int, index: Int,
         bufferLength0: Int, fps: Double, timeout: Long,
-        meta: FFMPEGMetadata, async: Boolean
+        meta: MediaMetadata, async: Boolean
     ): GPUFrame? {
         if (index < 0) return null
         if (scale < 1) throw RuntimeException()
@@ -200,7 +200,7 @@ object VideoCache : CacheSection("Videos") {
         return getFrame(file, scale, index, bufferIndex, bufferLength, fps, timeout, async)
     }
 
-    fun useProxy(scale: Int, bufferLength0: Int, meta: FFMPEGMetadata?): Boolean {
+    fun useProxy(scale: Int, bufferLength0: Int, meta: MediaMetadata?): Boolean {
         return scale >= 4 && bufferLength0 > 1 && framesPerSlice % bufferLength0 == 0L &&
                 (meta != null && min(meta.videoWidth, meta.videoHeight) >= VideoProxyCreator.minSizeForScaling)
     }
@@ -210,7 +210,7 @@ object VideoCache : CacheSection("Videos") {
      * */
     @Suppress("unused")
     fun getVideoFrameWithoutGenerator(
-        meta: FFMPEGMetadata,
+        meta: MediaMetadata,
         index: Int,
         bufferLength0: Int,
         fps: Double

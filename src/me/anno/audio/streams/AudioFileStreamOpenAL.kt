@@ -7,7 +7,7 @@ import me.anno.audio.openal.SoundBuffer
 import me.anno.audio.openal.SoundSource
 import me.anno.io.files.FileReference
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.openal.AL10.*
 import java.nio.ByteBuffer
@@ -20,7 +20,7 @@ class AudioFileStreamOpenAL(
     repeat: LoopingState,
     var startTime: Double,
     val relative: Boolean,
-    meta: FFMPEGMetadata,
+    meta: MediaMetadata,
     speed: Double,
     left: Boolean, center: Boolean, right: Boolean
 ) : AudioFileStream(

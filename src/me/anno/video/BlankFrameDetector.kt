@@ -4,7 +4,7 @@ import me.anno.cache.instances.VideoCache
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.utils.Sleep.waitUntilDefined
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
 import java.nio.ByteBuffer
@@ -99,7 +99,7 @@ class BlankFrameDetector {
 
         fun getFrame(
             src: FileReference, scale: Int, frameIndex: Int, bufferSize: Int, fps: Double,
-            timeout: Long, meta: FFMPEGMetadata, async: Boolean,
+            timeout: Long, meta: MediaMetadata, async: Boolean,
             threshold: Float = 1f
         ): GPUFrame? {
 

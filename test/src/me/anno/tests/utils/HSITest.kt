@@ -6,6 +6,7 @@ import org.joml.Vector3f
 import java.util.*
 
 fun main() {
+    // todo HSI is just broken...
     val space = LinearHSI
     val random = Random(1234)
     val rgb = Vector3f()

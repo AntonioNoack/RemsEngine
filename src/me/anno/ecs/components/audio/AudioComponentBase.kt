@@ -10,7 +10,7 @@ import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 import org.joml.Vector3f
 import org.lwjgl.openal.AL10.AL_INVERSE_DISTANCE_CLAMPED
 import org.lwjgl.openal.AL10.alDistanceModel
@@ -123,7 +123,7 @@ abstract class AudioComponentBase : Component() {
             startTime = Time.nanoTime - (startTime0 * 1e9).toLong()
             this as AudioComponent
             // todo wait for meta async
-            val meta = FFMPEGMetadata.getMeta(source, false)
+            val meta = MediaMetadata.getMeta(source, false)
             if (meta != null && meta.hasAudio) {
                 updateGlobalDistanceModel()
                 // todo loop is not working :/

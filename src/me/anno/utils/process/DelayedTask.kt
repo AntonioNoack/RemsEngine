@@ -2,7 +2,7 @@ package me.anno.utils.process
 
 import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.Events.addEvent
 import me.anno.utils.OS
 import kotlin.concurrent.thread
 

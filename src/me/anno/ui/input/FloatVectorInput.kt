@@ -9,7 +9,6 @@ import me.anno.input.Input.isShiftDown
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
-import me.anno.studio.StudioBase.Companion.warn
 import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
@@ -17,6 +16,7 @@ import me.anno.ui.input.components.VectorInputList
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToDouble.getDouble
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.max
 
@@ -27,6 +27,10 @@ open class FloatVectorInput(
     style: Style,
     val createComponent: () -> FloatInput
 ) : TitledListY(title, visibilityKey, style), InputPanel<Vector4d>, TextStyleable {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(FloatVectorInput::class)
+    }
 
     constructor(title: String, visibilityKey: String, type: Type, style: Style) :
             this(title, visibilityKey, type, style, { FloatInput("", visibilityKey, type, style) })
@@ -110,7 +114,7 @@ open class FloatVectorInput(
     val valueList = VectorInputList(visibilityKey, style)
 
     init {
-        if (type == Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
+        if (type == Type.COLOR) LOGGER.warn("VectorInput should be replaced with ColorInput for type color!")
         this += valueList
         if (titleView != null) valueList.hide()
     }

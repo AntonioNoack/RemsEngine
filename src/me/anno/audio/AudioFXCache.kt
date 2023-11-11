@@ -14,7 +14,7 @@ import me.anno.io.files.FileReference
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.video.AudioCreator.Companion.playbackSampleRate
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min
@@ -128,7 +128,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
     private val rawDataLimiter = Semaphore(32)
 
     fun getRawData(
-        meta: FFMPEGMetadata,
+        meta: MediaMetadata,
         key: PipelineKey
     ): AudioData {
         // we cannot simply return null from this function, so getEntryLimited isn't an option
@@ -143,7 +143,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
     }
 
     fun getBuffer0(
-        meta: FFMPEGMetadata,
+        meta: MediaMetadata,
         pipelineKey: PipelineKey,
         async: Boolean
     ): AudioData? {
@@ -157,7 +157,7 @@ object AudioFXCache : CacheSection("AudioFX0") {
         async: Boolean
     ): AudioData? {
         return getEntry(pipelineKey, timeout, async) { key ->
-            getRawData(FFMPEGMetadata.getMeta(key.file, false)!!, key)
+            getRawData(MediaMetadata.getMeta(key.file, false)!!, key)
         } as? AudioData
     }
 

@@ -22,7 +22,7 @@ import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
-import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.Events.addEvent
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.input.InputPanel

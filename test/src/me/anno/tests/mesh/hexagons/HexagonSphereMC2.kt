@@ -12,6 +12,7 @@ import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.studio.Events.addEvent
 import me.anno.studio.StudioBase
 import me.anno.utils.OS.desktop
 import me.anno.utils.hpc.ProcessingGroup
@@ -206,7 +207,7 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
                 val mesh = createMesh(sphere.queryChunk(key), world)
                 GFX.addGPUTask("chunk", sphere.s) {
                     mesh.ensureBuffer()
-                    StudioBase.addEvent {
+                    addEvent {
                         val comp = MeshComponent(mesh.ref)
                         entity.add(comp)
                         entity.invalidateAABBsCompletely()

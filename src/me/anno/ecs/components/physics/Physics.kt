@@ -15,7 +15,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.MILLIS_TO_NANOS
-import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.Events.addEvent
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
 import me.anno.utils.structures.sets.ParallelHashSet

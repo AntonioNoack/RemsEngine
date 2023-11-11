@@ -16,7 +16,6 @@ import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.pipeline.*
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.structures.arrays.ExpandingFloatArray
-import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
@@ -97,7 +96,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
         return forEachMeshGroupTRS { mesh, material ->
             val material2 = material ?: Material.defaultMaterial
             val stage = pipeline.findStage(material2)
-            val stack = stage.instancedPSR.data.getOrPut(mesh, material2) { _, _ -> InstancedTRSStack.Data() }
+            val stack = stage.instancedTRS.data.getOrPut(mesh, material2) { _, _ -> InstancedTRSStack.Data() }
             if (stack.gfxIds.isEmpty() || stack.gfxIds.last() != gfxId) {
                 stack.gfxIds.add(stack.size)
                 stack.gfxIds.add(gfxId)

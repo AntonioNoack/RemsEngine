@@ -3,17 +3,17 @@ package me.anno.ui.input
 import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
-import me.anno.studio.StudioBase.Companion.warn
+import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.VectorInputList
-import me.anno.ui.Style
 import me.anno.utils.Color.a
 import me.anno.utils.Color.b
 import me.anno.utils.Color.g
 import me.anno.utils.Color.r
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToInt.getInt
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import org.joml.Vector3i
 import org.joml.Vector4f
@@ -27,6 +27,10 @@ open class IntVectorInput(
     style: Style,
     val createComponent: () -> IntInput
 ) : TitledListY(title, visibilityKey, style), InputPanel<Vector4i>, TextStyleable {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(IntVectorInput::class)
+    }
 
     constructor(title: String, visibilityKey: String, type: Type, style: Style) :
             this(title, visibilityKey, type, style, { IntInput("", visibilityKey, type, style) })
@@ -56,7 +60,7 @@ open class IntVectorInput(
     val valueList = VectorInputList(visibilityKey, style)
 
     init {
-        if (type == Type.COLOR) warn("VectorInput should be replaced with ColorInput for type color!")
+        if (type == Type.COLOR) LOGGER.warn("VectorInput should be replaced with ColorInput for type color!")
         this += valueList
         if (titleView != null) valueList.hide()
     }
@@ -282,5 +286,4 @@ open class IntVectorInput(
     }
 
     override val className: String get() = "IntVectorInput"
-
 }

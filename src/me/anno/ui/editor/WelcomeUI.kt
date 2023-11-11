@@ -11,6 +11,7 @@ import me.anno.io.zip.InnerFile
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.language.translation.NameDesc.Companion.translate
+import me.anno.studio.Events.addEvent
 import me.anno.studio.GFXSettings
 import me.anno.studio.ProjectHeader
 import me.anno.studio.Projects
@@ -234,7 +235,7 @@ abstract class WelcomeUI {
 
     private fun openProject2(name: String, folder: FileReference) {
         val p = loadProject(name.trim(), folder)
-        StudioBase.addEvent {
+        addEvent {
             GFX.someWindow!!.windowStack.clear()
             createProjectUI()
         }

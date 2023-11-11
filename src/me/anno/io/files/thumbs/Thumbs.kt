@@ -106,7 +106,7 @@ import me.anno.utils.structures.Iterators.subList
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.Strings.getImportType
-import me.anno.video.ffmpeg.FFMPEGMetadata.Companion.getMeta
+import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
 import net.sf.image4j.codec.ico.ICOReader

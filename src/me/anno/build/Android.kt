@@ -9,6 +9,10 @@ import me.anno.utils.OS.pictures
 import me.anno.utils.process.BetterProcessBuilder
 import kotlin.math.min
 
+/**
+ * todo it would be nice to have an automated build/export process for Android,
+ *  not to open a second project
+ * */
 fun main() {
 
     val sdkPaths = listOf(

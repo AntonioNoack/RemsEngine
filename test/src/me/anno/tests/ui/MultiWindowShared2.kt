@@ -3,7 +3,7 @@ package me.anno.tests.ui
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFXBase
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.studio.StudioBase.Companion.addEvent
+import me.anno.studio.Events.addEvent
 import me.anno.ui.anim.AnimTextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.ConsoleOutputPanel

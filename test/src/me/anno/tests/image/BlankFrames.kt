@@ -13,14 +13,14 @@ import me.anno.gpu.texture.Filtering
 import me.anno.utils.OS
 import me.anno.video.BlankFrameDetector
 import me.anno.video.VideoCreator
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 import org.joml.Matrix4fArrayList
 import kotlin.concurrent.thread
 
 fun main() {
     val src = OS.downloads.getChild("2d/black frames sample.mp4")
     val dst = src.getSibling(src.nameWithoutExtension + "-result." + src.extension)
-    val meta = FFMPEGMetadata.getMeta(src, false)!!
+    val meta = MediaMetadata.getMeta(src, false)!!
     val delta = 5
     val start = 2 * 60 + 59 - delta // 2:59
     val end = start + 2 * delta

@@ -3,7 +3,7 @@ package me.anno.audio.streams
 import me.anno.animation.LoopingState
 import me.anno.audio.AudioFXCache
 import me.anno.io.files.FileReference
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 
 // only play once, then destroy; it makes things easier
 // (on user input and when finally rendering only)
@@ -27,7 +27,7 @@ abstract class AudioFileStream(
     val file: FileReference,
     val repeat: LoopingState,
     var startIndex: Long,
-    val meta: FFMPEGMetadata,
+    val meta: MediaMetadata,
     speed: Double,
     playbackSampleRate: Int = 48000,
     left: Boolean, center: Boolean, right: Boolean

@@ -104,8 +104,8 @@ class MeshInstanceData(
                 ShaderStage(
                     "trs-pos",
                     listOf(
-                        Variable(GLSLType.V4F, "instancePosSize"),
-                        Variable(GLSLType.V4F, "instanceRot"),
+                        Variable(GLSLType.V4F, "instancePosSize", VariableMode.ATTR),
+                        Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR),
                         Variable(GLSLType.V3F, "localPosition"),
                         Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT)
                     ),
@@ -115,8 +115,7 @@ class MeshInstanceData(
             listOf(
                 ShaderStage(
                     "trs-nor", listOf(
-                        Variable(GLSLType.V4F, "instancePosSize"),
-                        Variable(GLSLType.V4F, "instanceRot"),
+                        Variable(GLSLType.V4F, "instanceRot", VariableMode.ATTR),
                         Variable(GLSLType.V3F, "normal", VariableMode.INOUT),
                         Variable(GLSLType.V4F, "tangent", VariableMode.INOUT)
                     ), "normal = quatRot(normal, instanceRot);\n" +
@@ -127,8 +126,6 @@ class MeshInstanceData(
             listOf(
                 ShaderStage(
                     "trs-mov", listOf(
-                        Variable(GLSLType.V4F, "instancePosSize"),
-                        Variable(GLSLType.V4F, "instanceRot"),
                         Variable(GLSLType.V3F, "finalPosition"),
                         Variable(GLSLType.V4F, "prevPosition", VariableMode.OUT),
                     ), "prevPosition = vec4(finalPosition,1.0);\n"

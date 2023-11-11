@@ -7,6 +7,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.ShaderLib
 import me.anno.utils.structures.lists.Lists.any2
+import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Strings.ifBlank2
 import org.apache.logging.log4j.LogManager
@@ -25,7 +26,11 @@ class MainStage {
 
     fun add(stage: ShaderStage) {
         stages.add(stage)
-        attributes.addAll(stage.attributes)
+        for (attr in stage.attributes) {
+            if (attributes.none2 { it.name == attr.name }) {
+                attributes.add(attr)
+            }
+        }
         defineFunction(Function(randomGLSL))
         for (function in stage.functions) {
             defineFunction(function)

@@ -27,7 +27,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.language.Language
 import me.anno.language.translation.Dict
 import me.anno.maths.Maths
-import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Window
@@ -40,9 +39,6 @@ import me.anno.utils.OS
 import me.anno.utils.types.Strings.addSuffix
 import me.anno.utils.types.Strings.filterAlphaNumeric
 import org.apache.logging.log4j.LogManager
-import java.util.*
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.PriorityBlockingQueue
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -84,10 +80,7 @@ abstract class StudioBase(
 
     open fun onGameLoopStart() {}
     open fun onGameLoopEnd() {}
-
-    open fun onGameInit() {
-    }
-
+    open fun onGameInit() {}
     open fun onGameClose() {}
 
     open fun openHistory() {}
@@ -195,7 +188,7 @@ abstract class StudioBase(
 
     open fun onGameLoop(window: OSWindow, w: Int, h: Int) {
 
-        check()
+        GFX.check()
 
         onGameLoopStart()
 
@@ -238,7 +231,7 @@ abstract class StudioBase(
 
         FBStack.reset()
 
-        check()
+        GFX.check()
 
         if (isFirstFrame) {
             startClock.total("First frame finished")
@@ -293,7 +286,7 @@ abstract class StudioBase(
     }
 
     fun updateCursor(window: OSWindow, hoveredPanel: Panel?) {
-        (hoveredPanel?.getCursor() ?: Cursor.default)?.useCursor(window)
+        (hoveredPanel?.getCursor() ?: Cursor.default).useCursor(window)
     }
 
     open fun drawUIOverlay(window: OSWindow, w: Int, h: Int): Boolean {
@@ -353,8 +346,6 @@ abstract class StudioBase(
 
     private var isFirstFrame = true
 
-    fun check() = GFX.check()
-
     open fun clearAll() {
         CacheSection.clearAll()
     }
@@ -373,67 +364,7 @@ abstract class StudioBase(
 
         var dragged: IDraggable? = null
 
-        /**
-         * schedules a task that will be executed on the main loop
-         * */
-        fun addEvent(event: () -> Unit) {
-            eventTasks += event
-        }
-
-        /**
-         * schedules a task that will be executed on the main loop;
-         * will wait at least deltaMillis before it is executed
-         * */
-        fun addEvent(deltaMillis: Long, event: () -> Unit) {
-            scheduledTasks.add(Pair(Time.nanoTime + deltaMillis * MILLIS_TO_NANOS, event))
-        }
-
-        fun warn(msg: String) {
-            LOGGER.warn(msg)
-        }
-
-        private val eventTasks: Queue<() -> Unit> = ConcurrentLinkedQueue()
-        private val scheduledTasks: Queue<Pair<Long, () -> Unit>> =
-            PriorityBlockingQueue(16) { a, b -> a.first.compareTo(b.first) }
-
         val shiftSlowdown get() = if (Input.isAltDown) 5f else if (Input.isShiftDown) 0.2f else 1f
 
-        init {
-            Engine.registerForShutdown {
-                finishEventTasks()
-            }
-        }
-
-        fun finishEventTasks() {
-            workEventTasks()
-            while (scheduledTasks.isNotEmpty()) {
-                try {
-                    scheduledTasks.poll()!!.second.invoke()
-                } catch (e: Throwable) {
-                    e.printStackTrace()
-                }
-            }
-        }
-
-        fun workEventTasks() {
-            while (scheduledTasks.isNotEmpty()) {
-                try {
-                    val time = Time.nanoTime
-                    val peeked = scheduledTasks.peek()!!
-                    if (time >= peeked.first) {
-                        scheduledTasks.poll()!!.second.invoke()
-                    } else break
-                } catch (e: Throwable) {
-                    e.printStackTrace()
-                }
-            }
-            while (eventTasks.isNotEmpty()) {
-                try {
-                    eventTasks.poll()!!.invoke()
-                } catch (e: Throwable) {
-                    e.printStackTrace()
-                }
-            }
-        }
     }
 }

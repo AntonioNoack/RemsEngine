@@ -10,8 +10,8 @@ import me.anno.input.Input
 import me.anno.input.Modifiers
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
+import me.anno.studio.Events.addEvent
 import me.anno.studio.StudioBase
-import me.anno.ui.UIRegistry
 import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.WindowStack.Companion.printLayout
 import me.anno.utils.LOGGER
@@ -128,7 +128,7 @@ object EngineActions {
             },
             "ResetOpenGLSession" to {
                 if (GFX.canLooseContext)
-                    StudioBase.addEvent { GFXState.newSession() }
+                    addEvent { GFXState.newSession() }
                 true
             }
         )

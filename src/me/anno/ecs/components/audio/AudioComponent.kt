@@ -8,7 +8,7 @@ import me.anno.ecs.annotations.Docs
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 import kotlin.math.abs
 import kotlin.math.ceil
 
@@ -33,7 +33,7 @@ class AudioComponent : AudioComponentBase() {
 
     private fun keepInMemory() {
         // calculate number of buffers
-        val meta = FFMPEGMetadata.getMeta(source, true) ?: return
+        val meta = MediaMetadata.getMeta(source, true) ?: return
         val duration = meta.duration
         val numBuffers = ceil(duration * meta.audioSampleRate / bufferSize).toInt()
         for (i in 0 until numBuffers) {
@@ -41,7 +41,7 @@ class AudioComponent : AudioComponentBase() {
         }
     }
 
-    private fun keepInMemory(meta: FFMPEGMetadata, index: Int): Boolean {
+    private fun keepInMemory(meta: MediaMetadata, index: Int): Boolean {
         // keep in memory
         val time0 = index.toDouble() * bufferSize / meta.audioSampleRate
         val time1 = (index + 1).toDouble() * bufferSize / meta.audioSampleRate
@@ -54,7 +54,7 @@ class AudioComponent : AudioComponentBase() {
     }
 
     fun isFullyLoaded(): Boolean {
-        val meta = FFMPEGMetadata.getMeta(source, true) ?: return false
+        val meta = MediaMetadata.getMeta(source, true) ?: return false
         val duration = meta.duration
         val numBuffers = ceil(duration * meta.audioSampleRate / bufferSize).toInt()
         for (i in 0 until numBuffers) {

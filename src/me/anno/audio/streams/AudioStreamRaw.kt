@@ -12,7 +12,7 @@ import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mix
 import me.anno.utils.Sleep.waitUntilDefined
 import me.anno.utils.structures.tuples.ShortPair
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.getAudioSequence
 import org.lwjgl.openal.AL10
 import kotlin.math.max
@@ -21,7 +21,7 @@ import kotlin.math.min
 class AudioStreamRaw(
     val file: FileReference,
     val repeat: LoopingState,
-    val meta: FFMPEGMetadata,
+    val meta: MediaMetadata,
     val time0: Double, val time1: Double
 ) : StereoShortStream {
 

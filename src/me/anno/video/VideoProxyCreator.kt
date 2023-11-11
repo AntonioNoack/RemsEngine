@@ -5,7 +5,7 @@ import me.anno.cache.FileCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.Sleep.waitUntil
-import me.anno.video.ffmpeg.FFMPEGMetadata
+import me.anno.video.ffmpeg.MediaMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
 import org.apache.logging.log4j.LogManager
 import java.util.concurrent.TimeUnit
@@ -50,7 +50,7 @@ object VideoProxyCreator : FileCache<VideoProxyCreator.Key, FileReference>(
     override fun fillFileContents(key: Key, dst: FileReference, onSuccess: () -> Unit, onError: (Exception?) -> Unit) {
         init()
         val (src, _, sliceIndex) = key
-        val meta = FFMPEGMetadata.getMeta(src, false)
+        val meta = MediaMetadata.getMeta(src, false)
         if (meta == null) {
             LOGGER.warn("Meta is null")
             onError(null)

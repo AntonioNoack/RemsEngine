@@ -5,6 +5,9 @@ import me.anno.gpu.GFXBase.imageToGLFW
 import me.anno.image.Image
 import org.lwjgl.glfw.GLFW.*
 
+/**
+ * What the cursor looks like, and a few default Cursors
+ * */
 class Cursor : ICacheData {
 
     private var image: Image? = null
