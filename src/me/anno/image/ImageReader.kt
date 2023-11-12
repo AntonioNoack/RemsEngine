@@ -61,7 +61,7 @@ object ImageReader {
         }
 
         // rgb without alpha, if alpha exists
-        createComponent(file, folder, "rgb.png") {
+        createComponent(file, folder, "rgbMask.png") {
             if (it.hasAlphaChannel) OpaqueImage(it)
             else it
         }

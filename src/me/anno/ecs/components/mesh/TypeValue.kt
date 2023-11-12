@@ -11,6 +11,7 @@ import me.anno.image.ImageGPUCache
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 
@@ -33,7 +34,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
         if (location >= 0) bind(shader, location)
     }
 
-    fun bind(shader: Shader, location: Int) {
+    open fun bind(shader: Shader, location: Int) {
         val value = value
         when (type) {
             GLSLType.V1B -> when (value) {

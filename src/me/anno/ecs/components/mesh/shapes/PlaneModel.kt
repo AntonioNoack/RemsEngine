@@ -28,7 +28,9 @@ object PlaneModel {
     ): Mesh {
         val su = tilesU + 1
         val sv = tilesV + 1
-        val positions = FloatArray(su * sv * 3)
+        val vertexCount = su * sv
+        val positions = FloatArray(vertexCount * 3)
+        val uvs = FloatArray(vertexCount * 2)
         val mesh = Mesh()
         // positions
         val fu = 1f / (su - 1f)
@@ -36,6 +38,7 @@ object PlaneModel {
         val tmpV0 = Vector3f()
         val tmpV1 = Vector3f()
         var i = 0
+        var j = 0
         for (iv in 0 until sv) {
             val v = iv * fv
             p00.lerp(p01, v, tmpV0)
@@ -45,6 +48,8 @@ object PlaneModel {
                 positions[i++] = tmpV0.x
                 positions[i++] = tmpV0.y
                 positions[i++] = tmpV0.z
+                uvs[j++] = iu * fu
+                uvs[j++] = 1f - v
                 tmpV0.add(tmpV1)
             }
         }
@@ -54,16 +59,16 @@ object PlaneModel {
         val nx = normal.x
         val ny = normal.y
         val nz = normal.z
-        for (j in positions.indices step 3) {
-            normals[j] = nx
-            normals[j + 1] = ny
-            normals[j + 2] = nz
+        for (k in positions.indices step 3) {
+            normals[k] = nx
+            normals[k + 1] = ny
+            normals[k + 2] = nz
         }
         // indices
         mesh.positions = positions
         mesh.normals = normals
+        mesh.uvs = uvs
         TerrainUtils.generateQuadIndices(su, sv, false, mesh)
         return mesh
     }
-
 }

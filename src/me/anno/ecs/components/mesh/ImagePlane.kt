@@ -33,6 +33,7 @@ class ImagePlane(var source: FileReference = InvalidRef) : ProceduralMesh() {
             val max = max(meta.videoWidth, meta.videoHeight).toFloat()
             sx = meta.videoWidth / max
             sy = meta.videoHeight / max
+            println("meta isn't null, $sx, $sy")
         }
         val pos = mesh.positions.resize(3 * 4)
         mesh.positions = pos
@@ -92,6 +93,7 @@ class ImagePlane(var source: FileReference = InvalidRef) : ProceduralMesh() {
         pos[7] = y1
         pos[9] = x1
         pos[10] = y0
+        mesh.invalidateGeometry()
     }
 
     override fun clone(): ImagePlane {
@@ -113,7 +115,7 @@ class ImagePlane(var source: FileReference = InvalidRef) : ProceduralMesh() {
 
     companion object {
         val indices = intArrayOf(0, 2, 1, 0, 3, 2)
-        val normals = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f) // todo correct?
+        val normals = floatArrayOf(0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f, 0f, 0f, 1f)
         val uvs = floatArrayOf(0f, 0f, 0f, 1f, 1f, 1f, 1f, 0f)
     }
 
