@@ -7,8 +7,8 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.RemsEngine.Companion.collectSelected
 import me.anno.engine.RemsEngine.Companion.restoreSelected
-import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.ISaveable
@@ -16,8 +16,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.studio.Inspectable
 import me.anno.studio.Events.addEvent
+import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -187,11 +187,21 @@ class PrefabInspector(val reference: FileReference) {
         val original = first.getOriginal()
         list.add(TextInput("Name", "", instances.joinToString { it.name }, style).apply {
             isBold = instances.any { isChanged(getPath(it), "name") }
-            isInputAllowed = isWritable && instances.all { it.name == first.name }
+            isInputAllowed = isWritable
             addChangeListener {
                 isBold = true
-                for (instance in instances) {
-                    change(getPath(instance), instance, "name", it)
+                when (instances.size) {
+                    0 -> {}
+                    1 -> {
+                        val instance = instances.first()
+                        change(getPath(instance), instance, "name", it)
+                    }
+                    else -> {
+                        for (index in instances.indices) {
+                            val instance = instances[index]
+                            change(getPath(instance), instance, "name", "$it-$index")
+                        }
+                    }
                 }
                 onChange(false)
             }

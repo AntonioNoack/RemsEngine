@@ -7,17 +7,18 @@ import me.anno.utils.files.LocalFile.toGlobalFile
 import java.io.IOException
 
 fun readURLAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) -> Unit) {
-    file.readLines(1024) { txt, exception ->
-        if (txt == null) callback(null, exception)
+    file.readLines(1024) { lines, exception ->
+        if (lines == null) callback(null, exception)
         else {
             val files = ArrayList<FileReference>()
-            for (line in txt) {
+            for (line in lines) {
                 if (line.startsWith("URL=file://")) {
                     files.add(FileReference.Companion.getReference(line.substring(11).toGlobalFile()))
                 } else if (line.startsWith("URL=")) {
                     files.add(FileReference.getReference(line.substring(4)))
                 }
             }
+            lines.close()
             if (files.isNotEmpty()) {
                 val folder = InnerFolder(file)
                 var j = 0

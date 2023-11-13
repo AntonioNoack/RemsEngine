@@ -25,12 +25,9 @@ class UpdatingTask(val threadName: String, val cleaning: () -> Unit) {
                     computation()
                 } catch (e: InterruptedException) {
                     // kill successful
-                } catch (e: IOException) {
-                    // e.g. IOException, because a channel was closed while waiting for the stream
-                    LOGGER.warn("Catched ${e.message}")
                 } catch (e: Exception) {
                     // e.g. IOException, because a channel was closed while waiting for the stream
-                    LOGGER.warn("Catched ${e.message}")
+                    LOGGER.warn("Catched error", e)
                 }
                 runningThread = null
             }

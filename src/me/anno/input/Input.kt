@@ -673,11 +673,32 @@ object Input {
         val inFocus0 = dws.inFocus0 ?: return
         when (inFocus.size) {
             0 -> return // should not happen
-            1 -> setClipboardContent(inFocus0.onCopyRequested(mouseX, mouseY)?.toString())
+            1 -> {
+                val value = inFocus0.onCopyRequested(mouseX, mouseY)
+                if (value is List<*> && value.isNotEmpty() && value.all { it is FileReference }) {
+                    copyFiles(value.filterIsInstance<FileReference>())
+                } else setClipboardContent(value?.toString())
+            }
             else -> {
                 val parentValue = inFocus0.getMultiSelectablePanel()?.onCopyRequested(mouseX, mouseY)
                 if (parentValue != null) return setClipboardContent(parentValue.toString())
                 // combine them into an array
+                fun defaultCopy() {
+                    // create very simple, stupid array of values as strings
+                    val data = inFocus
+                        .mapNotNull { it.onCopyRequested(mouseX, mouseY) }
+                        .joinToString(",", "[", "]") {
+                            val s = it.toString()
+                            when {
+                                s.isEmpty() -> "\"\""
+                                isName(s) || isArray(s) || isNumber(s) -> s
+                                else -> "\"${
+                                    s.replace("\\", "\\\\").replace("\"", "\\\"")
+                                }\""
+                            }
+                        }
+                    setClipboardContent(data)
+                }
                 when (val first = inFocus0.onCopyRequested(mouseX, mouseY)) {
                     is ISaveable -> {
                         // create array
@@ -695,22 +716,15 @@ object Input {
                         // when this is a list of files, invoke copyFiles instead
                         copyFiles(inFocus.mapNotNull { it.onCopyRequested(mouseX, mouseY) as? FileReference })
                     }
-                    else -> {
-                        // create very simple, stupid array of values as strings
-                        val data = inFocus
-                            .mapNotNull { it.onCopyRequested(mouseX, mouseY) }
-                            .joinToString(",", "[", "]") {
-                                val s = it.toString()
-                                when {
-                                    s.isEmpty() -> "\"\""
-                                    isName(s) || isArray(s) || isNumber(s) -> s
-                                    else -> "\"${
-                                        s.replace("\\", "\\\\").replace("\"", "\\\"")
-                                    }\""
-                                }
-                            }
-                        setClipboardContent(data)
+                    is List<*> -> {
+                        if (first.isNotEmpty() && first.all { it is FileReference }) {
+                            val fullFileList = inFocus.mapNotNull { it as? List<*> }
+                                .map { it.filterIsInstance<FileReference>() }
+                                .flatten()
+                            copyFiles(fullFileList)
+                        } else defaultCopy()
                     }
+                    else -> defaultCopy()
                 }
             }
         }
@@ -839,6 +853,7 @@ object Input {
      * is like calling "control-c" on those files
      * */
     fun copyFiles(files: List<FileReference>) {
+        LOGGER.info("Copying $files")
         // we need this folder, when we have temporary copies,
         // because just FileFileRef.createTempFile() changes the name,
         // and we need the original file name
@@ -868,6 +883,7 @@ object Input {
     private val copiedInternalFiles = BiMap<File, FileReference>()
 
     fun copyFiles2(files: List<File>) {
+        LOGGER.info("Copying $files")
         Toolkit
             .getDefaultToolkit()
             .systemClipboard

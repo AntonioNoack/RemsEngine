@@ -186,7 +186,8 @@ object AnimatedMeshesLoader {
 
             val skeleton = Prefab("Skeleton")
             skeleton["bones"] = boneList.toTypedArray()
-            val skeletonPath = root.createPrefabChild("Skeleton.json", skeleton)
+            val skeletonsFolder = root.createChild("skeletons", null) as InnerFolder
+            val skeletonPath = skeletonsFolder.createPrefabChild("Skeleton.json", skeleton)
 
             val nodeCache = createNodeCache(rootNode)
             val (globalTransform, globalInverseTransform, animMap) =

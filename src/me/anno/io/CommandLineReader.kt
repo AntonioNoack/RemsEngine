@@ -1,6 +1,7 @@
 package me.anno.io
 
 import me.anno.Engine
+import me.anno.utils.structures.arrays.ExpandingByteArray
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.Closeable
@@ -18,7 +19,7 @@ open class CommandLineReader {
 
     class TimeoutReader(val input: InputStream) : Closeable {
 
-        val str = ArrayList<Byte>(256)
+        val str = ExpandingByteArray(64)
 
         fun readLine(): String? {
             while (!Engine.shutdown) {
@@ -26,9 +27,11 @@ open class CommandLineReader {
                     when (val char = input.read()) {
                         '\r'.code -> continue // skip it
                         '\n'.code -> {// return line
-                            val value = String(str.toByteArray())
-                            str.clear()
-                            return value
+                            return if (str.size > 0) {
+                                val value = String(str.array!!, 0, str.size)
+                                str.clear()
+                                value
+                            } else ""
                         }
                         -1 -> break // eof
                         else -> str.add(char.toByte())

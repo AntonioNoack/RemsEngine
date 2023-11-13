@@ -3,6 +3,7 @@ package me.anno.mesh.assimp
 import me.anno.ecs.Transform
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path
+import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.image.raw.ByteImage
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
@@ -301,6 +302,11 @@ object StaticMeshesLoader {
         )
         if (diffuseMap != InvalidRef) {
             prefab["diffuseMap"] = diffuseMap
+            // I wish there was a better way; opacity isn't guaranteed to be set to < 1
+            // (tested with source files for SyntyStore "Ancient Empire Temple" wall meshes)
+            if (name.contains("glass", true)) {
+                prefab["pipelineStage"] = TRANSPARENT_PASS
+            }
             if (opacity != 1f) prefab["diffuseBase"] = Vector4f(1f, 1f, 1f, opacity)
         } else {
             // I think the else-if is the correct thing here; the storm-trooper is too dark otherwise
@@ -460,12 +466,15 @@ object StaticMeshesLoader {
                 val i1 = path1.lastIndexOf('.')
                 if (i1 > i0) {
                     val sub = path1.substring(i0, i1)
+                    val isNormal = path1.contains("normal", true)
                     val candidate1 = textureLookup
                         .minByOrNull {
                             val sub1 = it.nameWithoutExtension
                             val idx = sub1.indexOf("_Texture_")
                             val sub2 = sub1.substring(idx + "_Texture_".length)
-                            sub.distance(sub2)
+                            val isLikelyNormal = sub1.contains("normal", true)
+                            sub.distance(sub2) + if (isNormal == isLikelyNormal) 0
+                            else 10 // penalty for being different type probably
                         }
                     if (candidate1 != null) {
                         LOGGER.debug("Resolved {} to {}", path0, candidate1)

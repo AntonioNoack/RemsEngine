@@ -142,6 +142,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     // find where to draw it
                     findDropPosition(file, pos)
 
+                    // todo bug: position is not correctly displayed
                     movedSample.removeAllChildren()
                     movedSample.transform.localPosition = pos
                     when (sample) {
@@ -481,7 +482,12 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     ) {
         val ci = PrefabInspector.currentInspector!!
         val path = ci.addNewChild(root, type, prefab)!!
-        if (position != null) ci.prefab[path, "position"] = position
+        if (position != null) {
+            ci.prefab[path, "position"] = position
+            // bug: on drop, position isn't correctly verified; only reloading fixes it
+            ci.prefab.invalidateInstance() // todo fix: hack
+            // todo sometimes dragging snaps wayyy too much... parent transform incorrect?
+        }
         val sample = Hierarchy.getInstanceAt(ci.root, path)
         if (sample != null) results.add(sample)
     }
@@ -572,21 +578,24 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 }
                 is DCDroppable -> sampleInstance.drop(this, prefab, hovEntity, hovComponent, dropPosition, results)
                 is Component -> {
-                    if (hovEntity != null) {
-                        val path = ci.addNewChild(hovEntity, 'c', prefab)!!
+                    val entity = hovEntity ?: renderView.getWorld() as? Entity
+                    if (entity != null) {
+                        val path = ci.addNewChild(entity, 'c', prefab)!!
                         val sample = Hierarchy.getInstanceAt(ci.root, path)
                         if (sample != null) results.add(sample)
+                    } else {
+                        LOGGER.warn("Entity is null")
+                        // this can happen when we paste a file
                     }
                 }
                 else -> {
                     // todo try to add it to all available, hovered and selected instances
+                    LOGGER.warn("Unknown type ${sampleInstance.className}")
                 }
             }
             LOGGER.info("pasted $file")
         }
         if (results.isNotEmpty()) {
-            EditorState.selection = results
-            EditorState.lastSelection = results.last()
             dragged = null
             requestFocus(true) // because we dropped sth here
         }
@@ -618,6 +627,19 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         super.onPaste(x, y, data, type)
         LOGGER.info("pasted $data/$type")
+    }
+
+    override fun onCopyRequested(x: Float, y: Float): Any? {
+        // get all selected items
+        // make them into separate prefabs
+        // pack them into temporary files (?)
+        // then copy them, or their prefab text
+        val cloneFiles = EditorState.selection
+            .filterIsInstance<PrefabSaveable>()
+            .map { if (it is Component) it.entity ?: it else it } // prefer copying entities, so everything stays movable
+            .map { it.clone().ref }
+        LOGGER.info("Requested copy -> $cloneFiles")
+        return cloneFiles
     }
 
     override fun onDeleteKey(x: Float, y: Float) {

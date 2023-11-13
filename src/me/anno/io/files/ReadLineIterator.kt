@@ -1,7 +1,7 @@
 package me.anno.io.files
 
-import me.anno.utils.structures.NextEntryIterator
 import me.anno.maths.Maths.max
+import me.anno.utils.structures.NextEntryIterator
 import java.io.BufferedReader
 import java.io.IOException
 
@@ -13,7 +13,10 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
         builder.clear()
         while (true) {
             when (val c = reader.read()) {
-                -1 -> return null // eof
+                -1 -> { // eof
+                    reader.close()
+                    return null
+                }
                 '\n'.code -> return builder.toString()
                 '\r'.code -> {}// ignored
                 else -> if (builder.length < lineLengthLimit) {
@@ -26,7 +29,10 @@ class ReadLineIterator(val reader: BufferedReader, val lineLengthLimit: Int, val
         builder.append(suffix)
         while (true) {
             when (reader.read()) {
-                -1 -> return null // eof
+                -1 -> { // eof
+                    reader.close()
+                    return null
+                }
                 '\n'.code -> return builder.toString()
                 // everything else is ignored
             }
