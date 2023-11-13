@@ -5,7 +5,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.studio.StudioBase
 import org.apache.logging.log4j.LogManager
 import kotlin.test.assertTrue
@@ -119,7 +119,7 @@ object Hierarchy {
     }
 
     fun stringify(element: PrefabSaveable): String {
-        return TextWriter.toText(
+        return JsonStringWriter.toText(
             extractPrefab(element.prefab!!, element.prefabPath),
             StudioBase.workspace
         )

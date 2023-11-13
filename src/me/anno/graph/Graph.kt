@@ -5,8 +5,8 @@ import me.anno.graph.render.NodeGroup
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 
 
 // todo for editing just copy them
@@ -118,7 +118,7 @@ open class Graph : PrefabSaveable() {
     }
 
     override fun clone(): PrefabSaveable {
-        val clone = TextReader.readFirst(TextWriter.toText(this, InvalidRef), InvalidRef, false) as Graph
+        val clone = JsonStringReader.readFirst(JsonStringWriter.toText(this, InvalidRef), InvalidRef, false) as Graph
         for (node in clone.nodes) node.graph = clone
         return clone
     }

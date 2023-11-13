@@ -146,7 +146,7 @@ class MainStage {
             if (isCubemap) {
                 if (isArray) throw NotImplementedError()
                 code.append("(int index, vec3 uv, float depth){\n")
-                code.append("float bias = 0.005;\n")
+                code.append("float bias = 0.05 * depth;\n")
                 code.append("vec4 uvw = vec4(uv,depth+bias);\n")
                 code.append("ivec2 size; float du, sum=0.0; vec3 u; bool x,z; vec4 dx,dy;\n")
                 if (isMoreThanOne) code.append("switch(index){\n")

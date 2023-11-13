@@ -11,8 +11,8 @@ import me.anno.input.controller.CalibrationProcedure
 import me.anno.input.controller.ControllerCalibration
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
@@ -434,7 +434,7 @@ class Controller(val id: Int) {
         fun loadCalibration(guid: String): ControllerCalibration? {
             val file = getCaliFile(guid)
             if (!file.exists || file.isDirectory) return null
-            return TextReader.readFirstOrNull<ControllerCalibration>(file, StudioBase.workspace)
+            return JsonStringReader.readFirstOrNull<ControllerCalibration>(file, StudioBase.workspace)
         }
 
         fun saveCalibration(guid: String, calibration: ControllerCalibration) {
@@ -444,7 +444,7 @@ class Controller(val id: Int) {
             )
             val file = getCaliFile(guid)
             file.getParent()?.tryMkdirs()
-            TextWriter.save(calibration, file, StudioBase.workspace)
+            JsonStringWriter.save(calibration, file, StudioBase.workspace)
         }
 
         const val MAX_NUM_BUTTONS = 128

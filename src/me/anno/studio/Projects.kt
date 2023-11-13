@@ -3,7 +3,7 @@ package me.anno.studio
 import me.anno.config.DefaultConfig
 import me.anno.engine.GameEngineProject
 import me.anno.io.files.FileReference
-import me.anno.io.text.TextReader
+import me.anno.io.json.saveable.JsonStringReader
 import org.apache.logging.log4j.LogManager
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -33,7 +33,7 @@ object Projects {
                             if (configFile.exists) {
                                 try {
                                     LOGGER.debug("Reading {}", configFile)
-                                    val config = TextReader.readFirstOrNull<GameEngineProject>(configFile, folder, true)
+                                    val config = JsonStringReader.readFirstOrNull<GameEngineProject>(configFile, folder, true)
                                     if (config != null) {
                                         projects += ProjectHeader(config.name.ifBlank { folder.name }, folder)
                                         usedFiles += folder

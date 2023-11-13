@@ -4,7 +4,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 
-class UVSkyboxShader(name: String) : SkyShaderBase(name) {
+object UVSkyboxShader : SkyShaderBase("uv-skybox") {
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val stages = super.createFragmentStages(key)
@@ -17,7 +17,6 @@ class UVSkyboxShader(name: String) : SkyShaderBase(name) {
 
     override fun getSkyColor(): String {
         return "vec3 getSkyColor(vec3 pos) {\n" +
-                "   pos = -pos;\n" +
                 "   float u = atan(pos.z,pos.x)*${0.5 / Math.PI}+0.5;\n" +
                 "   float v = atan(pos.y,length(pos.xz))*${1.0 / Math.PI}+.5;\n" +
                 // this fixes the seam; it is caused by sampling the 2x2 field with (0,v) and (1,v) as neighbors

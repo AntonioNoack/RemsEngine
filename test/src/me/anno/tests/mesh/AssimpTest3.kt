@@ -3,7 +3,7 @@ package me.anno.tests.mesh
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.json.JsonFormatter
+import me.anno.io.json.generic.JsonFormatter
 import me.anno.mesh.assimp.AnimatedMeshesLoader.readAsFolder
 import me.anno.mesh.fbx.FBX6000.parseBinaryFBX6000
 import me.anno.mesh.fbx.FBX6000.readBinaryFBX6000AsMeshes

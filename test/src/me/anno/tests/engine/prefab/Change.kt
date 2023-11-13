@@ -5,8 +5,8 @@ import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.ISaveable
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 
 fun main() {
     ISaveable.registerCustomClass(CAdd())
@@ -20,7 +20,7 @@ fun main() {
         CAdd(path, 'x', "Entity")
     )) {
         println(sample)
-        val clone = TextReader.read(TextWriter.toText(sample, InvalidRef), InvalidRef, true).first()
+        val clone = JsonStringReader.read(JsonStringWriter.toText(sample, InvalidRef), InvalidRef, true).first()
         println(clone)
     }
 }

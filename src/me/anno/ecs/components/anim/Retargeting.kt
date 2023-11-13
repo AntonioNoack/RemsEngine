@@ -10,8 +10,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
@@ -46,14 +46,14 @@ class Retargeting : NamedSaveable() {
 
                 val ret: Retargeting
                 if (config1.exists) {
-                    ret = TextReader.readFirstOrNull<Retargeting>(config1, InvalidRef, true)
+                    ret = JsonStringReader.readFirstOrNull<Retargeting>(config1, InvalidRef, true)
                         ?: Retargeting()
                 } else {
                     ret = Retargeting()
                     ret.srcSkeleton = k12.file0
                     ret.dstSkeleton = k12.file1
                     config1.getParent()?.tryMkdirs()
-                    config1.writeText(TextWriter.toText(ret, InvalidRef))
+                    config1.writeText(JsonStringWriter.toText(ret, InvalidRef))
                 }
 
                 // todo automatic bone-assignment, if none is found

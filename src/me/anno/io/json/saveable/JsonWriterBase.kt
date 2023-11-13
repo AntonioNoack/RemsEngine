@@ -1,18 +1,17 @@
-package me.anno.io.text
+package me.anno.io.json.saveable
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.maths.Maths.absMax
-import me.anno.maths.Maths.min
-import me.anno.utils.Color.base36
+import me.anno.maths.Maths
+import me.anno.utils.Color
 import me.anno.utils.types.Strings
 import me.anno.utils.types.Strings.isBlank2
 import org.joml.*
 import kotlin.math.abs
 
-abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
+abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     private var hasObject = false
 
@@ -221,7 +220,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
         val c5 = color.shr(20).and(0xf)
         val c6 = color.shr(24).and(0xf)
         val c7 = color.shr(28).and(0xf)
-        val hex = base36
+        val hex = Color.base36
         when {
             c0 == c1 && c2 == c3 && c4 == c5 && c6 == c7 -> {
                 if (c6 == 15) { // #rgb
@@ -742,7 +741,7 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     ) {
         open(true)
         append(size)
-        for (i in 0 until min(lastIndex + 1, size)) {
+        for (i in 0 until Maths.min(lastIndex + 1, size)) {
             append(',')
             writeValue(i)
         }
@@ -1018,8 +1017,8 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     // clamp values, which are 1e-7 below the scale -> won't impact anything, and saves space
     private fun clamp2x2Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        val sx = absMax(tmp[0], tmp[2]) * scale
-        val sy = absMax(tmp[1], tmp[3]) * scale
+        val sx = Maths.absMax(tmp[0], tmp[2]) * scale
+        val sy = Maths.absMax(tmp[1], tmp[3]) * scale
         for (i in 0 until 4 step 2) {
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
@@ -1027,8 +1026,8 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp3x2Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        val sx = absMax(tmp[0], tmp[2]) * scale
-        val sy = absMax(tmp[1], tmp[3]) * scale
+        val sx = Maths.absMax(tmp[0], tmp[2]) * scale
+        val sy = Maths.absMax(tmp[1], tmp[3]) * scale
         for (i in 0 until 6 step 2) {
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
@@ -1036,8 +1035,8 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp2x2Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        val sx = absMax(tmp[0], tmp[2]) * scale
-        val sy = absMax(tmp[1], tmp[3]) * scale
+        val sx = Maths.absMax(tmp[0], tmp[2]) * scale
+        val sy = Maths.absMax(tmp[1], tmp[3]) * scale
         for (i in 0 until 4 step 2) {
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
@@ -1045,8 +1044,8 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp3x2Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        val sx = absMax(tmp[0], tmp[2]) * scale
-        val sy = absMax(tmp[1], tmp[3]) * scale
+        val sx = Maths.absMax(tmp[0], tmp[2]) * scale
+        val sy = Maths.absMax(tmp[1], tmp[3]) * scale
         for (i in 0 until 6 step 2) {
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
@@ -1054,9 +1053,9 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp3x3Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        val sx = absMax(tmp[0], tmp[3], tmp[6]) * scale
-        val sy = absMax(tmp[1], tmp[4], tmp[7]) * scale
-        val sz = absMax(tmp[2], tmp[5], tmp[8]) * scale
+        val sx = Maths.absMax(tmp[0], tmp[3], tmp[6]) * scale
+        val sy = Maths.absMax(tmp[1], tmp[4], tmp[7]) * scale
+        val sz = Maths.absMax(tmp[2], tmp[5], tmp[8]) * scale
         for (i in 0 until 9 step 3) {
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
@@ -1065,9 +1064,9 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp3x3Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        val sx = absMax(tmp[0], tmp[3], tmp[6]) * scale
-        val sy = absMax(tmp[1], tmp[4], tmp[7]) * scale
-        val sz = absMax(tmp[2], tmp[5], tmp[8]) * scale
+        val sx = Maths.absMax(tmp[0], tmp[3], tmp[6]) * scale
+        val sy = Maths.absMax(tmp[1], tmp[4], tmp[7]) * scale
+        val sz = Maths.absMax(tmp[2], tmp[5], tmp[8]) * scale
         for (i in 0 until 9 step 3) {
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
@@ -1076,9 +1075,9 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp4x3Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        val sx = absMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
-        val sy = absMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
-        val sz = absMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
+        val sx = Maths.absMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
+        val sy = Maths.absMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
+        val sz = Maths.absMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
         for (i in 0 until 12 step 3) {
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
@@ -1087,9 +1086,9 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp4x3Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        val sx = absMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
-        val sy = absMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
-        val sz = absMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
+        val sx = Maths.absMax(tmp[0], tmp[3], tmp[6], tmp[9]) * scale
+        val sy = Maths.absMax(tmp[1], tmp[4], tmp[7], tmp[10]) * scale
+        val sz = Maths.absMax(tmp[2], tmp[5], tmp[8], tmp[11]) * scale
         for (i in 0 until 12 step 3) {
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0
@@ -1098,10 +1097,10 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp4x4Relative(tmp: FloatArray, scale: Float = 1e-7f) {
-        val sx = absMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
-        val sy = absMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
-        val sz = absMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
-        val sw = absMax(tmp[3], tmp[7], tmp[11], tmp[15]) * scale
+        val sx = Maths.absMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
+        val sy = Maths.absMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
+        val sz = Maths.absMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
+        val sw = Maths.absMax(tmp[3], tmp[7], tmp[11], tmp[15]) * scale
         for (i in 0 until 16 step 4) {
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0f
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0f
@@ -1111,10 +1110,10 @@ abstract class TextWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     private fun clamp4x4Relative(tmp: DoubleArray, scale: Double = 1e-7) {
-        val sx = absMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
-        val sy = absMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
-        val sz = absMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
-        val sw = absMax(tmp[3], tmp[7], tmp[11], tmp[15]) * scale
+        val sx = Maths.absMax(tmp[0], tmp[4], tmp[8], tmp[12]) * scale
+        val sy = Maths.absMax(tmp[1], tmp[5], tmp[9], tmp[13]) * scale
+        val sz = Maths.absMax(tmp[2], tmp[6], tmp[10], tmp[14]) * scale
+        val sw = Maths.absMax(tmp[3], tmp[7], tmp[11], tmp[15]) * scale
         for (i in 0 until 16 step 4) {
             if (abs(tmp[i + 0]) < sx) tmp[i + 0] = 0.0
             if (abs(tmp[i + 1]) < sy) tmp[i + 1] = 0.0

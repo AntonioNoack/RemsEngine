@@ -152,8 +152,20 @@ open class FileExplorer(
                 enquoteIfNecessary(it.name)
             })
         }
+        val pinToFavourites = FileExplorerOption(addToFavouritesDesc) { _, files ->
+            Favourites.addFavouriteFiles(files)
+        }
         val delete = FileExplorerOption(deleteDesc) { p, files -> deleteFileMaybe(p, files) }
-        return listOf(rename, openInExplorer, openInStandard, editInStandard, copyPath, copyName, delete)
+        return listOf(
+            rename,
+            openInExplorer,
+            openInStandard,
+            editInStandard,
+            pinToFavourites,
+            copyPath,
+            copyName,
+            delete
+        )
     }
 
     fun enquoteIfNecessary(str: String): String {
@@ -224,31 +236,39 @@ open class FileExplorer(
     val favourites = PanelListY(style)
 
     init {
-        fun addFavourite(folder: FileReference) {
-            favourites.add(object : FileExplorerEntry(this@FileExplorer, false, folder, style) {
-                override fun calculateSize(w: Int, h: Int) {
-                    val size = 64
-                    minW = size
-                    minH = size
-                }
-            })
+        validateFavourites(Favourites.getFavouriteFiles())
+    }
+
+    fun addFavourite(folder: FileReference) {
+        val entry = object : FileExplorerEntry(this@FileExplorer, false, folder, style) {
+            override fun onGotAction(
+                x: Float, y: Float, dx: Float, dy: Float,
+                action: String, isContinuous: Boolean
+            ): Boolean {
+                return if (action == "OpenOptions") {
+                    openMenu(windowStack, listOf(
+                        MenuOption(NameDesc("Remove from list")) {
+                            Favourites.removeFavouriteFiles(listOf(folder))
+                        }
+                    ))
+                    true
+                } else super.onGotAction(x, y, dx, dy, action, isContinuous)
+            }
+
+            override fun calculateSize(w: Int, h: Int) {
+                val size = 64
+                minW = size
+                minH = size
+            }
         }
-        addFavourite(home)
-        addFavourite(downloads)
-        addFavourite(documents)
-        if (workspace != documents) {
-            addFavourite(workspace)
+        favourites.add(entry)
+    }
+
+    fun validateFavourites(favourites1: List<FileReference>) {
+        favourites.clear()
+        for (fav in favourites1) {
+            addFavourite(fav)
         }
-        addFavourite(pictures)
-        addFavourite(videos)
-        addFavourite(music)
-        addFavourite(FileRootRef)
-        // todo custom favourites
-        /*favourites.add(TextButton("+", false, style)
-            .addLeftClickListener {
-                FileExplorerSelectWrapper.selectFolder(null) { file ->
-                }
-            })*/
     }
 
     val title = PathPanel(folder, style)
@@ -664,7 +684,9 @@ open class FileExplorer(
                         it.onClick(this, listOf(folder))
                     }
                 }
-                openMenu(windowStack, if (folder.isEmpty()) base else base + menuSeparator1 + folder)
+                val list = if (folder.isEmpty()) base
+                else base + menuSeparator1 + folder
+                openMenu(windowStack, list)
             }
             "Refresh" -> {
                 LOGGER.info("Refreshing")
@@ -855,6 +877,13 @@ open class FileExplorer(
             "Paste",
             "Paste your clipboard",
             "ui.file.paste"
+        )
+
+        @JvmField
+        val addToFavouritesDesc = NameDesc(
+            "Pin to Favourites",
+            "Add file to quick access bar",
+            "ui.file.pinToFavourites"
         )
     }
 }

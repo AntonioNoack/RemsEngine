@@ -6,8 +6,8 @@ import me.anno.graph.ui.GraphPanel
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.maths.Maths.hasFlag
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.Style
@@ -226,7 +226,7 @@ abstract class Node() : PrefabSaveable() {
             copyInto(clone)
             return clone
         }
-        return TextReader.readFirst(TextWriter.toText(this, InvalidRef), InvalidRef)
+        return JsonStringReader.readFirst(JsonStringWriter.toText(this, InvalidRef), InvalidRef)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

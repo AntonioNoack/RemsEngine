@@ -1,4 +1,4 @@
-package me.anno.io.json
+package me.anno.io.json.generic
 
 import me.anno.io.xml.ComparableStringBuilder
 import java.io.EOFException

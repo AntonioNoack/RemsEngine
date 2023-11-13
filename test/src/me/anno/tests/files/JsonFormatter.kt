@@ -1,6 +1,6 @@
 package me.anno.tests.files
 
-import me.anno.io.json.JsonFormatter
+import me.anno.io.json.generic.JsonFormatter
 
 fun main() {
 

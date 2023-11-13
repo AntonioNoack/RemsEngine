@@ -3,9 +3,9 @@ package me.anno.io.config
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.io.json.JsonFormatter
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.generic.JsonFormatter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.utils.StringMap
 import me.anno.utils.OS.home
 import org.apache.logging.log4j.LogManager
@@ -60,13 +60,13 @@ object ConfigBasics {
         ISaveable.registerCustomClass(StringMap())
         val read = load(file, saveIfMissing) {
             LOGGER.info("Didn't find $file, using default values")
-            TextWriter.toText(defaultValue, workspace)
+            JsonStringWriter.toText(defaultValue, workspace)
         }
-        val readData = TextReader.read(read, workspace, file.absolutePath, true)
+        val readData = JsonStringReader.read(read, workspace, file.absolutePath, true)
         val map = readData.firstOrNull { it is StringMap } as? StringMap
         return if (map == null) {
             LOGGER.info("Config was corrupted, didn't find a config, in $file, got $readData")
-            save(file, TextWriter.toText(defaultValue, workspace))
+            save(file, JsonStringWriter.toText(defaultValue, workspace))
             defaultValue
         } else map
     }
@@ -82,9 +82,9 @@ object ConfigBasics {
         saveIfMissing: Boolean
     ): List<ConfigEntry> {
 
-        val data = load(localFileName, saveIfMissing) { TextWriter.toText(defaultValue, workspace) }
+        val data = load(localFileName, saveIfMissing) { JsonStringWriter.toText(defaultValue, workspace) }
 
-        val loaded = TextReader.read(data, workspace, localFileName, true)
+        val loaded = JsonStringReader.read(data, workspace, localFileName, true)
         val newestEntries = HashMap<String, ConfigEntry>(loaded.size + 10)
 
         fun addIfNewest(entry: ConfigEntry): Boolean {
@@ -119,7 +119,7 @@ object ConfigBasics {
         val result = newestEntries.values.toList()
 
         if (wasAugmentedByDefault) {
-            save(localFileName, TextWriter.toText(result, workspace))
+            save(localFileName, JsonStringWriter.toText(result, workspace))
         }
 
         return result

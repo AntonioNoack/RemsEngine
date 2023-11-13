@@ -9,9 +9,9 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.EditorState
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.JsonFormatter
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.generic.JsonFormatter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.zip.InnerTmpFile
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
@@ -87,10 +87,10 @@ fun test1() {
 
     logger.info(prefab.getSampleInstance()) // shall have two mesh components
 
-    val text = TextWriter.toText(prefab, InvalidRef)
+    val text = JsonStringWriter.toText(prefab, InvalidRef)
     logger.info(text)
 
-    val copied = TextReader.read(text, InvalidRef, true).first() as Prefab
+    val copied = JsonStringReader.read(text, InvalidRef, true).first() as Prefab
     logger.info(copied.getSampleInstance())
 }
 
@@ -106,9 +106,9 @@ fun test2() {
     prefab[rigid, "overrideGravity"] = true
     prefab[rigid, "gravity"] = Vector3d()
 
-    val text = TextWriter.toText(prefab, InvalidRef)
+    val text = JsonStringWriter.toText(prefab, InvalidRef)
     logger.info(JsonFormatter.format(text))
 
-    val copied = TextReader.read(text, InvalidRef, false).first() as Prefab
+    val copied = JsonStringReader.read(text, InvalidRef, false).first() as Prefab
     logger.info(copied.getSampleInstance())
 }

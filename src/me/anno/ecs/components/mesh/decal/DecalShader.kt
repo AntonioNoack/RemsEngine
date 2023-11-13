@@ -1,7 +1,5 @@
 package me.anno.ecs.components.mesh.decal
 
-import me.anno.ecs.components.mesh.MeshInstanceData
-import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.ecs.components.mesh.decal.DecalMaterial.Companion.sett
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFXState
@@ -40,6 +38,8 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
                 Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                 Variable(GLSLType.V3F, "localPosition", VariableMode.OUT),
                 Variable(GLSLType.V1F, "alphaMultiplier", VariableMode.OUT),
+                Variable(GLSLType.V3F, "normal", VariableMode.INOUT),
+                Variable(GLSLType.V4F, "tangent", VariableMode.INOUT)
             )
         )
         for (layer in availableLayers2) {

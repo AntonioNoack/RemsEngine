@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringWriter
 import java.io.InputStream
 import java.nio.charset.Charset
 
@@ -25,7 +25,7 @@ open class InnerLazyPrefabFile(
         this.compressedSize = size
     }
 
-    val text by lazy { TextWriter.toText(prefab2.value, InvalidRef) }
+    val text by lazy { JsonStringWriter.toText(prefab2.value, InvalidRef) }
     val bytes by lazy { text.toByteArray() }
 
     // it's a prefab, not a zip; never ever

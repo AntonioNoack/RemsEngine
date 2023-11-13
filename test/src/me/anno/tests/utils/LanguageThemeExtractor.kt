@@ -2,7 +2,7 @@ package me.anno.tests.utils
 
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.utils.StringMap
 import me.anno.maths.Maths.mixARGB
 import me.anno.ui.editor.code.codemirror.LanguageStyle
@@ -251,7 +251,7 @@ fun main() {
             }
             theme.name = name
             print(
-                TextWriter.toText(theme, InvalidRef)
+                JsonStringWriter.toText(theme, InvalidRef)
                     .substring(base.length)
                     .replace("\"", "\\\"")
                     .replace("\n", "\"+\n\"")

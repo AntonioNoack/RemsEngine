@@ -8,7 +8,7 @@ import me.anno.installer.Installer
 import me.anno.io.Streams.listen
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
-import me.anno.io.json.JsonReader
+import me.anno.io.json.generic.JsonReader
 import me.anno.language.Language
 import me.anno.studio.StudioBase
 import me.anno.utils.Color.hex8

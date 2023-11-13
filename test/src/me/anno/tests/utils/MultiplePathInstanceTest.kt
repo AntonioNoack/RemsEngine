@@ -2,9 +2,9 @@ package me.anno.tests.utils
 
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.JsonFormatter
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.generic.JsonFormatter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.LOGGER
 
 fun main() {
@@ -60,8 +60,8 @@ fun main() {
 
     ECSRegistry.init()
 
-    val asObject = TextReader.read(raw, InvalidRef, false).first()
-    val asString = TextWriter.toText(asObject, InvalidRef)
+    val asObject = JsonStringReader.read(raw, InvalidRef, false).first()
+    val asString = JsonStringWriter.toText(asObject, InvalidRef)
 
     LOGGER.info(JsonFormatter.format(asString))
 

@@ -57,7 +57,8 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
         // todo the red clouds in the night sky are a bit awkward
         val stage = ShaderStage(
             "skyBase", listOf(
-                Variable(GLSLType.V3F, "finalNormal", VariableMode.INOUT),
+                Variable(GLSLType.V3F, "normal"),
+                Variable(GLSLType.V3F, "finalNormal", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalPosition", VariableMode.OUT),
                 Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
                 Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
@@ -71,7 +72,7 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
                 Variable(GLSLType.V4F, "prevPosition"),
             ), concatDefines(key).toString() +
                     // sky no longer properly defined for y > 0
-                    "finalNormal = normalize(finalNormal);\n" +
+                    "finalNormal = normalize(-normal);\n" +
                     // sky color can be quite expensive to compute, so only do so if we need it
                     "#ifdef COLORS\n" +
                     "   finalColor = vec3(0.0);\n" +

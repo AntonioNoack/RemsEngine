@@ -1,4 +1,4 @@
-package me.anno.io.text
+package me.anno.io.json.saveable
 
 import me.anno.io.files.FileReference
 import java.io.EOFException
@@ -8,7 +8,7 @@ import java.io.InputStreamReader
 /**
  * reads a JSON-similar format from a text file
  * */
-class TextStreamReader(data: InputStream, workspace: FileReference) : TextReaderBase(workspace) {
+class JsonStreamReader(data: InputStream, workspace: FileReference) : JsonReaderBase(workspace) {
 
     private val reader = InputStreamReader(data)
 

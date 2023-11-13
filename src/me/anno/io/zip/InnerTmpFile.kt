@@ -7,7 +7,7 @@ import me.anno.image.Image
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayOutputStream
@@ -113,7 +113,7 @@ abstract class InnerTmpFile private constructor(
             }
         }
 
-        val text by lazy { TextWriter.toText(prefab, InvalidRef) }
+        val text by lazy { JsonStringWriter.toText(prefab, InvalidRef) }
         val bytes by lazy { text.toByteArray() }
 
         override fun isSerializedFolder(): Boolean = false

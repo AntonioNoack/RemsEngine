@@ -3,8 +3,8 @@ package me.anno.ui.editor.stacked
 import me.anno.input.Key
 import me.anno.io.Saveable
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
@@ -57,7 +57,7 @@ class OptionPanel(
 
     override fun onCopyRequested(x: Float, y: Float): Any? {
         return if (value is Saveable) {
-            TextWriter.toText(value, InvalidRef)
+            JsonStringWriter.toText(value, InvalidRef)
         } else super.onCopyRequested(x, y)
     }
 
@@ -65,7 +65,7 @@ class OptionPanel(
         if (data.isBlank2()) return
         try {
             val index = indexInParent
-            val values = TextReader.read(data, StudioBase.workspace, true)
+            val values = JsonStringReader.read(data, StudioBase.workspace, true)
             for (it in values) {
                 it as? Inspectable ?: continue
                 val option = stackPanel.getOptionFromInspectable(it) ?: continue

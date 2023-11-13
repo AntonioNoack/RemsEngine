@@ -10,8 +10,8 @@ import me.anno.input.Key
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
 import me.anno.ui.base.groups.TitledListY
@@ -183,7 +183,7 @@ abstract class ArrayPanel<EntryType, PanelType : Panel>(
                         val clone: Any? = when (val value = values[index - 1]) {
                             is String, is Prefab, is FileReference -> value
                             is PrefabSaveable -> value.clone()
-                            is Saveable -> TextReader.read(TextWriter.toText(value, InvalidRef), InvalidRef, true)
+                            is Saveable -> JsonStringReader.read(JsonStringWriter.toText(value, InvalidRef), InvalidRef, true)
                             else -> value // may be incorrect
                         }
                         @Suppress("unchecked_cast")

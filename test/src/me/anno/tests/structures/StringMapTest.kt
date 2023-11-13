@@ -1,7 +1,7 @@
 package me.anno.tests.structures
 
 import me.anno.io.ISaveable.Companion.registerCustomClass
-import me.anno.io.text.TextReader
+import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.utils.StringMap
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -21,7 +21,7 @@ class StringMapTest {
         map["debug.ui.enableVsync"] = false
         assertFalse(map["debug.ui.enableVsync", true])
 
-        val clone = TextReader.clone(map) as StringMap
+        val clone = JsonStringReader.clone(map) as StringMap
         assertEquals(clone["debug.ui.enableVsync"], false)
     }
 }

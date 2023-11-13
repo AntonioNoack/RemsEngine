@@ -2,7 +2,7 @@ package me.anno.ui.editor.code.codemirror
 
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
+import me.anno.io.json.saveable.JsonStringReader
 
 object LanguageThemeLib {
 
@@ -13,7 +13,7 @@ object LanguageThemeLib {
         registerCustomClass(LanguageTheme())
     }
 
-    fun read(str: String) = TextReader.readFirst<LanguageTheme>(base + str, InvalidRef)
+    fun read(str: String) = JsonStringReader.readFirst<LanguageTheme>(base + str, InvalidRef)
 
     val Style3024Day = read("\"i[]:s\":[21,13478739,107090,106724,3814450,14363936,3814450,16641282,3814450,10578580,3814450,3814450,14363936,3814450,107090,10578580,15252432,3814450,6051925,3814450,3814450,3814450],\"S:name\":\"Style3024Day\",\"i:bg\":-526345,\"i:nCol\":-8356484,\"i:nBG0\":-526345,\"i:nLCol\":-526345,\"i:selBG\":-2697772,\"i:mbc\":-6198636,\"i:cursor\":-10725291}]")
     val Style3024Night = read("\"i[]:s\":[21,13478739,107090,106724,14079444,14363936,14079444,16641282,14079444,10578580,14079444,14079444,14363936,14079444,107090,10578580,15252432,14079444,8420732,14079444,14079444,14079444],\"S:name\":\"Style3024Night\",\"i:bg\":-16186624,\"i:nCol\":-10725291,\"i:nBG0\":-16186624,\"i:nLCol\":-16186624,\"i:selBG\":-12962766,\"i:mbc\":-1,\"i:cursor\":-8356484}]")

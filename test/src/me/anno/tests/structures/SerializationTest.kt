@@ -6,7 +6,7 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.io.text.TextReader
+import me.anno.io.json.saveable.JsonStringReader
 import org.apache.logging.log4j.LogManager
 
 class TestClass : Saveable() {
@@ -54,7 +54,7 @@ fun main() {
     logger.info(text)
 
     ISaveable.registerCustomClass("Test") { TestClass() }
-    val copiedInstance = TextReader.read(text, InvalidRef, false)
+    val copiedInstance = JsonStringReader.read(text, InvalidRef, false)
     logger.info(copiedInstance)
 
 }

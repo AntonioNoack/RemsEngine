@@ -1,4 +1,4 @@
-package me.anno.io.json
+package me.anno.io.json.generic
 
 object JsonFormatter {
 

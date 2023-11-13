@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.FileReference
-import me.anno.io.json.JsonFormatter
+import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.numpy.NumPyReader
 import me.anno.utils.OS.documents
 import org.joml.Vector3f

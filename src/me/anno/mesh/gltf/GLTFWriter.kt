@@ -10,7 +10,7 @@ import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.io.json.JsonWriter
+import me.anno.io.json.generic.JsonWriter
 import me.anno.io.zip.InnerFile
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.b

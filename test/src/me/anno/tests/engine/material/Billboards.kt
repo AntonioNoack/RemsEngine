@@ -17,7 +17,7 @@ fun main() {
         diffuseBase.set(0f, 0f, 0f, 1f)
         // actual color
         emissiveMap = pictures.getChild("fav128.ico")
-        emissiveBase.set(5f)
+        emissiveBase.set(2f)
         linearFiltering = false
         clamping = Clamping.CLAMP
     }

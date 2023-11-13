@@ -1,4 +1,4 @@
-package me.anno.io.text
+package me.anno.io.json.saveable
 
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseReader
@@ -12,7 +12,7 @@ import org.joml.*
 /**
  * reads a JSON-similar format from a text file
  * */
-abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
+abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
 
     var tmpChar = -1
     private var lineNumber = 1
@@ -1098,6 +1098,6 @@ abstract class TextReaderBase(val workspace: FileReference) : BaseReader() {
         private val matrix4x4da = arrayOf(matrix4x4d)
         private val file0a = arrayOf<FileReference>(InvalidRef)
         private const val black = 255.shl(24).toLong()
-        private val LOGGER = LogManager.getLogger(TextReaderBase::class)
+        private val LOGGER = LogManager.getLogger(JsonReaderBase::class)
     }
 }

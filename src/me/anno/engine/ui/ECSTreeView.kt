@@ -12,7 +12,7 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
-import me.anno.io.text.TextReader
+import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mixARGB
@@ -334,7 +334,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
      * returns true on success
      * */
     private fun tryPaste(data: String): Boolean {
-        return when (val element = TextReader.read(data, StudioBase.workspace, true).firstOrNull()) {
+        return when (val element = JsonStringReader.read(data, StudioBase.workspace, true).firstOrNull()) {
             is Prefab -> {
                 val prefab = library.prefab
                 val root = prefab?.getSampleInstance() ?: return false

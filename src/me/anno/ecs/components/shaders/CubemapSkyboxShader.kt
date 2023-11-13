@@ -4,7 +4,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 
-class CubemapSkyboxShader(name: String) : SkyShaderBase(name) {
+object CubemapSkyboxShader : SkyShaderBase("cubemap-skybox") {
 
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         val stages = super.createFragmentStages(key)

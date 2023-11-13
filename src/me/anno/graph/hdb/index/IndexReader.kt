@@ -1,7 +1,7 @@
 package me.anno.graph.hdb.index
 
 import me.anno.engine.ui.input.ComponentUI.toLong
-import me.anno.io.json.JsonScanner
+import me.anno.io.json.generic.JsonScanner
 import me.anno.utils.types.Ints.toLongOrDefault
 import me.anno.utils.types.Strings.toInt
 import java.io.InputStream

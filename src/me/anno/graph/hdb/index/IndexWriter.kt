@@ -1,7 +1,7 @@
 package me.anno.graph.hdb.index
 
 import me.anno.graph.hdb.allocator.size
-import me.anno.io.json.JsonWriter
+import me.anno.io.json.generic.JsonWriter
 import java.io.OutputStream
 
 class IndexWriter(stream: OutputStream) : JsonWriter(stream) {

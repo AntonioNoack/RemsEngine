@@ -16,7 +16,7 @@ import me.anno.io.files.FileFileRef.Companion.copyHierarchy
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.hasFlag
@@ -688,7 +688,7 @@ object Input {
                                 array.add(panel.onCopyRequested(mouseX, mouseY) as? ISaveable ?: continue)
                             }
                         }
-                        setClipboardContent(TextWriter.toText(listOf(array), InvalidRef))
+                        setClipboardContent(JsonStringWriter.toText(listOf(array), InvalidRef))
                         // todo where necessary, support pasting an array of elements
                     }
                     is FileReference -> {

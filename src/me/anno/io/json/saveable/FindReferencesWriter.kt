@@ -1,4 +1,4 @@
-package me.anno.io.text
+package me.anno.io.json.saveable
 
 import me.anno.io.ISaveable
 import me.anno.io.find.PartialWriter

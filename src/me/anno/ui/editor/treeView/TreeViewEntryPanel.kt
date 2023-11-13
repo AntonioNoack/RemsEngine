@@ -8,7 +8,7 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.io.text.TextReader
+import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mixARGB
@@ -234,7 +234,7 @@ class TreeViewEntryPanel<V : Any>(
 
             // if not, create a copy
             @Suppress("unchecked_cast")
-            val clone = TextReader.read(data, StudioBase.workspace, true).firstOrNull()
+            val clone = JsonStringReader.read(data, StudioBase.workspace, true).firstOrNull()
                     as? V ?: return super.onPaste(x, y, data, type)
 
             treeView.moveChange {

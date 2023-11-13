@@ -36,9 +36,9 @@ import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.JsonFormatter
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.generic.JsonFormatter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.zip.InnerTmpFile
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
@@ -320,7 +320,7 @@ object ComponentUI {
                 // todo list/array-views should have their content visibility be toggleable
                 panel2.add(object : TextPanel(title2, style) {
                     override fun onCopyRequested(x: Float, y: Float) =
-                        TextWriter.toText(saveable, InvalidRef)
+                        JsonStringWriter.toText(saveable, InvalidRef)
                 }.apply {
                     // make it look like a title
                     isItalic = true
@@ -344,7 +344,7 @@ object ComponentUI {
         }
         // serialize saveables for now, this is simple
         // a first variant for editing may be a json editor
-        val value0 = JsonFormatter.format(TextWriter.toText(saveable, StudioBase.workspace))
+        val value0 = JsonFormatter.format(JsonStringWriter.toText(saveable, StudioBase.workspace))
         val input = TextInputML(title, value0, style)
         val textColor = input.base.textColor
         input.addChangeListener {
@@ -352,7 +352,7 @@ object ComponentUI {
                 property.set(input, null)
             } else {
                 try {
-                    val value2 = TextReader.read(it, StudioBase.workspace, false).firstOrNull()
+                    val value2 = JsonStringReader.read(it, StudioBase.workspace, false).firstOrNull()
                     if (value2 != null) {
                         property.set(input, value2)
                         input.base.textColor = textColor

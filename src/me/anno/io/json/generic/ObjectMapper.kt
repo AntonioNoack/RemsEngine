@@ -1,4 +1,4 @@
-package me.anno.io.json
+package me.anno.io.json.generic
 
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault

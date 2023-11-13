@@ -56,7 +56,7 @@ class BMesh(file: BlenderFile, type: DNAStruct, buffer: ByteBuffer, position: In
 
     // vertex groups:
     // in old files in MDeformVert
-    val vertexGroupNames = inside("vertex_group_names") as BListBase<BDeformGroup>
+    val vertexGroupNames = inside("vertex_group_names") as? BListBase<BDeformGroup>
     val vertexGroups = getInstantList<MDeformVert>("*dvert")
 
 }

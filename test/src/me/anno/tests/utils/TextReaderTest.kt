@@ -6,8 +6,8 @@ import me.anno.graph.types.flow.local.SetLocalVariableNode
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.ui.editor.code.codemirror.LanguageStyle
 
 fun main() {
@@ -19,7 +19,7 @@ fun main() {
             "\"S:value\":\"var\"},{\"i:*ptr\":5,\"NodeOutput[]:others\":[1,{\"i:*ptr\":6," +
             "\"NodeInput[]:others\":[1,5],\"l:value\":24}],\"l:value\":24}],\"NodeOutput[]:outputs\":" +
             "[2,{\"i:*ptr\":7},{\"i:*ptr\":8,\"l:value\":6}],\"v3d:position\":[1,2,3]}]\n"
-    val node = TextReader.readFirst<SetLocalVariableNode>(source, InvalidRef, false)
+    val node = JsonStringReader.readFirst<SetLocalVariableNode>(source, InvalidRef, false)
     if (node.key != "var") throw IllegalStateException()
     if (node.value != 24L) throw IllegalStateException("Value is ${node.value}")
     if ((node.clone() as SetLocalVariableNode).key != "var") throw IllegalStateException()
@@ -33,7 +33,7 @@ fun test5() {
     val evilHelper = SetLocalVariableNode("b", "bar")
     a.connectTo(evilHelper)
     val listStr = a.toString()
-    val clone = TextReader.readFirst<SetLocalVariableNode>(listStr, InvalidRef, false)
+    val clone = JsonStringReader.readFirst<SetLocalVariableNode>(listStr, InvalidRef, false)
     val cloneStr = clone.toString()
     if (listStr == cloneStr && clone.key == "a" && clone.value == "var") {
         println("Same contents :)")
@@ -53,7 +53,7 @@ fun test4() {
     a.connectTo(b)
     val list = SaveableArray(listOf(a, b))
     val listStr = list.toString()
-    val clone = TextReader.readFirst<SaveableArray>(listStr, InvalidRef, false)
+    val clone = JsonStringReader.readFirst<SaveableArray>(listStr, InvalidRef, false)
     val cloneStr = clone.toString()
     if (listStr == cloneStr) {
         println("Same contents :)")
@@ -71,7 +71,7 @@ fun test4() {
 fun test3() {
     val style1 = LanguageStyle()
     style1.color = 0x775533
-    val text = TextWriter.toText(style1, InvalidRef)
-    val style2 = TextReader.readFirst<LanguageStyle>(text, InvalidRef)
+    val text = JsonStringWriter.toText(style1, InvalidRef)
+    val style2 = JsonStringReader.readFirst<LanguageStyle>(text, InvalidRef)
     if (style2.color != style1.color) throw RuntimeException("$text -> " + style2.color.toString(16))
 }

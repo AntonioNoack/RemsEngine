@@ -2,7 +2,7 @@ package me.anno.io
 
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.studio.StudioBase
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -165,5 +165,5 @@ open class Saveable : ISaveable {
             return clazz.simpleName ?: clazz.name
         }
 
-    override fun toString(): String = TextWriter.toText(this, StudioBase.workspace)// + "@${super.toString()}"
+    override fun toString(): String = JsonStringWriter.toText(this, StudioBase.workspace)// + "@${super.toString()}"
 }

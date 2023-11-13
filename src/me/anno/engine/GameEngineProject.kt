@@ -11,8 +11,8 @@ import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.studio.Events.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.base.progress.ProgressBar
@@ -32,12 +32,12 @@ class GameEngineProject() : NamedSaveable() {
                 if (location.isDirectory) {
                     val configFile = location.getChild("config.json")
                     if (configFile.exists) {
-                        val instance = TextReader.readFirstOrNull<GameEngineProject>(configFile, location)
+                        val instance = JsonStringReader.readFirstOrNull<GameEngineProject>(configFile, location)
                         instance?.location = location
                         instance
                     } else {
                         val project = GameEngineProject(location)
-                        configFile.writeText(TextWriter.toText(project, location))
+                        configFile.writeText(JsonStringWriter.toText(project, location))
                         project
                     }
                 } else {
@@ -74,7 +74,7 @@ class GameEngineProject() : NamedSaveable() {
             addEvent {
                 if (!isValid) {
                     isValid = true
-                    configFile.writeText(TextWriter.toText(this, location))
+                    configFile.writeText(JsonStringWriter.toText(this, location))
                 }
             }
         }
@@ -122,7 +122,7 @@ class GameEngineProject() : NamedSaveable() {
         if (!lastSceneRef.exists) {
             val prefab = Prefab("Entity", ScenePrefab)
             lastSceneRef.getParent()?.tryMkdirs()
-            lastSceneRef.writeText(TextWriter.toText(prefab, InvalidRef))
+            lastSceneRef.writeText(JsonStringWriter.toText(prefab, InvalidRef))
             LOGGER.debug("Wrote new scene to $lastScene")
         }
 

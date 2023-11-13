@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.io.ISaveable
 import me.anno.io.serialization.NotSerializedProperty
-import me.anno.io.text.TextReader
+import me.anno.io.json.saveable.JsonStringReader
 import me.anno.studio.StudioBase
 import me.anno.studio.history.StringHistory
 import me.anno.ui.editor.PropertyInspector
@@ -26,7 +26,7 @@ class ChangeHistory : StringHistory() {
         }
 
         val workspace = StudioBase.workspace
-        val changes = TextReader.read(curr, workspace, true).filterIsInstance<Change>()
+        val changes = JsonStringReader.read(curr, workspace, true).filterIsInstance<Change>()
         val prefab = prefab!!
         val prevAdds = prefab.adds
         val currAdds = changes.filterIsInstance<CAdd>()

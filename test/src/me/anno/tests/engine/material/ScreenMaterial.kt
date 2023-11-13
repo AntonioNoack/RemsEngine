@@ -1,6 +1,7 @@
 package me.anno.tests.engine.material
 
 import me.anno.ecs.components.mesh.ImagePlane
+import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueTex
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
@@ -22,13 +23,13 @@ object ScreenShader : ECSMeshShader("Screen") {
         return super.createFragmentStages(key) + ShaderStage(
             "Screen", listOf(
                 Variable(GLSLType.S2D, "screenTexture"),
-                Variable(GLSLType.V2F, "screenResolution"),
+                Variable(GLSLType.V1F, "screenLodBias"),
                 Variable(GLSLType.V3F, "finalEmissive", VariableMode.INOUT),
                 Variable(GLSLType.V2F, "uv"),
                 Variable(GLSLType.S2D, "emissiveMap")
             ), colorToSRGB + // ensure sRGB space before multiplying, because our texture is sRGB
                     "ivec2 texSize = textureSize(emissiveMap,0);\n" +
-                    "if(max(texSize.x,texSize.y) > 1) { finalEmissive *= texture(screenTexture, uv * vec2(texSize)).rgb; }"
+                    "if(max(texSize.x,texSize.y) > 1) { finalEmissive *= texture(screenTexture, uv * vec2(texSize), screenLodBias).rgb; }"
         )
     }
 }
@@ -45,6 +46,7 @@ fun main() {
         emissiveMap = image
         emissiveBase.set(7f)
         linearFiltering = false // we render pixels 😄
+        shaderOverrides["screenLodBias"] = TypeValue(GLSLType.V1F, 1f)
         shaderOverrides["screenTexture"] =
             TypeValueTex(GLSLType.S2D, mask, GPUFiltering.LINEAR, Clamping.REPEAT, blackTexture)
     }

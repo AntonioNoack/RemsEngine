@@ -1,4 +1,4 @@
-package me.anno.io.json
+package me.anno.io.json.generic
 
 import me.anno.utils.types.Strings
 import org.joml.*

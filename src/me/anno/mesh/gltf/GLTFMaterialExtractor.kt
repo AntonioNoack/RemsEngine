@@ -1,7 +1,7 @@
 package me.anno.mesh.gltf
 
 import me.anno.io.files.FileReference
-import me.anno.io.json.JsonReader
+import me.anno.io.json.generic.JsonReader
 import me.anno.utils.types.AnyToFloat.getFloat
 import me.anno.utils.types.InputStreams.skipN
 import java.io.InputStream

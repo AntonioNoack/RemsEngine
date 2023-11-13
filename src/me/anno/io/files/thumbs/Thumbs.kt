@@ -82,7 +82,7 @@ import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
 import me.anno.io.files.thumbs.ThumbsExt.findModelMatrix
 import me.anno.io.files.thumbs.ThumbsExt.waitForMeshes
 import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
-import me.anno.io.text.TextReader
+import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.io.zip.InnerFolderCache
@@ -1309,7 +1309,7 @@ object Thumbs {
                                     decoded.length() > 0 -> {
                                         // try to read the file as an asset
                                         // not sure about using the workspace here...
-                                        val sth = TextReader.read(decoded, StudioBase.workspace, true).firstOrNull()
+                                        val sth = JsonStringReader.read(decoded, StudioBase.workspace, true).firstOrNull()
                                         generateSomething(sth, srcFile, dstFile, size, callback)
                                     }
                                     else -> LOGGER.warn("File $decoded is empty")

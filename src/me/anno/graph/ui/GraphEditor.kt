@@ -10,7 +10,7 @@ import me.anno.graph.ui.NodePositionOptimization.calculateNodePositions
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.SaveableArray
-import me.anno.io.text.TextReader
+import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.max
 import me.anno.studio.StudioBase.Companion.workspace
@@ -267,7 +267,7 @@ open class GraphEditor(graph: Graph? = null, style: Style) : GraphPanel(graph, s
         val graph = graph ?: return super.onPaste(x, y, data, type)
         var done = false
         try {
-            val data2 = TextReader.read(data, workspace, true).first()
+            val data2 = JsonStringReader.read(data, workspace, true).first()
             // add centered at mouse cursor :3
             val center = getCursorPosition(x, y)
             when (data2) {

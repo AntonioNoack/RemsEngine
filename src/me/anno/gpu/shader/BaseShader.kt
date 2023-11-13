@@ -113,7 +113,8 @@ open class BaseShader(
             val isDepth = renderer == Renderer.nothingRenderer
             val flags = animated.toInt(IS_ANIMATED) +
                     motionVectors.toInt(NEEDS_MOTION_VECTORS) +
-                    (!isDepth).toInt(NEEDS_COLORS)
+                    (!isDepth).toInt(NEEDS_COLORS) +
+                    (renderer.deferredSettings != null).toInt(IS_DEFERRED)
             val key = ShaderKey(renderer, vertexData, instanceData, flags)
             val shader = shaders.getOrPut(key) {
                 val r = key.renderer

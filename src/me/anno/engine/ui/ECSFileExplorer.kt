@@ -12,17 +12,14 @@ import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
+import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.editor.files.FileExplorer
-import me.anno.ui.editor.files.FileExplorerEntry
-import me.anno.ui.editor.files.FileExplorerOption
-import me.anno.ui.editor.files.toAllowedFilename
+import me.anno.ui.editor.files.*
 import me.anno.utils.files.Files.findNextChild
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -117,7 +114,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
 
     private fun pastePrefab(data: String): Boolean {
         try {
-            val read = TextReader.read(data, StudioBase.workspace, true)
+            val read = JsonStringReader.read(data, StudioBase.workspace, true)
             val saveable = read.getOrNull(0) ?: return false
             when (saveable) {
                 is Prefab -> {

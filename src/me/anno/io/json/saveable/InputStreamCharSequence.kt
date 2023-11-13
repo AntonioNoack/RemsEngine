@@ -1,4 +1,4 @@
-package me.anno.io.text
+package me.anno.io.json.saveable
 
 import me.anno.utils.structures.arrays.IntArrayList
 import java.io.InputStream

@@ -382,8 +382,7 @@ object BlenderReader {
                     // create skeleton and map vertex indices
                     val (skeleton, mappedBoneIndices) = createSkeleton(
                         armatureModifier,
-                        blenderMesh.vertexGroupNames
-                            .map { it.name ?: "" },
+                        blenderMesh.vertexGroupNames?.map { it.name ?: "" } ?: emptyList(),
                         boneIndices
                     )
                     subPrefab["boneIndices"] = mappedBoneIndices

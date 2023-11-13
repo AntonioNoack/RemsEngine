@@ -11,7 +11,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.io.files.WebRef
-import me.anno.io.json.JsonReader
+import me.anno.io.json.generic.JsonReader
 import me.anno.utils.OS
 import me.anno.utils.Warning.unused
 import me.anno.utils.process.BetterProcessBuilder

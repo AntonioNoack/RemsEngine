@@ -5,9 +5,9 @@ import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.JsonFormatter
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.generic.JsonFormatter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 
 fun main() {
 
@@ -53,7 +53,7 @@ fun main() {
 
     ECSRegistry.init()
     println(p123)
-    val cloned = TextReader.read(TextWriter.toText(p123, InvalidRef), InvalidRef, false).first()
+    val cloned = JsonStringReader.read(JsonStringWriter.toText(p123, InvalidRef), InvalidRef, false).first()
     println(cloned)
     println(cloned == p123)
 
@@ -67,9 +67,9 @@ fun main() {
     val adds = prefab.adds
 
     for (i in adds.indices) {
-        val x0 = TextWriter.toText(adds[i], InvalidRef)
-        val x1 = TextReader.read(x0, InvalidRef, false)[0] as CAdd
-        val x2 = TextWriter.toText(x1, InvalidRef)
+        val x0 = JsonStringWriter.toText(adds[i], InvalidRef)
+        val x1 = JsonStringReader.read(x0, InvalidRef, false)[0] as CAdd
+        val x2 = JsonStringWriter.toText(x1, InvalidRef)
         if (x0 != x2) {
             println(JsonFormatter.format(x0))
             println(JsonFormatter.format(x2))
@@ -77,15 +77,15 @@ fun main() {
         }
     }
 
-    val json = TextWriter.toText(prefab, InvalidRef)
-    val prefabClone = TextReader.read(json, InvalidRef, false)[0] as Prefab
+    val json = JsonStringWriter.toText(prefab, InvalidRef)
+    val prefabClone = JsonStringReader.read(json, InvalidRef, false)[0] as Prefab
 
     println(prefab.adds)
 
     println(JsonFormatter.format(json))
 
     println(prefabClone.adds)
-    val json2 = TextWriter.toText(prefabClone, InvalidRef)
+    val json2 = JsonStringWriter.toText(prefabClone, InvalidRef)
     println(JsonFormatter.format(json2))
     if (json != json2) throw RuntimeException()
 

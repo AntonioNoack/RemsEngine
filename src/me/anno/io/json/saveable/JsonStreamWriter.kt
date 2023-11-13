@@ -1,10 +1,10 @@
-package me.anno.io.text
+package me.anno.io.json.saveable
 
 import me.anno.io.files.FileReference
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 
-class TextStreamWriter(val data: OutputStream, workspace: FileReference) : TextWriterBase(workspace) {
+class JsonStreamWriter(val data: OutputStream, workspace: FileReference) : JsonWriterBase(workspace) {
 
     private val writer = OutputStreamWriter(data)
     private val c = CharArray(1)

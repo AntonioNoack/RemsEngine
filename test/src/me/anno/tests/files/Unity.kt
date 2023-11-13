@@ -13,7 +13,7 @@ import me.anno.image.ImageCPUCache
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.io.json.JsonFormatter
+import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.zip.InnerLinkFile
 import me.anno.ui.debug.TestStudio
 import me.anno.ui.editor.files.FileExplorer

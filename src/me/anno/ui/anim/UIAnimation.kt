@@ -3,8 +3,8 @@ package me.anno.ui.anim
 import me.anno.animation.Interpolation
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 
@@ -35,8 +35,8 @@ abstract class UIAnimation(
         writer.writeEnum("out", outInterpolation)
     }
 
-    fun clone() = TextReader.readFirst<UIAnimation>(
-        TextWriter.toText(this, StudioBase.workspace), StudioBase.workspace
+    fun clone() = JsonStringReader.readFirst<UIAnimation>(
+        JsonStringWriter.toText(this, StudioBase.workspace), StudioBase.workspace
     )
 
     override val className: String get() = "UIAnimation"

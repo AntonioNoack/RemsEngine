@@ -3,11 +3,12 @@ package me.anno.engine.ui
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.studio.StudioBase
 import me.anno.ui.editor.files.FileExplorer
 import me.anno.ui.editor.files.toAllowedFilename
@@ -23,70 +24,43 @@ object AssetImport {
         fun copy(srcFile: FileReference, dstFolder: FileReference, srcPrefab: Prefab, depth: Int): Prefab
     }
 
-    fun shallowCopyImport(current: FileReference, files: List<FileReference>, fe: FileExplorer?) {
-        for (src in files) shallowCopyImport(current, src)
-        onCopyFinished(current, fe)
-    }
-
-    fun deepCopyImport(current: FileReference, files: List<FileReference>, fe: FileExplorer?) {
-        for (src in files) deepCopyImport(current, src)
-        onCopyFinished(current, fe)
-    }
-
-    fun onCopyFinished(current: FileReference, fe: FileExplorer?) {
-        fe?.invalidate()
-        LastModifiedCache.invalidate(current)
-        // update icon of current folder... hopefully this works
-        Thumbs.invalidate(current)
-        Thumbs.invalidate(current.getParent())
-    }
-
-    fun shallowCopyImport(current: FileReference, src: FileReference) {
-        // first create the file mapping, then replace all references
-        val mapping = HashMap<FileReference, Prefab>()
-        shallowCopyAssets(src, current, mapping)
-        replaceShallowReferences(mapping)
-    }
-
-    private fun replaceShallowReferences(mapping: HashMap<FileReference, Prefab>) {
-        // replace all local references, so we can change the properties of everything:
-        for ((_, prefab) in mapping) {
-            val original = PrefabCache[prefab.prefab]!!
-            // not strictly required
-            val replacement0 = mapping[original.prefab]
-            if (replacement0 != null) {
-                original.prefab = replacement0.source
+    fun shallowCopyImport(dst: FileReference, files: List<FileReference>, fe: FileExplorer?) {
+        val window = GFX.someWindow
+        val progress = window?.addProgressBar("Deep Copy", "", files.size.toDouble())
+        for (src in files) {
+            val srcPrefab = PrefabCache[src]
+            if (srcPrefab == null) {
+                LOGGER.warn("Cannot read $src as prefab")
+                continue
             }
-            // not strictly required
-            for (add in original.adds) {
-                val replacement = mapping[add.prefab]
-                if (replacement != null) {
-                    add.prefab = replacement.source
-                }
-            }
-            original.sets.forEach { k1, k2, v ->
-                when {
-                    // todo maps, pairs, triples and ISaveables need to be investigated as well
-                    //  e.g. AnimationState
-                    v is FileReference && v != InvalidRef -> {
-                        val replacement = mapping[v]
-                        if (replacement != null) {
-                            prefab[k1, k2] = replacement.source
-                        }
-                    }
-                    v is List<*> && v.any { it is FileReference && it != InvalidRef } -> {
-                        prefab[k1, k2] = v.map { mapping[it]?.source ?: it }
-                    }
-                }
-            }
-            prefab.source.writeText(TextWriter.toText(prefab, StudioBase.workspace))
+            if (progress != null) progress.total += 0.5
+            val dstPrefab = Prefab(srcPrefab.clazzName, src)
+            val name = findName(src, dstPrefab, true)
+            savePrefab(dst, name, dstPrefab)
+            if (progress != null) progress.total += 0.5
         }
+        onCopyFinished(dst, fe)
+        progress?.finish(true)
     }
 
-    fun deepCopyImport(current: FileReference, src: FileReference) {
-        // first create the file mapping, then replace all references
-        val mapping = HashMap<FileReference, Prefab>()
-        deepCopyAssets(src, current, mapping)
+    fun deepCopyImport(dst: FileReference, files: List<FileReference>, fe: FileExplorer?) {
+        val window = GFX.someWindow
+        val progress = window?.addProgressBar("Deep Copy", "", files.size.toDouble())
+        val mapping = HashMap<FileReference, FileReference>()
+        for (src in files) {
+            deepCopyAssets(src, dst, mapping)
+            if (progress != null) progress.total += 1.0
+        }
+        onCopyFinished(dst, fe)
+        progress?.finish(true)
+    }
+
+    fun onCopyFinished(dst: FileReference, fe: FileExplorer?) {
+        fe?.invalidate()
+        LastModifiedCache.invalidate(dst)
+        // update icon of current folder... hopefully this works
+        Thumbs.invalidate(dst)
+        Thumbs.invalidate(dst.getParent())
     }
 
     fun isPureFile(file: FileReference): Boolean {
@@ -101,7 +75,7 @@ object AssetImport {
 
     private fun generalCopyAssets(
         srcFolder: FileReference, dstFolder: FileReference, isMainFolder: Boolean,
-        prefabMapping: HashMap<FileReference, Prefab>, depth: Int,
+        prefabMapping: HashMap<FileReference, FileReference>, depth: Int,
         copier: PrefabCopier
     ) {
         // if asset is pure (png,jpg,...), just copy or link it
@@ -133,7 +107,7 @@ object AssetImport {
                         val newPrefab = copier.copy(srcFile, dstFolder, prefab, depth)
                         val dstFile = savePrefab(dstFolder, name, newPrefab)
                         newPrefab.source = dstFile
-                        prefabMapping[srcFile] = newPrefab
+                        prefabMapping[srcFile] = dstFile
                     } else LOGGER.warn("Skipped $srcFile, because it was not a prefab")
                 }
             }
@@ -142,39 +116,37 @@ object AssetImport {
 
     private fun copyPrefab(
         srcFile: FileReference, dstFolder: FileReference, isMainFolder: Boolean,
-        cache: HashMap<FileReference, Prefab>, depth: Int, copier: PrefabCopier
+        cache: HashMap<FileReference, FileReference>, depth: Int, copier: PrefabCopier
     ): FileReference {
         if (srcFile == InvalidRef) return InvalidRef
         val cached = cache[srcFile]
-        if (cached != null) return cached.source
-        val prefab = loadPrefab(srcFile)
-        return if (prefab != null) {
-            val name = findName(srcFile, prefab, isMainFolder)
-            val newPrefab = copier.copy(srcFile, dstFolder, prefab, depth + 1)
-            val dstFile = savePrefab(newPrefab.source.ifUndefined(dstFolder), name, newPrefab)
-            newPrefab.source = dstFile
-            cache[srcFile] = newPrefab
+        if (cached != null) return cached
+        return if (isPureFile(srcFile)) {
+            val name = findName(srcFile, null, isMainFolder)
+            val dstFile = dstFolder.getChild(name)
+            dstFile.writeFile(srcFile) {}
+            cache[srcFile] = dstFile
             dstFile
         } else {
-            LOGGER.warn("Skipped $srcFile, because it was not a prefab")
-            InvalidRef
-        }
-    }
-
-    private fun shallowCopyAssets(
-        srcFolder: FileReference,
-        dstFolder: FileReference,
-        prefabMapping: HashMap<FileReference, Prefab>
-    ) {
-        generalCopyAssets(srcFolder, dstFolder, true, prefabMapping, 0) { srcFile, _, prefab, _ ->
-            Prefab(prefab.clazzName, srcFile)
+            val prefab = loadPrefab(srcFile)
+            if (prefab != null) {
+                val name = findName(srcFile, prefab, isMainFolder)
+                val newPrefab = copier.copy(srcFile, dstFolder, prefab, depth + 1)
+                val dstFile = savePrefab(newPrefab.source.ifUndefined(dstFolder), name, newPrefab)
+                newPrefab.source = dstFile
+                cache[srcFile] = newPrefab.source
+                dstFile
+            } else {
+                LOGGER.warn("Skipped $srcFile, because it was not a prefab")
+                InvalidRef
+            }
         }
     }
 
     private fun deepCopyAssets(
         srcFolder: FileReference,
         dstFolder0: FileReference,
-        prefabMapping: HashMap<FileReference, Prefab>
+        prefabMapping: HashMap<FileReference, FileReference>
     ) {
         // todo deep copy is unable to copy reference loops...
         val copier = object : PrefabCopier {
@@ -242,10 +214,10 @@ object AssetImport {
         }
     }
 
-    private fun findName(srcFile: FileReference, prefab: Prefab, isMainFolder: Boolean): String {
-        val prefabName = prefab.instanceName?.toAllowedFilename()
+    private fun findName(srcFile: FileReference, prefab: Prefab?, isMainFolder: Boolean): String {
+        val prefabName = prefab?.instanceName?.toAllowedFilename()
         val fileName = srcFile.nameWithoutExtension.toAllowedFilename()
-        var name = fileName ?: srcFile.getParent()?.nameWithoutExtension ?: prefab.instanceName ?: "Scene"
+        var name = fileName ?: srcFile.getParent()?.nameWithoutExtension ?: prefab?.instanceName ?: "Scene"
         if (name.toIntOrNull() != null) {
             name = prefabName ?: "Scene"
         }
@@ -260,7 +232,7 @@ object AssetImport {
 
     private fun savePrefab(dstFolder: FileReference, name: String, newPrefab: Prefab): FileReference {
         var dstFile = dstFolder.getChild("$name.json")
-        val data = TextWriter.toText(newPrefab, StudioBase.workspace)
+        val data = JsonStringWriter.toText(newPrefab, StudioBase.workspace)
         if (dstFile.exists && newPrefab.clazzName in copyCheckedTypes) {
             // compare the contents: if identical, we can use it
             val data0 = try {

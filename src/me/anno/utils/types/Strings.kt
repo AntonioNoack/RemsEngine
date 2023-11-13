@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.gpu.drawing.DrawTexts.getTextSizeX
 import me.anno.io.files.FileReference
-import me.anno.io.text.TextWriterBase
+import me.anno.io.json.saveable.JsonWriterBase
 import me.anno.maths.Maths.fract
 import me.anno.ui.base.Font
 import me.anno.ui.base.text.TextPanel
@@ -277,7 +277,7 @@ object Strings {
     }
 
     @JvmStatic
-    fun writeEscaped(value: String, data: TextWriterBase) {
+    fun writeEscaped(value: String, data: JsonWriterBase) {
         for (index in value.indices) {
             when (val char = value[index]) {
                 '\\' -> {

@@ -6,13 +6,9 @@ package me.anno.ecs.components.shaders
 class UVSkybox : TextureSkybox() {
 
     init {
-        material.shader = defaultShader
+        material.shader = UVSkyboxShader
     }
 
     override val className: String
         get() = "UVSkybox"
-
-    companion object {
-        val defaultShader = UVSkyboxShader("uv-skybox")
-    }
 }

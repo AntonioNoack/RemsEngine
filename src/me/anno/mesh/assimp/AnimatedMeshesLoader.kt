@@ -11,7 +11,7 @@ import me.anno.io.NamedSaveable
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.zip.InnerFolder
 import me.anno.io.zip.InnerPrefabFile
 import me.anno.io.zip.InnerZipFile
@@ -356,7 +356,7 @@ object AnimatedMeshesLoader {
                     val name = (instance as? NamedSaveable)?.name ?: ""
                     val nameOrIndex = name.ifEmpty { "$index" }
                     val fileName = findNextFileName(meshFolder, nameOrIndex, "json", 3, '-')
-                    meshFolder.createTextChild(fileName, TextWriter.toText(instance, InvalidRef))
+                    meshFolder.createTextChild(fileName, JsonStringWriter.toText(instance, InvalidRef))
                 }
                 references += reference
             }

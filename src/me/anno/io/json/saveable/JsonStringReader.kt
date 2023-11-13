@@ -1,4 +1,4 @@
-package me.anno.io.text
+package me.anno.io.json.saveable
 
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
@@ -11,7 +11,7 @@ import java.io.InputStream
 /**
  * reads a JSON-similar format from a text file
  * */
-class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderBase(workspace) {
+class JsonStringReader(val data: CharSequence, workspace: FileReference) : JsonReaderBase(workspace) {
 
     private var index = 0
 
@@ -58,7 +58,7 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
 
     companion object {
 
-        private val LOGGER = LogManager.getLogger(TextReader::class)
+        private val LOGGER = LogManager.getLogger(JsonStringReader::class)
 
         /**
          * parses a Json* formatted string
@@ -73,7 +73,7 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
          * @param safely return current results on failure, else throws Exception
          * */
         fun read(data: CharSequence, workspace: FileReference, sourceName: String, safely: Boolean): List<ISaveable> {
-            val reader = TextReader(data, workspace)
+            val reader = JsonStringReader(data, workspace)
             reader.sourceName = sourceName
             if (safely) {
                 try {
@@ -101,7 +101,7 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
         }
 
         fun read(data: InputStream, workspace: FileReference, sourceName: String, safely: Boolean): List<ISaveable> {
-            val reader = TextStreamReader(data, workspace)
+            val reader = JsonStreamReader(data, workspace)
             reader.sourceName = sourceName
             if (safely) {
                 try {
@@ -136,7 +136,7 @@ class TextReader(val data: CharSequence, workspace: FileReference) : TextReaderB
         }
 
         fun <V : ISaveable> clone(element: V): V? {
-            val clone = read(TextWriter.toText(element, InvalidRef), InvalidRef, true).getOrNull(0)
+            val clone = read(JsonStringWriter.toText(element, InvalidRef), InvalidRef, true).getOrNull(0)
             @Suppress("unchecked_cast")
             return clone as? V
         }

@@ -14,8 +14,8 @@ import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.text.TextReader
-import me.anno.io.text.TextWriter
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.studio.Inspectable
 import me.anno.studio.Events.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
@@ -64,7 +64,7 @@ class PrefabInspector(val reference: FileReference) {
     val history get() = prefab.history!!
 
     fun serialize(prefab: Prefab) =
-        TextWriter.toText(prefab.adds + prefab.sets.map { k1, k2, v -> CSet(k1, k2, v) }, workspace)
+        JsonStringWriter.toText(prefab.adds + prefab.sets.map { k1, k2, v -> CSet(k1, k2, v) }, workspace)
 
     val adds get() = prefab.adds as MutableList
     val sets get() = prefab.sets
@@ -458,7 +458,7 @@ class PrefabInspector(val reference: FileReference) {
             // check, that we actually can save this file;
             //  we must not override resources like .obj files
             val testRead = try {
-                TextReader.read(reference, workspace, false).firstOrNull()
+                JsonStringReader.read(reference, workspace, false).firstOrNull()
             } catch (e: Exception) {
                 null
             }
@@ -469,11 +469,11 @@ class PrefabInspector(val reference: FileReference) {
         val selected = collectSelected()
         // save -> changes last modified -> selection becomes invalid
         // remember selection, and apply it later (in maybe 500-1000ms)
-        TextWriter.save(prefab, reference, workspace)
+        JsonStringWriter.save(prefab, reference, workspace)
         DelayedTask { addEvent { restoreSelected(selected) } }.update()
     }
 
-    override fun toString(): String = TextWriter.toText(prefab, workspace)
+    override fun toString(): String = JsonStringWriter.toText(prefab, workspace)
 
     companion object {
 
