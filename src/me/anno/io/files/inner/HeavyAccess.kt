@@ -1,4 +1,4 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.io.files.FileReference
 import kotlin.concurrent.thread
@@ -7,6 +7,7 @@ object HeavyAccess {
 
     @JvmStatic
     private val lockedFiles = HashSet<FileReference>()
+
     @JvmStatic
     private val waitingRequests = HashMap<FileReference, ArrayList<IHeavyAccess<*>>>()
 
@@ -84,5 +85,4 @@ object HeavyAccess {
             } else onError(e!!)
         }
     }
-
 }

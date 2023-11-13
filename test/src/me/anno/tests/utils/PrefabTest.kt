@@ -12,7 +12,8 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.io.zip.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.editor.PropertyInspector
@@ -69,7 +70,7 @@ fun test1() {
 
     basePrefab.add(Path.ROOT_PATH, 'c', "MeshComponent", "MC")
 
-    val basePrefabFile = InnerTmpFile.InnerTmpPrefabFile(basePrefab)
+    val basePrefabFile = InnerTmpPrefabFile(basePrefab)
 
     // add
     val prefab = Prefab("Entity", basePrefabFile)

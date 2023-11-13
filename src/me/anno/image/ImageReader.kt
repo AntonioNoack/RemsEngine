@@ -8,13 +8,13 @@ import me.anno.io.files.BundledRef
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.SignatureFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.SignatureFile
 import me.anno.maths.Maths
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitForGFXThread
-import me.anno.video.ffmpeg.MediaMetadata
 import me.anno.video.ffmpeg.FFMPEGStream
+import me.anno.video.ffmpeg.MediaMetadata
 import net.sf.image4j.codec.ico.ICOReader
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager

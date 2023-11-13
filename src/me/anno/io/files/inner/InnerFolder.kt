@@ -1,10 +1,13 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.Image
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.inner.lazy.InnerLazyByteFile
+import me.anno.io.files.inner.lazy.InnerLazyImageFile
+import me.anno.io.files.inner.lazy.InnerLazyPrefabFile
 import me.anno.utils.structures.lists.UnsafeArrayList
 import java.io.IOException
 import java.io.InputStream
@@ -109,7 +112,11 @@ open class InnerFolder(
             ?: InnerPrefabFile("$absolutePath/$name", relativePath, this, content)
     }
 
-    fun createLazyPrefabChild(name: String, content: Lazy<Prefab>, registry: HashMap<String, InnerFile>? = null): InnerFile {
+    fun createLazyPrefabChild(
+        name: String,
+        content: Lazy<Prefab>,
+        registry: HashMap<String, InnerFile>? = null
+    ): InnerFile {
         val child = children[name]
         if (child != null) return child
         val relativePath = getSubName(name)
@@ -117,11 +124,20 @@ open class InnerFolder(
             ?: InnerLazyPrefabFile("$absolutePath/$name", relativePath, this, content)
     }
 
-    fun createLazyImageChild(name: String, content: Lazy<Image>, registry: HashMap<String, InnerFile>? = null): InnerFile {
-        return createLazyImageChild(name, content, { content.value}, registry)
+    fun createLazyImageChild(
+        name: String,
+        content: Lazy<Image>,
+        registry: HashMap<String, InnerFile>? = null
+    ): InnerFile {
+        return createLazyImageChild(name, content, { content.value }, registry)
     }
 
-    fun createLazyImageChild(name: String, cpuImage: Lazy<Image>, gpuImage: () -> Image, registry: HashMap<String, InnerFile>? = null): InnerFile {
+    fun createLazyImageChild(
+        name: String,
+        cpuImage: Lazy<Image>,
+        gpuImage: () -> Image,
+        registry: HashMap<String, InnerFile>? = null
+    ): InnerFile {
         val child = children[name]
         if (child != null) return child
         val relativePath = getSubName(name)
@@ -184,5 +200,4 @@ open class InnerFolder(
             }
         }
     }
-
 }

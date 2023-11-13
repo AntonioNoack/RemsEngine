@@ -1,4 +1,4 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.io.files.FileReference
 import java.io.InputStream
@@ -25,5 +25,4 @@ class InnerStreamFile(
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
         callback(getStream(), null)
     }
-
 }

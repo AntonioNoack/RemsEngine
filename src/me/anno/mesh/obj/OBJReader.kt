@@ -7,7 +7,7 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.fonts.mesh.Triangulation
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.zip.InnerFolder
+import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 import me.anno.mesh.Point
@@ -418,7 +418,6 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
                 }
 
                 Point.stack.sub(points2.size)
-
             }
         }
     }
@@ -464,7 +463,6 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
 
         // UVCorrection.correct(folder)
         folder.sealPrefabs()
-
     }
 
     companion object {
@@ -476,5 +474,4 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
             }
         }
     }
-
 }

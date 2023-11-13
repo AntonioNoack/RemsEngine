@@ -1,4 +1,4 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.image.Image
 import me.anno.image.ImageReadable

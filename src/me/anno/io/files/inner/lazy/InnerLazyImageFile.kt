@@ -1,10 +1,12 @@
-package me.anno.io.zip
+package me.anno.io.files.inner.lazy
 
 import me.anno.image.Image
 import me.anno.image.ImageReadable
 import me.anno.image.bmp.BMPWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
+import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.SignatureFile
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.Charset

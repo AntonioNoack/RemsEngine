@@ -1,25 +1,18 @@
 package me.anno.io.yaml
 
-import me.anno.io.files.FileReference
-import me.anno.utils.strings.StringHelper.indexOf2
 import me.anno.utils.strings.StringHelper.titlecase
+import java.io.BufferedReader
 import java.io.IOException
-import kotlin.math.min
 
 object YAMLReader {
 
     const val listKey = ""
 
-    @Suppress("unused")
-    fun parseYAML(file: FileReference, beautify: Boolean = true): YAMLNode {
-        return parseYAML(file.readTextSync(), beautify)
-    }
-
     /**
      * reads the yaml file
      * @param beautify removed m_ at the start of keys, and makes them all PascalCase for consistency
      * */
-    fun parseYAML(text: String, beautify: Boolean = true): YAMLNode {
+    fun parseYAML(reader: BufferedReader, beautify: Boolean = true): YAMLNode {
 
         val root = YAMLNode("root", -1)
         val stack = ArrayList<YAMLNode>(8)
@@ -63,11 +56,8 @@ object YAMLReader {
         }
 
         // parse yaml
-        val lines = text.split('\n')
-        var lineIndex = -1
-        val lineCount = lines.size
-        while (++lineIndex < lineCount) {
-            val line = lines[lineIndex]
+        while (true){
+            val line = reader.readLine() ?: break
             var trimmed = line.trim()
             if (trimmed.isNotEmpty()) {
                 var startIndex = line.indexOf(trimmed.first())
@@ -95,7 +85,7 @@ object YAMLReader {
                     while (value.startsWith("{") && !value.endsWith("}")) {
                         // the line was too long, and unity introduced a line wrap...
                         // I have no idea, whether that is legal in YAML...
-                        value += lines[++lineIndex].trim()
+                        value += reader.readLine()?.trim() ?: break
                     }
                 }
                 if (trimmed.startsWith("{")) {
@@ -108,36 +98,6 @@ object YAMLReader {
         }
 
         return root
-
-    }
-
-
-    fun parseYAMLxJSON(json: String, callback: (String, String) -> Unit) {
-        parseYAMLxJSON(json, false, callback)
-    }
-
-    /**
-     * decodes stuff like "{fileID: 42575496, guid: ee81afb80bd, type: 2}" or {x:12, y:4, z: 13}
-     * */
-    fun parseYAMLxJSON(json: String, beautify: Boolean, callback: (String, String) -> Unit) {
-        val start = json.indexOf('{')
-        if (start < 0) return
-        var i = start + 1
-        val length = json.length
-        while (i < length) {
-            while (i < length && json[i] == ' ') i++
-            var colonIndex = json.indexOf(':', i + 1)
-            if (colonIndex < 0) return
-            var key = json.substring(i, colonIndex).trim()
-            if (json[colonIndex + 1] == ' ') colonIndex++ // skip that space, that's always there
-            val commaIndex = json.indexOf2(',', colonIndex + 1)
-            val bracketIndex = json.indexOf2('}', colonIndex + 1)
-            val endIndex = min(commaIndex, bracketIndex)
-            val value = json.substring(colonIndex + 1, endIndex).trim()
-            if (beautify) key = beautify(key)
-            callback(key, value)
-            i = endIndex + 1
-        }
     }
 
     fun beautify(key0: String): String {
@@ -150,5 +110,4 @@ object YAMLReader {
         }
         return key.titlecase().toString()
     }
-
 }

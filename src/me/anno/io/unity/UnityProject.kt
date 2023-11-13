@@ -6,8 +6,8 @@ import me.anno.io.unity.UnityReader.assetExtension
 import me.anno.io.unity.UnityReader.readUnityObjects
 import me.anno.io.yaml.YAMLNode
 import me.anno.io.yaml.YAMLReader.parseYAML
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerLinkFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerLinkFile
 import me.anno.utils.Clock
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -32,7 +32,10 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
             yamlCache.getOrPut(file) {
                 if (file.lcExtension == "meta") file.hide()
                 try {
-                    parseYAML(file.readTextSync(), true)
+                    file.inputStreamSync()
+                        .bufferedReader().use {
+                            parseYAML(it, true)
+                        }
                 } catch (e: Exception) {
                     LOGGER.warn("$e by $file")
                     throw e
@@ -146,14 +149,16 @@ class UnityProject(val root: FileReference) : InnerFolder(root) {
                 when (file.lcExtension) {
                     "meta"/*, "mat", "prefab", "unity", "asset"*/ -> {
                         try {
-                            val yaml = parseYAML(file.readTextSync(), true)
-                            val guid = yaml["Guid"]?.value
-                            if (guid != null) {
-                                // LOGGER.info("Registered guid $file")
-                                val content = file.getSibling(file.nameWithoutExtension)
-                                registry[guid] = content
-                            } else LOGGER.warn("Didn't find guid in $file")
-                            yamlCache[file] = yaml
+                            file.inputStreamSync().bufferedReader().use {
+                                val yaml = parseYAML(it, true)
+                                val guid = yaml["Guid"]?.value
+                                if (guid != null) {
+                                    // LOGGER.info("Registered guid $file")
+                                    val content = file.getSibling(file.nameWithoutExtension)
+                                    registry[guid] = content
+                                } else LOGGER.warn("Didn't find guid in $file")
+                                yamlCache[file] = yaml
+                            }
                         } catch (e: IOException) {
                             e.printStackTrace()
                         }

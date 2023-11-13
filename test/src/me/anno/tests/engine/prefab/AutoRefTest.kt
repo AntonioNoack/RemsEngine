@@ -6,7 +6,8 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.engine.ECSRegistry
-import me.anno.io.zip.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.mesh.Shapes
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -31,7 +32,7 @@ class AutoRefTest {
         val scene = createScene()
 
         val asText = scene.ref.readTextSync()
-        val asFile = InnerTmpFile.InnerTmpTextFile(asText, "json")
+        val asFile = InnerTmpTextFile(asText, "json")
 
         val prefab = PrefabCache[asFile]!!
         prefab.invalidateInstance()

@@ -5,8 +5,6 @@ import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.createZipFile
 import me.anno.io.zip.GetStreamCallback
-import me.anno.io.zip.InnerImageFile
-import me.anno.io.zip.InnerLazyImageFile
 import me.anno.io.zip.InnerZipFile
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Floats.f1

@@ -1,8 +1,11 @@
 package me.anno.io.unity
 
 import me.anno.io.files.FileReference
-import me.anno.io.zip.*
-import me.anno.io.zip.InnerFile.Companion.createRegistry
+import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.InnerFile.Companion.createRegistry
+import me.anno.io.files.inner.InnerFolderCache
+import me.anno.io.files.inner.InnerFolderCallback
+import me.anno.io.zip.InnerTarFile
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import java.util.zip.GZIPInputStream
 
@@ -74,5 +77,4 @@ object UnityPackage {
         file.signature = original.signature
         return file
     }
-
 }

@@ -16,11 +16,11 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileWatch
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.io.files.inner.InnerFolderCache
+import me.anno.io.files.inner.InnerFolderCache.imageFormats
+import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.unity.UnityReader
-import me.anno.io.zip.InnerFolderCache
-import me.anno.io.zip.InnerFolderCache.imageFormats
-import me.anno.io.zip.InnerLinkFile
 import me.anno.studio.StudioBase
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull

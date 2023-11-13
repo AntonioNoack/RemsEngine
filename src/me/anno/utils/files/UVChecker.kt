@@ -1,11 +1,11 @@
 package me.anno.utils.files
 
-import me.anno.utils.Color.black
 import me.anno.image.ImageCPUCache
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
-import me.anno.io.zip.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.maths.Maths
+import me.anno.utils.Color.black
 import me.anno.utils.Color.r
 
 @JvmField
@@ -109,6 +109,6 @@ val UVChecker = lazy {
         }
     }
 
-    InnerTmpFile.InnerTmpImageFile(image)
+    InnerTmpImageFile(image)
 
 }

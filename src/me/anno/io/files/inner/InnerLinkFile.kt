@@ -1,4 +1,4 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.io.files.FileReference
 import java.io.InputStream
@@ -55,5 +55,4 @@ class InnerLinkFile(
     override fun length() = link.length()
 
     override val exists: Boolean = link.exists
-
 }

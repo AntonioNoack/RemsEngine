@@ -42,7 +42,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.xml.ComparableStringBuilder
-import me.anno.io.zip.InnerLinkFile
+import me.anno.io.files.inner.InnerLinkFile
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.mixARGB
 import me.anno.maths.Maths.roundDiv

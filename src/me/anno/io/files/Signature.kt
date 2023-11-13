@@ -2,7 +2,7 @@ package me.anno.io.files
 
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.image.gimp.GimpImage
-import me.anno.io.zip.SignatureFile
+import me.anno.io.files.inner.SignatureFile
 import me.anno.utils.Color.hex8
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import java.io.InputStream

@@ -6,8 +6,8 @@ import me.anno.engine.ECSRegistry
 import me.anno.image.Image
 import me.anno.image.ImageCPUCache
 import me.anno.io.files.FileReference
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerPrefabFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.mesh.obj.OBJReader
 import me.anno.utils.Clock
 import me.anno.utils.Color.b

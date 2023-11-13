@@ -7,7 +7,11 @@ import com.github.junrar.io.IReadOnlyAccess
 import com.github.junrar.rarfile.FileHeader
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.Signature
+import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.SignatureFile
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -171,7 +175,5 @@ class InnerRarFile(
             file.data = null
             return file
         }
-
     }
-
 }

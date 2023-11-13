@@ -17,9 +17,9 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.xml.XMLNode
 import me.anno.io.xml.XMLReader
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerFolderCallback
-import me.anno.io.zip.InnerPrefabFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerFolderCallback
+import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.assimp.StaticMeshesLoader.shininessToRoughness
 import me.anno.utils.Color.rgba

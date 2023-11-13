@@ -16,10 +16,9 @@ import me.anno.io.unity.UnityProject.Companion.isValidUUID
 import me.anno.io.yaml.YAMLNode
 import me.anno.io.yaml.YAMLReader.beautify
 import me.anno.io.yaml.YAMLReader.parseYAML
-import me.anno.io.yaml.YAMLReader.parseYAMLxJSON
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerLinkFile
-import me.anno.io.zip.InnerPrefabFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerLinkFile
+import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.utils.ColorParsing.parseHex
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.maps.BiMap
@@ -872,9 +871,9 @@ object UnityReader {
         if (project == null) {
             LOGGER.warn("No project found in $file")
             // try to read without project
-            file.readText { s, e ->
+            file.inputStream { s, e ->
                 if (s != null) {
-                    val node = parseYAML(s, true)
+                    val node = parseYAML(s.bufferedReader(), true)
                     val tmpFolder = InnerFolder(file)
                     val objects = readUnityObjects(node, "0", invalidProject, tmpFolder)
                     if (objects !== tmpFolder) callback(null, null)

@@ -5,12 +5,12 @@ import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.cache.instances.LastModifiedCache
 import me.anno.gpu.GFX
+import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerFolderCache
+import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
-import me.anno.io.zip.InnerFile
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerFolderCache
-import me.anno.io.zip.InnerTmpFile
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.min
 import me.anno.studio.StudioBase

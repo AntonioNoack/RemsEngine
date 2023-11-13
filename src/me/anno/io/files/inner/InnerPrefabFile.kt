@@ -1,4 +1,4 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabReadable
@@ -49,5 +49,4 @@ open class InnerPrefabFile(
     override fun readPrefab(): Prefab {
         return prefab
     }
-
 }

@@ -11,9 +11,10 @@ import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerFolderCallback
-import me.anno.io.zip.InnerTmpFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerFolderCallback
+import me.anno.io.files.inner.temporary.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.Maths.sq
 import me.anno.mesh.blender.BlenderMeshConverter.convertBMesh
 import me.anno.mesh.blender.impl.*
@@ -377,7 +378,7 @@ object BlenderReader {
 
                     // todo proper file for this
                     val subPrefab = Prefab("Mesh", meshFile)
-                    val meshFile2 = InnerTmpFile.InnerTmpPrefabFile(subPrefab)
+                    val meshFile2 = InnerTmpPrefabFile(subPrefab)
 
                     // create skeleton and map vertex indices
                     val (skeleton, mappedBoneIndices) = createSkeleton(
@@ -388,7 +389,7 @@ object BlenderReader {
                     subPrefab["boneIndices"] = mappedBoneIndices
 
                     // todo create proper location for skeleton
-                    val skeletonRef = InnerTmpFile.InnerTmpPrefabFile(skeleton)
+                    val skeletonRef = InnerTmpPrefabFile(skeleton)
                     val c = prefab.add(path, 'c', "AnimMeshComponent", obj.id.realName)
 
                     prefab[c, "meshFile"] = meshFile2

@@ -1,9 +1,12 @@
 package me.anno.io.zip
 
 import me.anno.io.files.FileReference
+import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.Signature
+import me.anno.io.files.inner.*
+import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import me.anno.io.unity.UnityPackage.unpack
-import me.anno.io.zip.SignatureFile.Companion.setDataAndSignature
+import me.anno.utils.structures.NextEntryIterator
 import org.apache.commons.compress.archivers.ArchiveEntry
 import org.apache.commons.compress.archivers.ArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
@@ -144,7 +147,5 @@ class InnerTarFile(
                 InnerFolder("$zipFileLocation/$path", path, parent2)
             }
         }
-
     }
-
 }

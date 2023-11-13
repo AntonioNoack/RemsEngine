@@ -12,7 +12,7 @@ import me.anno.io.css.CSSReader
 import me.anno.io.files.FileReference
 import me.anno.io.xml.XMLNode
 import me.anno.io.xml.XMLReader
-import me.anno.io.zip.InnerFolder
+import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.clamp

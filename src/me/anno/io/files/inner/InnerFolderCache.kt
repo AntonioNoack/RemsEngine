@@ -1,4 +1,4 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.CacheData
@@ -7,28 +7,18 @@ import me.anno.image.ImageReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.svg.SVGMesh
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.Signature
 import me.anno.io.unity.UnityReader
-import me.anno.io.zip.Inner7zFile.Companion.createZipRegistry7z
-import me.anno.io.zip.Inner7zFile.Companion.fileFromStream7z
-import me.anno.io.zip.InnerRarFile.Companion.createZipRegistryRar
-import me.anno.io.zip.InnerRarFile.Companion.fileFromStreamRar
-import me.anno.io.zip.InnerTarFile.Companion.readAsGZip
-import me.anno.io.zip.InnerZipFile.Companion.createZipRegistryV2
+import me.anno.io.zip.*
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
 import me.anno.mesh.mitsuba.MitsubaReader
 import me.anno.mesh.obj.MTLReader
 import me.anno.mesh.obj.OBJReader
 import me.anno.mesh.vox.VOXReader
-import me.anno.utils.files.LocalFile.toGlobalFile
-import org.apache.logging.log4j.LogManager
 import java.io.IOException
 
 object InnerFolderCache : CacheSection("InnerFolderCache") {
-
-    private val LOGGER = LogManager.getLogger(InnerFolderCache::class)
 
     // cache all content? if less than a certain file size
     // cache the whole hierarchy [? only less than a certain depth level - not done]
@@ -58,7 +48,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
 
     fun register(signatures: List<String>, reader: InnerFolderReader) {
         for (signature in signatures) {
-            readerBySignature[signature] = reader
+            register(signature, reader)
         }
     }
 
@@ -79,11 +69,16 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
     init {
 
         // compressed folders
-        register(listOf("bz2", "lz4", "xar", "oar")) { it, c -> createZipRegistryV2(it, c) }
-        register("7z") { it, c -> c(createZipRegistry7z(it) { fileFromStream7z(it) }, null) }
-        register("rar") { it, c -> c(createZipRegistryRar(it) { fileFromStreamRar(it) }, null) }
-        register("gzip", ::readAsGZip)
-        register("tar", ::readAsGZip)
+        register(listOf("zip", "bz2", "lz4", "xar", "oar"), InnerZipFile.Companion::createZipRegistryV2)
+        register("7z") { it, c -> c(Inner7zFile.createZipRegistry7z(it) { Inner7zFile.fileFromStream7z(it) }, null) }
+        register("rar") { it, c ->
+            c(
+                InnerRarFile.createZipRegistryRar(it) { InnerRarFile.fileFromStreamRar(it) },
+                null
+            )
+        }
+        register("gzip", InnerTarFile.Companion::readAsGZip)
+        register("tar", InnerTarFile.Companion::readAsGZip)
 
         // meshes
         // to do all mesh extensions
@@ -91,10 +86,9 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
             c(AnimatedMeshesLoader.readAsFolder(it), null)
         }
         register("blend", BlenderReader::readAsFolder)
-        register("obj", OBJReader::readAsFolder)
-        register("mtl", MTLReader::readAsFolder)
-        register("vox", VOXReader::readAsFolder)
-        register("zip", ::createZipRegistryV2)
+        register("obj", OBJReader.Companion::readAsFolder)
+        register("mtl", MTLReader.Companion::readAsFolder)
+        register("vox", VOXReader.Companion::readAsFolder)
 
         register("mitsuba-meshes", MitsubaReader::readMeshesAsFolder)
         register("mitsuba-scene", MitsubaReader::readSceneAsFolder)
@@ -104,11 +98,11 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         // images
         // to do all image formats
         register(imageFormats, ImageReader::readAsFolder)
-        register("gimp", GimpImage::readAsFolder)
+        register("gimp", GimpImage.Companion::readAsFolder)
         register("media", ImageReader::readAsFolder) // correct for webp, not for videos
 
         // "xml" can be "dae" as well
-        register(listOf("svg"), SVGMesh::readAsFolder)
+        register("svg", SVGMesh.Companion::readAsFolder)
 
         // register yaml generally for unity files?
         registerFileExtension(UnityReader.unityExtensions) { it, c ->
@@ -121,41 +115,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         //  then check whether the stuff still works
 
         // register windows url
-        register("url") { file, callback ->
-            file.readLines(1024) { txt, exception ->
-                if (txt == null) callback(null, exception)
-                else {
-                    val files = ArrayList<FileReference>()
-                    for (line in txt) {
-                        if (line.startsWith("URL=file://")) {
-                            files.add(getReference(line.substring(11).toGlobalFile()))
-                        } else if (line.startsWith("URL=")) {
-                            files.add(getReference(line.substring(4)))
-                        }
-                    }
-                    if (files.isNotEmpty()) {
-                        val folder = InnerFolder(file)
-                        var j = 0
-                        for (i in files.indices) {
-                            val child = files[i]
-                            var key = child.name
-                            // ensure unique name
-                            if (key in folder.children) {
-                                var ext = file.extension
-                                if (ext.isNotEmpty()) ext = ".$ext"
-                                key = "${j++}$ext"
-                                while (key in folder.children) {
-                                    key = "${j++}$ext"
-                                }
-                            }
-                            // create child & add it
-                            InnerLinkFile(folder, key, child)
-                        }
-                        callback(folder, null)
-                    } else callback(null, IOException("No files were found in $file"))
-                }
-            }
-        }
+        register("url", ::readURLAsFolder)
     }
 
     fun wasReadAsFolder(file: FileReference): InnerFolder? {
@@ -182,7 +142,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
                 if (reader != null) {
                     reader(file1, callback)
                 } else {
-                    createZipRegistryV2(file1, callback)
+                    InnerZipFile.createZipRegistryV2(file1, callback)
                 }
                 data
             }

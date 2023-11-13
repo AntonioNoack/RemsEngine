@@ -1,4 +1,4 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.io.files.Signature
 import me.anno.utils.types.InputStreams.readNBytes2
@@ -25,5 +25,4 @@ interface SignatureFile {
             }
         }
     }
-
 }

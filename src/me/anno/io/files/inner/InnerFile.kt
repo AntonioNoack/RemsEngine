@@ -1,14 +1,14 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.io.EmptyInputStream
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.maths.Maths.max
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
-import kotlin.math.max
 
 /**
  * a file, which is inside another file,

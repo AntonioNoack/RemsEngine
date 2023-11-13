@@ -12,8 +12,8 @@ import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerPrefabFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerPrefabFile
 import me.anno.io.zip.InnerZipFile
 import me.anno.mesh.assimp.AnimationLoader.getDuration
 import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame

@@ -45,7 +45,7 @@ object FileWatch {
         if (file is FileFileRef && file.isDirectory) {
             synchronized(this) {
                 watched.getOrPut(file.absolutePath) {
-                    LOGGER.debug("Adding watch dog to $file")
+                    LOGGER.debug("Adding watch dog to {}", file)
                     val path = Paths.get(file.absolutePath)
                     val key = path.register(
                         watcher,
@@ -69,7 +69,7 @@ object FileWatch {
                     list!!
                     list.remove(original)
                     if (list.isEmpty()) {
-                        LOGGER.debug("Removed watch dog from $file")
+                        LOGGER.debug("Removed watch dog from {}", file)
                         watched.remove(file.absolutePath)
                         try {
                             key.cancel()

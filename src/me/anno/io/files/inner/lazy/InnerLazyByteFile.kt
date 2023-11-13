@@ -1,7 +1,10 @@
-package me.anno.io.zip
+package me.anno.io.files.inner.lazy
 
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
+import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.SignatureFile
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -45,5 +48,4 @@ class InnerLazyByteFile(
     override fun getInputStream(callback: (InputStream?, Exception?) -> Unit) {
         callback(ByteArrayInputStream(content.value), null)
     }
-
 }

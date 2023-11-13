@@ -9,12 +9,12 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.io.files.inner.InnerFile
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.io.xml.XMLNode
 import me.anno.io.xml.XMLReader
 import me.anno.io.xml.XMLWriter
-import me.anno.io.zip.InnerFile
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerTmpFile
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.files.Files.findNextFileName
@@ -78,7 +78,7 @@ object StaticMeshesLoader {
             }
 
             val better = XMLWriter.write(clean(xml) as XMLNode, null, false)
-            file = InnerTmpFile.InnerTmpTextFile(better)
+            file = InnerTmpTextFile(better)
         }
 
         // we could load in parallel,

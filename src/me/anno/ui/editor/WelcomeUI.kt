@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
-import me.anno.io.zip.InnerFile
+import me.anno.io.files.inner.InnerFile
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.language.translation.NameDesc.Companion.translate

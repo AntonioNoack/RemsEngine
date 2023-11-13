@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.files.FileRootRef
-import me.anno.io.zip.InnerLazyPrefabFile
+import me.anno.io.files.inner.lazy.InnerLazyPrefabFile
 import org.apache.logging.log4j.LogManager
 
 /*
@@ -114,5 +114,4 @@ object ScenePrefab : InnerLazyPrefabFile(
             child.remove(player)
         }
     }
-
 }

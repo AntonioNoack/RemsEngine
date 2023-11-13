@@ -11,7 +11,8 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ScenePrefab
 import me.anno.io.files.FileReference
 import me.anno.io.json.generic.JsonFormatter
-import me.anno.io.zip.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.sdf.shapes.SDFBox
 import me.anno.utils.OS
@@ -36,7 +37,7 @@ class HierarchyTests {
     fun testAdd() {
         // test
         val prefab = Prefab("Entity", ScenePrefab)
-        prefab.source = InnerTmpFile.InnerTmpTextFile("")
+        prefab.source = InnerTmpTextFile("")
         val sample0 = prefab.createInstance() as Entity
         val size0 = sample0.sizeOfHierarchy
         val added = Hierarchy.add(prefab, Path.ROOT_PATH, prefab, Path.ROOT_PATH, 'e')!!

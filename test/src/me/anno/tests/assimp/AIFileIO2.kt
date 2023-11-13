@@ -4,8 +4,8 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.zip.InnerByteFile
-import me.anno.io.zip.InnerFolder
+import me.anno.io.files.inner.InnerByteFile
+import me.anno.io.files.inner.InnerFolder
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
 

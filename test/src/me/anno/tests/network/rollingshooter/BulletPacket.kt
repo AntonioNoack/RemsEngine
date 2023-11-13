@@ -1,7 +1,7 @@
 package me.anno.tests.network.rollingshooter
 
-import me.anno.io.Writing.readVec3
-import me.anno.io.Writing.writeVec3
+import me.anno.io.DataStreamUtils.readVec3
+import me.anno.io.DataStreamUtils.writeVec3
 import me.anno.network.Packet
 import me.anno.network.Server
 import me.anno.network.TCPClient

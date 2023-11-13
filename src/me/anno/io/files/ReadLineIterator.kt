@@ -1,6 +1,6 @@
 package me.anno.io.files
 
-import me.anno.io.zip.NextEntryIterator
+import me.anno.utils.structures.NextEntryIterator
 import me.anno.maths.Maths.max
 import java.io.BufferedReader
 import java.io.IOException

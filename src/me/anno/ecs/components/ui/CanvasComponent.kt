@@ -28,13 +28,14 @@ import me.anno.image.raw.GPUImage
 import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.inner.temporary.InnerTmpImageFile
+import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.io.zip.InnerTmpFile
 import me.anno.ui.Panel
 import me.anno.ui.Window
-import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.WindowStack
+import me.anno.ui.base.groups.PanelGroup
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4d
 
@@ -198,8 +199,8 @@ class CanvasComponent() : MeshComponentBase(), ControlReceiver {
             val prefab = Prefab("Material")
             val texture = fb.getTexture0()
             val image = GPUImage(texture, 4, true)
-            val texturePath = InnerTmpFile.InnerTmpImageFile(image)
-            val materialPath = InnerTmpFile.InnerTmpPrefabFile(prefab)
+            val texturePath = InnerTmpImageFile(image)
+            val materialPath = InnerTmpPrefabFile(prefab)
             prefab["diffuseMap"] = texturePath
             prefab["emissiveMap"] = texturePath
             val materialInstance = prefab.getSampleInstance() as Material

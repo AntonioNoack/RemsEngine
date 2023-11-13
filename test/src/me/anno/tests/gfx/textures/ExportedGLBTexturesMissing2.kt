@@ -1,8 +1,8 @@
 package me.anno.tests.gfx.textures
 
 import me.anno.io.files.FileReference
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerFolderCache
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerFolderCache
 import me.anno.utils.OS.downloads
 
 fun main() {

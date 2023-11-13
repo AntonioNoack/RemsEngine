@@ -2,7 +2,7 @@ package me.anno.mesh.obj
 
 import me.anno.ecs.prefab.Prefab
 import me.anno.io.files.FileReference
-import me.anno.io.zip.InnerFolder
+import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.clamp
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector2f

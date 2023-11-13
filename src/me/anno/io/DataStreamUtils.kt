@@ -7,7 +7,7 @@ import java.io.DataOutputStream
 import java.io.EOFException
 
 @Suppress("unused")
-object Writing {
+object DataStreamUtils {
 
     fun DataInputStream.readNValues(array: ByteArray) {
         var i = 0
@@ -33,17 +33,17 @@ object Writing {
         for (f in array) writeFloat(f)
     }
 
-    fun DataOutputStream.writeVec3(v: Vector3f) {
-        writeFloat(v.x)
-        writeFloat(v.y)
-        writeFloat(v.z)
+    fun DataOutputStream.writeVec3(value: Vector3f) {
+        writeFloat(value.x)
+        writeFloat(value.y)
+        writeFloat(value.z)
     }
 
-    fun DataOutputStream.writeQuat(v: Quaternionf) {
-        writeFloat(v.x)
-        writeFloat(v.y)
-        writeFloat(v.z)
-        writeFloat(v.w)
+    fun DataOutputStream.writeQuat(value: Quaternionf) {
+        writeFloat(value.x)
+        writeFloat(value.y)
+        writeFloat(value.z)
+        writeFloat(value.w)
     }
 
     fun DataInputStream.readVec3(dst: Vector3f): Vector3f {

@@ -85,8 +85,8 @@ import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
-import me.anno.io.zip.InnerFolderCache
-import me.anno.io.zip.InnerTmpFile
+import me.anno.io.files.inner.InnerFolderCache
+import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.maths.Maths.clamp
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Font

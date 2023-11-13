@@ -7,7 +7,7 @@ import me.anno.image.raw.FloatImage
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readBE32
 import me.anno.io.files.FileReference
-import me.anno.io.zip.InnerFolder
+import me.anno.io.files.inner.InnerFolder
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max

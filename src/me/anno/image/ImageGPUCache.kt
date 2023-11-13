@@ -7,7 +7,7 @@ import me.anno.gpu.texture.*
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.zip.InnerFile
+import me.anno.io.files.inner.InnerFile
 import me.anno.utils.OS
 import me.anno.utils.Sleep.waitForGFXThread
 import org.apache.logging.log4j.LogManager

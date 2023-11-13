@@ -2,8 +2,11 @@ package me.anno.io.zip
 
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.Signature
-import me.anno.io.zip.SignatureFile.Companion.setDataAndSignature
+import me.anno.io.files.inner.*
+import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
+import me.anno.utils.structures.NextEntryIterator
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -109,7 +112,5 @@ class Inner7zFile(
             setDataAndSignature(file) { zis.getInputStream(entry) }
             return file
         }
-
     }
-
 }

@@ -1,4 +1,4 @@
-package me.anno.io.zip
+package me.anno.utils.structures
 
 abstract class NextEntryIterator<V> : Iterator<V> {
 

@@ -9,7 +9,8 @@ import me.anno.io.base.PrefabHelperWriter
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.io.zip.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.studio.Inspectable
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
@@ -46,7 +47,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             var prefab = prefab
             if (prefab == null) {
                 prefab = Prefab(className)
-                prefab.source = InnerTmpFile.InnerTmpPrefabFile(prefab)
+                prefab.source = InnerTmpPrefabFile(prefab)
                 prefab._sampleInstance = this
                 this.prefab = prefab
                 this.prefabPath = Path.ROOT_PATH

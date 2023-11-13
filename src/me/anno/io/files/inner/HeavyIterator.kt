@@ -1,4 +1,4 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.io.files.FileReference
 import kotlin.concurrent.thread
@@ -7,6 +7,7 @@ object HeavyIterator {
 
     @JvmStatic
     private val lockedFiles = HashSet<FileReference>()
+
     @JvmStatic
     private val waitingRequests = HashMap<FileReference, ArrayList<IHeavyIterable<*, *, *>>>()
 
@@ -102,7 +103,5 @@ object HeavyIterator {
                 process(source, waiting as List<IHeavyIterable<Item, Stream, Processable>>)
             }
         }
-
     }
-
 }

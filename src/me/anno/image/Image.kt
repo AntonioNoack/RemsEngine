@@ -7,7 +7,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.zip.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.min
@@ -440,7 +440,7 @@ abstract class Image(
     var ref: FileReference = InvalidRef
         get() {
             if (field == InvalidRef) {
-                field = InnerTmpFile.InnerTmpImageFile(this)
+                field = InnerTmpImageFile(this)
             }
             return field
         }
@@ -459,6 +459,5 @@ abstract class Image(
         fun argb(a: Int, r: Int, g: Int, b: Int): Int {
             return (a shl 24) + (r shl 16) + (g shl 8) + b
         }
-
     }
 }

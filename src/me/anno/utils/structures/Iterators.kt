@@ -1,7 +1,5 @@
 package me.anno.utils.structures
 
-import me.anno.io.zip.NextEntryIterator
-
 object Iterators {
 
     inline fun <V> Iterator<V>.firstOrNull(test: (V) -> Boolean): V? {

@@ -2,14 +2,15 @@ package me.anno.tests.audio
 
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.io.zip.InnerTmpFile
+import me.anno.io.files.inner.temporary.InnerTmpAudioFile
+import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.maths.Maths.TAUf
 import me.anno.studio.Events.addEvent
 import kotlin.math.sin
 
 fun main() {
     val scene = AudioComponent()
-    scene.source = object : InnerTmpFile.InnerTmpAudioFile() {
+    scene.source = object : InnerTmpAudioFile() {
 
         val mainFrequency = TAUf * 500f
         val modulator = TAUf * 10f

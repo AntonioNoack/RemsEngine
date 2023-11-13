@@ -1,7 +1,6 @@
-package me.anno.io.zip
+package me.anno.io.files.inner
 
 import me.anno.io.files.FileReference
-import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
 
@@ -19,7 +18,7 @@ class InnerTextFile(
         callback(inputStreamSync(), null)
     }
 
-    override fun inputStreamSync() = ByteArrayInputStream(readBytesSync())
+    override fun inputStreamSync() = content.byteInputStream()
 
     override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
         callback(content, null)
@@ -32,5 +31,4 @@ class InnerTextFile(
     }
 
     override fun readBytesSync() = content.toByteArray()
-
 }

@@ -8,8 +8,8 @@ import me.anno.image.Image
 import me.anno.image.ImageGPUCache
 import me.anno.image.raw.toImage
 import me.anno.io.files.FileReference
-import me.anno.io.zip.InnerFolder
-import me.anno.io.zip.InnerFolderCallback
+import me.anno.io.files.inner.InnerFolder
+import me.anno.io.files.inner.InnerFolderCallback
 import me.anno.maths.Maths
 import me.anno.utils.structures.tuples.Quad
 import org.apache.logging.log4j.LogManager

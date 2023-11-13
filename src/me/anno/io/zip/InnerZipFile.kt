@@ -2,8 +2,10 @@ package me.anno.io.zip
 
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
+import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.Signature
-import me.anno.io.zip.SignatureFile.Companion.setDataAndSignature
+import me.anno.io.files.inner.*
+import me.anno.io.files.inner.SignatureFile.Companion.setDataAndSignature
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
@@ -35,7 +37,6 @@ class InnerZipFile(
                 val entry = stream.getEntry(relativePath)
                 callback(stream.getInputStream(entry).readBytes().inputStream(), null)
             }
-
         }) { callback(null, it) }
     }
 
@@ -124,7 +125,5 @@ class InnerZipFile(
             }
             return
         }
-
     }
-
 }
