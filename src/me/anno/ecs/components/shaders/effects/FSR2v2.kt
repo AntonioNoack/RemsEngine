@@ -1,20 +1,32 @@
 package me.anno.ecs.components.shaders.effects
 
 import me.anno.cache.ICacheData
+import me.anno.engine.ui.render.RenderView
+import me.anno.engine.ui.render.Renderers
+import me.anno.gpu.DepthMode
+import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
+import me.anno.gpu.deferred.BufferQuality
+import me.anno.gpu.deferred.DeferredLayerType
+import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
-import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.drawing.DrawTextures
+import me.anno.gpu.framebuffer.*
+import me.anno.gpu.pipeline.LightShaders
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib
+import me.anno.graph.render.Texture
+import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4f
 import org.joml.Quaterniond
 import org.joml.Vector3f
@@ -263,5 +275,70 @@ class FSR2v2 : ICacheData {
         val tmp = data0
         data0 = data1
         data1 = tmp
+    }
+
+    fun drawScene(
+        view: RenderView,
+        w: Int, h: Int, x0: Int, y0: Int, x1: Int, y1: Int,
+        renderer: Renderer, buffer: IFramebuffer,
+        deferred: DeferredSettings,
+        lightNBuffer1: IFramebuffer,
+        baseSameDepth1: IFramebuffer
+    ) {
+        view.drawScene(
+            w, h, renderer, buffer,
+            changeSize = true, hdr = true
+        )
+        val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, DepthBufferType.INTERNAL]
+        val motion1 = Renderers.rawAttributeRenderers[DeferredLayerType.MOTION]
+        view.drawScene(w, h, motion1, motion, changeSize = false, hdr = true)
+
+        val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
+        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mapping, lightNBuffer1)
+
+        val ssao = TextureLib.blackTexture
+        val pw = x1 - x0
+        val ph = y1 - y0
+
+        // use the existing depth buffer for the 3d ui
+        val skybox = view.pipeline.bakedSkybox?.getTexture0() ?: TextureLib.blackCube
+        useFrame(w, h, true, baseSameDepth1) {
+            // don't write depth
+            GFXState.depthMask.use(false) {
+                LightShaders.combineLighting(
+                    deferred, true, buffer,
+                    lightNBuffer1, ssao, skybox
+                )
+            }
+        }
+
+        val tmp1 = FBStack["fsr", pw, ph, 4, false, 1, DepthBufferType.INTERNAL]
+        useFrame(tmp1) {
+            GFXState.depthMode.use(DepthMode.CLOSE) {
+                tmp1.clearDepth()
+                GFXState.blendMode.use(null) {
+                    val depth = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
+                    calculate(
+                        baseSameDepth1.getTexture0() as Texture2D,
+                        depth.tex as Texture2D, depth.mapping,
+                        deferred.findTexture(buffer, DeferredLayerType.NORMAL) as Texture2D,
+                        deferred.zw(DeferredLayerType.NORMAL),
+                        motion.getTexture0() as Texture2D,
+                        pw, ph
+                    )
+                }
+                // todo why is it still jittering?
+                val tmp = JomlPools.mat4f.create()
+                tmp.set(view.cameraMatrix)
+                unjitter(view.cameraMatrix, view.cameraRotation, pw, ph)
+                // setRenderState()
+                view.drawGizmos(GFXState.currentBuffer, true, drawDebug = true)
+                view.cameraMatrix.set(tmp)
+                // setRenderState()
+                JomlPools.mat4f.sub(1)
+            }
+        }
+
+        DrawTextures.drawTexture(x0, y0 + ph, pw, -ph, tmp1.getTexture0(), true)
     }
 }

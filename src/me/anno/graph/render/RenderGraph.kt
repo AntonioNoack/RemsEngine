@@ -16,7 +16,6 @@ import me.anno.image.ImageScale
 import me.anno.ui.Panel
 import me.anno.utils.LOGGER
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
-import org.joml.Vector4f
 
 // stage 0:
 //  scene, meshes
@@ -115,37 +114,46 @@ object RenderGraph {
         .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
         .finish()
 
-    val outlined = QuickPipeline()
-        .then(RenderSceneNode())
-        .then(RenderLightsNode())
-        .then(SSAONode())
-        .then1(CombineLightsNode(), mapOf("Apply Tone Mapping" to true))
-        .then1(OutlineNode(), mapOf("Diffuse" to null, "Depth" to null, "Color" to Vector4f(1f, 0.31f, 0.51f, 1f)))
-        .then(FXAANode(), mapOf("Illuminated" to listOf("Color")))
-        .finish()
-
     fun draw(view: RenderView, dst: Panel, graph: FlowGraph) {
+        val startNode = findStartNode(graph) ?: return
+        initGraphState(graph, dst, view, startNode)
+        val result = executeGraph(graph, startNode)
+        if (result != null) {
+            drawResult(result, dst)
+        } else {
+            LOGGER.warn("Missing end")
+        }
+    }
 
+    private fun findStartNode(graph: FlowGraph): StartNode? {
         val nodes = graph.nodes
-        val start = nodes.firstInstanceOrNull<StartNode>() ?: return
+        return nodes.firstInstanceOrNull<StartNode>()
+    }
+
+    private fun writeSceneIntoRenderNodes(graph: FlowGraph, renderView: RenderView) {
+        val nodes = graph.nodes
         for (i in nodes.indices) {
             when (val node = nodes[i]) {
                 is RenderSceneNode0 -> {
-                    node.pipeline = view.pipeline
-                    node.renderView = view
+                    node.pipeline = renderView.pipeline
+                    node.renderView = renderView
                 }
                 is BakeSkyboxNode -> {
-                    node.pipeline = view.pipeline
+                    node.pipeline = renderView.pipeline
                 }
             }
         }
+    }
 
+    private fun initGraphState(graph: FlowGraph, dst: Panel, renderView: RenderView, start: StartNode) {
+        writeSceneIntoRenderNodes(graph, renderView)
         graph.invalidate()
-
         start.setOutput(1, dst.width)
         start.setOutput(2, dst.height)
+    }
 
-        val endNode = try {
+    private fun executeGraph(graph: FlowGraph, start: StartNode): ExprReturnNode? {
+        return try {
             // set default blend mode to null
             renderPurely {
                 // then render
@@ -156,14 +164,11 @@ object RenderGraph {
         } catch (e: Exception) {
             if (throwExceptions) throw e
             LOGGER.warn("Error in execution", e)
-            return
+            return null
         }
+    }
 
-        if (endNode == null) {
-            LOGGER.warn("Missing end")
-            return
-        }
-
+    private fun drawResult(endNode: ExprReturnNode, dst: Panel) {
         val texture = endNode.render(true)
         val (w, h) = ImageScale.scaleMax(texture.width, texture.height, dst.width, dst.height)
         val x = dst.x + (dst.width - w) / 2
@@ -171,7 +176,6 @@ object RenderGraph {
         val applyToneMapping = endNode.getInput(6) == true
         drawTexture(x, y + h, w, -h, texture, false, -1, null, applyToneMapping)
     }
-
 
     // todo sample sky (tex) node
     // FSR 1 node

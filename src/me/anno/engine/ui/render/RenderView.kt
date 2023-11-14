@@ -21,44 +21,33 @@ import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
 import me.anno.engine.ui.render.Renderers.attributeRenderers
-import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.CullMode
 import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
-import me.anno.gpu.GFX.clip2
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.mul4x3delta
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.LineBuffer
-import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.deferred.BufferQuality
-import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.popBetterBlending
 import me.anno.gpu.drawing.DrawTexts.pushBetterBlending
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.drawing.DrawTextures.drawTextureAlpha
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.framebuffer.*
-import me.anno.gpu.pipeline.LightShaders.combineLighting
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.pipeline.PipelineStage
 import me.anno.gpu.pipeline.Sorting
-import me.anno.gpu.shader.DepthTransforms
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
-import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib.blackCube
-import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.graph.render.RenderGraph
-import me.anno.graph.render.Texture
 import me.anno.maths.Maths
+import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
@@ -67,9 +56,9 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Clock
 import me.anno.utils.Color.black
-import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
+import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
 import org.joml.*
@@ -251,6 +240,89 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             camera0 = camera1
         }
 
+        val aspectRatio = findAspectRatio()
+
+        clock.stop("initialization", 0.05)
+
+        prepareDrawScene(width, height, aspectRatio, camera0, camera1, blending, true)
+        setRenderState()
+        updatePipelineStage0(renderMode)
+
+        clock.stop("preparing", 0.05)
+
+        val renderGraph = renderMode.renderGraph
+        if (renderGraph != null) {
+            // graph will draw all things
+            RenderGraph.draw(this, this, renderGraph)
+        } else {
+            // we have to draw based on Renderer/RenderMode
+            val renderer = renderMode.renderer ?: DeferredRenderer
+            val buffer = findBuffer(renderer)
+            updateSkybox(renderer)
+            drawScene(x0, y0, x1, y1, renderer, buffer)
+        }
+
+        if (world == null) {
+            drawTextCenter("Scene Not Found!")
+        }
+
+        if (!isFinalRendering) {
+            DebugRendering.showShadowMapDebug(this)
+            DebugRendering.showCameraRendering(this, x0, y0, x1, y1)
+        }
+
+        if (world is Entity && playMode != PlayMode.EDITING) {
+            drawPrimaryCanvas(world, x0, y0, x1, y1)
+        }
+
+        if (playMode == PlayMode.EDITING) {
+            drawDebugStats(drawnPrimitives0, drawCalls0)
+        }
+
+        updatePrevState()
+        // clock.total("drawing the scene", 0.1)
+    }
+
+    fun updatePipelineStage0(renderMode: RenderMode) {
+        setClearDepth()
+        stage0.blendMode = if (renderMode == RenderMode.OVERDRAW) BlendMode.ADD else null
+        stage0.sorting = Sorting.FRONT_TO_BACK
+        stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.BACK else CullMode.BOTH
+    }
+
+    fun findBuffer(renderer: Renderer): IFramebuffer {
+        // multi-sampled buffer
+        return when {
+            // msaa, single target
+            renderMode == RenderMode.MSAA_NON_DEFERRED -> base8Buffer
+            // aliased, multi-target
+            renderer == DeferredRenderer -> baseNBuffer1
+            else -> base1Buffer
+        }
+    }
+
+    fun updateSkybox(renderer: Renderer) {
+        // blacklist for renderModes?
+        if (renderer !in attributeRenderers.values && renderMode != RenderMode.LIGHT_COUNT) {
+            pipeline.bakeSkybox(256)
+        } else {
+            pipeline.destroyBakedSkybox()
+        }
+    }
+
+    fun findRowsCols(size: Int): IntPair {
+        val rows = when {
+            size % 2 == 0 -> 2
+            size % 3 == 0 -> 3
+            size > 12 -> 3
+            size > 6 -> 2
+            else -> 1
+        }
+        val cols = ceilDiv(size, rows)
+        return IntPair(rows, cols)
+    }
+
+    fun findAspectRatio(): Float {
         var aspect = width.toFloat() / height
 
         val layers = deferred.settingsV1
@@ -260,110 +332,50 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             else -> 1
         }
 
-        val rows = when {
-            size % 2 == 0 -> 2
-            size % 3 == 0 -> 3
-            size > 12 -> 3
-            size > 6 -> 2
-            else -> 1
-        }
-
-        val cols = (size + rows - 1) / rows
         if (size > 1) {
+            val (rows, cols) = findRowsCols(size)
             aspect *= rows.toFloat() / cols.toFloat()
         }
 
-        clock.stop("initialization", 0.05)
+        return aspect
+    }
 
-        prepareDrawScene(width, height, aspect, camera0, camera1, blending, true)
-
-        setRenderState()
-
-        clock.stop("preparing", 0.05)
-
-        setClearDepth()
-        stage0.blendMode = if (renderMode == RenderMode.OVERDRAW) BlendMode.ADD else null
-        stage0.sorting = Sorting.FRONT_TO_BACK
-        stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.BACK else CullMode.BOTH
-
-        val renderGraph = renderMode.renderGraph
-        if (renderGraph != null) {
-            // some things are just too easy ^^
-            RenderGraph.draw(this, this, renderGraph)
-        } else {
-
-            val renderer = renderMode.renderer ?: DeferredRenderer
-
-            // multi-sampled buffer
-            val buffer = when {
-                // msaa, single target
-                renderMode == RenderMode.MSAA_NON_DEFERRED -> base8Buffer
-                // aliased, multi-target
-                renderer == DeferredRenderer -> baseNBuffer1
-                else -> base1Buffer
+    fun drawPrimaryCanvas(world: Entity, x0: Int, y0: Int, x1: Int, y1: Int) {
+        world.firstComponentInChildren(CanvasComponent::class, false) { comp ->
+            if (comp.space == CanvasComponent.Space.CAMERA_SPACE) {
+                comp.width = x1 - x0
+                comp.height = y1 - y0
+                comp.render()
+                val texture = comp.framebuffer!!.getTexture0()
+                drawTexture(x0, y1, x1 - x0, y0 - y1, texture, -1, null)
             }
-
-            // blacklist for renderModes?
-            if (renderer !in attributeRenderers.values && renderMode != RenderMode.LIGHT_COUNT) {
-                pipeline.bakeSkybox(256)
-            } else {
-                pipeline.destroyBakedSkybox()
-            }
-
-            drawScene(
-                x0, y0, x1, y1,
-                renderer, buffer, size,
-                cols, rows, layers.size
-            )
+            false
         }
+    }
 
+    fun drawTextCenter(text: String) {
         val pbb = pushBetterBlending(true)
-        if (world == null) {
-            drawSimpleTextCharByChar(
-                x + width / 2, y + height / 2, 4,
-                "Scene Not Found!",
-                AxisAlignment.CENTER, AxisAlignment.CENTER
-            )
-        }
-
+        drawSimpleTextCharByChar(
+            x + width / 2, y + height / 2, 4, text,
+            AxisAlignment.CENTER, AxisAlignment.CENTER
+        )
         popBetterBlending(pbb)
+    }
 
-        if (!isFinalRendering) {
-            DebugRendering.showShadowMapDebug(this)
-            DebugRendering.showCameraRendering(this, x0, y0, x1, y1)
-        }
-
-        if (world is Entity && playMode != PlayMode.EDITING) {
-            world.firstComponentInChildren(CanvasComponent::class, false) { comp ->
-                if (comp.space == CanvasComponent.Space.CAMERA_SPACE) {
-                    comp.width = x1 - x0
-                    comp.height = y1 - y0
-                    comp.render()
-                    val texture = comp.framebuffer!!.getTexture0()
-                    drawTexture(x0, y1, x1 - x0, y0 - y1, texture, -1, null)
-                }
-                false
-            }
-        }
-
-        if (playMode == PlayMode.EDITING) {
-            pushBetterBlending(true)
-            val drawnPrimitives = PipelineStage.drawnPrimitives - drawnPrimitives0
-            val drawCalls = PipelineStage.drawCalls - drawCalls0
-            val usesBetterBlending = DrawTexts.canUseComputeShader()
-            drawSimpleTextCharByChar(
-                x + 2,
-                y + height - 1 - DrawTexts.monospaceFont.sizeInt,
-                2, if (drawCalls == 1L) "$drawnPrimitives tris, 1 draw call"
-                else "$drawnPrimitives tris, $drawCalls draw calls",
-                FrameTimings.textColor,
-                FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255)
-            )
-            popBetterBlending(pbb)
-        }
-
-        updatePrevState()
-        // clock.total("drawing the scene", 0.1)
+    fun drawDebugStats(drawnPrimitives0: Long, drawCalls0: Long) {
+        val pbb = pushBetterBlending(true)
+        val drawnPrimitives = PipelineStage.drawnPrimitives - drawnPrimitives0
+        val drawCalls = PipelineStage.drawCalls - drawCalls0
+        val usesBetterBlending = DrawTexts.canUseComputeShader()
+        drawSimpleTextCharByChar(
+            x + 2,
+            y + height - 1 - DrawTexts.monospaceFont.sizeInt,
+            2, if (drawCalls == 1L) "$drawnPrimitives tris, 1 draw call"
+            else "$drawnPrimitives tris, $drawCalls draw calls",
+            FrameTimings.textColor,
+            FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255)
+        )
+        popBetterBlending(pbb)
     }
 
     // be more conservative with framebuffer size changes,
@@ -374,24 +386,20 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     fun drawScene(
         x0: Int, y0: Int, x1: Int, y1: Int,
-        renderer: Renderer, buffer: IFramebuffer, size: Int,
-        cols: Int, rows: Int, layersSize: Int
+        renderer: Renderer, buffer: IFramebuffer
     ) {
 
         var w = x1 - x0
         var h = y1 - y0
 
-        when (renderMode) {
-            RenderMode.FSR2_X2 -> {
-                w = (w + 1) / 2
-                h = (h + 1) / 2
-            }
-            RenderMode.FSR2_X8 -> {
-                w = (w + 1) / 8
-                h = (h + 1) / 8
-            }
-            else -> {
-            }
+        val scale = when (renderMode) {
+            RenderMode.FSR2_X2 -> 2
+            RenderMode.FSR2_X8 -> 8
+            else -> 1
+        }
+        if (scale > 1) {
+            w = ceilDiv(w, scale)
+            h = ceilDiv(h, scale)
         }
 
         w = max(w, 1)
@@ -407,191 +415,30 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         when (renderMode) {
             RenderMode.FSR2_X8, RenderMode.FSR2_X2 -> {
-                drawScene(
-                    w, h, renderer, buffer,
-                    changeSize = true, hdr = true
+                fsr22.drawScene(
+                    this, w, h, x0, y0, x1, y1, renderer, buffer,
+                    deferred, lightNBuffer1, baseSameDepth1
                 )
-                val motion = FBStack["motion", w, h, 4, BufferQuality.HIGH_16, 1, DepthBufferType.INTERNAL]
-                val motion1 = rawAttributeRenderers[DeferredLayerType.MOTION]
-                drawScene(w, h, motion1, motion, changeSize = false, hdr = true)
-
-                val lightBuffer = lightNBuffer1
-                val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-                drawSceneLights(buffer, tex.tex as Texture2D, tex.mapping, lightBuffer)
-
-                val ssao = blackTexture
-                val pw = x1 - x0
-                val ph = y1 - y0
-
-                // use the existing depth buffer for the 3d ui
-                val dstBuffer0 = baseSameDepth1
-                val skybox = pipeline.bakedSkybox?.getTexture0() ?: blackCube
-                useFrame(w, h, true, dstBuffer0) {
-                    // don't write depth
-                    GFXState.depthMask.use(false) {
-                        combineLighting(
-                            deferred, true, buffer,
-                            lightBuffer, ssao, skybox
-                        )
-                    }
-                }
-
-                val tmp1 = FBStack["fsr", pw, ph, 4, false, 1, DepthBufferType.INTERNAL]
-                useFrame(tmp1) {
-                    GFXState.depthMode.use(DepthMode.CLOSE) {
-                        tmp1.clearDepth()
-                        GFXState.blendMode.use(null) {
-                            val depth = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-                            fsr22.calculate(
-                                dstBuffer0.getTexture0() as Texture2D,
-                                depth.tex as Texture2D, depth.mapping,
-                                deferred.findTexture(buffer, DeferredLayerType.NORMAL) as Texture2D,
-                                deferred.zw(DeferredLayerType.NORMAL),
-                                motion.getTexture0() as Texture2D,
-                                pw, ph
-                            )
-                        }
-                        // todo why is it still jittering?
-                        val tmp = JomlPools.mat4f.create()
-                        tmp.set(cameraMatrix)
-                        fsr22.unjitter(cameraMatrix, cameraRotation, pw, ph)
-                        // setRenderState()
-                        drawGizmos(GFXState.currentBuffer, true, drawDebug = true)
-                        cameraMatrix.set(tmp)
-                        // setRenderState()
-                        JomlPools.mat4f.sub(1)
-                    }
-                }
-
-                drawTexture(x0, y0 + ph, pw, -ph, tmp1.getTexture0(), true)
-                return
             }
             RenderMode.LIGHT_COUNT -> {
-                // draw scene for depth
-                drawScene(
-                    w, h,
-                    renderer, buffer,
-                    changeSize = true,
-                    hdr = false // doesn't matter
-                )
                 val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
-                pipeline.lightStage.visualizeLightCount = true
-
-                val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-                drawSceneLights(buffer, tex.tex as Texture2D, tex.mapping, lightBuffer)
-                drawGizmos(lightBuffer, true)
-
-                // todo special shader to better differentiate the values than black-white
-                // (1 is extremely dark, nearly black)
-                drawTexture(
-                    x, y + h - 1, w, -h,
-                    lightBuffer.getTexture0(), true,
-                    -1, null, true // lights are bright -> dim them down
+                DebugRendering.drawLightCount(
+                    this, x0, y0, w, h,
+                    renderer, buffer, lightBuffer, deferred
                 )
-                pipeline.lightStage.visualizeLightCount = false
-                return
             }
             RenderMode.ALL_DEFERRED_BUFFERS -> {
-
-                drawScene(w, h, renderer, buffer, changeSize = true, hdr = false)
-                drawGizmos(buffer, true)
-
                 val lightBuffer = if (buffer == base1Buffer) light1Buffer else lightNBuffer1
-                val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-                drawSceneLights(buffer, tex.tex as Texture2D, tex.mapping, lightBuffer)
-
-                val pbb = pushBetterBlending(true)
-                for (index in 0 until size) {
-
-                    // rows x N field
-                    val col = index % cols
-                    val x02 = x + (x1 - x0) * (col + 0) / cols
-                    val x12 = x + (x1 - x0) * (col + 1) / cols
-                    val row = index / cols
-                    val y02 = y + (y1 - y0) * (row + 0) / rows
-                    val y12 = y + (y1 - y0) * (row + 1) / rows
-
-                    // draw the light buffer as the last stripe
-                    val texture = if (index < layersSize) {
-                        buffer.getTextureI(index)
-                    } else lightBuffer.getTexture0()
-
-                    // y flipped, because it would be incorrect otherwise
-                    val name = if (texture is Texture2D) texture.name else texture.toString()
-                    drawTexture(x02, y12, x12 - x02, y02 - y12, texture, true)
-                    val f = 0.8f
-                    if (index < layersSize) clip2(
-                        if (y12 - y02 > x12 - x02) x02 else mix(x02, x12, f),
-                        if (y12 - y02 > x12 - x02) mix(y02, y12, f) else y02,
-                        x12,
-                        y12
-                    ) { // draw alpha on right/bottom side
-                        drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture)
-                    }
-                    drawSimpleTextCharByChar(x02, y02, 2, name)
-                }
-                popBetterBlending(pbb)
-                return
+                DebugRendering.drawAllBuffers(
+                    this, w, h, x0, y0, x1, y1,
+                    renderer, buffer, lightBuffer, deferred
+                )
             }
             RenderMode.ALL_DEFERRED_LAYERS -> {
-
-                drawScene(w, h, renderer, buffer, changeSize = true, hdr = false)
-                drawGizmos(buffer, true)
-
-                val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-                drawSceneLights(buffer, tex.tex as Texture2D, tex.mapping, lightNBuffer1)
-
-                // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
-
-                val tw = w / cols
-                val th = h / rows
-                val tmp = FBStack["tmp-layers", tw, th, 4, false, 1, DepthBufferType.INTERNAL]
-                val settings = DeferredRenderer.deferredSettings!!
-
-                val pbb = pushBetterBlending(true)
-                for (index in 0 until size) {
-
-                    // rows x N field
-                    val col = index % cols
-                    val x02 = x + (x1 - x0) * (col + 0) / cols
-                    val x12 = x + (x1 - x0) * (col + 1) / cols
-                    val row = index / cols
-                    val y02 = y + (y1 - y0) * (row + 0) / rows
-                    val y12 = y + (y1 - y0) * (row + 1) / rows
-
-                    val name: String
-                    val texture: ITexture2D
-                    var applyTonemapping = false
-                    if (index < deferred.layerTypes.size) {
-                        // draw the light buffer as the last stripe
-                        val layer = deferred.layerTypes[index]
-                        name = layer.name
-                        useFrame(tmp) {
-                            val shader = Renderers.attributeEffects[layer to settings]!!
-                            shader.use()
-                            DepthTransforms.bindDepthToPosition(shader)
-                            settings.findTexture(buffer, layer)!!.bindTrulyNearest(0)
-                            SimpleBuffer.flat01.draw(shader)
-                        }
-                        texture = tmp.getTexture0()
-                    } else {
-                        texture = lightNBuffer1.getTexture0()
-                        applyTonemapping = true // not really doing much visually...
-                        name = "Light"
-                    }
-
-                    // y flipped, because it would be incorrect otherwise
-                    drawTexture(
-                        x02, y12, tw, -th, texture, true, white,
-                        null, applyTonemapping
-                    )
-                    drawSimpleTextCharByChar(
-                        (x02 + x12) / 2, (y02 + y12) / 2, 2,
-                        name, AxisAlignment.CENTER, AxisAlignment.CENTER
-                    )
-                }
-                popBetterBlending(pbb)
-                return
+                DebugRendering.drawAllLayers(
+                    this, w, h, x0, y0, x1, y1,
+                    renderer, buffer, lightNBuffer1, deferred
+                )
             }
             else -> {
                 drawScene(
@@ -644,8 +491,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         return Pair(clicked as? Entity, clicked as? Component)
     }
 
-    private val tmpRot0 = Quaterniond()
-    private val tmpRot1 = Quaterniond()
     fun prepareDrawScene(
         width: Int,
         height: Int,
@@ -751,21 +596,20 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             getDrawMatrix()
         }
 
-
-        val rot0 = tmpRot0
-        val rot1 = tmpRot1
-        if (t0 != null) t0.getUnnormalizedRotation(tmpRot0) else tmpRot0.identity()
-        if (t1 != null) t1.getUnnormalizedRotation(tmpRot1) else tmpRot1.identity()
+        val rot0 = JomlPools.quat4d.create()
+        val rot1 = JomlPools.quat4d.create()
+        if (t0 != null) t0.getUnnormalizedRotation(rot0) else rot0.identity()
+        if (t1 != null) t1.getUnnormalizedRotation(rot1) else rot1.identity()
         if (!rot0.isFinite) rot0.identity()
         if (!rot1.isFinite) rot1.identity()
 
         val camRot = rot0.slerp(rot1, blend)
         val camRotInv = camRot.conjugate(rot1)
 
-        cameraMatrix.rotate(JomlPools.quat4f.borrow().set(camRotInv))
-
+        cameraMatrix.rotate(camRotInv)
         cameraRotation.set(camRot)
         cameraRotation.transform(cameraDirection.set(0.0, 0.0, -1.0)).normalize()
+        JomlPools.quat4d.sub(2)
 
         if (t0 != null) t0.getTranslation(cameraPosition)
         else cameraPosition.set(0.0)
@@ -794,7 +638,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 world.update()
                 world.validateTransform()
             }
-
             is Component -> {
                 world.onUpdate()
             }
@@ -884,7 +727,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
     }
 
-    private fun drawGizmos(
+    fun drawGizmos(
         framebuffer: IFramebuffer,
         drawGridLines: Boolean,
         drawDebug: Boolean = true

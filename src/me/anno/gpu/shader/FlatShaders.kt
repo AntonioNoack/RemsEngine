@@ -110,11 +110,11 @@ object FlatShaders {
                 "void main(){\n" +
                 "   vec4 col = color;\n" +
                 "   vec4 data = texture(tex, uv);\n" +
-                "   if(alphaMode == 0) col *= data;\n" +
-                "   else if(alphaMode == 1) col.rgb *= data.rgb;\n" +
-                "   else col.rgb *= data.a;\n" +
-                "   if(!(col.x >= -1e38 && col.x <= 1e38)) col = vec4(1.0,0.0,1.0,1.0);\n" +
-                "   if(applyToneMapping) col = tonemap(col);\n" +
+                "   if(alphaMode == 0) { col *= data; }\n" +
+                "   else if(alphaMode == 1) { col.rgb *= data.rgb; }\n" +
+                "   else { col.rgb *= data.a; }\n" +
+                "   if(!(col.x >= -1e38 && col.x <= 1e38)) { col = vec4(1.0,0.0,1.0,1.0); }\n" +
+                "   else if(applyToneMapping) { col = tonemap(col); }\n" +
                 "   gl_FragColor = col;\n" +
                 "}"
     )

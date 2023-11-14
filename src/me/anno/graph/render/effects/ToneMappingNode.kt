@@ -16,22 +16,25 @@ import me.anno.graph.types.flow.actions.ActionNode
 
 class ToneMappingNode : ActionNode(
     "ToneMapping",
-    listOf("Texture", "Illuminated", "Boolean", "Apply"),
+    listOf("Texture", "Illuminated", "Float", "Exposure", "Boolean", "Apply"),
     listOf("Texture", "Illuminated")
 ) {
 
     init {
-        setInput(2, true)
+        setInput(2, 1f)
+        setInput(3, true)
     }
 
     override fun executeAction() {
         val color = getInput(1) as? Texture
-        val result = if (getInput(2) == true) {
+        val result = if (getInput(3) == true) {
+            val exposure = getInput(2) as Float
             val source = (color?.tex as? Texture2D) ?: return
             val result = FBStack[name, source.width, source.height, 4, false, 1, DepthBufferType.NONE]
             GFXState.useFrame(result) {
                 val shader = shader
                 shader.use()
+                shader.v1f("exposure", exposure)
                 source.bindTrulyNearest(0)
                 SimpleBuffer.flat01.draw(shader)
             }
@@ -43,11 +46,15 @@ class ToneMappingNode : ActionNode(
     companion object {
         val shader = Shader(
             "tonemapping", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList,
-            listOf(Variable(GLSLType.S2D, "source"), Variable(GLSLType.V4F, "result", VariableMode.OUT)),
+            listOf(
+                Variable(GLSLType.V1F, "exposure"),
+                Variable(GLSLType.S2D, "source"),
+                Variable(GLSLType.V4F, "result", VariableMode.OUT)
+            ),
             tonemapGLSL +
                     "void main(){\n" +
                     "   vec4 color = texture(source, uv);\n" +
-                    "   result = vec4(tonemap(color.rgb), color.a);\n" +
+                    "   result = vec4(tonemap(exposure * color.rgb), color.a);\n" +
                     "}\n"
         )
     }
