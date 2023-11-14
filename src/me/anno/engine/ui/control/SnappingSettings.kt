@@ -1,7 +1,7 @@
 package me.anno.engine.ui.control
 
+import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Range
-import me.anno.io.serialization.NotSerializedProperty
 import me.anno.studio.Inspectable
 import org.joml.Vector3d
 import kotlin.math.floor
@@ -10,13 +10,35 @@ import kotlin.math.round
 class SnappingSettings : Inspectable {
 
     @Range(0.0, Double.POSITIVE_INFINITY)
-    var snapSize = 1.0
+    var snapSize: Double
+        get() = DefaultConfig["ui.snapSettings.snapSize", 1.0]
+        set(value) {
+            DefaultConfig["ui.snapSettings.snapSize"] = value
+        }
 
-    var snapX = false
-    var snapY = false
-    var snapZ = false
+    var snapX: Boolean
+        get() = DefaultConfig["ui.snapSettings.snapX", false]
+        set(value) {
+            DefaultConfig["ui.snapSettings.snapX"] = value
+        }
 
-    var snapCenter = false
+    var snapY: Boolean
+        get() = DefaultConfig["ui.snapSettings.snapY", false]
+        set(value) {
+            DefaultConfig["ui.snapSettings.snapY"] = value
+        }
+
+    var snapZ: Boolean
+        get() = DefaultConfig["ui.snapSettings.snapZ", false]
+        set(value) {
+            DefaultConfig["ui.snapSettings.snapZ"] = value
+        }
+
+    var snapCenter: Boolean
+        get() = DefaultConfig["ui.snapSettings.snapCenter", false]
+        set(value) {
+            DefaultConfig["ui.snapSettings.snapCenter"] = value
+        }
 
     fun applySnapping(dst: Vector3d) {
         fun snap(v: Double): Double {
@@ -33,7 +55,7 @@ class SnappingSettings : Inspectable {
             if (snapZ) dst.z = snap(dst.z)
         }
     }
-    
+
     fun applySnapping(dst: Vector3d, rem: Vector3d) {
         val s = snapSize
         if (s > 0.0) {
@@ -54,5 +76,4 @@ class SnappingSettings : Inspectable {
             } else rem.z = 0.0
         }
     }
-
 }

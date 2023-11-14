@@ -28,11 +28,13 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
+import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.EnumInput
 import me.anno.utils.Warning.unused
@@ -142,7 +144,6 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     // find where to draw it
                     findDropPosition(file, pos)
 
-                    // todo bug: position is not correctly displayed
                     movedSample.removeAllChildren()
                     movedSample.transform.localPosition = pos
                     when (sample) {
@@ -577,6 +578,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     } else LOGGER.warn("Could not drop $file onto ${root?.className}")
                 }
                 is DCDroppable -> sampleInstance.drop(this, prefab, hovEntity, hovComponent, dropPosition, results)
+                // todo if is Renderable & Component, add helper entity to define position
                 is Component -> {
                     val entity = hovEntity ?: renderView.getWorld() as? Entity
                     if (entity != null) {

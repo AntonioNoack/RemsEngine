@@ -80,13 +80,6 @@ class GameEngineProject() : NamedSaveable() {
         }
     }
 
-    fun forAllPrefabs(run: (FileReference, Prefab) -> Unit) {
-        forAllFiles { file ->
-            val prefab = PrefabCache[file]
-            if (prefab != null) run(file, prefab)
-        }
-    }
-
     fun forAllFiles(run: (FileReference) -> Unit) {
         forAllFiles(location, 10, run)
     }
@@ -115,7 +108,7 @@ class GameEngineProject() : NamedSaveable() {
         // if last scene is invalid, create a valid scene
         if (lastScene == null) {
             lastScene = location.getChild("Scene.json").absolutePath
-            LOGGER.debug("Set scene to $lastScene")
+            LOGGER.info("Set scene to $lastScene")
         }
 
         val lastSceneRef = lastScene!!.toGlobalFile(location)
@@ -123,13 +116,14 @@ class GameEngineProject() : NamedSaveable() {
             val prefab = Prefab("Entity", ScenePrefab)
             lastSceneRef.getParent()?.tryMkdirs()
             lastSceneRef.writeText(JsonStringWriter.toText(prefab, InvalidRef))
-            LOGGER.debug("Wrote new scene to $lastScene")
+            LOGGER.warn("Wrote new scene to $lastScene")
         }
 
         assetIndex.clear()
 
         // may be changed by ECSSceneTabs otherwise
         val lastScene = lastScene
+
         // open all tabs
         for (tab in openTabs.toList()) {
             try {
@@ -138,6 +132,7 @@ class GameEngineProject() : NamedSaveable() {
                 LOGGER.warn("Could not open $tab", e)
             }
         }
+
         // make last scene current
         try {
             ECSSceneTabs.open(lastSceneRef, PlayMode.EDITING, true)
@@ -223,7 +218,7 @@ class GameEngineProject() : NamedSaveable() {
 
     override fun readString(name: String, value: String?) {
         when (name) {
-            "lastScene" -> lastScene = value?.toGlobalFile()?.absolutePath ?: value
+            "lastScene" -> lastScene = value
             else -> super.readString(name, value)
         }
     }

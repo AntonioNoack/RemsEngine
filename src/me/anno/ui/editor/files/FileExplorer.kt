@@ -480,9 +480,10 @@ open class FileExplorer(
 
                 Thread.sleep(0)
             } else {
-                val fe = content2d.children.filterIsInstance<FileExplorerEntry>()
-                for (it in fe) {
-                    it.isVisible = search.matches(getReferenceOrTimeout(it.path).name)
+                val entries = content2d.children
+                for (i in entries.indices) {
+                    val entry = entries[i] as? FileExplorerEntry ?: continue
+                    entry.isVisible = search.matches(getReferenceOrTimeout(entry.path).name)
                 }
                 invalidateLayout()
             }

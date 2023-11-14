@@ -18,6 +18,7 @@ import me.anno.graph.render.scene.CombineLightsNode
 import me.anno.graph.render.scene.RenderLightsNode
 import me.anno.graph.render.scene.RenderSceneNode
 import me.anno.graph.types.FlowGraph
+import org.joml.Vector4f
 
 // todo remove all specific implementations in RenderView with RenderGraphs, as far as possible
 // todo all-metallic / all-rough/smooth render modes
@@ -51,6 +52,8 @@ class RenderMode(
                 .then(CombineLightsNode())
                 .then(SSRNode())
                 .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(OutlineEffectSelectNode())
+                .then1(OutlineEffectNode(), mapOf("Fill Colors" to listOf(Vector4f()), "Radius" to 1))
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
         )

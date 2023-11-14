@@ -27,10 +27,10 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
         invalidate(animation, SkeletonCache[skeleton] ?: return)
     }
 
-    fun getMappedAnimation(animation: Animation, dstSkeleton: Skeleton): BoneByBoneAnimation {
+    fun getMappedAnimation(animation: Animation, dstSkeleton: Skeleton): BoneByBoneAnimation? {
         val s0 = animation.ref
         val s1 = dstSkeleton.ref
-        val anim = animTexCache.getEntry(
+       return animTexCache.getEntry(
             DualFileKey(s0, s1),
             timeout, false
         ) {
@@ -39,7 +39,6 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
             val bbb = if (animation is BoneByBoneAnimation) animation
             else BoneByBoneAnimation(animation as ImportedAnimation)
             retargeting.map(bbb)
-        } as? BoneByBoneAnimation ?: throw NullPointerException("Mapping failed")
-        return anim
+        } as? BoneByBoneAnimation
     }
 }

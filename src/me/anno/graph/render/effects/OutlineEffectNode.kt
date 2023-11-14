@@ -152,7 +152,7 @@ class OutlineEffectNode : RenderSceneNode0(
                     "           vec4 fillColor = fillColors[i];\n" +
                     "           vec4 lineColor = lineColors[i];\n" +
                     "           color = mix(\n" +
-                    "               mix(color, fillColor.rgb, fillColor.a * (1.0 - percentage)),\n" +
+                    "               mix(color, fillColor.rgb, (1.0 - fillColor.a) * (1.0 - percentage)),\n" +
                     "               lineColor.rgb, percentage2 * lineColor.a\n" +
                     "           );\n" +
                     "       }\n" +
