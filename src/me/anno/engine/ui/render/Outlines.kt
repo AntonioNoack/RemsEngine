@@ -12,17 +12,20 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.utils.pooling.JomlPools
 import org.joml.Matrix4d
 
+/**
+ * Easy way to draw outlines: scale the object up, make it white, only draw back faces;
+ * For better visual quality, use OutlineEffectNode in your post-processing pipeline.
+ * */
+@Suppress("unused")
 object Outlines {
-
-    // private val LOGGER = LogManager.getLogger(Outlines::class)
 
     val whiteRenderer = SimpleRenderer(
         "white", ShaderStage(
@@ -39,22 +42,7 @@ object Outlines {
         whiteTexture.bind(0) // for the albedo
         DrawAABB.drawAABB(entity.aabb, RenderView.aabbColorHovered)
         LineBuffer.finish(RenderState.cameraMatrix)
-        drawOutlineInternally(entity)
-    }
-
-    private fun drawOutlineInternally(entity: Entity) {
-        val children = entity.children
-        for (i in children.indices) {
-            drawOutlineInternally(children[i])
-        }
-        val components = entity.components
-        for (i in components.indices) {
-            val component = components[i]
-            if (component is MeshComponentBase) {
-                val mesh = component.getMeshOrNull() ?: continue
-                drawOutline(component, mesh)
-            }
-        }
+        drawOutlineForEntity(entity)
     }
 
     fun drawOutline(comp: MeshComponentBase, mesh: Mesh) {
@@ -139,6 +127,21 @@ object Outlines {
 
                     }
                 }
+            }
+        }
+    }
+
+    private fun drawOutlineForEntity(entity: Entity) {
+        val children = entity.children
+        for (i in children.indices) {
+            drawOutlineForEntity(children[i])
+        }
+        val components = entity.components
+        for (i in components.indices) {
+            val component = components[i]
+            if (component is MeshComponentBase) {
+                val mesh = component.getMeshOrNull() ?: continue
+                drawOutline(component, mesh)
             }
         }
     }

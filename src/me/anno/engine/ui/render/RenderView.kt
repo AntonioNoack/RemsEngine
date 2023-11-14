@@ -8,13 +8,11 @@ import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.components.shaders.SkyboxBase
 import me.anno.ecs.components.shaders.effects.FSR2v2
 import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.pbr.DeferredRenderer
-import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.PlaneShapes
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun
@@ -22,7 +20,6 @@ import me.anno.engine.ui.render.DefaultSun.defaultSunEntity
 import me.anno.engine.ui.render.DrawAABB.drawAABB
 import me.anno.engine.ui.render.ECSShaderLib.pbrModelShader
 import me.anno.engine.ui.render.MovingGrid.drawGrid
-import me.anno.engine.ui.render.Outlines.drawOutline
 import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.rawAttributeRenderers
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
@@ -460,7 +457,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                         fsr22.unjitter(cameraMatrix, cameraRotation, pw, ph)
                         // setRenderState()
                         drawGizmos(GFXState.currentBuffer, true, drawDebug = true)
-                        drawSelected()
                         cameraMatrix.set(tmp)
                         // setRenderState()
                         JomlPools.mat4f.sub(1)
@@ -875,25 +871,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             pipeline.draw()
             GFX.check()
 
-        }
-    }
-
-    private fun drawSelected() {
-        if (EditorState.selection.isEmpty()) return
-        // draw scaled, inverted object (for outline), which is selected
-        GFXState.depthMode.use(depthMode) {
-            for (selected in EditorState.selection) {
-                when (selected) {
-                    is Entity -> drawOutline(selected)
-                    is SkyboxBase -> {}
-                    is MeshComponentBase -> {
-                        val mesh = selected.getMeshOrNull() ?: continue
-                        drawOutline(selected, mesh)
-                    }
-
-                    is Component -> drawOutline(selected.entity ?: continue)
-                }
-            }
         }
     }
 
