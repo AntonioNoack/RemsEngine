@@ -4,8 +4,8 @@ import me.anno.gpu.shader.GLSLType
 
 enum class LightType(val id: Int, val shadowMapType: GLSLType) {
     // with shadows
-    DIRECTIONAL(0, GLSLType.S2DShadow),
-    SPOT(1, GLSLType.S2DShadow),
+    DIRECTIONAL(0, GLSLType.S2DAShadow),
+    SPOT(1, GLSLType.S2DAShadow),
     POINT(2, GLSLType.SCubeShadow),
     // without shadows for now
     CIRCLE(3, GLSLType.S2D),

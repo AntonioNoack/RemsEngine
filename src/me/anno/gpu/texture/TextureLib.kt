@@ -1,5 +1,6 @@
 package me.anno.gpu.texture
 
+import me.anno.gpu.DepthMode
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.utils.Color.black
 
@@ -35,7 +36,10 @@ object TextureLib {
                         IntArray(creationData.size) { creationData[it] },
                         false
                     )
-                    "depth" -> create(TargetType.DEPTH16)
+                    "depth" -> {
+                        create(TargetType.DEPTH16)
+                        depthFunc = DepthMode.CLOSER
+                    }
                     else -> throw IllegalArgumentException()
                 }
             }
@@ -74,7 +78,10 @@ object TextureLib {
                 isDestroyed = false
                 when (creationData) {
                     is ByteArray -> createRGBA(Array(6) { creationData }.toList())
-                    "depth" -> create(TargetType.DEPTH16)
+                    "depth" -> {
+                        create(TargetType.DEPTH16)
+                        depthFunc = DepthMode.CLOSER
+                    }
                     else -> throw IllegalArgumentException()
                 }
             }
@@ -132,7 +139,6 @@ object TextureLib {
 
         override fun destroy() {}
 
-        @Suppress("unused")
         fun doDestroy() {
             super.destroy()
         }
@@ -143,6 +149,10 @@ object TextureLib {
                 isDestroyed = false
                 when (creationData) {
                     is ByteArray -> createRGBA(creationData)
+                    "depth" -> {
+                        create(TargetType.DEPTH16)
+                        depthFunc = DepthMode.CLOSER
+                    }
                     else -> throw IllegalArgumentException()
                 }
             }
@@ -162,7 +172,7 @@ object TextureLib {
     val whiteTex3d = IndestructibleTexture3D("white3d", 1, 1, 1, white)
     val whiteTex2da = IndestructibleTexture2DArray("white2da", 1, 1, 1, white)
     val whiteCube = IndestructibleCubemap("whiteCube", 1, white)
-    val depthTexture = IndestructibleTexture2D("depth", 1, 1, "depth")
+    val depthTexture = IndestructibleTexture2DArray("depth", 1, 1, 1, "depth")
     val depthCube = IndestructibleCubemap("depth", 1, "depth")
     val stripeTexture = IndestructibleTexture2D("stripes", 5, 1, IntArray(5) { if (it == 2) -1 else 0xffffff })
     val colorShowTexture =

@@ -2,6 +2,7 @@ package me.anno.gpu.texture
 
 import me.anno.Build
 import me.anno.cache.ICacheData
+import me.anno.gpu.DepthMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
@@ -20,6 +21,7 @@ import me.anno.gpu.texture.callbacks.I3B
 import me.anno.gpu.texture.callbacks.I3I
 import me.anno.image.Image
 import me.anno.utils.types.Booleans.toInt
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL30C.*
 import org.lwjgl.opengl.GL43C.glObjectLabel
 import java.nio.ByteBuffer
@@ -49,6 +51,12 @@ open class Texture3D(
     override val samples: Int get() = 1
 
     val target get() = GL_TEXTURE_3D
+
+    override var depthFunc: DepthMode?
+        get() = null
+        set(value) {
+            LOGGER.warn("Texture3D doesn't support depth")
+        }
 
     override var isHDR = false
 
@@ -378,6 +386,7 @@ open class Texture3D(
     }
 
     companion object {
+        private val LOGGER = LogManager.getLogger(Texture3D::class)
         var allocated = 0L
         fun allocate(oldValue: Long, newValue: Long): Long {
             allocated += newValue - oldValue

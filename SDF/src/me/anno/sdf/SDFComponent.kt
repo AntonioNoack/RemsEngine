@@ -909,25 +909,27 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         hovEntity: Entity?,
         hovComponent: Component?,
         dropPosition: Vector3d,
+        dropRotation: Quaterniond,
+        dropScale: Vector3d,
         results: MutableCollection<PrefabSaveable>
     ) {
         if (hovComponent is SDFGroup) {
             // todo calculate position of hovComponent
-            self.addToParent(prefab, hovComponent, 'c', dropPosition, results)
+            self.addToParent(prefab, hovComponent, 'c', dropPosition, dropRotation, dropScale, results)
         } else if (hovEntity != null) {
             dropPosition.sub(hovEntity.transform.globalPosition)
-            self.addToParent(prefab, hovEntity, 'c', dropPosition, results)
+            self.addToParent(prefab, hovEntity, 'c', dropPosition, dropRotation, dropScale, results)
         } else {
             val root = EditorState.selection.firstInstanceOrNull<SDFGroup>()
                 ?: EditorState.selection.firstInstanceOrNull<Entity>() ?: self.renderView.getWorld()
             when (root) {
                 is Entity -> {
                     dropPosition.sub(root.transform.globalPosition)
-                    self.addToParent(prefab, root, 'c', dropPosition, results)
+                    self.addToParent(prefab, root, 'c', dropPosition, dropRotation, dropScale, results)
                 }
                 is SDFGroup -> {
                     // todo calculate position of root
-                    self.addToParent(prefab, root, 'c', dropPosition, results)
+                    self.addToParent(prefab, root, 'c', dropPosition, dropRotation, dropScale, results)
                 }
                 else -> LOGGER.warn("Don't know how to add SDFComponent")
             }

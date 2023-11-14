@@ -318,7 +318,7 @@ open class Texture2DArray(
     var hasMipmap = false
     var autoUpdateMipmaps = true
 
-    var depthFunc: DepthMode? = null
+    override var depthFunc: DepthMode? = null
         set(value) {
             if (field != value) {
                 field = value

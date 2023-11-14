@@ -48,7 +48,6 @@ import me.anno.utils.structures.lists.SmallestKList
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.Vector3d
-import org.joml.Vector3f
 import org.joml.Vector4d
 import java.util.*
 import kotlin.math.max
@@ -490,15 +489,16 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         for (i in components.indices) {
             val c = components[i]
             if (c.isEnabled && c is Renderable) {
+                if (c.clickId == searchedId) return c
                 val found = c.findDrawnSubject(searchedId)
                 if (found != null) return found
             }
         }
         val children = entity.children
         for (i in children.indices) {
-            val child = children[i]
-            if (child.isEnabled && frustum.isVisible(child.aabb)) {
-                val found = findDrawnSubject(searchedId, child)
+            val c = children[i]
+            if (c.isEnabled && frustum.isVisible(c.aabb)) {
+                val found = findDrawnSubject(searchedId, c)
                 if (found != null) return found
             }
         }

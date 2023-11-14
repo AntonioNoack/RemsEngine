@@ -116,7 +116,9 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
                         "finalResult = vec4(\n" +
                         "   random(vec2(id,1.0)),\n" +
                         "   random(vec2(id,5.0)),\n" +
-                        "   random(vec2(id,9.0)), 1.0);\n"
+                        "   random(vec2(id,9.0)), 1.0);\n" +
+                        // can be used to get a non-random look
+                        "// finalResult = vec4(vec3(fract(gfxId.r * 5.2)),1.0);\n"
             ).add(ShaderFuncLib.randomGLSL)
         )
 

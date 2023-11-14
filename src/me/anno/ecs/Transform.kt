@@ -182,16 +182,21 @@ class Transform() : Saveable() {
     }
 
     fun set(src: Transform) {
+        src.validate()
         lastUpdateTime = src.lastUpdateTime
         lastDrawTime = src.lastDrawTime
         lastUpdateDt = src.lastUpdateDt
+        localPosition.set(src.localPosition)
+        localRotation.set(src.localRotation)
+        localScale.set(localScale)
         localTransform.set(src.localTransform)
         globalTransform.set(src.globalTransform)
         drawTransform.set(src.drawTransform)
         pos.set(src.pos)
         rot.set(src.rot)
         sca.set(src.sca)
-        state = src.state
+        invalidateGlobal()
+        parent?.invalidateForChildren()
     }
 
     var localPosition: Vector3d
@@ -252,15 +257,14 @@ class Transform() : Saveable() {
             // we have no correct, direct control over globalRotation,
             // so we use tricks, and compute an ideal local rotation instead
             val parent = parent
-            localRotation = if (parent != null) {
-                val m = Quaterniond()
-                m.set(parent.globalRotation)
-                m.invert() // now the rotation is like an inversion to the parent
-                m.mul(value) // then apply this afterwards
-                m
+            if (parent != null) {
+                // now the rotation is like an inversion to the parent
+                val parentInv = parent.globalRotation.invert() // value is on JomlPool-stack
+                localRotation = parentInv.mul(value) // then apply this afterward
+                JomlPools.quat4d.sub(1) // return value on stack
             } else {
                 // local = global
-                value
+                localRotation = value
             }
         }
 

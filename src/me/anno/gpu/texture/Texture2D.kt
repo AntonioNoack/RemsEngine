@@ -1099,7 +1099,7 @@ open class Texture2D(
         this.filtering = filtering
     }
 
-    var depthFunc: DepthMode? = null
+    override var depthFunc: DepthMode? = null
         set(value) {
             if (field != value) {
                 field = value

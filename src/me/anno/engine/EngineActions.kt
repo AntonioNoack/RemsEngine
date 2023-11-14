@@ -220,6 +220,8 @@ object EngineActions {
         for (i in 0 until 10) {
             register["SceneView.numpad$i.down", "Cam$i"]
             register["SceneView.numpad$i.down.${Modifiers[true, false]}", "Cam$i"]
+            register["DraggingControls.numpad$i.down", "Cam$i"]
+            register["DraggingControls.numpad$i.down.${Modifiers[true, false]}", "Cam$i"]
         }
 
         register["TextInput.backspace.typed", "DeleteBefore"]

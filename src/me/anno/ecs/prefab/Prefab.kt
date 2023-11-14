@@ -8,6 +8,7 @@ import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.base.InvalidClassException
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
@@ -47,6 +48,8 @@ class Prefab : Saveable {
     var wasCreatedFromJson = false
     var source: FileReference = InvalidRef
 
+    val listeners = HashSet<Prefab>()
+
     val instanceName get() = sets[ROOT_PATH, "name"] as? String
 
     // for the game runtime, we could save the prefab instance here
@@ -69,6 +72,11 @@ class Prefab : Saveable {
             synchronized(this) {
                 _sampleInstance?.destroy()
                 _sampleInstance = null
+            }
+            synchronized(listeners) {
+                for (listener in listeners) {
+                    listener.invalidateInstance()
+                }
             }
         } else LOGGER.warn("Cannot invalidate tmp-prefab")
         // todo all child prefab instances would need to be invalidated as well
@@ -276,7 +284,7 @@ class Prefab : Saveable {
     private fun updateSample(change: CSet) {
         val sampleInstance = _sampleInstance
         if (sampleInstance != null && isValid) {
-            change.apply(sampleInstance, maxPrefabDepth)
+            change.apply(this, sampleInstance, maxPrefabDepth)
         }
     }
 
@@ -356,12 +364,47 @@ class Prefab : Saveable {
     fun getSampleInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
         synchronized(this) {
             return if (!isValid) {
-                val instance = PrefabCache.createInstance(this, prefab, adds, sets, depth, clazzName)
+                val instance = createNewInstance(depth)
                 _sampleInstance = instance
                 instance
             } else _sampleInstance!!
         }
     }
+
+    private fun createNewInstance(depth: Int): PrefabSaveable {
+        val adds = adds
+        val superPrefab = prefab
+        val clazzName = clazzName
+        // to do here is some kind of race condition taking place
+        // without this println, or Thread.sleep(),
+        // prefabs extending ScenePrefab will not produce correct instances
+        // LOGGER.info("Creating instance from thread ${Thread.currentThread().name}, from '${prefab?.source}', ${prefab?.adds?.size} adds + ${prefab?.sets?.size}")
+        // Thread.sleep(10)
+        val instance = PrefabCache.createSuperInstance(superPrefab, depth, clazzName)
+        instance.changePaths(this, ROOT_PATH)
+        for (index in adds.indices) {
+            val add = adds[index]
+            try {
+                add.apply(this, instance, depth - 1)
+            } catch (e: InvalidClassException) {
+                throw e
+            } catch (e: Exception) {
+                LOGGER.warn("Change $index, $add failed")
+                throw e
+            }
+        }
+        sets.forEach { k1, k2, v ->
+            try {
+                CSet.apply(instance, k1, k2, v)
+            } catch (e: Exception) {
+                LOGGER.warn("Change '$k1' '$k2' '$v' failed")
+                throw e
+            }
+        }
+        // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
+        return instance
+    }
+
 
     fun createInstance(depth: Int = maxPrefabDepth): PrefabSaveable {
         return getSampleInstance(depth).clone()

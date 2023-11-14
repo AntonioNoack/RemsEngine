@@ -1,6 +1,7 @@
 package me.anno.gpu.texture
 
 import me.anno.cache.ICacheData
+import me.anno.gpu.DepthMode
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.shader.Shader
@@ -14,6 +15,8 @@ interface ITexture2D : ICacheData {
     val samples: Int
 
     val isHDR: Boolean
+
+    var depthFunc: DepthMode?
 
     fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean
     fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
@@ -52,5 +55,4 @@ interface ITexture2D : ICacheData {
             VRAMToRAM.drawTexturePure(-x2, -y2, width, height, this, !withAlpha)
         }
     }
-
 }

@@ -1,6 +1,7 @@
 package me.anno.ecs.prefab.change
 
 import me.anno.Build
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.ISaveable
@@ -89,17 +90,21 @@ class CAdd() : Change() {
         }
     }
 
-    override fun applyChange(instance: PrefabSaveable, depth: Int) {
+    override fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int) {
 
         // LOGGER.info("adding $clazzName/$nameId with type $type to $path; to ${instance.prefabPath}, ${path == instance.prefabPath}")
         if (prefab != InvalidRef && depth < 0) throw RuntimeException("Circular reference on $prefab")
 
-        val loadedInstance = PrefabCache[prefab, depth]?.createInstance()
         val clazzName = clazzName
-        var newInstance = loadedInstance
-        if (newInstance == null) {
-            when (val maybe = ISaveable.createOrNull(clazzName)) {
-                is PrefabSaveable -> newInstance = maybe
+        val loadedPrefab = PrefabCache[prefab, depth]
+        val newInstance = if (loadedPrefab != null) {
+            synchronized(loadedPrefab.listeners) {
+                loadedPrefab.listeners.add(prefab0)
+            }
+            loadedPrefab.createInstance()
+        } else {
+            when (val newInstance1 = ISaveable.createOrNull(clazzName)) {
+                is PrefabSaveable -> newInstance1
                 null -> throw UnknownClassException(clazzName)
                 else -> throw InvalidClassException("Class \"$clazzName\" does not extend PrefabSaveable")
             }
@@ -125,7 +130,6 @@ class CAdd() : Change() {
         }
 
         instance.addChildByType(index, type, newInstance)
-
     }
 
     override fun equals(other: Any?): Boolean {
@@ -149,5 +153,4 @@ class CAdd() : Change() {
     override val className: String get() = "CAdd"
     override val approxSize get() = 10
     override fun isDefaultValue(): Boolean = false
-
 }

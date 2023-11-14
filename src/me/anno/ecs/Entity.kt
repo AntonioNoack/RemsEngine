@@ -584,7 +584,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             oldParent.invalidateCollisionMask()
         }
 
-        if (index < 0) parent.internalChildren.add(this)
+        if (index !in parent.internalChildren.indices) parent.internalChildren.add(this)
         else parent.internalChildren.add(index, this)
         this.parent = parent
 

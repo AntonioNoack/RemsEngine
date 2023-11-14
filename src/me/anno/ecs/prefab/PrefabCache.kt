@@ -4,12 +4,9 @@ import me.anno.cache.CacheSection
 import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache.Companion.ensureClasses
-import me.anno.ecs.prefab.change.CAdd
-import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ScenePrefab
 import me.anno.io.ISaveable
-import me.anno.io.base.InvalidClassException
 import me.anno.io.base.InvalidFormatException
 import me.anno.io.base.UnknownClassException
 import me.anno.io.files.FileReference
@@ -24,7 +21,6 @@ import me.anno.io.unity.UnityReader
 import me.anno.studio.StudioBase
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
-import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -65,40 +61,6 @@ object PrefabCache : CacheSection("Prefab") {
             e.printStackTrace()
             null
         }
-    }
-
-    fun createInstance(
-        prefab: Prefab?, superPrefab: FileReference, adds: List<CAdd>?,
-        sets: KeyPairMap<Path, String, Any?>, depth: Int, clazz: String
-    ): PrefabSaveable {
-        // to do here is some kind of race condition taking place
-        // without this println, or Thread.sleep(),
-        // prefabs extending ScenePrefab will not produce correct instances
-        // LOGGER.info("Creating instance from thread ${Thread.currentThread().name}, from '${prefab?.source}', ${prefab?.adds?.size} adds + ${prefab?.sets?.size}")
-        // Thread.sleep(10)
-        val instance = createSuperInstance(superPrefab, depth, clazz)
-        instance.changePaths(prefab, Path.ROOT_PATH)
-        if (adds != null) for (index in adds.indices) {
-            val add = adds[index]
-            try {
-                add.apply(instance, depth - 1)
-            } catch (e: InvalidClassException) {
-                throw e
-            } catch (e: Exception) {
-                LOGGER.warn("Change $index, $add failed")
-                throw e
-            }
-        }
-        sets.forEach { k1, k2, v ->
-            try {
-                CSet.apply(instance, k1, k2, v)
-            } catch (e: Exception) {
-                LOGGER.warn("Change '$k1' '$k2' '$v' failed")
-                throw e
-            }
-        }
-        // LOGGER.info("  created instance '${entity.name}' has ${entity.children.size} children and ${entity.components.size} components")
-        return instance
     }
 
     fun printDependencyGraph(prefab: FileReference): String {
@@ -143,7 +105,7 @@ object PrefabCache : CacheSection("Prefab") {
         }, ${nameList.map { "${get(it.key)?.get(Path.ROOT_PATH, "name")}" }}, $nameMap"
     }
 
-    private fun createSuperInstance(prefab: FileReference, depth: Int, clazz: String): PrefabSaveable {
+    fun createSuperInstance(prefab: FileReference, depth: Int, clazz: String): PrefabSaveable {
         if (depth < 0) {
             LOGGER.warn("Dependency Graph: ${printDependencyGraph(prefab)}")
             throw StackOverflowError("Circular dependency in $prefab")

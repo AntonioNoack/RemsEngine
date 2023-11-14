@@ -21,10 +21,11 @@ import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import kotlin.math.max
+import kotlin.math.roundToInt
 
 open class TextButton(
     title: String,
-    var isSquare: Boolean,
+    var aspectRatio: Float,
     style: Style
 ) : TextPanel(title, style.getChild("button")), InputPanel<Unit> {
 
@@ -38,7 +39,8 @@ open class TextButton(
     }
 
     constructor(style: Style) : this("", style)
-    constructor(title: String, style: Style) : this(title, false, style)
+    constructor(title: String, style: Style) : this(title, 0f, style)
+    constructor(title: String, isSquare: Boolean, style: Style) : this(title, if (isSquare) 1f else 0f, style)
     constructor(title: String, description: String, isSquare: Boolean, style: Style) : this(title, isSquare, style) {
         tooltip = description
     }
@@ -64,10 +66,11 @@ open class TextButton(
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
-        if (isSquare) {
-            val size = max(minW, minH)
-            minW = size
-            minH = size
+        val aspectRatio = aspectRatio
+        if (aspectRatio > 0f) {
+            val size = max(minW.toFloat() / aspectRatio, minH.toFloat())
+            minW = (size * aspectRatio).roundToInt()
+            minH = size.toInt()
         }
     }
 
@@ -168,7 +171,7 @@ open class TextButton(
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as TextButton
-        dst.isSquare = isSquare
+        dst.aspectRatio = aspectRatio
     }
 
     override val className: String get() = "TextButton"

@@ -237,7 +237,7 @@ open class InstancedStack {
                                 // put current animation data
                                 if (useAnimations) buffer.put(anim!!, index * 16, 8)
                             }
-                            nioBuffer.putInt(gfxIds[index])
+                            nioBuffer.putInt(Maths.convertABGR2ARGB(gfxIds[index]))
                         }
                     }
 

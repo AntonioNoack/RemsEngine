@@ -227,7 +227,7 @@ open class CubemapTexture(
         if (nearest != this.filtering) filtering(nearest)
     }
 
-    var depthFunc: DepthMode? = null
+    override var depthFunc: DepthMode? = null
         set(value) {
             if (field != value) {
                 field = value

@@ -17,7 +17,6 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
@@ -113,7 +112,7 @@ abstract class LightComponent(val lightType: LightType) : LightComponentBase() {
             val resolution = shadowMapResolution
             if (shadowTextures == null ||
                 (shadowTextures is Texture2DArray && shadowTextures.layers != targetSize) ||
-                (shadowTextures.depthTexture as? Texture2D)?.depthFunc != depthFunc
+                shadowTextures.depthTexture?.depthFunc != depthFunc
             ) {
                 shadowTextures?.destroy()
                 // we currently use a depth bias of 0.005,

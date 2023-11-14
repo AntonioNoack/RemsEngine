@@ -2,6 +2,7 @@ package me.anno.engine.ui.control
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.prefab.*
@@ -20,6 +21,7 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.input.Input
+import me.anno.input.Key
 import me.anno.input.Touch
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -28,25 +30,23 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.pow
-import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.EnumInput
+import me.anno.utils.Color.toHexString
 import me.anno.utils.Warning.unused
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Floats.toDegrees
+import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
-import org.joml.Planed
-import org.joml.Vector3d
-import org.joml.Vector3f
+import org.joml.*
 import kotlin.math.PI
 import kotlin.math.sign
 import kotlin.math.tan
@@ -82,38 +82,17 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         renderView.renderMode = RenderMode.values[index]
     }
 
-    val snappingSettings = SnappingSettings()
+    val settings = DraggingControlSettings()
+    val snappingSettings get() = settings.snapSettings
 
     init {
-        // todo debugging view selection
         val topLeft = PanelListX(style)
         topLeft.add(drawModeInput)
         topLeft.add(TextButton("Play", "Start the game", false, style)
-            .addLeftClickListener {
-                ECSSceneTabs.currentTab?.play()
-                // todo also set this instance text to "Back"
-            })
-        /* todo this class isn't used in play-testing...
-        val pauseButton = TextButton("Pause", "", false, style).addLeftClickListener {
-            // pause/unpause
-            Time.timeSpeed = if (Time.timeSpeed == 0.0) 1.0 else 0.0
-            (it as TextButton).text = if (Time.timeSpeed == 0.0) "Unpause" else "Pause"
-        }
-        val restartButton = TextButton("Restart", "", false, style).addLeftClickListener {
-            view.getWorld()?.prefab?.invalidateInstance()
-        }
-        topLeft.add(pauseButton)
-        topLeft.add(restartButton)
-        topLeft.add(SpyPanel {
-            val isPlayTesting = view.playMode == PlayMode.PLAY_TESTING
-            pauseButton.isVisible = isPlayTesting
-            restartButton.isVisible = isPlayTesting
-        })
-        */
-        topLeft.add(TextButton("Snap", style)
-            .addLeftClickListener {
-                EditorState.select(snappingSettings)
-            })
+            .addLeftClickListener { ECSSceneTabs.currentTab?.play() })
+        topLeft.add(TextButton("⚙", 1f, style)
+            .setTooltip("Settings")
+            .addLeftClickListener { EditorState.select(settings) })
         add(topLeft)
     }
 
@@ -132,7 +111,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 val original = dragged.getOriginal()
                 val files = if (original is FileReference) listOf(original)
                 else (original as List<*>).filterIsInstance<FileReference>()
-                val pos = JomlPools.vec3d.create()
+                val dropPosition = JomlPools.vec3d.create()
                 for (file in files) {
 
                     // to do another solution would be to add it temporarily to the hierarchy, and remove it if it is cancelled
@@ -142,18 +121,21 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     val sample = prefab.createInstance() // a little waste of allocations...
 
                     // find where to draw it
-                    findDropPosition(file, pos)
+                    findDropPosition(file, dropPosition)
 
                     movedSample.removeAllChildren()
-                    movedSample.transform.localPosition = pos
+                    movedSample.transform.localPosition = dropPosition
+                    movedSample.transform.localRotation = dropRotation
+                    movedSample.transform.localScale = dropScale
                     when (sample) {
                         is Component -> movedSample.add(sample)
                         is Entity -> movedSample.add(sample)
                         // else ...
                     }
-                    movedSample.validateTransform()
-                    if (sample is Entity) sample.validateTransform()
 
+                    // todo as soon as a tab with that prefab was opened,
+                    //  motion no longer works :(
+                    movedSample.validateTransform()
                     pipeline.fill(movedSample)
 
                     // draw its gui
@@ -187,6 +169,76 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             GFXState.depthMask.use(false) {
                 drawGizmos2()
             }
+        }
+    }
+
+    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
+        if (dragged != null) {
+            val delta = dx - dy
+            mouseWheelLike(delta.toDouble())
+        } else super.onMouseWheel(x, y, dx, dy, byMouse)
+    }
+
+    fun mouseWheelLike(delta: Double) {
+        if (Input.isShiftDown) {
+            dropScale.mul(pow(1.05, delta))
+            return
+        }
+        val snapR = snappingSettings.snapR
+        val delta1 = (if (snapR > 0.0) sign(delta) * snapR else delta)
+        when {
+            Input.isKeyDown(Key.KEY_X) -> dropEuler.x += delta1
+            Input.isKeyDown(Key.KEY_Z) -> dropEuler.z += delta1
+            else -> dropEuler.y += delta1
+        }
+        validateDropRotation()
+    }
+
+    fun validateDropRotation() {
+        snappingSettings.snapRotation(dropEuler, snapRotRem)
+        dropEuler.toQuaternionDegrees(dropRotation)
+    }
+
+    fun resetDropTransform() {
+        dropRotation.identity()
+        dropEuler.set(0.0)
+        dropScale.set(1.0)
+    }
+
+    fun commaPressLike(sign: Double) {
+        val snapR = snappingSettings.snapR
+        val angle = sign * (if (snapR > 0.0) snapR else 45.0)
+        if (dragged != null) {
+            dropEuler.y += angle
+            validateDropRotation()
+        } else {
+            val angle1 = angle.toRadians()
+            val dir = Vector3d(0.0, 1.0, 0.0)
+            for (inst in instancesToTransform) {
+                when (inst) {
+                    is Entity -> {
+                        val transform = inst.transform
+                        transformRotation(transform, angle1, dir, 0)
+                        transform.teleportUpdate()
+                        onChangeTransform(inst)
+                    }
+                    // todo dc-moveables
+                }
+            }
+            // todo else apply transform onto selected
+        }
+    }
+
+    override fun onKeyTyped(x: Float, y: Float, key: Key) {
+        when (key) {
+            Key.KEY_0 -> {
+                resetDropTransform()
+                // todo apply transform onto selected
+                LOGGER.info("Reset transform")
+            }
+            Key.KEY_COMMA -> commaPressLike(-1.0)
+            Key.KEY_PERIOD -> commaPressLike(+1.0)
+            else -> super.onKeyTyped(x, y, key)
         }
     }
 
@@ -297,7 +349,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
     }
 
     @NotSerializedProperty
-    val snapRemainder = Vector3d()
+    val snapPosRem = Vector3d()
+
+    @NotSerializedProperty
+    val snapRotRem = Vector3d()
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         if (EditorState.control?.onMouseMoved(x, y, dx, dy) == true) return
@@ -355,89 +410,39 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 val ry = (y - (this.y + this.height * 0.5)) // [-h/2,+h/2]
                 val rotationAngle = PI * (rx * dy - ry * dx) / (length(rx, ry) * height)
 
-                val targets2 = selectedMovables
-                val targets3 = selectedEntities + targets2
-                // remove all targets of which there is a parent selected
-                targets3.filter { target ->
-                    val loh = (target as? Hierarchical<*>)?.listOfHierarchy?.toHashSet() ?: emptySet()
-                    targets3.none2 {
-                        it !== target && it in loh
-                    }
-                }
-                if (targets3.isNotEmpty()) {
-                    for (index in targets3.indices) {// for correct transformation when parent and child are selected together
-                        when (val inst = targets3[index]) {
-                            is Entity -> {
-                                val transform = inst.transform
-                                when (mode) {
-                                    Mode.TRANSLATING -> {
-                                        val global = transform.globalTransform
-                                        val distance = camTransform.distance(global)
-                                        if (distance > 0.0) {
-                                            // correct
-                                            offset.mul(distance)
-                                            val snap = snappingSettings
-                                            if (snap.snapX || snap.snapY || snap.snapZ) {
-                                                snappingSettings.applySnapping(offset, snapRemainder)
-                                            }
-                                            global.translateLocal(offset)
-                                            offset.div(distance)
-                                        }
-                                        transform.invalidateLocal()
-                                    }
-                                    Mode.ROTATING -> {
-                                        // todo rotate rotating gizmo
-                                        when (gizmoMask) {
-                                            1 -> transform.localRotation = transform.localRotation
-                                                .toEulerAnglesDegrees()
-                                                .apply {
-                                                    this.x += rotationAngle * sign(dir.x).toDegrees()
-                                                }.toQuaternionDegrees()
-                                            2 -> transform.localRotation = transform.localRotation
-                                                .toEulerAnglesDegrees()
-                                                .apply {
-                                                    this.y += rotationAngle * sign(dir.y).toDegrees()
-                                                }.toQuaternionDegrees()
-                                            4 -> transform.localRotation = transform.localRotation
-                                                .toEulerAnglesDegrees()
-                                                .apply {
-                                                    this.z += rotationAngle * sign(dir.z).toDegrees()
-                                                }.toQuaternionDegrees()
-                                            else -> {
-                                                val global = transform.globalTransform
-                                                val tmpQ = JomlPools.quat4d.borrow()
-                                                tmpQ.fromAxisAngleRad(dir.x, dir.y, dir.z, rotationAngle)
-                                                global.rotate(tmpQ)// correct
-                                                transform.invalidateLocal()
-                                            }
-                                        }
-                                    }
-                                    Mode.SCALING -> {
-                                        // todo rotate scaling gizmo
-                                        if (gizmoMask == 0) {
-                                            val scale = pow(2.0, (dx - dy).toDouble() / height)
-                                            transform.localScale = transform.localScale.mul(scale)
-                                        } else {
-                                            val base = 8.0
-                                            val sx = pow(base, offset.x)
-                                            val sy = pow(base, offset.y)
-                                            val sz = pow(base, offset.z)
-                                            transform.localScale = transform.localScale.mul(sx, sy, sz)
-                                        }
-                                    }
-                                    else -> throw NotImplementedError()
-                                }
-                                transform.teleportUpdate()
-                                onChangeTransform(inst)
+                for (inst in instancesToTransform) {// for correct transformation when parent and child are selected together
+                    when (inst) {
+                        is Entity -> {
+                            val transform = inst.transform
+                            when (mode) {
+                                Mode.TRANSLATING -> transformPosition(transform, camTransform, offset)
+                                Mode.ROTATING -> transformRotation(transform, rotationAngle, dir, gizmoMask)
+                                Mode.SCALING -> transformScale(transform, (dx - dy).toDouble(), offset)
+                                else -> throw NotImplementedError()
                             }
-                            is DCMovable -> inst.move(this, camTransform, offset, dir, rotationAngle, dx, dy)
+                            transform.teleportUpdate()
+                            onChangeTransform(inst)
                         }
+                        is DCMovable -> inst.move(this, camTransform, offset, dir, rotationAngle, dx, dy)
                     }
-                    JomlPools.vec3d.sub(1)
                 }
+                JomlPools.vec3d.sub(1)
             }
         }
     }
+
+    val instancesToTransform: List<Any>
+        get() {
+            val targets2 = selectedMovables
+            val targets3 = selectedEntities + targets2
+            // remove all targets of which there is a parent selected
+            return targets3.filter { target ->
+                val loh = (target as? Hierarchical<*>)?.listOfHierarchy?.toHashSet() ?: emptySet()
+                targets3.none2 {
+                    it !== target && it in loh
+                }
+            }
+        }
 
     val selectedMovables
         get() = EditorState.selection.mapNotNull {
@@ -447,6 +452,72 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 else -> null
             }
         }
+
+    fun transformPosition(transform: Transform, camTransform: Matrix4x3d, offset: Vector3d) {
+        val global = transform.globalTransform
+        val distance = camTransform.distance(global)
+        if (distance > 0.0) {
+            // correct
+            offset.mul(distance)
+            snappingSettings.snapPosition(offset, snapPosRem)
+            global.translateLocal(offset)
+            offset.div(distance)
+        }
+        transform.invalidateLocal()
+    }
+
+    fun transformRotation(transform: Transform, rotationAngle: Double, dir: Vector3d, gizmoMask: Int) {
+        // todo rotate rotating gizmo
+        //  y by parent
+        //  x by parent + y
+        //  z by parent + y + x
+        when (gizmoMask) {
+            1 -> transform.localRotation = transform.localRotation
+                .toEulerAnglesDegrees()
+                .apply {
+                    this.x += rotationAngle * sign(dir.x).toDegrees()
+                    snappingSettings.snapRotation(this, snapRotRem, 1)
+                }.toQuaternionDegrees()
+            2 -> transform.localRotation = transform.localRotation
+                .toEulerAnglesDegrees()
+                .apply {
+                    this.y += rotationAngle * sign(dir.y).toDegrees()
+                    snappingSettings.snapRotation(this, snapRotRem, 2)
+                }.toQuaternionDegrees()
+            4 -> transform.localRotation = transform.localRotation
+                .toEulerAnglesDegrees()
+                .apply {
+                    this.z += rotationAngle * sign(dir.z).toDegrees()
+                    snappingSettings.snapRotation(this, snapRotRem, 4)
+                }.toQuaternionDegrees()
+            else -> {
+                val global = transform.globalRotation
+                val tmpQ = JomlPools.quat4d.create()
+                tmpQ.fromAxisAngleRad(dir.x, dir.y, dir.z, rotationAngle)
+                global.mul(tmpQ, tmpQ)
+                val tmpR = tmpQ.toEulerAnglesDegrees()
+                snappingSettings.snapRotation(tmpR, snapRotRem)
+                tmpR.toQuaternionDegrees(tmpQ)
+                transform.globalRotation = tmpQ
+                JomlPools.quat4d.sub(1)
+                transform.validate()
+            }
+        }
+    }
+
+    fun transformScale(transform: Transform, delta: Double, offset: Vector3d) {
+        // todo rotate scaling gizmo
+        if (gizmoMask == 0) {
+            val scale = pow(2.0, delta / height)
+            transform.localScale = transform.localScale.mul(scale)
+        } else {
+            val base = 8.0
+            val sx = pow(base, offset.x)
+            val sy = pow(base, offset.y)
+            val sz = pow(base, offset.z)
+            transform.localScale = transform.localScale.mul(sx, sy, sz)
+        }
+    }
 
     private fun onChangeTransform(entity: Entity) {
         val root = entity.getRoot(Entity::class)
@@ -479,12 +550,26 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         root: PrefabSaveable,
         type: Char,
         position: Any?,
+        rotation: Any?,
+        scale: Any?,
         results: MutableCollection<PrefabSaveable>
     ) {
         val ci = PrefabInspector.currentInspector!!
         val path = ci.addNewChild(root, type, prefab)!!
+        var hasValidTransform = true
         if (position != null) {
+            hasValidTransform = false
             ci.prefab[path, "position"] = position
+        }
+        if (rotation != null) {
+            hasValidTransform = false
+            ci.prefab[path, "rotation"] = rotation
+        }
+        if (scale != null) {
+            hasValidTransform = false
+            ci.prefab[path, "scale"] = scale
+        }
+        if (!hasValidTransform) {
             // bug: on drop, position isn't correctly verified; only reloading fixes it
             ci.prefab.invalidateInstance() // todo fix: hack
             // todo sometimes dragging snaps wayyy too much... parent transform incorrect?
@@ -559,9 +644,14 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     // done place it where the preview was drawn
                     val root = EditorState.selection.firstInstanceOrNull<Entity>() ?: renderView.getWorld()
                     if (root is Entity) {
-                        val position = Vector3d(sampleInstance.transform.localPosition)
+                        val sampleTransform = sampleInstance.transform
+                        val position = Vector3d(sampleTransform.localPosition)
                         position.add(dropPosition)
-                        addToParent(prefab, root, 'c', position, results)
+                        val rotation = Quaterniond(sampleTransform.localRotation)
+                        rotation.mul(dropRotation) // correct order?
+                        val scale = Vector3d(sampleTransform.localScale)
+                        scale.mul(dropScale)
+                        addToParent(prefab, root, 'c', position, rotation, scale, results)
                         // todo position isn't properly persisted
                         //  - after each save, it jumps back to the center...,
                         //  - when moved it goes to the proper position
@@ -577,7 +667,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                         }
                     } else LOGGER.warn("Could not drop $file onto ${root?.className}")
                 }
-                is DCDroppable -> sampleInstance.drop(this, prefab, hovEntity, hovComponent, dropPosition, results)
+                is DCDroppable -> sampleInstance.drop(
+                    this, prefab, hovEntity, hovComponent,
+                    dropPosition, dropRotation, dropScale, results
+                )
                 // todo if is Renderable & Component, add helper entity to define position
                 is Component -> {
                     val entity = hovEntity ?: renderView.getWorld() as? Entity
@@ -603,6 +696,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
     }
 
+    val dropEuler = Vector3d()
+    val dropRotation = Quaterniond()
+    val dropScale = Vector3d(1.0)
+
     fun findDropPosition(drop: FileReference, dst: Vector3d): Vector3d {
         unused(drop)
         // val prefab = PrefabCache[drop] ?: return null
@@ -622,7 +719,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         }
         // to do camDirection will only be correct, if this was the last drawn instance
         dst.set(renderView.mouseDirection).mul(distance).add(renderView.cameraPosition)
-        snappingSettings.applySnapping(dst)
+        snappingSettings.snapPosition(dst)
         return dst
     }
 
@@ -638,7 +735,9 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         // then copy them, or their prefab text
         val cloneFiles = EditorState.selection
             .filterIsInstance<PrefabSaveable>()
-            .map { if (it is Component) it.entity ?: it else it } // prefer copying entities, so everything stays movable
+            .map {
+                if (it is Component) it.entity ?: it else it
+            } // prefer copying entities, so everything stays movable
             .map { it.clone().ref }
         LOGGER.info("Requested copy -> $cloneFiles")
         return cloneFiles

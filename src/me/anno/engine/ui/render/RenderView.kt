@@ -56,6 +56,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Clock
 import me.anno.utils.Color.black
+import me.anno.utils.Color.hex24
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.tuples.IntPair
@@ -483,11 +484,12 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val clickedId = Maths.convertABGR2ARGB(clickedIdBGR).and(0xffffff)
         val clicked = if (clickedId == 0 || world !is Entity) null
         else pipeline.findDrawnSubject(clickedId, world)
-        /*LOGGER.info("Found: ${ids.joinToString { it.toString(16) }} x ${depths.joinToString()} -> $clickedId -> $clicked")
-        val ids2 = (world as? Entity)?.getComponentsInChildren(MeshComponent::class, false)
-            ?.joinToString { it.clickId.toString(16) }
-        LOGGER.info("Available: $ids2")*/
-        // LOGGER.info(clickedId in ids2)
+        if (false) {
+            LOGGER.info("Found: ${ids.joinToString { hex24(Maths.convertABGR2ARGB(it)) }} x ${depths.joinToString()} -> $clickedId -> $clicked")
+            val ids2 = (world as? Entity)?.getComponentsInChildren(MeshComponentBase::class, false)
+                ?.joinToString { it.clickId.toString(16) }
+            LOGGER.info("Available: $ids2")
+        }
         return Pair(clicked as? Entity, clicked as? Component)
     }
 

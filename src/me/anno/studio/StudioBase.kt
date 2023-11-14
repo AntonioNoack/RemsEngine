@@ -330,6 +330,8 @@ abstract class StudioBase(
         // dragging files for example
         val dragged = dragged
         if (dragged != null) {
+            // todo if base below is sensitive, draw this transparent
+            //  (text is blocking view when dragging a scene item into DraggingControls/RenderView)
             val (rw, rh) = dragged.getSize(w / 5, h / 5)
             var x = lastMouseX.roundToInt() - rw / 2
             var y = lastMouseY.roundToInt() - rh / 2

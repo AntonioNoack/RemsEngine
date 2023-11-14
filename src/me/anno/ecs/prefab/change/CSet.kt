@@ -1,6 +1,7 @@
 package me.anno.ecs.prefab.change
 
 import me.anno.ecs.prefab.Hierarchy
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.utils.strings.StringHelper.shorten2Way
@@ -45,9 +46,9 @@ class CSet() : Change() {
         this.value = value
     }
 
-    override fun applyChange(instance: PrefabSaveable, depth: Int) {
+    override fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int) {
         applyChange(instance, path, name!!, value)
-        path = instance.prefabPath ?: path // remove a few superfluous instances
+        path = instance.prefabPath
     }
 
     override val approxSize get() = 10
