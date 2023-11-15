@@ -16,7 +16,6 @@ import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Booleans.toInt
-import me.anno.utils.types.Strings.isBlank2
 
 /**
  * converts a complex shader into
@@ -111,9 +110,10 @@ open class BaseShader(
             val instanceData = GFXState.instanceData.currentValue
             val vertexData = GFXState.vertexData.currentValue
             val isDepth = renderer == Renderer.nothingRenderer
-            val flags = animated.toInt(IS_ANIMATED) +
-                    motionVectors.toInt(NEEDS_MOTION_VECTORS) +
-                    (!isDepth).toInt(NEEDS_COLORS) +
+            val flags = animated.toInt(IS_ANIMATED) or
+                    motionVectors.toInt(NEEDS_MOTION_VECTORS) or
+                    (!isDepth).toInt(NEEDS_COLORS) or
+                    (instanceData != MeshInstanceData.DEFAULT).toInt(IS_INSTANCED) or
                     (renderer.deferredSettings != null).toInt(IS_DEFERRED)
             val key = ShaderKey(renderer, vertexData, instanceData, flags)
             val shader = shaders.getOrPut(key) {

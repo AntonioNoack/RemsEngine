@@ -9,6 +9,7 @@ import me.anno.engine.RemsEngine.Companion.collectSelected
 import me.anno.engine.RemsEngine.Companion.restoreSelected
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.input.ComponentUI
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.ISaveable
@@ -130,12 +131,24 @@ class PrefabInspector(val reference: FileReference) {
 
         for (instance in instances) instance.ensurePrefab()
 
-        val pathInformation = instances.joinToString("\n") {
-            "${it.prefabPath}@${it.prefab?.source}, " +
+        val pathInformation = instances.joinToString("\n\n") {
+            "" +
                     "${it.className}@${hex32(System.identityHashCode(it))}\n" +
-                    "#${hex32(it.prefabPath.hashCode())}"
+                    "Path: ${it.prefabPath}\n" +
+                    "PathHash: ${hex32(it.prefabPath.hashCode())}"
         }
         list += TextPanel(pathInformation, style)
+
+        // todo find where an object is coming from within a prefab, and open that file
+        if (false) {
+            list += TextButton("Open Prefab", style)
+                .addLeftClickListener {
+                    val src = instances.first().prefab?.source
+                    if (src?.exists == true) {
+                        ECSSceneTabs.open(src, PlayMode.EDITING, true)
+                    }
+                }
+        }
 
         // the index may not be set in the beginning
         fun getPath(instance: PrefabSaveable): Path {

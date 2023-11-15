@@ -44,7 +44,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     // 30 instanced, 300 draw calls
     // -> idk...
     @SerializedProperty
-    var isInstanced = false
+    var isInstanced = true
 
     @Docs("Abstract function for you to define your mesh; you may return null, if you're not yet ready")
     abstract fun getMeshOrNull(): Mesh?

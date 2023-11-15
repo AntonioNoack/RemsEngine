@@ -17,6 +17,11 @@ open class SkyShaderBase(name: String) : ECSMeshShader(name) {
                 "#endif\n"
     }
 
+    override fun concatDefines(key: ShaderKey, dst: StringBuilder): StringBuilder {
+        return super.concatDefines(key, dst)
+            .append("#define SKY\n")
+    }
+
     override fun createVertexStages(key: ShaderKey): List<ShaderStage> {
         val defines = concatDefines(key).toString()
         return listOf(

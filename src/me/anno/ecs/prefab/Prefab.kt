@@ -73,13 +73,16 @@ class Prefab : Saveable {
                 _sampleInstance?.destroy()
                 _sampleInstance = null
             }
-            synchronized(listeners) {
-                for (listener in listeners) {
-                    listener.invalidateInstance()
-                }
-            }
+            callListeners()
         } else LOGGER.warn("Cannot invalidate tmp-prefab")
-        // todo all child prefab instances would need to be invalidated as well
+    }
+
+    fun callListeners() {
+        synchronized(listeners) {
+            for (listener in listeners) {
+                listener.invalidateInstance()
+            }
+        }
     }
 
     fun sealFromModifications() {
@@ -152,6 +155,7 @@ class Prefab : Saveable {
         sets[path, name] = value
         // apply to sample instance to keep it valid
         updateSample(path, name, value)
+        callListeners()
         // todo all child prefab instances would need to be updated as well
         // todo same for add...
     }
@@ -262,30 +266,6 @@ class Prefab : Saveable {
         }
         invalidateInstance()
         return change
-    }
-
-    fun add(change: CSet): CSet {
-        if (!isWritable) throw ImmutablePrefabException(source)
-        /*ensureMutableLists()
-        if (sets.none {
-                if (it.path == change.path && it.name == change.name) {
-                    it.value = change.value
-                    true
-                } else false
-            }) {
-            (sets as MutableList).add(change)
-        }*/
-        sets[change.path, change.name!!] = change.value
-        // apply to sample instance to keep it valid
-        updateSample(change)
-        return change
-    }
-
-    private fun updateSample(change: CSet) {
-        val sampleInstance = _sampleInstance
-        if (sampleInstance != null && isValid) {
-            change.apply(this, sampleInstance, maxPrefabDepth)
-        }
     }
 
     private fun updateSample(path: Path, name: String, value: Any?) {

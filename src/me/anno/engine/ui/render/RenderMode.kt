@@ -4,6 +4,7 @@ import me.anno.engine.ui.render.Renderers.attributeRenderers
 import me.anno.engine.ui.render.Renderers.boneIndicesRenderer
 import me.anno.engine.ui.render.Renderers.boneWeightsRenderer
 import me.anno.engine.ui.render.Renderers.frontBackRenderer
+import me.anno.engine.ui.render.Renderers.isInstancedRenderer
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.gpu.deferred.DeferredLayerType
@@ -345,6 +346,8 @@ class RenderMode(
                 .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
                 .finish()
         )
+
+        val IS_INSTANCED = RenderMode("Is Instanced", isInstancedRenderer)
 
         val BONE_INDICES = RenderMode("Bone Indices", boneIndicesRenderer)
         val BONE_WEIGHTS = RenderMode("Bone Weights", boneWeightsRenderer)

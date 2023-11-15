@@ -302,6 +302,26 @@ object Renderers {
     }
 
     @JvmField
+    val isInstancedRenderer = object: Renderer("isInstanced") {
+        override fun getPixelPostProcessing(flags: Int): List<ShaderStage> {
+            return listOf(
+                ShaderStage("isInstanced", listOf(
+                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT)
+                ), "" +
+                        "float f;\n" +
+                        "#ifdef INSTANCED\n" +
+                        "   f = 1.0;\n" +
+                        "#elif defined(SKY)\n" +
+                        "   f = 0.5;\n" +
+                        "#else\n" +
+                        "   f = 0.0;\n" +
+                        "#endif\n" +
+                        "finalResult = vec4(f,f,f,1.0);\n")
+            )
+        }
+    }
+
+    @JvmField
     val boneIndicesRenderer = object : Renderer("bone-indices") {
         override fun getVertexPostProcessing(flags: Int): List<ShaderStage> {
             return listOf(
