@@ -18,7 +18,7 @@ class AlphaBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
             chooser.lightness,
             clamp(opacity, 0f, 1f),
             chooser.colorSpace,
-            true
+            8, true
         )
     }) {
 

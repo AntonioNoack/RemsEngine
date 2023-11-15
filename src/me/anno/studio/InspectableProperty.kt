@@ -19,7 +19,7 @@ class InspectableProperty(
         return if (cleanInstance != null) property[cleanInstance] else null
     }
 
-    override fun set(panel: Panel?, value: Any?) {
+    override fun set(panel: Panel?, value: Any?, mask: Int) {
         for (instance in instances) {
             property[instance] = value
         }

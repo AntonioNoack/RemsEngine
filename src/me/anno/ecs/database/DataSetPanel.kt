@@ -51,7 +51,7 @@ class DataSetPanel(values: List<ISaveable>, reflections: CachedReflections, firs
                     override fun getDefault() = default
                     override fun reset(panel: Panel?) = getDefault()
                     override fun init(panel: Panel?) {}
-                    override fun set(panel: Panel?, value: Any?) {
+                    override fun set(panel: Panel?, value: Any?, mask: Int) {
                         prop[v] = value
                     }
                 }

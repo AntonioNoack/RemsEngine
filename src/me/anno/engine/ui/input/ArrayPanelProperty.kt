@@ -16,7 +16,7 @@ class ArrayPanelProperty(
     IProperty<Any?> {
     override fun init(panel: Panel?) {}
     override val annotations: List<Annotation> get() = emptyList()
-    override fun set(panel: Panel?, value: Any?) = anyArrayPanel.set(this.panel.value!!, value)
+    override fun set(panel: Panel?, value: Any?, mask: Int) = anyArrayPanel.set(this.panel.value!!, value)
     override fun get(): Any? = value
     override fun getDefault(): Any? = ComponentUI.getDefault(arrayType)
     override fun reset(panel: Panel?): Any? = getDefault().apply { set(panel, this) }

@@ -24,7 +24,7 @@ class ColorNode : ValueNode("Color", emptyList(), listOf("Vector4f", "Color", "I
 
     override fun createUI(g: GraphPanel, list: PanelList, style: Style) {
         list += ColorInput(style, "Value", "", value, true)
-            .setChangeListener { r, gr, b, a ->
+            .setChangeListener { r, gr, b, a, _ ->
                 value.set(r, gr, b, a)
                 setOutput(1, value.toARGB())
                 g.onChange(false)

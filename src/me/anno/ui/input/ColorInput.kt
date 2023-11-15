@@ -16,6 +16,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.base.constraints.SizeLimitingContainer
@@ -28,7 +29,6 @@ import me.anno.ui.editor.color.ColorPreviewField
 import me.anno.ui.input.components.ColorPalette
 import me.anno.ui.input.components.ColorPicker
 import me.anno.ui.input.components.TitlePanel
-import me.anno.utils.Color.black
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.withAlpha
@@ -70,12 +70,12 @@ open class ColorInput(
     override val value: Vector4f
         get() = contentView.getColor()
 
-    override fun setValue(newValue: Vector4f, notify: Boolean): ColorInput {
+    override fun setValue(newValue: Vector4f, mask: Int, notify: Boolean): Panel {
         val newValue1 = newValue.toARGB()
         previewField.color = if (withAlpha) newValue1
         else newValue1.withAlpha(255)
         previewField.invalidateDrawing()
-        contentView.setRGBA(newValue, false)
+        contentView.setRGBA(newValue, mask, false)
         return this
     }
 
@@ -109,9 +109,9 @@ open class ColorInput(
         if (title.isNotEmpty()) this += titleView
         titleView.enableHoverColor = true
         titleView.disableFocusColors()
-        contentView.setRGBA(oldValue, false)
-        contentView.setChangeRGBListener { r, g, b, a ->
-            setValue(Vector4f(r, g, b, a), true)
+        contentView.setRGBA(oldValue, -1, false)
+        contentView.setChangeRGBListener { r, g, b, a, mask ->
+            setValue(Vector4f(r, g, b, a), mask, true)
         }
     }
 
@@ -144,7 +144,7 @@ open class ColorInput(
                     MenuOption(NameDesc("Copy")) { Input.copy(window, contentView) },
                     MenuOption(NameDesc("Paste")) { Input.paste(window, contentView) },
                     MenuOption(NameDesc("Pick Color")) { pickColor() },
-                    MenuOption(NameDesc("Reset")) { setValue(contentView.resetListener(), true) }
+                    MenuOption(NameDesc("Reset")) { setValue(contentView.resetListener(), -1, true) }
                 ))
             }
             else -> super.onMouseClicked(x, y, button, long)
@@ -180,7 +180,7 @@ open class ColorInput(
                 }
             }
             colorPicker.callback = { color ->
-                contentView.setARGB(color, true)
+                contentView.setARGB(color, -1, true)
                 this@ColorInput.invalidateDrawing()
                 resetFullscreen()
             }
@@ -227,9 +227,9 @@ open class ColorInput(
             val scale = pow(scaleFactor, delta)
             contentView.apply {
                 if (Input.isControlDown) {
-                    setHSL(hue, saturation, lightness * scale, opacity, colorSpace, true)
+                    setHSL(hue, saturation, lightness * scale, opacity, colorSpace, 4, true)
                 } else {
-                    setHSL(hue, saturation, lightness, clamp(opacity + delta, 0f, 1f), colorSpace, true)
+                    setHSL(hue, saturation, lightness, clamp(opacity + delta, 0f, 1f), colorSpace, 8, true)
                 }
             }
         }
@@ -241,10 +241,10 @@ open class ColorInput(
         super.onDraw(x0, y0, x1, y1)
     }
 
-    fun setChangeListener(listener: (r: Float, g: Float, b: Float, a: Float) -> Unit): ColorInput {
-        contentView.setChangeRGBListener { r, g, b, a ->
+    fun setChangeListener(listener: (r: Float, g: Float, b: Float, a: Float, mask: Int) -> Unit): ColorInput {
+        contentView.setChangeRGBListener { r, g, b, a, mask ->
             previewField.color = rgba(r, g, b, if (withAlpha) a else 1f)
-            listener(r, g, b, a)
+            listener(r, g, b, a, mask)
         }
         return this
     }

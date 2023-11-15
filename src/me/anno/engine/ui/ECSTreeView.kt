@@ -12,21 +12,27 @@ import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
+import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mixARGB
+import me.anno.maths.Maths.mixARGB2
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.files.Search
 import me.anno.ui.editor.treeView.TreeView
+import me.anno.utils.Color.black
 import me.anno.utils.Color.normARGB
+import me.anno.utils.Color.white
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
@@ -141,26 +147,55 @@ class ECSTreeView(val library: EditorState, style: Style) :
         return false
     }
 
+    private fun getFocusColor(isEnabled: Boolean, isInFocus: Boolean, isIndirectlyInFocus: Boolean): Int {
+        return if (isEnabled) {
+            if (isInFocus) 0xffcc15
+            else if (isIndirectlyInFocus) 0xddccaa
+            else 0xcccccc
+        } else {
+            if (isInFocus) 0xcc15ff
+            else if (isIndirectlyInFocus) 0x442255
+            else 0x333333
+        }
+    }
+
     override fun getLocalColor(element: ISaveable, isHovered: Boolean, isInFocus: Boolean): Int {
 
         val isInFocus2 = isInFocus || (element is PrefabSaveable && element in library.selection)
         // show a special color, if the current element contains something selected
 
-        val isIndirectlyInFocus = !isInFocus2
-                // && library.selection.isNotEmpty()
-                && library.selection.any { it is PrefabSaveable && it.anyInHierarchy { p -> p === element } }
-        // element.findFirstInAll { it in library.selection } != null
+        val isIndirectlyInFocus = !isInFocus2 && library.selection.any2 {
+            it is PrefabSaveable && it.anyInHierarchy { p -> p === element }
+        }
+
         val isEnabled = if (element is PrefabSaveable) element.allInHierarchy { it.isEnabled } else true
-        var color = if (isEnabled)
-            if (isInFocus2) 0xffcc15 else if (isIndirectlyInFocus) 0xddccaa else 0xcccccc
-        else
-            if (isInFocus2) 0xcc15ff else if (isIndirectlyInFocus) 0x442255 else 0x333333
+        var color = getFocusColor(isEnabled, isInFocus2, isIndirectlyInFocus)
+
+        // check if it is a direct prefab, ours, or inside a prefab
+        if (element is PrefabSaveable) {
+            val prefab = element.prefab
+            val path = element.prefabPath
+            if (prefab != null && path != Path.ROOT_PATH) {
+                val add = prefab.find(path)
+                val isOurs = add != null && add.prefab == InvalidRef
+                if (!isOurs) {
+                    val isPrefab = add != null
+                    var blueIntensity = if (isPrefab) 1f else 0.6f
+                    if (isInFocus2 || isIndirectlyInFocus) {
+                        blueIntensity *= 0.5f
+                    }
+                    color = mixARGB2(color, 0x3160f7, blueIntensity * 0.6f)
+                }
+            }
+        }
+
         // if is light component, we can mix in its color
         val light = if (element is Entity) element.getComponent(LightComponent::class) else element as? LightComponent
-        if (light != null) color = mixARGB(color, normARGB(light.color), 0.5f)
-        if (isHovered) color = mixARGB(color, -1, 0.5f)
+        if (light != null) color = mixARGB2(color, normARGB(light.color), 0.5f)
+
+        if (isHovered) color = mixARGB2(color, white, 0.5f)
         if (element is PrefabSaveable && hasWarning(element)) color = mixARGB(color, 0xffff00, 0.8f)
-        return color or (255 shl 24)
+        return color or black
     }
 
     override fun getTooltipText(element: ISaveable): String {
@@ -169,16 +204,11 @@ class ECSTreeView(val library: EditorState, style: Style) :
         if (warn != null) return warn
         val desc = if (element is PrefabSaveable) element.description.shorten(maxLength).toString() else ""
         val descLn = if (desc.isEmpty()) desc else desc + "\n"
-        return when {
-            element is Panel -> element.tooltip ?: desc
-            element !is Entity -> desc
-            element.children.isEmpty() -> when (element.components.size) {
-                0 -> desc
-                1, 2, 3 -> descLn + element.components.joinToString { it.className }
-                else -> descLn + "${element.components.size} C"
-            }
-            element.components.isEmpty() -> descLn + "${element.children.size} E, ${element.sizeOfAllChildren} total"
-            else -> descLn + "${element.children.size} E + ${element.components.size} C, ${element.sizeOfAllChildren} total"
+        return when (element) {
+            is Panel -> element.tooltip ?: desc
+            !is Entity -> desc
+            else -> descLn + "${element.children.size} E + ${element.components.size} C, " +
+                    "${element.totalNumEntities} E + ${element.totalNumComponents} C total"
         }
     }
 
@@ -263,11 +293,28 @@ class ECSTreeView(val library: EditorState, style: Style) :
         val prefab = parent.prefab
         if (prefab == null || prefab.isWritable) {
             // open add menu for often created entities: camera, light, nodes, ...
-            // we could use which prefabs were most often created :)
+            // we could use, which prefabs were most often created :)
+            // todo more options:
+            //  undo all deletions
+            //  undo all changes (except transform?)
+            //  duplicate
+            val extraOptions = listOf(
+                MenuOption(NameDesc("Reset all changes")) {
+                    prefab!!
+                    LogManager.enableLogger("Hierarchy")
+                    Hierarchy.resetPrefab(prefab, parent.prefabPath, true)
+                }.setEnabled(prefab != null),
+                MenuOption(NameDesc("Reset all changes (except transform)")) {
+                    prefab!!
+                    LogManager.enableLogger("Hierarchy")
+                    Hierarchy.resetPrefabExceptTransform(prefab, parent.prefabPath, true)
+                }.setEnabled(prefab != null),
+                menuSeparator1
+            )
             val types = parent.listChildTypes()
             openMenu(
                 windowStack,
-                types.map { type ->
+                extraOptions + types.map { type ->
                     (parent.getOptionsByType(type) ?: emptyList())
                         .map { option ->
                             val title = option.title
@@ -291,13 +338,28 @@ class ECSTreeView(val library: EditorState, style: Style) :
     }
 
     override fun canBeRemoved(element: ISaveable): Boolean {
-        if (element !is PrefabSaveable) return false
-        if (element.root.prefab?.isWritable == false) return false
-        val indexInParent = element.indexInParent
-        val parent = element.parent ?: return false // must not remove root
+        if (element !is PrefabSaveable) {
+            LOGGER.warn("Cannot remove, because not PrefabSaveable")
+            return false
+        }
+        if (element.root.prefab?.isWritable == false) {
+            LOGGER.warn("Cannot remove, because Prefab readonly")
+            return false
+        }
+        val parent = element.parent
+        if (parent == null) {
+            // must not remove root
+            LOGGER.warn("Cannot remove, because it's root")
+            return false
+        }
         val parentPrefab = parent.getOriginal()
-        if (element.prefab == null) return true
-        return !(parentPrefab == null || indexInParent >= parentPrefab.children.size)
+        if (element.prefab == null) {
+            return true
+        }
+        if (parentPrefab == null) {
+            LOGGER.warn("Cannot remove, because parent prefab is null")
+        }
+        return parentPrefab != null
     }
 
     override fun selectElements(elements: List<ISaveable>) {

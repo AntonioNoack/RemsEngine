@@ -13,7 +13,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCallback
-import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.maths.Maths.sq
 import me.anno.mesh.blender.BlenderMeshConverter.convertBMesh
@@ -372,7 +371,11 @@ object BlenderReader {
                 // todo find all animations
                 val blenderMesh = obj.data as BMesh
                 val meshFile = blenderMesh.fileRef
-                val meshPrefab = (meshFile as PrefabReadable).readPrefab()
+                if (meshFile !is PrefabReadable) {
+                    LOGGER.warn("${path.nameId} wasn't found")
+                    return
+                }
+                val meshPrefab = (meshFile).readPrefab()
                 val boneIndices = meshPrefab["boneIndices"] as? IntArray
                 if (armatureModifier != null && boneIndices != null) {
 

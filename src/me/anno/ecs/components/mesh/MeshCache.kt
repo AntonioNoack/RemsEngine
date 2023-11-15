@@ -41,16 +41,18 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                     if (ref == ref2) null
                     else get(ref2, async)
                 }
-                is MeshComponentBase -> instance.getMeshOrNull()
+                is MeshComponentBase -> instance.getMesh()
                 is Entity -> {
-                    instance.forAll { if (it is Entity) it.validateTransform() }
-                    val seq = ArrayList<Component>(64)
+                    val components = ArrayList<Component>(64)
                     instance.forAll {
-                        if (it is MeshComponentBase || it is MeshSpawner) {
-                            seq.add(it as Component)
+                        when (it) {
+                            is Entity -> it.validateTransform()
+                            is MeshComponentBase, is MeshSpawner -> {
+                                components.add(it as Component)
+                            }
                         }
                     }
-                    joinMeshes(seq)
+                    joinMeshes(components)
                 }
                 is MeshSpawner -> joinMeshes(listOf(instance))
                 null -> null
@@ -81,14 +83,14 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
 
     /**
      * this should only be executed for decently small meshes ^^,
-     * large meshes might cause OutOfMemoryExceptions
+     * large meshes may cause OutOfMemoryExceptions
      * */
-    private fun joinMeshes(list: Iterable<Component>): Mesh? {
+    private fun joinMeshes(list: List<Component>): Mesh? {
 
         val meshes = ArrayList<Triple<Mesh, Transform?, List<FileReference>>>()
         for (comp in list) {
             when (comp) {
-                is MeshComponentBase -> addMesh(meshes, comp.getMeshOrNull(), comp.transform, comp.materials)
+                is MeshComponentBase -> addMesh(meshes, comp.getMesh(), comp.transform, comp.materials)
                 is MeshSpawner -> {
                     comp.forEachMesh { mesh, material, transform ->
                         val materialList = if (material == null) emptyList()
@@ -104,6 +106,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
             1 -> {
                 // special case: no joining required
                 val (mesh, transform, materials) = meshes[0]
+                transform?.validate()
                 val matrix = transform?.globalTransform
                 if ((matrix == null || matrix.isIdentity())) {
                     if (materials == mesh.materials) mesh else {
@@ -132,8 +135,10 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                     override fun getMaterials(element: Triple<Mesh, Transform?, List<FileReference>>) = element.third
                     override fun getTransform(element: Triple<Mesh, Transform?, List<FileReference>>, dst: Matrix4x3f) {
                         val transform = element.second
-                        if (transform != null) dst.set(transform.globalTransform)
-                        else dst.identity()
+                        if (transform != null) {
+                            transform.validate()
+                            dst.set(transform.globalTransform)
+                        } else dst.identity()
                     }
                 }.join(Mesh(), meshes)
             }

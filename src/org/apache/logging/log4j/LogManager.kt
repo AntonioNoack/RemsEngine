@@ -38,6 +38,12 @@ object LogManager {
     }
 
     @JvmStatic
+    @Suppress("unused")
+    fun enableLogger(logger: LoggerImpl) {
+        enableLogger(logger.prefix)
+    }
+
+    @JvmStatic
     fun define(logger: String?, level: Level) {
         logLevels[logger] = level
     }

@@ -177,7 +177,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
 
     @DebugAction
     fun printMesh() {
-        val mesh = getMeshOrNull()
+        val mesh = getMesh()
         if (mesh != null) {
             val pos = mesh.positions ?: return
             if (!LOGGER.isDebugEnabled) {

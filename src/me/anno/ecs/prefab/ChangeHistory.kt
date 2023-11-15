@@ -1,13 +1,14 @@
 package me.anno.ecs.prefab
 
+import me.anno.ecs.Entity
 import me.anno.ecs.prefab.change.CAdd
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Change
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ECSRegistry
 import me.anno.io.ISaveable
-import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.serialization.NotSerializedProperty
 import me.anno.studio.StudioBase
 import me.anno.studio.history.StringHistory
 import me.anno.ui.editor.PropertyInspector
@@ -54,6 +55,15 @@ class ChangeHistory : StringHistory() {
                     }
                 }
             }
+            // update transforms
+            val si = prefab._sampleInstance
+            if (si is Entity) {
+                si.forAll {
+                    if (it is Entity) {
+                        it.transform.teleportUpdate()
+                    }
+                }
+            }
         } else {
             prevSets.clear()
             for (change in changes) {
@@ -74,5 +84,4 @@ class ChangeHistory : StringHistory() {
     companion object {
         private val LOGGER = LogManager.getLogger(ChangeHistory::class)
     }
-
 }

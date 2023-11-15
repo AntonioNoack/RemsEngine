@@ -74,7 +74,7 @@ class GLTFWriter(
 
     private fun countMeshes(entity: Entity): Int {
         return entity.components.count {
-            it is MeshComponentBase && it.getMeshOrNull() != null
+            it is MeshComponentBase && it.getMesh() != null
         }
     }
 
@@ -92,7 +92,7 @@ class GLTFWriter(
                 children2.add(add(child))
             }
             entity.components.filterIsInstance<MeshComponentBase>()
-                .filter { it.getMeshOrNull() != null }
+                .filter { it.getMesh() != null }
                 .forEach {
                     val idx2 = nodes.size
                     nodes.add(it)
@@ -283,7 +283,7 @@ class GLTFWriter(
             val mesh = node.components
                 .filterIsInstance<MeshComponentBase>()
                 .firstNotNullOfOrNull {
-                    val mesh = it.getMeshOrNull()
+                    val mesh = it.getMesh()
                     if (mesh != null) Pair(mesh, it.materials) else null
                 }
             if (mesh != null) {
@@ -644,7 +644,7 @@ class GLTFWriter(
             writer.write(name)
         }
 
-        val mesh = node.getMeshOrNull()
+        val mesh = node.getMesh()
         if (mesh != null) {
             writer.attr("mesh")
             writer.write(meshes.getOrPut(Pair(mesh, node.materials)) { meshes.size })

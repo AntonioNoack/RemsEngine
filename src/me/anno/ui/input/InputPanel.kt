@@ -10,6 +10,7 @@ interface InputPanel<V> {
 
     val value: V
 
-    fun setValue(newValue: V, notify: Boolean): Panel
+    fun setValue(newValue: V, notify: Boolean): Panel = setValue(newValue, -1, notify)
+    fun setValue(newValue: V, mask: Int, notify: Boolean): Panel
 
 }

@@ -55,6 +55,8 @@ import kotlin.math.max
 /**
  * Collects meshes for different passes (opaque, transparency, decals, ...), and for instanced rendering;
  * Makes rendering multiple points of view much cheaper (e.g., for stereo vision for VR)
+ *
+ * // todo we need a collector of static meshes
  * */
 class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
 
@@ -138,7 +140,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         index: Int
     ): Material {
         val m0 = materialOverrides?.getOrNull(index)?.nullIfUndefined()
-        val m1 = m0 ?: materials.getOrNull(index)
+        val m1 = m0 ?: materials.getOrNull(index) ?: return defaultMaterial
         return MaterialCache[m1, defaultMaterial]
     }
 
@@ -433,22 +435,29 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         }
     }
 
-    private fun subFill(entity: Entity, clickId0: Int): Int {
+    private val subFillTodo = ArrayList<Entity>()
+    private fun subFill(entity0: Entity, clickId0: Int): Int {
+        // use a list instead of the stack to beautify stack traces a little
+        subFillTodo.clear()
+        subFillTodo.add(entity0)
         var clickId = clickId0
-        val components = entity.components
-        for (i in components.indices) {
-            val component = components[i]
-            if (component.isEnabled && component !== ignoredComponent && component is Renderable) {
-                if (component !is MeshComponentBase || frustum.isVisible(component.globalAABB)) {
-                    clickId = component.fill(this, entity, clickId)
+        while (subFillTodo.isNotEmpty()) {
+            val entity = subFillTodo.removeLast()
+            val components = entity.components
+            for (i in components.indices) {
+                val component = components[i]
+                if (component.isEnabled && component !== ignoredComponent && component is Renderable) {
+                    if (component !is MeshComponentBase || frustum.isVisible(component.globalAABB)) {
+                        clickId = component.fill(this, entity, clickId)
+                    }
                 }
             }
-        }
-        val children = entity.children
-        for (i in children.indices) {
-            val child = children[i]
-            if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
-                clickId = subFill(child, clickId)
+            val children = entity.children
+            for (i in children.indices) {
+                val child = children[i]
+                if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
+                    subFillTodo.add(child)
+                }
             }
         }
         return clickId

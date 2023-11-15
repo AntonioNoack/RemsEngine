@@ -7,8 +7,10 @@ import me.anno.input.Input.isControlDown
 import me.anno.input.Input.isLeftDown
 import me.anno.input.Input.isShiftDown
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
@@ -103,7 +105,7 @@ open class FloatVectorInput(
         title: String, visibilityKey: String, value: Vector4d,
         type: Type = Type.VEC4D, style: Style
     ) : this(title, visibilityKey, type, style) {
-        setValue(value, false)
+        setValue(value, -1, false)
     }
 
     private val components: Int = type.components
@@ -160,10 +162,10 @@ open class FloatVectorInput(
             titleView?.isItalic = value
         }
 
-    private fun addComponent(title: String): FloatInput {
+    private fun addComponent(title: String, index: Int): FloatInput {
         val component = createComponent()
         component.inputPanel.tooltip = title
-        component.setChangeListener { onChange() }
+        component.setChangeListener { onChange(1 shl index) }
         component.weight = 1f
         valueList += component
         valueFields += component
@@ -187,10 +189,10 @@ open class FloatVectorInput(
         return if (data.startsWith("[") && data.endsWith("]") && data.indexOf('{') < 0) {
             val values = data.substring(1, data.lastIndex).split(',').map { it.trim().toDoubleOrNull() }
             if (values.size in 1..4) {
-                values[0]?.apply { compX.setValue(this, true) }
-                values.getOrNull(2)?.apply { compY?.setValue(this, true) }
-                values.getOrNull(2)?.apply { compZ?.setValue(this, true) }
-                values.getOrNull(3)?.apply { compW?.setValue(this, true) }
+                values[0]?.apply { compX.setValue(this, -1, true) }
+                values.getOrNull(2)?.apply { compY?.setValue(this, -1, true) }
+                values.getOrNull(2)?.apply { compZ?.setValue(this, -1, true) }
+                values.getOrNull(3)?.apply { compW?.setValue(this, -1, true) }
                 Unit
             } else null
         } else null
@@ -205,12 +207,12 @@ open class FloatVectorInput(
     }
 
     fun pasteScalar(data: String): Unit? {
-        val allComponents = data.toDoubleOrNull()
-        return if (allComponents != null && allComponents.isFinite()) {
-            compX.setValue(allComponents, true)
-            compY?.setValue(allComponents, true)
-            compZ?.setValue(allComponents, true)
-            compW?.setValue(allComponents, true)
+        val scalar = data.toDoubleOrNull()
+        return if (scalar != null && scalar.isFinite()) {
+            compX.setValue(scalar, -1, true)
+            compY?.setValue(scalar, -1, true)
+            compZ?.setValue(scalar, -1, true)
+            compW?.setValue(scalar, -1, true)
             Unit
         } else null
     }
@@ -234,10 +236,10 @@ open class FloatVectorInput(
         compW?.updateValueMaybe()
     }
 
-    val compX = addComponent("x")
-    val compY = if (components > 1) addComponent("y") else null
-    val compZ = if (components > 2) addComponent("z") else null
-    val compW = if (components > 3) addComponent("w") else null
+    val compX = addComponent("x", 0)
+    val compY = if (components > 1) addComponent("y", 1) else null
+    val compZ = if (components > 2) addComponent("z", 2) else null
+    val compW = if (components > 3) addComponent("w", 3) else null
 
     val vx get() = compX.value.toFloat()
     val vy get() = compY?.value?.toFloat() ?: 0f
@@ -282,36 +284,36 @@ open class FloatVectorInput(
     }
 
     fun setValue(v: Vector2d, notify: Boolean) {
-        compX.setValue(v.x, notify)
-        compY?.setValue(v.y, notify)
+        compX.setValue(v.x, -1, notify)
+        compY?.setValue(v.y, -1, notify)
     }
 
     fun setValue(v: Vector3d, notify: Boolean) {
-        compX.setValue(v.x, notify)
-        compY?.setValue(v.y, notify)
-        compZ?.setValue(v.z, notify)
+        compX.setValue(v.x, -1, notify)
+        compY?.setValue(v.y, -1, notify)
+        compZ?.setValue(v.z, -1, notify)
     }
 
-    final override fun setValue(newValue: Vector4d, notify: Boolean): FloatVectorInput {
-        compX.setValue(newValue.x, notify)
-        compY?.setValue(newValue.y, notify)
-        compZ?.setValue(newValue.z, notify)
-        compW?.setValue(newValue.w, notify)
+    final override fun setValue(newValue: Vector4d, mask: Int, notify: Boolean): Panel {
+        compX.setValue(newValue.x, -1, notify && mask.hasFlag(1))
+        compY?.setValue(newValue.y, -1, notify && mask.hasFlag(2))
+        compZ?.setValue(newValue.z, -1, notify && mask.hasFlag(4))
+        compW?.setValue(newValue.w, -1, notify && mask.hasFlag(8))
         return this
     }
 
     fun setValue(v: Planed, notify: Boolean) {
-        compX.setValue(v.dirX, notify)
-        compY?.setValue(v.dirY, notify)
-        compZ?.setValue(v.dirZ, notify)
-        compW?.setValue(v.distance, notify)
+        compX.setValue(v.dirX, -1, notify)
+        compY?.setValue(v.dirY, -1, notify)
+        compZ?.setValue(v.dirZ, -1, notify)
+        compW?.setValue(v.distance, -1, notify)
     }
 
     fun setValue(v: Quaterniond, notify: Boolean) {
-        compX.setValue(v.x, notify)
-        compY?.setValue(v.y, notify)
-        compZ?.setValue(v.z, notify)
-        compW?.setValue(v.w, notify)
+        compX.setValue(v.x, -1, notify)
+        compY?.setValue(v.y, -1, notify)
+        compZ?.setValue(v.z, -1, notify)
+        compW?.setValue(v.w, -1, notify)
     }
 
     fun setValue(vi: FloatVectorInput, notify: Boolean) {
@@ -321,19 +323,20 @@ open class FloatVectorInput(
         compW?.setValue(vi.vw, notify)
     }
 
-    val changeListeners = ArrayList<(x: Double, y: Double, z: Double, w: Double) -> Unit>()
+    val changeListeners = ArrayList<(x: Double, y: Double, z: Double, w: Double, mask: Int) -> Unit>()
 
-    fun onChange() {
+    fun onChange(mask: Int) {
         for (changeListener in changeListeners)
             changeListener(
                 compX.value,
                 compY?.value ?: 0.0,
                 compZ?.value ?: 0.0,
-                compW?.value ?: 0.0
+                compW?.value ?: 0.0,
+                mask
             )
     }
 
-    fun addChangeListener(listener: (x: Double, y: Double, z: Double, w: Double) -> Unit): FloatVectorInput {
+    fun addChangeListener(listener: (x: Double, y: Double, z: Double, w: Double, mask: Int) -> Unit): FloatVectorInput {
         changeListeners.add(listener)
         return this
     }
@@ -346,7 +349,7 @@ open class FloatVectorInput(
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
         super.onMouseMoved(x, y, dx, dy)
-        if (isLeftDown && isAnyChildInFocus) {
+        if (isLeftDown && isAnyChildInFocus && InputVisibility[visibilityKey]) {
             val ws = windowStack
             val size = 20f * shiftSlowdown / max(ws.width, ws.height)
             val dx0 = dx * size
@@ -444,14 +447,14 @@ open class FloatVectorInput(
                 is Quaterniond -> {
                     if (type.components == 3) {
                         val comp = value.toEulerAnglesDegrees()
-                        valueFields[0].setValue(comp.x, false)
-                        valueFields[1].setValue(comp.y, false)
-                        valueFields[2].setValue(comp.z, false)
+                        valueFields[0].setValue(comp.x, -1, false)
+                        valueFields[1].setValue(comp.y, -1, false)
+                        valueFields[2].setValue(comp.z, -1, false)
                     } else {
-                        valueFields[0].setValue(value.x, false)
-                        valueFields[1].setValue(value.y, false)
-                        valueFields[2].setValue(value.z, false)
-                        valueFields[3].setValue(value.w, false)
+                        valueFields[0].setValue(value.x, -1, false)
+                        valueFields[1].setValue(value.y, -1, false)
+                        valueFields[2].setValue(value.z, -1, false)
+                        valueFields[3].setValue(value.w, -1, false)
                     }
                 }
                 else -> onEmpty2(value ?: type.defaultValue)
@@ -461,10 +464,10 @@ open class FloatVectorInput(
 
     fun onEmpty2(defaultValue: Any) {
         for (index in valueFields.indices) {
-            valueFields[index].setValue(getDouble(defaultValue, index, 0.0), false)
+            valueFields[index].setValue(getDouble(defaultValue, index, 0.0), -1, false)
         }
         if (resetListener == null) {
-            onChange()
+            onChange(-1)
         }// else:
         // onChange is not required, and wrong, because we set a listener, so we need to handle this ourselves
         // also we decided the value ourselves, so we know the value
@@ -485,7 +488,7 @@ open class FloatVectorInput(
         dst.changeListeners.clear()
         dst.changeListeners.addAll(changeListeners)
         dst.resetListener = resetListener
-        dst.setValue(Vector4d(vxd, vyd, vzd, vwd), false)
+        dst.setValue(Vector4d(vxd, vyd, vzd, vwd), -1, false)
     }
 
     override val className: String get() = "FloatVectorInput"

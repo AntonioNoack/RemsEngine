@@ -20,7 +20,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.maths.Maths
 import me.anno.utils.structures.maps.KeyTripleMap
-import me.anno.utils.structures.tuples.LongPair
+import me.anno.utils.structures.tuples.LongTriple
 
 /**
  * container for instanced transforms and their click ids
@@ -68,8 +68,9 @@ open class InstancedStack {
             needsLightUpdateForEveryMesh: Boolean,
             time: Long,
             depth: Boolean
-        ): LongPair {
+        ): LongTriple {
             var drawnPrimitives = 0L
+            var drawnInstances = 0L
             var drawCalls = 0L
             // draw instanced meshes
             for ((mesh, list) in data.values) {
@@ -83,12 +84,14 @@ open class InstancedStack {
                                     time, values, depth
                                 )
                             }
-                            drawnPrimitives += mesh.numPrimitives * values.size.toLong()
+                            val numInstances = values.size.toLong()
+                            drawnInstances += numInstances
+                            drawnPrimitives += mesh.numPrimitives * numInstances
                         }
                     }
                 }
             }
-            return LongPair(drawnPrimitives, drawCalls)
+            return LongTriple(drawnPrimitives, drawnInstances, drawCalls)
         }
 
         private fun drawInstances(

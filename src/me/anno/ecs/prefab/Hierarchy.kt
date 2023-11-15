@@ -137,10 +137,7 @@ object Hierarchy {
                 val components = instance.getChildListByType(childType)
 
                 val childIndex = pathI.index
-                if (
-                    childIndex in components.indices &&
-                    components[childIndex].prefabPath == pathI
-                ) {
+                if (components.getOrNull(childIndex)?.prefabPath == pathI) {
                     // bingo; easiest way: path is matching
                     instance = components[childIndex]
                 } else {
@@ -151,7 +148,7 @@ object Hierarchy {
                         for (type in instance.listChildTypes()) {
                             val match2 = instance.getChildListByType(type).firstOrNull { it.prefabPath == pathI }
                             if (match2 != null) {
-                                LOGGER.warn("Child $pathI had incorrect type '$childType', actual type was '$type'")
+                                LOGGER.warn("Child $pathI had incorrect type '$childType', actual type was '$type' in ${instance0.prefab?.source}")
                                 foundMatch = true
                                 instance = match2
                                 break
@@ -379,7 +376,7 @@ object Hierarchy {
         val matches = adds.filter(lambda)
         when (matches.size) {
             0 -> {
-                LOGGER.info("did not find add @$parentPath, prefab: ${prefab.source}:${prefab.prefab}, ${prefab.adds}, ${prefab.sets}")
+                LOGGER.info("did not find add @$parentPath[$clazzName], prefab: ${prefab.source}:${prefab.prefab}, ${prefab.adds}, ${prefab.sets}")
                 prefab[path, "isEnabled"] = false
             }
             else -> {
@@ -401,5 +398,52 @@ object Hierarchy {
         }
 
         ECSSceneTabs.updatePrefab(prefab)
+    }
+
+    fun resetPrefab(prefab: Prefab, path: Path, removeChildren: Boolean) {
+        val changes0 = if (removeChildren) {
+            val dirtyAdds = prefab.adds
+            val cleanedAdds = dirtyAdds.filter {
+                !it.path.startsWith0(path)
+            }
+            prefab.adds = cleanedAdds
+            dirtyAdds.size - cleanedAdds.size
+        } else 0
+        val changes1 = prefab.sets.removeIf { path1, _, _ ->
+            path1.startsWith0(path)
+        }
+        val changes = changes0 + changes1
+        if (changes > 0) {
+            LOGGER.info("Removed $changes0 instances + $changes1 properties")
+            prefab.invalidateInstance()
+        } else LOGGER.info("Instance was already reset")
+    }
+
+    fun resetPrefabExceptTransform(prefab: Prefab, path: Path, removeChildren: Boolean) {
+        val removedPaths = if (removeChildren) {
+            val dirtyAdds = prefab.adds
+            val cleanedAdds = dirtyAdds.filter {
+                !it.path.startsWith0(path)
+            }
+            prefab.adds = cleanedAdds
+            (dirtyAdds - cleanedAdds.toHashSet()).map { it.path }
+        } else emptyList()
+        val changes0 = removedPaths.size
+        val changes1 = prefab.sets.removeIf { path1, key, _ ->
+            path1.startsWith0(path) && when (key) {
+                "position", "rotation", "scale" -> {
+                    // change needs to be removed, if its instance was removed
+                    removedPaths.any {
+                        path1.startsWith0(it)
+                    }
+                }
+                else -> true
+            }
+        }
+        val changes = changes0 + changes1
+        if (changes > 0) {
+            LOGGER.info("Removed $changes0 instances + $changes1 properties")
+            prefab.invalidateInstance()
+        } else LOGGER.info("Instance was already reset")
     }
 }

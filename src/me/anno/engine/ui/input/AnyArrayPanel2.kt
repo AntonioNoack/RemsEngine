@@ -30,7 +30,7 @@ open class AnyArrayPanel2(title: String, visibilityKey: String, val childType: S
             is InputPanel<*> -> {
                 if (panel.value != value) {
                     @Suppress("UNCHECKED_CAST")
-                    (panel as InputPanel<Any?>).setValue(value, false)
+                    (panel as InputPanel<Any?>).setValue(value, -1, false)
                 }
             }
             else -> LOGGER.warn("Unknown type ${panel.className} is not an InputPanel")
@@ -48,7 +48,7 @@ open class AnyArrayPanel2(title: String, visibilityKey: String, val childType: S
     ) : IProperty<Any?> {
         override fun init(panel: Panel?) {}
         override val annotations: List<Annotation> get() = emptyList()
-        override fun set(panel: Panel?, value: Any?) = anyArrayPanel.set(this.panel.value!!, value)
+        override fun set(panel: Panel?, value: Any?, mask: Int) = anyArrayPanel.set(this.panel.value!!, value)
         override fun get(): Any? = value
         override fun getDefault(): Any? = ComponentUI.getDefault(arrayType)
         override fun reset(panel: Panel?): Any? = getDefault().apply { set(panel, this) }

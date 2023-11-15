@@ -9,7 +9,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
-import me.anno.utils.structures.tuples.LongPair
+import me.anno.utils.structures.tuples.LongTriple
 
 /**
  * instanced stack of buffers of static data,
@@ -42,8 +42,9 @@ class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData
         stage: PipelineStage,
         needsLightUpdateForEveryMesh: Boolean,
         time: Long, depth: Boolean
-    ): LongPair {
+    ): LongTriple {
         var drawnPrimitives = 0L
+        var drawnInstances = 0L
         var drawCalls = 0L
         // draw instanced meshes
         for ((mesh, list) in data.values) {
@@ -51,13 +52,15 @@ class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData
                 for ((material, stack) in list) {
                     for (i in 0 until stack.size) {
                         drawStack(pipeline, stage, mesh, material, stack, i)
-                        drawnPrimitives += mesh.numPrimitives * stack.data[i].elementCount.toLong()
+                        val numInstances = stack.data[i].elementCount.toLong()
+                        drawnPrimitives += mesh.numPrimitives * numInstances
+                        drawnInstances += numInstances
                         drawCalls++
                     }
                 }
             }
         }
-        return LongPair(drawnPrimitives, drawCalls)
+        return LongTriple(drawnPrimitives, drawnInstances, drawCalls)
     }
 
     fun drawStack(

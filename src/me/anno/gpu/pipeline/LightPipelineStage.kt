@@ -134,6 +134,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
         val depthMask1 = singleToVector[depthMask]!!
 
         var drawnPrimitives = 0L
+        var drawnInstances = 0L
         var drawCalls = 0L
         nonInstanced.forEachType { lights, size, type ->
 
@@ -201,11 +202,13 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
                 mesh.draw(shader, 0)
 
                 drawnPrimitives += mesh.numPrimitives
+                drawnInstances++
                 drawCalls++
             }
         }
 
         PipelineStage.drawnPrimitives += drawnPrimitives
+        PipelineStage.drawnInstances += drawnInstances
         PipelineStage.drawCalls += drawCalls
 
         // draw instanced meshes
@@ -288,6 +291,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
         }
 
         PipelineStage.drawnPrimitives += size * mesh.numPrimitives
+        PipelineStage.drawnInstances += size
         PipelineStage.drawCalls += callCount
     }
 

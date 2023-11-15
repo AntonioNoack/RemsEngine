@@ -64,6 +64,7 @@ class PipelineStage(
         const val DECAL_PASS = 2
 
         var drawnPrimitives = 0L
+        var drawnInstances = 0L
         var drawCalls = 0L
 
         val lastMaterial = HashMap<Shader, Material>(64)
@@ -385,7 +386,7 @@ class PipelineStage(
                     buffer.position(0)
                     shader.m4x3Array(invLightMatrices, buffer)
                 }
-                val lightMatrices = shader["lightMatrices"]
+                val lightMatrices = shader.getUniformLocation("lightMatrices", false)
                 if (invLightMatrices >= 0) {
                     // fill all transforms
                     buffer.limit(12 * numberOfLights)
@@ -559,6 +560,7 @@ class PipelineStage(
         previousMaterialInScene = null
 
         var drawnPrimitives = 0L
+        var drawnInstances = 0L
         var drawCalls = 0L
 
         val time = Time.gameTimeN
@@ -598,14 +600,16 @@ class PipelineStage(
 
         // instanced rendering of all kinds
         for (i in instances.indices) {
-            val (dt, dc) = instances[i].draw0(pipeline, this, needsLightUpdateForEveryMesh, time, false)
+            val (dt, di, dc) = instances[i].draw0(pipeline, this, needsLightUpdateForEveryMesh, time, false)
             drawnPrimitives += dt
+            drawnInstances += di
             drawCalls += dc
         }
 
         lastMaterial.clear()
 
         Companion.drawnPrimitives += drawnPrimitives
+        Companion.drawnInstances += drawnInstances
         Companion.drawCalls += drawCalls
     }
 

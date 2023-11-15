@@ -132,7 +132,7 @@ open class FileInput(
             }
         }
 
-    override fun setValue(newValue: FileReference, notify: Boolean): FileInput {
+    override fun setValue(newValue: FileReference, mask: Int, notify: Boolean): Panel {
         base.setValue(newValue.toString2(), false)
         if (notify) changeListener(newValue)
         return this

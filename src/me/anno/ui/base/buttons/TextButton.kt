@@ -34,7 +34,7 @@ open class TextButton(
     }
 
     override val value: Unit get() = Unit
-    override fun setValue(newValue: Unit, notify: Boolean): Panel {
+    override fun setValue(newValue: Unit, mask: Int, notify: Boolean): Panel {
         return this
     }
 

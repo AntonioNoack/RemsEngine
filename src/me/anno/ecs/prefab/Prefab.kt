@@ -67,6 +67,13 @@ class Prefab : Saveable {
             invalidateInstance()
         }
 
+    fun find(path: Path, depth: Int = 0): CAdd? {
+        if (depth > 0) throw NotImplementedError()
+        return adds.firstOrNull {
+            it.nameId == path.nameId && it.path == path.parent
+        }
+    }
+
     fun invalidateInstance() {
         if (source !is PrefabReadable || adds.isNotEmpty() || sets.isNotEmpty()) {
             synchronized(this) {

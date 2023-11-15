@@ -36,10 +36,10 @@ import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
 import me.anno.studio.Inspectable
@@ -471,10 +471,10 @@ object ComponentUI {
                 if (title.endsWith("color", true)) {
                     return ColorInput(style, title, visibilityKey, (value as? Int ?: 0).toVecRGBA(), true).apply {
                         property.init(this)
-                        askForReset(property) { it as Int; setValue(it.toVecRGBA(), false) }
+                        askForReset(property) { it as Int; setValue(it.toVecRGBA(), -1, false) }
                         setResetListener { (property.reset(this) as Int).toVecRGBA() }
-                        setChangeListener { r, g, b, a ->
-                            property.set(this, Color.rgba(r, g, b, a))
+                        setChangeListener { r, g, b, a, mask ->
+                            property.set(this, Color.rgba(r, g, b, a), mask)
                         }
                     }
                 } else {
@@ -549,9 +549,9 @@ object ComponentUI {
                     { Maths.clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
                     property.init(this)
-                    setValue(value as Double, false)
+                    setValue(value as Double, -1, false)
                     setResetListener { property.reset(this).toString() }
-                    askForReset(property) { setValue(it as Double, false) }
+                    askForReset(property) { setValue(it as Double, -1, false) }
                     setChangeListener {
                         property.set(this, it)
                     }
@@ -591,8 +591,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2f, false) }
-                    addChangeListener { x, y, _, _ ->
-                        property.set(this, Vector2f(x.toFloat(), y.toFloat()))
+                    addChangeListener { x, y, _, _, mask ->
+                        property.set(this, Vector2f(x.toFloat(), y.toFloat()), mask)
                     }
                 }
             }
@@ -602,8 +602,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3f, false) }
-                    addChangeListener { x, y, z, _ ->
-                        property.set(this, Vector3f(x.toFloat(), y.toFloat(), z.toFloat()))
+                    addChangeListener { x, y, z, _, mask ->
+                        property.set(this, Vector3f(x.toFloat(), y.toFloat(), z.toFloat()), mask)
                     }
                 }
             }
@@ -613,8 +613,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4f, false) }
-                    addChangeListener { x, y, z, w ->
-                        property.set(this, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
+                    addChangeListener { x, y, z, w, mask ->
+                        property.set(this, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()), mask)
                     }
                 }
             }
@@ -624,8 +624,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Planef, false) }
-                    addChangeListener { x, y, z, w ->
-                        property.set(this, Planef(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
+                    addChangeListener { x, y, z, w, mask ->
+                        property.set(this, Planef(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()), mask)
                     }
                 }
             }
@@ -635,8 +635,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2d, false) }
-                    addChangeListener { x, y, _, _ ->
-                        property.set(this, Vector2d(x, y))
+                    addChangeListener { x, y, _, _, mask ->
+                        property.set(this, Vector2d(x, y), mask)
                     }
                 }
             }
@@ -646,8 +646,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3d, false) }
-                    addChangeListener { x, y, z, _ ->
-                        property.set(this, Vector3d(x, y, z))
+                    addChangeListener { x, y, z, _, mask ->
+                        property.set(this, Vector3d(x, y, z), mask)
                     }
                 }
             }
@@ -656,9 +656,9 @@ object ComponentUI {
                 return FloatVectorInput(title, visibilityKey, value as Vector4d, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector4d, false) }
-                    addChangeListener { x, y, z, w ->
-                        property.set(this, Vector4d(x, y, z, w))
+                    askForReset(property) { setValue(it as Vector4d, -1, false) }
+                    addChangeListener { x, y, z, w, mask ->
+                        property.set(this, Vector4d(x, y, z, w), mask)
                     }
                 }
             }
@@ -668,8 +668,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Planed, false) }
-                    addChangeListener { x, y, z, w ->
-                        property.set(this, Planed(x, y, z, w))
+                    addChangeListener { x, y, z, w, mask ->
+                        property.set(this, Planed(x, y, z, w), mask)
                     }
                 }
             }
@@ -680,8 +680,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2i, false) }
-                    addChangeListener { x, y, _, _ ->
-                        property.set(this, Vector2i(x.toInt(), y.toInt()))
+                    addChangeListener { x, y, _, _, mask ->
+                        property.set(this, Vector2i(x.toInt(), y.toInt()), mask)
                     }
                 }
             }
@@ -691,8 +691,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3i, false) }
-                    addChangeListener { x, y, z, _ ->
-                        property.set(this, Vector3i(x.toInt(), y.toInt(), z.toInt()))
+                    addChangeListener { x, y, z, _, mask ->
+                        property.set(this, Vector3i(x.toInt(), y.toInt(), z.toInt()), mask)
                     }
                 }
             }
@@ -701,9 +701,9 @@ object ComponentUI {
                 return IntVectorInput(title, visibilityKey, value as Vector4i, type, style).apply {
                     property.init(this)
                     setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(it as Vector4i, false) }
-                    addChangeListener { x, y, z, w ->
-                        property.set(this, Vector4i(x.toInt(), y.toInt(), z.toInt(), w.toInt()))
+                    askForReset(property) { setValue(it as Vector4i, -1, false) }
+                    addChangeListener { x, y, z, w, mask ->
+                        property.set(this, Vector4i(x.toInt(), y.toInt(), z.toInt(), w.toInt()), mask)
                     }
                 }
             }
@@ -717,9 +717,9 @@ object ComponentUI {
                     property.init(this)
                     askForReset(property) { setValue((it as Quaternionf).toEulerAnglesDegrees(), false) }
                     setResetListener { property.reset(this) }
-                    addChangeListener { x, y, z, _ ->
+                    addChangeListener { x, y, z, _, mask ->
                         val q = Vector3f(x.toFloat(), y.toFloat(), z.toFloat()).toQuaternionDegrees()
-                        property.set(this, q)
+                        property.set(this, q, mask)
                     }
                 }
             }
@@ -730,8 +730,8 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as Quaterniond).toEulerAnglesDegrees(), false) }
-                    addChangeListener { x, y, z, _ ->
-                        property.set(this, Vector3d(x, y, z).toQuaternionDegrees())
+                    addChangeListener { x, y, z, _, mask ->
+                        property.set(this, Vector3d(x, y, z).toQuaternionDegrees(), mask)
                     }
                 }
             }
@@ -755,7 +755,7 @@ object ComponentUI {
                 }
                 return object : ColorInput(style, title, visibilityKey, b2l(value), type0 == "Color3HDR") {
                     override fun onCopyRequested(x: Float, y: Float): String? {
-                        if(type0 == "Color3") return super.onCopyRequested(x, y)
+                        if (type0 == "Color3") return super.onCopyRequested(x, y)
                         val v = l2b(this.value)
                         return "vec3(${v.x},${v.y},${v.z})"
                     }
@@ -764,9 +764,9 @@ object ComponentUI {
                     // todo reset listener for color inputs
                     // todo brightness should have different background than alpha
                     // setResetListener { property.reset(this) }
-                    askForReset(property) { setValue(b2l(it as Vector3f), false) }
-                    setChangeListener { r, g, b, a ->
-                        property.set(this, l2b(Vector4f(r, g, b, a)))
+                    askForReset(property) { setValue(b2l(it as Vector3f), -1, false) }
+                    setChangeListener { r, g, b, a, mask ->
+                        property.set(this, l2b(Vector4f(r, g, b, a)), mask)
                     }
                 }
             }
@@ -778,9 +778,9 @@ object ComponentUI {
                         property.init(this)
                         // todo reset listener for color inputs
                         // setResetListener { property.reset(this) }
-                        askForReset(property) { setValue(it as Vector4f, false) }
-                        setChangeListener { r, g, b, a ->
-                            property.set(this, Vector4f(r, g, b, a))
+                        askForReset(property) { setValue(it as Vector4f, -1, false) }
+                        setChangeListener { r, g, b, a, mask ->
+                            property.set(this, Vector4f(r, g, b, a), mask)
                         }
                     }
             }
@@ -798,7 +798,7 @@ object ComponentUI {
                         FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
                             .apply {
                                 // todo correct change listener
-                                addChangeListener { x, y, z, w ->
+                                addChangeListener { x, y, z, w, _ ->
                                     value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
                                 }
                             }
@@ -825,9 +825,9 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBf).getMin(), false) }
-                    addChangeListener { x, y, z, _ ->
+                    addChangeListener { x, y, z, _, mask ->
                         value.setMin(x.toFloat(), y.toFloat(), z.toFloat())
-                        property.set(this, value)
+                        property.set(this, value, mask.and(7))
                     }
                 })
                 val typeMax = Type.VEC3D.withDefault(default.getMax())
@@ -835,9 +835,9 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBf).getMax(), false) }
-                    addChangeListener { x, y, z, _ ->
+                    addChangeListener { x, y, z, _, mask ->
                         value.setMax(x.toFloat(), y.toFloat(), z.toFloat())
-                        property.set(this, value)
+                        property.set(this, value, mask.and(7).shl(3))
                     }
                 })
                 return pane
@@ -851,9 +851,9 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBd).getMin(), false) }
-                    addChangeListener { x, y, z, _ ->
+                    addChangeListener { x, y, z, _, mask ->
                         value.setMin(x, y, z)
-                        property.set(this, value)
+                        property.set(this, value, mask.and(3))
                     }
                 })
                 val typeMax = Type.VEC3D.withDefault(default.getMax())
@@ -861,9 +861,9 @@ object ComponentUI {
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBd).getMax(), false) }
-                    addChangeListener { x, y, z, _ ->
+                    addChangeListener { x, y, z, _, mask ->
                         value.setMax(x, y, z)
-                        property.set(this, value)
+                        property.set(this, value, mask.and(7).shl(3))
                     }
                 })
                 return pane
@@ -1246,6 +1246,9 @@ object ComponentUI {
             "Matrix4d" -> Matrix4d()
             "File", "FileReference", "Reference" -> InvalidRef
             else -> {
+                if (type.endsWith("/FileReference") || type.endsWith("/Reference")) {
+                    return InvalidRef
+                }
                 try {// just try it, maybe it works :)
                     ISaveable.create(type)
                 } catch (e: Exception) {

@@ -225,10 +225,14 @@ class Path(
     }
 
     override fun toString(): String {
+        return toString("/")
+    }
+
+    fun toString(separator: String): String {
         if (this == ROOT_PATH) return ""
         val parent = parent
         val notNullCode = if (type.code == 0) ' ' else type
-        return (if (parent == null || parent == ROOT_PATH) "" else "$parent/") + "$notNullCode$index,$nameId"
+        return (if (parent == null || parent == ROOT_PATH) "" else "${parent.toString(separator)}$separator") + "$notNullCode$index,$nameId"
     }
 
     override fun save(writer: BaseWriter) {

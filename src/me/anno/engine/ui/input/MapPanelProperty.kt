@@ -15,7 +15,7 @@ class MapPanelProperty(
     override fun get(): Any? = value
     override fun getDefault(): Any? = ComponentUI.getDefault(type)
     override fun reset(panel: Panel?): Any? = getDefault().apply { set(panel, this) }
-    override fun set(panel: Panel?, value: Any?) {
+    override fun set(panel: Panel?, value: Any?, mask: Int) {
         this.setFunc(value)
     }
 }

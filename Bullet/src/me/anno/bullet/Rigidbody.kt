@@ -419,7 +419,6 @@ open class Rigidbody : Component() {
     }
 
     override fun onDrawGUI(all: Boolean) {
-        super.onDrawGUI(all)
         if (mass > 0.0) LineShapes.drawCircle(entity, pow(mass, 1.0 / 3.0), 0, 1, 0.0)
     }
 

@@ -3,6 +3,7 @@ package me.anno.ui.input
 import me.anno.animation.Type
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
+import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.text.TextStyleable
@@ -49,7 +50,7 @@ open class IntVectorInput(
 
     constructor(title: String, visibilityKey: String, value: Vector4i, type: Type, style: Style) :
             this(title, visibilityKey, type, style) {
-        setValue(value, false)
+        setValue(value, -1, false)
     }
 
     private val components: Int get() = type.components
@@ -105,10 +106,10 @@ open class IntVectorInput(
         resetListener = listener
     }
 
-    private fun addComponent(title: String): IntInput {
+    private fun addComponent(title: String, index: Int): IntInput {
         val component = createComponent()
         component.inputPanel.tooltip = title
-        component.setChangeListener { onChange() }
+        component.setChangeListener { onChange(1 shl index) }
         component.weight = 1f
         valueList += component
         valueFields += component
@@ -180,10 +181,10 @@ open class IntVectorInput(
         compW?.updateValueMaybe()
     }
 
-    val compX = addComponent("x")
-    val compY = if (components > 1) addComponent("y") else null
-    val compZ = if (components > 2) addComponent("z") else null
-    val compW = if (components > 3) addComponent("w") else null
+    val compX = addComponent("x", 0)
+    val compY = if (components > 1) addComponent("y", 1) else null
+    val compZ = if (components > 2) addComponent("z", 2) else null
+    val compW = if (components > 3) addComponent("w", 3) else null
 
     val vx get() = compX.value
     val vy get() = compY?.value ?: 0L
@@ -201,7 +202,7 @@ open class IntVectorInput(
         compZ?.setValue(v.z, notify)
     }
 
-    final override fun setValue(newValue: Vector4i, notify: Boolean): IntVectorInput {
+    final override fun setValue(newValue: Vector4i, mask: Int, notify: Boolean): Panel {
         compX.setValue(newValue.x, notify)
         compY?.setValue(newValue.y, notify)
         compZ?.setValue(newValue.z, notify)
@@ -230,9 +231,9 @@ open class IntVectorInput(
         compW?.setValue(vw, notify)
     }
 
-    val changeListeners = ArrayList<(x: Long, y: Long, z: Long, w: Long) -> Unit>()
+    val changeListeners = ArrayList<(x: Long, y: Long, z: Long, w: Long, mask: Int) -> Unit>()
 
-    fun addChangeListener(listener: (x: Long, y: Long, z: Long, w: Long) -> Unit): IntVectorInput {
+    fun addChangeListener(listener: (x: Long, y: Long, z: Long, w: Long, mask: Int) -> Unit): IntVectorInput {
         changeListeners += listener
         return this
     }
@@ -252,9 +253,9 @@ open class IntVectorInput(
         }
     }
 
-    fun onChange() {
+    fun onChange(mask: Int) {
         for (changeListener in changeListeners) {
-            changeListener(vx, vy, vz, vw)
+            changeListener(vx, vy, vz, vw, mask)
         }
     }
 
@@ -263,7 +264,7 @@ open class IntVectorInput(
             valueFields[index].setValue(getInt(defaultValue, index), false)
         }
         if (resetListener == null) {
-            onChange()
+            onChange(-1)
         }
     }
 

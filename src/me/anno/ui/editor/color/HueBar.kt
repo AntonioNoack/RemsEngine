@@ -10,7 +10,7 @@ class HueBar(chooser: ColorChooser, style: Style) : HSVBox(chooser,
     Vector3f(0f, 1f, 0.75f),
     Vector3f(1f, 0f, 0f),
     Vector3f(), 0f, style, 1f, { hue, _ ->
-        chooser.setHSL(hue, chooser.saturation, chooser.lightness, chooser.opacity, chooser.colorSpace, true)
+        chooser.setHSL(hue, chooser.saturation, chooser.lightness, chooser.opacity, chooser.colorSpace, 1, true)
     }) {
     override fun getVisualState() = chooser.hue
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

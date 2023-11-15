@@ -13,6 +13,7 @@ import me.anno.ecs.components.ui.CanvasComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.debug.DebugShapes
 import me.anno.engine.pbr.DeferredRenderer
+import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.PlaneShapes
 import me.anno.engine.ui.control.ControlScheme
 import me.anno.engine.ui.render.DefaultSun.defaultSun
@@ -205,6 +206,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         val drawnPrimitives0 = PipelineStage.drawnPrimitives
+        val drawnInstances0 = PipelineStage.drawnInstances
         val drawCalls0 = PipelineStage.drawCalls
 
         currentInstance = this
@@ -277,7 +279,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
 
         if (playMode == PlayMode.EDITING) {
-            drawDebugStats(drawnPrimitives0, drawCalls0)
+            drawDebugStats(drawnPrimitives0, drawnInstances0, drawCalls0)
         }
 
         updatePrevState()
@@ -363,16 +365,17 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         popBetterBlending(pbb)
     }
 
-    fun drawDebugStats(drawnPrimitives0: Long, drawCalls0: Long) {
+    fun drawDebugStats(drawnPrimitives0: Long, drawnInstances0: Long, drawCalls0: Long) {
         val pbb = pushBetterBlending(true)
         val drawnPrimitives = PipelineStage.drawnPrimitives - drawnPrimitives0
+        val drawnInstances = PipelineStage.drawnInstances - drawnInstances0
         val drawCalls = PipelineStage.drawCalls - drawCalls0
         val usesBetterBlending = DrawTexts.canUseComputeShader()
         drawSimpleTextCharByChar(
             x + 2,
             y + height - 1 - DrawTexts.monospaceFont.sizeInt,
-            2, if (drawCalls == 1L) "$drawnPrimitives tris, 1 draw call"
-            else "$drawnPrimitives tris, $drawCalls draw calls",
+            2, if (drawCalls == 1L && drawnInstances == 1L) "$drawnPrimitives tris, 1 inst, 1 draw call"
+            else "$drawnPrimitives tris, $drawnInstances inst, $drawCalls draw calls",
             FrameTimings.textColor,
             FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255)
         )
@@ -767,81 +770,64 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         controlScheme?.drawGizmos()
 
-        var clickId = entityBaseClickId
-
         // much faster than depthTraversal, because we only need visible elements anyway
-        if (world != null) pipeline.traverse(world) { entity ->
-
-            val transform = entity.transform
-            val globalTransform = transform.globalTransform
-
-            /*val doDrawCircle = camPosition.distanceSquared(
-                globalTransform.m30,
-                globalTransform.m31,
-                globalTransform.m32
-            ) < maxCircleLenSq*/
-
-            val nextClickId = clickId++
-            entity.clickId = nextClickId
-
-            val stack = stack
-            stack.pushMatrix()
-            stack.mul4x3delta(globalTransform, cameraPosition, worldScale)
-
-            // only draw the circle, if its size is larger than ~ a single pixel
-            /*if (doDrawCircle) {
-                scale = globalTransform.getScale(scaleV).dot(0.3, 0.3, 0.3)
-                val ringColor = if (entity == EditorState.lastSelection) selectedColor else white4
-                PlaneShapes.drawCircle(globalTransform, ringColor.toARGB())
-                drawUICircle(stack, 0.5f / scale.toFloat(), 0.7f, ringColor)
-            }*/
-
-            val components = entity.components
-            for (i in components.indices) {
-                val component = components[i]
-                if (component.isEnabled) {
-                    // mesh components already got their ID
-                    if (component !is MeshComponentBase && component !is MeshSpawner) {
-                        val componentClickId = clickId++
-                        component.clickId = componentClickId
-                    }
-                    component.onDrawGUI(component.isSelectedIndirectly)
-                }
-            }
-
-            stack.popMatrix()
-
-            if (drawAABBs) {
+        if (world != null && drawAABBs) {
+            pipeline.traverse(world) { entity ->
                 val aabb1 = entity.aabb
                 val hit1 = aabb1.testLine(cameraPosition, mouseDirection, 1e10)
                 drawAABB(aabb1, if (hit1) aabbColorHovered else aabbColorDefault)
-                if (entity.hasRenderables) for (i in components.indices) {
-                    val component = components[i]
-                    if (component.isEnabled) {
-                        when (component) {
-                            is MeshComponentBase -> {
-                                val aabb2 = component.globalAABB
-                                val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
-                                drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
-                            }
-                            is MeshSpawner -> {
-                                val aabb2 = component.globalAABB
-                                val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
-                                drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
+                if (entity.hasRenderables) {
+                    val components = entity.components
+                    for (i in components.indices) {
+                        val component = components[i]
+                        if (component.isEnabled) {
+                            when (component) {
+                                is MeshComponentBase -> {
+                                    val aabb2 = component.globalAABB
+                                    val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
+                                    drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
+                                }
+                                is MeshSpawner -> {
+                                    val aabb2 = component.globalAABB
+                                    val hit2 = aabb2.testLine(cameraPosition, mouseDirection, 1e10)
+                                    drawAABB(aabb2, if (hit2) aabbColorHovered else aabbColorDefault)
+                                }
                             }
                         }
                     }
                 }
+                LineBuffer.drawIf1M(cameraMatrix)
             }
-            LineBuffer.drawIf1M(cameraMatrix)
         }
 
-        if (world is Component) {
-            if (world !is MeshComponentBase && world !is MeshSpawner) {
-                // mesh components already got their ID
-                val componentClickId = clickId++
-                world.clickId = componentClickId
+        // traverse over visible & selected
+        // c in EditorState.selection ||
+        //                entity?.anyInHierarchy { it == EditorState.lastSelection } == true
+        for (component in EditorState.selection) {
+            if (component is Component && component.isEnabled) {
+                val entity = component.entity
+                if (entity == null || pipeline.frustum.isVisible(entity.aabb)) {
+
+                    val stack = stack
+                    if (entity != null) {
+                        val transform = entity.transform
+                        val globalTransform = transform.globalTransform
+                        stack.pushMatrix()
+                        stack.mul4x3delta(globalTransform, cameraPosition, worldScale)
+                    }
+
+                    component.onDrawGUI(true)
+
+                    if (entity != null) {
+                        stack.popMatrix()
+                    }
+
+                    LineBuffer.drawIf1M(cameraMatrix)
+                }
             }
+        }
+
+        if (world is Component && world !in EditorState.selection) {
             world.onDrawGUI(world.isSelectedIndirectly)
         }
 

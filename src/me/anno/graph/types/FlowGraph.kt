@@ -54,19 +54,29 @@ open class FlowGraph : Graph() {
         }
     }
 
-    // returns the last node, which was executed
-    fun execute(startNode: Node): Node {
-        // LOGGER.debug("Execute ${startNode.className}")
-        startNode as FlowGraphNode
-        val exec = startNode.execute()
-        val nextNodes = exec?.others ?: return startNode
-        // LOGGER.debug("${startNode.className} -> ${nextNodes.map { it.className }}")
-        var lastNode = startNode
-        for (i in nextNodes.indices) {
-            val nodeX = nextNodes[i].node ?: continue
-            lastNode = execute(nodeX)
+    /**
+     * returns the last node, which was executed
+     * */
+    fun execute(startNode0: Node): Node {
+        var currentNode = startNode0
+        while (true) {
+            currentNode as FlowGraphNode
+            val exec = currentNode.execute()
+            val nextNodes = exec?.others ?: return currentNode
+            val firstNext = nextNodes.firstOrNull()?.node
+            if (nextNodes.size == 1 && firstNext != null) {
+                // non-recursive path to keep the stack trace flatter
+                currentNode = firstNext
+            } else {
+                // recursion needed
+                var lastNode = currentNode
+                for (i in nextNodes.indices) {
+                    val nodeX = nextNodes[i].node ?: continue
+                    lastNode = execute(nodeX)
+                }
+                return lastNode
+            }
         }
-        return lastNode
     }
 
     fun executeConnectors(inputs: List<NodeConnector>) {
@@ -161,7 +171,5 @@ open class FlowGraph : Graph() {
             LOGGER.info(g.localVariables["var"])
             return g
         }
-
     }
-
 }

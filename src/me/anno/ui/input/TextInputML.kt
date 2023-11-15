@@ -68,7 +68,7 @@ open class TextInputML(title: String, style: Style) : PanelContainer(
     }
 
     override val value: String get() = base.value
-    override fun setValue(newValue: String, notify: Boolean): TextInputML {
+    override fun setValue(newValue: String, mask: Int, notify: Boolean): TextInputML {
         base.setText(newValue, notify)
         return this
     }

@@ -6,6 +6,7 @@ import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.studio.StudioBase
+import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.constraints.WrapAlign
@@ -49,7 +50,7 @@ open class URLInput(
             base.isInputAllowed = value
         }
 
-    override fun setValue(newValue: FileReference, notify: Boolean): URLInput {
+    override fun setValue(newValue: FileReference, mask: Int, notify: Boolean): Panel {
         base.setValue(newValue.absolutePath, false)
         if (notify) changeListener(newValue)
         return this

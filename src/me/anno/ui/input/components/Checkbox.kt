@@ -60,7 +60,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         super.onUpdate()
     }
 
-    override fun setValue(newValue: Boolean, notify: Boolean): Checkbox {
+    override fun setValue(newValue: Boolean, mask: Int, notify: Boolean): Panel {
         if (isChecked != newValue) toggle(notify)
         return this
     }

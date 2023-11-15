@@ -134,7 +134,7 @@ class PrefabInspector(val reference: FileReference) {
         val pathInformation = instances.joinToString("\n\n") {
             "" +
                     "${it.className}@${hex32(System.identityHashCode(it))}\n" +
-                    "Path: ${it.prefabPath}\n" +
+                    "Path: ${it.prefabPath.toString(", ")}\n" +
                     "PathHash: ${hex32(it.prefabPath.hashCode())}"
         }
         list += TextPanel(pathInformation, style)
@@ -438,7 +438,7 @@ class PrefabInspector(val reference: FileReference) {
                 override val value: List<Inspectable>
                     get() = instance.getChildListByType(type)
 
-                override fun setValue(newValue: List<Inspectable>, notify: Boolean): Panel {
+                override fun setValue(newValue: List<Inspectable>, mask: Int, notify: Boolean): Panel {
                     if (newValue != value) {
                         throw IllegalStateException("Cannot directly set the value of components[]!")
                     } // else done

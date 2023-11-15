@@ -45,20 +45,15 @@ open class MeshComponent() : MeshComponentBase() {
             }
         }
 
-    override fun getMeshOrNull(): Mesh? = MeshCache[meshFile]
+    // todo why is getMeshOrNull with async not working to load prefabs properly???
+    override fun getMeshOrNull(): Mesh? = MeshCache[meshFile, false]
+    override fun getMesh(): Mesh? = MeshCache[meshFile, false]
 
     override fun onUpdate(): Int {
         super.onUpdate()
         // keep the mesh loaded
         meshFile = getReference(meshFile)
         return 1
-    }
-
-    override fun getMesh(): Mesh? {
-        super.getMesh()
-        val mesh = getMeshOrNull()
-        mesh?.ensureBuffer()
-        return mesh
     }
 
     // far into the future:

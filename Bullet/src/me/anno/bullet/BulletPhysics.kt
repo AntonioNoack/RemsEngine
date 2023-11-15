@@ -536,7 +536,6 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     private var debugDraw: BulletDebugDraw? = null
     override fun onDrawGUI(all: Boolean) {
-        super.onDrawGUI(all)
         val view = RenderView.currentInstance
         drawDebug(view)
     }

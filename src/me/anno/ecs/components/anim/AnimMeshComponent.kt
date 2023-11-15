@@ -336,7 +336,6 @@ open class AnimMeshComponent : MeshComponent() {
     }
 
     override fun onDrawGUI(all: Boolean) {
-        super.onDrawGUI(all)
         if (all) {
             // draw animated skeleton as debug mesh
             val skeleton = SkeletonCache[skeleton] ?: return

@@ -143,7 +143,7 @@ class SameSceneRefInput<Type : PrefabSaveable?>(
 
     override var value: Type = value0
 
-    override fun setValue(newValue: Type, notify: Boolean): Panel {
+    override fun setValue(newValue: Type, mask: Int, notify: Boolean): Panel {
         value = newValue
         if (notify) {
             changeListener(newValue)

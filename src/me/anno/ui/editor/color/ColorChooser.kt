@@ -20,6 +20,7 @@ import me.anno.ui.input.components.ColorPalette
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.ColorParsing.parseColorComplex
 import me.anno.utils.structures.tuples.Quad
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
@@ -69,7 +70,7 @@ open class ColorChooser(
                 val rgb = field.toRGB(Vector3f(hue, saturation, lightness))
                 val newHSL = value.fromRGB(rgb)
                 field = value
-                setHSL(newHSL.x, newHSL.y, newHSL.z, opacity, value, true)
+                setHSL(newHSL.x, newHSL.y, newHSL.z, opacity, value, -1, true)
                 colorSpaceInput.setOption(ColorSpace.list.value.indexOf(value))
                 lastColorSpace = value
             }
@@ -114,7 +115,7 @@ open class ColorChooser(
             this += alphaBar
         }
         this += palette
-        palette.onColorSelected = { setARGB(it, true) }
+        palette.onColorSelected = { setARGB(it, -1, true) }
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
@@ -124,23 +125,24 @@ open class ColorChooser(
         super.onDraw(x0, y0, x1, y1)
     }
 
-    fun setARGB(argb: Int, notify: Boolean) {
+    fun setARGB(argb: Int, mask: Int, notify: Boolean) {
         setRGBA(
             (argb.shr(16) and 255) / 255f,
             (argb.shr(8) and 255) / 255f,
             (argb and 255) / 255f,
             (argb.shr(24) and 255) / 255f,
+            mask,
             notify
         )
     }
 
-    fun setRGBA(v: Vector4f, notify: Boolean) = setRGBA(v.x, v.y, v.z, v.w, notify)
-    fun setRGBA(r: Float, g: Float, b: Float, a: Float, notify: Boolean) {
+    fun setRGBA(v: Vector4f, mask: Int, notify: Boolean) = setRGBA(v.x, v.y, v.z, v.w, mask, notify)
+    fun setRGBA(r: Float, g: Float, b: Float, a: Float, mask: Int, notify: Boolean) {
         val hsl = colorSpace.fromRGB(Vector3f(r, g, b))
-        setHSL(hsl.x, hsl.y, hsl.z, clamp(a, 0f, 1f), colorSpace, notify)
+        setHSL(hsl.x, hsl.y, hsl.z, clamp(a, 0f, 1f), colorSpace, mask, notify)
     }
 
-    fun setHSL(h: Float, s: Float, l: Float, a: Float, newColorSpace: ColorSpace, notify: Boolean) {
+    fun setHSL(h: Float, s: Float, l: Float, a: Float, newColorSpace: ColorSpace, mask: Int, notify: Boolean) {
         hue = h
         saturation = s
         lightness = l
@@ -148,7 +150,9 @@ open class ColorChooser(
         this.colorSpace = newColorSpace
         colorSpace.toRGB(Vector3f(hue, saturation, lightness), rgb)
         if (notify) {
-            changeListener(rgb.x, rgb.y, rgb.z, opacity)
+            // if any HSL component changed, change all RGB components
+            val mask1 = (mask.and(7) != 0).toInt(7) or mask.and(8)
+            changeListener(rgb.x, rgb.y, rgb.z, opacity, mask1)
         }
     }
 
@@ -205,8 +209,8 @@ open class ColorChooser(
         return this
     }
 
-    private var changeListener: (x: Float, y: Float, z: Float, w: Float) -> Unit = { _, _, _, _ -> }
-    fun setChangeRGBListener(listener: (x: Float, y: Float, z: Float, w: Float) -> Unit): ColorChooser {
+    private var changeListener: (x: Float, y: Float, z: Float, w: Float, mask: Int) -> Unit = { _, _, _, _, _ -> }
+    fun setChangeRGBListener(listener: (x: Float, y: Float, z: Float, w: Float, mask: Int) -> Unit): ColorChooser {
         changeListener = listener
         return this
     }
@@ -223,8 +227,8 @@ open class ColorChooser(
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         when (val color = parseColorComplex(data)) {
-            is Int -> setARGB(color, true)
-            is Vector4f -> setRGBA(color, true)
+            is Int -> setARGB(color, -1, true)
+            is Vector4f -> setRGBA(color, -1, true)
             null -> LOGGER.warn("Didn't understand color $data")
             else -> throw RuntimeException("Color type $data -> $color isn't yet supported for ColorChooser")
         }
@@ -232,7 +236,7 @@ open class ColorChooser(
 
     override fun onEmpty(x: Float, y: Float) {
         val default = resetListener()
-        setRGBA(default.x, default.y, default.z, default.w, true)
+        setRGBA(default.x, default.y, default.z, default.w, -1, true)
     }
 
     override fun clone(): ColorChooser {

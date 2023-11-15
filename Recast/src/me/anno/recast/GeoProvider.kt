@@ -24,7 +24,7 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
     init {
         for (it in world.getComponentsInChildren(MeshComponentBase::class)) {
             if (it.collisionMask.hasFlag(mask)) {
-                val mesh = it.getMeshOrNull()
+                val mesh = it.getMesh()
                 if (mesh != null) addMesh(mesh, it)
             }
         }

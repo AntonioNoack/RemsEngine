@@ -4,6 +4,7 @@ import me.anno.gpu.Cursor
 import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Panel
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -91,7 +92,7 @@ open class EnumInput(
             ?: options.firstOrNull { it.englishName == startValue }
             ?: options.first()
 
-    fun setValue(option: NameDesc, index: Int, notify: Boolean = true) {
+    fun setValue1(option: NameDesc, index: Int, notify: Boolean = true) {
         inputPanel.text = option.name
         inputPanel.tooltip = option.desc
         lastIndex = index
@@ -100,9 +101,9 @@ open class EnumInput(
         invalidateLayout() // layout, because the drawn length can change
     }
 
-    override fun setValue(newValue: NameDesc, notify: Boolean): EnumInput {
+    override fun setValue(newValue: NameDesc, mask: Int, notify: Boolean): Panel {
         // what if the index is not found?
-        setValue(newValue, options.indexOf(newValue), notify)
+        setValue1(newValue, options.indexOf(newValue), notify)
         return this
     }
 
@@ -113,7 +114,7 @@ open class EnumInput(
             val index2 = (index + 2 * options.size) % options.size
             val newValue = options[index2]
             if (oldValue != newValue.name) {
-                setValue(newValue, index2)
+                setValue1(newValue, index2)
             }
         }
     }
@@ -157,7 +158,7 @@ open class EnumInput(
                 .with("%1", title),
             options.mapIndexed { index, option ->
                 MenuOption(option) {
-                    setValue(option, index)
+                    setValue1(option, index)
                 }
             })
     }

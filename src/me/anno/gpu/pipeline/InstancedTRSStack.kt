@@ -10,7 +10,7 @@ import me.anno.maths.Maths
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
-import me.anno.utils.structures.tuples.LongPair
+import me.anno.utils.structures.tuples.LongTriple
 
 /**
  * instanced stack, supporting position, uniform scale, and rotation
@@ -35,20 +35,23 @@ class InstancedTRSStack(capacity: Int = 64) :
         stage: PipelineStage,
         needsLightUpdateForEveryMesh: Boolean,
         time: Long, depth: Boolean
-    ): LongPair {
+    ): LongTriple {
         var drawnPrimitives = 0L
+        var drawnInstances = 0L
         var drawCalls = 0L
         for ((mesh, list) in data.values) {
             GFXState.vertexData.use(mesh.vertexData) {
                 for ((material, values) in list) {
                     if (values.size > 0) {
                         drawCalls += draw(stage, mesh, material, pipeline, values, depth)
-                        drawnPrimitives += mesh.numPrimitives * values.size.toLong()
+                        val numInstances = values.size.toLong()
+                        drawnInstances += numInstances
+                        drawnPrimitives += mesh.numPrimitives * numInstances
                     }
                 }
             }
         }
-        return LongPair(drawnPrimitives, drawCalls)
+        return LongTriple(drawnPrimitives, drawnInstances, drawCalls)
     }
 
     fun draw(

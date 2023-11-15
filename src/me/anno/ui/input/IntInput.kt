@@ -6,6 +6,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.pow
 import me.anno.parser.SimpleExpressionParser
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
+import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToLong
@@ -76,7 +77,10 @@ open class IntInput(
         }
     }
 
-    fun setValue(v: Int, notify: Boolean) = setValue(v.toLong(), notify)
+    fun setValue(v: Int, notify: Boolean): IntInput {
+        setValue(v.toLong(), notify)
+        return this
+    }
 
     fun stringify(v: Long): String = v.toString()
 
@@ -129,7 +133,7 @@ open class IntInput(
         }
     }
 
-    override fun setValue(newValue: Long, notify: Boolean): IntInput {
+    override fun setValue(newValue: Long, mask: Int, notify: Boolean): IntInput {
         if (newValue != value || !hasValue) {
             hasValue = true
             value = newValue

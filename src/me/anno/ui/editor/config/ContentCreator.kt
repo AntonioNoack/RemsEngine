@@ -2,7 +2,6 @@ package me.anno.ui.editor.config
 
 import me.anno.animation.Type
 import me.anno.config.DefaultConfig.style
-import me.anno.utils.Color.black
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.ui.Panel
@@ -10,6 +9,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.FontListMenu.createFontInput
 import me.anno.ui.input.*
+import me.anno.utils.Color.black
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.Color.toVecRGBA
@@ -56,13 +56,13 @@ class ContentCreator(
                             when (shortName) {
                                 "background", "color", "textColor" -> {
                                     ColorInput(style, "", "", (parseColor(value) ?: black).toVecRGBA(), true)
-                                        .setChangeListener { r, g, b, a ->
+                                        .setChangeListener { r, g, b, a, _ ->
                                             map[fullName] = Vector4f(r, g, b, a).toHexColor()
                                         }
                                 }
                                 else -> {
                                     TextInput("", "", false, style)
-                                        .setValue(value, false)
+                                        .setValue(value, -1, false)
                                         .addChangeListener { map[fullName] = it }
                                 }
                             }
@@ -76,7 +76,7 @@ class ContentCreator(
                         if (value.shr(24).and(255) > 100) {
                             // a color
                             ColorInput(style, "", "", value.toVecRGBA(), true)
-                                .setChangeListener { r, g, b, a -> map[fullName] = rgba(r, g, b, a) }
+                                .setChangeListener { r, g, b, a, _ -> map[fullName] = rgba(r, g, b, a) }
                         } else {
                             IntInput("", "", value, style)
                                 .setChangeListener { map[fullName] = it.toInt() }
@@ -97,7 +97,5 @@ class ContentCreator(
                 list += body.withPadding(pad * 2, 0, 0, 0)
             }
         }
-
     }
-
 }

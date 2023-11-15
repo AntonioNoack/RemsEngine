@@ -973,12 +973,31 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     val sizeOfHierarchy
         get(): Int {
             val children = children
-            var sum = children.size + components.size
+            var sum = 1 + components.size // self plus components
             for (i in children.indices) {
                 sum += children[i].sizeOfHierarchy
             }
-            // the root would be missing
-            return if (parent == null) sum + 1 else sum
+            return sum
+        }
+
+    val totalNumEntities
+        get(): Int {
+            val children = children
+            var sum = 1 // self
+            for (i in children.indices) {
+                sum += children[i].totalNumEntities
+            }
+            return sum
+        }
+
+    val totalNumComponents
+        get(): Int {
+            val children = children
+            var sum = components.size
+            for (i in children.indices) {
+                sum += children[i].totalNumComponents
+            }
+            return sum
         }
 
     val sizeOfAllChildren get() = sizeOfHierarchy - 1 // hierarchy - 1

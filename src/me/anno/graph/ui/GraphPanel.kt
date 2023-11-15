@@ -451,7 +451,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             "Double" -> {
                 if (old is FloatInput) return old.apply { textSize = font.size }
                 return FloatInput(style)
-                    .setValue(con.currValue as? Double ?: 0.0, false)
+                    .setValue(con.currValue as? Double ?: 0.0, -1, false)
                     .setChangeListener {
                         con.currValue = it
                         onChange(false)
@@ -473,7 +473,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             "Long" -> {
                 if (old is IntInput) return old.apply { textSize = font.size }
                 return IntInput(style)
-                    .setValue(con.currValue as? Long ?: 0L, false)
+                    .setValue(con.currValue as? Long ?: 0L, -1, false)
                     .setChangeListener {
                         con.currValue = it
                         onChange(false)

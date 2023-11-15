@@ -41,7 +41,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
         get() = this in EditorState.selection ||
                 entity?.anyInHierarchy { it == EditorState.lastSelection } == true
 
-    @DebugProperty
+    // @DebugProperty
     @NotSerializedProperty
     var lastDrawn = 0L
 

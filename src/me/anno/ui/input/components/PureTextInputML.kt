@@ -144,7 +144,7 @@ open class PureTextInputML(style: Style) :
     override val value: String
         get() = lastText
 
-    override fun setValue(newValue: String, notify: Boolean): PureTextInputML {
+    override fun setValue(newValue: String, mask: Int, notify: Boolean): PureTextInputML {
         setText(newValue, notify)
         return this
     }

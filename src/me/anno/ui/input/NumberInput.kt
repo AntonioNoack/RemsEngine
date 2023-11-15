@@ -125,7 +125,7 @@ abstract class NumberInput<BaseType>(
     private val mouseIsDown get() = isAnyChildInFocus && isLeftDown
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
-        if (mouseIsDown && isInputAllowed) {
+        if (mouseIsDown && isInputAllowed && InputVisibility[visibilityKey]) {
             changeValue(dx, dy)
         } else super.onMouseMoved(x, y, dx, dy)
     }

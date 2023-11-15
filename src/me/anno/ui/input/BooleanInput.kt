@@ -109,7 +109,7 @@ class BooleanInput(
         return this
     }
 
-    override fun setValue(newValue: Boolean, notify: Boolean): BooleanInput {
+    override fun setValue(newValue: Boolean, mask: Int, notify: Boolean): BooleanInput {
         checkView.setValue(newValue, notify)
         return this
     }

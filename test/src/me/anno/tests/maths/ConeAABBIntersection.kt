@@ -72,7 +72,6 @@ fun main() {
         }
 
         override fun onDrawGUI(all: Boolean) {
-            super.onDrawGUI(all)
             LineShapes.drawCone(entity, start, end, radiusAtOrigin, radiusPerUnit)
             updateConeColor() // not really necessary to be executed every frame
         }

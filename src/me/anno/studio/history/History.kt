@@ -8,7 +8,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
 import org.apache.logging.log4j.LogManager
-import java.util.LinkedList
+import java.util.*
 import kotlin.math.max
 
 abstract class History<V : Any> : Saveable() {
@@ -27,10 +27,13 @@ abstract class History<V : Any> : Saveable() {
 
     fun isEmpty() = states.isEmpty()
 
-    fun clearToSize() {
+    val numStates get() = states.size
+
+    fun clearToSize(targetSize: Int = maxChanged) {
         synchronized(states) {
-            while (states.size > maxChanged && maxChanged > 0) {
+            while (states.size > targetSize && targetSize > 0) {
                 states.removeFirst()
+                nextInsertIndex--
             }
         }
     }
@@ -143,5 +146,4 @@ abstract class History<V : Any> : Saveable() {
         private val LOGGER = LogManager.getLogger(History::class)
         var maxChanged = 512
     }
-
 }

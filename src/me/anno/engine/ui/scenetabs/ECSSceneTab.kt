@@ -75,8 +75,7 @@ class ECSSceneTab(
             .rotateX(20.0.toRadians())
         when (root) {
             is MeshComponentBase -> {
-                root.getMesh()
-                resetCamera2(root.getMeshOrNull() ?: return)
+                resetCamera2(root.getMesh() ?: return)
             }
             is Mesh -> resetCamera2(root)
             is Material, is LightComponentBase -> {
@@ -208,6 +207,16 @@ class ECSSceneTab(
                     MenuOption(NameDesc("Play Fullscreen")) { playFullscreen() },
                     MenuOption(NameDesc("Copy Path")) { Input.setClipboardContent(file.absolutePath) },
                     MenuOption(NameDesc("Copy Name")) { Input.setClipboardContent(file.name) },
+                    MenuOption(NameDesc("Clear History")) {
+                        ECSSceneTabs.open(this, true)
+                        val history = inspector.prefab.history
+                        if (history != null) {
+                            val oldSize = history.numStates
+                            history.clearToSize(1)
+                            LogManager.enableLogger(LOGGER) // the user will want to see this
+                            LOGGER.info("Removed ${oldSize - 1} items")
+                        }
+                    },
                     MenuOption(NameDesc("Close")) { ECSSceneTabs.close(this, true) },
                     MenuOption(NameDesc("Close All Others")) {
                         val tabs = ECSSceneTabs.children3.reversed()

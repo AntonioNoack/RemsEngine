@@ -2,10 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
-import me.anno.ecs.annotations.DebugProperty
-import me.anno.ecs.annotations.Docs
-import me.anno.ecs.annotations.HideInInspector
-import me.anno.ecs.annotations.Type
+import me.anno.ecs.annotations.*
 import me.anno.ecs.components.mesh.callbacks.LineIndexCallback
 import me.anno.ecs.components.mesh.callbacks.TriangleIndexCallback
 import me.anno.ecs.interfaces.Renderable
@@ -1193,6 +1190,39 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     ): Int {
         pipeline.addMesh(this, Pipeline.sampleMeshComponent, entity)
         return clickId
+    }
+
+    @DebugAction
+    fun centerXZonY() {
+        val bounds = getBounds()
+        val dx = -bounds.centerX
+        val dy = -bounds.minY
+        val dz = -bounds.centerZ
+        move(dx, dy, dz)
+    }
+
+    @DebugAction
+    fun centerXYZ() {
+        val bounds = getBounds()
+        val dx = -bounds.centerX
+        val dy = -bounds.centerY
+        val dz = -bounds.centerZ
+        move(dx, dy, dz)
+    }
+
+    @DebugAction
+    fun move(dx: Float, dy: Float, dz: Float) {
+        if (prefab?.isWritable == false) {
+            LOGGER.warn("Mesh is immutable")
+            return
+        }
+        val positions = positions ?: return
+        for (i in 0 until positions.size - 2 step 3) {
+            positions[i] += dx
+            positions[i + 1] += dy
+            positions[i + 2] += dz
+        }
+        invalidateGeometry()
     }
 
     companion object {

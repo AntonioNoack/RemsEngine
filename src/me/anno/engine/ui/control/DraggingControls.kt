@@ -37,7 +37,6 @@ import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.ui.input.EnumInput
-import me.anno.utils.Color.toHexString
 import me.anno.utils.Warning.unused
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Hierarchical
@@ -410,12 +409,15 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                 val ry = (y - (this.y + this.height * 0.5)) // [-h/2,+h/2]
                 val rotationAngle = PI * (rx * dy - ry * dx) / (length(rx, ry) * height)
 
-                for (inst in instancesToTransform) {// for correct transformation when parent and child are selected together
-                    when (inst) {
+                // for correct transformation when parent and child are selected together
+                val tmp = Vector3d()
+                val instances = instancesToTransform
+                for (i in instances.indices) {
+                    when (val inst = instances[i]) {
                         is Entity -> {
                             val transform = inst.transform
                             when (mode) {
-                                Mode.TRANSLATING -> transformPosition(transform, camTransform, offset)
+                                Mode.TRANSLATING -> transformPosition(transform, camTransform, offset, i, tmp)
                                 Mode.ROTATING -> transformRotation(transform, rotationAngle, dir, gizmoMask)
                                 Mode.SCALING -> transformScale(transform, (dx - dy).toDouble(), offset)
                                 else -> throw NotImplementedError()
@@ -453,17 +455,21 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
             }
         }
 
-    fun transformPosition(transform: Transform, camTransform: Matrix4x3d, offset: Vector3d) {
+    fun transformPosition(transform: Transform, camTransform: Matrix4x3d, offset: Vector3d, i: Int, tmp: Vector3d) {
         val global = transform.globalTransform
-        val distance = camTransform.distance(global)
-        if (distance > 0.0) {
-            // correct
-            offset.mul(distance)
-            snappingSettings.snapPosition(offset, snapPosRem)
-            global.translateLocal(offset)
-            offset.div(distance)
+        if (i == 0) {
+            val distance = camTransform.distance(global)
+            if (distance > 0.0) {
+                // correct
+                offset.mul(distance, tmp)
+                snappingSettings.snapPosition(tmp, snapPosRem)
+                global.translateLocal(tmp)
+                transform.invalidateLocal()
+            }
+        } else {
+            global.translateLocal(tmp)
+            transform.invalidateLocal()
         }
-        transform.invalidateLocal()
     }
 
     fun transformRotation(transform: Transform, rotationAngle: Double, dir: Vector3d, gizmoMask: Int) {
@@ -594,7 +600,7 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     when (hovComponent) {
                         is DCPaintable -> hovComponent.paint(this, sampleInstance, file)
                         is MeshComponentBase -> {
-                            val mesh = hovComponent.getMeshOrNull()
+                            val mesh = hovComponent.getMesh()
                             val numMaterials = mesh?.numMaterials ?: 1
                             if (numMaterials <= 1) {
                                 // assign material
@@ -642,21 +648,29 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
                     // where? selected / root
                     // done while dragging this, show preview
                     // done place it where the preview was drawn
-                    val root = EditorState.selection.firstInstanceOrNull<Entity>() ?: renderView.getWorld()
+                    val world = renderView.getWorld() as? Entity
+                    var root = EditorState.selection.firstInstanceOrNull<Entity>() ?: world
+                    while (root != null && root != world && root.prefab?.find(root.prefabPath)
+                            .run { this == null || this.prefab != InvalidRef }
+                    ) {
+                        root = root.parent as? Entity ?: world
+                    }
+                    root = root ?: world
                     if (root is Entity) {
-                        val sampleTransform = sampleInstance.transform
-                        val position = Vector3d(sampleTransform.localPosition)
-                        position.add(dropPosition)
-                        val rotation = Quaterniond(sampleTransform.localRotation)
-                        rotation.mul(dropRotation) // correct order?
-                        val scale = Vector3d(sampleTransform.localScale)
-                        scale.mul(dropScale)
-                        addToParent(prefab, root, 'c', position, rotation, scale, results)
-                        // todo position isn't properly persisted
-                        //  - after each save, it jumps back to the center...,
-                        //  - when moved it goes to the proper position
-                        // todo tree view is also not properly updated... needs redraw...
-                        // todo also ECSTreeView reordering isn't working properly...
+                        val newTransform = Matrix4x3d()
+                            .translationRotateScale(
+                                dropPosition,
+                                dropRotation,
+                                dropScale,
+                            )
+                        // we need to remove parent transform from this one
+                        Matrix4x3d(root.transform.globalTransform)
+                            .invert().mul(newTransform, newTransform)
+                        newTransform.mul(sampleInstance.transform.globalTransform)
+                        val position = newTransform.getTranslation(Vector3d())
+                        val rotation = newTransform.getUnnormalizedRotation(Quaterniond())
+                        val scale = newTransform.getScale(Vector3d())
+                        addToParent(prefab, root, 'e', position, rotation, scale, results)
                         // TreeViews need to be updated
                         for (window in GFX.windows) {
                             for (window1 in window.windowStack) {
@@ -707,19 +721,35 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         // todo depending on mode, use other strategies to find zero-point on object
         // to do use mouse wheel to change height? maybe...
         // done depending on settings, we also can use snapping
-        val cp = renderView.cameraPosition
-        val cd = renderView.mouseDirection
-        val plane = Planed(0.0, 1.0, 0.0, 0.0)
-        var distance = (plane.dot(cd) - plane.dot(cp)) / plane.dot(cd)
+        val camPos = renderView.cameraPosition
+        val camDir = renderView.mouseDirection
+        var y0 = 0.0
+        val snapY = snappingSettings.snapY
+        if (snapY > 0.0) {
+            y0 = snappingSettings.snap(camPos.y, snapY)
+            if (camDir.y > 0.0 && y0 < camPos.y) {
+                y0 += snapY
+            }
+            if (camDir.y < 0.0 && y0 > camPos.y) {
+                y0 -= snapY
+            }
+        }
+        var distance = (y0 - camPos.y) / camDir.y
         val world = renderView.getWorld()
         if (world is Entity) {
-            val query = RayQuery(cp, cd, 1e9)
-            val cast = Raycast.raycastClosestHit(world, query)
-            if (cast) distance = query.result.distance
+            val query = RayQuery(camPos, camDir, 1e9)
+            val hasHit = Raycast.raycastClosestHit(world, query)
+            if (hasHit) distance = query.result.distance
         }
         // to do camDirection will only be correct, if this was the last drawn instance
         dst.set(renderView.mouseDirection).mul(distance).add(renderView.cameraPosition)
         snappingSettings.snapPosition(dst)
+        if (camDir.y > 0.0 && dst.y < camPos.y) {
+            dst.add(snappingSettings.snapY)
+        }
+        if (camDir.y < 0.0 && dst.y > camPos.y) {
+            dst.sub(snappingSettings.snapY)
+        }
         return dst
     }
 

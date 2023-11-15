@@ -9,7 +9,9 @@ interface IProperty<V> {
 
     val annotations: List<Annotation>
 
-    fun set(panel: Panel?, value: V)
+    fun set(panel: Panel?, value: V, mask: Int)
+    fun set(panel: Panel?, value: V) = set(panel, value, -1)
+
     fun get(): V
 
     fun getDefault(): V

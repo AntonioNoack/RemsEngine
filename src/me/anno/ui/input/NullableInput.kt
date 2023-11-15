@@ -48,8 +48,8 @@ class NullableInput<V>(val content: Panel, val property: IProperty<V>, style: St
     override val value: V
         get() = property.get()
 
-    override fun setValue(newValue: V, notify: Boolean): Panel {
-        property.set(this, newValue)
+    override fun setValue(newValue: V, mask: Int, notify: Boolean): Panel {
+        property.set(this, newValue, mask)
         return this
     }
 

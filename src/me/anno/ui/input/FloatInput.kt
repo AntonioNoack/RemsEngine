@@ -5,12 +5,19 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.parser.SimpleExpressionParser
 import me.anno.parser.SimpleExpressionParser.toDouble
 import me.anno.studio.StudioBase.Companion.shiftSlowdown
-import me.anno.ui.input.components.NumberInputComponent
+import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.input.components.NumberInputComponent
 import me.anno.utils.types.AnyToDouble
 import me.anno.utils.types.Strings.isBlank2
-import org.joml.*
-import kotlin.math.*
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector3f
+import org.joml.Vector4f
+import kotlin.math.max
+import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 // must be open for Rem's Studio
 open class FloatInput(
@@ -52,7 +59,7 @@ open class FloatInput(
 
     constructor(title: String, visibilityKey: String, value0: Double, type: Type, style: Style) :
             this(title, visibilityKey, type, style) {
-        setValue(value0, false)
+        setValue(value0, -1, false)
     }
 
     fun parseValue(text: String): Double? {
@@ -63,9 +70,20 @@ open class FloatInput(
         return newValue
     }
 
-    fun setValue(v: Int, notify: Boolean) = setValue(v.toDouble(), notify)
-    fun setValue(v: Long, notify: Boolean) = setValue(v.toDouble(), notify)
-    fun setValue(v: Float, notify: Boolean) = setValue(v.toDouble(), notify)
+    fun setValue(v: Int, notify: Boolean): FloatInput {
+        setValue(v.toDouble(), -1, notify)
+        return this
+    }
+
+    fun setValue(v: Long, notify: Boolean): FloatInput {
+        setValue(v.toDouble(), -1, notify)
+        return this
+    }
+
+    fun setValue(v: Float, notify: Boolean): FloatInput {
+        setValue(v.toDouble(), -1, notify)
+        return this
+    }
 
     // todo prefer the default notation over the scientific one
     // todo especially, if the user input is that way
@@ -97,7 +115,7 @@ open class FloatInput(
     fun setValueClamped(value: Double, notify: Boolean) {
         val clampFunc = type.clampFunc
         if (clampFunc == null) {
-            setValue(value, notify)
+            setValue(value, -1, notify)
         } else {
             val input: Any = when (type.defaultValue) {
                 is Boolean -> value >= 0.5
@@ -117,7 +135,7 @@ open class FloatInput(
                 is Long -> clamped.toDouble()
                 else -> throw RuntimeException("Unknown type $clamped for ${this::class.simpleName}")
             }
-            setValue(asDouble, notify)
+            setValue(asDouble, -1, notify)
         }
     }
 
@@ -134,11 +152,11 @@ open class FloatInput(
     override fun onEmpty(x: Float, y: Float) {
         val newValue = getValue(type.defaultValue)
         if (newValue != value) {
-            setValue(newValue, true)
+            setValue(newValue, -1, true)
         }
     }
 
-    override fun setValue(newValue: Double, notify: Boolean): FloatInput {
+    override fun setValue(newValue: Double, mask: Int, notify: Boolean): FloatInput {
         if (newValue != value || !hasValue) {
             hasValue = true
             value = newValue
@@ -155,7 +173,7 @@ open class FloatInput(
         } else if (wasInFocus) {
             // apply the value, or reset if invalid
             val value = parseValue(inputPanel.value) ?: value
-            setValue(value, true)
+            setValue(value, -1, true)
             wasInFocus = false
         }
     }
@@ -163,7 +181,7 @@ open class FloatInput(
     override fun onEnterKey(x: Float, y: Float) {
         // evaluate the value, and write it back into the text field, e.g. for calculations
         hasValue = false
-        setValue(value, true)
+        setValue(value, -1, true)
     }
 
     override fun clone(): FloatInput {
@@ -179,9 +197,8 @@ open class FloatInput(
         dst.changeListener = changeListener
         dst.allowInfinity = allowInfinity
         dst.tooltip = tooltip
-        dst.setValue(value, false)
+        dst.setValue(value, -1, false)
     }
 
     override val className: String get() = "FloatInput"
-
 }

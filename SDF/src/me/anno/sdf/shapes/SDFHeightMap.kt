@@ -159,7 +159,6 @@ class SDFHeightMap : SDFShape() {
     }
 
     override fun onDrawGUI(all: Boolean) {
-        super.onDrawGUI(all)
 
         val img = ImageCPUCache[source, true] ?: return
         val scale = Vector3f(
