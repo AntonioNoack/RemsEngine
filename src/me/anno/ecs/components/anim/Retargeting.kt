@@ -3,30 +3,111 @@ package me.anno.ecs.components.anim
 import me.anno.animation.LoopingState
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
+import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.interfaces.Renderable
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.SceneView.Companion.testScene
-import me.anno.io.NamedSaveable
+import me.anno.engine.debug.DebugLine
+import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugTriangle
+import me.anno.engine.ui.render.PlayMode
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.gpu.GFX
+import me.anno.gpu.pipeline.Pipeline
+import me.anno.graph.ui.GraphPanel.Companion.blue
+import me.anno.graph.ui.GraphPanel.Companion.red
 import me.anno.io.base.BaseWriter
-import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.language.translation.NameDesc
+import me.anno.studio.Inspectable
+import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.ui.Style
+import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu.openMenu
+import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.SettingCategory
+import me.anno.ui.input.EnumInput
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
-import org.joml.Matrix4x3f
-import org.joml.Quaternionf
-import org.joml.Vector3f
+import me.anno.utils.types.Vectors
+import org.joml.*
 import kotlin.math.min
 import kotlin.math.sqrt
 
-class Retargeting : NamedSaveable() {
+class Retargeting : PrefabSaveable(), Renderable {
 
     companion object {
 
         private val cache = CacheSection("Retargeting")
         private const val timeout = 500_000L
+
+        fun openUI(anim: AnimMeshComponent) {
+            // find all animation states, where the skeleton needs mapping, and ask the user, which to edit
+            val window = GFX.someWindow ?: return
+            val states = anim.animations
+            val dstSkeleton = anim.skeleton
+            val baseSkeletonCheck = SkeletonCache[dstSkeleton]
+            if (baseSkeletonCheck == null) {
+                LOGGER.warn("Base skeleton is null")
+            }
+            val srcSkeletons = states
+                .mapNotNull { AnimationCache[it.source]?.skeleton }
+                .filter { SkeletonCache[it] != null }
+            if (srcSkeletons.isEmpty()) {
+                LOGGER.warn("No skeletons could be found in animation states")
+            }
+            val srcSkeletons1 = srcSkeletons - dstSkeleton
+            when (srcSkeletons1.size) {
+                0 -> LOGGER.warn("All skeletons were identical, so no retargeting required")
+                1 -> openUI(srcSkeletons1.first(), dstSkeleton)
+                else -> {
+                    openMenu(window.windowStack, NameDesc("Choose skeleton to edit"),
+                        srcSkeletons1.map { srcSkeleton ->
+                            MenuOption(NameDesc(srcSkeleton.toLocalPath())) {
+                                openUI(srcSkeleton, dstSkeleton)
+                            }
+                        })
+                }
+            }
+        }
+
+        fun openUI(srcSkeleton: FileReference, dstSkeleton: FileReference) {
+            // then edit that one
+            //  - prefab inspector
+            //  - save button
+            //  - history?
+            val configReference = getConfigFile(srcSkeleton, dstSkeleton)
+            val prefab = PrefabCache[configReference]
+            if (prefab == null) {
+                // create new file
+                val prefab1 = Prefab("Retargeting")
+                prefab1["srcSkeleton"] = srcSkeleton
+                prefab1["dstSkeleton"] = dstSkeleton
+                configReference.getParent()?.tryMkdirs()
+                configReference.writeText(JsonStringWriter.toText(prefab1, workspace))
+            } else if (prefab.clazzName != "Retargeting") {
+                LOGGER.warn("Class mismatch for $configReference!")
+                return
+            }
+            ECSSceneTabs.open(configReference, PlayMode.EDITING, true)
+        }
+
+        fun getConfigFile(srcSkeleton: FileReference, dstSkeleton: FileReference): FileReference {
+            // todo since we hide the names, we could also use our hierarchical database...
+            val hash1 = srcSkeleton.toLocalPath().hashCode()
+            val hash2 = dstSkeleton.toLocalPath().hashCode()
+            // database, which stores bone assignments for a project
+            val config = "retargeting/$hash1-$hash2.json"
+            return workspace.getChild(config)
+        }
 
         fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Retargeting? {
             if (srcSkeleton == dstSkeleton) return null
@@ -36,11 +117,8 @@ class Retargeting : NamedSaveable() {
             ) { k12 ->
 
                 // todo hash skeleton instead of skeleton path
-                val hash1 = srcSkeleton.hashCode()
-                val hash2 = dstSkeleton.hashCode()
                 // database, which stores bone assignments for a project
-                val config = "retargeting-$hash1-$hash2.json"
-                val config1 = ConfigBasics.getConfigFile(config)
+                val config1 = getConfigFile(srcSkeleton, dstSkeleton)
 
                 LOGGER.debug("Getting retargeting {}", k12)
 
@@ -67,23 +145,21 @@ class Retargeting : NamedSaveable() {
 
         @JvmStatic
         fun main(args: Array<String>) {
-            // todo target stands still... were no bones mapped?
-            testUI("Retargeting") {
-                // fbx animation seems to be broken for the trooper... probably Assimps fault or incorrect decoding from our side
-                val testRetargeting = true
-                ECSRegistry.initMeshes()
-                // find two human meshes with different skeletons
-                val file1 = downloads.getChild("3d/trooper gltf/scene.gltf")
-                val file2 = downloads.getChild("fbx/Walking.fbx")
-                val animation = (if (testRetargeting) file2 else file1).getChild("animations").listChildren()!!.first()
-                val mesh = AnimMeshComponent()
-                mesh.meshFile = file1
-                mesh.skeleton = file1.getChild("skeletons/Skeleton.json")
+            ECSRegistry.init()
+            val testRetargeting = true
+            // find two human meshes with different skeletons
+            val file1 = downloads.getChild("3d/trooper gltf/scene.gltf")
+            val file2 = downloads.getChild("fbx/Walking.fbx")
+            val fileI = if (testRetargeting) file2 else file1
+            val scene = PrefabCache[file1]!!.createInstance() as Entity
+            val animation = fileI.getChild("animations").listChildren()!!.first().getChild("BoneByBone.json")
+            scene.forAllComponentsInChildren(AnimMeshComponent::class) { mesh ->
                 mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
-                testScene(mesh)
             }
+            // todo target stands still... were no bones mapped?
+            //  the target is also crippled... why???
+            testSceneWithUI("Retargeting", scene)
         }
-
     }
 
     var srcSkeleton: FileReference = InvalidRef
@@ -92,6 +168,7 @@ class Retargeting : NamedSaveable() {
     // for each dstBone, which bone is responsible for the transform
     var dstBoneMapping: Array<String>? = null
 
+    @DebugProperty
     val isIdentityMapping get() = srcSkeleton == dstSkeleton
 
     fun map(src: BoneByBoneAnimation): BoneByBoneAnimation? {
@@ -108,6 +185,16 @@ class Retargeting : NamedSaveable() {
         for ((src, dst) in mappedAnimations) {
             map2(src, dst)
         }
+    }
+
+    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+        // todo different colors
+        // todo show bone names / mapping
+        // todo play sample animation (?)
+        // todo show sample mesh (?)
+        SkeletonCache[srcSkeleton]?.fill(pipeline, entity, clickId)
+        SkeletonCache[dstSkeleton]?.fill(pipeline, entity, clickId)
+        return clickId + 1
     }
 
     fun map(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
@@ -194,6 +281,92 @@ class Retargeting : NamedSaveable() {
         return dst
     }
 
+    override fun createInspector(
+        list: PanelListY, style: Style,
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+    ) {
+        super.createInspector(listOf(this), list, style, getGroup)
+        // todo value / UI for scale change preview?
+        // todo register change, so we can save/reset it
+        val srcSkeleton = SkeletonCache[srcSkeleton]
+        val dstSkeleton = SkeletonCache[dstSkeleton]
+        if (srcSkeleton != null && dstSkeleton != null) {
+            var dstBoneMapping = dstBoneMapping
+            if (dstBoneMapping == null) dstBoneMapping = Array(dstSkeleton.bones.size) { "?" }
+            if (dstBoneMapping.size < dstSkeleton.bones.size) {
+                dstBoneMapping = Array(dstSkeleton.bones.size) { dstBoneMapping!!.getOrNull(it) ?: "?" }
+            }
+            // for each bone, create an enum input
+            this.dstBoneMapping = dstBoneMapping
+            for ((i, bone) in dstSkeleton.bones.withIndex()) {
+                list.add(object : EnumInput(NameDesc(bone.name), NameDesc(dstBoneMapping[i]), srcSkeleton.bones.map {
+                    NameDesc(it.name)
+                } + listOf(NameDesc("?")), style) {
+                    override fun onUpdate() {
+                        super.onUpdate()
+                        if (isHovered && window == windowStack.peek()) {
+                            // when we hover over a bone, highlight that bone in the UI
+                            // todo when we open the enum-select-menu, highlight that bone, too (from there somehow)
+                            showBoneInUI(i, dstSkeleton.bones, red)
+                            val srcId = srcSkeleton.bones.firstOrNull { it.name == value.name }?.id
+                            if (srcId != null) showBoneInUI(srcId, srcSkeleton.bones, blue)
+                        }
+                    }
+                }.setChangeListener { value, _, _ ->
+                    dstBoneMapping[i] = value
+                    invalidate()
+                })
+            }
+        } else {
+            if (srcSkeleton == null) list.add(TextPanel("Missing src skeleton", style)) // todo warning color
+            if (dstSkeleton == null) list.add(TextPanel("Missing dst skeleton", style)) // todo warning color
+        }
+    }
+
+    fun showBoneInUI(boneId: Int, bones: List<Bone>, color: Int) {
+        // todo could be much more efficient
+        val dstBone = bones[boneId]
+        if (dstBone.parentId < 0) return
+        val srcBone = bones[dstBone.parentId]
+        val srcPos = srcBone.bindPosition
+        val dstPos = dstBone.bindPosition
+        val dirY = Vector3f(dstPos).sub(srcPos)
+        val length = dirY.length()
+        val dirX = Vector3f()
+        val dirZ = Vector3f()
+        val mat = Matrix3f()
+        val tmp = Vector3f()
+        // find orthogonal directions
+        Vectors.findTangent(dirY, dirX).normalize(length)
+        dirZ.set(dirX).cross(dirY).normalize(length)
+        mat.set(dirX, dirY, dirZ)
+        // add a bone from src to dst
+        val vertices = Skeleton.boneMeshVertices
+        val list = ArrayList<Vector3d>()
+        for (i in 0 until vertices.size - 2 step 3) {
+            tmp.set(vertices, i)
+            tmp.sub(0f, 0.005f, 0f)
+            tmp.mul(1.01f) // scale up slightly for better visibility
+            mat.transform(tmp)
+            tmp.add(srcPos)
+            list.add(Vector3d(tmp))
+        }
+        // draw triangles
+        for (i in list.indices step 3) {
+            val triangle = DebugTriangle(list[i], list[i + 1], list[i + 2], color, 0f)
+            DebugShapes.debugTriangles.add(triangle)
+        }
+    }
+
+    override fun createInspector(
+        inspected: List<Inspectable>,
+        list: PanelListY,
+        style: Style,
+        getGroup: (title: String, description: String, dictSubPath: String) -> SettingCategory
+    ) {
+        createInspector(list, style, getGroup)
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFile("srcSkeleton", srcSkeleton)
@@ -219,5 +392,4 @@ class Retargeting : NamedSaveable() {
 
     override val className: String get() = "Retargeting"
     override val approxSize get() = 20
-
 }

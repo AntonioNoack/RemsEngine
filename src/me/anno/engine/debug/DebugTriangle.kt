@@ -1,0 +1,11 @@
+package me.anno.engine.debug
+
+import org.joml.Vector3d
+
+class DebugTriangle(
+    val p0: Vector3d, val p1: Vector3d, val p2: Vector3d,
+    color: Int, timeOfDeath: Long = defaultTime()
+) : DebugItem(color, timeOfDeath) {
+    constructor(p0: Vector3d, p1: Vector3d, p2: Vector3d, color: Int, duration: Float) :
+            this(p0, p1, p2, color, timeByDuration(duration))
+}

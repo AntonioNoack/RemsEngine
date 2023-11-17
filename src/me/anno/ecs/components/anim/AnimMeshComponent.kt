@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
@@ -380,6 +381,11 @@ open class AnimMeshComponent : MeshComponent() {
                 }
             }
         }
+    }
+
+    @DebugAction
+    fun openRetargetingUI() {
+        Retargeting.openUI(this)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

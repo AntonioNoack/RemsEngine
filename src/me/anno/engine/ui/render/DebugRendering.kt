@@ -11,6 +11,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.buffer.SimpleBuffer
+import me.anno.gpu.buffer.TriangleBuffer
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DrawTexts
@@ -137,6 +138,8 @@ object DebugRendering {
         drawDebugRays(view)
         drawDebugAABBs(view)
         LineBuffer.finish(view.cameraMatrix)
+        drawDebugTriangles(view)
+        TriangleBuffer.finish(view.cameraMatrix)
         drawDebugTexts(view)
     }
 
@@ -152,11 +155,7 @@ object DebugRendering {
         val lines = DebugShapes.debugLines
         for (i in lines.indices) {
             val line = lines[i]
-            LineBuffer.putRelativeLine(
-                line.p0, line.p1,
-                view.cameraPosition, view.worldScale,
-                line.color
-            )
+            LineBuffer.putRelativeLine(line.p0, line.p1, view.cameraPosition, view.worldScale, line.color)
         }
     }
 
@@ -165,6 +164,14 @@ object DebugRendering {
         for (i in aabbs.indices) {
             val aabb = aabbs[i]
             DrawAABB.drawAABB(aabb.bounds, aabb.color, view.cameraPosition, view.worldScale)
+        }
+    }
+
+    private fun drawDebugTriangles(view: RenderView) {
+        val triangles = DebugShapes.debugTriangles
+        for (i in triangles.indices) {
+            val tri = triangles[i]
+            TriangleBuffer.putRelativeTriangle(tri.p0, tri.p1, tri.p2, view.cameraPosition, view.worldScale, tri.color)
         }
     }
 

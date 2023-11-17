@@ -9,12 +9,14 @@ object DebugShapes {
     val debugRays = ArrayList<DebugRay>()
     val debugTexts = ArrayList<DebugText>()
     val debugAABBs = ArrayList<DebugAABB>()
+    val debugTriangles = ArrayList<DebugTriangle>()
     val collections = arrayListOf(
         debugPoints,
         debugLines,
         debugRays,
         debugTexts,
-        debugAABBs
+        debugAABBs,
+        debugTriangles
     )
 
     fun clear() {

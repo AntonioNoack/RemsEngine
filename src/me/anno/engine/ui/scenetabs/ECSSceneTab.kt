@@ -2,10 +2,7 @@ package me.anno.engine.ui.scenetabs
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
-import me.anno.ecs.components.anim.Animation
-import me.anno.ecs.components.anim.BoneData
-import me.anno.ecs.components.anim.Skeleton
-import me.anno.ecs.components.anim.SkeletonCache
+import me.anno.ecs.components.anim.*
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.Material
@@ -117,6 +114,14 @@ class ECSSceneTab(
             is Skeleton -> {
                 // find still bounds
                 resetCamera(skeletalBounds(root), true)
+            }
+            is Retargeting -> {
+                val bounds = AABBd()
+                val srcSkeleton = SkeletonCache[root.srcSkeleton]
+                val dstSkeleton = SkeletonCache[root.dstSkeleton]
+                if (srcSkeleton != null) bounds.set(skeletalBounds(srcSkeleton))
+                if (dstSkeleton != null) bounds.union(skeletalBounds(dstSkeleton))
+                resetCamera(bounds, true)
             }
             else -> LOGGER.warn("Please implement bounds for class ${root.className}")
         }
