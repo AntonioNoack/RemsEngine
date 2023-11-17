@@ -268,7 +268,7 @@ fun main() {
             }
         }
 
-        override fun onPhysicsUpdate(): Boolean {
+        override fun onPhysicsUpdate(dt: Double): Boolean {
             val entity = entity!!
             val rigidbody = entity.getComponent(Rigidbody::class)!!
             val strength = 12.0 * rigidbody.mass

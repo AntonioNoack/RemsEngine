@@ -59,7 +59,7 @@ fun main() {
         val contacts = KeyPairMap<Any, Any, Unit>()
         override fun step(dt: Long, printSlack: Boolean) {
             super.step(dt, printSlack)
-            val dispatcher = world?.dispatcher ?: return
+            val dispatcher = bulletInstance?.dispatcher ?: return
             val numManifolds = dispatcher.numManifolds
             for (i in 0 until numManifolds) {
                 val contactManifold = dispatcher.getManifoldByIndexInternal(i) ?: break

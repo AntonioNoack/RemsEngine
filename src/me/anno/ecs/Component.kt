@@ -121,7 +121,7 @@ abstract class Component : PrefabSaveable(), Inspectable {
      * called on rigidbodies, when the physics engine does a simulation step; async
      * return true, if you need this update
      * */
-    open fun onPhysicsUpdate(): Boolean = false
+    open fun onPhysicsUpdate(dt: Double): Boolean = false
 
     override fun isDefaultValue(): Boolean = false
 

@@ -57,7 +57,8 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
     abstract fun getMatrix(frameIndex: Float, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f?
     abstract fun getMatrix(frameIndex: Int, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f?
 
-    fun getMappedAnimation(skel: FileReference): BoneByBoneAnimation? {
+    fun getMappedAnimation(skel: FileReference): Animation? {
+        if(skel == skeleton) return this
         val dstSkel = SkeletonCache[skel] ?: throw IllegalStateException("Missing Skeleton $skel for retargeting")
         return AnimationCache.getMappedAnimation(this, dstSkel)
     }
@@ -67,8 +68,8 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         dst: Array<Matrix4x3f>,
         dstSkeleton: FileReference
     ): Array<Matrix4x3f>? {
-        if (dstSkeleton == skeleton) return getMatrices(frameIndex, dst)
-        return getMappedAnimation(dstSkeleton)?.getMappedMatrices(frameIndex, dst, dstSkeleton)
+        return getMappedAnimation(dstSkeleton)
+            ?.getMatrices(frameIndex, dst)
     }
 
     fun getMappedMatrix(
@@ -77,8 +78,8 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         dst: Array<Matrix4x3f>,
         dstSkeleton: FileReference
     ): Matrix4x3f? {
-        if (dstSkeleton == skeleton) return getMatrix(frameIndex, boneId, dst)
-        return getMappedAnimation(dstSkeleton)?.getMappedMatrix(frameIndex, boneId, dst, dstSkeleton)
+        return getMappedAnimation(dstSkeleton)
+            ?.getMatrix(frameIndex, boneId, dst)
     }
 
     fun getMappedMatrices(
@@ -86,9 +87,8 @@ abstract class Animation : PrefabSaveable, Renderable, ICacheData {
         dst: Array<Matrix4x3f>,
         dstSkeleton: FileReference
     ): Array<Matrix4x3f>? {
-        if (dstSkeleton == skeleton) return getMatrices(frameIndex, dst)
-        val mapped = getMappedAnimation(dstSkeleton)
-        return mapped?.getMappedMatrices(frameIndex, dst, dstSkeleton)
+        return getMappedAnimation(dstSkeleton)
+            ?.getMatrices(frameIndex, dst)
     }
 
     fun getMappedMatricesSafely(

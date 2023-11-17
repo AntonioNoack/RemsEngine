@@ -11,9 +11,9 @@ import me.anno.io.NamedSaveable
 import me.anno.io.Saveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerPrefabFile
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.zip.InnerZipFile
 import me.anno.mesh.assimp.AnimationLoader.getDuration
 import me.anno.mesh.assimp.AnimationLoader.loadAnimationFrame
@@ -29,6 +29,7 @@ import me.anno.mesh.fbx.FBX6000
 import me.anno.utils.files.Files.findNextFileName
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
+import me.anno.utils.structures.lists.Lists.sortByParent
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.assimp.*
@@ -295,9 +296,12 @@ object AnimatedMeshesLoader {
                 break
             }
         }
-        if (!needsFix) return
+        if (!needsFix) {
+            return
+        }
         // sort the bones based on their parent id
-        boneList.sortBy { it.parentId }
+        val original = ArrayList(boneList)
+        boneList.sortByParent { original.getOrNull(it.parentId) }
         // create the correcting id mapping
         val mapping = IntArray(size)
         for (i in 0 until size) {
@@ -306,12 +310,12 @@ object AnimatedMeshesLoader {
         // apply the change to all bones
         for (index in 0 until size) {
             val bone = boneList[index]
-            bone.id = mapping[bone.id]
+            bone.id = index
             bone.parentId = if (bone.parentId < 0) -1 else mapping[bone.parentId]
         }
         // apply the change to all meshes
         for (mesh in meshes) {
-            val changeWithIndices = mesh.sets[ROOT_PATH, "boneIndices"] // !!.firstOrNull { it.name == "boneIndices" }
+            val changeWithIndices = mesh.sets[ROOT_PATH, "boneIndices"]
             if (changeWithIndices != null) {
                 // correct order?
                 val values = changeWithIndices as ByteArray
@@ -577,6 +581,7 @@ object AnimatedMeshesLoader {
     ): Prefab {
         val instance = BoneByBoneAnimation(imported)
         val prefab = Prefab("BoneByBoneAnimation")
+        prefab._sampleInstance = instance
         prefab["name"] = imported.name
         prefab["duration"] = imported.duration
         prefab["skeleton"] = imported.skeleton

@@ -17,7 +17,9 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.min
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Vectors
-import org.joml.*
+import org.joml.Matrix3f
+import org.joml.Matrix4x3f
+import org.joml.Vector3f
 
 class Skeleton : PrefabSaveable(), Renderable {
 
@@ -193,6 +195,9 @@ class Skeleton : PrefabSaveable(), Renderable {
                     }
                 }
             }
+            // clean up, because we won't fill in everything,
+            // because some bones have duplicated positions
+            positions.fill(0f, j, positions.size)
         }
 
         fun fillInSizeEstimate(bones: List<Bone>, bonePositions: Array<Vector3f>): Float {

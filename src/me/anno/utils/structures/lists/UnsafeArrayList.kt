@@ -123,7 +123,6 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
             override fun set(element: V) {
                 backend[index2 - 1] = element
             }
-
         }
     }
 
@@ -195,4 +194,7 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
         return SubList(this, fromIndex, toIndex)
     }
 
+    override fun toString(): String {
+        return joinToString(", ", "[", "]")
+    }
 }

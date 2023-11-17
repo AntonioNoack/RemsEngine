@@ -519,6 +519,10 @@ object Lists {
     fun <V> Collection<V>.sortedByTopology(getDependencies: (V) -> Collection<V>?): List<V> =
         ArrayList(this).sortByTopology(getDependencies)
 
+    @JvmStatic
+    fun <V> Collection<V>.sortedByParent(getParent: (V) -> V?): List<V> =
+        ArrayList(this).sortByParent(getParent)
+
     /**
      * returns an order such that elements without dependencies come first,
      * and elements with dependencies come after their dependencies;
@@ -539,10 +543,37 @@ object Lists {
             if (node in temporaryMark) throw IllegalArgumentException("Found cyclic dependency by $temporaryMark")
             temporaryMark.add(node)
             val dependencies = getDependencies(node)
-            if (dependencies != null && dependencies.isNotEmpty()) {
+            if (!dependencies.isNullOrEmpty()) {
                 for (dep in dependencies) {
                     visit(dep)
                 }
+            }
+            temporaryMark.remove(node)
+            noPermanentMark.remove(node)
+            this.add(node)
+        }
+
+        while (noPermanentMark.isNotEmpty()) {
+            visit(noPermanentMark.first())
+        }
+
+        return this
+    }
+
+    fun <V> MutableList<V>.sortByParent(getParent: (V) -> V?): List<V> {
+
+        val noPermanentMark = toHashSet()
+        val temporaryMark = HashSet<V>(min(64, size))
+
+        clear()
+
+        fun visit(node: V) {
+            if (node !in noPermanentMark) return
+            if (node in temporaryMark) throw IllegalArgumentException("Found cyclic dependency by $temporaryMark")
+            temporaryMark.add(node)
+            val parent = getParent(node)
+            if (parent != null) {
+                visit(parent)
             }
             temporaryMark.remove(node)
             noPermanentMark.remove(node)

@@ -110,10 +110,16 @@ object Maths {
      * @return interpolation factor for a call to lerp() or mix()
      * */
     @JvmStatic
-    fun dtTo01(x: Float) = 1f - exp(-x)
+    fun dtTo01(x: Float) = 1f - dtTo10(x)
 
     @JvmStatic
-    fun dtTo01(x: Double) = 1.0 - exp(-x)
+    fun dtTo10(x: Float) = exp(-x)
+
+    @JvmStatic
+    fun dtTo01(x: Double) = 1.0 - dtTo10(x)
+
+    @JvmStatic
+    fun dtTo10(x: Double) = exp(-x)
 
     @JvmStatic
     fun median(a: Float, b: Float, c: Float) = max(min(a, b), min(max(a, b), c))

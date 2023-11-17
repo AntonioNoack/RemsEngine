@@ -2,26 +2,30 @@ package me.anno.ecs.components.anim
 
 import me.anno.Engine
 import me.anno.animation.LoopingState
-import me.anno.config.DefaultConfig
+import me.anno.ecs.Component
+import me.anno.ecs.Entity
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.base.BaseWriter
+import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.studio.StudioBase
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
+import me.anno.utils.types.Floats.f2s
 import me.anno.utils.types.Floats.f3s
+import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import kotlin.concurrent.thread
+import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.test.assertTrue
 
 /**
  * a basic animation for characters, where animated translation only exists at the root node
@@ -48,6 +52,12 @@ class BoneByBoneAnimation() : Animation() {
      * */
     var rotations: FloatArray? = null
 
+    /**
+     * is uniform scale good enough?
+     * Array(frameCount) { Array(boneCount) { Vector3f() } }
+     * */
+    var scales: FloatArray? = null
+
     override val numFrames get() = frameCount
 
     fun prepareBuffers() {
@@ -56,23 +66,30 @@ class BoneByBoneAnimation() : Animation() {
         val s4 = Math.multiplyExact(4, space)
         val translations = translations.resize(s3)
         val rotations = rotations.resize(s4)
+        val scale = scales.resize(s3)
         // set transform to identity
         translations.fill(0f)
         rotations.fill(0f)
+        scale.fill(1f)
         for (i in 0 until space) {
             rotations[i * 4 + 3] = 1f
         }
         this.translations = translations
         this.rotations = rotations
+        this.scales = scale
+    }
+
+    private fun getTranslationIndex(frameIndex: Int, boneIndex: Int): Int {
+        return 3 * (frameIndex * boneCount + boneIndex)
     }
 
     fun getTranslation(frame: Int, bone: Int, dst: Vector3f): Vector3f {
-        return dst.set(translations!!, 3 * (frame * boneCount + bone))
+        return dst.set(translations!!, getTranslationIndex(frame, bone))
     }
 
-    fun getTranslation(fraction: Float, frame0: Int, frame1: Int, bone: Int, dst: Vector3f = Vector3f()): Vector3f {
-        val index0 = 3 * (frame0 * boneCount + bone)
-        val index1 = 3 * (frame1 * boneCount + bone)
+    fun getTranslation(fraction: Float, frame0: Int, frame1: Int, bone: Int, dst: Vector3f): Vector3f {
+        val index0 = getTranslationIndex(frame0, bone)
+        val index1 = getTranslationIndex(frame1, bone)
         val src = translations!!
         return dst.set(
             mix(src[index0], src[index1], fraction),
@@ -87,23 +104,25 @@ class BoneByBoneAnimation() : Animation() {
      * (this is not done automatically to save a bit on performance, since you would probably call this function a lot)
      * */
     fun setTranslation(frame: Int, bone: Int, src: Vector3f) {
-        src.get(translations!!, 3 * (frame * boneCount + bone))
+        src.get(translations!!, getTranslationIndex(frame, bone))
+    }
+
+    private fun getRotationIndex(frameIndex: Int, boneIndex: Int): Int {
+        return 4 * (frameIndex * boneCount + boneIndex)
     }
 
     fun getRotation(frame: Int, bone: Int, dst: Quaternionf): Quaternionf {
-        return dst.set(rotations!!, 4 * (frame * boneCount + bone))
+        return dst.set(rotations!!, getRotationIndex(frame, bone))
     }
 
     fun getRotation(
         fraction: Float, frame0: Int, frame1: Int, bone: Int,
-        dst: Quaternionf = Quaternionf()
+        tmp: Quaternionf, dst: Quaternionf
     ): Quaternionf {
-        val idx0 = 4 * (frame0 * boneCount + bone)
-        val idx1 = 4 * (frame1 * boneCount + bone)
         val src = rotations!!
-        val tmp = JomlPools.quat4f.borrow()
-        dst.set(src[idx0], src[idx0 + 1], src[idx0 + 2], src[idx0 + 3])
-        dst.slerp(tmp.set(src[idx1], src[idx1 + 1], src[idx1 + 2], src[idx1 + 3]), fraction)
+        dst.set(src, getRotationIndex(frame0, bone))
+        tmp.set(src, getRotationIndex(frame1, bone))
+        dst.slerp(tmp, fraction)
         return dst
     }
 
@@ -113,7 +132,30 @@ class BoneByBoneAnimation() : Animation() {
      * (this is not done automatically to save a bit on performance, since you would probably call this function a lot)
      * */
     fun setRotation(frame: Int, bone: Int, src: Quaternionf) {
-        src.get(rotations!!, 4 * (frame * boneCount + bone))
+        src.get(rotations!!, getRotationIndex(frame, bone))
+    }
+
+    private fun getScaleIndex(frameIndex: Int, boneIndex: Int): Int {
+        return 3 * (frameIndex * boneCount + boneIndex)
+    }
+
+    fun getScale(frame: Int, bone: Int, dst: Vector3f): Vector3f {
+        return dst.set(scales!!, getScaleIndex(frame, bone))
+    }
+
+    fun getScale(fraction: Float, frame0: Int, frame1: Int, bone: Int, dst: Vector3f): Vector3f {
+        val index0 = getScaleIndex(frame0, bone)
+        val index1 = getScaleIndex(frame1, bone)
+        val src = scales!!
+        return dst.set(
+            mix(src[index0], src[index1], fraction),
+            mix(src[index0 + 1], src[index1 + 1], fraction),
+            mix(src[index0 + 2], src[index1 + 2], fraction)
+        )
+    }
+
+    fun setScale(frame: Int, bone: Int, src: Vector3f) {
+        src.get(scales!!, getScaleIndex(frame, bone))
     }
 
     override fun save(writer: BaseWriter) {
@@ -124,6 +166,7 @@ class BoneByBoneAnimation() : Animation() {
         writer.writeMatrix4x3f("globalInvTransform", globalInvTransform)
         writer.writeFloatArray("rootMotion", translations)
         writer.writeFloatArray("rotations", rotations)
+        writer.writeFloatArray("scales", scales)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -146,6 +189,7 @@ class BoneByBoneAnimation() : Animation() {
         when (name) {
             "rootMotion" -> translations = values
             "rotations" -> rotations = values
+            "scales" -> scales = values
             else -> super.readFloatArray(name, values)
         }
     }
@@ -154,14 +198,19 @@ class BoneByBoneAnimation() : Animation() {
         val skeleton = SkeletonCache[skeleton] ?: return null
         val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(frameIndex, frameCount)
         val bones = skeleton.bones
-        val tmpPos = JomlPools.vec3f.borrow()
-        val tmpRot = JomlPools.quat4f.borrow()
+        val tmpPos = JomlPools.vec3f.create()
+        val tmpSca = JomlPools.vec3f.create()
+        val tmpRot = JomlPools.quat4f.create()
+        val tmpRot1 = JomlPools.quat4f.create()
         for (boneId in 0 until min(dst.size, bones.size)) {
             val bone = bones[boneId]
             getTranslation(fraction, frameIndex0, frameIndex1, boneId, tmpPos)
-            getRotation(fraction, frameIndex0, frameIndex1, boneId, tmpRot)
-            toImported(bone, dst.getOrNull(bone.parentId), tmpPos, tmpRot, dst[boneId])
+            getRotation(fraction, frameIndex0, frameIndex1, boneId, tmpRot1, tmpRot)
+            getScale(fraction, frameIndex0, frameIndex1, boneId, tmpSca)
+            toImported(bone, dst.getOrNull(bone.parentId), tmpPos, tmpRot, tmpSca, dst[boneId])
         }
+        JomlPools.quat4f.sub(2)
+        JomlPools.vec3f.sub(2)
         return dst
     }
 
@@ -169,38 +218,47 @@ class BoneByBoneAnimation() : Animation() {
         val skeleton = SkeletonCache[skeleton] ?: return null
         val (fraction, frameIndex0, frameIndex1) = calculateMonotonousTime(frameIndex, frameCount)
         val bones = skeleton.bones
-        val tmpPos = JomlPools.vec3f.borrow()
-        val tmpRot = JomlPools.quat4f.borrow()
+        val tmpPos = JomlPools.vec3f.create()
+        val tmpSca = JomlPools.vec3f.create()
+        val tmpRot = JomlPools.quat4f.create()
+        val tmpRot1 = JomlPools.quat4f.create()
         fun calculateRecursively(boneId: Int) {
             val bone = bones[boneId]
             val parentId = bone.parentId
             if (parentId in dst.indices) calculateRecursively(boneId)
             getTranslation(fraction, frameIndex0, frameIndex1, boneId, tmpPos)
-            getRotation(fraction, frameIndex0, frameIndex1, boneId, tmpRot)
-            toImported(bone, dst.getOrNull(parentId), tmpPos, tmpRot, dst[boneId])
+            getRotation(fraction, frameIndex0, frameIndex1, boneId, tmpRot1, tmpRot)
+            getScale(fraction, frameIndex0, frameIndex1, boneId, tmpSca)
+            toImported(bone, dst.getOrNull(parentId), tmpPos, tmpRot, tmpSca, dst[boneId])
         }
         calculateRecursively(boneId)
+        JomlPools.quat4f.sub(2)
+        JomlPools.vec3f.sub(2)
         return dst[boneId]
     }
 
     override fun getMatrices(frameIndex: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
         val skeleton = SkeletonCache[skeleton] ?: return null
         val bones = skeleton.bones
-        val tmpPos = JomlPools.vec3f.borrow()
+        val tmpPos = JomlPools.vec3f.create()
+        val tmpSca = JomlPools.vec3f.create()
         val tmpRot = JomlPools.quat4f.borrow()
         for (boneId in 0 until min(dst.size, bones.size)) {
             val bone = bones[boneId]
             getTranslation(frameIndex, boneId, tmpPos)
             getRotation(frameIndex, boneId, tmpRot)
-            toImported(bone, dst.getOrNull(bone.parentId), tmpPos, tmpRot, dst[boneId])
+            getScale(frameIndex, boneId, tmpSca)
+            toImported(bone, dst.getOrNull(bone.parentId), tmpPos, tmpRot, tmpSca, dst[boneId])
         }
+        JomlPools.vec3f.sub(2)
         return dst
     }
 
     override fun getMatrix(frameIndex: Int, boneId: Int, dst: Array<Matrix4x3f>): Matrix4x3f? {
         val skeleton = SkeletonCache[skeleton] ?: return null
         val bones = skeleton.bones
-        val tmpPos = JomlPools.vec3f.borrow()
+        val tmpPos = JomlPools.vec3f.create()
+        val tmpSca = JomlPools.vec3f.create()
         val tmpRot = JomlPools.quat4f.borrow()
         fun calculateRecursively(boneId: Int) {
             val bone = bones[boneId]
@@ -208,9 +266,11 @@ class BoneByBoneAnimation() : Animation() {
             if (parentId in dst.indices) calculateRecursively(boneId)
             getTranslation(frameIndex, boneId, tmpPos)
             getRotation(frameIndex, boneId, tmpRot)
-            toImported(bone, dst.getOrNull(parentId), tmpPos, tmpRot, dst[boneId])
+            getScale(frameIndex, boneId, tmpSca)
+            toImported(bone, dst.getOrNull(parentId), tmpPos, tmpRot, tmpSca, dst[boneId])
         }
         calculateRecursively(boneId)
+        JomlPools.vec3f.sub(2)
         return dst[boneId]
     }
 
@@ -230,12 +290,44 @@ class BoneByBoneAnimation() : Animation() {
         dst.frameCount = frameCount
         dst.translations = translations
         dst.rotations = rotations
+        dst.scales = scales
         dst.globalTransform.set(globalTransform)
         dst.globalInvTransform.set(globalInvTransform)
     }
 
     constructor(anim: ImportedAnimation) : this() {
         fromImported(anim)
+
+        if (false) {
+            println("Converting ${anim.name}!!")
+            val new = toImported(ImportedAnimation())
+            val frame = 0
+            val skeleton = SkeletonCache[anim.skeleton]!!
+            val src = anim.getMatrices(frame, Array(boneCount) { Matrix4x3f() })
+            val dst = new.getMatrices(frame, Array(boneCount) { Matrix4x3f() })
+
+            fun Matrix4x3f.f2() = "" +
+                    "[(${m00.f2s()} ${m10.f2s()} ${m20.f2s()} ${m30.f2s()})" +
+                    " (${m01.f2s()} ${m11.f2s()} ${m21.f2s()} ${m31.f2s()})" +
+                    " (${m02.f2s()} ${m12.f2s()} ${m22.f2s()} ${m32.f2s()})]"
+
+            for (boneI in 0 until boneCount) {
+                val bone = skeleton.bones[boneI]
+                println(
+                    "  ${bone.name} [$boneI -> ${bone.parentId}]:\n" +
+                            "      ${src[boneI].f2()} ->\n" +
+                            "      ${dst[boneI].f2()} via\n" +
+                            "      ${getTranslation(frame, boneI, Vector3f())}, ${
+                                getRotation(
+                                    frame,
+                                    boneI,
+                                    Quaternionf()
+                                )
+                            }, ${getScale(frame, boneI, Vector3f())}"
+                )
+                assertTrue(src[boneI].equals(dst[boneI], 0.01f))
+            }
+        }
     }
 
     fun fromImported(src: ImportedAnimation): BoneByBoneAnimation {
@@ -244,13 +336,21 @@ class BoneByBoneAnimation() : Animation() {
         boneCount = skel.bones.size
         frameCount = src.frames.size
         val boneCount = skel.bones.size
-        translations = FloatArray(boneCount * frameCount * 3)
-        rotations = FloatArray(boneCount * frameCount * 4)
-        val tmpV = Vector3f()
-        val tmpQ = Quaternionf()
+        val s1 = boneCount * frameCount
+        translations = FloatArray(s1 * 3)
+        rotations = FloatArray(s1 * 4)
+        scales = FloatArray(s1 * 3)
+        val pos = Vector3f()
+        val sca = Vector3f()
+        val rot = Quaternionf()
         val tmpM = Matrix4x3f()
         val frames = src.frames
         val bones = skel.bones
+        for (j in bones.indices) {
+            val bone = bones[j]
+            val pj = bone.parentId
+            if (pj >= j) throw IllegalStateException("Bones out of order, $j -> $pj")
+        }
         for (i in frames.indices) {
             val frame = frames[i]
             // calculate rotations
@@ -258,9 +358,13 @@ class BoneByBoneAnimation() : Animation() {
                 val bone = bones[j]
                 val pj = bone.parentId
                 val pose = frame[j] // bind pose [world space] -> animated pose [world space]
-                val data = fromImported(bone.bindPose, pose, frame.getOrNull(pj), tmpV, tmpQ, tmpM)
-                setTranslation(i, j, data.getTranslation(tmpV))
-                setRotation(i, j, data.getUnnormalizedRotation(tmpQ)) // probably would be the same as tmp2
+                fromImported(bone.bindPose, pose, frame.getOrNull(pj), tmpM, pos, rot, sca)
+                /*if (i == 0 && j < 10) {
+                    println("fromImported[$i/$j]: ${bone.bindPose} x $pose x ${frame.getOrNull(pj)} -> $pos, $rot, $sca")
+                }*/
+                setTranslation(i, j, pos)
+                setRotation(i, j, rot)
+                setScale(i, j, sca)
             }
         }
         return this
@@ -270,7 +374,8 @@ class BoneByBoneAnimation() : Animation() {
     fun toImported(dst: ImportedAnimation = ImportedAnimation()): ImportedAnimation {
         dst.skeleton = skeleton
         val skel = SkeletonCache[skeleton]!!
-        val tmpPos = JomlPools.vec3f.borrow()
+        val tmpPos = JomlPools.vec3f.create()
+        val tmpSca = JomlPools.vec3f.create()
         val tmpRot = JomlPools.quat4f.borrow()
         val bones = skel.bones
         dst.frames = Array(frameCount) { i ->
@@ -280,10 +385,12 @@ class BoneByBoneAnimation() : Animation() {
                 val pj = bone.parentId
                 getTranslation(i, j, tmpPos)
                 getRotation(i, j, tmpRot)
-                toImported(bone, matrices.getOrNull(pj), tmpPos, tmpRot, matrices[j])
+                getScale(i, j, tmpSca)
+                toImported(bone, matrices.getOrNull(pj), tmpPos, tmpRot, tmpSca, matrices[j])
             }
             matrices
         }
+        JomlPools.vec3f.sub(2)
         return dst
     }
 
@@ -295,37 +402,41 @@ class BoneByBoneAnimation() : Animation() {
             bindPose: Matrix4x3f,
             skinning: Matrix4x3f,
             parentSkinning: Matrix4x3f?,
-            tmpV: Vector3f, tmpQ: Quaternionf,
-            dst: Matrix4x3f
-        ): Matrix4x3f {
-            skinning.mul(bindPose, dst) // position in model
+            tmp: Matrix4x3f,
+            dstPos: Vector3f, dstRot: Quaternionf, dstSca: Vector3f,
+        ) {
+            skinning.mul(bindPose, tmp) // position in model
             if (parentSkinning != null) {
                 // (parent * bindPose)^-1 * dst
                 predict(parentSkinning, bindPose, JomlPools.mat4x3f.borrow())
-                    .invert().mul(dst, dst)
+                    .invert().mul(tmp, tmp)
             }
 
             // make that the rotation is always in world space
             //  by rotating the base of the rotation into world space
             // todo there probably is a way to transform this without awkward maths
-            val pos = dst.getTranslation(tmpV)
-            val rot = dst.getUnnormalizedRotation(tmpQ)
-            rotQuat(rot, bindPose)
-            bindPose.transformDirection(pos)
-            dst.translationRotate(pos, rot)
-
-            return dst
+            val pos = tmp.getTranslation(dstPos)
+            val rot = tmp.getUnnormalizedRotation(dstRot)
+            val sca = tmp.getScale(dstSca)
+            transformWeirdly(bindPose, pos, rot, sca)
         }
 
-        /**
-         * rotate the main axis of a quaternion;
-         * I don't know whether anyone uses this, whether this is a legit operation;
-         * I think I need it here, and it looks correct to me
-         * */
-        fun rotQuat(q: Quaternionf, rot: Matrix4x3f) {
-            val v = JomlPools.vec3f.borrow()
-            rot.transformDirection(v.set(q.x, q.y, q.z))
-            q.set(v.x, v.y, v.z, q.w)
+        fun transformWeirdly(bindPose: Matrix4x3f, pos: Vector3f, rot: Quaternionf, sca: Vector3f) {
+            bindPose.transformDirection(pos)
+            bindPose.transformRotation(rot)
+            bindPose.transformDirection(sca) // todo correct???
+        }
+
+        fun fromImported(
+            bindPose: Matrix4x3f,
+            skinning: Matrix4x3f,
+            parentSkinning: Matrix4x3f?,
+            tmpV: Vector3f, tmpQ: Quaternionf, tmpS: Vector3f,
+            dst: Matrix4x3f
+        ): Matrix4x3f {
+            fromImported(bindPose, skinning, parentSkinning, tmpV, tmpQ, tmpS, dst)
+            dst.translationRotate(tmpV, tmpQ)
+            return dst
         }
 
         /**
@@ -334,22 +445,42 @@ class BoneByBoneAnimation() : Animation() {
         fun toImported(
             bone: Bone,
             parentSkinning: Matrix4x3f?,
-            t: Vector3f, r: Quaternionf,
+            pos: Vector3f, rot: Quaternionf, sca: Vector3f,
             dst: Matrix4x3f
-        ) {
+        ): Matrix4x3f {
+            return toImported(
+                bone.bindPose, bone.inverseBindPose,
+                parentSkinning, pos, rot, sca, dst
+            )
+        }
 
-            // todo there probably is a way to transform this without awkward maths
-            bone.inverseBindPose.transformDirection(t)
-            rotQuat(r, bone.inverseBindPose)
-
-            dst.translationRotate(t, r)
+        fun toImported(
+            bindPose: Matrix4x3f,
+            inverseBindPose: Matrix4x3f,
+            parentSkinning: Matrix4x3f?,
+            pos: Vector3f, rot: Quaternionf, sca: Vector3f,
+            dst: Matrix4x3f
+        ): Matrix4x3f {
+            transformWeirdly(inverseBindPose, pos, rot, sca)
+            dst.translationRotateScale(pos, rot, sca)
             if (parentSkinning != null) {
                 // dst = (parent * bindPose) * dst
-                bone.bindPose.mul(dst, dst)
+                bindPose.mul(dst, dst)
                 parentSkinning.mul(dst, dst)
                 // predict(parentSkinning, bone.bindPose, JomlPools.mat4x3f.borrow()).mul(dst, dst)
             }
-            dst.mul(bone.inverseBindPose)
+            return dst.mul(inverseBindPose)
+        }
+
+        /**
+         * rotate the main axis of a quaternion;
+         * I don't know whether anyone uses this, whether this is a legit operation;
+         * I think I need it here, and it looks correct to me
+         * */
+        fun Matrix4x3f.transformRotation(q: Quaternionf) {
+            val v = JomlPools.vec3f.borrow()
+            transformDirection(v.set(q.x, q.y, q.z))
+            q.set(v.x, v.y, v.z, q.w)
         }
 
         fun predict(parentSkinning: Matrix4x3f, bindPose: Matrix4x3f, dst: Matrix4x3f): Matrix4x3f {
@@ -370,14 +501,13 @@ class BoneByBoneAnimation() : Animation() {
         @JvmStatic
         fun main(args: Array<String>) {
 
-            // front legs are broken slightly???
+            LogManager.enableLogger("AnimatedMeshesLoader")
 
-            // todo why is this springy/squishy?
+            // front legs are broken slightly???
 
             ECSRegistry.initMeshes()
 
             val meshFile = downloads.getChild("3d/azeria/scene.gltf")
-            // val meshFile = downloads.getChild("3d/FemaleStandingPose/7.4.fbx")
             var animFile = meshFile.getChild("animations")
             if (animFile.listChildren()!!.first().isDirectory) animFile = animFile.listChildren()!!.first()
             animFile = animFile.getChild("BoneByBone.json")
@@ -387,10 +517,13 @@ class BoneByBoneAnimation() : Animation() {
             }
 
             // create test scene
+            val scene = Entity("Scene")
             val mesh = AnimMeshComponent()
             mesh.skeleton = animation.skeleton
-            mesh.animations = listOf(AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
+            val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
+            mesh.animations = listOf(animState)
             mesh.meshFile = meshFile
+            scene.add(mesh)
 
             for (bone in SkeletonCache[mesh.skeleton]!!.bones) {
                 LOGGER.debug(
@@ -401,30 +534,28 @@ class BoneByBoneAnimation() : Animation() {
             }
 
             // create script, which modifies the animation at runtime
-            thread {
-                // rotations should be relative to their parent, probably
-                //  but also in global space... is this contradicting?
-                // yes, it is 😅, but we could define sth like a common up;
+            scene.add(object : Component() {
                 val r = Quaternionf()
-                var time = 0f
-                while (!Engine.shutdown) {
-                    val dr = sin(time * 20f) / 20f
+                override fun onUpdate(): Int {
+                    // rotations should be relative to their parent, probably
+                    //  but also in global space... is this contradicting?
+                    // yes, it is 😅, but we could define sth like a common up;
+                    val time = animState.progress * 2f * PIf / animation.duration
                     val boneIndex = if (meshFile.absolutePath.contains("azeria")) 7 else 67
+                    val amplitude = 0.7f
+                    r.identity()
+                        .rotateX(sin(time) * amplitude)
+                        .rotateY(cos(time) * amplitude)
+                    // todo we'd actually only need to update the currently used two frames
                     for (fi in 0 until animation.frameCount) {
-                        animation.getRotation(fi, boneIndex, r)
-                        r.rotateX(-dr)
                         animation.setRotation(fi, boneIndex, r)
                     }
                     AnimationCache.invalidate(animation)
-                    time += 0.01f
-                    Thread.sleep(10)
+                    return 1
                 }
-            }
+            })
 
-            testSceneWithUI("BoneByBoneAnimation", mesh) {
-                DefaultConfig["debug.renderdoc.enabled"] = true
-                StudioBase.instance?.enableVSync = true
-            }
+            testSceneWithUI("BoneByBoneAnimation", scene)
 
             Engine.requestShutdown()
         }

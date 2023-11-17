@@ -1,6 +1,5 @@
 package me.anno.tests.physics
 
-import me.anno.Time
 import me.anno.bullet.VehicleWheel
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugProperty
@@ -33,7 +32,7 @@ class TestVehicleController : Component(), ControlReceiver {
     @NotSerializedProperty
     var lastBrake = 0.0
 
-    override fun onPhysicsUpdate(): Boolean {
+    override fun onPhysicsUpdate(dt: Double): Boolean {
 
         val controls = controls.padEnd(4)
 
@@ -47,8 +46,7 @@ class TestVehicleController : Component(), ControlReceiver {
 
         val brakeForcePerWheel = if (Input.isKeyDown(' ')) this.brake else 0.0
 
-        val dt = Time.deltaTime * smoothing
-        val factor = Maths.dtTo01(dt)
+        val factor = Maths.dtTo01(dt * smoothing)
         lastForce = Maths.mix(lastForce, forceSum, factor)
         lastSteering = Maths.mix(lastSteering, steeringSum, factor)
         lastBrake = brakeForcePerWheel
@@ -72,5 +70,4 @@ class TestVehicleController : Component(), ControlReceiver {
     }
 
     override val className: String get() = "TestVehicleController"
-
 }

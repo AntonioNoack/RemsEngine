@@ -977,12 +977,13 @@ object Thumbs {
         val mesh = Mesh()
         val bones = skeleton.bones
         val (_, animPositions) = threadLocalBoneMatrices.get()
+        val numBones = min(animPositions.size, bones.size)
         // apply the matrices to the bone positions
-        for (i in 0 until min(animPositions.size, bones.size)) {
+        for (i in 0 until numBones) {
             val position = animPositions[i].set(bones[i].bindPosition)
             skinningMatrices[i].transformPosition(position)
         }
-        val meshVertices = Texture2D.floatArrayPool[bones.size * boneMeshVertices.size, false, true]
+        val meshVertices = Texture2D.floatArrayPool[numBones * boneMeshVertices.size, false, true]
         mesh.positions = meshVertices
         generateSkeleton(bones, animPositions, meshVertices, null)
         mesh.invalidateGeometry()

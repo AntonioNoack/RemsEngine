@@ -30,7 +30,7 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
     fun getMappedAnimation(animation: Animation, dstSkeleton: Skeleton): BoneByBoneAnimation? {
         val s0 = animation.ref
         val s1 = dstSkeleton.ref
-       return animTexCache.getEntry(
+        return animTexCache.getEntry(
             DualFileKey(s0, s1),
             timeout, false
         ) {

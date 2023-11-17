@@ -119,8 +119,8 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                     // only needed for position, normal and tangents
                     val clone = mesh.clone() as Mesh
                     clone.positions = transform(matrix, clone.positions)
-                    clone.normals = rotate(matrix, clone.normals)
-                    clone.tangents = rotate(matrix, clone.tangents)
+                    clone.normals = rotate(matrix, clone.normals, 3)
+                    clone.tangents = rotate(matrix, clone.tangents, 4)
                     clone
                 }
             }
@@ -157,11 +157,11 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
         return dst
     }
 
-    private fun rotate(matrix: Matrix4x3d, src: FloatArray?): FloatArray? {
+    private fun rotate(matrix: Matrix4x3d, src: FloatArray?, stride: Int): FloatArray? {
         src ?: return null
         val tmp = JomlPools.vec3f.borrow()
         val dst = FloatArray(src.size)
-        for (i in src.indices step 3) {
+        for (i in src.indices step stride) {
             tmp.set(src, i)
             matrix.transformDirection(tmp)
             tmp.get(dst, i)

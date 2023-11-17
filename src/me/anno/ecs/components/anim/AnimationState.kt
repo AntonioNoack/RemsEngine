@@ -11,7 +11,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.studio.Inspectable
 
 class AnimationState(
-    @Type("Animation/Reference")
+    @Type("Animation/Reference") // todo this isn't properly displayed yet... why?? -> because Saveable, not PrefabSaveable
     var source: FileReference,
     @Range(0.0, 1.0)
     var weight: Float,

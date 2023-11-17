@@ -509,17 +509,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         }
     }
 
-    fun physicsUpdate() {
-        // called by physics thread
-        // only called for rigidbodies
-        // not called for static objects (?), since they should not move
-        val components = components
-        for (i in components.indices) {
-            val c = components[i]
-            if (c.isEnabled) c.onPhysicsUpdate()
-        }
-    }
-
     /*
     * val drawable = children.firstOrNull { it is DrawableComponent } ?: return
         val fragmentEffects = children.filterIsInstance<FragmentShaderComponent>()

@@ -181,9 +181,22 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         return if (rigidbody.isEnabled) getRigidbody(rigidbody) else null
     }
 
-    private fun callUpdates() {
+    private fun callUpdates(dt: Double) {
         for (body in rigidBodies.keys) {
-            body.physicsUpdate()
+            physicsUpdate(body, dt)
+        }
+    }
+
+    fun physicsUpdate(self: Entity, dt: Double) {
+        // called by physics thread
+        // only called for rigidbodies
+        // not called for static objects (?), since they should not move
+        val components = self.components
+        for (i in components.indices) {
+            val c = components[i]
+            if (c.isEnabled) {
+                c.onPhysicsUpdate(dt)
+            }
         }
     }
 
@@ -333,9 +346,8 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
         // val newSize = rigidBodies.size
         // clock.stop("added ${newSize - oldSize} entities")
 
-        callUpdates()
-
         val step = dt * 1e-9
+        callUpdates(step)
         worldStepSimulation(step)
 
         // clock.stop("calculated changes, step ${dt * 1e-9}", 0.1)

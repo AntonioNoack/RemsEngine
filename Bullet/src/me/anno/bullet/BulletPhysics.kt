@@ -73,7 +73,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     private val sampleWheels = ArrayList<WheelInfo>()
 
     @NotSerializedProperty
-    var world: DiscreteDynamicsWorld? = null
+    var bulletInstance: DiscreteDynamicsWorld? = null
 
     @NotSerializedProperty
     var raycastVehicles: HashMap<Entity, RaycastVehicle>? = null
@@ -81,7 +81,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     override fun onCreate() {
         super.onCreate()
         raycastVehicles = HashMap()
-        world = createBulletWorldWithGravity()
+        bulletInstance = createBulletWorldWithGravity()
     }
 
     private fun createCollider(entity: Entity, colliders: List<Collider>, scale: org.joml.Vector3d): CollisionShape {
@@ -149,7 +149,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         tuning.suspensionStiffness = vehicleComp.suspensionStiffness
         tuning.suspensionCompression = vehicleComp.suspensionCompression
         tuning.maxSuspensionTravelCm = vehicleComp.maxSuspensionTravelCm
-        val world = world!!
+        val world = bulletInstance!!
         val raycaster = DefaultVehicleRaycaster(world)
         val vehicle = RaycastVehicle(tuning, body, raycaster)
         vehicle.setCoordinateSystem(0, 1, 2)
@@ -179,7 +179,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         // activate
         if (rigidbody.activeByDefault) body.activationState = CollisionObject.ACTIVE_TAG
 
-        world!!.addRigidBody(
+        bulletInstance!!.addRigidBody(
             body, // todo re-activate / correct groups and masks
             // clamp(rigidbody.group, 0, 15).toShort(),
             // rigidbody.collisionMask
@@ -222,7 +222,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     private fun addConstraint(c: Constraint<*>, body: RigidBody, rigidbody: Rigidbody, other: Rigidbody) {
         val oldInstance = c.bulletInstance
-        val world = world!!
+        val world = bulletInstance!!
         if (oldInstance != null) {
             world.removeConstraint(oldInstance)
             c.bulletInstance = null
@@ -252,7 +252,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
 
     override fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         super.remove(entity, fallenOutOfWorld)
-        val world = world!!
+        val world = bulletInstance!!
         entity.allComponents(Constraint::class) {
             val bi = it.bulletInstance
             if (bi != null) {
@@ -304,7 +304,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     override fun worldStepSimulation(step: Double) {
         try {
             Stack.reset(false)
-            world?.stepSimulation(step, maxSubSteps, if (fixedStep <= 0.0) step else fixedStep)
+            bulletInstance?.stepSimulation(step, maxSubSteps, if (fixedStep <= 0.0) step else fixedStep)
         } catch (e: Exception) {
             e.printStackTrace()
             LOGGER.warn("Crashed thread: ${Thread.currentThread().name}")
@@ -325,7 +325,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     }
 
     override fun worldRemoveRigidbody(rigidbody: RigidBody) {
-        world?.removeRigidBody(rigidbody)
+        bulletInstance?.removeRigidBody(rigidbody)
     }
 
     override fun convertTransformMatrix(rigidbody: RigidBody, scale: org.joml.Vector3d, dstTransform: Matrix4x3d) {
@@ -370,7 +370,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     }
 
     private fun drawContactPoints() {
-        val dispatcher = world?.dispatcher ?: return
+        val dispatcher = bulletInstance?.dispatcher ?: return
         val numManifolds = dispatcher.numManifolds
         val worldScale = RenderState.worldScale
         val cam = cameraPosition
@@ -419,7 +419,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
         val minAabb = Stack.newVec()
         val maxAabb = Stack.newVec()
 
-        val collisionObjects = world?.collisionObjectArray ?: return
+        val collisionObjects = bulletInstance?.collisionObjectArray ?: return
 
         val bounds = JomlPools.aabbd.create()
         for (i in 0 until collisionObjects.size) {
@@ -459,7 +459,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     private fun drawVehicles() {
 
         val worldScale = RenderState.worldScale
-        val world = world ?: return
+        val world = bulletInstance ?: return
         val vehicles = world.vehicles ?: return
 
         val wheelPosWS = Stack.newVec()
@@ -558,7 +558,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     override fun updateGravity() {
         val tmp = Stack.borrowVec()
         tmp.set(gravity.x, gravity.y, gravity.z)
-        world?.setGravity(tmp)
+        bulletInstance?.setGravity(tmp)
     }
 
     override val className: String get() = "BulletPhysics"
