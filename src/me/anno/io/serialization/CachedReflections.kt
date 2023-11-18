@@ -57,13 +57,13 @@ class CachedReflections(
      * */
     operator fun set(self: Any, name: String, value: Any?): Boolean {
         val property = allProperties[name] ?: return false
-        val value2 = if (value is Array<*> && property[self] !is Array<*>) {
+        val value2 = if (value is Array<*> && property[self] is List<*>) {
             value.toList()
         } else value
         return try {
             property.set(self, value2)
         } catch (e: IllegalArgumentException) {
-            LOGGER.warn("$e for ${self.javaClass.name}.$name, it's ${value?.javaClass?.name}")
+            LOGGER.warn("$e for ${self.javaClass.name}.$name, it's ${value2?.javaClass?.name}")
             false
         }
     }

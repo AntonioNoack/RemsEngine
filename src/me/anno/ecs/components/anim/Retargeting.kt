@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.animation.Type
 import me.anno.ecs.Entity
+import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.HideInInspector
 import me.anno.ecs.components.anim.AnimMeshComponent.Companion.tmpMapping0
 import me.anno.ecs.components.anim.AnimMeshComponent.Companion.tmpMapping1
@@ -61,25 +62,17 @@ class Retargeting : PrefabSaveable(), Renderable {
     val isIdentityMapping get() = srcSkeleton == dstSkeleton
 
     fun map(src: BoneByBoneAnimation): BoneByBoneAnimation? {
-        if (isIdentityMapping) {
-            println("identity mapping, so returning self")
-            return src
-        }
+        if (isIdentityMapping) return src
         return map(src, BoneByBoneAnimation())
     }
 
+    // todo this is a memory leak... animations can get destroyed, and we won't remove them
     private val mappedAnimations = ArrayList<Pair<BoneByBoneAnimation, BoneByBoneAnimation>>()
 
     fun invalidate() {
-        println(
-            "Invalidating retargeting from $srcSkeleton to $dstSkeleton, " +
-                    "${mappedAnimations.size}x in ${hex32(System.identityHashCode(this))}"
-        )
         // good enough?
         // we need to remap them...
-        // todo this is a memory leak... animations can get destroyed, and we won't remove them
         for ((src, dst) in mappedAnimations) {
-            println("Invalidating ${dst.name}/${dst.skeleton}")
             AnimationCache.invalidate(dst)
             recalculate(src, dst)
         }
@@ -100,6 +93,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         if (showSampleAnimation && sa != null && sm != null && srcSkeleton1 != null && dstSkeleton1 != null) {
             if (showSampleMesh) {
                 // show retargeted mesh
+                // todo why is this one not animated???
                 sm.fill(pipeline, entity, clickId)
             }
             if (srcPreviewData == null) srcPreviewData = Animation.PreviewData(srcSkeleton1, sa)
@@ -192,7 +186,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         for (dstBone in 0 until min(dstSkel.size, dstToSrc.size)) {
             val srcBone = srcBones[dstToSrc[dstBone]]
             if (srcBone == null) {
-                println("Skipping ${dstSkel[dstBone].name}, because it's unmapped")
+                // println("Skipping ${dstSkel[dstBone].name}, because it's unmapped")
                 continue
             }
             var srcBone0: Bone? = null
@@ -203,7 +197,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                 if (srcBone0 != null) break // found valid bone :)
                 lastValidDst = dstSkel[lastValidDst].parentId // next ancestor
             }
-            println("Mapping ${dstSkel[dstBone].name} to ${srcBone.name}, relative-root: ${srcBone0?.name}")
+            // println("Mapping ${dstSkel[dstBone].name} to ${srcBone.name}, relative-root: ${srcBone0?.name}")
             for (frame in 0 until dst.frameCount) {
                 // collect bones from previously mapped parent to this one
                 // to do/warn!: if srcBone0 is not an ancestor of srcBone, the result will be broken;
@@ -240,13 +234,24 @@ class Retargeting : PrefabSaveable(), Renderable {
                     tmpM.getUnnormalizedRotation(tmpQ)
                     tmpM.getScale(tmpS)
                 }
-                tmpV.mul(translationScale)
+                // tmpV.mul(translationScale)
                 dst.setTranslation(frame, dstBone, tmpV)
                 dst.setRotation(frame, dstBone, tmpQ)
                 dst.setScale(frame, dstBone, tmpS)
             }
         }
         return dst
+    }
+
+    @DebugAction
+    fun defineDefaultMapping() {
+        val prefab = prefab ?: return
+        Retargetings.defineDefaultMapping(
+            SkeletonCache[srcSkeleton]!!,
+            SkeletonCache[dstSkeleton]!!,
+            prefab
+        )
+        invalidate()
     }
 
     override fun createInspector(
@@ -314,7 +319,7 @@ class Retargeting : PrefabSaveable(), Renderable {
                     }
                     invalidate()
                 })
-                list.add(run {
+                if (false) list.add(run {
                     val value = dstBoneRotations[i]
                     val type = Type.ROT_YXZ.withDefault(Vector3f(0f))
                     FloatVectorInput(

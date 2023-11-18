@@ -17,7 +17,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
-import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Color
@@ -112,18 +112,27 @@ object Retargetings {
             prefab.source = configReference
             prefab["srcSkeleton"] = srcSkeleton
             prefab["dstSkeleton"] = dstSkeleton
-
-            // todo automatic bone-assignment, if none is found
-            //  - use similar assignments, if some are found in the database
-            // todo merge skeletons, if they are very similar (names, positions, structure)
-
+            defineDefaultMapping(
+                SkeletonCache[srcSkeleton]!!,
+                SkeletonCache[dstSkeleton]!!, prefab
+            )
             configReference.getParent()?.tryMkdirs()
-            configReference.writeText(JsonStringWriter.toText(prefab, StudioBase.workspace))
+            configReference.writeText(JsonStringWriter.toText(prefab, workspace))
         } else if (prefab.clazzName != "Retargeting") {
             LOGGER.warn("Class mismatch for $configReference!")
             return null
         }
         return prefab
+    }
+
+    fun defineDefaultMapping(srcSkeleton: Skeleton, dstSkeleton: Skeleton, prefab: Prefab) {
+        // todo automatic bone-assignment, if none is found
+        //  - use similar assignments, if some are found in the database
+        // todo merge skeletons, if they are very similar (names, positions, structure)
+        prefab["dstBoneIndexToSrcName"] = Array(dstSkeleton.bones.size) { dstBoneId ->
+            val boneName = dstSkeleton.bones[dstBoneId].name
+            srcSkeleton.bones.firstOrNull { it.name == boneName }?.name ?: noBoneMapped
+        }
     }
 
     fun getConfigFile(srcSkeleton: FileReference, dstSkeleton: FileReference): FileReference {
@@ -132,7 +141,7 @@ object Retargetings {
         val hash2 = dstSkeleton.toLocalPath().hashCode()
         // database, which stores bone assignments for a project
         val config = "retargeting/$hash1-$hash2.json"
-        return StudioBase.workspace.getChild(config)
+        return workspace.getChild(config)
     }
 
     fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Retargeting? {
@@ -151,11 +160,12 @@ object Retargetings {
     fun main(args: Array<String>) {
         // todo for testing, find an easier case: one, where the mesh isn't rotated/scaled
         ECSRegistry.init()
+        workspace = OS.documents.getChild("RemsEngine\\YandereSim")
         // find two human meshes with different skeletons
-        val meshFile = OS.downloads.getChild("3d/trooper gltf/scene.gltf")
-        val animFile = OS.downloads.getChild("fbx/Walking.fbx")
+        val meshFile = workspace.getChild("Characters/SK_Chr_Asian_Gangster_Male_01.json")
+        val animFile = workspace.getChild("Characters/anim-files/Walking-inPlace.fbx")
         val scene = PrefabCache[meshFile]!!.createInstance() as Entity
-        val animation = animFile.getChild("animations").listChildren()!!.first().getChild("BoneByBone.json")
+        val animation = animFile.getChild("animations/mixamo.com/BoneByBone.json")
         lateinit var testedComponent: AnimMeshComponent
         scene.forAllComponentsInChildren(AnimMeshComponent::class) { mesh ->
             mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
