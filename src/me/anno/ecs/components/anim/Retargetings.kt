@@ -23,6 +23,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Color
 import me.anno.utils.LOGGER
 import me.anno.utils.OS
+import kotlin.math.abs
 
 object Retargetings {
 
@@ -125,14 +126,62 @@ object Retargetings {
         return prefab
     }
 
-    fun defineDefaultMapping(srcSkeleton: Skeleton, dstSkeleton: Skeleton, prefab: Prefab) {
-        // todo automatic bone-assignment, if none is found
-        //  - use similar assignments, if some are found in the database
-        // todo merge skeletons, if they are very similar (names, positions, structure)
-        prefab["dstBoneIndexToSrcName"] = Array(dstSkeleton.bones.size) { dstBoneId ->
-            val boneName = dstSkeleton.bones[dstBoneId].name
-            srcSkeleton.bones.firstOrNull { it.name == boneName }?.name ?: noBoneMapped
+    fun getAllowedBones(
+        bone: Bone,
+        srcSkeleton: Skeleton,
+        dstSkeleton: Skeleton, dstBoneMapping: Array<String>,
+    ): List<Bone> {
+        var ancestor = bone
+        var ancestorMap = noBoneMapped
+        while (ancestorMap == noBoneMapped) {
+            val parentId = ancestor.parentId
+            ancestorMap = dstBoneMapping.getOrNull(parentId) ?: break
+            ancestor = dstSkeleton.bones[parentId]
         }
+        // now filter
+        return if (ancestorMap == noBoneMapped) srcSkeleton.bones
+        else srcSkeleton.bones.filter { it.hasBoneInHierarchy(ancestorMap, srcSkeleton.bones) }
+    }
+
+    fun defineDefaultMapping(srcSkeleton: Skeleton, dstSkeleton: Skeleton, prefab: Prefab) {
+        // automatic bone-assignment, if none is found
+        // todo - use similar assignments, if some are found in the database
+        // todo merge skeletons, if they are very similar (names, positions, structure)
+        val map = Array(dstSkeleton.bones.size) { dstBoneId ->
+            val dstName = dstSkeleton.bones[dstBoneId].name
+            srcSkeleton.bones.firstOrNull { it.name == dstName }?.name // perfect match
+                ?: noBoneMapped
+        }
+        if (srcSkeleton.bones.isNotEmpty() && dstSkeleton.bones.isNotEmpty() && map[0] == noBoneMapped) {
+            // map root bone
+            map[0] = srcSkeleton.bones.first().name
+        }
+        val usedBones = map.toHashSet()
+        for (i in map.lastIndex downTo 1) {
+            if (map[i] == noBoneMapped) {
+                // todo find viable bone from allowed bones
+                //  - close in name
+                //  - close in location???
+                //  - allowed to be set
+                //  - not yet used
+                val dstBone = dstSkeleton.bones[i]
+                val dstName = dstBone.name
+                val candidates = getAllowedBones(dstBone, srcSkeleton, dstSkeleton, map)
+                    .filter { it.name !in usedBones }
+                    .filter {
+                        val srcName = it.name
+                        abs(srcName.length - dstName.length) <= 2 &&
+                                (srcName.startsWith(dstName) || dstName.startsWith(srcName))
+                    }
+                if (candidates.size == 1) {
+                    val srcName = candidates.first().name
+                    LOGGER.info("Mapped $dstName to $srcName")
+                    map[i] = srcName
+                    usedBones.add(srcName)
+                }
+            }
+        }
+        prefab["dstBoneIndexToSrcName"] = map
     }
 
     fun getConfigFile(srcSkeleton: FileReference, dstSkeleton: FileReference): FileReference {

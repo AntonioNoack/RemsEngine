@@ -37,7 +37,6 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FloatVectorInput
-import me.anno.utils.Color.hex32
 import me.anno.utils.LOGGER
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Vectors
@@ -55,6 +54,7 @@ class Retargeting : PrefabSaveable(), Renderable {
     @SerializedProperty("dstBoneIndexToSrcName")
     var dstBoneIndexToSrcName: Array<String>? = null
 
+    // todo (how) can we use these to convert A poses to T poses and vice-versa?
     @HideInInspector
     @SerializedProperty("dstBoneIndexToSrcName")
     var dstBoneRotations: Array<Quaternionf>? = null
@@ -143,10 +143,10 @@ class Retargeting : PrefabSaveable(), Renderable {
 
     fun map(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
         if (isIdentityMapping || src === dst) {
-            println("identity mapping, so returning self")
+            // println("identity mapping, so returning self")
             return src
         }
-        println("adding mapping to list in ${hex32(System.identityHashCode(this))}")
+        // println("adding mapping to list in ${hex32(System.identityHashCode(this))}")
         mappedAnimations.add(src to dst)
         return recalculate(src, dst)
     }
@@ -180,6 +180,7 @@ class Retargeting : PrefabSaveable(), Renderable {
         val tmpQ = Quaternionf()
         val tmpS = Vector3f()
         // find base skeleton scale each, and then scale all bones
+        // todo small skeletons don't work yet
         val srcScaleSq = srcSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / srcSkel.size
         val dstScaleSq = dstSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / dstSkel.size
         val translationScale = sqrt(dstScaleSq / srcScaleSq).toFloat()
@@ -279,21 +280,14 @@ class Retargeting : PrefabSaveable(), Renderable {
             // for each bone, create an enum input
             for ((i, bone) in dstSkeleton.bones.withIndex()) {
                 // todo change color based on whether it is set to a valid bone
+                //  (to more easily differentiate filled from empty slots)
                 val options = UpdatingList(100) {
                     // filter elements such that only bones below our ancestors are allowed
-                    // find our first ancestor with a mapping
-                    var ancestor = bone
-                    var ancestorMap = noBoneMapped
-                    while (ancestorMap == noBoneMapped) {
-                        val parentId = ancestor.parentId
-                        ancestorMap = dstBoneMapping.getOrNull(parentId) ?: break
-                        ancestor = dstSkeleton.bones[parentId]
-                    }
-                    // now filter
-                    val availableBones = if (ancestorMap == noBoneMapped) srcSkeleton.bones
-                    else srcSkeleton.bones.filter { it.hasBoneInHierarchy(ancestorMap, srcSkeleton.bones) }
+                    val availableBones = Retargetings.getAllowedBones(bone, srcSkeleton, dstSkeleton, dstBoneMapping)
                     availableBones.map { NameDesc(it.name) } + listOf(NameDesc(noBoneMapped))
                 }
+                // todo create tree-hierarchy for these
+                //  -> padding left by bone depth
                 list.add(object : EnumInput(
                     NameDesc(bone.name), NameDesc(dstBoneMapping[i]),
                     options, style
