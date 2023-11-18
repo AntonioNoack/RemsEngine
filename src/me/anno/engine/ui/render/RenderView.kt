@@ -742,8 +742,12 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
     }
 
-    var drawGridWhenPlaying = false
-    var drawGridWhenEditing = true
+    var drawGridWhenPlaying = 0
+    var drawGridWhenEditing = 2
+
+    val drawGrid
+        get() = if (playMode == PlayMode.EDITING)
+            drawGridWhenEditing else drawGridWhenPlaying
 
     fun drawGizmos(
         drawGridLines: Boolean,
@@ -752,15 +756,14 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     ) {
         GFXState.blendMode.use(BlendMode.DEFAULT) {
             GFXState.depthMode.use(depthMode) {
-                val drawGrid = drawGridLines && if (playMode == PlayMode.EDITING)
-                    drawGridWhenEditing else drawGridWhenPlaying
+                val drawGrid = if (drawGridLines) drawGrid else 0
                 drawGizmos1(drawGrid, drawDebug, drawAABBs)
             }
         }
     }
 
     fun drawGizmos1(
-        drawGrid: Boolean,
+        drawGridMask: Int,
         drawDebugShapes: Boolean,
         drawAABBs: Boolean
     ) {
@@ -831,9 +834,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             world.onDrawGUI(world.isSelectedIndirectly)
         }
 
-        if (drawGrid) {
-            drawGrid(radius)
-        }
+        drawGrid(radius, drawGridMask)
 
         if (drawDebugShapes) {
             DebugRendering.drawDebugShapes(this)

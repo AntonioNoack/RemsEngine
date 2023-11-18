@@ -268,13 +268,6 @@ open class StringMap(
         }
     }
 
-    operator fun get(key: String, default: Vector3f): Vector3f {
-        return when (val value = this[key]) {
-            is Vector3f -> value
-            else -> default
-        }
-    }
-
     operator fun get(key: String, default: Boolean): Boolean {
         return when (val value = this[key]) {
             is Boolean -> value
@@ -294,25 +287,6 @@ open class StringMap(
                 default
             }
             else -> value.toString().toBoolean()
-        }
-    }
-
-    operator fun get(key: String, default: Filtering): Filtering {
-        return when (val value = this[key]) {
-            is Boolean -> if (value) Filtering.NEAREST else Filtering.LINEAR
-            is Int -> default.find(value)
-            is String -> {
-                when (value.lowercase(Locale.getDefault())) {
-                    "true", "t", "nearest" -> Filtering.NEAREST
-                    "false", "f", "linear" -> Filtering.LINEAR
-                    "cubic", "bicubic" -> Filtering.CUBIC
-                    else -> default
-                }
-            }
-            else -> {
-                set(key, default)
-                default
-            }
         }
     }
 

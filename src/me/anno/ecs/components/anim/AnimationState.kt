@@ -61,6 +61,14 @@ class AnimationState(
         }
     }
 
+
+    fun set(time: Float, async: Boolean) {
+        val instance = AnimationCache[source, async]
+        if (instance != null) {
+            progress = repeat[time, instance.duration]
+        }
+    }
+
     override fun save(writer: BaseWriter) {
         super.save(writer)
         writer.writeFile("source", source)

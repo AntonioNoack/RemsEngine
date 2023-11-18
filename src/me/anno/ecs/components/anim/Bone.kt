@@ -62,6 +62,12 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
         offsetVector.set(inverseBindPose.m30, inverseBindPose.m31, inverseBindPose.m32)
     }
 
+    fun hasBoneInHierarchy(name: String, bones: List<Bone>): Boolean {
+        if (name == this.name) return true
+        val parent = bones.getOrNull(parentId) ?: return false
+        return parent.hasBoneInHierarchy(name, bones)
+    }
+
     override val className: String get() = "Bone"
     override val approxSize get() = 1
 
@@ -100,5 +106,4 @@ class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
         dst.relativeTransform.set(relativeTransform)
         dst.originalTransform.set(originalTransform)
     }
-
 }

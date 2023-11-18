@@ -4,4 +4,5 @@ import me.anno.studio.Inspectable
 
 class DraggingControlSettings : Inspectable {
     var snapSettings = SnappingSettings()
+    var gridSettings = GridSettings()
 }

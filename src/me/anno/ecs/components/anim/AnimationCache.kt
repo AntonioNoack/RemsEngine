@@ -34,7 +34,7 @@ object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
             DualFileKey(s0, s1),
             timeout, false
         ) {
-            val retargeting = Retargeting.getRetargeting(animation.skeleton, dstSkeleton.ref)
+            val retargeting = Retargetings.getRetargeting(animation.skeleton, dstSkeleton.ref)
                 ?: throw NullPointerException("Missing retargeting from ${animation.skeleton} to ${dstSkeleton.ref}")
             val bbb = if (animation is BoneByBoneAnimation) animation
             else BoneByBoneAnimation(animation as ImportedAnimation)

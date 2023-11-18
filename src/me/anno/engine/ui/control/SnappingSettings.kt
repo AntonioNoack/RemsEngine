@@ -1,6 +1,6 @@
 package me.anno.engine.ui.control
 
-import me.anno.config.DefaultConfig
+import me.anno.config.ConfigRef
 import me.anno.ecs.annotations.Range
 import me.anno.maths.Maths.hasFlag
 import me.anno.studio.Inspectable
@@ -11,38 +11,18 @@ import kotlin.math.round
 class SnappingSettings : Inspectable {
 
     @Range(0.0, Double.POSITIVE_INFINITY)
-    var snapX: Double
-        get() = DefaultConfig["ui.snapSettings.snapX", 0.0]
-        set(value) {
-            DefaultConfig["ui.snapSettings.snapX"] = value
-        }
+    var snapX by ConfigRef("ui.snapSettings.snapX", 0.0)
 
     @Range(0.0, Double.POSITIVE_INFINITY)
-    var snapY: Double
-        get() = DefaultConfig["ui.snapSettings.snapY", 0.0]
-        set(value) {
-            DefaultConfig["ui.snapSettings.snapY"] = value
-        }
+    var snapY by ConfigRef("ui.snapSettings.snapY", 0.0)
 
     @Range(0.0, Double.POSITIVE_INFINITY)
-    var snapZ: Double
-        get() = DefaultConfig["ui.snapSettings.snapZ", 0.0]
-        set(value) {
-            DefaultConfig["ui.snapSettings.snapZ"] = value
-        }
+    var snapZ by ConfigRef("ui.snapSettings.snapZ", 0.0)
 
     @Range(0.0, Double.POSITIVE_INFINITY)
-    var snapR: Double
-        get() = DefaultConfig["ui.snapSettings.snapR", 0.0]
-        set(value) {
-            DefaultConfig["ui.snapSettings.snapR"] = value
-        }
+    var snapR by ConfigRef("ui.snapSettings.snapR", 0.0)
 
-    var snapCenter: Boolean
-        get() = DefaultConfig["ui.snapSettings.snapCenter", false]
-        set(value) {
-            DefaultConfig["ui.snapSettings.snapCenter"] = value
-        }
+    var snapCenter by ConfigRef("ui.snapSettings.snapCenter", false)
 
     fun snapPosition(dst: Vector3d) {
         dst.x = snap(dst.x, snapX)

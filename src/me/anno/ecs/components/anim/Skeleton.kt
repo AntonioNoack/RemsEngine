@@ -2,6 +2,7 @@ package me.anno.ecs.components.anim
 
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.interfaces.Renderable
@@ -89,7 +90,9 @@ class Skeleton : PrefabSaveable(), Renderable {
         pipeline: Pipeline,
         entity: Entity,
         clickId: Int
-    ): Int {
+    ): Int = fill(pipeline, clickId, defaultMaterial)
+
+    fun fill(pipeline: Pipeline, clickId: Int, material: Material): Int {
         val bones = bones
         if (bones.isEmpty()) return clickId
         if (previewData == null) {
@@ -103,6 +106,7 @@ class Skeleton : PrefabSaveable(), Renderable {
             previewData = mesh
         }
         val mesh = previewData!!
+        mesh.material = material.ref
         pipeline.fill(mesh)
         return clickId
     }

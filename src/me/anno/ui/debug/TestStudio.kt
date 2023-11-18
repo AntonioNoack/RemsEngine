@@ -3,13 +3,16 @@ package me.anno.ui.debug
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.engine.EngineActions
+import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.gpu.OSWindow
 import me.anno.input.ActionManager
+import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu
 
 /**
  * engine runtime for testing
@@ -37,6 +40,15 @@ class TestStudio(title: String, val createMainPanel: () -> List<Panel>) : Studio
     override fun onGameLoop(window: OSWindow, w: Int, h: Int) {
         DefaultConfig.saveMaybe("main.config")
         super.onGameLoop(window, w, h)
+    }
+
+    override fun save() {
+        try {
+            ECSSceneTabs.currentTab?.save()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Menu.msg((GFX.someWindow ?: return).windowStack, NameDesc(e.toString()))
+        }
     }
 
     companion object {
@@ -97,6 +109,5 @@ class TestStudio(title: String, val createMainPanel: () -> List<Panel>) : Studio
                 listOf(mainPanel)
             }.run()
         }
-
     }
 }

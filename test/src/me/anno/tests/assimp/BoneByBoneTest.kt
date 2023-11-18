@@ -28,6 +28,21 @@ class BoneByBoneTest {
         }
     }
 
+    @Test
+    fun testTransformIsIdentity() {
+        // skinned -> boneByBone -> skinned
+        for (i in 0 until 1000) {
+            val skinning = SkinningState(
+                randomSca3(randomPos(randomRot(Matrix4x3f()))),
+                Matrix4x3f(),
+                Matrix4x3f(),
+            )
+            val boneByBone = from(skinning)
+            val skinning2 = to(skinning, boneByBone)
+            assertTrue(Matrix4x3f().equals(skinning2, 0.001f))
+        }
+    }
+
     data class SkinningState(
         val bindPose: Matrix4x3f,
         val skinning: Matrix4x3f,
@@ -77,8 +92,10 @@ class BoneByBoneTest {
         val pos = Vector3f()
         val rot = Quaternionf()
         val sca = Vector3f()
+        val inverseBindPose = state.bindPose.invert(Matrix4x3f())
         BoneByBoneAnimation.fromImported(
-            state.bindPose, state.skinning, state.parentSkinning,
+            state.bindPose, inverseBindPose,
+            state.skinning, state.parentSkinning,
             Matrix4x3f(), pos, rot, sca
         )
         return BoneByBoneState(pos, rot, sca)

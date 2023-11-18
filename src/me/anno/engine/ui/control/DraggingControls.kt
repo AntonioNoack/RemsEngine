@@ -42,10 +42,14 @@ import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.Hierarchical
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.lists.Lists.none2
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Matrix4x3d
+import org.joml.Quaterniond
+import org.joml.Vector3d
+import org.joml.Vector3f
 import kotlin.math.PI
 import kotlin.math.sign
 import kotlin.math.tan
@@ -99,6 +103,10 @@ open class DraggingControls(renderView: RenderView) : ControlScheme(renderView) 
         super.onUpdate()
         if (dragged != null) invalidateDrawing() // might be displayable
         drawModeInput.setValue(NameDesc(renderView.renderMode.name), false)
+        val gs = settings.gridSettings
+        renderView.drawGridWhenEditing = gs.showGridXY.toInt(1) +
+                gs.showGridXZ.toInt(2) +
+                gs.showGridYZ.toInt(4)
     }
 
     override fun fill(pipeline: Pipeline) {

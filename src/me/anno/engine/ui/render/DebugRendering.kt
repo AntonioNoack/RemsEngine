@@ -31,10 +31,12 @@ import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.Color
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.structures.lists.Lists.mapFirstNotNull
 import org.joml.Vector3d
+import org.joml.Vector4f
 import kotlin.math.floor
 import kotlin.math.min
 
@@ -201,8 +203,23 @@ object DebugRendering {
         val sy = -view.height * 0.5f
         val x0 = +sx
         val y0 = -sy
-        val betterBlending = GFXState.currentBuffer.getTargetType(0) == TargetType.UByteTarget4
-        val pbb = DrawTexts.pushBetterBlending(betterBlending)
+        val betterBlending = GFXState.currentBuffer.getTargetType(0) == TargetType.UByteTarget4 &&
+                GFXState.currentBuffer.samples == 1 && DrawTexts.canUseComputeShader()
+        if (betterBlending) {
+            val pbb = DrawTexts.pushBetterBlending(true)
+            drawDebugTexts2(view, camPosition, worldScale, v, x0, y0, sx, sy)
+            DrawTexts.popBetterBlending(pbb)
+        } else {
+            GFXState.blendMode.use(me.anno.gpu.blending.BlendMode.DEFAULT) {
+                drawDebugTexts2(view, camPosition, worldScale, v, x0, y0, sx, sy)
+            }
+        }
+    }
+
+    private fun drawDebugTexts2(
+        view: RenderView, camPosition: Vector3d, worldScale: Double, v: Vector4f,
+        x0: Float, y0: Float, sx: Float, sy: Float
+    ) {
         val texts = DebugShapes.debugTexts
         val cameraMatrix = view.cameraMatrix
         for (index in texts.indices) {
@@ -217,11 +234,11 @@ object DebugRendering {
                 val vy = v.y * sy / v.w + y0
                 DrawTexts.drawSimpleTextCharByChar(
                     vx.toInt(), vy.toInt(), 0, text.text,
-                    text.color, 0, AxisAlignment.CENTER, AxisAlignment.CENTER
+                    text.color, text.color.withAlpha(0),
+                    AxisAlignment.CENTER, AxisAlignment.CENTER
                 )
             }
         }
-        DrawTexts.popBetterBlending(pbb)
     }
 
     fun drawDebugPoint(view: RenderView, p: Vector3d, color: Int) {

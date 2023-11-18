@@ -21,7 +21,7 @@ class GizmoNode : RenderSceneNode0(
         "Int", "Width",
         "Int", "Height",
         "Int", "Samples",
-        "Bool", "Grid",
+        "Int", "Grid Mask",
         "Bool", "AABBs",
         "Bool", "Debug Shapes",
         "Texture", "Illuminated",
@@ -36,7 +36,7 @@ class GizmoNode : RenderSceneNode0(
         setInput(1, 256) // width
         setInput(2, 256) // height
         setInput(3, 8) // samples
-        setInput(4, true) // grid
+        setInput(4, -1) // grid, -1 = auto
         setInput(5, false) // aabbs
         setInput(6, true) // debug shapes
         setInput(7, null) // depth
@@ -49,9 +49,13 @@ class GizmoNode : RenderSceneNode0(
         val samples = getInput(3) as Int
         if (width < 1 || height < 1 || samples < 1) return
 
-        val grid = getInput(4) == true
+        var grid = getInput(4) as Int
         val aabbs = getInput(5) == true
         val debug = getInput(6) == true
+
+        if (grid == -1) {
+            grid = renderView.drawGridWhenEditing
+        }
 
         val colorT = ((getInput(7) as? Texture)?.tex as? Texture2D)
         val depth = getInput(8) as? Texture

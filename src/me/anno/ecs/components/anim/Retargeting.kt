@@ -1,42 +1,44 @@
 package me.anno.ecs.components.anim
 
+import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.cache.CacheData
-import me.anno.cache.CacheSection
+import me.anno.animation.Type
 import me.anno.ecs.Entity
-import me.anno.ecs.annotations.DebugProperty
+import me.anno.ecs.annotations.HideInInspector
+import me.anno.ecs.components.anim.AnimMeshComponent.Companion.tmpMapping0
+import me.anno.ecs.components.anim.AnimMeshComponent.Companion.tmpMapping1
+import me.anno.ecs.components.anim.AnimationCache.getMappedAnimation
+import me.anno.ecs.components.anim.Retargetings.dstColor
+import me.anno.ecs.components.anim.Retargetings.dstColor1
+import me.anno.ecs.components.anim.Retargetings.dstMat
+import me.anno.ecs.components.anim.Retargetings.noBoneMapped
+import me.anno.ecs.components.anim.Retargetings.sampleAnimation
+import me.anno.ecs.components.anim.Retargetings.sampleModel
+import me.anno.ecs.components.anim.Retargetings.srcColor
+import me.anno.ecs.components.anim.Retargetings.srcColor1
+import me.anno.ecs.components.anim.Retargetings.srcMat
 import me.anno.ecs.interfaces.Renderable
-import me.anno.ecs.prefab.Prefab
-import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ECSRegistry
-import me.anno.engine.debug.DebugLine
 import me.anno.engine.debug.DebugShapes
+import me.anno.engine.debug.DebugText
 import me.anno.engine.debug.DebugTriangle
-import me.anno.engine.ui.render.PlayMode
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.engine.ui.scenetabs.ECSSceneTabs
-import me.anno.gpu.GFX
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.graph.ui.GraphPanel.Companion.blue
-import me.anno.graph.ui.GraphPanel.Companion.red
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.io.json.saveable.JsonStringReader
-import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.serialization.SerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.studio.Inspectable
-import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
-import me.anno.ui.base.menu.Menu.openMenu
-import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
+import me.anno.ui.input.FloatVectorInput
+import me.anno.utils.Color.hex32
 import me.anno.utils.LOGGER
-import me.anno.utils.OS.downloads
+import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Vectors
 import org.joml.*
 import kotlin.math.min
@@ -44,166 +46,118 @@ import kotlin.math.sqrt
 
 class Retargeting : PrefabSaveable(), Renderable {
 
-    companion object {
-
-        private val cache = CacheSection("Retargeting")
-        private const val timeout = 500_000L
-
-        fun openUI(anim: AnimMeshComponent) {
-            // find all animation states, where the skeleton needs mapping, and ask the user, which to edit
-            val window = GFX.someWindow ?: return
-            val states = anim.animations
-            val dstSkeleton = anim.skeleton
-            val baseSkeletonCheck = SkeletonCache[dstSkeleton]
-            if (baseSkeletonCheck == null) {
-                LOGGER.warn("Base skeleton is null")
-            }
-            val srcSkeletons = states
-                .mapNotNull { AnimationCache[it.source]?.skeleton }
-                .filter { SkeletonCache[it] != null }
-            if (srcSkeletons.isEmpty()) {
-                LOGGER.warn("No skeletons could be found in animation states")
-            }
-            val srcSkeletons1 = srcSkeletons - dstSkeleton
-            when (srcSkeletons1.size) {
-                0 -> LOGGER.warn("All skeletons were identical, so no retargeting required")
-                1 -> openUI(srcSkeletons1.first(), dstSkeleton)
-                else -> {
-                    openMenu(window.windowStack, NameDesc("Choose skeleton to edit"),
-                        srcSkeletons1.map { srcSkeleton ->
-                            MenuOption(NameDesc(srcSkeleton.toLocalPath())) {
-                                openUI(srcSkeleton, dstSkeleton)
-                            }
-                        })
-                }
-            }
-        }
-
-        fun openUI(srcSkeleton: FileReference, dstSkeleton: FileReference) {
-            // then edit that one
-            //  - prefab inspector
-            //  - save button
-            //  - history?
-            val configReference = getConfigFile(srcSkeleton, dstSkeleton)
-            val prefab = PrefabCache[configReference]
-            if (prefab == null) {
-                // create new file
-                val prefab1 = Prefab("Retargeting")
-                prefab1["srcSkeleton"] = srcSkeleton
-                prefab1["dstSkeleton"] = dstSkeleton
-                configReference.getParent()?.tryMkdirs()
-                configReference.writeText(JsonStringWriter.toText(prefab1, workspace))
-            } else if (prefab.clazzName != "Retargeting") {
-                LOGGER.warn("Class mismatch for $configReference!")
-                return
-            }
-            ECSSceneTabs.open(configReference, PlayMode.EDITING, true)
-        }
-
-        fun getConfigFile(srcSkeleton: FileReference, dstSkeleton: FileReference): FileReference {
-            // todo since we hide the names, we could also use our hierarchical database...
-            val hash1 = srcSkeleton.toLocalPath().hashCode()
-            val hash2 = dstSkeleton.toLocalPath().hashCode()
-            // database, which stores bone assignments for a project
-            val config = "retargeting/$hash1-$hash2.json"
-            return workspace.getChild(config)
-        }
-
-        fun getRetargeting(srcSkeleton: FileReference, dstSkeleton: FileReference): Retargeting? {
-            if (srcSkeleton == dstSkeleton) return null
-            val data = cache.getEntry(
-                DualFileKey(srcSkeleton, dstSkeleton),
-                timeout, false
-            ) { k12 ->
-
-                // todo hash skeleton instead of skeleton path
-                // database, which stores bone assignments for a project
-                val config1 = getConfigFile(srcSkeleton, dstSkeleton)
-
-                LOGGER.debug("Getting retargeting {}", k12)
-
-                val ret: Retargeting
-                if (config1.exists) {
-                    ret = JsonStringReader.readFirstOrNull<Retargeting>(config1, InvalidRef, true)
-                        ?: Retargeting()
-                } else {
-                    ret = Retargeting()
-                    ret.srcSkeleton = k12.file0
-                    ret.dstSkeleton = k12.file1
-                    config1.getParent()?.tryMkdirs()
-                    config1.writeText(JsonStringWriter.toText(ret, InvalidRef))
-                }
-
-                // todo automatic bone-assignment, if none is found
-                //  - use similar assignments, if some are found in the database
-                // todo merge skeletons, if they are very similar (names, positions, structure)
-
-                CacheData(ret)
-            } as CacheData<*>
-            return data.value as Retargeting
-        }
-
-        @JvmStatic
-        fun main(args: Array<String>) {
-            ECSRegistry.init()
-            val testRetargeting = true
-            // find two human meshes with different skeletons
-            val file1 = downloads.getChild("3d/trooper gltf/scene.gltf")
-            val file2 = downloads.getChild("fbx/Walking.fbx")
-            val fileI = if (testRetargeting) file2 else file1
-            val scene = PrefabCache[file1]!!.createInstance() as Entity
-            val animation = fileI.getChild("animations").listChildren()!!.first().getChild("BoneByBone.json")
-            scene.forAllComponentsInChildren(AnimMeshComponent::class) { mesh ->
-                mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
-            }
-            // todo target stands still... were no bones mapped?
-            //  the target is also crippled... why???
-            testSceneWithUI("Retargeting", scene)
-        }
-    }
-
     var srcSkeleton: FileReference = InvalidRef
     var dstSkeleton: FileReference = InvalidRef
 
     // for each dstBone, which bone is responsible for the transform
-    var dstBoneMapping: Array<String>? = null
+    @HideInInspector
+    @SerializedProperty("dstBoneIndexToSrcName")
+    var dstBoneIndexToSrcName: Array<String>? = null
 
-    @DebugProperty
+    @HideInInspector
+    @SerializedProperty("dstBoneIndexToSrcName")
+    var dstBoneRotations: Array<Quaternionf>? = null
+
     val isIdentityMapping get() = srcSkeleton == dstSkeleton
 
     fun map(src: BoneByBoneAnimation): BoneByBoneAnimation? {
-        if (isIdentityMapping) return src
+        if (isIdentityMapping) {
+            println("identity mapping, so returning self")
+            return src
+        }
         return map(src, BoneByBoneAnimation())
     }
 
     private val mappedAnimations = ArrayList<Pair<BoneByBoneAnimation, BoneByBoneAnimation>>()
 
     fun invalidate() {
+        println(
+            "Invalidating retargeting from $srcSkeleton to $dstSkeleton, " +
+                    "${mappedAnimations.size}x in ${hex32(System.identityHashCode(this))}"
+        )
         // good enough?
         // we need to remap them...
         // todo this is a memory leak... animations can get destroyed, and we won't remove them
         for ((src, dst) in mappedAnimations) {
-            map2(src, dst)
+            println("Invalidating ${dst.name}/${dst.skeleton}")
+            AnimationCache.invalidate(dst)
+            recalculate(src, dst)
         }
     }
 
+    var showSampleMesh = false
+    var showSampleAnimation = true
+
     override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
-        // todo different colors
-        // todo show bone names / mapping
-        // todo play sample animation (?)
-        // todo show sample mesh (?)
-        SkeletonCache[srcSkeleton]?.fill(pipeline, entity, clickId)
-        SkeletonCache[dstSkeleton]?.fill(pipeline, entity, clickId)
+        // different colors
+        // todo show mapping clearer, maybe connecting lines
+        // todo apply transform onto one of them, so we can check their matches better
+        val sm = sampleModel
+        val sa = AnimationCache[sampleAnimation]
+        val srcSkeleton1 = SkeletonCache[srcSkeleton]
+        val dstSkeleton1 = SkeletonCache[dstSkeleton]
+        val transform = entity.transform.getDrawMatrix()
+        if (showSampleAnimation && sa != null && sm != null && srcSkeleton1 != null && dstSkeleton1 != null) {
+            if (showSampleMesh) {
+                // show retargeted mesh
+                sm.fill(pipeline, entity, clickId)
+            }
+            if (srcPreviewData == null) srcPreviewData = Animation.PreviewData(srcSkeleton1, sa)
+            fillSkeletonAnimated(pipeline, entity, clickId, srcPreviewData!!)
+            val mappedAnimation = mappedAnimations.firstOrNull { it.first == sa }?.second
+                ?: getMappedAnimation(sa, dstSkeleton1)
+            if (mappedAnimation != null) {
+                if (dstPreviewData == null) dstPreviewData = Animation.PreviewData(
+                    dstSkeleton1, mappedAnimation
+                )
+                fillSkeletonAnimated(pipeline, entity, clickId, dstPreviewData!!)
+            } else println("Missing mapped animation!!")
+            val loop = LoopingState.PLAY_LOOP
+            val frame = loop[Time.gameTime.toFloat(), sa.duration] * sa.numFrames / sa.duration
+            drawBoneNames(srcSkeleton1, sa.getMappedMatrices(frame, tmpMapping0, srcSkeleton), transform, srcColor)
+            drawBoneNames(dstSkeleton1, sa.getMappedMatrices(frame, tmpMapping1, dstSkeleton), transform, dstColor)
+        } else {
+            srcSkeleton1?.fill(pipeline, clickId, srcMat)
+            dstSkeleton1?.fill(pipeline, clickId, dstMat)
+        }
         return clickId + 1
     }
 
-    fun map(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
-        if (isIdentityMapping || src === dst) return src
-        mappedAnimations.add(src to dst)
-        return map2(src, dst)
+    private var srcPreviewData: Animation.PreviewData? = null
+    private var dstPreviewData: Animation.PreviewData? = null
+    private fun fillSkeletonAnimated(
+        pipeline: Pipeline, entity: Entity, clickId: Int,
+        previewData: Animation.PreviewData,
+    ) {
+        previewData.state.set(Time.gameTime.toFloat(), false)
+        previewData.renderer.updateAnimState()
+        previewData.renderer.fill(pipeline, entity, clickId)
     }
 
-    fun map2(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
+    private fun drawBoneNames(skeleton: Skeleton, matrices: Array<Matrix4x3f>?, transform: Matrix4x3d, color: Int) {
+        matrices ?: return
+        // draw bone names where they are
+        for (i in 0 until min(skeleton.bones.size, matrices.size)) {
+            val bone = skeleton.bones[i]
+            val pos = Vector3f(bone.bindPosition)
+            matrices[i].transformPosition(pos)
+            val pos1 = Vector3d(pos)
+            transform.transformPosition(pos1)
+            DebugShapes.debugTexts.add(DebugText(pos1, bone.name, color, 0f))
+        }
+    }
+
+    fun map(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
+        if (isIdentityMapping || src === dst) {
+            println("identity mapping, so returning self")
+            return src
+        }
+        println("adding mapping to list in ${hex32(System.identityHashCode(this))}")
+        mappedAnimations.add(src to dst)
+        return recalculate(src, dst)
+    }
+
+    fun recalculate(src: BoneByBoneAnimation, dst: BoneByBoneAnimation): BoneByBoneAnimation? {
         val srcSkel = SkeletonCache[srcSkeleton]?.bones
         val dstSkel = SkeletonCache[dstSkeleton]?.bones
 
@@ -223,26 +177,33 @@ class Retargeting : PrefabSaveable(), Renderable {
         dst.boneCount = dstSkel.size
         dst.duration = src.duration
         dst.prepareBuffers()
+        // when we set nothing, everything should be identity, right? yes, correct
 
         val srcBones = srcSkel.associateBy { it.name }
-        val mapping = dstBoneMapping ?: return dst
+        val dstToSrc = dstBoneIndexToSrcName ?: return dst
         val tmpM = Matrix4x3f()
         val tmpV = Vector3f()
         val tmpQ = Quaternionf()
+        val tmpS = Vector3f()
         // find base skeleton scale each, and then scale all bones
         val srcScaleSq = srcSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / srcSkel.size
         val dstScaleSq = dstSkel.sumOf { it.bindPosition.lengthSquared().toDouble() } / dstSkel.size
         val translationScale = sqrt(dstScaleSq / srcScaleSq).toFloat()
-        for (dstBone in 0 until min(dstSkel.size, mapping.size)) {
-            val srcBone = srcBones[mapping[dstBone]] ?: continue
+        for (dstBone in 0 until min(dstSkel.size, dstToSrc.size)) {
+            val srcBone = srcBones[dstToSrc[dstBone]]
+            if (srcBone == null) {
+                println("Skipping ${dstSkel[dstBone].name}, because it's unmapped")
+                continue
+            }
             var srcBone0: Bone? = null
             var lastValidDst = dstSkel[dstBone].parentId
             while (lastValidDst >= 0) {
                 // check if this bone is mapped
-                srcBone0 = srcBones[mapping[lastValidDst]]
+                srcBone0 = srcBones[dstToSrc[lastValidDst]]
                 if (srcBone0 != null) break // found valid bone :)
                 lastValidDst = dstSkel[lastValidDst].parentId // next ancestor
             }
+            println("Mapping ${dstSkel[dstBone].name} to ${srcBone.name}, relative-root: ${srcBone0?.name}")
             for (frame in 0 until dst.frameCount) {
                 // collect bones from previously mapped parent to this one
                 // to do/warn!: if srcBone0 is not an ancestor of srcBone, the result will be broken;
@@ -258,13 +219,18 @@ class Retargeting : PrefabSaveable(), Renderable {
                     if (index == 0) {
                         src.getTranslation(frame, srcBone1, tmpV)
                         src.getRotation(frame, srcBone1, tmpQ)
+                        src.getScale(frame, srcBone1, tmpS)
                     } else {
-                        if (index == 1) tmpM.translationRotate(tmpV, tmpQ)
+                        if (index == 1) {
+                            tmpM.translationRotateScale(tmpV, tmpQ, tmpS)
+                        }
                         src.getTranslation(frame, srcBone1, tmpV)
                         src.getRotation(frame, srcBone1, tmpQ)
+                        src.getScale(frame, srcBone1, tmpS)
                         // correct order? should be
                         tmpM.translate(tmpV)
                         tmpM.rotate(tmpQ)
+                        tmpM.scale(tmpS)
                     }
                     index++
                 }
@@ -272,10 +238,12 @@ class Retargeting : PrefabSaveable(), Renderable {
                 if (index > 1) { // we used the matrix, so extract the result
                     tmpM.getTranslation(tmpV)
                     tmpM.getUnnormalizedRotation(tmpQ)
+                    tmpM.getScale(tmpS)
                 }
                 tmpV.mul(translationScale)
                 dst.setTranslation(frame, dstBone, tmpV)
                 dst.setRotation(frame, dstBone, tmpQ)
+                dst.setScale(frame, dstBone, tmpS)
             }
         }
         return dst
@@ -291,30 +259,77 @@ class Retargeting : PrefabSaveable(), Renderable {
         val srcSkeleton = SkeletonCache[srcSkeleton]
         val dstSkeleton = SkeletonCache[dstSkeleton]
         if (srcSkeleton != null && dstSkeleton != null) {
-            var dstBoneMapping = dstBoneMapping
-            if (dstBoneMapping == null) dstBoneMapping = Array(dstSkeleton.bones.size) { "?" }
-            if (dstBoneMapping.size < dstSkeleton.bones.size) {
-                dstBoneMapping = Array(dstSkeleton.bones.size) { dstBoneMapping!!.getOrNull(it) ?: "?" }
+            var dstBoneMapping = dstBoneIndexToSrcName
+            if (dstBoneMapping == null) dstBoneMapping = Array(dstSkeleton.bones.size) { noBoneMapped }
+            else if (dstBoneMapping.size != dstSkeleton.bones.size) {
+                dstBoneMapping = Array(dstSkeleton.bones.size) { dstBoneMapping!!.getOrNull(it) ?: noBoneMapped }
             }
+            var dstBoneRotations = dstBoneRotations
+            if (dstBoneRotations == null) dstBoneRotations = Array(dstSkeleton.bones.size) { Quaternionf() }
+            else if (dstBoneRotations.size != dstSkeleton.bones.size) {
+                dstBoneRotations = Array(dstSkeleton.bones.size) { dstBoneRotations!!.getOrNull(it) ?: Quaternionf() }
+            }
+            this.dstBoneIndexToSrcName = dstBoneMapping
+            this.dstBoneRotations = dstBoneRotations
             // for each bone, create an enum input
-            this.dstBoneMapping = dstBoneMapping
             for ((i, bone) in dstSkeleton.bones.withIndex()) {
-                list.add(object : EnumInput(NameDesc(bone.name), NameDesc(dstBoneMapping[i]), srcSkeleton.bones.map {
-                    NameDesc(it.name)
-                } + listOf(NameDesc("?")), style) {
+                // todo change color based on whether it is set to a valid bone
+                val options = UpdatingList(100) {
+                    // filter elements such that only bones below our ancestors are allowed
+                    // find our first ancestor with a mapping
+                    var ancestor = bone
+                    var ancestorMap = noBoneMapped
+                    while (ancestorMap == noBoneMapped) {
+                        val parentId = ancestor.parentId
+                        ancestorMap = dstBoneMapping.getOrNull(parentId) ?: break
+                        ancestor = dstSkeleton.bones[parentId]
+                    }
+                    // now filter
+                    val availableBones = if (ancestorMap == noBoneMapped) srcSkeleton.bones
+                    else srcSkeleton.bones.filter { it.hasBoneInHierarchy(ancestorMap, srcSkeleton.bones) }
+                    availableBones.map { NameDesc(it.name) } + listOf(NameDesc(noBoneMapped))
+                }
+                list.add(object : EnumInput(
+                    NameDesc(bone.name), NameDesc(dstBoneMapping[i]),
+                    options, style
+                ) {
                     override fun onUpdate() {
                         super.onUpdate()
                         if (isHovered && window == windowStack.peek()) {
                             // when we hover over a bone, highlight that bone in the UI
                             // todo when we open the enum-select-menu, highlight that bone, too (from there somehow)
-                            showBoneInUI(i, dstSkeleton.bones, red)
+                            showBoneInUI(i, dstSkeleton.bones, dstColor1)
                             val srcId = srcSkeleton.bones.firstOrNull { it.name == value.name }?.id
-                            if (srcId != null) showBoneInUI(srcId, srcSkeleton.bones, blue)
+                            if (srcId != null) showBoneInUI(srcId, srcSkeleton.bones, srcColor1)
                         }
                     }
                 }.setChangeListener { value, _, _ ->
                     dstBoneMapping[i] = value
+                    val prefab = prefab
+                    if (prefab != null) {
+                        PrefabInspector.currentInspector?.change(
+                            prefabPath, this,
+                            "dstBoneIndexToSrcName", dstBoneMapping
+                        )
+                    }
                     invalidate()
+                })
+                list.add(run {
+                    val value = dstBoneRotations[i]
+                    val type = Type.ROT_YXZ.withDefault(Vector3f(0f))
+                    FloatVectorInput(
+                        "Correction", "${bone.name}-rot",
+                        value.toEulerAnglesDegrees(), type, style
+                    ).apply {
+                        // property.init(this)
+                        // askForReset(property) { setValue((it as Quaternionf).toEulerAnglesDegrees(), false) }
+                        setResetListener { Quaternionf() }
+                        addChangeListener { x, y, z, _, _ ->
+                            val dst = dstBoneRotations[i]
+                            Vector3f(x.toFloat(), y.toFloat(), z.toFloat()).toQuaternionDegrees(dst)
+                            invalidate()
+                        }
+                    }
                 })
             }
         } else {
@@ -371,8 +386,14 @@ class Retargeting : PrefabSaveable(), Renderable {
         super.save(writer)
         writer.writeFile("srcSkeleton", srcSkeleton)
         writer.writeFile("dstSkeleton", dstSkeleton)
-        val dstBoneMapping = dstBoneMapping
-        if (dstBoneMapping != null) writer.writeStringArray("dstNames", dstBoneMapping)
+        val dstBoneMapping = dstBoneIndexToSrcName
+        if (dstBoneMapping != null) {
+            writer.writeStringArray("dstBoneIndexToSrcName", dstBoneMapping)
+        }
+        val dstBoneRotations = dstBoneRotations
+        if (dstBoneRotations != null) {
+            writer.writeQuaternionfArray("dstBoneRotations", dstBoneRotations)
+        }
     }
 
     override fun readFile(name: String, value: FileReference) {
@@ -385,8 +406,15 @@ class Retargeting : PrefabSaveable(), Renderable {
 
     override fun readStringArray(name: String, values: Array<String>) {
         when (name) {
-            "dstNames" -> dstBoneMapping = values
+            "dstBoneIndexToSrcName" -> dstBoneIndexToSrcName = values
             else -> super.readStringArray(name, values)
+        }
+    }
+
+    override fun readQuaternionfArray(name: String, values: Array<Quaternionf>) {
+        when (name) {
+            "dstBoneRotations" -> dstBoneRotations = values
+            else -> super.readQuaternionfArray(name, values)
         }
     }
 

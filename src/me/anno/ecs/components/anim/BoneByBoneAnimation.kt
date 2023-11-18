@@ -238,6 +238,7 @@ class BoneByBoneAnimation() : Animation() {
     }
 
     override fun getMatrices(frameIndex: Int, dst: Array<Matrix4x3f>): Array<Matrix4x3f>? {
+        // println("getting matrices for $frameIndex")
         val skeleton = SkeletonCache[skeleton] ?: return null
         val bones = skeleton.bones
         val tmpPos = JomlPools.vec3f.create()
@@ -248,7 +249,9 @@ class BoneByBoneAnimation() : Animation() {
             getTranslation(frameIndex, boneId, tmpPos)
             getRotation(frameIndex, boneId, tmpRot)
             getScale(frameIndex, boneId, tmpSca)
+            // print("  $boneId -> ${bone.parentId}: $tmpPos, $tmpRot, $tmpSca")
             toImported(bone, dst.getOrNull(bone.parentId), tmpPos, tmpRot, tmpSca, dst[boneId])
+            // println(" -> ${dst[boneId]}")
         }
         JomlPools.vec3f.sub(2)
         return dst
@@ -358,7 +361,10 @@ class BoneByBoneAnimation() : Animation() {
                 val bone = bones[j]
                 val pj = bone.parentId
                 val pose = frame[j] // bind pose [world space] -> animated pose [world space]
-                fromImported(bone.bindPose, pose, frame.getOrNull(pj), tmpM, pos, rot, sca)
+                fromImported(
+                    bone.bindPose, bone.inverseBindPose,
+                    pose, frame.getOrNull(pj), tmpM, pos, rot, sca
+                )
                 /*if (i == 0 && j < 10) {
                     println("fromImported[$i/$j]: ${bone.bindPose} x $pose x ${frame.getOrNull(pj)} -> $pos, $rot, $sca")
                 }*/
@@ -400,6 +406,7 @@ class BoneByBoneAnimation() : Animation() {
 
         fun fromImported(
             bindPose: Matrix4x3f,
+            inverseBindPose: Matrix4x3f,
             skinning: Matrix4x3f,
             parentSkinning: Matrix4x3f?,
             tmp: Matrix4x3f,
@@ -424,23 +431,48 @@ class BoneByBoneAnimation() : Animation() {
         fun transformWeirdly(bindPose: Matrix4x3f, pos: Vector3f, rot: Quaternionf, sca: Vector3f) {
             bindPose.transformDirection(pos)
             bindPose.transformRotation(rot)
-            bindPose.transformDirection(sca) // todo correct???
+            // bindPose.transformDirection(sca)
         }
 
         fun fromImported(
             bindPose: Matrix4x3f,
+            inverseBindPose: Matrix4x3f,
             skinning: Matrix4x3f,
             parentSkinning: Matrix4x3f?,
             tmpV: Vector3f, tmpQ: Quaternionf, tmpS: Vector3f,
             dst: Matrix4x3f
         ): Matrix4x3f {
-            fromImported(bindPose, skinning, parentSkinning, tmpV, tmpQ, tmpS, dst)
-            dst.translationRotate(tmpV, tmpQ)
+            fromImported(bindPose, inverseBindPose, skinning, parentSkinning, tmpV, tmpQ, tmpS, dst)
+            dst.translationRotateScale(tmpV, tmpQ, tmpS)
             return dst
         }
 
         /**
-         * warn: invalidates t!
+         * warn: invalidates pos, rot and sca!
+         * */
+        fun toImported(
+            bindPose: Matrix4x3f,
+            inverseBindPose: Matrix4x3f,
+            parentSkinning: Matrix4x3f?,
+            pos: Vector3f, rot: Quaternionf, sca: Vector3f,
+            dst: Matrix4x3f
+        ): Matrix4x3f {
+            // println("      input: $pos,$rot,$sca")
+            transformWeirdly(inverseBindPose, pos, rot, sca)
+            // println("      output: $pos,$rot,$sca")
+            dst.translationRotateScale(pos, rot, sca)
+            bindPose.mul(dst, dst)
+            @Suppress("IfThenToSafeAccess")
+            if (parentSkinning != null) {
+                // dst = (parent * bindPose) * dst
+                parentSkinning.mul(dst, dst)
+                // = predict(parentSkinning, bone.bindPose, JomlPools.mat4x3f.borrow()).mul(dst, dst)
+            }
+            return dst.mul(inverseBindPose)
+        }
+
+        /**
+         * warn: invalidates pos, rot and sca!
          * */
         fun toImported(
             bone: Bone,
@@ -452,24 +484,6 @@ class BoneByBoneAnimation() : Animation() {
                 bone.bindPose, bone.inverseBindPose,
                 parentSkinning, pos, rot, sca, dst
             )
-        }
-
-        fun toImported(
-            bindPose: Matrix4x3f,
-            inverseBindPose: Matrix4x3f,
-            parentSkinning: Matrix4x3f?,
-            pos: Vector3f, rot: Quaternionf, sca: Vector3f,
-            dst: Matrix4x3f
-        ): Matrix4x3f {
-            transformWeirdly(inverseBindPose, pos, rot, sca)
-            dst.translationRotateScale(pos, rot, sca)
-            if (parentSkinning != null) {
-                // dst = (parent * bindPose) * dst
-                bindPose.mul(dst, dst)
-                parentSkinning.mul(dst, dst)
-                // predict(parentSkinning, bone.bindPose, JomlPools.mat4x3f.borrow()).mul(dst, dst)
-            }
-            return dst.mul(inverseBindPose)
         }
 
         /**

@@ -2,7 +2,6 @@ package me.anno.ecs.components.anim
 
 import me.anno.Time
 import me.anno.animation.LoopingState
-import me.anno.config.DefaultConfig
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.Docs
@@ -10,17 +9,15 @@ import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimTexture.Companion.useAnimTextures
 import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.RaycastMesh
 import me.anno.engine.raycast.RaycastSkeletal
+import me.anno.engine.ui.TextShapes.drawTextMesh
 import me.anno.engine.ui.render.MovingGrid
 import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
-import me.anno.fonts.FontManager
-import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture2D
@@ -31,9 +28,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.ui.editor.sceneView.Gizmos
 import me.anno.utils.Color.black
-import org.joml.Matrix4x3f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -347,45 +342,13 @@ open class AnimMeshComponent : MeshComponent() {
         if (all) {
             // draw animated skeleton as debug mesh
             val skeleton = SkeletonCache[skeleton] ?: return
-            val matrices = getMatrices() ?: return
-
-            // draw bone names where they are
-            fun drawTextMesh(text: String, position: Vector3f) {
-                val mesh = textCache.getOrPut(text) {
-                    val font = FontManager.getFont(DefaultConfig.defaultFont)
-                    TextMeshGroup(font, text, 0f, false, debugPieces = false).getOrCreateMesh()
-                }
-                val transform = transform
-                val matrix = MovingGrid.init()
-                if (transform != null) matrix.mul(transform.getDrawMatrix())
-                matrix.translate(position).scale(0.1)
-                MovingGrid.alpha = 1f
-                MovingGrid.drawMesh(mesh)
-            }
-
-            for (i in 0 until min(skeleton.bones.size, matrices.size)) {
-                val bone = skeleton.bones[i]
-                val pos = Vector3f(bone.bindPosition)
-                matrices[i].transformPosition(pos)
-                drawTextMesh(bone.name, pos)
-            }
-
-            Thumbs.buildAnimatedSkeleton(skeleton, matrices) { mesh ->
-                useFrame(simpleNormalRenderer) {
-                    Gizmos.drawMesh(
-                        RenderState.cameraMatrix,
-                        transform?.getDrawMatrix(),
-                        Material.defaultMaterial, black or 0xff9999,
-                        mesh
-                    )
-                }
-            }
+            drawAnimatedSkeleton(this, skeleton, transform?.getDrawMatrix(), true)
         }
     }
 
     @DebugAction
     fun openRetargetingUI() {
-        Retargeting.openUI(this)
+        Retargetings.openUI(this)
     }
 
     override fun copyInto(dst: PrefabSaveable) {
@@ -405,10 +368,38 @@ open class AnimMeshComponent : MeshComponent() {
 
     companion object {
 
-        private val textCache = HashMap<String, Mesh>()
+        val tmpMapping0 = Array(256) { Matrix4x3f() }
+        val tmpMapping1 = Array(256) { Matrix4x3f() }
 
-        private val tmpMapping0 = Array(256) { Matrix4x3f() }
-        private val tmpMapping1 = Array(256) { Matrix4x3f() }
+        fun drawAnimatedSkeleton(
+            animMeshComponent: AnimMeshComponent,
+            skeleton: Skeleton,
+            transform: Matrix4x3d?,
+            withNames: Boolean,
+        ) {
+            // draw animated skeleton as debug mesh
+            val matrices = animMeshComponent.getMatrices() ?: return
+
+            if (withNames) {
+                // draw bone names where they are
+                for (i in 0 until min(skeleton.bones.size, matrices.size)) {
+                    val bone = skeleton.bones[i]
+                    val pos = Vector3f(bone.bindPosition)
+                    matrices[i].transformPosition(pos)
+                    MovingGrid.alpha = 1f
+                    drawTextMesh(bone.name, Vector3d(pos), null, 0.1, transform)
+                }
+            }
+
+            Thumbs.buildAnimatedSkeleton(skeleton, matrices) { mesh ->
+                useFrame(simpleNormalRenderer) {
+                    Gizmos.drawMesh(
+                        RenderState.cameraMatrix, transform,
+                        Material.defaultMaterial, black or 0xff9999, mesh
+                    )
+                }
+            }
+        }
 
         fun upload(shader: Shader, location: Int, matrices: Array<Matrix4x3f>) {
             val boneCount = min(matrices.size, BoneData.maxBones)

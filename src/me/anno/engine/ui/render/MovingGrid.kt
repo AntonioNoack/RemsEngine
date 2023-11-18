@@ -1,34 +1,36 @@
 package me.anno.engine.ui.render
 
-import me.anno.config.DefaultConfig.defaultFont
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ui.LineShapes
+import me.anno.engine.ui.TextShapes
 import me.anno.engine.ui.render.ECSShaderLib.simpleShader
 import me.anno.engine.ui.render.GridColors.colorX
 import me.anno.engine.ui.render.GridColors.colorY
 import me.anno.engine.ui.render.GridColors.colorZ
-import me.anno.fonts.FontManager
-import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths
+import me.anno.maths.Maths.hasFlag
 import org.joml.Matrix4d
 import org.joml.Matrix4f
+import org.joml.Quaterniond
+import org.joml.Vector3d
 import kotlin.math.*
 
 object MovingGrid {
 
-    fun drawGrid(radius: Double) {
+    fun drawGrid(radius: Double, mask: Int) {
+        if (mask.and(7) == 0) return
         LineBuffer.finish(RenderState.cameraMatrix)
         GFXState.depthMask.use(false) {
-            drawGrid3(radius)
+            drawGrid3(radius, mask)
         }
     }
 
-    fun drawGrid3(radius0: Double) {
+    private fun drawGrid3(radius0: Double, mask: Int) {
 
         val log = log10(radius0)
         val floorLog = floor(log)
@@ -46,23 +48,43 @@ object MovingGrid {
             val dx = round(position.x / radius2) * radius2
             val dz = round(position.z / radius2) * radius2
 
-            init()
-                .translate(dx, 0.0, dz)
-                .scale(radius2)
+            for (axis in 0 until 3) {
+                if (mask.hasFlag(1 shl axis)) {
 
-            alpha = 0.05f * alphas[i]
-            drawMesh(gridMesh)
+                    val transform = init()
+                        .translate(dx, 0.0, dz)
+                        .scale(radius2)
 
-            alpha *= 2f
-            val textSize = radius2 * 0.01
-            drawTextMesh(textSize, 1)
-            drawTextMesh(textSize, 5)
+                    // for XY and YZ, rotate the grid
+                    val baseRot = when (axis) {
+                        0 -> baseRotX
+                        1 -> baseRotY
+                        2 -> baseRotZ
+                        else -> throw NotImplementedError()
+                    }
+                    transform.rotate(baseRot)
 
+                    alpha = 0.05f * alphas[i]
+                    drawMesh(gridMesh)
+
+                    alpha *= 2f
+                    val textSize = radius2 * 0.01
+                    val textRots = when (axis) {
+                        0 -> textRotX
+                        1 -> textRotY
+                        2 -> textRotZ
+                        else -> throw NotImplementedError()
+                    }
+                    for (textRot in textRots) {
+                        drawTextMesh(textSize, 1, textRot)
+                        drawTextMesh(textSize, 5, textRot)
+                    }
+                }
+            }
         }
 
         // to do replace with one mesh
         drawAxes(radius0)
-
     }
 
     fun drawMesh(mesh: Mesh) {
@@ -111,24 +133,19 @@ object MovingGrid {
 
         gridMesh.positions = positions
         gridMesh.drawMode = DrawMode.LINES
-
     }
 
     fun drawTextMesh(
         baseSize: Double,
-        factor: Int
+        factor: Int,
+        rotation: Quaterniond,
     ) {
         val size = baseSize * factor
-        val mesh = cachedMeshes.getOrPut(size) {
-            val text = "$factor${getSuffix(baseSize)}" // format size
-            val font = FontManager.getFont(defaultFont)
-            TextMeshGroup(font, text, 0f, false, debugPieces = false).getOrCreateMesh()
-        }
-        init()
-            .translate(size, 0.0, -size * 0.02)
-            .rotateX(-PI * 0.5)
-            .scale(size)
-        drawMesh(mesh)
+        val mesh = cachedMeshes.getOrPut(size) { "$factor${getSuffix(baseSize)}" }
+        TextShapes.drawTextMesh(
+            mesh, Vector3d(size, size * 0.02, 0.0).rotate(rotation),
+            rotation, size, null
+        )
     }
 
     fun init(): Matrix4d {
@@ -166,7 +183,28 @@ object MovingGrid {
         }
     }
 
-    private val cachedMeshes = HashMap<Double, Mesh>()
+    private val cachedMeshes = HashMap<Double, String>()
+    private val baseRotX = Quaterniond().rotateX(PI * 0.5)
+    private val baseRotY = Quaterniond()
+    private val baseRotZ = Quaterniond().rotateY(PI * 0.5).rotateX(PI * 0.5)
+    private val textRotX = arrayOf(
+        Quaterniond(baseRotX).rotateX(-PI * 0.5),
+        Quaterniond(baseRotX).rotateY(PI * 0.5).rotateX(-PI * 0.5),
+        Quaterniond(baseRotX).rotateY(PI * 1.0).rotateX(-PI * 0.5),
+        Quaterniond(baseRotX).rotateY(PI * 1.5).rotateX(-PI * 0.5),
+    )
+    private val textRotY = arrayOf(
+        Quaterniond(baseRotY).rotateX(-PI * 0.5),
+        Quaterniond(baseRotY).rotateY(PI * 0.5).rotateX(-PI * 0.5),
+        Quaterniond(baseRotY).rotateY(PI * 1.0).rotateX(-PI * 0.5),
+        Quaterniond(baseRotY).rotateY(PI * 1.5).rotateX(-PI * 0.5),
+    )
+    private val textRotZ = arrayOf(
+        Quaterniond(baseRotZ).rotateX(-PI * 0.5),
+        Quaterniond(baseRotZ).rotateY(PI * 0.5).rotateX(-PI * 0.5),
+        Quaterniond(baseRotZ).rotateY(PI * 1.0).rotateX(-PI * 0.5),
+        Quaterniond(baseRotZ).rotateY(PI * 1.5).rotateX(-PI * 0.5),
+    )
 
     private fun drawAxes(scale: Double) {
         val length = 1e3 * scale
@@ -175,5 +213,4 @@ object MovingGrid {
         LineShapes.drawLine(null, 0.0, -length, 0.0, 0.0, +length, 0.0, colorY or alpha)
         LineShapes.drawLine(null, 0.0, 0.0, -length, 0.0, 0.0, +length, colorZ or alpha)
     }
-
 }

@@ -324,6 +324,7 @@ class PrefabInspector(val reference: FileReference) {
 
         // debug properties: text showing the value, constantly updating
         for (property in reflections.debugProperties) {
+            // todo group them by their @Group-value
             val title = property.name.camelCaseToTitle()
             val list1 = PanelListX(style)
             list1.add(TextPanel("$title:", style))
