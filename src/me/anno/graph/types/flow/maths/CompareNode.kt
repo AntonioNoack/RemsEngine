@@ -1,6 +1,6 @@
 package me.anno.graph.types.flow.maths
 
-import me.anno.graph.types.flow.ValueNode
+import me.anno.graph.types.flow.ComputeNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
@@ -11,7 +11,7 @@ import me.anno.ui.input.EnumInput
 import me.anno.ui.Style
 
 class CompareNode(type: String = "?") :
-    ValueNode("Compare", listOf(type, "A", type, "B"), outputs) {
+    ComputeNode("Compare", listOf(type, "A", type, "B"), outputs) {
 
     // todo long & double & bool value node as inputs for some nodes
 

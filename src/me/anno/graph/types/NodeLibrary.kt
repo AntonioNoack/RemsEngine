@@ -1,5 +1,6 @@
 package me.anno.graph.types
 
+import me.anno.ecs.components.anim.graph.AnimStateNode
 import me.anno.graph.EnumNode
 import me.anno.graph.Node
 import me.anno.graph.NodeInput
@@ -19,6 +20,7 @@ import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
 import me.anno.graph.types.flow.maths.*
 import me.anno.graph.types.flow.vector.*
+import me.anno.graph.types.states.StateMachine
 import me.anno.io.ISaveable.Companion.registerCustomClass
 
 class NodeLibrary(val nodes: Collection<() -> Node>) {
@@ -71,6 +73,9 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { WhileNode() },
             { DoWhileNode() },
             { PrintNode() },
+            { NotNode() },
+            { MathB2Node() },
+            { MathB3Node() },
             { MathL1Node() },
             { MathL2Node() },
             { MathL3Node() },
@@ -111,9 +116,8 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
             { NormalizeNode4() },
             { FresnelNode3() },
             { CompareNode() },
-            { CompareNode("Bool") },
-            { CompareNode("Float") },
-            { CompareNode("Int") },
+            { CompareNode("Double") },
+            { CompareNode("Long") },
             { CombineVector2f() },
             { CombineVector3f() },
             { CombineVector4f() },
@@ -128,8 +132,10 @@ class NodeLibrary(val nodes: Collection<() -> Node>) {
         fun registerClasses() {
             registerCustomClass(NodeInput())
             registerCustomClass(NodeOutput())
+            registerCustomClass(AnimStateNode())
+            // cloning this is complicated, so let's use a real constructor
+            registerCustomClass { StateMachine() }
             flowNodes.register()
         }
-
     }
 }

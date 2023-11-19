@@ -3,7 +3,7 @@ package me.anno.graph.types.flow.maths
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.EnumNode
 import me.anno.graph.render.MaterialGraph.kotlinToGLSL
-import me.anno.graph.types.flow.ValueNode
+import me.anno.graph.types.flow.ComputeNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
@@ -17,7 +17,7 @@ import me.anno.utils.strings.StringHelper.upperSnakeCaseToTitle
 
 abstract class MathNode<V : Enum<V>>(
     val data: MathNodeData<V>,
-) : ValueNode("", data.inputs, data.outputs), EnumNode, GLSLExprNode {
+) : ComputeNode("", data.inputs, data.outputs), EnumNode, GLSLExprNode {
 
     class MathNodeData<V : Enum<V>>(
         val values: Array<V>,

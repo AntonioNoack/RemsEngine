@@ -1,6 +1,6 @@
 package me.anno.graph.render
 
-import me.anno.graph.types.flow.ValueNode
+import me.anno.graph.types.flow.ComputeNode
 import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.ui.base.groups.PanelList
@@ -9,7 +9,7 @@ import me.anno.ui.Style
 import me.anno.utils.Color.toARGB
 import org.joml.Vector4f
 
-class ColorNode : ValueNode("Color", emptyList(), listOf("Vector4f", "Color", "Int", "ARGB")) {
+class ColorNode : ComputeNode("Color", emptyList(), listOf("Vector4f", "Color", "Int", "ARGB")) {
 
     val value = Vector4f(1f)
 

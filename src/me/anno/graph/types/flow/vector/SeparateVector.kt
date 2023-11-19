@@ -1,11 +1,11 @@
 package me.anno.graph.types.flow.vector
 
-import me.anno.graph.types.flow.ValueNode
+import me.anno.graph.types.flow.ComputeNode
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
 
-class SeparateVector2f : ValueNode("Separate Vector2f", inputs, outputs) {
+class SeparateVector2f : ComputeNode("Separate Vector2f", inputs, outputs) {
 
     init {
         setInput(0, Vector2f())
@@ -23,7 +23,7 @@ class SeparateVector2f : ValueNode("Separate Vector2f", inputs, outputs) {
     }
 }
 
-class SeparateVector3f : ValueNode("Separate Vector3f", inputs, outputs) {
+class SeparateVector3f : ComputeNode("Separate Vector3f", inputs, outputs) {
 
     init {
         setInput(0, Vector3f())
@@ -42,7 +42,7 @@ class SeparateVector3f : ValueNode("Separate Vector3f", inputs, outputs) {
     }
 }
 
-class SeparateVector4f : ValueNode("Separate Vector4f", inputs, outputs) {
+class SeparateVector4f : ComputeNode("Separate Vector4f", inputs, outputs) {
 
     init {
         setInput(0, Vector4f(0f, 0f, 0f, 1f))

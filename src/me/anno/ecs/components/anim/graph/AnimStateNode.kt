@@ -6,9 +6,7 @@ import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.graph.types.NodeLibrary
 import me.anno.graph.types.states.StateNode
-import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
@@ -35,11 +33,6 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         private val outputs = listOf(
             "Float", "Progress"
         )
-
-        fun register() {
-            NodeLibrary.registerClasses()
-            registerCustomClass(AnimStateNode())
-        }
     }
 
     var progress = 0f

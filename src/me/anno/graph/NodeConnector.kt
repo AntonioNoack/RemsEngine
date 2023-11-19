@@ -1,5 +1,6 @@
 package me.anno.graph
 
+import me.anno.ecs.annotations.HideInInspector
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
@@ -41,7 +42,10 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
     // we could define in-between points for better routing layouts
     // todo knots for better routing layouts
 
+    @HideInInspector
     var node: Node? = null
+
+    @HideInInspector
     var others: List<NodeConnector> = emptyList()
 
     fun isEmpty() = others.isEmpty()

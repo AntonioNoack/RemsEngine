@@ -1,12 +1,12 @@
 package me.anno.graph.types.flow.maths
 
-import me.anno.graph.types.flow.ValueNode
+import me.anno.graph.types.flow.ComputeNode
 import org.joml.Vector2d
 import org.joml.Vector2f
 import org.joml.Vector3d
 import org.joml.Vector3f
 
-class CrossProductF2 : ValueNode("Vector2f Cross", listOf("Vector2f", "A", "Vector2f", "B"), "Float"), GLSLExprNode {
+class CrossProductF2 : ComputeNode("Vector2f Cross", listOf("Vector2f", "A", "Vector2f", "B"), "Float"), GLSLExprNode {
     override fun getShaderFuncName(outputIndex: Int) = "cross2d"
     override fun defineShaderFunc(outputIndex: Int) = "(vec2 a, vec2 b){return a.x*b.y-a.y*b.x;}"
     override fun compute() {
@@ -16,7 +16,7 @@ class CrossProductF2 : ValueNode("Vector2f Cross", listOf("Vector2f", "A", "Vect
     }
 }
 
-class CrossProductF3 : ValueNode("Vector3f Cross", listOf("Vector3f", "A", "Vector3f", "B"), "Vector3f") {
+class CrossProductF3 : ComputeNode("Vector3f Cross", listOf("Vector3f", "A", "Vector3f", "B"), "Vector3f") {
     override fun compute() {
         val a = getInput(0) as Vector3f
         val b = getInput(1) as Vector3f
@@ -24,7 +24,7 @@ class CrossProductF3 : ValueNode("Vector3f Cross", listOf("Vector3f", "A", "Vect
     }
 }
 
-class CrossProductD2 : ValueNode("Vector2d Cross", listOf("Vector2d", "A", "Vector2d", "B"), "Double"), GLSLExprNode {
+class CrossProductD2 : ComputeNode("Vector2d Cross", listOf("Vector2d", "A", "Vector2d", "B"), "Double"), GLSLExprNode {
     override fun getShaderFuncName(outputIndex: Int) = "cross2d"
     override fun defineShaderFunc(outputIndex: Int) = "(vec2 a, vec2 b){return a.x*b.y-a.y*b.x;}"
     override fun compute() {
@@ -34,7 +34,7 @@ class CrossProductD2 : ValueNode("Vector2d Cross", listOf("Vector2d", "A", "Vect
     }
 }
 
-class CrossProductD3 : ValueNode("Vector3f Cross", listOf("Vector3d", "A", "Vector3d", "B"), "Vector3d") {
+class CrossProductD3 : ComputeNode("Vector3f Cross", listOf("Vector3d", "A", "Vector3d", "B"), "Vector3d") {
     override fun compute() {
         val a = getInput(0) as Vector3d
         val b = getInput(1) as Vector3d

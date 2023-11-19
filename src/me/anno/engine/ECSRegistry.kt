@@ -160,7 +160,6 @@ object ECSRegistry {
         registerCustomClass(DecalMaterial())
 
         // animated meshes
-        AnimStateNode.register()
         registerCustomClass(AnimController())
 
         initLights()

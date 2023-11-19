@@ -26,6 +26,27 @@ open class Graph : PrefabSaveable() {
     val nodes = ArrayList<Node>()
     val groups = ArrayList<NodeGroup>()
 
+    override fun listChildTypes() = "ng"
+    override fun getChildListByType(type: Char): List<PrefabSaveable> {
+        return if (type == 'n') nodes else groups
+    }
+
+    override fun getValidTypesForChild(child: PrefabSaveable): String {
+        return when (child) {
+            is Node -> "n"
+            is NodeGroup -> "g"
+            else -> super.getValidTypesForChild(child)
+        }
+    }
+
+    override fun addChildByType(index: Int, type: Char, child: PrefabSaveable) {
+        when (child) {
+            is Node -> nodes.add(child)
+            is NodeGroup -> groups.add(child)
+            else -> throw IllegalArgumentException()
+        }
+    }
+
     fun add(node: Node): Node {
         node.graph?.remove(node)
         nodes.add(node)

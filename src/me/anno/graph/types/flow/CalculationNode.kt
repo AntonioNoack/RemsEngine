@@ -1,6 +1,6 @@
 package me.anno.graph.types.flow
 
-abstract class CalculationNode : ValueNode {
+abstract class CalculationNode : ComputeNode {
 
     @Suppress("unused")
     constructor(name: String) : super(name)

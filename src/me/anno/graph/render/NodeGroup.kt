@@ -1,13 +1,13 @@
 package me.anno.graph.render
 
+import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.Node
 import me.anno.io.ISaveable
-import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.SerializedProperty
 import org.joml.Vector3d
 
-class NodeGroup : NamedSaveable() {
+class NodeGroup : PrefabSaveable() {
 
     @SerializedProperty
     var color = 0
@@ -48,5 +48,4 @@ class NodeGroup : NamedSaveable() {
             members.addAll(values.filterIsInstance<Node>())
         } else super.readObjectArray(name, values)
     }
-
 }

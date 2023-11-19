@@ -5,7 +5,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture3D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.FlowGraph
-import me.anno.graph.types.flow.ValueNode
+import me.anno.graph.types.flow.ComputeNode
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.Color.black2
@@ -49,7 +49,7 @@ class NodeInput : NodeConnector {
         if (graph != null && graph.validId == lastValidId) return currValue
         val src = others.firstOrNull()
         val srcNode = src?.node
-        if (srcNode is ValueNode) {
+        if (srcNode is ComputeNode) {
             srcNode.compute()
         }
         if (src != null) currValue = src.currValue

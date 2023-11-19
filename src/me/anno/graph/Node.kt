@@ -9,8 +9,8 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.maths.Maths.hasFlag
-import me.anno.ui.base.groups.PanelList
 import me.anno.ui.Style
+import me.anno.ui.base.groups.PanelList
 import org.joml.Vector3d
 
 abstract class Node() : PrefabSaveable() {

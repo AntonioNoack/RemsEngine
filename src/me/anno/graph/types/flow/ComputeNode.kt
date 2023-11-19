@@ -2,7 +2,7 @@ package me.anno.graph.types.flow
 
 import me.anno.graph.NodeOutput
 
-abstract class ValueNode : FlowGraphNode {
+abstract class ComputeNode : FlowGraphNode {
 
     constructor(name: String) : super(name)
     constructor(name: String, inputs: List<String>, outputs: List<String>) : super(name, inputs, outputs)

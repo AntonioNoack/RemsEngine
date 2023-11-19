@@ -184,10 +184,15 @@ object Retargetings {
         prefab["dstBoneIndexToSrcName"] = map
     }
 
+    private fun getConfigName(skeleton: FileReference): String {
+        return SkeletonCache[skeleton]!!.bones.joinToString("/") { it.name }
+            .hashCode().toUInt().toString(36)
+    }
+
     fun getConfigFile(srcSkeleton: FileReference, dstSkeleton: FileReference): FileReference {
         // todo since we hide the names, we could also use our hierarchical database...
-        val hash1 = srcSkeleton.toLocalPath().hashCode()
-        val hash2 = dstSkeleton.toLocalPath().hashCode()
+        val hash1 = getConfigName(srcSkeleton)
+        val hash2 = getConfigName(dstSkeleton)
         // database, which stores bone assignments for a project
         val config = "retargeting/$hash1-$hash2.json"
         return workspace.getChild(config)
