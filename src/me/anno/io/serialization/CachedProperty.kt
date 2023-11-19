@@ -29,7 +29,20 @@ class CachedProperty(
 
     operator fun set(instance: Any, value: Any?): Boolean {
         if (!instanceClass.isInstance(instance)) throw IllegalArgumentException("Instance is not instance of $instanceClass, it is ${instance::class}")
-        if (!valueClass.isInstance(value)) throw IllegalArgumentException("Value is not instance of $valueClass")
+        if (!valueClass.isInstance(value)) {
+            if (value != null) {
+                // if we have two arrays of different types, convert them
+                val vcj = valueClass.java
+                val icj = value.javaClass
+                if (vcj.isArray && icj.isArray && value is Array<*>) {
+                    // convert them
+                    val newValue = java.lang.reflect.Array.newInstance(vcj.componentType, value.size)
+                    System.arraycopy(value, 0, newValue, 0, value.size)
+                    return set(instance, newValue)
+                }
+            }
+            throw IllegalArgumentException("Value is not instance of ${valueClass.java}")
+        }
         return try {
             val oldValue = getter(instance)
             if (oldValue is Enum<*> && value !is Enum<*>) {

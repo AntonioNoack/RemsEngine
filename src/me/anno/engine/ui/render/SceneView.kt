@@ -13,6 +13,8 @@ import me.anno.engine.ui.control.PlayControls
 import me.anno.engine.ui.scenetabs.ECSSceneTab
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
+import me.anno.graph.Graph
+import me.anno.graph.ui.GraphEditor
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -45,18 +47,27 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
             }
         }
 
+    var graphEditor: GraphEditor = GraphEditor(null, style)
+
     init {
         add(renderer)
         add(editControls)
         add(playControls)
+        add(graphEditor)
     }
 
     override fun onUpdate() {
         super.onUpdate()
+        val world = renderer.getWorld()
+        // todo get the node library from the graph somehow?
+        graphEditor.graph = world as? Graph
+        val worldIsGraph = world is Graph
         val editing = renderer.playMode == PlayMode.EDITING
-        editControls.isVisible = editing
-        playControls.isVisible = !editing
+        editControls.isVisible = !worldIsGraph && editing
+        playControls.isVisible = !worldIsGraph && !editing
         renderer.controlScheme = if (editing) editControls else playControls
+        renderer.isVisible = !worldIsGraph
+        graphEditor.isVisible = worldIsGraph
     }
 
     override val className: String

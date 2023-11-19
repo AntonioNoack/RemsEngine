@@ -72,19 +72,16 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
     }
 
     open fun invalidate() {
-
     }
 
     override fun save(writer: BaseWriter) {
-        // super.save(writer) ; writes name + description, but often we don't want to save them for connectors
+        super.save(writer)
         // node is not necessarily needed
         // writer.writeObject(this, "node", node)
-        if (isCustom) {
-            writer.writeString("name", name)
-            writer.writeString("desc", description)
-            writer.writeString("type", type)
-            writer.writeBoolean("custom", true)
-        }
+
+        writer.writeString("type", type)
+        if (isCustom) writer.writeBoolean("custom", true)
+
         writer.writeObjectList(this, "others", others)
         if (currValue != null) {
             try {
@@ -121,5 +118,4 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
             else -> super.readObjectArray(name, values)
         }
     }
-
 }

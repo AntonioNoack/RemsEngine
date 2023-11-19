@@ -17,11 +17,13 @@ import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.InnerFolderCache.imageFormats
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.unity.UnityReader
 import me.anno.studio.StudioBase
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
+import kotlin.reflect.KClass
 
 @Suppress("MemberVisibilityCanBePrivate")
 object PrefabCache : CacheSection("Prefab") {
@@ -257,5 +259,24 @@ object PrefabCache : CacheSection("Prefab") {
             e?.printStackTrace()
         }
         return data
+    }
+
+    @Suppress("unused")
+    fun <V : PrefabSaveable> loadOrInit(
+        source: FileReference, clazz: KClass<V>, workspace: FileReference,
+        generateInstance: () -> V
+    ): Triple<FileReference, Prefab, V> {
+        val prefab0 = PrefabCache[source]
+        val sample0 = prefab0?.createInstance()
+        if (prefab0 != null && clazz.isInstance(sample0)) {
+            @Suppress("UNCHECKED_CAST")
+            return Triple(source, prefab0, sample0 as V)
+        }
+        val sample1 = generateInstance()
+        sample1.ref // create and fill prefab
+        val prefab1 = sample1.prefab!!
+        prefab1.source = source
+        source.writeText(JsonStringWriter.toText(prefab1, workspace))
+        return Triple(source, prefab1, sample1)
     }
 }

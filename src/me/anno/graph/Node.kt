@@ -39,7 +39,10 @@ abstract class Node() : PrefabSaveable() {
 
     open fun createUI(g: GraphPanel, list: PanelList, style: Style) {}
 
-    val position = Vector3d()
+    var position = Vector3d()
+        set(value) {
+            field.set(value)
+        }
 
     // multiple layers would be great for large functions :D
     // even though they really should be split...

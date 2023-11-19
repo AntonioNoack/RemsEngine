@@ -1,6 +1,7 @@
 package me.anno.graph.ui
 
 import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.ecs.prefab.PrefabInspector
 import me.anno.fonts.FontManager
 import me.anno.fonts.FontManager.getBaselineY
 import me.anno.gpu.GFXState.useFrame
@@ -433,10 +434,19 @@ class NodePanel(
             val dx2 = gp.windowToCoordsX(wx) - node.position.x
             val dy2 = gp.windowToCoordsY(wy) - node.position.y
             node.position.add(dx2, dy2, 0.0)
+            onNodeMoved(node)
             if (Input.isShiftDown) snapPosition()
             gp.invalidateLayout()
         } else if (windowStack.inFocus.none2 { it.parent == uiParent }) {
             super.onMouseMoved(x, y, dx, dy)
+        }
+    }
+
+    fun onNodeMoved(node: Node) {
+        // persist changes in prefab if applicable
+        val ci = PrefabInspector.currentInspector
+        if (ci?.prefab == node.prefab) {
+            ci?.change(node.prefabPath, node, "position", node.position)
         }
     }
 
@@ -447,6 +457,7 @@ class NodePanel(
         snapExtraY += node.position.y - sy
         node.position.x = sx
         node.position.y = sy
+        onNodeMoved(node)
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
