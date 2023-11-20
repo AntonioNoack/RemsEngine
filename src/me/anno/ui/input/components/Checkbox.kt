@@ -18,8 +18,8 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     Panel(style.getChild("checkbox")), InputPanel<Boolean> {
 
     companion object {
-        val checked = getReference("res://checked.png")
-        val unchecked = getReference("res://unchecked.png")
+        val checked = getReference("res://textures/Checked.png")
+        val unchecked = getReference("res://textures/Unchecked.png")
         fun getImage(isChecked: Boolean): Texture2D? =
             ImageGPUCache[if (isChecked) checked else unchecked, true]
     }

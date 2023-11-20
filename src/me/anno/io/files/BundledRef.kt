@@ -17,7 +17,10 @@ class BundledRef(
     //  we could add index.txt files or sth like that, where all sub-files are listed
     // done for desktop: or we could identify where the zip jar is located, and traverse/index it
 
-    override fun getChild(name: String) = getReference(zipFileForDirectory, name)
+    override fun getChild(name: String): FileReference {
+        val zfd = zipFileForDirectory
+        return zfd?.getChild(name) ?: parse("$absolutePath/$name")
+    }
 
     override fun inputStream(lengthLimit: Long, callback: (it: InputStream?, exc: Exception?) -> Unit) {
         // needs to be the same package

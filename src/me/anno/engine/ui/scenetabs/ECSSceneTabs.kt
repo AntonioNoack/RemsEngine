@@ -181,7 +181,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
     override fun save(writer: BaseWriter) {
         super.save(writer)
         for (it in children3) {
-            writer.writeFile("file", it.file)
+            writer.writeFile("textures/fileExplorer", it.file)
         }
     }
 

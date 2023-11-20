@@ -223,7 +223,7 @@ object MitsubaReader {
 
         fun regIds(node: XMLNode) {
             when (node.type) {
-                "bsdf", "shape", "texture", "camera" -> {
+                "bsdf", "shape", "textures", "camera" -> {
                     node["id"] ?: createId(node)
                 }
             }
@@ -336,7 +336,7 @@ object MitsubaReader {
                 // set textures
                 for (child in self.children) {
                     child as? XMLNode ?: continue
-                    if (child.type == "texture") {
+                    if (child.type == "textures") {
                         var file = ""
                         for (child1 in child.children) {
                             if (child1 is XMLNode &&

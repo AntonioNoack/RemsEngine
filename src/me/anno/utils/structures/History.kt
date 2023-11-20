@@ -12,6 +12,7 @@ import me.anno.io.base.BaseWriter
  * */
 class History<V> : Saveable {
 
+    @Suppress("unused")
     constructor()
 
     constructor(default: V) {
@@ -79,5 +80,4 @@ class History<V> : Saveable {
     }
 
     override val className: String get() = "History"
-
 }

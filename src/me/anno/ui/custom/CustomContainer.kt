@@ -163,7 +163,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     companion object {
 
-        val crossPath = getReference("res://cross.png")
+        val crossPath = getReference("res://textures/Cross.png")
 
         private val LOGGER = LogManager.getLogger(CustomContainer::class)
 

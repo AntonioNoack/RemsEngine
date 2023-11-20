@@ -32,7 +32,7 @@ object ShapedBlur {
 
     val filters by lazy {
         val map: HashMap<String, Lazy<Pair<Shader, Int>>> = HashMap()
-        getReference("res://shader/$fileName").inputStream { it, e ->
+        getReference("res://shaders/$fileName").inputStream { it, e ->
             e?.printStackTrace()
             if (it != null) map.putAll(loadFilters(it))
         }

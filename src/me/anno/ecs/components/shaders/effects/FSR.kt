@@ -12,14 +12,14 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
-import me.anno.io.ResourceHelper
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS
 
 object FSR {
 
     val code = lazy {
-        val defines = ResourceHelper.loadText("shader/fsr1/ffx_a.h")
-        val functions = ResourceHelper.loadText("shader/fsr1/ffx_fsr1.h")
+        val defines = getReference("res://shaders/fsr1/ffx_a.h").readTextSync()
+        val functions = getReference("res://shaders/fsr1/ffx_fsr1.h").readTextSync()
         defines to functions
     }
 

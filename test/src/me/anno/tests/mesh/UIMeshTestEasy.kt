@@ -17,7 +17,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI3
  * like UIMeshTestCustomizable, just easier (and plus normals-background)
  * */
 
-fun createEasyMeshUI(meshRef: FileReference = getReference("res://mesh/arrowX.obj")): Panel {
+fun createEasyMeshUI(meshRef: FileReference = getReference("res://meshes/arrowX.obj")): Panel {
     ECSRegistry.initMeshes()
     EditorState.prefabSource = meshRef
     val sceneView = SceneView(PlayMode.PLAYING, style)

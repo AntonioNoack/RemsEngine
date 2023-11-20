@@ -51,7 +51,7 @@ class GimpImage {
             }
             // could be made more efficient, but probably doesn't matter
             val fileThing = String(ByteArray(5) { data.read().toByte() })
-            if (!fileThing.startsWith("file") && !(fileThing[0] == 'v' && fileThing[4] == 0.toChar())) {
+            if (!fileThing.startsWith("textures/fileExplorer") && !(fileThing[0] == 'v' && fileThing[4] == 0.toChar())) {
                 throw IOException("Expected 'file' or 'v'-version")
             }
             val width = data.readBE32()
@@ -206,7 +206,7 @@ class GimpImage {
     fun readContent(data: ByteBuffer) {
 
         val fileThing = String(ByteArray(5) { data.get() })
-        fileVersion = if (fileThing.startsWith("file")) {
+        fileVersion = if (fileThing.startsWith("textures/fileExplorer")) {
             0
         } else if (fileThing[0] == 'v' && fileThing[4] == 0.toChar()) {
             fileThing.substring(1, 4).toInt()

@@ -36,8 +36,8 @@ object ScreenShader : ECSMeshShader("Screen") {
 
 fun main() {
     // create image plane
-    val mask = getReference("res://rgbMask.png")
-    val image = getReference("res://dig8.png")
+    val mask = getReference("res://textures/RGBMask.png")
+    val image = getReference("res://textures/dig8.png")
     val plane = ImagePlane(image)
     plane.material.apply {
         shader = ScreenShader

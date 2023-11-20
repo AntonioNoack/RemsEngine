@@ -33,7 +33,7 @@ import kotlin.math.min
 class SimpleMeshTest(
     var msaa: Boolean,
     var renderer: Renderer = attributeRenderers[DeferredLayerType.NORMAL],
-    meshRef: FileReference = getReference("res://mesh/arrowX.obj"),
+    meshRef: FileReference = getReference("res://meshes/arrowX.obj"),
 ) : Panel(style) {
 
     val pipeline = Pipeline(null)

@@ -287,7 +287,7 @@ class GLTFWriter(
                     if (mesh != null) Pair(mesh, it.materials) else null
                 }
             if (mesh != null) {
-                writer.attr("mesh")
+                writer.attr("meshes")
                 writer.write(meshes.getOrPut(mesh) { meshes.size })
             }
         }
@@ -646,7 +646,7 @@ class GLTFWriter(
 
         val mesh = node.getMesh()
         if (mesh != null) {
-            writer.attr("mesh")
+            writer.attr("meshes")
             writer.write(meshes.getOrPut(Pair(mesh, node.materials)) { meshes.size })
         }
     }

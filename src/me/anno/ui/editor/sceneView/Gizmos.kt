@@ -25,10 +25,10 @@ object Gizmos {
 
     // todo show drag/hover of these on the specific gizmo parts
 
-    val arrowRef = BundledRef("mesh/arrowX.obj")
-    val arrowRef1 = BundledRef("mesh/arrowX1.obj")
-    val ringRef = BundledRef("mesh/ringX.obj")
-    val scaleRef = BundledRef("mesh/scaleX.obj")
+    val arrowRef = BundledRef("meshes/arrowX.obj")
+    val arrowRef1 = BundledRef("meshes/arrowX1.obj")
+    val ringRef = BundledRef("meshes/ringX.obj")
+    val scaleRef = BundledRef("meshes/scaleX.obj")
 
     fun drawScaleGizmos(
         cameraTransform: Matrix4f, position: Vector3d, scale: Double,

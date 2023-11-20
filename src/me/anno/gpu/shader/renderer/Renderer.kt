@@ -14,7 +14,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib
 import me.anno.image.ImageGPUCache
-import me.anno.utils.files.UVChecker
+import me.anno.io.files.FileReference.Companion.getReference
 
 /**
  * defines render targets combined with post-processing
@@ -159,9 +159,10 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
                 ), "finalResult = vec4(texture(checkerTex, uv).rgb, 1.0);\n"
             )
         ) {
+            private val uvCheckerSource = getReference("res://UVChecker.png")
             override fun uploadDefaultUniforms(shader: Shader) {
                 super.uploadDefaultUniforms(shader)
-                val checkerTex = ImageGPUCache[UVChecker.value, true] ?: TextureLib.whiteTexture
+                val checkerTex = ImageGPUCache[uvCheckerSource, true] ?: TextureLib.whiteTexture
                 checkerTex.bind(shader, "checkerTex", GPUFiltering.LINEAR, Clamping.REPEAT)
             }
         }

@@ -1,6 +1,5 @@
 package me.anno.utils.files
 
-import me.anno.io.ResourceHelper.loadResource
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -99,7 +98,9 @@ object FileChooser {
         val jFileChooser = object : JFileChooser() {
             override fun createDialog(p0: Component?): JDialog {
                 val dialog = super.createDialog(p0)
-                val image = loadResource("icon.png").use { ImageIO.read(it) }
+                val image = getReference("res://icon.png")
+                    .inputStreamSync()
+                    .use { ImageIO.read(it) }
                 dialog.setIconImage(image)
                 return dialog
             }

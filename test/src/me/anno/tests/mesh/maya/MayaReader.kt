@@ -190,7 +190,7 @@ fun main() {
                             "transform" -> {
                                 node = Entity().apply { this.name = name }
                             }
-                            "mesh" -> {
+                            "meshes" -> {
                                 node = Mesh().apply { this.name = name }
                             }
                             "groupId" -> {

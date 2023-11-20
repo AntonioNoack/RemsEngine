@@ -4,30 +4,32 @@ import me.anno.io.files.FileReference.Companion.getReference
 
 object FileExplorerIcons {
 
-    @JvmField
-    val folderPath = getReference("res://file/folder.png")
+    private val folder = getReference("res://textures/fileExplorer")
 
     @JvmField
-    val musicPath = getReference("res://file/music.png")
+    val folderPath = folder.getChild("folder.png")
 
     @JvmField
-    val textPath = getReference("res://file/text.png")
+    val musicPath = folder.getChild("music.png")
 
     @JvmField
-    val imagePath = getReference("res://file/image.png")
+    val textPath = folder.getChild("text.png")
 
     @JvmField
-    val videoPath = getReference("res://file/video.png")
+    val imagePath = folder.getChild("image.png")
 
     @JvmField
-    val emptyFolderPath = getReference("res://file/empty_folder.png")
+    val videoPath = folder.getChild("video.png")
 
     @JvmField
-    val exePath = getReference("res://file/executable.png")
+    val emptyFolderPath = folder.getChild("emptyFolder.png")
 
     @JvmField
-    val docsPath = getReference("res://file/document.png")
+    val exePath = folder.getChild("executable.png")
 
     @JvmField
-    val zipPath = getReference("res://file/compressed.png")
+    val docsPath = folder.getChild("document.png")
+
+    @JvmField
+    val zipPath = folder.getChild("compressed.png")
 }
