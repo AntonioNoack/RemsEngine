@@ -883,7 +883,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         }
     }
 
-    override fun readString(name: String, value: String?) {
+    override fun readString(name: String, value: String) {
         if (name == "tooltip") tooltip = value
         else super.readString(name, value)
     }

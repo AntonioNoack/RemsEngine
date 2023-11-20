@@ -39,7 +39,7 @@ abstract class Change : Saveable() {
         } else super.readObject(name, value)
     }
 
-    override fun readString(name: String, value: String?) {
+    override fun readString(name: String, value: String) {
         if (name == "path") {
             try {
                 path = Path.parse(value)

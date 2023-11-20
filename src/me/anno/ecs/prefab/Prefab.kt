@@ -294,11 +294,11 @@ class Prefab : Saveable {
         writer.writeObject(null, "history", history)
     }
 
-    override fun readString(name: String, value: String?) {
+    override fun readString(name: String, value: String) {
         if (!isWritable) throw ImmutablePrefabException(source)
         when (name) {
-            "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
-            "className", "class" -> clazzName = value ?: ""
+            "prefab" -> prefab = value.toGlobalFile()
+            "className", "class" -> clazzName = value
             else -> super.readString(name, value)
         }
     }

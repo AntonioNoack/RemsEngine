@@ -7,10 +7,9 @@ import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.PrefabHelperWriter
 import me.anno.io.files.FileReference
+import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
-import me.anno.io.files.inner.temporary.InnerTmpFile
-import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
 import me.anno.studio.Inspectable
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelListY
@@ -26,14 +25,27 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
     @SerializedProperty
     override var isEnabled = true
 
-    @NotSerializedProperty // ideally, this would have the default value "depth>3" or root.numChildrenAtDepth(depth)>100
+    @NotSerializedProperty // todo ideally, this would have the default value "depth>3" or root.numChildrenAtDepth(depth)>100
     override var isCollapsed = true
 
+    /**
+     * if something goes wrong, set this field;
+     * it will be visible in the editor UI, and print a message to the console
+     * */
     @NotSerializedProperty
     var lastWarning: String? = null
+        set(value) {
+            if (field != value) {
+                if (!value.isNullOrEmpty()) {
+                    LOGGER.warn("$className: $value")
+                }
+                field = value
+            }
+        }
 
-    // @NotSerializedProperty
-    // var prefab: PrefabSaveable? = null
+    /**
+     * get the original (unmodified) instance for comparisons between properties
+     * */
     fun getOriginal(): PrefabSaveable? {
         val sampleInstance = prefab?.getSampleInstance() ?: return null
         return Hierarchy.getInstanceAt(sampleInstance, prefabPath)

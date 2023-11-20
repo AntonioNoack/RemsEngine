@@ -55,11 +55,11 @@ abstract class MSG0Packet : Packet {
         }
     }
 
-    override fun readString(name: String, value: String?) {
+    override fun readString(name: String, value: String) {
         when (name) {
-            "senderName" -> senderName = value ?: ""
-            "receiverName" -> receiverName = value ?: ""
-            "message" -> message = value ?: ""
+            "senderName" -> senderName = value
+            "receiverName" -> receiverName = value
+            "message" -> message = value
             else -> super.readString(name, value)
         }
     }

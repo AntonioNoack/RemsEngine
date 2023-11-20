@@ -28,8 +28,8 @@ abstract class StringHistory : History<String>() {
         }
     }
 
-    override fun readString(name: String, value: String?) {
-        if ((name == "ds" || name == "d") && value != null) {
+    override fun readString(name: String, value: String) {
+        if (name == "ds" || name == "d") {
             val previous = states.last()
             // if deltaEnd == 0, they will have the same length
             if (deltaEnd == 0) deltaEnd = deltaStart + value.length

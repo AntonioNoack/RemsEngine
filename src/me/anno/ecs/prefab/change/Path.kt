@@ -250,11 +250,11 @@ class Path(
         }
     }
 
-    override fun readString(name: String, value: String?) {
+    override fun readString(name: String, value: String) {
         when (name) {
             "name" -> this.nameId = value ?: ""
             "v" -> {
-                if (value == null || value.isEmpty()) {
+                if (value.isEmpty()) {
                     parent = null // we're root now
                 } else {
                     val path = parse(value)

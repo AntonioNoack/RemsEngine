@@ -29,7 +29,7 @@ abstract class ConfigEntry : Saveable() {
         }
     }
 
-    override fun readString(name: String, value: String?) {
+    override fun readString(name: String, value: String) {
         when (name) {
             "id" -> id = value
             "name" -> this.name = value

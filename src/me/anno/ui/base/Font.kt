@@ -97,8 +97,8 @@ class Font(name: String, size: Float, isBold: Boolean, isItalic: Boolean) : Save
         else super.readFloat(name, value)
     }
 
-    override fun readString(name: String, value: String?) {
-        if (name == "name") this.name = value ?: ""
+    override fun readString(name: String, value: String) {
+        if (name == "name") this.name = value
         else super.readString(name, value)
     }
 

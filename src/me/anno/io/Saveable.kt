@@ -51,7 +51,7 @@ open class Saveable : ISaveable {
     override fun readDoubleArray(name: String, values: DoubleArray) = readSomething(name, values)
     override fun readDoubleArray2D(name: String, values: Array<DoubleArray>) = readSomething(name, values)
 
-    override fun readString(name: String, value: String?) = readSomething(name, value)
+    override fun readString(name: String, value: String) = readSomething(name, value)
     override fun readStringArray(name: String, values: Array<String>) = readSomething(name, values)
     override fun readStringArray2D(name: String, values: Array<Array<String>>) = readSomething(name, values)
 

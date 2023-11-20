@@ -137,7 +137,7 @@ open class InstancedStack {
                 shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
                 if (useAnimations) {
                     (instances as InstancedAnimStack).animTexture!!
-                        .bind(shader, "animTexture", GPUFiltering.LINEAR, Clamping.CLAMP)
+                        .bind(shader, "animTexture", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
                 }
                 GFX.check()
 

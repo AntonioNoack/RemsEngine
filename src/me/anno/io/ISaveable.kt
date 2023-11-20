@@ -72,7 +72,7 @@ interface ISaveable {
     fun readDoubleArray(name: String, values: DoubleArray)
     fun readDoubleArray2D(name: String, values: Array<DoubleArray>)
 
-    fun readString(name: String, value: String?)
+    fun readString(name: String, value: String)
     fun readStringArray(name: String, values: Array<String>)
     fun readStringArray2D(name: String, values: Array<Array<String>>)
 

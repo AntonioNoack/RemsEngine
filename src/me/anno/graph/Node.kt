@@ -109,9 +109,7 @@ abstract class Node() : PrefabSaveable() {
 
     // the node ofc needs to save its custom content and behaviour as well
     override fun save(writer: BaseWriter) {
-        // super.save(writer) // just name + desc;
-        // and those are defined by the type
-        // if you need them yourself, just create your own node type;
+        super.save(writer)
 
         // if valid, just save connections and values (should be much slimmer :))
         val inputs = inputs

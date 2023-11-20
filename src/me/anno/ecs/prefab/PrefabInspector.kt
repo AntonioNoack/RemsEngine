@@ -42,6 +42,7 @@ import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
+import kotlin.reflect.jvm.isAccessible
 
 // todo bug: instance and inspector can get out of sync: the color slider for materials stops working :/
 

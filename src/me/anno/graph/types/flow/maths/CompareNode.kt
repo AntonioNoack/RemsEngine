@@ -99,8 +99,8 @@ class CompareNode(type: String = "?") :
         writer.writeEnum("type2", compType)
     }
 
-    override fun readString(name: String, value: String?) {
-        if (name == "type") type = value ?: return
+    override fun readString(name: String, value: String) {
+        if (name == "type") type = value
         else super.readString(name, value)
     }
 

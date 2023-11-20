@@ -38,8 +38,8 @@ open class ClosePacket(var reason: String, magic: String) : Packet(magic) {
         writer.writeString("reason", reason)
     }
 
-    override fun readString(name: String, value: String?) {
-        if (name == "reason") reason = value ?: ""
+    override fun readString(name: String, value: String) {
+        if (name == "reason") reason = value
         else super.readString(name, value)
     }
 

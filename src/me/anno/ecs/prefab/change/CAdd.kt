@@ -74,11 +74,11 @@ class CAdd() : Change() {
         }
     }
 
-    override fun readString(name: String, value: String?) {
+    override fun readString(name: String, value: String) {
         when (name) {
-            "className", "class" -> clazzName = value ?: return
-            "prefab" -> prefab = value?.toGlobalFile() ?: InvalidRef
-            "name", "id" -> this.nameId = value ?: return
+            "className", "class" -> clazzName = value
+            "prefab" -> prefab = value.toGlobalFile()
+            "name", "id" -> this.nameId = value
             else -> super.readString(name, value)
         }
     }

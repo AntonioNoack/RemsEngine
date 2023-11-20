@@ -54,9 +54,9 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
         writer.writeColor("cursor", cursorColor)
     }
 
-    override fun readString(name: String, value: String?) {
+    override fun readString(name: String, value: String) {
         when (name) {
-            "name" -> this.name = value ?: return
+            "name" -> this.name = value
             else -> super.readString(name, value)
         }
     }

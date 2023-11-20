@@ -57,8 +57,8 @@ class ShapedBlurNode() : ActionNode(
         writer.writeString("type", type)
     }
 
-    override fun readString(name: String, value: String?) {
-        if (name == "type" && value != null) type = value
+    override fun readString(name: String, value: String) {
+        if (name == "type") type = value
         else super.readString(name, value)
     }
 

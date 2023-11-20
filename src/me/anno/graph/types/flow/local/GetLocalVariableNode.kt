@@ -37,8 +37,8 @@ class GetLocalVariableNode(type: String = "?") :
         writer.writeString("type", type)
     }
 
-    override fun readString(name: String, value: String?) {
-        if (name == "type") type = value ?: return
+    override fun readString(name: String, value: String) {
+        if (name == "type") type = value
         else super.readString(name, value)
     }
 

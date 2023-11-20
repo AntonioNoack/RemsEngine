@@ -16,10 +16,10 @@ open class NamedSaveable : Saveable() {
         writer.writeString("desc", description)
     }
 
-    override fun readString(name: String, value: String?) {
+    override fun readString(name: String, value: String) {
         when (name) {
-            "name" -> this.name = value ?: ""
-            "desc", "description" -> this.description = value ?: ""
+            "name" -> this.name = value
+            "desc", "description" -> this.description = value
             else -> super.readString(name, value)
         }
     }

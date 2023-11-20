@@ -103,12 +103,12 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
     }
 
     override fun readSomething(name: String, value: Any?) {
-        if (name == "value") this.currValue = value
+        if (name == "value") currValue = value
         else super.readSomething(name, value)
     }
 
-    override fun readString(name: String, value: String?) {
-        if (name == "type") type = value ?: type
+    override fun readString(name: String, value: String) {
+        if (name == "type") type = value
         else super.readString(name, value)
     }
 

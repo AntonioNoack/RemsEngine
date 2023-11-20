@@ -47,7 +47,13 @@ open class FileInput(
     val base = TextInput(title, "", false, f0.toString2(), style)
     val base2 = base.base
 
-    // val text get() = base.text
+    private val buttons = ArrayList<TextButton>()
+    fun addButton(button: TextButton) {
+        button.textColor = textColor.withAlpha(0.5f)
+        button.disableFocusColors()
+        buttons.add(button)
+        add(base.indexInParent, button)
+    }
 
     init {
         // base.tooltip = f0.absolutePath
@@ -85,24 +91,21 @@ open class FileInput(
             disableFocusColors()
         }
         this += button
+        buttons.add(button)
         // for a symmetric border
         val border = style.getPadding("borderSize", 2).left
         if (border > 0) this += SpacerPanel(border, 0, style).apply { backgroundColor = 0 }
         this += base
     }
 
-    private val buttons = ArrayList<TextButton>()
-    fun addButton(button: TextButton) {
-        button.textColor = textColor.withAlpha(0.5f)
-        button.disableFocusColors()
-        buttons.add(button)
-        add(base.indexInParent, button)
-    }
-
     override var textSize: Float
         get() = base.textSize
         set(value) {
             base.textSize = value
+            for (button in buttons) {
+                // todo make border size relative
+                button.textSize = value
+            }
         }
 
     override var textColor: Int

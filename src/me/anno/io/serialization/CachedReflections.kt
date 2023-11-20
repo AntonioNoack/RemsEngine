@@ -17,6 +17,7 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.superclasses
+import kotlin.reflect.jvm.isAccessible
 
 class CachedReflections(
     val clazz: KClass<*>,
@@ -80,10 +81,11 @@ class CachedReflections(
         fun getDebugActions(clazz: KClass<*>): List<KFunction<*>> {
             if (OS.isWeb) return emptyList()
             var list = emptyList<KFunction<*>>()
-            for (func in clazz.memberFunctions) {
-                if (func.annotations.any { it is DebugAction }) {
-                    if (list is MutableList) list.add(func)
-                    else list = arrayListOf(func)
+            for (item in clazz.memberFunctions) {
+                if (item.annotations.any { it is DebugAction }) {
+                    item.isAccessible = true // it's debug, so we're allowed to access it
+                    if (list is MutableList) list.add(item)
+                    else list = arrayListOf(item)
                 }
             }
             return list
@@ -92,10 +94,11 @@ class CachedReflections(
         fun getDebugProperties(clazz: KClass<*>): List<KProperty<*>> {
             if (OS.isWeb) return emptyList()
             var list = emptyList<KProperty<*>>()
-            for (func in clazz.memberProperties) {
-                if (func.annotations.any { it is DebugProperty }) {
-                    if (list is MutableList) list.add(func)
-                    else list = arrayListOf(func)
+            for (item in clazz.memberProperties) {
+                if (item.annotations.any { it is DebugProperty }) {
+                    item.isAccessible = true // it's debug, so we're allowed to access it
+                    if (list is MutableList) list.add(item)
+                    else list = arrayListOf(item)
                 }
             }
             return list
@@ -104,10 +107,11 @@ class CachedReflections(
         fun getDebugWarnings(clazz: KClass<*>): List<KProperty<*>> {
             if (OS.isWeb) return emptyList()
             var list = emptyList<KProperty<*>>()
-            for (func in clazz.memberProperties) {
-                if (func.annotations.any { it is DebugWarning }) {
-                    if (list is MutableList) list.add(func)
-                    else list = arrayListOf(func)
+            for (item in clazz.memberProperties) {
+                if (item.annotations.any { it is DebugWarning }) {
+                    item.isAccessible = true // it's debug, so we're allowed to access it
+                    if (list is MutableList) list.add(item)
+                    else list = arrayListOf(item)
                 }
             }
             return list
@@ -121,18 +125,18 @@ class CachedReflections(
                     .filter { !Modifier.isStatic(it.modifiers) || it.name.endsWith("\$annotations") })
         }
 
-        fun allFields(clazz: Class<*>, list: ArrayList<Field>): List<Field> {
-            list.addAll(clazz.declaredFields)
+        fun allFields(clazz: Class<*>, dst: ArrayList<Field>): List<Field> {
+            dst.addAll(clazz.declaredFields)
             val superClass = clazz.superclass
-            if (superClass != null) allFields(superClass, list)
-            return list
+            if (superClass != null) allFields(superClass, dst)
+            return dst
         }
 
-        fun allMethods(clazz: Class<*>, list: ArrayList<Method>): List<Method> {
-            list.addAll(clazz.declaredMethods)
+        fun allMethods(clazz: Class<*>, dst: ArrayList<Method>): List<Method> {
+            dst.addAll(clazz.declaredMethods)
             val superClass = clazz.superclass
-            if (superClass != null) allMethods(superClass, list)
-            return list
+            if (superClass != null) allMethods(superClass, dst)
+            return dst
         }
 
         private fun listClasses(clazz: KClass<*>): List<KClass<*>> {

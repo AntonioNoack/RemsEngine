@@ -368,8 +368,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         }
     }
 
-    override fun readString(name: String, value: String?) {
-        if (name == "text") text = value ?: ""
+    override fun readString(name: String, value: String) {
+        if (name == "text") text = value
         else super.readString(name, value)
     }
 

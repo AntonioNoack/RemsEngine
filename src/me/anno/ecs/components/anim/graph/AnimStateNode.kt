@@ -12,6 +12,7 @@ import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.posMod
+import org.apache.logging.log4j.LogManager
 
 class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
@@ -22,6 +23,7 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         const val END = 4
         const val FADE = 5
         const val LOOP = 6
+        private val LOGGER = LogManager.getLogger(AnimStateNode::class)
         private val inputs = listOf(
             "File", "Source",
             "Float", "Speed",
@@ -90,12 +92,16 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
         fillState(weight, state)
         state.speed = getInput(SPEED) as Float
         state.progress = progress
-        state.repeat = if (loop) LoopingState.PLAY_LOOP else LoopingState.PLAY_LOOP
+        state.repeat = if (loop) LoopingState.PLAY_LOOP else LoopingState.PLAY_ONCE
     }
 
     fun fillState(weight: Float, target: AnimationState) {
         target.weight = weight
-        target.source = getInput(SOURCE) as FileReference
+        val source = getInput(SOURCE) as FileReference
+        if (!source.exists) {
+            LOGGER.warn("Missing source '$source'")
+        }
+        target.source = source
     }
 
     override fun copyInto(dst: PrefabSaveable) {

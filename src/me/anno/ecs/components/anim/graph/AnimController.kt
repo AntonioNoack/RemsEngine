@@ -3,7 +3,9 @@ package me.anno.ecs.components.anim.graph
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugAction
+import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
+import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
@@ -18,14 +20,18 @@ import me.anno.io.serialization.NotSerializedProperty
 class AnimController : Component() {
 
     @Docs("Source file for animation graph")
+    @Type("StateMachine/Reference")
     var graphSource: FileReference = InvalidRef
 
+    @DebugProperty
     @NotSerializedProperty
     var graphInstance: StateMachine? = null
 
+    @DebugProperty
     @NotSerializedProperty
     private var renderer: AnimMeshComponent? = null
 
+    @DebugProperty
     @NotSerializedProperty
     private var lastGraphSource: FileReference = InvalidRef
 
@@ -81,5 +87,4 @@ class AnimController : Component() {
     }
 
     override val className: String get() = "AnimController"
-
 }
