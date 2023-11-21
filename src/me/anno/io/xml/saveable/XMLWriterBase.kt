@@ -204,15 +204,15 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeVector2d(name: String, value: Vector2d, force: Boolean) {
-        simpleObject(VECTOR2D, name, "x=${value.x} y=${value.y}")
+        simpleObject(VECTOR2D, name, "x=\"${value.x}\" y=\"${value.y}\"")
     }
 
     override fun writeVector3d(name: String, value: Vector3d, force: Boolean) {
-        simpleObject(VECTOR3D, name, "x=${value.x} y=${value.y} z=${value.z}")
+        simpleObject(VECTOR3D, name, "x=\"${value.x}\" y=\"${value.y}\" z=\"${value.z}\"")
     }
 
     override fun writeVector4d(name: String, value: Vector4d, force: Boolean) {
-        simpleObject(VECTOR4D, name, "x=${value.x} y=${value.y} z=${value.z} w=${value.w}")
+        simpleObject(VECTOR4D, name, "x=\"${value.x}\" y=\"${value.y}\" z=\"${value.z}\" w=\"${value.w}\"")
     }
 
     override fun writeVector2dArray(name: String, values: Array<Vector2d>, force: Boolean) {
@@ -240,15 +240,15 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeVector2i(name: String, value: Vector2i, force: Boolean) {
-        simpleObject(VECTOR2I, name, "x=${value.x} y=${value.y}")
+        simpleObject(VECTOR2I, name, "x=\"${value.x}\" y=\"${value.y}\"")
     }
 
     override fun writeVector3i(name: String, value: Vector3i, force: Boolean) {
-        simpleObject(VECTOR3I, name, "x=${value.x} y=${value.y} z=${value.z}")
+        simpleObject(VECTOR3I, name, "x=\"${value.x}\" y=\"${value.y}\" z=\"${value.z}\"")
     }
 
     override fun writeVector4i(name: String, value: Vector4i, force: Boolean) {
-        simpleObject(VECTOR4I, name, "x=${value.x} y=${value.y} z=${value.z} w=${value.w}")
+        simpleObject(VECTOR4I, name, "x=\"${value.x}\" y=\"${value.y}\" z=\"${value.z}\" w=\"${value.w}\"")
     }
 
     override fun writeVector2iArray(name: String, values: Array<Vector2i>, force: Boolean) {
@@ -396,11 +396,11 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeQuaternionf(name: String, value: Quaternionf, force: Boolean) {
-        simpleObject(QUATERNIONF, name, "x=${value.x} y=${value.y} z=${value.z} w=${value.w}")
+        simpleObject(QUATERNIONF, name, "x=\"${value.x}\" y=\"${value.y}\" z=\"${value.z}\" w=\"${value.w}\"")
     }
 
     override fun writeQuaterniond(name: String, value: Quaterniond, force: Boolean) {
-        simpleObject(QUATERNIOND, name, "x=${value.x} y=${value.y} z=${value.z} w=${value.w}")
+        simpleObject(QUATERNIOND, name, "x=\"${value.x}\" y=\"${value.y}\" z=\"${value.z}\" w=\"${value.w}\"")
     }
 
     override fun writeQuaternionfArray(name: String, values: Array<Quaternionf>, force: Boolean) {
@@ -444,11 +444,11 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writePlanef(name: String, value: Planef, force: Boolean) {
-        simpleObject(PLANEF, name, "dx=${value.dirX} dy=${value.dirY} dz=${value.dirZ} dist=${value.distance}")
+        simpleObject(PLANEF, name, "x=\"${value.dirX}\" y=\"${value.dirY}\" z=\"${value.dirZ}\" d=\"${value.distance}\"")
     }
 
     override fun writePlaned(name: String, value: Planed, force: Boolean) {
-        simpleObject(PLANED, name, "dx=${value.dirX} dy=${value.dirY} dz=${value.dirZ} dist=${value.distance}")
+        simpleObject(PLANED, name, "x=\"${value.dirX}\" y=\"${value.dirY}\" z=\"${value.dirZ}\" d=\"${value.distance}\"")
     }
 
     override fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean) {
