@@ -164,9 +164,9 @@ class BoneByBoneAnimation() : Animation() {
         writer.writeInt("frameCount", frameCount)
         writer.writeMatrix4x3f("globalTransform", globalTransform)
         writer.writeMatrix4x3f("globalInvTransform", globalInvTransform)
-        writer.writeFloatArray("rootMotion", translations)
-        writer.writeFloatArray("rotations", rotations)
-        writer.writeFloatArray("scales", scales)
+        writer.writeFloatArray("rootMotion", translations ?: f0)
+        writer.writeFloatArray("rotations", rotations ?: f0)
+        writer.writeFloatArray("scales", scales ?: f0)
     }
 
     override fun readInt(name: String, value: Int) {
@@ -403,6 +403,8 @@ class BoneByBoneAnimation() : Animation() {
     override val className: String get() = "BoneByBoneAnimation"
 
     companion object {
+
+        private val f0 = FloatArray(0)
 
         fun fromImported(
             bindPose: Matrix4x3f,

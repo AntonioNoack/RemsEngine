@@ -1,4 +1,4 @@
-package me.anno.io.xml
+package me.anno.io.xml.generic
 
 import me.anno.utils.Tabs
 

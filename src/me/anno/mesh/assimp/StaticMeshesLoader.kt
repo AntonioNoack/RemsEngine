@@ -13,9 +13,9 @@ import me.anno.io.files.Signature
 import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
-import me.anno.io.xml.XMLNode
-import me.anno.io.xml.XMLReader
-import me.anno.io.xml.XMLWriter
+import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLReader
+import me.anno.io.xml.generic.XMLWriter
 import me.anno.mesh.gltf.GLTFMaterialExtractor
 import me.anno.utils.Color.rgba
 import me.anno.utils.files.Files.findNextFileName

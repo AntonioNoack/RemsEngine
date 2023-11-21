@@ -1,8 +1,8 @@
 package me.anno.tests.image.svg
 
 import me.anno.image.svg.SVGMesh
-import me.anno.io.xml.XMLNode
-import me.anno.io.xml.XMLReader
+import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLReader
 import me.anno.utils.OS.downloads
 import org.apache.logging.log4j.LogManager
 import java.io.ByteArrayInputStream

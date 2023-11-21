@@ -1,7 +1,7 @@
 package me.anno.image.svg.gradient
 
 import me.anno.image.svg.SVGMesh
-import me.anno.io.xml.XMLNode
+import me.anno.io.xml.generic.XMLNode
 import me.anno.maths.Maths.length
 import org.joml.Vector2f
 

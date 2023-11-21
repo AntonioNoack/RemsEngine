@@ -1,7 +1,7 @@
 package me.anno.image.svg.gradient
 
 import me.anno.image.svg.SVGMesh
-import me.anno.io.xml.XMLNode
+import me.anno.io.xml.generic.XMLNode
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.mixARGB2

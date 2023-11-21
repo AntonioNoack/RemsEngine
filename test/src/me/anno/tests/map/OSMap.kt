@@ -5,9 +5,9 @@ import me.anno.gpu.drawing.DrawCurves
 import me.anno.gpu.drawing.DrawCurves.drawLine
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
-import me.anno.io.xml.XMLNode
-import me.anno.io.xml.XMLReader
-import me.anno.io.xml.XMLScanner
+import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLReader
+import me.anno.io.xml.generic.XMLScanner
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.withAlpha

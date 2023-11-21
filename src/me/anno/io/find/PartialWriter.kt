@@ -42,18 +42,18 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
     override fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean) {}
 
     override fun writeFloat(name: String, value: Float, force: Boolean) {}
-    override fun writeFloatArray(name: String, values: FloatArray?, force: Boolean) {}
-    override fun writeFloatArray2D(name: String, values: Array<FloatArray>?, force: Boolean) {}
+    override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {}
+    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) {}
 
     override fun writeDouble(name: String, value: Double, force: Boolean) {}
     override fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean) {}
     override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) {}
 
-    override fun writeString(name: String, value: String?, force: Boolean) {}
+    override fun writeString(name: String, value: String, force: Boolean) {}
     override fun writeStringArray(name: String, values: Array<String>, force: Boolean) {}
     override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {}
 
-    override fun writeFile(name: String, value: FileReference?, force: Boolean, workspace: FileReference?) {}
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) {}
     override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
     }
 

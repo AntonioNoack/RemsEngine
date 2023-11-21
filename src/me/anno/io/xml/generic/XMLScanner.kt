@@ -1,5 +1,6 @@
-package me.anno.io.xml
+package me.anno.io.xml.generic
 
+import me.anno.io.xml.ComparableStringBuilder
 import java.io.EOFException
 import java.io.InputStream
 

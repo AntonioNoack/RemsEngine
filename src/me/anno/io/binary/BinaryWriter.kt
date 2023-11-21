@@ -354,20 +354,16 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeFloatArray(name: String, values: FloatArray?, force: Boolean) {
-        if (values == null) {
-            writeNull(name)
-        } else if (force || values.isNotEmpty()) {
+    override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
             writeAttributeStart(name, FLOAT_ARRAY)
             output.writeInt(values.size)
             for (v in values) output.writeFloat(v)
         }
     }
 
-    override fun writeFloatArray2D(name: String, values: Array<FloatArray>?, force: Boolean) {
-        if (values == null) {
-            writeNull(name)
-        } else if (force || values.isNotEmpty()) {
+    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) {
+        if (force || values.isNotEmpty()) {
             writeAttributeStart(name, FLOAT_ARRAY_2D)
             output.writeInt(values.size)
             for (vs in values) {
@@ -403,7 +399,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeString(name: String, value: String?, force: Boolean) {
+    override fun writeString(name: String, value: String, force: Boolean) {
         if (force || value != null) {
             writeAttributeStart(name, STRING)
             writeEfficientString(value)
@@ -424,10 +420,10 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeFile(name: String, value: FileReference?, force: Boolean, workspace: FileReference?) {
-        if (force || (value != null && value != InvalidRef)) {
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) {
+        if (force || value != InvalidRef) {
             writeAttributeStart(name, FILE)
-            writeEfficientString(value?.toLocalPath(workspace))
+            writeEfficientString(value.toLocalPath(workspace))
         }
     }
 

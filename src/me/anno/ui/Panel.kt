@@ -884,7 +884,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
     }
 
     override fun readString(name: String, value: String) {
-        if (name == "tooltip") tooltip = value
+        if (name == "tooltip") tooltip = value.ifEmpty { null }
         else super.readString(name, value)
     }
 
@@ -913,7 +913,7 @@ open class Panel(val style: Style) : PrefabSaveable() {
         writer.writeColor("backgroundOutline", backgroundOutlineColor)
         writer.writeFloat("backgroundRadius", backgroundRadius)
         writer.writeFloat("backgroundOutlineThickness", backgroundOutlineThickness)
-        writer.writeString("tooltip", tooltip)
+        writer.writeString("tooltip", tooltip ?: "")
         writer.writeObject(this, "tooltipPanel", tooltipPanel)
     }
 

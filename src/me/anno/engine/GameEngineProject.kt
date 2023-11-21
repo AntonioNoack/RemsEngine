@@ -54,7 +54,7 @@ class GameEngineProject() : NamedSaveable() {
     }
 
     var location: FileReference = InvalidRef // a folder
-    var lastScene: String? = null
+    var lastScene: String = ""
     val openTabs = HashSet<String>()
 
     val configFile get() = location.getChild("config.json")
@@ -210,7 +210,7 @@ class GameEngineProject() : NamedSaveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeString("lastScene", lastScene)
+        writer.writeString("lastScene", lastScene )
         writer.writeStringArray("openTabs", openTabs.toTypedArray())
         writer.writeInt("maxIndexDepth", maxIndexDepth)
         // location doesn't really need to be saved

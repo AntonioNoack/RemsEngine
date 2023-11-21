@@ -4,8 +4,8 @@ import me.anno.image.svg.applyTransform
 import me.anno.image.svg.readSVGPath
 import me.anno.io.files.FileReference
 import me.anno.io.xml.ComparableStringBuilder
-import me.anno.io.xml.XMLNode
-import me.anno.io.xml.XMLReader
+import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLReader
 import me.anno.maths.Maths.sq
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Booleans.toInt

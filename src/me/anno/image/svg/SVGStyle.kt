@@ -1,7 +1,7 @@
 package me.anno.image.svg
 
 import me.anno.image.svg.gradient.Gradient1D
-import me.anno.io.xml.XMLNode
+import me.anno.io.xml.generic.XMLNode
 import me.anno.utils.ColorParsing.parseColor
 import me.anno.utils.types.Strings.isBlank2
 

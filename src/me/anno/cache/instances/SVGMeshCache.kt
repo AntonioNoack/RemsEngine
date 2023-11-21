@@ -5,8 +5,8 @@ import me.anno.cache.CacheSection
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.image.svg.SVGMesh
 import me.anno.io.files.FileReference
-import me.anno.io.xml.XMLNode
-import me.anno.io.xml.XMLReader
+import me.anno.io.xml.generic.XMLNode
+import me.anno.io.xml.generic.XMLReader
 import java.io.InputStream
 
 object SVGMeshCache : CacheSection("Meshes") {

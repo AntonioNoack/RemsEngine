@@ -81,10 +81,10 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     override fun writeFloat(name: String, value: Float, force: Boolean) =
         put(name, "Float", value)
 
-    override fun writeFloatArray(name: String, values: FloatArray?, force: Boolean) =
+    override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) =
         put(name, "FloatArray", values)
 
-    override fun writeFloatArray2D(name: String, values: Array<FloatArray>?, force: Boolean) =
+    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) =
         put(name, "Array<FloatArray>", values)
 
     override fun writeDouble(name: String, value: Double, force: Boolean) =
@@ -96,7 +96,7 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) =
         put(name, "Array<DoubleArray>", values)
 
-    override fun writeString(name: String, value: String?, force: Boolean) =
+    override fun writeString(name: String, value: String, force: Boolean) =
         put(name, "String", value)
 
     override fun writeStringArray(name: String, values: Array<String>, force: Boolean) =
@@ -330,7 +330,7 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     override fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean) =
         put(name, "Array<Array<Planed>>", values)
 
-    override fun writeFile(name: String, value: FileReference?, force: Boolean, workspace: FileReference?) =
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) =
         put(name, "FileReference", value)
 
     override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) =

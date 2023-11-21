@@ -6,11 +6,11 @@ import me.anno.io.base.BaseWriter
 abstract class ConfigEntry : Saveable() {
 
     var version = 0
-    var id: String? = null
-    var group: String? = null
-    var name: String? = null
-    var description: String? = null
-    var comment: String? = null
+    var id = ""
+    var group = ""
+    var name = ""
+    var description = ""
+    var comment = ""
 
     override fun save(writer: BaseWriter) {
         super.save(writer)

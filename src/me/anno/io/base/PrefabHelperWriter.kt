@@ -79,15 +79,15 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
         if (force || value != 0f) write(name, value)
     }
 
-    override fun writeFloatArray(name: String, values: FloatArray?, force: Boolean) = write(name, values)
-    override fun writeFloatArray2D(name: String, values: Array<FloatArray>?, force: Boolean) = write(name, values)
+    override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) = write(name, values)
+    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) = write(name, values)
 
     override fun writeDouble(name: String, value: Double, force: Boolean) = write(name, value)
     override fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean) = write(name, values)
     override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) = write(name, values)
 
-    override fun writeString(name: String, value: String?, force: Boolean) {
-        if (force || (value != null && value != "")) write(name, value)
+    override fun writeString(name: String, value: String, force: Boolean) {
+        if (force || value != "") write(name, value)
     }
 
     override fun writeStringArray(name: String, values: Array<String>, force: Boolean) = write(name, values)
@@ -237,8 +237,8 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
     override fun writePlanefArray2D(name: String, values: Array<Array<Planef>>, force: Boolean) = write(name, values)
     override fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean) = write(name, values)
 
-    override fun writeFile(name: String, value: FileReference?, force: Boolean, workspace: FileReference?) {
-        if (force || (value != null && value != InvalidRef)) write(name, value)
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) {
+        if (force || value != InvalidRef) write(name, value)
     }
 
     override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) =

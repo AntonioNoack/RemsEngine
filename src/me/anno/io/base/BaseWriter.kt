@@ -55,14 +55,14 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean = false)
 
     abstract fun writeFloat(name: String, value: Float, force: Boolean = false)
-    abstract fun writeFloatArray(name: String, values: FloatArray?, force: Boolean = false)
-    abstract fun writeFloatArray2D(name: String, values: Array<FloatArray>?, force: Boolean = false)
+    abstract fun writeFloatArray(name: String, values: FloatArray, force: Boolean = false)
+    abstract fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean = false)
 
     abstract fun writeDouble(name: String, value: Double, force: Boolean = false)
     abstract fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean = false)
     abstract fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean = false)
 
-    abstract fun writeString(name: String, value: String?, force: Boolean = false)
+    abstract fun writeString(name: String, value: String, force: Boolean = false)
     abstract fun writeStringArray(name: String, values: Array<String>, force: Boolean = false)
     abstract fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean = false)
 
@@ -151,7 +151,7 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
     abstract fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean = false)
 
     abstract fun writeFile(
-        name: String, value: FileReference?, force: Boolean = false,
+        name: String, value: FileReference, force: Boolean = false,
         workspace: FileReference? = StudioBase.workspace
     )
 

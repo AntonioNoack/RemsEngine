@@ -4,6 +4,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.json.saveable.SimpleType.*
 import me.anno.maths.Maths
 import me.anno.utils.Color
 import me.anno.utils.types.Strings
@@ -95,14 +96,14 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeBoolean(name: String, value: Boolean, force: Boolean) {
         if (force || value) {
-            writeAttributeStart("b", name)
+            writeAttributeStart(BOOLEAN.scalar, name)
             append(if (value) "true" else "false")
         }
     }
 
     override fun writeBooleanArray(name: String, values: BooleanArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart("b[]", name)
+            writeAttributeStart(BOOLEAN.array, name)
             writeArray(values.size, values.indexOfLast { it }) {
                 append(if (values[it]) '1' else '0')
             }
@@ -110,7 +111,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeBooleanArray2D(name: String, values: Array<BooleanArray>, force: Boolean) {
-        writeArray(name, values, force, "b[][]") { arr ->
+        writeArray(name, values, force, BOOLEAN.array2d) { arr ->
             writeArray(arr.size, arr.indexOfLast { it }) {
                 append(if (arr[it]) '1' else '0')
             }
@@ -131,14 +132,14 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeChar(name: String, value: Char, force: Boolean) {
         if (force || value != 0.toChar()) {
-            writeAttributeStart("c", name)
+            writeAttributeStart(CHAR.scalar, name)
             appendCharValue(value)
         }
     }
 
     override fun writeCharArray(name: String, values: CharArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart("c[]", name)
+            writeAttributeStart(CHAR.array, name)
             writeArray(values.size, values.indexOfLast { it.code != 0 }) {
                 appendCharValue(values[it])
             }
@@ -146,7 +147,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeCharArray2D(name: String, values: Array<CharArray>, force: Boolean) {
-        writeArray(name, values, force, "c[][]") { arr ->
+        writeArray(name, values, force, CHAR.array2d) { arr ->
             writeArray(arr.size, arr.indexOfLast { it.code != 0 }) {
                 appendCharValue(arr[it])
             }
@@ -155,14 +156,14 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeByte(name: String, value: Byte, force: Boolean) {
         if (force || value != 0.toByte()) {
-            writeAttributeStart("B", name)
+            writeAttributeStart(SimpleType.BYTE.scalar, name)
             append(value.toInt())
         }
     }
 
     override fun writeByteArray(name: String, values: ByteArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart("B[]", name)
+            writeAttributeStart(SimpleType.BYTE.array, name)
             writeArray(values.size, values.indexOfLast { it != 0.toByte() }) {
                 append(values[it].toInt())
             }
@@ -170,7 +171,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeByteArray2D(name: String, values: Array<ByteArray>, force: Boolean) {
-        writeArray(name, values, force, "B[][]") { arr ->
+        writeArray(name, values, force, SimpleType.BYTE.array2d) { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0.toByte() }) {
                 append(arr[it].toInt())
             }
@@ -179,14 +180,14 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeShort(name: String, value: Short, force: Boolean) {
         if (force || value != 0.toShort()) {
-            writeAttributeStart("s", name)
+            writeAttributeStart(SimpleType.SHORT.scalar, name)
             append(value)
         }
     }
 
     override fun writeShortArray(name: String, values: ShortArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart("s[]", name)
+            writeAttributeStart(SimpleType.SHORT.array, name)
             writeArray(values.size, values.indexOfLast { it != 0.toShort() }) {
                 append(values[it].toInt())
             }
@@ -194,7 +195,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeShortArray2D(name: String, values: Array<ShortArray>, force: Boolean) {
-        writeArray(name, values, force, "s[][]") { arr ->
+        writeArray(name, values, force, SimpleType.SHORT.array2d) { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0.toShort() }) {
                 append(arr[it].toInt())
             }
@@ -203,7 +204,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeInt(name: String, value: Int, force: Boolean) {
         if (force || value != 0) {
-            writeAttributeStart("i", name)
+            writeAttributeStart(SimpleType.INT.scalar, name)
             append(value)
         }
     }
@@ -258,14 +259,14 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeColor(name: String, value: Int, force: Boolean) {
         if (force || value != 0) {
-            writeAttributeStart("col", name)
+            writeAttributeStart(COLOR.scalar, name)
             appendColor(value)
         }
     }
 
     override fun writeIntArray(name: String, values: IntArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart("i[]", name)
+            writeAttributeStart(INT.array, name)
             // 18-23ns/e
             writeArray(values.size, values.indexOfLast { it != 0 }) {
                 append(values[it])
@@ -275,7 +276,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeColorArray(name: String, values: IntArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart("col[]", name)
+            writeAttributeStart(COLOR.array, name)
             // 18-23ns/e
             writeArray(values.size, values.indexOfLast { it != 0 }) {
                 appendColor(values[it])
@@ -284,7 +285,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeIntArray2D(name: String, values: Array<IntArray>, force: Boolean) {
-        writeArray(name, values, force, "i[][]") { arr ->
+        writeArray(name, values, force, INT.array2d) { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0 }) {
                 append(arr[it])
             }
@@ -292,7 +293,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeColorArray2D(name: String, values: Array<IntArray>, force: Boolean) {
-        writeArray(name, values, force, "col[][]") { arr ->
+        writeArray(name, values, force, COLOR.array2d) { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0 }) {
                 appendColor(arr[it])
             }
@@ -301,29 +302,22 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeFloat(name: String, value: Float, force: Boolean) {
         if (force || value != 0f) {
-            writeAttributeStart("f", name)
+            writeAttributeStart(FLOAT.scalar, name)
             append(value)
         }
     }
 
-    override fun writeFloatArray(name: String, values: FloatArray?, force: Boolean) {
-        if (values == null) {
-            if (force) {
-                writeAttributeStart("f[]", name)
-                append("null")
-            }
-        } else {
-            if (force || values.isNotEmpty()) {
-                writeAttributeStart("f[]", name)
-                writeArray(values.size, values.indexOfLast { it != 0f }) {
-                    append(values[it])
-                }
+    override fun writeFloatArray(name: String, values: FloatArray, force: Boolean) {
+        if (force || values.isNotEmpty()) {
+            writeAttributeStart(FLOAT.array, name)
+            writeArray(values.size, values.indexOfLast { it != 0f }) {
+                append(values[it])
             }
         }
     }
 
-    override fun writeFloatArray2D(name: String, values: Array<FloatArray>?, force: Boolean) {
-        writeArray(name, values, force, "f[][]") { arr ->
+    override fun writeFloatArray2D(name: String, values: Array<FloatArray>, force: Boolean) {
+        writeArray(name, values, force, FLOAT.array2d) { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0f }) {
                 append(arr[it])
             }
@@ -332,14 +326,14 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeDouble(name: String, value: Double, force: Boolean) {
         if (force || value != 0.0) {
-            writeAttributeStart("d", name)
+            writeAttributeStart(DOUBLE.scalar, name)
             append(value)
         }
     }
 
     override fun writeDoubleArray(name: String, values: DoubleArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart("d[]", name)
+            writeAttributeStart(DOUBLE.array, name)
             writeArray(values.size, values.indexOfLast { it != 0.0 }) {
                 append(values[it])
             }
@@ -347,29 +341,28 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeDoubleArray2D(name: String, values: Array<DoubleArray>, force: Boolean) {
-        writeArray(name, values, force, "d[][]") { arr ->
+        writeArray(name, values, force, DOUBLE.array2d) { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0.0 }) {
                 append(arr[it])
             }
         }
     }
 
-    override fun writeString(name: String, value: String?, force: Boolean) {
-        if (force || (value != null && value != "")) {
-            writeAttributeStart("S", name)
-            if (value == null) append("null")
-            else writeString(value)
+    override fun writeString(name: String, value: String, force: Boolean) {
+        if (force || value != "") {
+            writeAttributeStart(STRING.scalar, name)
+            writeString(value)
         }
     }
 
     override fun writeStringArray(name: String, values: Array<String>, force: Boolean) {
-        writeArray(name, values, force, "S[]") {
+        writeArray(name, values, force, STRING.array) {
             writeString(it)
         }
     }
 
     override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {
-        writeArray2D(name, values, force, "S[][]", ::writeString)
+        writeArray2D(name, values, force, STRING.array2d, ::writeString)
     }
 
     private fun writeFile(value: FileReference?, workspace: FileReference?) {
@@ -377,15 +370,15 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         else writeString(value.toLocalPath(workspace ?: this.workspace))
     }
 
-    override fun writeFile(name: String, value: FileReference?, force: Boolean, workspace: FileReference?) {
-        if (force || (value != null && value != InvalidRef)) {
-            writeAttributeStart("R", name)
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) {
+        if (force || value != InvalidRef) {
+            writeAttributeStart(REFERENCE.scalar, name)
             writeFile(value, workspace)
         }
     }
 
     override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
-        writeArray(name, values, force, "R[]") {
+        writeArray(name, values, force, REFERENCE.array) {
             writeFile(it, workspace)
         }
     }
@@ -401,14 +394,14 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeLong(name: String, value: Long, force: Boolean) {
         if (force || value != 0L) {
-            writeAttributeStart("l", name)
+            writeAttributeStart(LONG.scalar, name)
             append(value)
         }
     }
 
     override fun writeLongArray(name: String, values: LongArray, force: Boolean) {
         if (force || values.isNotEmpty()) {
-            writeAttributeStart("l[]", name)
+            writeAttributeStart(LONG.array, name)
             writeArray(values.size, values.indexOfLast { it != 0L }) {
                 append(values[it])
             }
@@ -416,7 +409,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeLongArray2D(name: String, values: Array<LongArray>, force: Boolean) {
-        writeArray(name, values, force, "l[][]") { arr ->
+        writeArray(name, values, force, LONG.array2d) { arr ->
             writeArray(arr.size, arr.indexOfLast { it != 0L }) {
                 append(arr[it])
             }
@@ -1265,7 +1258,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun <V : ISaveable> writeObjectArray(self: ISaveable?, name: String, values: Array<V>?, force: Boolean) {
         if (force || values?.isNotEmpty() == true) {
-            if (values == null || values.isEmpty()) {
+            if (values.isNullOrEmpty()) {
                 writeAttributeStart("*[]", name)
                 append("[0]")
             } else {
