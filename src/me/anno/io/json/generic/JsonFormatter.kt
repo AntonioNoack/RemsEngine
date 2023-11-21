@@ -173,9 +173,4 @@ object JsonFormatter {
 
     fun format(str: String, indentation: String = "  ", lineBreakLength: Int = 10) =
         FormatHelper(str.length, indentation).format(str, lineBreakLength)
-
-    fun String.formatJSON(indentation: String = "  ", lineBreakLength: Int = 10): String {
-        val str = this
-        return FormatHelper(str.length, indentation).format(str, lineBreakLength)
-    }
 }

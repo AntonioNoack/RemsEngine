@@ -6,12 +6,13 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringWriter
+import me.anno.io.xml.generic.XMLFormatter
 import me.anno.io.xml.saveable.XMLStringWriter
 
 fun main() {
     val ref = getReference("res://icon.obj")
     val mesh = MeshCache[ref]!!
-    println(JsonFormatter.format(JsonStringWriter.toText(mesh, InvalidRef)))
-    println(XMLStringWriter.toText(mesh, InvalidRef))
+    println(JsonFormatter.format(JsonStringWriter.toText(mesh, InvalidRef), "\t", 100))
+    println(XMLFormatter.format(XMLStringWriter.toText(mesh, InvalidRef), "\t", 100))
     Engine.requestShutdown()
 }
