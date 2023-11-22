@@ -1,5 +1,6 @@
 package me.anno.image.tar
 
+import me.anno.image.raw.ByteImage
 import me.anno.io.Streams.readBE16
 import me.anno.io.Streams.readLE16
 import me.anno.utils.Color
@@ -17,6 +18,10 @@ import kotlin.math.min
  * @author Antonio Noack - added black & white support; fixed naming (?), tested with crytek sponza; fixed 32-bit color order(?)
  * at least for my test cases, everything was correct, and the same as Gimp; optimized it a bit; added support for x-flip
  * @version $Id: TGALoader.java 4131 2009-03-19 20:15:28Z blaine.dev $
+ *
+ * Copyright (c) 2009-2021 jMonkeyEngine
+ * blablabla,
+ * I am trying to support everything, so I'll be extending it
  */
 object TGAReader {
 
@@ -47,7 +52,7 @@ object TGAReader {
      * @throws IOException if an I/O error occurs
      */
     @JvmStatic
-    fun read(input: InputStream, flip: Boolean): TGAImage {
+    fun read(input: InputStream, flip: Boolean): ByteImage {
 
         var flipY = flip
         var flipX = false
@@ -156,11 +161,17 @@ object TGAReader {
         input.close()
 
         // Create the Image object
-        val image = TGAImage(rawData, width, height, numChannels)
         if (flipX) flipX(rawData, width, height, numChannels)
-        image.originalImageType = imageType
-        image.originalPixelDepth = pixelDepth
-        return image
+        // image.originalImageType = imageType
+        // image.originalPixelDepth = pixelDepth
+        val format = when (numChannels) {
+            1 -> ByteImage.Format.R
+            2 -> ByteImage.Format.RG
+            3 -> ByteImage.Format.BGR
+            4 -> ByteImage.Format.BGRA
+            else -> throw NotImplementedError()
+        }
+        return ByteImage(width, height, format, rawData)
     }
 
     private fun flipX(data: ByteArray, width: Int, height: Int, c: Int) {
@@ -508,12 +519,12 @@ object TGAReader {
     }
 
     @JvmStatic
-   fun bgra(b: Int, g: Int, r: Int, a: Int): Int {
+    private fun bgra(b: Int, g: Int, r: Int, a: Int): Int {
         return (r and 255 shl 16) or (g and 255 shl 8) or (b and 255) or (a shl 24)
     }
 
     @JvmStatic
-    fun bgr(b: Int, g: Int, r: Int): Int {
+    private fun bgr(b: Int, g: Int, r: Int): Int {
         return (r shl 16) or (g and 255 shl 8) or (b and 255) or Color.black
     }
 }
