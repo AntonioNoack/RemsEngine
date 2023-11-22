@@ -18,9 +18,8 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     val objects = ArrayList<ISaveable>()
 
     private fun escape(value: String): String {
-        return if (value.all { it in 'A'..'Z' || it in 'a'..'z' || it in '0'..'9' }) {
-            value
-        } else {
+        return if (value.all { it in 'A'..'Z' || it in 'a'..'z' || it in '0'..'9' }) value
+        else {
             val tmp = StringBuilder()
             Strings.writeEscaped(value, tmp)
             tmp.toString()
@@ -444,11 +443,19 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writePlanef(name: String, value: Planef, force: Boolean) {
-        simpleObject(PLANEF, name, "x=\"${value.dirX}\" y=\"${value.dirY}\" z=\"${value.dirZ}\" d=\"${value.distance}\"")
+        simpleObject(
+            PLANEF,
+            name,
+            "x=\"${value.dirX}\" y=\"${value.dirY}\" z=\"${value.dirZ}\" d=\"${value.distance}\""
+        )
     }
 
     override fun writePlaned(name: String, value: Planed, force: Boolean) {
-        simpleObject(PLANED, name, "x=\"${value.dirX}\" y=\"${value.dirY}\" z=\"${value.dirZ}\" d=\"${value.distance}\"")
+        simpleObject(
+            PLANED,
+            name,
+            "x=\"${value.dirX}\" y=\"${value.dirY}\" z=\"${value.dirZ}\" d=\"${value.distance}\""
+        )
     }
 
     override fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean) {
@@ -525,6 +532,7 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
                 writeObject(value, null, objects[i], true)
             }
             objects.subList(size0, objects.size).clear()
+            simpleObjects.clear()
             append("</${value.className}>")
         }
     }

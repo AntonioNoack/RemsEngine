@@ -16,6 +16,9 @@ import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 
+/**
+ * basic reader for FBX 6000, which is unsupported by my version of Assimp.
+ * */
 object FBX6000 {
 
     fun parseBinaryFBX6000(source: InputStream): Map<String, List<Any>> {

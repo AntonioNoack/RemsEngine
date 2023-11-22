@@ -7,6 +7,9 @@ import me.anno.studio.StudioBase
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 
+/**
+ * base implementation for everything that should be saveable
+ * */
 open class Saveable : ISaveable {
 
     override fun save(writer: BaseWriter) {}

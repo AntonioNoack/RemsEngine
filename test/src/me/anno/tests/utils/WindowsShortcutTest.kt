@@ -25,7 +25,7 @@ fun main() {
         println("getRelativePath: ${link.relativePath}")
         println("getWorkingDirectory: ${link.workingDirectory}")
         println("getCommandLineArguments: ${link.commandLineArguments}")
-        println("isLocal: ${link.isLocal}")
+        println("isLocal: ${link.isLocalResource}")
         println("isDirectory: ${link.isDirectory}")
         println("iconPath: ${link.iconPath}")
     }

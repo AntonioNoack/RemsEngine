@@ -1,6 +1,7 @@
 package me.anno.installer
 
 import me.anno.gpu.GFX
+import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.ui.base.progress.ProgressBar
@@ -87,9 +88,9 @@ object Installer {
         val con = url.openConnection() as HttpURLConnection
         val contentLength = con.contentLength
         if (contentLength > 0L) progress?.total = con.contentLength.toDouble()
-        val input = con.inputStream.buffered()
+        val input = con.inputStream.useBuffered()
         dstFile.getParent()?.tryMkdirs()
-        val output = tmp.outputStream().buffered()
+        val output = tmp.outputStream().useBuffered()
         val totalLength = con.contentLength.toLong()
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
         var time0 = System.nanoTime()
@@ -150,7 +151,5 @@ object Installer {
         // to do ask if ffmpeg shall be deleted, if it's not in the default install directory
         // to do put config into that default install directory???
         Uninstaller.uninstall()
-
     }
-
 }

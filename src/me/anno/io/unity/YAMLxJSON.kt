@@ -112,15 +112,17 @@ fun YAMLNode.getQuaternion(significance: Double): Quaterniond? {
     } else null
 }
 
-
-fun parseYAMLxJSON(json: String, callback: (String, String) -> Unit) {
+/**
+ * decodes stuff like "{fileID: 42575496, guid: ee81afb80bd, type: 2}" or {x:12, y:4, z: 13}
+ * */
+fun parseYAMLxJSON(json: String, callback: (key: String, value: String) -> Unit) {
     parseYAMLxJSON(json, false, callback)
 }
 
 /**
  * decodes stuff like "{fileID: 42575496, guid: ee81afb80bd, type: 2}" or {x:12, y:4, z: 13}
  * */
-fun parseYAMLxJSON(json: String, beautify: Boolean, callback: (String, String) -> Unit) {
+fun parseYAMLxJSON(json: String, beautify: Boolean, callback: (key: String, value: String) -> Unit) {
     val start = json.indexOf('{')
     if (start < 0) return
     var i = start + 1

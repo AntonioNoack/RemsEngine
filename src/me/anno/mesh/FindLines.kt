@@ -3,8 +3,10 @@ package me.anno.mesh
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.buffer.DrawMode
 import me.anno.utils.types.Arrays.resize
-import org.joml.Vector3f
 
+/**
+ * finds the lines of a Mesh
+ * */
 object FindLines {
 
     private fun isLine(ab: Boolean, bc: Boolean, ca: Boolean): Boolean {
@@ -23,13 +25,6 @@ object FindLines {
         val ab = ax == bx && ay == by && az == bz
         val bc = bx == cx && by == cy && bz == cz
         val ca = cx == ax && cy == ay && cz == az
-        return isLine(ab, bc, ca)
-    }
-
-    private fun isLine(a: Vector3f, b: Vector3f, c: Vector3f): Boolean {
-        val ab = a == b
-        val bc = b == c
-        val ca = c == a
         return isLine(ab, bc, ca)
     }
 
@@ -108,7 +103,6 @@ object FindLines {
             System.arraycopy(lineIndices, 0, lineIndices2, 0, j)
             lineIndices2
         } else lineIndices
-
     }
 
     fun findLines(mesh: Mesh, indices: IntArray?, positions: FloatArray?): IntArray? {
@@ -177,5 +171,4 @@ object FindLines {
             } else null
         }
     }
-
 }

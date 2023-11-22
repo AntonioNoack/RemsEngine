@@ -6,6 +6,7 @@ import me.anno.cache.ICacheData
 import me.anno.image.ImageReadable
 import me.anno.image.gimp.GimpImage
 import me.anno.image.tar.TGAImage
+import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -171,7 +172,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
         val process = builder.start()
 
         // get and parse the data :)
-        val data = JsonReader(process.inputStream.buffered()).readObject()
+        val data = JsonReader(process.inputStream.useBuffered()).readObject()
         val streams = data["streams"] as? ArrayList<*> ?: ArrayList<Any?>()
         val format = data["format"] as? HashMap<*, *> ?: HashMap<String, Any?>()
 

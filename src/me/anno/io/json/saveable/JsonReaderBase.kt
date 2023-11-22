@@ -811,7 +811,7 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             "i1", SimpleType.BOOLEAN.scalar -> obj.readBoolean(name, readBool())
             SimpleType.CHAR.scalar -> obj.readChar(name, readChar())
             "i8", SimpleType.BYTE.scalar -> obj.readByte(name, readByte())
-            "i16", "s" -> obj.readShort(name, readShort())
+            "i16", SimpleType.SHORT.scalar -> obj.readShort(name, readShort())
             "i32", "i", "col" -> obj.readInt(name, readInt())
             "u64", "l", "i64" -> obj.readLong(name, readLong())
             "f32", "f" -> obj.readFloat(name, readFloat())
@@ -826,15 +826,17 @@ abstract class JsonReaderBase(val workspace: FileReference) : BaseReader() {
             "i16[][]", "s[][]" -> obj.readShortArray2D(name, readArray("short[]", shortArray0) { readShortArray() })
             "i32[]", "i[]", "col[]" -> obj.readIntArray(name, readIntArray())
             "i32[][]", "i[][]", "col[][]" -> obj.readIntArray2D(name, readArray("int[]", intArray0) { readIntArray() })
-            "i64[]", "u64[]", "l[]" -> obj.readLongArray(name, readLongArray())
-            "i64[][]", "u64[][]", "l[][]" ->
+            "i64[]", "u64[]", SimpleType.LONG.array ->
+                obj.readLongArray(name, readLongArray())
+            "i64[][]", "u64[][]", SimpleType.LONG.array2d ->
                 obj.readLongArray2D(name, readArray("long[]", longArray0) { readLongArray() })
-            "f32[]", "f[]" -> obj.readFloatArray(name, readFloatArray())
-            "f32[][]", "f[][]" -> obj.readFloatArray2D(name, readArray("float[]", floatArray0) { readFloatArray() })
+            "f32[]", SimpleType.FLOAT.array ->
+                obj.readFloatArray(name, readFloatArray())
+            "f32[][]", SimpleType.FLOAT.array2d ->
+                obj.readFloatArray2D(name, readArray("float[]", floatArray0) { readFloatArray() })
             SimpleType.DOUBLE.array -> obj.readDoubleArray(name, readDoubleArray())
-            SimpleType.DOUBLE.array2d -> obj.readDoubleArray2D(
-                name,
-                readArray("double[]", doubleArray0) { readDoubleArray() })
+            SimpleType.DOUBLE.array2d ->
+                obj.readDoubleArray2D(name, readArray("double[]", doubleArray0) { readDoubleArray() })
             SimpleType.VECTOR2F.scalar -> obj.readVector2f(name, readVector2f())
             SimpleType.VECTOR3F.scalar -> obj.readVector3f(name, readVector3f())
             SimpleType.VECTOR4F.scalar -> obj.readVector4f(name, readVector4f())

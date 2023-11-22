@@ -966,7 +966,7 @@ open class FileExplorerEntry(
                     "ui.file.delete.yes"
                 )
             ) {
-                moveToTrash(files.map { it.toFile() }.toTypedArray())
+                moveToTrash(files)
                 explorer?.invalidate()
             }
             val deletePermanently = MenuOption(

@@ -144,8 +144,8 @@ object AnimatedMeshesLoader {
             val texFolder = root.createChild("textures", null) as InnerFolder
             loadTextures(aiScene, texFolder)
         } else emptyList()
-        val missingFilesLookup: Map<String, FileReference> = when {
-            file is InnerZipFile -> {
+        val missingFilesLookup: Map<String, FileReference> = when (file) {
+            is InnerZipFile -> {
                 val parent = file.getParent() as InnerFolder
                 parent.lookup ?: emptyMap()
             }

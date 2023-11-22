@@ -1,5 +1,6 @@
 package me.anno.io.files.inner
 
+import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.Signature
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
@@ -13,7 +14,7 @@ interface SignatureFile {
         fun setDataAndSignature(file: InnerFile, getInputStream: () -> InputStream) {
             if (!file.isDirectory) {
                 file as SignatureFile
-                val bufferedIn = getInputStream().buffered()
+                val bufferedIn = getInputStream().useBuffered()
                 if (file.size in 1..InnerFolderCache.sizeLimit) {
                     file.data = bufferedIn.readBytes()
                     file.signature = Signature.find(file.data!!)

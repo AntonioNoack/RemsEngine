@@ -6,6 +6,10 @@ import java.io.InputStream
 import java.util.concurrent.TimeoutException
 import kotlin.math.abs
 
+/**
+ * an InputStream that times out after a defined delay;
+ * only works on InputStreams, which implement the available() method
+ * */
 @Suppress("unused")
 class TimeoutInputStream(
     private val input: InputStream,

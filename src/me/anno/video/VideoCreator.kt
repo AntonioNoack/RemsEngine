@@ -14,6 +14,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.Image
 import me.anno.image.raw.GPUImage
+import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.ByteBufferPool
@@ -131,7 +132,7 @@ open class VideoCreator(
             }
         }
 
-        videoOut = process.outputStream.buffered()
+        videoOut = process.outputStream.useBuffered()
 
         LOGGER.info("Total frame count: $totalFrameCount")
     }

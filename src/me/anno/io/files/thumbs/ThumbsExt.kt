@@ -3,10 +3,7 @@ package me.anno.io.files.thumbs
 import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.components.collider.Collider
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.MaterialCache
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.*
 import me.anno.engine.ui.render.ECSShaderLib
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
@@ -16,7 +13,6 @@ import me.anno.image.ImageGPUCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
-import me.anno.mesh.MeshData
 import me.anno.mesh.MeshUtils.centerMesh
 import me.anno.mesh.MeshUtils.getScaleFromAABB
 import me.anno.utils.Sleep
@@ -216,13 +212,25 @@ object ThumbsExt {
         for (comp in entity.getComponentsInChildren(MeshComponentBase::class, false)) {
             val mesh = comp.getMesh()
             if (mesh == null) {
-                MeshData.warnMissingMesh(comp, null)
+                warnMissingMesh(comp, null)
                 continue
             }
             Thumbs.iterateMaterials(comp.materials, mesh.materials) { material ->
                 textures += listTextures(material)
             }
         }
+    }
+
+    fun warnMissingMesh(comp: MeshComponentBase, mesh: Mesh?) {
+        val msg = if (mesh == null) {
+            if (comp is MeshComponent) {
+                if (comp.meshFile == InvalidRef)
+                    "${comp.className} '${comp.name}' is missing path (${comp.meshFile})"
+                else
+                    "Mesh '${comp.name}'/'${comp.meshFile}' is missing from ${comp.className}"
+            } else "Missing mesh $comp, ${comp::class.simpleName} from ${comp.className}"
+        } else "Missing positions ${comp.getMesh()}"
+        LOGGER.warn(msg)
     }
 
     fun listTextures(materialReference: FileReference): List<FileReference> {

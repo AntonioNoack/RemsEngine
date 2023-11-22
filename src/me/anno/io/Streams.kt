@@ -6,6 +6,9 @@ import me.anno.utils.Sleep.sleepShortly
 import java.io.*
 import kotlin.concurrent.thread
 
+/**
+ * Helper class to read/write little endian, big endian, strings, or lines from Streams
+ * */
 @Suppress("unused")
 object Streams {
 

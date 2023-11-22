@@ -2,7 +2,6 @@ package me.anno.io
 
 import me.anno.Build
 import me.anno.ecs.annotations.Type
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.base.UnknownClassException
@@ -18,6 +17,10 @@ import kotlin.collections.component2
 import kotlin.collections.set
 import kotlin.reflect.KClass
 
+/**
+ * interface for everything that should be saveable;
+ * please use Saveable.class, if possible
+ * */
 interface ISaveable {
 
     /**

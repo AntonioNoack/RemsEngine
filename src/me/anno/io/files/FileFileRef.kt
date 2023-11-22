@@ -1,6 +1,7 @@
 package me.anno.io.files
 
 import me.anno.cache.instances.LastModifiedCache
+import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.copy
 import java.io.File
 import java.io.FileOutputStream
@@ -62,7 +63,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     }
 
     override fun inputStreamSync(): InputStream {
-        val base = file.inputStream().buffered()
+        val base = file.inputStream().useBuffered()
         if (trackOpenStreamsMillis < 1) return base
         var closed = false
         val stack = Throwable("$this was not closed!")
@@ -106,7 +107,7 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
     override fun readTextSync() = file.readText()
 
     override fun outputStream(append: Boolean): OutputStream {
-        val ret = FileOutputStream(file, append).buffered()
+        val ret = FileOutputStream(file, append).useBuffered()
         // when writing is finished, this should be called again
         LastModifiedCache.invalidate(file)
         return ret

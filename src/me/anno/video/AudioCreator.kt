@@ -3,6 +3,7 @@ package me.anno.video
 import me.anno.Time
 import me.anno.audio.streams.AudioStream
 import me.anno.audio.streams.AudioStreamRaw.Companion.bufferSize
+import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths.clamp
@@ -88,7 +89,7 @@ abstract class AudioCreator(
 
         LOGGER.debug("Starting audio encoding with ${(durationSeconds * sampleRate).toLong()} samples")
 
-        val audioOutput = DataOutputStream(process.outputStream.buffered())
+        val audioOutput = DataOutputStream(process.outputStream.useBuffered())
         createAudio(audioOutput)
 
         LOGGER.info(if (videoCreatorOutput != InvalidRef) "Saved video with audio to $output" else "Saved audio to $output")

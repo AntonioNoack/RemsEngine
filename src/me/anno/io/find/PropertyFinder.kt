@@ -10,31 +10,25 @@ import me.anno.io.ISaveable
 object PropertyFinder {
 
     fun getName(container: ISaveable, searched: ISaveable): String? {
-
-        try {
+        return try {
             val writer = FindNameWriter(searched)
             writer.add(container)
             writer.writeAllInList()
+            null
         } catch (e: FoundNameThrowable) {
-            return e.name
+            e.name
         }
-
-        return null
-
     }
 
     fun getValue(container: ISaveable, searched: String): ISaveable? {
-
-        try {
+        return try {
             val writer = FindValueWriter(searched)
             writer.add(container)
             writer.writeAllInList()
+            null
         } catch (e: FoundValueThrowable) {
-            return e.value
+            e.value
         }
-
-        return null
-
     }
 
     class FoundNameThrowable(val name: String) : Throwable()
@@ -55,5 +49,4 @@ object PropertyFinder {
             } else value.save(this)
         }
     }
-
 }

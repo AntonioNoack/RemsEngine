@@ -37,46 +37,29 @@ import java.text.ParseException
 @Suppress("SpellCheckingInspection")
 class WindowsShortcut(data: ByteArray) {
 
-    /**
-     * Tests if the shortcut points to a directory.
-     * @return true if the 'directory' bit is set in this shortcut, false otherwise
-     */
     var isDirectory = false
         private set
 
-    /**
-     * Tests if the shortcut points to a local resource.
-     * @return true if the 'local' bit is set in this shortcut, false otherwise
-     */
-    var isLocal = false
+    var isLocalResource = false
         private set
 
-    /**
-     * @return the name of the filesystem object pointed to by this shortcut
-     */
     var absolutePath: String? = null
         private set
 
-    /**
-     * @return a description for this shortcut, or null if no description is set
-     */
     var description: String? = null
         private set
 
-    /**
-     * @return the relative path for the filesystem object pointed to by this shortcut, or null if no relative path is set
-     */
     var relativePath: String? = null
         private set
 
     /**
-     * @return the working directory in which the filesystem object pointed to by this shortcut should be executed, or null if no working directory is set
+     * for execution
      */
     var workingDirectory: String? = null
         private set
 
     /**
-     * @return the command line arguments that should be used when executing the filesystem object pointed to by this shortcut, or null if no command line arguments are present
+     * for execution
      */
     var commandLineArguments: String? = null
         private set
@@ -111,8 +94,8 @@ class WindowsShortcut(data: ByteArray) {
             val networkVolumeTableOffset = data[fileStart + 0x14] + fileStart
             val finalNameOffset = readLE32(data, fileStart + 0x18) + fileStart
             val finalName = getNullDelimitedString(data, finalNameOffset)
-            isLocal = fileLocationInfoFlag.hasFlag(1)
-            absolutePath = if (isLocal) {
+            isLocalResource = fileLocationInfoFlag.hasFlag(1)
+            absolutePath = if (isLocalResource) {
                 val basename = getNullDelimitedString(data, basenameOffset)
                 basename + finalName
             } else {
@@ -230,6 +213,6 @@ class WindowsShortcut(data: ByteArray) {
 
         @JvmStatic
         private fun readLE32(bytes: ByteArray, off: Int) =
-            readLE16(bytes, off + 2) shl 16 or readLE16(bytes, off)
+            readLE16(bytes, off + 2).shl(16) or readLE16(bytes, off)
     }
 }

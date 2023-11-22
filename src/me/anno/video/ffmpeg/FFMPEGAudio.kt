@@ -2,6 +2,7 @@ package me.anno.video.ffmpeg
 
 import me.anno.Engine
 import me.anno.audio.openal.SoundBuffer
+import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.readLE16
 import me.anno.io.files.FileReference
 import me.anno.utils.ShutdownException
@@ -36,7 +37,7 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
             }
             out.close()
         }
-        process.inputStream.buffered().use { input: InputStream ->
+        process.inputStream.useBuffered().use { input: InputStream ->
             val frameCount = (sampleRate * length).toInt()
             input.mark(1)
             if (input.read() >= 0) {
@@ -110,5 +111,4 @@ class FFMPEGAudio(file: FileReference?, val channels: Int, val sampleRate: Int, 
     }
 
     override fun destroy() {}
-
 }
