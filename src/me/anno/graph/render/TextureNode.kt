@@ -4,7 +4,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.graph.types.flow.CalculationNode
 import me.anno.graph.ui.GraphPanel
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -42,7 +42,7 @@ class TextureNode : CalculationNode(
     override fun calculate(): Vector4f {
         val file = file
         val uv = getInput(0) as Vector2f
-        val image = ImageCPUCache[file, false]
+        val image = ImageCache[file, false]
         return if (image != null) {
             val linear = if (getInput(1) == true) GPUFiltering.LINEAR else GPUFiltering.NEAREST
             val clamping = when (getInput(2) as Int) {

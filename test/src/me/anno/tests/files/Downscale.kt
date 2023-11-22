@@ -1,6 +1,6 @@
 package me.anno.tests.files
 
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.ImageScale.scaleMax
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.types.Floats.formatPercent
@@ -20,7 +20,7 @@ fun main() {
     dst.mkdirs()
     val ext = listOf("png", "jpg", "webp")
     for (child in src.listChildren()!!) {
-        val image = ImageCPUCache[child, false] ?: continue
+        val image = ImageCache[child, false] ?: continue
         val (w, h) = scaleMax(image.width, image.height, 384)
         if (w < image.width && h < image.height) {
             val downScaled = image.resized(w, h, false)

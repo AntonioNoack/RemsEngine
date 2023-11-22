@@ -6,15 +6,14 @@ import me.anno.cache.CacheSection
 import me.anno.image.exr.EXRReader
 import me.anno.image.gimp.GimpImage
 import me.anno.image.hdr.HDRReader
-import me.anno.image.tar.TGAImage
+import me.anno.image.tar.TGAReader
 import me.anno.io.files.FileReference
-import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.Sleep.waitUntil
-import me.saharnooby.qoi.QOIImage
+import me.anno.image.qoi.QOIReader
 import net.sf.image4j.codec.ico.ICOReader
 import java.io.InputStream
 
-object ImageCPUCache : CacheSection("ImageCPU") {
+object ImageCache : CacheSection("Image") {
 
     val byteReaders = HashMap<String, (ByteArray) -> Image?>()
     val fileReaders = HashMap<String, (FileReference, ImageCallback) -> Unit>()
@@ -48,11 +47,11 @@ object ImageCPUCache : CacheSection("ImageCPU") {
 
     init {
         registerStreamReader("hdr") { HDRReader.read(it) }
-        registerStreamReader("tga") { TGAImage.read(it, false) }
+        registerStreamReader("tga") { TGAReader.read(it, false) }
         registerStreamReader("ico") { ICOReader.read(it) }
         registerStreamReader("gimp") { GimpImage.read(it) }
         registerStreamReader("exr") { EXRReader.read(it) }
-        registerStreamReader("qoi") { QOIImage.read(it) }
+        registerStreamReader("qoi") { QOIReader.read(it) }
     }
 
     // eps: like svg, we could implement it, but we don't really need it that dearly...

@@ -1,6 +1,6 @@
 package me.anno.tests.gfx
 
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.rgba
@@ -23,7 +23,7 @@ fun main() {
 
 fun convert(src: FileReference, dst: FileReference) {
 
-    val image = ImageCPUCache[src, false]!!
+    val image = ImageCache[src, false]!!
     fun get(x: Int, y: Int): Int {
         val xi = (x + image.width) % image.width
         val yi = (y + image.height) % image.height

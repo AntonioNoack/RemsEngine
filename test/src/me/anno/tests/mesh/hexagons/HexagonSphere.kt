@@ -14,7 +14,7 @@ import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
@@ -38,8 +38,8 @@ import kotlin.math.sqrt
 
 fun createNiceMesh(mesh: Mesh, hexagons: List<Hexagon>, len: Float) {
 
-    val texture = ImageCPUCache[getReference("E:/Pictures/earth_flat_map.jpg"), false]!!
-    val height = ImageCPUCache[downloads.getChild("earth-height.png"), false]!!
+    val texture = ImageCache[getReference("E:/Pictures/earth_flat_map.jpg"), false]!!
+    val height = ImageCache[downloads.getChild("earth-height.png"), false]!!
     val h0 = height.getRGB(0).r01() * 1.5f
 
     val dx1 = texture.width * 0.5f

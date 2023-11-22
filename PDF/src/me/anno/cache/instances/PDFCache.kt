@@ -5,7 +5,7 @@ import me.anno.cache.CacheSection
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.image.raw.toImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
@@ -111,7 +111,7 @@ object PDFCache : CacheSection("PDFCache") {
     fun getTexture(src: FileReference, doc: PDDocument, quality: Float, pageNumber: Int): Texture2D? {
         val qualityInt = max(1, (quality * 2f).roundToInt())
         val qualityFloat = qualityInt * 0.5f
-        val tex = ImageGPUCache.getLateinitTexture(
+        val tex = TextureCache.getLateinitTexture(
             Triple(src, qualityInt, pageNumber),
             20_000L,
             false

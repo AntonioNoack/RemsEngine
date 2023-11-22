@@ -2,7 +2,7 @@ package me.anno.tests.image.fft
 
 import me.anno.Engine
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.CompositeFloatImage
 import me.anno.image.raw.FloatImage
 import me.anno.utils.Clock
@@ -39,13 +39,13 @@ fun main() {
     }
 
     val clock = Clock()
-    val src = ImageCPUCache[desktop.getChild("Moire.jpg"), false]!!
+    val src = ImageCache[desktop.getChild("Moire.jpg"), false]!!
     clock.stop("Load Image")
 
     val w = nextPowerOfTwo(src.width)
     val h = nextPowerOfTwo(src.height)
 
-    val mask = ImageCPUCache[desktop.getChild("MoireMask.png"), false]!!
+    val mask = ImageCache[desktop.getChild("MoireMask.png"), false]!!
         .resized(w, h, true)
     clock.stop("Load Mask")
 

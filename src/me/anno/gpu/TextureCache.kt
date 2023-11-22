@@ -1,28 +1,34 @@
-package me.anno.image
+package me.anno.gpu
 
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.cache.data.ImageToTexture
 import me.anno.gpu.texture.*
+import me.anno.image.ImageCache
+import me.anno.image.ImageReadable
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFile
 import me.anno.utils.OS
-import me.anno.utils.Sleep.waitForGFXThread
+import me.anno.utils.Sleep
 import org.apache.logging.log4j.LogManager
 import kotlin.math.sqrt
 
-object ImageGPUCache : CacheSection("ImageGPU") {
+/**
+ * Use this to load textures (asynchronously if possible).
+ * Textures are equivalent to Images on the CPU, just on the GPU.
+ * */
+object TextureCache : CacheSection("Texture") {
 
-    private val LOGGER = LogManager.getLogger(ImageGPUCache::class)
+    private val LOGGER = LogManager.getLogger(TextureCache::class)
 
     fun hasImageOrCrashed(file: FileReference, timeout: Long, asyncGenerator: Boolean): Boolean {
         if (file is ImageReadable && file.hasInstantGPUImage()) return true
         if (file == InvalidRef) return true
         if (file.isDirectory || !file.exists) return true
         val entry = try {
-            getEntry(file, timeout, asyncGenerator, ImageGPUCache::generateImageData)
+            getEntry(file, timeout, asyncGenerator, TextureCache::generateImageData)
         } catch (e: Exception) {
             e.printStackTrace()
             return true
@@ -59,11 +65,11 @@ object ImageGPUCache : CacheSection("ImageGPU") {
         }
         val imageData = getEntry(
             file, timeout, asyncGenerator,
-            ImageGPUCache::generateImageData
+            TextureCache::generateImageData
         ) as? ImageToTexture ?: return null
         if (!imageData.hasFailed && imageData.texture?.isCreated != true && !asyncGenerator && !OS.isWeb) {
             // the texture was forced to be loaded -> wait for it
-            waitForGFXThread(true) {
+            Sleep.waitForGFXThread(true) {
                 val texture = imageData.texture
                 (texture != null && (texture.isCreated || texture.isDestroyed)) || imageData.hasFailed
             }
@@ -102,13 +108,13 @@ object ImageGPUCache : CacheSection("ImageGPU") {
     }
 
     fun getLUT(file: FileReference, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
-        val texture = getEntry("LUT" to file, timeout, asyncGenerator, ImageGPUCache::generateLUT) as? Texture3D
+        val texture = getEntry("LUT" to file, timeout, asyncGenerator, TextureCache::generateLUT) as? Texture3D
         return if (texture?.isCreated == true) texture else null
     }
 
     private fun generateLUT(pair: Pair<String, FileReference>): ICacheData {
         val file = pair.second
-        val img = ImageCPUCache[file, false]!!
+        val img = ImageCache[file, false]!!
         val sqrt = sqrt(img.width + 0.5f).toInt()
         val tex = Texture3D("lut-${file.name}", sqrt, img.height, sqrt)
         tex.create(img, false)

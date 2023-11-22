@@ -5,7 +5,7 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
 import me.anno.gpu.shader.effects.ShapedBlur.decompress
 import me.anno.gpu.shader.effects.ShapedBlur.fileName
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.image.raw.FloatImage
 import me.anno.io.Streams.write0String
 import me.anno.io.Streams.writeLE16
@@ -74,7 +74,7 @@ fun singleTest() {
     HiddenOpenGLContext.createOpenGL()
     val source = OS.pictures.getChild("blurTest.png")
     val (shader, stages) = decompress(tmp.inputStreamSync())
-    val src = ImageGPUCache[source, false]!!
+    val src = TextureCache[source, false]!!
     applyFilter(src, shader, stages, src.isHDR)
         .write(OS.desktop.getChild("heart.png"))
 }

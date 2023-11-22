@@ -1,7 +1,7 @@
 package me.anno.tests.gfx
 
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.maths.Maths
 import me.anno.maths.Optimization.simplexAlgorithm
 import me.anno.utils.OS.desktop
@@ -34,7 +34,7 @@ fun main() {
 
     // tests... not as good as first one
 
-    val img0 = ImageCPUCache[desktop.getChild("20220306_091338.jpg"), false]!!
+    val img0 = ImageCache[desktop.getChild("20220306_091338.jpg"), false]!!
     val img = img0// .createBImage(img0.width/5, img0.height/5)
 
     val bestPolynomials = Array(3) { Polynomial() }

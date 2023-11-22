@@ -1,6 +1,7 @@
 package me.anno.image
 
 import me.anno.cache.AsyncCacheData
+import me.anno.gpu.TextureCache
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.raw.*
@@ -94,10 +95,10 @@ object ImageReader {
     @JvmStatic
     private fun createComponent(file: FileReference, folder: InnerFolder, name: String, createImage: (Image) -> Image) {
         folder.createLazyImageChild(name, lazy {
-            val src = ImageCPUCache[file, false] ?: throw IOException("Missing image of $file")
+            val src = ImageCache[file, false] ?: throw IOException("Missing image of $file")
             createImage(src)
         }, {
-            val src = ImageGPUCache[file, false] ?: throw IOException("Missing image of $file")
+            val src = TextureCache[file, false] ?: throw IOException("Missing image of $file")
             createImage(GPUImage(src))
         })
     }
@@ -160,7 +161,7 @@ object ImageReader {
                 e?.printStackTrace()
             }
         } else {
-            val reader = ImageCPUCache.byteReaders[signature] ?: ImageCPUCache.byteReaders[file.lcExtension]
+            val reader = ImageCache.byteReaders[signature] ?: ImageCache.byteReaders[file.lcExtension]
             data.value = if (reader != null) reader(bytes) else tryGeneric(file, bytes)
         }
     }
@@ -174,7 +175,7 @@ object ImageReader {
                 e?.printStackTrace()
             }
         } else {
-            val reader = ImageCPUCache.fileReaders[signature] ?: ImageCPUCache.fileReaders[file.lcExtension]
+            val reader = ImageCache.fileReaders[signature] ?: ImageCache.fileReaders[file.lcExtension]
             if (reader != null) reader(file) { it, e ->
                 e?.printStackTrace()
                 data.value = it

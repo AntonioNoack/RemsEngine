@@ -5,8 +5,8 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
-import me.anno.image.ImageCPUCache
-import me.anno.image.ImageGPUCache
+import me.anno.image.ImageCache
+import me.anno.gpu.TextureCache
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.mesh.blender.BlenderReader
 import me.anno.utils.Clock
@@ -42,7 +42,7 @@ fun main() {
         }
         waitUntil(true) { done }
         // reset caches
-        ImageCPUCache.clear()
-        ImageGPUCache.clear()
+        ImageCache.clear()
+        TextureCache.clear()
     }
 }

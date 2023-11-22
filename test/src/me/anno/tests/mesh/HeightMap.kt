@@ -1,6 +1,6 @@
 package me.anno.tests.mesh
 
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.ImageWriter
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.Color.g
@@ -21,7 +21,7 @@ fun main() {
 fun createHeightMesh() {
 
     val file = getReference("C:/XAMPP/htdocs/DigitalCampus/images/map/h750.png")
-    val image = ImageCPUCache[file, false]!!
+    val image = ImageCache[file, false]!!
 
     val w = image.width
     val h = image.height

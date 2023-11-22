@@ -3,7 +3,7 @@ package me.anno.ui.custom
 import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
@@ -58,7 +58,7 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val icon = ImageGPUCache[crossPath, 360_000L, false] ?: whiteTexture
+        val icon = TextureCache[crossPath, 360_000L, false] ?: whiteTexture
         val crossSize = getCrossSize(style).roundToInt()
         drawTexture(x + width - (crossSize + 2), y + 2, crossSize, crossSize, icon, white, null)
     }

@@ -30,7 +30,7 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.input.Input
 import me.anno.maths.Maths.pow
 import me.anno.studio.StudioBase
@@ -198,12 +198,12 @@ fun main() {
                 scene.firstComponentInChildren(MeshComponent::class) {
                     for (m in it.materials) {
                         MaterialCache[m, true]?.listTextures()?.forEach { tex ->
-                            ImageGPUCache[tex, true]
+                            TextureCache[tex, true]
                         }
                     }
                     for (m in it.getMesh()!!.materials) {
                         MaterialCache[m, true]?.listTextures()?.forEach { tex ->
-                            ImageGPUCache[tex, true]
+                            TextureCache[tex, true]
                         }
                     }
                     false

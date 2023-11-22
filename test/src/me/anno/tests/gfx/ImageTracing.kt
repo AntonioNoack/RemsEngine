@@ -1,6 +1,6 @@
 package me.anno.tests.gfx
 
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS
@@ -16,7 +16,7 @@ object ImageTracing {
     // to do set the test size for meshes to 120 instead of 20-ish
     @JvmStatic
     fun main(args: Array<String>) {
-        val image = ImageCPUCache[OS.documents.getChild("test-text.png"), false]!!
+        val image = ImageCache[OS.documents.getChild("test-text.png"), false]!!
         val pixels = (image as IntImage).data
         val black = -0x1000000
         var i = 0

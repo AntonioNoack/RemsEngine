@@ -1,6 +1,6 @@
 package me.anno.tests.image.segmentation
 
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.IntImage
 import me.anno.maths.Maths
@@ -18,7 +18,7 @@ import kotlin.math.min
 fun main(){
 
     val maxError = 0.1f
-    val image = ImageCPUCache[OS.pictures.getChild("Anime/img (3).webp"), false]!!
+    val image = ImageCache[OS.pictures.getChild("Anime/img (3).webp"), false]!!
         .createIntImage()
 
     val transformIntoYuv = false // true makes things even worse, idk why...

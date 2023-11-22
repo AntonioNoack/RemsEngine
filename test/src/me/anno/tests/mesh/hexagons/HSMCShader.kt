@@ -12,7 +12,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.whiteTex2da
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.pictures
 
@@ -20,7 +20,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
 
     val texture by lazy {
         val source = pictures.getChild("atlas.webp")
-        val image = ImageCPUCache[source, false]
+        val image = ImageCache[source, false]
         if (image == null) {
             LOGGER.warn("Missing $source")
             whiteTex2da

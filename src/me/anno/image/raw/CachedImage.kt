@@ -2,7 +2,7 @@ package me.anno.image.raw
 
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
 import java.awt.image.BufferedImage
 
@@ -19,7 +19,7 @@ class CachedImage(val src: FileReference, w: Int, h: Int, numChannels: Int, hasA
     /** cache timeout in milli seconds */
     var timeout = 50L
 
-    val base get() = ImageCPUCache[src, timeout, false]
+    val base get() = ImageCache[src, timeout, false]
 
     override fun getRGB(index: Int): Int {
         val img = base!!

@@ -15,8 +15,8 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.ui.GraphPanel.Companion.greenish
 import me.anno.graph.ui.GraphPanel.Companion.red
-import me.anno.image.ImageCPUCache
-import me.anno.image.ImageGPUCache
+import me.anno.image.ImageCache
+import me.anno.gpu.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
@@ -114,7 +114,7 @@ class SDFHeightMap : SDFShape() {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         smartMinBegin(builder, dstIndex)
         val tex = defineUniform(uniforms, GLSLType.S2D) {
-            val img = ImageGPUCache[source, true]
+            val img = TextureCache[source, true]
             if (img != null && (img.filtering != GPUFiltering.LINEAR || img.clamping != Clamping.CLAMP)) {
                 img.bind(GFX.maxBoundTextures - 1, GPUFiltering.LINEAR, Clamping.CLAMP)
             }
@@ -125,7 +125,7 @@ class SDFHeightMap : SDFShape() {
             img ?: whiteTexture
         }
         val scale = defineUniform(uniforms, GLSLType.V3F) {
-            val img = ImageGPUCache[source, true]
+            val img = TextureCache[source, true]
             if (img != null) Vector3f(
                 max(1f, img.height.toFloat() / img.width.toFloat()),
                 max(1f, img.width.toFloat() / img.height.toFloat()),
@@ -160,7 +160,7 @@ class SDFHeightMap : SDFShape() {
 
     override fun onDrawGUI(all: Boolean) {
 
-        val img = ImageCPUCache[source, true] ?: return
+        val img = ImageCache[source, true] ?: return
         val scale = Vector3f(
             max(1f, img.height.toFloat() / img.width.toFloat()),
             1f / maxHeight,

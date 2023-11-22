@@ -24,7 +24,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.image.raw.FloatImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAU
@@ -122,7 +122,7 @@ class FoliageShader(
 
     override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
         super.bind(shader, renderer, instanced)
-        val density = ImageGPUCache[densitySource, false] ?: blackTexture
+        val density = TextureCache[densitySource, false] ?: blackTexture
         terrainTexture.value.bind(shader, "terrainTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         density.bind(shader, "densityTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
         shader.v2f("time", Time.gameTime.toFloat(), (Time.gameTime - Time.deltaTime).toFloat())

@@ -15,7 +15,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -352,7 +352,7 @@ open class Material : PrefabSaveable(), Renderable {
 
         val defaultMaterial = Material()
 
-        fun getTex(image: FileReference): Texture2D? = ImageGPUCache[image, timeout, true]
+        fun getTex(image: FileReference): Texture2D? = TextureCache[image, timeout, true]
 
         fun bindTexture(shader: Shader, name: String, file: FileReference, default: Texture2D): Texture2D? {
             val index = shader.getTextureIndex(name)

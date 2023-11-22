@@ -9,7 +9,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readFloatLE
 import me.anno.io.Streams.readLE16
@@ -48,7 +48,7 @@ fun main() {
     }
     // load all images for a really long time
     for (img in images.values) {
-        ImageGPUCache[img, 1_000_000_000L, true]
+        TextureCache[img, 1_000_000_000L, true]
     }
     // read meshes like files
     val entity = Entity()

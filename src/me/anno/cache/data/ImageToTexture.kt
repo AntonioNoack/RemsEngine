@@ -9,7 +9,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.image.*
 import me.anno.image.hdr.HDRReader
 import me.anno.image.raw.toImage
-import me.anno.image.tar.TGAImage
+import me.anno.image.tar.TGAReader
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
@@ -50,7 +50,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
             texture.create(file.toString(), file.readGPUImage(), true)
             this.texture = texture
         } else {
-            val cpuImage = ImageCPUCache.getImageWithoutGenerator(file)
+            val cpuImage = ImageCache.getImageWithoutGenerator(file)
             if (cpuImage != null) {
                 val texture = Texture2D("i2t/ci/${file.name}", cpuImage.width, cpuImage.height, 1)
                 cpuImage.createTexture(texture, sync = true, checkRedundancy = true)
@@ -106,7 +106,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
 
     fun loadTGA(file: FileReference) {
         val img = file.inputStreamSync().use { stream: InputStream ->
-            TGAImage.read(stream, false)
+            TGAReader.read(stream, false)
         }
         val texture = Texture2D("i2t/tga/${file.name}", img.width, img.height, 1)
         texture.create(img, sync = false, checkRedundancy = true)

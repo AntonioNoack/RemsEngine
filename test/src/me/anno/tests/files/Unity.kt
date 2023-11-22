@@ -9,7 +9,7 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.thumbs.Thumbs
@@ -214,7 +214,7 @@ fun main() {
 
     return*/
 
-    ImageCPUCache[FileReference.getReference(projectPath, "Assets/PolygonSciFiCity/Textures/LineTex 4.png"), false]!!
+    ImageCache[FileReference.getReference(projectPath, "Assets/PolygonSciFiCity/Textures/LineTex 4.png"), false]!!
         .write(OS.desktop.getChild("LineTex4.png"))
 
     // circular sample

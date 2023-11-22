@@ -5,7 +5,7 @@ import me.anno.fonts.AWTFont
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Strings.joinChars
 import me.anno.video.MissingFrameException
@@ -35,7 +35,7 @@ class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
         } else {
             val roundCorners = roundCorners
             val key = SDFStringKey(font, text, roundCorners)
-            val cacheData = ImageGPUCache.getEntry(key, sdfTimeout, queue) {
+            val cacheData = TextureCache.getEntry(key, sdfTimeout, queue) {
                 CacheData(SignedDistanceField.createTexture(font, text, roundCorners))
             } as? CacheData<*>
             if (isFinalRendering && cacheData == null) throw MissingFrameException("")
@@ -58,7 +58,7 @@ class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
             val codePoint = codepoints[index]
             val offset = (offsets[index] * baseScale).toFloat()
             val key = SDFCharKey(font, codePoint, roundCorners)
-            val cacheData = ImageGPUCache.getEntry(key, sdfTimeout, queue) { key2 ->
+            val cacheData = TextureCache.getEntry(key, sdfTimeout, queue) { key2 ->
                 val charAsText = key2.codePoint.joinChars()
                 val texture = SignedDistanceField.createTexture(key2.font, charAsText, key2.roundCorners)
                 CacheData(texture)

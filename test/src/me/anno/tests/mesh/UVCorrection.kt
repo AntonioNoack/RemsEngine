@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.engine.ECSRegistry
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerPrefabFile
@@ -65,7 +65,7 @@ object UVCorrection {
             val pos = mesh.positions
             val uvs = mesh.uvs
             val materials = mesh.materials.mapNotNull { MaterialCache[it] }
-            val textures = materials.mapNotNull { ImageCPUCache[it.diffuseMap, false] }
+            val textures = materials.mapNotNull { ImageCache[it.diffuseMap, false] }
             if (pos != null && uvs != null && textures.isNotEmpty()) {
                 val image = textures.maxByOrNull { it.width * it.height }!!
                 val w = image.width

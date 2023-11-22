@@ -6,7 +6,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 
@@ -28,7 +28,7 @@ abstract class TextureSkybox : SkyboxBase() {
             applyInverseTonemapping
         }
         material.shaderOverrides["skyTexture"] = TypeValueV2(GLSLType.S2D) {
-            val texture = ImageGPUCache[imageFile, true] ?: TextureLib.whiteTexture
+            val texture = TextureCache[imageFile, true] ?: TextureLib.whiteTexture
             val shader = shader?.value
             if (shader != null) {
                 // ensure proper filtering

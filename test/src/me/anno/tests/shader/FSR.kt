@@ -7,7 +7,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.utils.OS.pictures
 
 fun main() {
@@ -17,7 +17,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
 
     val src = pictures.getChild("Anime/90940211_p0_master1200.jpg")
-    val texture = ImageGPUCache[src, 10000, false]!!
+    val texture = TextureCache[src, 10000, false]!!
 
     ShaderLib.init()
 

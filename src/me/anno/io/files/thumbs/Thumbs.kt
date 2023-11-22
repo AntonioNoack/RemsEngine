@@ -29,12 +29,9 @@ import me.anno.engine.ui.render.RenderView0
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.fonts.FontManager
-import me.anno.gpu.CullMode
-import me.anno.gpu.DepthMode
-import me.anno.gpu.GFX
+import me.anno.gpu.*
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.isGFXThread
-import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
@@ -68,7 +65,7 @@ import me.anno.image.ImageScale.scaleMax
 import me.anno.image.hdr.HDRReader
 import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.raw.toImage
-import me.anno.image.tar.TGAImage
+import me.anno.image.tar.TGAReader
 import me.anno.io.ISaveable
 import me.anno.io.base.InvalidClassException
 import me.anno.io.config.ConfigBasics
@@ -170,7 +167,7 @@ object Thumbs {
     fun invalidate(file: FileReference?, neededSize: Int) {
         file ?: return
         val size = getSize(neededSize)
-        ImageGPUCache.remove { key, _ ->
+        TextureCache.remove { key, _ ->
             key is ThumbnailKey && key.file == file && key.size == size
         }
     }
@@ -178,7 +175,7 @@ object Thumbs {
     @JvmStatic
     fun invalidate(file: FileReference?) {
         file ?: return
-        ImageGPUCache.remove { key, _ ->
+        TextureCache.remove { key, _ ->
             key is ThumbnailKey && key.file == file
         }
     }
@@ -188,7 +185,7 @@ object Thumbs {
 
         if (file == InvalidRef) return null
         if (file is ImageReadable) {
-            return ImageGPUCache[file, timeout, async]
+            return TextureCache[file, timeout, async]
         }
 
         // currently not supported
@@ -202,7 +199,7 @@ object Thumbs {
         val lastModified = file.lastModified
         val key = ThumbnailKey(file, lastModified, size)
 
-        val texture = ImageGPUCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
+        val texture = TextureCache.getLateinitTextureLimited(key, timeout, async, 4) { callback ->
             if (async) {
                 thread(name = "Thumbs/${key.file.name}") {
                     try {
@@ -231,7 +228,7 @@ object Thumbs {
         var size1 = size shr 1
         while (size1 >= sizes.first()) {
             val key1 = ThumbnailKey(file, lastModified, size1)
-            val gen = ImageGPUCache.getEntryWithoutGenerator(key1, 50) as? LateinitTexture
+            val gen = TextureCache.getEntryWithoutGenerator(key1, 50) as? LateinitTexture
             val tex = gen?.texture
             if (tex != null) return tex
             size1 = size1 shr 1
@@ -251,7 +248,7 @@ object Thumbs {
         for (i in idx until sizes.size) {
             val size1 = sizes[i]
             val key1 = ThumbnailKey(srcFile, key0.lastModified, size1)
-            val gen = ImageGPUCache.getEntryWithoutGenerator(key1, 500) as? LateinitTexture
+            val gen = TextureCache.getEntryWithoutGenerator(key1, 500) as? LateinitTexture
             val tex = gen?.texture
             if (tex != null && (tex !is Texture2D || tex.isCreated)) {
                 copyTexIfPossible(srcFile, size, tex, callback)
@@ -1336,7 +1333,7 @@ object Thumbs {
                         "tga" -> {
                             srcFile.inputStream { it, exc ->
                                 if (it != null) {
-                                    val src = it.use { input: InputStream -> TGAImage.read(input, false) }
+                                    val src = it.use { input: InputStream -> TGAReader.read(input, false) }
                                     findScale(src, srcFile, size, callback) { dst ->
                                         saveNUpload(srcFile, false, dstFile, dst, callback)
                                     }
@@ -1543,8 +1540,8 @@ object Thumbs {
         val startTime = System.nanoTime()
         waitUntil(true) {
             if (System.nanoTime() < startTime + totalNanos) {
-                image = ImageCPUCache[srcFile, timeout, true]
-                image != null || ImageCPUCache.hasFileEntry(srcFile, timeout)
+                image = ImageCache[srcFile, timeout, true]
+                image != null || ImageCache.hasFileEntry(srcFile, timeout)
             } else true
         }
         if (image == null) {

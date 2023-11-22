@@ -3,14 +3,14 @@ package me.anno.tests.image
 import me.anno.image.BoxBlur.boxBlurX
 import me.anno.image.BoxBlur.boxBlurY
 import me.anno.image.BoxBlur.multiply
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.FloatImage
 import me.anno.utils.Color.g01
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 
 fun main() {
-    val image = ImageCPUCache[pictures.getChild("Anime/90940211_p0_master1200.jpg"), false]!!
+    val image = ImageCache[pictures.getChild("Anime/90940211_p0_master1200.jpg"), false]!!
     val w = image.width
     val h = image.height
     val fi1 = FloatImage(w, h, 1)

@@ -3,7 +3,7 @@ package me.anno.tests.image
 import me.anno.Engine
 import me.anno.gpu.GFX
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.utils.OS.downloads
 import me.anno.utils.Sleep.waitUntilDefined
 import kotlin.concurrent.thread
@@ -14,7 +14,7 @@ fun main() {
     HiddenOpenGLContext.createOpenGL()
     thread {
         val tex = waitUntilDefined(true) {
-            ImageGPUCache[source, false]
+            TextureCache[source, false]
         }
         println(tex)
         Engine.requestShutdown()

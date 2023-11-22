@@ -28,8 +28,8 @@ import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.image.ImageCPUCache
-import me.anno.image.ImageGPUCache
+import me.anno.image.ImageCache
+import me.anno.gpu.TextureCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
@@ -288,7 +288,7 @@ open class FileExplorerEntry(
     }
 
     private fun drawDefaultIcon(x0: Int, y0: Int, x1: Int, y1: Int) {
-        val image = ImageGPUCache[iconPath, true] ?: whiteTexture
+        val image = TextureCache[iconPath, true] ?: whiteTexture
         drawTexture(x0, y0, x1, y1, image)
     }
 
@@ -311,7 +311,7 @@ open class FileExplorerEntry(
         }
     }
 
-    private fun getDefaultIcon() = ImageGPUCache[iconPath, true]
+    private fun getDefaultIcon() = TextureCache[iconPath, true]
 
     private fun getImage(): Any? {
         val ref1 = ref1 ?: return null
@@ -580,7 +580,7 @@ open class FileExplorerEntry(
                                     if (meta.videoFrameCount > 1) ttt.append(" @").append(meta.videoFPS.f1())
                                         .append(" fps")
                                 } else {
-                                    val image = ImageCPUCache.getImageWithoutGenerator(file)
+                                    val image = ImageCache.getImageWithoutGenerator(file)
                                     if (image != null) {
                                         ttt.append('\n').append(image.width).append(" x ").append(image.height)
                                     }

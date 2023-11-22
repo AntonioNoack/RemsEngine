@@ -9,7 +9,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.toHexColor
@@ -40,7 +40,7 @@ fun testVideo(image: FileReference) {
     val dst1 = Framebuffer("dst", w, h, TargetType.UByteTarget4, DepthBufferType.NONE)
     var ctr = 0
     fun process(src: FileReference, dst: FileReference) {
-        ImageGPUCache.clear()
+        TextureCache.clear()
         val t0 = System.nanoTime()
         VideoCache.clear()
         val gpu = VideoCache.getFrame(src, 1, 0, 0, 1, 1.0, 50_000L, false, needsToBeCreated = true)
@@ -78,9 +78,9 @@ fun testImage(image: FileReference) {
     var loadSum = 0L
     var storeSum = 0L
     fun process(src: FileReference, dst: FileReference) {
-        ImageGPUCache.clear()
+        TextureCache.clear()
         val t0 = System.nanoTime()
-        val gpu = ImageGPUCache[src, false]!!
+        val gpu = TextureCache[src, false]!!
         val t1 = System.nanoTime()
         gpu.write(dst)
         val t2 = System.nanoTime()

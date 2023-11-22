@@ -7,7 +7,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.gradientXTex
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.utils.pooling.JomlPools
 
 class AutoTileableMaterial : PlanarMaterialBase() {
@@ -31,7 +31,7 @@ class AutoTileableMaterial : PlanarMaterialBase() {
 
         // get cached LUT, bind LUT
         val tex = AutoTileableShader.cache.getFileEntry(diffuseMap, false, 10_000L, true) { it, _ ->
-            ImageCPUCache[it, false]?.run {
+            ImageCache[it, false]?.run {
                 val hist = AutoTileableShader.TileMath.buildYHistogram(this)
                 val lut = AutoTileableShader.TileMath.buildLUT(hist)
                 val tex = Texture2D("auto-tileable-lut", lut.size / 2, 2, 1)

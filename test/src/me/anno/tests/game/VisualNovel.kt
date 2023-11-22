@@ -18,7 +18,7 @@ import me.anno.graph.types.states.StateNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
 import me.anno.graph.ui.GraphPanel.Companion.yellow
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.image.ImageScale
 import me.anno.input.Key
 import me.anno.io.files.FileReference
@@ -268,7 +268,7 @@ object VisualNovel {
                 val hasText = shownText.isNotBlank()
 
                 // draw background
-                val bgImage = ImageGPUCache[background, true]
+                val bgImage = TextureCache[background, true]
                 if (bgImage != null) {
                     // to do can/should we blur the background a little?
                     // to do maybe foreground, too, based on cursor?
@@ -279,8 +279,8 @@ object VisualNovel {
 
                 val charWidth = (0.38f * max(width, height)).toInt()
 
-                val right = ImageGPUCache[secondary, true]
-                val left = ImageGPUCache[primary, true]
+                val right = TextureCache[secondary, true]
+                val left = TextureCache[primary, true]
                 when {
                     left != null && right != null -> {
                         drawChar(right, 75, hasText, charWidth)

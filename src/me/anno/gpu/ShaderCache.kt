@@ -25,6 +25,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
+ * Internal class, automatically used.
+ *
  * OpenGL supports writing shaders to file, so they can be loaded instead of compiled.
  * This can save lots of time ofc.
  * */

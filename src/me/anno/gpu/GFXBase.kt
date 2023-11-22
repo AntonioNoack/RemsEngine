@@ -14,7 +14,7 @@ import me.anno.gpu.debug.OpenGLDebug.getDebugSeverityName
 import me.anno.gpu.debug.OpenGLDebug.getDebugSourceName
 import me.anno.gpu.debug.OpenGLDebug.getDebugTypeName
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.input.Input
 import me.anno.input.Input.isMouseLocked
 import me.anno.input.Input.mouseLockWindow
@@ -491,7 +491,7 @@ object GFXBase {
     @JvmStatic
     fun setIcon(window: Long) {
         val src = getReference(BundledRef.prefix + "icon.png")
-        val srcImage = ImageCPUCache[src, false]
+        val srcImage = ImageCache[src, false]
         if (srcImage != null) {
             setIcon(window, srcImage)
         }

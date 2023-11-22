@@ -5,7 +5,7 @@ import me.anno.ecs.components.mesh.MeshCache
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.mesh.blender.BlenderReader
 import me.anno.tests.files.printTree
 import me.anno.ui.debug.TestStudio.Companion.testUI3
@@ -20,9 +20,9 @@ fun main() {
         exc?.printStackTrace()
         folder?.printTree(1, 10)
     }
-    ImageCPUCache[file.getChild("textures/Test Image.png"), false]!!
+    ImageCache[file.getChild("textures/Test Image.png"), false]!!
         .write(desktop.getChild("Test Image.png"))
-    ImageCPUCache[pictures.getChild("Cracked Normals2.webp"), false]!!
+    ImageCache[pictures.getChild("Cracked Normals2.webp"), false]!!
         .write(desktop.getChild("Cracked.png"))
     if (true) {
         ECSRegistry.init()

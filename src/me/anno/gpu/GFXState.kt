@@ -12,7 +12,6 @@ import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.ImageGPUCache
 import me.anno.utils.structures.stacks.SecureStack
 import org.lwjgl.opengl.GL20C.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45C.*
@@ -45,7 +44,7 @@ object GFXState {
         FBStack.clear()
         TextCache.clear()
         VideoCache.clear()
-        ImageGPUCache.clear()
+        TextureCache.clear()
     }
 
     // the renderer is set per framebuffer; makes the most sense

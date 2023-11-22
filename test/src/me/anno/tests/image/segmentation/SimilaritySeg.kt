@@ -1,6 +1,6 @@
 package me.anno.tests.image.segmentation
 
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.ByteImage
 import me.anno.image.raw.IntImage
 import me.anno.maths.LinearRegression
@@ -219,7 +219,7 @@ fun main() {
     // load image
 
     val maxError = 0.01f
-    val image = ImageCPUCache[downloads.getChild("lib/rem sakamileo deviantart.png"), false]!!
+    val image = ImageCache[downloads.getChild("lib/rem sakamileo deviantart.png"), false]!!
         .createIntImage()
 
     val transformIntoYuv = false // true makes things even worse, idk why...

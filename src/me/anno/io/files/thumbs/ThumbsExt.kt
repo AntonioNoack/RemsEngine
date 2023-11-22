@@ -9,7 +9,7 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.Shader
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
@@ -266,14 +266,14 @@ object ThumbsExt {
             if (Time.gameTimeN > endTime) {
                 // textures may be missing; just ignore them, if they cannot be read
                 textures
-                    .filter { !ImageGPUCache.hasImageOrCrashed(it, timeout, true) }
+                    .filter { !TextureCache.hasImageOrCrashed(it, timeout, true) }
                     .forEach { LOGGER.warn("Missing texture $it") }
                 true
             } else {
                 // all images should be requested every time, so we can load them in parallel
                 var hasAll = true
                 for (texture in textures) {
-                    if (!ImageGPUCache.hasImageOrCrashed(texture, timeout, true)) {
+                    if (!TextureCache.hasImageOrCrashed(texture, timeout, true)) {
                         hasAll = false
                     }
                 }

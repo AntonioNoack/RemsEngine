@@ -1,7 +1,7 @@
 package me.anno.tests.image
 
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.utils.OS
 import me.anno.video.formats.cpu.I420Frame
 import java.nio.ByteBuffer
@@ -112,6 +112,6 @@ fun main() {
     val t2 = System.nanoTime()
     println("${(t1 - t0) / 1e9} vs ${(t2 - t1) / 1e9}")
 
-    ImageCPUCache[OS.pictures.getChild("Anime/70697252_p4_master1200.webp"), false]!!
+    ImageCache[OS.pictures.getChild("Anime/70697252_p4_master1200.webp"), false]!!
         .write(OS.desktop.getChild("anime.png"))
 }

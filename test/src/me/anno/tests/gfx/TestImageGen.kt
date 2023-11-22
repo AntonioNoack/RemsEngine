@@ -17,8 +17,8 @@ import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
-import me.anno.image.ImageCPUCache
-import me.anno.image.ImageGPUCache
+import me.anno.image.ImageCache
+import me.anno.gpu.TextureCache
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.raw.GPUImage
 import me.anno.io.ISaveable.Companion.registerCustomClass
@@ -84,7 +84,7 @@ fun testSkeletonFrame(file: FileReference) {
 fun testImage(file: FileReference) {
     init()
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    val image = ImageCPUCache[file, false]!!
+    val image = ImageCache[file, false]!!
     val (w, h) = scaleMax(image.width, image.height, size)
     // test cpu loading
     if (file != file.dst()) file.dst().outputStream().use {
@@ -102,7 +102,7 @@ fun testImage(file: FileReference) {
             exc?.printStackTrace()
         }, w, h
     ) {
-        val texture = ImageGPUCache[file, 10_000, false]!!
+        val texture = TextureCache[file, 10_000, false]!!
         drawTexture(0, 0, w, h, texture, -1, null)
     }
     //val tex2 = Thumbs.getThumbnail(file,size,false)

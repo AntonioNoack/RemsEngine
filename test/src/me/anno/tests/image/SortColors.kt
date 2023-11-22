@@ -1,7 +1,7 @@
 package me.anno.tests.image
 
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.utils.Color.g
 import me.anno.utils.Color.hex24
@@ -10,7 +10,7 @@ import me.anno.utils.OS
 import me.anno.utils.OS.desktop
 
 fun main() {
-    val image = ImageCPUCache[OS.pictures.getChild("RemsStudio/8c841f59b8dedb0b63abcac91cb82392-1000.jpg"), false]!!
+    val image = ImageCache[OS.pictures.getChild("RemsStudio/8c841f59b8dedb0b63abcac91cb82392-1000.jpg"), false]!!
     val intImage = image.createIntImage()
     val sortedY = intImage.data.sortedBy { it.g() }
     val sortedX = (0 until image.height).map { y ->

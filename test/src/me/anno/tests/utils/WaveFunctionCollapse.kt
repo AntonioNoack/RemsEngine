@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.maths.geometry.WaveFunctionCollapse
 import me.anno.ui.base.groups.MapPanel
@@ -24,7 +24,7 @@ fun main() {
     val src = OS.downloads.getChild("2d/caveTilesetOpenGameArt-3.png") // 16x16
     val tileW = 16
     val tileH = 16
-    val tileAtlas = ImageCPUCache[src, false]!!
+    val tileAtlas = ImageCache[src, false]!!
     for (yi in 0 until tileAtlas.height step tileH) {
         for (xi in 0 until tileAtlas.width step tileW) {
             val pixels = IntArray(tileW * tileH)

@@ -6,7 +6,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
@@ -21,7 +21,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         val checked = getReference("res://textures/Checked.png")
         val unchecked = getReference("res://textures/Unchecked.png")
         fun getImage(isChecked: Boolean): Texture2D? =
-            ImageGPUCache[if (isChecked) checked else unchecked, true]
+            TextureCache[if (isChecked) checked else unchecked, true]
     }
 
     var isChecked = startValue

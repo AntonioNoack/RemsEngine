@@ -36,7 +36,7 @@ import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
 import me.anno.graph.types.flow.maths.*
 import me.anno.graph.types.flow.vector.*
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.utils.Color.white4
@@ -422,7 +422,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
         for ((file, data) in textures) {
             val (name, linear) = data
             typeValues[name] = TypeValueV2(GLSLType.S2D) {
-                val tex = ImageGPUCache[file, true]
+                val tex = TextureCache[file, true]
                 if (tex != null) filter(currentShader, name, tex, linear)
                 else TextureLib.missingTexture
             }

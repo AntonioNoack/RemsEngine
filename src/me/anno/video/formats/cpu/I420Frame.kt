@@ -2,10 +2,7 @@ package me.anno.video.formats.cpu
 
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
 import me.anno.image.raw.IntImage
-import me.anno.utils.OS.desktop
-import me.anno.utils.OS.pictures
 import me.anno.utils.types.InputStreams.readNBytes2
 import java.io.InputStream
 import java.nio.ByteBuffer

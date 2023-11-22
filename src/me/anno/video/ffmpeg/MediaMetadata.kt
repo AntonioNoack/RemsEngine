@@ -5,7 +5,8 @@ import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
 import me.anno.image.ImageReadable
 import me.anno.image.gimp.GimpImage
-import me.anno.image.tar.TGAImage
+import me.anno.image.qoi.QOIReader
+import me.anno.image.tar.TGAReader
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileFileRef
 import me.anno.io.files.FileReference
@@ -23,7 +24,6 @@ import me.anno.utils.types.AnyToInt.getInt
 import me.anno.utils.types.AnyToLong.getLong
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.parseTime
-import me.saharnooby.qoi.QOIImage
 import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -96,7 +96,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
                 ready = false
                 file.inputStream { it, exc ->
                     if (it != null) {
-                        setImage(QOIImage.findSize(it))
+                        setImage(QOIReader.findSize(it))
                     } else exc?.printStackTrace()
                     ready = true
                 }
@@ -125,7 +125,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
             "ico" -> setImage(file.inputStreamSync().use { input: InputStream -> ICOReader.findSize(input) })
             "", null -> {
                 when (file.lcExtension) {
-                    "tga" -> setImage(file.inputStreamSync().use { stream: InputStream -> TGAImage.findSize(stream) })
+                    "tga" -> setImage(file.inputStreamSync().use { stream: InputStream -> TGAReader.findSize(stream) })
                     "ico" -> setImage(file.inputStreamSync().use { stream: InputStream -> ICOReader.findSize(stream) })
                     // else unknown
                     else -> LOGGER.debug(

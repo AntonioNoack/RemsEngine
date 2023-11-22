@@ -1,6 +1,6 @@
 package me.anno.tests.image
 
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.io.files.FileReference
 import me.anno.utils.OS
 
@@ -10,10 +10,10 @@ fun main() {
         OS.downloads.getChild("2d/gimp-sample.xcf")
     )) {
         val name = file.nameWithoutExtension
-        ImageCPUCache[file, false]!!
+        ImageCache[file, false]!!
             .write(FileReference.getReference(OS.desktop, "$name.png"))
         for (it in file.listChildren()!!) {
-            ImageCPUCache[it, false]!!
+            ImageCache[it, false]!!
                 .write(FileReference.getReference(OS.desktop, "$name.${it.nameWithoutExtension}.png"))
         }
     }

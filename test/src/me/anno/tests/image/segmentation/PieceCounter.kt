@@ -8,7 +8,7 @@ import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import org.joml.AABBf
@@ -19,7 +19,7 @@ fun main() {
     // let's count a few pieces :3
     HiddenOpenGLContext.createOpenGL()
     val source = downloads.getChild("cp_screenshot_bad.png")
-    val image = ImageGPUCache[source, false]!!
+    val image = TextureCache[source, false]!!
     val groundTruth = AABBf(
         148f, 102f, 0f,
         148 + 23f, 102f + 20f, 0f

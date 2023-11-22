@@ -1,10 +1,9 @@
 package me.anno.tests.image
 
 import me.anno.config.DefaultConfig.style
-import me.anno.gpu.shader.ShaderLib
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
-import me.anno.image.ImageGPUCache
+import me.anno.image.ImageCache
+import me.anno.gpu.TextureCache
 import me.anno.image.raw.IntImage
 import me.anno.ui.base.groups.ZoomableImagePanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
@@ -18,8 +17,6 @@ import me.anno.utils.OS.desktop
 import me.anno.video.formats.cpu.ARGBFrame.rgb2yuv
 import me.anno.video.formats.cpu.ARGBFrame.yuv2rgb
 import org.joml.AABBf
-import org.joml.Matrix4x3d
-import org.joml.Matrix4x3f
 import org.joml.Vector3f
 import java.util.*
 
@@ -37,7 +34,7 @@ fun main() {
 
     val maxNumClusters = 15
     val useYUV = true
-    val image = ImageCPUCache[desktop.getChild("seal.png"), false]!!.createIntImage()
+    val image = ImageCache[desktop.getChild("seal.png"), false]!!.createIntImage()
 
     if (useYUV) {
         val data = image.data
@@ -213,7 +210,7 @@ fun preview(image: Image) {
     // to do show palette, too?
     testUI3("CCTweaked") {
         object : ZoomableImagePanel(style) {
-            override fun getTexture() = ImageGPUCache[image.ref, true]
+            override fun getTexture() = TextureCache[image.ref, true]
         }
     }
 }

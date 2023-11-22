@@ -13,7 +13,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.io.files.FileReference.Companion.getReference
 
 /**
@@ -162,7 +162,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
             private val uvCheckerSource = getReference("res://UVChecker.png")
             override fun uploadDefaultUniforms(shader: Shader) {
                 super.uploadDefaultUniforms(shader)
-                val checkerTex = ImageGPUCache[uvCheckerSource, true] ?: TextureLib.whiteTexture
+                val checkerTex = TextureCache[uvCheckerSource, true] ?: TextureLib.whiteTexture
                 checkerTex.bind(shader, "checkerTex", GPUFiltering.LINEAR, Clamping.REPEAT)
             }
         }

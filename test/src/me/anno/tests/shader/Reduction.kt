@@ -2,7 +2,7 @@ package me.anno.tests.shader
 
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Reduction
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager
@@ -13,6 +13,6 @@ import org.apache.logging.log4j.LogManager
 fun main() {
     HiddenOpenGLContext.createOpenGL()
     val fileReference = OS.pictures.getChild("4k.jpg")
-    val image = ImageGPUCache[fileReference, false]!!
+    val image = TextureCache[fileReference, false]!!
     LogManager.getLogger("Reduction").info(Reduction.reduce(image, Reduction.AVG).toHexColor())
 }

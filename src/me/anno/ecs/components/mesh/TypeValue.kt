@@ -7,11 +7,10 @@ import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 
@@ -89,7 +88,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                     is Framebuffer -> value.bindTexture0(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
                     is ITexture2D -> value.bind(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
-                        val value1 = ImageGPUCache[value, true]
+                        val value1 = TextureCache[value, true]
                         if (value1 != null && value1.isCreated) {
                             value1.bind(location)
                         } else {
@@ -113,7 +112,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                     is Framebuffer -> value.getTextureIMS(0).bind(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
                     is ITexture2D -> value.bind(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
-                        val value1 = ImageGPUCache[value, true]
+                        val value1 = TextureCache[value, true]
                         if (value1 != null && value1.isCreated) {
                             value1.bind(location)
                         } else {

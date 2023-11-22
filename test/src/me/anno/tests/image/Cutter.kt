@@ -1,6 +1,6 @@
 package me.anno.tests.image
 
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.IntImage
 import me.anno.maths.Maths.ceilDiv
 import me.anno.utils.Color.white
@@ -19,7 +19,7 @@ fun main() {
         }
         .filter { it.first in 268..273 }
         .sortedBy { it.first }
-        .map { ImageCPUCache[it.second, false]!! }
+        .map { ImageCache[it.second, false]!! }
 
     val bx = 563
     val by = 285

@@ -19,7 +19,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.image.ImageGPUCache
+import me.anno.gpu.TextureCache
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.desktop
@@ -41,7 +41,7 @@ fun main() {
     // -> the sensor indeed is real
 
     HiddenOpenGLContext.createOpenGL()
-    val source = ImageGPUCache[desktop.getChild("papa/me/IMG_20220522_180047.jpg"), false]!!
+    val source = TextureCache[desktop.getChild("papa/me/IMG_20220522_180047.jpg"), false]!!
 
     val steps = 100
     val scale0 = 1f

@@ -1,7 +1,7 @@
 package me.anno.tests.maths
 
 import me.anno.image.Image
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.image.raw.FloatImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
@@ -288,7 +288,7 @@ fun main() {
     }
     dstImage.write(dst.getChild("poissonTest.png"))
 
-    val src = ImageCPUCache[pictures.getChild("bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg"), false]!!
+    val src = ImageCache[pictures.getChild("bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.u4.jpg"), false]!!
     Kernel(2, 1, doubleArrayOf(-1.0, 1.0)).mul(Kernel(src))
         .write(dst.getChild("dxTest.png"))
 

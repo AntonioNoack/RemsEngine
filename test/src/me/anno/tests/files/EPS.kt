@@ -1,6 +1,6 @@
 package me.anno.tests.files
 
-import me.anno.image.ImageCPUCache
+import me.anno.image.ImageCache
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
@@ -11,7 +11,7 @@ fun main() {
     // like svg
     // except with programming code???? ... too complicated for us to handle
     val ref = getReference(downloads, "2d/blank-empty-speech-bubbles-vector-illustration.zip/42894.eps")
-    val image = ImageCPUCache[ref, false]
+    val image = ImageCache[ref, false]
     LOGGER.info(image)
 
     println(ref.readTextSync())
