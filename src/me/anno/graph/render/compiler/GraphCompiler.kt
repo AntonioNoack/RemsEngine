@@ -1,7 +1,7 @@
 package me.anno.graph.render.compiler
 
 import me.anno.Time
-import me.anno.cache.instances.VideoCache
+import me.anno.video.VideoCache
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.gpu.deferred.DeferredLayerType
@@ -36,7 +36,7 @@ import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
 import me.anno.graph.types.flow.maths.*
 import me.anno.graph.types.flow.vector.*
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.utils.Color.white4

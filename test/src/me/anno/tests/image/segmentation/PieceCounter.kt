@@ -8,7 +8,7 @@ import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.downloads
 import org.joml.AABBf

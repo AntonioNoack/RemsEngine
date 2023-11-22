@@ -2,7 +2,6 @@ package me.anno.gpu.shader
 
 import me.anno.Build
 import me.anno.gpu.GFX
-import me.anno.gpu.ShaderCache
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode

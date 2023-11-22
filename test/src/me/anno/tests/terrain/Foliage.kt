@@ -24,7 +24,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.image.raw.FloatImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.TAU

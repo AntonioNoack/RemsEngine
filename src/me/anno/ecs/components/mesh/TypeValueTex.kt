@@ -5,7 +5,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import org.apache.logging.log4j.LogManager
 

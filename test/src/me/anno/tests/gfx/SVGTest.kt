@@ -1,7 +1,7 @@
 package me.anno.tests.gfx
 
-import me.anno.cache.data.ImageToTexture.Companion.imageTimeout
-import me.anno.cache.instances.SVGMeshCache
+import me.anno.gpu.texture.ImageToTexture.Companion.imageTimeout
+import me.anno.image.svg.SVGMeshCache
 import me.anno.config.DefaultConfig
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MeshCache

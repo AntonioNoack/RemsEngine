@@ -1,6 +1,6 @@
 package me.anno.tests.network
 
-import me.anno.cache.instances.LastModifiedCache
+import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.network.Server
 import me.anno.network.TCPClient

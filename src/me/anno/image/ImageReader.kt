@@ -1,7 +1,7 @@
 package me.anno.image
 
 import me.anno.cache.AsyncCacheData
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.raw.*

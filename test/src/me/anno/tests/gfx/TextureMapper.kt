@@ -1,6 +1,6 @@
 package me.anno.tests.gfx
 
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.utils.OS.pictures
 import org.apache.logging.log4j.LogManager

@@ -1,21 +1,20 @@
-package me.anno.cache.data
+package me.anno.gpu.texture
 
 import me.anno.cache.AsyncCacheData
 import me.anno.cache.ICacheData
-import me.anno.cache.instances.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
-import me.anno.gpu.texture.Texture2D
 import me.anno.image.*
 import me.anno.image.hdr.HDRReader
+import me.anno.image.jpg.findRotation
 import me.anno.image.raw.toImage
 import me.anno.image.tar.TGAReader
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.utils.Sleep.waitForGFXThread
-import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
+import me.anno.utils.Sleep
 import me.anno.utils.types.Strings.getImportType
+import me.anno.video.VideoCache
 import org.apache.commons.imaging.Imaging
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
@@ -72,7 +71,7 @@ class ImageToTexture(file: FileReference) : ICacheData {
                 else -> {
                     val async = AsyncCacheData<Image?>()
                     ImageReader.readImage(file, async, true)
-                    waitForGFXThread(true) { async.hasValue }
+                    Sleep.waitForGFXThread(true) { async.hasValue }
                     val image = async.value
                     if (image != null) {
                         val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
@@ -95,8 +94,8 @@ class ImageToTexture(file: FileReference) : ICacheData {
 
     fun useFFMPEG(file: FileReference) {
         // calculate required scale? no, without animation, we don't need to scale it down ;)
-        val frame = waitForGFXThreadUntilDefined(true) {
-            getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
+        val frame = Sleep.waitForGFXThreadUntilDefined(true) {
+            VideoCache.getVideoFrame(file, 1, 0, 0, 1.0, imageTimeout, false)
         }
         frame.waitToLoad()
         GFX.addGPUTask("ImageData.useFFMPEG", frame.width, frame.height) {

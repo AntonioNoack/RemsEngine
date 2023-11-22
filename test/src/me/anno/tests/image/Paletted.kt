@@ -3,7 +3,7 @@ package me.anno.tests.image
 import me.anno.config.DefaultConfig.style
 import me.anno.image.Image
 import me.anno.image.ImageCache
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.image.raw.IntImage
 import me.anno.ui.base.groups.ZoomableImagePanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3

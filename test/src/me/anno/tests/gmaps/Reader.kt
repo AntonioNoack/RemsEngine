@@ -9,7 +9,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.image.raw.IntImage
 import me.anno.io.Streams.readFloatLE
 import me.anno.io.Streams.readLE16

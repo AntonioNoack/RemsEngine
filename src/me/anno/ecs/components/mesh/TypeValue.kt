@@ -7,7 +7,7 @@ import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference

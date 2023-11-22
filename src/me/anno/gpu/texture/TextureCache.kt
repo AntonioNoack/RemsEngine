@@ -1,9 +1,7 @@
-package me.anno.gpu
+package me.anno.gpu.texture
 
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
-import me.anno.cache.data.ImageToTexture
-import me.anno.gpu.texture.*
 import me.anno.image.ImageCache
 import me.anno.image.ImageReadable
 import me.anno.image.raw.GPUImage

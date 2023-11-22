@@ -3,7 +3,7 @@ package me.anno.ui.custom
 import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc

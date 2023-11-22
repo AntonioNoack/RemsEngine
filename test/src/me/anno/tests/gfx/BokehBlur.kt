@@ -4,7 +4,7 @@ import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.effects.BokehBlur
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.OS.pictures
 import kotlin.math.max

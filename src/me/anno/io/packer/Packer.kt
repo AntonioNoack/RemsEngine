@@ -1,6 +1,6 @@
 package me.anno.io.packer
 
-import me.anno.cache.instances.LastModifiedCache
+import me.anno.io.files.LastModifiedCache
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.createZipFile

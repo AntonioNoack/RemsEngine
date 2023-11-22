@@ -4,7 +4,7 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.effects.ShapedBlur
 import me.anno.graph.render.Texture
 import me.anno.graph.render.effects.ShapedBlurNode
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.utils.OS.desktop
 import me.anno.utils.OS.pictures
 

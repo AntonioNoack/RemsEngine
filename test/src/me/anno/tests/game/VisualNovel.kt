@@ -18,7 +18,7 @@ import me.anno.graph.types.states.StateNode
 import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
 import me.anno.graph.ui.GraphPanel.Companion.yellow
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageScale
 import me.anno.input.Key
 import me.anno.io.files.FileReference

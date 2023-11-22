@@ -19,7 +19,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths.mix
 import me.anno.utils.OS.desktop

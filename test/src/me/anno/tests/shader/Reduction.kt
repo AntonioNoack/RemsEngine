@@ -2,7 +2,7 @@ package me.anno.tests.shader
 
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.Reduction
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.utils.Color.toHexColor
 import me.anno.utils.OS
 import org.apache.logging.log4j.LogManager

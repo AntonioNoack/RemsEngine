@@ -1,7 +1,7 @@
 package me.anno.cache
 
 import me.anno.Time.startDateTime
-import me.anno.cache.instances.LastModifiedCache
+import me.anno.io.files.LastModifiedCache
 import me.anno.io.config.ConfigBasics
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef

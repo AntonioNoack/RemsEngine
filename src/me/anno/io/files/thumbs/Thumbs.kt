@@ -1,10 +1,10 @@
 package me.anno.io.files.thumbs
 
 import me.anno.Build
-import me.anno.cache.data.ImageToTexture
-import me.anno.cache.data.ImageToTexture.Companion.imageTimeout
-import me.anno.cache.instances.SVGMeshCache
-import me.anno.cache.instances.VideoCache.getVideoFrame
+import me.anno.gpu.texture.ImageToTexture
+import me.anno.gpu.texture.ImageToTexture.Companion.imageTimeout
+import me.anno.image.svg.SVGMeshCache
+import me.anno.video.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -51,10 +51,7 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.LateinitTexture
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.hdb.ByteSlice
 import me.anno.graph.hdb.HDBKey

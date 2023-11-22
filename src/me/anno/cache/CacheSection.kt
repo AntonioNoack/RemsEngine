@@ -2,7 +2,7 @@ package me.anno.cache
 
 import me.anno.Build
 import me.anno.Time.nanoTime
-import me.anno.cache.instances.LastModifiedCache
+import me.anno.io.files.LastModifiedCache
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.mesh.MaterialCache

@@ -18,7 +18,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.hdb.HDBKey
 import me.anno.image.ImageCache
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageScale.scaleMax
 import me.anno.image.raw.GPUImage
 import me.anno.io.ISaveable.Companion.registerCustomClass

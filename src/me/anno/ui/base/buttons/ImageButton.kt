@@ -5,7 +5,7 @@ import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.base.components.Padding

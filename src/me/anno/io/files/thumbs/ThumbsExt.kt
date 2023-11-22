@@ -9,7 +9,7 @@ import me.anno.gpu.buffer.LineBuffer
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.drawing.Perspective
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths

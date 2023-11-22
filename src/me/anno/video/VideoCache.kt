@@ -1,19 +1,13 @@
-package me.anno.cache.instances
+package me.anno.video
 
 import me.anno.cache.CacheSection
-import me.anno.cache.data.VideoData
-import me.anno.cache.keys.VideoFramesKey
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
-import me.anno.maths.Maths.clamp
-import me.anno.utils.Color.black
-import me.anno.utils.Sleep.waitForGFXThreadUntilDefined
-import me.anno.video.BlankFrameDetector
-import me.anno.video.VideoProxyCreator
-import me.anno.video.VideoProxyCreator.framesPerSlice
+import me.anno.maths.Maths
+import me.anno.utils.Color
+import me.anno.utils.Sleep
 import me.anno.video.ffmpeg.MediaMetadata
-import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import kotlin.math.max
 import kotlin.math.min
@@ -37,7 +31,7 @@ object VideoCache : CacheSection("Videos") {
     var videoGenLimit = 16
 
     private fun drawStatus(x: Int, y: Int, w: Int, h: Int, status: Status) {
-        DrawRectangles.drawRect(x, y, w, h, status.color or black)
+        DrawRectangles.drawRect(x, y, w, h, status.color or Color.black)
     }
 
     @Suppress("unused")
@@ -48,7 +42,7 @@ object VideoCache : CacheSection("Videos") {
         timeMapper: (x: Int) -> Double,
         bufferLength: Int = VideoData.framesPerContainer
     ) {
-        val meta = getMeta(file, true)
+        val meta = MediaMetadata.getMeta(file, true)
         val maxScale = 32
         if (meta != null) {
             if (meta.videoFrameCount < 2) {
@@ -126,8 +120,8 @@ object VideoCache : CacheSection("Videos") {
         fps: Double, timeout: Long, async: Boolean
     ): VideoData? {
         if (!file.exists) return null
-        val meta = getMeta(file, async) ?: return null
-        val bufferLength2 = clamp(bufferLength, 1, max(1, meta.videoFrameCount))
+        val meta = MediaMetadata.getMeta(file, async) ?: return null
+        val bufferLength2 = Maths.clamp(bufferLength, 1, max(1, meta.videoFrameCount))
         val fps2 = if (meta.videoFrameCount < 2) 1.0 else fps
         val key = VideoFramesKey(file, scale, bufferIndex, bufferLength2, fps2)
         return getEntryLimited(key, timeout, async, videoGenLimit, ::generateVideoFrames) as? VideoData
@@ -137,7 +131,7 @@ object VideoCache : CacheSection("Videos") {
         val file = key.file
         val scale = key.scale
         val signature = Signature.findNameSync(file)
-        val meta = getMeta(file, signature, false) ?: throw RuntimeException("Meta was not found for $key!")
+        val meta = MediaMetadata.getMeta(file, signature, false) ?: throw RuntimeException("Meta was not found for $key!")
         return VideoData(
             file, signature, meta.videoWidth / scale, meta.videoHeight / scale, scale,
             key.bufferIndex, key.frameLength, key.fps,
@@ -161,7 +155,7 @@ object VideoCache : CacheSection("Videos") {
         val localIndex = frameIndex % bufferLength
         val videoData = getVideoFrames(file, scale, bufferIndex, bufferLength, fps, timeout, async) ?: return null
         return if (frameIndex < videoData.numTotalFramesInSrc && !async) {
-            waitForGFXThreadUntilDefined(true) {
+            Sleep.waitForGFXThreadUntilDefined(true) {
                 videoData.getFrame(localIndex, needsToBeCreated)
             }
         } else videoData.getFrame(localIndex, needsToBeCreated)
@@ -190,10 +184,10 @@ object VideoCache : CacheSection("Videos") {
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         if (useProxy(scale, bufferLength0, meta)) {
-            val slice0 = index / framesPerSlice
+            val slice0 = index / VideoProxyCreator.framesPerSlice
             val file2 = VideoProxyCreator.getProxyFile(file, slice0)
             if (file2 != null) {
-                val sliceI = (index % framesPerSlice).toInt()
+                val sliceI = (index % VideoProxyCreator.framesPerSlice).toInt()
                 return getVideoFrame(file2, (scale + 2) / 4, sliceI, bufferLength0, fps, timeout, meta, async)
             }
         }
@@ -201,7 +195,7 @@ object VideoCache : CacheSection("Videos") {
     }
 
     fun useProxy(scale: Int, bufferLength0: Int, meta: MediaMetadata?): Boolean {
-        return scale >= 4 && bufferLength0 > 1 && framesPerSlice % bufferLength0 == 0L &&
+        return scale >= 4 && bufferLength0 > 1 && VideoProxyCreator.framesPerSlice % bufferLength0 == 0L &&
                 (meta != null && min(meta.videoWidth, meta.videoHeight) >= VideoProxyCreator.minSizeForScaling)
     }
 
@@ -221,12 +215,12 @@ object VideoCache : CacheSection("Videos") {
         val async = true
         for (scale in 1..4) {
             if (useProxy(scale, bufferLength0, meta)) {
-                val slice0 = index / framesPerSlice
+                val slice0 = index / VideoProxyCreator.framesPerSlice
                 val file2 = VideoProxyCreator.getProxyFileDontUpdate(meta.file, slice0)
                 if (file2 != null) {
-                    val meta2 = getMeta(file2, async)
+                    val meta2 = MediaMetadata.getMeta(file2, async)
                     if (meta2 != null) {
-                        val sliceI = (index % framesPerSlice).toInt()
+                        val sliceI = (index % VideoProxyCreator.framesPerSlice).toInt()
                         return getVideoFrameWithoutGenerator(meta2, sliceI, bufferLength0, fps)
                     }
                 }
@@ -254,11 +248,11 @@ object VideoCache : CacheSection("Videos") {
         val bufferLength = max(1, bufferLength0)
         val bufferIndex = index / bufferLength
         // if scale >= 4 && width >= 200 create a smaller version in case using ffmpeg
-        if (useProxy(scale, bufferLength0, getMeta(file, async))) {
-            val slice0 = index / framesPerSlice
+        if (useProxy(scale, bufferLength0, MediaMetadata.getMeta(file, async))) {
+            val slice0 = index / VideoProxyCreator.framesPerSlice
             val file2 = VideoProxyCreator.getProxyFile(file, slice0)
             if (file2 != null) {
-                val sliceI = (index % framesPerSlice).toInt()
+                val sliceI = (index % VideoProxyCreator.framesPerSlice).toInt()
                 return getVideoFrame(file2, (scale + 2) / 4, sliceI, bufferLength0, fps, timeout, async)
             }
         }

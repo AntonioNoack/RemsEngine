@@ -1,7 +1,7 @@
 package me.anno.tests.image
 
 import me.anno.Engine
-import me.anno.cache.instances.VideoCache
+import me.anno.video.VideoCache
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.drawing.DrawTextures.drawTexture
@@ -9,7 +9,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.hidden.HiddenOpenGLContext
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.image.raw.GPUImage
 import me.anno.io.files.FileReference
 import me.anno.utils.Color.toHexColor

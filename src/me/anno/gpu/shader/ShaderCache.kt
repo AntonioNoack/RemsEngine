@@ -1,10 +1,10 @@
-package me.anno.gpu
+package me.anno.gpu.shader
 
 import me.anno.cache.CacheData
 import me.anno.cache.FileCache
-import me.anno.gpu.shader.OpenGLShader.Companion.compileShader
-import me.anno.gpu.shader.OpenGLShader.Companion.postPossibleError
-import me.anno.io.Base64.encodeBase64
+import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
+import me.anno.io.Base64
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
@@ -96,7 +96,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
             return weakCache[key]!!
         }
 
-        postPossibleError(name, program, false, "<bin>")
+        OpenGLShader.postPossibleError(name, program, false, "<bin>")
         glUseProgram(program)
         GFX.check()
 
@@ -141,15 +141,15 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         val ni1 = vs.indexOf('\n', ni0 + 1)
         val name = if (ni1 > 0) vs.substring(ni0 + 1, ni1).trim() else ""
         if (fs == null) {
-            val shader = compileShader(GL_COMPUTE_SHADER, vs, name)
-            postPossibleError("", shader, true, vs)
+            val shader = OpenGLShader.compileShader(GL_COMPUTE_SHADER, vs, name)
+            OpenGLShader.postPossibleError("", shader, true, vs)
             glAttachShader(program, shader)
         } else {
-            val vertexShader = compileShader(GL_VERTEX_SHADER, vs, name)
-            postPossibleError("", vertexShader, true, vs)
+            val vertexShader = OpenGLShader.compileShader(GL_VERTEX_SHADER, vs, name)
+            OpenGLShader.postPossibleError("", vertexShader, true, vs)
 
-            val fragmentShader = compileShader(GL_FRAGMENT_SHADER, fs, name)
-            postPossibleError("", fragmentShader, true, fs)
+            val fragmentShader = OpenGLShader.compileShader(GL_FRAGMENT_SHADER, fs, name)
+            OpenGLShader.postPossibleError("", fragmentShader, true, fs)
 
             glAttachShader(program, vertexShader)
             glAttachShader(program, fragmentShader)
@@ -157,7 +157,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
 
         glLinkProgram(program)
 
-        postPossibleError(name, program, false, vs, fs ?: "")
+        OpenGLShader.postPossibleError(name, program, false, vs, fs ?: "")
 
         return program
     }
@@ -215,7 +215,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
     override fun getUniqueFilename(key: Pair<String, String?>): String {
         val messageDigest = MessageDigest.getInstance("SHA-256")
         messageDigest.update(key.toString().toByteArray())
-        return encodeBase64(messageDigest.digest())
+        return Base64.encodeBase64(messageDigest.digest())
             .replace('/', '-') + ".bin"
     }
 }

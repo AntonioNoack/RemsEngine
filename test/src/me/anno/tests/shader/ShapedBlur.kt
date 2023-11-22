@@ -5,7 +5,7 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.effects.ShapedBlur.applyFilter
 import me.anno.gpu.shader.effects.ShapedBlur.decompress
 import me.anno.gpu.shader.effects.ShapedBlur.fileName
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.image.raw.FloatImage
 import me.anno.io.Streams.write0String
 import me.anno.io.Streams.writeLE16

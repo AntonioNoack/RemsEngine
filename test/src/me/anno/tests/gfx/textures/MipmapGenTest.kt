@@ -2,7 +2,7 @@ package me.anno.tests.gfx.textures
 
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.tests.gfx.testTexture
 import me.anno.tests.image.createUVCheckerImage
 

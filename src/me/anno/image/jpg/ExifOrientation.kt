@@ -1,4 +1,4 @@
-package me.anno.cache.data
+package me.anno.image.jpg
 
 import me.anno.image.ImageTransform
 import me.anno.io.files.FileReference

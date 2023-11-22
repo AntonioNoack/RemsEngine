@@ -1,7 +1,7 @@
 package me.anno.ui.base
 
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.Style

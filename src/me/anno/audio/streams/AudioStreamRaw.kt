@@ -4,8 +4,8 @@ import me.anno.animation.LoopingState
 import me.anno.audio.AudioPools.SAPool
 import me.anno.audio.AudioReadable
 import me.anno.audio.openal.SoundBuffer
-import me.anno.cache.instances.AudioCache
-import me.anno.cache.keys.AudioSliceKey
+import me.anno.audio.AudioCache
+import me.anno.audio.AudioSliceKey
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract

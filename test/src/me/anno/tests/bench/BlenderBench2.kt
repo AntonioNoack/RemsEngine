@@ -6,7 +6,7 @@ import me.anno.engine.ECSRegistry
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.image.ImageCache
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.mesh.blender.BlenderReader
 import me.anno.utils.Clock

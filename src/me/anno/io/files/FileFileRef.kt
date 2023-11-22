@@ -1,6 +1,5 @@
 package me.anno.io.files
 
-import me.anno.cache.instances.LastModifiedCache
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.copy
 import java.io.File

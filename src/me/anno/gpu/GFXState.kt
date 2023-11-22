@@ -1,6 +1,6 @@
 package me.anno.gpu
 
-import me.anno.cache.instances.VideoCache
+import me.anno.video.VideoCache
 import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.fonts.FontManager.TextCache
@@ -12,6 +12,7 @@ import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureCache
 import me.anno.utils.structures.stacks.SecureStack
 import org.lwjgl.opengl.GL20C.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45C.*

@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.openal.AudioTasks
 import me.anno.audio.streams.AudioFileStreamOpenAL
-import me.anno.cache.instances.VideoCache.getVideoFrame
+import me.anno.video.VideoCache.getVideoFrame
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.ecs.prefab.PrefabCache
@@ -29,7 +29,7 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageCache
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input

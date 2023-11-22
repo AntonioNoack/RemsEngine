@@ -1,10 +1,7 @@
-package me.anno.cache.instances
+package me.anno.io.files
 
 import me.anno.Time
-import me.anno.io.files.FileFileRef
-import me.anno.io.files.FileReference
 import me.anno.maths.Maths
-import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.structures.maps.Maps.removeIf
 import java.io.File
 import java.nio.file.Files
@@ -113,7 +110,7 @@ object LastModifiedCache {
         values.clear()
     }
 
-    private var timeoutNanos = 20_000L * MILLIS_TO_NANOS
+    private var timeoutNanos = 20_000L * Maths.MILLIS_TO_NANOS
     // private val LOGGER = LogManager.getLogger(LastModifiedCache::class)
 
 }

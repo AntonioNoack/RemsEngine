@@ -5,7 +5,7 @@ import me.anno.fonts.AWTFont
 import me.anno.fonts.TextGroup
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.gpu.GFX.isFinalRendering
-import me.anno.gpu.TextureCache
+import me.anno.gpu.texture.TextureCache
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.types.Strings.joinChars
 import me.anno.video.MissingFrameException

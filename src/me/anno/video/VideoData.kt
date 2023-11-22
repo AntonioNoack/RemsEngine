@@ -1,10 +1,10 @@
-package me.anno.cache.data
+package me.anno.video
 
 import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
 import me.anno.utils.strings.StringHelper.shorten
-import me.anno.utils.types.AnyToInt.getInt
+import me.anno.utils.types.AnyToInt
 import me.anno.video.ffmpeg.FFMPEGStream
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
@@ -79,7 +79,7 @@ class VideoData(
             get() {
                 val default = 64
                 val instance = StudioBase.instance
-                return if (instance != null) getInt(instance.gfxSettings["video.frames.perContainer"], default)
+                return if (instance != null) AnyToInt.getInt(instance.gfxSettings["video.frames.perContainer"], default)
                 else default
             }
     }

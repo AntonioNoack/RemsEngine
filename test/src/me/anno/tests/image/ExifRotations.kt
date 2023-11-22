@@ -1,6 +1,6 @@
 package me.anno.tests.image
 
-import me.anno.cache.data.findRotation
+import me.anno.image.jpg.findRotation
 import me.anno.utils.OS
 
 fun main() {
