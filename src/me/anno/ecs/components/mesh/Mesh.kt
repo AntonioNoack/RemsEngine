@@ -198,7 +198,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     @HideInInspector
     @NotSerializedProperty
     var material: FileReference?
-        get() = materials.getOrNull(0)
+        get() = materials.firstOrNull()
         set(value) {
             materials = if (value != null) listOf(value)
             else emptyList()

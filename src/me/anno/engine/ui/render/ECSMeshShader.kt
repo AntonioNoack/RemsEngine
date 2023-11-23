@@ -479,6 +479,21 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         return list
     }
 
+    // Parallax-Try:
+    // to do weak devices like phones shouldn't use this
+    // to do this only should be enabled for when the normal map is grayscale
+    // todo doesn't look right yet (movement too extreme... why??)
+    /*"#define parallaxMap normalMap\n" +
+    "if(textureSize(parallaxMap,0).x > 1){\n" +
+    "   finalTangent   = normalize(tangent.xyz);\n" + // for debugging
+    "   finalNormal    = normalize(gl_FrontFacing ? normal : -normal);\n" +
+    "   finalBitangent = cross(finalNormal, finalTangent) * tangent.w;\n" +
+    "   if(dot(finalBitangent,finalBitangent) > 0.0) finalBitangent = normalize(finalBitangent);\n" +
+    "   mat3 TBN = transpose(mat3(finalTangent.xyz,finalBitangent,finalNormal));\n" +
+    "   vec3 viewDir = TBN * normalize(quatRot(finalPosition, cameraRotation));\n" + // is this right???
+    "   uv = parallaxMapUVs(parallaxMap, uv, viewDir * vec3(-1,-1,1), 0.05);\n" +
+    "}\n" +*/
+
     // just like the gltf pbr shader define all material properties
     open fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return key.vertexData.onFragmentShader + listOf(
@@ -488,22 +503,10 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
                 concatDefines(key).toString() +
                         discardByCullingPlane +
                         // step by step define all material properties
-                        // to do weak devices like phones shouldn't use this
-                        // to do this only should be enabled for when the normal map is grayscale
-                        // todo doesn't look right yet (movement too extreme... why??)
-                        /*"#define parallaxMap normalMap\n" +
-                        "if(textureSize(parallaxMap,0).x > 1){\n" +
-                        "   finalTangent   = normalize(tangent.xyz);\n" + // for debugging
-                        "   finalNormal    = normalize(gl_FrontFacing ? normal : -normal);\n" +
-                        "   finalBitangent = cross(finalNormal, finalTangent) * tangent.w;\n" +
-                        "   if(dot(finalBitangent,finalBitangent) > 0.0) finalBitangent = normalize(finalBitangent);\n" +
-                        "   mat3 TBN = transpose(mat3(finalTangent.xyz,finalBitangent,finalNormal));\n" +
-                        "   vec3 viewDir = TBN * normalize(quatRot(finalPosition, cameraRotation));\n" + // is this right???
-                        "   uv = parallaxMapUVs(parallaxMap, uv, viewDir * vec3(-1,-1,1), 0.05);\n" +
-                        "}\n" +*/
                         baseColorCalculation +
                         (if (key.flags.hasFlag(NEEDS_COLORS)) {
-                            normalTanBitanCalculation +
+                            "" +
+                                    normalTanBitanCalculation +
                                     normalMapCalculation +
                                     emissiveCalculation +
                                     occlusionCalculation +

@@ -10,6 +10,8 @@ import org.joml.Vector3f
  * */
 object PlaneModel {
 
+    fun createPlane(): Mesh = createPlane(1, 1)
+
     fun createPlane(
         tilesU: Int, tilesV: Int,
         center: Vector3f = Vector3f(),

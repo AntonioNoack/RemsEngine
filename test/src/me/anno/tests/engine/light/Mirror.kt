@@ -19,7 +19,7 @@ fun main() {
     registerCustomClass(Skybox())
     val scene = Entity()
     scene.add(Entity().apply {
-        add(MeshComponent(PlaneModel.createPlane(2, 2)).apply {
+        add(MeshComponent(PlaneModel.createPlane()).apply {
             materials = listOf(Material().apply {
                 metallicMinMax.set(1f)
                 roughnessMinMax.set(0.1f) // changes the used mip level

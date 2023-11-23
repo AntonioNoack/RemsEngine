@@ -42,6 +42,7 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
+import me.anno.maths.Maths.hasFlag
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -68,6 +69,7 @@ import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.structures.tuples.MutablePair
 import me.anno.utils.types.AnyToFloat
+import me.anno.utils.types.Booleans.toInt
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.luaj.vm2.LuaError
@@ -766,7 +768,8 @@ object ComponentUI {
                     // setResetListener { property.reset(this) }
                     askForReset(property) { setValue(b2l(it as Vector3f), -1, false) }
                     setChangeListener { r, g, b, a, mask ->
-                        property.set(this, l2b(Vector4f(r, g, b, a)), mask)
+                        val rgbMask = mask.and(7) or mask.hasFlag(8).toInt(7)
+                        property.set(this, l2b(Vector4f(r, g, b, a)), rgbMask)
                     }
                 }
             }

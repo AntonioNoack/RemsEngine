@@ -95,6 +95,11 @@ object ShaderLib {
             "   return sqrt(${y.x}*color.r*color.r + ${y.y}*color.g*color.g + ${y.z}*color.b*color.b);\n" +
             "}\n"
 
+    val blendColor = "" +
+            "vec4 blendColor(vec4 front, vec4 back){\n" +
+            "   return vec4(mix(back.rgb,front.rgb,front.a),1.0-(1.0-front.a)*(1.0-back.a));\n" +
+            "}\n"
+
     fun brightness(r: Float, g: Float, b: Float) = sqrt(y.dot(r * r, g * g, b * b, 1f))
 
     // https://community.khronos.org/t/quaternion-functions-for-glsl/50140/3

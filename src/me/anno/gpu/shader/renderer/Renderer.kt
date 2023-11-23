@@ -159,7 +159,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
                 ), "finalResult = vec4(texture(checkerTex, uv).rgb, 1.0);\n"
             )
         ) {
-            private val uvCheckerSource = getReference("res://UVChecker.png")
+            private val uvCheckerSource = getReference("res://textures/UVChecker.png")
             override fun uploadDefaultUniforms(shader: Shader) {
                 super.uploadDefaultUniforms(shader)
                 val checkerTex = TextureCache[uvCheckerSource, true] ?: TextureLib.whiteTexture

@@ -28,7 +28,7 @@ fun main() {
 
     // a floor for decoration
     scene.add(
-        Entity("Floor", MeshComponent(PlaneModel.createPlane(2, 2)))
+        Entity("Floor", MeshComponent(PlaneModel.createPlane()))
             .setScale(2.5)
     )
 

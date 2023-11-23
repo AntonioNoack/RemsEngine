@@ -242,7 +242,7 @@ fun main() {
     scene.add(Entity("Floor").apply {
         position = position.set(0.0, -1.0, 0.0)
         scale = scale.set(20.0)
-        val mesh = MeshComponent(PlaneModel.createPlane(2, 2))
+        val mesh = MeshComponent(PlaneModel.createPlane())
         mesh.materials = listOf(Material().apply {
             diffuseBase.set(0.05f, 0.05f, 0.05f, 1f)
             cullMode = CullMode.BOTH
