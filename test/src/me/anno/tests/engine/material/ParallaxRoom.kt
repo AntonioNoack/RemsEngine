@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.components.mesh.shapes.PlaneModel
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
@@ -117,6 +118,34 @@ object ParallaxRoomShader : ECSMeshShader("ParallaxRoom") {
     }
 }
 
+object PRGlassShader : ECSMeshShader("ParallaxRoom-Glass") {
+    override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
+        return key.vertexData.onFragmentShader + listOf(
+            ShaderStage(
+                "material",
+                createFragmentVariables(key) + listOf(Variable(GLSLType.V4F, "roomDepth")),
+                concatDefines(key).toString() +
+                        discardByCullingPlane +
+                        // step by step define all material properties
+                        (if (key.flags.hasFlag(NEEDS_COLORS)) {
+                            "" +
+                                    normalTanBitanCalculation +
+                                    "vec4 color = texture(diffuseMap, vec2(0.0,2.0/3.0) + uv/3.0);\n" +
+                                    "finalColor = vec3(1.0);\n" +
+                                    "finalAlpha = (1.0-color.a) * diffuseBase.a;\n" +
+                                    normalMapCalculation +
+                                    metallicCalculation +
+                                    roughnessCalculation +
+                                    v0 + reflectionCalculation
+                        } else "") +
+                        finalMotionCalculation
+            ).add(ShaderLib.quatRot).add(ShaderLib.brightness)
+                // .add(ShaderLib.parallaxMapping)
+                .add(ShaderLib.blendColor)
+        )
+    }
+}
+
 /**
  * create Parallax Room material like on
  *  - https://wparallax.com/
@@ -135,10 +164,16 @@ fun main() {
         1, 1, Vector3f(),
         Vector3f(1f, 0f, 0f), Vector3f(0f, -1f, 0f)
     )
-    window.material = ParallaxMaterial().apply {
+    window.indices = window.indices!! + window.indices!!
+    window.materialIds = intArrayOf(0, 0, 1, 1)
+    window.materials = listOf(ParallaxMaterial().apply {
         diffuseMap = documents.getChild("ParallaxRoom.png")
         roomDepth.set(0.05f, 0.2f, 0.5f, 1f)
-    }.ref
+    }.ref, Material().apply {
+        diffuseMap = documents.getChild("ParallaxRoom.png")
+        pipelineStage = TRANSPARENT_PASS
+        shader = PRGlassShader
+    }.ref)
 
     // create a little skyscraper :)
     val xi = 3
