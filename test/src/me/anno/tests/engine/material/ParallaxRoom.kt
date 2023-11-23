@@ -13,6 +13,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths.hasFlag
 import me.anno.mesh.Shapes.flatCube
 import me.anno.utils.OS.documents
@@ -20,6 +21,9 @@ import org.joml.Vector3d
 import org.joml.Vector3f
 import org.joml.Vector4f
 import kotlin.math.PI
+
+// todo support flat texture format, too
+//  https://harpingtonbear.artstation.com/projects/581r9O
 
 class ParallaxMaterial : Material() {
     init {
@@ -45,15 +49,18 @@ object ParallaxRoomShader : ECSMeshShader("ParallaxRoom") {
         return key.vertexData.onFragmentShader + listOf(
             ShaderStage(
                 "material",
-                createFragmentVariables(key) + listOf(Variable(GLSLType.V4F, "roomDepth")),
+                createFragmentVariables(key) + listOf(
+                    Variable(GLSLType.V4F, "roomDepth"),
+                    Variable(GLSLType.V2F, "uv", VariableMode.INOUT)
+                ),
                 concatDefines(key).toString() +
                         discardByCullingPlane +
                         // step by step define all material properties
                         (if (key.flags.hasFlag(NEEDS_COLORS)) {
                             "" +
                                     normalTanBitanCalculation +
+                                    "uv = fract(uv);\n" +
                                     "vec4 color = texture(diffuseMap, vec2(0.0,2.0/3.0) + uv/3.0);\n" +
-                                    // todo glass-like material/reflections, for the first layer of transparency
                                     "if(color.a < 1.0){\n" +
                                     // continue traversal
                                     "   vec3 pos = vec3(uv,0.0), pos0=pos;\n" +
@@ -130,7 +137,7 @@ object PRGlassShader : ECSMeshShader("ParallaxRoom-Glass") {
                         (if (key.flags.hasFlag(NEEDS_COLORS)) {
                             "" +
                                     normalTanBitanCalculation +
-                                    "vec4 color = texture(diffuseMap, vec2(0.0,2.0/3.0) + uv/3.0);\n" +
+                                    "vec4 color = texture(diffuseMap, vec2(0.0,2.0/3.0) + fract(uv)/3.0);\n" +
                                     "finalColor = vec3(1.0);\n" +
                                     "finalAlpha = (1.0-color.a) * diffuseBase.a;\n" +
                                     normalMapCalculation +
@@ -147,7 +154,7 @@ object PRGlassShader : ECSMeshShader("ParallaxRoom-Glass") {
 }
 
 /**
- * create Parallax Room material like on
+ * create Parallax Room / Parallax Interior Mapping material like on
  *  - https://wparallax.com/
  *  - in some current Spider-Man game
  *  - in some Unreal Engine tutorials
@@ -160,10 +167,20 @@ object PRGlassShader : ECSMeshShader("ParallaxRoom-Glass") {
  * */
 fun main() {
 
+    val xi = 3
+    val yi = 15
+    val pi = 0.1f
+    val ph = yi * 2f / 2f
+
     val window = PlaneModel.createPlane(
         1, 1, Vector3f(),
-        Vector3f(1f, 0f, 0f), Vector3f(0f, -1f, 0f)
+        Vector3f(1f, 0f, 0f), Vector3f(0f, -ph, 0f)
     )
+    window.uvs!!.apply { // scale u's
+        for (i in indices step 2) {
+            this[i + 1] *= yi.toFloat()
+        }
+    }
     window.indices = window.indices!! + window.indices!!
     window.materialIds = intArrayOf(0, 0, 1, 1)
     window.materials = listOf(ParallaxMaterial().apply {
@@ -176,11 +193,7 @@ fun main() {
     }.ref)
 
     // create a little skyscraper :)
-    val xi = 3
-    val yi = 15
-    val pi = 0.1f
     val scene = Entity()
-    val ph = yi * 2f / 2f
     val pillar = flatCube.scaled(Vector3f(pi, ph, pi)).front
     fun add(pos: Vector3d, mesh: Mesh, y: Int): Entity {
         val entity = Entity(scene)
@@ -197,12 +210,10 @@ fun main() {
     for (r in 0 until 4) {
         for (x in -xi..xi) {
             val z = (xi + 0.5) * sp
-            for (y in 0 until yi) {
-                add(
-                    Vector3d(x * sp, y * 2.0 + 1.0, z)
-                        .rotateY(r * PI / 2), window, r
-                )
-            }
+            add(
+                Vector3d(x * sp, ph.toDouble(), z)
+                    .rotateY(r * PI / 2), window, r
+            )
             add(
                 Vector3d((x - 0.5) * sp, ph.toDouble(), z)
                     .rotateY(r * PI / 2), pillar, r

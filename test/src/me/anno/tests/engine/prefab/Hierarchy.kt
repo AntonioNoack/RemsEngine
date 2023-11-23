@@ -11,7 +11,6 @@ import me.anno.engine.ECSRegistry
 import me.anno.engine.ScenePrefab
 import me.anno.io.files.FileReference
 import me.anno.io.json.generic.JsonFormatter
-import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.files.inner.temporary.InnerTmpTextFile
 import me.anno.sdf.modifiers.SDFHalfSpace
 import me.anno.sdf.shapes.SDFBox
@@ -24,7 +23,6 @@ import java.util.*
 import kotlin.math.PI
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-
 
 class HierarchyTests {
 
