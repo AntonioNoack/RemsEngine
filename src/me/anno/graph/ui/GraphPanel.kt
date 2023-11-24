@@ -19,7 +19,7 @@ import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.pow
 import me.anno.ui.Panel
 import me.anno.ui.Style

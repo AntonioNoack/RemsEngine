@@ -1,11 +1,13 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.io.files.FileReference
+import me.anno.utils.Color.mulARGB
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.all2
 import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.types.Arrays.resize
 import org.joml.Matrix4x3f
+import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -30,6 +32,8 @@ abstract class MeshJoiner<V>(
     open fun getMaterials(element: V): List<FileReference> = emptyList()
 
     open fun getBoneId(element: V): Byte = 0
+
+    open fun multiplyColors(element: V): Boolean = false
 
     private fun is3x3Identity(t: Matrix4x3f): Boolean {
         return abs(t.m00 - 1f) + abs(t.m10) + abs(t.m20) +
@@ -116,124 +120,31 @@ abstract class MeshJoiner<V>(
             getTransform(element, localToGlobal)
 
             val i0 = i
+            i = fillPosNorTan(
+                dstPositions, dstNormals, dstTangents,
+                localToGlobal, srcMesh, srcPositions, srcNormals, i0, tmp
+            )
 
-            val srcTangents = srcMesh.tangents
-            if (is3x3Identity(localToGlobal)) { // fast path with translation only
-                val px = localToGlobal.m30
-                val py = localToGlobal.m31
-                val pz = localToGlobal.m32
-                for (k in srcPositions.indices step 3) {
-                    dstPositions[i++] = px + srcPositions[k]
-                    dstPositions[i++] = py + srcPositions[k + 1]
-                    dstPositions[i++] = pz + srcPositions[k + 2]
-                }
-                System.arraycopy(srcNormals, 0, dstNormals, i0, srcNormals.size)
-                if (dstTangents != null && srcTangents != null) {
-                    val i4 = i0 / 3 * 4
-                    val j4 = min(i4 + srcPositions.size / 3 * 4, dstTangents.size)
-                    if (j4 > i4) System.arraycopy(srcTangents, 0, dstTangents, i4, j4 - i4)
-                }
-            } else { // slow path
-                var i4 = i0 / 3 * 4
-                var j4 = 0
-                for (k in srcPositions.indices step 3) {
-                    tmp.set(
-                        srcPositions[k],
-                        srcPositions[k + 1],
-                        srcPositions[k + 2]
-                    )
-                    localToGlobal.transformPosition(tmp)
-                    dstPositions[i++] = tmp.x
-                    dstPositions[i++] = tmp.y
-                    dstPositions[i++] = tmp.z
-                    tmp.set(srcNormals[k], srcNormals[k + 1], srcNormals[k + 2])
-                    localToGlobal.transformDirection(tmp)
-                    dstNormals[i - 3] = tmp.x
-                    dstNormals[i - 2] = tmp.y
-                    dstNormals[i - 1] = tmp.z
-                    if (dstTangents != null && srcTangents != null) {
-                        tmp.set(srcTangents[j4++], srcTangents[j4++], srcTangents[j4++])
-                        localToGlobal.transformDirection(tmp)
-                        dstTangents[i4++] = tmp.x
-                        dstTangents[i4++] = tmp.y
-                        dstTangents[i4++] = tmp.z
-                        dstTangents[i4++] = srcTangents[j4++]
-                    }
-                }
-            }
             val meshUVs = srcMesh.uvs
             if (dstUVs != null && meshUVs != null) {
-                val i2 = i0 / 3 * 2
-                val j2 = min(i2 + meshUVs.size, dstUVs.size)
-                if (j2 > i2) System.arraycopy(meshUVs, 0, dstUVs, i2, j2 - i2)
+                fillUVs(dstUVs, meshUVs, i0)
             }
-            if (dstBoneIndices != null) {
-                val j0 = i0 / 3 * 4
-                val dataSize = srcPositions.size / 3 * 4
-                val srcWeights = srcMesh.boneWeights
-                val srcIndices = srcMesh.boneIndices
-                if (srcWeights != null || srcIndices != null) {
-                    if (srcWeights != null)
-                        System.arraycopy(srcWeights, 0, dstBoneWeights!!, j0, min(dataSize, srcWeights.size))
-                    if (srcIndices != null)
-                        System.arraycopy(srcIndices, 0, dstBoneIndices, j0, min(dataSize, srcIndices.size))
-                } else {
-                    val boneId = getBoneId(element)
-                    for (k in 0 until dataSize step 4) {
-                        dstBoneIndices[j0 + k] = boneId
-                    }
-                }
+
+            if (dstBoneIndices != null && dstBoneWeights != null) {
+                fillBones(dstBoneIndices, dstBoneWeights, srcMesh, srcPositions, element, i0)
             }
 
             // support color0 properly
             if (dstColors != null) {
-                val color = getVertexColor(element)
-                val srcColor = srcMesh.color0
-                if (color == -1 && srcColor != null) {
-                    System.arraycopy(srcColor, 0, dstColors, i0 / 3, min(srcNormals.size, srcColor.size))
-                } else {// overridden
-                    dstColors.fill(color, i0 / 3, (i0 + srcNormals.size) / 3)
-                }
+                fillColors(dstColors, srcMesh, srcNormals, element, i0)
             }
 
-            val indices2 = srcMesh.indices
-            val baseIndex = i0 / 3
             val j0 = j
-            if (indices2 != null) {
-                for (k in indices2.indices) {
-                    dstIndices[j++] = baseIndex + indices2[k]
-                }
-            } else {
-                for (k in 0 until srcPositions.size / 3) {
-                    dstIndices[j++] = baseIndex + k
-                }
-            }
+            j = fillIndices(dstIndices, srcMesh, srcPositions, i0, j)
 
             // apply material ids
             if (dstMaterialIds != null) {
-                val materials = getMaterials(element)
-                val usedMaterials = min(materials.size, srcMesh.numMaterials)
-                val materialIds = IntArray(usedMaterials)
-                for (k in 0 until usedMaterials) {
-                    materialIds[k] = materialToId[materials[k]] ?: continue
-                }
-                if (materialIds.any { it != 0 }) {
-                    val k0 = j0 / 3
-                    val k1 = j / 3
-                    val srcIds = srcMesh.materialIds
-                    if (materialIds.min() == materialIds.max() || srcIds == null) {
-                        dstMaterialIds.fill(materialIds[0], k0, k1)
-                    } else {
-                        val k2 = k0 + srcIds.size
-                        for (k in k0 until min(k1, k2)) {
-                            val srcId = srcIds[k - k0]
-                            if (srcId in materialIds.indices) {
-                                dstMaterialIds[k] = materialIds[srcId]
-                            }
-                        }
-                        if (k2 < k1) dstMaterialIds.fill(materialIds[0], k2, k1)
-                    }
-                }
+                fillMaterialIds(dstMaterialIds, element, srcMesh, materialToId, j0, j)
             }
         }
 
@@ -252,5 +163,168 @@ abstract class MeshJoiner<V>(
         dstMesh.numMaterials = max(materialToId.size, 1)
 
         return dstMesh
+    }
+
+    private fun fillPosNorTan(
+        dstPositions: FloatArray,
+        dstNormals: FloatArray,
+        dstTangents: FloatArray?,
+        localToGlobal: Matrix4x3f,
+        srcMesh: Mesh,
+        srcPositions: FloatArray,
+        srcNormals: FloatArray,
+        i0: Int, tmp: Vector3f
+    ): Int {
+        val srcTangents = srcMesh.tangents
+        if (is3x3Identity(localToGlobal)) { // fast path with translation only
+            return translatePosNorTan(
+                dstPositions, dstNormals, dstTangents,
+                localToGlobal, srcPositions, srcNormals, srcTangents, i0
+            )
+        } else { // slow path
+            var i = i0
+            var i4 = i0 / 3 * 4
+            var j4 = 0
+            for (k in srcPositions.indices step 3) {
+                tmp.set(
+                    srcPositions[k],
+                    srcPositions[k + 1],
+                    srcPositions[k + 2]
+                )
+                localToGlobal.transformPosition(tmp)
+                dstPositions[i++] = tmp.x
+                dstPositions[i++] = tmp.y
+                dstPositions[i++] = tmp.z
+                tmp.set(srcNormals[k], srcNormals[k + 1], srcNormals[k + 2])
+                localToGlobal.transformDirection(tmp)
+                dstNormals[i - 3] = tmp.x
+                dstNormals[i - 2] = tmp.y
+                dstNormals[i - 1] = tmp.z
+                if (dstTangents != null && srcTangents != null) {
+                    tmp.set(srcTangents[j4++], srcTangents[j4++], srcTangents[j4++])
+                    localToGlobal.transformDirection(tmp)
+                    dstTangents[i4++] = tmp.x
+                    dstTangents[i4++] = tmp.y
+                    dstTangents[i4++] = tmp.z
+                    dstTangents[i4++] = srcTangents[j4++]
+                }
+            }
+            return i
+        }
+    }
+
+    private fun translatePosNorTan(
+        dstPositions: FloatArray, dstNormals: FloatArray, dstTangents: FloatArray?,
+        localToGlobal: Matrix4x3f, srcPositions: FloatArray, srcNormals: FloatArray, srcTangents: FloatArray?, i0: Int
+    ): Int {
+        var i = i0
+        val px = localToGlobal.m30
+        val py = localToGlobal.m31
+        val pz = localToGlobal.m32
+        for (k in srcPositions.indices step 3) {
+            dstPositions[i++] = px + srcPositions[k]
+            dstPositions[i++] = py + srcPositions[k + 1]
+            dstPositions[i++] = pz + srcPositions[k + 2]
+        }
+        System.arraycopy(srcNormals, 0, dstNormals, i0, srcNormals.size)
+        if (dstTangents != null && srcTangents != null) {
+            val i4 = i0 / 3 * 4
+            val j4 = min(i4 + srcPositions.size / 3 * 4, dstTangents.size)
+            if (j4 > i4) System.arraycopy(srcTangents, 0, dstTangents, i4, j4 - i4)
+        }
+        return i
+    }
+
+    private fun fillUVs(dstUVs: FloatArray, meshUVs: FloatArray, i0: Int) {
+        val i2 = i0 / 3 * 2
+        val j2 = min(i2 + meshUVs.size, dstUVs.size)
+        if (j2 > i2) System.arraycopy(meshUVs, 0, dstUVs, i2, j2 - i2)
+    }
+
+    private fun fillBones(
+        dstBoneIndices: ByteArray, dstBoneWeights: FloatArray,
+        srcMesh: Mesh, srcPositions: FloatArray, element: V, i0: Int
+    ) {
+        val j0 = i0 / 3 * 4
+        val dataSize = srcPositions.size / 3 * 4
+        val srcWeights = srcMesh.boneWeights
+        val srcIndices = srcMesh.boneIndices
+        if (srcWeights != null || srcIndices != null) {
+            if (srcWeights != null)
+                System.arraycopy(srcWeights, 0, dstBoneWeights, j0, min(dataSize, srcWeights.size))
+            if (srcIndices != null)
+                System.arraycopy(srcIndices, 0, dstBoneIndices, j0, min(dataSize, srcIndices.size))
+        } else {
+            val boneId = getBoneId(element)
+            for (k in 0 until dataSize step 4) {
+                dstBoneIndices[j0 + k] = boneId
+            }
+        }
+    }
+
+    private fun fillColors(dstColors: IntArray, srcMesh: Mesh, srcNormals: FloatArray, element: V, i0: Int) {
+        val color = getVertexColor(element)
+        val srcColor = srcMesh.color0
+        if (color == -1 && srcColor != null) {
+            System.arraycopy(srcColor, 0, dstColors, i0 / 3, min(srcNormals.size, srcColor.size))
+        } else if (srcColor != null && multiplyColors(element)) {
+            // multiply colors
+            val k0 = i0 / 3
+            val s0 = k0 + min(srcNormals.size / 3, srcColor.size)
+            for (k in k0 until s0) {
+                dstColors[k] = srcColor[k - k0].mulARGB(color)
+            }
+            // fill rest
+            dstColors.fill(color, s0, k0 + srcNormals.size / 3)
+        } else {
+            // override color
+            dstColors.fill(color, i0 / 3, (i0 + srcNormals.size) / 3)
+        }
+    }
+
+    private fun fillIndices(dstIndices: IntArray, srcMesh: Mesh, srcPositions: FloatArray, i0: Int, j0: Int): Int {
+        val indices2 = srcMesh.indices
+        val baseIndex = i0 / 3
+        var j = j0
+        if (indices2 != null) {
+            for (k in indices2.indices) {
+                dstIndices[j++] = baseIndex + indices2[k]
+            }
+        } else {
+            for (k in 0 until srcPositions.size / 3) {
+                dstIndices[j++] = baseIndex + k
+            }
+        }
+        return j
+    }
+
+    private fun fillMaterialIds(
+        dstMaterialIds: IntArray, element: V, srcMesh: Mesh,
+        materialToId: Map<FileReference, Int>, j0: Int, j: Int
+    ) {
+        // apply material ids
+        val materials = getMaterials(element)
+        val usedMaterials = min(materials.size, srcMesh.numMaterials)
+        val materialIds = IntArray(usedMaterials)
+        for (k in 0 until usedMaterials) {
+            materialIds[k] = materialToId[materials[k]] ?: continue
+        }
+        if (materialIds.any { it != 0 }) {
+            val k0 = j0 / 3
+            val k1 = j / 3
+            val srcIds = srcMesh.materialIds
+            if (materialIds.min() == materialIds.max() || srcIds == null) {
+                dstMaterialIds.fill(materialIds[0], k0, k1)
+            } else {
+                val k2 = k0 + srcIds.size
+                for (k in k0 until min(k1, k2)) {
+                    val srcId = srcIds[k - k0]
+                    if (srcId in materialIds.indices) {
+                        dstMaterialIds[k] = materialIds[srcId]
+                    }
+                }
+                if (k2 < k1) dstMaterialIds.fill(materialIds[0], k2, k1)
+            }
+        }
     }
 }

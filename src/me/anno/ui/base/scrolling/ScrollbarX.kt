@@ -3,9 +3,9 @@ package me.anno.ui.base.scrolling
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
-import me.anno.maths.Maths.mulAlpha
-import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.Style
+import me.anno.ui.base.groups.PanelGroup
+import me.anno.utils.Color.mulAlpha
 import kotlin.math.max
 
 open class ScrollbarX(val scrollable: ScrollableX, style: Style) : Scrollbar(style) {
@@ -27,9 +27,8 @@ open class ScrollbarX(val scrollable: ScrollableX, style: Style) : Scrollbar(sty
         val barW = max(minSize.toDouble(), scrollable.relativeSizeX * width)
         val barX = x + relativePosition * (width - barW)
 
-        val color = mulAlpha(scrollColor, scrollColorAlpha + activeAlpha * alpha)
+        val color = scrollColor.mulAlpha(scrollColorAlpha + activeAlpha * alpha)
         drawRect(barX.toInt(), y0, barW.toInt(), y1 - y0, color)
-
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
@@ -37,5 +36,4 @@ open class ScrollbarX(val scrollable: ScrollableX, style: Style) : Scrollbar(sty
             scrollable.scrollX(dx / scrollable.relativeSizeX)
         }// else super.onMouseMoved(x, y, dx, dy)
     }
-
 }

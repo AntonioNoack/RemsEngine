@@ -26,7 +26,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.maths.Maths
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.convertABGR2ARGB
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.hpc.WorkSplitter
 import me.anno.utils.pooling.ByteArrayPool
 import me.anno.utils.pooling.ByteBufferPool

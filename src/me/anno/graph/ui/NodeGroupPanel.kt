@@ -4,11 +4,11 @@ import me.anno.fonts.FontManager
 import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.graph.render.NodeGroup
-import me.anno.maths.Maths
 import me.anno.ui.Panel
-import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.Style
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.Color.a
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 
 class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : Panel(style) {
@@ -36,7 +36,6 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
 
         this.width = minW
         this.height = minH
-
     }
 
     var focusOutlineColor = -1
@@ -72,7 +71,7 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
         val inFocus = isInFocus || (gp is GraphEditor && gp.overlapsSelection(this))
         drawBackground(inFocus, true, x0, y0, x1, y1)
 
-        val backgroundColor = Maths.mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
+        val backgroundColor = mixARGB(gp.backgroundColor, backgroundColor, backgroundColor.a()) and 0xffffff
         val font = gp.font
         val textSize = font.sampleHeight
 
@@ -84,8 +83,5 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
             x + width.shr(1), titleY0, font, group.name, textColor,
             backgroundColor, (width * 3).shr(2), -1, AxisAlignment.CENTER
         )
-
     }
-
-
 }

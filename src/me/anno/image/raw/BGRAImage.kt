@@ -3,7 +3,7 @@ package me.anno.image.raw
 import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
-import me.anno.maths.Maths.convertABGR2ARGB
+import me.anno.utils.Color.convertABGR2ARGB
 
 /**
  * the easiest check whether an image has R and B channels inverted: if so, this will look correct

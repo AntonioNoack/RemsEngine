@@ -4,7 +4,7 @@ import me.anno.fonts.mesh.Triangulation
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.types.Booleans.toInt
 import org.joml.Vector2f
 import kotlin.math.min

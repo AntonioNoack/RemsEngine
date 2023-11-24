@@ -44,7 +44,7 @@ import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.xml.ComparableStringBuilder
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
 import me.anno.studio.GFXSettings

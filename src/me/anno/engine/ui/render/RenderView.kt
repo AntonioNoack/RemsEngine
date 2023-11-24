@@ -47,7 +47,6 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.depthRenderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.idRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.RenderGraph
-import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
@@ -57,6 +56,7 @@ import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Clock
 import me.anno.utils.Color.black
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.hex24
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
@@ -484,11 +484,11 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
 
         val clickedIdBGR = Screenshots.getClosestId(diameter, ids, depths, if (reverseDepth) -10 else +10)
-        val clickedId = Maths.convertABGR2ARGB(clickedIdBGR).and(0xffffff)
+        val clickedId = convertABGR2ARGB(clickedIdBGR).and(0xffffff)
         val clicked = if (clickedId == 0 || world !is Entity) null
         else pipeline.findDrawnSubject(clickedId, world)
         if (false) {
-            LOGGER.info("Found: ${ids.joinToString { hex24(Maths.convertABGR2ARGB(it)) }} x ${depths.joinToString()} -> $clickedId -> $clicked")
+            LOGGER.info("Found: ${ids.joinToString { hex24(convertABGR2ARGB(it)) }} x ${depths.joinToString()} -> $clickedId -> $clicked")
             val ids2 = (world as? Entity)?.getComponentsInChildren(MeshComponentBase::class, false)
                 ?.joinToString { it.clickId.toString(16) }
             LOGGER.info("Available: $ids2")

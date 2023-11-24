@@ -6,9 +6,9 @@ import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.mulAlpha
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.utils.Color.mulAlpha
 import kotlin.math.abs
 
 open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
@@ -29,12 +29,14 @@ open class Scrollbar(style: Style) : Panel(style.getChild("scrollbar")) {
 
     fun updateAlpha(): Boolean {
         val oldAlpha = alpha
-        alpha = mix(oldAlpha, if (isBeingHovered) if (Input.isLeftDown) 1f else 0.8f else 0f, dtTo01(10f * deltaTime.toFloat()))
+        alpha = mix(
+            oldAlpha, if (isBeingHovered) if (Input.isLeftDown) 1f else 0.8f else 0f,
+            dtTo01(10f * deltaTime.toFloat())
+        )
         return abs(alpha - oldAlpha) > 0.001f
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-        drawRect(x0, y0, x1 - x0, y1 - y0, mulAlpha(scrollBackground, activeAlpha * alpha))
+        drawRect(x0, y0, x1 - x0, y1 - y0, scrollBackground.mulAlpha(activeAlpha * alpha))
     }
-
 }

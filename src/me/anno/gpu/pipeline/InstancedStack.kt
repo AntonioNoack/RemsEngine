@@ -19,6 +19,7 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.maths.Maths
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.structures.maps.KeyTripleMap
 import me.anno.utils.structures.tuples.LongTriple
 
@@ -240,7 +241,7 @@ open class InstancedStack {
                                 // put current animation data
                                 if (useAnimations) buffer.put(anim!!, index * 16, 8)
                             }
-                            nioBuffer.putInt(Maths.convertABGR2ARGB(gfxIds[index]))
+                            nioBuffer.putInt(convertABGR2ARGB(gfxIds[index]))
                         }
                     }
 

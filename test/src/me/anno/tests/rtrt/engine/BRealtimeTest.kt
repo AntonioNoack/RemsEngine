@@ -29,7 +29,7 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.max
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.maths.bvh.*
 import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_TRIANGLE
 import me.anno.maths.bvh.BLASNode.Companion.PIXELS_PER_VERTEX

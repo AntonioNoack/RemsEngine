@@ -8,7 +8,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style

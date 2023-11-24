@@ -5,7 +5,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.studio.Events.addEvent
 import me.anno.ui.Panel
 import me.anno.ui.Window

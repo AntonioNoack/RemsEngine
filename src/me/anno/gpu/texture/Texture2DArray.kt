@@ -20,7 +20,7 @@ import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.gpu.texture.callbacks.I3B
 import me.anno.gpu.texture.callbacks.I3I
 import me.anno.image.Image
-import me.anno.maths.Maths.convertARGB2RGBA
+import me.anno.utils.Color.convertARGB2RGBA
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 import org.lwjgl.opengl.GL14

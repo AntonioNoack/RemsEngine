@@ -19,7 +19,7 @@ import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding

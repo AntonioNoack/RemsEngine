@@ -14,6 +14,7 @@ import me.anno.image.ImageWriter
 import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
+import me.anno.utils.Color.mixARGB
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix2f
 import org.joml.Matrix4f
@@ -206,7 +207,7 @@ private fun testEdgeAA() {
                 } else {
                     r[i] = when (x * 3 / size) {
                         0 -> (fraction * 255).toInt() * 0x10101
-                        1 -> Maths.mixARGB(baseColor, otherColor, blur)
+                        1 -> mixARGB(baseColor, otherColor, blur)
                         else -> (blur * 255).toInt() * 0x10101
                     }
                     /*val correctFraction = if (baseColor == c0) q[i] else 1f - q[i]

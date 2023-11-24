@@ -12,7 +12,7 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.sq
 import me.anno.maths.noise.PerlinNoise
 import me.anno.mesh.Shapes.tetrahedron

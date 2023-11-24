@@ -11,7 +11,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged

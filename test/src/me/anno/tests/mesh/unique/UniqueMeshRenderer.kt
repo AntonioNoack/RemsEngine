@@ -30,6 +30,7 @@ import me.anno.maths.Maths
 import me.anno.maths.patterns.SpiralPattern.spiral2d
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.tests.utils.TestWorld
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.hpc.ProcessingQueue
 import org.joml.AABBf
 import org.joml.Vector3i
@@ -141,7 +142,7 @@ fun main() {
                 data.putFloat(dx + pos[i * 3])
                 data.putFloat(dy + pos[i * 3 + 1])
                 data.putFloat(dz + pos[i * 3 + 2])
-                data.putInt(Maths.convertABGR2ARGB(col[i]))
+                data.putInt(convertABGR2ARGB(col[i]))
             }
             buffer.isUpToDate = false
             return buffer

@@ -5,6 +5,7 @@ import me.anno.maths.Maths.clamp
 import org.joml.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 object Color {
 
@@ -13,45 +14,62 @@ object Color {
 
     @JvmField
     val black4 = Vector4f(0f)
+
     @JvmField
     val black3 = Vector3f(0f)
+
     @JvmField
     val black2 = Vector2f(0f)
+
     @JvmField
     val white4 = Vector4f(1f)
+
     @JvmField
     val white3 = Vector3f(1f)
+
     @JvmField
     val white2 = Vector2f(1f)
 
     @JvmStatic
     fun Int.r() = shr(16) and 255
+
     @JvmStatic
     fun Int.g() = shr(8) and 255
+
     @JvmStatic
     fun Int.b() = this and 255
+
     @JvmStatic
     fun Int.a() = ushr(24)
 
     @JvmStatic
     fun Int.r01() = (shr(16) and 255) / 255f
+
     @JvmStatic
     fun Int.g01() = (shr(8) and 255) / 255f
+
     @JvmStatic
     fun Int.b01() = (this and 255) / 255f
+
     @JvmStatic
     fun Int.a01() = ushr(24) / 255f
 
     @JvmStatic
     fun Int.withAlpha(alpha: Float): Int = rgba(r(), g(), b(), (255f * alpha).roundToInt())
+
     @JvmStatic
     fun Int.mulAlpha(alpha: Float): Int = rgba(r(), g(), b(), (a() * alpha).roundToInt())
 
     @JvmStatic
     fun Int.withAlpha(alpha: Int): Int = rgba(r(), g(), b(), alpha)
+
     @JvmStatic
-    fun Int.mulARGB(other: Int): Int =
-        rgba((r() * other.r()) / 255, (g() * other.g()) / 255, (b() * other.b()) / 255, (a() * other.a()) / 255)
+    fun Int.mulARGB(other: Int): Int {
+        return mulChannel(this, other, 24) or
+                mulChannel(this, other, 16) or
+                mulChannel(this, other, 8) or
+                mulChannel(this, other, 0)
+    }
 
     @JvmStatic
     fun rgb(r: Byte, g: Byte, b: Byte): Int =
@@ -63,9 +81,9 @@ object Color {
     @JvmStatic
     fun rgb(r: Int, g: Int, b: Int): Int =
         clamp(r, 0, 255).shl(16) or
-            clamp(g, 0, 255).shl(8) or
-            clamp(b, 0, 255) or
-            0xff.shl(24)
+                clamp(g, 0, 255).shl(8) or
+                clamp(b, 0, 255) or
+                0xff.shl(24)
 
     @JvmStatic
     fun rgb(r: Float, g: Float, b: Float): Int =
@@ -118,6 +136,7 @@ object Color {
 
     @JvmStatic
     fun Int.toVecRGBA(dst: Vector4f = Vector4f()) = dst.set(r01(), g01(), b01(), a01())
+
     @JvmStatic
     fun Int.toVecRGB(dst: Vector3f = Vector3f()) = dst.set(r01(), g01(), b01())
 
@@ -140,12 +159,16 @@ object Color {
 
     @JvmStatic
     fun hex8(i: Int) = "${base36[(i shr 4) and 15]}${base36[i and 15]}"
+
     @JvmStatic
     fun hex16(i: Int) = "${hex4(i shr 12)}${hex4(i shr 8)}${hex4(i shr 4)}${hex4(i)}"
+
     @JvmStatic
     fun hex24(i: Int) = "${hex8((i shr 16))}${hex16(i)}"
+
     @JvmStatic
     fun hex32(i: Int) = "${hex16((i shr 16))}${hex16(i)}"
+
     @JvmStatic
     fun hex8(f: Float) = hex8(clamp((255 * f).roundToInt(), 0, 255))
 
@@ -202,4 +225,106 @@ object Color {
                 clamp((w * 255).toInt(), 0, 255).shl(24)
     }
 
+    @JvmStatic
+    fun convertARGB2RGBA(i: Int): Int {
+        return i.ushr(24) or i.shl(8)
+    }
+
+    @JvmStatic
+    fun convertRGBA2ARGB(i: Int): Int {
+        return i.ushr(8) or i.shl(24)
+    }
+
+    @JvmStatic
+    fun convertABGR2ARGB(i: Int): Int {
+        return i.and(0xff00ff00.toInt()) or i.shr(16).and(0xff) or i.and(0xff).shl(16)
+    }
+
+    @JvmStatic
+    fun mixChannel(a: Int, b: Int, shift: Int, f: Float): Int {
+        return Maths.mix((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
+    }
+
+    @JvmStatic
+    fun mixChannel(a: Int, b: Int, shift: Int, f: Int): Int {
+        return Maths.mix((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
+    }
+
+    @JvmStatic
+    fun mixChannel2(a: Int, b: Int, shift: Int, f: Int): Int {
+        return Maths.mix2((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
+    }
+
+    @JvmStatic
+    fun mixChannel2(a: Int, b: Int, shift: Int, f: Float): Int {
+        return Maths.mix2((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
+    }
+
+    @JvmStatic
+    fun mixChannel22d(v00: Int, v01: Int, v10: Int, v11: Int, shift: Int, fx: Float, fy: Float): Int {
+        val r00 = Maths.sq((v00 shr shift) and 255).toFloat()
+        val r01 = Maths.sq((v01 shr shift) and 255).toFloat()
+        val r10 = Maths.sq((v10 shr shift) and 255).toFloat()
+        val r11 = Maths.sq((v11 shr shift) and 255).toFloat()
+        return sqrt(Maths.mix2d(r00, r01, r10, r11, fx, fy)).roundToInt() shl shift
+    }
+
+    @JvmStatic
+    fun mixChannelRandomly(a: Int, b: Int, shift: Int, f: Float): Int {
+        val ai = (a shr shift) and 0xff
+        val bi = (b shr shift) and 0xff
+        return clamp(Maths.mixRandomly(ai, bi, f), 0, 255) shl shift
+    }
+
+    @JvmStatic
+    fun mixARGB(a: Int, b: Int, f: Float): Int {
+        return mixChannel(a, b, 24, f) or
+                mixChannel(a, b, 16, f) or
+                mixChannel(a, b, 8, f) or
+                mixChannel(a, b, 0, f)
+    }
+
+    @JvmStatic
+    fun mixARGB(a: Int, b: Int, f: Int): Int {
+        return mixChannel(a, b, 24, f) or
+                mixChannel(a, b, 16, f) or
+                mixChannel(a, b, 8, f) or
+                mixChannel(a, b, 0, f)
+    }
+
+    fun mulChannel(a: Int, b: Int, sh: Int): Int {
+        return (a.ushr(sh).and(0xff) * b.ushr(sh).and(0xff) + 128).ushr(8).shl(sh)
+    }
+
+    @JvmStatic
+    fun mixARGB2(a: Int, b: Int, f: Float): Int {
+        return mixChannel2(a, b, 24, f) or
+                mixChannel2(a, b, 16, f) or
+                mixChannel2(a, b, 8, f) or
+                mixChannel2(a, b, 0, f)
+    }
+
+    @JvmStatic
+    fun mixARGB22d(v00: Int, v01: Int, v10: Int, v11: Int, fx: Float, fy: Float): Int {
+        return mixChannel22d(v00, v01, v10, v11, 24, fx, fy) or
+                mixChannel22d(v00, v01, v10, v11, 16, fx, fy) or
+                mixChannel22d(v00, v01, v10, v11, 8, fx, fy) or
+                mixChannel22d(v00, v01, v10, v11, 0, fx, fy)
+    }
+
+    @JvmStatic
+    fun mixARGB2(a: Int, b: Int, f: Int): Int {
+        return mixChannel2(a, b, 24, f) or
+                mixChannel2(a, b, 16, f) or
+                mixChannel2(a, b, 8, f) or
+                mixChannel2(a, b, 0, f)
+    }
+
+    @JvmStatic
+    fun mixARGBRandomly(a: Int, b: Int, f: Float): Int {
+        return mixChannelRandomly(a, b, 24, f) or
+                mixChannelRandomly(a, b, 16, f) or
+                mixChannelRandomly(a, b, 8, f) or
+                mixChannelRandomly(a, b, 0, f)
+    }
 }

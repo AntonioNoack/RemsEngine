@@ -4,8 +4,8 @@ import me.anno.image.svg.SVGMesh
 import me.anno.io.xml.generic.XMLNode
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
-import me.anno.maths.Maths.mixARGB2
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.mulAlpha
 import me.anno.utils.Color.toVecRGBA
 import me.anno.utils.ColorParsing.parseColor
@@ -210,7 +210,6 @@ open class Gradient1D {
                         if (c0 != null) colorStr = c0
                         if (o0 != null) opacityStr = o0
                     }
-
                 }
 
                 val color = parseColor(colorStr, opacityStr) ?: (0xff00ff or black)
@@ -219,7 +218,6 @@ open class Gradient1D {
                 // LOGGER.info("$colorStr/$opacityStr -> $color, $offset")
 
                 colors += GradientColor(color, offset)
-
             }
         }
         // calculateAverageColor()
@@ -262,5 +260,4 @@ open class Gradient1D {
         if (endsWith("%")) return 0.01f * substring(0, lastIndex).toFloat()
         return toFloat()
     }
-
 }

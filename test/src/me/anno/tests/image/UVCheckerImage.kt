@@ -5,6 +5,7 @@ import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths
 import me.anno.utils.Color
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.r
 import me.anno.utils.OS.desktop
 
@@ -52,7 +53,7 @@ fun createUVCheckerImage(): IntImage {
             }
             // draw soft stripes
             val contrastColor = if (colorIdx in 1..4 || colorIdx == 7) Color.black else -1
-            val softColor = Maths.mixARGB(color, contrastColor, 0.1f)
+            val softColor = mixARGB(color, contrastColor, 0.1f)
             for (j in 1 until innerFields) {
                 // draw vertical & horizontal stripes
                 val i0 = (y0 + j * (innerSize + 1)) * w + x0
@@ -89,7 +90,7 @@ fun createUVCheckerImage(): IntImage {
                     for (dx in 0 until cw) {
                         val v = numbers.getRGB(srcJ + dx).r() // mix factor
                         val dstIdx = dstJ + dx
-                        canvas[dstIdx] = Maths.mixARGB(canvas[dstIdx], contrastColor, v)
+                        canvas[dstIdx] = mixARGB(canvas[dstIdx], contrastColor, v)
                     }
                 }
             }

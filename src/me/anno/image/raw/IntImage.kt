@@ -8,7 +8,7 @@ import me.anno.image.Image
 import me.anno.maths.Maths
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.a01
 import java.awt.image.BufferedImage

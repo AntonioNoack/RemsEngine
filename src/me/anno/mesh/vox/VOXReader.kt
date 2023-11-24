@@ -6,7 +6,7 @@ import me.anno.ecs.prefab.PrefabReadable
 import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
-import me.anno.maths.Maths.convertABGR2ARGB
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.mesh.vox.model.DenseI8VoxelModel
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.utils.structures.tuples.Quad

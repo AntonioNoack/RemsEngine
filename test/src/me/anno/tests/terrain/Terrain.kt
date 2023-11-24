@@ -18,7 +18,7 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.sq
 import me.anno.utils.Color.toRGB
 import org.joml.Vector3f

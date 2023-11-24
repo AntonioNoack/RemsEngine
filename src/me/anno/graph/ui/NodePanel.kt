@@ -26,7 +26,6 @@ import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.distance
 import me.anno.maths.Maths.length
 import me.anno.maths.Maths.mapClamped
-import me.anno.maths.Maths.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.Font
@@ -38,6 +37,7 @@ import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextStyleable
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.types.Arrays.subList

@@ -1,6 +1,6 @@
 package me.anno.tests.bench
 
-import me.anno.maths.Maths.convertABGR2ARGB
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Clock
 import java.util.*
 

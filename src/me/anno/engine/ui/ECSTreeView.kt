@@ -16,8 +16,8 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
-import me.anno.maths.Maths.mixARGB
-import me.anno.maths.Maths.mixARGB2
+import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.mixARGB2
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style

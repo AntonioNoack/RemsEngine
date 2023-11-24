@@ -9,6 +9,7 @@ import me.anno.ui.anim.AnimTextPanel
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.utils.Color
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import kotlin.math.min
 import kotlin.math.sin
@@ -75,7 +76,7 @@ class AnimTextPanelTest(useLua: Boolean) : PanelListY(DefaultConfig.style) {
             AnimTextPanel.rotate(1f - scale, cx, cy)
             // smooth index
             val index1i = Maths.clamp(index1.toInt(), 0, burnPalette.size - 2)
-            Maths.mixARGB(burnPalette[index1i], burnPalette[index1i + 1], Maths.clamp(index1 - index1i))
+            mixARGB(burnPalette[index1i], burnPalette[index1i + 1], Maths.clamp(index1 - index1i))
         }.apply { periodMillis = 1200 })
         val noise = FullNoise(1234L)
         val sketchPalette = intArrayOf(

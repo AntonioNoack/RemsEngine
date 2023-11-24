@@ -2,7 +2,7 @@ package me.anno.image.colormap
 
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.maths.Maths.mixARGBRandomly
+import me.anno.utils.Color.mixARGBRandomly
 import me.anno.utils.Color.hasAlpha
 import kotlin.math.abs
 import kotlin.math.max

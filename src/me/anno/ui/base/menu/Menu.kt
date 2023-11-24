@@ -8,7 +8,7 @@ import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel

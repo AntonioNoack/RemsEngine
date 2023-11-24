@@ -4,7 +4,7 @@ import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.utils.StringMap
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.ui.editor.code.codemirror.LanguageStyle
 import me.anno.ui.editor.code.codemirror.LanguageTheme
 import me.anno.ui.editor.code.codemirror.LanguageThemeLib.base

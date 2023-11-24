@@ -11,8 +11,8 @@ import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.min
-import me.anno.maths.Maths.mixARGB
-import me.anno.maths.Maths.mixARGB22d
+import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.mixARGB22d
 import me.anno.maths.Maths.roundDiv
 import me.anno.utils.Color.toHexColor
 import java.awt.image.BufferedImage

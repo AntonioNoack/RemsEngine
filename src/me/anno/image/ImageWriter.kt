@@ -11,7 +11,7 @@ import me.anno.image.raw.write
 import me.anno.io.files.FileReference
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.unmix
 import me.anno.ui.base.components.Padding
 import me.anno.utils.Color.a

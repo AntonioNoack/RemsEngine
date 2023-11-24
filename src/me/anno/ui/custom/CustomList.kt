@@ -3,12 +3,12 @@ package me.anno.ui.custom
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.Cursor
 import me.anno.input.Key
-import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
+import me.anno.utils.Color.mixARGB
 import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 import kotlin.math.max
@@ -209,7 +209,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         }
     }
 
-    private val hoverColor = style.getColor("customList.hoverColor", Maths.mixARGB(0x77ffb783, originalBGColor, 0.8f))
+    private val hoverColor = style.getColor("customList.hoverColor", mixARGB(0x77ffb783, originalBGColor, 0.8f))
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         backgroundColor = hoverColor

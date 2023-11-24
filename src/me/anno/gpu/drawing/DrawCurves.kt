@@ -11,7 +11,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.maths.Maths
-import me.anno.maths.Maths.convertABGR2ARGB
+import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.Color.withAlpha
 import java.nio.ByteBuffer
 import kotlin.math.hypot

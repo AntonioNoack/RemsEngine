@@ -12,7 +12,7 @@ import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.Key
 import me.anno.language.translation.Dict
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel

@@ -2,7 +2,7 @@ package me.anno.engine.ui.input
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.language.translation.NameDesc
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style

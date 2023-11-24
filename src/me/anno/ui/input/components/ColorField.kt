@@ -7,7 +7,7 @@ import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.TextureLib
 import me.anno.input.Key
-import me.anno.maths.Maths.mixARGB
+import me.anno.utils.Color.mixARGB
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.dragging.Draggable

@@ -538,57 +538,6 @@ object Maths {
     fun absMax(a: Double, b: Double, c: Double, d: Double) = max(max(abs(a), abs(b)), max(abs(c), abs(d)))
 
     @JvmStatic
-    fun mixChannel(a: Int, b: Int, shift: Int, f: Float): Int {
-        return mix((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
-    }
-
-    @JvmStatic
-    fun mixChannel(a: Int, b: Int, shift: Int, f: Int): Int {
-        return mix((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
-    }
-
-    @JvmStatic
-    fun mixChannel2(a: Int, b: Int, shift: Int, f: Int): Int {
-        return mix2((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
-    }
-
-    @JvmStatic
-    fun mixChannel2(a: Int, b: Int, shift: Int, f: Float): Int {
-        return mix2((a shr shift) and 0xff, (b shr shift) and 0xff, f) shl shift
-    }
-
-    @JvmStatic
-    fun mixChannel22d(v00: Int, v01: Int, v10: Int, v11: Int, shift: Int, fx: Float, fy: Float): Int {
-        val r00 = sq((v00 shr shift) and 255).toFloat()
-        val r01 = sq((v01 shr shift) and 255).toFloat()
-        val r10 = sq((v10 shr shift) and 255).toFloat()
-        val r11 = sq((v11 shr shift) and 255).toFloat()
-        return sqrt(mix2d(r00, r01, r10, r11, fx, fy)).roundToInt() shl shift
-    }
-
-    @JvmStatic
-    fun mixChannelRandomly(a: Int, b: Int, shift: Int, f: Float): Int {
-        val ai = (a shr shift) and 0xff
-        val bi = (b shr shift) and 0xff
-        return clamp(mixRandomly(ai, bi, f), 0, 255) shl shift
-    }
-
-    @JvmStatic
-    fun convertARGB2RGBA(i: Int): Int {
-        return i.ushr(24) or i.shl(8)
-    }
-
-    @JvmStatic
-    fun convertRGBA2ARGB(i: Int): Int {
-        return i.ushr(8) or i.shl(24)
-    }
-
-    @JvmStatic
-    fun convertABGR2ARGB(i: Int): Int {
-        return i.and(0xff00ff00.toInt()) or i.shr(16).and(0xff) or i.and(0xff).shl(16)
-    }
-
-    @JvmStatic
     fun mixAngle(a: Float, b: Float, f: Float): Float {
         val d = a - b
         return when {
@@ -596,60 +545,6 @@ object Maths {
             d < -181 -> mixAngle(a, b - 360, f)
             else -> mix(a, b, f)
         }
-    }
-
-    @JvmStatic
-    fun mixARGB(a: Int, b: Int, f: Float): Int {
-        return mixChannel(a, b, 24, f) or
-                mixChannel(a, b, 16, f) or
-                mixChannel(a, b, 8, f) or
-                mixChannel(a, b, 0, f)
-    }
-
-    @JvmStatic
-    fun mixARGB(a: Int, b: Int, f: Int): Int {
-        return mixChannel(a, b, 24, f) or
-                mixChannel(a, b, 16, f) or
-                mixChannel(a, b, 8, f) or
-                mixChannel(a, b, 0, f)
-    }
-
-    @JvmStatic
-    fun mixARGB2(a: Int, b: Int, f: Float): Int {
-        return mixChannel2(a, b, 24, f) or
-                mixChannel2(a, b, 16, f) or
-                mixChannel2(a, b, 8, f) or
-                mixChannel2(a, b, 0, f)
-    }
-
-    @JvmStatic
-    fun mixARGB22d(v00: Int, v01: Int, v10: Int, v11: Int, fx: Float, fy: Float): Int {
-        return mixChannel22d(v00, v01, v10, v11, 24, fx, fy) or
-                mixChannel22d(v00, v01, v10, v11, 16, fx, fy) or
-                mixChannel22d(v00, v01, v10, v11, 8, fx, fy) or
-                mixChannel22d(v00, v01, v10, v11, 0, fx, fy)
-    }
-
-    @JvmStatic
-    fun mixARGB2(a: Int, b: Int, f: Int): Int {
-        return mixChannel2(a, b, 24, f) or
-                mixChannel2(a, b, 16, f) or
-                mixChannel2(a, b, 8, f) or
-                mixChannel2(a, b, 0, f)
-    }
-
-    @JvmStatic
-    fun mixARGBRandomly(a: Int, b: Int, f: Float): Int {
-        return mixChannelRandomly(a, b, 24, f) or
-                mixChannelRandomly(a, b, 16, f) or
-                mixChannelRandomly(a, b, 8, f) or
-                mixChannelRandomly(a, b, 0, f)
-    }
-
-    @JvmStatic
-    fun mulAlpha(color: Int, factor: Float): Int {
-        val alpha = factor * color.shr(24).and(255)
-        return color.and(0xffffff) or clamp(alpha.toInt(), 0, 255).shl(24)
     }
 
     @JvmStatic
