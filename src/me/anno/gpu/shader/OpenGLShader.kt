@@ -175,6 +175,9 @@ abstract class OpenGLShader(val name: String) : ICacheData {
     var program = 0
     var session = 0
 
+    // todo this should be set automatically
+    var failedCompilation = false
+
     fun use(): Boolean {
         GFX.check()
         // Frame.bindMaybe()

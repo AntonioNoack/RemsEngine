@@ -301,9 +301,9 @@ object DrawTexts {
     private fun chooseShader(textColor: Int, backgroundColor: Int, instanced: Int = 0): OpenGLShader {
         GFX.check()
         val cuc = canUseComputeShader() && min(textColor.a(), backgroundColor.a()) < 255
-        val shader = if (cuc) {
+        val shader = if (cuc && !ShaderLib.subpixelCorrectTextShader2[instanced].failedCompilation) {
+            val shader = ShaderLib.subpixelCorrectTextShader2[instanced]
             try {
-                val shader = ShaderLib.subpixelCorrectTextShader2[instanced]
                 shader.use()
                 shader.bindTexture(
                     1, GFXState.currentBuffer.getTexture0() as Texture2D,
@@ -311,6 +311,7 @@ object DrawTexts {
                 )
                 shader
             } catch (e: Exception) {
+                shader.failedCompilation = true
                 LOGGER.warn("Failed to compile subpixel blending shader", e)
                 ShaderLib.subpixelCorrectTextShader[instanced].value
             }
