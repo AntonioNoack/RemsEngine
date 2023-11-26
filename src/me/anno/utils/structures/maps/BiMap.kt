@@ -1,5 +1,7 @@
 package me.anno.utils.structures.maps
 
+import me.anno.utils.structures.maps.Maps.removeIf
+
 class BiMap<K, V>(capacity: Int = 16) : HashMap<K, V>(capacity) {
     val reverse = HashMap<V, K>(capacity)
 
@@ -12,5 +14,10 @@ class BiMap<K, V>(capacity: Int = 16) : HashMap<K, V>(capacity) {
     override fun putAll(from: Map<out K, V>) {
         reverse.putAll(from.entries.associate { it.value to it.key })
         super.putAll(from)
+    }
+
+    override fun remove(key: K): V? {
+        reverse.removeIf { (_, v) -> v == key }
+        return super.remove(key)
     }
 }

@@ -17,9 +17,9 @@ import me.anno.input.Input.isShiftDown
 import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.base.BaseWriter
-import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.clamp
+import me.anno.maths.Maths.dtTo01
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3f
 
@@ -160,7 +160,7 @@ abstract class CameraController : Component(), ControlReceiver {
 
                 lastWarning = null
 
-                val dt = clamp(Time.deltaTime.toFloat() * friction, 0f, 0.25f)
+                val dt = Time.deltaTime.toFloat()
 
                 acceleration.set(0f)
 
@@ -168,11 +168,12 @@ abstract class CameraController : Component(), ControlReceiver {
 
                 clampAcceleration(acceleration)
 
-                velocity.addSmoothly(acceleration, dt)
+                velocity.mul(1f - dtTo01(dt * friction))
+                acceleration.mulAdd(dt, velocity, velocity)
 
                 clampVelocity()
 
-                position.addSmoothly(velocity, dt)
+                velocity.mulAdd(dt, position, position)
 
                 if (rotateAngleY) position.rotateY(rotation.y)
                 if (rotateAngleX) position.rotateX(rotation.x)

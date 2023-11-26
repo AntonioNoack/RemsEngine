@@ -666,12 +666,6 @@ open class Vector3f(
     fun is000() = x == 0f && y == 0f && z == 0f
     fun is111() = x == 1f && y == 1f && z == 1f
 
-    fun addSmoothly(other: Vector3f, scale: Float): Vector3f {
-        mul(1f - scale)
-        other.mulAdd(scale, this, this)
-        return this
-    }
-
     fun findSecondAxis(dst: Vector3f = Vector3f()): Vector3f {
         val thirdAxis = if (abs(x) > abs(y)) dst.set(0f, 1f, 0f)
         else dst.set(1f, 0f, 0f)
@@ -702,7 +696,7 @@ open class Vector3f(
     }
 
     fun fract(dst: Vector3f = this): Vector3f =
-        dst.set(org.joml.Runtime.fract(x), org.joml.Runtime.fract(y), org.joml.Runtime.fract(z))
+        dst.set(Runtime.fract(x), Runtime.fract(y), Runtime.fract(z))
 
     fun makePerpendicular(other: Vector3f): Vector3f =
         other.mulAdd(-dot(other), this, this) // this -= dot(this,other)*other

@@ -1,9 +1,8 @@
 package me.anno.graph.render.scene
 
 import me.anno.ecs.components.mesh.TypeValue
-import me.anno.gpu.GFX
-import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely2
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.deferred.BufferQuality
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.framebuffer.DepthBufferType
@@ -13,12 +12,12 @@ import me.anno.gpu.pipeline.LightShaders.combineLighting1
 import me.anno.gpu.pipeline.LightShaders.combineVStage
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.GPUFiltering
@@ -128,9 +127,7 @@ class CombineLightsNode : RenderSceneNode0(
         val framebuffer = FBStack[name, width, height, 3, BufferQuality.HIGH_16, samples, DepthBufferType.NONE]
         val renderer = Renderer.copyRenderer
 
-        GFX.check()
-
-        GFXState.useFrame(width, height, true, framebuffer, renderer) {
+        useFrame(width, height, false, framebuffer, renderer) {
             renderPurely2 {
                 val shader = bindShader(pipeline.bakedSkybox?.getTexture0() ?: blackCube)
                 combineLighting1(shader, applyToneMapping)

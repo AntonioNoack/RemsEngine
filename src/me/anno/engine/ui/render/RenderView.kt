@@ -126,7 +126,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
     val orbitCenter = Vector3d()
     val orbitRotation = Quaterniond()
-        .rotateX(20.0.toRadians())
+        .rotateX((-30.0).toRadians())
 
     private val deferred = DeferredRenderer.deferredSettings!!
 

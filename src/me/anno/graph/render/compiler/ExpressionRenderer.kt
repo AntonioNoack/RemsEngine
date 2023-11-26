@@ -92,7 +92,7 @@ interface ExpressionRenderer {
         this.shader = shader
 
         val buffer = FBStack["expr-renderer", w, h, channels, fp, samples, DepthBufferType.NONE]
-        GFXState.useFrame(w, h, true, buffer) {
+        GFXState.useFrame(w, h, false, buffer) {
             GFXState.renderPurely {
                 shader.use()
                 DepthTransforms.bindDepthToPosition(shader)
