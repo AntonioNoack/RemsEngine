@@ -4,8 +4,8 @@ import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Texture2D
-import me.anno.image.Image
 import me.anno.gpu.texture.TextureCache
+import me.anno.image.Image
 import me.anno.image.raw.toImage
 import me.anno.io.files.FileReference
 import me.anno.io.files.inner.InnerFolder
@@ -25,6 +25,9 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 object PDFCache : CacheSection("PDFCache") {
+
+    // because this library isn't thread safe in the slightest :(
+    private object Synchronizer
 
     class AtomicCountedDocument(val doc: PDDocument) {
 
@@ -74,7 +77,7 @@ object PDFCache : CacheSection("PDFCache") {
                 val ref = getDocumentRef(src, it, borrow = true, async = false)!!
                 val doc = ref.doc
                 val folder = InnerFolder(src)
-                synchronized(doc) {
+                synchronized(Synchronizer) {
                     val numberOfPages = doc.numberOfPages
                     if (numberOfPages > 1) {
                         // not optimal, but finding sth optimal is hard anyway, because
@@ -152,32 +155,32 @@ object PDFCache : CacheSection("PDFCache") {
 
     fun getImageBySize(doc: PDDocument, size: Int, pageNumber: Int): Image {
         val numberOfPages = doc.numberOfPages
-        return synchronized(doc) {// has to be synchronous
+        return synchronized(Synchronizer) {// has to be synchronous
             val renderer = PDFRenderer(doc)
             val clampedPage = Maths.clamp(pageNumber, 0, numberOfPages - 1)
             val mediaBox = doc.getPage(clampedPage).mediaBox
             val scale = size.toFloat() / max(1f, max(mediaBox.width, mediaBox.height))
-            val image = renderer.renderImage(clampedPage, scale, ImageType.RGB)
-            image.toImage()
-        }
+            renderer.renderImage(clampedPage, scale, ImageType.RGB)
+        }.toImage()
     }
 
     fun getImageByHeight(doc: PDDocument, height: Int, pageNumber: Int): Image {
         val numberOfPages = doc.numberOfPages
-        return synchronized(doc) {// has to be synchronous
+        return synchronized(Synchronizer) {// has to be synchronous
             val renderer = PDFRenderer(doc)
             val clampedPage = Maths.clamp(pageNumber, 0, numberOfPages - 1)
             val mediaBox = doc.getPage(clampedPage).mediaBox
             val scale = height.toFloat() / mediaBox.height
-            val image = renderer.renderImage(clampedPage, scale, ImageType.RGB)
-            image.toImage()
-        }
+            renderer.renderImage(clampedPage, scale, ImageType.RGB)
+        }.toImage()
     }
 
     fun getImage(doc: PDDocument, dpi: Float, pageNumber: Int): Image {
-        val numberOfPages = doc.numberOfPages
-        val renderer = PDFRenderer(doc)
-        return renderer.renderImage(Maths.clamp(pageNumber, 0, numberOfPages - 1), dpi, ImageType.RGB).toImage()
+        return synchronized(Synchronizer) {
+            val numberOfPages = doc.numberOfPages
+            val renderer = PDFRenderer(doc)
+            renderer.renderImage(Maths.clamp(pageNumber, 0, numberOfPages - 1), dpi, ImageType.RGB)
+        }.toImage()
     }
 
     fun disableLoggers() {
@@ -199,5 +202,4 @@ object PDFCache : CacheSection("PDFCache") {
 
     private const val timeout = 20_000L
     private val LOGGER = LogManager.getLogger(PDFCache::class)
-
 }
