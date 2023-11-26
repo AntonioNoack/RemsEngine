@@ -843,8 +843,8 @@ object ShaderLib {
                     // the border isn't the most beautiful, but it ensures readability in front of bad backgrounds :)
                     "float read(vec2 uv){\n" +
                     (if (instanced)
-                        "   vec3 col = texture(tex, vec3(uv,uvZ), 0.0).rgb;\n" else
-                        "   vec3 col = texture(tex, uv, 0.0).rgb;\n") +
+                        "   vec3 col = textureLod(tex, vec3(uv,uvZ), 0.0).rgb;\n" else
+                        "   vec3 col = textureLod(tex, uv, 0.0).rgb;\n") +
                     "   return uv.x >= 0.0 && uv.y >= 0.0 && uv.x <= 1.0 && uv.y <= 1.0 ? (col.x + col.y + col.z) : 0.0;\n" +
                     "}\n" +
                     "float findBorder(ivec2 uv, vec2 invSizeM1){\n" +
@@ -866,8 +866,8 @@ object ShaderLib {
                     "   vec2 invSizeM1 = 1.0/vec2(size-1);\n" +
                     "   vec2 uv1 = vec2(uv + srcOffset)*invSizeM1;\n" +
                     (if (instanced)
-                        "   vec3 mixingSrc = texture(tex, vec3(uv1,uvZ), 0.0).rgb;\n" else
-                        "   vec3 mixingSrc = texture(tex, uv1, 0.0).rgb;\n") +
+                        "   vec3 mixingSrc = textureLod(tex, vec3(uv1,uvZ), 0.0).rgb;\n" else
+                        "   vec3 mixingSrc = textureLod(tex, uv1, 0.0).rgb;\n") +
                     "   vec3 mixing = mixingSrc * textColor.a;\n" +
                     "   float mixingAlpha = brightness(mixing);\n" +
                     "   size = imageSize(dst);\n" +

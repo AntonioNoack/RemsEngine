@@ -19,6 +19,7 @@ import me.anno.io.files.InvalidRef
  * inspired by Jam2go, https://www.youtube.com/watch?v=LGkblrCmzlE
  * */
 object ScreenShader : ECSMeshShader("Screen") {
+    // todo lod-bias seems to not be supported by Intel drivers :/
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return super.createFragmentStages(key) + ShaderStage(
             "Screen", listOf(
