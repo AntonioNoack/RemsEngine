@@ -25,4 +25,9 @@ class ExtensionInfo(
 
     var clazz: KClass<*>? = null
 
+    override fun toString(): String {
+        return "Extension { $uuid, '$name', $file, '$description', " +
+                "version '$version', authors '$authors', dependencies '$dependencies' }"
+    }
+
 }

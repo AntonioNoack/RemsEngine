@@ -2,6 +2,7 @@ package me.anno.io.files
 
 import me.anno.Build
 import me.anno.io.BufferedIO.useBuffered
+import org.apache.logging.log4j.LogManager
 import java.io.*
 import java.net.URI
 
@@ -107,6 +108,8 @@ class BundledRef(
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(BundledRef::class)
+
         fun parse(fullPath: String): FileReference {
 
             if (!fullPath.startsWith(prefix, true)) throw IllegalArgumentException()
@@ -137,16 +140,21 @@ class BundledRef(
         }
 
         private fun findExistingReference(resName: String, fullPath: String): FileReference? {
-            val ref = BundledRef(resName, fullPath, false)
-            if (ref.exists) return ref
-            val lastSlash = resName.lastIndexOf('/')
-            val hasSlash = lastSlash in 0 until resName.lastIndex
-            return if (hasSlash) {
-                findExistingReference(
-                    resName.substring(0, lastSlash),
-                    fullPath.substring(0, prefix.length + lastSlash)
-                )?.getChild(resName.substring(lastSlash + 1))
-            } else null
+            try {
+                val ref = BundledRef(resName, fullPath, false)
+                if (ref.exists) return ref
+                val lastSlash = resName.lastIndexOf('/')
+                val hasSlash = lastSlash in 0 until resName.lastIndex
+                return if (hasSlash) {
+                    findExistingReference(
+                        resName.substring(0, lastSlash),
+                        fullPath.substring(0, prefix.length + lastSlash)
+                    )?.getChild(resName.substring(lastSlash + 1))
+                } else null
+            } catch (e: StackOverflowError) {
+                LOGGER.warn("StackOverflow happened for '$resName'/'$fullPath'")
+                return null
+            }
         }
 
         const val prefix = "res://"
