@@ -163,9 +163,13 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 args.add("scale=$w:$h")
             }
 
-            // todo support 10bit color?
+            // todo support HDR color?
             args.add("-pix_fmt")
-            args.add(if (signature == "dds" || signature == "webp") "bgra" else "bgr24")
+            args.add(
+                if (signature == "dds" || signature == "webp" ||
+                    (signature == "media" && input.lcExtension == "webm")
+                ) "bgra" else "bgr24"
+            )
 
             args.add("-vframes")
             args.add(frameCount.toString())

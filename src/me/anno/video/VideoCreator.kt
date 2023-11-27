@@ -7,16 +7,15 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
-import me.anno.gpu.shader.ShaderLib.u
-import me.anno.gpu.shader.ShaderLib.v
-import me.anno.gpu.shader.ShaderLib.y
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
 import me.anno.image.Image
 import me.anno.image.raw.GPUImage
+import me.anno.image.raw.IntImage
 import me.anno.io.BufferedIO.useBuffered
+import me.anno.io.Streams.writeBE24
+import me.anno.io.Streams.writeBE32
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.clamp
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.Codecs.videoCodecByExtension
@@ -32,9 +31,9 @@ import java.io.OutputStream
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlin.test.assertFalse
 
+// todo support HDR video, too
 open class VideoCreator(
     val width: Int, val height: Int,
     val fps: Double,
@@ -42,11 +41,13 @@ open class VideoCreator(
     val balance: FFMPEGEncodingBalance,
     val type: FFMPEGEncodingType,
     val quality: Int,
+    val withAlpha: Boolean, // use .gif or .webm for this
     val output: FileReference
 ) {
 
     init {
-        if (width % 2 != 0 || height % 2 != 0) throw RuntimeException("width and height must be divisible by 2")
+        if (width % 2 != 0 || height % 2 != 0)
+            throw RuntimeException("width and height must be divisible by 2")
     }
 
     val startTime = Time.nanoTime
@@ -56,9 +57,6 @@ open class VideoCreator(
 
     val extension = output.lcExtension
     val isGIF = extension == "gif"
-
-    // writing yuv is not working yet :/
-    val writeYuv = false // !isGIF
 
     fun init() {
 
@@ -72,10 +70,18 @@ open class VideoCreator(
          * because I don't know how to send audio and video data to ffmpeg
          * at the same time with only one output stream
          * */
-        val rawFormat = if (writeYuv) "yuv444p" else "rgb24"
+        val rawFormat = if(withAlpha) "rgba"
+        else "rgb24"
 
         // Incompatible pixel format 'yuv420p' for codec 'gif', auto-selecting format 'bgr8'
-        val dstFormat = if (isGIF) "bgr8" else "yuv420p"
+        // todo "alpha isn't supported by hevc and nvenc" -> can we prevent using them?
+        val dstFormat = if (isGIF) {
+            if (withAlpha) "bgra8"
+            else "bgr8"
+        } else {
+            if (withAlpha) "yuva420p"
+            else "yuv420p"
+        }
         val fpsString = fps.toString()
 
         val args = arrayListOf(
@@ -88,7 +94,7 @@ open class VideoCreator(
             "-i", "pipe:0", // output buffer
         )
 
-        val encoding = if (!isGIF) videoCodecByExtension(extension) else null
+        val encoding = if (!isGIF) videoCodecByExtension(extension, withAlpha) else null
         if (encoding != null) {
             args += "-c:v"
             args += encoding // "libx264"
@@ -137,8 +143,7 @@ open class VideoCreator(
         LOGGER.info("Total frame count: $totalFrameCount")
     }
 
-    private val pixelByteCount = width * height * 3
-
+    private val pixelByteCount = width * height * (if (withAlpha) 4 else 3)
     private val buffer1 = ByteBufferPool.allocateDirect(pixelByteCount)
     private val buffer2 = ByteBufferPool.allocateDirect(pixelByteCount)
 
@@ -154,7 +159,11 @@ open class VideoCreator(
 
         buffer.position(0)
         setReadAlignment(width * 3)
-        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer)
+        glReadPixels(
+            0, 0, width, height,
+            if (withAlpha) GL_RGBA else GL_RGB,
+            GL_UNSIGNED_BYTE, buffer
+        )
         buffer.position(0)
 
         GFX.check()
@@ -176,71 +185,48 @@ open class VideoCreator(
 
     fun writeFrame(frame: Image) {
         if (frame.width != width || frame.height != height) throw IllegalArgumentException("Resolution does not match!")
+        if (frame is GPUImage) return writeFrame(frame.createIntImage())
         val output = videoOut
         synchronized(output) {
-            if (frame is GPUImage) {
-                val img = frame.createIntImage().data
-                for (i in 0 until width * height) {
-                    val color = img[i]
-                    output.write(color.shr(16))
-                    output.write(color.shr(8))
-                    output.write(color)
+            if (frame is IntImage) {
+                val img = frame.data
+                if (withAlpha) {
+                    for (i in 0 until width * height) {
+                        output.writeBE32(img[i])
+                    }
+                } else {
+                    for (i in 0 until width * height) {
+                        output.writeBE24(img[i])
+                    }
                 }
-            } else for (y in 0 until height) {
-                for (x in 0 until width) {
-                    val color = frame.getRGB(x, y)
-                    output.write(color.shr(16))
-                    output.write(color.shr(8))
-                    output.write(color)
+            } else {
+                if (withAlpha) {
+                    for (y in 0 until height) {
+                        for (x in 0 until width) {
+                            output.writeBE32(frame.getRGB(x, y))
+                        }
+                    }
+                } else {
+                    for (y in 0 until height) {
+                        for (x in 0 until width) {
+                            output.writeBE24(frame.getRGB(x, y))
+                        }
+                    }
                 }
             }
         }
     }
 
-    private val byteArrayBuffer = ByteArray(if (writeYuv) pixelByteCount else min(pixelByteCount, 2048))
+    private val byteArrayBuffer = ByteArray(min(pixelByteCount, 2048))
     fun write(output: OutputStream, data: ByteBuffer) {
         var i = 0
-        if (writeYuv) {
-            val n = pixelByteCount
-            val tm = byteArrayBuffer
-            val f = 1f / 255f
-            val direct = false
-            while (i < n) {
-                val r = data[i].toInt().and(255) * f
-                val g = data[i + 1].toInt().and(255) * f
-                val b = data[i + 2].toInt().and(255) * f
-
-                val y = clamp(y.dot(r, g, b, 1f).roundToInt(), 0, 255)
-                val u = clamp(u.dot(r, g, b, 1f).roundToInt(), 0, 255)
-                val v = clamp(v.dot(r, g, b, 1f).roundToInt(), 0, 255)
-
-                if (direct) {
-                    output.write(y)
-                    output.write(u)
-                    output.write(v)
-                } else {
-                    tm[i] = y.toByte()
-                    tm[i + 1] = u.toByte()
-                    tm[i + 2] = v.toByte()
-                }
-                i += 3
-            }
-            if (!direct) for (j in 0 until 3) {
-                i = j
-                while (i < n) {
-                    output.write(tm[i].toInt())
-                    i += 3
-                }
-            }
-        } else {
-            val tmp = byteArrayBuffer
-            val n = pixelByteCount
-            while (i < n) {
-                val di = min(n - i, tmp.size)
-                data.get(tmp, 0, di)
-                output.write(tmp, 0, di)
-                i += di
-            }
+        val tmp = byteArrayBuffer
+        val n = pixelByteCount
+        while (i < n) {
+            val di = min(n - i, tmp.size)
+            data.get(tmp, 0, di)
+            output.write(tmp, 0, di)
+            i += di
         }
     }
 
@@ -284,7 +270,7 @@ open class VideoCreator(
         ) {
             val creator = VideoCreator(
                 w, h, fps, numUpdates + 1L, FFMPEGEncodingBalance.S1,
-                FFMPEGEncodingType.DEFAULT, defaultQuality, dst
+                FFMPEGEncodingType.DEFAULT, defaultQuality, false, dst
             )
             creator.init()
             var frameIndex = 0
@@ -321,7 +307,7 @@ open class VideoCreator(
         ) {
             val creator = VideoCreator(
                 w, h, fps, numFrames, FFMPEGEncodingBalance.S1,
-                FFMPEGEncodingType.DEFAULT, defaultQuality, dst
+                FFMPEGEncodingType.DEFAULT, defaultQuality, false, dst
             )
             creator.init()
             var frameCount = 0
@@ -370,7 +356,7 @@ open class VideoCreator(
         ) {
             val creator = VideoCreator(
                 w, h, fps, numFrames, FFMPEGEncodingBalance.S1,
-                FFMPEGEncodingType.DEFAULT, defaultQuality, dst
+                FFMPEGEncodingType.DEFAULT, defaultQuality, false, dst
             )
             creator.init()
             for (i in 0 until numFrames) {

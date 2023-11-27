@@ -23,10 +23,14 @@ object Codecs {
     }
 
     // interesting: https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Video_codecs
-    fun videoCodecByExtension(extension: String): String? {
+    fun videoCodecByExtension(extension: String, alpha: Boolean): String? {
         return when (extension) {
             "gif" -> null
-            "webm" -> "libvpx" // vp8=libvpx
+            "webm" -> if(alpha) {
+                "libvpx-vp9"
+            } else {// vp8=libvpx
+                "libvpx"
+            }
             else -> "libx264"
         }
     }

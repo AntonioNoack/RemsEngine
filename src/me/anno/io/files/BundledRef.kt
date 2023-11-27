@@ -14,10 +14,6 @@ class BundledRef(
 
     constructor(resName: String) : this(resName, "$prefix$resName", false)
 
-    // todo for the most important directories, e.g. asset directories,
-    //  we could add index.txt files or sth like that, where all sub-files are listed
-    // done for desktop: or we could identify where the zip jar is located, and traverse/index it
-
     override fun getChild(name: String): FileReference {
         val zfd = zipFileForDirectory
         return zfd?.getChild(name) ?: parse("$absolutePath/$name")

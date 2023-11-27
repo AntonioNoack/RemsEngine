@@ -148,6 +148,13 @@ object Streams {
     }
 
     @JvmStatic
+    fun OutputStream.writeBE24(a: Int) {
+        write(a shr 16)
+        write(a shr 8)
+        write(a)
+    }
+
+    @JvmStatic
     fun OutputStream.writeBE32(a: Int) {
         write(a shr 24)
         write(a shr 16)

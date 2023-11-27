@@ -12,13 +12,13 @@ import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.Key
 import me.anno.language.translation.Dict
-import me.anno.utils.Color.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.a
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -68,9 +68,12 @@ open class TextButton(
         super.calculateSize(w, h)
         val aspectRatio = aspectRatio
         if (aspectRatio > 0f) {
-            val size = max(minW.toFloat() / aspectRatio, minH.toFloat())
-            minW = (size * aspectRatio).roundToInt()
-            minH = size.toInt()
+            val size = max(
+                max(minW - padding.width, 0).toFloat() / aspectRatio,
+                max(minH - padding.height, 0).toFloat()
+            )
+            minW = max((size * aspectRatio).roundToInt() + padding.width, 0)
+            minH = max(size.toInt() + padding.height, 0)
         }
     }
 
