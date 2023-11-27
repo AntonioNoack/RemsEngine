@@ -7,11 +7,11 @@ import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.components.anim.graph.AnimController
 import me.anno.ecs.components.anim.graph.AnimStateNode
+import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.FORCE_ONCE
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.FADE
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.LOOP
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.SOURCE
 import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.SPEED
-import me.anno.ecs.components.anim.graph.AnimStateNode.Companion.START
 import me.anno.engine.ECSRegistry
 import me.anno.engine.ui.render.SceneView.Companion.testScene
 import me.anno.graph.types.states.StateMachine
@@ -47,9 +47,9 @@ fun main() {
         val node = AnimStateNode()
         node.setInput(SOURCE, anim)
         node.setInput(SPEED, 1f)
-        node.setInput(START, 0f)
-        node.setInput(LOOP, true) // todo instead of this, specify number of turns; or end time...
-        node.setInput(FADE, 0.2f)
+        node.setInput(LOOP, true)
+        node.setInput(FADE, 5f)
+        node.setInput(FORCE_ONCE, true)
         val y = 300.0 * (idx - (animations.size - 1) * 0.5)
         node.position.set(0.0, y, 0.0)
         graph.add(node)

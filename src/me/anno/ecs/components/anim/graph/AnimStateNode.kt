@@ -9,39 +9,46 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.graph.types.states.StateNode
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
-import me.anno.maths.Maths.clamp
-import me.anno.maths.Maths.min
-import me.anno.maths.Maths.posMod
-import org.apache.logging.log4j.LogManager
+import me.anno.io.files.InvalidRef
+import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.mix
+import me.anno.utils.structures.lists.Lists.firstOrNull2
 
 class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
     companion object {
-        const val SOURCE = 1
-        const val SPEED = 2
-        const val START = 3
-        const val END = 4
-        const val FADE = 5
-        const val LOOP = 6
-        private val LOGGER = LogManager.getLogger(AnimStateNode::class)
+        val SOURCE = 1
+        val SPEED = 2
+        val FADE = 3
+        val LOOP = 4
+        val FORCE_ONCE = 5
         private val inputs = listOf(
             "File", "Source",
             "Float", "Speed",
-            "Float", "Start",
-            "Float", "End",
             "Float", "Fade",
-            "Bool", "Loop"
+            "Bool", "Loop",
+            "Bool", "Force Once"
         )
         private val outputs = listOf(
-            "Float", "Progress"
+            "Float", "Progress",
+            "Float", "Relative Progress"
         )
     }
 
-    var progress = 0f
+    init {
+        setInput(SOURCE, InvalidRef)
+        setInput(SPEED, 1f)
+        setInput(FADE, 5f)
+        setInput(LOOP, true)
+        setInput(FORCE_ONCE, false)
+    }
 
+    private var progress = 0f
     override fun onEnterState(oldState: StateNode?) {
-        progress = getInput(START) as Float // start time
-        setOutput(1, progress)
+        progress = 0f
+        lastTime = Time.gameTimeN
+        setOutput(1, 0f)
+        setOutput(2, 0f)
     }
 
     fun getDuration(): Float {
@@ -51,57 +58,66 @@ class AnimStateNode : StateNode("AnimState", inputs, outputs) {
     }
 
     override fun update(): StateNode {
-        val speed = getInput(SPEED) as Float
-        progress += speed * Time.deltaTime.toFloat()
         setOutput(1, progress)
-        var end = getInput(END) as Float
-        if (end == 0f) end = getDuration()
-        val fade = getInput(FADE) as Float
-        if (progress > end - fade) return super.update()
+        setOutput(2, progress / getDuration())
+        if (canReturnAnyTime() || hasReachedEnd()) return super.update()
         return this // continuing this animation
     }
 
-    fun updateRenderer(previous: AnimStateNode?, target: AnimMeshComponent) {
-        val targetSize = if (previous == null) 1 else 2
-        if (target.animations.size != targetSize) {
-            target.animations = if (previous == null) {
-                listOf(AnimationState())
-            } else {
-                listOf(
-                    AnimationState(),
-                    AnimationState()
-                )
-            }
-        }
-        val animations = target.animations
-        val loop = getInput(LOOP) as Boolean
-        val start = getInput(START) as Float
-        var end = getInput(END) as Float
-        val duration = getDuration()
-        if (end <= 0f) end = duration
-        val progress = if (loop) posMod(progress, duration) else progress
-        val fade = getInput(FADE) as Float
-        val fadeIn = (progress - start) / fade
-        val weight = clamp(min(fadeIn, (end - progress) / fade))
-        val state = if (previous != null) {
-            val state = animations[0]
-            previous.fillState(1f - weight, state)
-            state.progress += state.speed * Time.deltaTime.toFloat()
-            animations[1]
-        } else animations[0]
-        fillState(weight, state)
-        state.speed = getInput(SPEED) as Float
-        state.progress = progress
-        state.repeat = if (loop) LoopingState.PLAY_LOOP else LoopingState.PLAY_ONCE
+    private fun canReturnAnyTime(): Boolean {
+        return getInput(FORCE_ONCE) != true
     }
 
-    fun fillState(weight: Float, target: AnimationState) {
-        target.weight = weight
+    private fun hasReachedEnd(): Boolean {
+        val fade = getInput(FADE) as Float
+        val goodEndTime = getDuration() - 3f / fade
+        return progress > goodEndTime
+    }
+
+    private var lastTime = 0L
+    fun updateRenderer(target: AnimMeshComponent) {
+
+        val time = Time.gameTimeN
+        if (time == lastTime) return
+
         val source = getInput(SOURCE) as FileReference
-        if (!source.exists) {
-            LOGGER.warn("Missing source '$source'")
+        val speed = getInput(SPEED) as Float
+        val loop = getInput(LOOP) as Boolean
+        val dt = (time - lastTime) * speed / 1e9f
+        lastTime = time
+
+        // if we need to, add this animation to the existing animation states
+        var selfAnimation = target.animations.firstOrNull2 { it.source == source && it.speed == speed }
+        if (selfAnimation == null) {
+            selfAnimation = AnimationState(
+                source, 0f, progress,
+                speed, if (loop) LoopingState.PLAY_LOOP else LoopingState.PLAY_ONCE
+            )
+            target.animations += selfAnimation
         }
-        target.source = source
+
+        val animations = target.animations
+        val fade = getInput(FADE) as Float
+        val fade01 = dtTo01(fade * dt)
+
+        // fade animations in/out
+        var needsRemoval = false
+        val minWeight = 1e-3f
+        for (i in animations.indices) {
+            val anim = animations[i]
+            val targetWeight = if (anim === selfAnimation) 1f else 0f
+            anim.weight = mix(anim.weight, targetWeight, fade01)
+            anim.update(null, dt, true)
+            if (targetWeight == 0f && anim.weight < minWeight) needsRemoval = true
+        }
+
+        progress += dt
+        selfAnimation.progress = selfAnimation.repeat[progress, getDuration()]
+
+        if (needsRemoval) {
+            target.animations = animations
+                .filter { !(it.weight < minWeight && it !== selfAnimation) }
+        }
     }
 
     override fun copyInto(dst: PrefabSaveable) {

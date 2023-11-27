@@ -75,7 +75,7 @@ class AnimController : Component() {
         }
         val newState = graph.update()
         if (newState is AnimStateNode) {
-            newState.updateRenderer(graph.prevState as? AnimStateNode, renderer)
+            newState.updateRenderer(renderer)
         } else lastWarning = "Graph is missing default state"
         return 1
     }

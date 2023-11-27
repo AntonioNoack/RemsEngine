@@ -44,7 +44,7 @@ class AnimationState(
 
     private var lastDt = 0f
     private var lastTime = 0L
-    fun update(ar: AnimMeshComponent, dt: Float, async: Boolean) {
+    fun update(ar: AnimMeshComponent?, dt: Float, async: Boolean) {
         if (lastDt == dt && lastTime == Time.gameTimeN) {
             return // duplicate call
         } else {
@@ -55,7 +55,7 @@ class AnimationState(
                 progress += speed * dt
                 val duration = instance.duration
                 if (progress < 0f || progress >= duration) {
-                    ar.onAnimFinished(this)
+                    ar?.onAnimFinished(this)
                 }
             }
         }

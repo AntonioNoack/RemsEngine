@@ -33,8 +33,8 @@ fun main() {
         val node = AnimStateNode()
         node.setInput(AnimStateNode.SOURCE, anim)
         node.setInput(AnimStateNode.SPEED, 1f)
-        node.setInput(AnimStateNode.START, 0f)
         node.setInput(AnimStateNode.LOOP, true)
+        node.setInput(AnimStateNode.FORCE_ONCE, true)
         node.setInput(AnimStateNode.FADE, 0.2f)
         return node
     }
