@@ -70,13 +70,13 @@ open class VideoCreator(
          * because I don't know how to send audio and video data to ffmpeg
          * at the same time with only one output stream
          * */
-        val rawFormat = if(withAlpha) "rgba"
+        val rawFormat = if (withAlpha) "rgba"
         else "rgb24"
 
         // Incompatible pixel format 'yuv420p' for codec 'gif', auto-selecting format 'bgr8'
         // todo "alpha isn't supported by hevc and nvenc" -> can we prevent using them?
         val dstFormat = if (isGIF) {
-            if (withAlpha) "bgra8"
+            if (withAlpha) "rgba"
             else "bgr8"
         } else {
             if (withAlpha) "yuva420p"
@@ -118,6 +118,10 @@ open class VideoCreator(
             // other codecs support other values
             args += "-preset"
             args += balance.internalName
+        }
+
+        if (isGIF && withAlpha) {
+            // todo transparent gifs aren't working yet, probably need some stupid flags
         }
 
         val builder = BetterProcessBuilder(FFMPEG.ffmpegPathString, args.size + 4, true)

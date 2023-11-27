@@ -330,15 +330,15 @@ class DetectiveWriter(val dst: HashMap<String, Pair<String, Any?>>) : PartialWri
     override fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean) =
         put(name, "Array<Array<Planed>>", values)
 
-    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) =
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) =
         put(name, "FileReference", value)
 
-    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) =
+    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference) =
         put(name, "Array<FileReference>", values)
 
     override fun writeFileArray2D(
         name: String, values: Array<Array<FileReference>>,
-        force: Boolean, workspace: FileReference?
+        force: Boolean, workspace: FileReference
     ) = put(name, "Array<Array<FileReference>>", values)
 
     override fun writeNull(name: String?) {

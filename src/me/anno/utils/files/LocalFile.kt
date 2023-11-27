@@ -19,13 +19,13 @@ object LocalFile {
         } else null
     }
 
-    fun String.toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
+    fun String.toLocalPath(workspace: FileReference = StudioBase.workspace): String {
         val fileStr = replace('\\', '/')
         if (fileStr.contains("://")) return fileStr
         return checkIsChild(fileStr, ConfigBasics.configFolder, "\$CONFIG\$")
             ?: checkIsChild(fileStr, ConfigBasics.cacheFolder, "\$CACHE\$")
             // todo if there is a project file somewhere above this current file, use that project
-            ?: checkIsChild(fileStr, workspace, "\$WORKSPACE\$")
+            ?: checkIsChild(fileStr, workspace.nullIfUndefined(), "\$WORKSPACE\$")
             ?: checkIsChild(fileStr, OS.downloads, "\$DOWNLOADS\$")
             ?: checkIsChild(fileStr, OS.documents, "\$DOCUMENTS\$")
             ?: checkIsChild(fileStr, OS.pictures, "\$PICTURES\$")
@@ -35,7 +35,7 @@ object LocalFile {
             ?: fileStr
     }
 
-    fun String.toGlobalFile(workspace: FileReference? = StudioBase.workspace): FileReference {
+    fun String.toGlobalFile(workspace: FileReference = StudioBase.workspace): FileReference {
         val fileStr = if ('\\' in this) replace('\\', '/') else this
         val i1 = fileStr.lastIndexOf("$/")
         if (i1 < 0) return getReference(fileStr)
@@ -44,7 +44,7 @@ object LocalFile {
         return when (fileStr.substring(i0 + 1, i1)) {
             "CONFIG" -> ConfigBasics.configFolder
             "CACHE" -> ConfigBasics.cacheFolder
-            "WORKSPACE" -> workspace
+            "WORKSPACE" -> workspace.nullIfUndefined() ?: StudioBase.workspace
             "DOWNLOADS" -> OS.downloads
             "DOCUMENTS" -> OS.documents
             "PICTURES" -> OS.pictures

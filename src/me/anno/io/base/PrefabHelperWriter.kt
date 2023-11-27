@@ -237,16 +237,16 @@ class PrefabHelperWriter(val prefab: Prefab) : BaseWriter(false) {
     override fun writePlanefArray2D(name: String, values: Array<Array<Planef>>, force: Boolean) = write(name, values)
     override fun writePlanedArray2D(name: String, values: Array<Array<Planed>>, force: Boolean) = write(name, values)
 
-    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) {
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {
         if (force || value != InvalidRef) write(name, value)
     }
 
-    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) =
+    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference) =
         write(name, values)
 
     override fun writeFileArray2D(
         name: String, values: Array<Array<FileReference>>,
-        force: Boolean, workspace: FileReference?
+        force: Boolean, workspace: FileReference
     ) = write(name, values)
 
 

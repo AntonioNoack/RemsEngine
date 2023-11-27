@@ -152,17 +152,17 @@ abstract class BaseWriter(val canSkipDefaultValues: Boolean) {
 
     abstract fun writeFile(
         name: String, value: FileReference, force: Boolean = false,
-        workspace: FileReference? = StudioBase.workspace
+        workspace: FileReference = StudioBase.workspace
     )
 
     abstract fun writeFileArray(
         name: String, values: Array<FileReference>, force: Boolean = false,
-        workspace: FileReference? = StudioBase.workspace
+        workspace: FileReference = StudioBase.workspace
     )
 
     abstract fun writeFileArray2D(
         name: String, values: Array<Array<FileReference>>, force: Boolean = false,
-        workspace: FileReference? = StudioBase.workspace
+        workspace: FileReference = StudioBase.workspace
     )
 
     fun writeObject(self: ISaveable?, name: String?, value: ISaveable?, force: Boolean = false) {

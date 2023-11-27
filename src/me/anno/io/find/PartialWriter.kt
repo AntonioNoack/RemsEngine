@@ -53,13 +53,13 @@ abstract class PartialWriter(canSkipDefaultValues: Boolean) : BaseWriter(canSkip
     override fun writeStringArray(name: String, values: Array<String>, force: Boolean) {}
     override fun writeStringArray2D(name: String, values: Array<Array<String>>, force: Boolean) {}
 
-    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) {}
-    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {}
+    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference) {
     }
 
     override fun writeFileArray2D(
         name: String, values: Array<Array<FileReference>>,
-        force: Boolean, workspace: FileReference?
+        force: Boolean, workspace: FileReference
     ) {}
 
     override fun writeVector2f(name: String, value: Vector2f, force: Boolean) {}

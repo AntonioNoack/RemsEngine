@@ -39,7 +39,7 @@ fun main() {
     val w = 512
     val h = 512
     val samples = 8
-    val dst = desktop.getChild("test.webm")
+    val dst = desktop.getChild("test.gif")
     val fps = 60.0
     val numFrames = (fps * 10).toLong()
 

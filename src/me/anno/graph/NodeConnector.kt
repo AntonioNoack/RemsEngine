@@ -4,6 +4,8 @@ import me.anno.ecs.annotations.HideInInspector
 import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
+import me.anno.io.files.InvalidRef
+import me.anno.utils.LOGGER
 import org.joml.Vector3d
 
 abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
@@ -81,13 +83,13 @@ abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
 
         writer.writeString("type", type)
         if (isCustom) writer.writeBoolean("custom", true)
-
         writer.writeObjectList(this, "others", others)
-        if (currValue != null) {
+        if (currValue != null && currValue != InvalidRef) {
             try {
                 writer.writeSomething(this, "value", currValue, true)
-            } catch (ignored: RuntimeException) {
+            } catch (e: RuntimeException) {
                 // may not be serializable
+                LOGGER.warn("$type/$name caused $e")
             }
         }
     }

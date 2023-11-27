@@ -30,7 +30,7 @@ abstract class InnerTmpFile private constructor(
         else "tmp://$prefix.$uuid.$ext", uuid
     )
 
-    override fun toLocalPath(workspace: FileReference?) =
+    override fun toLocalPath(workspace: FileReference) =
         absolutePath
 
     companion object { // only works if extension does not contain dots

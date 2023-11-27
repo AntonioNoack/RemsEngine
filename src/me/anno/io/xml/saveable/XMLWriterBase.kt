@@ -474,15 +474,15 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         TODO("Not yet implemented")
     }
 
-    private fun formatFile(value: FileReference?, workspace: FileReference?): String {
-        return (value ?: InvalidRef).toLocalPath(workspace ?: this.workspace)
+    private fun formatFile(value: FileReference?, workspace: FileReference): String {
+        return (value ?: InvalidRef).toLocalPath(workspace.nullIfUndefined() ?: this.workspace)
     }
 
-    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) {
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {
         if (force || value != InvalidRef) attr(REFERENCE, name, formatFile(value, workspace))
     }
 
-    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
+    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference) {
         if (force || values.isNotEmpty()) {
             array(REFERENCE, name, values.size, values.indexOfLast { it != InvalidRef }) {
                 "\"${escape(formatFile(values[it], workspace))}\""
@@ -494,7 +494,7 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         name: String,
         values: Array<Array<FileReference>>,
         force: Boolean,
-        workspace: FileReference?
+        workspace: FileReference
     ) {
         TODO("Not yet implemented")
     }

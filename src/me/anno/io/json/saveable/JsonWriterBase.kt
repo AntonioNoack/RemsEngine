@@ -365,19 +365,19 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
         writeArray2D(name, values, force, STRING.array2d, ::writeString)
     }
 
-    private fun writeFile(value: FileReference?, workspace: FileReference?) {
+    private fun writeFile(value: FileReference?, workspace: FileReference) {
         if (value == null || value == InvalidRef) append("null")
-        else writeString(value.toLocalPath(workspace ?: this.workspace))
+        else writeString(value.toLocalPath(workspace.nullIfUndefined() ?: this.workspace))
     }
 
-    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) {
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {
         if (force || value != InvalidRef) {
             writeAttributeStart(REFERENCE.scalar, name)
             writeFile(value, workspace)
         }
     }
 
-    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
+    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference) {
         writeArray(name, values, force, REFERENCE.array) {
             writeFile(it, workspace)
         }
@@ -385,7 +385,7 @@ abstract class JsonWriterBase(val workspace: FileReference) : BaseWriter(true) {
 
     override fun writeFileArray2D(
         name: String, values: Array<Array<FileReference>>,
-        force: Boolean, workspace: FileReference?
+        force: Boolean, workspace: FileReference
     ) {
         writeArray2D(name, values, force, "R[][]") {
             writeFile(it, workspace)

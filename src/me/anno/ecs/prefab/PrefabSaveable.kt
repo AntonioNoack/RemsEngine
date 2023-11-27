@@ -63,8 +63,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
                 prefab._sampleInstance = this
                 this.prefab = prefab
                 this.prefabPath = Path.ROOT_PATH
-                collectPrimaryChanges()
                 setAllChildPaths()
+                collectPrimaryChanges()
             }
             return prefab.source
         }

@@ -709,7 +709,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return absolutePath
     }
 
-    open fun toLocalPath(workspace: FileReference? = StudioBase.workspace): String {
+    open fun toLocalPath(workspace: FileReference = StudioBase.workspace): String {
         return absolutePath.toLocalPath(workspace)
     }
 

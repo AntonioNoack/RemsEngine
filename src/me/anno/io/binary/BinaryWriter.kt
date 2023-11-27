@@ -400,7 +400,7 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeString(name: String, value: String, force: Boolean) {
-        if (force || value != null) {
+        if (force || value != "") {
             writeAttributeStart(name, STRING)
             writeEfficientString(value)
         }
@@ -420,14 +420,14 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
         }
     }
 
-    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference?) {
+    override fun writeFile(name: String, value: FileReference, force: Boolean, workspace: FileReference) {
         if (force || value != InvalidRef) {
             writeAttributeStart(name, FILE)
             writeEfficientString(value.toLocalPath(workspace))
         }
     }
 
-    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference?) {
+    override fun writeFileArray(name: String, values: Array<FileReference>, force: Boolean, workspace: FileReference) {
         if (force || values.isNotEmpty()) {
             writeAttributeStart(name, FILE_ARRAY)
             output.writeInt(values.size)
@@ -436,10 +436,8 @@ class BinaryWriter(val output: DataOutputStream) : BaseWriter(true) {
     }
 
     override fun writeFileArray2D(
-        name: String,
-        values: Array<Array<FileReference>>,
-        force: Boolean,
-        workspace: FileReference?
+        name: String, values: Array<Array<FileReference>>,
+        force: Boolean, workspace: FileReference
     ) {
         writeGenericArray2D(name, values, force, FILE_ARRAY_2D) { v ->
             writeEfficientString(v.toLocalPath(workspace))

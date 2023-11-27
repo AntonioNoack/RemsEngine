@@ -9,6 +9,7 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.maths.Maths.hasFlag
+import me.anno.maths.Maths.min
 import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import org.joml.Vector3d
@@ -237,5 +238,12 @@ abstract class Node() : PrefabSaveable() {
         dst.layer = layer
         dst.graph = graph
         dst.color = color
+        val si = inputs
+        val di = dst.inputs
+        if (si != null && di != null) {
+            for (i in 0 until min(si.size, di.size)) {
+                di[i].currValue = si[i].currValue
+            }
+        }
     }
 }
