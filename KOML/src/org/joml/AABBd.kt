@@ -86,16 +86,19 @@ class AABBd(
     }
 
     fun testAABB(other: AABBd): Boolean {
-        return maxX >= other.minX &&
-                maxY >= other.minY &&
-                maxZ >= other.minZ &&
-                minX <= other.maxX &&
-                minY <= other.maxY &&
-                minZ <= other.maxZ
+        return maxX >= other.minX && maxY >= other.minY && maxZ >= other.minZ &&
+                minX <= other.maxX && minY <= other.maxY && minZ <= other.maxZ
     }
 
+    fun testAABB(
+        otherMinX: Double, otherMinY: Double, otherMinZ: Double,
+        otherMaxX: Double, otherMaxY: Double, otherMaxZ: Double,
+    ): Boolean {
+        return maxX >= otherMinX && maxY >= otherMinY && maxZ >= otherMinZ &&
+                minX <= otherMaxX && minY <= otherMaxY && minZ <= otherMaxZ
+    }
 
-    fun transform(m: Matrix4d, dest: AABBd = this): AABBd {
+    fun transform(m: Matrix4d, dst: AABBd = this): AABBd {
         val dx = maxX - minX
         val dy = maxY - minY
         val dz = maxZ - minZ
@@ -119,13 +122,13 @@ class AABBd(
             maxy = max(ty, maxy)
             maxz = max(tz, maxz)
         }
-        dest.minX = minx
-        dest.minY = miny
-        dest.minZ = minz
-        dest.maxX = maxx
-        dest.maxY = maxy
-        dest.maxZ = maxz
-        return dest
+        dst.minX = minx
+        dst.minY = miny
+        dst.minZ = minz
+        dst.maxX = maxx
+        dst.maxY = maxy
+        dst.maxZ = maxz
+        return dst
     }
 
     fun testRay(px: Double, py: Double, pz: Double, dx: Double, dy: Double, dz: Double) =
@@ -437,5 +440,4 @@ class AABBd(
         val near = max(max(nearX, max(nearY, nearZ)), 0.0)
         return if (far >= near) near else Double.POSITIVE_INFINITY
     }
-
 }

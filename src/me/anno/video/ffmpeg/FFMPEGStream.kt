@@ -216,6 +216,32 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
                 }
             }
         }
+
+        @JvmStatic
+        fun devNull(name: String, stream: InputStream) {
+            thread(name = "devNull-$name") {
+                try {
+                    stream.use { stream1: InputStream ->
+                        waitUntil(true) {// wait until we are done
+                            stream1.available() > 0 && stream1.read() < 0
+                        }
+                    }
+                } catch (_: ShutdownException) {
+                }
+            }
+        }
+
+        @JvmStatic
+        fun devLog(name: String, stream: InputStream) {
+            thread(name = name) {
+                val out = stream.bufferedReader()
+                while (!Engine.shutdown) {
+                    val line = out.readLine() ?: break
+                    LOGGER.info(line)
+                }
+                out.close()
+            }
+        }
     }
 
     var srcFPS = -1.0
@@ -258,27 +284,4 @@ abstract class FFMPEGStream(val file: FileReference?, val isProcessCountLimited:
         }
     }
 
-    fun devNull(name: String, stream: InputStream) {
-        thread(name = "devNull-$name") {
-            try {
-                stream.use { stream1: InputStream ->
-                    waitUntil(true) {// wait until we are done
-                        stream1.available() > 0 && stream1.read() < 0
-                    }
-                }
-            } catch (_: ShutdownException) {
-            }
-        }
-    }
-
-    fun devLog(name: String, stream: InputStream) {
-        thread(name = name) {
-            val out = stream.bufferedReader()
-            while (!Engine.shutdown) {
-                val line = out.readLine() ?: break
-                LOGGER.info(line)
-            }
-            out.close()
-        }
-    }
 }

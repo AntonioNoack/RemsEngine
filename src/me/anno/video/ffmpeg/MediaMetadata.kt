@@ -24,6 +24,7 @@ import me.anno.utils.types.AnyToInt.getInt
 import me.anno.utils.types.AnyToLong.getLong
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.parseTime
+import me.anno.video.ffmpeg.FFMPEGStream.Companion.devNull
 import net.sf.image4j.codec.ico.ICOReader
 import org.apache.logging.log4j.LogManager
 import java.io.IOException
@@ -172,6 +173,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
         val process = builder.start()
 
         // get and parse the data :)
+        FFMPEGStream.logOutput(null, process.errorStream, true)
         val data = JsonReader(process.inputStream.useBuffered()).readObject()
         val streams = data["streams"] as? ArrayList<*> ?: ArrayList<Any?>()
         val format = data["format"] as? HashMap<*, *> ?: HashMap<String, Any?>()
@@ -281,6 +283,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
         val process = builder.start()
 
         // get and parse the data :)
+        devNull(file.absolutePath, process.errorStream)
         val bytes = process.inputStream.readBytes()
         val data = String(bytes)
         if (data.isEmpty()) return 0.0

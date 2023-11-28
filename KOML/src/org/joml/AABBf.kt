@@ -83,12 +83,16 @@ class AABBf(
     }
 
     fun testAABB(other: AABBf): Boolean {
-        return maxX >= other.minX &&
-                maxY >= other.minY &&
-                maxZ >= other.minZ &&
-                minX <= other.maxX &&
-                minY <= other.maxY &&
-                minZ <= other.maxZ
+        return maxX >= other.minX && maxY >= other.minY && maxZ >= other.minZ &&
+                minX <= other.maxX && minY <= other.maxY && minZ <= other.maxZ
+    }
+
+    fun testAABB(
+        otherMinX: Float, otherMinY: Float, otherMinZ: Float,
+        otherMaxX: Float, otherMaxY: Float, otherMaxZ: Float,
+    ): Boolean {
+        return maxX >= otherMinX && maxY >= otherMinY && maxZ >= otherMinZ &&
+                minX <= otherMaxX && minY <= otherMaxY && minZ <= otherMaxZ
     }
 
     fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float): Boolean =
