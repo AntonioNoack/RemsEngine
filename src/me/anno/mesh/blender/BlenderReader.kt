@@ -376,7 +376,7 @@ object BlenderReader {
                     return
                 }
                 val meshPrefab = (meshFile).readPrefab()
-                val boneIndices = meshPrefab["boneIndices"] as? IntArray
+                val boneIndices = meshPrefab["rawBoneIndices"] as? IntArray
                 if (armatureModifier != null && boneIndices != null) {
 
                     // todo proper file for this
@@ -384,34 +384,38 @@ object BlenderReader {
                     val meshFile2 = InnerTmpPrefabFile(subPrefab)
 
                     // create skeleton and map vertex indices
-                    val (skeleton, mappedBoneIndices) = createSkeleton(
-                        armatureModifier,
-                        blenderMesh.vertexGroupNames?.map { it.name ?: "" } ?: emptyList(),
-                        boneIndices
-                    )
-                    subPrefab["boneIndices"] = mappedBoneIndices
+                    val vertexGroups = blenderMesh.vertexGroupNames?.map { it.name ?: "" }
+                    if (vertexGroups != null) {
+                        val (skeleton, mappedBoneIndices) = createSkeleton(armatureModifier, vertexGroups, boneIndices)
+                        subPrefab["boneIndices"] = mappedBoneIndices
 
-                    // todo create proper location for skeleton
-                    val skeletonRef = InnerTmpPrefabFile(skeleton)
-                    val c = prefab.add(path, 'c', "AnimMeshComponent", obj.id.realName)
+                        // todo create proper location for skeleton
+                        val skeletonRef = InnerTmpPrefabFile(skeleton)
+                        val c = prefab.add(path, 'c', "AnimMeshComponent", obj.id.realName)
 
-                    prefab[c, "meshFile"] = meshFile2
-                    prefab[c, "skeleton"] = skeletonRef
-                    if (false && LOGGER.isDebugEnabled) {
-                        LOGGER.debug("Armature Pose: {}", armatureObject.pose)
-                        LOGGER.debug("Armature Action: {}", armatureObject.action)
-                        LOGGER.debug("Object Action: {}", obj.action)
-                        LOGGER.debug("Object AnimData: {}", obj.animData)
-                        LOGGER.debug("Armature AnimData: {}", armatureObject.animData) // this is defined :3
-                    }
-                    val action = armatureObject.animData?.action ?: obj.animData?.action // obj.animData just in case
-                    if (action != null) {
-                        @Suppress("UNCHECKED_CAST")
-                        val animation = readAnimation(action, skeleton["bones"] as List<Bone>, skeletonRef)
-                        if (animation != null) {
-                            val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
-                            prefab[c, "animations"] = listOf(animState)
+                        prefab[c, "meshFile"] = meshFile2
+                        prefab[c, "skeleton"] = skeletonRef
+                        if (false && LOGGER.isDebugEnabled) {
+                            LOGGER.debug("Armature Pose: {}", armatureObject.pose)
+                            LOGGER.debug("Armature Action: {}", armatureObject.action)
+                            LOGGER.debug("Object Action: {}", obj.action)
+                            LOGGER.debug("Object AnimData: {}", obj.animData)
+                            LOGGER.debug("Armature AnimData: {}", armatureObject.animData) // this is defined :3
                         }
+                        val action =
+                            armatureObject.animData?.action ?: obj.animData?.action // obj.animData just in case
+                        if (action != null) {
+                            @Suppress("UNCHECKED_CAST")
+                            val animation = readAnimation(action, skeleton["bones"] as List<Bone>, skeletonRef)
+                            if (animation != null) {
+                                val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
+                                prefab[c, "animations"] = listOf(animState)
+                            }
+                        }
+                    } else {
+                        LOGGER.warn("Vertex groups were null :/")
+                        val c = prefab.add(path, 'c', "MeshComponent", obj.id.realName)
+                        prefab[c, "meshFile"] = meshFile
                     }
                 } else {
                     val c = prefab.add(path, 'c', "MeshComponent", obj.id.realName)

@@ -2,6 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.Build
 import me.anno.cache.ICacheData
+import me.anno.gpu.ContextPointer
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
@@ -115,7 +116,8 @@ class Framebuffer(
         Framebuffer("$name.ss", width, height, 1, targets, depthBufferType)
     else null
 
-    override var pointer = 0
+    override var pointer by ContextPointer()
+
     var session = 0
 
     var internalDepthRenderbuffer = 0

@@ -126,6 +126,9 @@ object Menu {
         val window = panel.window!!
         window.windowStack.remove(window)
         window.destroy()
+        if (window.windowStack.isEmpty()) {
+            window.windowStack.osWindow?.requestClose()
+        }
     }
 
     private fun styleComplexEntry(button: TextPanel, option: ComplexMenuEntry, padding: Int, hover: Boolean) {

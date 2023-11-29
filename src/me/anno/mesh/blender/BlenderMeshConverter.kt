@@ -347,7 +347,7 @@ object BlenderMeshConverter {
         }
         if (boneWeights2 != null && boneIndices2 != null) {
             prefab["boneWeights"] = boneWeights2.toFloatArray()
-            prefab["boneIndices"] = boneIndices2.toIntArray()
+            prefab["rawBoneIndices"] = boneIndices2.toIntArray() // these need to be mapped
         }
     }
 

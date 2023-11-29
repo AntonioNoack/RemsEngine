@@ -24,17 +24,19 @@ open class OSWindow(var title: String) {
     companion object {
         private val LOGGER = LogManager.getLogger(OSWindow::class)
         private var lastCurrentContext = 0L
+        var defaultWidth = 800
+        var defaultHeight = 700
     }
 
     var pointer = 0L
-    var width = 800
-    var height = 700
+    var width = defaultWidth
+    var height = defaultHeight
 
     var lastUpdate = 0L
 
     private var oldTitle = title
 
-    val windowStack = WindowStack()
+    val windowStack = WindowStack(this)
 
     var lastCursor: Cursor? = null
 
@@ -269,7 +271,7 @@ open class OSWindow(var title: String) {
     val isFramebufferTransparent: Boolean
         get() = GLFW.glfwGetWindowAttrib(pointer, GLFW.GLFW_TRANSPARENT_FRAMEBUFFER) != GLFW.GLFW_FALSE
 
-   var requestedCloseManually = false
+    var requestedCloseManually = false
     fun requestClose() {
         requestedCloseManually = true
         GLFW.glfwSetWindowShouldClose(pointer, true)
@@ -280,6 +282,7 @@ open class OSWindow(var title: String) {
         if (pointer != lastCurrentContext && pointer != 0L) {
             lastCurrentContext = pointer
             GLFW.glfwMakeContextCurrent(pointer)
+            ContextPointer.currentWindow = this
         }
         return pointer != 0L
     }

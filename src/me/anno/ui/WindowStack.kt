@@ -17,7 +17,7 @@ import kotlin.math.max
  * Could be within a virtual window, too (CanvasComponent)
  * */
 @Suppress("MemberVisibilityCanBePrivate")
-class WindowStack : Stack<Window>() {
+class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
 
     // typically few elements, so a list
     val inFocus = ArrayList<Panel>()

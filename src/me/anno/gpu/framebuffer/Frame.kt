@@ -65,6 +65,8 @@ object Frame {
                 framebuffer.bindDirectly()
             }
 
+            GFX.check()
+
             var offsetX = offsetX
             var offsetY = offsetY
             if (framebuffer is Framebuffer) {
@@ -84,22 +86,10 @@ object Frame {
             var x2 = localX
             var y2 = availableHeight - (localY + h)
             if (x2 + w > availableWidth || y2 + h > availableHeight || x2 < 0 || y2 < 0) {
-                /*val exception = IllegalArgumentException(
-                    "Viewport cannot be larger than frame! $x2 + $w > $availableWidth || " +
-                            "$y2 + $h > $availableHeight, $x2 < 0 || $y2 < 0, " +
-                            "cs?: $changeSize, ($x $y) += ($w $h) | - ($offsetX $offsetY), " +
-                            buffer.toString()
-                )*/
-                //if (buffer == null) {
-                // GFX.viewportX -= min(x2, 0)
-                // GFX.viewportY += min(y2, 0)
                 x2 = max(x2, 0)
                 y2 = max(y2, 0)
                 w = min(w, availableWidth - x2)
                 h = min(h, availableHeight - y2)
-
-                // exception.printStackTrace()
-                // } else throw exception
             }
 
             GFX.viewportWidth = w
@@ -108,14 +98,14 @@ object Frame {
             // this is mirrored
             GL11C.glViewport(x2, y2, w, h)
 
+            GFX.check()
+
             lastX = x
             lastY = y
             lastW = w
             lastH = h
             lastPtr = ptr
         }
-
-        GFX.check()
     }
 
     fun isFullscreen(): Boolean {

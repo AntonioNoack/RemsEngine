@@ -3,6 +3,7 @@ package me.anno.utils.files
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
+import me.anno.gpu.OSWindow
 import me.anno.io.files.FileReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
@@ -142,8 +143,7 @@ object FileChooser {
         return ui
     }
 
-    // not supported yet
-    var openInSeparateWindow = false
+    var openInSeparateWindow = true
     private fun createFileChooser(
         title: NameDesc,
         allowFiles: Boolean, allowDirectories: Boolean,
@@ -159,8 +159,10 @@ object FileChooser {
         )
         val baseWindow = GFX.focusedWindow ?: GFX.someWindow
         return if (openInSeparateWindow || baseWindow == null) {
-            // todo this path crashes, when we explore folders, in glBindFramebuffer ...
-            val window = GFXBase.createWindow(title.name, ui)
+            // make this window a little smaller than default, so it's more obvious
+            val w = OSWindow.defaultWidth * 6 / 7
+            val h = OSWindow.defaultHeight * 5 / 7
+            val window = GFXBase.createWindow(title.name, ui, w, h)
             window.windowStack.first()
         } else {
             val window1 = Window(ui, false, baseWindow.windowStack)

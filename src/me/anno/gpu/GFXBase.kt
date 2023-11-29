@@ -166,6 +166,16 @@ object GFXBase {
     }
 
     @JvmStatic
+    fun createWindow(title: String, panel: Panel, width: Int, height: Int): OSWindow {
+        val window = OSWindow(title)
+        window.width = width
+        window.height = height
+        createWindow(window, null)
+        window.windowStack.push(panel)
+        return window
+    }
+
+    @JvmStatic
     fun createWindow(instance: OSWindow, tick: Clock?): OSWindow {
         synchronized(glfwLock) {
             val width = instance.width
