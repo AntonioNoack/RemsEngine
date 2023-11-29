@@ -46,7 +46,7 @@ open class Window(
     val mouseDownX get() = windowStack.mouseDownX
     val mouseDownY get() = windowStack.mouseDownY
 
-    var isClosingQuestion = false
+    var isAskingUserAboutClosing = false
 
     var panel: Panel = panel
         set(value) {

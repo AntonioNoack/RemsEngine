@@ -177,6 +177,7 @@ open class FileExplorer(
     open fun onDoubleClick(file: FileReference) {}
 
     val searchBar = TextInput("Search Term", "", false, style)
+    var searchDepth = 3
 
     init {
         searchBar.addChangeListener {
@@ -271,7 +272,7 @@ open class FileExplorer(
         }
     }
 
-    val title = PathPanel(folder, style)
+    val pathPanel = PathPanel(folder, style)
 
     override fun calculateSize(w: Int, h: Int) {
         // a try...
@@ -315,9 +316,9 @@ open class FileExplorer(
         content2d.childHeight = esi * 4 / 3
         val topBar = PanelListX(style)
         this += topBar
-        topBar += title
+        topBar += pathPanel
 
-        title.addRightClickListener {
+        pathPanel.addRightClickListener {
             val shortCutFolders = getShortcutFolders()
             openMenu(windowStack, NameDesc("Switch To"), listOf(
                 MenuOption(NameDesc("Add Current To This List")) {
@@ -332,7 +333,7 @@ open class FileExplorer(
         topBar += searchBar
         this += uContent
 
-        title.onChangeListener = {
+        pathPanel.onChangeListener = {
             switchTo(it)
             invalidate()
         }
@@ -341,6 +342,7 @@ open class FileExplorer(
         uContent += ScrollPanelY(content2d, Padding(1), style).apply {
             weight = 1f
         }
+        uContent.weight = 1f // idk about that..
     }
 
     fun invalidate() {
@@ -368,6 +370,10 @@ open class FileExplorer(
         return true
     }
 
+    open fun createEntry(isParent: Boolean, file: FileReference): FileExplorerEntry {
+        return FileExplorerEntry(this, isParent, file, style)
+    }
+
     fun createResults() {
         searchTask.compute {
 
@@ -384,7 +390,7 @@ open class FileExplorer(
                 lastSearch = newSearch
 
                 // when searching something, also include sub-folders up to depth of xyz
-                val searchDepth = 3
+                val searchDepth = searchDepth
                 val fileLimit = 10000
                 if (search.isNotEmpty() && level0.size < fileLimit) {
                     var lastLevel = level0
@@ -420,7 +426,7 @@ open class FileExplorer(
                 if (parent != null) {
                     if (filterShownFiles(parent)) addEvent {
                         // option to go up a folder
-                        val entry = FileExplorerEntry(this, true, parent, style)
+                        val entry = createEntry(true, parent)
                         entry.listMode = listMode
                         content2d += entry
                         invalidateLayout()
@@ -440,7 +446,7 @@ open class FileExplorer(
                                 for (idx in list.indices) {
                                     val file = list[idx]
                                     if (filterShownFiles(file)) {
-                                        val entry = FileExplorerEntry(this, false, file, style)
+                                        val entry = createEntry(false, file)
                                         entry.listMode = listMode
                                         content2d += entry
                                     }
@@ -504,8 +510,8 @@ open class FileExplorer(
         super.onUpdate()
         if (isValid <= 0f) {
             isValid = Float.POSITIVE_INFINITY
-            title.file = folder// ?.toString() ?: "This Computer"
-            title.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
+            pathPanel.file = folder// ?.toString() ?: "This Computer"
+            pathPanel.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
             createResults()
         } else isValid -= Time.deltaTime.toFloat()
         if (loading != 0L) invalidateDrawing()

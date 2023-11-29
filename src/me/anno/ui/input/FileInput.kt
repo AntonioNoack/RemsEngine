@@ -8,7 +8,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.thumbs.Thumbs
-import me.anno.utils.Color.mixARGB
+import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -27,6 +27,7 @@ import me.anno.ui.editor.files.FileExplorer.Companion.openInStandardProgramDesc
 import me.anno.ui.editor.files.FileExplorer.Companion.pasteDesc
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.ui.editor.files.FileExplorerOption
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.files.FileChooser
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -77,8 +78,8 @@ open class FileInput(
                         } else file2 = file3
                     }
                     FileChooser.selectFiles(
-                        !isDirectory, isDirectory, false,
-                        file2, false, emptyList()
+                        NameDesc(if (isDirectory) "Select folder" else "Select file"), !isDirectory,
+                        isDirectory, false, false, file2.getParent() ?: file2, emptyList()
                     ) { files ->
                         if (files.isNotEmpty()) {
                             setValue(files.first(), true)

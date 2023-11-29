@@ -78,7 +78,7 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         sumWeight = weightSum
 
         minW = (maxX - x) + padding.width
-        minH = constantSum + padding.height
+        minH = constantSumWW + padding.height
     }
 
     override val visibleIndex0

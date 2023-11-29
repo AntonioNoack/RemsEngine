@@ -654,8 +654,9 @@ object Input {
     fun import() {
         if (lastFile == InvalidRef) lastFile = instance!!.getDefaultFileLocation()
         FileChooser.selectFiles(
-            allowFiles = true, allowFolders = false, allowMultiples = false,
-            lastFile, toSave = false, emptyList()
+            NameDesc("Import Files"), allowFiles = true,
+            allowFolders = false, allowMultiples = false, startFolder = lastFile,
+            toSave = false, filters = emptyList()
         ) { files ->
             val fileRef = files.firstOrNull()
             if (fileRef != null) {

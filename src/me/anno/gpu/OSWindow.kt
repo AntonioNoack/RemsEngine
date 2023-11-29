@@ -269,7 +269,9 @@ open class OSWindow(var title: String) {
     val isFramebufferTransparent: Boolean
         get() = GLFW.glfwGetWindowAttrib(pointer, GLFW.GLFW_TRANSPARENT_FRAMEBUFFER) != GLFW.GLFW_FALSE
 
-    fun requestExit() {
+   var requestedCloseManually = false
+    fun requestClose() {
+        requestedCloseManually = true
         GLFW.glfwSetWindowShouldClose(pointer, true)
     }
 

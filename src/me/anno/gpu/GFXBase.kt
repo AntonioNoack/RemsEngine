@@ -21,8 +21,8 @@ import me.anno.input.Input.mouseLockWindow
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
-import me.anno.studio.StudioBase
 import me.anno.studio.Events.addEvent
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.menu.Menu.ask
 import me.anno.ui.input.InputPanel
@@ -172,8 +172,8 @@ object GFXBase {
             val height = instance.height
             val sharedWindow = windows.firstOrNull { it.pointer != 0L }?.pointer ?: 0L
             val window = GLFW.glfwCreateWindow(width, height, instance.title, 0L, sharedWindow)
-            instance.pointer = window
             if (window == 0L) throw RuntimeException("Failed to create the GLFW window")
+            instance.pointer = window
             windows.add(instance)
             tick?.stop("Create window")
             addCallbacks(instance)
@@ -400,7 +400,8 @@ object GFXBase {
         val ws = window.windowStack
         if (ws.isEmpty() ||
             DefaultConfig["window.close.directly", false] ||
-            ws.peek().isClosingQuestion
+            ws.peek().isAskingUserAboutClosing ||
+            window.requestedCloseManually
         ) {
             window.shouldClose = true
             GLFW.glfwSetWindowShouldClose(window.pointer, true)
@@ -413,7 +414,7 @@ object GFXBase {
                 ) {
                     window.shouldClose = true
                     GLFW.glfwSetWindowShouldClose(window.pointer, true)
-                }?.isClosingQuestion = true
+                }?.isAskingUserAboutClosing = true
                 window.framesSinceLastInteraction = 0
                 ws.peek().setAcceptsClickAway(false)
             }

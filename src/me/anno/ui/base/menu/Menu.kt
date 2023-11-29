@@ -8,9 +8,9 @@ import me.anno.language.translation.Dict
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
-import me.anno.utils.Color.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.Window
+import me.anno.ui.WindowStack
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
@@ -22,7 +22,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.Search
 import me.anno.ui.input.TextInput
 import me.anno.ui.input.components.PureTextInput
-import me.anno.ui.WindowStack
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.strings.StringHelper.levenshtein
 import kotlin.math.max
 import kotlin.math.min
@@ -73,15 +73,12 @@ object Menu {
         actionName: NameDesc,
         getColor: (String) -> Int,
         callback: (String) -> Unit
-    ) =
-    // GFX.updateMousePosition()
-        // windowStack.updateMousePosition()
-        askName(
-            windowStack,
-            windowStack.mouseXi - paddingX,
-            windowStack.mouseYi - paddingY,
-            title, value0, actionName, getColor, callback
-        )
+    ) = askName(
+        windowStack,
+        windowStack.mouseXi - paddingX,
+        windowStack.mouseYi - paddingY,
+        title, value0, actionName, getColor, callback
+    )
 
     fun askName(
         windowStack: WindowStack,

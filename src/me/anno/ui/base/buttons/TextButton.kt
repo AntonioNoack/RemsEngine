@@ -154,7 +154,12 @@ open class TextButton(
 
     override fun onKeyTyped(x: Float, y: Float, key: Key) {
         if (isInputAllowed && key.isClickKey()) click()
-        else super.onKeyTyped(x, y, key)
+        else uiParent?.onKeyTyped(x, y, key)
+    }
+
+    override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
+        if (isInputAllowed) super.onMouseClicked(x, y, button, long)
+        else uiParent?.onMouseClicked(x, y, button, long)
     }
 
     override fun acceptsChar(char: Int) = Key.byId(char).isClickKey() // not ideal...

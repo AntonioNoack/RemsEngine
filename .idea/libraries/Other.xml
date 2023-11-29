@@ -5,7 +5,6 @@
       <root url="jar://$PROJECT_DIR$/lib/commons-imaging-1.0-alpha1.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/FABRIK-IK.jar!/" />
       <root url="jar://$PROJECT_DIR$/lib/JTransforms-3.1.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/customized/javaFx/OpenWithExplorer.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

@@ -74,9 +74,6 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
                 child.calculateSize(calcChildWidth, calcChildHeight)
             }
         }
-
-        this.width = minW
-        this.height = minH
     }
 
     override val visibleIndex0

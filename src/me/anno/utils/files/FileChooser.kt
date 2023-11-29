@@ -1,135 +1,171 @@
 package me.anno.utils.files
 
-import me.anno.io.files.FileFileRef
+import me.anno.config.DefaultConfig.style
+import me.anno.gpu.GFX
+import me.anno.gpu.GFXBase
 import me.anno.io.files.FileReference
-import me.anno.io.files.FileReference.Companion.getReference
-import org.apache.logging.log4j.LogManager
-import java.awt.Component
-import java.io.File
-import javax.imageio.ImageIO
-import javax.swing.JDialog
-import javax.swing.JFileChooser
-import javax.swing.UIManager
-import javax.swing.filechooser.FileFilter
-import javax.swing.plaf.nimbus.NimbusLookAndFeel
-import kotlin.concurrent.thread
+import me.anno.language.translation.NameDesc
+import me.anno.ui.Panel
+import me.anno.ui.Style
+import me.anno.ui.Window
+import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.menu.Menu
+import me.anno.ui.base.text.TextPanel
+import me.anno.ui.editor.files.FileExplorer
+import me.anno.ui.editor.files.FileExplorerEntry
+import me.anno.ui.input.EnumInput
+import me.anno.ui.input.TextInput
+import me.anno.utils.files.LocalFile.toGlobalFile
 
-
-// to do create custom file chooser instead of using JFileChooser?
 object FileChooser {
 
     @JvmStatic
-    private fun notAvailable(e: Throwable): Nothing? {
-        LOGGER.info("JavaFX is not available, ${e::class.simpleName}: ${e.message}")
-        return null
-    }
-
-    @JvmStatic
-    private val method by lazy {
-        try {
-            val clazz = javaClass.classLoader.loadClass("me.anno.utils.files.FileExplorerSelect")
-            clazz?.getMethod(
-                "select",
-                Boolean::class.java,
-                Boolean::class.java,
-                Boolean::class.java,
-                File::class.java,
-                Boolean::class.java,
-                Array<Array<String>>::class.java,
-                Function1::class.java
-            )
-        } catch (e: NoClassDefFoundError) {
-            notAvailable(e)
-        } catch (e: ClassNotFoundException) {
-            notAvailable(e)
-        } catch (e: NoSuchMethodError) {
-            notAvailable(e)
-        } catch (e: NoSuchMethodException) {
-            notAvailable(e)
-        } catch (e: SecurityException) {
-            notAvailable(e)
-        }
-    }
-
-    @JvmStatic
     fun selectFiles(
-        allowFiles: Boolean, allowFolders: Boolean, allowMultiples: Boolean,
-        startFolder: FileReference, toSave: Boolean, filters: List<FileExtensionFilter>,
-        callback: (List<FileReference>) -> Unit
+        title: NameDesc, allowFiles: Boolean, allowFolders: Boolean,
+        allowMultiples: Boolean, toSave: Boolean, startFolder: FileReference,
+        filters: List<FileExtensionFilter>, callback: (List<FileReference>) -> Unit
     ) {
         if (!allowFiles && !allowFolders) {
             callback(emptyList())
             return
         }
-        thread(name = "Select File/Folder") {
-            val startFolder1 = (startFolder as? FileFileRef)?.file
-            val canUseJavaFX = !(allowFiles && allowFolders) && // both types are not supported together in JavaFX
-                    !(allowMultiples && (allowFolders || toSave)) // multiple folders cannot be selected in JavaFX; multiple toSave files neither
-            val method = if (canUseJavaFX) method else null
-            if (method != null) {
-                val filters1: Array<Array<String>> = filters.map {
-                    (listOf(it.nameDesc.name) + it.extensions).toTypedArray()
-                }.toTypedArray()
-                method.invoke(
-                    null, allowFiles, allowFolders, allowMultiples,
-                    startFolder1, toSave, filters1, { files: List<File> ->
-                        callback(files.map { FileFileRef(it) })
-                    }
-                )
-            } else selectFilesUsingJFileChooser(
-                allowFiles, allowFolders, allowMultiples,
-                startFolder1, toSave, filters, callback
-            )
+        createFileChooser(
+            title, allowFiles, allowFolders, allowMultiples, toSave,
+            startFolder, filters, style, callback
+        )
+    }
+
+    fun createFileChooserUI(
+        allowFiles: Boolean, allowDirectories: Boolean,
+        allowMultiples: Boolean, toSave: Boolean,
+        startDirectory: FileReference,
+        filters: List<FileExtensionFilter>,
+        style: Style, callback: (List<FileReference>) -> Unit
+    ): Panel {
+
+        fun filterFiles(selected: List<FileReference>): List<FileReference> {
+            var selectedFiles = selected
+            if (!allowFiles || !allowDirectories) {
+                selectedFiles = selectedFiles.filter {
+                    if (it.isDirectory) allowDirectories else allowFiles
+                }
+            }
+            if (selectedFiles.size > 1 && !allowMultiples) {
+                selectedFiles = listOf(selectedFiles.first())
+            }
+            return selectedFiles
         }
-    }
 
-    private fun initSwingStyle() {
-        UIManager.setLookAndFeel(NimbusLookAndFeel::class.java.name)
-    }
+        val cancel = TextButton("Cancel", style)
+        val submit = TextButton("Select", style)
+        submit.isInputAllowed = false
 
-    private fun selectFilesUsingJFileChooser(
-        allowFiles: Boolean, allowFolders: Boolean, allowMultiples: Boolean,
-        startFolder: File?, toSave: Boolean, filters: List<FileExtensionFilter>,
-        callback: (List<FileReference>) -> Unit
-    ) {
+        var selected: List<FileReference> = emptyList()
+        val filesList = if (toSave) {
+            // if toSave, add a bar to enter a new name
+            val filesList = TextInput(style)
+            filesList.addChangeListener { string ->
+                // change list of selected ones...
+                selected = string.split("; ")
+                    .map { file -> file.trim() }
+                    .filter { file -> file.isNotEmpty() }
+                    .map { file -> file.toGlobalFile() }
+                submit.isInputAllowed = selected.isNotEmpty()
+            }
+            filesList.alignmentX = AxisAlignment.CENTER // todo this isn't working... why?
+            filesList.base.enableSpellcheck = false
+            filesList
+        } else {
+            TextPanel(style)
+        }
 
-        initSwingStyle()
+        var extensions: List<String> = emptyList()
+        val files = object : FileExplorer(startDirectory, style) {
+            override fun filterShownFiles(file: FileReference): Boolean {
+                return extensions.isEmpty() || file.lcExtension in extensions || file.isDirectory
+            }
 
-        val jFileChooser = object : JFileChooser() {
-            override fun createDialog(p0: Component?): JDialog {
-                val dialog = super.createDialog(p0)
-                val image = getReference("res://icon.png")
-                    .inputStreamSync()
-                    .use { ImageIO.read(it) }
-                dialog.setIconImage(image)
-                return dialog
+            override fun onUpdate() {
+                super.onUpdate()
+                val selectedList = filterFiles(content2d.children
+                    .filterIsInstance<FileExplorerEntry>()
+                    .filter { it.isInFocus }.map { it.ref1s })
+                if (selectedList.isNotEmpty() && selectedList != selected) {
+                    selected = selectedList
+                    val text = if (selectedList.size == 1) {
+                        selectedList.first().toLocalPath()
+                    } else {
+                        "${selectedList.first().getParent()?.toLocalPath()}: " +
+                                selectedList.joinToString("; ") { it.name }
+                    }
+                    when (filesList) {
+                        is TextInput -> filesList.setValue(text, false)
+                        is TextPanel -> filesList.text = text
+                    }
+                    submit.isInputAllowed = true
+                }
             }
         }
+        files.weight = 1f
 
-        if (startFolder != null) jFileChooser.currentDirectory = startFolder
-        jFileChooser.fileSelectionMode = when {
-            allowFolders && allowFiles -> JFileChooser.FILES_AND_DIRECTORIES
-            allowFolders -> JFileChooser.DIRECTORIES_ONLY
-            else -> JFileChooser.FILES_ONLY
+        val buttons = PanelListX(style)
+        cancel.weight = 1f
+        submit.weight = 1f
+        cancel.addLeftClickListener(Menu::close)
+        submit.addLeftClickListener {
+            callback(selected)
+            Menu.close(it)
         }
-        jFileChooser.isMultiSelectionEnabled = allowMultiples
-        jFileChooser.isAcceptAllFileFilterUsed = filters.isEmpty() || filters.any { "*" in it.extensions }
-        for (filter in filters) {
-            if (filter.extensions == listOf("*")) continue
-            jFileChooser.addChoosableFileFilter(object : FileFilter() {
-                override fun getDescription() = filter.nameDesc.name // actually the title
-                override fun accept(file: File) = file.extension.lowercase() in filter.extensions
-            })
+        buttons.add(cancel)
+        buttons.add(submit)
+        val ui = PanelListY(style)
+        if (filters.isNotEmpty()) {
+
+            fun applyFilter(filter: FileExtensionFilter) {
+                extensions = filter.extensions
+                files.invalidate()
+            }
+
+            val select = EnumInput(NameDesc("Filter"), filters.first().nameDesc, filters.map { it.nameDesc }, style)
+            select.setChangeListener { _, index, _ ->
+                applyFilter(filters[index])
+            }
+            applyFilter(filters.first())
+            ui.add(select)
         }
-        val retCode =
-            if (toSave) jFileChooser.showSaveDialog(null)
-            else jFileChooser.showOpenDialog(null)
-        if (retCode == JFileChooser.APPROVE_OPTION) {
-            val sf = jFileChooser.selectedFiles
-            callback(sf.map { getReference(it) })
-        } else callback(emptyList())
+        ui.add(files)
+        ui.add(filesList)
+        ui.add(buttons)
+        return ui
     }
 
-    @JvmStatic
-    private val LOGGER = LogManager.getLogger(FileChooser::class)
+    // not supported yet
+    var openInSeparateWindow = false
+    private fun createFileChooser(
+        title: NameDesc,
+        allowFiles: Boolean, allowDirectories: Boolean,
+        allowMultiples: Boolean, toSave: Boolean,
+        startDirectory: FileReference,
+        filters: List<FileExtensionFilter>,
+        style: Style, callback: (List<FileReference>) -> Unit
+    ): Window {
+        val ui = createFileChooserUI(
+            allowFiles, allowDirectories, allowMultiples,
+            toSave, startDirectory, filters, style,
+            callback
+        )
+        val baseWindow = GFX.focusedWindow ?: GFX.someWindow
+        return if (openInSeparateWindow || baseWindow == null) {
+            // todo this path crashes, when we explore folders, in glBindFramebuffer ...
+            val window = GFXBase.createWindow(title.name, ui)
+            window.windowStack.first()
+        } else {
+            val window1 = Window(ui, false, baseWindow.windowStack)
+            baseWindow.windowStack.add(window1)
+            window1
+        }
+    }
 }
