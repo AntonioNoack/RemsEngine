@@ -1,13 +1,13 @@
 package me.anno.ui.debug
 
-import me.anno.engine.RemsEngine
 import me.anno.gpu.texture.Texture2D
 import me.anno.input.Key
 import me.anno.io.files.FileReference
 import me.anno.language.translation.Dict
-import me.anno.utils.Color.mixARGB
 import me.anno.studio.Events.addEvent
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.constraints.AxisAlignment
@@ -17,8 +17,8 @@ import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.console.ConsoleLogFullscreen
 import me.anno.ui.debug.console.ConsoleOutputLine
-import me.anno.ui.Style
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Logging.lastConsoleLines
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Strings.ifBlank2
@@ -96,6 +96,21 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             return console
         }
 
+        class RuntimeInfoPlaceholder(style: Style) : Panel(style) {
+            override fun calculateSize(w: Int, h: Int) {
+                val window = window
+                val showFPS = StudioBase.instance?.showFPS == true
+                val ws = window?.windowStack
+                minW = if (ws != null && showFPS) {
+                    val gap = ws.width - (window.panel.x + window.panel.width)
+                    max(FrameTimings.width - gap, 0)
+                } else {
+                    if (StudioBase.instance?.showFPS == true) FrameTimings.width else 0
+                }
+                minH = 1
+            }
+        }
+
         @JvmStatic
         fun createConsoleWithStats(bottom: Boolean = true, style: Style): Panel {
 
@@ -104,18 +119,10 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             group.alignmentX = AxisAlignment.FILL
             group += console
 
-            val right = object : PanelListX(style) {
-                override fun onUpdate() {
-                    super.onUpdate()
-                    tooltip = console.text
-                }
-            }
-            val rip = RuntimeInfoPanel(style)
-            rip.alignmentX = AxisAlignment.MAX
-            rip.makeBackgroundOpaque()
-            rip.weight = 1f
-            rip.tooltip = "Click to invoke garbage collector"
-            rip.addLeftClickListener {
+            val info = RuntimeInfoPanel(style)
+            info.alignmentX = AxisAlignment.MAX
+            info.tooltip = "Click to invoke garbage collector"
+            info.addLeftClickListener {
                 val runtime = Runtime.getRuntime()
                 val oldMemory = runtime.totalMemory() - runtime.freeMemory()
                 Texture2D.gc()
@@ -131,14 +138,25 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                     )
                 }
             }
-            right.add(rip)
-            right.makeBackgroundTransparent()
-            right.alignmentX = AxisAlignment.MAX
-            if (bottom) right.add(RemsEngine.RuntimeInfoPlaceholder())
-            group.add(right)
+
+            if (bottom) {
+                // todo this breaks in WelcomeUI... why??
+                // adds conditional spacing for FPS panel
+                val right = object : PanelListX(style) {
+                    override fun onUpdate() {
+                        super.onUpdate()
+                        tooltip = console.text
+                    }
+                }
+                right.add(info)
+                right.alignmentX = AxisAlignment.MAX
+                right.add(RuntimeInfoPlaceholder(style))
+                group.add(right)
+            } else {
+                group.add(info)
+            }
+
             return group
         }
-
     }
-
 }

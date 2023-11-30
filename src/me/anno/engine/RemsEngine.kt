@@ -231,13 +231,6 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
         ActionManager.init()
     }
 
-    class RuntimeInfoPlaceholder : Panel(style) {
-        override fun calculateSize(w: Int, h: Int) {
-            minW = if (instance?.showFPS == true) FrameTimings.width else 0
-            minH = 1
-        }
-    }
-
     override fun openHistory() {
         PrefabInspector.currentInspector?.history?.display()
     }
