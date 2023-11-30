@@ -1,8 +1,12 @@
 package me.anno.image.raw
 
+import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths.max
+import me.anno.utils.Color.black
 import java.nio.FloatBuffer
 
 class CompositeFloatBufferImage(
@@ -32,16 +36,36 @@ class CompositeFloatBufferImage(
         return when (numChannels) {
             1 -> map.getColor(channels[0][index])
             2 -> {
-                getColor(channels[0][index]).shl(16) or getColor(channels[1][index]).shl(8)
+                getColor(channels[0][index]).shl(16) or getColor(channels[1][index]).shl(8) or black
             }
             3 -> {
                 getColor(channels[0][index]).shl(16) or
                         getColor(channels[1][index]).shl(8) or
-                        getColor(channels[2][index])
+                        getColor(channels[2][index]) or black
             }
             else -> {
-                getColor(channels[0][index]).shl(16) or getColor(channels[1][index]).shl(8) or getColor(channels[2][index]) or
+                getColor(channels[0][index]).shl(16) or
+                        getColor(channels[1][index]).shl(8) or
+                        getColor(channels[2][index]) or
                         getColor(channels[3][index]).shl(24)
+            }
+        }
+    }
+
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+        val data = FloatArray(numChannels * width * height)
+        // fill in all channels
+        for (c in 0 until numChannels) {
+            val ch = channels[c]
+            for (s in 0 until width * height) {
+                data[s * numChannels + c] = ch[s]
+            }
+        }
+        if (sync) {
+            texture.create(TargetType.FloatTargets[numChannels - 1], data)
+        } else {
+            GFX.addGPUTask("CompFBI.cTex", width, height) {
+                texture.create(TargetType.FloatTargets[numChannels - 1], data)
             }
         }
     }
@@ -78,5 +102,4 @@ class CompositeFloatBufferImage(
         }
         return this
     }
-
 }

@@ -1,6 +1,5 @@
 package me.anno.image.exr
 
-import me.anno.image.Image
 import me.anno.image.raw.CompositeFloatBufferImage
 import me.anno.image.raw.IFloatImage
 import me.anno.utils.OS.desktop

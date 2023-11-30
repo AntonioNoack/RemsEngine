@@ -1,9 +1,13 @@
 package me.anno.image.raw
 
+import me.anno.gpu.GFX
+import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.Texture2D
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
+import me.anno.utils.Color.black
 import java.nio.FloatBuffer
 
 class FloatBufferImage(
@@ -34,15 +38,20 @@ class FloatBufferImage(
             1 -> map.getColor(data[index])
             2 -> {
                 val idx = index * 2
-                getColor(data[idx]).shl(16) or getColor(data[idx + 1]).shl(8)
+                getColor(data[idx]).shl(16) or
+                        getColor(data[idx + 1]).shl(8) or black
             }
             3 -> {
                 val idx = index * 3
-                getColor(data[idx]).shl(16) or getColor(data[idx + 1]).shl(8) or getColor(data[idx + 2])
+                getColor(data[idx]).shl(16) or
+                        getColor(data[idx + 1]).shl(8) or
+                        getColor(data[idx + 2]) or black
             }
             else -> {
                 val idx = index * numChannels
-                getColor(data[idx]).shl(16) or getColor(data[idx + 1]).shl(8) or getColor(data[idx + 2]) or
+                getColor(data[idx]).shl(16) or
+                        getColor(data[idx + 1]).shl(8) or
+                        getColor(data[idx + 2]) or
                         getColor(data[idx + 3]).shl(24)
             }
         }
@@ -54,6 +63,16 @@ class FloatBufferImage(
             data[i] = ownData[i]
         }
         return FloatImage(width, height, numChannels, data, map)
+    }
+
+    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+        if (sync) {
+            texture.create(TargetType.FloatTargets[numChannels - 1], data)
+        } else {
+            GFX.addGPUTask("CompFBI.cTex", width, height) {
+                texture.create(TargetType.FloatTargets[numChannels - 1], data)
+            }
+        }
     }
 
     override fun normalize(): FloatBufferImage {
@@ -82,5 +101,4 @@ class FloatBufferImage(
         }
         return this
     }
-
 }

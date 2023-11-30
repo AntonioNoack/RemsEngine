@@ -31,6 +31,7 @@ import java.io.IOException
 import java.io.InputStream
 import javax.imageio.ImageIO
 import kotlin.math.ceil
+import kotlin.math.max
 import kotlin.math.roundToInt
 
 /**
@@ -241,7 +242,7 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
             hasVideo = true
             videoStartTime = getDouble(video["start_time"], 0.0)
             videoDuration = getDouble(video["duration"], duration)
-            videoFrameCount = getInt(video["nb_frames"], 0)
+            videoFrameCount = max(1, getInt(video["nb_frames"], 0))
             videoWidth = getInt(video["width"], 0)
             videoHeight = getInt(video["height"], 0)
             videoFPS = video["r_frame_rate"]?.toString()?.parseFraction() ?: 30.0
