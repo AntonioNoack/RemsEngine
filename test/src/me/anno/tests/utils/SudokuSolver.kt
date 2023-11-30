@@ -40,15 +40,12 @@ fun main() {
         cFull[cell.ci] = cFull[cell.ci] and invMask
     }
 
-    fun set(cell: Cell, value: Int): Boolean {
-        return if (canSet(cell, value)) {
-            val mask = 1 shl value
-            xFull[cell.xi] = xFull[cell.xi] or mask
-            yFull[cell.yi] = yFull[cell.yi] or mask
-            cFull[cell.ci] = cFull[cell.ci] or mask
-            field[cell.index] = value
-            true
-        } else false
+    fun set(cell: Cell, value: Int) {
+        val mask = 1 shl value
+        xFull[cell.xi] = xFull[cell.xi] or mask
+        yFull[cell.yi] = yFull[cell.yi] or mask
+        cFull[cell.ci] = cFull[cell.ci] or mask
+        field[cell.index] = value
     }
 
     val cells = Array(n * n) {
@@ -128,7 +125,9 @@ fun main() {
             if (e == Done) {
                 // check solution against ground-truth
                 // only use when not benchmarking ^^
-                // assertEquals(sample.substring(n * n + 1), field.joinToString(""))
+                if (false) {
+                    assertEquals(sample.substring(n * n + 1), field.joinToString(""))
+                }
                 // printSolution()
             } else e.printStackTrace()
         }
