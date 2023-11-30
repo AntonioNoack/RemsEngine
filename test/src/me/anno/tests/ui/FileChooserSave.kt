@@ -12,6 +12,7 @@ import me.anno.utils.files.FileExtensionFilter
  * tests the file chooser
  * */
 fun main() {
+    // todo scrollbar is gone, scrolling is impossible
     RenderDoc.disableRenderDoc()
     testUI3("FileChooserSave") {
         FileChooser.createFileChooserUI(

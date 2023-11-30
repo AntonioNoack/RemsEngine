@@ -3,6 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import kotlin.math.max
+import kotlin.math.min
 
 open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
 
@@ -32,10 +33,12 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
             val child = children[index]
             val ax = child.alignmentX
             val ay = child.alignmentY
-            val dx = ax.getOffset(w, child.minW)
-            val cw = ax.getWidth(w, child.minW)
-            val dy = ay.getOffset(h, child.minH)
-            val ch = ay.getWidth(h, child.minH)
+            val minW = min(w, child.minW)
+            val minH = min(h, child.minH)
+            val dx = ax.getOffset(w, minW)
+            val cw = ax.getWidth(w, minW)
+            val dy = ay.getOffset(h, minH)
+            val ch = ay.getWidth(h, minH)
             child.setPosSize(x + dx, y + dy, cw, ch)
         }
     }

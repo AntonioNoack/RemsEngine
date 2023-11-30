@@ -151,8 +151,9 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                         //if (child.x != currentX || child.y != childY || child.w != childW || child.h != availableH) {
                         // something changes, or constraints are used
                         val alignment = child.alignmentY
-                        val offset = alignment.getOffset(availableH, child.minH)
-                        val childH = alignment.getWidth(availableH, child.minH)
+                        val minH = min(availableH, child.minH)
+                        val offset = alignment.getOffset(availableH, minH)
+                        val childH = alignment.getWidth(availableH, minH)
                         child.setPosSize(currentX, childY + offset, childW, childH)
                         //}
                         currentX += childW + spacing

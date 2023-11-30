@@ -12,7 +12,6 @@ import me.anno.input.Input.isLeftDown
 import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
-import me.anno.utils.Color.mixARGB
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
@@ -23,6 +22,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 import me.anno.utils.types.Strings.getIndexFromText
@@ -180,7 +180,7 @@ open class PureTextInputML(style: Style) :
         while (lines.size < children.size) {// remove no longer needed TextInput panels
             children.removeAt(children.lastIndex)
         }
-        val content = content as PanelList
+        val content = content as PanelListY
         while (lines.size > children.size) {// add new TextInput panels
             val panel = object : CorrectingTextPanel(style) {
 
