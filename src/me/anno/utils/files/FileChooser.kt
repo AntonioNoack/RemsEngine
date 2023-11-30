@@ -76,7 +76,7 @@ object FileChooser {
                     .map { file -> file.toGlobalFile() }
                 submit.isInputAllowed = selected.isNotEmpty()
             }
-            filesList.alignmentX = AxisAlignment.CENTER // todo this isn't working... why?
+            filesList.alignmentX = AxisAlignment.CENTER
             filesList.base.enableSpellcheck = false
             filesList
         } else {

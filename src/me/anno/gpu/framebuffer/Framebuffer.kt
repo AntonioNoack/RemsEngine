@@ -238,14 +238,21 @@ class Framebuffer(
         val h = height
         if (w * h < 1) throw RuntimeException("Invalid framebuffer size $w x $h")
         GFX.check()
-        textures = Array(targets.size) { index ->
-            val texture = Texture2D("$name-tex[$index]", w, h, samples)
-            texture.autoUpdateMipmaps = autoUpdateMipmaps
-            texture.owner = this
-            texture.create(targets[index])
-            GFX.check()
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
-            texture
+        if (textures == null) {
+            textures = Array(targets.size) { index ->
+                val texture = Texture2D("$name-tex[$index]", w, h, samples)
+                texture.autoUpdateMipmaps = autoUpdateMipmaps
+                texture.owner = this
+                texture.create(targets[index])
+                GFX.check()
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
+                texture
+            }
+        } else {
+            for (index in targets.indices) {
+                val texture = textures!![index]
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, texture.target, texture.pointer, 0)
+            }
         }
         GFX.check()
         drawBuffersN(targets.size)
@@ -274,14 +281,17 @@ class Framebuffer(
                 depthAttachedPtr = texPointer
             }
             DepthBufferType.INTERNAL -> {
-                internalDepthRenderbuffer = createRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
+                if (internalDepthRenderbuffer == 0) {
+                    internalDepthRenderbuffer = createRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
+                }
             }
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
                 if (GFX.supportsDepthTextures) {
-                    val depthTexture = Texture2D("$name-depth", w, h, samples)
-                    depthTexture.autoUpdateMipmaps = autoUpdateMipmaps
-                    depthTexture.createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
-                    depthTexture.owner = this
+                    val depthTexture = this.depthTexture ?: Texture2D("$name-depth", w, h, samples).apply {
+                        autoUpdateMipmaps = this@Framebuffer.autoUpdateMipmaps
+                        createDepth(depthBufferType == DepthBufferType.TEXTURE_16)
+                        owner = this@Framebuffer
+                    }
                     glFramebufferTexture2D(
                         GL_FRAMEBUFFER,
                         GL_DEPTH_ATTACHMENT,
@@ -290,7 +300,7 @@ class Framebuffer(
                         0
                     )
                     this.depthTexture = depthTexture
-                } else {
+                } else if (internalDepthRenderbuffer == 0) {
                     // 4 is worst-case assumed
                     internalDepthRenderbuffer = createRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
                 }
@@ -539,6 +549,7 @@ class Framebuffer(
             val buffers = colorRenderBuffers
             if (buffers != null) {
                 glDeleteRenderbuffers(buffers)
+                colorRenderBuffers = null
             }
         }
     }
@@ -559,10 +570,12 @@ class Framebuffer(
             textures[i].destroy()
         }
         if (deleteDepth) destroyDepthTexture()
+        this.textures = null
     }
 
     fun destroyDepthTexture() {
         depthTexture?.destroy()
+        depthTexture = null
     }
 
     override fun destroy() {
@@ -597,7 +610,6 @@ class Framebuffer(
             IntArray(size + 2) { GL_COLOR_ATTACHMENT0 + it }
         }
 
-        // private val LOGGER = LogManager.getLogger(Framebuffer::class)
         fun bindFramebuffer(target: Int, pointer: Int) {
             glBindFramebuffer(target, pointer)
             Frame.lastPtr = pointer
