@@ -9,7 +9,7 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
-import me.anno.ui.base.constraints.WrapAlign
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -32,7 +32,7 @@ open class URLInput(
 
     init {
         base.apply {
-            this += WrapAlign.LeftCenter
+            alignmentX = AxisAlignment.CENTER
             addChangeListener {
                 val gf = it.toGlobalFile()
                 this@URLInput.changeListener(gf)

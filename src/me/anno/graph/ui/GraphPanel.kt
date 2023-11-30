@@ -37,6 +37,7 @@ import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import kotlin.math.*
 
+// todo bug: scrollbar has inverted y movement
 open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
 
     private val graphs = ArrayList<Graph>()
@@ -86,6 +87,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     var scrollRight = 0
     var scrollBottom = 0
 
+    // todo: how/where are they used??
     override var scrollPositionX: Double
         get() = scrollLeft.toDouble()
         set(value) {
@@ -205,8 +207,6 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             panel.backgroundRadius = cornerRadius
             panel.calculateSize(w, h)
         }
-        minW = w
-        minH = h
     }
 
     override fun setPosition(x: Int, y: Int) {
@@ -226,7 +226,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
             val panel = nodeToPanel[node] ?: continue
             val xi = coordsToWindowX(node.position.x).toInt() - panel.width / 2
             val yi = coordsToWindowY(node.position.y).toInt()// - panel.h / 2
-            panel.setPosition(xi, yi)
+            panel.setPosSize(xi, yi, panel.minW, panel.minH)
             left = max(left, x - xi)
             top = max(top, y - yi)
             right = max(right, (xi + panel.width) - xe)

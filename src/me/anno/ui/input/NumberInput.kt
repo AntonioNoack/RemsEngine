@@ -8,6 +8,7 @@ import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.components.NumberInputComponent
 import me.anno.ui.input.components.TitlePanel
 import me.anno.ui.Style
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.types.Strings.isBlank2
 
 abstract class NumberInput<BaseType>(
@@ -21,6 +22,10 @@ abstract class NumberInput<BaseType>(
     var hasValue = false
 
     val inputPanel = inputPanel0 ?: NumberInputComponent(visibilityKey, style)
+
+    init {
+        inputPanel.alignmentX = AxisAlignment.FILL
+    }
 
     var titleView = if (title.isBlank2()) null else TitlePanel(title, this, style)
     var isSelectedListener: (() -> Unit)? = null

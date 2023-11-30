@@ -8,10 +8,10 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.Texture3D
 import me.anno.language.translation.Dict
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.JSMemory.jsUsedMemory
 import me.anno.ui.Style
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.f1
@@ -117,7 +117,8 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
         text = getDebugText()
         textColor = textColor and 0x7fffffff
         backgroundColor = backgroundColor and 0xffffff
-        add(WrapAlign.RightBottom)
+        alignmentX = AxisAlignment.MAX
+        alignmentY = AxisAlignment.MAX
     }
 
     companion object {

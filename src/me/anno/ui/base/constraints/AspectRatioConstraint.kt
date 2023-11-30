@@ -5,6 +5,7 @@ import me.anno.ui.Panel
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+@Deprecated("Use other logic")
 class AspectRatioConstraint
 private constructor(var ratio: Float?, val getRatio: (() -> Float)?) : Constraint(25) {
 

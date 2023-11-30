@@ -24,8 +24,6 @@ open class ColorPalette(
     override fun calculateSize(w: Int, h: Int) {
         minW = w
         minH = minW * dimY / dimX
-        this.width = minW
-        this.height = minH
     }
 
     override fun setPosition(x: Int, y: Int) {

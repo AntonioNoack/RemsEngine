@@ -24,18 +24,13 @@ class NodeGroupPanel(val group: NodeGroup, val gp: GraphPanel, style: Style) : P
     var bgAlpha = 0.7f
 
     override fun calculateSize(w: Int, h: Int) {
-
         val baseTextSize = baseTextSize
         val baseTextSizeI4 = (baseTextSize * 4).toInt()
         val font = gp.font
-
         // enough width for title
         minW = baseTextSizeI4 + GFXx2D.getSizeX(FontManager.getSize(font, group.name, -1, -1))
         // enough height for all lines
         minH = ((lineCount * (1.0 + lineSpacing) + lineSpacing) * baseTextSize).toInt()
-
-        this.width = minW
-        this.height = minH
     }
 
     var focusOutlineColor = -1

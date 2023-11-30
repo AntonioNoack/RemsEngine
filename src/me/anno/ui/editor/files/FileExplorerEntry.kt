@@ -185,15 +185,11 @@ open class FileExplorerEntry(
             val size = min(minW, minH - titleSize)
             minW = size
             minH = size + titleSize
-            this.width = minW
-            this.height = minH
         } else {
             val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
             val size = titleSize * 5
             minW = size
             minH = titleSize
-            this.width = minW
-            this.height = minH
         }
     }
 

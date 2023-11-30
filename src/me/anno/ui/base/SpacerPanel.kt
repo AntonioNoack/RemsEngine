@@ -3,11 +3,17 @@ package me.anno.ui.base
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.constraints.AxisAlignment
 
 open class SpacerPanel(var sizeX: Int, var sizeY: Int, style: Style) :
     Panel(style.getChild("spacer")) {
 
     constructor(style: Style) : this(10, 10, style)
+
+    init {
+        if (sizeX == 0) alignmentX = AxisAlignment.FILL
+        if (sizeY == 0) alignmentY = AxisAlignment.FILL
+    }
 
     override fun calculateSize(w: Int, h: Int) {
         minW = sizeX

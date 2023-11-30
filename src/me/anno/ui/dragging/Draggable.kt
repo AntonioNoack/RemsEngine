@@ -2,7 +2,6 @@ package me.anno.ui.dragging
 
 import me.anno.gpu.GFX.loadTexturesSync
 import me.anno.ui.Panel
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.Style
 import me.anno.utils.structures.tuples.IntPair
@@ -29,7 +28,6 @@ class Draggable(
     ) : this(content, contentType, original, content, style)
 
     init {
-        ui += WrapAlign.LeftTop
         loadTexturesSync.push(true)
         ui.calculateSize(300, 300)
         ui.setPosSize(0, 0, ui.minW, ui.minH)

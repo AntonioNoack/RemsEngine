@@ -9,7 +9,6 @@ import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.Style
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -27,10 +26,6 @@ class ImageButton(
     var guiScale = 1f
 
     private val icon get() = TextureCache[path, 10_000, true]
-
-    init {
-        add(WrapAlign.LeftTop)
-    }
 
     override fun getVisualState(): Any? = icon
     override fun getLayoutState(): Any? = icon?.width

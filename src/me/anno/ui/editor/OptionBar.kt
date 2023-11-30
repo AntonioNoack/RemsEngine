@@ -5,7 +5,6 @@ import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.hasFlag
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -36,7 +35,6 @@ class OptionBar(style: Style) : PanelListX(null, style.getChild("options")) {
         var magicIndex = -1
 
         init {
-            this += WrapAlign.LeftTop
             if (name == "Edit") weight = 1f
         }
 

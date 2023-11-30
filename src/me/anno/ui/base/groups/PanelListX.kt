@@ -60,7 +60,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                     constantSum += child.minW
                     maxY = max(maxY, child.y + child.minH)
                     availableW = max(0, availableW - child.minW)
-                    if(child.weight > 0f){
+                    if (child.weight > 0f) {
                         weightSum += child.weight
                     } else {
                         constantSumWW += child.minW
@@ -136,7 +136,7 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                 for (i in children.indices) {
                     val child = children[i]
                     if (child.isVisible) {
-                        var childW = if(perWeight > 0f && child.weight > 0f){
+                        var childW = if (perWeight > 0f && child.weight > 0f) {
                             (perWeight * child.weight).roundToInt()
                         } else {
                             child.minW
@@ -150,7 +150,10 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                         }
                         //if (child.x != currentX || child.y != childY || child.w != childW || child.h != availableH) {
                         // something changes, or constraints are used
-                        child.setPosSize(currentX, childY, childW, availableH)
+                        val alignment = child.alignmentY
+                        val offset = alignment.getOffset(availableH, child.minH)
+                        val childH = alignment.getWidth(availableH, child.minH)
+                        child.setPosSize(currentX, childY + offset, childW, childH)
                         //}
                         currentX += childW + spacing
                     } else child.setPosSize(currentX, childY, 1, 1)

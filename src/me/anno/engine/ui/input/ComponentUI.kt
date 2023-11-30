@@ -400,12 +400,10 @@ object ComponentUI {
         when (type0) {
             // native types
             "Bool", "Boolean" -> return BooleanInput(
-                title,
-                ttt,
-                value as Boolean,
-                default as? Boolean ?: false,
-                style
+                title, ttt, value as Boolean,
+                default as? Boolean ?: false, style
             ).apply {
+                alignmentX = AxisAlignment.FILL
                 property.init(this)
                 setResetListener { property.reset(this) as Boolean }
                 askForReset(property) { setValue(it as Boolean, false) }
@@ -418,6 +416,7 @@ object ComponentUI {
                 val type = Type(default as Byte,
                     { Maths.clamp(it.toLong(), range.minByte().toLong(), range.maxByte().toLong()).toByte() }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setValue((value as Byte).toInt(), false)
                     askForReset(property) { setValue((it as Byte).toInt(), false) }
@@ -432,6 +431,7 @@ object ComponentUI {
                     { Maths.clamp(it.toLong(), range.minUByte().toLong(), range.maxUByte().toLong()).toUByte() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setValue((value as UByte).toInt(), false)
                     askForReset(property) { setValue((it as UByte).toInt(), false) }
@@ -446,6 +446,7 @@ object ComponentUI {
                     { Maths.clamp(it.toLong(), range.minShort().toLong(), range.maxShort().toLong()).toShort() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setValue((value as Short).toInt(), false)
                     askForReset(property) { setValue((it as Short).toInt(), false) }
@@ -460,6 +461,7 @@ object ComponentUI {
                     { Maths.clamp(it.toLong(), range.minUShort().toLong(), range.maxUShort().toLong()).toUShort() },
                     { it })
                 return IntInput(title, visibilityKey, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setValue((value as UShort).toInt(), false)
                     askForReset(property) { setValue((it as UShort).toInt(), false) }
@@ -472,6 +474,7 @@ object ComponentUI {
             "Int", "Integer" -> {
                 if (title.endsWith("color", true)) {
                     return ColorInput(style, title, visibilityKey, (value as? Int ?: 0).toVecRGBA(), true).apply {
+                        alignmentX = AxisAlignment.FILL
                         property.init(this)
                         askForReset(property) { it as Int; setValue(it.toVecRGBA(), -1, false) }
                         setResetListener { (property.reset(this) as Int).toVecRGBA() }
@@ -483,6 +486,7 @@ object ComponentUI {
                     val type = Type(default as? Int ?: 0,
                         { Maths.clamp(it.toLong(), range.minInt().toLong(), range.maxInt().toLong()) }, { it })
                     return IntInput(title, visibilityKey, type, style).apply {
+                        alignmentX = AxisAlignment.FILL
                         property.init(this)
                         setValue(value as Int, false)
                         askForReset(property) { setValue(it as Int, false) }
@@ -497,6 +501,7 @@ object ComponentUI {
                 val type = Type(default as? UInt ?: 0u,
                     { Maths.clamp(it.toLong(), range.minUInt().toLong(), range.maxUInt().toLong()).toUInt() }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setValue((value as UInt).toLong(), false)
                     askForReset(property) { setValue((it as UInt).toLong(), false) }
@@ -510,6 +515,7 @@ object ComponentUI {
                 val type = Type(default as? Long ?: 0L,
                     { Maths.clamp(it.toLong(), range.minLong(), range.maxLong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setValue(value as Long, false)
                     askForReset(property) { setValue(it as Long, false) }
@@ -523,6 +529,7 @@ object ComponentUI {
                 val type = Type(default as? ULong ?: 0uL,
                     { Maths.clamp(it.toULong2(), range.minULong(), range.maxULong()) }, { it })
                 return IntInput(title, visibilityKey, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setValue((value as ULong).toLong(), false)
                     askForReset(property) { setValue((it as ULong).toLong(), false) }
@@ -537,6 +544,7 @@ object ComponentUI {
                 val type = Type(AnyToFloat.getFloat(default, 0f),
                     { Maths.clamp(AnyToFloat.getFloat(it, 0f), range.minFloat(), range.maxFloat()).toDouble() }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setValue(value as Float, false)
                     setResetListener { property.reset(this).toString() }
@@ -550,6 +558,7 @@ object ComponentUI {
                 val type = Type(default as? Double ?: 0.0,
                     { Maths.clamp(it as Double, range.minDouble(), range.maxDouble()) }, { it })
                 return FloatInput(title, visibilityKey, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setValue(value as Double, -1, false)
                     setResetListener { property.reset(this).toString() }
@@ -590,6 +599,7 @@ object ComponentUI {
             "Vector2f" -> {
                 val type = Type.VEC2.withDefault(default as? Vector2f ?: Vector2f())
                 return FloatVectorInput(title, visibilityKey, value as Vector2f, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2f, false) }
@@ -601,6 +611,7 @@ object ComponentUI {
             "Vector3f" -> {
                 val type = Type.VEC3.withDefault(default as? Vector3f ?: Vector3f())
                 return FloatVectorInput(title, visibilityKey, value as Vector3f, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3f, false) }
@@ -612,6 +623,7 @@ object ComponentUI {
             "Vector4f" -> {
                 val type = Type.VEC4.withDefault(default as? Vector4f ?: Vector4f())
                 return FloatVectorInput(title, visibilityKey, value as Vector4f, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4f, false) }
@@ -623,6 +635,7 @@ object ComponentUI {
             "Planef" -> {
                 val type = Type.PLANE4.withDefault(default as? Planef ?: Planef())
                 return FloatVectorInput(title, visibilityKey, value as Planef, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Planef, false) }
@@ -634,6 +647,7 @@ object ComponentUI {
             "Vector2d" -> {
                 val type = Type.VEC2D.withDefault(default as? Vector2d ?: Vector2d())
                 return FloatVectorInput(title, visibilityKey, value as Vector2d, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2d, false) }
@@ -645,6 +659,7 @@ object ComponentUI {
             "Vector3d" -> {
                 val type = Type.VEC3D.withDefault(default as? Vector3d ?: Vector3d())
                 return FloatVectorInput(title, visibilityKey, value as Vector3d, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3d, false) }
@@ -656,6 +671,7 @@ object ComponentUI {
             "Vector4d" -> {
                 val type = Type.VEC4D.withDefault(default as? Vector4d ?: Vector4d())
                 return FloatVectorInput(title, visibilityKey, value as Vector4d, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4d, -1, false) }
@@ -667,6 +683,7 @@ object ComponentUI {
             "Planed" -> {
                 val type = Type.PLANE4D.withDefault(default as? Planed ?: Planed())
                 return FloatVectorInput(title, visibilityKey, value as Planed, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Planed, false) }
@@ -679,6 +696,7 @@ object ComponentUI {
             "Vector2i" -> {
                 val type = Type(default as? Vector2i ?: Vector2i(), 2)
                 return IntVectorInput(title, visibilityKey, value as Vector2i, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector2i, false) }
@@ -690,6 +708,7 @@ object ComponentUI {
             "Vector3i" -> {
                 val type = Type(default as? Vector3i ?: Vector3i(), 3)
                 return IntVectorInput(title, visibilityKey, value as Vector3i, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector3i, false) }
@@ -701,6 +720,7 @@ object ComponentUI {
             "Vector4i" -> {
                 val type = Type(default as? Vector4i ?: Vector4i(), 4)
                 return IntVectorInput(title, visibilityKey, value as Vector4i, type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue(it as Vector4i, -1, false) }
@@ -716,6 +736,7 @@ object ComponentUI {
                 value as Quaternionf
                 val type = Type.ROT_YXZ.withDefault((default as Quaternionf).toEulerAnglesDegrees())
                 return FloatVectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     askForReset(property) { setValue((it as Quaternionf).toEulerAnglesDegrees(), false) }
                     setResetListener { property.reset(this) }
@@ -729,6 +750,7 @@ object ComponentUI {
                 value as Quaterniond
                 val type = Type.ROT_YXZ64.withDefault((default as Quaterniond).toEulerAnglesDegrees())
                 return FloatVectorInput(title, visibilityKey, value.toEulerAnglesDegrees(), type, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as Quaterniond).toEulerAnglesDegrees(), false) }
@@ -762,6 +784,7 @@ object ComponentUI {
                         return "vec3(${v.x},${v.y},${v.z})"
                     }
                 }.apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     // todo reset listener for color inputs
                     // todo brightness should have different background than alpha
@@ -778,6 +801,7 @@ object ComponentUI {
                 // todo hdr colors per color amplitude
                 return ColorInput(style, title, visibilityKey, value, true)
                     .apply {
+                        alignmentX = AxisAlignment.FILL
                         property.init(this)
                         // todo reset listener for color inputs
                         // setResetListener { property.reset(this) }
@@ -793,6 +817,7 @@ object ComponentUI {
                 value as Matrix4f
                 default as Matrix4f
                 val panel = TitledListY(title, visibilityKey, style)
+                panel.alignmentX = AxisAlignment.FILL
                 property.init(panel)
                 // todo special types
                 // todo operations: translate, rotate, scale
@@ -801,6 +826,7 @@ object ComponentUI {
                         FloatVectorInput("", visibilityKey, value.getRow(i, Vector4f()), Type.VEC4, style)
                             .apply {
                                 // todo correct change listener
+                                alignmentX = AxisAlignment.FILL
                                 addChangeListener { x, y, z, w, _ ->
                                     value.setRow(i, Vector4f(x.toFloat(), y.toFloat(), z.toFloat(), w.toFloat()))
                                 }
@@ -823,8 +849,10 @@ object ComponentUI {
                 value as AABBf
                 default as AABBf
                 val typeMin = Type.VEC3.withDefault(default.getMin())
-                val pane = TitledListY(title, visibilityKey, style)
-                pane.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
+                val panel = TitledListY(title, visibilityKey, style)
+                panel.alignmentX = AxisAlignment.FILL
+                panel.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBf).getMin(), false) }
@@ -834,7 +862,8 @@ object ComponentUI {
                     }
                 })
                 val typeMax = Type.VEC3D.withDefault(default.getMax())
-                pane.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
+                panel.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBf).getMax(), false) }
@@ -843,14 +872,16 @@ object ComponentUI {
                         property.set(this, value, mask.and(7).shl(3))
                     }
                 })
-                return pane
+                return panel
             }
             "AABBd" -> {
                 value as AABBd
                 default as AABBd
                 val typeMin = Type.VEC3D.withDefault(default.getMin())
-                val pane = TitledListY(title, visibilityKey, style)
-                pane.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
+                val panel = TitledListY(title, visibilityKey, style)
+                panel.alignmentX = AxisAlignment.FILL
+                panel.add(FloatVectorInput("", visibilityKey, value.getMin(), typeMin, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBd).getMin(), false) }
@@ -860,7 +891,8 @@ object ComponentUI {
                     }
                 })
                 val typeMax = Type.VEC3D.withDefault(default.getMax())
-                pane.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
+                panel.add(FloatVectorInput("", visibilityKey, value.getMax(), typeMax, style).apply {
+                    alignmentX = AxisAlignment.FILL
                     property.init(this)
                     setResetListener { property.reset(this) }
                     askForReset(property) { setValue((it as AABBd).getMax(), false) }
@@ -869,7 +901,7 @@ object ComponentUI {
                         property.set(this, value, mask.and(7).shl(3))
                     }
                 })
-                return pane
+                return panel
             }
 
             // todo smaller matrices, and for double

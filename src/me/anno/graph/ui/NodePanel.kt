@@ -140,9 +140,6 @@ class NodePanel(
             child.calculateSize(minW, minH0)
             minH += child.minH
         }
-
-        this.width = minW
-        this.height = minH
     }
 
     override fun setPosition(x: Int, y: Int) {

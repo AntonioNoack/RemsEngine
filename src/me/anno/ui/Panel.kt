@@ -404,9 +404,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
     open fun calculateSize(w: Int, h: Int) {
         minW = 1
         minH = 1
-        // todo why is this required? this should not be needed
-        this.width = w
-        this.height = h
     }
 
     /**

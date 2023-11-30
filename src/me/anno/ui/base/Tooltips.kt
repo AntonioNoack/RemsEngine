@@ -9,7 +9,6 @@ import me.anno.maths.Maths.length
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.WrapAlign
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.text.TextPanel
 import me.anno.utils.types.Strings.isBlank2
@@ -29,9 +28,7 @@ object Tooltips {
         breaksIntoMultiline = true
     }
 
-    val container = PanelContainer(textPanel, Padding(style.getSize("padding", 4)), style).apply {
-        this += WrapAlign.LeftTop
-    }
+    val container = PanelContainer(textPanel, Padding(style.getSize("padding", 4)), style)
 
     private val tooltipReactionTime get() = DefaultConfig["ui.tooltip.reactionTime", 300]
 

@@ -14,7 +14,7 @@ import me.anno.ui.WindowStack
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.WrapAlign
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
@@ -206,6 +206,7 @@ object Menu {
                         } else false
                     }
                     styleComplexEntry(button, option, padding, true)
+                    button.alignmentX = AxisAlignment.FILL
                     list += button
                 }
 
@@ -221,6 +222,7 @@ object Menu {
                         }
                     }
                     styleComplexEntry(button, option, padding, true)
+                    button.alignmentX = AxisAlignment.FILL
                     list += button
                 }
 
@@ -232,6 +234,7 @@ object Menu {
                     button.textColor = mixARGB(button.textColor, 0x77777777, 0.5f)
                     button.focusTextColor = button.textColor
                     styleComplexEntry(button, option, padding, false)
+                    button.alignmentX = AxisAlignment.FILL
                     list += button
                 }
             }
@@ -271,7 +274,6 @@ object Menu {
 
         val style = DefaultConfig.style.getChild("menu")
         val list = PanelListY(style)
-        list += WrapAlign.LeftTop
 
         val container = object : ScrollPanelY(list, Padding(1), style) {
             override fun onCharTyped(x: Float, y: Float, codepoint: Int) {
@@ -283,7 +285,6 @@ object Menu {
                 } else super.onCharTyped(x, y, codepoint)
             }
         }
-        container += WrapAlign.LeftTop
 
         val window = Window(container, isTransparent = false, isFullscreen = false, windowStack, 1, 1)
 
@@ -311,6 +312,7 @@ object Menu {
             titlePanel.tooltip = title.desc
             titlePanel.padding.left = padding
             titlePanel.padding.right = padding
+            titlePanel.alignmentX = AxisAlignment.FILL
             list += titlePanel
             list += SpacerPanel(0, 1, style)
         }
@@ -325,6 +327,7 @@ object Menu {
             val startIndex = list.children.size + 1
             val suggestions = DefaultConfig["ui.search.spellcheck", true]
             searchPanel = TextInput(Dict["Search", "ui.general.search"], "", suggestions, style)
+            searchPanel.alignmentX = AxisAlignment.FILL
             searchPanel.addChangeListener { searchTerm ->
                 val search = Search(searchTerm)
                 val children = list.children

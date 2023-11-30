@@ -238,9 +238,6 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val size = getTextSize(textCacheKey)
         minW = max(1, getSizeX(size) + padding.width)
         minH = max(1, getSizeY(size) + padding.height)
-        // todo remove this, when it is no longer needed
-        this.width = minW
-        this.height = minH
         if (inst) loadTexturesSync.pop()
     }
 
