@@ -12,6 +12,7 @@ import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.JSMemory.jsUsedMemory
 import me.anno.ui.Style
 import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.types.Floats.f1
@@ -115,10 +116,7 @@ class RuntimeInfoPanel(style: Style) : SimpleTextPanel(style) {
 
     init {
         text = getDebugText()
-        textColor = textColor and 0x7fffffff
-        backgroundColor = backgroundColor and 0xffffff
-        alignmentX = AxisAlignment.MAX
-        alignmentY = AxisAlignment.MAX
+        textColor = textColor.withAlpha(0x7f)
     }
 
     companion object {

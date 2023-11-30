@@ -140,7 +140,6 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             }
 
             if (bottom) {
-                // todo this breaks in WelcomeUI... why??
                 // adds conditional spacing for FPS panel
                 val right = object : PanelListX(style) {
                     override fun onUpdate() {
