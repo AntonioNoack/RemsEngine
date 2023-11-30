@@ -98,17 +98,36 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
 
     override fun calculateSize(w: Int, h: Int) {
         super.calculateSize(w, h)
-        minH = 10
-        minW = 10
-        placeChildren(x, y, w, h, false)
+        if (children.size == 1) {
+            children.first().calculateSize(w, h)
+        } else {
+            val minWeight = 0.0001f
+            val available = (if (isY) h else w) - (children.size - 1) * spacing
+            val sumWeight = children.sumOf { max(minWeight, it.weight).toDouble() }.toFloat()
+            val weightScale = 1f / sumWeight
+            val children = children
+            for (index in children.indices) {
+                val child = children[index]
+                val weight = max(minWeight, child.weight)
+                val betterWeight = max(weight * weightScale, minSize)
+                if (betterWeight != weight) child.weight = betterWeight
+                val childSize = (betterWeight * weightScale * available).roundToInt()
+                if (isY) child.calculateSize(w, childSize)
+                else child.calculateSize(childSize, h)
+            }
+        }
     }
 
-    fun placeChildren(x: Int, y: Int, w: Int, h: Int, place: Boolean) {
-        if (children.isEmpty()) return
+    override fun setPosition(x: Int, y: Int) {
+        this.x = x
+        this.y = y
+    }
+
+    override fun setSize(w: Int, h: Int) {
+        super.setSize(w, h)
         if (children.size == 1) {
             val child = children.first()
-            if (place) child.setPosition(x, y)
-            child.calculateSize(w, h)
+            child.setPosSize(x, y, w, h)
         } else {
             val minWeight = 0.0001f
             val available = (if (isY) h else w) - (children.size - 1) * spacing
@@ -122,31 +141,20 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
                 val betterWeight = max(weight * weightScale, minSize)
                 if (betterWeight != weight) child.weight = betterWeight
                 val childSize = (betterWeight * weightScale * available).roundToInt()
-                if (place) {
-                    childPos += min(
-                        childSize, if (isY) {
-                            child.calculateSize(w, childSize)
-                            child.setPosSize(x, childPos, w, childSize)
-                            child.height
-                        } else {
-                            child.calculateSize(childSize, h)
-                            child.setPosSize(childPos, y, childSize, h)
-                            child.width
-                        }
-                    )
-                    childPos += spacing
-                } else {
-                    if (isY) child.calculateSize(w, childSize)
-                    else child.calculateSize(childSize, h)
-                }
+                childPos += min(
+                    childSize, if (isY) {
+                        child.calculateSize(w, childSize)
+                        child.setPosSize(x, childPos, w, childSize)
+                        child.height
+                    } else {
+                        child.calculateSize(childSize, h)
+                        child.setPosSize(childPos, y, childSize, h)
+                        child.width
+                    }
+                )
+                childPos += spacing
             }
         }
-    }
-
-    override fun setPosition(x: Int, y: Int) {
-        this.x = x
-        this.y = y
-        placeChildren(x, y, width, height, true)
     }
 
     override fun capturesChildEvents(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {

@@ -13,8 +13,8 @@ import me.anno.ui.Window
 import me.anno.ui.WindowStack
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.components.Padding
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
@@ -91,33 +91,38 @@ object Menu {
     ): Window {
 
         val style = DefaultConfig.style.getChild("menu")
-        val panel = PureTextInput(style)
-        panel.setText(value0, false)
-        panel.placeholder = title.name
-        panel.tooltip = title.desc
-        panel.setEnterListener {
-            callback(panel.value)
-            close(panel)
+
+        val textInput = PureTextInput(style)
+        textInput.alignmentX = AxisAlignment.FILL
+        textInput.setText(value0, false)
+        textInput.placeholder = title.name
+        textInput.tooltip = title.desc
+        textInput.setEnterListener {
+            callback(textInput.value)
+            close(textInput)
         }
-        panel.addChangeListener {
-            panel.textColor = getColor(it)
+        textInput.addChangeListener {
+            textInput.textColor = getColor(it)
         }
+
         val submit = TextButton(actionName.name, style)
+        submit.weight = 1f
         submit.tooltip = actionName.desc
         submit.addLeftClickListener {
-            callback(panel.value)
-            close(panel)
+            callback(textInput.value)
+            close(textInput)
         }
 
         val cancel = TextButton("Cancel", style)
-        cancel.addLeftClickListener { close(panel) }
+        cancel.addLeftClickListener { close(textInput) }
+        cancel.weight = 1f
 
         val buttons = PanelListX(style)
         buttons += cancel
         buttons += submit
 
-        val window = openMenuByPanels(windowStack, x, y, title, listOf(panel, buttons))!!
-        panel.requestFocus()
+        val window = openMenuByPanels(windowStack, x, y, title, listOf(textInput, buttons))!!
+        textInput.requestFocus()
         window.drawDirectly = true
         return window
     }
@@ -179,7 +184,6 @@ object Menu {
                         list += SpacerPanel(0, 1, style)
                     }
                 }
-
                 option.isEnabled && action != null -> {
                     val magicIndex = addFastActionLetters(name)
                     val button = object : TextPanel(name, style) {
@@ -209,7 +213,6 @@ object Menu {
                     button.alignmentX = AxisAlignment.FILL
                     list += button
                 }
-
                 option.isEnabled && option is ComplexMenuGroup -> {
                     lateinit var button: ComplexMenuGroupPanel
                     val magicIndex = addFastActionLetters(name)
@@ -225,7 +228,6 @@ object Menu {
                     button.alignmentX = AxisAlignment.FILL
                     list += button
                 }
-
                 else -> {
                     // disabled -> show it grayed-out
                     // if action is a group, add a small arrow
@@ -419,11 +421,8 @@ object Menu {
     fun openMenu(windowStack: WindowStack, options: List<MenuOption>) =
         openMenu(windowStack, NameDesc(), options)
 
-    fun openMenu(windowStack: WindowStack, title: NameDesc, options: List<MenuOption>): Window? {
-        // GFX.updateMousePosition() // just in case; this method should only be called from the GFX thread
-        // windowStack.updateMousePosition()
-        return openMenu(windowStack, windowStack.mouseX - paddingX, windowStack.mouseY - paddingY, title, options)
-    }
+    fun openMenu(windowStack: WindowStack, title: NameDesc, options: List<MenuOption>): Window? =
+        openMenu(windowStack, windowStack.mouseX - paddingX, windowStack.mouseY - paddingY, title, options)
 
     fun openMenu(
         windowStack: WindowStack,

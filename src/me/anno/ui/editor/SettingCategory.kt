@@ -6,6 +6,7 @@ import me.anno.language.translation.Dict
 import me.anno.maths.Maths.min
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.groups.PanelListY
@@ -54,6 +55,8 @@ open class SettingCategory(
         titlePanel.parent = this
         titlePanel.textColor = titlePanel.textColor.mulAlpha(0.5f)
         titlePanel.focusTextColor = -1
+        content.alignmentX = AxisAlignment.FILL
+        alignmentX = AxisAlignment.FILL
         child.parent = this
     }
 
@@ -142,4 +145,7 @@ open class SettingCategory(
     override fun addChild(child: PrefabSaveable) {
         content.addChild(child)
     }
+
+    override val className: String
+        get() = "SettingCategory"
 }

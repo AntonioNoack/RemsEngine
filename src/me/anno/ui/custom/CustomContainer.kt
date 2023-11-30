@@ -2,17 +2,17 @@ package me.anno.ui.custom
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.texture.TextureCache
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.Style
 import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
 import kotlin.math.roundToInt
@@ -37,14 +37,6 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
         child.calculateSize(w, h)
         minW = child.minW
         minH = child.minH
-        this.width = child.width
-        this.height = child.height
-    }
-
-    override fun setPosition(x: Int, y: Int) {
-        child.setPosition(x, y)
-        this.x = x
-        this.y = y
     }
 
     override fun invalidateLayout() {
