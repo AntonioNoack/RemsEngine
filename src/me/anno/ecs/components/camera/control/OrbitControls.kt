@@ -2,18 +2,22 @@ package me.anno.ecs.components.camera.control
 
 import me.anno.ecs.Transform
 import me.anno.ecs.components.camera.Camera
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
 
 open class OrbitControls : CameraController() {
 
     var radius = 10f
-    var mouseWheelSpeed = 0.2f
+    var mouseWheelSpeed = 0.1f
     var useGlobalSpace = false
 
+    var maxRadius = 1e+3f
+    var minRadius = 1e-3f
+
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean {
-        val factor = pow(2f, -dy * mouseWheelSpeed)
-        radius *= factor
-        movementSpeed *= factor
+        val newRadius = clamp(pow(2f, -dy * mouseWheelSpeed) * radius, minRadius, maxRadius)
+        movementSpeed *= newRadius / radius
+        radius = newRadius
         return true
     }
 
@@ -42,5 +46,4 @@ open class OrbitControls : CameraController() {
     }
 
     override val className: String get() = "OrbitControls"
-
 }

@@ -3,13 +3,13 @@ package me.anno.tests.physics
 import me.anno.bullet.VehicleWheel
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.DebugProperty
-import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Input
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 
-class TestVehicleController : Component(), ControlReceiver {
+class TestVehicleController : Component(), InputListener {
 
     var accelerationStrength = 1.0
     var steeringStrength = 0.5

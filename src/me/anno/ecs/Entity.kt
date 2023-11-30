@@ -7,7 +7,7 @@ import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.ui.UIEvent
-import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.pipeline.Pipeline
@@ -449,7 +449,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             { it.hasControlReceiver },
             { it.onUIEvent(event) },
             {
-                if (it is ControlReceiver) {
+                if (it is InputListener) {
                     event.call(it)
                     true
                 } else false
@@ -650,8 +650,8 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
                                 it.fillSpace(transform.globalTransform, tmpAABB)
                     }
         }
-        if (component is ControlReceiver) {
-            hasControlReceiver = hasComponent(ControlReceiver::class)
+        if (component is InputListener) {
+            hasControlReceiver = hasComponent(InputListener::class)
         }
         for (idx in components.indices) {
             components[idx].onChangeStructure(this)

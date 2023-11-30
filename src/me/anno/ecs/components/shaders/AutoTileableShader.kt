@@ -39,7 +39,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             "vec4 textureAnisotropic(sampler2D, vec2, vec2);\n" +
             "float random(vec2);\n" +
             "vec3 rgb2yuv(vec3);\n" +
-            "vec4 sampleTile(sampler2D T, vec2 uv, vec2 seed, vec2 offset) {\n" +
+            "vec4 sampleTile(sampler2D T, sampler2D invLUT, vec2 uv, vec2 seed, vec2 offset) {\n" +
             // todo optional random rotation
             // optional ofc
             "   seed *= 0.001;\n" +
@@ -55,14 +55,14 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             "       rgb = textureLod(T, pos, log2(diff));\n" +
             "   }\n" +
             "   vec3 yuv = rgb2yuv(rgb.xyz);\n" +
-            "   yuv.x = textureLod(invLUTTex, vec2(yuv.x, 1.0), 0.0).x;\n" +
+            "   yuv.x = textureLod(invLUT, vec2(yuv.x, 1.0), 0.0).x;\n" +
             "   return vec4(yuv, rgb.a);\n" +
             "}\n"
 
     const val getTexture = "" +
-            "vec4 sampleTile(sampler2D, vec2, vec2, vec2);\n" +
+            "vec4 sampleTile(sampler2D, sampler2D, vec2, vec2, vec2);\n" +
             "vec3 yuv2rgb(vec3);\n" +
-            "vec4 sampleAutoTileableTexture(sampler2D T, vec2 pos) {\n" +
+            "vec4 sampleAutoTileableTexture(sampler2D T, sampler2D invLUT, vec2 pos) {\n" +
             "   vec2 lattice = worldToLat*pos;\n" +
             "   vec2 cell = floor(lattice);\n" +
             "   vec2 uv = lattice - cell;\n" +
@@ -75,9 +75,9 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
             "   vec2 v2 = cell + vec2(0, 1);\n" +
 
             // to do test as tri-planar material
-            "   vec4 color0 = sampleTile(T, pos, v0, pos - latToWorld*v0);\n" +
-            "   vec4 color1 = sampleTile(T, pos, v1, pos - latToWorld*v1);\n" +
-            "   vec4 color2 = sampleTile(T, pos, v2, pos - latToWorld*v2);\n" +
+            "   vec4 color0 = sampleTile(T, invLUT, pos, v0, pos - latToWorld*v0);\n" +
+            "   vec4 color1 = sampleTile(T, invLUT, pos, v1, pos - latToWorld*v1);\n" +
+            "   vec4 color2 = sampleTile(T, invLUT, pos, v2, pos - latToWorld*v2);\n" +
 
             "   vec3 uvw = vec3(1.0 - uv.x - uv.y, uv.x, uv.y);\n" +
             "   uvw = uvw*uvw*uvw;\n" +
@@ -85,7 +85,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
 
             "   vec4 yuv = uvw.x*color0 + uvw.y*color1 + uvw.z*color2;\n" +
 
-            "   yuv.x = textureLod(invLUTTex, vec2(yuv.x, 0.0), 0.0).x;\n" +
+            "   yuv.x = textureLod(invLUT, vec2(yuv.x, 0.0), 0.0).x;\n" +
             "   return vec4(yuv2rgb(yuv.xyz), yuv.a);\n" +
             "}\n"
 
@@ -106,7 +106,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         // step by step define all material properties
                         "vec3 colorPos = finalPosition - tileOffset;\n" +
                         "vec2 uv = vec2(dot(colorPos, tilingU), sign(finalNormal.y) * dot(colorPos, tilingV));\n" +
-                        "vec4 texDiffuseMap = sampleAutoTileableTexture(diffuseMap, uv);\n" +
+                        "vec4 texDiffuseMap = sampleAutoTileableTexture(diffuseMap, invLUT, uv);\n" +
                         "vec4 color = vec4(vertexColor0.rgb, 1.0) * diffuseBase * texDiffuseMap;\n" +
                         "if(color.a < ${1f / 255f}) discard;\n" +
                         "finalColor = color.rgb;\n" +
@@ -114,15 +114,15 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
                         normalTanBitanCalculation +
                         "mat3 tbn = mat3(finalTangent, finalBitangent, finalNormal);\n" +
                         "if(abs(normalStrength.x) > 0.0){\n" +
-                        "   vec3 normalFromTex = sampleAutoTileableTexture(normalMap, uv).rgb * 2.0 - 1.0;\n" +
+                        "   vec3 normalFromTex = sampleAutoTileableTexture(normalMap, invLUT, uv).rgb * 2.0 - 1.0;\n" +
                         "        normalFromTex = matMul(tbn, normalFromTex);\n" +
                         // normalize?
                         "   finalNormal = mix(finalNormal, normalFromTex, normalStrength.x);\n" +
                         "}\n" +
-                        "finalEmissive  = sampleAutoTileableTexture(emissiveMap, uv).rgb * emissiveBase;\n" +
-                        "finalOcclusion = (1.0 - sampleAutoTileableTexture(occlusionMap, uv).r) * occlusionStrength;\n" +
-                        "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y,  sampleAutoTileableTexture(metallicMap,  uv).r), 0.0, 1.0);\n" +
-                        "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, sampleAutoTileableTexture(roughnessMap, uv).r), 0.0, 1.0);\n" +
+                        "finalEmissive  = sampleAutoTileableTexture(emissiveMap, invLUT, uv).rgb * emissiveBase;\n" +
+                        "finalOcclusion = (1.0 - sampleAutoTileableTexture(occlusionMap, invLUT, uv).r) * occlusionStrength;\n" +
+                        "finalMetallic  = clamp(mix(metallicMinMax.x,  metallicMinMax.y, sampleAutoTileableTexture(metallicMap, invLUT, uv).r), 0.0, 1.0);\n" +
+                        "finalRoughness = clamp(mix(roughnessMinMax.x, roughnessMinMax.y, sampleAutoTileableTexture(roughnessMap, invLUT, uv).r), 0.0, 1.0);\n" +
                         // todo sample other properties well, too
                         reflectionCalculation +
                         v0 + sheenCalculation +

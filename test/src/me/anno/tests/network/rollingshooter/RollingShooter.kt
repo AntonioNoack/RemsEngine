@@ -18,7 +18,7 @@ import me.anno.ecs.components.mesh.shapes.IcosahedronModel
 import me.anno.ecs.components.mesh.shapes.UVSphereModel
 import me.anno.ecs.components.player.LocalPlayer
 import me.anno.ecs.components.shaders.Skybox
-import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.InputListener
 import me.anno.engine.raycast.RayQuery
 import me.anno.engine.raycast.Raycast
 import me.anno.engine.ui.render.PlayMode
@@ -217,7 +217,7 @@ fun main() {
     var rotX = -30.0
     var rotY = 0.0
 
-    selfPlayerEntity.add(object : Component(), ControlReceiver {
+    selfPlayerEntity.add(object : Component(), InputListener {
 
         val jumpTimeout = (0.1 * SECONDS_TO_NANOS).toLong()
         var lastJumpTime = 0L
@@ -302,7 +302,7 @@ fun main() {
     val cameraArm = Entity(cameraBase1)
     cameraArm.setPosition(1.5, 1.0, 4.0)
     cameraArm.setRotation(0.0, 0.0, 0.0)
-    cameraBase.add(object : Component(), ControlReceiver {
+    cameraBase.add(object : Component(), InputListener {
 
         override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean): Boolean {
             cameraArm.position = cameraArm.position.mul(pow(0.98, dy.toDouble()))

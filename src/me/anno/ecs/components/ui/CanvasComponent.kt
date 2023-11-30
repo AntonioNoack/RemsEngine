@@ -8,7 +8,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
-import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.PlayMode
@@ -56,7 +56,7 @@ import org.joml.Matrix4d
 
 // todo remove subpixel rendering in world space here
 
-class CanvasComponent() : MeshComponentBase(), ControlReceiver {
+class CanvasComponent() : MeshComponentBase(), InputListener {
 
     // todo this element always need glCullFace, or you see the back when it's transparent
 

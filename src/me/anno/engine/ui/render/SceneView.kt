@@ -23,6 +23,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio.Companion.testUI
+import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.editor.PropertyInspector
 
 @Suppress("MemberVisibilityCanBePrivate")
@@ -91,7 +92,7 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
         }
 
         fun testSceneWithUI(title: String, scene: PrefabSaveable, init: ((SceneView) -> Unit)? = null) {
-            testUI(title) {
+            testUI3(title) {
                 GFX.someWindow?.windowStack?.firstOrNull()?.drawDirectly = false
                 testScene(scene, init)
             }

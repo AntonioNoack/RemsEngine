@@ -8,7 +8,7 @@ import me.anno.ecs.annotations.Range
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.player.LocalPlayer
-import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderView
 import me.anno.input.Input
@@ -23,7 +23,7 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.utils.types.Floats.toRadians
 import org.joml.Vector3f
 
-abstract class CameraController : Component(), ControlReceiver {
+abstract class CameraController : Component(), InputListener {
 
     companion object {
         fun setup(controller: CameraController, renderView: RenderView): Entity {
@@ -56,7 +56,7 @@ abstract class CameraController : Component(), ControlReceiver {
     var rotation = Vector3f()
 
     var movementSpeed = 1f
-    var rotationSpeed = 1f
+    var rotationSpeed = 0.3f
 
     @Type("Camera/SameSceneRef")
     var camera: Camera? = null

@@ -8,7 +8,7 @@ import me.anno.input.Key
  *
  * mouseEnter and mouseExit are not yet supported
  * */
-interface ControlReceiver {
+interface InputListener {
 
     fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String) = false
 
@@ -23,7 +23,7 @@ interface ControlReceiver {
 
     fun onCharTyped(codepoint: Int) = false
 
-    // todo ???, do we do that? we would need to track all control receivers constantly, and raycast a ray once per frame
+    // todo ???, do we do that? we would need to track all input listeners constantly, and raycast a ray once per frame
     // todo this is cool, and really would be nice to have
     // todo we need a 2D mode
     // todo maybe the UI is just 3D meshes (with a different renderer)? :)

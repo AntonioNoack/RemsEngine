@@ -1,7 +1,7 @@
 package me.anno.ecs.prefab
 
 import me.anno.ecs.annotations.DebugTitle
-import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
@@ -42,7 +42,6 @@ import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
-import kotlin.reflect.jvm.isAccessible
 
 // todo bug: instance and inspector can get out of sync: the color slider for materials stops working :/
 
@@ -258,10 +257,10 @@ class PrefabInspector(val reference: FileReference) {
                 }
             }.apply { this.isInputAllowed = isWritable })
 
-        val controlReceiver = instances.firstInstanceOrNull<ControlReceiver>()
-        if (controlReceiver != null) {
+        val inputListener = instances.firstInstanceOrNull<InputListener>()
+        if (inputListener != null) {
             list.add(TextButton("Test Controls", style)
-                .addLeftClickListener { EditorState.control = controlReceiver })
+                .addLeftClickListener { EditorState.control = inputListener })
         }
 
         val customEditModes = instances.filterIsInstance<CustomEditMode>()

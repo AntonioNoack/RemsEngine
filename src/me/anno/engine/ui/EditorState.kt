@@ -1,7 +1,7 @@
 package me.anno.engine.ui
 
 import me.anno.config.DefaultConfig
-import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.interfaces.CustomEditMode
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
@@ -26,7 +26,7 @@ object EditorState {
 
     // todo box selecting with shift
 
-    var control: ControlReceiver? = null
+    var control: InputListener? = null
         set(value) {
             field = value
             if (value != null) editMode = null

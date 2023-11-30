@@ -2,13 +2,13 @@ package me.anno.lua
 
 import me.anno.ecs.annotations.Type
 import me.anno.lua.ScriptComponent.Companion.toLua
-import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.input.Key
 import org.luaj.vm2.LuaValue
 
 @Suppress("MemberVisibilityCanBePrivate")
-open class QuickInputScriptComponent : QuickScriptComponent(), ControlReceiver {
+open class QuickInputScriptComponent : QuickScriptComponent(), InputListener {
 
     @Type("Lua/Code")
     var keyDownScript = ""

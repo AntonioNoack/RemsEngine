@@ -1,6 +1,6 @@
 package me.anno.ecs.components.ui
 
-import me.anno.ecs.interfaces.ControlReceiver
+import me.anno.ecs.interfaces.InputListener
 import me.anno.extensions.events.Event
 import me.anno.input.Key
 import me.anno.ui.Window
@@ -46,7 +46,7 @@ class UIEvent(
     constructor(window: Window?, x: Float, y: Float, byMouse: Boolean, button: Key, type: UIEventType) :
             this(window, x, y, 0f, 0f, button, -1, byMouse, false, type)
 
-    fun call(r: ControlReceiver): Boolean {
+    fun call(r: InputListener): Boolean {
         return when (type) {
             UIEventType.MOUSE_WHEEL -> r.onMouseWheel(x, y, dx, dy, byMouse)
             UIEventType.MOUSE_MOVE -> r.onMouseMoved(x, y, dx, dy)

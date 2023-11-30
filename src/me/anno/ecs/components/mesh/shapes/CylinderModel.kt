@@ -2,6 +2,7 @@ package me.anno.ecs.components.mesh.shapes
 
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.io.files.FileReference
+import me.anno.maths.Maths.mix
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.PI
@@ -14,14 +15,16 @@ import kotlin.math.sin
 object CylinderModel {
 
     fun createMesh(
-        us: Int = 10,
-        vs: Int = 2,
-        top: Boolean,
-        bottom: Boolean,
+        us: Int, vs: Int, top: Boolean, bottom: Boolean,
         // option to use different materials for top, middle and bottom
-        middleTopBottom: List<FileReference>?,
-        uScale: Float,
-        mesh: Mesh,
+        middleTopBottom: List<FileReference>?, uScale: Float, mesh: Mesh,
+    ): Mesh = createMesh(us, vs, top, bottom, middleTopBottom, uScale, mesh, -1f, +1f, 1f)
+
+    fun createMesh(
+        us: Int, vs: Int, top: Boolean, bottom: Boolean,
+        // option to use different materials for top, middle and bottom
+        middleTopBottom: List<FileReference>?, uScale: Float, mesh: Mesh,
+        y0: Float, y1: Float, radius: Float,
     ): Mesh {
 
         val quadCount = us * (vs - 1)
@@ -52,14 +55,14 @@ object CylinderModel {
         val normals = mesh.normals!!
         val uvs = mesh.uvs!!
         for (v in 0 until vs) {
-            val y = v * 2f / (vs - 1) - 1f
+            val y = mix(y0, y1, v / (vs - 1f))
             for (u in 0..us) {
                 // calculate position
                 normals[k] = cu[u]
-                positions[k++] = cu[u]
+                positions[k++] = radius * cu[u]
                 positions[k++] = y
                 normals[k] = su[u]
-                positions[k++] = su[u]
+                positions[k++] = radius * su[u]
                 uvs[l++] = uScale * (1f - u.toFloat() / us)
                 uvs[l++] = v.toFloat() / (vs - 1f)
             }
@@ -68,10 +71,10 @@ object CylinderModel {
         if (top) {
             for (u in 0 until us) {
                 // calculate position
-                positions[k++] = cu[u]
+                positions[k++] = radius * cu[u]
                 normals[k] = 1f
-                positions[k++] = +1f
-                positions[k++] = su[u]
+                positions[k++] = y1
+                positions[k++] = radius * su[u]
                 uvs[l++] = .5f + cu[u] * .5f
                 uvs[l++] = .5f - su[u] * .5f
             }
@@ -80,10 +83,10 @@ object CylinderModel {
         if (bottom) {
             for (u in 0 until us) {
                 // calculate position
-                positions[k++] = cu[u]
+                positions[k++] = radius * cu[u]
                 normals[k] = -1f
-                positions[k++] = -1f
-                positions[k++] = su[u]
+                positions[k++] = y0
+                positions[k++] = radius * su[u]
                 uvs[l++] = .5f + cu[u] * .5f
                 uvs[l++] = .5f + su[u] * .5f
             }
