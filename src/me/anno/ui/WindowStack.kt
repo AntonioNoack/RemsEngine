@@ -45,7 +45,9 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
         private set
 
     var mouseDownX = 0f
+        private set
     var mouseDownY = 0f
+        private set
 
     val width get() = w1
     val height get() = h1

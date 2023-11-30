@@ -57,7 +57,7 @@ object Installer {
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = dstFile.getSibling(dstFile.name + ".tmp")
         thread(name = "Download $fileName") {
-            val window = GFX.focusedWindow ?: GFX.windows.firstOrNull()
+            val window = GFX.someWindow
             val progress = window?.addProgressBar(fileName, "Bytes", Double.NaN)
             val protocol = if (withHttps) "https" else "http"
             val name = fileName.replace(" ", "%20")
@@ -128,7 +128,7 @@ object Installer {
         // create a temporary file, and rename, so we know that we finished the download :)
         val tmp = dstFile.getSibling(dstFile.name + ".tmp")
         thread(name = "Download $fileName") {
-            val window = GFX.focusedWindow ?: GFX.windows.firstOrNull()
+            val window = GFX.someWindow
             val progress = window?.addProgressBar(fileName, "Bytes", Double.NaN)
             try {
                 runDownload(URL(srcFile.absolutePath), fileName, dstFile, tmp, progress)

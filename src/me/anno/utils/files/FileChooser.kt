@@ -157,7 +157,7 @@ object FileChooser {
             toSave, startDirectory, filters, style,
             callback
         )
-        val baseWindow = GFX.focusedWindow ?: GFX.someWindow
+        val baseWindow = GFX.someWindow
         return if (openInSeparateWindow || baseWindow == null) {
             // make this window a little smaller than default, so it's more obvious
             val w = OSWindow.defaultWidth * 6 / 7
