@@ -101,6 +101,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
 
             val group = PanelStack(style)
             val console = createConsole(style)
+            group.alignmentX = AxisAlignment.FILL
             group += console
 
             val right = object : PanelListX(style) {
@@ -132,6 +133,7 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
             }
             right.add(rip)
             right.makeBackgroundTransparent()
+            right.alignmentX = AxisAlignment.MAX
             if (bottom) right.add(RemsEngine.RuntimeInfoPlaceholder())
             group.add(right)
             return group

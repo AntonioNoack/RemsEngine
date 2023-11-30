@@ -7,6 +7,7 @@ import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
@@ -225,6 +226,7 @@ abstract class TreeView<V : Any>(
             list.children[index] as TreeViewEntryPanel<*>
         } else {
             val panel = createChildPanel(index)
+            panel.alignmentX = AxisAlignment.FILL
             list += panel
             panel
         }

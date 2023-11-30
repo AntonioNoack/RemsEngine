@@ -70,6 +70,11 @@ open class AnimMeshComponent : MeshComponent() {
     @NotSerializedProperty
     val currIndices = Vector4f()
 
+    init {
+        // todo automatically figure out when we can't use instanced rendering because of attributes limit
+        isInstanced = false
+    }
+
     open fun onAnimFinished(anim: AnimationState) {
         val instance = AnimationCache[anim.source]
         if (instance != null) {

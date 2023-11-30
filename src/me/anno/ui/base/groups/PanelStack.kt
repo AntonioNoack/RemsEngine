@@ -29,7 +29,14 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
         val h = height
         val children = children
         for (index in children.indices) {
-            children[index].setPosSize(x, y, w, h)
+            val child = children[index]
+            val ax = child.alignmentX
+            val ay = child.alignmentY
+            val dx = ax.getOffset(w, child.minW)
+            val cw = ax.getWidth(w, child.minW)
+            val dy = ay.getOffset(h, child.minH)
+            val ch = ay.getWidth(h, child.minH)
+            child.setPosSize(x + dx, y + dy, cw, ch)
         }
     }
 
@@ -49,5 +56,4 @@ open class PanelStack(sorter: Comparator<Panel>?, style: Style) : PanelList(sort
     }
 
     override val className: String get() = "PanelStack"
-
 }

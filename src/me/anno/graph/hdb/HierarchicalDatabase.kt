@@ -149,9 +149,13 @@ class HierarchicalDatabase(
                 if (files.isEmpty()) {
                     file.delete()
                 } else {
-                    val bytes = file.readBytesSync()
-                    val newBytes = FileAllocation.pack(files, bytes)
-                    file.writeBytes(newBytes)
+                    try {
+                        val bytes = file.readBytesSync()
+                        val newBytes = FileAllocation.pack(files, bytes)
+                        file.writeBytes(newBytes)
+                    } catch (e: Exception) {
+                        LOGGER.warn("Lost $file", e)
+                    }
                 }
             }
         }

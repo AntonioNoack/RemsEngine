@@ -18,6 +18,7 @@ import me.anno.graph.ui.GraphEditor
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.constraints.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
@@ -50,10 +51,16 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
     var graphEditor: GraphEditor = GraphEditor(null, style)
 
     init {
-        add(renderer)
-        add(editControls)
-        add(playControls)
-        add(graphEditor)
+        fill(renderer)
+        fill(editControls)
+        fill(playControls)
+        fill(graphEditor)
+    }
+
+    fun fill(ui: Panel) {
+        add(ui)
+        ui.alignmentX = AxisAlignment.FILL
+        ui.alignmentY = AxisAlignment.FILL
     }
 
     override fun onUpdate() {
