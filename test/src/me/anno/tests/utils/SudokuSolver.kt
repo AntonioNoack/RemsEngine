@@ -2,6 +2,7 @@ package me.anno.tests.utils
 
 import me.anno.utils.OS.downloads
 import me.anno.utils.types.Booleans.toInt
+import org.junit.jupiter.api.Assertions.assertEquals
 
 class Cell(val xi: Int, val yi: Int, val ci: Int, val index: Int)
 
@@ -37,7 +38,6 @@ fun main() {
         xFull[cell.xi] = xFull[cell.xi] and invMask
         yFull[cell.yi] = yFull[cell.yi] and invMask
         cFull[cell.ci] = cFull[cell.ci] and invMask
-        field[cell.index] = 0
     }
 
     fun set(cell: Cell, value: Int): Boolean {
@@ -95,18 +95,19 @@ fun main() {
     }
 
     val t0 = System.nanoTime()
+    val Done = Throwable()
 
     for (si in data.indices) {
         val sample = data[si]
         fill(sample)
 
         // sorting by number of options increased the solving time a lot :(, from 5ms to 36ms
+        //   total time increased from 12s to 36s
         // sorting in reverse however increased the solving time massively to 6100ms
+        //   total time not tested
         val emptyCells = cells
             .filter { field[it.index] == 0 }
-        // .sortedByDescending { numOptions(it) }
-
-        val Done = Throwable()
+        //    .sortedBy { numOptions(it) }
 
         fun solve(i: Int) {
             if (i >= emptyCells.size) throw Done
