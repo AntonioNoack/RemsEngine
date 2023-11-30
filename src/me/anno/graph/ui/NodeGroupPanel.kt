@@ -6,7 +6,7 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.graph.render.NodeGroup
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.a
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha

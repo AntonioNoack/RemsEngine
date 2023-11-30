@@ -17,8 +17,7 @@ import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths
 import me.anno.maths.Maths.length
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.constraints.Constraint
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelGroup
 import me.anno.ui.base.scrolling.ScrollableX
@@ -218,8 +217,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
             parent = value
         }
 
-    val layoutConstraints = ArrayList<Constraint>()
-
     // is updated by Window class
     // should make some computations easier :)
     @DebugProperty
@@ -368,24 +365,9 @@ open class Panel(val style: Style) : PrefabSaveable() {
         drawBackground(x0, y0, x1, y1)
     }
 
-    /**
-     * add a layout constraint
-     * may not be fulfilled by container
-     * */
-    operator fun plusAssign(c: Constraint) {
-        layoutConstraints.add(c)
-        layoutConstraints.sortBy { it.order }
-    }
-
-    fun setPosSize(x: Int, y: Int, w: Int, h: Int) {
+    open fun setPosSize(x: Int, y: Int, w: Int, h: Int) {
         setSize(w, h)
-        this.x = x
-        this.y = y
-        val constraints = layoutConstraints
-        for (i in constraints.indices) {
-            constraints[i].apply(this)
-        }
-        setPosition(this.x, this.y)
+        setPosition(x, y)
     }
 
     open fun setPosition(x: Int, y: Int) {
@@ -428,11 +410,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
                 minY = y + alignmentY.getOffset(h, this.minH)
             }
         }
-    }
-
-    fun add(c: Constraint): Panel {
-        this += c
-        return this
     }
 
     override fun removeFromParent() {
@@ -850,8 +827,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
         dst.backgroundColor = backgroundColor
         dst.backgroundRadiusCorners = backgroundRadiusCorners
         dst.backgroundRadius = backgroundRadius
-        dst.layoutConstraints.clear()
-        dst.layoutConstraints.addAll(layoutConstraints.map { it.clone() })
     }
 
     override fun readInt(name: String, value: Int) {
@@ -902,7 +877,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
         writer.writeEnum("alignmentY", alignmentY)
         // to do save this stuff somehow, maybe...
         // writer.writeObjectList(this, "clickListeners", clickListeners)
-        writer.writeObjectList(this, "layoutConstraints", layoutConstraints)
         writer.writeFloat("weight", weight)
         writer.writeBoolean("visibility", isVisible)
         writer.writeColor("background", backgroundColor)

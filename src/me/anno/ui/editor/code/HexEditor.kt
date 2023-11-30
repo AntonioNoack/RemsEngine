@@ -19,7 +19,7 @@ import me.anno.utils.Color.mixARGB
 import me.anno.ui.Panel
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.scrolling.LongScrollable
 import me.anno.ui.Style
 import me.anno.utils.Color.a

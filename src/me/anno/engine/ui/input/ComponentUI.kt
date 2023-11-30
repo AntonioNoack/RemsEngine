@@ -48,8 +48,8 @@ import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.constraints.SizeLimitingContainer
+import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.TitledListY

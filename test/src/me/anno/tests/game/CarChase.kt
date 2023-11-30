@@ -26,7 +26,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.tests.physics.TestVehicleController
 import me.anno.ui.Panel
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.base.text.UpdatingTextPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3

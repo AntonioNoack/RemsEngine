@@ -11,7 +11,7 @@ import me.anno.input.Key
 import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.length
 import me.anno.ui.Style
-import me.anno.ui.base.constraints.AspectRatioConstraint
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.editor.color.ColorChooser.Companion.circleBarRatio
 import me.anno.utils.Color.black
 import me.anno.utils.Color.toVecRGBA
@@ -172,8 +172,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
     }
 
     init {
-        // enforce the aspect ratio
-        this += AspectRatioConstraint { chooser.visualisation.ratio }
+        alignmentX = AxisAlignment.FILL
     }
 
     override val className: String get() = "HSVBoxMain"

@@ -2,7 +2,7 @@ package me.anno.tests.ui
 
 import me.anno.config.DefaultConfig.style
 import me.anno.studio.StudioBase
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3

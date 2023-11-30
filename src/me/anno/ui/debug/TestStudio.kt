@@ -11,7 +11,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Window
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 

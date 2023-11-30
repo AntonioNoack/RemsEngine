@@ -5,7 +5,7 @@ import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.NineTilePanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.black

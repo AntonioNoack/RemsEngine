@@ -14,7 +14,7 @@ import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.mix
 import me.anno.utils.Color.mixARGB
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.black
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Booleans.toInt

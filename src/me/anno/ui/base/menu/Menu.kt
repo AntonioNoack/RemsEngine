@@ -14,7 +14,7 @@ import me.anno.ui.WindowStack
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY

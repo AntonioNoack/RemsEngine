@@ -18,7 +18,7 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.max
 import me.anno.ui.Panel
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListY

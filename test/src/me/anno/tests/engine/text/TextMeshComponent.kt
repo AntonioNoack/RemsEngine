@@ -6,7 +6,7 @@ import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.mesh.TextMeshGroup
 import me.anno.ui.base.Font
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 
 // to do MeshSpawner component for long texts?
 class TextMeshComponent(val text: String, val font: Font, val alignment: AxisAlignment) : ProceduralMesh() {

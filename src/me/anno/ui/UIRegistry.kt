@@ -12,7 +12,6 @@ import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.ImageButton
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AspectRatioConstraint
 import me.anno.ui.base.groups.*
 import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelXY
@@ -36,7 +35,6 @@ object UIRegistry {
         val style = DefaultConfig.style
         registerCustomClass(Font())
         registerCustomClass(Padding())
-        registerCustomClass(AspectRatioConstraint())
         registerCustomClass { Panel(style) }
         registerCustomClass { PanelListX(style) }
         registerCustomClass { PanelListY(style) }

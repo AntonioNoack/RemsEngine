@@ -7,7 +7,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.pow
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color.withAlpha
 import org.joml.Matrix3x2f

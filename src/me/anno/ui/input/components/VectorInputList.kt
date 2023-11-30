@@ -1,7 +1,7 @@
 package me.anno.ui.input.components
 
 import me.anno.ui.Style
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.input.InputVisibility
 

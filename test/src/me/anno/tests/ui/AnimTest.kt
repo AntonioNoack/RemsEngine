@@ -10,7 +10,7 @@ import me.anno.ui.anim.MoveAnimation
 import me.anno.ui.anim.ScaleAnimation
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.SizeLimitingContainer
+import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.debug.TestStudio.Companion.testUI

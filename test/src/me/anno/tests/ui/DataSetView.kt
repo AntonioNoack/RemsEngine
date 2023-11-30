@@ -4,7 +4,7 @@ import me.anno.config.DefaultConfig
 import me.anno.ecs.database.DataSetPanel
 import me.anno.gpu.RenderDoc.disableRenderDoc
 import me.anno.io.NamedSaveable
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 
 fun main() {

@@ -11,7 +11,7 @@ import me.anno.language.translation.Dict
 import me.anno.ui.base.text.SimpleTextPanel
 import me.anno.ui.debug.JSMemory.jsUsedMemory
 import me.anno.ui.Style
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.OS
 import me.anno.utils.pooling.ByteBufferPool

@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.texture.Clamping
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
 import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import kotlin.math.max

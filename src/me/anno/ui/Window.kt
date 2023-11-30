@@ -13,7 +13,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.input.Input
 import me.anno.input.Key
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager

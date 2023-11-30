@@ -17,7 +17,7 @@ import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.sq
 import me.anno.ui.base.Font
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.black

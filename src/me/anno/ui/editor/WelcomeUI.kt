@@ -22,8 +22,8 @@ import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.Padding
-import me.anno.ui.base.constraints.AxisAlignment
-import me.anno.ui.base.constraints.SizeLimitingContainer
+import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption

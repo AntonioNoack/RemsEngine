@@ -29,7 +29,7 @@ import me.anno.gpu.texture.Texture2DArray
 import me.anno.graph.render.Texture
 import me.anno.input.Input
 import me.anno.maths.Maths
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools

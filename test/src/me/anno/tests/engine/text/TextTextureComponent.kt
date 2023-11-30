@@ -14,7 +14,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.io.files.InvalidRef
 import me.anno.mesh.Shapes.flat11
 import me.anno.ui.base.Font
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
 import kotlin.math.sign
 

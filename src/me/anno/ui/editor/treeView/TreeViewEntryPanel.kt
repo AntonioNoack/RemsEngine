@@ -16,7 +16,7 @@ import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.Style
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.text.TextPanel

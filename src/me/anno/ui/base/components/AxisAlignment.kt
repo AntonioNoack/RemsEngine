@@ -1,4 +1,4 @@
-package me.anno.ui.base.constraints
+package me.anno.ui.base.components
 
 @Suppress("unused")
 enum class AxisAlignment(val id: Int, val xName: String, val yName: String) {

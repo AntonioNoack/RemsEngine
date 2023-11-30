@@ -3,7 +3,7 @@ package me.anno.ui.base.groups
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.maths.Maths.mix
 import me.anno.ui.Panel
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.Style
 import kotlin.math.max
 

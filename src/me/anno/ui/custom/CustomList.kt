@@ -6,7 +6,7 @@ import me.anno.input.Key
 import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.Scrollbar
 import me.anno.utils.Color.mixARGB

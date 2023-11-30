@@ -2,7 +2,7 @@ package me.anno.tests.physics.fluid
 
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestDrawPanel
 
 fun main() {

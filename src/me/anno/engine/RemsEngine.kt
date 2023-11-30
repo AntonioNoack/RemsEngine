@@ -45,9 +45,6 @@ import org.joml.Matrix4f
 //  - branching maps & branching results
 //  - go into/out of/step
 
-// todo deferred MSAA and SSAO broke, why/when????
-//  - does it still work when using the render graph?
-
 // pick random x: grep 'x' -r . | shuf -n 1 | head -n 1
 
 // todo usable editing of materials: own color + indent + super material selector
@@ -55,15 +52,9 @@ import org.joml.Matrix4f
 
 // todo then create first release :3 (to easier get started for others)
 
-// todo retargetings database
-
 // todo : link files, which then get index for choosing meshes, skeletons, animations and such :)
 
-// todo fix VAOs
-
-
-// todo graphics: billboards: light only / override color (decals)
-// todo rendered when point is visible, or always (for nice light camera-bug effects, e.g. stars with many blades)
+// todo billboards, which are conditionally rendered: when point is visible (for nice light camera-bug effects, e.g. stars with many blades)
 
 // todo loading is slow: all tabs are loaded, even if only a single one is actually used
 
@@ -74,11 +65,6 @@ import org.joml.Matrix4f
 // todo runtime-only-PrefabSaveables must show warning in UI, that they are temporary
 
 // todo spellchecking could then become a mod :)
-
-
-// todo right click on a path:
-// todo - mutate -> create an asset based on that and replace the path, then inspect
-// todo - inspect -> show it in the editor
 
 // games, which we want to develop:
 //  - city builder

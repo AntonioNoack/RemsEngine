@@ -19,7 +19,7 @@ import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
-import me.anno.ui.base.constraints.SizeLimitingContainer
+import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption

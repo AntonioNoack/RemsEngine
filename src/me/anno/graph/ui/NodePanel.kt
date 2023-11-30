@@ -29,7 +29,7 @@ import me.anno.maths.Maths.mapClamped
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.Font
-import me.anno.ui.base.constraints.AxisAlignment
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.openMenu
