@@ -49,9 +49,9 @@ import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.groups.TitledListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
@@ -1078,75 +1078,10 @@ object ComponentUI {
                         val ci = TextButton("\uD83D\uDCDA", true, style)
                         ci.setTooltip("Open File from Project")
                         ci.addLeftClickListener { button ->
-
                             val value1 = property.get() as? FileReference ?: InvalidRef
-
-                            // only just now search the results, so the list is always up-to-date
-
-                            // also use all, which are currently in Material-cache? weird cache abuse
-                            // todo also use all, which can be found in currently open FileExplorers (?)
-
-                            val panelList = PanelListY(style)
-                            val options = ArrayList<FileReference>()
-
-                            fun createCategory(title: String, options: List<FileReference>) {
-                                if (options.isNotEmpty()) {
-                                    val optionList = PanelList2D(style)
-                                    // title needs to be bold, or sth like that
-                                    panelList.add(TextPanel(title, style).apply {
-                                        isBold = true
-                                        textSize *= 1.5f
-                                    })
-                                    panelList.add(optionList)
-                                    for (option in options) {
-                                        optionList.add(object : FileExplorerEntry(option, style) {
-                                            override fun updateTooltip() {
-                                                // as tooltip texts, show their whole path
-                                                super.updateTooltip()
-                                                tooltip = "${option.toLocalPath()}\n$tooltip"
-                                            }
-
-                                            override fun onDoubleClick(x: Float, y: Float, button: Key) {
-                                                super.onDoubleClick(x, y, button)
-                                                window?.close()
-                                            }
-                                        }.addLeftClickListener {
-                                            fi.setValue(option, true)
-                                        })
-                                    }
-                                }
+                            chooseFileFromProject(type1, value1, button, style) { option, _ ->
+                                fi.setValue(option, true)
                             }
-
-                            val indexedAssets = ECSSceneTabs.project?.assetIndex?.get(type1)
-                            if (indexedAssets != null) {
-                                createCategory("In Project", indexedAssets.toList())
-                            }
-
-                            createCategory("Temporary (Debug Only)", InnerTmpFile.findPrefabs(type1))
-
-                            if (value1 != InvalidRef && value1 !in options) {
-                                createCategory("Old Value", listOf(value1))
-                            }
-
-                            // todo button to create temporary instance?
-                            // todo button to create instance in project
-                            // todo search panel
-                            val buttons = TextButton("Cancel", style)
-                                .addLeftClickListener {
-                                    fi.setValue(value1, true)
-                                    it.window?.close()
-                                }
-                            buttons.alignmentX = AxisAlignment.FILL // todo this isn't working
-                            buttons.weight = 1f
-                            val mainList = SizeLimitingContainer(
-                                panelList,
-                                Maths.max(button.window!!.width / 3, 200),
-                                -1, style
-                            )
-                            Menu.openMenuByPanels(
-                                button.windowStack, NameDesc("Choose $type1"),
-                                listOf(ScrollPanelY(mainList, style), buttons)
-                            )
                         }
 
                         val list = PanelListY(style)
@@ -1306,6 +1241,82 @@ object ComponentUI {
             } else false
         }
         return this
+    }
+
+    fun chooseFileFromProject(
+        type1: String,
+        value1: FileReference,
+        sampleUI: Panel,
+        style: Style,
+        callback: (file: FileReference, cancelled: Boolean) -> Unit
+    ) {
+
+        // only just now search the results, so the list is always up-to-date
+
+        // also use all, which are currently in Material-cache? weird cache abuse
+        // todo also use all, which can be found in currently open FileExplorers (?)
+
+        val panelList = PanelListY(style)
+        val options = ArrayList<FileReference>()
+
+        fun createCategory(title: String, options: List<FileReference>) {
+            if (options.isNotEmpty()) {
+                val optionList = PanelList2D(style)
+                // title needs to be bold, or sth like that
+                panelList.add(TextPanel(title, style).apply {
+                    isBold = true
+                    textSize *= 1.5f
+                })
+                panelList.add(optionList)
+                for (option in options) {
+                    optionList.add(object : FileExplorerEntry(option, style) {
+                        override fun updateTooltip() {
+                            // as tooltip texts, show their whole path
+                            super.updateTooltip()
+                            tooltip = "${option.toLocalPath()}\n$tooltip"
+                        }
+
+                        override fun onDoubleClick(x: Float, y: Float, button: Key) {
+                            super.onDoubleClick(x, y, button)
+                            window?.close()
+                        }
+                    }.addLeftClickListener {
+                        callback(option, false)
+                    })
+                }
+            }
+        }
+
+        val indexedAssets = ECSSceneTabs.project?.assetIndex?.get(type1)
+        if (indexedAssets != null) {
+            createCategory("In Project", indexedAssets.toList())
+        }
+
+        createCategory("Temporary (Debug Only)", InnerTmpFile.findPrefabs(type1))
+
+        if (value1 != InvalidRef && value1 !in options) {
+            createCategory("Old Value", listOf(value1))
+        }
+
+        // todo button to create temporary instance?
+        // todo button to create instance in project
+        // todo search panel
+        val buttons = TextButton("Cancel", style)
+            .addLeftClickListener {
+                callback(value1, true)
+                it.window?.close()
+            }
+        buttons.alignmentX = AxisAlignment.FILL
+        buttons.weight = 1f
+        val mainList = SizeLimitingContainer(
+            panelList,
+            Maths.max(sampleUI.window!!.width / 3, 200),
+            -1, style
+        )
+        Menu.openMenuByPanels(
+            sampleUI.windowStack, NameDesc("Choose $type1"),
+            listOf(ScrollPanelY(mainList, style), buttons)
+        )
     }
 
     fun Any?.toLong(): Long {

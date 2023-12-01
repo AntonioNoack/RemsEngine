@@ -60,7 +60,7 @@ object AssetImport {
         LastModifiedCache.invalidate(dst)
         // update icon of current folder... hopefully this works
         Thumbs.invalidate(dst)
-        Thumbs.invalidate(dst.getParent())
+        Thumbs.invalidate(dst.getParent() ?: InvalidRef)
     }
 
     fun isPureFile(file: FileReference): Boolean {

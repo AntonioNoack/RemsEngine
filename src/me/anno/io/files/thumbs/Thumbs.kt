@@ -1,10 +1,6 @@
 package me.anno.io.files.thumbs
 
 import me.anno.Build
-import me.anno.gpu.texture.ImageToTexture
-import me.anno.gpu.texture.ImageToTexture.Companion.imageTimeout
-import me.anno.image.svg.SVGMeshCache
-import me.anno.video.VideoCache.getVideoFrame
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -29,9 +25,12 @@ import me.anno.engine.ui.render.RenderView0
 import me.anno.engine.ui.render.Renderers.previewRenderer
 import me.anno.engine.ui.render.Renderers.simpleNormalRenderer
 import me.anno.fonts.FontManager
-import me.anno.gpu.*
+import me.anno.gpu.CullMode
+import me.anno.gpu.DepthMode
+import me.anno.gpu.GFX
 import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.GFX.isGFXThread
+import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
@@ -52,16 +51,21 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.*
+import me.anno.gpu.texture.ImageToTexture.Companion.imageTimeout
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.hdb.ByteSlice
 import me.anno.graph.hdb.HDBKey
 import me.anno.graph.hdb.HDBKey.Companion.InvalidKey
 import me.anno.graph.hdb.HierarchicalDatabase
-import me.anno.image.*
+import me.anno.image.Image
+import me.anno.image.ImageCache
+import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMax
+import me.anno.image.ImageTransform
 import me.anno.image.hdr.HDRReader
 import me.anno.image.jpg.JPGThumbnails
 import me.anno.image.raw.toImage
+import me.anno.image.svg.SVGMeshCache
 import me.anno.image.tar.TGAReader
 import me.anno.io.ISaveable
 import me.anno.io.base.InvalidClassException
@@ -70,6 +74,8 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
+import me.anno.io.files.inner.InnerFolderCache
+import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.io.files.thumbs.ThumbsExt.createCameraMatrix
 import me.anno.io.files.thumbs.ThumbsExt.createModelMatrix
 import me.anno.io.files.thumbs.ThumbsExt.drawAssimp
@@ -79,8 +85,6 @@ import me.anno.io.files.thumbs.ThumbsExt.waitForTextures
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
-import me.anno.io.files.inner.InnerFolderCache
-import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.maths.Maths.clamp
 import me.anno.studio.StudioBase
 import me.anno.ui.base.Font
@@ -100,6 +104,7 @@ import me.anno.utils.structures.Iterators.subList
 import me.anno.utils.types.Floats.toRadians
 import me.anno.utils.types.InputStreams.readNBytes2
 import me.anno.utils.types.Strings.getImportType
+import me.anno.video.VideoCache.getVideoFrame
 import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import net.boeckling.crc.CRC64
@@ -161,19 +166,29 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun invalidate(file: FileReference?, neededSize: Int) {
-        file ?: return
+    fun invalidate(file: FileReference, neededSize: Int) {
+        if (file == InvalidRef) return
         val size = getSize(neededSize)
         TextureCache.remove { key, _ ->
             key is ThumbnailKey && key.file == file && key.size == size
         }
+        // invalidate database, too
+        file.getFileHash { hash ->
+            hdb.remove(getCacheKey(file, hash, size))
+        }
     }
 
     @JvmStatic
-    fun invalidate(file: FileReference?) {
-        file ?: return
+    fun invalidate(file: FileReference) {
+        if (file == InvalidRef) return
         TextureCache.remove { key, _ ->
             key is ThumbnailKey && key.file == file
+        }
+        // invalidate database, too
+        file.getFileHash { hash ->
+            for (size in sizes) {
+                hdb.remove(getCacheKey(file, hash, size))
+            }
         }
     }
 
@@ -297,7 +312,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    private fun createCacheKey(srcFile: FileReference, hash: Long, size: Int): HDBKey {
+    private fun getCacheKey(srcFile: FileReference, hash: Long, size: Int): HDBKey {
         if (srcFile is InnerTmpFile) return InvalidKey
         val split = srcFile.absolutePath.split('/')
         return HDBKey(split.subList(0, max(split.lastIndex, 0)), hash * 31 + size)
@@ -715,9 +730,13 @@ object Thumbs {
         comp: Renderable,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        val entity = Entity()
-        entity.add((comp as Component).clone() as Component)
-        generateEntityFrame(srcFile, dstFile, size, entity, callback)
+        if (comp is Component) {
+            val entity = Entity()
+            entity.add(comp.clone() as Component)
+            generateEntityFrame(srcFile, dstFile, size, entity, callback)
+        } else {
+            LOGGER.warn("Cannot render ${comp.javaClass}")
+        }
     }
 
     @JvmField
@@ -1094,7 +1113,7 @@ object Thumbs {
         if (max(sw, sh) < size) {
             size /= 2
             if (size < 3) return
-            val key = createCacheKey(srcFile, hash, size)
+            val key = getCacheKey(srcFile, hash, size)
             shallReturnIfExists(srcFile, key, callback) { shallReturn ->
                 if (!shallReturn) {
                     findScale(src, srcFile, size, hash, callback, callback1)
@@ -1112,7 +1131,7 @@ object Thumbs {
         if (size < 3) return
         if (useCacheFolder) {
             srcFile.getFileHash { hash ->
-                val dstFile = createCacheKey(srcFile, hash, size)
+                val dstFile = getCacheKey(srcFile, hash, size)
                 hdb.get(dstFile, false) { byteSlice ->
                     if (!shallReturnIfExists(srcFile, byteSlice, callback)) {
                         generate(srcFile, size, dstFile, callback)
@@ -1304,7 +1323,8 @@ object Thumbs {
                                     decoded.length() > 0 -> {
                                         // try to read the file as an asset
                                         // not sure about using the workspace here...
-                                        val sth = JsonStringReader.read(decoded, StudioBase.workspace, true).firstOrNull()
+                                        val sth =
+                                            JsonStringReader.read(decoded, StudioBase.workspace, true).firstOrNull()
                                         generateSomething(sth, srcFile, dstFile, size, callback)
                                     }
                                     else -> LOGGER.warn("File $decoded is empty")

@@ -12,6 +12,7 @@ import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.FileRootRef
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.InnerFolderCache
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.pow
@@ -155,6 +156,17 @@ open class FileExplorer(
         val pinToFavourites = FileExplorerOption(addToFavouritesDesc) { _, files ->
             Favourites.addFavouriteFiles(files)
         }
+        val invalidateThumbnails = FileExplorerOption(
+            NameDesc(
+                "Invalidate Thumbnails",
+                "Regenerates them when needed",
+                "ui.file.invalidateThumbnails"
+            )
+        ) { _, files ->
+            for (file in files) {
+                Thumbs.invalidate(file)
+            }
+        }
         val delete = FileExplorerOption(deleteDesc) { p, files -> deleteFileMaybe(p, files) }
         return listOf(
             rename,
@@ -162,6 +174,7 @@ open class FileExplorer(
             openInStandard,
             editInStandard,
             pinToFavourites,
+            invalidateThumbnails,
             copyPath,
             copyName,
             delete

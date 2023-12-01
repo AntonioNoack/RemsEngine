@@ -1214,15 +1214,26 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
     fun move(dx: Float, dy: Float, dz: Float) {
         if (prefab?.isWritable == false) {
             LOGGER.warn("Mesh is immutable")
-            return
+        } else {
+            val positions = positions ?: return
+            for (i in 0 until positions.size - 2 step 3) {
+                positions[i] += dx
+                positions[i + 1] += dy
+                positions[i + 2] += dz
+            }
+            invalidateGeometry()
         }
-        val positions = positions ?: return
-        for (i in 0 until positions.size - 2 step 3) {
-            positions[i] += dx
-            positions[i + 1] += dy
-            positions[i + 2] += dz
+    }
+
+    @DebugAction
+    fun removeVertexColors() {
+        if (prefab?.isWritable == false) {
+            LOGGER.warn("Mesh is immutable")
+        } else {
+            color0 = null
+            prefab?.set("color0", null)
+            invalidateGeometry()
         }
-        invalidateGeometry()
     }
 
     companion object {

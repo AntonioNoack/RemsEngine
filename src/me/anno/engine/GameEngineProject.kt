@@ -106,12 +106,12 @@ class GameEngineProject() : NamedSaveable() {
         workspace = location
 
         // if last scene is invalid, create a valid scene
-        if (lastScene == null) {
+        if (lastScene == "") {
             lastScene = location.getChild("Scene.json").absolutePath
             LOGGER.info("Set scene to $lastScene")
         }
 
-        val lastSceneRef = lastScene!!.toGlobalFile(location)
+        val lastSceneRef = lastScene.toGlobalFile(location)
         if (!lastSceneRef.exists) {
             val prefab = Prefab("Entity", ScenePrefab)
             lastSceneRef.getParent()?.tryMkdirs()

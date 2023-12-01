@@ -333,12 +333,29 @@ class HierarchicalDatabase(
         }
     }
 
-    fun delete(path: List<String>, hash: Long): Boolean {
+    fun remove(key: HDBKey): Boolean {
+        return remove(key.path, key.hash)
+    }
+
+    fun remove(path: List<String>, hash: Long): Boolean {
         var folder = root
         for (i in path.indices) {
             folder = folder.children[path[i]] ?: return false
         }
         return if (folder.files.remove(hash) != null) {
+            optimizeStorage(folder)
+            true
+        } else false
+    }
+
+    fun removeAll(path: List<String>, recursive: Boolean): Boolean {
+        if (recursive) TODO("remove subpaths, too?")
+        var folder = root
+        for (i in path.indices) {
+            folder = folder.children[path[i]] ?: return false
+        }
+        return if (folder.files.isNotEmpty()) {
+            folder.files.clear()
             optimizeStorage(folder)
             true
         } else false

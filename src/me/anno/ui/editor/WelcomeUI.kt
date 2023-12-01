@@ -337,6 +337,7 @@ abstract class WelcomeUI {
 
         nameInput = TextInput("Project Name", "", Dict["New Project", "ui.newProject.defaultName"], style)
         nameInput.setEnterListener { loadNewProject(studio, usableFile, nameInput) }
+        nameInput.alignmentX = AxisAlignment.FILL
 
         var lastName = nameInput.value
         fileInput = FileInput(
@@ -344,6 +345,7 @@ abstract class WelcomeUI {
             getReference(StudioBase.workspace, lastName), emptyList(),
             true
         )
+        fileInput.alignmentX = AxisAlignment.FILL
 
         updateFileInputColor()
 
@@ -364,6 +366,7 @@ abstract class WelcomeUI {
 
         val button = TextButton("Create Project", "Creates a new project", "ui.createNewProject", false, style)
         button.addLeftClickListener { loadNewProject(studio, usableFile, nameInput) }
+        button.alignmentX = AxisAlignment.FILL
         newProject += button
 
         return newProject

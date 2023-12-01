@@ -1,5 +1,7 @@
 package me.anno.engine.ui
 
+import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
@@ -7,24 +9,32 @@ import me.anno.engine.RemsEngine
 import me.anno.engine.ScenePrefab
 import me.anno.engine.ui.AssetImport.deepCopyImport
 import me.anno.engine.ui.AssetImport.shallowCopyImport
+import me.anno.engine.ui.input.ComponentUI
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.json.saveable.JsonStringReader
+import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
+import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Style
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
-import me.anno.ui.editor.files.*
+import me.anno.ui.editor.files.FileExplorer
+import me.anno.ui.editor.files.FileExplorerEntry
+import me.anno.ui.editor.files.FileExplorerOption
+import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.files.Files.findNextChild
 import me.anno.utils.files.Files.findNextFile
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.structures.lists.Lists.all2
 import org.apache.logging.log4j.LogManager
+import kotlin.math.max
 
 
 // done import mesh/material/... for modifications:
@@ -161,13 +171,6 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         val fileOptions = ArrayList<FileExplorerOption>()
         val folderOptions = ArrayList<FileExplorerOption>()
 
-        @JvmField
-        val openAsSceneDesc = NameDesc(
-            "Open As Scene",
-            "Show the file in a new scene tab",
-            "ui.file.openInSceneTab"
-        )
-
         @Suppress("MemberVisibilityCanBePrivate")
         fun addOptionToCreateFile(name: String, fileContent: String) {
             folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, files ->
@@ -193,7 +196,13 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         }
 
         init {
-            val openAsScene = FileExplorerOption(openAsSceneDesc) { p, files ->
+            val openAsScene = FileExplorerOption(
+                NameDesc(
+                    "Open As Scene",
+                    "Show the file in a new scene tab",
+                    "ui.file.openInSceneTab"
+                )
+            ) { p, files ->
                 for (file in files) {
                     ECSSceneTabs.open(
                         file, PlayMode.EDITING,
@@ -202,7 +211,62 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
                 }
                 invalidateFileExplorers(p)
             }
+            val assignMaterialToMeshes = FileExplorerOption(
+                NameDesc(
+                    "Override Material", "Changes the material of all selected files",
+                    "ui.file.overrideMaterial"
+                )
+            ) { p, files ->
+                // ask material
+                val meshes = ArrayList<Triple<FileReference, Prefab, List<FileReference>>>()
+                val filesToBeInvalidated = ArrayList<FileReference>()
+                fun processMesh(file: FileReference, prefab: Prefab) {
+                    val oldMaterials = (prefab["materials"] as? List<*>)
+                        ?.filterIsInstance<FileReference>()
+                        ?: emptyList()
+                    meshes.add(Triple(file, prefab, oldMaterials))
+                }
+                for (file in files) {
+                    if (file.isDirectory) continue
+                    val prefab = PrefabCache[file, false] ?: continue
+                    when (prefab.clazzName) {
+                        "Entity" -> {
+                            // iterate through, find MeshComponents, extract their mesh, and associated materials
+                            var addedAny = false
+                            val sample = prefab.getSampleInstance() as Entity
+                            sample.forAllComponentsInChildren(MeshComponent::class) {
+                                val meshFile = it.meshFile
+                                val prefab1 = PrefabCache[meshFile, false]
+                                if (prefab1 != null && prefab1.clazzName == "Mesh") {
+                                    processMesh(meshFile, prefab1)
+                                    addedAny = true
+                                }
+                            }
+                            if (addedAny) {
+                                filesToBeInvalidated.add(file)
+                            }
+                        }
+                        "Mesh" -> processMesh(file, prefab)
+                    }
+                }
+                if (meshes.isNotEmpty()) {
+                    ComponentUI.chooseFileFromProject("Material", InvalidRef, p, p.style) { materialFile, cancelled ->
+                        for ((file, prefab, oldMaterials) in meshes) {
+                            val size = max(1, oldMaterials.size)
+                            prefab["materials"] = if (cancelled) oldMaterials
+                            else (0 until size).map { materialFile }
+                            file.writeText(JsonStringWriter.toText(prefab, workspace))
+                        }
+                        // and at the end, invalidate the thumbnail for these secondary source files
+                        // todo ideally, invalidate all files that depend on ours
+                        for (file in filesToBeInvalidated) {
+                            Thumbs.invalidate(file)
+                        }
+                    }
+                } else LOGGER.warn("No valid target was found")
+            }
             fileOptions.add(openAsScene)
+            fileOptions.add(assignMaterialToMeshes)
             folderOptions.add(openAsScene)
             // create camera, material, shader, prefab, mesh, script, etc
             addOptionToCreateComponent("Entity")
