@@ -22,6 +22,7 @@ import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Style
+import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.msg
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
@@ -176,11 +177,14 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
             folderOptions.add(FileExplorerOption(NameDesc("Add $name")) { p, files ->
                 val first = files.firstOrNull()
                 if (first?.isDirectory == true) {
-                    val file = findNextFile(first, name, "json", 1, 0.toChar(), 0)
-                    if (file == InvalidRef) {
-                        msg(p.windowStack, NameDesc("Directory is not writable"))
-                    } else file.writeText(fileContent)
-                    invalidateFileExplorers(p)
+                    askName(p.windowStack, NameDesc("File Name"), name, NameDesc("Create File"), { -1 }, {
+                        val name1 = if (it.endsWith(".json")) it.substring(0, it.length - 5) else it
+                        val file = findNextFile(first, name1, "json", 1, 0.toChar(), 0)
+                        if (file == InvalidRef) {
+                            msg(p.windowStack, NameDesc("Directory is not writable"))
+                        } else file.writeText(fileContent)
+                        invalidateFileExplorers(p)
+                    })
                 } else LOGGER.warn("Not a directory")
             })
         }
@@ -274,7 +278,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
             // addOptionToCreateComponent("Camera", "Camera")
             // addOptionToCreateComponent("Cube", "")
             addOptionToCreateComponent("Material")
-            addOptionToCreateComponent("Rigidbody")
+            // addOptionToCreateComponent("Rigidbody")
         }
     }
 }

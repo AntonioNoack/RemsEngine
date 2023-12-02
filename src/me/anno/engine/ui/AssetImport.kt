@@ -1,11 +1,11 @@
 package me.anno.engine.ui
 
-import me.anno.io.files.LastModifiedCache
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.LastModifiedCache
 import me.anno.io.files.Signature
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.json.saveable.JsonStringWriter
@@ -26,7 +26,7 @@ object AssetImport {
 
     fun shallowCopyImport(dst: FileReference, files: List<FileReference>, fe: FileExplorer?) {
         val window = GFX.someWindow
-        val progress = window?.addProgressBar("Deep Copy", "", files.size.toDouble())
+        val progress = window?.addProgressBar("Shallow Copy", "", files.size.toDouble())
         for (src in files) {
             val srcPrefab = PrefabCache[src]
             if (srcPrefab == null) {
@@ -122,7 +122,7 @@ object AssetImport {
         val cached = cache[srcFile]
         if (cached != null) return cached
         return if (isPureFile(srcFile)) {
-            val name = findName(srcFile, null, isMainFolder)
+            val name = findNameWithExt(srcFile, null, isMainFolder)
             val dstFile = dstFolder.getChild(name)
             dstFile.writeFile(srcFile) {}
             cache[srcFile] = dstFile
@@ -224,6 +224,31 @@ object AssetImport {
         if (isMainFolder && name == "Scene") {
             // rename to file name
             name = srcFile.getParent()!!.nameWithoutExtension
+        }
+        return name
+    }
+
+    private fun findNameWithExt(srcFile: FileReference, prefab: Prefab?, isMainFolder: Boolean): String {
+        val prefabName = prefab?.instanceName?.toAllowedFilename()
+        val fileName = srcFile.name.toAllowedFilename()
+        var name = fileName ?: srcFile.getParent()?.name ?: prefab?.instanceName ?: "Scene"
+        if (name.toIntOrNull() != null) {
+            name = prefabName ?: "Scene"
+        }
+        if (isMainFolder && name == "Scene") {
+            // rename to file name
+            name = srcFile.getParent()!!.name
+        }
+        if ('.' !in name) {
+            @Suppress("MoveVariableDeclarationIntoWhen")
+            val signature = Signature.findNameSync(srcFile)
+            val extName = when (signature) {
+                "media" -> null
+                else -> signature
+            }
+            if (extName != null) {
+                name = "$name.$extName"
+            }
         }
         return name
     }

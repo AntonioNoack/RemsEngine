@@ -107,6 +107,7 @@ object Menu {
 
         val submit = TextButton(actionName.name, style)
         submit.weight = 1f
+        submit.alignmentX = AxisAlignment.FILL
         submit.tooltip = actionName.desc
         submit.addLeftClickListener {
             callback(textInput.value)
@@ -114,10 +115,12 @@ object Menu {
         }
 
         val cancel = TextButton("Cancel", style)
-        cancel.addLeftClickListener { close(textInput) }
         cancel.weight = 1f
+        cancel.alignmentX = AxisAlignment.FILL
+        cancel.addLeftClickListener { close(textInput) }
 
         val buttons = PanelListX(style)
+        buttons.alignmentX = AxisAlignment.FILL
         buttons += cancel
         buttons += submit
 
