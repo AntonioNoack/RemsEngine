@@ -1,17 +1,19 @@
-package me.anno.tests.engine.text
+package me.anno.ecs.components.text
 
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.text.TextComponent.Companion.defaultFont
 import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMesh
 import me.anno.fonts.signeddistfields.TextSDFGroup
 import me.anno.gpu.drawing.GFXx2D.getSizeX
 import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.gpu.shader.GLSLType
-import me.anno.mesh.Shapes.flat11
+import me.anno.io.serialization.SerializedProperty
+import me.anno.mesh.Shapes
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Arrays.resize
@@ -19,34 +21,59 @@ import org.joml.AABBd
 import org.joml.Matrix4x3d
 import kotlin.math.sign
 
-class SDFTextureComponent(val text: String, val font: Font, alignment: AxisAlignment) : MeshSpawner() {
+class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : MeshSpawner() {
 
-    val meshGroup = TextSDFGroup(FontManager.getFont(font), text, 0f)
-    val materials = ArrayList<Material>()
+    constructor() : this("Text", defaultFont, AxisAlignment.CENTER)
 
-    val size = FontManager.getSize(font, text, -1, -1)
-    val dx = getSizeX(size).toDouble() / getSizeY(size)
-    val alignmentOffset = when (alignment) {
-        AxisAlignment.MIN -> -2f
-        AxisAlignment.MAX -> 0f
-        else -> -1f
-    } * dx
+    @SerializedProperty
+    var text = text
+        set(value) {
+            if (field != value) {
+                field = value
+                onTextFontChange()
+            }
+        }
 
-    val mesh = Mesh()
+    @SerializedProperty
+    var font = font
+        set(value) {
+            field = value
+            onTextFontChange()
+        }
+
+    @SerializedProperty
+    var alignmentX = alignmentX
+        set(value) {
+            if (field != value) {
+                field = value
+                onAlignmentChange()
+            }
+        }
+
+    var meshGroup: TextSDFGroup? = null
+    private var size = 0
+    private var dx = 0.0
+    private var alignmentOffset = 0.0
+
+    private val materials = ArrayList<Material>()
+
+    fun onTextFontChange() {
+        meshGroup = null
+    }
+
+    fun onAlignmentChange() {
+        size = FontManager.getSize(font, text, -1, -1)
+        dx = getSizeX(size).toDouble() / getSizeY(size)
+        alignmentOffset = when (alignmentX) {
+            AxisAlignment.MIN -> -2f
+            AxisAlignment.CENTER -> -1f
+            else -> 0f
+        } * dx
+    }
 
     init {
-        mesh.indices = flat11.indices
-        val pos = mesh.positions.resize(flat11.positions.size)
-        val uvs = mesh.uvs.resize(pos.size / 3 * 2)
-        var j = 0
-        for (i in pos.indices step 3) {
-            pos[i] = sign(flat11.positions[i])
-            pos[i + 1] = sign(flat11.positions[i + 1])
-            uvs[j++] = +sign(flat11.positions[i]) * .5f + .5f
-            uvs[j++] = -sign(flat11.positions[i + 1]) * .5f + .5f
-        }
-        mesh.positions = pos
-        mesh.uvs = uvs
+        onTextFontChange()
+        onAlignmentChange()
     }
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
@@ -72,6 +99,8 @@ class SDFTextureComponent(val text: String, val font: Font, alignment: AxisAlign
     override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
         var i = 0
         val extraScale = 2f / TextMesh.DEFAULT_LINE_HEIGHT
+        val meshGroup = meshGroup ?: TextSDFGroup(FontManager.getFont(font), text, 0f)
+        this.meshGroup = meshGroup
         val baseScale = meshGroup.baseScale * extraScale
         meshGroup.draw { _, sdfTexture, offset ->
             val texture = sdfTexture?.texture
@@ -97,6 +126,25 @@ class SDFTextureComponent(val text: String, val font: Font, alignment: AxisAlign
                 run(mesh, material, transform)
                 i++
             }
+        }
+    }
+
+    companion object {
+        private val mesh = Mesh().apply {
+            val srcMesh = Shapes.flat11
+            indices = srcMesh.indices
+            val srcPos = srcMesh.positions
+            val dstPos = positions.resize(srcPos.size)
+            val dstUVs = uvs.resize(srcPos.size / 3 * 2)
+            var j = 0
+            for (i in dstPos.indices step 3) {
+                dstPos[i] = sign(srcPos[i])
+                dstPos[i + 1] = sign(srcPos[i + 1])
+                dstUVs[j++] = +sign(srcPos[i]) * .5f + .5f
+                dstUVs[j++] = -sign(srcPos[i + 1]) * .5f + .5f
+            }
+            positions = dstPos
+            uvs = dstUVs
         }
     }
 }

@@ -1,4 +1,4 @@
-package me.anno.tests.engine.text
+package me.anno.ecs.components.text
 
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType

@@ -5,7 +5,6 @@ import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.*
 import me.anno.ecs.components.anim.graph.AnimController
-import me.anno.ecs.components.anim.graph.AnimStateNode
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.camera.control.FirstPersonController
@@ -45,6 +44,9 @@ import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.ecs.components.anim.Bone
+import me.anno.ecs.components.text.SDFTextComponent
+import me.anno.ecs.components.text.TextMeshComponent
+import me.anno.ecs.components.text.TextTextureComponent
 import me.anno.ui.UIRegistry
 import me.anno.utils.LOGGER
 
@@ -109,6 +111,13 @@ object ECSRegistry {
     }
 
     @JvmStatic
+    fun initTextRenderers() {
+        registerCustomClass(TextMeshComponent())
+        registerCustomClass(TextTextureComponent())
+        registerCustomClass(SDFTextComponent())
+    }
+
+    @JvmStatic
     fun init() {
 
         if (hasBeenInited) return
@@ -158,6 +167,7 @@ object ECSRegistry {
         registerCustomClass(ImagePlane())
         registerCustomClass(DecalMeshComponent())
         registerCustomClass(DecalMaterial())
+        initTextRenderers()
 
         // animated meshes
         registerCustomClass(AnimController())

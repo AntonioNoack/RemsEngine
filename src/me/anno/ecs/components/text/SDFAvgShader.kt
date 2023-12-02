@@ -1,4 +1,4 @@
-package me.anno.tests.engine.text
+package me.anno.ecs.components.text
 
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType
@@ -6,8 +6,10 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 
-// averaging filter to get better results?
-// kills small details and corners, but the edges look better :)
+/**
+ * averaging filter to get better results?
+ * kills small details and corners, but the edges look better :)
+ * */
 object SDFAvgShader : ECSMeshShader("SDF-AVG") {
     override fun createFragmentStages(key: ShaderKey): List<ShaderStage> {
         return listOf(
