@@ -580,7 +580,7 @@ object Thumbs {
             waitForTextures(scene, srcFile)
         }
         scene.validateTransform()
-        scene.validateAABBs()
+        scene.getBounds()
         val bounds = scene.aabb
         renderToImage(srcFile, false, dstFile, true, previewRenderer, true, callback, size, size) {
             GFX.checkIsGFXThread()

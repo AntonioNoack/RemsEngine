@@ -6,6 +6,7 @@ import me.anno.engine.ui.input.ComponentUI
 import me.anno.io.ISaveable
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
@@ -39,18 +40,19 @@ object AutoInspector {
                      param.kind
             } */
             val title = action.annotations.firstInstanceOrNull<DebugTitle>()?.title ?: action.name.camelCaseToTitle()
-            list.add(
-                TextButton(title, style)
-                    .addLeftClickListener {
-                        // could become a little heavy....
-                        for (instance in instances) {
-                            // todo check class using inheritance / whether it exists...
-                            if (instance.javaClass == instances.first().javaClass) {
-                                action.call(instance)
-                            }
+            val button = TextButton(title, style)
+                .addLeftClickListener {
+                    // could become a little heavy....
+                    for (instance in instances) {
+                        // todo check class using inheritance / whether it exists...
+                        if (instance.javaClass == instances.first().javaClass) {
+                            action.call(instance)
                         }
-                        PropertyInspector.invalidateUI(true) // typically sth would have changed -> show that automatically
-                    })
+                    }
+                    PropertyInspector.invalidateUI(true) // typically sth would have changed -> show that automatically
+                }
+            button.alignmentX = AxisAlignment.FILL
+            list.add(button)
         }
 
         // debug properties: text showing the value, constantly updating

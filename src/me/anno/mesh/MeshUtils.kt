@@ -12,11 +12,11 @@ object MeshUtils {
 
     fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, mesh: Mesh, targetFrameUsage: Float = 0.95f) {
         mesh.getBounds()
-        centerMesh(stack, localStack, AABBd().set(mesh.aabb), { mesh.getBounds(it, false) }, targetFrameUsage)
+        centerMesh(stack, localStack, AABBd().set(mesh.getBounds()), { mesh.getBounds(it, false) }, targetFrameUsage)
     }
 
     fun centerMesh(stack: Matrix4f, localStack: Matrix4x3f, mesh: Entity, targetFrameUsage: Float = 0.95f) {
-        mesh.validateAABBs()
+        mesh.getBounds()
         val aabb = AABBf()
         centerMesh(stack, localStack, AABBd().set(mesh.aabb), {
             aabb.set(mesh.aabb)
@@ -95,7 +95,7 @@ object MeshUtils {
                     jointMatrix.set(transform).mul(global)
 
                     // if aabb u transform(mesh.aabb) == aabb, then skip this sub-mesh
-                    mesh.aabb.transformProject(jointMatrix, testAABB.set(aabb))
+                    mesh.getBounds().transformProject(jointMatrix, testAABB.set(aabb))
                     if (testAABB != aabb) {
                         mesh.forEachPoint(false) { x, y, z ->
                             aabb.union(jointMatrix.transformProject(vf.set(x, y, z)))

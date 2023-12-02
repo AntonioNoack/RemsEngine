@@ -80,7 +80,7 @@ class ECSSceneTab(
             }
             is Entity -> {
                 root.validateTransform()
-                root.validateAABBs()
+                root.getBounds()
                 resetCamera(root.aabb, true)
             }
             is Animation -> {
@@ -136,7 +136,7 @@ class ECSSceneTab(
     }
 
     private fun resetCamera2(mesh: Mesh) {
-        resetCamera(mesh.aabb, true)
+        resetCamera(mesh.getBounds(), true)
     }
 
     private fun resetCamera(aabb: AABBf, translate: Boolean) {

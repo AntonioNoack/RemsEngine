@@ -15,7 +15,7 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
 
     init {
         world.validateTransform()
-        world.validateAABBs()
+        world.getBounds()
     }
 
     val meshes1 = ArrayList<TriMesh>()

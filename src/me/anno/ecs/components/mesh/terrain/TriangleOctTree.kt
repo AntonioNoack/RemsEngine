@@ -49,7 +49,7 @@ class TriangleOctTree(
         }
         // define aabb
         // center mesh by that for clickability
-        val aabb = mesh.aabb
+        val aabb = mesh.getBounds() // todo this is dirty!!
         aabb.clear()
         for (i in 0 until numTriangles) {
             val a = srcIdx[i * 3] * 3

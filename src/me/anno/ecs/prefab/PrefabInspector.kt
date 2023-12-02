@@ -23,6 +23,7 @@ import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListX
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
@@ -309,7 +310,7 @@ class PrefabInspector(val reference: FileReference) {
                      param.kind
             } */
             val title = action.annotations.firstInstanceOrNull<DebugTitle>()?.title ?: action.name.camelCaseToTitle()
-            list.add(TextButton(title, style)
+            val button = TextButton(title, style)
                 .addLeftClickListener {
                     // could become a little heavy....
                     for (instance in instances) {
@@ -319,7 +320,9 @@ class PrefabInspector(val reference: FileReference) {
                         }
                     }
                     invalidateUI(true) // typically sth would have changed -> show that automatically
-                })
+                }
+            button.alignmentX = AxisAlignment.FILL
+            list.add(button)
         }
 
         // debug properties: text showing the value, constantly updating

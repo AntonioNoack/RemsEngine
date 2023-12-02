@@ -1,18 +1,7 @@
 package me.anno.engine.raycast
 
 import me.anno.ecs.Entity
-import me.anno.ecs.Transform
 import me.anno.ecs.components.collider.CollidingComponent
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.maths.Maths.SQRT3
-import me.anno.maths.Maths.hasFlag
-import me.anno.maths.bvh.BVHBuilder
-import me.anno.maths.bvh.SplitMethod
-import me.anno.utils.pooling.JomlPools
-import me.anno.utils.types.Triangles.rayTriangleIntersection
-import org.joml.Matrix4x3d
-import org.joml.Vector3d
-import org.joml.Vector3f
 
 /**
  * Casts a ray into the scene, reports the closest hit.
@@ -38,7 +27,7 @@ object Raycast {
      * */
     fun raycastClosestHit(entity: Entity, query: RayQuery): Boolean {
         entity.validateMasks()
-        entity.validateAABBs()
+        entity.getBounds()
         entity.validateTransform()
         val originalDistance = query.result.distance
         val components = entity.components
@@ -77,7 +66,7 @@ object Raycast {
     @Suppress("unused")
     fun raycastAnyHit(entity: Entity, query: RayQuery): Boolean {
         entity.validateMasks()
-        entity.validateAABBs()
+        entity.getBounds()
         entity.validateTransform()
         val components = entity.components
         for (i in components.indices) {

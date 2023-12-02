@@ -447,8 +447,7 @@ open class SDFComponent : ProceduralMesh(), Renderable,
     }
 
     override fun generateMesh(mesh: Mesh) {
-        val aabb = JomlPools.aabbf.create()
-        aabb.clear()
+        val aabb = mesh.getBounds() // todo this is dirty!!
         calculateBounds(aabb)
         // for testing only
         Shapes.createCube(
@@ -457,7 +456,6 @@ open class SDFComponent : ProceduralMesh(), Renderable,
             aabb.centerX, aabb.centerY, aabb.centerZ,
             withNormals = false, front = false, back = true,
         )
-        mesh.aabb.set(aabb)
         mesh.inverseOutline = true
         mesh.invalidateGeometry()
         JomlPools.aabbf.sub(1)

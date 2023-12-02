@@ -62,7 +62,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Q
     clock.stop("Loading Mesh")
 
     scene.validateTransform()
-    scene.validateAABBs()
+    scene.getBounds()
 
     val aabb = scene.aabb
 
@@ -87,7 +87,7 @@ fun createSampleTLAS(maxNodeSize: Int, clock: Clock): Quad<TLASNode, Vector3f, Q
                         .rotateLocalY(0.2 * i)
                         .rotateLocalX(0.2 * j)
                     scene2.validateTransform()
-                    scene2.validateAABBs()
+                    scene2.getBounds()
                     pipeline.fill(scene2)
                 }
             }

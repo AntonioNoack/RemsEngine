@@ -62,7 +62,7 @@ fun main() {
         }
 
         fun updateConeColor() {
-            scene.validateAABBs()
+            scene.getBounds()
             val tmp = AABBf()
             for (box in boxes) {
                 val hit = tmp.set(box.aabb).testLine(start, end, radiusAtOrigin, radiusPerUnit)

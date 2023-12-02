@@ -13,7 +13,6 @@ import me.anno.maths.Maths.TAUf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.studio.Events.addEvent
-import me.anno.studio.StudioBase
 import me.anno.utils.OS.desktop
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.structures.maps.Maps.removeIf
@@ -211,9 +210,9 @@ class HSChunkLoader(val sphere: HexagonSphere, val world: HexagonSphereMCWorld) 
                         val comp = MeshComponent(mesh.ref)
                         entity.add(comp)
                         entity.invalidateAABBsCompletely()
-                        entity.validateAABBs()
+                        entity.getBounds()
                         scene.add(entity)
-                        scene.validateAABBs()
+                        scene.getBounds()
                     }
                 }
             }

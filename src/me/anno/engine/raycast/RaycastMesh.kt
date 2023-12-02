@@ -220,7 +220,7 @@ object RaycastMesh {
     fun raycastGlobalClosestHit(query: RayQuery, globalTransform: Matrix4x3d?, mesh: Mesh) {
         if ((query.typeMask and Raycast.TRIANGLES) == 0) return
         // first test whether the aabbs really overlap
-        val globalAABB = query.result.tmpAABBd.set(mesh.aabb)
+        val globalAABB = query.result.tmpAABBd.set(mesh.getBounds())
         if (globalTransform != null) globalAABB.transformAABB(globalTransform)
         if (globalAABB.testLine(query.start, query.direction, query.result.distance)) {
             raycastGlobalClosestHit1(query, globalTransform, mesh)
@@ -314,7 +314,7 @@ object RaycastMesh {
     fun raycastGlobalAnyHit(globalTransform: Matrix4x3d?, mesh: Mesh, query: RayQuery) {
         if ((query.typeMask and Raycast.TRIANGLES) == 0) return
         // first test whether the aabbs really overlap
-        val globalAABB = query.result.tmpAABBd.set(mesh.aabb)
+        val globalAABB = query.result.tmpAABBd.set(mesh.getBounds())
         if (globalTransform != null) globalAABB.transformAABB(globalTransform)
         if (globalAABB.testLine(query.start, query.direction, query.result.distance)) {
             raycastGlobalAnyHit1(globalTransform, mesh, query)

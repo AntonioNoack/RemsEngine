@@ -60,9 +60,7 @@ class EnvironmentMap : LightComponentBase() {
     var samples = 1
 
     override fun fillSpace(globalTransform: Matrix4x3d, aabb: AABBd): Boolean {
-        val mesh = Shapes.cube11Smooth
-        mesh.getBounds()
-        mesh.aabb.transformUnion(globalTransform, aabb)
+        Shapes.cube11Smooth.getBounds().transformUnion(globalTransform, aabb)
         return true
     }
 
@@ -124,7 +122,7 @@ class EnvironmentMap : LightComponentBase() {
         val cameraMatrix = JomlPools.mat4f.create()
         val root = entity.getRoot(Entity::class)
         root.validateTransform()
-        root.validateAABBs()
+        root.getBounds()
         GFXState.depthMode.use(DepthMode.CLOSE) {
             texture.draw(resolution, pbrRenderer) { side ->
 

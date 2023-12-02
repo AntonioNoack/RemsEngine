@@ -415,10 +415,11 @@ class GLTFWriter(
         mesh.ensureNorTanUVs()
 
         val pos = mesh.positions!!
+        val bounds = mesh.getBounds()
         val posI = createView(
             "VEC3", GL_FLOAT, pos, pos.size / 3, pos.size * 4,
             false, 0,
-            min(mesh.aabb), max(mesh.aabb)
+            min(bounds), max(bounds)
         )
 
         val normal = mesh.normals

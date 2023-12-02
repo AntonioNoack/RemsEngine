@@ -37,7 +37,7 @@ object BVHBuilder {
             val worldToLocal = Matrix4x3f()
             localToWorld.invert(worldToLocal)
             val centroid = Vector3f()
-            val localBounds = mesh.aabb
+            val localBounds = mesh.getBounds()
             centroid.set(localBounds.centerX, localBounds.centerY, localBounds.centerZ)
             localToWorld.transformPosition(centroid)
             val globalBounds = AABBf()

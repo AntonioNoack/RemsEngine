@@ -20,10 +20,7 @@ import me.anno.ui.editor.stacked.Option
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Floats.f2s
 import org.apache.logging.log4j.LogManager
-import org.joml.AABBd
-import org.joml.Matrix4x3d
-import org.joml.Quaterniond
-import org.joml.Vector3d
+import org.joml.*
 import kotlin.reflect.KClass
 
 // entities would be an idea to make effects more modular
@@ -344,19 +341,19 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         hasValidCollisionMask = true
     }
 
-    fun validateAABBs() {
+    fun getBounds(): AABBd {
         if (hasValidAABB) {
             // to check if all invalidations were applied correctly
             /*val oldAABB = AABBd(aabb)
             hasValidAABB = false
             validateAABBs()
             if (oldAABB != aabb) LOGGER.warn("AABBs differed: $aabb vs $oldAABB, $name")*/
-            return
+            return aabb
         }
         hasValidAABB = true
         val children = children
         for (i in children.indices) {
-            children[i].validateAABBs()
+            children[i].getBounds()
         }
         aabb.clear()
         if (hasSpaceFillingComponents) {
@@ -372,6 +369,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         for (i in children.indices) {
             aabb.union(children[i].aabb)
         }
+        return aabb
     }
 
     @SerializedProperty

@@ -26,9 +26,9 @@ class DirectionalLight : LightComponent(LightType.DIRECTIONAL) {
         if (cutoff == 0f) {
             aabb.all()
         } else {
-            val mesh = getLightPrimitive()
-            mesh.getBounds()
-            mesh.aabb.transformUnion(globalTransform, aabb)
+            getLightPrimitive()
+                .getBounds()
+                .transformUnion(globalTransform, aabb)
         }
         return true
     }

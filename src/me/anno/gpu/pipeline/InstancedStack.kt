@@ -106,7 +106,7 @@ open class InstancedStack {
 
             mesh.ensureBuffer()
 
-            val localAABB = mesh.aabb
+            val localAABB = mesh.getBounds()
             val useAnimations = instances is InstancedAnimStack && instances.animTexture != null
 
             val motionVectors = BaseShader.motionVectors

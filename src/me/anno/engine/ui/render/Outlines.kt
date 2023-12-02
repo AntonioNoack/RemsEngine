@@ -60,7 +60,7 @@ object Outlines {
             .translate(-camPosition.x, -camPosition.y, -camPosition.z)
             .mul(transform)
         // = tmpMat4d.set(viewTransform).mul4x3delta(transform, camPosition, 1.0)
-        val aabb = mesh.aabb
+        val aabb = mesh.getBounds()
         val scaledMin = RenderView.scaledMin.set(+1.0)
         val scaledMax = RenderView.scaledMax.set(-1.0)
         val v = RenderView.tmpVec4d

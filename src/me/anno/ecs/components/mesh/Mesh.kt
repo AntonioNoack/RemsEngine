@@ -223,8 +223,9 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
      * */
     var drawMode = DrawMode.TRIANGLES
 
-    @DebugProperty
-    val aabb = AABBf()
+    @DebugProperty // todo make this assignable to get-functions
+    private val debugBounds get() = getBounds()
+    private val aabb = AABBf()
 
     var ignoreStrayPointsInAABB = false
 
@@ -1223,6 +1224,26 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
             }
             invalidateGeometry()
         }
+    }
+
+    @DebugAction
+    fun scaleUp100x() {
+        scale(Vector3f(100f))
+    }
+
+    @DebugAction
+    fun scaleDown100x() {
+        scale(Vector3f(0.01f))
+    }
+
+    fun scale(factor: Vector3f) {
+        val positions = positions ?: return
+        for (i in positions.indices step 3) {
+            positions[i] *= factor.x
+            positions[i + 1] *= factor.y
+            positions[i + 2] *= factor.z
+        }
+        invalidateGeometry()
     }
 
     @DebugAction

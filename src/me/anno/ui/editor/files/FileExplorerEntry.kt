@@ -4,8 +4,9 @@ import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.openal.AudioTasks
 import me.anno.audio.streams.AudioFileStreamOpenAL
-import me.anno.video.VideoCache.getVideoFrame
+import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.shaders.effects.FSR
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
@@ -23,13 +24,9 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.drawing.GFXx3D
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
-import me.anno.gpu.texture.ITexture2D
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.image.ImageCache
-import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageReadable
 import me.anno.image.ImageScale.scaleMaxPreview
 import me.anno.input.Input
@@ -39,12 +36,11 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.FileReference.Companion.getReferenceAsync
 import me.anno.io.files.FileReference.Companion.getReferenceOrTimeout
 import me.anno.io.files.InvalidRef
+import me.anno.io.files.inner.InnerLinkFile
 import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.utils.TrashManager.moveToTrash
 import me.anno.io.xml.ComparableStringBuilder
-import me.anno.io.files.inner.InnerLinkFile
 import me.anno.language.translation.NameDesc
-import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
 import me.anno.studio.GFXSettings
@@ -68,6 +64,7 @@ import me.anno.ui.editor.files.FileExplorerIcons.textPath
 import me.anno.ui.editor.files.FileExplorerIcons.videoPath
 import me.anno.ui.editor.files.FileExplorerIcons.zipPath
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Tabs
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.pooling.JomlPools
@@ -76,10 +73,12 @@ import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.getImportType
 import me.anno.utils.types.Strings.isBlank2
+import me.anno.video.VideoCache.getVideoFrame
 import me.anno.video.ffmpeg.MediaMetadata
 import me.anno.video.ffmpeg.MediaMetadata.Companion.getMeta
 import me.anno.video.formats.gpu.GPUFrame
 import org.apache.logging.log4j.LogManager
+import org.joml.AABBf
 import org.joml.Matrix4fArrayList
 import org.joml.Vector4f
 import kotlin.concurrent.thread
@@ -564,9 +563,17 @@ open class FileExplorerEntry(
                         val prefab = PrefabCache[file, true]
                         if (prefab != null) {
                             ttt.append('\n').append(prefab.clazzName)
-                            if (prefab.prefab != InvalidRef) ttt.append(" : ").append(prefab.prefab.toLocalPath())
-                                .append('\n')
-                            else ttt.append(", ")
+                            if (prefab.prefab != InvalidRef) {
+                                ttt.append(" : ").append(prefab.prefab.toLocalPath()).append('\n')
+                            } else ttt.append(", ")
+                            // if is entity, or mesh, get sample bounds
+                            if (prefab.clazzName == "Entity" || prefab.clazzName == "Mesh") {
+                                when (val sample = prefab.getSampleInstance()) {
+                                    // todo format bounds nicely
+                                    is Entity -> ttt.append(AABBf(sample.getBounds())).append('\n')
+                                    is Mesh -> ttt.append(sample.getBounds()).append('\n')
+                                }
+                            }
                             ttt.append(prefab.adds.size).append("+, ").append(prefab.sets.size).append("*")
                         } else {
                             val meta = getMeta(path, true)

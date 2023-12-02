@@ -263,7 +263,7 @@ fun main() {
                     val cameraDirection = RenderState.cameraDirection
 
                     // render the current frame
-                    scene.validateAABBs()
+                    scene.getBounds()
                     val aabb = scene.aabb
                     val sz = max(max(aabb.deltaX, aabb.deltaY), aabb.deltaZ).toFloat()
                     val sx = sz * zoom

@@ -59,7 +59,7 @@ fun main() {
         }
 
         override fun generateMesh(mesh: Mesh) {
-            val aabb = JomlPools.aabbf.create()
+            val aabb = mesh.getBounds() // todo this is dirty!
             aabb.clear()
             calculateBounds(aabb)
 
@@ -81,7 +81,6 @@ fun main() {
             mesh.indices = base1.indices
             mesh.normals = base1.normals
 
-            mesh.aabb.set(aabb)
             mesh.inverseOutline = true
             mesh.invalidateGeometry()
             // todo calculate procedural length based on state

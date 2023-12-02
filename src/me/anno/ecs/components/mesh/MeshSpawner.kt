@@ -47,11 +47,10 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     fun instancedFill(pipeline: Pipeline, entity: Entity): Boolean {
         forEachMesh { mesh, materialOverride, transform ->
 
-            mesh.ensureBuffer()
             transform.validate()
 
             // check visibility: first transform bounds into global space, then test them
-            mesh.aabb.transformUnion(transform.globalTransform, tmpAABB)
+            mesh.getBounds().transformUnion(transform.globalTransform, tmpAABB)
             if (pipeline.frustum.contains(tmpAABB)) {
                 for (matIndex in 0 until mesh.numMaterials) {
                     val material = materialOverride

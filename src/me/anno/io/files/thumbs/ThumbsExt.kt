@@ -72,7 +72,7 @@ object ThumbsExt {
         shader.use()
 
         if (normalizeScale || centerMesh) {
-            if (normalizeScale) modelMatrix.scale(getScaleFromAABB(aabb))
+            if (normalizeScale) modelMatrix.scale(getScaleFromAABB(getBounds()))
             if (centerMesh) centerMesh(cameraMatrix, modelMatrix, this)
         }
 
