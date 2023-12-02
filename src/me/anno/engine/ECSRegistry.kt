@@ -1,6 +1,5 @@
 package me.anno.engine
 
-import me.anno.Build
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.anim.*
@@ -28,8 +27,9 @@ import me.anno.ecs.components.shaders.AutoTileableMaterial
 import me.anno.ecs.components.shaders.CuboidMesh
 import me.anno.ecs.components.shaders.Skybox
 import me.anno.ecs.components.shaders.TriplanarMaterial
-import me.anno.ecs.components.test.RaycastTestComponent
-import me.anno.ecs.components.test.TypeTestComponent
+import me.anno.ecs.components.text.SDFTextComponent
+import me.anno.ecs.components.text.TextMeshComponent
+import me.anno.ecs.components.text.TextTextureComponent
 import me.anno.ecs.prefab.ChangeHistory
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.CAdd
@@ -43,10 +43,6 @@ import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
-import me.anno.ecs.components.anim.Bone
-import me.anno.ecs.components.text.SDFTextComponent
-import me.anno.ecs.components.text.TextMeshComponent
-import me.anno.ecs.components.text.TextTextureComponent
 import me.anno.ui.UIRegistry
 import me.anno.utils.LOGGER
 
@@ -202,12 +198,6 @@ object ECSRegistry {
         initIfAvailable("me.anno.sdf.SDFRegistry", "SDF")
 
         NodeLibrary.registerClasses()
-
-        if (Build.isDebug) {
-            // test classes
-            registerCustomClass(TypeTestComponent())
-            registerCustomClass(RaycastTestComponent())
-        }
     }
 
     fun initIfAvailable(clazzName: String, moduleName: String?) {

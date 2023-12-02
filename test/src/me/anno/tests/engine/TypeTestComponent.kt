@@ -1,4 +1,4 @@
-package me.anno.ecs.components.test
+package me.anno.tests.engine
 
 import me.anno.ecs.Component
 import me.anno.ecs.annotations.Range

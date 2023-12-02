@@ -1,4 +1,4 @@
-package me.anno.tests.engine.text
+package me.anno.tests.engine
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -10,8 +10,7 @@ import me.anno.ui.base.Font
 import me.anno.ui.base.components.AxisAlignment
 
 /**
- * Discusses different ways to draw text in 3d
- *
+ * Shows different ways to draw text in 3d
  * */
 fun main() {
 
