@@ -1,10 +1,11 @@
 package me.anno.io.find
 
 import me.anno.io.ISaveable
+import me.anno.utils.structures.lists.Lists.pop
+import kotlin.test.assertEquals
 
 /**
- * this is used within Rem's Studio to find, which pointers are referenced within a safe file
- * (to keep the file slightly smaller and more readable)
+ * this is used within Rem's Studio to keep references to properties inside objects even after reloading
  * */
 @Suppress("unused")
 object PropertyFinder {
@@ -35,18 +36,33 @@ object PropertyFinder {
     class FoundValueThrowable(val value: ISaveable) : Throwable()
 
     class FindNameWriter(private val searched: Any) : PartialWriter(false) {
+        private val nameStack = ArrayList<String>()
         override fun writeObjectImpl(name: String?, value: ISaveable) {
-            if(searched === value && name != null){
-                throw FoundNameThrowable(name)
-            } else value.save(this)
+            if (searched === value && name != null) {
+                nameStack.add(name)
+                throw FoundNameThrowable(nameStack.joinToString("/"))
+            } else {
+                if (name != null) nameStack.add(name)
+                value.save(this)
+                if (name != null) assertEquals(name, nameStack.pop())
+            }
         }
     }
 
     class FindValueWriter(private val searched: String) : PartialWriter(false) {
+        private val nameStack = ArrayList<String>()
         override fun writeObjectImpl(name: String?, value: ISaveable) {
-            if(searched == name){
-                throw FoundValueThrowable(value)
-            } else value.save(this)
+            if (name != null && searched.endsWith(name)) {
+                nameStack.add(name)
+                if (searched == nameStack.joinToString("/")) {
+                    throw FoundValueThrowable(value)
+                }
+                assertEquals(name, nameStack.pop())
+            } else {
+                if (name != null) nameStack.add(name)
+                value.save(this)
+                if (name != null) assertEquals(name, nameStack.pop())
+            }
         }
     }
 }
