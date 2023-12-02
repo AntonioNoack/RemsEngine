@@ -24,7 +24,7 @@ import me.anno.ui.WindowStack
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
-class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
+open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Style) :
     ScrollPanelY(Padding(3), style.getChild("propertyInspector")) {
 
     @Suppress("unused")
@@ -38,6 +38,7 @@ class PropertyInspector(val getInspectables: () -> List<Inspectable>, style: Sty
     val searchPanel = TextInput("Search Properties", "", true, style)
 
     init {
+        oldValues.makeBackgroundTransparent()
         searchPanel.addChangeListener { searchTerms ->
             // todo if an element is hidden by VisibilityKey, and it contains the search term, toggle that VisibilityKey
             val search = Search(searchTerms)

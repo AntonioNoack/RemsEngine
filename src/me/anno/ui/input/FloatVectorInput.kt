@@ -167,6 +167,22 @@ open class FloatVectorInput(
         component.inputPanel.tooltip = title
         component.setChangeListener { onChange(1 shl index) }
         component.weight = 1f
+        component.setResetListener {
+            val vector = type.defaultValue
+            when (vector) { // ok-ish
+                is Float -> vector
+                is Double -> vector
+                is Vector2f -> vector[index]
+                is Vector3f -> vector[index]
+                is Vector4f -> vector[index]
+                is Vector2d -> vector[index]
+                is Vector3d -> vector[index]
+                is Vector4d -> vector[index]
+                is Quaternionf -> vector.toEulerAnglesDegrees()[index]
+                is Quaterniond -> vector.toEulerAnglesDegrees()[index]
+                else -> 0.0
+            }.toString()
+        }
         valueList += component
         valueFields += component
         return component

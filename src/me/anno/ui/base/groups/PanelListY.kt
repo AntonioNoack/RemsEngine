@@ -132,18 +132,21 @@ open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
                 }
             } else {
                 var perWeight = 0f
+                var minWFactor = 1f
                 if (availableH > sumConst && sumWeight > 1e-7f) {
                     val availableForWeighted = availableH - sumConstWW
                     perWeight = availableForWeighted / sumWeight
+                } else if (availableH < sumConst) {
+                    minWFactor = availableH.toFloat() / sumConst.toFloat()
                 }
                 for (i in children.indices) {
                     val child = children[i]
                     if (child.isVisible) {
                         var childH = if (perWeight > 0f && child.weight > 0f) {
-                            (child.weight * perWeight).roundToInt()
+                            (perWeight * child.weight)
                         } else {
-                            child.minH
-                        }
+                            (minWFactor * child.minH)
+                        }.roundToInt()
                         val currentH = currentY - y
                         val remainingH = availableH - currentH
                         childH = min(childH, remainingH)

@@ -31,6 +31,7 @@ abstract class TreeView<V : Any>(
 
     init {
         list.add(searchPanel)
+        list.makeBackgroundTransparent()
         searchPanel.addChangeListener {
             search = if (it.isBlank2()) null else Search(it)
             needsTreeUpdate = true

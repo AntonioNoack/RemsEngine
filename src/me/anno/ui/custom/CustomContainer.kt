@@ -104,17 +104,41 @@ class CustomContainer(default: Panel, val library: UITypeLibrary, style: Style) 
                 parent.remove(indexInParent)
             } else LOGGER.warn(warningForLast)
         }.setEnabled(parent is CustomList && (siblings.size > 1 || parent.parent is CustomList), warningForLast)
-        options += MenuOption(NameDesc("Add Panel Before", "", "ui.customize.addBefore")) {
+        options += MenuOption(
+            NameDesc(
+                "Add Panel Before",
+                "Adds a new panel to the left of this one",
+                "ui.customize.addBefore"
+            )
+        ) {
             addPanel(false, firstThis = false)
         }
-        options += MenuOption(NameDesc("Add Panel After", "", "ui.customize.addAfter")) {
+        options += MenuOption(
+            NameDesc(
+                "Add Panel After",
+                "Adds a new panel to the right of this one",
+                "ui.customize.addAfter"
+            )
+        ) {
             addPanel(false, firstThis = true)
         }
-        options += MenuOption(NameDesc("Add Panel Above", "", "ui.customize.addAbove")) {
+        options += MenuOption(
+            NameDesc(
+                "Add Panel Above",
+                "Adds a new panel to the top of this one",
+                "ui.customize.addAbove"
+            )
+        ) {
             addPanel(true, firstThis = false)
         }
-        options += MenuOption(NameDesc("Add Panel Below", "", "ui.customize.addBelow")) {
-            addPanel(true, firstThis = false)
+        options += MenuOption(
+            NameDesc(
+                "Add Panel Below",
+                "Adds a new panel to the bottom of this one",
+                "ui.customize.addBelow"
+            )
+        ) {
+            addPanel(true, firstThis = true)
         }
         openMenu(windowStack, x + width - 16, y, NameDesc("Customize UI", "", "ui.customize.title"), options)
     }

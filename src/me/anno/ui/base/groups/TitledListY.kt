@@ -6,6 +6,7 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.base.text.TextStyleable
 import me.anno.ui.input.InputVisibility
 import me.anno.ui.Style
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.types.Strings.isBlank2
 
 open class TitledListY(val title: String, val visibilityKey: String, sorter: Comparator<Panel>?, style: Style) :
@@ -20,6 +21,7 @@ open class TitledListY(val title: String, val visibilityKey: String, sorter: Com
     init {
         if (titleView != null) {
             this.add(titleView)
+            titleView.alignmentX = AxisAlignment.FILL
             titleView.addOnClickListener { _, x, y, button, long ->
                 if (button == Key.BUTTON_LEFT && !long) {
                     InputVisibility.toggle(visibilityKey, this)

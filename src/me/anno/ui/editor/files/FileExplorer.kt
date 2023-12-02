@@ -250,6 +250,9 @@ open class FileExplorer(
     val favourites = PanelListY(style)
 
     init {
+        content2d.makeBackgroundTransparent()
+        uContent.makeBackgroundTransparent()
+        favourites.makeBackgroundTransparent()
         validateFavourites(Favourites.getFavouriteFiles())
     }
 
@@ -351,8 +354,11 @@ open class FileExplorer(
             invalidate()
         }
 
-        uContent += ScrollPanelY(favourites, Padding(1), style)
+        uContent += ScrollPanelY(favourites, Padding(1), style).apply {
+            makeBackgroundTransparent()
+        }
         uContent += ScrollPanelY(content2d, Padding(1), style).apply {
+            makeBackgroundTransparent()
             weight = 1f
         }
         uContent.weight = 1f // idk about that..
