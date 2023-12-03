@@ -8,6 +8,7 @@ import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerFolderCache
 import me.anno.io.files.inner.temporary.InnerTmpFile
+import me.anno.io.files.thumbs.Thumbs
 import me.anno.io.unity.UnityReader
 import me.anno.io.utils.WindowsShortcut
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -344,6 +345,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         isValid = false
         // if this has inner folders, replace all of their children as well
         InnerFolderCache.wasReadAsFolder(this)?.invalidate()
+        Thumbs.invalidate(this)
+        LastModifiedCache.invalidate(this)
     }
 
     fun validate(): FileReference {
