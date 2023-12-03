@@ -13,6 +13,10 @@ open class NumberInputComponent(
         enableSpellcheck = false
     }
 
+    // this is used in Rem's Studio
+    @Suppress("unused")
+    var indexInProperty = 0
+
     override var isVisible: Boolean
         get() = InputVisibility[visibilityKey] // can be null in constructor
         set(_) {}

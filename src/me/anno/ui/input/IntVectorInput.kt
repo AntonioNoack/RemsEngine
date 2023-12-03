@@ -15,7 +15,10 @@ import me.anno.utils.Color.r
 import me.anno.utils.ColorParsing
 import me.anno.utils.types.AnyToInt.getInt
 import org.apache.logging.log4j.LogManager
-import org.joml.*
+import org.joml.Vector2i
+import org.joml.Vector3i
+import org.joml.Vector4f
+import org.joml.Vector4i
 import kotlin.math.roundToInt
 
 open class IntVectorInput(
@@ -105,19 +108,12 @@ open class IntVectorInput(
 
     private fun addComponent(title: String, index: Int): IntInput {
         val component = createComponent()
+        component.inputPanel.indexInProperty = index
         component.inputPanel.tooltip = title
         component.setChangeListener { onChange(1 shl index) }
         component.weight = 1f
         component.setResetListener {
-            val vector = type.defaultValue
-            when (vector) { // ok-ish
-                is Int -> vector
-                is Long -> vector
-                is Vector2i -> vector[index]
-                is Vector3i -> vector[index]
-                is Vector4i -> vector[index]
-                else -> 0
-            }.toString()
+            getInt(type.defaultValue, index, 0).toString()
         }
         valueList += component
         valueFields += component

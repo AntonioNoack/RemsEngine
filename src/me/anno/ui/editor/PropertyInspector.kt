@@ -100,17 +100,13 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
         }
 
         // is matching required? not really
-        val newPanels = newValues.listOfAll.toList()
-        val oldPanels = oldValues.listOfAll.toList()
+        val newPanels = newValues.listOfAll.filterIsInstance<InputPanel<*>>().toList()
+        val oldPanels = oldValues.listOfAll.filterIsInstance<InputPanel<*>>().toList()
         val sps = searchPanel.listOfAll.count()
         val newSize = newPanels.size + sps
         val oldSize = oldPanels.size
         val newPanelIter = newPanels.iterator()
         val oldPanelIter = oldPanels.iterator()
-
-        // skip self
-        newPanelIter.next()
-        oldPanelIter.next()
 
         // skip search panel
         for (i in 0 until sps) {
@@ -126,12 +122,15 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
             val newPanel = newPanelIter.next()
             val oldPanel = oldPanelIter.next()
 
+            newPanel as Panel
+            oldPanel as Panel
+
             if (!mismatch && newPanel::class != oldPanel::class) {
                 LOGGER.warn("Mismatch: ${newPanel::class} vs ${oldPanel::class}")
                 mismatch = true
             }
 
-            if (!mismatch && newPanel is InputPanel<*>) {
+            if (!mismatch) {
                 if (newPanel.isAnyChildInFocus || oldPanel.isAnyChildInFocus ||
                     (oldPanel is ColorInput && oldPanel.contentView.isAnyChildInFocus)
                 ) {

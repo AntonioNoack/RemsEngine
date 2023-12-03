@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.utils.LOGGER
 
 fun main() {
     @Suppress("SpellCheckingInspection")
@@ -19,14 +20,16 @@ fun main() {
     for (name in names) {
         val file = getReference(name)
         val link = file.windowsLnk.value!!
-        println("------ $name -----")
-        println("getRealFilename: ${link.absolutePath}")
-        println("getDescription: ${link.description}")
-        println("getRelativePath: ${link.relativePath}")
-        println("getWorkingDirectory: ${link.workingDirectory}")
-        println("getCommandLineArguments: ${link.commandLineArguments}")
-        println("isLocal: ${link.isLocalResource}")
-        println("isDirectory: ${link.isDirectory}")
-        println("iconPath: ${link.iconPath}")
+        LOGGER.info(
+            "------ $name -----\n" +
+                    "getRealFilename: ${link.absolutePath}\n" +
+                    "getDescription: ${link.description}\n" +
+                    "getRelativePath: ${link.relativePath}\n" +
+                    "getWorkingDirectory: ${link.workingDirectory}\n" +
+                    "getCommandLineArguments: ${link.commandLineArguments}\n" +
+                    "isLocal: ${link.isLocalResource}\n" +
+                    "isDirectory: ${link.isDirectory}\n" +
+                    "iconPath: ${link.iconPath}"
+        )
     }
 }

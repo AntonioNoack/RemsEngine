@@ -25,7 +25,7 @@ open class FloatInput(
     visibilityKey: String,
     type: Type = Type.FLOAT,
     style: Style,
-    private val inputPanel0: NumberInputComponent? = null
+    inputPanel0: NumberInputComponent? = null
 ) : NumberInput<Double>(style, title, visibilityKey, type, inputPanel0) {
 
     constructor(style: Style) : this("", "", Type.FLOAT, style)
@@ -185,7 +185,7 @@ open class FloatInput(
     }
 
     override fun clone(): FloatInput {
-        val clone = FloatInput(title, visibilityKey, type, style, inputPanel0?.clone())
+        val clone = FloatInput(title, visibilityKey, type, style, inputPanel.clone())
         copyInto(clone)
         return clone
     }

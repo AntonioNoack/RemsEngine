@@ -769,7 +769,6 @@ open class Panel(val style: Style) : PrefabSaveable() {
                 val r = backgroundRadius * 2
                 val qx = abs(px) - this.width + r
                 val qy = abs(py) - this.height + r
-                // println("$x,$y -> $px,$py -> $qx,$qy -> ${length(max(qx, 0f),max(qy, 0f)) + min(0f, max(qx, qy)) - r}")
                 length(max(qx, 0f), max(qy, 0f)) + min(0f, max(qx, qy)) - r <= 0
             } else contains(x, y)
         } else contains(x, y)
