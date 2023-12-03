@@ -74,8 +74,8 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
     fun getButtonIndex(x: Int, y: Int): Int {
         if (x - buttonX in 0 until buttonW) {
             var lastY = this.y
-            for (index in 1 until children.size) { // skip first = title
-                val child = children[index]
+            for (index in 1 until list.children.size) { // skip first = title
+                val child = list.children[index]
                 // draw button left to it
                 val y2 = max(child.y + buttonPadding, lastY)
                 val y3 = child.y + child.height - buttonPadding
@@ -288,14 +288,14 @@ abstract class ArrayPanel2<EntryType, PanelType : Panel>(
 
     fun copy(index: Int) {
         // hopefully good enough...
-        val panel = children[index]
+        val panel = list.children[index]
         val window = GFX.someWindow!!
         Input.copy(window, panel.getPanelAt((panel.lx0 + panel.lx1) / 2, (panel.ly0 + panel.ly1) / 2) ?: panel)
     }
 
     fun remove(index: Int) {
         values.removeAt(index - 1)
-        children.removeAt(index)
+        list.children.removeAt(index)
         onChange()
         invalidateLayout()
     }

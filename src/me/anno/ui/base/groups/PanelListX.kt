@@ -96,11 +96,11 @@ open class PanelListX(sorter: Comparator<Panel>?, style: Style) : PanelList2(sor
         val children = children
         var idx = children.binarySearch { it.x.compareTo(x) }
         if (idx < 0) idx = -1 - idx
-        for (i in min(children.size - 1, idx) downTo max(0, idx - 1)) {
+        val i1 = min(children.size - 1, idx)
+        val i0 = max(0, idx - 1)
+        for (i in i1 downTo i0) {
             val panelAt = children[i].getPanelAt(x, y)
-            if (panelAt != null && panelAt.isOpaqueAt(x, y)) {
-                return panelAt
-            }
+            if (panelAt != null) return panelAt
         }
         return null
     }

@@ -52,9 +52,7 @@ abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(
         val children = children
         for (i in visibleIndex1 - 1 downTo visibleIndex0) {
             val panelAt = children[i].getPanelAt(x, y)
-            if (panelAt != null && panelAt.isOpaqueAt(x, y)) {
-                return panelAt
-            }
+            if (panelAt != null) return panelAt
         }
         return null
     }

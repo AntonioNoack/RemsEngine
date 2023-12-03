@@ -59,7 +59,6 @@ abstract class PanelGroup(style: Style) : Panel(style) {
             child.ly1 = y12
             false
         }
-
     }
 
     override fun updateVisibility(mx: Int, my: Int) {
@@ -113,8 +112,8 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     override fun getPanelAt(x: Int, y: Int): Panel? {
         return if (canBeSeen && contains(x, y)) {
             if (!capturesChildEvents(x, y)) {
-                val child = getChildPanelAt(x, y)
-                if (child != null) return child
+                val panelAt = getChildPanelAt(x, y)
+                if (panelAt != null) return panelAt
             }
             this
         } else null
@@ -124,9 +123,7 @@ abstract class PanelGroup(style: Style) : Panel(style) {
         val children = children
         for (i in children.size - 1 downTo 0) {
             val panelAt = children[i].getPanelAt(x, y)
-            if (panelAt != null && panelAt.isOpaqueAt(x, y)) {
-                return panelAt
-            }
+            if (panelAt != null) return panelAt
         }
         return null
     }
@@ -164,5 +161,4 @@ abstract class PanelGroup(style: Style) : Panel(style) {
     companion object {
         fun getPanelOptions(self: Panel?) = getOptionsByClass(self, Panel::class)
     }
-
 }

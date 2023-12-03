@@ -71,10 +71,8 @@ import kotlin.math.roundToInt
 // todo search in text files
 // todo search in meta data for audio and video
 
-open class FileExplorer(
-    initialLocation: FileReference?,
-    style: Style
-) : PanelListY(style.getChild("fileExplorer")) {
+open class FileExplorer(initialLocation: FileReference?, style: Style) :
+    PanelListY(style.getChild("fileExplorer")) {
 
     enum class FolderSorting(val v: Int) {
         FIRST(-2), MIXED(0), LAST(2)

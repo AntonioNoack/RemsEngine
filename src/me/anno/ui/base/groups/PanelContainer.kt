@@ -25,16 +25,15 @@ open class PanelContainer(
                 field = value
                 value.uiParent?.remove(value)
                 value.parent = this
-                children.clear()
-                children.add(value)
+                children = listOf(value)
                 invalidateLayout()
             }
         }
 
-    override val children = arrayListOf(child)
+    override var children = listOf(child)
 
     override fun remove(child: Panel) {
-        children.remove(child)
+        if (child === this.child) children = emptyList()
     }
 
     override fun calculateSize(w: Int, h: Int) {
