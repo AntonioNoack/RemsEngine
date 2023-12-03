@@ -11,10 +11,13 @@ import me.anno.maths.Maths.clamp
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.SpacerPanel
+import me.anno.ui.base.buttons.TextButton
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.editor.color.spaces.HSLuv
 import me.anno.ui.editor.color.spaces.HSV
 import me.anno.ui.editor.color.spaces.LinearHSI
+import me.anno.ui.input.ColorInput.Companion.pickColor
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.components.ColorPalette
 import me.anno.utils.Color.toHexColor
@@ -103,9 +106,20 @@ open class ColorChooser(
         lastVisualisation = visualisation
     }.setTooltip("Style, does not change values")
 
+    private val pickButton = TextButton(
+        "Pick", "Takes a screenshot, and lets you choose a pixel of your liking. Zoom in via mouse wheel.",
+        false, style
+    ).addLeftClickListener {
+        pickColor(windowStack, style) { color ->
+            setARGB(color, -1, true)
+        }
+    }
+
     init {
         this += colorSpaceInput
         this += styleInput
+        this += pickButton
+        pickButton.alignmentX = AxisAlignment.FILL
         this += SpacerPanel(0, 2, style)
         this += hslBox
         this += hueChooserSpace

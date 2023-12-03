@@ -19,8 +19,9 @@ import me.anno.studio.StudioBase.Companion.shiftSlowdown
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.Window
-import me.anno.ui.base.groups.SizeLimitingContainer
+import me.anno.ui.WindowStack
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.text.TextStyleable
@@ -143,59 +144,16 @@ open class ColorInput(
                 Menu.openMenu(windowStack, listOf(
                     MenuOption(NameDesc("Copy")) { Input.copy(window, contentView) },
                     MenuOption(NameDesc("Paste")) { Input.paste(window, contentView) },
-                    MenuOption(NameDesc("Pick Color")) { pickColor() },
+                    MenuOption(NameDesc("Pick Color")) {
+                        pickColor(windowStack, style) { color ->
+                            contentView.setARGB(color, -1, true)
+                            invalidateDrawing()
+                        }
+                    },
                     MenuOption(NameDesc("Reset")) { setValue(contentView.resetListener(), -1, true) }
                 ))
             }
             else -> super.onMouseClicked(x, y, button, long)
-        }
-    }
-
-    fun pickColor() {
-        // color picker
-        // - take screenshot of full screen; all screens? could be hard with multiples in non-regular config...
-        // - open (new?) window in fullscreen
-        // - add controls on the bottom, or somewhere..., with a preview of the color
-        // - select on click, or when dragging + enter then
-        val windowX = GFX.activeWindow ?: GFX.someWindow
-        GFX.addGPUTask("ColorInput.pickColor()", 1) {// delay, so the original menu can disappear
-            val screenshot = Screenshots.takeSystemScreenshot()
-            val colorPicker = if (screenshot == null) {
-                val ws = windowStack
-                val fb = Framebuffer("colorPicker", ws.width, ws.height, 1, 1, false, DepthBufferType.INTERNAL)
-                fb.ensure()
-                useFrame(fb) {
-                    windowStack.draw(0, 0, fb.width, fb.height, didSomething0 = true, forceRedraw = true)
-                }
-                val imageData = fb.createImage(true, withAlpha = false)
-                ColorPicker(fb, fb.getTexture0() as Texture2D, imageData, true, style)
-            } else {
-                val texture = Texture2D("screenshot", screenshot, false)
-                ColorPicker(null, texture, screenshot, true, style)
-            }
-            var wasFullscreen = false
-            fun resetFullscreen() {
-                if (windowX != null && !wasFullscreen && windowX.isFullscreen()) {
-                    windowX.toggleFullscreen()
-                }
-            }
-            colorPicker.callback = { color ->
-                contentView.setARGB(color, -1, true)
-                this@ColorInput.invalidateDrawing()
-                resetFullscreen()
-            }
-            colorPicker.enableControls()
-            val windowStack = windowStack
-            windowStack.push(object : Window(colorPicker, true, windowStack) {
-                override fun destroy() {
-                    super.destroy()
-                    resetFullscreen()
-                }
-            })
-            if (windowX != null) {
-                wasFullscreen = windowX.isFullscreen()
-                if (!wasFullscreen) windowX.toggleFullscreen()
-            }
         }
     }
 
@@ -275,4 +233,56 @@ open class ColorInput(
     }
 
     override val className: String get() = "ColorInput"
+
+    companion object {
+
+        fun pickColor(windowStack: WindowStack, style: Style, colorCallback: (Int) -> Unit) {
+            // color picker
+            // - take screenshot of full screen; all screens? could be hard with multiples in non-regular config...
+            // - open (new?) window in fullscreen
+            // - add controls on the bottom, or somewhere..., with a preview of the color
+            // - select on click, or when dragging + enter then
+            val windowX = GFX.activeWindow ?: GFX.someWindow
+            GFX.addGPUTask("ColorInput.pickColor()", 1) {// delay, so the original menu can disappear
+                val screenshot = Screenshots.takeSystemScreenshot()
+                val colorPicker = if (screenshot == null) {
+                    // correct way up
+                    val fb = Framebuffer(
+                        "colorPicker", windowStack.width, windowStack.height,
+                        1, 1, false, DepthBufferType.INTERNAL
+                    )
+                    fb.ensure()
+                    useFrame(fb) {
+                        windowStack.draw(0, 0, fb.width, fb.height, didSomething0 = true, forceRedraw = true)
+                    }
+                    val imageData = fb.createImage(flipY = true, withAlpha = false)
+                    ColorPicker(fb, fb.getTexture0() as Texture2D, imageData, true, flipTexture = false, style)
+                } else {
+                    val texture = Texture2D("screenshot", screenshot, false)
+                    ColorPicker(null, texture, screenshot, true, flipTexture = true, style)
+                }
+                var wasFullscreen = false
+                fun resetFullscreen() {
+                    if (windowX != null && !wasFullscreen && windowX.isFullscreen()) {
+                        windowX.toggleFullscreen()
+                    }
+                }
+                colorPicker.callback = { color ->
+                    colorCallback(color)
+                    resetFullscreen()
+                }
+                colorPicker.enableControls()
+                windowStack.push(object : Window(colorPicker, true, windowStack) {
+                    override fun destroy() {
+                        super.destroy()
+                        resetFullscreen()
+                    }
+                })
+                if (windowX != null) {
+                    wasFullscreen = windowX.isFullscreen()
+                    if (!wasFullscreen) windowX.toggleFullscreen()
+                }
+            }
+        }
+    }
 }

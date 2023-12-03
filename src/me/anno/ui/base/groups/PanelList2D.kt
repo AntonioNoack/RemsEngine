@@ -5,7 +5,6 @@ import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.sq
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.components.AxisAlignment
 import kotlin.math.max
 import kotlin.math.min
 
@@ -21,6 +20,7 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
 
     val defaultSize = 100
     var scaleChildren = false
+    var scaleSpaces = false
 
     override val canDrawOverBorders: Boolean get() = true
 
@@ -117,18 +117,25 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
 
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
-        val contentW = columns * childWidth
-        for (i in children.indices) {
-            val child = children[i]
-            val ix = i % columns
-            val iy = i / columns
-            val cx = x + when (child.alignmentX) {
-                AxisAlignment.MIN, AxisAlignment.FILL -> ix * (calcChildWidth + spacing) + spacing
-                AxisAlignment.CENTER -> ix * calcChildWidth + max(0, width - contentW) * (ix + 1) / (columns + 1)
-                AxisAlignment.MAX -> width - (columns - ix) * (calcChildWidth + spacing)
-            }
+        val sch = scaleChildren
+        val ssp = scaleSpaces && !sch
+        var iy = 0
+        var i = 0
+        children@ while (true) {
+            var x0 = x + spacing
             val cy = y + iy * (calcChildHeight + spacing) + spacing
-            child.setPosSize(cx, cy, calcChildWidth, calcChildHeight)
+            for (ix in 0 until columns) {
+                val child = children.getOrNull(i) ?: break@children
+                val x1 = if (ssp) x + width * (ix + 1) / columns else x0 + calcChildWidth + spacing
+                val aw = x1 - x0
+                val cw = if (sch) aw else min(max(childWidth, child.minW), aw)
+                val cx = x0 + child.alignmentX.getOffset(aw, cw)
+                val cw1 = child.alignmentX.getWidth(aw, cw)
+                child.setPosSize(cx, cy, cw1, calcChildHeight)
+                x0 = x1
+                i++
+            }
+            iy++
         }
     }
 

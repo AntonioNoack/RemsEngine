@@ -6,6 +6,7 @@ import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -113,7 +114,7 @@ open class ScrollPanelX(
         val child = child
         val padding = padding
         child.calculateSize(maxLength - padding.width, h - padding.height)
-        minW = child.minW + padding.width
+        minW = min(child.minW + padding.width, w)
         minH = child.minH + padding.height + hasScrollbar.toInt(scrollbarHeight)
     }
 

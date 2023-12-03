@@ -20,6 +20,7 @@ import me.anno.studio.Events.addEvent
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelList2D
 import me.anno.ui.base.groups.PanelListX
@@ -189,10 +190,13 @@ open class FileExplorer(
 
     open fun onDoubleClick(file: FileReference) {}
 
+    var searchTerm = ""
     val searchBar = TextInput("Search Term", "", false, style)
     var searchDepth = 3
+    var isValid = 0f
 
     init {
+        searchBar.alignmentX = AxisAlignment.FILL
         searchBar.addChangeListener {
             searchTerm = it
             invalidate()
@@ -206,14 +210,11 @@ open class FileExplorer(
                 }
             }
         }
-        searchBar.weight = 1f
     }
 
     val history = History(initialLocation ?: documents)
     val folder get() = history.value
 
-    var searchTerm = ""
-    var isValid = 0f
 
     var entrySize = 64f
     val minEntrySize = 32f
@@ -330,7 +331,10 @@ open class FileExplorer(
         val esi = entrySize.toInt()
         content2d.childWidth = esi
         content2d.childHeight = esi * 4 / 3
+        // I prefer: scaleChildren > scaleSpaces > nothing
+        content2d.scaleChildren = true
         val topBar = PanelListX(style)
+        topBar.alignmentX = AxisAlignment.FILL
         this += topBar
         topBar += pathPanel
 
@@ -359,9 +363,8 @@ open class FileExplorer(
         }
         uContent += ScrollPanelY(content2d, Padding(1), style).apply {
             makeBackgroundTransparent()
-            weight = 1f
+            alignmentX = AxisAlignment.FILL
         }
-        uContent.weight = 1f // idk about that..
     }
 
     fun invalidate() {
@@ -390,7 +393,9 @@ open class FileExplorer(
     }
 
     open fun createEntry(isParent: Boolean, file: FileReference): FileExplorerEntry {
-        return FileExplorerEntry(this, isParent, file, style)
+        val entry = FileExplorerEntry(this, isParent, file, style)
+        entry.alignmentX = AxisAlignment.CENTER
+        return entry
     }
 
     fun createResults() {
@@ -529,6 +534,7 @@ open class FileExplorer(
         super.onUpdate()
         if (isValid <= 0f) {
             isValid = Float.POSITIVE_INFINITY
+            // todo "This Computer" isn't shown anymore :/
             pathPanel.file = folder// ?.toString() ?: "This Computer"
             pathPanel.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
             createResults()

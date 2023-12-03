@@ -6,6 +6,7 @@ import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -110,7 +111,7 @@ open class ScrollPanelY(
         val paddingX = padding.width + hasScrollbar.toInt(scrollbarWidth)
         child.calculateSize(w - paddingX, maxLength - padding.height)
         minW = child.minW + paddingX
-        minH = child.minH + padding.height
+        minH = min(child.minH + padding.height, h)
     }
 
     override fun setPosition(x: Int, y: Int) {
@@ -169,6 +170,7 @@ open class ScrollPanelY(
     }
 
     override fun onMouseMoved(x: Float, y: Float, dx: Float, dy: Float) {
+        // todo bug!!!: this is no longer working for file explorer
         if (isDownOnScrollbar != 0 && Input.isLeftDown && StudioBase.dragged == null) {
             // todo test this remainder using scroll panels inside scroll panels
             val dy2 = scrollY(if (isDownOnScrollbar > 0) dy / relativeSizeY else -dy.toDouble()).toFloat()

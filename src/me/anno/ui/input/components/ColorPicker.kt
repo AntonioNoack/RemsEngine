@@ -23,6 +23,7 @@ class ColorPicker(
     val gpuTexture: Texture2D,
     val cpuData: Image,
     val ownsGPUData: Boolean,
+    val flipTexture: Boolean,
     style: Style
 ) : ImagePanel(style) {
 
@@ -31,7 +32,7 @@ class ColorPicker(
     init {
         // padding helps nobody, but overflow should help to find pixels within the center better :)
         stretchMode = StretchModes.OVERFLOW
-        flipY = true
+        flipY = !flipTexture
     }
 
     override fun onUpdate() {
