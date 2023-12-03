@@ -179,16 +179,15 @@ open class FileExplorerEntry(
     }
 
     override fun calculateSize(w: Int, h: Int) {
-        if (!listMode) {
-            val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
-            val size = min(minW, minH - titleSize)
-            minW = size
-            minH = size + titleSize
-        } else {
-            val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
+        val titleSize = if (showTitle) titlePanel.font.sizeInt * 5 / 2 else 0
+        if (listMode) {
             val size = titleSize * 5
             minW = size
             minH = titleSize
+        } else {
+            val size = min(minW, minH - titleSize)
+            minW = size
+            minH = size + titleSize
         }
     }
 
@@ -641,21 +640,34 @@ open class FileExplorerEntry(
 
         if (listMode) {
 
-            // todo draw small icon :)
             // todo multiple columns
             // todo -> file size, file type, signature, last changed, ...
 
             lines = 1
 
+            val wi = min(width, height) - 2 * padding
+            if (wi > 1) {
+                clip2Dual(
+                    x0, y0, x1, y1,
+                    x + padding,
+                    y + padding,
+                    x + padding + wi,
+                    y + padding + wi,
+                    ::drawThumb
+                )
+            }
+
             titlePanel.width = w
             titlePanel.minW = w
             titlePanel.calculateSize(w, h)
             titlePanel.backgroundColor = backgroundColor and 0xffffff
-            titlePanel.x = x + padding
-            titlePanel.y = max(y0, (h - titlePanel.minH) / 2)
-            titlePanel.width = w
-            titlePanel.height = titlePanel.minH
+            titlePanel.setPosSize(
+                x + padding + titlePanel.minH,
+                max(y0, (h - titlePanel.minH) / 2),
+                w, height
+            )
             titlePanel.drawText()
+
         } else {
 
             val extraHeight = h - w

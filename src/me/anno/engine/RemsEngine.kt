@@ -30,7 +30,6 @@ import me.anno.ui.WindowStack.Companion.createReloadWindow
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.debug.ConsoleOutputPanel
-import me.anno.ui.debug.FrameTimings
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.PropertyInspector
 import me.anno.ui.editor.WelcomeUI

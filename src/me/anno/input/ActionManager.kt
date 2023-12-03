@@ -136,8 +136,7 @@ object ActionManager {
     }
 
     @JvmStatic
-    fun onKeyHoldDown(window: OSWindow, dx: Float, dy: Float, key: Key, isSafe: Boolean) {
-        val type = if (isSafe) KeyCombination.Type.PRESS else KeyCombination.Type.PRESS_UNSAFE
+    fun onKeyHoldDown(window: OSWindow, dx: Float, dy: Float, key: Key, type: KeyCombination.Type) {
         onEvent(window, dx, dy, KeyCombination(key, Input.keyModState, type), true)
     }
 
@@ -148,11 +147,11 @@ object ActionManager {
     fun onMouseMoved(window: OSWindow, dx: Float, dy: Float) {
         if (Input.keysDown.isEmpty()) return
         val mouseMoveConsumer = BiConsumer<Key, Long> { key, downTime ->
-            onKeyHoldDown(window, dx, dy, key, false)
+            onKeyHoldDown(window, dx, dy, key, KeyCombination.Type.PRESSING)
             val deltaTime = (Time.nanoTime - downTime) * 1e-9f
             val mouseStill = Input.mouseMovementSinceMouseDown < Input.maxClickDistance
-            if (deltaTime >= keyDragDelay && mouseStill) {
-                onKeyHoldDown(window, dx, dy, key, true)
+            if (deltaTime >= keyDragDelay || !mouseStill) {
+                onKeyHoldDown(window, dx, dy, key, KeyCombination.Type.DRAGGING)
             }
         }
         Input.keysDown.forEach(mouseMoveConsumer)

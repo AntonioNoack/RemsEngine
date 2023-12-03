@@ -16,9 +16,13 @@ import me.anno.mesh.mitsuba.MitsubaReader
 import me.anno.mesh.obj.MTLReader
 import me.anno.mesh.obj.OBJReader
 import me.anno.mesh.vox.VOXReader
+import org.apache.logging.log4j.LogManager
 import java.io.IOException
+import java.util.zip.ZipException
 
 object InnerFolderCache : CacheSection("InnerFolderCache") {
+
+    private val LOGGER = LogManager.getLogger(InnerFolderCache::class)
 
     // cache all content? if less than a certain file size
     // cache the whole hierarchy [? only less than a certain depth level - not done]
@@ -136,7 +140,9 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
                 val callback = { folder: InnerFolder?, ec: Exception? ->
                     if (file1 is InnerFile) file1.folder = folder
                     data.value = folder
-                    ec?.printStackTrace()
+                    if (ec is ZipException && ec.message == "Archive is not a ZIP archive") {
+                        LOGGER.warn("{} '{}'", ec.message, file)
+                    } else ec?.printStackTrace()
                     Unit
                 }
                 if (reader != null) {

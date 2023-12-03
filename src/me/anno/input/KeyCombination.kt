@@ -7,7 +7,7 @@ import org.lwjgl.glfw.GLFW.*
 
 class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
 
-    val hash = key.ordinal.shl(8) + modifiers * 6 + type.hash
+    val hash = key.ordinal.shl(8) + modifiers * 6 + type.id
 
     val isControl = (modifiers and GLFW_MOD_CONTROL) != 0
     val isShift = (modifiers and GLFW_MOD_SHIFT) != 0
@@ -15,15 +15,16 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
 
     val isWritingKey = !isControl && !isAlt && !(key == Key.KEY_SPACE && isShift)
 
-    enum class Type(val hash: Int) {
+    enum class Type(val id: Int) {
         /** once when down; "down", "d" */
         DOWN(0),
 
-        /** while pressing, but only after a delay of 0.5s; "press" */
-        PRESS(1),
+        // todo or when moving (for dragging)
+        /** while pressing, but only after a delay of 0.5s, or when moving around (not a click); "dragging" */
+        DRAGGING(1),
 
-        /** while pressing; "press-unsafe", "p" */
-        PRESS_UNSAFE(2),
+        /** while pressing; "press-unsafe", "pressing", "p" */
+        PRESSING(2),
 
         /** once when up; "up", "u" */
         UP(3),
@@ -138,10 +139,10 @@ class KeyCombination(val key: Key, val modifiers: Int, val type: Type) {
             if (key == Key.KEY_UNKNOWN) return null
             val type = when (event.lowercase()) {
                 "down", "d" -> Type.DOWN
-                "press" -> Type.PRESS
+                "press", "dragging", "drag" -> Type.DRAGGING
                 "typed", "t" -> Type.TYPED
                 "up", "u" -> Type.UP
-                "press-unsafe", "p" -> Type.PRESS_UNSAFE
+                "pressing", "press-unsafe", "p" -> Type.PRESSING
                 "double", "double-click", "2" -> Type.DOUBLE
                 else -> return null
             }
