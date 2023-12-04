@@ -11,7 +11,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference.Companion.getReference
@@ -163,7 +163,7 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
             override fun uploadDefaultUniforms(shader: Shader) {
                 super.uploadDefaultUniforms(shader)
                 val checkerTex = TextureCache[uvCheckerSource, true] ?: TextureLib.whiteTexture
-                checkerTex.bind(shader, "checkerTex", GPUFiltering.LINEAR, Clamping.REPEAT)
+                checkerTex.bind(shader, "checkerTex", Filtering.LINEAR, Clamping.REPEAT)
             }
         }
 

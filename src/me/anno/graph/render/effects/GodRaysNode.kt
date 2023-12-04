@@ -12,7 +12,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.actions.ActionNode
@@ -58,7 +58,7 @@ class GodRaysNode : ActionNode(
             val shader = shader
             shader.use()
             GFX.check()
-            color.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+            color.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
             depth.bindTrulyNearest(1)
             GFX.check()
             shader.v3f("intensity", sunColor)

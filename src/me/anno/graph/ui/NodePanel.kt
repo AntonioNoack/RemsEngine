@@ -14,7 +14,7 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.graph.Node
 import me.anno.graph.NodeConnector
 import me.anno.graph.NodeInput
@@ -247,7 +247,7 @@ class NodePanel(
             }
             // draw texture
             val texture = cachedTexture.getTexture0()
-            texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+            texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
             if (texture.width >= width) {
                 drawTexture(x, y + height, width, -height, texture)
             } else {

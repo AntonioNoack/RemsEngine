@@ -5,7 +5,7 @@ import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
@@ -49,7 +49,7 @@ interface IFramebuffer {
 
     fun getTargetType(slot: Int): TargetType
 
-    fun bindTexture0(shader: Shader, texName: String, nearest: GPUFiltering, clamping: Clamping) {
+    fun bindTexture0(shader: Shader, texName: String, nearest: Filtering, clamping: Clamping) {
         val index = shader.getTextureIndex(texName)
         if (index >= 0) {
             checkSession()
@@ -57,22 +57,22 @@ interface IFramebuffer {
         }
     }
 
-    fun bindTexture0(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping) {
+    fun bindTexture0(offset: Int = 0, nearest: Filtering, clamping: Clamping) {
         bindTextureI(0, offset, nearest, clamping)
     }
 
     fun bindTextureI(index: Int, offset: Int) {
-        bindTextureI(index, offset, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        bindTextureI(index, offset, Filtering.TRULY_NEAREST, Clamping.CLAMP)
     }
 
-    fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping)
+    fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping)
 
-    fun bindTextures(offset: Int = 0, nearest: GPUFiltering, clamping: Clamping)
+    fun bindTextures(offset: Int = 0, nearest: Filtering, clamping: Clamping)
 
     fun getTexture0() = getTextureI(0)
     fun getTexture0MS() = getTextureIMS(0)
 
-    fun bindTrulyNearest(offset: Int = 0) = bindTextures(offset, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+    fun bindTrulyNearest(offset: Int = 0) = bindTextures(offset, Filtering.TRULY_NEAREST, Clamping.CLAMP)
 
     fun bindTrulyNearestMS(offset: Int = 0) {
         bindTrulyNearest(offset)

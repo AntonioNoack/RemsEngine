@@ -3,7 +3,6 @@ package me.anno.gpu.drawing
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx3D.shader3DUniforms
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
@@ -22,23 +21,18 @@ object SVGxGFX {
         stack: Matrix4fArrayList, buffer: StaticBuffer, texture: Texture2D, color: Vector4f,
         filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
-        val shader = init(stack, texture, color, filtering, clamping, tiling)
+        val shader = init(stack, texture, color, filtering, clamping)
         draw(stack, buffer, clamping, tiling, shader)
     }
 
     fun init(
-        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f, filtering: Filtering, clamping: Clamping,
-        tiling: Vector4f?
+        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f,
+        filtering: Filtering, clamping: Clamping
     ): Shader {
         val shader = ShaderLib.shader3DSVG.value
         shader.use()
-        shader3DUniforms(shader, stack, texture.width, texture.height, color, null, filtering, null)
+        shader3DUniforms(shader, stack, texture.width, texture.height, color, null)
         texture.bind(0, filtering, clamping)
-        if (tiling == null) {
-            defineAdvancedGraphicalFeatures(shader)
-        } else {
-            defineAdvancedGraphicalFeatures(shader)
-        }
         return shader
     }
 
@@ -131,8 +125,6 @@ object SVGxGFX {
                     }
                 }
             }
-
         }
     }
-
 }

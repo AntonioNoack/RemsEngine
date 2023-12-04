@@ -4,7 +4,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths
 import me.anno.maths.Maths.ceilDiv
@@ -95,11 +95,11 @@ class MultiFramebuffer(
         return targetsI[index / div].getTextureI(index % div)
     }
 
-    override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
         getTextureI(index).bind(offset, nearest, clamping)
     }
 
-    override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
         var delta = offset
         for (target in targetsI) {
             target.bindTextures(delta, nearest, clamping)

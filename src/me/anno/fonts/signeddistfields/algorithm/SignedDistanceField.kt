@@ -12,7 +12,7 @@ import me.anno.fonts.signeddistfields.structs.FloatPtr
 import me.anno.fonts.signeddistfields.structs.SignedDistance
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.mix
@@ -262,7 +262,7 @@ object SignedDistanceField {
         val tex = Texture2D("SDF", w, h, 1)
         GFX.addGPUTask("SDF.createTexture()", w, h) {
             tex.createMonochromeFP16(buffer, true)
-            tex.ensureFilterAndClamping(GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+            tex.ensureFilterAndClamping(Filtering.TRULY_LINEAR, Clamping.CLAMP)
             ByteBufferPool.free(buffer)
         }
 

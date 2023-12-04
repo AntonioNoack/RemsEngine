@@ -40,7 +40,7 @@ open class Texture3D(
 
     var isCreated = false
     var isDestroyed = false
-    var filtering = GPUFiltering.NEAREST
+    var filtering = Filtering.NEAREST
     var clamping = Clamping.CLAMP
 
     var locallyAllocated = 0L
@@ -274,13 +274,13 @@ open class Texture3D(
         afterUpload(GL_RGBA8, 4, false)
     }
 
-    fun ensureFiltering(nearest: GPUFiltering, clamping: Clamping) {
+    fun ensureFiltering(nearest: Filtering, clamping: Clamping) {
         if (nearest != filtering) filtering(nearest)
         if (clamping != this.clamping) clamping(clamping)
     }
 
-    fun filtering(nearest: GPUFiltering) {
-        if (nearest != GPUFiltering.LINEAR) {
+    fun filtering(nearest: Filtering) {
+        if (nearest != Filtering.LINEAR) {
             glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
             glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
         } else {
@@ -304,13 +304,13 @@ open class Texture3D(
         bind(index, filtering, clamping)
     }
 
-    override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
+    override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         activeSlot(index)
         if (pointer != 0 && isCreated) {
             bindTexture(target, pointer)
             ensureFiltering(filtering, clamping)
         } else {
-            invisibleTex3d.bind(index, GPUFiltering.LINEAR, Clamping.CLAMP)
+            invisibleTex3d.bind(index, Filtering.LINEAR, Clamping.CLAMP)
         }
         return true
     }
@@ -362,7 +362,6 @@ open class Texture3D(
         val shader = FlatShaders.flatShaderTexture3D.value
         shader.use()
         GFXx2D.posSize(shader, x, GFX.viewportHeight - y, width, -height)
-        GFXx2D.defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", -1)
         shader.v1i("alphaMode", 1 - withAlpha.toInt())
         shader.v1b("applyToneMapping", isHDR)

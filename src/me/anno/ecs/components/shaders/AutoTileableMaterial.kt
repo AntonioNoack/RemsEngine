@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.gradientXTex
@@ -42,7 +42,7 @@ class AutoTileableMaterial : PlanarMaterialBase() {
         // could be customizable, but who would use that?
         shader.m2x2("latToWorld", AutoTileableShader.latToWorld)
         shader.m2x2("worldToLat", AutoTileableShader.worldToLat)
-        lookUp(diffuseMap).bind(shader, "invLUTTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+        lookUp(diffuseMap).bind(shader, "invLUTTex", Filtering.TRULY_LINEAR, Clamping.CLAMP)
     }
 
     override fun copyInto(dst: PrefabSaveable) {

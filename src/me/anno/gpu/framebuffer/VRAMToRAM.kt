@@ -6,7 +6,7 @@ import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.FlatShaders
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
@@ -43,7 +43,6 @@ object VRAMToRAM {
         val shader = FlatShaders.flatShaderTexture.value
         shader.use()
         GFXx2D.posSize(shader, x, GFX.viewportHeight - y, w, -h)
-        GFXx2D.defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", -1)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
@@ -51,7 +50,7 @@ object VRAMToRAM {
         val tex = texture as? Texture2D
         texture.bind(
             0,
-            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.filtering ?: Filtering.NEAREST,
             tex?.clamping ?: Clamping.CLAMP
         )
         GFX.flat01.draw(shader)

@@ -1,16 +1,30 @@
 package me.anno.gpu.texture
 
-import me.anno.language.translation.NameDesc
+import org.lwjgl.opengl.GL11C.*
 
-/**
- * high-level texture filtering used in Rem's Studio
- * */
-enum class Filtering(val baseIsNearest: Boolean, val id: Int, val naming: NameDesc){
-    NEAREST(true, 0, NameDesc("Nearest")),
-    LINEAR(false, 1, NameDesc("Linear")),
-    CUBIC(false, 2, NameDesc("Cubic"));
-
-    fun find(value: Int): Filtering {
-        return values().firstOrNull { it.id == value } ?: this
-    }
+/** Sensible filtering settings for OpenGL. Besides min/max for depth, nothing else makes much sense. */
+enum class Filtering(val mag: Int, val min: Int, val needsMipmap: Boolean) {
+    /**
+     * Pixels up close, smooth when far away; like Minecraft on high settings
+     * */
+    NEAREST(GL_NEAREST, GL_LINEAR_MIPMAP_LINEAR, true),
+    /**
+     * Pixels in all cases,
+     * moire-patterns when under sampling (far away), like Minecraft on low settings;
+     *
+     * (Probably) Disables ability to sample from mip levels using textureLod().
+     * */
+    TRULY_NEAREST(GL_NEAREST, GL_NEAREST, false),
+    /**
+     * Smooth-like look, but quad pattern still visible (cubic fixes this, isn't part of OpenGL itself though);
+     * smooth when far away, too.
+     * */
+    LINEAR(GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR, true),
+    /**
+     * Smooth-like look, but quad pattern still visible (cubic fixes this, isn't part of OpenGL itself though);
+     * moire-patterns when under sampling (far away), like Minecraft on low settings;
+     *
+     * Disables ability to sample from mip levels using textureLod().
+     * */
+    TRULY_LINEAR(GL_LINEAR, GL_LINEAR, false)
 }

@@ -10,7 +10,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.InvalidRef
@@ -49,7 +49,7 @@ fun main() {
         linearFiltering = false // we render pixels 😄
         shaderOverrides["screenLodBias"] = TypeValue(GLSLType.V1F, 1f)
         shaderOverrides["screenTexture"] =
-            TypeValueTex(GLSLType.S2D, mask, GPUFiltering.LINEAR, Clamping.REPEAT, blackTexture)
+            TypeValueTex(GLSLType.S2D, mask, Filtering.LINEAR, Clamping.REPEAT, blackTexture)
     }
     testSceneWithUI("Screen Material", plane)
 }

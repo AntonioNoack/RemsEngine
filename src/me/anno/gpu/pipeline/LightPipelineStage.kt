@@ -23,7 +23,7 @@ import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.io.Saveable
@@ -184,14 +184,14 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
                         if (supportsCubicShadows) {
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
-                            texture.bind(cubicIndex0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                            texture.bind(cubicIndex0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                             i1 = 1f // end index
                         }
                     } else {
                         if (supportsPlanarShadows) {
                             // bind the texture, and don't you dare to use mipmapping ^^
                             // (at least without variance shadow maps)
-                            texture.bind(planarIndex0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                            texture.bind(planarIndex0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                             i1 = (texture as Texture2DArray).layers.toFloat() // end index
                         }
                     }

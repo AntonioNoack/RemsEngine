@@ -22,7 +22,7 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.maths.Maths.log
 import me.anno.maths.Maths.max
@@ -103,7 +103,7 @@ object Bloom {
             for (i in steps - 2 downTo 0) {// render onto that layer
                 val nextSrc = tmpForward[i]!! // large
                 useFrame(nextSrc, copyRenderer) {
-                    previous.bindTexture0(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                    previous.bindTexture0(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                     flat01.draw(shader)
                     previous = nextSrc
                 }
@@ -172,7 +172,7 @@ object Bloom {
         shader.use()
         shader.v1b("applyToneMapping", applyToneMapping)
         source.bindTrulyNearest(0)
-        bloom.bind(1, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+        bloom.bind(1, Filtering.TRULY_LINEAR, Clamping.CLAMP)
         flat01.draw(shader)
     }
 

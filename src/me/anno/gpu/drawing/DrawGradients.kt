@@ -3,7 +3,7 @@ package me.anno.gpu.drawing
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.FlatShaders.flatShaderGradient
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib.bindWhite
 import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Vector4f
@@ -59,7 +59,7 @@ object DrawGradients {
         GFX.check()
         val shader = flatShaderGradient.value
         shader.use()
-        frame.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+        frame.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
         GFXx2D.posSize(shader, x, y, w, h)
         shader.v4f("lColor", leftColor)
         shader.v4f("rColor", rightColor)
@@ -80,7 +80,7 @@ object DrawGradients {
         GFX.check()
         val shader = flatShaderGradient.value
         shader.use()
-        frame.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+        frame.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
         GFXx2D.posSize(shader, x, y, w, h)
         shader.v4f("lColor", leftColor)
         shader.v4f("rColor", rightColor)

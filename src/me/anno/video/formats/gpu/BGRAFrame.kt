@@ -1,10 +1,8 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.ShaderLib.shader2DBGRA
-import me.anno.gpu.shader.ShaderLib.shader3DBGRA
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep.acquire
 import me.anno.utils.types.InputStreams.readNBytes2
@@ -39,11 +37,10 @@ class BGRAFrame(w: Int, h: Int) : GPUFrame(w, h, 4, 1) {
         }
     }
 
-    override fun get2DShader() = shader2DBGRA
-    override fun get3DShader() = shader3DBGRA
+    override fun getShaderStage() = swizzleStages[".bgra"]
     override fun getTextures(): List<Texture2D> = listOf(bgra)
 
-    override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
+    override fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping) {
         bgra.bind(offset, nearestFiltering, clamping)
     }
 }

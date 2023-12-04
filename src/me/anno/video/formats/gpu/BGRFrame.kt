@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 
 class BGRFrame(w: Int, h: Int) : RGBFrame(w, h) {
+
     companion object {
         private val LOGGER = LogManager.getLogger(BGRFrame::class)
     }

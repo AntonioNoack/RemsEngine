@@ -3,7 +3,6 @@ package me.anno.tests.image
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.drawing.GFXx3D
-import me.anno.gpu.drawing.UVProjection
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
@@ -39,9 +38,9 @@ fun main() {
                 GFXState.useFrame(fb) {
                     val stack = Matrix4fArrayList()
                     stack.scale(meta.videoHeight / meta.videoWidth.toFloat(), -1f, 1f)
-                    GFXx3D.draw3D(
-                        stack, frame, -1, Filtering.CUBIC, Clamping.CLAMP,
-                        null, UVProjection.Planar
+                    GFXx3D.draw3DPlanar(
+                        stack, frame, -1, Filtering.LINEAR, Clamping.CLAMP,
+                        null
                     )
                 }
                 frameIndex++

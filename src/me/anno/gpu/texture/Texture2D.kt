@@ -55,12 +55,12 @@ open class Texture2D(
 
     constructor(name: String, img: Image, checkRedundancy: Boolean) : this(name, img.width, img.height, 1) {
         create(img, true, checkRedundancy)
-        filtering(GPUFiltering.NEAREST)
+        filtering(Filtering.NEAREST)
     }
 
     constructor(img: Image, checkRedundancy: Boolean) : this("img", img.width, img.height, 1) {
         create(img, true, checkRedundancy)
-        filtering(GPUFiltering.NEAREST)
+        filtering(Filtering.NEAREST)
     }
 
     override val samples = clamp(samples, 1, GFX.maxSamples)
@@ -121,7 +121,7 @@ open class Texture2D(
     var isCreated = false
     var isDestroyed = false
 
-    var filtering = GPUFiltering.TRULY_NEAREST
+    var filtering = Filtering.TRULY_NEAREST
     var clamping: Clamping? = null
 
     // only used for images with exif rotation tag...
@@ -1053,7 +1053,7 @@ open class Texture2D(
     /**
      * texture must be bound!
      * */
-    fun ensureFilterAndClamping(nearest: GPUFiltering, clamping: Clamping) {
+    fun ensureFilterAndClamping(nearest: Filtering, clamping: Clamping) {
         // ensure being bound?
         if (nearest != this.filtering) filtering(nearest)
         if (clamping != this.clamping) clamping(clamping)
@@ -1068,9 +1068,9 @@ open class Texture2D(
 
     var autoUpdateMipmaps = true
 
-    private fun filtering(filtering: GPUFiltering) {
+    private fun filtering(filtering: Filtering) {
         if (withMultisampling) {
-            this.filtering = GPUFiltering.TRULY_NEAREST
+            this.filtering = Filtering.TRULY_NEAREST
             // multisample textures only support nearest filtering;
             // they don't accept the command to be what they are either
             return
@@ -1120,7 +1120,7 @@ open class Texture2D(
         bindTexture(target, pointer)
     }
 
-    override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
+    override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         checkSession()
         if (pointer != 0 && isCreated) {
             if (isBoundToSlot(index)) {
@@ -1193,12 +1193,12 @@ open class Texture2D(
             override fun attachFramebufferToDepth(name: String, targets: Array<TargetType>) =
                 throw NotImplementedError()
 
-            override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+            override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
                 if (offset == 0) this@Texture2D.bind(index, nearest, clamping)
                 else throw IndexOutOfBoundsException()
             }
 
-            override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+            override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
                 this@Texture2D.bind(0, nearest, clamping)
             }
 

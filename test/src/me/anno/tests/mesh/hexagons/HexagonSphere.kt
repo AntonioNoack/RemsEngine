@@ -13,7 +13,7 @@ import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.SceneView
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.image.ImageCache
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.maths.Maths.PIf
@@ -55,7 +55,7 @@ fun createNiceMesh(mesh: Mesh, hexagons: List<Hexagon>, len: Float) {
         texture.sampleRGB(
             uv.x * sx1 + dx1,
             uv.y * sy1 + dy1,
-            GPUFiltering.LINEAR,
+            Filtering.LINEAR,
             Clamping.CLAMP
         )
     }, { _, _ -> 0.997f }) { _, uv ->
@@ -63,7 +63,7 @@ fun createNiceMesh(mesh: Mesh, hexagons: List<Hexagon>, len: Float) {
             height.sampleRGB(
                 uv.x * sx2 + dx2,
                 uv.y * sy2 + dy2,
-                GPUFiltering.LINEAR,
+                Filtering.LINEAR,
                 Clamping.CLAMP
             ).r01() - h0, 0f
         ) * 0.03f

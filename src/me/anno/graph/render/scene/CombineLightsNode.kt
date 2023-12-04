@@ -20,7 +20,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib.blackCube
 import me.anno.graph.render.Texture
 import me.anno.graph.render.compiler.GraphCompiler
@@ -108,7 +108,7 @@ class CombineLightsNode : RenderSceneNode0(
         shader = shader1
         val (shader2, typeValues) = shader1
         shader2.use()
-        skybox.bind(shader2, "skybox", GPUFiltering.LINEAR, Clamping.CLAMP)
+        skybox.bind(shader2, "skybox", Filtering.LINEAR, Clamping.CLAMP)
         for ((k, v) in typeValues) {
             v.bind(shader2, k)
         }

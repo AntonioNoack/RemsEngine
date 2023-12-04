@@ -22,7 +22,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.graph.render.Texture
@@ -257,7 +257,7 @@ class FSR2v2 : ICacheData {
             depth.bindTrulyNearest(1)
             normal.bindTrulyNearest(2)
             motion.bindTrulyNearest(3)
-            data1.bindTextures(4, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+            data1.bindTextures(4, Filtering.TRULY_NEAREST, Clamping.CLAMP)
             shader.v2i("displaySizeI", data1.width, data1.height)
             shader.v2f("displaySizeF", data1.width.toFloat(), data1.height.toFloat())
             shader.v1f("sharpness", 3f * lastScaleX * lastScaleY) // a guess
@@ -270,7 +270,7 @@ class FSR2v2 : ICacheData {
         // render result
         val shader = displayShader
         shader.use()
-        data0.bindTextures(0, GPUFiltering.TRULY_NEAREST, Clamping.CLAMP)
+        data0.bindTextures(0, Filtering.TRULY_NEAREST, Clamping.CLAMP)
         flat01.draw(shader)
         val tmp = data0
         data0 = data1

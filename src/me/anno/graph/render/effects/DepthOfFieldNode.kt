@@ -14,7 +14,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
@@ -96,7 +96,7 @@ class DepthOfFieldNode : ActionNode(
                 bindDepth(shader, spherical)
                 shader.v1f("focusPoint", focusPoint)
                 shader.v1f("focusScale", focusScale)
-                color.bind(shader, "colorTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                color.bind(shader, "colorTex", Filtering.TRULY_LINEAR, Clamping.CLAMP)
                 depth.bindTrulyNearest(shader, "depthTex")
                 SimpleBuffer.flat01.draw(shader)
             }
@@ -113,7 +113,7 @@ class DepthOfFieldNode : ActionNode(
                 shader.v2f("pixelSize", 1f / color.width, 1f / color.height)
                 color.bindTrulyNearest(shader, "colorTex")
                 depth.bindTrulyNearest(shader, "depthTex")
-                coc.getTexture0().bind(shader, "cocTex", GPUFiltering.LINEAR, Clamping.CLAMP)
+                coc.getTexture0().bind(shader, "cocTex", Filtering.LINEAR, Clamping.CLAMP)
                 SimpleBuffer.flat01.draw(shader)
             }
             return buffer

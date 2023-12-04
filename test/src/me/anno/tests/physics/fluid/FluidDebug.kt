@@ -7,7 +7,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 
 object FluidDebug {
@@ -48,11 +48,10 @@ object FluidDebug {
         val shader = textureRShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
-        GFXx2D.defineAdvancedGraphicalFeatures(shader)
         GFXx2D.tiling(shader, null)
         texture.bind(
             0,
-            GPUFiltering.NEAREST,
+            Filtering.NEAREST,
             Clamping.CLAMP
         )
         GFX.flat01.draw(shader)
@@ -65,11 +64,10 @@ object FluidDebug {
         val shader = textureRGShader.value
         shader.use()
         GFXx2D.posSize(shader, x, y, w, h)
-        GFXx2D.defineAdvancedGraphicalFeatures(shader)
         GFXx2D.tiling(shader, null)
         texture.bind(
             0,
-            GPUFiltering.NEAREST,
+            Filtering.NEAREST,
             Clamping.CLAMP
         )
         GFX.flat01.draw(shader)

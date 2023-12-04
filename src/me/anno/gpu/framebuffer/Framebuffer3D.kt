@@ -5,7 +5,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture3D
 import org.lwjgl.opengl.GL30C.*
 
@@ -178,11 +178,11 @@ class Framebuffer3D(
         depthTexture?.destroy()
     }
 
-    override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
         textures[index].bind(offset, nearest, clamping)
     }
 
-    override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
         for (index in textures.indices) {
             textures[index].bind(index + offset, nearest, clamping)
         }

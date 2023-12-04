@@ -1,10 +1,8 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.ShaderLib.shader2DRGBA
-import me.anno.gpu.shader.ShaderLib.shader3DRGBA
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.Sleep
 import org.apache.logging.log4j.LogManager
@@ -49,11 +47,10 @@ open class RGBFrame(w: Int, h: Int) : GPUFrame(w, h, 3, -1) {
         }
     }
 
-    override fun get2DShader() = shader2DRGBA
-    override fun get3DShader() = shader3DRGBA
+    override fun getShaderStage() = swizzleStages[""]
     override fun getTextures(): List<Texture2D> = listOf(rgb)
 
-    override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
+    override fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping) {
         rgb.bind(offset, nearestFiltering, clamping)
     }
 }

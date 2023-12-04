@@ -2,7 +2,6 @@ package me.anno.gpu.drawing
 
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
-import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
 import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.shader.FlatShaders.depthArrayShader
 import me.anno.gpu.shader.FlatShaders.depthShader
@@ -31,7 +30,6 @@ object DrawTextures {
         val shader = flatShaderCubemap.value
         shader.use()
         posSize(shader, x, y, w, h)
-        defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)
         shader.v1b("applyToneMapping", applyToneMapping)
@@ -51,7 +49,6 @@ object DrawTextures {
         val shader = flatShaderTexture.value
         shader.use()
         posSize(shader, x, y, w, h)
-        defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
@@ -59,7 +56,7 @@ object DrawTextures {
         val tex = texture as? Texture2D
         texture.bind(
             0,
-            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.filtering ?: Filtering.NEAREST,
             tex?.clamping ?: Clamping.CLAMP
         )
         GFX.flat01.draw(shader)
@@ -77,7 +74,6 @@ object DrawTextures {
         val shader = flatShaderTextureArray.value
         shader.use()
         posSize(shader, x, y, w, h)
-        defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
@@ -86,7 +82,7 @@ object DrawTextures {
         val tex = texture as? Texture2DArray
         texture.bind(
             0,
-            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.filtering ?: Filtering.NEAREST,
             tex?.clamping ?: Clamping.CLAMP
         )
         GFX.flat01.draw(shader)
@@ -104,7 +100,6 @@ object DrawTextures {
         val shader = flatShaderTexture.value
         shader.use()
         posSize(shader, x, y, w, h)
-        defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1i("alphaMode", ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
@@ -112,7 +107,7 @@ object DrawTextures {
         val tex = texture as? Texture2D
         texture.bind(
             0,
-            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.filtering ?: Filtering.NEAREST,
             tex?.clamping ?: Clamping.CLAMP
         )
         GFX.flat01.draw(shader)
@@ -128,12 +123,11 @@ object DrawTextures {
         val shader = depthShader.value
         shader.use()
         posSize(shader, x, y + h - 1, w, -h)
-        defineAdvancedGraphicalFeatures(shader)
         GFXx2D.noTiling(shader)
         val tex = texture as? Texture2D
         texture.bind(
             0,
-            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.filtering ?: Filtering.NEAREST,
             tex?.clamping ?: Clamping.CLAMP
         )
         val depthFunc = tex?.depthFunc
@@ -152,7 +146,6 @@ object DrawTextures {
         val shader = depthArrayShader.value
         shader.use()
         posSize(shader, x, y + h - 1, w, -h)
-        defineAdvancedGraphicalFeatures(shader)
         GFXx2D.noTiling(shader)
         shader.v1f("layer", layer)
         texture.bind(0, texture.filtering, texture.clamping)
@@ -174,7 +167,6 @@ object DrawTextures {
         val shader = flatShaderTexture.value
         shader.use()
         posSize(shader, x, y, w, h)
-        defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1i("alphaMode", 2)
         shader.v1b("applyToneMapping", applyToneMapping)
@@ -182,7 +174,7 @@ object DrawTextures {
         val tex = texture as? Texture2D
         texture.bind(
             0,
-            tex?.filtering ?: GPUFiltering.NEAREST,
+            tex?.filtering ?: Filtering.NEAREST,
             tex?.clamping ?: Clamping.CLAMP
         )
         GFX.flat01.draw(shader)
@@ -198,16 +190,16 @@ object DrawTextures {
         val tiling = JomlPools.vec4f.create()
         tiling.set(numVerticalStripes * w.toFloat() / h.toFloat(), numVerticalStripes, 0f, 0f)
         val texture = TextureLib.colorShowTexture
-        texture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
+        texture.bind(0, Filtering.TRULY_NEAREST, Clamping.REPEAT)
         drawTexture(x, y, w, h, texture, -1, tiling, false)
         JomlPools.vec4f.sub(1)
     }
 
     fun drawTexture(matrix: Matrix4fArrayList, w: Int, h: Int, texture: Texture2D, color: Int, tiling: Vector4f?) {
         matrix.scale(w.toFloat() / GFX.viewportWidth, h.toFloat() / GFX.viewportHeight, 1f)
-        GFXx3D.draw3D(
-            matrix, texture, color,
-            Filtering.LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar
+        GFXx3D.draw3DPlanar(
+            matrix, texture, texture.width, texture.height, color,
+            Filtering.LINEAR, Clamping.CLAMP, tiling
         )
     }
 
@@ -216,27 +208,20 @@ object DrawTextures {
         matrix.identity()
         matrix.scale(GFX.viewportHeight.toFloat() / GFX.viewportWidth, 1f, 1f)
         // todo for filtering without required mipmap-generation, sample each pixel upto 8x :)
-        GFXx3D.draw3D(
+        GFXx3D.draw3DPlanar(
             matrix, texture, color,
-            GPUFiltering.TRULY_LINEAR, Clamping.CLAMP, tiling, UVProjection.Planar
+            Filtering.TRULY_LINEAR, Clamping.CLAMP, tiling
         )
     }
 
     fun drawTexture(texture: GPUFrame) {
-
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader = texture.get3DShader().value
-
-        GFX.check()
-
+        val shader = texture.get3DShaderPlanar().value
         shader.use()
-        defineAdvancedGraphicalFeatures(shader)
         GFXx3D.shader3DUniforms(shader, null, -1)
-
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         texture.bindUVCorrection(shader)
-
-        SimpleBuffer.flat01Mesh.draw(shader, 0)
+        SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
 
@@ -254,7 +239,6 @@ object DrawTextures {
         val shader = flatShader3dSlice.value
         shader.use()
         posSize(shader, x, y + h - 1, w, -h)
-        defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)
         shader.v1b("applyToneMapping", applyToneMapping)
@@ -279,7 +263,6 @@ object DrawTextures {
         val shader = flatShader2dArraySlice.value
         shader.use()
         posSize(shader, x, y, w, h)
-        defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", color)
         shader.v1b("ignoreTexAlpha", ignoreAlpha)
         shader.v1b("applyToneMapping", applyToneMapping)

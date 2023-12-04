@@ -20,7 +20,7 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import org.joml.Matrix4f
 import org.joml.Vector4f
@@ -243,7 +243,7 @@ object ScreenSpaceReflections {
             shader.v1f("strength", strength)
             shader.m4x4("transform", transform)
             shader.v1b("normalZW", normalZW)
-            val n = GPUFiltering.TRULY_LINEAR
+            val n = Filtering.TRULY_LINEAR
             val c = Clamping.CLAMP
             shader.v4f("depthMask", depthMask)
             shader.v4f("metallicMask", metallicMask)

@@ -10,7 +10,7 @@ import me.anno.engine.debug.DebugShapes.debugPoints
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.ui.GraphPanel.Companion.greenish
@@ -115,8 +115,8 @@ class SDFHeightMap : SDFShape() {
         smartMinBegin(builder, dstIndex)
         val tex = defineUniform(uniforms, GLSLType.S2D) {
             val img = TextureCache[source, true]
-            if (img != null && (img.filtering != GPUFiltering.LINEAR || img.clamping != Clamping.CLAMP)) {
-                img.bind(GFX.maxBoundTextures - 1, GPUFiltering.LINEAR, Clamping.CLAMP)
+            if (img != null && (img.filtering != Filtering.LINEAR || img.clamping != Clamping.CLAMP)) {
+                img.bind(GFX.maxBoundTextures - 1, Filtering.LINEAR, Clamping.CLAMP)
             }
             if (lastImg != img) {
                 lastImg = img

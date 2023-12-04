@@ -85,8 +85,8 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             LOGGER.warn("Texture ${value.name} has not been created")
                         }
                     }
-                    is Framebuffer -> value.bindTexture0(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
-                    is ITexture2D -> value.bind(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
+                    is Framebuffer -> value.bindTexture0(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
+                    is ITexture2D -> value.bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
                         val value1 = TextureCache[value, true]
                         if (value1 != null && value1.isCreated) {
@@ -109,8 +109,8 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             LOGGER.warn("Texture ${value.name} has not been created")
                         }
                     }
-                    is Framebuffer -> value.getTextureIMS(0).bind(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
-                    is ITexture2D -> value.bind(location, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
+                    is Framebuffer -> value.getTextureIMS(0).bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
+                    is ITexture2D -> value.bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
                         val value1 = TextureCache[value, true]
                         if (value1 != null && value1.isCreated) {

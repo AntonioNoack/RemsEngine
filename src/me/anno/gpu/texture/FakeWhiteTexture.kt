@@ -10,7 +10,7 @@ class FakeWhiteTexture(override var width: Int, override var height: Int, overri
         get() = null
         set(value) {}
 
-    override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping) = bindWhite(index)
+    override fun bind(index: Int, filtering: Filtering, clamping: Clamping) = bindWhite(index)
     override fun wrapAsFramebuffer() = TextureLib.whiteTexture.wrapAsFramebuffer()
     override fun destroy() { /* ignore, we don't own GFX.whiteTexture */
     }

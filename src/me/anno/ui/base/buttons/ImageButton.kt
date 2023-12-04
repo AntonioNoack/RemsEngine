@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -47,7 +47,7 @@ class ImageButton(
         drawBackground(x0, y0, x1, y1)
         val icon = TextureCache[path, 10_000, false] ?: return
         renderDefault {
-            icon.filtering = GPUFiltering.LINEAR
+            icon.filtering = Filtering.LINEAR
             icon.clamping = Clamping.CLAMP
             val scale = ((width - padding.width).toFloat() / max(icon.width, icon.height))
             val iw = (icon.width * scale).roundToInt()

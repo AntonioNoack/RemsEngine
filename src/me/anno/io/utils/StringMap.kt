@@ -2,7 +2,6 @@ package me.anno.io.utils
 
 import me.anno.Engine
 import me.anno.Time.nanoTime
-import me.anno.gpu.texture.Filtering
 import me.anno.io.base.BaseWriter
 import me.anno.io.config.ConfigBasics
 import me.anno.io.config.ConfigEntry
@@ -14,7 +13,6 @@ import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
 import me.anno.utils.types.Ints.toIntOrDefault
 import me.anno.utils.types.Ints.toLongOrDefault
-import org.joml.Vector3f
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.min

@@ -1,18 +1,10 @@
 package me.anno.gpu.shader
 
-import me.anno.config.DefaultConfig
-import me.anno.gpu.drawing.UVProjection
-import me.anno.gpu.shader.ShaderFuncLib.randomGLSL
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
-import me.anno.gpu.texture.Filtering
-import me.anno.utils.pooling.ByteBufferPool
 import org.joml.Matrix4x3f
 import org.joml.Vector3i
 import org.joml.Vector4f
-import java.nio.ByteOrder
-import java.nio.FloatBuffer
-import kotlin.math.PI
 import kotlin.math.sqrt
 
 @Suppress("MemberVisibilityCanBePrivate", "unused")
@@ -41,13 +33,6 @@ object ShaderLib {
         y.w, u.w, v.w,
     )
     val m = mi.invert(Matrix4x3f())
-
-    lateinit var shader3DSVG: BaseShader
-
-    /**
-     * our code only uses 3, I think
-     * */
-    const val maxOutlineColors = 6
 
     val coordsList = listOf(Variable(GLSLType.V2F, "coords", VariableMode.ATTR))
 
@@ -163,17 +148,6 @@ object ShaderLib {
             "   return textureBicubic(tex, uv);\n" +
             "}\n"
 
-    // https://en.wikipedia.org/wiki/ASC_CDL
-    // color grading with asc cdl standard
-    const val ascColorDecisionList = "" +
-            "uniform vec3 cgSlope, cgOffset, cgPower;\n" +
-            "uniform float cgSaturation;\n" +
-            "vec3 colorGrading(vec3 raw){\n" +
-            "   vec3 color = pow(max(vec3(0.0), raw * cgSlope + cgOffset), cgPower);\n" +
-            "   float gray = brightness(color);\n" +
-            "   return mix(vec3(gray), color, cgSaturation);\n" +
-            "}\n"
-
     val rgb2yuv = "" +
             "vec3 rgb2yuv(vec3 rgb){\n" +
             "   vec4 rgba = vec4(rgb,1);\n" +
@@ -224,108 +198,6 @@ object ShaderLib {
             "}\n" +
             "vec4 textureAnisotropic(sampler2D T, vec2 p) { return textureAnisotropic(T, p, p); }\n"
 
-    val maxColorForceFields = DefaultConfig["objects.attractors.color.maxCount", 12]
-    val getColorForceFieldLib = "" +
-// additional weights?...
-            "uniform int forceFieldColorCount;\n" +
-            "uniform vec4 forceFieldBaseColor;\n" +
-            "uniform vec4[$maxColorForceFields] forceFieldColors;\n" +
-            "uniform vec4[$maxColorForceFields] forceFieldPositionsNWeights;\n" +
-            "uniform vec4[$maxColorForceFields] forceFieldColorPowerSizes;\n" +
-            "vec4 getForceFieldColor(vec3 finalPosition){\n" +
-            "   float sumWeight = 0.25;\n" +
-            "   vec4 sumColor = sumWeight * forceFieldBaseColor;\n" +
-            "   for(int i=0;i<forceFieldColorCount;i++){\n" +
-            "       vec4 positionNWeight = forceFieldPositionsNWeights[i];\n" +
-            "       vec3 positionDelta = finalPosition - positionNWeight.xyz;\n" +
-            "       vec4 powerSize = forceFieldColorPowerSizes[i];\n" +
-            "       float weight = positionNWeight.w / (1.0 + pow(dot(powerSize.xyz * positionDelta, positionDelta), powerSize.w));\n" +
-            "       sumWeight += weight;\n" +
-            "       vec4 localColor = forceFieldColors[i];\n" +
-            "       sumColor += weight * localColor * localColor;\n" +
-            "   }\n" +
-            "   return sqrt(sumColor / sumWeight);\n" +
-            "}\n"
-
-    val colorForceFieldBuffer: FloatBuffer = ByteBufferPool
-        .allocateDirect(4 * maxColorForceFields)
-        .asFloatBuffer()
-
-    val maxUVForceFields = DefaultConfig["objects.attractors.scale.maxCount", 12]
-    val getUVForceFieldLib = "" +
-            "uniform int forceFieldUVCount;\n" +
-            "uniform vec3[$maxUVForceFields] forceFieldUVs;\n" + // xyz
-            "uniform vec4[$maxUVForceFields] forceFieldUVSpecs;\n" + // size, power
-            "vec3 getForceFieldUVs(vec3 uvw){\n" +
-            "   vec3 sumUVs = uvw;\n" +
-            "   for(int i=0;i<forceFieldUVCount;i++){\n" +
-            "       vec3 position = forceFieldUVs[i];\n" +
-            "       vec4 sizePower = forceFieldUVSpecs[i];\n" +
-            "       vec3 positionDelta = uvw - position;\n" +
-            "       float weight = sizePower.x / (1.0 + pow(sizePower.z * dot(positionDelta, positionDelta), sizePower.w));\n" +
-            "       sumUVs += weight * positionDelta;\n" +
-            "   }\n" +
-            "   return sumUVs;\n" +
-            "}\n" +
-            "vec2 getForceFieldUVs(vec2 uv){\n" +
-            "   vec2 sumUVs = uv;\n" +
-            "   for(int i=0;i<forceFieldUVCount;i++){\n" +
-            "       vec3 position = forceFieldUVs[i];\n" +
-            "       vec4 sizePower = forceFieldUVSpecs[i];\n" +
-            "       vec2 positionDelta = (uv - position.xy) * sizePower.xy;\n" +
-            "       float weight = 1.0 / (1.0 + pow(sizePower.z * dot(positionDelta, positionDelta), sizePower.w));\n" +
-            "       sumUVs += weight * positionDelta;\n" +
-            "   }\n" +
-            "   return sumUVs;\n" +
-            "}\n"
-
-    val uvForceFieldBuffer: FloatBuffer = ByteBufferPool
-        .allocateDirect(3 * maxUVForceFields)
-        .order(ByteOrder.nativeOrder())
-        .asFloatBuffer()
-
-    const val hasForceFieldColor = "(forceFieldColorCount > 0)"
-    const val hasForceFieldUVs = "(forceFieldUVCount > 0)"
-
-    val getTextureLib = "" +
-            bicubicInterpolation +
-            getUVForceFieldLib +
-            // the uvs correspond to the used mesh
-            // used meshes are flat01 and cubemapBuffer
-            "uniform vec2 textureDeltaUV;\n" +
-            "uniform int filtering, uvProjection;\n" +
-            "vec2 getProjectedUVs(vec2 uv){ return uv; }\n" +
-            "vec2 getProjectedUVs(vec3 uvw){\n" +
-            "   float u = atan(uvw.z, uvw.x)*${0.5 / PI}+0.5;\n " +
-            "   float v = atan(uvw.y, length(uvw.xz))*${1.0 / PI}+0.5;\n" +
-            "   return vec2(u, v);\n" +
-            "}\n" +
-            "vec2 getProjectedUVs(vec2 uv, vec3 uvw){\n" +
-            "   return uvProjection == ${UVProjection.Equirectangular.id} ?\n" +
-            "       ($hasForceFieldUVs ? getProjectedUVs(getForceFieldUVs(uvw)) : getProjectedUVs(uvw)) :\n" +
-            "       ($hasForceFieldUVs ? getProjectedUVs(getForceFieldUVs(uv))  : getProjectedUVs(uv));\n" +
-            "}\n" +
-            "#define dot2(a) dot(a,a)\n" +
-            "vec4 getTexture(sampler2D tex, vec2 uv, vec2 duv){\n" +
-            "   if(filtering == ${Filtering.LINEAR.id}) return texture(tex, uv);\n" +
-            "   if(filtering == ${Filtering.NEAREST.id}) {\n" +
-            // edge smoothing, when zooming in far; not perfect, but quite good :)
-            // todo if is axis-aligned, and zoom is integer, don't interpolate
-            // (to prevent smoothed edges, where they are not necessary)
-            // zoom-round(zoom)>0.02 && dFdx(uv).isSingleAxis && dFdy(uv).isSingleAxis
-            "       float zoom = dot2(duv) / dot2(vec4(dFdx(uv),dFdy(uv)));\n" + // guess on zoom level
-            "       if(zoom > 4.0) {\n" +
-            "           zoom = 0.5 * sqrt(zoom);\n" +
-            "           vec2 uvi = uv/duv, uvf = fract(uvi), uvf2 = uvf-0.5;\n" +
-            "           float d = -zoom+1.0, a = zoom*2.0-1.0;\n" +
-            "           float m = clamp(d+max(abs(uvf2.x),abs(uvf2.y))*a, 0.0, 0.5);\n" +
-            "           return mix(texture(tex,uv), texture(tex,uv+(uvf2)*duv/zoom), m);\n" +
-            "       }\n" +
-            "       return texture(tex, uv);\n" +
-            "   } else return bicubicInterpolation(tex, uv, duv);\n" +
-            "}\n" +
-            "vec4 getTexture(sampler2D tex, vec2 uv){ return getTexture(tex, uv, textureDeltaUV); }\n"
-
     const val flatNormal = "" +
             "   normal = vec3(0.0, 0.0, 1.0);\n"
 
@@ -360,16 +232,6 @@ object ShaderLib {
         Variable(GLSLType.S2D, "tex")
     )
 
-    val f3D = "" +
-            getTextureLib +
-            getColorForceFieldLib +
-            "void main(){\n" +
-            "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw));\n" +
-            "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
-            "   finalColor = color.rgb;\n" +
-            "   finalAlpha = color.a;\n" +
-            "}"
-
     val v3DlMasked = listOf(
         Variable(GLSLType.M4x4, "transform"),
         Variable(GLSLType.V2F, "coords", VariableMode.ATTR),
@@ -393,23 +255,6 @@ object ShaderLib {
         "forceFieldUVCount", "forceFieldColorCount"
     )
 
-    val v3DlPolygon = listOf(
-        Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-        Variable(GLSLType.V2F, "uvs", VariableMode.ATTR),
-        Variable(GLSLType.V1F, "inset"),
-        Variable(GLSLType.M4x4, "transform")
-    )
-
-    val v3DPolygon = "" +
-            "void main(){\n" +
-            "   vec2 betterUV = coords.xy;\n" +
-            "   betterUV *= mix(1.0, uvs.r, inset);\n" +
-            "   finalPosition = vec3(betterUV, coords.z);\n" +
-            "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-            flatNormal +
-            "   uv = uvs.yx;\n" +
-            "}"
-
     // https://knarkowicz.wordpress.com/2014/04/16/octahedron-normal-vector-encoding/
     const val octNormalPacking = "" +
             "\n#ifndef PACKING_NORMALS\n" +
@@ -428,36 +273,7 @@ object ShaderLib {
             "}\n" +
             "#endif\n"
 
-    fun createSwizzleShader(swizzle: String): BaseShader {
-        return createShader(
-            "3d${swizzle.ifEmpty { ".rgba" }}", v3Dl, v3D, y3D, listOf(
-                Variable(GLSLType.S2D, "tex"),
-                Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-                Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-            ), "" +
-                    getTextureLib +
-                    getColorForceFieldLib +
-                    brightness +
-                    ascColorDecisionList +
-                    "void main(){\n" +
-                    "   vec4 color = getTexture(tex, getProjectedUVs(uv, uvw))$swizzle;\n" +
-                    "   color.rgb = colorGrading(color.rgb);\n" +
-                    "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
-                    "   finalColor = color.rgb;\n" +
-                    "   finalAlpha = color.a;\n" +
-                    "}", listOf("tex")
-        )
-    }
-
-    fun createSwizzleShader2D(swizzle: String): Shader {
-        return Shader(
-            "2d${swizzle.ifEmpty { ".rgba" }}", coordsList, coordsUVVertexShader, uvList, listOf(
-                Variable(GLSLType.S2D, "tex"),
-                Variable(GLSLType.V4F, "result", VariableMode.OUT),
-            ), "void main(){ result = texture(tex, uv)$swizzle; }"
-        )
-    }
-
+    lateinit var shader3DSVG: BaseShader
     fun init() {
 
         // with texture
@@ -513,10 +329,6 @@ object ShaderLib {
         )
 
         val fSVG = "" +
-                getTextureLib +
-                getColorForceFieldLib +
-                brightness +
-                ascColorDecisionList +
                 "bool isInLimits(float value, vec2 minMax){\n" +
                 "   return value >= minMax.x && value <= minMax.y;\n" +
                 "}\n" + // sqrt and ² for better color mixing
@@ -545,11 +357,8 @@ object ShaderLib {
                 "       stopValue <  stops.y ? mix2(color0, color1, stopValue, stops.xy):\n" +
                 "       stopValue <  stops.z ? mix2(color1, color2, stopValue, stops.yz):\n" +
                 "                              mix2(color2, color3, stopValue, stops.zw);\n" +
-                // "   color.rgb = fract(vec3(stopValue));\n" +
-                "   color.rgb = colorGrading(color.rgb);\n" +
-                "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
                 "   if(isInLimits(uv.x, uvLimits.xz) && isInLimits(uv.y, uvLimits.yw)){" +
-                "       vec4 color2 = color * getTexture(tex, uv * 0.5 + 0.5);\n" +
+                "       vec4 color2 = color * texture(tex, uv * 0.5 + 0.5);\n" +
                 "       finalColor = color2.rgb;\n" +
                 "       finalAlpha = color2.a;\n" +
                 "   } else {" +
@@ -561,156 +370,36 @@ object ShaderLib {
         shader3DSVG = createShader("3d-svg", vSVGl, vSVG, ySVG, fSVGl, fSVG, listOf("tex"))
     }
 
-    val shader3D = createShader(
-        "3d", v3Dl, v3D, y3D, f3Dl, f3D, listOf("tex"),
-        "cgSlope", "cgOffset", "cgPower", "cgSaturation",
+    val shader3DPlanar = createShader(
+        "3d", v3Dl, v3D, y3D, f3Dl, "" +
+                "void main(){\n" +
+                "   vec4 color = texture(tex, uv);\n" +
+                "   finalColor = color.rgb;\n" +
+                "   finalAlpha = color.a;\n" +
+                "}", listOf("tex"),
         "normals", "uvs", "tangents", "colors", "drawMode", "tint",
         "finalNormal", "finalEmissive"
     )
 
-    val shader3DPolygon =
-        createShader(
-            "3d-polygon",
-            v3DlPolygon, v3DPolygon, y3D, f3Dl, f3D,
-            listOf("tex"),
-            "tiling",
-            "forceFieldUVCount"
-        )
-    val shader3DRGBA = createSwizzleShader("")
-    val shader3DARGB = createSwizzleShader(".gbar")
-    val shader3DBGRA = createSwizzleShader(".bgra")
-
-    val shader2DRGBA = createSwizzleShader2D("")
-    val shader2DARGB = createSwizzleShader2D(".gbar")
-    val shader2DBGRA = createSwizzleShader2D(".bgra")
-
-    val shader3DYUV = createShader(
-        "3d-yuv",
-        v3Dl, v3D, y3D, listOf(
-            Variable(GLSLType.V2F, "uvCorrection"),
-            Variable(GLSLType.S2D, "texY"),
-            Variable(GLSLType.S2D, "texUV"),
-            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
-        ), "" +
-                getTextureLib +
-                getColorForceFieldLib +
-                brightness +
-                ascColorDecisionList +
-                yuv2rgb +
+    val shader3DTiledCubemap = createShader(
+        "3d", v3Dl, v3D, y3D, f3Dl, "" +
                 "void main(){\n" +
-                "   vec2 uv2 = getProjectedUVs(uv, uvw);\n" +
-                "   vec2 correctedUV = uv2*uvCorrection;\n" +
-                "   vec2 correctedDUV = textureDeltaUV*uvCorrection;\n" +
-                "   vec3 yuv = vec3(" +
-                "       getTexture(texY, uv2).r, " +
-                "       getTexture(texUV, correctedUV, correctedDUV).rg);\n" +
-                "   vec4 color = vec4(yuv2rgb(yuv), 1.0);\n" +
-                "   color.rgb = colorGrading(color.rgb);\n" +
-                "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
-                "   finalColor = color.rgb;\n" +
-                "   finalAlpha = color.a;\n" +
-                "}", listOf("texY", "texUV")
-    )
-
-    val shader2DYUV = Shader(
-        "2d-yuv",
-        coordsList, coordsVertexShader, y2D, listOf(
-            Variable(GLSLType.V2F, "uvCorrection"),
-            Variable(GLSLType.S2D, "texY"),
-            Variable(GLSLType.S2D, "texUV"),
-            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
-        ), "" +
-                yuv2rgb +
-                "void main(){\n" +
-                "   vec2 correctedUV = uv*uvCorrection;\n" +
-                "   vec2 correctedDUV = textureDeltaUV*uvCorrection;\n" +
-                "   vec3 yuv = vec3(" +
-                "       texture(texY, uv).r, " +
-                "       texture(texUV, correctedUV, correctedDUV).rg);\n" +
-                "   finalColor = yuv2rgb(yuv);\n" +
-                "   finalAlpha = 1.0;\n" +
-                "}"
-    ).apply { setTextureIndices("texY", "texUV") }
-
-    val lineShader3D = BaseShader(
-        "3d-lines", listOf(
-            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-            Variable(GLSLType.M4x4, "transform")
-        ),
-        "" +
-                "void main(){" +
-                "   gl_Position = matMul(transform, vec4(coords, 1.0));\n" +
-                "}", emptyList(),
-        listOf(
-            Variable(GLSLType.V4F, "color"),
-            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
-        ), "" +
-                "void main(){\n" +
-                "   finalColor = color.rgb;\n" +
-                "   finalAlpha = color.a;\n" +
-                "}"
-    )
-
-    val shaderSDFText = createShader(
-        "3d-text-withOutline", listOf(
-            Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-            Variable(GLSLType.M4x4, "transform"),
-            Variable(GLSLType.V2F, "offset"),
-            Variable(GLSLType.V2F, "scale"),
-        ),
-        getUVForceFieldLib +
-                "void main(){\n" +
-                "   uv = coords.xy * 0.5 + 0.5;\n" +
-                "   vec2 localPos0 = coords.xy * scale + offset;\n" +
-                "   vec2 pseudoUV2 = getForceFieldUVs(localPos0*.5+.5);\n" +
-                "   finalPosition = vec3($hasForceFieldUVs ? pseudoUV2*2.0-1.0 : localPos0, 0);\n" +
-                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                "}", y3D, listOf(
-            Variable(GLSLType.S2D, "tex"),
-            Variable(GLSLType.V4F, "colors", maxOutlineColors),
-            Variable(GLSLType.V2F, "distSmoothness", maxOutlineColors),
-            Variable(GLSLType.V1F, "depth"),
-            Variable(GLSLType.V1I, "colorCount"),
-            Variable(GLSLType.V4F, "tint"),
-            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
-        ), "" +
-                randomGLSL +
-                getTextureLib +
-                getColorForceFieldLib +
-                "float smoothSign(float f){ return clamp(f,-1.0,1.0); }\n" +
-                "void main(){\n" +
-                "   float distance = texture(tex, uv).r - 0.5;\n" +
-                "   float distDx = dFdx(distance);\n" +
-                "   float distDy = dFdy(distance);\n" +
-                "   float gradient = length(vec2(distDx, distDy));\n" +
-                "#define IS_TINTED\n" +
-                "   vec4 color = tint;\n" +
-                "   for(int i=0;i<colorCount;i++){" +
-                "       vec4 colorHere = colors[i];\n" +
-                "       vec2 distSmooth = distSmoothness[i];\n" +
-                "       float offset = distSmooth.x;\n" +
-                "       float smoothness = distSmooth.y;\n" +
-                "       float appliedGradient = max(smoothness, gradient);\n" +
-                "       float mixingFactor0 = (distance-offset)*0.5/appliedGradient;\n" +
-                "       float mixingFactor = clamp(mixingFactor0, 0.0, 1.0);\n" +
-                "       color = mix(color, colorHere, mixingFactor);\n" +
-                "   }\n" +
-                "   #define CUSTOM_DEPTH\n" +
-                "   gl_FragDepth = gl_FragCoord.z * (1.0 + distance * depth);\n" +
-                "   if(color.a <= 0.001) discard;\n" +
-                "   if($hasForceFieldColor) color *= getForceFieldColor(finalPosition);\n" +
+                "   vec4 color = texture(tex, uv);\n" +
                 "   finalColor = color.rgb;\n" +
                 "   finalAlpha = color.a;\n" +
                 "}", listOf("tex"),
-        "tiling",
-        "filtering",
-        "uvProjection",
-        "forceFieldUVCount",
-        "textureDeltaUV"
+        "normals", "uvs", "tangents", "colors", "drawMode", "tint",
+        "finalNormal", "finalEmissive"
+    )
+
+    val shader3DSimple = createShader(
+        "3d", v3Dl, v3D, y3D, f3Dl, "" +
+                "void main(){\n" +
+                "   finalColor = vec3(1.0);\n" +
+                "   finalAlpha = 1.0;\n" +
+                "}", listOf("tex"),
+        "normals", "uvs", "tangents", "colors", "tint",
+        "finalNormal", "finalEmissive"
     )
 
     val textShader = BaseShader(

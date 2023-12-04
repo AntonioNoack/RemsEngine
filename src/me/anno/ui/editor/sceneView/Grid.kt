@@ -8,9 +8,8 @@ import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.StaticBuffer
-import me.anno.gpu.drawing.GFXx3D.uploadAttractors0
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.shader3D
+import me.anno.gpu.shader.ShaderLib.shader3DSimple
 import me.anno.gpu.texture.TextureLib.bindWhite
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.TAUf
@@ -141,9 +140,8 @@ object Grid {
         x0: Float, y0: Float, x1: Float, y1: Float,
         color: Int, alpha: Float
     ) {
-        val shader = shader3D.value
+        val shader = shader3DSimple.value
         shader.use()
-        uploadAttractors0(shader)
         val stack = stack
         stack.identity()
         stack.translate(x0, y0, 0f)
@@ -152,7 +150,6 @@ object Grid {
         stack.scale(distance(x0, y0, x1, y1))
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color, alpha)
-        bindWhite(0)
         lineBuffer.draw(shader)
     }
 
@@ -168,24 +165,19 @@ object Grid {
             stack.rotateZ(+atan2(dif.y, dif.x))
             stack.rotateY(-atan2(dif.z, hypot(dif.x, dif.y)))
 
-            val shader = shader3D.value
+            val shader = shader3DSimple.value
             shader.use()
-            uploadAttractors0(shader)
             shader.m4x4("transform", stack)
             defaultUniforms(shader, color)
-            bindWhite(0)
             lineBuffer.draw(shader)
         }
     }
 
     fun drawLine(stack: Matrix4fArrayList, color: Int, alpha: Float) {
-
-        val shader = shader3D.value
+        val shader = shader3DSimple.value
         shader.use()
-        uploadAttractors0(shader)
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color, alpha)
-        bindWhite(0)
         lineBuffer.draw(shader)
     }
 
@@ -244,30 +236,20 @@ object Grid {
      * */
     @Suppress("unused")
     fun drawLineMesh(stack: Matrix4fArrayList, color: Vector4f, mesh: Mesh) {
-
         if (color.w <= 0f) return
-
-        val shader = shader3D.value
+        val shader = shader3DSimple.value
         shader.use()
-        uploadAttractors0(shader)
         shader.m4x4("transform", stack)
         defaultUniforms(shader, color)
-        bindWhite(0)
-
         mesh.draw(shader, 0, true)
     }
 
     fun drawGrid(stack: Matrix4fArrayList, alpha: Float) {
-
         if (alpha <= 0f) return
-
-        val shader = shader3D.value
+        val shader = shader3DSimple.value
         shader.use()
-        uploadAttractors0(shader)
         shader.m4x4("transform", stack)
         defaultUniforms(shader, -1, alpha)
-        bindWhite(0)
-
         gridBuffer.draw(shader)
     }
 }

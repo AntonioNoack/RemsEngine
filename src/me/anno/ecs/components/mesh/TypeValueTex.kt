@@ -3,7 +3,7 @@ package me.anno.ecs.components.mesh
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
@@ -12,7 +12,7 @@ import org.apache.logging.log4j.LogManager
 class TypeValueTex(
     glslType: GLSLType,
     val source: FileReference,
-    val filtering: GPUFiltering,
+    val filtering: Filtering,
     val clamping: Clamping,
     val whileMissing: ITexture2D
 ) : TypeValue(glslType, Unit) {

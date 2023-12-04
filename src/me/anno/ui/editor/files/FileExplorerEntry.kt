@@ -297,7 +297,7 @@ open class FileExplorerEntry(
         // we can use FSR to upsample the images xD
         val x = x0 + (w - iw) / 2
         val y = y0 + (h - ih) / 2
-        if (image is Texture2D) image.filtering = GPUFiltering.LINEAR
+        if (image is Texture2D) image.filtering = Filtering.LINEAR
         if (iw > image.width && ih > image.height) {// maybe use fsr only, when scaling < 4x
             FSR.upscale(image, x, y, iw, ih, backgroundColor, false, isHDR, true)// ^^
         } else {
@@ -390,7 +390,7 @@ open class FileExplorerEntry(
         val image1 = image0 ?: getDefaultIcon()
         val image2 = if (image1 == null || (image1 is Texture2D && !image1.isCreated)) whiteTexture else image1
         val rot = (image2 as? Texture2D)?.rotation
-        image2.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+        image2.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
         if (rot == null || rot.isNull()) {
             drawTexture(x0, y0, x1, y1, image2)
         } else if (rot.angleCW == 0 && rot.mirrorVertical && !rot.mirrorHorizontal) {

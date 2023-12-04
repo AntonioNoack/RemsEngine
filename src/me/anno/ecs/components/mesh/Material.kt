@@ -12,7 +12,7 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureCache
@@ -191,7 +191,7 @@ open class Material : PrefabSaveable(), Renderable {
         val white = TextureLib.whiteTexture
         val n001 = TextureLib.normalTexture
 
-        val f = if (linearFiltering) GPUFiltering.LINEAR else GPUFiltering.NEAREST
+        val f = if (linearFiltering) Filtering.LINEAR else Filtering.NEAREST
         val c = clamping
         bindTexture(shader, "occlusionMap", occlusionMap, white, f, c)
         bindTexture(shader, "metallicMap", metallicMap, white, f, c)
@@ -368,7 +368,7 @@ open class Material : PrefabSaveable(), Renderable {
             name: String,
             file: FileReference,
             default: Texture2D,
-            filtering: GPUFiltering,
+            filtering: Filtering,
             clamping: Clamping
         ): Texture2D? {
             val index = shader.getTextureIndex(name)

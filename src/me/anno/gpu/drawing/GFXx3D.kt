@@ -1,28 +1,20 @@
 package me.anno.gpu.drawing
 
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.buffer.SimpleBuffer.Companion.circle
-import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01Mesh
-import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01CubeX10
-import me.anno.gpu.drawing.GFXx2D.defineAdvancedGraphicalFeatures
-import me.anno.gpu.drawing.GFXx2D.disableAdvancedGraphicalFeatures
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.shader.ShaderLib.maxOutlineColors
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.*
-import me.anno.utils.Color.toARGB
 import me.anno.utils.Color.white4
 import me.anno.utils.types.Floats.toRadians
 import me.anno.video.formats.gpu.GPUFrame
-import org.joml.*
-import org.lwjgl.BufferUtils
-import java.nio.FloatBuffer
-import kotlin.math.min
+import org.joml.Matrix4f
+import org.joml.Matrix4fArrayList
+import org.joml.Vector4f
 import kotlin.math.round
 
 @Suppress("unused")
@@ -31,30 +23,6 @@ object GFXx3D {
     // used in Rem's Studio
     fun getScale(w: Int, h: Int) = 1f / h
     fun getScale(w: Float, h: Float) = 1f / h
-
-    val shader3DText = ShaderLib.createShader(
-        "3d-text", ShaderLib.v3Dl,
-        "uniform vec3 offset;\n" +
-                ShaderLib.getUVForceFieldLib +
-                "void main(){\n" +
-                "   vec3 localPos0 = coords + offset;\n" +
-                "   vec2 pseudoUV2 = getForceFieldUVs(localPos0.xy*.5+.5);\n" +
-                "   finalPosition = ${ShaderLib.hasForceFieldUVs} ? vec3(pseudoUV2*2.0-1.0, coords.z + offset.z) : localPos0;\n" +
-                "   gl_Position = matMul(transform, vec4(finalPosition, 1.0));\n" +
-                ShaderLib.flatNormal +
-                "   vertexId = gl_VertexID;\n" +
-                "}", ShaderLib.y3D + listOf(Variable(GLSLType.V1I, "vertexId").flat()), listOf(
-            Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
-            Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
-        ), "" +
-                ShaderLib.getTextureLib +
-                ShaderLib.getColorForceFieldLib +
-                "void main(){\n" +
-                "   vec4 finalColor2 = (${ShaderLib.hasForceFieldColor}) ? getForceFieldColor(finalPosition) : vec4(1.0);\n" +
-                "   finalColor = finalColor2.rgb;\n" +
-                "   finalAlpha = finalColor2.a;\n" +
-                "}", listOf(), "tiling", "forceFieldUVCount"
-    )
 
     val shader3DCircle = ShaderLib.createShader(
         "3dCircle", listOf(
@@ -71,14 +39,12 @@ object GFXx3D {
                 "}", ShaderLib.y3D, listOf(
             Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
             Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT)
-        ), ShaderLib.getColorForceFieldLib +
-                "void main(){\n" +
-                "   vec4 finalColor2 = (${ShaderLib.hasForceFieldColor}) ? getForceFieldColor(finalPosition) : vec4(1);\n" +
-                "   finalColor = finalColor2.rgb;\n" +
-                "   finalAlpha = finalColor2.a;\n" +
+        ),
+        "void main(){\n" +
+                "   finalColor = vec3(1.0);\n" +
+                "   finalAlpha = 1.0;\n" +
                 "}", listOf(),
-        "filtering", "textureDeltaUV", "tiling", "uvProjection", "forceFieldUVCount",
-        "cgOffset", "cgSlope", "cgPower", "cgSaturation"
+        "filtering", "textureDeltaUV", "tiling", "uvProjection"
     )
 
     val shader3DBoxBlur = Shader(
@@ -136,79 +102,42 @@ object GFXx3D {
     )
 
     fun shader3DUniforms(
-        shader: Shader, stack: Matrix4fArrayList,
-        w: Int, h: Int,
-        tiling: Vector4f?, filtering: Filtering,
-        uvProjection: UVProjection?
+        shader: Shader, stack: Matrix4f,
+        w: Int, h: Int, tiling: Vector4f?
     ) {
-
-        stack.pushMatrix()
-
-        val doScale2 = (uvProjection?.doScale ?: true) && w != h
-        if (doScale2) {
-            val scale = getScale(w, h)
-            val sx = w * scale
-            val sy = h * scale
-            stack.scale(sx, -sy, 1f)
-        } else {
-            stack.scale(1f, -1f, 1f)
-        }
-
         transformUniform(shader, stack)
-        shader.v1i("filtering", filtering.id)
         shader.v2f("textureDeltaUV", 1f / w, 1f / h)
-
-        stack.popMatrix()
-
         GFXx2D.tiling(shader, tiling)
-        shader.v1i("uvProjection", uvProjection?.id ?: UVProjection.Planar.id)
     }
 
     fun shader3DUniforms(
-        shader: Shader, stack: Matrix4fArrayList,
+        shader: Shader, stack: Matrix4f,
         w: Int, h: Int, color: Vector4f?,
-        tiling: Vector4f?, filtering: Filtering,
-        uvProjection: UVProjection?
+        tiling: Vector4f?
     ) {
-        shader3DUniforms(shader, stack, w, h, tiling, filtering, uvProjection)
+        shader3DUniforms(shader, stack, w, h, tiling)
         shader.v4f("tint", color ?: white4)
     }
 
     fun shader3DUniforms(
-        shader: Shader, stack: Matrix4fArrayList,
+        shader: Shader, stack: Matrix4f,
         w: Int, h: Int, color: Int,
-        tiling: Vector4f?, filtering: Filtering,
-        uvProjection: UVProjection?
+        tiling: Vector4f?
     ) {
-        shader3DUniforms(shader, stack, w, h, tiling, filtering, uvProjection)
-        shader.v4f("tint", color)
-    }
-
-    fun shader3DUniforms(
-        shader: Shader, stack: Matrix4fArrayList,
-        w: Int, h: Int, color: Int,
-        tiling: Vector4f?, uvProjection: UVProjection?
-    ) {
-        shader3DUniforms(shader, stack, w, h, tiling, Filtering.NEAREST, uvProjection)
+        shader3DUniforms(shader, stack, w, h, tiling)
         shader.v4f("tint", color)
     }
 
     fun drawDebugCube(matrix: Matrix4fArrayList, size: Float, color: Vector4f?) {
         matrix.scale(0.5f * size, -0.5f * size, 0.5f * size) // flip inside out
         val tex = TextureLib.whiteTexture
-        draw3D(
-            matrix, tex, color,
-            Filtering.NEAREST, tex.clamping!!, null, UVProjection.TiledCubemap
+        draw3DTiledCubemap(
+            matrix, tex, tex.width, tex.height, color,
+            Filtering.NEAREST, tex.clamping!!, null
         )
     }
 
     fun shader3DUniforms(shader: Shader, transform: Matrix4f?, color: Int) {
-        transformUniform(shader, transform)
-        shader.v4f("tint", color)
-        shader.v4f("tiling", 1f, 1f, 0f, 0f)
-    }
-
-    fun shader3DUniforms(shader: Shader, transform: Matrix4f, color: Vector4f) {
         transformUniform(shader, transform)
         shader.v4f("tint", color)
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
@@ -219,26 +148,6 @@ object GFXx3D {
         shader.m4x4("transform", transform)
     }
 
-    fun draw3DText(offset: Vector3f, stack: Matrix4fArrayList, mesh: Mesh, color: Vector4f) =
-        draw3DText(offset, stack, mesh, color.toARGB())
-
-    fun draw3DText(offset: Vector3f, stack: Matrix4fArrayList, mesh: Mesh, color: Int) {
-        val shader = shader3DText.value
-        shader.use()
-        shader3DUniforms(shader, stack, color)
-        shader.v3f("offset", offset)
-        uploadAttractors0(shader)
-        mesh.draw(shader, 0)
-        GFX.check()
-    }
-
-    fun draw3DTextWithOffset(mesh: Mesh, offset: Vector3f) {
-        val shader = shader3DText.value
-        shader.use()
-        shader.v3f("offset", offset)
-        mesh.draw(shader, 0)
-    }
-
     fun colorGradingUniforms(shader: Shader) {
         shader.v3f("cgOffset", 0f)
         shader.v3f("cgSlope", 1f)
@@ -246,157 +155,41 @@ object GFXx3D {
         shader.v1f("cgSaturation", 1f)
     }
 
-    fun draw3D(
-        stack: Matrix4fArrayList, texture: GPUFrame, color: Vector4f,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
-    ) {
-        if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader0 = texture.get3DShader()
-        val shader = shader0.value
-        shader.use()
-        shader3DUniforms(shader, stack, texture.width, texture.height, color, tiling, filtering, uvProjection)
-        disableAdvancedGraphicalFeatures(shader)
-        texture.bind(0, filtering, clamping)
-        texture.bindUVCorrection(shader)
-        uvProjection.mesh.draw(shader, 0)
-        GFX.check()
-    }
-
-    fun draw3D(
+    fun draw3DPlanar(
         stack: Matrix4fArrayList, texture: GPUFrame, color: Int,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader = texture.get3DShader().value
+        val shader = texture.get3DShaderPlanar().value
         shader.use()
-        shader3DUniforms(shader, stack, texture.width, texture.height, color, tiling, filtering, uvProjection)
-        defineAdvancedGraphicalFeatures(shader)
+        shader3DUniforms(shader, stack, texture.width, texture.height, color, tiling)
         texture.bind(0, filtering, clamping)
         texture.bindUVCorrection(shader)
-        uvProjection.mesh.draw(shader, 0)
+        SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
 
-    fun draw3D(
-        stack: Matrix4fArrayList, texture: GPUFrame, color: Int,
-        filtering: GPUFiltering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
-    ) {
-        if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader = texture.get3DShader().value
-        shader.use()
-        shader3DUniforms(shader, stack, texture.width, texture.height, color, tiling, uvProjection)
-        defineAdvancedGraphicalFeatures(shader)
-        texture.bind(0, filtering, clamping)
-        texture.bindUVCorrection(shader)
-        uvProjection.mesh.draw(shader, 0)
-        GFX.check()
-    }
-
-    fun draw3D(
-        stack: Matrix4fArrayList, texture: Texture2D, color: Vector4f?,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
-    ) = draw3D(stack, texture, texture.width, texture.height, color, filtering, clamping, tiling, uvProjection)
-
-    fun draw3D(
-        stack: Matrix4fArrayList, texture: Texture2D, color: Int,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
-    ) = draw3D(stack, texture, texture.width, texture.height, color, filtering, clamping, tiling, uvProjection)
-
-    fun draw3D(
-        stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4f?,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
-    ) {
-        val shader = ShaderLib.shader3D.value
-        shader.use()
-        defineAdvancedGraphicalFeatures(shader)
-        shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
-        texture.bind(0, filtering, clamping)
-        uvProjection.mesh.draw(shader, 0)
-        GFX.check()
-    }
-
-    fun draw3D(
+    fun draw3DPlanar(
         stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Int,
-        filtering: Filtering, clamping: Clamping, tiling: Vector4f?, uvProjection: UVProjection
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
-        val shader = ShaderLib.shader3D.value
+        val shader = ShaderLib.shader3DPlanar.value
         shader.use()
-        defineAdvancedGraphicalFeatures(shader)
-        shader3DUniforms(shader, stack, w, h, color, tiling, filtering, uvProjection)
+        shader3DUniforms(shader, stack, w, h, color, tiling)
         texture.bind(0, filtering, clamping)
-        uvProjection.mesh.draw(shader, 0)
+        SimpleBuffer.flat01.draw(shader)
         GFX.check()
     }
 
-    val outlineStatsBuffer: FloatBuffer = BufferUtils.createFloatBuffer(maxOutlineColors * 4)
-    fun drawOutlinedText(
-        stack: Matrix4fArrayList,
-        offset: Vector2f,
-        scale: Vector2f,
-        texture: Texture2D,
-        color: Vector4f,
-        colorCount: Int,
-        colors: Array<Vector4f>,
-        distances: FloatArray,
-        smoothness: FloatArray,
-        depth: Float,
-        hasUVAttractors: Boolean
+    fun draw3DTiledCubemap(
+        stack: Matrix4fArrayList, texture: Texture2D, w: Int, h: Int, color: Vector4f?,
+        filtering: Filtering, clamping: Clamping, tiling: Vector4f?
     ) {
-
-        val shader = ShaderLib.shaderSDFText.value
+        val shader = ShaderLib.shader3DTiledCubemap.value
         shader.use()
-
-        defineAdvancedGraphicalFeatures(shader)
-
-        shader.v4f("tint", color)
-
-        val cc = min(colorCount, maxOutlineColors)
-
-        /**
-         * u4[ maxColors ] colors
-         * u2[ maxColors ] distSmooth
-         * uniform int colorCount
-         * */
-        val buffer = outlineStatsBuffer
-        buffer.position(0)
-        for (i in 0 until cc) {
-            val colorI = colors[i]
-            buffer.put(colorI.x)
-            buffer.put(colorI.y)
-            buffer.put(colorI.z)
-            buffer.put(colorI.w)
-        }
-        buffer.position(0)
-        shader.v4Array("colors", buffer)
-        buffer.position(0)
-        for (i in 0 until cc) {
-            buffer.put(distances[i])
-            buffer.put(smoothness[i])
-        }
-        buffer.position(0)
-        shader.v2Array("distSmoothness", buffer)
-        shader.v1i("colorCount", cc)
-        shader.v1f("depth", depth * 0.00001f)
-
-        drawOutlinedText(stack, offset, scale, texture, hasUVAttractors)
-    }
-
-    fun drawOutlinedText(
-        stack: Matrix4fArrayList,
-        offset: Vector2f,
-        scale: Vector2f,
-        texture: Texture2D,
-        hasUVAttractors: Boolean
-    ) {
-        val shader = ShaderLib.shaderSDFText.value
-        shader.use()
-        transformUniform(shader, stack)
-        shader.v2f("offset", offset)
-        shader.v2f("scale", scale)
-        texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
-        // if we have a force field applied, subdivide the geometry
-        val buffer = if (hasUVAttractors) flat01CubeX10 else flat01Mesh
-        buffer.draw(shader, 0)
+        shader3DUniforms(shader, stack, w, h, color, tiling)
+        texture.bind(0, filtering, clamping)
+        UVProjection.TiledCubemap.mesh.draw(shader, 0)
         GFX.check()
     }
 
@@ -446,8 +239,7 @@ object GFXx3D {
     ) {
         val shader = shader3DCircle.value
         shader.use()
-        defineAdvancedGraphicalFeatures(shader)
-        shader3DUniforms(shader, stack, 1, 1, color, null, Filtering.NEAREST, null)
+        shader3DUniforms(shader, stack, 1, 1, color, null)
         circleParams(innerRadius, startDegrees, endDegrees, shader)
         circle.draw(shader)
         GFX.check()
@@ -477,12 +269,5 @@ object GFXx3D {
         val angle0 = a0.toRadians()
         val angle1 = a1.toRadians()
         shader.v3f("circleParams", 1f - innerRadius, angle0, angle1)
-    }
-
-    fun uploadAttractors0(shader: Shader) {
-
-        // localScale, localOffset not needed
-        shader.v1i("forceFieldColorCount", 0)
-        shader.v1i("forceFieldUVCount", 0)
     }
 }

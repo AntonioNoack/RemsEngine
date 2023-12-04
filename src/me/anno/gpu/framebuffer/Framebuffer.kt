@@ -7,7 +7,7 @@ import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths
@@ -200,11 +200,11 @@ class Framebuffer(
         if (textures != null) {
             for (texture in textures) {
                 texture.hasMipmap = false
-                texture.filtering = GPUFiltering.TRULY_NEAREST
+                texture.filtering = Filtering.TRULY_NEAREST
             }
         }
         depthTexture?.hasMipmap = false
-        depthTexture?.filtering = GPUFiltering.TRULY_NEAREST
+        depthTexture?.filtering = Filtering.TRULY_NEAREST
     }
 
     private fun ensureSize(newWidth: Int, newHeight: Int) {
@@ -481,7 +481,7 @@ class Framebuffer(
         }
     }
 
-    override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
         checkSession()
         if (withMultisampling) {
             val ssBuffer = ssBuffer!!
@@ -492,7 +492,7 @@ class Framebuffer(
         }
     }
 
-    override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
         GFX.check()
         if (withMultisampling) {
             val ssBuffer = ssBuffer!!

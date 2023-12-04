@@ -10,7 +10,7 @@ import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
@@ -50,8 +50,8 @@ object BokehBlur {
             val pixelRadius = relativeToH * h
             val normRadius = pixelRadius / KERNEL_RADIUS
 
-            filterTexture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
-            srcTexture.bind(1, GPUFiltering.LINEAR, Clamping.CLAMP)
+            filterTexture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
+            srcTexture.bind(1, Filtering.LINEAR, Clamping.CLAMP)
 
             val shader = perChannelShader!!
             shader.use()
@@ -68,10 +68,10 @@ object BokehBlur {
                 uniforms(shader2, w, h, normRadius)
 
                 // filter texture is bound correctly
-                r.bindTexture0(1, GPUFiltering.LINEAR, Clamping.CLAMP)
-                g.bindTexture0(2, GPUFiltering.LINEAR, Clamping.CLAMP)
-                b.bindTexture0(3, GPUFiltering.LINEAR, Clamping.CLAMP)
-                a.bindTexture0(4, GPUFiltering.LINEAR, Clamping.CLAMP)
+                r.bindTexture0(1, Filtering.LINEAR, Clamping.CLAMP)
+                g.bindTexture0(2, Filtering.LINEAR, Clamping.CLAMP)
+                b.bindTexture0(3, Filtering.LINEAR, Clamping.CLAMP)
+                a.bindTexture0(4, Filtering.LINEAR, Clamping.CLAMP)
                 flat01.draw(shader2)
 
             }

@@ -45,11 +45,6 @@ object TextureLib {
             }
         }
 
-        override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
-            ensureExists()
-            return super.bind(index, filtering, clamping)
-        }
-
         override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
             ensureExists()
             return super.bind(index, filtering, clamping)
@@ -87,11 +82,6 @@ object TextureLib {
             }
         }
 
-        override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
-            checkExistence()
-            return super.bind(index, filtering, clamping)
-        }
-
         override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
             checkExistence()
             return super.bind(index, filtering, clamping)
@@ -126,7 +116,7 @@ object TextureLib {
             }
         }
 
-        override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
+        override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
             checkExistence()
             return super.bind(index, filtering, clamping)
         }
@@ -158,7 +148,7 @@ object TextureLib {
             }
         }
 
-        override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
+        override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
             checkExistence()
             return super.bind(index, filtering, clamping)
         }

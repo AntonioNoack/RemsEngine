@@ -10,7 +10,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.io.Streams.read0String
 import me.anno.io.Streams.readFloatLE
@@ -66,7 +66,7 @@ object ShapedBlur {
             useFrame(target) {
                 shader.v1i("uPass", i)
                 shader.v2f("duv", scale0 / src.width, -scale0 / src.height)
-                src.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                src.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                 flat01.draw(shader)
                 src = target.getTextureI(0)
             }

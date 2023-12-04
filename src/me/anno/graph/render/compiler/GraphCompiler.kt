@@ -1,7 +1,6 @@
 package me.anno.graph.render.compiler
 
 import me.anno.Time
-import me.anno.video.VideoCache
 import me.anno.ecs.components.mesh.TypeValue
 import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.gpu.deferred.DeferredLayerType
@@ -9,7 +8,6 @@ import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.texture.*
@@ -36,13 +34,14 @@ import me.anno.graph.types.flow.local.GetLocalVariableNode
 import me.anno.graph.types.flow.local.SetLocalVariableNode
 import me.anno.graph.types.flow.maths.*
 import me.anno.graph.types.flow.vector.*
-import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.ui.editor.files.FileExplorerEntry
 import me.anno.utils.Color.white4
 import me.anno.utils.types.AnyToFloat
 import me.anno.utils.types.AnyToLong
+import me.anno.video.VideoCache
 import me.anno.video.ffmpeg.MediaMetadata
+import me.anno.video.formats.gpu.GPUFrame
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -397,7 +396,7 @@ abstract class GraphCompiler(val g: FlowGraph) {
     }
 
     fun filter(shader: Shader, name: String, tex: Texture2D, linear: Boolean): Texture2D {
-        val filter = if (linear) GPUFiltering.LINEAR else GPUFiltering.NEAREST
+        val filter = if (linear) Filtering.LINEAR else Filtering.NEAREST
         if (tex.filtering != filter || tex.clamping != Clamping.REPEAT) {
             val idx = shader.getTextureIndex(name)
             if (idx >= 0) {
@@ -470,7 +469,8 @@ abstract class GraphCompiler(val g: FlowGraph) {
                             file, 1, frameIndex,
                             bufferLength, fps, timeout, meta, true
                         )
-                        if (tex != null && tex.get2DShader() == ShaderLib.shader2DRGBA) {
+                        // to do implement other types, too??
+                        if (tex != null && tex.getShaderStage() == GPUFrame.swizzleStages[""]) {
                             val tex2 = tex.getTextures()[0]
                             filter(currentShader, name, tex2, linear)
                         } else TextureLib.blackTexture

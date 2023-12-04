@@ -29,7 +29,7 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.SimpleRenderer
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.input.Input
 import me.anno.maths.Maths.pow
@@ -213,7 +213,7 @@ fun main() {
 
                     drawBackground(x0, y0, x1, y1)
 
-                    val filter = GPUFiltering.TRULY_LINEAR
+                    val filter = Filtering.TRULY_LINEAR
                     val clamp = Clamping.CLAMP
                     val dt = (frameIndex + 0.5f) / interFrames
                     useFrame(width, height, true, accu) {

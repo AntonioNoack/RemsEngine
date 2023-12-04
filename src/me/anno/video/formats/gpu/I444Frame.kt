@@ -1,11 +1,13 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.shader.ShaderLib.shader2DYUV
-import me.anno.gpu.shader.ShaderLib.shader3DYUV
+import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.utils.LOGGER
 import me.anno.utils.Sleep
@@ -14,6 +16,24 @@ import java.io.InputStream
 
 // this seems to work, and to be correct
 class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
+
+    companion object {
+        val yuvStage = ShaderStage(
+            "YUV", listOf(
+                Variable(GLSLType.V2F, "finalUV"),
+                Variable(GLSLType.V2F, "uvCorrection"),
+                Variable(GLSLType.S2D, "texY"),
+                Variable(GLSLType.S2D, "texUV"),
+                Variable(GLSLType.V4F, "color", VariableMode.OUT)
+            ), "" +
+                    "   vec2 correctedUV = finalUV * uvCorrection;\n" +
+                    "   vec2 correctedDUV = textureDeltaUV*uvCorrection;\n" +
+                    "   vec3 yuv = vec3(" +
+                    "       getTexture(texY, finalUV).r, " +
+                    "       getTexture(texUV, correctedUV, correctedDUV).rg);\n" +
+                    "   color = vec4(yuv2rgb(yuv), 1.0);\n"
+        )
+    }
 
     private val y = Texture2D("i444-y-frame", width, height, 1)
     private val uv = Texture2D("i444-uv-frame", width, height, 1)
@@ -48,9 +68,10 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
         }
     }
 
+    override fun getShaderStage() = yuvStage
     override fun getTextures(): List<Texture2D> = listOf(y, uv)
 
-    override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
+    override fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping) {
         uv.bind(offset + 1, nearestFiltering, clamping)
         y.bind(offset, nearestFiltering, clamping)
     }
@@ -59,9 +80,6 @@ class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
         // all buffers are the same size, no correction required
         shader.v2f("uvCorrection", 1f, 1f)
     }
-
-    override fun get2DShader() = shader2DYUV
-    override fun get3DShader() = shader3DYUV
 
     // 319x yuv = 2,400 MB
     // 7.5 MB / yuv

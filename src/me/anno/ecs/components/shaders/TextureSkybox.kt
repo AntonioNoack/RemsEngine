@@ -4,7 +4,7 @@ import me.anno.ecs.components.mesh.TypeValueV2
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
@@ -32,7 +32,7 @@ abstract class TextureSkybox : SkyboxBase() {
             val shader = shader?.value
             if (shader != null) {
                 // ensure proper filtering
-                texture.bind(shader, "skyTexture", GPUFiltering.LINEAR, Clamping.REPEAT)
+                texture.bind(shader, "skyTexture", Filtering.LINEAR, Clamping.REPEAT)
             }
             texture
         }

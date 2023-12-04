@@ -10,10 +10,9 @@ import me.anno.gpu.drawing.DrawTexts
 import me.anno.gpu.drawing.GFXx2D
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.io.base.BaseWriter
-import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.ui.base.Font
@@ -215,7 +214,7 @@ open class AnimTextPanel(text: String, style: Style) : TextPanel(text, style) {
                     // todo in TextGroup, ti is broken ... why??
                     val texture = FontManager.getTexture(txt)
                     if (texture != null && (texture !is Texture2D || texture.isCreated)) {
-                        texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+                        texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
                         val x2 = fx + (w - texture.width) / 2
                         if (resetTransform) transform.set(backup)
                         val color2 = animate(time, index, x2 + texture.width / 2f, y2 + texture.height / 2f)

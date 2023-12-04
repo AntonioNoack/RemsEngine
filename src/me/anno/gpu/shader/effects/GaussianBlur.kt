@@ -9,7 +9,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.image.BoxBlur
 import me.anno.image.BoxBlur.multiply
 import me.anno.input.Input
@@ -73,8 +73,8 @@ object GaussianBlur {
         }
         target.bindTexture0(
             resultIndex,
-            if (true || isFirst || size == pixelSize) GPUFiltering.NEAREST
-            else GPUFiltering.LINEAR, Clamping.CLAMP
+            if (true || isFirst || size == pixelSize) Filtering.NEAREST
+            else Filtering.LINEAR, Clamping.CLAMP
         )
     }
 

@@ -9,7 +9,7 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.effects.FXAA
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.image.ImageWriter
 import me.anno.input.Input
 import me.anno.maths.Maths
@@ -44,7 +44,7 @@ private fun testShader() {
         val mesh = CubemapModel
         GFXState.useFrame(depth) {
             depth.clearColor(1f, 0.7f, 0f, 1f)
-            val shader = ShaderLib.shader3D.value
+            val shader = ShaderLib.shader3DSimple.value
             shader.use()
             shader.m4x4("transform", transform)
             mesh.draw(shader, 0)
@@ -57,8 +57,8 @@ private fun testShader() {
             shader.v1b("disableEffect", Input.isControlDown)
             shader.v1f("threshold", 1e-5f)
             shader.v2f("rbOffset", 0f, 0f) // red-blue-offset; disabled for testing
-            depth.bindTexture0(0, GPUFiltering.NEAREST, Clamping.CLAMP)
-            depth.bindTexture0(1, GPUFiltering.NEAREST, Clamping.CLAMP)
+            depth.bindTexture0(0, Filtering.NEAREST, Clamping.CLAMP)
+            depth.bindTexture0(1, Filtering.NEAREST, Clamping.CLAMP)
             GFX.flat01.draw(shader)
         }
         GFX.copy(result)

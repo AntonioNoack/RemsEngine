@@ -7,12 +7,18 @@ import me.anno.gpu.buffer.SimpleBuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
+import me.anno.gpu.shader.builder.ShaderStage
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.*
 import me.anno.image.raw.ByteImage
 import me.anno.utils.OS.desktop
 import me.anno.utils.Sleep.waitForGFXThread
 import me.anno.utils.files.Files.findNextFile
+import me.anno.utils.structures.maps.LazyMap
 import me.anno.video.BlankFrameDetector
 import java.io.InputStream
 import java.nio.ByteBuffer
@@ -33,29 +39,64 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
         return blankDetector.isBlankFrame(f0.blankDetector, f4.blankDetector, outlierThreshold)
     }
 
-    abstract fun get3DShader(): BaseShader
-    abstract fun get2DShader(): Shader
+    fun get3DShaderPlanar(): BaseShader {
+        val key = getShaderStage()
+        return shaderMap3d.getOrPut(key) {
+            ShaderLib.createShader(
+                "3d-$javaClass", ShaderLib.v3Dl, ShaderLib.v3D, ShaderLib.y3D,
+                key.variables.filter { !it.isOutput } + listOf(
+                    Variable(GLSLType.V4F, "tiling"),
+                    Variable(GLSLType.V3F, "finalColor", VariableMode.OUT),
+                    Variable(GLSLType.V1F, "finalAlpha", VariableMode.OUT),
+                ), "" +
+                        "vec4 getTexture(sampler2D tex, vec2 uv) {\n" +
+                        "   uv = (uv-0.5) * tiling.xy + 0.5 + tiling.zw;\n" +
+                        "   return texture(tex, uv);\n" +
+                        "}\n" +
+                        "void main(){\n" +
+                        "   vec2 finalUV = uv;\n" +
+                        "   vec4 color;\n" +
+                        key.body +
+                        "   finalColor = color.rgb;\n" +
+                        "   finalAlpha = color.a;\n" +
+                        "}", listOf("tex")
+            )
+        }
+    }
+
+    fun get2DShader(): Shader {
+        val key = getShaderStage()
+        return shaderMap2d.getOrPut(key) {
+            Shader(
+                "2d-$javaClass",
+                ShaderLib.coordsList,
+                ShaderLib.coordsUVVertexShader,
+                ShaderLib.uvList, key.variables.filter { !it.isOutput } + listOf(
+                    Variable(GLSLType.V4F, "color", VariableMode.OUT),
+                ), "" +
+                        "void main(){\n" +
+                        "   vec2 finalUV = uv;\n" +
+                        key.body +
+                        "}"
+            )
+        }
+    }
+
+    abstract fun getShaderStage(): ShaderStage
 
     abstract fun getTextures(): List<Texture2D>
 
-    abstract fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping)
-
-    fun bind(offset: Int, filtering: Filtering, clamping: Clamping) {
-        val gpuFiltering = if (filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR
-        bind(offset, gpuFiltering, clamping)
-    }
+    abstract fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping)
 
     fun bind(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<ITexture2D>) {
-        val gpuFiltering = if (filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR
         for ((index, texture) in tex.withIndex().reversed()) {
-            texture.bind(offset + index, gpuFiltering, clamping)
+            texture.bind(offset + index, filtering, clamping)
         }
     }
 
     fun bind2(offset: Int, filtering: Filtering, clamping: Clamping, tex: List<IFramebuffer>) {
-        val gpuFiltering = if (filtering.baseIsNearest) GPUFiltering.NEAREST else GPUFiltering.LINEAR
         for ((index, texture) in tex.withIndex().reversed()) {
-            texture.bindTexture0(offset + index, gpuFiltering, clamping)
+            texture.bindTexture0(offset + index, filtering, clamping)
         }
     }
 
@@ -127,7 +168,7 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
             GFXState.renderPurely {
                 val shader = get2DShader()
                 shader.use()
-                bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+                bind(0, Filtering.LINEAR, Clamping.CLAMP)
                 bindUVCorrection(shader)
                 SimpleBuffer.flat01.draw(shader)
                 GFX.check()
@@ -141,5 +182,16 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
         @JvmField
         val creationLimiter = Semaphore(32)
         val frameAlreadyDestroyed = "Frame is already destroyed!"
+        val swizzleStages = LazyMap<String, ShaderStage> { swizzle ->
+            ShaderStage(
+                "YUV", listOf(
+                    Variable(GLSLType.V2F, "finalUV"),
+                    Variable(GLSLType.S2D, "tex"),
+                    Variable(GLSLType.V4F, "color", VariableMode.OUT)
+                ), "color = getTexture(tex, finalUV)$swizzle;\n"
+            )
+        }
+        val shaderMap2d = HashMap<ShaderStage, Shader>()
+        val shaderMap3d = HashMap<ShaderStage, BaseShader>()
     }
 }

@@ -18,7 +18,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.gpu.texture.TextureLib.whiteCube
@@ -88,7 +88,7 @@ class HeightExpFogNode : RenderSceneNode0(
                 color.bindTrulyNearest(shader, "colorTex")
                 depth.bindTrulyNearest(shader, "depthTex")
                 (renderView.pipeline.bakedSkybox?.getTexture0() ?: whiteCube)
-                    .bind(shader, "skyTex", GPUFiltering.LINEAR, Clamping.CLAMP)
+                    .bind(shader, "skyTex", Filtering.LINEAR, Clamping.CLAMP)
                 bindDepthToPosition(shader)
                 flat01.draw(shader)
             }

@@ -9,7 +9,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import org.joml.Matrix4fArrayList
 import kotlin.math.max
 
@@ -32,7 +32,7 @@ object BoxBlur {
         }
         target.bindTexture0(
             resultIndex,
-            GPUFiltering.NEAREST,
+            Filtering.NEAREST,
             Clamping.CLAMP
         )
     }

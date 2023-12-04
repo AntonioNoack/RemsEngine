@@ -17,7 +17,7 @@ import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferMA
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferSlim
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.maths.Maths
 import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.structures.maps.KeyTripleMap
@@ -138,7 +138,7 @@ open class InstancedStack {
                 shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
                 if (useAnimations) {
                     (instances as InstancedAnimStack).animTexture!!
-                        .bind(shader, "animTexture", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                        .bind(shader, "animTexture", Filtering.TRULY_LINEAR, Clamping.CLAMP)
                 }
                 GFX.check()
 

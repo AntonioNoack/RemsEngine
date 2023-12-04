@@ -18,7 +18,7 @@ import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureCache
 import me.anno.image.ImageWriter
 import me.anno.maths.Maths.mix
@@ -76,7 +76,7 @@ fun main() {
     renderPurely {
         val reconstructed = FBStack["full", source.width, source.height, 3, false, 1, DepthBufferType.NONE]
         val difference = FBStack["diff", source.width, source.height, 3, false, 1, DepthBufferType.NONE]
-        val filtering = GPUFiltering.LINEAR
+        val filtering = Filtering.LINEAR
         for (scale in scales) {
             val sw = (source.width / scale).roundToInt()
             val sh = (source.height / scale).roundToInt()

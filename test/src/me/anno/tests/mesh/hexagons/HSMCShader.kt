@@ -9,7 +9,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.image.ImageCache
@@ -35,7 +35,7 @@ object HSMCShader : ECSMeshShader("hexagons") {
     override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
         super.bind(shader, renderer, instanced)
         val ti = shader.getTextureIndex("diffuseMapStack")
-        if (ti >= 0) texture.bind(ti, GPUFiltering.NEAREST, Clamping.REPEAT)
+        if (ti >= 0) texture.bind(ti, Filtering.NEAREST, Clamping.REPEAT)
     }
 
     override fun createVertexStages(key: ShaderKey): List<ShaderStage> {

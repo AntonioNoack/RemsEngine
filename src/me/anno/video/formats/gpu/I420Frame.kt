@@ -1,14 +1,13 @@
 package me.anno.video.formats.gpu
 
 import me.anno.gpu.GFX
-import me.anno.gpu.shader.ShaderLib.shader2DYUV
-import me.anno.gpu.shader.ShaderLib.shader3DYUV
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.utils.Sleep
 import me.anno.utils.types.InputStreams.readNBytes2
+import me.anno.video.formats.gpu.I444Frame.Companion.yuvStage
 import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 
@@ -57,12 +56,10 @@ class I420Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
         }
     }
 
-    override fun get2DShader() = shader2DYUV
-    override fun get3DShader() = shader3DYUV
-
+    override fun getShaderStage() = yuvStage
     override fun getTextures(): List<Texture2D> = listOf(y, uv)
 
-    override fun bind(offset: Int, nearestFiltering: GPUFiltering, clamping: Clamping) {
+    override fun bind(offset: Int, nearestFiltering: Filtering, clamping: Clamping) {
         uv.bind(offset + 1, nearestFiltering, clamping)
         y.bind(offset, nearestFiltering, clamping)
     }

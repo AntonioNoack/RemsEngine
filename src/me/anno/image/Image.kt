@@ -2,7 +2,7 @@ package me.anno.image
 
 import me.anno.cache.ICacheData
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
@@ -114,15 +114,15 @@ abstract class Image(
         return getRGB(x + y * width)
     }
 
-    fun sampleRGB(x: Float, y: Float, filtering: GPUFiltering, clamping: Clamping): Int {
+    fun sampleRGB(x: Float, y: Float, filtering: Filtering, clamping: Clamping): Int {
         return when (filtering) {
-            GPUFiltering.TRULY_NEAREST,
-            GPUFiltering.NEAREST -> getRGB(
+            Filtering.TRULY_NEAREST,
+            Filtering.NEAREST -> getRGB(
                 clamping.apply(floor(x).toInt(), width),
                 clamping.apply(floor(y).toInt(), height)
             )
-            GPUFiltering.TRULY_LINEAR,
-            GPUFiltering.LINEAR -> {
+            Filtering.TRULY_LINEAR,
+            Filtering.LINEAR -> {
                 val xf = floor(x)
                 val xi = xf.toInt()
                 val fx = x - xf

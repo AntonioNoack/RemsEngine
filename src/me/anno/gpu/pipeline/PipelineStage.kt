@@ -28,7 +28,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib
 import me.anno.gpu.texture.TextureLib.blackCube
@@ -319,7 +319,7 @@ class PipelineStage(
         shader.v1b("hasReflectionPlane", bestPr != null)
         if (bestPr != null) {
             val tex = bestPr.lastBuffer!!
-            tex.getTexture0().bind(ti, GPUFiltering.LINEAR, Clamping.CLAMP)
+            tex.getTexture0().bind(ti, Filtering.LINEAR, Clamping.CLAMP)
             val normal = bestPr.globalNormal
             shader.v3f("reflectionPlaneNormal", normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat())
         }
@@ -354,7 +354,7 @@ class PipelineStage(
             val bakedSkyBox = mapTexture?.getTexture0() ?: blackCube
             bakedSkyBox.bind(
                 envMapSlot,
-                GPUFiltering.LINEAR,
+                Filtering.LINEAR,
                 Clamping.CLAMP
             ) // clamping doesn't really apply here
         }
@@ -457,7 +457,7 @@ class PipelineStage(
                                         val texture = cascades.depthTexture ?: cascades.getTexture0()
                                         // bind the texture, and don't you dare to use mipmapping ^^
                                         // (at least without variance shadow maps)
-                                        texture.bind(slot, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                                        texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                                         cubicSlot++ // no break necessary
                                     }
                                     buffer.put(cubicSlot.toFloat()) // end index
@@ -470,7 +470,7 @@ class PipelineStage(
                                         val texture = cascades.depthTexture ?: cascades.getTexture0()
                                         // bind the texture, and don't you dare to use mipmapping ^^
                                         // (at least without variance shadow maps)
-                                        texture.bind(slot, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+                                        texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
                                         if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
                                     }
                                     buffer.put(planarSlot.toFloat()) // end index

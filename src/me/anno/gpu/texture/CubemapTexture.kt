@@ -168,7 +168,7 @@ open class CubemapTexture(
         return Texture2D.boundTextures[slot] == pointer
     }
 
-    fun bind(index: Int, nearest: GPUFiltering): Boolean {
+    fun bind(index: Int, nearest: Filtering): Boolean {
         if (pointer != 0 && isCreated) {
             if (isBoundToSlot(index)) return false
             Texture2D.activeSlot(index)
@@ -182,7 +182,7 @@ open class CubemapTexture(
         } else throw IllegalStateException("Cannot bind non-created texture!")
     }
 
-    override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
+    override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         return bind(index, filtering)
     }
 
@@ -198,11 +198,11 @@ open class CubemapTexture(
     }
 
     var hasMipmap = false
-    var filtering: GPUFiltering = GPUFiltering.TRULY_NEAREST
+    var filtering: Filtering = Filtering.TRULY_NEAREST
 
     var autoUpdateMipmaps = true
 
-    private fun filtering(nearest: GPUFiltering) {
+    private fun filtering(nearest: Filtering) {
         if (!hasMipmap && nearest.needsMipmap && samples <= 1) {
             // todo use a better algorithm for these mipmaps:
             //  the native algorithm generates blocky artefacts, we need gaussian blur, or similar,
@@ -222,7 +222,7 @@ open class CubemapTexture(
         this.filtering = nearest
     }
 
-    private fun ensureFilterAndClamping(nearest: GPUFiltering) {
+    private fun ensureFilterAndClamping(nearest: Filtering) {
         // ensure being bound?
         if (nearest != this.filtering) filtering(nearest)
     }

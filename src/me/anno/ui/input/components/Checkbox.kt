@@ -3,7 +3,7 @@ package me.anno.ui.input.components
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.gpu.texture.TextureLib.whiteTexture
@@ -74,7 +74,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
         val texture = getImage(isChecked) ?: whiteTexture
-        texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
+        texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         drawTexture(
             x + (width - size) / 2,
             y + (height - size) / 2,

@@ -4,7 +4,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.Node
 import me.anno.graph.NodeInput
@@ -254,7 +254,7 @@ object VisualNovel {
             fun drawChar(image: Texture2D, pos: Int, hasText: Boolean, w: Int) {
                 val h = image.height * w / image.width
                 image.bind(0)
-                image.ensureFilterAndClamping(GPUFiltering.LINEAR, Clamping.CLAMP)
+                image.ensureFilterAndClamping(Filtering.LINEAR, Clamping.CLAMP)
                 drawTexture(
                     x + width * pos / 100 - w / 2,
                     y + height * (if (hasText) 7 else 9) / 10 - h / 2, w, h, image

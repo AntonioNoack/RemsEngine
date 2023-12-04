@@ -15,7 +15,7 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import org.joml.Vector2i
 import kotlin.math.exp
@@ -632,7 +632,7 @@ class FSR2 {
             val shader = autoExposureShader
             shader.use()
             // linear filtering for averaging of neighbors... should work, doesn't it 😅
-            colorBuffer.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+            colorBuffer.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
             flat01.draw(shader)
         }
         GFX.check()

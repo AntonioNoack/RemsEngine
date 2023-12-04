@@ -5,7 +5,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.ComputeShader
-import me.anno.gpu.shader.FlatShaders.flatShader
 import me.anno.gpu.shader.FlatSymbols.flatShaderCircle
 import me.anno.gpu.shader.FlatSymbols.flatShaderHalfArrow
 import me.anno.gpu.shader.Shader
@@ -34,12 +33,6 @@ object GFXx2D {
         shader.v4f("tiling", 1f, 1f, 0f, 0f)
     }
 
-    fun flatColor(color: Int) {
-        val shader = flatShader.value
-        shader.use()
-        shader.v4f("color", color)
-    }
-
     fun getSizeX(value: Int) = value.and(0xffff)
     fun getSizeY(value: Int) = value.ushr(16)
     fun getSize(x: Int, y: Int) = clamp(x, 0, 0xffff) or clamp(y, 0, 0xffff).shl(16)
@@ -52,8 +45,8 @@ object GFXx2D {
         color: Vector4f
     ) {
 
-        val rx = (x - GFX.viewportX).toFloat() / GFX.viewportWidth * 2 - 1
-        val ry = (1f - (y - GFX.viewportY).toFloat() / GFX.viewportHeight) * 2 - 1
+        val rx = +(x - GFX.viewportX).toFloat() / GFX.viewportWidth * 2 - 1
+        val ry = -(y - GFX.viewportY).toFloat() / GFX.viewportHeight * 2 + 1
 
         val stack = circleStack
         stack.identity()
@@ -63,7 +56,7 @@ object GFXx2D {
         // GFX.drawMode = ShaderPlus.DrawMode.COLOR
         // RenderSettings.renderer.use(Renderer.colorRenderer) {
         // not perfect, but pretty good
-        // anti-aliasing for the rough edges
+        // antialiasing for the rough edges
         // not very economical, could be improved
         color.w /= 25f
         for (dx in 0 until 5) {
@@ -74,7 +67,6 @@ object GFXx2D {
                 stack.popMatrix()
             }
         }
-
     }
 
     fun drawCircle(
@@ -102,7 +94,6 @@ object GFXx2D {
         shader.v1f("smoothness", 1.5f)
 
         flat01.draw(shader)
-
     }
 
     fun drawCircle(
@@ -142,7 +133,6 @@ object GFXx2D {
         shader.v1f("smoothness", 1.5f)
 
         flat01.draw(shader)
-
     }
 
     fun drawCircle(
@@ -173,7 +163,6 @@ object GFXx2D {
         shader.v1f("smoothness", smoothness)
 
         flat01.draw(shader)
-
     }
 
     fun drawHalfArrow(
@@ -196,7 +185,6 @@ object GFXx2D {
         shader.v1f("smoothness", smoothness)
 
         flat01.draw(shader)
-
     }
 
     fun posSize(shader: Shader, x: Int, y: Int, w: Int, h: Int) {
@@ -227,18 +215,4 @@ object GFXx2D {
         shader.m4x4("transform", transform)
         shader.v4f("posSize", posX, posY, relW, relH)
     }
-
-    fun defineAdvancedGraphicalFeatures(shader: Shader) {
-        disableAdvancedGraphicalFeatures(shader)
-    }
-
-    fun disableAdvancedGraphicalFeatures(shader: Shader) {
-        shader.v1i("forceFieldUVCount", 0)
-        shader.v1i("forceFieldColorCount", 0)
-        shader.v3f("cgSlope", 1f)
-        shader.v3f("cgOffset", 0f)
-        shader.v3f("cgPower", 1f)
-        shader.v1f("cgSaturation", 1f)
-    }
-
 }

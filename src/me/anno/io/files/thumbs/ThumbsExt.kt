@@ -111,7 +111,6 @@ object ThumbsExt {
         }
         shader.v1f("worldScale", 1f)
         GFXx3D.shader3DUniforms(shader, cameraMatrix, -1)
-        GFXx3D.uploadAttractors0(shader)
     }
 
     fun Collider.drawAssimp(

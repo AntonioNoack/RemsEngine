@@ -175,12 +175,7 @@ object FlatShaders {
                 "   float depth1 = 0.1 + 0.9 * fract(log2(abs(depth0)));\n" +
                 "   gl_FragColor = vec4(depth0 > 0.0 ? vec3(depth1) : vec3(depth1, 0.0, 0.0), 1.0);\n" +
                 "}"
-    ).apply {
-        ignoreNameWarnings(
-            "cgSlope", "cgOffset", "cgPower", "cgSaturation", "forceFieldUVCount",
-            "forceFieldColorCount"
-        )
-    }
+    )
 
     val depthArrayShader = BaseShader(
         "depth", ShaderLib.uiVertexShaderList, ShaderLib.uiVertexShader, uvList, listOf(
@@ -192,12 +187,7 @@ object FlatShaders {
                 "   float depth1 = 0.1 + 0.9 * fract(log2(abs(depth0)));\n" +
                 "   gl_FragColor = vec4(depth0 > 0.0 ? vec3(depth1) : vec3(depth1, 0.0, 0.0), 1.0);\n" +
                 "}"
-    ).apply {
-        ignoreNameWarnings(
-            "cgSlope", "cgOffset", "cgPower", "cgSaturation", "forceFieldUVCount",
-            "forceFieldColorCount"
-        )
-    }
+    )
 
     val flatShaderCubemap = BaseShader(
         "flatShaderCubemap", listOf(

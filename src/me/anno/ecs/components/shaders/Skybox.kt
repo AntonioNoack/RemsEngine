@@ -172,8 +172,7 @@ open class Skybox : SkyboxBase() {
                     "diffuseBase", "normalStrength", "emissiveBase",
                     "roughnessMinMax", "metallicMinMax", "occlusionStrength", "finalTranslucency", "finalClearCoat",
                     "tint", "hasAnimation", "localTransform", "invLocalTransform", "worldScale", "tiling",
-                    "forceFieldColorCount", "forceFieldUVCount", "skyColor", "renderSize", "tint",
-                    "reflectionCullingPlane", "cameraPosition", "cameraRotation",
+                    "skyColor", "renderSize", "tint", "reflectionCullingPlane", "cameraPosition", "cameraRotation",
                     "hasReflectionPlane", "numberOfLights", "prevLocalTransform", "finalSheen", "sheen",
                     "applyToneMapping", "tint", "hasVertexColors", "reflectionPlane", "camScale"
                 )

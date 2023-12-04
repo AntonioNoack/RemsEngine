@@ -43,7 +43,7 @@ open class Texture2DArray(
 
     var isCreated = false
     var isDestroyed = false
-    var filtering = GPUFiltering.TRULY_LINEAR
+    var filtering = Filtering.TRULY_LINEAR
     var clamping = Clamping.CLAMP
 
     var needsMipmaps = false
@@ -310,7 +310,7 @@ open class Texture2DArray(
         create(if (lowQuality) TargetType.DEPTH16 else TargetType.DEPTH32F)
     }
 
-    fun ensureFiltering(nearest: GPUFiltering, clamping: Clamping) {
+    fun ensureFiltering(nearest: Filtering, clamping: Clamping) {
         if (nearest != filtering) filtering(nearest)
         if (clamping != this.clamping) clamping(clamping)
     }
@@ -329,7 +329,7 @@ open class Texture2DArray(
             }
         }
 
-    fun filtering(filtering: GPUFiltering) {
+    fun filtering(filtering: Filtering) {
         if (!hasMipmap && filtering.needsMipmap && (width > 1 || height > 1)) {
             glGenerateMipmap(target)
             hasMipmap = true
@@ -363,13 +363,13 @@ open class Texture2DArray(
         bind(index, filtering, clamping)
     }
 
-    override fun bind(index: Int, filtering: GPUFiltering, clamping: Clamping): Boolean {
+    override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         activeSlot(index)
         if (pointer != 0 && isCreated) {
             bindTexture(target, pointer)
             ensureFiltering(filtering, clamping)
         } else {
-            invisibleTex3d.bind(index, GPUFiltering.LINEAR, Clamping.CLAMP)
+            invisibleTex3d.bind(index, Filtering.LINEAR, Clamping.CLAMP)
         }
         return true
     }
@@ -421,7 +421,6 @@ open class Texture2DArray(
         val shader = FlatShaders.flatShaderTexture3D.value
         shader.use()
         GFXx2D.posSize(shader, x, GFX.viewportHeight - y, width, -height)
-        GFXx2D.defineAdvancedGraphicalFeatures(shader)
         shader.v4f("color", -1)
         shader.v1i("alphaMode", 1 - withAlpha.toInt())
         shader.v1b("applyToneMapping", isHDR)

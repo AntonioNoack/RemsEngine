@@ -4,7 +4,7 @@ import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.input.Key
 import me.anno.utils.Color.mixARGB
@@ -62,7 +62,7 @@ class ColorField(
         val backgroundColor = if (isHovered) if (isInFocus) focusHoverColor else hoverColor
         else if (isInFocus) focusColor else backgroundColor
         DrawRectangles.drawRect(x, y, width, height, backgroundColor)
-        TextureLib.colorShowTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
+        TextureLib.colorShowTexture.bind(0, Filtering.TRULY_NEAREST, Clamping.REPEAT)
         DrawTextures.drawTexture(x + 1, y + 1, width - 2, height - 2, TextureLib.colorShowTexture, -1, tiling)
         DrawRectangles.drawRect(x + 1, y + 1, width - 2, height - 2, color)
     }

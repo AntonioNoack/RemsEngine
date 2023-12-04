@@ -21,7 +21,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureCache
@@ -123,8 +123,8 @@ class FoliageShader(
     override fun bind(shader: Shader, renderer: Renderer, instanced: Boolean) {
         super.bind(shader, renderer, instanced)
         val density = TextureCache[densitySource, false] ?: blackTexture
-        terrainTexture.value.bind(shader, "terrainTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
-        density.bind(shader, "densityTex", GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+        terrainTexture.value.bind(shader, "terrainTex", Filtering.TRULY_LINEAR, Clamping.CLAMP)
+        density.bind(shader, "densityTex", Filtering.TRULY_LINEAR, Clamping.CLAMP)
         shader.v2f("time", Time.gameTime.toFloat(), (Time.gameTime - Time.deltaTime).toFloat())
 
         val rv = rv ?: RenderView.currentInstance!!

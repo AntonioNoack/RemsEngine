@@ -242,25 +242,26 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
             hasVideo = true
             videoStartTime = getDouble(video["start_time"], 0.0)
             videoDuration = getDouble(video["duration"], duration)
-            videoFrameCount = max(1, getInt(video["nb_frames"], 0))
+            videoFrameCount = max(0, getInt(video["nb_frames"], 0))
             videoWidth = getInt(video["width"], 0)
             videoHeight = getInt(video["height"], 0)
             videoFPS = video["r_frame_rate"]?.toString()?.parseFraction() ?: 30.0
 
             if (videoFrameCount == 0) {
                 if (videoDuration > 0.0) {
-                    videoFrameCount = ceil(videoDuration * videoFPS).toInt()
+                    videoFrameCount = max(ceil(videoDuration * videoFPS).toInt(), 1)
                     LOGGER.info("Frame count was 0, corrected it to $videoFrameCount = $videoDuration * $videoFPS")
-                }
+                } else videoFrameCount = 1
             } else {
                 val expectedFrameCount = (videoDuration * videoFPS).roundToInt()
                 if (expectedFrameCount * 10 !in videoFrameCount * 9..videoFrameCount * 11) {
                     // something is wrong
-                    // nb_frames is probably correct
+                    val frameCount = max(expectedFrameCount, videoFrameCount)
                     LOGGER.warn("$file: Frame Count / Frame Rate / Video Duration incorrect! $videoDuration s * $videoFPS fps is not $videoFrameCount frames")
-                    videoDuration = duration // could be incorrect
-                    videoFPS = videoFrameCount / videoDuration
-                    LOGGER.warn("$file: Corrected by setting duration to $duration s and fps to $videoFPS")
+                    videoDuration = frameCount / videoFPS // could be incorrect
+                    // videoFPS = videoFrameCount / videoDuration
+                    videoFrameCount = frameCount
+                    LOGGER.warn("$file: Corrected by setting duration to $videoDuration s and frameCount to $frameCount")
                 }
             }
         }

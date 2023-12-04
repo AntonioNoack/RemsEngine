@@ -12,7 +12,7 @@ import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.missingTexture
@@ -52,7 +52,7 @@ class MotionBlurNode : ActionNode(
             val shader = shader
             shader.use()
             GFX.check()
-            color.bind(0, GPUFiltering.TRULY_LINEAR, Clamping.CLAMP)
+            color.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
             motion.bindTrulyNearest(1)
             GFX.check()
             shader.v1i("maxSamples", samples)

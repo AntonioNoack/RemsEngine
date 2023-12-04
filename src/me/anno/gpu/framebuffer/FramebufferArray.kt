@@ -7,7 +7,7 @@ import me.anno.gpu.framebuffer.Framebuffer.Companion.bindFramebuffer
 import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import org.lwjgl.opengl.GL30C.*
 
@@ -185,12 +185,12 @@ class FramebufferArray(
         }
     }
 
-    override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
         checkSession()
         textures[index].bind(offset, nearest, clamping)
     }
 
-    override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
         checkSession()
         for (textureIndex in textures.indices) {
             textures[textureIndex].bind(offset + textureIndex, nearest, clamping)

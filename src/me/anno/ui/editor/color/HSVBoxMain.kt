@@ -5,7 +5,7 @@ import me.anno.gpu.drawing.DrawGradients.drawRectGradient
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.TextureLib
 import me.anno.input.Key
 import me.anno.maths.Maths.TAUf
@@ -192,7 +192,7 @@ class HSVBoxMain(chooser: ColorChooser, v0: Vector3f, du: Vector3f, dv: Vector3f
                 )
             }
             if (chooser.withAlpha && chooser.opacity < 1f) {
-                TextureLib.colorShowTexture.bind(0, GPUFiltering.TRULY_NEAREST, Clamping.REPEAT)
+                TextureLib.colorShowTexture.bind(0, Filtering.TRULY_NEAREST, Clamping.REPEAT)
                 val color =
                     (chooser.backgroundColor and 0xffffff) or ((1f - chooser.opacity) * 255).roundToInt().shl(24)
                 drawTexture(x, y, w, h, TextureLib.colorShowTexture, color, Vector4f(sx, sy, sx / 2, sy / 2))

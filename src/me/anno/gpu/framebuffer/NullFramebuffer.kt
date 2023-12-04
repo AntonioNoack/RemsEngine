@@ -2,7 +2,7 @@ package me.anno.gpu.framebuffer
 
 import me.anno.gpu.GFX
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import org.lwjgl.opengl.GL30C
 
@@ -40,11 +40,11 @@ object NullFramebuffer : IFramebuffer {
 
     override fun checkSession() {}
 
-    override fun bindTextureI(index: Int, offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextureI(index: Int, offset: Int, nearest: Filtering, clamping: Clamping) {
         throw UnsupportedOperationException()
     }
 
-    override fun bindTextures(offset: Int, nearest: GPUFiltering, clamping: Clamping) {
+    override fun bindTextures(offset: Int, nearest: Filtering, clamping: Clamping) {
         throw UnsupportedOperationException()
     }
 

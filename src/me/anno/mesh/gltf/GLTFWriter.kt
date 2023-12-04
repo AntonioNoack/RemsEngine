@@ -4,7 +4,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.prefab.Prefab
 import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.io.ISaveable
 import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
@@ -64,7 +64,7 @@ class GLTFWriter(
 
     private val textures = HashMap<IntPair, Int>() // source, sampler
     private val images = HashMap<FileReference, Int>() // uris
-    private val samplers = HashMap<Pair<GPUFiltering, Clamping>, Int>()
+    private val samplers = HashMap<Pair<Filtering, Clamping>, Int>()
     private val materials = HashMap<Material, Int>()
     private val meshes = HashMap<Pair<Mesh, List<FileReference>>, Int>()
 
@@ -236,7 +236,7 @@ class GLTFWriter(
         }
     }
 
-    private fun writeSampler(filtering: GPUFiltering, clamping: Clamping) {
+    private fun writeSampler(filtering: Filtering, clamping: Clamping) {
         writer.beginObject()
         writer.attr("magFilter")
         writer.write(filtering.mag)
@@ -336,8 +336,8 @@ class GLTFWriter(
         ) {
             samplers.getOrPut(
                 Pair(
-                    if (material.linearFiltering) GPUFiltering.TRULY_LINEAR
-                    else GPUFiltering.TRULY_NEAREST,
+                    if (material.linearFiltering) Filtering.TRULY_LINEAR
+                    else Filtering.TRULY_NEAREST,
                     material.clamping
                 )
             ) { samplers.size }

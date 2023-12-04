@@ -32,7 +32,7 @@ import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.texture.CubemapTexture
-import me.anno.gpu.texture.GPUFiltering
+import me.anno.gpu.texture.Filtering
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
@@ -237,7 +237,7 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         }
         if (!OS.isAndroid) {
             // performance impact of this: 230->210 fps, so 0.4ms on RTX 3070
-            framebuffer.textures[0].bind(0, GPUFiltering.LINEAR)
+            framebuffer.textures[0].bind(0, Filtering.LINEAR)
         }
         bakedSkybox = framebuffer
         if (renderMode != null) {
