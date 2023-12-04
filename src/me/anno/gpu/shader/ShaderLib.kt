@@ -294,23 +294,11 @@ object ShaderLib {
             // used meshes are flat01 and cubemapBuffer
             "uniform vec2 textureDeltaUV;\n" +
             "uniform int filtering, uvProjection;\n" +
-            /*"vec2 getProjectedUVs(vec2 uv){\n" +
-            "   switch(uvProjection){\n" +
-            "       case ${UVProjection.TiledCubemap.id}:\n" +
-            "           return uv;\n" + // correct???
-            "       default:\n" +
-            "           return uv;\n" +
-            "   }\n" +
-            "}\n" +*/
             "vec2 getProjectedUVs(vec2 uv){ return uv; }\n" +
             "vec2 getProjectedUVs(vec3 uvw){\n" +
-            //"   switch(uvProjection){\n" +
-            //"       case ${UVProjection.Equirectangular.id}:\n" +
-            //"       default:\n" +
-            "           float u = atan(uvw.z, uvw.x)*${0.5 / PI}+0.5;\n " +
-            "           float v = atan(uvw.y, length(uvw.xz))*${1.0 / PI}+0.5;\n" +
-            "           return vec2(u, v);\n" +
-            //"   }\n" +
+            "   float u = atan(uvw.z, uvw.x)*${0.5 / PI}+0.5;\n " +
+            "   float v = atan(uvw.y, length(uvw.xz))*${1.0 / PI}+0.5;\n" +
+            "   return vec2(u, v);\n" +
             "}\n" +
             "vec2 getProjectedUVs(vec2 uv, vec3 uvw){\n" +
             "   return uvProjection == ${UVProjection.Equirectangular.id} ?\n" +

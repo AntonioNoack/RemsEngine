@@ -102,6 +102,8 @@ open class ConsoleOutputPanel(style: Style) : SimpleTextPanel(style) {
                 val showFPS = StudioBase.instance?.showFPS == true
                 val ws = window?.windowStack
                 minW = if (ws != null && showFPS) {
+                    // todo respect height for this calculation, too: we don't need to move out the way,
+                    //  if we're above (e.g. on welcome screen)
                     val gap = ws.width - (window.panel.x + window.panel.width)
                     max(FrameTimings.width - gap, 0)
                 } else {

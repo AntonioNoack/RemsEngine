@@ -341,7 +341,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
     open fun hasChildren(): Boolean = listChildren()?.isNotEmpty() == true
 
     open fun invalidate() {
-        LOGGER.info("Invalidated $absolutePath")
+        LOGGER.info("Invalidated {}", absolutePath)
         isValid = false
         // if this has inner folders, replace all of their children as well
         InnerFolderCache.wasReadAsFolder(this)?.invalidate()

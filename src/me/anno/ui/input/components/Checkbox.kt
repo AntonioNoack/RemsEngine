@@ -5,13 +5,14 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.GPUFiltering
 import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.gpu.texture.TextureCache
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.ui.Panel
-import me.anno.ui.input.InputPanel
 import me.anno.ui.Style
+import me.anno.ui.input.InputPanel
+import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 
 open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: Int, style: Style) :
@@ -20,11 +21,16 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     companion object {
         val checked = getReference("res://textures/Checked.png")
         val unchecked = getReference("res://textures/Unchecked.png")
-        fun getImage(isChecked: Boolean): Texture2D? =
-            TextureCache[if (isChecked) checked else unchecked, true]
     }
 
     var isChecked = startValue
+
+    open fun getImage(isChecked: Boolean): Texture2D? =
+        TextureCache[if (isChecked) checked else unchecked, true]
+
+    open fun getColor(): Int {
+        return white.withAlpha((if (isInputAllowed) if (isHovered) 200 else 255 else 127))
+    }
 
     override var isInputAllowed = true
         set(value) {
@@ -67,14 +73,12 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val color = (if (isHovered) 0xccffffff.toInt() else -1)
-            .withAlpha(if (isInputAllowed) 255 else 127)
         val texture = getImage(isChecked) ?: whiteTexture
         texture.bind(0, GPUFiltering.LINEAR, Clamping.CLAMP)
         drawTexture(
             x + (width - size) / 2,
             y + (height - size) / 2,
-            size, size, texture, color, null
+            size, size, texture, getColor(), null
         )
     }
 
