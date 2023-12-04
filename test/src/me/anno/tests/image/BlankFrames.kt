@@ -2,18 +2,15 @@ package me.anno.tests.image
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.drawing.GFXx3D
+import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.shader.ShaderLib
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
 import me.anno.utils.OS
 import me.anno.video.BlankFrameDetector
 import me.anno.video.VideoCreator
 import me.anno.video.ffmpeg.MediaMetadata
-import org.joml.Matrix4fArrayList
 import kotlin.concurrent.thread
 
 fun main() {
@@ -36,12 +33,7 @@ fun main() {
             val frame = BlankFrameDetector.getFrame(src, 1, frameIndex, bufferSize, fps, timeout, meta, false)!!
             GFX.addGPUTask("blank frame detection", 1) {
                 GFXState.useFrame(fb) {
-                    val stack = Matrix4fArrayList()
-                    stack.scale(meta.videoHeight / meta.videoWidth.toFloat(), -1f, 1f)
-                    GFXx3D.draw3DPlanar(
-                        stack, frame, -1, Filtering.LINEAR, Clamping.CLAMP,
-                        null
-                    )
+                    drawTexture(frame, false)
                 }
                 frameIndex++
                 callback()

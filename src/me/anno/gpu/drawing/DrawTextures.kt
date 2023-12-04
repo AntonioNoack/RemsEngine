@@ -11,6 +11,7 @@ import me.anno.gpu.shader.FlatShaders.flatShaderCubemap
 import me.anno.gpu.shader.FlatShaders.flatShaderTexture
 import me.anno.gpu.shader.FlatShaders.flatShaderTextureArray
 import me.anno.gpu.texture.*
+import me.anno.utils.Color.white4
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Booleans.toInt
 import me.anno.video.formats.gpu.GPUFrame
@@ -203,22 +204,15 @@ object DrawTextures {
         )
     }
 
-    private val matrix = Matrix4fArrayList()
-    fun drawTexture(texture: GPUFrame, color: Int = -1, tiling: Vector4f? = null) {
-        matrix.identity()
-        matrix.scale(GFX.viewportHeight.toFloat() / GFX.viewportWidth, 1f, 1f)
-        // todo for filtering without required mipmap-generation, sample each pixel upto 8x :)
-        GFXx3D.draw3DPlanar(
-            matrix, texture, color,
-            Filtering.TRULY_LINEAR, Clamping.CLAMP, tiling
-        )
-    }
-
-    fun drawTexture(texture: GPUFrame) {
+    fun drawTexture(texture: GPUFrame, flipY: Boolean) {
         if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
-        val shader = texture.get3DShaderPlanar().value
+        val shader = texture.get2DShader()
         shader.use()
-        GFXx3D.shader3DUniforms(shader, null, -1)
+        shader.v4f(
+            "tiling", (texture.height * GFX.viewportWidth).toFloat() /
+                    (texture.width * GFX.viewportHeight).toFloat(), if (flipY) +1f else -1f, 0f, 0f
+        )
+        shader.v4f("tint", white4)
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         texture.bindUVCorrection(shader)
         SimpleBuffer.flat01.draw(shader)

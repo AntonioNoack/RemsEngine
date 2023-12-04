@@ -48,7 +48,7 @@ fun testVideo(image: FileReference) {
         if (gpu.width != w || gpu.height != h) throw IllegalStateException()
         useFrame(dst1) {
             dst1.clearColor(0)
-            drawTexture(gpu)
+            drawTexture(gpu, false)
         }
         val t1 = System.nanoTime()
         val img = GPUImage(dst1.getTexture0(), 4, hasAlphaChannel = true)
