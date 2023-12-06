@@ -205,7 +205,7 @@ object DrawTextures {
     }
 
     fun drawTexture(texture: GPUFrame, flipY: Boolean) {
-        if (!texture.isCreated) throw RuntimeException("Frame must be loaded to be rendered!")
+        if (!texture.isCreated) throw IllegalArgumentException("Frame must be loaded to be rendered!")
         val shader = texture.get2DShader()
         shader.use()
         shader.v4f(
