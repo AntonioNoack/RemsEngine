@@ -20,7 +20,6 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
-import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.AxisAlignment
@@ -265,7 +264,8 @@ object DrawTexts {
                     if (tex0 != null && tex2 != null) {
                         x2 += (tex0!!.width - tex2!!.width)
                     }
-                    draw(shader, texI, x2 shr 2, y2, "?", false)
+                    // +2 for rounding
+                    draw(shader, texI, (x2 + 2) shr 2, y2, "?", false)
                 }
                 fx += charWidth
             }
