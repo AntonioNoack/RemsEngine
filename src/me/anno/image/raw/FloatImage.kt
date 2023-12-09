@@ -58,12 +58,17 @@ class FloatImage(
         }
     }
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         if (sync) {
             texture.create(TargetType.FloatTargets[numChannels - 1], data)
+            callback(texture, null)
         } else {
             GFX.addGPUTask("CompFBI.cTex", width, height) {
                 texture.create(TargetType.FloatTargets[numChannels - 1], data)
+                callback(texture, null)
             }
         }
     }

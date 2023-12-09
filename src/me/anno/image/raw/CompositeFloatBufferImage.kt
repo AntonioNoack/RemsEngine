@@ -52,7 +52,10 @@ class CompositeFloatBufferImage(
         }
     }
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         val data = FloatArray(numChannels * width * height)
         // fill in all channels
         for (c in 0 until numChannels) {
@@ -63,9 +66,11 @@ class CompositeFloatBufferImage(
         }
         if (sync) {
             texture.create(TargetType.FloatTargets[numChannels - 1], data)
+            callback(texture, null)
         } else {
             GFX.addGPUTask("CompFBI.cTex", width, height) {
                 texture.create(TargetType.FloatTargets[numChannels - 1], data)
+                callback(texture, null)
             }
         }
     }

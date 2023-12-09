@@ -41,6 +41,7 @@ fun runFileExplorerTest() {
         GFXBase.useSeparateGLFWThread = false
         testUI3("Engine in OpenGL") {
             StudioBase.instance?.enableVSync = false
+            StudioBase.instance?.showFPS = true
             FileExplorer(pictures, style)
         }
     } catch (e: Throwable) {

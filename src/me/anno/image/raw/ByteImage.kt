@@ -60,35 +60,41 @@ open class ByteImage(
         }
     }
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+    override fun createTexture(
+        texture: Texture2D,
+        sync: Boolean,
+        checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         // todo optimize for async scenario
         if (!GFX.isGFXThread()) {
             GFX.addGPUTask("ByteImage", width, height) {
-                createTexture(texture, true, checkRedundancy)
+                createTexture(texture, true, checkRedundancy, callback)
             }
-            return
-        }
-        when (format) {
-            Format.R -> texture.createMonochrome(data, checkRedundancy)
-            Format.RG -> texture.createRG(data, checkRedundancy)
-            Format.RGB -> texture.createRGB(data, checkRedundancy)
-            Format.BGR -> texture.createBGR(data, checkRedundancy)
-            Format.ARGB -> {
-                if (hasAlphaChannel && hasAlpha(data)) {
-                    texture.createARGB(data, checkRedundancy)
-                } else {
-                    // todo we don't need alpha here
-                    texture.createARGB(data, checkRedundancy)
+        } else {
+            when (format) {
+                Format.R -> texture.createMonochrome(data, checkRedundancy)
+                Format.RG -> texture.createRG(data, checkRedundancy)
+                Format.RGB -> texture.createRGB(data, checkRedundancy)
+                Format.BGR -> texture.createBGR(data, checkRedundancy)
+                Format.ARGB -> {
+                    if (hasAlphaChannel && hasAlpha(data)) {
+                        texture.createARGB(data, checkRedundancy)
+                    } else {
+                        // todo we don't need alpha here
+                        texture.createARGB(data, checkRedundancy)
+                    }
                 }
+                Format.RGBA -> {
+                    if (hasAlphaChannel && hasAlpha(data)) texture.createRGBA(data, checkRedundancy)
+                    else texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, data)
+                }
+                Format.BGRA -> {
+                    texture.createBGRA(data, checkRedundancy)
+                }
+                else -> throw NotImplementedError()
             }
-            Format.RGBA -> {
-                if (hasAlphaChannel && hasAlpha(data)) texture.createRGBA(data, checkRedundancy)
-                else texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, data)
-            }
-            Format.BGRA -> {
-                texture.createBGRA(data, checkRedundancy)
-            }
-            else -> throw NotImplementedError()
+            callback(texture, null)
         }
     }
 

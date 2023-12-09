@@ -57,13 +57,16 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
         return image
     }
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         if (src is GPUImage) {
             val m = if (inverse) channel.uppercaseChar() else channel
             TextureMapper.mapTexture(
                 src.texture, texture, "$m$m${m}1",
                 // todo if source has float precision, use that
-                TargetType.UByteTarget4
+                TargetType.UByteTarget4, callback
             )
         } else {
             val size = width * height
@@ -96,11 +99,13 @@ class ComponentImage(val src: Image, val inverse: Boolean, val channel: Char) :
             }
             if (sync && GFX.isGFXThread()) {
                 texture.createMonochrome(bytes, checkRedundancy)
+                callback(texture, null)
             } else {
                 if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
                 GFX.addGPUTask("ComponentImage", width, height) {
                     if (!texture.isDestroyed) {
                         texture.createMonochrome(bytes, checkRedundancy = false)
+                        callback(texture, null) // callback in both cases?...
                     } else LOGGER.warn("Image was already destroyed")
                 }
             }

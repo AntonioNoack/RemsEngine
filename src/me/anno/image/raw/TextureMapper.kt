@@ -48,7 +48,10 @@ object TextureMapper {
         )
     }
 
-    fun mapTexture(src: ITexture2D, dst: Texture2D, mapping: String, type: TargetType) {
+    fun mapTexture(
+        src: ITexture2D, dst: Texture2D, mapping: String, type: TargetType,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         LOGGER.debug("Mapping {} to {}/{} via {}", src, dst, type, mapping)
         if (mapping.length != 4) throw IllegalArgumentException()
         if (GFX.isGFXThread()) {
@@ -62,10 +65,13 @@ object TextureMapper {
                         flat01.draw(shader)
                     }
                 }
-            } else LOGGER.warn("Mapping failed, because src wasn't created")
+                callback(dst, null)
+            } else {
+                callback(null, IllegalStateException("Mapping failed, because src wasn't created"))
+            }
         } else {
             GFX.addGPUTask(mapping, dst.width, dst.height) {
-                mapTexture(src, dst, mapping, type)
+                mapTexture(src, dst, mapping, type, callback)
             }
         }
     }

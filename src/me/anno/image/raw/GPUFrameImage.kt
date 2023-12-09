@@ -32,8 +32,12 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
         createIntImage().write(dst)
     }
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         frame.toTexture(texture)
+        callback(texture, null)
     }
 
     override fun toString(): String {

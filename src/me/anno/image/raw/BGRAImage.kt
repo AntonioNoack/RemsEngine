@@ -28,11 +28,15 @@ class BGRAImage(val base: Image) :
         return convertABGR2ARGB(base.getRGB(index))
     }
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         if (base is GPUImage) {
             // todo if source has float precision, use that
             val type = UByteTargets[base.numChannels - 1]
-            TextureMapper.mapTexture(base.texture, texture, "bgra", type)
-        } else super.createTexture(texture, sync, checkRedundancy)
+            TextureMapper.mapTexture(base.texture, texture, "bgra", type, callback)
+
+        } else super.createTexture(texture, sync, checkRedundancy, callback)
     }
 }

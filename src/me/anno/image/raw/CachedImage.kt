@@ -40,8 +40,11 @@ class CachedImage(val src: FileReference, w: Int, h: Int, numChannels: Int, hasA
         return base!!.createIntImage()
     }
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
-        base!!.createTexture(texture, sync, checkRedundancy)
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
+        base!!.createTexture(texture, sync, checkRedundancy, callback)
     }
 
 }

@@ -9,6 +9,7 @@ import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.setReadAlignment
+import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.image.Image
 import me.anno.image.raw.GPUImage
 import me.anno.image.raw.IntImage
@@ -306,7 +307,7 @@ open class VideoCreator(
             dst: FileReference,
             numFrames: Long,
             shutdown: Boolean,
-            getNextFrame: (callback: (Texture2D) -> Unit) -> Unit,
+            getNextFrame: (callback: (Texture2D?, Exception?) -> Unit) -> Unit,
             callback: (() -> Unit)? = null
         ) {
             val creator = VideoCreator(
@@ -317,7 +318,8 @@ open class VideoCreator(
             var frameCount = 0
             val fb = Framebuffer("frame", w, h, 1, 1, false, DepthBufferType.NONE)
             fun writeFrame() {
-                getNextFrame { texture ->
+                getNextFrame { texture0, _ ->
+                    val texture = texture0 ?: blackTexture
                     useFrame(fb) {
                         GFX.copyNoAlpha(texture)
                     }

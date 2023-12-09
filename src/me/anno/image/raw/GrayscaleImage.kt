@@ -12,14 +12,19 @@ open class GrayscaleImage(val src: Image) :
 
     override fun getRGB(index: Int): Int = (getLuminance(src.getRGB(index)) * 0x10101) or black
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
-        createTexture(texture, sync, checkRedundancy, src)
-    }
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) = createTexture(texture, sync, checkRedundancy, src, callback)
 
-    private fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean, src: Image) {
+    private fun createTexture(
+        texture: Texture2D, sync: Boolean,
+        checkRedundancy: Boolean, src: Image,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         val size = width * height
         if (src.numChannels == 1) {
-            src.createTexture(texture, sync, checkRedundancy)
+            src.createTexture(texture, sync, checkRedundancy, callback)
         } else when (src) {
             is IntImage -> {
                 val data = src.data
@@ -29,10 +34,12 @@ open class GrayscaleImage(val src: Image) :
                 }
                 if (sync && GFX.isGFXThread()) {
                     texture.createMonochrome(bytes, checkRedundancy)
+                    callback(texture, null)
                 } else {
                     if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
                     GFX.addGPUTask("GrayscaleImage.IntImage", width, height) {
                         texture.createMonochrome(bytes, checkRedundancy = false)
+                        callback(texture, null)
                     }
                 }
             }
@@ -45,20 +52,22 @@ open class GrayscaleImage(val src: Image) :
                 }
                 if (sync && GFX.isGFXThread()) {
                     texture.createMonochrome(bytes, checkRedundancy)
+                    callback(texture, null)
                 } else {
                     if (checkRedundancy) texture.checkRedundancyMonochrome(bytes)
                     GFX.addGPUTask("GrayscaleImage.ByteImage", width, height) {
                         texture.createMonochrome(bytes, checkRedundancy = false)
+                        callback(texture, null)
                     }
                 }
             }
             is GPUImage -> {
-                TextureMapper.mapTexture(src.texture, texture, "lll1", TargetType.UByteTarget1)
+                TextureMapper.mapTexture(src.texture, texture, "lll1", TargetType.UByteTarget1, callback)
             }
-            is ComponentImage -> src.createTexture(texture, sync, checkRedundancy)
-            is CachedImage -> createTexture(texture, sync, checkRedundancy, src.base!!)
-            is OpaqueImage -> createTexture(texture, sync, checkRedundancy, src.src)
-            else -> super.createTexture(texture, sync, checkRedundancy)
+            is ComponentImage -> src.createTexture(texture, sync, checkRedundancy, callback)
+            is CachedImage -> createTexture(texture, sync, checkRedundancy, src.base!!, callback)
+            is OpaqueImage -> createTexture(texture, sync, checkRedundancy, src.src, callback)
+            else -> super.createTexture(texture, sync, checkRedundancy, callback)
         }
     }
 

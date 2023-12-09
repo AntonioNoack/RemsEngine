@@ -73,10 +73,13 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
         throw NotImplementedError()
     }
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         if (!GFX.isGFXThread()) {
             GFX.addGPUTask("CompressedTexture", width, height) {
-                createTexture(texture, true, checkRedundancy)
+                createTexture(texture, true, checkRedundancy, callback)
             }
         } else {
             texture.beforeUpload(0, 0)
@@ -92,6 +95,7 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
             texture.createdH = height
             // bytes per pixel isn't really correct, just a (bad) guess
             texture.afterUpload(false, 4, 4)
+            callback(texture, null)
         }
     }
 }

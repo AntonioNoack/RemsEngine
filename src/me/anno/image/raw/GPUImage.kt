@@ -28,7 +28,10 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
         texture.createImage(false, hasAlphaChannel).write(dst)
     }
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         val mapping = when (numChannels) {
             1 -> "r111"
             2 -> "rg11"
@@ -36,7 +39,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
             else -> "rgba"
         }
         val type = UByteTargets[numChannels - 1]
-        TextureMapper.mapTexture(this.texture, texture, mapping, type)
+        TextureMapper.mapTexture(this.texture, texture, mapping, type, callback)
     }
 
     override fun createIntImage() = texture.createImage(false, hasAlphaChannel)

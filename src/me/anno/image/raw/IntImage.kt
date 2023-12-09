@@ -105,11 +105,15 @@ open class IntImage(
         return image
     }
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         // data cloning is required, because the function in Texture2D switches the red and blue channels
         if (sync && GFX.isGFXThread()) {
             if (hasAlphaChannel) texture.createBGRA(cloneData(), checkRedundancy)
             else texture.createBGR(cloneData(), checkRedundancy)
+            callback(texture, null)
         } else {
             val data1 = Texture2D.bufferPool[data.size * 4, false, false]
             val dataI = data1.asIntBuffer()
@@ -121,7 +125,8 @@ open class IntImage(
             texture.createTiled(
                 TargetType.UByteTarget4,
                 TargetType.UByteTarget4,
-                dataI, data1, numChannels
+                dataI, data1, numChannels,
+                callback
             )
         }
     }

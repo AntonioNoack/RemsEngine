@@ -142,10 +142,6 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
             // root
             if (str == "root") return FileRootRef
             val str2 = if ('\\' in str) str.replace('\\', '/') else str
-            // the cache can be a large issue -> avoid if possible
-            if (LastModifiedCache.exists(str2)) {
-                return createReference(str2)
-            }
             val data = fileCache.getEntry(str2, fileTimeout, false) {
                 createReference(it)
             } as? FileReference // result may be null for unknown reasons; when this happens, use plan B
@@ -153,9 +149,9 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
 
         @JvmStatic
-        fun getReferenceOrTimeout(str: String?, timeout: Long = 10_000): FileReference {
+        fun getReferenceOrTimeout(str: String?, timeoutMillis: Long = 10_000): FileReference {
             if (str == null || str.isBlank2()) return InvalidRef
-            val t1 = System.nanoTime() + timeout * MILLIS_TO_NANOS
+            val t1 = System.nanoTime() + timeoutMillis * MILLIS_TO_NANOS
             while (System.nanoTime() < t1) {
                 val ref = getReferenceAsync(str)
                 if (ref != null) return ref

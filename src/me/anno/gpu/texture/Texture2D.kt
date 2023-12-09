@@ -54,12 +54,12 @@ open class Texture2D(
 ) : ICacheData, ITexture2D {
 
     constructor(name: String, img: Image, checkRedundancy: Boolean) : this(name, img.width, img.height, 1) {
-        create(img, true, checkRedundancy)
+        create(img, true, checkRedundancy) { _, _ -> }
         filtering(Filtering.NEAREST)
     }
 
     constructor(img: Image, checkRedundancy: Boolean) : this("img", img.width, img.height, 1) {
-        create(img, true, checkRedundancy)
+        create(img, true, checkRedundancy) { _, _ -> }
         filtering(Filtering.NEAREST)
     }
 
@@ -307,16 +307,16 @@ open class Texture2D(
         afterUpload(creationType.isHDR, creationType.bytesPerPixel, uploadType.channels)
     }
 
-    fun create(name: String, image: Image, checkRedundancy: Boolean) {
+    fun create(name: String, image: Image, checkRedundancy: Boolean, callback: (Texture2D?, Exception?) -> Unit) {
         width = image.width
         height = image.height
         if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
         val requiredBudget = textureBudgetUsed + width * height
         if ((requiredBudget > textureBudgetTotal && !loadTexturesSync.peek()) || !isGFXThread()) {
-            create(image, false, checkRedundancy)
+            create(image, false, checkRedundancy, callback)
         } else {
             textureBudgetUsed += requiredBudget
-            image.createTexture(this, true, checkRedundancy)
+            image.createTexture(this, true, checkRedundancy, callback)
         }
     }
 
@@ -327,15 +327,15 @@ open class Texture2D(
         height = 1
     }
 
-    fun create(image: Image, sync: Boolean, checkRedundancy: Boolean) {
+    fun create(image: Image, sync: Boolean, checkRedundancy: Boolean, callback: (Texture2D?, Exception?) -> Unit) {
         if (sync && isGFXThread()) {
-            image.createTexture(this, true, checkRedundancy)
+            image.createTexture(this, true, checkRedundancy, callback)
         } else if (isGFXThread() && (width * height > 10_000)) {// large -> avoid the load and create it async
             thread(name = name) {
-                image.createTexture(this, false, checkRedundancy)
+                image.createTexture(this, false, checkRedundancy, callback)
             }
         } else {
-            image.createTexture(this, false, checkRedundancy)
+            image.createTexture(this, false, checkRedundancy, callback)
         }
     }
 
@@ -811,6 +811,7 @@ open class Texture2D(
         dataI: Buffer,
         data1: ByteBuffer?,
         numChannels: Int,
+        callback: (Texture2D?, Exception?) -> Unit
     ) {
         val width = width
         val height = height
@@ -839,6 +840,7 @@ open class Texture2D(
                         )
                         // mark as non-finished again, if we're not done yet
                         if (y1 < height) isCreated = false
+                        else callback(this, null)
                     }
                     if (y1 == height) bufferPool.returnBuffer(data1)
                 }
@@ -847,6 +849,7 @@ open class Texture2D(
             GFX.addGPUTask("IntImage", width, height) {
                 if (!isDestroyed) {
                     create(creationType, uploadingType, dataI)
+                    callback(this, null)
                 } else LOGGER.warn("Image was already destroyed")
                 bufferPool.returnBuffer(data1)
             }

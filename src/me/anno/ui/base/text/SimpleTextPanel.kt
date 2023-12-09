@@ -4,9 +4,10 @@ import me.anno.config.DefaultStyle
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.GFX
 import me.anno.gpu.drawing.DrawTexts
+import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.ui.Panel
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.Style
+import me.anno.utils.Color.withAlpha
 import kotlin.math.max
 
 open class SimpleTextPanel(style: Style) : Panel(style) {
@@ -22,31 +23,58 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     var textColor = style.getColor("textColor", DefaultStyle.iconGray)
     var focusTextColor = style.getColor("textColorFocused", -1)
 
+    override val canDrawOverBorders: Boolean
+        get() = true
+
     override fun calculateSize(w: Int, h: Int) {
-        val font = DrawTexts.monospaceFont
-        val text = text.ifEmpty { "." }
-        super.calculateSize(w, h)
-        val w2 = font.sampleWidth * text.length + 4
-        val h2 = font.sampleHeight + 4
-        minW = max(1, w2)
-        minH = max(1, h2)
+        // calculate max line length & line count
+        var lineCount = 0
+        var maxLineLength = 0
+        forEachLine { i0, i1 ->
+            lineCount++
+            maxLineLength = max(maxLineLength, i1 - i0)
+        }
+        val font = monospaceFont
+        minW = font.sampleWidth * maxLineLength + 4
+        minH = font.sampleHeight * lineCount + 4
     }
 
     private var loadTextSync = false
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         drawBackground(x0, y0, x1, y1)
         GFX.loadTexturesSync.push(loadTextSync)
-        val offset = when (alignmentX) {
-            AxisAlignment.MIN -> 1
-            AxisAlignment.CENTER -> width / 2
-            AxisAlignment.MAX -> width - 1
-            else -> 1
+        val offset = alignmentX.getOffset(width, 0)
+        val text = text
+        val x = x + offset
+        var y = y + 2
+        val dy = monospaceFont.sizeInt
+        forEachLine { i0, i1 ->
+            drawLine(text.subSequence(i0, i1), x, y)
+            y += dy
         }
-        DrawTexts.drawSimpleTextCharByChar(
-            x + offset, y + 2, 2, // idk...
-            text, textColor, backgroundColor, alignmentX
-        )
         GFX.loadTexturesSync.pop()
+    }
+
+    fun forEachLine(callback: (i0: Int, i1: Int) -> Unit) {
+        val text = text
+        var i = 0
+        while (true) {
+            val ni = text.indexOf('\n', i)
+            var ni1 = if (ni < 0) text.length else ni
+            if (ni1 > i && text[ni1 - 1] == '\r') ni1--
+            callback(i, ni1)
+            if (ni > i) {
+                i = ni + 1
+            } else break
+        }
+    }
+
+    fun drawLine(text: CharSequence, x: Int, y: Int) {
+        DrawTexts.drawSimpleTextCharByChar(
+            x, y, 2,
+            text, textColor, backgroundColor.withAlpha(0),
+            alignmentX
+        )
     }
 
     override fun clone(): SimpleTextPanel {
@@ -64,5 +92,4 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
     }
 
     override val className: String get() = "SimpleTextPanel"
-
 }

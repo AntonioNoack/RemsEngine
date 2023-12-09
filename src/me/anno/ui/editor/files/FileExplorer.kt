@@ -74,7 +74,7 @@ import kotlin.math.roundToInt
 open class FileExplorer(initialLocation: FileReference?, style: Style) :
     PanelListY(style.getChild("fileExplorer")) {
 
-    enum class FolderSorting(val v: Int) {
+    enum class FolderSorting(val weight: Int) {
         FIRST(-2), MIXED(0), LAST(2)
     }
 
@@ -238,7 +238,7 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
                     }, -1, +1
                 ) * (if (ascendingSorting) +1 else -1)
                 if (folderSorting == FolderSorting.MIXED) base
-                else base + a.isDirectory.compareTo(b.isDirectory) * folderSorting.v
+                else base + p0.isDirectory.compareTo(p1.isDirectory) * folderSorting.weight
             }
         }
     }, style)

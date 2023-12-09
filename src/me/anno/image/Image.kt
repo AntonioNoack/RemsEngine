@@ -148,8 +148,8 @@ abstract class Image(
         return getRGB(getIndex(x, y))
     }
 
-    open fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
-        texture.create(createIntImage(), sync = sync, checkRedundancy = true)
+    open fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean, callback: (Texture2D?, Exception?) -> Unit) {
+        texture.create(createIntImage(), sync = sync, checkRedundancy = true, callback)
     }
 
     open fun createBufferedImage(dstWidth: Int, dstHeight: Int, allowUpscaling: Boolean): BufferedImage {

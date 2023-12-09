@@ -43,6 +43,7 @@ import me.anno.io.xml.ComparableStringBuilder
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.roundDiv
 import me.anno.maths.Maths.sq
+import me.anno.studio.Events.addEvent
 import me.anno.studio.GFXSettings
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -160,6 +161,8 @@ open class FileExplorerEntry(
         }
     }
 
+    val isDirectory = isParent || file.isDirectory
+
     val titlePanel = TextPanel(
         when {
             isParent -> ".."
@@ -175,7 +178,8 @@ open class FileExplorerEntry(
     init {
         titlePanel.breaksIntoMultiline = true
         titlePanel.parent = this
-        titlePanel.instantTextLoading = true
+        titlePanel.instantTextLoading = false
+        // todo monospace looks trash -> incorrect font or spacing?
     }
 
     override fun calculateSize(w: Int, h: Int) {
@@ -203,18 +207,16 @@ open class FileExplorerEntry(
             listMode = explorer.listMode
         }
 
-        if (!listMode) {
-            val meta = meta
-            val tex = if (canBeSeen) when (val tex = getTexKey()) {
-                is GPUFrame -> if (tex.isCreated) tex else null
-                is Texture2D -> tex.state
-                else -> tex
-            } else null
-            if (lastMeta != meta || lastTex != tex) {
-                lastTex = tex
-                lastMeta = meta
-                invalidateDrawing()
-            }
+        val meta = meta
+        val tex = if (canBeSeen) when (val tex = getTexKey()) {
+            is GPUFrame -> if (tex.isCreated) tex else null
+            is Texture2D -> tex.state
+            else -> tex
+        } else null
+        if (lastMeta != meta || lastTex != tex) {
+            lastTex = tex
+            lastMeta = meta
+            invalidateDrawing()
         }
 
         titlePanel.canBeSeen = canBeSeen
@@ -617,7 +619,10 @@ open class FileExplorerEntry(
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
 
         if (isHovered || isInFocus) {
-            updateTooltip()
+            addEvent {
+                // todo execute this asynchronously...
+                updateTooltip()
+            }
         }
 
         drawBackground(x0, y0, x1, y1)
@@ -667,7 +672,6 @@ open class FileExplorerEntry(
                 w, height
             )
             titlePanel.drawText()
-
         } else {
 
             val extraHeight = h - w
@@ -691,15 +695,12 @@ open class FileExplorerEntry(
                 y + h - padding - textH,
                 x + remainingW,
                 y + h/* - padding*/, // only apply the padding, when not playing video?
-                ::drawText
+                ::drawTitle
             )
         }
     }
 
-    /**
-     * draws the title
-     * */
-    private fun drawText(x0: Int, y0: Int, x1: Int, y1: Int) {
+    private fun drawTitle(x0: Int, y0: Int, x1: Int, y1: Int) {
         titlePanel.width = x1 - x0
         titlePanel.minW = x1 - x0
         titlePanel.calculateSize(x1 - x0, y1 - y0)

@@ -79,9 +79,7 @@ object TextureCache : CacheSection("Texture") {
     private fun generateImageData(file: FileReference) = ImageToTexture(file)
 
     fun getLateinitTexture(
-        key: Any,
-        timeout: Long,
-        async: Boolean,
+        key: Any, timeout: Long, async: Boolean,
         generator: (callback: (ITexture2D?) -> Unit) -> Unit
     ): LateinitTexture? {
         return getEntry(key, timeout, async) {
@@ -92,10 +90,7 @@ object TextureCache : CacheSection("Texture") {
     }
 
     fun getLateinitTextureLimited(
-        key: Any,
-        timeout: Long,
-        async: Boolean,
-        limit: Int,
+        key: Any, timeout: Long, async: Boolean, limit: Int,
         generator: (callback: (ITexture2D?) -> Unit) -> Unit
     ): LateinitTexture? {
         return getEntryLimited(key, timeout, async, limit) {

@@ -29,9 +29,12 @@ open class OpaqueImage(val src: Image) :
 
     override fun getRGB(index: Int): Int = src.getRGB(index) or black
 
-    override fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean) {
+    override fun createTexture(
+        texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         if (!src.hasAlphaChannel) {
-            src.createTexture(texture, sync, checkRedundancy)
+            src.createTexture(texture, sync, checkRedundancy, callback)
         } else {
             when (src) {
                 is IntImage -> {
@@ -43,7 +46,7 @@ open class OpaqueImage(val src: Image) :
                     }
                 }
                 is GPUImage -> {
-                    TextureMapper.mapTexture(src.texture, texture, "rgb1", TargetType.UByteTarget4)
+                    TextureMapper.mapTexture(src.texture, texture, "rgb1", TargetType.UByteTarget4, callback)
                 }
                 is ByteImage -> {
                     val data = src.data
@@ -77,14 +80,15 @@ open class OpaqueImage(val src: Image) :
                     if (sync && GFX.isGFXThread()) {
                         texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, buffer)
                         Texture2D.bufferPool.returnBuffer(buffer)
+                        callback(texture, null)
                     } else GFX.addGPUTask("OpaqueImage", width, height) {
                         texture.create(TargetType.UByteTarget3, TargetType.UByteTarget4, buffer)
                         Texture2D.bufferPool.returnBuffer(buffer)
+                        callback(texture, null)
                     }
                 }
-                else -> super.createTexture(texture, sync, checkRedundancy)
+                else -> super.createTexture(texture, sync, checkRedundancy, callback)
             }
         }
     }
-
 }

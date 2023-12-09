@@ -1,17 +1,18 @@
 package me.anno.tests.utils
 
-import me.anno.utils.OS.downloads
 import org.junit.jupiter.api.Assertions.assertEquals
 
-class Cell(val xi: Int, val yi: Int, val ci: Int, val index: Int)
+// this is 2s faster (15%), just by removing the surrounding class :/
+fun main() {
 
-class SudokuSolver {
+    val samples = getSamples()
+    val t0 = System.nanoTime()
 
     val n = 9
-    private val xFull = IntArray(n)
-    private val yFull = IntArray(n)
-    private val cFull = IntArray(n)
-    private val field = IntArray(n * n)
+    val xFull = IntArray(n)
+    val yFull = IntArray(n)
+    val cFull = IntArray(n)
+    val field = IntArray(n * n)
 
     fun canSet(mask: Int, mask1: Int): Boolean {
         return mask.and(mask1) != mask1
@@ -39,7 +40,7 @@ class SudokuSolver {
         field[cell.index] = value
     }
 
-    private val cells = Array(n * n) {
+    val cells = Array(n * n) {
         val xi = it % n
         val yi = it / n
         Cell(xi, yi, (xi / 3) + (yi / 3) * 3, it)
@@ -61,22 +62,6 @@ class SudokuSolver {
         }
     }
 
-    @Suppress("unused")
-    fun printSolution() {
-        fun line() {
-            println("-------------------------")
-        }
-        for (y in 0 until n) {
-            if (y % 3 == 0) line()
-            for (x in 0 until n) {
-                if (x % 3 == 0) print("| ")
-                print("${field[x + y * n]} ")
-            }
-            println("|")
-        }
-        line()
-    }
-
     fun solve(i: Int, emptyCells: List<Cell>) {
         if (i >= emptyCells.size) throw done
         val cell = emptyCells[i]
@@ -90,7 +75,11 @@ class SudokuSolver {
         }
     }
 
-    fun solve(sample: String, emptyCells: ArrayList<Cell>) {
+    val emptyCells = ArrayList<Cell>(n * n)
+    for (si in samples.indices) {
+
+        val sample = samples[si]
+
         clear()
         fill(sample)
 
@@ -118,30 +107,6 @@ class SudokuSolver {
                 // printSolution()
             } else e.printStackTrace()
         }
-    }
-}
-
-val done = Throwable()
-
-fun getSamples(): List<String> {
-    return downloads.getChild("sudoku.zip/sudoku.csv")
-        .readLinesSync(81 * 2 + 1) // task comma solution
-        .apply { next() } // skip header
-        .run { (0 until 1000_000).map { next() } }
-}
-
-fun main() {
-
-    // for challenge on Cherno server,
-    //  implement fast sudoku solver
-
-    val samples = getSamples()
-    val solver = SudokuSolver()
-    val emptyCells = ArrayList<Cell>(81)
-    val t0 = System.nanoTime()
-
-    for (si in samples.indices) {
-        solver.solve(samples[si], emptyCells)
     }
 
     val t1 = System.nanoTime()

@@ -1,6 +1,5 @@
 package me.anno.io.files.thumbs
 
-import me.anno.Build
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -144,8 +143,7 @@ object Thumbs {
     private val neededSizes = IntArray(sizes.last() + 1)
     private const val timeout = 5000L
 
-    // todo disable this, when everything works
-    var useCacheFolder = !Build.isDebug
+    var useCacheFolder = true
 
     // todo choose jpg/png depending on where alpha is present;
     //  use webp if possible
@@ -259,7 +257,7 @@ object Thumbs {
         val idx = sizes.indexOf(size) + 1
         for (i in idx until sizes.size) {
             val size1 = sizes[i]
-            val key1 = ThumbnailKey(srcFile, key0.lastModified, size1)
+            val key1 = ThumbnailKey(key0.file, key0.lastModified, size1)
             val gen = TextureCache.getEntryWithoutGenerator(key1, 500) as? LateinitTexture
             val tex = gen?.texture
             if (tex != null && (tex !is Texture2D || tex.isCreated)) {
@@ -335,27 +333,28 @@ object Thumbs {
     ) {
         val rotation = if (checkRotation) ImageToTexture.getRotation(srcFile) else null
         val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
-        dst.createTexture(texture, sync = false, checkRedundancy = true)
-        texture.rotation = rotation
-        callback(texture, null)
+        dst.createTexture(texture, sync = false, checkRedundancy = true) { tex, exc ->
+            tex?.rotation = rotation
+            callback(tex, exc)
+        }
     }
 
     @JvmStatic
     fun saveNUpload(
         srcFile: FileReference,
         checkRotation: Boolean,
-        dstFile: HDBKey,
+        dstKey: HDBKey,
         dst: Image,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        if (dstFile != InvalidKey) {
+        if (dstKey != InvalidKey) {
             val bos = ByteArrayOutputStream()
             dst.write(bos, destinationFormat)
             bos.close()
             // todo we could skip toByteArray() by using our own type,
             //  and putting a ByteSlice
             val bytes = bos.toByteArray()
-            hdb.put(dstFile, bytes)
+            hdb.put(dstKey, bytes)
         }
         upload(srcFile, checkRotation, dst, callback)
     }
@@ -1052,8 +1051,7 @@ object Thumbs {
         callback: (ITexture2D?, Exception?) -> Unit,
     ): Boolean {
         dstFile ?: return false
-        val stream = dstFile.stream()
-        val image = ImageIO.read(stream) ?: return false
+        val image = ImageIO.read(dstFile.stream()) ?: return false
         val rotation = ImageToTexture.getRotation(srcFile)
         addGPUTask("Thumbs.returnIfExists", image.width, image.height) {
             val texture = Texture2D(srcFile.name, image.toImage(), true)
@@ -1131,16 +1129,51 @@ object Thumbs {
         if (size < 3) return
         if (useCacheFolder) {
             srcFile.getFileHash { hash ->
-                val dstFile = getCacheKey(srcFile, hash, size)
-                hdb.get(dstFile, false) { byteSlice ->
-                    if (!shallReturnIfExists(srcFile, byteSlice, callback)) {
-                        generate(srcFile, size, dstFile, callback)
+                val key = getCacheKey(srcFile, hash, size)
+                hdb.get(key, false) { byteSlice ->
+                    // check all higher LODs for data: if they exist, use them instead
+                    val foundSolution = checkHigherResolutions(srcFile, size, hash, callback)
+                    if (!foundSolution) {
+                        val foundExists = shallReturnIfExists(srcFile, byteSlice, callback)
+                        if (!foundExists) {
+                            generate(srcFile, size, key, callback)
+                        }
                     }
                 }
             }
         } else {
             generate(srcFile, size, InvalidKey, callback)
         }
+    }
+
+    private fun checkHigherResolutions(
+        srcFile: FileReference, size: Int, hash: Long,
+        callback: (ITexture2D?, Exception?) -> Unit
+    ): Boolean {
+        val idx = sizes.indexOf(size)
+        var foundSolution = false
+        for (i in idx + 1 until sizes.size) {
+            val sizeI = sizes[i]
+            val keyI = getCacheKey(srcFile, hash, sizeI)
+            hdb.get(keyI, false) {
+                if (it != null) {
+                    val image = ImageIO.read(it.stream())
+                    if (image != null) {
+                        // scale down (and save?)
+                        val rotation = ImageToTexture.getRotation(srcFile)
+                        val (w, h) = scaleMax(image.width, image.height, size)
+                        val newImage = image.toImage().resized(w, h, false)
+                        val texture = Texture2D("${srcFile.name}-$size", newImage.width, newImage.height, 1)
+                        newImage.createTexture(texture, sync = false, checkRedundancy = false) { tex, exc ->
+                            tex?.rotation = rotation
+                            callback(tex, exc)
+                        }
+                        foundSolution = true
+                    }
+                }
+            }
+        }
+        return foundSolution
     }
 
     @JvmStatic
