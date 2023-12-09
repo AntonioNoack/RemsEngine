@@ -50,6 +50,7 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
         writer.writeColor("nBG0", numbersBGColor)
         writer.writeColor("nLCol", numbersLineColor)
         writer.writeColor("selBG", selectedBGColor)
+        writer.writeColor("selLBG", selectedLineBGColor)
         writer.writeColor("mbc", matchingBracketColor)
         writer.writeColor("cursor", cursorColor)
     }
@@ -68,6 +69,7 @@ class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
             "numbersOddBG", "nBG0", "nBG", "nBG1" -> numbersBGColor = value
             "numbersLineColor", "nLCol" -> numbersLineColor = value
             "selectedBG", "selBG" -> selectedBGColor = value
+            "selectedLineBG", "selLBG" -> selectedLineBGColor = value
             "cursorColor", "cursor" -> cursorColor = value
             "matchingBracketColor", "mbc" -> matchingBracketColor = value
             else -> super.readInt(name, value)

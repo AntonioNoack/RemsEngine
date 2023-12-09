@@ -253,7 +253,7 @@ fun main() {
             print(
                 JsonStringWriter.toText(theme, InvalidRef)
                     .substring(base.length)
-                    .replace("\"", "\\\"")
+                    .replace("\"", "'")
                     .replace("\n", "\"+\n\"")
             )
             println("\")")

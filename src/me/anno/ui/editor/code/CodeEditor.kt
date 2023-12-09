@@ -22,6 +22,7 @@ import me.anno.ui.editor.code.codemirror.*
 import me.anno.ui.input.components.CursorPosition
 import me.anno.ui.Style
 import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.arrays.IntSequence
 import me.anno.utils.structures.arrays.LineSequence
 import me.anno.utils.structures.lists.Lists.binarySearch
@@ -268,26 +269,25 @@ open class CodeEditor(style: Style) : Panel(style) {
         val nlb = this.x
         val nlb2 = cn * charWidth + padding.left - charWidth / 2
         drawRect(nlb, y0, nlb2, y1 - y0, lineNumberBGColor)
-        drawRect(nlb + nlb2, y0, 1, y1 - y0, theme.numbersLineColor or black)
+        drawRect(nlb + nlb2, y0, 1, y1 - y0, theme.numbersLineColor.withAlpha(1f))
 
-        val selectedLineBGColor = theme.selectedLineBGColor or black
+        val selectedLineBGColor = theme.selectedLineBGColor.withAlpha(1f)
         val bg0 = max(x0, this.x + cn * charWidth + padding.left)
         val bg1 = min(x1, this.x + this.width - padding.right)
 
         // draw selected line background color
         if (cursor0 == cursor1) {
-            drawRect(
-                bg0, minSY, bg1 - bg0, maxSH,
-                selectedLineBGColor
-            )
+            drawRect(bg0, minSY, bg1 - bg0, maxSH, selectedLineBGColor)
         }
 
         val drawnYi = 0
 
         // draw line numbers
-        val lineNumber = if (firstLineZero) 0 else 1
+        val firstLineNumber = if (firstLineZero) 0 else 1
 
         x += cn * charWidth
+
+        // todo first line of selection background is wider than background... why???
 
         // draw selection background, which is wider than the text
         if (isInFocus && minCursor.y < maxCursor.y) {
@@ -304,10 +304,10 @@ open class CodeEditor(style: Style) : Panel(style) {
         val vx0 = (x0 - x) / charWidth
         val vy0 = (y0 - y) / lineHeight
         val vx1 = ceilDiv(x1 - x, charWidth)
-        val vy1 = ceilDiv(y1 - y, lineHeight)
+        val vy1 = min(ceilDiv(y1 - y, lineHeight), content.lineCount)
 
         for (yi in vy0 until vy1) {
-            drawLineNumber(yi, yi + lineNumber, cn)
+            drawLineNumber(yi, yi + firstLineNumber, cn)
         }
 
         var varIndex = 0
