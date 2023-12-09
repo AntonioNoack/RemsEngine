@@ -1,23 +1,12 @@
-package me.anno.ui.editor.code.codemirror
+package me.anno.ui.editor.code.tokenizer
 
 import me.anno.utils.types.Booleans.toInt
 
-class LuaLanguage(var customVariables: Set<String> = emptySet()) : LanguageTokenizer {
+class LuaTokenizer(var customVariables: Set<String> = emptySet()) : LanguageTokenizer {
 
     companion object {
-
         @JvmStatic
-        private fun fullMatch(vararg list: String): Collection<String> {
-            return if (list.size < 16) list.toList() else list.toHashSet()
-        }
-
-        @JvmStatic
-        private fun partialMatch(vararg list: String): (CharSequence) -> Boolean {
-            return { tested -> list.any { pattern -> pattern.startsWith(tested) } }
-        }
-
-        @JvmStatic
-        private val builtIns = fullMatch(
+        private val builtIns = LanguageTokenizer.fullMatch(
             "_G", "_VERSION",
             "assert", "collectgarbage", "dofile",
             "error", "getfenv", "getmetatable", "ipairs",
@@ -66,21 +55,20 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : LanguageToken
         )
 
         @JvmStatic
-        private val keywords = fullMatch(
+        private val keywords = LanguageTokenizer.fullMatch(
             "and", "break", "elseif", "false", "nil", "not", "or", "return",
             "true", "function", "end", "if", "then", "else", "do",
             "while", "repeat", "until", "for", "in", "local"
         )
 
         @JvmStatic
-        private val indentTokens = fullMatch("function", "if", "repeat", "do", "\\(", "{")
+        private val indentTokens = LanguageTokenizer.fullMatch("function", "if", "repeat", "do", "\\(", "{")
 
         @JvmStatic
-        private val dedentTokens = fullMatch("end", "until", "\\)", "}")
+        private val dedentTokens = LanguageTokenizer.fullMatch("end", "until", "\\)", "}")
 
         @JvmStatic
-        private val dedentPartial = partialMatch("end", "until", "\\)", "}", "else", "elseif")
-
+        private val dedentPartial = LanguageTokenizer.partialMatch("end", "until", "\\)", "}", "else", "elseif")
     }
 
     private fun readBracket(stream: Stream): Int {
@@ -102,7 +90,7 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : LanguageToken
                     }
                     ch == '=' -> ++curLevel
                     ch == ']' && curLevel == level -> {
-                        state.cur = ::normal
+                        state.next = ::normal
                         break@loop
                     }
                     else -> curLevel = -1
@@ -121,7 +109,7 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : LanguageToken
                 if (ch == type && !escaped) break
                 escaped = !escaped && ch == '\\'
             }
-            if (!escaped) state.cur = ::normal
+            if (!escaped) state.next = ::normal
             TokenType.STRING
         }
     }
@@ -131,22 +119,22 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : LanguageToken
         if (ch == '-' && stream.eat('-')) {
             // block comment
             if (stream.eat('[') && stream.eat('[')) {
-                state.cur = bracketed(readBracket(stream), TokenType.COMMENT)
-                return state.cur(stream, state)
+                state.next = bracketed(readBracket(stream), TokenType.COMMENT)
+                return state.next(stream, state)
             }
             // line comment
             stream.eatWhile { it != '\n' }
             return TokenType.COMMENT
         }
         if (ch == '"' || ch == '\'') {
-            state.cur = string(ch)
-            return state.cur(stream, state)
+            state.next = string(ch)
+            return state.next(stream, state)
         }
         val peek = stream.peek()
         val peek1 = peek.firstOrNull()
         if (ch == '[' && peek.length == 1 && (peek1 == '[' || peek1 == '=')) {
-            state.cur = bracketed(readBracket(stream), TokenType.STRING)
-            return state.cur(stream, state)
+            state.next = bracketed(readBracket(stream), TokenType.STRING)
+            return state.next(stream, state)
         }
         when (ch) {
             in '0'..'9' -> {
@@ -158,6 +146,7 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : LanguageToken
                 return TokenType.VARIABLE
             }
             '(', ')' -> return TokenType.BRACKET
+            '.', ',' -> return TokenType.PUNCTUATION
             '=', '*', '+', '-', '/' -> return TokenType.OPERATOR
         }
         return TokenType.UNKNOWN
@@ -169,7 +158,7 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : LanguageToken
 
     override fun getToken(stream: Stream, state: State): TokenType {
         if (stream.eatSpace()) return TokenType.UNKNOWN
-        var style = state.cur(stream, state)
+        var style = state.next(stream, state)
         val word = stream.current().toString()
         if (style == TokenType.VARIABLE) {
             when {
@@ -196,5 +185,4 @@ class LuaLanguage(var customVariables: Set<String> = emptySet()) : LanguageToken
     override val lineComment: String = "--"
     override val blockCommentStart: String = "--[["
     override val blockCommentEnd: String = "]]"
-
 }

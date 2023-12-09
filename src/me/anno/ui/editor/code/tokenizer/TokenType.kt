@@ -1,4 +1,4 @@
-package me.anno.ui.editor.code.codemirror
+package me.anno.ui.editor.code.tokenizer
 
 enum class TokenType {
 

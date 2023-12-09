@@ -16,11 +16,15 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.pow
 import me.anno.studio.history.StringHistory
 import me.anno.ui.Panel
+import me.anno.ui.Style
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.Padding
-import me.anno.ui.editor.code.codemirror.*
+import me.anno.ui.editor.code.codemirror.LanguageThemeLib
+import me.anno.ui.editor.code.tokenizer.LanguageTokenizer
+import me.anno.ui.editor.code.tokenizer.LuaTokenizer
+import me.anno.ui.editor.code.tokenizer.Stream
+import me.anno.ui.editor.code.tokenizer.TokenType
 import me.anno.ui.input.components.CursorPosition
-import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.arrays.IntSequence
@@ -36,10 +40,10 @@ import kotlin.streams.toList
 // todo feedback, what the result of the code is / what compiler errors happened
 // todo also add execution button
 
-// todo if on bracket, find matching bracket
+// todo if on bracket, find+highlight matching bracket
 // todo collapsable blocks
 
-// todo for actual code, save this history :)
+// todo for actual code, save this' history :)
 
 // todo line wrapping
 
@@ -49,6 +53,7 @@ import kotlin.streams.toList
 // todo refactoring (rename a variable)
 
 // todo auto-formatting
+// done don't snap cursor left when moving up/down lines (except first/last line)
 
 @Suppress("MemberVisibilityCanBePrivate")
 open class CodeEditor(style: Style) : Panel(style) {
@@ -61,7 +66,7 @@ open class CodeEditor(style: Style) : Panel(style) {
         }
     }
 
-    var language: LanguageTokenizer = LuaLanguage()
+    var language: LanguageTokenizer = LuaTokenizer()
 
     var theme = LanguageThemeLib.Twilight
         set(value) {
@@ -365,7 +370,6 @@ open class CodeEditor(style: Style) : Panel(style) {
                 1, lineHeight, theme.cursorColor
             )
         }
-
     }
 
     var underlineThickness = 1
@@ -395,15 +399,16 @@ open class CodeEditor(style: Style) : Panel(style) {
     }
 
     fun up(c: CursorPosition = cursor1) {
-        clampCursor(c)
         lastChangeTime = Time.nanoTime
-        c.set(c.x, max(c.y - 1, 0))
+        if (c.y <= 0) c.set(0, 0)
+        else c.set(c.x, c.y - 1)
     }
 
     fun down(c: CursorPosition = cursor1) {
-        clampCursor(c)
         lastChangeTime = Time.nanoTime
-        c.set(c.x, min(c.y + 1, content.lineCount - 1))
+        val lc = content.lineCount
+        if (c.y + 1 >= lc) c.set(content.getLineLength(lc - 1), lc - 1)
+        else c.set(c.x, c.y + 1)
     }
 
     fun right(c: CursorPosition = cursor1) {
@@ -718,7 +723,5 @@ open class CodeEditor(style: Style) : Panel(style) {
             ActionManager.register("CodeEditor.y.t.c", "Undo")
             ActionManager.register("CodeEditor.y.t.cs", "Redo")
         }
-
     }
-
 }

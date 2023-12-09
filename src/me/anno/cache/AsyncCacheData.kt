@@ -25,6 +25,7 @@ open class AsyncCacheData<V> : ICacheData {
         return if (value == null) {
             "AsyncCacheData<null>(${hashCode()},$hasValue)"
         } else {
+            @Suppress("UNNECESSARY_NOT_NULL_ASSERTION") // not unnecessary, because Intellij complains without it
             "AsyncCacheData<${"$value, ${value!!::class.simpleName}, ${value.hashCode()}"}>(${hashCode()},$hasValue)"
         }
     }

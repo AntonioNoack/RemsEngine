@@ -8,7 +8,7 @@ import me.anno.utils.Color.mixARGB
 import me.anno.ui.editor.code.codemirror.LanguageStyle
 import me.anno.ui.editor.code.codemirror.LanguageTheme
 import me.anno.ui.editor.code.codemirror.LanguageThemeLib.base
-import me.anno.ui.editor.code.codemirror.TokenType
+import me.anno.ui.editor.code.tokenizer.TokenType
 import me.anno.utils.Color.a
 import me.anno.utils.ColorParsing
 import me.anno.utils.OS

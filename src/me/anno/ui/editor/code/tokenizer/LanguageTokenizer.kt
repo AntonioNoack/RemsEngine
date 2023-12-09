@@ -1,4 +1,4 @@
-package me.anno.ui.editor.code.codemirror
+package me.anno.ui.editor.code.tokenizer
 
 /**
  * language-coloring engine inspired by CodeMirror (a JavaScript library);
@@ -14,4 +14,15 @@ interface LanguageTokenizer {
     val blockCommentStart: String
     val blockCommentEnd: String
 
+    companion object {
+        @JvmStatic
+        fun fullMatch(vararg list: String): Collection<String> {
+            return if (list.size < 16) list.toList() else list.toHashSet()
+        }
+
+        @JvmStatic
+        fun partialMatch(vararg list: String): (CharSequence) -> Boolean {
+            return { tested -> list.any { pattern -> pattern.startsWith(tested) } }
+        }
+    }
 }
