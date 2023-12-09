@@ -20,6 +20,7 @@ import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.ui.base.Font
 import me.anno.ui.base.components.AxisAlignment
@@ -210,9 +211,8 @@ object DrawTexts {
             val split = text.split('\n')
             val lineOffset = font.sizeInt * 3 / 2
             for (index in split.indices) {
-                val s = split[index]
                 val size = drawTextCharByChar(
-                    x, y + index * lineOffset, font, s,
+                    x, y + index * lineOffset, font, split[index],
                     textColor, backgroundColor,
                     widthLimit, heightLimit, alignX, alignY, equalSpaced
                 )
@@ -240,15 +240,42 @@ object DrawTexts {
 
             GFX.loadTexturesSync.push(true)
 
-            var fx = x + dx
-            for (char in text.codePoints()) {
-                if (!Character.isWhitespace(char)) {
+            fun getTexture(char: Int): ITexture2D? {
+                return if (!Character.isWhitespace(char)) {
                     val txt = char.joinChars().toString()
-                    val texture = FontManager.getTexture(font, txt, -1, -1)
-                    if (texture != null) draw(shader, texture, fx + (charWidth - texture.width) / 2, y2, txt, false)
+                    FontManager.getTexture(font, txt, -1, -1)
+                } else null
+            }
+
+            var fx = x + dx - charWidth // -charWidth for 0th iteration
+            val cp = text.codePoints().iterator()
+
+            // to do: with more context like 4 or 5 characters, we could improve the layout even more
+            var tex0: ITexture2D?
+            var tex1: ITexture2D? = null
+            var tex2: ITexture2D? = null
+
+            fun drawChar(texture: ITexture2D?) {
+                tex0 = tex1
+                tex1 = tex2
+                tex2 = texture
+                val texI = tex1
+                if (texI != null) {
+                    var x2 = fx * 4 + (charWidth - texI.width) * 2
+                    if (tex0 != null && tex2 != null) {
+                        x2 += (tex0!!.width - tex2!!.width)
+                    }
+                    draw(shader, texI, x2 shr 2, y2, "?", false)
                 }
                 fx += charWidth
             }
+
+            // extra iteration at the end
+            while (cp.hasNext()) {
+                drawChar(getTexture(cp.nextInt()))
+            }
+            drawChar(null)
+
             if (shader is ComputeShader) {
                 glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
             }
