@@ -17,7 +17,6 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
-import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
@@ -121,22 +120,19 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     var occlusionQuery: OcclusionQuery? = null
 
     override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
-        val mesh = getMeshOrNull()
-        return if (mesh != null) {
-            if (manager == null) {
-                if (isInstanced && mesh.proceduralLength <= 0) {
-                    pipeline.addMeshInstanced(mesh, this, entity)
-                } else {
-                    val oc = occlusionQuery
-                    if (oc == null || oc.wasVisible || oc.frameCounter++ > 0) {
-                        pipeline.addMesh(mesh, this, entity)
-                    }
-                }
+        if (manager != null) return clickId
+        val mesh = getMeshOrNull() ?: return clickId
+        if (isInstanced && mesh.proceduralLength <= 0) {
+            pipeline.addMeshInstanced(mesh, this, entity)
+        } else {
+            val oc = occlusionQuery
+            if (oc == null || oc.wasVisible || oc.frameCounter++ > 0) {
+                pipeline.addMesh(mesh, this, entity)
             }
-            lastDrawn = Time.gameTimeN
-            this.clickId = clickId
-            clickId + 1
-        } else clickId
+        }
+        lastDrawn = Time.gameTimeN
+        this.clickId = clickId
+        return clickId + 1
     }
 
     override fun findDrawnSubject(searchedId: Int): Any? {

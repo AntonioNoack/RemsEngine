@@ -52,7 +52,7 @@ class StaticMeshManager : Component(), Renderable {
         // this entity must only operate on Root level
         if (entity?.parentEntity != null) return 0
         // todo regularly check whether all transforms are still static
-        //  do this more spread out... maybe 10k every frame??...
+        //  do this more spread out: respect scanLimit
         collect()
         return 1
     }
@@ -296,6 +296,8 @@ class StaticMeshManager : Component(), Renderable {
             // todo we need to be able to render a 1M scene at 60 fps (current state: 100k at 15 fps)
             //  - hasRenderable needs to be re-evaluated when we change something, so we don't iterate over it in subFill
             //  - size check on subFill is broken, renders even when viewing from 500Mm distance
+
+            // todo when we use this class, clicking in Editor is broken, because clickId isn't persisted / done on GPU
 
             // disable glGetError()
             Build.isDebug = false

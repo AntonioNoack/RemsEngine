@@ -21,6 +21,7 @@ import me.anno.input.Input.mouseLockWindow
 import me.anno.io.files.BundledRef
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.studio.Events.addEvent
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -346,6 +347,7 @@ object GFXBase {
 
         val time = Time.nanoTime
 
+        var workedTasks = false
         val firstWindow = windows.firstOrNull()
         if (firstWindow != null) Input.pollControllers(firstWindow)
 
@@ -354,14 +356,14 @@ object GFXBase {
             if (window.isInFocus ||
                 window.hasActiveMouseTargets() ||
                 neverStarveWindows ||
-                abs(window.lastUpdate - time) * GFX.idleFPS > 1e9
+                abs(window.lastUpdate - time) * GFX.idleFPS > SECONDS_TO_NANOS
             ) {
                 window.lastUpdate = time
                 // this is hopefully ok (calling it async to other glfw stuff)
                 if (window.makeCurrent()) {
                     synchronized(openglLock) {
                         GFX.activeWindow = window
-                        GFX.renderStep(window)
+                        GFX.renderStep(window, true)
                     }
                     synchronized(glfwLock) {
                         if (!destroyed) {
@@ -373,6 +375,18 @@ object GFXBase {
                             window.updateVsync()
                         }
                     }
+                    workedTasks = true
+                }
+            }
+        }
+
+        if (!workedTasks) {
+            // to keep processing, e.g., for Rem's Studio
+            val window = windows.getOrNull(0)
+            if (window != null && window.makeCurrent()) {
+                synchronized(openglLock) {
+                    GFX.activeWindow = window
+                    GFX.renderStep(window, false)
                 }
             }
         }

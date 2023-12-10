@@ -14,6 +14,7 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
+import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
@@ -191,6 +192,7 @@ class Controller(val id: Int) {
         isActiveMaybe = 1f
     }
 
+    private var lastAskedPresent = -SECONDS_TO_NANOS
     fun pollEvents(window: OSWindow, isFirst: Boolean): Boolean {
 
         val time = Time.nanoTime
@@ -198,7 +200,13 @@ class Controller(val id: Int) {
         lastTime = time
         isActiveMaybe *= (1f - dt)
 
-        val isPresent = glfwJoystickPresent(glfwId)
+        val isPresent =
+            if (abs(time - lastAskedPresent) < 1e9 / 3) isConnected
+            else {
+                lastAskedPresent = time
+                glfwJoystickPresent(glfwId)
+            }
+
         this.isFirst = isPresent && isFirst
 
         if (isConnected != isPresent) {

@@ -229,7 +229,8 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
             audioStartTime = getDouble(audio["start_time"], 0.0)
             audioDuration = getDouble(audio["duration"], duration)
             audioSampleRate = getInt(audio["sample_rate"], 20)
-            audioSampleCount = getLong(audio["duration_ts"], (audioSampleRate * audioDuration).toLong())
+            // duration_ts cannot be trusted
+            audioSampleCount = (audioSampleRate * audioDuration).toLong() // getLong(audio["duration_ts"], (audioSampleRate * audioDuration).toLong())
             audioChannels = getInt(audio["channels"], 1)
         }
 

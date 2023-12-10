@@ -17,6 +17,7 @@ import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.Streams.writeBE24
 import me.anno.io.Streams.writeBE32
 import me.anno.io.files.FileReference
+import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.process.BetterProcessBuilder
 import me.anno.video.Codecs.videoCodecByExtension
@@ -137,7 +138,7 @@ open class VideoCreator(
 
         process = builder.start()
         logOutput(null, process.inputStream, true)
-        thread(name = "VideoCreatorOutput") {
+        thread(name = "VideoCreator:updates") {
             processOutput(LOGGER, "Video", startTime, fps, totalFrameCount, process.errorStream) {
                 close()
             }
@@ -173,7 +174,7 @@ open class VideoCreator(
 
         GFX.check()
 
-        thread(name = "FrameDataCopy[$frameIndex]") {// offload to other thread
+        copyQueue += {// offload to other thread
             try {
                 synchronized(videoOut) {
                     write(videoOut, buffer)
@@ -258,6 +259,8 @@ open class VideoCreator(
 
         @JvmField
         val defaultQuality = 23
+
+        private val copyQueue = ProcessingQueue("VideoCreator:copy")
 
         /**
          * render a video from a framebuffer

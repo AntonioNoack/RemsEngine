@@ -445,7 +445,10 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
             val children = entity.children
             for (i in children.indices) {
                 val child = children[i]
-                if (child !== ignoredEntity && child.isEnabled && frustum.isVisible(child.aabb)) {
+                if (child !== ignoredEntity &&
+                    child.isEnabled &&
+                    frustum.isVisible(child.aabb)
+                ) {
                     subFillTodo.add(child)
                 }
             }

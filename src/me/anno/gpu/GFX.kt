@@ -482,7 +482,7 @@ object GFX {
     }
 
     @JvmStatic
-    fun renderStep(window: OSWindow) {
+    fun renderStep(window: OSWindow, doRender: Boolean) {
 
         OpenGLShader.invalidateBinding()
         Texture2D.destroyTextures()
@@ -525,7 +525,7 @@ object GFX {
         resetFBStack()
 
         val inst = StudioBase.instance
-        if (inst != null) {
+        if (inst != null && doRender) {
             // in case of an error, we have to fix it,
             // so give us the best chance to do so:
             //  - on desktop, sleep a little, so we don't get too many errors
@@ -540,11 +540,10 @@ object GFX {
                     Thread.sleep(250)
                 }
             }
+            resetFBStack()
+
+            check()
         }
-
-        resetFBStack()
-
-        check()
     }
 
     @JvmStatic
