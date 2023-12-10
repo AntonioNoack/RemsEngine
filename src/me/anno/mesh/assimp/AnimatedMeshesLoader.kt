@@ -376,12 +376,14 @@ object AnimatedMeshesLoader {
         sampleAnimations: ArrayList<AnimationState>?
     ): Prefab {
         val adds = hierarchyPrefab.adds
-        for (change in adds) {
-            if (change.clazzName == "AnimMeshComponent") {
-                val indexInEntity = adds.filter { it.path == change.path }.indexOfFirst { it === change }
-                val path = change.path.added(change.nameId, indexInEntity, 'c')
-                hierarchyPrefab.setUnsafe(path, "skeleton", skeletonPath)
-                if (sampleAnimations != null) hierarchyPrefab.setUnsafe(path, "animations", sampleAnimations)
+        for ((_, addsI) in adds) {
+            for (i in addsI.indices) {
+                val add = addsI[i]
+                if (add.clazzName == "AnimMeshComponent") {
+                    val path = add.path.added(add.nameId, i, 'c')
+                    hierarchyPrefab.setUnsafe(path, "skeleton", skeletonPath)
+                    if (sampleAnimations != null) hierarchyPrefab.setUnsafe(path, "animations", sampleAnimations)
+                }
             }
         }
         return skeleton

@@ -141,7 +141,7 @@ class DecalShader(val modifiedLayers: ArrayList<DeferredLayerType>) : ECSMeshSha
 
     override fun createDeferredShader(key: ShaderKey): Shader {
         val base = createBase(key)
-        base.outputs = key.renderer.deferredSettings
+        base.settings = key.renderer.deferredSettings
         base.disabledLayers = getDisabledLayers()
         // build & finish
         val shader = base.create("dcl${key.flags}")

@@ -77,15 +77,15 @@ class SSRNode : ActionNode(
         val framebuffer = FBStack["ssr", width, height, 4, true, samples, DepthBufferType.NONE]
 
         val metallicT = metallic?.tex ?: whiteTexture
-        val metallicM = if (metallicT != whiteTexture) singleToVector[metallic!!.mapping]!!
+        val metallicM = if (metallicT != whiteTexture) metallic!!.mask!!
         else metallic?.color?.run { Vector4f(x, 0f, 0f, 0f) } ?: singleToVector["r"]!!
 
         val roughnessT = roughness?.tex ?: whiteTexture
-        val roughnessM = if (roughnessT != whiteTexture) singleToVector[roughness!!.mapping]!!
+        val roughnessM = if (roughnessT != whiteTexture) roughness!!.mask!!
         else roughness?.color?.run { Vector4f(x, 0f, 0f, 0f) } ?: black4
 
         val result = ScreenSpaceReflections.compute(
-            depthT.tex, singleToVector[depthT.mapping]!!,
+            depthT.tex, depthT.mask!!,
             normalT, normalZW, color, metallicT, metallicM, roughnessT, roughnessM, illuminated,
             transform, strength, maskSharpness, wallThickness, fineSteps, applyToneMapping, framebuffer
         )

@@ -5,7 +5,6 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
@@ -29,11 +28,10 @@ class OutlineEffectNode : RenderSceneNode0(
         "IntArray", "Group IDs",
         "List<Color4>", "Fill Colors",
         "List<Color4>", "Line Colors",
-        "Texture", "Illuminated"
+        "Texture", "Illuminated",
+        "Texture", "GroupID",
     ),
-    listOf(
-        "Texture", "Illuminated"
-    )
+    listOf("Texture", "Illuminated")
 ) {
 
     init {
@@ -53,24 +51,25 @@ class OutlineEffectNode : RenderSceneNode0(
         // not really supported...
         val samples = getInput(3) as Int
         val radius = getInput(4) as Int
-        val color = getInput(8) as? Texture ?: return
+        val idsTex = getInput(9) as? Texture ?: return
+        val colorTex = getInput(8) as? Texture ?: return
         val groupIds = getInput(5) as? IntArray ?: return
         val fillColors = getInput(6) as? List<*> ?: return
         val lineColors = getInput(7) as? List<*> ?: return
         val fillColors1 = fillColors.filterIsInstance<Vector4f>().toTypedArray()
         val lineColors1 = lineColors.filterIsInstance<Vector4f>().toTypedArray()
-        val rv = renderView
-        val ids = FBStack["ids", w, h, 1, false, samples, DepthBufferType.INTERNAL]
-        rv.drawScene(w, h, Renderer.groupRenderer, ids, changeSize = false, hdr = false)
-        val dst = FBStack["outline", w, h, 4, true, samples, DepthBufferType.NONE]
-        GFXState.useFrame(dst) {
-            render(
-                color.tex, ids.getTexture0(),
-                min(groupIds.size, min(fillColors1.size, lineColors1.size)),
-                radius, groupIds, fillColors1, lineColors1
-            )
-        }
-        setOutput(1, Texture.texture(dst, 0))
+        val numGroupsI = min(groupIds.size, min(fillColors1.size, lineColors1.size))
+        if (radius >= 0 && numGroupsI > 0) {
+            val dst = FBStack["outline", w, h, 4, true, samples, DepthBufferType.NONE]
+            GFXState.useFrame(dst) {
+                render(
+                    colorTex.tex, idsTex,
+                    min(groupIds.size, min(fillColors1.size, lineColors1.size)),
+                    radius, groupIds, fillColors1, lineColors1
+                )
+            }
+            setOutput(1, Texture.texture(dst, 0))
+        } else setOutput(1, colorTex)
     }
 
     companion object {
@@ -89,33 +88,32 @@ class OutlineEffectNode : RenderSceneNode0(
         }
 
         fun render(
-            color: ITexture2D, ids: ITexture2D, numGroups: Int, radius: Int,
+            color: ITexture2D, ids: Texture, numGroups: Int, radius: Int,
             groupIds: IntArray, fillColors: Array<Vector4f>, lineColors: Array<Vector4f>
         ) {
             val numGroupsI = min(numGroups, MAX_NUM_GROUPS)
-            if (radius >= 0 && numGroupsI > 0) {
-                GFXState.renderPurely {
-                    val shader = shader
-                    shader.use()
-                    shader.v1i("radius", radius)
-                    val th = radius * 2 + 1
-                    shader.v1f("radSq", (th * th).toFloat())
-                    shader.v1f("invRadSq", 1f / (th * th))
-                    for (i in 0 until numGroupsI) {
-                        groupIds2[i] = groupIds[i] / 255f
-                        val i4 = i shl 2
-                        fill(fillColors2, i4, fillColors[i])
-                        if (radius > 0) fill(lineColors2, i4, lineColors[i])
-                    }
-                    if (radius > 0) shader.v4fs("lineColors", lineColors2)
-                    shader.v4fs("fillColors", fillColors2)
-                    shader.v1fs("groupIds", groupIds2)
-                    shader.v1i("numGroups", numGroupsI)
-                    color.bindTrulyNearest(0)
-                    ids.bindTrulyNearest(1)
-                    GFX.flat01.draw(shader)
+            GFXState.renderPurely {
+                val shader = shader
+                shader.use()
+                shader.v1i("radius", radius)
+                val th = radius * 2 + 1
+                shader.v1f("radSq", (th * th).toFloat())
+                shader.v1f("invRadSq", 1f / (th * th))
+                for (i in 0 until numGroupsI) {
+                    groupIds2[i] = groupIds[i] / 255f
+                    val i4 = i shl 2
+                    fill(fillColors2, i4, fillColors[i])
+                    if (radius > 0) fill(lineColors2, i4, lineColors[i])
                 }
-            } else GFX.copyNoAlpha(color)
+                if (radius > 0) shader.v4fs("lineColors", lineColors2)
+                shader.v4fs("fillColors", fillColors2)
+                shader.v1fs("groupIds", groupIds2)
+                shader.v1i("numGroups", numGroupsI)
+                shader.v4f("groupTexMask", ids.mask!!)
+                color.bindTrulyNearest(0)
+                ids.tex.bindTrulyNearest(1)
+                GFX.flat01.draw(shader)
+            }
         }
 
 
@@ -130,6 +128,7 @@ class OutlineEffectNode : RenderSceneNode0(
                 Variable(GLSLType.V4F, "fillColors", MAX_NUM_GROUPS),
                 Variable(GLSLType.S2D, "idTex"),
                 Variable(GLSLType.S2D, "colorTex"),
+                Variable(GLSLType.V4F, "groupTexMask"),
                 Variable(GLSLType.V4F, "result", VariableMode.OUT)
             ), "" +
                     "void main(){\n" +
@@ -142,7 +141,8 @@ class OutlineEffectNode : RenderSceneNode0(
                     "       for(int y=-radius;y<=radius;y++){\n" +
                     "           for(int x=-radius;x<=radius;x++){\n" +
                     "               vec2 uv2 = uv + dx * float(x) + dy * float(y);\n" +
-                    "               sum += step(0.5/255.0, abs(groupId - texture(idTex,uv2).x));\n" +
+                    "               float groupId1 = dot(groupTexMask,texture(idTex,uv2));\n" +
+                    "               sum += step(0.5/255.0, abs(groupId - groupId1));\n" +
                     "           }\n" +
                     "       }\n" +
                     "       if(sum < radSq){\n" + // "if(...)" could be skipped, may provide a marginal performance boost

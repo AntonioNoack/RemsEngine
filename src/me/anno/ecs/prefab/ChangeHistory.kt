@@ -74,7 +74,8 @@ class ChangeHistory : StringHistory() {
         }
         if (major) {
             LOGGER.info("Hierarchy changed")
-            prefab.adds = currAdds
+            prefab.adds.clear()
+            prefab.readAdds(currAdds)
         }
         PropertyInspector.invalidateUI(major)
     }

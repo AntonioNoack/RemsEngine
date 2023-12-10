@@ -1,8 +1,8 @@
 package me.anno.ecs.prefab
 
 import me.anno.ecs.annotations.DebugTitle
-import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.interfaces.CustomEditMode
+import me.anno.ecs.interfaces.InputListener
 import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.RemsEngine.Companion.collectSelected
@@ -54,7 +54,6 @@ class PrefabInspector(val reference: FileReference) {
     val prefab: Prefab
         get() {
             val prefab = PrefabCache[reference] ?: throw NullPointerException("Missing prefab of $reference")
-            prefab.ensureMutableLists()
             val history = prefab.history ?: ChangeHistory().apply {
                 put(serialize(prefab))
             }
@@ -66,9 +65,13 @@ class PrefabInspector(val reference: FileReference) {
     val history get() = prefab.history!!
 
     fun serialize(prefab: Prefab) =
-        JsonStringWriter.toText(prefab.adds + prefab.sets.map { k1, k2, v -> CSet(k1, k2, v) }, workspace)
+        JsonStringWriter.toText(
+            prefab.adds.values.flatten() +
+                    prefab.sets.map { k1, k2, v -> CSet(k1, k2, v) },
+            workspace
+        )
 
-    val adds get() = prefab.adds as MutableList
+    val adds get() = prefab.adds
     val sets get() = prefab.sets
 
     val root get() = prefab.getSampleInstance()

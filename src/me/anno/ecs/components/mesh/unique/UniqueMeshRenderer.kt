@@ -4,7 +4,6 @@ import me.anno.cache.ICacheData
 import me.anno.ecs.Entity
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.components.mesh.*
-import me.anno.gpu.GFX
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.buffer.DrawMode
@@ -20,7 +19,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
 import org.joml.Matrix4x3d
-import org.lwjgl.opengl.GL31C.*
+import org.lwjgl.opengl.GL31C.GL_DYNAMIC_DRAW
 
 /**
  * renderer for static geometry, that still can be partially loaded/unloaded
@@ -45,6 +44,7 @@ abstract class UniqueMeshRenderer<Key>(
 
     val entryLookup = HashMap<Key, MeshEntry>()
     val entries = ArrayList<MeshEntry>()
+    val ranges = ArrayList<IntRange>()
 
     private var buffer0 = StaticBuffer("umr0", attributes, 0, GL_DYNAMIC_DRAW)
     private var buffer1 = StaticBuffer("urm1", attributes, 0, GL_DYNAMIC_DRAW)
@@ -93,13 +93,12 @@ abstract class UniqueMeshRenderer<Key>(
         val b1 = buffer1
         clock.start()
         val bx = insert(
-            entries, entry, entry.buffer,
+            entries, ranges, entry, entry.buffer,
             entry.range, b0.vertexCount, b0,
             false
         ).second
         clock.stop("Insert", 0.01)
         entryLookup[key] = entry
-        entries.add(entry)
         numPrimitives += entry.buffer.vertexCount
         if (bx !== b0 && bx !== b1) throw IllegalArgumentException()
         this.buffer1 = if (bx === b1) b0 else b1
@@ -110,7 +109,13 @@ abstract class UniqueMeshRenderer<Key>(
 
     fun remove(key: Key): Boolean {
         val entry = entryLookup.remove(key) ?: return false
-        entries.remove(entry)
+        if(true) {
+            // todo entries are sorted, so use binary search to remove it
+            // todo we also need to remove this section from ranges
+            entries.remove(entry)
+            ranges.clear()
+            ranges.addAll(compact(entries))
+        }
         numPrimitives -= entry.buffer.vertexCount
         entry.mesh?.destroy()
         entry.buffer.destroy()

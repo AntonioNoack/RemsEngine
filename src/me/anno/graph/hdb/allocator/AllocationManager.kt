@@ -1,82 +1,143 @@
 package me.anno.graph.hdb.allocator
 
-import me.anno.maths.Maths.max
-import me.anno.maths.Maths.min
-
 interface AllocationManager<Key, Data : Any> {
 
     // todo metadata to remember dense areas...
 
+    fun compact(sortedElements: List<Key>): ArrayList<IntRange> {
+        val result = ArrayList<IntRange>()
+        var position = 0
+        var size = 0
+        var lastRange: IntRange? = null
+        for (i in sortedElements.indices) {
+            val range = getRange(sortedElements[i])
+            if (range.first == position + size) {
+                // good :), extend
+                size += range.size
+                lastRange = null
+            } else {
+                val lastRange1 = lastRange ?: (position until position + size)
+                result.add(lastRange1)
+                position = range.first
+                size = range.size
+                lastRange = range
+            }
+        }
+        if (size > 0) {
+            val lastRange1 = lastRange ?: (position until position + size)
+            result.add(lastRange1)
+        }
+        return result
+    }
+
     fun insert(
-        elements: ArrayList<Key>,
+        sortedElements: ArrayList<Key>,
+        sortedRanges: ArrayList<IntRange>,
         newKey: Key, newData: Data, newDataRange: IntRange,
         available: Int, oldData: Data,
         allowReturningNewData: Boolean
     ): Pair<ReplaceType, Data> {
 
         val newSize = newDataRange.size
-        if (elements.isEmpty()) {
+        if (sortedRanges.isEmpty()) {
             return if (allowReturningNewData) {
                 // easy: just replace
+                sortedElements.add(newKey)
+                sortedRanges.add(newDataRange)
                 ReplaceType.WriteCompletely to newData
             } else {
                 ReplaceType.Append to append(
-                    elements,
+                    sortedElements, sortedRanges,
                     newKey, newData, newDataRange,
                     newSize, available, oldData
                 )
             }
         }
 
-        elements.sortBy { getRange(it).first }
-
         val newDataStart = newDataRange.first
 
         // check if 0th place is ok
-        val r0 = getRange(elements.first())
-        if (newSize < r0.first) {
+        val r0 = sortedRanges.first()
+        if (newSize <= r0.first) {
             val newRange = 0 until newSize
             copy(newKey, newDataStart, newData, newRange, oldData)
+            sortedElements.add(0, newKey)
+            if (newSize == r0.first) {
+                // compact with first, if fills in gap perfectly
+                sortedRanges[0] = 0..r0.last
+            } else {
+                sortedRanges.add(0, newRange)
+            }
             return ReplaceType.InsertInto to oldData
         }
 
         // check if we can insert it in-between
-        for (i in 1 until elements.size) {
-            val ri = getRange(elements[i - 1])
-            val rj = getRange(elements[i])
+        for (i in 1 until sortedRanges.size) {
+            val ri = sortedRanges[i - 1]
+            val rj = sortedRanges[i]
             val start = ri.first + ri.size
             if (start + newSize <= rj.first) {
                 val newRange = start until start + newSize
                 copy(newKey, newDataStart, newData, newRange, oldData)
+                val idx = sortedElements.binarySearch {
+                    getRange(it).last.compareTo(start)
+                }
+                if (idx < 0 || idx >= sortedElements.size) {
+                    throw IllegalStateException("BinarySearch went wrong or data is corrupted")
+                }
+                sortedElements.add(idx + 1, newKey) // correct???
+                if (start + newSize == rj.first) {
+                    // fill in gap completely
+                    sortedRanges[i - 1] = ri.first..rj.last
+                    sortedRanges.removeAt(i)
+                } else {
+                    // append onto 'ri'
+                    sortedRanges[i - 1] = ri.first until start + newSize
+                }
                 return ReplaceType.InsertInto to oldData
             }
         }
 
         // check if at the end is ok
-        val re = getRange(elements.last())
+        val re = sortedRanges.last()
         val start = re.first + re.size
         if (start + newSize < available) {
             val newRange = start until start + newSize
             copy(newKey, newDataStart, newData, newRange, oldData)
+            sortedElements.add(newKey)
+            // extend last range
+            sortedRanges[sortedRanges.lastIndex] = re.first..newRange.last
             return ReplaceType.InsertInto to oldData
         }
 
         // we have to append it
         return ReplaceType.Append to append(
-            elements,
+            sortedElements, sortedRanges,
             newKey, newData, newDataRange,
             newSize, available, oldData
         )
     }
 
+    /**
+     * appends element at the end; compacts if necessary;
+     * */
     fun append(
-        elements: Collection<Key>,
+        elements: ArrayList<Key>, ranges: ArrayList<IntRange>,
         newKey: Key, newData: Data, newDataRange: IntRange, newSize: Int,
         available: Int, oldData: Data
     ): Data {
-        val newData1 = pack(elements, newKey, available, oldData)
-        val start = sumSize(elements)
+        val newData1 = pack(elements, ranges, newKey, available, oldData)
+        val start = ranges.lastOrNull()?.run { last + 1 } ?: 0
         val newRange = start until start + newSize
+        elements.add(newKey)
+        if (ranges.isNotEmpty()) {
+            // merge with last range
+            val last = ranges.last()
+            ranges[ranges.lastIndex] = last.first..newRange.last
+        } else {
+            // append it
+            ranges.add(newRange)
+        }
         copy(newKey, newDataRange.first, newData, newRange, newData1)
         return newData1
     }
@@ -85,12 +146,16 @@ interface AllocationManager<Key, Data : Any> {
         return elements.sumOf { getRange(it).size }
     }
 
+    fun sumSize1(ranges: Collection<IntRange>): Int {
+        return ranges.sumOf { it.size }
+    }
+
     fun maximumAcceptableSize(requiredSize: Int): Int {
         return if (requiredSize == 0) 0
         else requiredSize * 3 / 2 + 1024
     }
 
-    fun shouldOptimize(elements: Collection<Key>, available: Int): Boolean {
+    fun shouldOptimize(elements: List<Key>, available: Int): Boolean {
         val requiredSize = sumSize(elements)
         return available > maximumAcceptableSize(requiredSize)
     }
@@ -112,25 +177,26 @@ interface AllocationManager<Key, Data : Any> {
     /**
      * returns whether the data is compact, and if so, how many elements it contains
      * */
-    fun getCompactSizeIfCompact(elements: Collection<Key>): Int? {
-        if (elements.isEmpty()) return 0
-        val first = getRange(elements.first())
-        var min = first.first
-        var max = first.last
-        var size = 0
-        for (element in elements) {
-            val range = getRange(element)
-            min = min(min, range.first)
-            max = max(max, range.last)
-            size += range.size
-        }
-        return if (min == 0 && max + 1 == size) size
+    fun getCompactSizeIfCompact(ranges: List<IntRange>): Int? {
+        if (ranges.isEmpty()) return 0
+        val first = ranges.first()
+        if (first.first != 0) return null
+        val last = ranges.last()
+        val size = ranges.sumOf { it.size }
+        return if (size == last.last + 1) size
         else null
     }
 
-    fun pack(elements: Collection<Key>, elementX: Key, available: Int, oldData: Data): Data {
+    /**
+     * pack elements, so we have enough space for elementX, too;
+     * adjust ranges as needed, but don't add X yet.
+     * */
+    fun pack(
+        elements: Collection<Key>, ranges: ArrayList<IntRange>,
+        elementX: Key, available: Int, oldData: Data
+    ): Data {
         val extraSize = getRange(elementX).size
-        val compactSize = getCompactSizeIfCompact(elements)
+        val compactSize = getCompactSizeIfCompact(ranges)
         if (compactSize != null) {
             val requiredSize = compactSize + extraSize
             if (available >= requiredSize) {
@@ -145,7 +211,7 @@ interface AllocationManager<Key, Data : Any> {
             }
         }
 
-        val requiredSize = sumSize(elements) + extraSize
+        val requiredSize = sumSize1(ranges) + extraSize
         val allocSize = roundUpStorage(requiredSize)
         val newData = allocate(allocSize)
         var pos = 0
@@ -156,6 +222,8 @@ interface AllocationManager<Key, Data : Any> {
             pos += oldRange.size
         }
         deallocate(oldData)
+        ranges.clear()
+        ranges.add(0 until pos)
         return newData
     }
 

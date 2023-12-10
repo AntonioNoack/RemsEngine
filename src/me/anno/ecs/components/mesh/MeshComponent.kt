@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.ecs.annotations.Type
+import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.FileReference.Companion.getReference
@@ -48,13 +49,6 @@ open class MeshComponent() : MeshComponentBase() {
     // todo why is getMeshOrNull with async not working to load prefabs properly???
     override fun getMeshOrNull(): Mesh? = MeshCache[meshFile, false]
     override fun getMesh(): Mesh? = MeshCache[meshFile, false]
-
-    override fun onUpdate(): Int {
-        super.onUpdate()
-        // keep the mesh loaded
-        meshFile = getReference(meshFile)
-        return 1
-    }
 
     // far into the future:
     // todo instanced animations for hundreds of humans:

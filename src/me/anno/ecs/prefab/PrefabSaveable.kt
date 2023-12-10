@@ -160,8 +160,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
             val nameId = Path.generateRandomId()
             child.prefabPath = prefabPath.added(nameId, index, type)
             // register path in prefab.adds
-            prefab.ensureMutableLists()
-            (prefab.adds as MutableList).add(CAdd(prefabPath, type, child.className, nameId))
+            prefab.adds.getOrPut(prefabPath) { ArrayList() }
+                .add(CAdd(prefabPath, type, child.className, nameId))
             // update all children within child as well
             child.setAllChildPaths()
             // define all prefab.sets

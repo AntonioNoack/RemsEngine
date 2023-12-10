@@ -41,6 +41,13 @@ class Path(
         p1.getTypes() + p2.getTypes()
     )
 
+    val depth: Int
+        get() {
+            val p = parent
+            return if (p != null) p.depth + 1
+            else 0
+        }
+
     fun fromRootToThis(includeRoot: Boolean, run: (index: Int, path: Path) -> Unit): Int {
         val parent = parent
         var index = -1

@@ -294,7 +294,7 @@ class FSR2v2 : ICacheData {
         view.drawScene(w, h, motion1, motion, changeSize = false, hdr = true)
 
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mapping, lightNBuffer1)
+        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightNBuffer1)
 
         val ssao = TextureLib.blackTexture
         val pw = x1 - x0

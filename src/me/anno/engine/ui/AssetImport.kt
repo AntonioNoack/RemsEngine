@@ -171,13 +171,15 @@ object AssetImport {
                         srcPrefab.prefab, dstFolder1, isMainFolder,
                         prefabMapping, depth, this
                     )
-                    for (add in srcPrefab.adds) {
-                        val clone = add.clone()
-                        clone.prefab = copyPrefab(
-                            add.prefab, dstFolder0, isMainFolder,
-                            prefabMapping, depth, this
-                        )
-                        dstPrefab.add(clone, -1)
+                    for ((_, addsI) in srcPrefab.adds) {
+                        for (add in addsI) {
+                            val clone = add.clone()
+                            clone.prefab = copyPrefab(
+                                add.prefab, dstFolder0, isMainFolder,
+                                prefabMapping, depth, this
+                            )
+                            dstPrefab.add(clone, -1)
+                        }
                     }
                     srcPrefab.sets.forEach { k1, k2, value0 ->
                         var value = value0

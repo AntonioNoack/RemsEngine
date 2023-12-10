@@ -10,7 +10,7 @@ import kotlin.math.max
 class ShaderBuilder(val name: String) {
 
     constructor(name: String, settingsV2: DeferredSettings?) : this(name) {
-        outputs = settingsV2
+        settings = settingsV2
     }
 
     // there exist 3 passes: vertex, fragment, geometry
@@ -23,7 +23,7 @@ class ShaderBuilder(val name: String) {
 
     val fragment = MainStage()
 
-    var outputs: DeferredSettings? = null
+    var settings: DeferredSettings? = null
     var disabledLayers: BitSet? = null
 
     var glslVersion = OpenGLShader.DefaultGLSLVersion
@@ -65,10 +65,23 @@ class ShaderBuilder(val name: String) {
 
     fun create(suffix: String? = null): Shader {
 
+        val settings = settings
+        if (settings != null) {
+            if (fragment.stages.isEmpty()) fragment.stages.add(ShaderStage("?", emptyList(), ""))
+            val lastStage = fragment.stages.last()
+            for (layer in settings.layers) {
+                val w2d = layer.type.workToData
+                val idx = w2d.indexOf('.')
+                if (idx > 0) {
+                    lastStage.variables += Variable(GLSLType.V4F, w2d.substring(0, idx))
+                }
+            }
+        }
+
         // combine the code
         // find imports
-        val (vertexDefined, vertexUniforms) = vertex.findImportsAndDefineValues(null, emptySet(), emptySet())
-        fragment.findImportsAndDefineValues(vertex, vertexDefined, vertexUniforms)
+        val vertexDefined = vertex.findImportsAndDefineValues(null, emptySet(), emptySet())
+        fragment.findImportsAndDefineValues(vertex, vertexDefined, vertex.uniforms)
 
         // variables, that fragment imports & exports & vertex exports
         val bridgeVariablesV2F = HashMap<Variable, Variable>()
@@ -102,9 +115,9 @@ class ShaderBuilder(val name: String) {
         }
 
         // create the code
-        val vertCode = vertex.createCode(false, outputs, disabledLayers, bridgeVariablesV2F, bridgeVariablesI2F)
+        val vertCode = vertex.createCode(false, settings, disabledLayers, bridgeVariablesV2F, bridgeVariablesI2F)
         val attributes = vertex.attributes
-        val fragCode = fragment.createCode(true, outputs, disabledLayers, bridgeVariablesV2F, bridgeVariablesI2F)
+        val fragCode = fragment.createCode(true, settings, disabledLayers, bridgeVariablesV2F, bridgeVariablesI2F)
         val varying = (vertex.imported + vertex.exported).toList()
             .filter { it !in bridgeVariablesV2F && it !in bridgeVariablesI2F } +
                 bridgeVariablesV2F.values +

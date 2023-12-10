@@ -50,12 +50,14 @@ class MainStage {
         previous: MainStage?,
         previousDefined: Set<Variable>,
         previousUniforms: Set<Variable>
-    ): Pair<Set<Variable>, Set<Variable>> {
+    ): Set<Variable> {
 
         val defined = HashSet(defined)
         defined.addAll(attributes)
 
-        val definedByPrevious = previousDefined.filter { it !in defined }.toHashSet()
+        val definedByPrevious = previousDefined
+            .filter { it !in defined }
+            .toHashSet()
 
         uniforms.clear()
         for (stage in stages) {
@@ -85,7 +87,7 @@ class MainStage {
             }
         }
 
-        return Pair(defined, uniforms)
+        return defined
     }
 
     fun defineUniformSamplerArrayFunctions(code: StringBuilder, uniform: Variable) {
@@ -240,7 +242,7 @@ class MainStage {
 
     fun createCode(
         isFragmentStage: Boolean,
-        outputs: DeferredSettings?,
+        settings: DeferredSettings?,
         disabledLayers: BitSet?,
         bridgeVariablesV2F: Map<Variable, Variable>,
         bridgeVariablesI2F: Map<Variable, Variable>
@@ -262,11 +264,11 @@ class MainStage {
 
         if (isFragmentStage) {
             // fragment shader
-            if (outputs == null) {
+            if (settings == null) {
                 code.append("layout(location=0) out vec4 BuildColor;\n")
             } else {
                 // register all layers
-                outputs.appendLayerDeclarators(code, disabledLayers)
+                settings.appendLayerDeclarators(code, disabledLayers)
             }
             code.append('\n')
         }
@@ -301,7 +303,7 @@ class MainStage {
 
         // define all required functions
         // work-around: like in C, declare the function header, and then GLSL will find the dependency by itself :)
-        if (outputs != null) functions2.add(ShaderLib.octNormalPacking)
+        if (settings != null) functions2.add(ShaderLib.octNormalPacking)
         for (func in functions2) code.append(func)
         if (functions2.isNotEmpty()) code.append('\n')
 
@@ -389,7 +391,7 @@ class MainStage {
 
         // write to the outputs for fragment shader
         if (isFragmentStage) {
-            if (outputs == null) {
+            if (settings == null) {
                 // use last layer, if defined
                 val lastLayer = stages.lastOrNull()
                 val lastOutputs = lastLayer?.variables?.filter { it.isOutput } ?: emptyList()
@@ -418,20 +420,30 @@ class MainStage {
                     }
                 }
             } else {
-                val layerTypes = outputs.layerTypes
+                val layerTypes = settings.layerTypes
                 for (type in layerTypes) {
                     // only needed if output is not disabled
-                    if (disabledLayers == null || !disabledLayers[outputs.findLayer(type)!!.texIndex]) {
+                    if (disabledLayers == null || !disabledLayers[settings.findLayer(type)!!.texIndex]) {
                         // write the default values, if not already defined
-                        if (defined.none { type.glslName == it.name }) {
-                            type.appendDefinition(code)
-                            code.append(" = ")
-                            type.appendDefaultValue(code)
-                            code.append(";\n")
+                        val idx = type.workToData.indexOf('.')
+                        if ('.' in type.workToData) {
+                            val glslName = type.workToData.substring(0, idx)
+                            if (defined.none { glslName == it.name }) {
+                                code.append("vec4 ").append(glslName).append(" = ")
+                                type.appendDefaultValue(code, 4)
+                                code.append(";\n")
+                            }
+                        } else {
+                            if (defined.none { type.glslName == it.name }) {
+                                type.appendDefinition(code)
+                                code.append(" = ")
+                                type.appendDefaultValue(code)
+                                code.append(";\n")
+                            }
                         }
                     }
                 }
-                outputs.appendLayerWriters(code, disabledLayers)
+                settings.appendLayerWriters(code, disabledLayers)
             }
         }
         code.append("}\n")

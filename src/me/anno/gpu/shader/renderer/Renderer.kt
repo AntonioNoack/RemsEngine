@@ -87,20 +87,10 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
         val idRenderer = SimpleRenderer(
             "id", ShaderStage(
                 "id", listOf(
-                    Variable(GLSLType.V4F, "gfxId"),
+                    Variable(GLSLType.V4F, "finalId"),
                     Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
-                ), "if(finalAlpha < 0.01) discard; finalResult = gfxId;\n"
-            )
-        )
-
-        val groupRenderer = SimpleRenderer(
-            "id", ShaderStage(
-                "id", listOf(
-                    Variable(GLSLType.V4F, "gfxId"),
-                    Variable(GLSLType.V1F, "finalAlpha"),
-                    Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
-                ), "if(finalAlpha < 0.01) discard; finalResult = vec4(gfxId.w);\n"
+                ), "if(finalAlpha < 0.01) discard; finalResult = finalId;\n"
             )
         )
 
@@ -108,17 +98,17 @@ open class Renderer(val name: String, val deferredSettings: DeferredSettings?) {
         val randomIdRenderer = SimpleRenderer(
             "randomId", ShaderStage(
                 "randomId", listOf(
-                    Variable(GLSLType.V4F, "gfxId"),
+                    Variable(GLSLType.V4F, "finalId"),
                     Variable(GLSLType.V1F, "finalAlpha"),
                     Variable(GLSLType.V4F, "finalResult", VariableMode.OUT),
                 ), "if(finalAlpha < 0.01) discard;\n" +
-                        "float id = dot(gfxId,vec4(65536.0,256.0,1.0,1.0/256.0));\n" +
+                        "float id = dot(finalId,vec4(65536.0,256.0,1.0,1.0/256.0));\n" +
                         "finalResult = vec4(\n" +
                         "   random(vec2(id,1.0)),\n" +
                         "   random(vec2(id,5.0)),\n" +
                         "   random(vec2(id,9.0)), 1.0);\n" +
                         // can be used to get a non-random look
-                        "// finalResult = vec4(vec3(fract(gfxId.r * 5.2)),1.0);\n"
+                        "// finalResult = vec4(vec3(fract(finalId.r * 5.2)),1.0);\n"
             ).add(ShaderFuncLib.randomGLSL)
         )
 

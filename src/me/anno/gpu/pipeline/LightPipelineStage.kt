@@ -12,7 +12,6 @@ import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.M4x3Delta.m4x3x
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.DeferredSettings
-import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.pipeline.LightShaders.bindNullDepthTextures
 import me.anno.gpu.pipeline.LightShaders.countPerPixel
@@ -31,6 +30,7 @@ import me.anno.maths.Maths.min
 import me.anno.utils.structures.lists.SmallestKList
 import org.joml.Matrix4f
 import org.joml.Vector3d
+import org.joml.Vector4f
 
 class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
 
@@ -55,7 +55,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
     val nonInstanced = LightData()
 
     fun bindDraw(
-        source: IFramebuffer, depthTexture: Texture2D, depthMask: String,
+        source: IFramebuffer, depthTexture: Texture2D, depthMask: Vector4f,
         cameraMatrix: Matrix4f, cameraPosition: Vector3d, worldScale: Double
     ) {
         bind {
@@ -120,7 +120,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
         worldScale: Double,
         getShader: (LightType, Boolean) -> Shader,
         depthTexture: Texture2D,
-        depthMask: String,
+        depthMask: Vector4f,
     ) {
 
         // todo detect, where MSAA is applicable
@@ -130,8 +130,6 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
         // (twice as many draw calls, but hopefully less work altogether)
 
         // if (destination is multi-sampled &&) settings is multisampled, bind the multi-sampled textures
-
-        val depthMask1 = singleToVector[depthMask]!!
 
         var drawnPrimitives = 0L
         var drawnInstances = 0L
@@ -169,7 +167,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
 
                 // data1: shader specific value (cone angle / size)
                 shader.v1f("data1", light.getShaderV0())
-                shader.v4f("depthMask", depthMask1)
+                shader.v4f("depthMask", depthMask)
 
                 shader.v1f("cutoff", if (light is DirectionalLight) light.cutoff else 1f)
 

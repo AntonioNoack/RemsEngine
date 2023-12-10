@@ -70,8 +70,8 @@ class MeshInstanceData(
             listOf(
                 ShaderStage(
                     "def-pos", listOf(
-                        Variable(GLSLType.V4F, "instanceGfxId", VariableMode.ATTR),
-                        Variable(GLSLType.V4F, "gfxId", VariableMode.OUT),
+                        Variable(GLSLType.V4F, "instanceFinalId", VariableMode.ATTR),
+                        Variable(GLSLType.V4F, "finalId", VariableMode.OUT),
                         Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR),
                         Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR),
                         Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR),
@@ -79,7 +79,7 @@ class MeshInstanceData(
                         Variable(GLSLType.M4x3, "localTransform", VariableMode.OUT),
                     ),
                     "" +
-                            "gfxId = instanceGfxId;\n" +
+                            "finalId = instanceFinalId;\n" +
                             "localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n"
                 )
             ) + DEFAULT.transformPosition,

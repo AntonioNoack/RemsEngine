@@ -79,7 +79,7 @@ class PipelineStage(
                 Attribute("instanceTrans1", 3),
                 Attribute("instanceTrans2", 3),
                 Attribute("instanceTrans3", 3),
-                Attribute("instanceGfxId", AttributeType.UINT8_NORM, 4)
+                Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
@@ -91,7 +91,7 @@ class PipelineStage(
                 Attribute("instanceTrans3", 3),
                 Attribute("animWeights", 4),
                 Attribute("animIndices", 4),
-                Attribute("instanceGfxId", AttributeType.UINT8_NORM, 4)
+                Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
@@ -105,7 +105,7 @@ class PipelineStage(
                 Attribute("instancePrevTrans1", 3),
                 Attribute("instancePrevTrans2", 3),
                 Attribute("instancePrevTrans3", 3),
-                Attribute("instanceGfxId", AttributeType.UINT8_NORM, 4)
+                Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
@@ -124,7 +124,7 @@ class PipelineStage(
                 Attribute("animIndices", 4),
                 Attribute("prevAnimWeights", 4),
                 Attribute("prevAnimIndices", 4),
-                Attribute("instanceGfxId", AttributeType.UINT8_NORM, 4)
+                Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
@@ -690,7 +690,7 @@ class PipelineStage(
 
                 shader.v4f("tint", -1)
                 shader.v1i("hasVertexColors", if (material.enableVertexColors) mesh.hasVertexColors else 0)
-                shader.v4f("gfxId", renderer.gfxId)
+                shader.v4f("finalId", renderer.gfxId)
                 shader.v2i(
                     "randomIdData",
                     if (mesh.proceduralLength > 0) 3 else 0,
@@ -704,6 +704,7 @@ class PipelineStage(
                 oc?.stop()
 
                 drawnPrimitives += mesh.numPrimitives
+                drawnInstances++
                 drawCalls++
             }
         }

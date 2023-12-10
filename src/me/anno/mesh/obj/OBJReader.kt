@@ -113,7 +113,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
 
     private fun newGroup() {
         // this check could be accelerated for huge obj files (currently O(n²))
-        if (scenePrefab.adds.any2 { it.path == Path.ROOT_PATH && it.nameId == lastGroupName }) {
+        if ((scenePrefab.adds[Path.ROOT_PATH] ?: emptyList()).any2 { it.nameId == lastGroupName }) {
             // group was already used
             lastGroupPath = Path.ROOT_PATH.added(lastGroupName, 0, 'e')
             objectCountInGroup = 1 // we don't really know it
@@ -133,7 +133,7 @@ class OBJReader(input: InputStream, val file: FileReference) : TextFileReader(in
         }
         // if entity already exists, find new name
         // this check could be accelerated for huge obj files (currently O(n²))
-        if (scenePrefab.adds.any2 { it.path == lastGroupPath && it.nameId == lastObjectName }) {
+        if ((scenePrefab.adds[lastGroupPath] ?: emptyList()).any2 { it.nameId == lastObjectName }) {
             lastObjectPath = lastGroupPath.added(lastObjectName, 0, 'e')
             meshCountInObject = 1 // we don't really know it
         } else {

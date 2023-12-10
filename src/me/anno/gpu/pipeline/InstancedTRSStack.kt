@@ -106,7 +106,7 @@ class InstancedTRSStack(capacity: Int = 64) :
                 instances.gfxIds[i * 2 + 2] else instances.size
 
             val gfxId = instances.gfxIds[i * 2 + 1]
-            shader.v4f("gfxId", gfxId)
+            shader.v4f("finalId", gfxId)
 
             // draw them in batches of size <= batchSize
             val batchSize = buffer.vertexCount

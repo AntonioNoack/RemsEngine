@@ -47,7 +47,7 @@ object DebugRendering {
         val light = EditorState.selection
             .mapFirstNotNull { e ->
                 if (e is Entity) {
-                    e.getComponentsInChildren(LightComponentBase::class)
+                    e.getComponents(LightComponentBase::class)
                         .firstOrNull2 { if (it is LightComponent) it.hasShadow else true }
                 } else if (e is LightComponent && e.hasShadow) e else null
             }
@@ -108,7 +108,7 @@ object DebugRendering {
     fun showCameraRendering(view: RenderView, x0: Int, y0: Int, x1: Int, y1: Int) {
         val camera = EditorState.selection
             .firstOrNull { it is Camera } ?: EditorState.selection
-            .firstNotNullOfOrNull { e -> if (e is Entity) e.getComponentInChildren(Camera::class) else null }
+            .firstNotNullOfOrNull { e -> if (e is Entity) e.getComponent(Camera::class) else null }
         if (camera is Camera && !Input.isShiftDown) {
             // todo this is incorrect for orthographic cameras, I think
             // calculate size of sub camera
@@ -120,7 +120,7 @@ object DebugRendering {
             view.prepareDrawScene(w, h, w.toFloat() / h, camera, camera, 0f, false)
             view.drawScene(w, h, renderer, buffer, true, false)
             DrawTextures.drawTexture(x1 - w, y1, w, -h, buffer.getTexture0(), true, -1, null)
-            // prepareDrawScene needs to be reset afterwards, because we seem to have a kind-of-bug somewhere
+            // prepareDrawScene needs to be reset afterward, because we seem to have a kind-of-bug somewhere
             val camera2 = view.editorCamera
             view.prepareDrawScene(
                 view.width,
@@ -273,7 +273,7 @@ object DebugRendering {
         view.pipeline.lightStage.visualizeLightCount = true
 
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mapping, lightBuffer)
+        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightBuffer)
         view.drawGizmos(lightBuffer, true)
 
         // todo special shader to better differentiate the values than black-white
@@ -294,7 +294,7 @@ object DebugRendering {
         view.drawGizmos(buffer, true)
 
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mapping, lightBuffer)
+        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightBuffer)
 
         val layers = deferred.settingsV1
         val size = layers.size + 1 /* 1 for light */
@@ -353,7 +353,7 @@ object DebugRendering {
         view.drawGizmos(buffer, true)
 
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mapping, lightNBuffer1)
+        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightNBuffer1)
 
         // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
 

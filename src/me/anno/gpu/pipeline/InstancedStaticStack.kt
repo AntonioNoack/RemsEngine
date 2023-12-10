@@ -103,7 +103,7 @@ class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData
         shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
         GFX.check()
 
-        shader.v4f("gfxId", stack.clickIds[indexIntoStack])
+        shader.v4f("finalId", stack.clickIds[indexIntoStack])
         GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
             mesh.drawInstanced(shader, 0, stack.data[indexIntoStack])
         }

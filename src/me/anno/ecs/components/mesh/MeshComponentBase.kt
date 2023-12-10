@@ -7,6 +7,7 @@ import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.collider.CollidingComponent
+import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.ecs.interfaces.Renderable
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.raycast.RayQuery
@@ -16,6 +17,7 @@ import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.Shader
 import me.anno.io.files.FileReference
+import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths
@@ -45,6 +47,9 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     // -> idk...
     @SerializedProperty
     var isInstanced = true
+
+    @NotSerializedProperty
+    var manager: StaticMeshManager? = null
 
     @Docs("Abstract function for you to define your mesh; you may return null, if you're not yet ready")
     abstract fun getMeshOrNull(): Mesh?
@@ -115,19 +120,17 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @NotSerializedProperty
     var occlusionQuery: OcclusionQuery? = null
 
-    override fun fill(
-        pipeline: Pipeline,
-        entity: Entity,
-        clickId: Int
-    ): Int {
+    override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
         val mesh = getMeshOrNull()
         return if (mesh != null) {
-            if (isInstanced && mesh.proceduralLength <= 0) {
-                pipeline.addMeshInstanced(mesh, this, entity)
-            } else {
-                val oc = occlusionQuery
-                if (oc == null || oc.wasVisible || oc.frameCounter++ > 0) {
-                    pipeline.addMesh(mesh, this, entity)
+            if (manager == null) {
+                if (isInstanced && mesh.proceduralLength <= 0) {
+                    pipeline.addMeshInstanced(mesh, this, entity)
+                } else {
+                    val oc = occlusionQuery
+                    if (oc == null || oc.wasVisible || oc.frameCounter++ > 0) {
+                        pipeline.addMesh(mesh, this, entity)
+                    }
                 }
             }
             lastDrawn = Time.gameTimeN
@@ -200,6 +203,11 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         dst.castShadows = castShadows
         dst.receiveShadows = receiveShadows
         dst.isInstanced = isInstanced
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        manager?.unregister(this)
     }
 
     companion object {

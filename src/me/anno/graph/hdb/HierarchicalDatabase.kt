@@ -3,6 +3,7 @@ package me.anno.graph.hdb
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.graph.hdb.allocator.FileAllocation
+import me.anno.graph.hdb.allocator.FileAllocation.compact
 import me.anno.graph.hdb.allocator.ReplaceType
 import me.anno.graph.hdb.index.*
 import me.anno.io.files.FileReference
@@ -258,8 +259,9 @@ class HierarchicalDatabase(
 
         folder.files.remove(hash)
         val file = File(System.currentTimeMillis(), value.range)
+        val files = sf.files
         val (type, data) = FileAllocation.insert(
-            sf.files, file,
+            files, compact(files), file,
             value.bytes, value.range,
             oldData.size, oldData, true
         )

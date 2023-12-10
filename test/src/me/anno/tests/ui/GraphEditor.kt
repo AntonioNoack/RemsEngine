@@ -6,16 +6,19 @@ import me.anno.engine.ui.render.RenderMode
 import me.anno.graph.render.NodeGroup
 import me.anno.graph.ui.GraphEditor
 import me.anno.ui.base.SpyPanel
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.debug.TestStudio.Companion.testUI
 
 fun main() {
     ECSRegistry.init()
-    val graph = RenderMode.FSR_X4.renderGraph!!
+    val graph = RenderMode.DEFAULT.renderGraph!!
     val group = NodeGroup()
     group.members.addAll(graph.nodes.subList(0, 2))
     group.extends.set(500.0, 500.0, 0.0)
     graph.groups.add(group)
     val editor = GraphEditor(graph, DefaultConfig.style)
+    editor.weight = 1f
+    editor.alignmentX = AxisAlignment.FILL
     val spy = SpyPanel {
         // performance test for generating lots of text
         val testTextPerformance = false

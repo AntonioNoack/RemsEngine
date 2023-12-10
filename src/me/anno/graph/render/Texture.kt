@@ -3,6 +3,7 @@ package me.anno.graph.render
 import me.anno.gpu.GFX
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
+import me.anno.gpu.deferred.DeferredSettings.Companion.singleToVector
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.MultiFramebuffer
@@ -27,6 +28,7 @@ class Texture private constructor(
             this(tex, texMS, mapping, encoding, white4)
 
     val isDestroyed get() = tex is Texture2D && tex.isDestroyed
+    val mask get() = singleToVector[mapping]
 
     override fun toString(): String {
         return if (tex == whiteTexture) if (color == white4) "white" else color.toHexColor()

@@ -264,7 +264,7 @@ object BlenderReader {
         return paths.getOrPut(obj) {
             val name = obj.id.realName
             val parent = makeObject(prefab, obj.parent!!, paths)
-            val childIndex = prefab.adds.count { it.path == parent && it.type == 'e' }
+            val childIndex = prefab.adds[parent]?.count { it.type == 'e' } ?: 0
             val path = Path(parent, name, childIndex, 'e')
             createObject(prefab, obj, path, false)
             path

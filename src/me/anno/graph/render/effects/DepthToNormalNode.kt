@@ -44,7 +44,7 @@ class DepthToNormalNode : ActionNode(
         GFXState.useFrame(result) {
             val shader = shader
             shader.use()
-            shader.v4f("depthMask", singleToVector[depth.mapping]!!)
+            shader.v4f("depthMask", depth.mask!!)
             depthTex.bindTrulyNearest(0)
             bindDepthToPosition(shader)
             flat01.draw(shader)

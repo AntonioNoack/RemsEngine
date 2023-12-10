@@ -529,7 +529,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
 
     override fun createDeferredShader(key: ShaderKey): Shader {
         val base = createBase(key)
-        base.outputs = key.renderer.deferredSettings
+        base.settings = key.renderer.deferredSettings
         // build & finish
         val shader = base.create("def${key.flags}")
         finish(shader)

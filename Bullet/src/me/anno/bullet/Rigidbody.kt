@@ -7,6 +7,7 @@ import me.anno.bullet.BulletPhysics.Companion.castB
 import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityPhysics.physics
 import me.anno.ecs.annotations.*
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.prefab.PrefabSaveable

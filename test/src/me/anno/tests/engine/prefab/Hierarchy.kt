@@ -98,7 +98,7 @@ class HierarchyTests {
             prefab[child, "description"] = "desc$i"
             prefab[child, "lightSize"] = i.toDouble()
         }
-        assertEquals(prefab.adds.size, n)
+        assertEquals(prefab.adds.values.sumOf { it.size }, n)
         assertEquals(prefab.sets.size, 2 * n)
         val tested = intArrayOf(1, 2, 3, 5, 7)
         for (i in tested.sortedDescending()) {
@@ -106,7 +106,7 @@ class HierarchyTests {
             Hierarchy.removePathFromPrefab(prefab, sample.components[i])
         }
         // test prefab
-        assertEquals(prefab.adds.size, n - tested.size)
+        assertEquals(prefab.adds.values.sumOf { it.size }, n - tested.size)
         assertEquals(prefab.sets.size, 2 * (n - tested.size))
         // test result
         val sample = prefab.getSampleInstance() as Entity
@@ -184,10 +184,10 @@ class HierarchyTests {
     fun testAddSimpleChild() {
         val scene = Prefab("Entity")
         val added = PrefabCache[FileReference.getReference(OS.documents, "CuteGhost.fbx")]!!
-        val ca = scene.adds.size
+        val ca = scene.adds.values.sumOf { it.size }
         val cs = scene.sets.size
         Hierarchy.add(added, Path.ROOT_PATH, scene, Path.ROOT_PATH, 'e')
-        val nca = scene.adds.size
+        val nca = scene.adds.values.sumOf { it.size }
         val ncs = scene.sets.size
         assertEquals(nca, ca + 1)
         assertEquals(ncs, cs)

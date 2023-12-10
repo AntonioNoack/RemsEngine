@@ -39,7 +39,7 @@ class Prefab : Saveable {
     var clazzName = ""
 
     val addCounts = CountMap<Pair<Char, Path>>()
-    var adds: List<CAdd> = emptyList()
+    val adds = HashMap<Path, ArrayList<CAdd>>()
     val addedPaths: HashSet<Pair<Path, String>>? = if (Build.isShipped) null else HashSet()
 
     val sets = KeyPairMap<Path, String, Any?>(256)
@@ -69,8 +69,8 @@ class Prefab : Saveable {
 
     fun find(path: Path, depth: Int = 0): CAdd? {
         if (depth > 0) throw NotImplementedError()
-        return adds.firstOrNull {
-            it.nameId == path.nameId && it.path == path.parent
+        return adds[path.parent]?.firstOrNull {
+            it.nameId == path.nameId
         }
     }
 
@@ -96,10 +96,6 @@ class Prefab : Saveable {
         isWritable = false
     }
 
-    fun ensureMutableLists() {
-        if (adds !is ArrayList) adds = ArrayList(adds)
-    }
-
     fun countTotalChanges(async: Boolean, depth: Int = 20): Int {
         var sum = adds.size + sets.size
         if (depth > 0) {
@@ -107,11 +103,13 @@ class Prefab : Saveable {
                 val prefab = PrefabCache[prefab, maxPrefabDepth, async]
                 if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
             }
-            for (change in adds) {
-                val childPrefab = change.prefab
-                if (childPrefab != InvalidRef) {
-                    val prefab = PrefabCache[childPrefab, maxPrefabDepth, async]
-                    if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
+            for ((_, addI) in adds) {
+                for (change in addI) {
+                    val childPrefab = change.prefab
+                    if (childPrefab != InvalidRef) {
+                        val prefab = PrefabCache[childPrefab, maxPrefabDepth, async]
+                        if (prefab != null) sum += prefab.countTotalChanges(async, depth - 1)
+                    }
                 }
             }
         }
@@ -133,13 +131,11 @@ class Prefab : Saveable {
             // check adds
             val parentPath = path.parent
             if (parentPath != null) {
-                for (add in adds) {
+                for (add in adds[parentPath] ?: emptyList()) {
                     // todo we would need a .subpath and .startsWith
-                    if (add.path == parentPath) {
-                        val prefab = PrefabCache[add.prefab]
-                        if (prefab != null) return prefab[ROOT_PATH, property, depth - 1]
-                        break
-                    }
+                    val prefab = PrefabCache[add.prefab]
+                    if (prefab != null) return prefab[ROOT_PATH, property, depth - 1]
+                    break
                 }
             }
             val prefab = PrefabCache[prefab]
@@ -229,9 +225,8 @@ class Prefab : Saveable {
             val sourcePrefab = PrefabCache[prefab]
             return sourcePrefab?.canAdd(change) ?: true
         } else {
-            return adds.none2 {
-                it.path == change.path &&
-                        it.nameId == change.nameId
+            return (adds[change.path] ?: emptyList()).none2 {
+                it.nameId == change.nameId
             }
         }
     }
@@ -250,25 +245,26 @@ class Prefab : Saveable {
             }
             addedPaths?.add(key)
         }
-        ensureMutableLists()
-        val adds = adds as MutableList
+        val adds = adds
         if (insertIndex == -1) {
-            adds.add(change)
+            adds.getOrPut(change.path) { ArrayList() }
+                .add(change)
         } else {
             // find the correct insert index
             // relative to all other local adds
             var globalInsertIndex = 0
-            for (index in adds.indices) {
-                if (adds[index].path == change.path) {
+            val addsI = adds.getOrPut(change.path) { ArrayList() }
+            for (index in addsI.indices) {
+                if (addsI[index].path == change.path) {
                     if (globalInsertIndex == insertIndex) {
-                        adds.add(index, change)
+                        addsI.add(index, change)
                         break
                     }
                     globalInsertIndex++
                 }
             }
             if (globalInsertIndex <= insertIndex) {
-                adds.add(change)
+                addsI.add(change)
             }
         }
         invalidateInstance()
@@ -289,7 +285,7 @@ class Prefab : Saveable {
         super.save(writer)
         writer.writeFile("prefab", prefab)
         writer.writeString("class", clazzName)
-        writer.writeObjectList(null, "adds", adds)
+        writer.writeObjectList(null, "adds", adds.values.flatten())
         writer.writeObjectList(null, "sets", sets.map { k1, k2, v -> CSet(k1, k2, v) })
         writer.writeObject(null, "history", history)
     }
@@ -311,31 +307,42 @@ class Prefab : Saveable {
         }
     }
 
+    fun readAdds(values: Array<ISaveable?>) {
+        for (v in values) {
+            if (v is CAdd) {
+                adds.getOrPut(v.path) { ArrayList() }.add(v)
+            }
+        }
+    }
+
+    fun readAdds(values: List<ISaveable?>) {
+        for (v in values) {
+            if (v is CAdd) {
+                adds.getOrPut(v.path) { ArrayList() }.add(v)
+            }
+        }
+    }
+
+    private fun readSets(values: Array<ISaveable?>) {
+        for (v in values) {
+            if (v is CSet) {
+                val vName = v.name
+                if (vName != null) {
+                    sets[v.path, vName] = v.value
+                }
+            }
+        }
+    }
+
     override fun readObjectArray(name: String, values: Array<ISaveable?>) {
         if (!isWritable) throw ImmutablePrefabException(source)
         when (name) {
             "changes" -> {
-                adds = values.filterIsInstance<CAdd>()
-                for (v in values) {
-                    if (v is CSet) {
-                        val vName = v.name
-                        if (vName != null) {
-                            sets[v.path, vName] = v.value
-                        }
-                    }
-                }
+                readAdds(values)
+                readSets(values)
             }
-            "adds" -> adds = values.filterIsInstance<CAdd>()
-            "sets" -> {
-                for (v in values) {
-                    if (v is CSet) {
-                        val vName = v.name
-                        if (vName != null) {
-                            sets[v.path, vName] = v.value
-                        }
-                    }
-                }
-            }
+            "adds" -> readAdds(values)
+            "sets" -> readSets(values)
             else -> super.readObjectArray(name, values)
         }
     }
@@ -369,15 +376,17 @@ class Prefab : Saveable {
         // Thread.sleep(10)
         val instance = PrefabCache.createSuperInstance(superPrefab, depth, clazzName)
         instance.changePaths(this, ROOT_PATH)
-        for (index in adds.indices) {
-            val add = adds[index]
-            try {
-                add.apply(this, instance, depth - 1)
-            } catch (e: InvalidClassException) {
-                throw e
-            } catch (e: Exception) {
-                LOGGER.warn("Change $index, $add failed")
-                throw e
+        for ((_, addsI) in adds.entries.sortedBy { it.key.depth }) {
+            for (index in addsI.indices) {
+                val add = addsI[index]
+                try {
+                    add.apply(this, instance, depth - 1)
+                } catch (e: InvalidClassException) {
+                    throw e
+                } catch (e: Exception) {
+                    LOGGER.warn("Change $index, $add failed")
+                    throw e
+                }
             }
         }
         sets.forEach { k1, k2, v ->

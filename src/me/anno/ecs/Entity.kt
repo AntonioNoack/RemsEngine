@@ -1,10 +1,15 @@
 package me.anno.ecs
 
+import me.anno.ecs.EntityPhysics.checkNeedsPhysics
+import me.anno.ecs.EntityPhysics.invalidatePhysics
+import me.anno.ecs.EntityPhysics.invalidatePhysicsTransform
+import me.anno.ecs.EntityPhysics.rebuildPhysics
 import me.anno.ecs.annotations.*
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
 import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.unique.StaticMeshManager
 import me.anno.ecs.components.physics.Physics
 import me.anno.ecs.components.ui.UIEvent
 import me.anno.ecs.interfaces.InputListener
@@ -161,7 +166,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     @NotSerializedProperty
     var hasValidAABB: Boolean = false
 
-    // is set by the engine
+    @Docs("Set by the engine; if so, transforms are ignored")
     @DebugProperty
     @NotSerializedProperty
     var isPhysicsControlled: Boolean = false
@@ -260,34 +265,7 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
         return this.collisionMask.and(collisionMask) != 0
     }
 
-    fun invalidatePhysics(force: Boolean) {
-        if (force || hasPhysicsInfluence()) {
-            physics?.invalidate(this)
-        }
-    }
-
-    fun invalidatePhysicsTransform(force: Boolean) {
-        if (force || hasPhysicsInfluence()) {
-            physics?.invalidateTransform(this)
-        }
-    }
-
-    fun invalidateRigidbody() {
-        physics?.invalidate(this)
-    }
-
-    val physics get() = getRoot(Entity::class).getComponent(Physics::class, false)
-
-    fun rebuildPhysics(physics: Physics<*, *>) {
-        if (hasComponent(physics.rigidComponentClass)) {
-            physics.invalidate(this)
-        } else {
-            val children = children
-            for (index in children.indices) {
-                children[index].rebuildPhysics(physics)
-            }
-        }
-    }
+    val staticMeshManager get() = getRoot(Entity::class).getComponent(StaticMeshManager::class)
 
     @DebugAction
     fun invalidateAABBsCompletely() {
@@ -378,10 +356,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
             field = value
             invalidatePhysics(false)
         }
-
-    fun hasPhysicsInfluence(): Boolean {
-        return isPhysicsControlled || parentEntity?.hasPhysicsInfluence() == true
-    }
 
     private inline fun executeOptimizedEvent(
         hasEvent: (Entity) -> Boolean,
@@ -590,18 +564,6 @@ class Entity() : PrefabSaveable(), Inspectable, Renderable {
     // todo don't directly update, rather invalidate this, because there may be more to come
     fun setParent(parent: Entity, keepWorldTransform: Boolean) {
         return setParent(parent, parent.children.size, keepWorldTransform)
-    }
-
-    private fun checkNeedsPhysics() {
-        // physics
-        if (allInHierarchy { it.isEnabled }) {
-            // something can change
-            physics?.invalidate(this)
-        }
-    }
-
-    fun Entity.invalidateRigidbody() {
-        physics?.invalidate(this)
     }
 
     override fun destroy() {

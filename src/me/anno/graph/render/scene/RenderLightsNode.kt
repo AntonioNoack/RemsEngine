@@ -184,7 +184,7 @@ class RenderLightsNode : RenderSceneNode0(
             stage.bind {
                 stage.draw(
                     RenderState.cameraMatrix, RenderState.cameraPosition, RenderState.worldScale,
-                    ::getShader, depthTexture, depthTexture0.mapping
+                    ::getShader, depthTexture, depthTexture0.mask!!
                 )
             }
         }

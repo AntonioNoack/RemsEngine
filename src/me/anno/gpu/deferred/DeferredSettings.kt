@@ -51,17 +51,27 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
             output.append(textureName)
             output.append('.')
             output.append(mapping)
-            output.append(" = (")
+            val useRandomRounding = when (type) {
+                DeferredLayerType.CLICK_ID, DeferredLayerType.GROUP_ID -> false
+                else -> true
+            }
+            output.append(if (useRandomRounding) " = (" else " = ")
             if (type == DeferredLayerType.DEPTH) {
                 val depthVariableName = if ("gl_FragDepth" in output) "gl_FragDepth" else "gl_FragCoord.z"
                 output.append(depthVariableName)
             } else {
-                output.append(type.workToData).append('(')
-                output.append(type.glslName).append(')')
+                val w2d = type.workToData
+                when {
+                    '.' in w2d -> output.append(w2d)
+                    w2d.isNotEmpty() -> output.append(w2d).append('(').append(type.glslName).append(')')
+                    else -> output.append(type.glslName)
+                }
             }
             // append random rounding
-            output.append(")*(1.0+").append(defRR).append("*").append(textureName).append("RR.x")
-            output.append(")+").append(defRR).append("*").append(textureName).append("RR.y")
+            if (useRandomRounding) {
+                output.append(")*(1.0+").append(defRR).append("*").append(textureName).append("RR.x")
+                output.append(")+").append(defRR).append("*").append(textureName).append("RR.y")
+            }
             output.append(";\n")
         }
     }
@@ -135,7 +145,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
 
     fun createBaseBuffer(name: String, samples: Int): IFramebuffer {
         val layers = layers2
-        val depthBufferType = if(GFX.supportsDepthTextures) DepthBufferType.TEXTURE
+        val depthBufferType = if (GFX.supportsDepthTextures) DepthBufferType.TEXTURE
         else DepthBufferType.INTERNAL
         return if (layers.size <= GFX.maxColorAttachments) {
             Framebuffer(

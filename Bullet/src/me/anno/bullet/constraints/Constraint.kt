@@ -6,6 +6,7 @@ import me.anno.bullet.BulletPhysics.Companion.castB
 import me.anno.bullet.Rigidbody
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityPhysics.invalidateRigidbody
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning

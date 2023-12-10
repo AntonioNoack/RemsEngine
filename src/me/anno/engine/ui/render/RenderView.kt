@@ -722,7 +722,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         }
     }
 
-    fun drawSceneLights(deferred: IFramebuffer, deferredDepth: Texture2D, depthMask: String, dst: IFramebuffer) {
+    fun drawSceneLights(deferred: IFramebuffer, deferredDepth: Texture2D, depthMask: Vector4f, dst: IFramebuffer) {
         useFrame(deferred.width, deferred.height, true, dst, copyRenderer) {
             dst.clearColor(0)
             pipeline.lightStage.bindDraw(

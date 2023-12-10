@@ -44,6 +44,7 @@ class Transform() : Saveable() {
     var parentEntity: Entity? = null
     val parent get() = (entity?.parentEntity ?: parentEntity)?.transform
 
+    var lastUpdateFrameIndex = 0
     var lastUpdateTime: Long = 0L
     var lastDrawTime: Long = 0L
     var lastUpdateDt: Long = 0L
@@ -70,6 +71,7 @@ class Transform() : Saveable() {
 
     fun teleportUpdate(time: Long = Time.gameTimeN) {
         validate()
+        lastUpdateFrameIndex = Time.frameIndex
         lastUpdateTime = time
         lastUpdateDt = 0L
         drawTransform.set(globalTransform)
@@ -140,6 +142,7 @@ class Transform() : Saveable() {
         needsStaticUpdate = true
         val dt = time - lastUpdateTime
         if (dt > 0) {
+            lastUpdateFrameIndex = Time.frameIndex
             lastUpdateTime = time
             lastUpdateDt = dt
         }

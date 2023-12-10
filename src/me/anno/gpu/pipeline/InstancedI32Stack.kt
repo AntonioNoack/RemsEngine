@@ -127,7 +127,7 @@ open class InstancedI32Stack(
                 instances.gfxIds[i * 2 + 2] else instances.size
 
             val gfxId = instances.gfxIds[i * 2 + 1]
-            shader.v4f("gfxId", gfxId)
+            shader.v4f("finalId", gfxId)
             shader.m4x3delta("localTransform", instances.matrices[i], cameraPosition, worldScale)
 
             // draw them in batches of size <= batchSize

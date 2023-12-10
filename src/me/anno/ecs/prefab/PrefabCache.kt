@@ -81,11 +81,13 @@ object PrefabCache : CacheSection("Prefab") {
                     con.add(s0)
                     if (added.add(s0)) todo.add(s0)
                 }
-                for (add in prefab2.adds) {
-                    val s1 = add.prefab
-                    if (s1 != InvalidRef) {
-                        con.add(s1)
-                        if (added.add(s1)) todo.add(s1)
+                for ((_, addsI) in prefab2.adds) {
+                    for (add in addsI) {
+                        val s1 = add.prefab
+                        if (s1 != InvalidRef) {
+                            con.add(s1)
+                            if (added.add(s1)) todo.add(s1)
+                        }
                     }
                 }
                 if (con.isNotEmpty()) {

@@ -85,7 +85,6 @@ class VOXReader {
 
     fun toEntityPrefab(meshPaths: List<FileReference>): Prefab {
         val prefab = Prefab("Entity")
-        prefab.ensureMutableLists()
         prefab.setUnsafe(Path.ROOT_PATH, "name", "Root")
         val availableLayers = (listOf(layerNegative) + layers).filter { it.containsModel() }
         when (availableLayers.size) {

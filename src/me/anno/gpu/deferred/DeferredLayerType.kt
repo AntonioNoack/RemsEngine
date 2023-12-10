@@ -14,13 +14,14 @@ open class DeferredLayerType(
     val highDynamicRange: Boolean,
     val defaultWorkValue: Vector4f,
     val workToData: String,
-    val dataToWork: String
+    val dataToWork: String,
 ) {
 
     override fun toString() = name
 
     constructor(
-        name: String, glslName: String, dimensions: Int, minimumQuality: BufferQuality, highDynamicRange: Boolean,
+        name: String, glslName: String, dimensions: Int,
+        minimumQuality: BufferQuality, highDynamicRange: Boolean,
         defaultValueARGB: Int, w2d: String, d2w: String
     ) : this(
         name,
@@ -43,7 +44,7 @@ open class DeferredLayerType(
         fragment.append(glslName)
     }
 
-    fun appendDefaultValue(fragment: StringBuilder) {
+    fun appendDefaultValue(fragment: StringBuilder, workDims: Int = this.workDims) {
         when (workDims) {
             1 -> fragment.append(defaultWorkValue.z)
             2 -> fragment.append("vec2(")
@@ -107,7 +108,10 @@ open class DeferredLayerType(
 
         // may be in camera space, player space, or world space
         // the best probably would be player space: relative to the player, same rotation, scale, etc. as world
-        val POSITION = DeferredLayerType("Position", "finalPosition", 3, BufferQuality.HIGH_32, true, 0, "", "")
+        val POSITION = DeferredLayerType(
+            "Position", "finalPosition", 3,
+            BufferQuality.HIGH_32, true, 0, "", ""
+        )
 
         val METALLIC = DeferredLayerType("Metallic", "finalMetallic", 0)
 
@@ -126,7 +130,8 @@ open class DeferredLayerType(
         // clear coat roughness? how would we implement that?
         // color, amount; e.g. for cars
         val CLEAR_COAT = DeferredLayerType("Clear Coat", "finalClearCoat", 4, 0xff9900ff.toInt())
-        val CLEAT_COAT_ROUGH_METALLIC = DeferredLayerType("Clear Coat Roughness + Metallic", "finalClearCoatRoughMetallic", 2, 0x00ff)
+        val CLEAT_COAT_ROUGH_METALLIC =
+            DeferredLayerType("Clear Coat Roughness + Metallic", "finalClearCoatRoughMetallic", 2, 0x00ff)
 
         // can be used for water droplets: they are a coating with their own normals
         val CLEAR_COAT_NORMAL = DeferredLayerType("Cleat Coat Normal", "finalClearCoatNormal", 3, 0x77ff77)
@@ -141,14 +146,15 @@ open class DeferredLayerType(
         val INDEX_OF_REFRACTION = DeferredLayerType("Index of Refraction", "finalIndexOfRefraction", 0)
 
         // ids / markers
-        val ID = DeferredLayerType("ID", "finalId", 4, 0)
+        val CLICK_ID = DeferredLayerType("ClickID", "clickId", 3, BufferQuality.LOW_8, false, 0, "finalId.xyz", "")
+        val GROUP_ID = DeferredLayerType("GroupID", "groupId", 1, BufferQuality.LOW_8, false, 0, "finalId.w", "")
         // val FLAGS = DeferredLayerType("Flags", "finalFlags", 4, 0)
 
         val LIGHT_SUM = DeferredLayerType("Light Sum", "finalLight", 3, 0)
 
         // is there more, which we could use?
 
-        // todo this is special, integrate it somehow...
+        // todo this is special, integrate&define it somehow...
         val COLOR_EMISSIVE = DeferredLayerType(
             "Color,Emissive", "finalColorEmissive", 4,
             BufferQuality.LOW_8, false, 0x007799ff, "", ""
@@ -192,6 +198,8 @@ open class DeferredLayerType(
             MOTION,
             DEPTH,
             ALPHA,
+            CLICK_ID,
+            GROUP_ID,
         )
 
         // stencil?
@@ -200,7 +208,5 @@ open class DeferredLayerType(
             // O(n), but should be called only for new types (which are rare)
             values.firstOrNull { it.glslName == name }
         }.putAll(values.associateBy { it.glslName }) // avoid O(n²)
-
     }
-
 }

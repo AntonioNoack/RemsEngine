@@ -16,7 +16,7 @@ import me.anno.io.ISaveable
 import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.TestStudio
 
-fun main(){
+fun main() {
 
     val g = object : FlowGraph() {
         override fun canConnectTypeToOtherType(srcType: String, dstType: String): Boolean {

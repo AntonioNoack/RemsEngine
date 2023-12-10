@@ -1,6 +1,7 @@
 package me.anno.engine
 
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityPhysics.physics
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.change.Path.Companion.ROOT_PATH
 import me.anno.io.files.FileRootRef
@@ -25,8 +26,6 @@ object ScenePrefab : InnerLazyPrefabFile(
             val logger = LogManager.getLogger(ScenePrefab::class)
 
             logger.debug("creating ScenePrefab from thread {}", Thread.currentThread().name)
-
-            ensureMutableLists()
 
             set("name", "Root")
             set("description", "Contains the major components")

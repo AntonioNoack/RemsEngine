@@ -134,16 +134,6 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         // todo add it to the transparent pass
     }
 
-    private fun getMaterial(
-        materialOverrides: List<FileReference>?,
-        materials: List<FileReference>,
-        index: Int
-    ): Material {
-        val m0 = materialOverrides?.getOrNull(index)?.nullIfUndefined()
-        val m1 = m0 ?: materials.getOrNull(index) ?: return defaultMaterial
-        return MaterialCache[m1, defaultMaterial]
-    }
-
     fun addMesh(mesh: IMesh, renderer: Component, entity: Entity) {
         val materialOverrides = (renderer as? MeshComponentBase)?.materials
         addMesh(mesh, renderer, materialOverrides, entity)
@@ -553,5 +543,15 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         val sampleEntity = Entity()
         val sampleMeshComponent = MeshComponent()
         val sampleMesh = Thumbs.sphereMesh
+
+        fun getMaterial(
+            materialOverrides: List<FileReference>?,
+            materials: List<FileReference>,
+            index: Int
+        ): Material {
+            val m0 = materialOverrides?.getOrNull(index)?.nullIfUndefined()
+            val m1 = m0 ?: materials.getOrNull(index) ?: return defaultMaterial
+            return MaterialCache[m1, defaultMaterial]
+        }
     }
 }
