@@ -21,6 +21,12 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
     val size = sizeX * sizeY * sizeZ
 
+    fun center0() {
+        centerX = 0f
+        centerY = 0f
+        centerZ = 0f
+    }
+
     open fun getIndex(x: Int, y: Int, z: Int) = (x * sizeY + y) * sizeZ + z
 
     // if outside the model, must return 0

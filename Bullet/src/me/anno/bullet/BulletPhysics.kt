@@ -21,6 +21,9 @@ import cz.advel.stack.Stack
 import me.anno.bullet.constraints.Constraint
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.allComponents
+import me.anno.ecs.EntityQuery.forAllComponents
+import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.BodyWithScale
 import me.anno.ecs.components.physics.Physics
@@ -241,26 +244,24 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     }
 
     override fun removeConstraints(entity: Entity) {
-        entity.allComponents(Constraint::class) {
+        entity.forAllComponents(Constraint::class) {
             val other = it.other?.entity
             if (other != null) {
                 remove(other, false)
             }
-            false
         }
     }
 
     override fun remove(entity: Entity, fallenOutOfWorld: Boolean) {
         super.remove(entity, fallenOutOfWorld)
         val world = bulletInstance!!
-        entity.allComponents(Constraint::class) {
+        entity.forAllComponents(Constraint::class) {
             val bi = it.bulletInstance
             if (bi != null) {
                 it.bulletInstance = null
                 world.removeConstraint(bi)
                 // LOGGER.debug("- ${it.prefabPath}")
             }
-            false
         }
         val rigid2 = entity.rigidbodyComponent
         if (rigid2 != null) {
@@ -281,9 +282,8 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
                 // when something falls of the world, often it's nice to directly destroy the object,
                 // because it will no longer be needed
                 // call event, so e.g., we could add it back to a pool of entities, or respawn it
-                entity.allComponents(Component::class) {
+                entity.forAllComponents(Component::class) {
                     if (it is FallenOutOfWorld) it.onFallOutOfWorld()
-                    false
                 }
                 if (rigid2.deleteWhenKilledByDepth) {
                     entity.parentEntity?.deleteChild(entity)

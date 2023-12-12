@@ -18,6 +18,14 @@ object AnyToDouble {
     operator fun Any?.get(index: Int, defaultValue: Double): Double {
         return when (this) {
             null -> defaultValue
+            is Byte -> when (index) {
+                0 -> this.toDouble()
+                else -> defaultValue
+            }
+            is Short -> when (index) {
+                0 -> this.toDouble()
+                else -> defaultValue
+            }
             is Int -> when (index) {
                 0 -> this.toDouble()
                 else -> defaultValue

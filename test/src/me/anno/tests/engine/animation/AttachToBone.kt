@@ -1,6 +1,7 @@
 package me.anno.tests.engine.animation
 
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.BoneAttachmentComponent
 import me.anno.ecs.components.mesh.Material

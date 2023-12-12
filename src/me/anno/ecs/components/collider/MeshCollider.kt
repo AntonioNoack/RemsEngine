@@ -1,5 +1,6 @@
 package me.anno.ecs.components.collider
 
+import me.anno.ecs.EntityQuery.getComponentInChildren
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.Type
 import me.anno.ecs.components.mesh.Mesh

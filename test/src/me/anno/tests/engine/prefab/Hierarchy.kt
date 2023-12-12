@@ -2,6 +2,7 @@ package me.anno.tests.engine.prefab
 
 import me.anno.Engine
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityStats.sizeOfHierarchy
 import me.anno.ecs.components.light.PointLight
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab

@@ -1,6 +1,9 @@
 package me.anno.engine.ui
 
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
+import me.anno.ecs.EntityStats.totalNumComponents
+import me.anno.ecs.EntityStats.totalNumEntities
 import me.anno.ecs.components.light.LightComponent
 import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.Prefab

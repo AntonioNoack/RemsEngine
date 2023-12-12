@@ -2,6 +2,7 @@ package me.anno.tests.gfx
 
 import me.anno.Engine
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.sumComponentsInChildren
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.PrefabCache
@@ -15,16 +16,9 @@ fun main() {
     val file = getReference(downloads, "3d/blender_chan.glb")
     val obj = PrefabCache[file] ?: throw java.lang.IllegalStateException("Missing $file")
     val entity = obj.getSampleInstance() as Entity
-    var sum = 0L
-    entity.simpleTraversal {
-        if (it is Entity) {
-            sum += it.sumComponents(MeshComponent::class) { mesh ->
-                val mesh2 = MeshCache[mesh.meshFile]!!
-                mesh2.numPrimitives
-            }
-        }
-        false
+    val totalNumPrimitives = entity.sumComponentsInChildren(MeshComponent::class) { comp ->
+        MeshCache[comp.meshFile]!!.numPrimitives
     }
-    LOGGER.debug("Primitives: $sum")
+    LOGGER.debug("Primitives: $totalNumPrimitives")
     Engine.requestShutdown()
 }

@@ -16,6 +16,14 @@ object AnyToLong {
     operator fun Any?.get(index: Int, defaultValue: Long): Long {
         return when (this) {
             null -> defaultValue
+            is Byte -> when (index) {
+                0 -> this.toLong()
+                else -> defaultValue
+            }
+            is Short -> when (index) {
+                0 -> this.toLong()
+                else -> defaultValue
+            }
             is Int -> when (index) {
                 0 -> this.toLong()
                 else -> defaultValue

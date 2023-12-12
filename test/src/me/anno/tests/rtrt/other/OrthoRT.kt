@@ -1,5 +1,6 @@
 package me.anno.tests.rtrt.other
 
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.utils.OS.downloads
 
 // todo city of buildings and stuff
@@ -35,5 +36,5 @@ import me.anno.utils.OS.downloads
 
 fun main() {
     val sampleScene = downloads.getChild("MagicaVoxel/vox/ForestHeavy.vox")
-
+    testSceneWithUI("ForestHeavy", sampleScene) // todo layout is not covering the whole screen???
 }

@@ -4,6 +4,9 @@ package me.anno.engine.ui.render
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.firstComponentInChildren
+import me.anno.ecs.EntityQuery.forAllComponentsInChildren
+import me.anno.ecs.EntityQuery.getComponentsInChildren
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.ecs.components.mesh.MeshSpawner
@@ -344,7 +347,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
     }
 
     fun drawPrimaryCanvas(world: Entity, x0: Int, y0: Int, x1: Int, y1: Int) {
-        world.firstComponentInChildren(CanvasComponent::class, false) { comp ->
+        world.forAllComponentsInChildren(CanvasComponent::class, false) { comp ->
             if (comp.space == CanvasComponent.Space.CAMERA_SPACE) {
                 comp.width = x1 - x0
                 comp.height = y1 - y0
@@ -352,7 +355,6 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
                 val texture = comp.framebuffer!!.getTexture0()
                 drawTexture(x0, y1, x1 - x0, y0 - y1, texture, -1, null)
             }
-            false
         }
     }
 
@@ -489,7 +491,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         else pipeline.findDrawnSubject(clickedId, world)
         if (false) {
             LOGGER.info("Found: ${ids.joinToString { hex24(convertABGR2ARGB(it)) }} x ${depths.joinToString()} -> $clickedId -> $clicked")
-            val ids2 = (world as? Entity)?.getComponentsInChildren(MeshComponentBase::class, false)
+            val ids2 = (world as? Entity)?.getComponentsInChildren(MeshComponentBase::class)
                 ?.joinToString { it.clickId.toString(16) }
             LOGGER.info("Available: $ids2")
         }

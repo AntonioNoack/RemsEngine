@@ -5,6 +5,8 @@ import me.anno.box2d.Box2dPhysics
 import me.anno.box2d.Rigidbody2d
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllComponents
+import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.collider.twod.CircleCollider
 import me.anno.ecs.components.collider.twod.Collider2d

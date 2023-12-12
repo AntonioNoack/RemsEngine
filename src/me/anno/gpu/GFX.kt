@@ -30,6 +30,7 @@ import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.structures.Task
 import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.EXTTextureFilterAnisotropic
@@ -419,7 +420,7 @@ object GFX {
             val currentTime = Time.nanoTime
             val workTime = abs(currentTime - startTime) * 1e-9f
             if (workTime > 2f * timeLimit) {
-                LOGGER.warn("Spent ${workTime}s on '${task.name}' with cost ${task.cost}")
+                LOGGER.warn("Spent ${workTime.f3()}s on '${task.name}' with cost ${task.cost}")
             }
             if (workDone >= workTodo) return false
             if (workTime > timeLimit) return false // too much work

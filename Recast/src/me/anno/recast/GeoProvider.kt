@@ -1,6 +1,7 @@
 package me.anno.recast
 
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
 import me.anno.maths.Maths.hasFlag
@@ -22,7 +23,7 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
     val bounds = AABBf()
 
     init {
-        for (it in world.getComponentsInChildren(MeshComponentBase::class)) {
+        world.forAllComponentsInChildren(MeshComponentBase::class) {
             if (it.collisionMask.hasFlag(mask)) {
                 val mesh = it.getMesh()
                 if (mesh != null) addMesh(mesh, it)
@@ -59,5 +60,4 @@ class GeoProvider(world: Entity, mask: Int) : InputGeomProvider {
 
     override val meshBoundsMin = Vector3f(bounds.minX, bounds.minY, bounds.minZ)
     override val meshBoundsMax = Vector3f(bounds.maxX, bounds.maxY, bounds.maxZ)
-
 }

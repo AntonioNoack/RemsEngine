@@ -1,10 +1,12 @@
 package me.anno.ecs
 
+import me.anno.ecs.EntityQuery.getComponent
+import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.components.physics.Physics
 
 /**
  * Helper functions to add Physics onto an Entity;
- * This may be removed when we have proper Systems
+ * This may be (re)moved when we have proper Systems
  * */
 object EntityPhysics {
 

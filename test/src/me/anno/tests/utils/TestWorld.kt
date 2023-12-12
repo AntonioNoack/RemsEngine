@@ -151,9 +151,7 @@ open class TestWorld : ByteArrayChunkSystem(5, 5, 5, defaultElement = 0) {
             override fun getBlock(x: Int, y: Int, z: Int) =
                 getElementAt(x0 + x, y0 + y, z0 + z).toInt()
         }
-        model.centerX = 0f
-        model.centerY = 0f
-        model.centerZ = 0f
+        model.center0()
         return model.createMesh(palette, null, { x, y, z ->
             getElementAt(x0 + x, y0 + y, z0 + z).toInt() != 0
         })

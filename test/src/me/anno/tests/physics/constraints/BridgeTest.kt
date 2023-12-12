@@ -4,6 +4,7 @@ import me.anno.bullet.BulletPhysics
 import me.anno.bullet.Rigidbody
 import me.anno.bullet.constraints.PointConstraint
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.components.collider.BoxCollider
 import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ECSRegistry

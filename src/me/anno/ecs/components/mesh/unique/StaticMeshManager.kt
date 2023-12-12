@@ -102,6 +102,8 @@ class StaticMeshManager : Component(), Renderable {
         material, DrawMode.TRIANGLES
     ) {
 
+        override val hasVertexColors: Int get() = 1
+
         fun getData0(key: Key, mesh: Mesh): StaticBuffer? {
 
             // todo call ensureBuffer(), and then use a compute shader instead of this things...

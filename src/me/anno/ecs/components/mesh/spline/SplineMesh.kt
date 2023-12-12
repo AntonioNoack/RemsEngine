@@ -2,6 +2,8 @@ package me.anno.ecs.components.mesh.spline
 
 import me.anno.Build
 import me.anno.Time
+import me.anno.ecs.EntityQuery.getComponent
+import me.anno.ecs.EntityQuery.hasComponent
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.ProceduralMesh
 import me.anno.ecs.prefab.PrefabSaveable

@@ -172,11 +172,7 @@ fun main() {
                     return world.getElementAt(x0 + x, y0 + y, z0 + z).toInt()
                 }
             }
-
-            model.centerX = 0f
-            model.centerY = 0f
-            model.centerZ = 0f
-
+            model.center0()
             val mesh = model.createMesh(world.palette, null, { x, y, z ->
                 world.getElementAt(x0 + x, y0 + y, z0 + z).toInt() != 0
             })

@@ -2,6 +2,7 @@ package me.anno.io.files.thumbs
 
 import me.anno.Time
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.*
 import me.anno.engine.ui.render.ECSShaderLib
@@ -199,24 +200,20 @@ object ThumbsExt {
 
     fun waitForMeshes(entity: Entity) {
         // wait for all textures
-        entity.forAll {
-            if (it is MeshComponentBase) {
-                // does the CPU part -> not perfect, but maybe good enough
-                it.getMesh()
-            }
+        entity.forAllComponentsInChildren(MeshComponentBase::class) {
+            // does the CPU part -> not perfect, but maybe good enough
+            it.getMesh()
         }
     }
 
     fun collectTextures(entity: Entity, textures: MutableSet<FileReference>) {
-        for (comp in entity.getComponentsInChildren(MeshComponentBase::class, false)) {
+        entity.forAllComponentsInChildren(MeshComponentBase::class) { comp ->
             val mesh = comp.getMesh()
-            if (mesh == null) {
-                warnMissingMesh(comp, null)
-                continue
-            }
-            Thumbs.iterateMaterials(comp.materials, mesh.materials) { material ->
-                textures += listTextures(material)
-            }
+            if (mesh != null) {
+                Thumbs.iterateMaterials(comp.materials, mesh.materials) { material ->
+                    textures += listTextures(material)
+                }
+            } else warnMissingMesh(comp, null)
         }
     }
 

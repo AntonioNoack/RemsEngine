@@ -2,6 +2,7 @@ package me.anno.tests.assimp
 
 import me.anno.animation.LoopingState
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.anim.AnimMeshComponent
 import me.anno.ecs.components.anim.AnimationState
 import me.anno.ecs.prefab.PrefabCache

@@ -2,6 +2,7 @@ package me.anno.tests.maths
 
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.Group
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.MeshComponent

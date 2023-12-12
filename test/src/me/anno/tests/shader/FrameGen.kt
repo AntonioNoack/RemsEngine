@@ -4,6 +4,7 @@ import me.anno.animation.Type
 import me.anno.config.DefaultConfig
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponent
@@ -23,7 +24,9 @@ import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
-import me.anno.gpu.shader.*
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
@@ -195,7 +198,7 @@ fun main() {
                 } else glDisable(GL_POINT_SMOOTH)
 
                 // keep textures loaded
-                scene.firstComponentInChildren(MeshComponent::class) {
+                scene.forAllComponentsInChildren(MeshComponent::class) {
                     for (m in it.materials) {
                         MaterialCache[m, true]?.listTextures()?.forEach { tex ->
                             TextureCache[tex, true]
@@ -206,7 +209,6 @@ fun main() {
                             TextureCache[tex, true]
                         }
                     }
-                    false
                 }
 
                 if (frameIndex < interFrames) {
@@ -248,7 +250,6 @@ fun main() {
                     flat01.draw(shader)
 
                     frameIndex++
-
                 } else {
 
                     val tmp = data0
@@ -308,11 +309,8 @@ fun main() {
                     prevCamRotation.set(cameraRotation)
 
                     frameIndex = 0
-
                 }
-
             }
-
         }
         val list = PanelListY(style)
         renderPanel.weight = 1f
@@ -321,5 +319,4 @@ fun main() {
             .setChangeListener { interFrames = it.toInt() })
         list
     }
-
 }

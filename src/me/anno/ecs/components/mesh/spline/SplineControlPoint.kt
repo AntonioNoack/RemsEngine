@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.spline
 
 import me.anno.ecs.Component
+import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.prefab.PrefabSaveable
 import org.joml.Vector3d
 

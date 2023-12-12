@@ -66,14 +66,16 @@ fun main() {
 
     val adds = prefab.adds
 
-    for (i in adds.indices) {
-        val x0 = JsonStringWriter.toText(adds[i], InvalidRef)
-        val x1 = JsonStringReader.read(x0, InvalidRef, false)[0] as CAdd
-        val x2 = JsonStringWriter.toText(x1, InvalidRef)
-        if (x0 != x2) {
-            println(JsonFormatter.format(x0))
-            println(JsonFormatter.format(x2))
-            throw RuntimeException()
+    for ((_, addsI) in adds) {
+        for (add in addsI) {
+            val x0 = JsonStringWriter.toText(add, InvalidRef)
+            val x1 = JsonStringReader.read(x0, InvalidRef, false)[0] as CAdd
+            val x2 = JsonStringWriter.toText(x1, InvalidRef)
+            if (x0 != x2) {
+                println(JsonFormatter.format(x0))
+                println(JsonFormatter.format(x2))
+                throw RuntimeException()
+            }
         }
     }
 
@@ -88,6 +90,4 @@ fun main() {
     val json2 = JsonStringWriter.toText(prefabClone, InvalidRef)
     println(JsonFormatter.format(json2))
     if (json != json2) throw RuntimeException()
-
-
 }

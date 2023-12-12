@@ -1,6 +1,7 @@
 package me.anno.mesh
 
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.forAllComponents
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -86,7 +87,7 @@ object MeshUtils {
         root.simpleTraversal(false) { entity ->
             entity as Entity
             val global = entity.transform.globalTransform
-            entity.forAllComponents(MeshComponentBase::class, false) { comp ->
+            entity.forAllComponents(MeshComponentBase::class) { comp ->
                 val mesh = comp.getMesh()
                 if (mesh != null) {
                     mesh.getBounds()

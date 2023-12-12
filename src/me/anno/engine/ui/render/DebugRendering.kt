@@ -2,6 +2,8 @@ package me.anno.engine.ui.render
 
 import me.anno.Time
 import me.anno.ecs.Entity
+import me.anno.ecs.EntityQuery.getComponent
+import me.anno.ecs.EntityQuery.getComponents
 import me.anno.ecs.components.camera.Camera
 import me.anno.ecs.components.light.*
 import me.anno.engine.debug.DebugShapes

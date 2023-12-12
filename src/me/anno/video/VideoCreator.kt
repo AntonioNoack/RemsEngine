@@ -33,7 +33,6 @@ import java.io.OutputStream
 import java.nio.ByteBuffer
 import kotlin.concurrent.thread
 import kotlin.math.min
-import kotlin.test.assertFalse
 
 // todo support HDR video, too
 open class VideoCreator(
@@ -44,7 +43,7 @@ open class VideoCreator(
     val type: FFMPEGEncodingType,
     val quality: Int,
     val withAlpha: Boolean, // use .gif or .webm for this
-    val output: FileReference
+    var output: FileReference
 ) {
 
     init {
@@ -62,9 +61,18 @@ open class VideoCreator(
 
     fun init() {
 
-        output.delete()
-        output.getParent()?.tryMkdirs()
-        assertFalse(output.exists)
+        // output must not exist
+        var i = 0
+        while (output.exists) {
+            output.delete()
+            output.getParent()?.tryMkdirs()
+            output.invalidate()
+            if (output.exists) {
+                // change output
+                output = output.getSibling(output.nameWithoutExtension + "-${i++}." + output.extension)
+                LOGGER.warn("Changing output, because it still exists after deleting it")
+            }
+        }
 
         /**
          * first create the video,
@@ -274,7 +282,7 @@ open class VideoCreator(
             numUpdates: Int,
             fb: Framebuffer,
             update: (frameIndex: Int, callback: () -> Unit) -> Unit,
-            callback: (() -> Unit)? = null
+            callback: ((FileReference) -> Unit)? = null
         ) {
             val creator = VideoCreator(
                 w, h, fps, numUpdates + 1L, FFMPEGEncodingBalance.S1,
@@ -291,7 +299,7 @@ open class VideoCreator(
                     } else {
                         creator.close()
                         if (callback == null) Engine.requestShutdown()
-                        else callback()
+                        else callback(creator.output)
                     }
                 }
             }

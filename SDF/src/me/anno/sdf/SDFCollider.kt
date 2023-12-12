@@ -1,6 +1,7 @@
 package me.anno.sdf
 
 import com.bulletphysics.collision.shapes.BoxShape
+import me.anno.ecs.EntityQuery.getComponent
 import me.anno.ecs.annotations.Docs
 import me.anno.ecs.components.collider.Collider
 import me.anno.ecs.components.physics.CustomBulletCollider
