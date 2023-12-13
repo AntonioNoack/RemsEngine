@@ -126,9 +126,6 @@ import kotlin.math.*
  * */
 object Thumbs {
 
-    // todo right click option in file explorer to invalidate a thumbs image
-    // todo right click option for images: open large image viewer panel
-
     private val LOGGER = LogManager.getLogger(Thumbs::class)
 
     private val folder = ConfigBasics.cacheFolder.getChild("thumbs")
@@ -520,9 +517,7 @@ object Thumbs {
 
     @JvmStatic
     fun generateSVGFrame(
-        srcFile: FileReference,
-        dstFile: HDBKey,
-        size: Int,
+        srcFile: FileReference, dstFile: HDBKey, size: Int,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
 
@@ -536,12 +531,8 @@ object Thumbs {
 
         val transform = Matrix4fArrayList()
         transform.scale(buffer.maxY / buffer.maxX, 1f, 1f)
-        renderToImage(srcFile, false, dstFile, false, colorRenderer, true, callback, w, h) {
-            SVGxGFX.draw3DSVG(
-                transform, buffer, whiteTexture,
-                white4, Filtering.NEAREST,
-                whiteTexture.clamping!!, null
-            )
+        renderToImage(srcFile, false, dstFile, false, colorRenderer, false, callback, w, h) {
+            SVGxGFX.draw3DSVG(transform, buffer, whiteTexture, white4, Filtering.NEAREST, whiteTexture.clamping!!, null)
         }
     }
 

@@ -55,6 +55,8 @@ import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
+// todo right click option for images: open large image viewer panel
+
 // done, kind of: zoom: keep mouse at item in question
 // done change side ratio based on: border + 1:1 frame + 2 lines of text
 // todo dynamically change aspect ratio based on content for better coverage?

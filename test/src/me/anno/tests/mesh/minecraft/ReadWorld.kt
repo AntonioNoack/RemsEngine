@@ -36,20 +36,6 @@ class FilterModel(val colors: IntArray, val solid: Boolean) : VoxelModel(16, 16,
     }
 }
 
-class SimpleModel(val colors: IntArray) : VoxelModel(16, 16, 16) {
-    override fun getIndex(x: Int, y: Int, z: Int): Int {
-        return y.shl(8) or z.shl(4) or x
-    }
-
-    override fun getBlock(x: Int, y: Int, z: Int): Int {
-        return colors[getIndex(x, y, z)]
-    }
-
-    override fun fill(dst: IntArray) {
-        System.arraycopy(colors, 0, dst, 0, size)
-    }
-}
-
 class MonoModel(val color: Int) : VoxelModel(16, 16, 16) {
     override fun getBlock(x: Int, y: Int, z: Int): Int = color
 }
@@ -259,11 +245,17 @@ fun main() {
     worker.processUnbalanced(0, 1024, 4) { i0, i1 ->
         for (ci in i0 until i1) {
             val chunk = region.chunks[ci] ?: continue
+
             // other value: DataVersion
+            @Suppress("UNCHECKED_CAST")
             val level = chunk.properties["Level"] as Map<String, Any> // also contains TileEntities
+
+            @Suppress("UNCHECKED_CAST")
             val sections = level["Sections"] as List<Map<String, Any>>
             for (section in sections) {
                 val y = AnyToInt.getInt(section["Y"], 0) // it's a Byte, but who knows
+
+                @Suppress("UNCHECKED_CAST")
                 val palette = section["Palette"] as? List<Map<String, Any>> ?: continue // Name"", Properties{}
                 val paletteColors = palette.map { blockToColor(it) }.toIntArray()
                 val packedBlockIds = section["BlockStates"] as? LongArray
@@ -348,6 +340,8 @@ fun main() {
     worker.processUnbalanced(0, 1024, 4) { i0, i1 ->
         for (ci in i0 until i1) {
             val chunk = region.chunks[ci] ?: continue
+
+            @Suppress("UNCHECKED_CAST")
             val level = chunk.properties["Level"] as? Map<String, Any> ?: continue
             val xPos = AnyToInt.getInt(level["xPos"], 0)
             val zPos = AnyToInt.getInt(level["zPos"], 0)
