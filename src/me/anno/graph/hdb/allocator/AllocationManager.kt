@@ -80,10 +80,11 @@ interface AllocationManager<Key, Data : Any> {
                 val newRange = start until start + newSize
                 copy(newKey, newDataStart, newData, newRange, oldData)
                 val idx = sortedElements.binarySearch {
-                    getRange(it).last.compareTo(start)
+                    ( getRange(it).last + 1).compareTo(start)
                 }
-                if (idx < 0 || idx >= sortedElements.size) {
-                    throw IllegalStateException("BinarySearch went wrong or data is corrupted")
+                if (idx !in sortedElements.indices) {
+                    throw IllegalStateException("BinarySearch went wrong or data is corrupted, " +
+                            "${sortedElements.map { getRange(it) }} vs $newRange vs $idx in ${sortedElements.indices}")
                 }
                 sortedElements.add(idx + 1, newKey) // correct???
                 if (start + newSize == rj.first) {

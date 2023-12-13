@@ -22,11 +22,13 @@ class BufferInputStream(private val buffer: ByteBuffer, offset: Int, size: Int) 
     override fun read(dst: ByteArray, start: Int, length: Int): Int {
         if (pos >= end) return -1
         val size = min(length, available())
-        val pos0 = buffer.position()
-        buffer.position(pos)
-        buffer.get(dst, start, size)
-        pos += size
-        buffer.position(pos0)
+        synchronized(buffer) {
+            val pos0 = buffer.position()
+            buffer.position(pos)
+            buffer.get(dst, start, size)
+            pos += size
+            buffer.position(pos0)
+        }
         return size
     }
 }

@@ -19,18 +19,17 @@ object BakeMesh {
         model.fill(dst.palette, colors)
 
         val isSolid = BooleanArray(model.size)
-        if (insideIsSolid != null) {
-            var i = 0
-            for (y in 0 until model.sizeY) {
-                for (x in 0 until model.sizeX) {
-                    for (z in 0 until model.sizeZ) {
-                        isSolid[i++] = insideIsSolid.test(x, y, z)
-                    }
+        val insideIsSolid1 = insideIsSolid
+            ?: IsSolid { x, y, z -> colors[model.getIndex(x, y, z)] != 0 }
+
+        val dz = model.getIndex(0, 0, 1)
+        for (y in 0 until model.sizeY) {
+            for (x in 0 until model.sizeX) {
+                var index = model.getIndex(x, y, 0)
+                for (z in 0 until model.sizeZ) {
+                    isSolid[index] = insideIsSolid1.test(x, y, z)
+                    index += dz
                 }
-            }
-        } else {
-            for (i in isSolid.indices) {
-                isSolid[i] = colors[i] != 0
             }
         }
 
@@ -46,7 +45,6 @@ object BakeMesh {
 
         mergeBlocks(blockSizes, colors, model)
 
-        val dz = model.getIndex(0, 0, 1)
         for (y in 0 until model.sizeY) {
             for (x in 0 until model.sizeX) {
                 var index = model.getIndex(x, y, 0)
@@ -95,7 +93,6 @@ object BakeMesh {
         val dx = model.getIndex(1, 0, 0)
         val dy = model.getIndex(0, 1, 0)
         val dz = model.getIndex(0, 0, 1)
-        if (dx == 0 || dy == 0 || dz == 0) throw IllegalStateException()
         val sideOffset = blockSide.x * dx + blockSide.y * dy + blockSide.z * dz
         if (sideOffset == 0) throw IllegalStateException()
         var ctr = 0
