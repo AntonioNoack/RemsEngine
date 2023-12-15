@@ -31,8 +31,6 @@ import java.text.ParseException
  * And somewhat based on code from the book 'Swing Hacks: Tips and Tools for Killer GUIs' by Joshua Marinacci and Chris Adamson
  * ISBN: 0-596-00907-0
  * http://www.oreilly.com/catalog/swinghks/
- *
- * todo lnk files can have custom icons... parse them
  */
 @Suppress("SpellCheckingInspection")
 class WindowsShortcut(data: ByteArray) {

@@ -57,13 +57,6 @@ open class FileContentImporter<V> {
                         }
                     }
                 }
-                /*threadWithName("ImportFromFile") {
-                    file.listFiles()?.filter { !it.name.startsWith(".") }?.forEach {
-                        addEvent {
-                            addChildFromFile(directory, it, useSoftLink, doSelect, depth + 1, callback)
-                        }
-                    }
-                }*/
             }
         } else import(parent, file, useSoftLink, doSelect, depth, callback)
     }

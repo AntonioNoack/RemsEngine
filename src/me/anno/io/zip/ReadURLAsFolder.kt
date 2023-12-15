@@ -1,6 +1,7 @@
 package me.anno.io.zip
 
 import me.anno.io.files.FileReference
+import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.files.inner.InnerFolder
 import me.anno.io.files.inner.InnerLinkFile
 import me.anno.utils.files.LocalFile.toGlobalFile
@@ -12,11 +13,12 @@ fun readURLAsFolder(file: FileReference, callback: (InnerFolder?, Exception?) ->
         else {
             val files = ArrayList<FileReference>()
             for (line in lines) {
-                if (line.startsWith("URL=file://")) {
-                    files.add(FileReference.Companion.getReference(line.substring(11).toGlobalFile()))
+                val fileI = if (line.startsWith("URL=file://")) {
+                    line.substring(11).toGlobalFile()
                 } else if (line.startsWith("URL=")) {
-                    files.add(FileReference.getReference(line.substring(4)))
-                }
+                    getReference(line.substring(4))
+                } else continue
+                files.add(fileI)
             }
             lines.close()
             if (files.isNotEmpty()) {

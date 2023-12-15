@@ -46,6 +46,9 @@ enum class SimpleType(val scalar: String) {
     PLANEF("p4"),
     PLANED("p4d"),
 
+    AABBF("AABBf"),
+    AABBD("AABBd"),
+
     COLOR("col"),
     ;
 

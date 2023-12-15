@@ -135,7 +135,7 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         }
     }
 
-    // e.g. "ec" for child entities + child components
+    // e.g., "ec" for child entities + child components
     open fun listChildTypes(): String = ""
     open fun getChildListByType(type: Char): List<PrefabSaveable> = children
     open fun getChildListNiceName(type: Char): String = "Children"
@@ -238,8 +238,8 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         dst.description = description
         dst.isEnabled = isEnabled
         dst.isCollapsed = isCollapsed
-        // dst.prefab = prefab
-        // dst.prefabPath = prefabPath
+        dst.prefab = prefab
+        dst.prefabPath = prefabPath
     }
 
     override fun onDestroy() {}
@@ -270,17 +270,19 @@ abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, I
         else super.createInspector(inspected, list, style, getGroup)
     }
 
-    fun changePaths(prefab: Prefab?, path: Path) {
+    fun setPath(prefab: Prefab?, path: Path) {
 
         this.prefab = prefab
         this.prefabPath = path
 
-        for (type in listChildTypes()) {
+        val childTypes = listChildTypes()
+        for (ti in childTypes.indices) {
+            val type = childTypes[ti]
             val children = getChildListByType(type)
-            for (index in children.indices) {
-                val child = children[index]
-                val childPath = path.added(child.name, index, type)
-                child.changePaths(prefab, childPath)
+            for (ci in children.indices) {
+                val child = children[ci]
+                val childPath = path.added(child.prefabPath.nameId, ci, type)
+                child.setPath(prefab, childPath)
             }
         }
     }

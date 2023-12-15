@@ -28,7 +28,7 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
 import me.anno.engine.ui.AssetImport
-import me.anno.engine.ui.DetectiveWriter
+import me.anno.io.find.DetectiveWriter
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs

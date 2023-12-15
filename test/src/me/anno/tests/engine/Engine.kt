@@ -8,6 +8,6 @@ import me.anno.engine.RemsEngine
  * here, all extensions are available, while the main project turns into a "base" project.
  * */
 fun main() {
-    Build.isDebug = false
+    if (false) Build.isDebug = false
     RemsEngine().run()
 }

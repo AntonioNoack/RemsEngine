@@ -49,12 +49,10 @@ class BooleanInput(
         checkView.alignmentY = AxisAlignment.FILL
     }
 
-    override val value: Boolean get() = checkView.value
-
-    var isChecked: Boolean
-        get() = checkView.isChecked
+    override var value: Boolean
+        get() = checkView.value
         set(value) {
-            checkView.isChecked = value
+            checkView.value = value
         }
 
     override var isInputAllowed
@@ -115,7 +113,7 @@ class BooleanInput(
         return this
     }
 
-    override fun onCopyRequested(x: Float, y: Float) = checkView.isChecked.toString()
+    override fun onCopyRequested(x: Float, y: Float) = checkView.value.toString()
 
     override fun clone(): BooleanInput {
         val clone = BooleanInput(style)
@@ -129,7 +127,7 @@ class BooleanInput(
         dst.titleView?.text = titleView?.text ?: ""
         // only works, if there is no references
         dst.isSelectedListener = isSelectedListener
-        dst.isChecked = isChecked
+        dst.value = value
     }
 
     override val className: String get() = "BooleanInput"

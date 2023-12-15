@@ -1,8 +1,7 @@
-package me.anno.engine.ui
+package me.anno.io.find
 
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
-import me.anno.io.find.PartialWriter
 import org.joml.*
 
 /**

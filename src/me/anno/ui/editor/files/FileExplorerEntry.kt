@@ -87,7 +87,6 @@ import kotlin.math.*
 
 // todo right click to get all meta information? (properties panel in windows)
 
-// done images: show extra information: width, height
 open class FileExplorerEntry(
     private val explorer: FileExplorer?,
     val isParent: Boolean, file: FileReference, style: Style
@@ -104,12 +103,6 @@ open class FileExplorerEntry(
 
     // todo when entering a json file, and leaving it, the icon should not be a folder!
     // todo open link of URL files
-
-    // done icons for 3d meshes
-    // done icons for project files
-    // done asset files like unity, and then icons for them? (we want a unity-like engine, just with Kotlin)
-
-    // done play mesh animations
 
     private var startTime = 0L
 
@@ -437,11 +430,6 @@ open class FileExplorerEntry(
     )
 
     private fun drawVideo(x0: Int, y0: Int, x1: Int, y1: Int) {
-
-        // todo something with the states is broken...
-        // todo only white is visible, even if there should be colors...
-
-
         val image = getFrame(0)
         if (frameIndex > 0) getFrame(videoBufferLength)
         if (image != null && image.isCreated) {
@@ -490,9 +478,6 @@ open class FileExplorerEntry(
         x0: Int, y0: Int,
         x1: Int, y1: Int
     ) {
-        /*if (file.isDirectory) {
-            return drawDefaultIcon(x0, y0, x1, y1)
-        }*/
         when (importType) {
             // todo audio preview???
             // todo animation preview: draw the animated skeleton
@@ -962,6 +947,7 @@ open class FileExplorerEntry(
 
         fun deleteFiles(panel: Panel, files: List<FileReference>, explorer: FileExplorer?) {
             // todo in Rem's Engine, we first should check, whether there are prefabs, which depend on this file
+            //  - same for renaming
             // ask, then delete all (or cancel)
             val title = if (files.size == 1) {
                 NameDesc(

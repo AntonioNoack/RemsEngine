@@ -19,11 +19,9 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     Panel(style.getChild("checkbox")), InputPanel<Boolean> {
 
     companion object {
-        val checked = getReference("res://textures/Checked.png")
-        val unchecked = getReference("res://textures/Unchecked.png")
+        private val checked = getReference("res://textures/Checked.png")
+        private val unchecked = getReference("res://textures/Unchecked.png")
     }
-
-    var isChecked = startValue
 
     open fun getImage(isChecked: Boolean): Texture2D? =
         TextureCache[if (isChecked) checked else unchecked, true]
@@ -40,7 +38,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
             }
         }
 
-    override val value: Boolean get() = isChecked
+    override var value: Boolean = startValue
 
     private var resetListener: () -> Boolean? = { defaultValue }
     private var changeListener: ((Boolean) -> Unit)? = null
@@ -57,7 +55,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
 
     private var lastImage = -1
     override fun onUpdate() {
-        val leImage = getImage(isChecked)
+        val leImage = getImage(value)
         val leImageState = leImage?.state ?: 0
         if (wasHovered != isHovered || leImageState != lastImage) {
             lastImage = leImageState
@@ -67,13 +65,13 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     }
 
     override fun setValue(newValue: Boolean, mask: Int, notify: Boolean): Panel {
-        if (isChecked != newValue) toggle(notify)
+        if (value != newValue) toggle(notify)
         return this
     }
 
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         super.onDraw(x0, y0, x1, y1)
-        val texture = getImage(isChecked) ?: whiteTexture
+        val texture = getImage(value) ?: whiteTexture
         texture.bind(0, Filtering.LINEAR, Clamping.CLAMP)
         drawTexture(
             x + (width - size) / 2,
@@ -88,10 +86,10 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     }
 
     fun toggle(notify: Boolean) {
+        value = !value
         if (notify) {
-            isChecked = !isChecked
-            changeListener?.invoke(isChecked)
-        } else isChecked = !isChecked
+            changeListener?.invoke(value)
+        }
     }
 
     override fun onMouseClicked(x: Float, y: Float, button: Key, long: Boolean) {
@@ -122,7 +120,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     override fun onEmpty(x: Float, y: Float) {
         if (isInputAllowed) {
             val resetValue = resetListener() ?: defaultValue
-            if (resetValue != isChecked) toggle(true)
+            if (resetValue != value) toggle(true)
         } else {
             super.onEmpty(x, y)
         }
@@ -145,7 +143,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
         dst as Checkbox
-        dst.isChecked = isChecked
+        dst.value = value
         // !! can be incorrect, if there is references within the listener
         dst.resetListener = resetListener
         // !! can be incorrect, if there is references within the listener

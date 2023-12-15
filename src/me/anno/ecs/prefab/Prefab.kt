@@ -375,7 +375,7 @@ class Prefab : Saveable {
         // LOGGER.info("Creating instance from thread ${Thread.currentThread().name}, from '${prefab?.source}', ${prefab?.adds?.size} adds + ${prefab?.sets?.size}")
         // Thread.sleep(10)
         val instance = PrefabCache.createSuperInstance(superPrefab, depth, clazzName)
-        instance.changePaths(this, ROOT_PATH)
+        instance.setPath(this, ROOT_PATH)
         for ((_, addsI) in adds.entries.sortedBy { it.key.depth }) {
             for (index in addsI.indices) {
                 val add = addsI[index]

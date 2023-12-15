@@ -19,7 +19,7 @@ class ColorPreviewField(private val refSize: Panel, val padding: Int, style: Sty
             }
         }
 
-    // transparent background will
+    // transparent background can draw over borders
     override val canDrawOverBorders get() = color.a() != 255
 
     override fun calculateSize(w: Int, h: Int) {

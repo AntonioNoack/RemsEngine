@@ -3,7 +3,7 @@ package me.anno.ui.input.components
 class CursorPosition(var x: Int, var y: Int) : Comparable<CursorPosition> {
     constructor() : this(0, 0)
 
-    override fun hashCode(): Int = x + y * 65536
+    override fun hashCode(): Int = x + y.shl(16)
 
     override fun compareTo(other: CursorPosition): Int = hashCode().compareTo(other.hashCode())
 

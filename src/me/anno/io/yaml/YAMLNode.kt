@@ -48,9 +48,7 @@ class YAMLNode(
         for (i in 0 until depth) builder.append(' ')
         builder.append(key)
         if (value != null) {
-            builder.append(": ")
-            builder.append(value)
-            builder.append('\n')
+            builder.append(": ").append(value).append('\n')
         } else {
             builder.append(":\n")
         }

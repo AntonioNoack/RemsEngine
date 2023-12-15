@@ -1,0 +1,42 @@
+package me.anno.tests.engine.prefab
+
+import me.anno.ecs.prefab.Prefab
+import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.Path
+import me.anno.engine.ECSRegistry
+import me.anno.io.files.FileReference
+import me.anno.io.files.inner.temporary.InnerTmpPrefabFile
+import me.anno.studio.StudioBase.Companion.workspace
+import me.anno.utils.OS.documents
+import kotlin.test.assertEquals
+
+fun printTree(file: FileReference) {
+    val prefab = PrefabCache[file]!!
+    val instance = prefab.createInstance()
+    printTree(file, instance, 0)
+}
+
+fun printTree(file: FileReference, instance: PrefabSaveable, depth: Int) {
+    assertEquals(file, instance.prefab!!.source)
+    println("${"  ".repeat(depth)}${instance.className}: '${instance.name}'")
+    println("${"  ".repeat(depth + 1)}Path: ${instance.prefabPath}")
+    for (ct in instance.listChildTypes()) {
+        for (ch in instance.getChildListByType(ct)) {
+            printTree(file, ch, depth + 1)
+        }
+    }
+}
+
+fun main() {
+    ECSRegistry.initPrefabs()
+    ECSRegistry.initMeshes()
+    workspace = documents.getChild("RemsEngine/YandereSim")
+    val meshFile = workspace.getChild("Outside/SM_Prop_Cafe_Chair_01.json")
+    printTree(meshFile)
+    val child = Prefab("Entity")
+    child.add(CAdd(Path.ROOT_PATH, 'e', "Entity", "NameID", meshFile), 0)
+    child.createInstance()
+    printTree(InnerTmpPrefabFile(child))
+}

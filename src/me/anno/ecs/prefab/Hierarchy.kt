@@ -140,21 +140,23 @@ object Hierarchy {
             path.fromRootToThis(false) { pathIndex, pathI ->
 
                 val childType = pathI.type
-                val components = instance.getChildListByType(childType)
+                val children = instance.getChildListByType(childType)
 
                 val childIndex = pathI.index
-                if (components.getOrNull(childIndex)?.prefabPath == pathI) {
+                val match0 = children.getOrNull(childIndex)
+                if (match0?.prefabPath == pathI) {
                     // bingo; easiest way: path is matching
-                    instance = components[childIndex]
+                    instance = match0
                 } else {
-                    val match = components.firstOrNull { it.prefabPath == pathI }
-                    if (match != null) instance = match
+                    val match1 = children.firstOrNull { it.prefabPath == pathI }
+                    if (match1 != null) instance = match1
                     else {
                         var foundMatch = false
-                        for (type in instance.listChildTypes()) {
-                            val match2 = instance.getChildListByType(type).firstOrNull { it.prefabPath == pathI }
+                        for (actualType in instance.listChildTypes()) {
+                            val match2 = instance.getChildListByType(actualType).firstOrNull { it.prefabPath == pathI }
                             if (match2 != null) {
-                                LOGGER.warn("Child $pathI had incorrect type '$childType', actual type was '$type' in ${instance0.prefab?.source}")
+                                LOGGER.warn("Child $pathI had incorrect type '$childType', actual type was '$actualType' in ${instance0.prefab?.source} for ${instance.className}")
+                                pathI.type = actualType
                                 foundMatch = true
                                 instance = match2
                                 break
@@ -162,8 +164,8 @@ object Hierarchy {
                         }
                         if (!foundMatch) {
                             LOGGER.warn(
-                                "Missing path (${Thread.currentThread().name}) $path[$pathIndex] (${path.getNames()}, ${path.getTypes()}, ${path.getIndices()}) in $instance, " +
-                                        "only ${components.size} $childType available ${components.joinToString { "'${it.name}':${it.prefabPath}" }}"
+                                "Missing path (${Thread.currentThread().name}) $path[$pathIndex] (${pathI.getNames()}, ${pathI.getTypes()}, ${pathI.getIndices()}) in instance, " +
+                                        "only ${children.size} $childType available ${children.joinToString { "'${it.name}':${it.prefabPath}" }}"
                             )
                             throw Path.EXIT
                         }
@@ -242,11 +244,9 @@ object Hierarchy {
                     )
                     val adds = srcPrefab.adds
                     assertTrue(adds !== dstPrefab.adds)
-                    if (adds != null) {
-                        for ((_, addI) in adds) {
-                            for (add in addI) {
-                                dstPrefab.add(add.withPath(Path(dstPath, add.path), true), -1)
-                            }
+                    for ((_, addI) in adds) {
+                        for (add in addI) {
+                            dstPrefab.add(add.withPath(Path(dstPath, add.path), true), -1)
                         }
                     }
                     val sets = srcPrefab.sets
@@ -382,7 +382,7 @@ object Hierarchy {
         val matches = adds1?.filter(lambda) ?: emptyList()
         when (matches.size) {
             0 -> {
-                LOGGER.info("did not find add @$parentPath[$clazzName], prefab: ${prefab.source}:${prefab.prefab}, ${prefab.adds}, ${prefab.sets}")
+                LOGGER.info("Didn't find add @$parentPath[$clazzName], prefab: ${prefab.source}")
                 prefab[path, "isEnabled"] = false
             }
             else -> {

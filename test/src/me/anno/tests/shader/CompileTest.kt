@@ -23,6 +23,7 @@ import me.anno.gpu.hidden.HiddenOpenGLContext
 import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.mesh.Shapes.flatCube
 import me.anno.ecs.components.anim.Bone
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.tests.ui.UITests
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS.desktop
@@ -30,9 +31,9 @@ import org.junit.jupiter.api.Test
 
 // test all important shaders, whether they compile fine
 // add a scene with most important functions: static meshes, animated meshes, all light types
-/*fun main() {
+fun main() {
     testSceneWithUI("CompilerTest", createTestScene())
-}*/
+}
 
 fun createTestScene(): Entity {
 

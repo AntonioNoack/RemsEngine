@@ -18,16 +18,18 @@ class TimeoutInputStream(
 
     private val timeoutNanos = timeoutMillis * 1_000_000
 
+    override fun available(): Int = input.available()
+
     override fun read(): Int {
         val startTime = System.nanoTime()
-        while (input.available() < 1 && !Engine.shutdown) {
+        while (available() < 1 && !Engine.shutdown) {
             sleepShortly(true)
             val time = System.nanoTime()
             if (abs(startTime - time) > timeoutNanos) {
                 break
             }
         }
-        if (input.available() < 1) {
+        if (available() < 1) {
             throw TimeoutException("Timeout of $timeoutMillis ms exceeded")
         }
         return input.read()

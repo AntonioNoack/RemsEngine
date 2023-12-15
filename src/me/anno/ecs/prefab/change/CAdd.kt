@@ -120,8 +120,7 @@ class CAdd() : Change() {
         }
 
         val path = instance.prefabPath.added(nameId, index, type)
-
-        newInstance.changePaths(prefab, path)
+        newInstance.setPath(prefab, path)
 
         if (Build.isDebug) newInstance.forAll {
             if (it.prefab !== prefab) {

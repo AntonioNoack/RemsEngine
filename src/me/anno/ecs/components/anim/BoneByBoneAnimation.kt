@@ -140,17 +140,18 @@ class BoneByBoneAnimation() : Animation() {
     }
 
     fun getScale(frame: Int, bone: Int, dst: Vector3f): Vector3f {
-        return dst.set(scales!!, getScaleIndex(frame, bone))
+        val scales = scales ?: return dst.set(1f)
+        return dst.set(scales, getScaleIndex(frame, bone))
     }
 
     fun getScale(fraction: Float, frame0: Int, frame1: Int, bone: Int, dst: Vector3f): Vector3f {
         val index0 = getScaleIndex(frame0, bone)
         val index1 = getScaleIndex(frame1, bone)
-        val src = scales!!
+        val scales = scales ?: return dst.set(1f)
         return dst.set(
-            mix(src[index0], src[index1], fraction),
-            mix(src[index0 + 1], src[index1 + 1], fraction),
-            mix(src[index0 + 2], src[index1 + 2], fraction)
+            mix(scales[index0], scales[index1], fraction),
+            mix(scales[index0 + 1], scales[index1 + 1], fraction),
+            mix(scales[index0 + 2], scales[index1 + 2], fraction)
         )
     }
 

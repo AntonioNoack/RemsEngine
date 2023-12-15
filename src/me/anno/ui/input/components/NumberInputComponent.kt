@@ -1,19 +1,18 @@
 package me.anno.ui.input.components
 
+import me.anno.ecs.annotations.Docs
 import me.anno.ui.Style
 import me.anno.ui.input.InputVisibility
 
-open class NumberInputComponent(
-    val visibilityKey: String,
-    style: Style
-) : PureTextInput(style.getChild("deep")) {
+open class NumberInputComponent(val visibilityKey: String, style: Style) :
+    PureTextInput(style.getChild("deep")) {
 
     init {
         setResetListener { "0.0" }
         enableSpellcheck = false
     }
 
-    // this is used in Rem's Studio
+    @Docs("Used in Rem's Studio")
     @Suppress("unused")
     var indexInProperty = 0
 

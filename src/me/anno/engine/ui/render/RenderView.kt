@@ -4,7 +4,6 @@ package me.anno.engine.ui.render
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.EntityQuery.firstComponentInChildren
 import me.anno.ecs.EntityQuery.forAllComponentsInChildren
 import me.anno.ecs.EntityQuery.getComponentsInChildren
 import me.anno.ecs.components.camera.Camera
@@ -836,7 +835,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
             world.onDrawGUI(world.isSelectedIndirectly)
         }
 
-        drawGrid(radius, drawGridMask)
+        drawGrid(drawGridMask)
 
         if (drawDebugShapes) {
             DebugRendering.drawDebugShapes(this)

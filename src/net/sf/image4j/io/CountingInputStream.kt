@@ -2,7 +2,6 @@ package net.sf.image4j.io
 
 import java.io.EOFException
 import java.io.FilterInputStream
-import java.io.IOException
 import java.io.InputStream
 
 class CountingInputStream(src: InputStream) : FilterInputStream(src) {
@@ -40,5 +39,4 @@ class CountingInputStream(src: InputStream) : FilterInputStream(src) {
         count += done.toInt()
         return done
     }
-
 }

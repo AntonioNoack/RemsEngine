@@ -122,7 +122,7 @@ object AssetImport {
         val cached = cache[srcFile]
         if (cached != null) return cached
         return if (isPureFile(srcFile)) {
-            val name = findNameWithExt(srcFile, null, isMainFolder)
+            val name = findNameWithExt(srcFile, isMainFolder)
             val dstFile = dstFolder.getChild(name)
             dstFile.writeFile(srcFile) {}
             cache[srcFile] = dstFile
@@ -230,24 +230,19 @@ object AssetImport {
         return name
     }
 
-    private fun findNameWithExt(srcFile: FileReference, prefab: Prefab?, isMainFolder: Boolean): String {
-        val prefabName = prefab?.instanceName?.toAllowedFilename()
+    private fun findNameWithExt(srcFile: FileReference, isMainFolder: Boolean): String {
         val fileName = srcFile.name.toAllowedFilename()
-        var name = fileName ?: srcFile.getParent()?.name ?: prefab?.instanceName ?: "Scene"
+        var name = fileName ?: srcFile.getParent()?.name ?: "Scene"
         if (name.toIntOrNull() != null) {
-            name = prefabName ?: "Scene"
+            name = "Scene"
         }
         if (isMainFolder && name == "Scene") {
             // rename to file name
             name = srcFile.getParent()!!.name
         }
         if ('.' !in name) {
-            @Suppress("MoveVariableDeclarationIntoWhen")
             val signature = Signature.findNameSync(srcFile)
-            val extName = when (signature) {
-                "media" -> null
-                else -> signature
-            }
+            val extName = if (signature == "media") null else signature
             if (extName != null) {
                 name = "$name.$extName"
             }

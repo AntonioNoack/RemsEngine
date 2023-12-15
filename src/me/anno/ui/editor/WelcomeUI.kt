@@ -41,9 +41,9 @@ import me.anno.utils.OS
 import me.anno.utils.types.Strings.isBlank2
 import kotlin.concurrent.thread
 
-abstract class WelcomeUI {
+interface WelcomeUI {
 
-    open fun createBackground(style: Style): Panel {
+    fun createBackground(style: Style): Panel {
         return Panel(style).apply { backgroundColor = black }
     }
 

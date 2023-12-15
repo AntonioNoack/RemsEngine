@@ -13,6 +13,7 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.DrawMode
 import me.anno.gpu.buffer.LineBuffer
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
 import org.joml.Matrix4d
 import org.joml.Matrix4f
@@ -22,34 +23,44 @@ import kotlin.math.*
 
 object MovingGrid {
 
-    fun drawGrid(radius: Double, mask: Int) {
+    fun drawGrid(mask: Int) {
         if (mask.and(7) == 0) return
         LineBuffer.finish(RenderState.cameraMatrix)
         GFXState.depthMask.use(false) {
-            drawGrid3(radius, mask)
+            drawGrid3(mask)
         }
     }
 
-    private fun drawGrid3(radius0: Double, mask: Int) {
+    private fun drawGrid3(mask: Int) {
 
-        val log = log10(radius0)
-        val floorLog = floor(log)
-        alphas[2] = (log - floorLog).toFloat()
-        alphas[1] = 1f
-        alphas[0] = 1f - alphas[2]
-        val radius1 = Maths.pow(10.0, floorLog + 1)
-        val position = RenderView.currentInstance?.orbitCenter ?: RenderState.cameraPosition
+        val pos0 = RenderView.currentInstance?.orbitCenter ?: RenderState.cameraPosition
+        val pos1 = RenderView.currentInstance?.cameraPosition ?: pos0
 
-        for (i in 0 until 3) {
+        for (axis in 0 until 3) {
+            if (mask.hasFlag(1 shl axis)) {
 
-            val scale = 10.0.pow(i)
-            val radius2 = radius1 * scale
+                val distance = max(abs(pos0[axis]), abs(pos1[axis]))
 
-            val dx = round(position.x / radius2) * radius2
-            val dz = round(position.z / radius2) * radius2
+                val log = log10(distance)
+                val floorLog = floor(log)
+                val fractLog = (log - floorLog).toFloat()
+                val radius1 = Maths.pow(10.0, floorLog + 1)
 
-            for (axis in 0 until 3) {
-                if (mask.hasFlag(1 shl axis)) {
+                // number of levels depends on distance from camera to center
+                val numLevels = fractLog + 2f
+                for (i in 0..2) {
+
+                    val scale = 10.0.pow(i)
+                    val radius2 = radius1 * scale
+
+                    val dx = round(pos0.x / radius2) * radius2
+                    val dz = round(pos0.z / radius2) * radius2
+
+                    val alpha0 = 0.05f * when (i) {
+                        0 -> 1f - fractLog
+                        else -> clamp(numLevels - i)
+                    }
+
 
                     val transform = init()
                         .translate(dx, 0.0, dz)
@@ -64,7 +75,7 @@ object MovingGrid {
                     }
                     transform.rotate(baseRot)
 
-                    alpha = 0.05f * alphas[i]
+                    alpha = alpha0
                     drawMesh(gridMesh)
 
                     alpha *= 2f
@@ -84,7 +95,8 @@ object MovingGrid {
         }
 
         // to do replace with one mesh
-        drawAxes(radius0)
+        val distance = max(abs(pos1.x), max(abs(pos1.y), abs(pos1.z)))
+        drawAxes(distance)
     }
 
     fun drawMesh(mesh: Mesh) {
@@ -100,7 +112,6 @@ object MovingGrid {
 
     val gridMesh = Mesh()
 
-    val alphas = FloatArray(3)
     var alpha = 0f
     val transform = Matrix4d()
     val transform2 = Matrix4f()
@@ -152,6 +163,7 @@ object MovingGrid {
         val pos = RenderState.cameraPosition
         return transform
             .set(RenderState.cameraMatrix)
+            .scale(RenderState.worldScale)
             .translate(-pos.x, -pos.y, -pos.z)
     }
 

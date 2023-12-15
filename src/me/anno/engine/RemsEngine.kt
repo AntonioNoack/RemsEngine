@@ -7,9 +7,12 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
-import me.anno.engine.ui.DefaultLayout
+import me.anno.engine.ui.ECSFileExplorer
+import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
+import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.render.Renderers.previewRenderer
+import me.anno.engine.ui.render.SceneView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
@@ -29,6 +32,8 @@ import me.anno.ui.Style
 import me.anno.ui.WindowStack.Companion.createReloadWindow
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
+import me.anno.ui.custom.CustomContainer
+import me.anno.ui.custom.CustomList
 import me.anno.ui.debug.ConsoleOutputPanel
 import me.anno.ui.editor.OptionBar
 import me.anno.ui.editor.PropertyInspector
@@ -81,7 +86,7 @@ import org.joml.Matrix4f
 //  - Sims like game, just low-poly style
 //          simlish should be easy ^^
 
-open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
+open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), WelcomeUI {
 
     lateinit var currentProject: GameEngineProject
 
@@ -127,84 +132,111 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true) {
         restoreSelected(selected)
     }
 
+    fun createDefaultMainUI(projectFile: FileReference, style: Style): Panel {
+
+        val customUI = CustomList(true, style)
+        customUI.weight = 10f
+
+        val animationWindow = CustomList(false, style)
+
+        val libraryBase = EditorState
+        val library = libraryBase.uiLibrary
+
+        animationWindow.add(CustomContainer(ECSTreeView(libraryBase, style), library, style), 1f)
+        animationWindow.add(CustomContainer(SceneView(PlayMode.EDITING, style), library, style), 3f)
+        animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
+        animationWindow.weight = 1f
+        customUI.add(animationWindow, 2f)
+
+        val explorers = CustomList(false, style).apply { weight = 0.3f }
+        explorers.add(CustomContainer(ECSFileExplorer(projectFile, style), library, style))
+        explorers.add(CustomContainer(ECSFileExplorer(OS.documents, style), library, style))
+
+        customUI.add(explorers)
+        return customUI
+    }
+
+    fun getWelcomeUI(): WelcomeUI {
+        return this
+    }
+
+    override fun createBackground(style: Style): Panel {
+        return object : Panel(style) {
+            val sky = Skybox()
+            val cameraMatrix = Matrix4f()
+            override val canDrawOverBorders get() = true
+            override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
+                useFrame(previewRenderer) {
+                    sky.nadirSharpness = 10f
+                    val shader = sky.shader!!.value
+                    shader.use()
+                    shader.v1f("meshScale", 1f)
+                    shader.v1b("isPerspective", true)
+                    shader.v1b("reverseDepth", false)
+                    Perspective.setPerspective(
+                        cameraMatrix,
+                        0.7f,
+                        (x1 - x0) * 1f / (y1 - y0),
+                        0.001f, 10f, 0f, 0f
+                    )
+                    ThumbsExt.bindShader(shader, cameraMatrix, Thumbs.matModelMatrix)
+                    sky.material.bind(shader)
+                    sky.getMesh().draw(shader, 0)
+                }
+            }
+        }
+    }
+
+    override fun createProjectUI() {
+
+        val windowStack = GFX.someWindow!!.windowStack
+        val style = style
+        val list = PanelListY(style)
+        val options = OptionBar(style)
+        val configTitle = Dict["Config", "ui.top.config"]
+        options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
+            val panel = ConfigPanel(DefaultConfig, false, style)
+            val window = createReloadWindow(panel, transparent = false, fullscreen = true) { createUI() }
+            panel.create()
+            windowStack.push(window)
+        }
+
+        options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
+            val panel = ConfigPanel(DefaultConfig.style.values, true, style)
+            val window = createReloadWindow(panel, transparent = false, fullscreen = true) { createUI() }
+            panel.create()
+            windowStack.push(window)
+        }
+
+        list.add(options)
+
+        list.add(ECSSceneTabs)
+
+        val editUI = createDefaultMainUI(currentProject.location, style)
+        list.add(editUI)
+
+        list.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
+        windowStack.push(list)
+        // could be drawDirectly, but the text quality of triangle- and draw count suffers from it
+    }
+
+    override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {
+        currentProject = GameEngineProject.readOrCreate(folder)!!
+        currentProject.init()
+        val title = "$title - $name"
+        for (window in GFX.windows) {
+            window.title = title
+        }
+        EditorState.projectFile = currentProject.location
+        return name to folder
+    }
+
     override fun createUI() {
 
         workspace = OS.documents.getChild("RemsEngine")
         workspace.tryMkdirs()
 
-        object : WelcomeUI() {
-
-            override fun createBackground(style: Style): Panel {
-                return object : Panel(style) {
-                    val sky = Skybox()
-                    val cameraMatrix = Matrix4f()
-                    override val canDrawOverBorders get() = true
-                    override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
-                        useFrame(previewRenderer) {
-                            sky.nadirSharpness = 10f
-                            val shader = sky.shader!!.value
-                            shader.use()
-                            shader.v1f("meshScale", 1f)
-                            shader.v1b("isPerspective", true)
-                            shader.v1b("reverseDepth", false)
-                            Perspective.setPerspective(
-                                cameraMatrix,
-                                0.7f,
-                                (x1 - x0) * 1f / (y1 - y0),
-                                0.001f, 10f, 0f, 0f
-                            )
-                            ThumbsExt.bindShader(shader, cameraMatrix, Thumbs.matModelMatrix)
-                            sky.material.bind(shader)
-                            sky.getMesh().draw(shader, 0)
-                        }
-                    }
-                }
-            }
-
-            override fun createProjectUI() {
-
-                val windowStack = GFX.someWindow!!.windowStack
-                val style = style
-                val list = PanelListY(style)
-                val options = OptionBar(style)
-                val configTitle = Dict["Config", "ui.top.config"]
-                options.addAction(configTitle, Dict["Settings", "ui.top.config.settings"]) {
-                    val panel = ConfigPanel(DefaultConfig, false, style)
-                    val window = createReloadWindow(panel, transparent = false, fullscreen = true) { createUI() }
-                    panel.create()
-                    windowStack.push(window)
-                }
-
-                options.addAction(configTitle, Dict["Style", "ui.top.config.style"]) {
-                    val panel = ConfigPanel(DefaultConfig.style.values, true, style)
-                    val window = createReloadWindow(panel, transparent = false, fullscreen = true) { createUI() }
-                    panel.create()
-                    windowStack.push(window)
-                }
-
-                list.add(options)
-
-                list.add(ECSSceneTabs)
-
-                val editUI = DefaultLayout.createDefaultMainUI(currentProject.location, style)
-                list.add(editUI)
-
-                list.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
-                windowStack.push(list)
-                // could be drawDirectly, but the text quality of triangle- and draw count suffers from it
-            }
-
-            override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {
-                currentProject = GameEngineProject.readOrCreate(folder)!!
-                currentProject.init()
-                val title = "$title - $name"
-                for (window in GFX.windows) {
-                    window.title = title
-                }
-                EditorState.projectFile = currentProject.location
-                return name to folder
-            }
-        }.create(this)
+        getWelcomeUI().create(this)
 
         ShaderLib.init()
 

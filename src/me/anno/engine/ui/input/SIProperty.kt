@@ -1,7 +1,7 @@
 package me.anno.engine.ui.input
 
 import me.anno.engine.IProperty
-import me.anno.engine.ui.DetectiveWriter
+import me.anno.io.find.DetectiveWriter
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.ui.Panel

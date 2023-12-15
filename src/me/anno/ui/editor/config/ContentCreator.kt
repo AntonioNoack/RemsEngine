@@ -39,10 +39,6 @@ class ContentCreator(
                     .setChangeListener { map[fullName] = it }
                     .withPadding(pad, 0, 0, 0)
             }
-            /*is Enum<*> -> {
-                list += root.VI(shortName, fullName, null, value, style) { map[fullName] = value }
-                    .withPadding(pad, 0, 0, 0)
-            }*/
             else -> {
                 list += title.setTooltip(fullName).withPadding(pad, 0, 0, 0)
                 val body: Panel = when (value) {

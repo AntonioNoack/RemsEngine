@@ -274,44 +274,72 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
         TODO("Not yet implemented")
     }
 
+    private fun m22(value: Matrix2f): String {
+        return "[${value.m00},${value.m01},${value.m10},${value.m11}]"
+    }
+
+    private fun m32(value: Matrix3x2f): String {
+        return "[${value.m00},${value.m01},${value.m10},${value.m11},${value.m20},${value.m21}]"
+    }
+
+    private fun m33(value: Matrix3f): String {
+        return "[${value.m00},${value.m01},${value.m02},\" +\n" +
+                "                \"${value.m10},${value.m11},${value.m12},\" +\n" +
+                "                \"${value.m20},${value.m21},${value.m22}]"
+    }
+
+    private fun m43(value: Matrix4x3f): String {
+        return "[${value.m00},${value.m01},${value.m02}," +
+                "${value.m10},${value.m11},${value.m12}," +
+                "${value.m20},${value.m21},${value.m22}," +
+                "${value.m30},${value.m31},${value.m32}]"
+    }
+
+    private fun m44(value: Matrix4f): String {
+        return "[${value.m00},${value.m01},${value.m02},${value.m03}," +
+                "${value.m10},${value.m11},${value.m12},${value.m13}," +
+                "${value.m20},${value.m21},${value.m22},${value.m23}," +
+                "${value.m30},${value.m31},${value.m32},${value.m33}]"
+    }
+
     override fun writeMatrix2x2f(name: String, value: Matrix2f, force: Boolean) {
-        TODO("Not yet implemented")
+        simpleObject(MATRIX2X2F, name, "v=\"${m22(value)}\"")
     }
 
     override fun writeMatrix3x2f(name: String, value: Matrix3x2f, force: Boolean) {
-        TODO("Not yet implemented")
+        simpleObject(MATRIX3X2F, name, "v=\"${m32(value)}\"")
     }
 
     override fun writeMatrix3x3f(name: String, value: Matrix3f, force: Boolean) {
-        TODO("Not yet implemented")
+        simpleObject(MATRIX3X3F, name, "v=\"${m33(value)}\"")
     }
 
     override fun writeMatrix4x3f(name: String, value: Matrix4x3f, force: Boolean) {
-        TODO("Not yet implemented")
+        simpleObject(MATRIX4X3F, name, "v=\"${m43(value)}\"")
     }
 
     override fun writeMatrix4x4f(name: String, value: Matrix4f, force: Boolean) {
-        TODO("Not yet implemented")
+        simpleObject(MATRIX4X4F, name, "v=\"${m44(value)}\"")
     }
 
     override fun writeMatrix2x2fArray(name: String, values: Array<Matrix2f>, force: Boolean) {
-        TODO("Not yet implemented")
+        array(MATRIX2X2F, name, values.joinToString(",") { m22(it) })
     }
 
     override fun writeMatrix3x2fArray(name: String, values: Array<Matrix3x2f>, force: Boolean) {
-        TODO("Not yet implemented")
+        array(MATRIX3X2F, name, values.joinToString(",") { m32(it) })
     }
 
     override fun writeMatrix3x3fArray(name: String, values: Array<Matrix3f>, force: Boolean) {
-        TODO("Not yet implemented")
+        array(MATRIX3X3F, name, values.joinToString(",") { m33(it) })
     }
 
     override fun writeMatrix4x3fArray(name: String, values: Array<Matrix4x3f>, force: Boolean) {
-        TODO("Not yet implemented")
+        array(MATRIX4X3F, name, values.joinToString(",") { m43(it) })
     }
 
     override fun writeMatrix4x4fArray(name: String, values: Array<Matrix4f>, force: Boolean) {
-        TODO("Not yet implemented")
+        array(MATRIX4X4F, name, values.joinToString(",") { m44(it) })
     }
 
     override fun writeMatrix2x2fArray2D(name: String, values: Array<Array<Matrix2f>>, force: Boolean) {
@@ -419,19 +447,29 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writeAABBf(name: String, value: AABBf, force: Boolean) {
-        TODO("Not yet implemented")
+        simpleObject(
+            AABBF, name, "minX=\"${value.minX}\" minY=\"${value.minY}\" minZ=\"${value.minZ}\"" +
+                    " maxX=\"${value.maxX}\" maxY=\"${value.maxY}\" maxZ=\"${value.maxZ}\""
+        )
     }
 
     override fun writeAABBd(name: String, value: AABBd, force: Boolean) {
-        TODO("Not yet implemented")
+        simpleObject(
+            AABBD, name, "minX=\"${value.minX}\" minY=\"${value.minY}\" minZ=\"${value.minZ}\"" +
+                    " maxX=\"${value.maxX}\" maxY=\"${value.maxY}\" maxZ=\"${value.maxZ}\""
+        )
     }
 
     override fun writeAABBfArray(name: String, values: Array<AABBf>, force: Boolean) {
-        TODO("Not yet implemented")
+        array(AABBF, name, values.joinToString(",") {
+            "(${it.minX},${it.minY},${it.minZ},${it.maxX},${it.maxY},${it.maxZ})"
+        })
     }
 
     override fun writeAABBdArray(name: String, values: Array<AABBd>, force: Boolean) {
-        TODO("Not yet implemented")
+        array(AABBD, name, values.joinToString(",") {
+            "(${it.minX},${it.minY},${it.minZ},${it.maxX},${it.maxY},${it.maxZ})"
+        })
     }
 
     override fun writeAABBfArray2D(name: String, values: Array<Array<AABBf>>, force: Boolean) {
@@ -443,19 +481,13 @@ abstract class XMLWriterBase(val workspace: FileReference) : BaseWriter(true) {
     }
 
     override fun writePlanef(name: String, value: Planef, force: Boolean) {
-        simpleObject(
-            PLANEF,
-            name,
-            "x=\"${value.dirX}\" y=\"${value.dirY}\" z=\"${value.dirZ}\" d=\"${value.distance}\""
-        )
+        val attr = "x=\"${value.dirX}\" y=\"${value.dirY}\" z=\"${value.dirZ}\" d=\"${value.distance}\""
+        simpleObject(PLANEF, name, attr)
     }
 
     override fun writePlaned(name: String, value: Planed, force: Boolean) {
-        simpleObject(
-            PLANED,
-            name,
-            "x=\"${value.dirX}\" y=\"${value.dirY}\" z=\"${value.dirZ}\" d=\"${value.distance}\""
-        )
+        val attr = "x=\"${value.dirX}\" y=\"${value.dirY}\" z=\"${value.dirZ}\" d=\"${value.distance}\""
+        simpleObject(PLANED, name, attr)
     }
 
     override fun writePlanefArray(name: String, values: Array<Planef>, force: Boolean) {
