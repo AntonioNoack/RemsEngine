@@ -170,10 +170,10 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
 
     var timeoutMillis = 60_000L
 
-    // opening a packed stream again would be really expensive for large packages
-    // is there a better strategy than this?? maybe index a few on every go to load something
+    /**
+     * opening a packed stream again would be really expensive for large packages;
+     * is there a better strategy than this?? maybe index a few on every go to load something
+     * */
     var sizeLimit = 20_000_000L
-
-    // private val LOGGER = LogManager.getLogger(ZipCache::class)
 
 }

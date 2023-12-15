@@ -224,12 +224,17 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
             ) { p, files ->
                 // ask material
                 val meshes = ArrayList<Triple<FileReference, Prefab, List<FileReference>>>()
+                val materials = ArrayList<Pair<FileReference, Prefab>>()
                 val filesToBeInvalidated = ArrayList<FileReference>()
                 fun processMesh(file: FileReference, prefab: Prefab) {
                     val oldMaterials = (prefab["materials"] as? List<*>)
                         ?.filterIsInstance<FileReference>()
                         ?: emptyList()
                     meshes.add(Triple(file, prefab, oldMaterials))
+                }
+
+                fun processMaterial(file: FileReference, prefab: Prefab) {
+                    materials.add(file to prefab)
                 }
                 for (file in files) {
                     if (file.isDirectory) continue
@@ -252,14 +257,21 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
                             }
                         }
                         "Mesh" -> processMesh(file, prefab)
+                        "Material" -> processMaterial(file, prefab)
                     }
                 }
-                if (meshes.isNotEmpty()) {
+                if (meshes.isNotEmpty() || materials.isNotEmpty()) {
                     ComponentUI.chooseFileFromProject("Material", InvalidRef, p, p.style) { materialFile, cancelled ->
                         for ((file, prefab, oldMaterials) in meshes) {
                             val size = max(1, oldMaterials.size)
                             prefab["materials"] = if (cancelled) oldMaterials
                             else (0 until size).map { materialFile }
+                            file.writeText(JsonStringWriter.toText(prefab, workspace))
+                        }
+                        for ((file, prefab) in materials) {
+                            prefab.prefab = materialFile
+                            prefab.adds.clear() // not really doing anything
+                            prefab.sets.clear()
                             file.writeText(JsonStringWriter.toText(prefab, workspace))
                         }
                         // and at the end, invalidate the thumbnail for these secondary source files
@@ -276,10 +288,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
             // create camera, material, shader, prefab, mesh, script, etc
             addOptionToCreateComponent("Entity")
             addOptionToCreateComponent("Scene", "Entity", ScenePrefab)
-            // addOptionToCreateComponent("Camera", "Camera")
-            // addOptionToCreateComponent("Cube", "")
             addOptionToCreateComponent("Material")
-            // addOptionToCreateComponent("Rigidbody")
         }
     }
 }

@@ -96,6 +96,10 @@ open class FileInput(
         // for a symmetric border
         val border = style.getPadding("borderSize", 2).left
         if (border > 0) this += SpacerPanel(border, 0, style).apply { backgroundColor = 0 }
+        base.alignmentX = AxisAlignment.FILL
+        base2.alignmentX = AxisAlignment.FILL
+        base.weight = 1f
+        base2.weight = 1f
         this += base
     }
 
@@ -164,7 +168,7 @@ open class FileInput(
     }
 
     override fun onGotAction(x: Float, y: Float, dx: Float, dy: Float, action: String, isContinuous: Boolean): Boolean {
-        return if (action == "DragStart") {
+        return if (action == "DragStart" && !Input.mouseHasMoved) {
             val value = value
             val title = value.nameWithoutExtension
             val stringContent = value.absolutePath

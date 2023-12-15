@@ -54,10 +54,14 @@ import kotlin.math.PI
 import kotlin.math.sign
 import kotlin.math.tan
 
-// done controls
-// done show the scene
-// done drag stuff
-// done translate, rotate, scale with gizmos
+// todo select a bunch of assets, make it a collection,
+//  and draw them using a brush, for foliage
+
+// todo bug: after dragging image,
+//  - firstly, image is not showing
+//  - secondly, image is then showing when dragging another thing
+//  - it would be nice if we could place images onto materials (?)
+
 // todo gizmos & movement for properties with @PositionAnnotation
 
 // advanced snapping

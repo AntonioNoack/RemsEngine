@@ -90,6 +90,8 @@ object Input {
     var maxClickDistance = 5f
     var hadMouseMovement = false
 
+    val mouseHasMoved get() = mouseMovementSinceMouseDown > maxClickDistance
+
     var isLeftDown = false
     var isMiddleDown = false
     var isRightDown = false
@@ -590,7 +592,7 @@ object Input {
 
         val longClickMillis = DefaultConfig["longClick", 300]
         val currentNanos = nanoTime
-        val isClick = mouseMovementSinceMouseDown < maxClickDistance && !windowWasClosed
+        val isClick = !mouseHasMoved && !windowWasClosed
 
         val event = UIEvent(
             window.currentWindow,

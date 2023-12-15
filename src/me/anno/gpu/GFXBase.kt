@@ -481,7 +481,7 @@ object GFXBase {
             GLFW.glfwSetInputMode(lastTrapWindow!!.pointer, GLFW.GLFW_CURSOR, GLFW.GLFW_CURSOR_NORMAL)
             LOGGER.debug("Unlocking Mouse")
             lastTrapWindow = null
-        } else if (Input.mouseMovementSinceMouseDown > 5f && Input.mouseKeysDown.isNotEmpty() && DefaultConfig["ui.enableMouseJumping", true]) {
+        } else if (Input.mouseHasMoved && Input.mouseKeysDown.isNotEmpty() && DefaultConfig["ui.enableMouseJumping", true]) {
             // when dragging a value (dragging + selected.isInput), and cursor is on the border, respawn it in the middle of the screen
             // for that, the cursor should be within 2 frames of reaching the border...
             // for that, we need the last mouse movement :)

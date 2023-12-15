@@ -149,8 +149,7 @@ object ActionManager {
         val mouseMoveConsumer = BiConsumer<Key, Long> { key, downTime ->
             onKeyHoldDown(window, dx, dy, key, KeyCombination.Type.PRESSING)
             val deltaTime = (Time.nanoTime - downTime) * 1e-9f
-            val mouseStill = Input.mouseMovementSinceMouseDown < Input.maxClickDistance
-            if (deltaTime >= keyDragDelay || !mouseStill) {
+            if (deltaTime >= keyDragDelay || Input.mouseHasMoved) {
                 onKeyHoldDown(window, dx, dy, key, KeyCombination.Type.DRAGGING)
             }
         }
