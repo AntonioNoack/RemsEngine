@@ -7,6 +7,7 @@ import me.anno.ecs.prefab.Hierarchy
 import me.anno.ecs.prefab.PrefabInspector
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.GameEngineProject.Companion.currentProject
 import me.anno.engine.ui.ECSFileExplorer
 import me.anno.engine.ui.ECSTreeView
 import me.anno.engine.ui.EditorState
@@ -87,8 +88,6 @@ import org.joml.Matrix4f
 //          simlish should be easy ^^
 
 open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), WelcomeUI {
-
-    lateinit var currentProject: GameEngineProject
 
     override fun loadConfig() {
         DefaultConfig.defineDefaultFileAssociations()
@@ -212,7 +211,7 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
 
         list.add(ECSSceneTabs)
 
-        val editUI = createDefaultMainUI(currentProject.location, style)
+        val editUI = createDefaultMainUI(currentProject!!.location, style)
         list.add(editUI)
 
         list.add(ConsoleOutputPanel.createConsoleWithStats(true, style))
@@ -221,13 +220,14 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
     }
 
     override fun loadProject(name: String, folder: FileReference): Pair<String, FileReference> {
-        currentProject = GameEngineProject.readOrCreate(folder)!!
-        currentProject.init()
+        val project = GameEngineProject.readOrCreate(folder)!!
+        currentProject = project
+        project.init()
         val title = "$title - $name"
         for (window in GFX.windows) {
             window.title = title
         }
-        EditorState.projectFile = currentProject.location
+        EditorState.projectFile = project.location
         return name to folder
     }
 

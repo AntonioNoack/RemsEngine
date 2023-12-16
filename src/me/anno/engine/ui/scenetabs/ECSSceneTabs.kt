@@ -3,6 +3,7 @@ package me.anno.engine.ui.scenetabs
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector
+import me.anno.engine.GameEngineProject.Companion.currentProject
 import me.anno.engine.RemsEngine
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
@@ -125,7 +126,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
         (uiParent ?: this).invalidateDrawing()
     }
 
-    val project get() = (StudioBase.instance as? RemsEngine)?.currentProject
+    val project get() = currentProject
 
     fun open(tab: ECSSceneTab, setActive: Boolean) {
 

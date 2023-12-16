@@ -6,6 +6,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.GameEngineProject.Companion.currentProject
 import me.anno.engine.RemsEngine
 import me.anno.engine.ScenePrefab
 import me.anno.engine.ui.AssetImport.deepCopyImport
@@ -91,8 +92,7 @@ class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0,
         val entry = content2d.children.firstOrNull { it.contains(x, y) } as? FileExplorerEntry
         val current = if (entry == null) folder else getReference(entry.path)
 
-        val projectFolder = (StudioBase.instance as? RemsEngine)
-            ?.currentProject?.location ?: return
+        val projectFolder = currentProject?.location ?: return
 
         if (current.absolutePath.startsWith(projectFolder.absolutePath) &&
             !files.all { AssetImport.isPureFile(it) }

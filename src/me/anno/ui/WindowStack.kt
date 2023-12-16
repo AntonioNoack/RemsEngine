@@ -15,6 +15,9 @@ import kotlin.math.max
 /**
  * Stack of windows within one OS-level window.
  * Could be within a virtual window, too (CanvasComponent)
+ *
+ * todo when we're on the edge of a non-fullscreen window, allow resizing
+ * done draw shadow on the edge of each non-fullscreen window like in Windows
  * */
 @Suppress("MemberVisibilityCanBePrivate")
 class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
@@ -182,7 +185,7 @@ class WindowStack(val osWindow: OSWindow? = null) : Stack<Window>() {
         val sparseRedraw = DefaultConfig["ui.sparseRedraw", true]
         var didSomething = didSomething0
         val windowStack = this
-        val lastFullscreenIndex = max(windowStack.indexOfLast { it.isFullscreen }, 0)
+        val lastFullscreenIndex = max(windowStack.indexOfLast { it.isFullscreen && !it.isTransparent }, 0)
         for (index in lastFullscreenIndex until windowStack.size) {
             val window = windowStack.getOrNull(index) ?: break
             didSomething = window.draw(dx, dy, windowW, windowH, sparseRedraw, didSomething, forceRedraw)

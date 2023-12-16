@@ -2,18 +2,32 @@ package me.anno.ui
 
 import me.anno.config.DefaultConfig
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderDefault
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
+import me.anno.gpu.buffer.SimpleBuffer.Companion.flat01
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawTextures.drawTexture
+import me.anno.gpu.drawing.GFXx2D.noTiling
+import me.anno.gpu.drawing.GFXx2D.posSize
 import me.anno.gpu.framebuffer.DepthBufferType
 import me.anno.gpu.framebuffer.Frame
 import me.anno.gpu.framebuffer.Framebuffer
+import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.ShaderLib.uiVertexShader
+import me.anno.gpu.shader.ShaderLib.uiVertexShaderList
+import me.anno.gpu.shader.ShaderLib.uvList
+import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.utils.Color.a
+import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.LimitedList
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
@@ -201,8 +215,46 @@ open class Window(
                 }
                 // else no buffer needs to be updated
             }
+            if (didSomething && !isFullscreen && !isTransparent) {
+                drawWindowShadow()
+                didSomething = true
+            }
         }
         return didSomething
+    }
+
+    fun drawWindowShadow() {
+
+        val panel = panel
+        val radius = DefaultConfig["ui.window.shadowRadius", 12]
+        val color = DefaultConfig["ui.window.shadowColor", black.withAlpha(30)]
+        val w0 = panel.lx1 - panel.lx0
+        val h0 = panel.ly1 - panel.ly0
+        val x1 = panel.lx0 - radius
+        val y1 = panel.ly0 - radius
+        val w1 = w0 + 2 * radius
+        val h1 = h0 + 2 * radius
+
+        if (radius <= 0 || color.a() == 0)
+            return
+
+        val fb = GFXState.currentBuffer
+        GFX.clip2(
+            max(x1, 0), max(y1, 0),
+            min(x1 + w1, fb.width), min(y1 + h1, fb.height)
+        ) {
+            renderDefault {
+                val shader = shadowShader
+                shader.use()
+                posSize(shader, x1, y1, w1, h1)
+                val scale = 0.5f / radius
+                shader.v2f("inner", w0 * scale, h0 * scale)
+                shader.v2f("outer", w1 * scale, h1 * scale)
+                noTiling(shader)
+                shader.v4f("color", color)
+                flat01.draw(shader)
+            }
+        }
     }
 
     fun processNeeds(list: LimitedList<Panel>, panel: Panel, full: () -> Unit, single: (Panel) -> Unit) {
@@ -426,5 +478,20 @@ open class Window(
         private const val redrawColor = 0x33ff0000
         private val LOGGER = LogManager.getLogger(Window::class.java)
         private val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
+        private val shadowShader = Shader(
+            "shadow", uiVertexShaderList, uiVertexShader, uvList, listOf(
+                Variable(GLSLType.V4F, "color"),
+                Variable(GLSLType.V2F, "inner"),
+                Variable(GLSLType.V2F, "outer"),
+                Variable(GLSLType.V4F, "result", VariableMode.OUT)
+            ), "" +
+                    "void main(){\n" +
+                    "   float dist = length(max(abs((uv*2.0-1.0)*outer)-inner, vec2(0.0)));\n" +
+                    "   if(dist <= 0.0 || dist >= 1.0) discard;\n" +
+                    "   result = color;\n" +
+                    "   float alpha = smoothstep(0.0,1.0,1.0-dist);\n" +
+                    "   result.a *= alpha * alpha;\n" +
+                    "}\n"
+        )
     }
 }

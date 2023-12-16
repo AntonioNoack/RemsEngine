@@ -24,6 +24,9 @@ import kotlin.concurrent.thread
 class GameEngineProject() : NamedSaveable() {
 
     companion object {
+
+        var currentProject: GameEngineProject? = null
+
         private val LOGGER = LogManager.getLogger(GameEngineProject::class)
         fun readOrCreate(location: FileReference?): GameEngineProject? {
             location ?: return null
@@ -210,7 +213,7 @@ class GameEngineProject() : NamedSaveable() {
 
     override fun save(writer: BaseWriter) {
         super.save(writer)
-        writer.writeString("lastScene", lastScene )
+        writer.writeString("lastScene", lastScene)
         writer.writeStringArray("openTabs", openTabs.toTypedArray())
         writer.writeInt("maxIndexDepth", maxIndexDepth)
         // location doesn't really need to be saved

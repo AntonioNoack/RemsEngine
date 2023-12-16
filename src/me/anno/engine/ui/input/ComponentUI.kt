@@ -28,21 +28,24 @@ import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.IProperty
 import me.anno.engine.ui.AssetImport
-import me.anno.io.find.DetectiveWriter
 import me.anno.engine.ui.EditorState
 import me.anno.engine.ui.render.PlayMode
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
+import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.ISaveable
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.inner.temporary.InnerTmpFile
+import me.anno.io.find.DetectiveWriter
 import me.anno.io.json.generic.JsonFormatter
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths
+import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
+import me.anno.maths.Maths.max
 import me.anno.studio.Inspectable
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -1259,9 +1262,31 @@ object ComponentUI {
         val panelList = PanelListY(style)
         val options = ArrayList<FileReference>()
 
+        var entrySize = 64f
+        val minEntrySize = 16f
+
         fun createCategory(title: String, options: List<FileReference>) {
             if (options.isNotEmpty()) {
-                val optionList = PanelList2D(style)
+                val optionList = object : PanelList2D(style) {
+                    override fun onUpdate() {
+                        super.onUpdate()
+                        childWidth = entrySize.toInt()
+                        childHeight = childWidth
+                    }
+                    override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
+                        if (Input.isControlDown) {
+                            val newEntrySize = entrySize * Maths.pow(1.05f, dy - dx)
+                            entrySize = clamp(
+                                newEntrySize,
+                                minEntrySize,
+                                max(width - spacing * 2f - 1f, minEntrySize)
+                            )
+                        } else super.onMouseWheel(x, y, dx, dy, byMouse)
+                    }
+                }
+                optionList.childWidth = entrySize.toInt()
+                optionList.childHeight = optionList.childHeight
+                optionList.alignmentX = AxisAlignment.FILL
                 // title needs to be bold, or sth like that
                 panelList.add(TextPanel(title, style).apply {
                     isBold = true

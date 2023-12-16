@@ -9,6 +9,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.FontListMenu.createFontInput
 import me.anno.ui.input.*
+import me.anno.utils.Color.a
 import me.anno.utils.Color.black
 import me.anno.utils.Color.rgba
 import me.anno.utils.Color.toHexColor
@@ -69,7 +70,7 @@ class ContentCreator(
                             .setChangeListener { map[fullName] = it }
                     }
                     is Int -> {
-                        if (value.shr(24).and(255) > 100) {
+                        if (value.a() > 100 || "Color" in fullName || fullName.endsWith("background")) {
                             // a color
                             ColorInput(style, "", "", value.toVecRGBA(), true)
                                 .setChangeListener { r, g, b, a, _ -> map[fullName] = rgba(r, g, b, a) }
