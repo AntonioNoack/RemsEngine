@@ -33,7 +33,6 @@ class ImagePlane(var source: FileReference = InvalidRef) : ProceduralMesh() {
             val max = max(meta.videoWidth, meta.videoHeight).toFloat()
             sx = meta.videoWidth / max
             sy = meta.videoHeight / max
-            println("meta isn't null, $sx, $sy")
         }
         val pos = mesh.positions.resize(3 * 4)
         mesh.positions = pos

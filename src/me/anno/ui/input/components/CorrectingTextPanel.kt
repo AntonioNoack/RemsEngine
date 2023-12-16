@@ -11,6 +11,8 @@ import me.anno.ui.editor.code.CodeEditor.Companion.drawSquiggles1
 import me.anno.ui.Style
 import me.anno.utils.Color.black
 import me.anno.utils.types.Strings.joinChars
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.streams.toList
 
 abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
@@ -33,19 +35,19 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
         loadTexturesSync.push(loadTextSync)
         instantTextLoading = true
         super.onDraw(x0, y0, x1, y1)
-        drawSuggestionLines()
+        drawSuggestionLines(x0, x1)
         loadTexturesSync.pop()
     }
 
-    fun drawSuggestionLines() {
+    fun drawSuggestionLines(x0: Int, x1: Int) {
         val suggestions = suggestions
         if (!suggestions.isNullOrEmpty()) {
             // display all suggestions
             for (si in suggestions.indices) {
-                val x0 = x + padding.left + drawingOffset
+                val offset = x + padding.left + drawingOffset
                 val s = suggestions[si]
-                val startX = x0 + getXOffset(s.start)
-                val endX = x0 + getXOffset(s.end)
+                val startX = max(x0, offset + getXOffset(s.start))
+                val endX = min(x1, offset + getXOffset(s.end))
                 val theY = this.y + this.height - padding.bottom - 1
                 // wavy line
                 val color = 0xffff00 or black
@@ -123,9 +125,9 @@ abstract class CorrectingTextPanel(style: Style) : TextPanel("", style) {
     // todo automatically show hints, when the user is typing
     private fun applySuggestion(suggestion: Suggestion, choice: String) {
         val text = text
-        val bytes = text.codePoints().toList()
-        val start = if (suggestion.start == 0) emptyList() else bytes.subList(0, suggestion.start)
-        val end = if (suggestion.end >= bytes.size) emptyList() else bytes.subList(suggestion.end, bytes.size - suggestion.end)
+        val chars = text.codePoints().toList()
+        val start = if (suggestion.start == 0) emptyList() else chars.subList(0, suggestion.start)
+        val end = chars.subList(suggestion.end, chars.size)
         this.text = (start + choice.codePoints().toList() + end).joinChars().toString()
         updateChars(true)
         setCursor(start.size + choice.codePoints().toList().size) // set the cursor to after the edit

@@ -62,14 +62,15 @@ class ECSTreeView(val library: EditorState, style: Style) :
         element as PrefabSaveable
         val prefab: Prefab
         val prefabPath: Path
-        if (element.root.prefab == null) element.root.ensurePrefab()
+        val root = element.root
+        if (root.prefab == null) root.ensurePrefab()
         when (child) {
             is Prefab -> {
                 prefab = child
                 prefabPath = Path.ROOT_PATH
             }
             is PrefabSaveable -> {
-                prefab = child.root.prefab!!
+                prefab = root.prefab!!
                 prefabPath = child.prefabPath
             }
             else -> {
@@ -96,6 +97,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
 
     override fun removeChild(parent: ISaveable, child: ISaveable) {
         // todo somehow the window element cannot be removed
+        // todo this generally is broken...
         if (parent is PrefabSaveable && child is PrefabSaveable) {
             parent.root.ensurePrefab()
             parent.ensurePrefab()
@@ -299,18 +301,15 @@ class ECSTreeView(val library: EditorState, style: Style) :
             // we could use, which prefabs were most often created :)
             // todo more options:
             //  undo all deletions
-            //  undo all changes (except transform?)
             //  duplicate
             val extraOptions = listOf(
                 MenuOption(NameDesc("Reset all changes")) {
-                    prefab!!
                     LogManager.enableLogger("Hierarchy")
-                    Hierarchy.resetPrefab(prefab, parent.prefabPath, true)
+                    Hierarchy.resetPrefab(prefab!!, parent.prefabPath, true)
                 }.setEnabled(prefab != null),
                 MenuOption(NameDesc("Reset all changes (except transform)")) {
-                    prefab!!
                     LogManager.enableLogger("Hierarchy")
-                    Hierarchy.resetPrefabExceptTransform(prefab, parent.prefabPath, true)
+                    Hierarchy.resetPrefabExceptTransform(prefab!!, parent.prefabPath, true)
                 }.setEnabled(prefab != null),
                 menuSeparator1
             )

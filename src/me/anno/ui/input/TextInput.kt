@@ -15,12 +15,12 @@ open class TextInput(title: String, val visibilityKey: String, enableSpellcheck:
 
     constructor(style: Style) : this("", "", true, style)
 
-    constructor(title: String, visibilityKey: String, v0: String?, style: Style) :
-            this(title, visibilityKey, true, v0, style)
+    constructor(title: String, visibilityKey: String, value: String?, style: Style) :
+            this(title, visibilityKey, true, value, style)
 
-    constructor(title: String, visibilityKey: String, enableSuggestions: Boolean, v0: String?, style: Style) :
+    constructor(title: String, visibilityKey: String, enableSuggestions: Boolean, value: String?, style: Style) :
             this(title, visibilityKey, enableSuggestions, style) {
-        setValue(v0 ?: "", false)
+        setValue(value ?: "", false)
     }
 
     val base: PureTextInput = child as PureTextInput

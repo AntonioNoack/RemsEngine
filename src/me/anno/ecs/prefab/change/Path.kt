@@ -127,22 +127,22 @@ class Path(
         return path.startsWithOffset(this, offset)
     }
 
-    fun startsWith0(target: Path?): Boolean {
+    fun startsWith(target: Path?): Boolean {
         // magic value ^^
         if (target == null || target == ROOT_PATH) return true
-        return if (target == this) true else parent?.startsWith0(target) ?: false
+        return if (target == this) true else parent?.startsWith(target) ?: false
     }
 
     /**
      * if this starts with target, returns ret such that target + ret == this
      * else returns null
      * */
-    fun startsWith1(target: Path?): Path? {
+    fun startsWithGetRest(target: Path?): Path? {
         // magic value ^^
         if (target == null || target == ROOT_PATH) return this
         // reconstruct the rest path
         if (target == this) return ROOT_PATH
-        val byParent = parent?.startsWith1(target) ?: return null
+        val byParent = parent?.startsWithGetRest(target) ?: return null
         return Path(byParent, nameId, index, type)
     }
 
@@ -171,7 +171,7 @@ class Path(
     }
 
     fun startsWithOffset(other: Path, offset: Int): Boolean {
-        if (offset == 0) return startsWith0(other)
+        if (offset == 0) return startsWith(other)
         else {
             if (size < other.size + offset) return false
             try {

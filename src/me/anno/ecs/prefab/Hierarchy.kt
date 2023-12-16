@@ -41,7 +41,7 @@ object Hierarchy {
                     val prefab2 = PrefabCache[prefabPath]
                     if (prefab2 != null) {
                         val addPath = add.getSetterPath(0)
-                        val newSearchPath = srcSetPath.startsWith1(addPath)
+                        val newSearchPath = srcSetPath.startsWithGetRest(addPath)
                         if (newSearchPath != null) {
                             val className = findAdd(prefab2, newSearchPath, newRecursionDepth)
                             if (className != null) return className
@@ -85,7 +85,7 @@ object Hierarchy {
                 for ((_, adds) in prefab.adds) {
                     for (add in adds) {
                         val herePath = prefabRootPath + add.getSetterPath(0)
-                        val startsWithPath = herePath.startsWith1(srcPath)
+                        val startsWithPath = herePath.startsWithGetRest(srcPath)
                         if (startsWithPath != null) {
                             if (startsWithPath != Path.ROOT_PATH) {
                                 // can simply reference it, and we're done
@@ -94,7 +94,7 @@ object Hierarchy {
                         } else if (add.prefab != InvalidRef) {
                             val prefab2 = PrefabCache[add.prefab]
                             if (prefab2 != null) {
-                                val startsWithPath2 = srcPath.startsWith1(herePath)
+                                val startsWithPath2 = srcPath.startsWithGetRest(herePath)
                                 if (startsWithPath2 != null) {
                                     // check out all properties from the prefab
                                     processPrefab(prefab, herePath)
@@ -107,7 +107,7 @@ object Hierarchy {
                     // todo there is such a thing as relative paths (Rigidbody)... can they be copied?
                     // check if set is applicable
                     val herePath = prefabRootPath + path
-                    val startsWithPath = herePath.startsWith1(srcPath)
+                    val startsWithPath = herePath.startsWithGetRest(srcPath)
                     if (startsWithPath != null) {
                         dstPrefab[startsWithPath, name] = value
                     }
@@ -297,19 +297,12 @@ object Hierarchy {
         // parent.addChildByType(index, type, child)
     }
 
-    fun removePathFromPrefab(
-        prefab: Prefab,
-        saveable: PrefabSaveable
-    ) {
+    fun removePathFromPrefab(prefab: Prefab, saveable: PrefabSaveable) {
         saveable.ensurePrefab()
         removePathFromPrefab(prefab, saveable.prefabPath, saveable.className)
     }
 
-    fun removePathFromPrefab(
-        prefab: Prefab,
-        path: Path,
-        clazzName: String
-    ) {
+    fun removePathFromPrefab(prefab: Prefab, path: Path, clazzName: String) {
 
         if (!prefab.isWritable) throw ImmutablePrefabException(prefab.source)
 
@@ -324,21 +317,16 @@ object Hierarchy {
 
         // remove all properties
         val sets = prefab.sets
-        // sets as MutableList
-
-        LOGGER.info("Removing ${sets.count { k1, _, _ -> k1.startsWith0(path) }}, " +
-                "sets: ${sets.filterMajor { k1 -> k1.startsWith0(path) }.entries.joinToString { it.key.toString() }}, " +
+        LOGGER.info("Removing ${sets.count { k1, _, _ -> k1.startsWith(path) }}, " +
+                "sets: ${sets.filterMajor { k1 -> k1.startsWith(path) }.entries.joinToString { it.key.toString() }}, " +
                 "all start with $path"
         )
-        sets.removeMajorIf { it.startsWith0(path) }
-        // sets.removeIf { it.path.startsWith(path) }
+        sets.removeMajorIf { it.startsWith(path) }
         prefab.isValid = false
 
         val parentPath = path.parent
-
         val adds = prefab.adds
 
-        // val parentPrefab = loadPrefab(prefab.prefab)
         val sample = prefab.getSampleInstance()
         val child = getInstanceAt(sample, path)
 
@@ -376,33 +364,29 @@ object Hierarchy {
             }
         }
 
-        val name = path.lastNameId()
-        val lambda = { it: CAdd -> it.type == type && it.clazzName == clazzName && it.nameId == name }
+        val nameId = path.lastNameId()
+        val findInstance = { it: CAdd -> it.type == type && it.clazzName == clazzName && it.nameId == nameId }
         val adds1 = adds[parentPath]
-        val matches = adds1?.filter(lambda) ?: emptyList()
-        when (matches.size) {
-            0 -> {
-                LOGGER.info("Didn't find add @$parentPath[$clazzName], prefab: ${prefab.source}")
-                prefab[path, "isEnabled"] = false
+        val matches = adds1?.filter(findInstance) ?: emptyList()
+        if (matches.isNotEmpty()) {
+            if (matches.size == 1) {
+                LOGGER.info("Removing single add")
+            } else {
+                LOGGER.warn("There were two items with the same name: illegal! Removing one of them")
             }
-            else -> {
-                if (matches.size == 1) {
-                    LOGGER.info("Removing single add")
-                } else {
-                    LOGGER.warn("There were two items with the same name: illegal! Removing one of them")
-                }
-                adds1!!
-                // remove all following things
-                adds1.removeAt(adds1.indexOfFirst(lambda))
-                adds1.removeIf { it.path.startsWith0(path) }
-                // todo renumber stuff
-                // val t = HashSet<IntArray>()
-                // renumber(path.lastIndex(), -1, path, adds, t)
-                // renumber(path.lastIndex(), -1, path, sets, t)
-                prefab.invalidateInstance()
-            }
+            adds1!!
+            // remove all following things
+            adds1.removeIf(findInstance)
+            adds.removeIf { it.key.startsWith(path) }
+            // todo renumber stuff
+            // val t = HashSet<IntArray>()
+            // renumber(path.lastIndex(), -1, path, adds, t)
+            // renumber(path.lastIndex(), -1, path, sets, t)
+            prefab.invalidateInstance()
+        } else {
+            LOGGER.info("Didn't find add @$parentPath[$clazzName], prefab: ${prefab.source}")
+            prefab[path, "isEnabled"] = false
         }
-
         ECSSceneTabs.updatePrefab(prefab)
     }
 
@@ -410,12 +394,12 @@ object Hierarchy {
         val changes0 = if (removeChildren) {
             val adds = prefab.adds
             val oldSize = adds.values.sumOf { it.size }
-            adds.removeIf { it.key.startsWith0(path) }
+            adds.removeIf { it.key.startsWith(path) }
             val newSize = adds.values.sumOf { it.size }
             oldSize - newSize
         } else 0
         val changes1 = prefab.sets.removeIf { path1, _, _ ->
-            path1.startsWith0(path)
+            path1.startsWith(path)
         }
         val changes = changes0 + changes1
         if (changes > 0) {
@@ -428,17 +412,17 @@ object Hierarchy {
         val removedPaths = if (removeChildren) {
             val adds = prefab.adds
             val removedKeys = HashSet(adds.keys)
-            adds.removeIf { it.key.startsWith0(path) }
+            adds.removeIf { it.key.startsWith(path) }
             removedKeys.removeAll(adds.keys)
             removedKeys
         } else emptyList()
         val changes0 = removedPaths.size
         val changes1 = prefab.sets.removeIf { path1, key, _ ->
-            path1.startsWith0(path) && when (key) {
+            path1.startsWith(path) && when (key) {
                 "position", "rotation", "scale" -> {
                     // change needs to be removed, if its instance was removed
                     removedPaths.any {
-                        path1.startsWith0(it)
+                        path1.startsWith(it)
                     }
                 }
                 else -> true
