@@ -121,10 +121,6 @@ open class SettingCategory(
         }
     }
 
-    // todo we should try to reduce 2^x layout classes, maybe by caching results
-    // todo maybe within a frame, already would be good enough
-    // todo test with deeply cascaded layouts :)
-
     override fun setPosition(x: Int, y: Int) {
         super.setPosition(x, y)
         titlePanel.setPosition(x, y)

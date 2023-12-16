@@ -100,19 +100,16 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
         }
 
         // is matching required? not really
-        val newPanels = newValues.listOfAll.filterIsInstance<InputPanel<*>>().toList()
-        val oldPanels = oldValues.listOfAll.filterIsInstance<InputPanel<*>>().toList()
-        val sps = searchPanel.listOfAll.count()
-        val newSize = newPanels.size + sps
+        val newPanels = newValues.listOfAll
+            .filterIsInstance<InputPanel<*>>().toList()
+        val oldPanels = oldValues.listOfAll
+            .filter { !it.anyInHierarchy { p -> p == searchPanel } }
+            .filterIsInstance<InputPanel<*>>().toList()
+
+        val newSize = newPanels.size
         val oldSize = oldPanels.size
         val newPanelIter = newPanels.iterator()
         val oldPanelIter = oldPanels.iterator()
-
-        // skip search panel
-        for (i in 0 until sps) {
-            if (oldPanelIter.hasNext()) oldPanelIter.next()
-            else break
-        }
 
         // works as long as the structure stays the same
         var mismatch = false
@@ -126,7 +123,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
             oldPanel as Panel
 
             if (!mismatch && newPanel::class != oldPanel::class) {
-                LOGGER.warn("Mismatch: ${newPanel::class} vs ${oldPanel::class}")
+                LOGGER.info("Mismatch: ${newPanel::class} vs ${oldPanel::class}")
                 mismatch = true
             }
 
@@ -139,7 +136,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
                 }
                 // only the value needs to be updated
                 // no one to be notified
-                @Suppress("unused", "unchecked_cast")
+                @Suppress("unchecked_cast")
                 (oldPanel as? InputPanel<Any?>)?.apply {
                     oldPanel.setValue(newPanel.value, false)
                 }
@@ -211,7 +208,13 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
                     sizeY = if (win != null && window != null && win.windowStack.contains(window)) {
                         if (parent != null && x + width >= window.width - FrameTimings.width) {
                             if (StudioBase.instance?.showFPS == true) {
-                                max(1, window.y + min(parent.y + parent.height, window.height) + FrameTimings.height - win.height)
+                                max(
+                                    1,
+                                    window.y + min(
+                                        parent.y + parent.height,
+                                        window.height
+                                    ) + FrameTimings.height - win.height
+                                )
                             } else 1
                         } else 1
                     } else 1
