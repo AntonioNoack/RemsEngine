@@ -13,6 +13,7 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.files.LocalFile.toGlobalFile
+import me.anno.utils.structures.lists.Lists.any2
 import me.anno.utils.structures.lists.Lists.none2
 import me.anno.utils.structures.maps.CountMap
 import me.anno.utils.structures.maps.KeyPairMap
@@ -90,6 +91,14 @@ class Prefab : Saveable {
                 listener.invalidateInstance()
             }
         }
+    }
+
+    /**
+     * returns whether this prefab adds that path (without inheritance)
+     * */
+    fun addsByItself(path: Path): Boolean {
+        return path == ROOT_PATH ||
+                adds[path.parent ?: ROOT_PATH]?.any2 { it.matches(path) } == true
     }
 
     fun sealFromModifications() {
@@ -258,6 +267,7 @@ class Prefab : Saveable {
                 if (addsI[index].path == change.path) {
                     if (globalInsertIndex == insertIndex) {
                         addsI.add(index, change)
+                        globalInsertIndex = Int.MAX_VALUE
                         break
                     }
                     globalInsertIndex++

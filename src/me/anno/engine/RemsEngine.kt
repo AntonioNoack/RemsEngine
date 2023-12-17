@@ -141,7 +141,7 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
         val libraryBase = EditorState
         val library = libraryBase.uiLibrary
 
-        animationWindow.add(CustomContainer(ECSTreeView(libraryBase, style), library, style), 1f)
+        animationWindow.add(CustomContainer(ECSTreeView(style), library, style), 1f)
         animationWindow.add(CustomContainer(SceneView(PlayMode.EDITING, style), library, style), 3f)
         animationWindow.add(CustomContainer(PropertyInspector({ libraryBase.selection }, style), library, style), 1f)
         animationWindow.weight = 1f

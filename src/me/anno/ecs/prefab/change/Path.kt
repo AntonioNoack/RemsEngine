@@ -3,6 +3,7 @@ package me.anno.ecs.prefab.change
 import me.anno.io.ISaveable
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
+import me.anno.utils.types.Booleans.toInt
 import java.text.ParseException
 import java.util.concurrent.ThreadLocalRandom
 
@@ -35,22 +36,16 @@ class Path(
         ) else ROOT_PATH, names.last(), indices.last(), types.last()
     )
 
-    constructor(p1: Path, p2: Path) : this(
-        p1.getNames() + p2.getNames(),
-        p1.getIndices() + p2.getIndices(),
-        p1.getTypes() + p2.getTypes()
-    )
-
     val depth: Int
         get() {
             val p = parent
             return if (p != null) p.depth + 1
-            else 0
+            else (this != ROOT_PATH).toInt()
         }
 
     fun fromRootToThis(includeRoot: Boolean, run: (index: Int, path: Path) -> Unit): Int {
         val parent = parent
-        var index = -1
+        var index = 0
         if (parent != null && parent != ROOT_PATH) {
             index = parent.fromRootToThis(includeRoot, run) + 1
         }
@@ -60,61 +55,35 @@ class Path(
         return index
     }
 
-    fun appended(other: Path): Path {
-        var ret = this
-        other.fromRootToThis(false) { _, path ->
-            ret = Path(ret, path.nameId, path.index, path.type)
-        }
-        return ret
-    }
-
     fun lastType() = type
     fun lastIndex() = index
     fun lastNameId() = nameId
-
-    fun firstIndex(): Int {
-        val parent = parent
-        return if (parent == null || parent == ROOT_PATH) index
-        else parent.firstIndex()
-    }
 
     fun isEmpty() = parent == null
     fun isNotEmpty() = parent != null
 
     val size: Int
-        get() {
-            // root = size 0
-            return (parent?.size ?: -1) + 1
-        }
+        get() = depth
 
-    fun getSubPathIfMatching(other: Path, depth: Int): Path? {
-        // depth 0:
-        // a/b/c x a/b -> ignore
-        // a/b/c x a/b/c -> fine, empty
-        // a/b/c x d/c/s -> ignore
-        // a/b/c x a/b/c/1/2 -> fine, 1/2
-        // depth 1:
-        // a/b/c x b/c/d -> fine, d
-        // a/b/c x b/c -> fine, empty
-
-        return if (other.startsWithInverseOffset(this, depth)) {
-            // fine :)
-            other.subList(size - depth)
+    /**
+     * depth 0:
+     *    a/b/c x a/b -> null
+     *    a/b/c x a/b/c -> empty
+     *    a/b/c x d/c/s -> null
+     *    a/b/c x a/b/c/1/2 -> 1/2
+     * depth 1:
+     *    a/b/c x b/c/d -> d
+     *    a/b/c x b/c -> empty
+     * */
+    fun getRestIfStartsWith(other: Path, offset: Int): Path? {
+        return if (other.startsWith(this, offset)) {
+            other.subList(size - offset)
         } else null
-    }
-
-    fun <V : Change> getSubPathIfMatching(change: V, depth: Int): V? {
-        val subPath = getSubPathIfMatching(change.path, depth) ?: return null
-
-        @Suppress("unchecked_cast")
-        val clone = change.clone() as V
-        clone.path = subPath
-        return clone
     }
 
     fun subList(startIndex: Int): Path {
         // go to that index, and then copy the hierarchy
-        var ret: Path = ROOT_PATH
+        var ret = ROOT_PATH
         fromRootToThis(false) { index, path ->
             if (index >= startIndex) {
                 ret = Path(ret, path.nameId, path.index, path.type)
@@ -123,14 +92,30 @@ class Path(
         return ret
     }
 
-    fun startsWithInverseOffset(path: Path, offset: Int): Boolean {
-        return path.startsWithOffset(this, offset)
+    fun getNameIds() = accumulate { it.nameId }
+    fun getTypes() = accumulate { it.type }
+    fun getIndices() = accumulate { it.index }
+
+    fun <V> accumulate(func: (Path) -> V): List<V> {
+        val list = ArrayList<V>()
+        var item = this
+        while (item != ROOT_PATH) {
+            list.add(func(item))
+            item = item.parent ?: break
+        }
+        list.reverse()
+        return list
     }
 
-    fun startsWith(target: Path?): Boolean {
-        // magic value ^^
-        if (target == null || target == ROOT_PATH) return true
-        return if (target == this) true else parent?.startsWith(target) ?: false
+    fun startsWith(other: Path, offset: Int = 0): Boolean {
+        val sizeToTest = other.size - offset
+        val stepsToSkip = size - sizeToTest
+        if (stepsToSkip < 0) return false
+        var self = this
+        for (i in 0 until stepsToSkip) {
+            self = self.parent ?: ROOT_PATH
+        }
+        return other.equalsN(self, sizeToTest)
     }
 
     /**
@@ -146,57 +131,6 @@ class Path(
         return Path(byParent, nameId, index, type)
     }
 
-    fun getNames(): List<String> {
-        val list = ArrayList<String>()
-        fromRootToThis(false) { _, path ->
-            list.add(path.nameId)
-        }
-        return list
-    }
-
-    fun getTypes(): List<Char> {
-        val list = ArrayList<Char>()
-        fromRootToThis(false) { _, path ->
-            list.add(path.type)
-        }
-        return list
-    }
-
-    fun getIndices(): List<Int> {
-        val list = ArrayList<Int>()
-        fromRootToThis(false) { _, path ->
-            list.add(path.index)
-        }
-        return list
-    }
-
-    fun startsWithOffset(other: Path, offset: Int): Boolean {
-        if (offset == 0) return startsWith(other)
-        else {
-            if (size < other.size + offset) return false
-            try {
-                // this could be done more efficiently with a depth comparison, and then comparing backwards
-                // but this function shouldn't be called that often, so we shouldn't need to worry about it
-                // O(n) expensive + 2n * allocation
-                val ownNames = getNames()
-                val ownTypes = getTypes()
-                other.fromRootToThis(false) { i, otherI ->
-                    val selfI = i + offset
-                    if (otherI.nameId != ownNames[selfI] || otherI.type != ownTypes[selfI]) {
-                        throw FALSE
-                    }
-                }
-            } catch (e: Throwable) {
-                if (e == FALSE) {
-                    return false
-                } else {
-                    throw e
-                }
-            }
-            return true
-        }
-    }
-
     override fun hashCode(): Int {
         // indices must not be part of the hash, as they can change
         return nameId.hashCode() * 31 + type.hashCode()
@@ -205,9 +139,21 @@ class Path(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (this === ROOT_PATH && other == null) return true
-        return other is Path &&
-                nameId == other.nameId &&
-                (parent ?: ROOT_PATH) == other.parent
+        return other is Path && equalsN(other, Int.MAX_VALUE)
+    }
+
+    fun equalsN(other: Path, depth: Int): Boolean {
+        var self = this
+        var otherI = other
+        for (i in 0 until depth) {
+            if (self.nameId != otherI.nameId) {
+                return false
+            }
+            self = self.parent ?: ROOT_PATH
+            otherI = otherI.parent ?: ROOT_PATH
+            if (self === otherI) return true
+        }
+        return true
     }
 
     fun added(nameId: String, index: Int, type: Char): Path {
@@ -219,16 +165,18 @@ class Path(
     }
 
     operator fun plus(path: Path): Path {
-        var newPath = this
+        if (path == ROOT_PATH) return this
+        if (this == ROOT_PATH) return path
+        var result = this
         fun add(lePath: Path) {
             val lePathParent = lePath.parent
             if (lePathParent != null && lePathParent != ROOT_PATH) {
                 add(lePathParent)
             }
-            newPath = Path(newPath, lePath.nameId, lePath.index, lePath.type)
+            result = Path(result, lePath.nameId, lePath.index, lePath.type)
         }
         add(path)
-        return newPath
+        return result
     }
 
     override fun toString(): String {
@@ -264,7 +212,7 @@ class Path(
                 if (value.isEmpty()) {
                     parent = null // we're root now
                 } else {
-                    val path = parse(value)
+                    val path = fromString(value)
                     parent = path.parent
                     this.nameId = path.nameId
                     index = path.index
@@ -320,7 +268,7 @@ class Path(
             return v
         }
 
-        fun parse(str: String?): Path {
+        fun fromString(str: String?): Path {
             if (str.isNullOrEmpty()) return ROOT_PATH
             var path = ROOT_PATH
             var startIndex = 0
@@ -337,12 +285,6 @@ class Path(
                 startIndex = endIndex + 1
             }
             return path
-        }
-
-        fun join(a: Path, b: Path): Path {
-            return ROOT_PATH
-                .appended(a)
-                .appended(b)
         }
     }
 }

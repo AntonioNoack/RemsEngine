@@ -22,7 +22,6 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.groups.PanelStack
 import me.anno.ui.custom.CustomList
-import me.anno.ui.debug.TestStudio.Companion.testUI
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.ui.editor.PropertyInspector
 
@@ -111,7 +110,7 @@ class SceneView(val renderer: RenderView, style: Style) : PanelStack(style) {
             val sceneView = SceneView(PlayMode.EDITING, style)
             PrefabInspector.currentInspector = PrefabInspector(scene)
             val list = CustomList(false, style)
-            list.add(ECSTreeView(EditorState, style), 1f)
+            list.add(ECSTreeView(style), 1f)
             list.add(sceneView, 3f)
             list.add(PropertyInspector({ EditorState.selection }, style), 1f)
             if (init != null) init(sceneView)

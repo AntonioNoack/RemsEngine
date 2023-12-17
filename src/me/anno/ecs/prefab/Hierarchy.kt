@@ -164,7 +164,7 @@ object Hierarchy {
                         }
                         if (!foundMatch) {
                             LOGGER.warn(
-                                "Missing path (${Thread.currentThread().name}) $path[$pathIndex] (${pathI.getNames()}, ${pathI.getTypes()}, ${pathI.getIndices()}) in instance, " +
+                                "Missing path (${Thread.currentThread().name}) $path[$pathIndex] (${pathI.getNameIds()}, ${pathI.getTypes()}, ${pathI.getIndices()}) in instance, " +
                                         "only ${children.size} $childType available ${children.joinToString { "'${it.name}':${it.prefabPath}" }}"
                             )
                             throw Path.EXIT
@@ -246,12 +246,12 @@ object Hierarchy {
                     assertTrue(adds !== dstPrefab.adds)
                     for ((_, addI) in adds) {
                         for (add in addI) {
-                            dstPrefab.add(add.withPath(Path(dstPath, add.path), true), -1)
+                            dstPrefab.add(add.withPath(dstPath + add.path, true), -1)
                         }
                     }
                     val sets = srcPrefab.sets
                     sets.forEach { k1, k2, v ->
-                        dstPrefab[Path(dstPath, k1), k2] = v
+                        dstPrefab[dstPath + k1, k2] = v
                     }
                     ECSSceneTabs.updatePrefab(dstPrefab)
                     return dstPath

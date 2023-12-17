@@ -42,7 +42,7 @@ abstract class Change : Saveable() {
     override fun readString(name: String, value: String) {
         if (name == "path") {
             try {
-                path = Path.parse(value)
+                path = Path.fromString(value)
             } catch (e: ParseException) {
                 super.readString(name, value)
             }

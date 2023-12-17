@@ -10,6 +10,8 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabInspector.Companion.currentInspector
 import me.anno.ecs.prefab.PrefabInspector.Companion.formatWarning
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.ecs.prefab.change.CAdd
+import me.anno.ecs.prefab.change.CSet
 import me.anno.ecs.prefab.change.Path
 import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.scenetabs.ECSSceneTabs
@@ -19,8 +21,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.length
-import me.anno.utils.Color.mixARGB
-import me.anno.utils.Color.mixARGB2
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
@@ -31,6 +31,8 @@ import me.anno.ui.editor.files.FileContentImporter
 import me.anno.ui.editor.files.Search
 import me.anno.ui.editor.treeView.TreeView
 import me.anno.utils.Color.black
+import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.mixARGB2
 import me.anno.utils.Color.normARGB
 import me.anno.utils.Color.white
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
@@ -40,17 +42,15 @@ import me.anno.utils.structures.lists.Lists.flatten
 import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 
-class ECSTreeView(val library: EditorState, style: Style) :
-    TreeView<ISaveable>(
-        ECSFileImporter as FileContentImporter<ISaveable>,
-        true,
-        style
-    ) {
+class ECSTreeView(style: Style) : TreeView<ISaveable>(
+    ECSFileImporter as FileContentImporter<ISaveable>,
+    showSymbols = true, style
+) {
 
     val inspector get() = currentInspector!!
 
     override fun listSources(): List<ISaveable> {
-        val world = library.prefab?.getSampleInstance()// ?: library.world
+        val world = EditorState.prefab?.getSampleInstance()// ?: library.world
         return if (world != null) listOf(world) else emptyList()
     }
 
@@ -106,6 +106,155 @@ class ECSTreeView(val library: EditorState, style: Style) :
             EditorState.selection = EditorState.selection.filter { it !in child.listOfHierarchy }
             Hierarchy.removePathFromPrefab(parent.root.prefab!!, child)
         } else throw NotImplementedError()
+    }
+
+    override fun paste(hovered: ISaveable, original: ISaveable?, relativeY: Float, data: String) {
+        val type1 = findType(original, hovered) ?: ' '
+        if (original != null && canBeMoved(hovered, original)) {
+            LOGGER.info("Movable change")
+            var allowMove = true
+            if (original is PrefabSaveable && hovered is PrefabSaveable) {
+                LOGGER.info("Both are PrefabSavable")
+                val srcPrefab = original.prefab
+                val dstPrefab = hovered.prefab
+                if (srcPrefab != null && dstPrefab != null) {
+                    LOGGER.info("Both have Prefab")
+                    if (srcPrefab.addsByItself(original.prefabPath)) {
+                        // if possible, do change on prefab level
+                        //  - if has CAdd, move that and CSets
+                        val oldRoot = original.prefabPath
+                        LOGGER.info("srcPrefab added original, oldRoot: '$oldRoot'")
+                        val adds = ArrayList<CAdd>()
+                        for ((_, v) in srcPrefab.adds) {
+                            v.removeIf {
+                                val isSelf = it.matches(oldRoot)
+                                val isUnderSelf = oldRoot.getRestIfStartsWith(it.path, 0)
+                                if (isSelf || isUnderSelf != null) {
+                                    println("Removing $it, because $isSelf || $isUnderSelf")
+                                    val path = isUnderSelf ?: Path.ROOT_PATH // correct???
+                                    adds.add(it.withPath(path, false))
+                                    srcPrefab.addedPaths?.remove(it.path to it.nameId)
+                                    true
+                                } else false
+                            }
+                        }
+                        val sets = ArrayList<CSet>()
+                        srcPrefab.sets.removeIf { k1, k2, v ->
+                            val newPath = oldRoot.getRestIfStartsWith(k1, 0)
+                            if (newPath != null) {
+                                sets.add(CSet(newPath, k2, v))
+                                true
+                            } else false
+                        }
+                        insertElement(relativeY, hovered, dstPrefab, PrefabObject(adds, sets))
+                        return
+                    } else {
+                        LOGGER.info("SrcPrefab doesn't add it :/, ${original.prefabPath} !in ${srcPrefab.adds}")
+                        // to do copy it somehow???
+                        allowMove = false
+                    }
+                }
+            }
+            if (allowMove) {
+                moveChange {
+                    removeFromParent(original)
+                    insertElement(relativeY, hovered, original, type1)
+                }
+                return
+            }
+        }
+
+        LOGGER.info("Must-copy change")
+        // if we have prefab data, clone on prefab level:
+        //  - if has CAdd for original, copy that and CSets
+        if (original is PrefabSaveable && hovered is PrefabSaveable) {
+            LOGGER.info("Both are PrefabSaveable")
+            val srcPrefab = original.prefab
+            val dstPrefab = hovered.prefab
+            if (srcPrefab != null && dstPrefab != null) {
+                LOGGER.info("Both have Prefabs")
+                if (srcPrefab.addsByItself(original.prefabPath)) {
+                    val oldRoot = original.prefabPath
+                    LOGGER.info("SrcPrefab added original, oldRoot: '$oldRoot'")
+                    val isRoot = oldRoot == Path.ROOT_PATH
+                    val selfAdd = if (isRoot) listOf(
+                        CAdd(Path.ROOT_PATH, 'e', original.className, Path.generateRandomId(), srcPrefab.prefab)
+                    ) else emptyList()
+                    val prefix = (if (isRoot) {
+                        // todo find correct index
+                        val index = -1
+                        selfAdd.first().getSetterPath(index)
+                    } else Path.ROOT_PATH)
+                    val adds = selfAdd + srcPrefab.adds.entries
+                        .sortedBy { it.key.depth }
+                        .map { (_, v) ->
+                            v.mapNotNull {
+                                val isSelf = it.matches(oldRoot)
+                                val isUnderSelf = oldRoot.getRestIfStartsWith(it.path, 0)
+                                if (isSelf || isUnderSelf != null) {
+                                    val path1 = prefix + (isUnderSelf ?: Path.ROOT_PATH)
+                                    it.withPath(path1, false)
+                                } else null
+                            }
+                        }.flatten()
+                    val sets = srcPrefab.sets.mapNotNull { path, k, v ->
+                        val newPath = oldRoot.getRestIfStartsWith(path, 0)
+                        if (newPath != null) {
+                            CSet(newPath, k, v)
+                        } else null
+                    }
+                    insertElement(relativeY, hovered, dstPrefab, PrefabObject(adds, sets))
+                    return
+                }
+            }
+        }
+        val clone = JsonStringReader.read(data, StudioBase.workspace, true).firstOrNull() ?: return
+        moveChange {
+            insertElement(relativeY, hovered, clone, type1)
+        }
+    }
+
+    class PrefabObject(val adds: List<CAdd>, val sets: List<CSet>)
+
+    fun insertElement(relativeY: Float, hovered: PrefabSaveable, dstPrefab: Prefab, clone: PrefabObject) {
+        val mode = getInsertMode(relativeY, hovered)
+        val (path, index) = when (mode) {
+            InsertMode.BEFORE -> addRelative(hovered, 0)
+            InsertMode.AFTER -> addRelative(hovered, 1)
+            InsertMode.LAST -> insertElementLast(hovered)
+        }
+        dstPrefab.invalidateInstance()
+        for (add in clone.adds) {
+            val isPrimary = add.path == Path.ROOT_PATH
+            val newAdd = add.withPath(path + add.path, false)
+            dstPrefab.add(
+                // if we change a path here, we need to change it below, too
+                newAdd,
+                if (isPrimary) index
+                else add.path.index
+            )
+        }
+        val add = clone.adds.first()
+        val path1 = path + Path(Path.ROOT_PATH, add.nameId, index, add.type)
+        for (set in clone.sets) {
+            dstPrefab[path1 + set.path, set.name] = set.value
+        }
+        // todo adjust indices of all lists that were changed (?)
+        //  - only this list was changed, and the one where we removed the item
+        // finding the index can be complicated though, as we need to respect the hierarchy
+        // need to invalidate structure (TreeView)
+        invalidateLayout()
+    }
+
+    fun addRelative(sibling: PrefabSaveable, delta: Int): Pair<Path, Int> {
+        val parent = getParent(sibling)!!
+        val index = getIndexInParent(parent, sibling) + delta
+        return (sibling.prefabPath.parent ?: Path.ROOT_PATH) to index
+    }
+
+    fun insertElementLast(hovered: PrefabSaveable): Pair<Path, Int> {
+        val index = getChildren(hovered).size
+        return hovered.prefabPath to index
     }
 
     override fun removeRoot(root: ISaveable) {
@@ -166,10 +315,10 @@ class ECSTreeView(val library: EditorState, style: Style) :
 
     override fun getLocalColor(element: ISaveable, isHovered: Boolean, isInFocus: Boolean): Int {
 
-        val isInFocus2 = isInFocus || (element is PrefabSaveable && element in library.selection)
+        val isInFocus2 = isInFocus || (element is PrefabSaveable && element in EditorState.selection)
         // show a special color, if the current element contains something selected
 
-        val isIndirectlyInFocus = !isInFocus2 && library.selection.any2 {
+        val isIndirectlyInFocus = !isInFocus2 && EditorState.selection.any2 {
             it is PrefabSaveable && it.anyInHierarchy { p -> p === element }
         }
 
@@ -366,7 +515,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
 
     override fun selectElements(elements: List<ISaveable>) {
         ECSSceneTabs.refocus()
-        library.select(elements.filterIsInstance<PrefabSaveable>())
+        EditorState.select(elements.filterIsInstance<PrefabSaveable>())
     }
 
     override fun focusOnElement(element: ISaveable) {
@@ -400,7 +549,7 @@ class ECSTreeView(val library: EditorState, style: Style) :
     private fun tryPaste(data: String): Boolean {
         return when (val element = JsonStringReader.read(data, StudioBase.workspace, true).firstOrNull()) {
             is Prefab -> {
-                val prefab = library.prefab
+                val prefab = EditorState.prefab
                 val root = prefab?.getSampleInstance() ?: return false
                 addChild(root, element, ' ', -1)
                 true

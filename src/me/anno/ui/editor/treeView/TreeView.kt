@@ -1,13 +1,17 @@
 package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
+import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.engine.ui.ECSTreeView
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
+import me.anno.io.json.saveable.JsonStringReader
+import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Style
-import me.anno.ui.base.components.Padding
 import me.anno.ui.base.components.AxisAlignment
+import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.scrolling.ScrollPanelXY
 import me.anno.ui.editor.files.FileContentImporter
@@ -81,24 +85,127 @@ abstract class TreeView<V : Any>(
 
     abstract fun setName(element: V, name: String)
 
-    open fun addBefore(sibling: V, added: V, type: Char): Boolean {
-        val parent = getParent(sibling)!!
-        if (getParent(added) == parent) removeChild(parent, added)
-        val index = getIndexInParent(parent, sibling)
-        return if (canBeInserted(parent, added, index)) {
-            addChild(parent, added, type, index)
+    fun removeFromParent(original: V) {
+        val parent = getParent(original)
+        if (parent != null) removeChild(parent, original)
+    }
+
+    fun addBefore(sibling: V, added: V, type: Char): Boolean {
+        return addRelative(sibling, added, type, 0)
+    }
+
+    fun addAfter(sibling: V, added: V, type: Char): Boolean {
+        return addRelative(sibling, added, type, 1)
+    }
+
+    open fun paste(hovered: V, original: V?, relativeY: Float, data: String) {
+        val type1 = findType(original, hovered) ?: ' '
+        if (original != null && canBeMoved(hovered, original)) {
+            moveChange {
+                val parent = getParent(original)
+                if (parent != null) removeChild(parent, original)
+                insertElement(relativeY, hovered, original, type1)
+            }
+        } else {
+            // if not, create a copy
+            @Suppress("unchecked_cast")
+            val clone = JsonStringReader.read(data, StudioBase.workspace, true)
+                .firstOrNull() as? V ?: return
+            moveChange {
+                insertElement(relativeY, hovered, clone, type1)
+            }
+        }
+    }
+
+    fun findType(original: V?): Char? {
+        if (original !is PrefabSaveable) return null
+        val parent = getParent(original) as? PrefabSaveable ?: return null
+        val types = parent.getValidTypesForChild(original)
+        if (types.length == 1) return types.first()
+        for (type in types) {
+            if (parent.getChildListByType(type).contains(original)) {
+                return type
+            }
+        }
+        return null
+    }
+
+    fun findType(original: V?, hovered: V): Char? {
+        val type0 = findType(original)
+        if (type0 != null) return type0
+        if (original !is PrefabSaveable) return null
+        val parent = hovered as? PrefabSaveable ?: return null
+        val types = parent.getValidTypesForChild(original)
+        return types.firstOrNull()
+    }
+
+    fun canBeMoved(hovered: V, original: V): Boolean {
+        var canBeMoved = true
+        var ancestor = hovered
+        while (true) {
+            if (original === ancestor) {
+                canBeMoved = false
+                break
+            }
+            ancestor = getParent(ancestor) ?: break
+        }
+        return canBeMoved
+    }
+
+    enum class InsertMode {
+        BEFORE,
+        AFTER,
+        LAST,
+    }
+
+    fun insertElement(relativeY: Float, hovered: V, clone: V, type: Char) {
+        val success = when (getInsertMode(relativeY, hovered)) {
+            InsertMode.BEFORE -> addBefore(hovered, clone, type)
+            InsertMode.AFTER -> addAfter(hovered, clone, type)
+            InsertMode.LAST -> insertElementLast(hovered, clone, type)
+        }
+        if (success) selectElements(listOf(clone))
+    }
+
+    fun getInsertMode(relativeY: Float, hovered: V): InsertMode {
+        return when {
+            relativeY < 0.33f -> {
+                // paste on top
+                if (getParent(hovered) != null) {
+                    InsertMode.BEFORE
+                } else {
+                    InsertMode.LAST
+                }
+            }
+            relativeY < 0.67f -> {
+                // paste as child
+                InsertMode.LAST
+            }
+            else -> {
+                // paste below
+                if (getParent(hovered) != null) {
+                    InsertMode.AFTER
+                } else {
+                    InsertMode.LAST
+                }
+            }
+        }
+    }
+
+    fun insertElementLast(hovered: V, clone: V, type: Char): Boolean {
+        val index = getChildren(hovered).size
+        return if (canBeInserted(hovered, clone, index)) {
+            addChild(hovered, clone, type, index)
         } else {
             LOGGER.warn("Cannot add child")
             false
         }
     }
 
-    open fun addAfter(sibling: V, added: V, type: Char): Boolean {
+    open fun addRelative(sibling: V, added: V, type: Char, delta: Int): Boolean {
+        removeFromParent(added)
         val parent = getParent(sibling)!!
-        if (getParent(added) == parent) {
-            removeChild(parent, added)
-        }
-        val index = getIndexInParent(parent, sibling) + 1
+        val index = getIndexInParent(parent, sibling) + delta
         return if (canBeInserted(parent, added, index)) {
             addChild(parent, added, type, index)
         } else {

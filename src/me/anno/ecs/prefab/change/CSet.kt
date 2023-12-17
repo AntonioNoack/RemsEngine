@@ -9,14 +9,14 @@ import org.apache.logging.log4j.LogManager
 
 class CSet() : Change() {
 
-    constructor(path: Path, name: String?, value: Any?) : this() {
+    constructor(path: Path, name: String, value: Any?) : this() {
         this.path = path
         this.name = name
         this.value = value
         if (name == "parent") throw IllegalStateException("Name cannot be parent, use CAdd for that")
     }
 
-    var name: String? = null
+    var name: String = ""
     var value: Any? = null
 
     /**
@@ -37,7 +37,7 @@ class CSet() : Change() {
         if (value is PrefabSaveable) {
             writer.writeObject(null, name, value.prefabPath)
         } else {
-            writer.writeSomething(null, name!!, value, true)
+            writer.writeSomething(null, name, value, true)
         }
     }
 
@@ -47,7 +47,7 @@ class CSet() : Change() {
     }
 
     override fun applyChange(prefab0: Prefab, instance: PrefabSaveable, depth: Int) {
-        applyChange(instance, path, name!!, value)
+        applyChange(instance, path, name, value)
         path = instance.prefabPath
     }
 
@@ -59,6 +59,13 @@ class CSet() : Change() {
     override fun toString(): String {
         val str = value.toString().shorten2Way(100)
         return "CSet($path, $name, $str)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is CSet &&
+                other.name == name &&
+                other.path == path &&
+                other.value == value
     }
 
     companion object {
@@ -82,7 +89,5 @@ class CSet() : Change() {
                 LOGGER.warn("Property ${instance::class.simpleName}.$name is unknown/faulty, path: $path, prefab: ${instance.root.prefab?.source}")
             }
         }
-
     }
-
 }

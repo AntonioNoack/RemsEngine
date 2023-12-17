@@ -131,6 +131,15 @@ class CAdd() : Change() {
         instance.addChildByType(index, type, newInstance)
     }
 
+    fun matches(prefabPath: Path): Boolean {
+        return (prefabPath.parent ?: Path.ROOT_PATH) == path &&
+                prefabPath.nameId == nameId
+    }
+
+    override fun toString(): String {
+        return "CAdd('$path','$type',\"$nameId\",\"$clazzName\",'$prefab')"
+    }
+
     override fun equals(other: Any?): Boolean {
         return other is CAdd &&
                 other.type == type &&

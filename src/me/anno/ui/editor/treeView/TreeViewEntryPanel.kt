@@ -8,10 +8,8 @@ import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
-import me.anno.io.json.saveable.JsonStringReader
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.clamp
-import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.sq
 import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
@@ -25,6 +23,7 @@ import me.anno.ui.editor.files.FileContentImporter
 import me.anno.utils.Color.b
 import me.anno.utils.Color.black
 import me.anno.utils.Color.g
+import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.r
 import me.anno.utils.Color.white
 import org.apache.logging.log4j.LogManager
@@ -200,90 +199,25 @@ class TreeViewEntryPanel<V : Any>(
 
     override fun onPaste(x: Float, y: Float, data: String, type: String) {
         val hovered = getElement()
-        if (hovered is PrefabSaveable && hovered.root.prefab?.isWritable == false) {
+        if (hovered is PrefabSaveable && hovered.prefab?.isWritable == false) {
             LOGGER.warn("Prefab is not writable!")
         } else try {
-
             val relativeY = (y - this.y) / this.height
-
-            // todo find type somehow...
-            val type1 = ' '
-
             // check if the element can be moved without deleting everything
             @Suppress("unchecked_cast")
             val original = (dragged as? Draggable)?.getOriginal() as? V
-            if (original != null) {
-                var canBeMoved = true
-                var ancestor = hovered
-                while (true) {
-                    if (original === ancestor) {
-                        canBeMoved = false
-                        break
-                    }
-                    ancestor = getParent(ancestor) ?: break
-                }
-                if (canBeMoved) {
-                    treeView.moveChange {
-                        val parent = treeView.getParent(original)
-                        if (parent != null) treeView.removeChild(parent, original)
-                        insertElement(relativeY, hovered, original, type1)
-                    }
-                    return
-                }
-            }
-
-            // if not, create a copy
-            @Suppress("unchecked_cast")
-            val clone = JsonStringReader.read(data, StudioBase.workspace, true).firstOrNull()
-                    as? V ?: return super.onPaste(x, y, data, type)
-
-            treeView.moveChange {
-                insertElement(relativeY, hovered, clone, type1)
-            }
+            treeView.paste(hovered, original, relativeY, data)
         } catch (e: Exception) {
             e.printStackTrace()
             super.onPaste(x, y, data, type)
         }
     }
 
-    fun insertElement(relativeY: Float, hovered: V, clone: V, type: Char) {
-        val success = if (relativeY < 0.33f) {
-            // paste on top
-            if (getParent(hovered) != null) {
-                treeView.addBefore(hovered, clone, type)
-            } else {
-                insertElementLast(hovered, clone, type)
-            }
-        } else if (relativeY < 0.67f) {
-            // paste as child
-            insertElementLast(hovered, clone, type)
-        } else {
-            // paste below
-            if (getParent(hovered) != null) {
-                treeView.addAfter(hovered, clone, type)
-            } else {
-                insertElementLast(hovered, clone, type)
-            }
-        }
-        if (success) treeView.selectElements(listOf(clone))
-    }
-
-    fun insertElementLast(hovered: V, clone: V, type: Char): Boolean {
-        val index = treeView.getChildren(hovered).size
-        return if (treeView.canBeInserted(hovered, clone, index)) {
-            treeView.addChild(hovered, clone, type, index)
-        } else {
-            LOGGER.warn("Cannot add child")
-            false
-        }
-    }
-
-    fun getParent(self: V) = treeView.getParent(self)
-
     override fun onPasteFiles(x: Float, y: Float, files: List<FileReference>) {
         val transform = getElement()
-        for (it in files) {
-            treeView.fileContentImporter.addChildFromFile(transform, it, FileContentImporter.SoftLinkMode.ASK, true) {}
+        val importer = treeView.fileContentImporter
+        for (file in files) {
+            importer.addChildFromFile(transform, file, FileContentImporter.SoftLinkMode.ASK, true) {}
         }
     }
 
