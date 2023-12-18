@@ -47,7 +47,8 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
         val text = text
         val x = x + offset
         var y = y + 2
-        val dy = monospaceFont.sizeInt
+        val font = monospaceFont
+        val dy = font.sampleHeight
         forEachLine { i0, i1 ->
             drawLine(text.subSequence(i0, i1), x, y)
             y += dy
@@ -55,7 +56,7 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
         GFX.loadTexturesSync.pop()
     }
 
-    fun forEachLine(callback: (i0: Int, i1: Int) -> Unit) {
+    open fun forEachLine(callback: (i0: Int, i1: Int) -> Unit) {
         val text = text
         var i = 0
         while (true) {
@@ -69,13 +70,15 @@ open class SimpleTextPanel(style: Style) : Panel(style) {
         }
     }
 
-    fun drawLine(text: CharSequence, x: Int, y: Int) {
+    open fun drawLine(text: CharSequence, x: Int, y: Int) {
         DrawTexts.drawSimpleTextCharByChar(
             x, y, 2,
             text, textColor, backgroundColor.withAlpha(0),
             alignmentX
         )
     }
+
+    override fun onCopyRequested(x: Float, y: Float) = text
 
     override fun clone(): SimpleTextPanel {
         val clone = SimpleTextPanel(style)

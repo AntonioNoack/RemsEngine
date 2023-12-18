@@ -5,15 +5,13 @@ import me.anno.gpu.Cursor
 import me.anno.gpu.drawing.DrawRectangles
 import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.gpu.drawing.DrawTexts
-import me.anno.gpu.drawing.DrawTexts.getTextSize
-import me.anno.gpu.drawing.GFXx2D.getSizeX
-import me.anno.gpu.drawing.GFXx2D.getSizeY
 import me.anno.input.Input
 import me.anno.input.Input.keysDown
 import me.anno.input.Key
 import me.anno.language.translation.Dict
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.InputPanel
 import me.anno.utils.Color.a
@@ -102,15 +100,16 @@ open class TextButton(
 
         val text = text
         val widthLimit = if (breaksIntoMultiline) this.width else -1
-        val size = getTextSize(font, text, widthLimit, heightLimit)
+        val alignmentX = textAlignment
+        val alignmentY = AxisAlignment.CENTER
         val textColor = textColor
-        val tx = x + (width - getSizeX(size)) / 2
-        val ty = y + (height - getSizeY(size)) / 2
+        val textAlpha = if (isEnabled && isInputAllowed) textColor.a()
+        else textColor.a() / 2
         DrawTexts.drawText(
-            tx, ty, font, text, textColor.withAlpha(
-                if (isEnabled && isInputAllowed) textColor.a()
-                else textColor.a() / 2
-            ), backgroundColor, widthLimit, heightLimit
+            x + padding.left + alignmentX.getOffset(width - padding.width, 0),
+            y + padding.top + alignmentY.getOffset(height - padding.height, 0),
+            font, text, textColor.withAlpha(textAlpha), backgroundColor, widthLimit, heightLimit,
+            alignmentX, alignmentY
         )
 
         val bi = DrawRectangles.startBatch()
