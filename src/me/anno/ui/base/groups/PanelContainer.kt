@@ -3,6 +3,8 @@ package me.anno.ui.base.groups
 import me.anno.ui.Panel
 import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
+import me.anno.utils.Color.black
+import me.anno.utils.Color.withAlpha
 
 open class PanelContainer(
     onlyChild: Panel,
@@ -17,6 +19,11 @@ open class PanelContainer(
     init {
         onlyChild.parent = this
     }
+
+    var shadowRadius = style.getSize("shadowRadius", 15)
+    var shadowColor = style.getColor("shadowColor", black.withAlpha(0.12f))
+    var alwaysShowShadowX = false
+    var alwaysShowShadowY = false
 
     var child: Panel = onlyChild
         set(value) {

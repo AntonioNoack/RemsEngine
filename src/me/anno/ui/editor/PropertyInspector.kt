@@ -38,6 +38,7 @@ open class PropertyInspector(val getInspectables: () -> List<Inspectable>, style
     val searchPanel = TextInput("Search Properties", "", true, style)
 
     init {
+        alwaysShowShadowY = true
         oldValues.makeBackgroundTransparent()
         searchPanel.addChangeListener { searchTerms ->
             // todo if an element is hidden by VisibilityKey, and it contains the search term, toggle that VisibilityKey

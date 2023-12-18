@@ -1,6 +1,7 @@
 package me.anno.ui.base.scrolling
 
 import me.anno.Time.deltaTime
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
@@ -14,6 +15,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawShadowY
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
@@ -129,7 +131,15 @@ open class ScrollPanelY(
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         clampScrollPosition()
         super.onDraw(x0, y0, x1, y1)
+        val batch = DrawRectangles.startBatch()
+        if (alwaysShowShadowY) {
+            drawShadowY(x0, y0, x1, y1, shadowRadius)
+        }
         if (hasScrollbar) {
+            if (!alwaysShowShadowY) {
+                val shadowRadius = min(maxScrollPositionY, shadowRadius.toLong()).toInt()
+                drawShadowY(x0, y0, x1, y1, shadowRadius)
+            }
             val scrollbar = scrollbar
             scrollbar.x = x1 - scrollbarWidth - scrollbarPadding
             scrollbar.y = y + scrollbarPadding
@@ -137,6 +147,7 @@ open class ScrollPanelY(
             scrollbar.height = height - 2 * scrollbarPadding
             drawChild(scrollbar, x0, y0, x1, y1)
         }
+        DrawRectangles.finishBatch(batch)
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
@@ -154,6 +165,10 @@ open class ScrollPanelY(
     fun clampScrollPosition() {
         scrollPositionY = clamp(scrollPositionY, 0.0, maxScrollPositionY.toDouble())
         targetScrollPositionY = clamp(targetScrollPositionY, 0.0, maxScrollPositionY.toDouble())
+    }
+
+    override fun drawsOverlayOverChildren(lx0: Int, ly0: Int, lx1: Int, ly1: Int): Boolean {
+        return true // todo calculate when we do that...
     }
 
     @NotSerializedProperty

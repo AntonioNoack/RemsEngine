@@ -190,17 +190,14 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
 
     open fun onDoubleClick(file: FileReference) {}
 
-    var searchTerm = ""
     val searchBar = TextInput("Search Term", "", false, style)
     var searchDepth = 3
     var isValid = 0f
 
     init {
         searchBar.alignmentX = AxisAlignment.FILL
-        searchBar.addChangeListener {
-            searchTerm = it
-            invalidate()
-        }
+        searchBar.weight = 1f
+        searchBar.addChangeListener { invalidate() }
         searchBar.setEnterListener {
             if (it.length > 3) {
                 val ref = getReference(it)
@@ -353,6 +350,10 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
         topBar += searchBar
         this += uContent
 
+        uContent.alignmentY = AxisAlignment.FILL
+        uContent.weight = 1f
+        alignmentY = AxisAlignment.FILL
+
         pathPanel.onChangeListener = {
             switchTo(it)
             invalidate()
@@ -360,10 +361,14 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
 
         uContent += ScrollPanelY(favourites, Padding(1), style).apply {
             makeBackgroundTransparent()
+            alignmentY = AxisAlignment.FILL
+            alwaysShowShadowY = true
         }
         uContent += ScrollPanelY(content2d, Padding(1), style).apply {
             makeBackgroundTransparent()
             alignmentX = AxisAlignment.FILL
+            alignmentY = AxisAlignment.FILL
+            alwaysShowShadowY = true
         }
     }
 
@@ -401,7 +406,7 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
     fun createResults() {
         searchTask.compute {
 
-            val search = Search(searchTerm)
+            val search = Search(searchBar.value)
 
             var level0: List<FileReference> = folder.listFiles2()
                 .filter { !it.isHidden }

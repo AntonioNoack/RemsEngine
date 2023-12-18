@@ -1,6 +1,7 @@
 package me.anno.ui.base.scrolling
 
 import me.anno.Time.deltaTime
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
@@ -14,6 +15,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListX
+import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.drawShadowX
 import me.anno.ui.base.scrolling.ScrollPanelXY.Companion.scrollSpeed
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
@@ -127,7 +129,15 @@ open class ScrollPanelX(
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         clampScrollPosition()
         super.onDraw(x0, y0, x1, y1)
+        val batch = DrawRectangles.startBatch()
+        if (alwaysShowShadowX) {
+            drawShadowX(x0, y0, x1, y1, shadowRadius)
+        }
         if (hasScrollbar) {
+            if (!alwaysShowShadowX) {
+                val shadowRadius = min(maxScrollPositionX, shadowRadius.toLong()).toInt()
+                drawShadowX(x0, y0, x1, y1, shadowRadius)
+            }
             val scrollbar = scrollbar
             scrollbar.x = x + scrollbarPadding
             scrollbar.y = y1 - scrollbarHeight - scrollbarPadding
@@ -135,6 +145,7 @@ open class ScrollPanelX(
             scrollbar.height = scrollbarHeight
             drawChild(scrollbar, x0, y0, x1, y1)
         }
+        DrawRectangles.finishBatch(batch)
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {

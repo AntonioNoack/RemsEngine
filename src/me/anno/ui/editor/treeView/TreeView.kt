@@ -2,7 +2,6 @@ package me.anno.ui.editor.treeView
 
 import me.anno.config.DefaultConfig
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.ECSTreeView
 import me.anno.input.Input
 import me.anno.input.Key
 import me.anno.io.files.FileReference
@@ -34,6 +33,7 @@ abstract class TreeView<V : Any>(
     val searchPanel = TextInput("Search Term", "", false, style)
 
     init {
+        alwaysShowShadowY = true
         list.add(searchPanel)
         list.makeBackgroundTransparent()
         searchPanel.addChangeListener {

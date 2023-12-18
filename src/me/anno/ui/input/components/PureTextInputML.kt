@@ -246,6 +246,9 @@ open class PureTextInputML(style: Style) :
         loadTexturesSync.pop()
     }
 
+    override val canDrawOverBorders: Boolean
+        get() = true
+
     private var showBars = false
     private var loadTextSync = false
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {

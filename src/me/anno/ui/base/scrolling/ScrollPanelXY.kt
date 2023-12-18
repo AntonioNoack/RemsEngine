@@ -2,10 +2,13 @@ package me.anno.ui.base.scrolling
 
 import me.anno.Time.deltaTime
 import me.anno.config.DefaultConfig
+import me.anno.gpu.drawing.DrawRectangles
 import me.anno.input.Key
 import me.anno.io.serialization.NotSerializedProperty
+import me.anno.maths.Maths
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.dtTo01
+import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
@@ -13,6 +16,7 @@ import me.anno.ui.Style
 import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelContainer
 import me.anno.ui.base.groups.PanelListY
+import me.anno.utils.Color.mulAlpha
 import me.anno.utils.types.Booleans.toInt
 import kotlin.math.abs
 import kotlin.math.max
@@ -164,7 +168,18 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
     override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
         clampScrollPosition()
         super.onDraw(x0, y0, x1, y1)
+        val batch = DrawRectangles.startBatch()
+        if (alwaysShowShadowX) {
+            drawShadowX(x0, y0, x1, y1, shadowRadius)
+        }
+        if(alwaysShowShadowY){
+            drawShadowY(x0, y0, x1, y1, shadowRadius)
+        }
         if (hasScrollbarX) {
+            if (!alwaysShowShadowX) {
+                val shadowRadius = min(maxScrollPositionX, shadowRadius.toLong()).toInt()
+                drawShadowX(x0, y0, x1, y1, shadowRadius)
+            }
             val scrollbarX = scrollbarX
             scrollbarX.x = x + scrollbarPadding
             scrollbarX.y = y1 - scrollbarHeight - scrollbarPadding
@@ -173,6 +188,10 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             drawChild(scrollbarX, x0, y0, x1, y1)
         }
         if (hasScrollbarY) {
+            if (!alwaysShowShadowY) {
+                val shadowRadius = min(maxScrollPositionY, shadowRadius.toLong()).toInt()
+                drawShadowY(x0, y0, x1, y1, shadowRadius)
+            }
             val scrollbarY = scrollbarY
             scrollbarY.x = x1 - scrollbarWidth - scrollbarPadding
             scrollbarY.y = y + scrollbarPadding
@@ -180,6 +199,7 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
             scrollbarY.height = height - 2 * scrollbarPadding
             drawChild(scrollbarY, x0, y0, x1, y1)
         }
+        DrawRectangles.finishBatch(batch)
     }
 
     override fun onMouseWheel(x: Float, y: Float, dx: Float, dy: Float, byMouse: Boolean) {
@@ -295,6 +315,34 @@ open class ScrollPanelXY(child: Panel, padding: Padding, style: Style) :
         ): Boolean {
             return abs((x0 + x1) - (x2 + x3)) < (x1 - x0) + (x3 - x2) &&
                     abs((y0 + y1) - (y2 + y3)) < (y1 - y0) + (y3 - y2)
+        }
+
+        fun PanelContainer.drawShadowX(x0: Int, y0: Int, x1: Int, y1: Int, shadowRadius: Int) {
+            // draw left shadow
+            for (x in max(x0, x) until Maths.min(x1, x + shadowRadius)) {
+                val alpha = Maths.sq(1f - (x - this.x).toFloat() / shadowRadius)
+                DrawRectangles.drawRect(x, y0, 1, y1 - y0, shadowColor.mulAlpha(alpha))
+            }
+
+            // draw right shadow
+            for (x in max(x0, x + width - shadowRadius) until Maths.min(x1, x + width)) {
+                val alpha = Maths.sq(1f - ((this.x + width) - x).toFloat() / shadowRadius)
+                DrawRectangles.drawRect(x, y0, 1, y1 - y0, shadowColor.mulAlpha(alpha))
+            }
+        }
+
+        fun PanelContainer.drawShadowY(x0: Int, y0: Int, x1: Int, y1: Int, shadowRadius: Int) {
+            // draw top shadow
+            for (y in max(y0, y) until Maths.min(y1, y + shadowRadius)) {
+                val alpha = Maths.sq(1f - (y - this.y).toFloat() / shadowRadius)
+                DrawRectangles.drawRect(x0, y, x1 - x0, 1, shadowColor.mulAlpha(alpha))
+            }
+
+            // draw bottom shadow
+            for (y in max(y0, y + height - shadowRadius) until Maths.min(y1, y + height)) {
+                val alpha = Maths.sq(1f - ((this.y + height) - y).toFloat() / shadowRadius)
+                DrawRectangles.drawRect(x0, y, x1 - x0, 1, shadowColor.mulAlpha(alpha))
+            }
         }
     }
 }
