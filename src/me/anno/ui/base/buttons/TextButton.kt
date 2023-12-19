@@ -21,14 +21,12 @@ import me.anno.utils.Color.withAlpha
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-open class TextButton(
-    title: String,
-    var aspectRatio: Float,
-    style: Style
-) : TextPanel(title, style.getChild("button")), InputPanel<Unit> {
+open class TextButton(title: String, var aspectRatio: Float, style: Style) :
+    TextPanel(title, style.getChild("button")), InputPanel<Unit> {
 
     init {
         tooltip = title
+        textAlignment = AxisAlignment.CENTER
     }
 
     override val value: Unit get() = Unit

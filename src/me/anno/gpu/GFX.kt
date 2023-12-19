@@ -579,6 +579,20 @@ object GFX {
     }
 
     @JvmStatic
+    fun skipErrors() {
+        // assumes that the first access is indeed from the OpenGL thread
+        if (isDebug) {
+            checkIsGFXThread()
+            while (true) {
+                val error = glGetError()
+                if (error != 0) {
+                    LOGGER.warn("GLException: ${getErrorTypeName(error)}")
+                } else break
+            }
+        }
+    }
+
+    @JvmStatic
     fun getErrorTypeName(error: Int): String {
         return when (error) {
             GL_INVALID_ENUM -> "invalid enum"

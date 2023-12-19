@@ -4,7 +4,7 @@ import me.anno.Build
 import me.anno.cache.ICacheData
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.io.files.FileReference.Companion.getReference
+import me.anno.io.files.FileReference
 import me.anno.maths.Maths.sq
 import me.anno.ui.editor.files.toAllowedFilename
 import me.anno.utils.OS
@@ -142,28 +142,29 @@ abstract class OpenGLShader(val name: String) : ICacheData {
             return dst
         }
 
+        fun getLogFolder(): FileReference {
+            val folder = OS.desktop.getChild("shaders")
+            folder.tryMkdirs()
+            return folder
+        }
+
+        fun print(shaderName: String, folder: FileReference, ext: String, data: String) {
+            val name = "$shaderName.$ext".toAllowedFilename() ?: return
+            folder.getChild(name).writeText(data)
+        }
+
         fun logShader(shaderName: String, vertex: String, fragment: String) {
             if (logShaders) {
-                val folder = OS.desktop.getChild("shaders")
-                folder.tryMkdirs()
-                fun print(ext: String, data: String) {
-                    val name = "$shaderName.$ext".toAllowedFilename() ?: return
-                    getReference(folder, name).writeText(data)
-                }
-                print("vert", vertex)
-                print("frag", fragment)
+                val folder = getLogFolder()
+                print(shaderName, folder, "vert", vertex)
+                print(shaderName, folder, "frag", fragment)
             }
         }
 
         fun logShader(shaderName: String, comp: String) {
             if (logShaders) {
-                val folder = OS.desktop.getChild("shaders")
-                folder.tryMkdirs()
-                fun print(ext: String, data: String) {
-                    val name = "$shaderName.$ext".toAllowedFilename() ?: return
-                    getReference(folder, name).writeText(data)
-                }
-                print("comp", comp)
+                val folder = getLogFolder()
+                print(shaderName, folder, "comp", comp)
             }
         }
     }

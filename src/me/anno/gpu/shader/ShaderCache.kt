@@ -79,6 +79,9 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         val program = glCreateProgram()
         glProgramBinary(program, data.format, data.data)
 
+        // the function above may create INVALID_ENUM when it doesn't know the format
+        GFX.skipErrors()
+
         if (glGetProgrami(program, GL_LINK_STATUS) != 1) {
             val uuid = getUniqueFilename(key)
             LOGGER.warn("Failed to create shader from binary $uuid")
