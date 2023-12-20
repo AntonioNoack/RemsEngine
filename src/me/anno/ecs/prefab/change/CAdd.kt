@@ -12,6 +12,9 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.files.LocalFile.toGlobalFile
 
+/**
+ * something gets added
+ * */
 class CAdd() : Change() {
 
     constructor(

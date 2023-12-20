@@ -16,7 +16,6 @@ import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
-import me.anno.io.serialization.NotSerializedProperty
 import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.base.menu.Menu
@@ -26,14 +25,15 @@ import me.anno.utils.LOGGER
 import me.anno.utils.OS
 import kotlin.math.abs
 
+/**
+ * utility for retargeting
+ * */
 object Retargetings {
 
     val noBoneMapped = "?"
 
-    @NotSerializedProperty
     var sampleModel: AnimMeshComponent? = null
 
-    @NotSerializedProperty
     var sampleAnimation: FileReference? = null
 
     val srcColor = 0xa95555 or Color.black

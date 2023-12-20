@@ -110,19 +110,17 @@ object FileChooser {
                 }
             }
         }
-        files.weight = 1f
+        files.fill(1f)
 
         val buttons = PanelListX(style)
-        cancel.weight = 1f
-        submit.weight = 1f
-        cancel.alignmentX = AxisAlignment.FILL
-        submit.alignmentX = AxisAlignment.FILL
+        cancel.fill(1f)
+        submit.fill(1f)
         cancel.addLeftClickListener(Menu::close)
         submit.addLeftClickListener {
             callback(selected)
             Menu.close(it)
         }
-        buttons.alignmentX = AxisAlignment.FILL
+        buttons.fill(0f)
         buttons.add(cancel)
         buttons.add(submit)
         val ui = PanelListY(style)

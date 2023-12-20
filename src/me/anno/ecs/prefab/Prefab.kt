@@ -19,6 +19,11 @@ import me.anno.utils.structures.maps.CountMap
 import me.anno.utils.structures.maps.KeyPairMap
 import org.apache.logging.log4j.LogManager
 
+/**
+ * like in Unity: blueprint for any PrefabSaveable (Entities, Components, Materials, ...) ;
+ * is serialized as a set of changes (adding instances, changing properties) ;
+ * can inherit from other Prefabs, and added instances can do that, too, so you can make your world truly modular
+ * */
 class Prefab : Saveable {
 
     constructor() : this("Entity")

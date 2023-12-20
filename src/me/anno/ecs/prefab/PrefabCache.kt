@@ -25,6 +25,9 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 
+/**
+ * use this to get access to Prefabs, so you can create new instances from them, or access their sample instance
+ * */
 @Suppress("MemberVisibilityCanBePrivate")
 object PrefabCache : CacheSection("Prefab") {
 

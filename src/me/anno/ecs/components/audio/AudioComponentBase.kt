@@ -25,6 +25,10 @@ import kotlin.math.max
 // todo what's the best way to combine audio for local multiplayer? we could use stereo a little for that :)
 // (should be disable-able)
 
+/**
+ * base class for components that shall play audio;
+ * audio can be loaded from files, or be procedurally generated
+ * */
 abstract class AudioComponentBase : Component() {
 
     companion object {

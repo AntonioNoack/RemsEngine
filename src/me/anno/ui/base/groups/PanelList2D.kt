@@ -5,6 +5,7 @@ import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.sq
 import me.anno.ui.Panel
 import me.anno.ui.Style
+import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
 import kotlin.math.min
 
@@ -58,13 +59,14 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
             children.sortWith(sorter)
         }
 
-        val w2 = min(w, childWidth * children.size)
+        val numChildren = children.count2 { it.isVisible }
+        val w2 = min(w, childWidth * numChildren)
         columns = min(max(1, (w2 + spacing) / (childWidth + spacing)), maxColumns)
-        rows = max(1, (children.size + columns - 1) / columns)
+        rows = max(1, (numChildren + columns - 1) / columns)
         val childScale = if (scaleChildren) max(1f, ((w2 + spacing) / columns - spacing) * 1f / childWidth) else 1f
         calcChildWidth = if (scaleChildren) (childWidth * childScale).toInt() else childWidth
         calcChildHeight = if (scaleChildren) (childHeight * childScale).toInt() else childHeight
-        minW = min(w2, children.size * (calcChildWidth + spacing) + spacing)
+        minW = min(w2, numChildren * (calcChildWidth + spacing) + spacing)
         minH = (calcChildHeight + spacing) * rows - spacing
 
         // only execute for visible children
@@ -95,7 +97,9 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
     fun getItemIndexAt(cx: Int, cy: Int): Int {
         val lw = (calcChildWidth + spacing)
         val lh = (calcChildHeight + spacing)
-        if (lw < 1 || lh < 1 || children.size < 2) return children.size - 1
+        // todo skip invisible children less costly
+        val children = children.filter { it.isVisible }
+        if (lw < 1 || lh < 1 || children.size < 2) return children.lastIndex
         // cx = x + ix * (calcChildWidth + spacing) + spacing
         val itemX = (cx - x - spacing) / lw
         val itemY = (cy - y - spacing) / lh
@@ -125,7 +129,10 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
             var x0 = x + spacing
             val cy = y + iy * (calcChildHeight + spacing) + spacing
             for (ix in 0 until columns) {
-                val child = children.getOrNull(i) ?: break@children
+                var child: Panel
+                do {
+                    child = children.getOrNull(i++) ?: break@children
+                } while (!child.isVisible)
                 val x1 = if (ssp) x + width * (ix + 1) / columns else x0 + calcChildWidth + spacing
                 val aw = x1 - x0
                 val cw = if (sch) aw else min(max(childWidth, child.minW), aw)
@@ -133,7 +140,6 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
                 val cw1 = child.alignmentX.getWidth(aw, cw)
                 child.setPosSize(cx, cy, cw1, calcChildHeight)
                 x0 = x1
-                i++
             }
             iy++
         }

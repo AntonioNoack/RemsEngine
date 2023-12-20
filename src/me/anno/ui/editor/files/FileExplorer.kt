@@ -55,6 +55,8 @@ import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.roundToInt
 
+// todo bug: search is flickering, and having large gaps... why?
+
 // todo right click option for images: open large image viewer panel
 
 // done, kind of: zoom: keep mouse at item in question

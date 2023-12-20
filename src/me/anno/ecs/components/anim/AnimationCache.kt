@@ -4,6 +4,9 @@ import me.anno.cache.CacheSection
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.io.files.FileReference
 
+/**
+ * caches animations with their specific retargetings
+ * */
 object AnimationCache : PrefabByFileCache<Animation>(Animation::class) {
 
     var timeout = 10_000L

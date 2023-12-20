@@ -20,6 +20,9 @@ import me.anno.utils.structures.Hierarchical
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 
+/**
+ * base class for things that can be saved as a Prefab
+ * */
 abstract class PrefabSaveable : NamedSaveable(), Hierarchical<PrefabSaveable>, Inspectable {
 
     @SerializedProperty

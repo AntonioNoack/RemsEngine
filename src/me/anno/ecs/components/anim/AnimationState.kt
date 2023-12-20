@@ -10,6 +10,10 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.studio.Inspectable
 
+/**
+ * represents how animations shall be played;
+ * this will be used in Lists, so you can smoothly lerp animations
+ * */
 class AnimationState(
     @Type("Animation/Reference") // todo this isn't properly displayed yet... why?? -> because Saveable, not PrefabSaveable
     var source: FileReference,

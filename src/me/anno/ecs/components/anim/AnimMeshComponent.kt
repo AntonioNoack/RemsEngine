@@ -34,7 +34,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Renders a skeletal animation
+ * Renders a skeletal animation / applies animation to a mesh with bones
  * */
 open class AnimMeshComponent : MeshComponent() {
 

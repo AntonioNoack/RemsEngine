@@ -11,6 +11,9 @@ import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import kotlin.test.assertTrue
 
+/**
+ * utilities for Prefabs, adding things and such
+ * */
 object Hierarchy {
 
     private val LOGGER = LogManager.getLogger(Hierarchy::class)

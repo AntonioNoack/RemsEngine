@@ -96,6 +96,13 @@ open class Panel(val style: Style) : PrefabSaveable() {
             }
         }
 
+    fun fill(weight: Float) {
+        this.weight = weight
+        this.weight2 = weight2
+        alignmentX = AxisAlignment.FILL
+        alignmentY = AxisAlignment.FILL
+    }
+
     open var isVisible = true
         set(value) {
             if (field != value) {

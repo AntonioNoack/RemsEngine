@@ -18,6 +18,9 @@ import me.anno.io.serialization.SerializedProperty
 import me.anno.maths.Maths.fract
 import org.joml.Matrix4x3f
 
+/**
+ * skeletal animation base class
+ * */
 abstract class Animation : PrefabSaveable, Renderable, ICacheData {
 
     constructor() : super()

@@ -20,10 +20,10 @@ import kotlin.math.min
 // todo improve performance for dynamic animations?
 
 /**
- * a texture saving joint transforms;
- * 1) better than joints, because doesn't take up uniforms;
- * 2) better than joints, because can be used with instanced rendering;
- * 3) better than joints, because saves bandwidth, because data is sent only once
+ * Texture saving joint transforms, better than uniform[], because
+ *  - doesn't take up uniforms;
+ *  - can be used with instanced rendering;
+ *  - saves bandwidth, because data is sent only once
  * */
 class AnimTexture(val skeleton: Skeleton) : ICacheData {
 

@@ -12,6 +12,7 @@ import me.anno.ui.Style
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.types.Booleans.toInt
 
+// todo move this to UI package, idk why it's here
 class DataSetPanel(values: List<ISaveable>, reflections: CachedReflections, firstIndex: Int, style: Style) :
     TablePanel(reflections.serializedProperties.size + (firstIndex < Int.MAX_VALUE).toInt(), values.size + 1, style) {
 

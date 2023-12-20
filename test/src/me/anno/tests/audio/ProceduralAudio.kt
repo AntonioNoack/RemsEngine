@@ -3,12 +3,15 @@ package me.anno.tests.audio
 import me.anno.ecs.components.audio.AudioComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.files.inner.temporary.InnerTmpAudioFile
-import me.anno.io.files.inner.temporary.InnerTmpFile
 import me.anno.maths.Maths.TAUf
-import me.anno.studio.Events.addEvent
 import kotlin.math.sin
 
+/**
+ * creates an AudioComponent using a InnerTmpAudioFile,
+ * where you can define your logic to create sound
+ * */
 fun main() {
+    // todo UI gets stuck???
     val scene = AudioComponent()
     scene.source = object : InnerTmpAudioFile() {
 
@@ -20,11 +23,7 @@ fun main() {
             return (sound * 32767).toInt().toShort()
             // return (time * 320 * 65000).toLong().toShort()
         }
-
     }
-
-    // complex way:
-    addEvent { scene.start() }
+    scene.autoStart = true
     testSceneWithUI("Procedural Audio", scene)
-
 }

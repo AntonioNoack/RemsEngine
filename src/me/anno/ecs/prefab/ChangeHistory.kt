@@ -15,6 +15,9 @@ import me.anno.ui.editor.PropertyInspector
 import me.anno.utils.structures.lists.Lists.count2
 import org.apache.logging.log4j.LogManager
 
+/**
+ * keeps track of when changes occurred, so we can revert and redo them
+ * */
 class ChangeHistory : StringHistory() {
 
     @NotSerializedProperty
@@ -47,10 +50,10 @@ class ChangeHistory : StringHistory() {
             }
             for (change in changes) {
                 if (change is CSet) {
-                    val prevValue = prevValues[Pair(change.path, change.name!!)]
+                    val prevValue = prevValues[Pair(change.path, change.name)]
                     val currValue = change.value ?: nothing
                     if (prevValue != currValue) {
-                        prefab[change.path, change.name!!] = change.value
+                        prefab[change.path, change.name] = change.value
                         // LOGGER.debug("Changed ${change.path} from $prevValue to $currValue")
                     }
                 }
@@ -68,7 +71,7 @@ class ChangeHistory : StringHistory() {
             prevSets.clear()
             for (change in changes) {
                 if (change is CSet) {
-                    prevSets[change.path, change.name!!] = change.value
+                    prevSets[change.path, change.name] = change.value
                 }
             }
         }

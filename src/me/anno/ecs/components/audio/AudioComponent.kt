@@ -12,6 +12,9 @@ import me.anno.video.ffmpeg.MediaMetadata
 import kotlin.math.abs
 import kotlin.math.ceil
 
+/**
+ * plays audio
+ * */
 class AudioComponent : AudioComponentBase() {
 
     @Docs("Where the audio file to be used is located")

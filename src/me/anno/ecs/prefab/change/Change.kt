@@ -9,6 +9,9 @@ import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
 import java.text.ParseException
 
+/**
+ * denotes a change in a prefab
+ * */
 abstract class Change : Saveable() {
 
     var path: Path = ROOT_PATH

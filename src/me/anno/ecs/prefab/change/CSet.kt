@@ -7,6 +7,9 @@ import me.anno.io.base.BaseWriter
 import me.anno.utils.strings.StringHelper.shorten2Way
 import org.apache.logging.log4j.LogManager
 
+/**
+ * a property is set
+ * */
 class CSet() : Change() {
 
     constructor(path: Path, name: String, value: Any?) : this() {
@@ -66,6 +69,11 @@ class CSet() : Change() {
                 other.name == name &&
                 other.path == path &&
                 other.value == value
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode() * 31 + path.hashCode()
+        // value.hashCode() may be expensive
     }
 
     companion object {

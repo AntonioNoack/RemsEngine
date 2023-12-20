@@ -44,6 +44,9 @@ import org.joml.*
 import kotlin.math.min
 import kotlin.math.sqrt
 
+/**
+ * defines how an animation with its own skeleton is mapped onto another skeleton
+ * */
 class Retargeting : PrefabSaveable(), Renderable {
 
     var srcSkeleton: FileReference = InvalidRef

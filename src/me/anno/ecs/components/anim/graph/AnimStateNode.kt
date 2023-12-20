@@ -14,6 +14,9 @@ import me.anno.maths.Maths.dtTo01
 import me.anno.maths.Maths.mix
 import me.anno.utils.structures.lists.Lists.firstOrNull2
 
+/**
+ * node for AnimController to represent when another animation shall be started
+ * */
 class AnimStateNode : StateNode("AnimState", inputs, outputs) {
 
     companion object {

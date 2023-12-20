@@ -8,9 +8,8 @@ import java.text.ParseException
 import java.util.concurrent.ThreadLocalRandom
 
 /**
- * internal class to changes,
- * do not use in components/entities, as saving them won't work,
- * or maybe serialize them yourself then
+ * marks where a change (add or set) shall be applied;
+ * like a file
  * */
 class Path(
     var parent: Path?,
@@ -207,7 +206,7 @@ class Path(
 
     override fun readString(name: String, value: String) {
         when (name) {
-            "name" -> this.nameId = value ?: ""
+            "name" -> this.nameId = value
             "v" -> {
                 if (value.isEmpty()) {
                     parent = null // we're root now

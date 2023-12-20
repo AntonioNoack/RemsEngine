@@ -46,9 +46,9 @@ import org.apache.logging.log4j.LogManager
 
 // todo bug: instance and inspector can get out of sync: the color slider for materials stops working :/
 
-// this can be like a scene (/scene tab)
-// show changed values in bold
-
+/**
+ * creates UI to inspect and edit PrefabSaveables
+ * */
 class PrefabInspector(val reference: FileReference) {
 
     val prefab: Prefab

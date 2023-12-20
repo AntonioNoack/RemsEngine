@@ -2,6 +2,9 @@ package me.anno.ecs.components.anim
 
 import me.anno.io.files.FileReference
 
+/**
+ * key for Caches, which represents to file states at once
+ * */
 data class DualFileKey(
     val file0: FileReference,
     val file1: FileReference,

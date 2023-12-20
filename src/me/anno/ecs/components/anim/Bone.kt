@@ -6,6 +6,10 @@ import me.anno.io.base.BaseWriter
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
 
+/**
+ * part of a skeleton (for skeletal animations);
+ * children are implicit at the moment, via parentId
+ * */
 class Bone(var id: Int, var parentId: Int, name: String) : PrefabSaveable() {
 
     constructor() : this(-1, -1, "")

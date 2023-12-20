@@ -33,7 +33,7 @@ object AutoTileableShader : ECSMeshShader("auto-tileable") {
 
     // for triangle pattern
     val latToWorld = Matrix2f(cos(Maths.PIf / 3f), sin(Maths.PIf / 3f), 1f, 0f).scale(0.25f)
-    val worldToLat = Matrix2f(latToWorld).invert()
+    val worldToLat = latToWorld.invert(Matrix2f())
 
     const val sampleTile = "" +
             "vec4 textureAnisotropic(sampler2D, vec2, vec2);\n" +

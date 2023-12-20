@@ -10,7 +10,10 @@ import me.anno.io.files.InvalidRef
 import org.apache.logging.log4j.LogManager
 import kotlin.reflect.KClass
 
-open class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
+/**
+ * base class for caches of types saved in Prefabs like Entities, Components, Materials, Skeletons, Animations and such
+ * */
+abstract class PrefabByFileCache<V : ISaveable>(val clazz: KClass<V>) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(PrefabByFileCache::class)

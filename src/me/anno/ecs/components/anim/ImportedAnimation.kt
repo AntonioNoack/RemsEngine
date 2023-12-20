@@ -7,6 +7,10 @@ import me.anno.maths.Maths.min
 import org.joml.Matrix4f
 import org.joml.Matrix4x3f
 
+/**
+ * animation, which is defined by an offset matrix in object space for each bone and each frame;
+ * this is the format we need on the GPU to transform the vertices, so this is fastest, as it's just copying
+ * */
 class ImportedAnimation : Animation() {
 
     // manually serialized

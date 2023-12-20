@@ -22,6 +22,9 @@ import org.joml.Matrix3f
 import org.joml.Matrix4x3f
 import org.joml.Vector3f
 
+/**
+ * a hierarchy of bones for skeletal animations
+ * */
 class Skeleton : PrefabSaveable(), Renderable {
 
     @SerializedProperty
