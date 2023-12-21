@@ -116,25 +116,27 @@ class Cannon(
                 // do some damage to the fluid
                 val dr = 5
                 val invDr = 1f / sq(dr + 0.5f)
-                val level = fluid.level.read
+                val level1 = fluid.level.read
                 val vx = fluid.impulseX.read
                 val vy = fluid.impulseY.read
                 for (dy in -dr..dr) {
                     for (dx in -dr..dr) {
                         val x = tx + dx
                         val y = ty + dy
-                        val i = x + y * w
-                        val w = (dx * dx + dy * dy) * invDr
-                        if (w < 1f) {
-                            // damage fluid
-                            level[i] *= w
-                            vx[i] *= w
-                            vy[i] *= w
-                            val l = level[i]
-                            if (l > 0f) {
-                                // add impulse away from hit
-                                vx[i] += (1f - w) * sign(dx.toFloat()) * l
-                                vy[i] += (1f - w) * sign(dy.toFloat()) * l
+                        if (x in 0 until w && y in 0 until h) {
+                            val i = x + y * w
+                            val scale = (dx * dx + dy * dy) * invDr
+                            if (scale < 1f) {
+                                // damage fluid
+                                level1[i] *= scale
+                                vx[i] *= scale
+                                vy[i] *= scale
+                                val l = level1[i]
+                                if (l > 0f) {
+                                    // add impulse away from hit
+                                    vx[i] += (1f - scale) * sign(dx.toFloat()) * l
+                                    vy[i] += (1f - scale) * sign(dy.toFloat()) * l
+                                }
                             }
                         }
                     }

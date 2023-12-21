@@ -16,6 +16,7 @@ import me.anno.maths.Maths.SECONDS_TO_NANOS
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.PerlinNoise
 import me.anno.studio.StudioBase
+import me.anno.tests.game.creeperworld.RockTypes.dissolved
 import me.anno.tests.game.creeperworld.RockTypes.hardness
 import me.anno.tests.game.creeperworld.RockTypes.rock
 import me.anno.tests.game.creeperworld.RockTypes.stone
@@ -119,12 +120,11 @@ fun main() {
     // define a world
     // todo use 2d perlin to place rock types
 
-    val properties = listOf(hardness)
-    for (property in properties) {
-        world.register(property)
-    }
+    world.register(hardness)
+    world.register(dissolved)
 
     world.hardness = world[hardness]
+    world.dissolved = world[dissolved]
 
     for (fluid in world.fluidTypes.fluids) {
         world.register(fluid)
@@ -133,6 +133,7 @@ fun main() {
     // fill in some sample data
     val cl = world.fluidTypes.creeper.data.level.read
     val al = world.fluidTypes.antiCreeper.data.level.read
+    val aa = world.fluidTypes.acid.data.level.read
     val dr = min(w, h) / 3
     for (j in -dr..dr) {
         for (i in -dr..dr) {
@@ -142,6 +143,7 @@ fun main() {
                 val x1 = i + w * 2 / 3
                 val y = j + h / 2
                 cl[x0 + y * w] += level / dr
+                aa[x0 + y * w] += level / dr
                 al[x1 + y * w] += level / dr
             }
         }

@@ -6,8 +6,7 @@ package me.anno.ecs.components.chunks.cartesian
 @Suppress("unused")
 abstract class ArrayChunkSystem<Element>(
     bitsX: Int, bitsY: Int, bitsZ: Int,
-    val defaultElement: Element,
-    initialCapacity: Int = 256
+    val defaultElement: Element
 ) : ChunkSystem<Array<Any?>, Element>(bitsX, bitsY, bitsZ) {
 
     abstract fun generateChunk(chunkX: Int, chunkY: Int, chunkZ: Int, chunk: Array<Any?>)

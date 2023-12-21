@@ -9,6 +9,7 @@ object RockTypes {
     val skyColor = ImageCache[FileReference.getReference("res://textures/Clouds.jpg"), false]!!
 
     val hardness = RockProperty(0.5f, 0f)
+    val dissolved = RockProperty(0f, 0f)
 
     // original stone image by kues1 (https://www.freepik.com/free-photo/stone-texture_1129966.htm),
     // rock and sky are derived from that

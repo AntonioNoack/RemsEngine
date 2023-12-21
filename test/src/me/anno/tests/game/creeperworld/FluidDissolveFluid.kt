@@ -4,7 +4,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-class FluidDissolve(val pos: FluidFramebuffer, val neg: FluidFramebuffer) : FluidShader {
+class FluidDissolveFluid(val pos: FluidFramebuffer, val neg: FluidFramebuffer) : FluidShader {
 
     fun set(old: Float, new: Float, level: FloatArray, vx: FloatArray, vy: FloatArray, i: Int) {
         level[i] = new

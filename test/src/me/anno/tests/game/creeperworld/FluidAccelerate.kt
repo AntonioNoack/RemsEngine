@@ -21,11 +21,14 @@ class FluidAccelerate(
 
         val w = world.w
         val srcH0 = srcH[i]
+        val density = fluid.layer.density
+        val sum = world.weightSum
+        val gravity = -gravityY * srcH0//gravityY * (sum[i] - 2f * density * srcH0)
         dstVX[i] = srcVX[i] +
                 pressureDiff * (srcH.getOrElse(i + 1) { 0f } - srcH.getOrElse(i - 1) { 0f })
         dstVY[i] = srcVY[i] +
                 pressureDiff * (srcH.getOrElse(i + w) { 0f } + srcH.getOrElse(i - w) { 0f }) +
-                gravityY * srcH0 // gravity
+                gravity
     }
 
     override fun processInnerPixels(i0: Int, i1: Int, fluid: FluidFramebuffer, world: CreeperWorld) {
@@ -35,13 +38,18 @@ class FluidAccelerate(
         val dstVX = fluid.impulseX.write
         val dstVY = fluid.impulseY.write
 
-        // todo gravity depends on the density of fluids at that location
+        // gravity depends on the density of fluids at that location
+        // todo gravity with densities makes everything unstable
+
+        val density = fluid.layer.density
+        val sum = world.weightSum
 
         val w = world.w
         for (i in i0 until i1) {
             val srcH0 = srcH[i]
+            val gravity = -gravityY * srcH0//gravityY * (sum[i] - 2f * density * srcH0)
             dstVX[i] = srcVX[i] + pressureDiff * (srcH[i + 1] - srcH[i - 1])
-            dstVY[i] = srcVY[i] + pressureDiff * (srcH[i + w] - srcH[i - w]) + gravityY * srcH0
+            dstVY[i] = srcVY[i] + pressureDiff * (srcH[i + w] - srcH[i - w]) + gravity
         }
     }
 }

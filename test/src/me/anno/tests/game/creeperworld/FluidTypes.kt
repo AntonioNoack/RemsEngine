@@ -5,10 +5,12 @@ import me.anno.utils.Color.withAlpha
 
 class FluidTypes(world: CreeperWorld) {
 
+    val gravity = -0.1f
+
     val creeper = FluidLayer(
-        "creeper",
+        "creeper", 0.7f,
         listOf(
-            FluidAccelerate(-0.1f, 0.5f),
+            FluidAccelerate(-0.1f, gravity),
             FluidClampVelocity(),
             FluidMove(),
             FluidBlur(1f / 8f, 0.99f, 1f),
@@ -18,9 +20,9 @@ class FluidTypes(world: CreeperWorld) {
     )
 
     val antiCreeper = FluidLayer(
-        "antiCreeper",
+        "antiCreeper",0.7f,
         listOf(
-            FluidAccelerate(-0.1f, 0.5f),
+            FluidAccelerate(-0.1f, gravity),
             FluidClampVelocity(),
             FluidMove(),
             FluidBlur(1f / 8f, 0.99f, 1f),
@@ -30,10 +32,10 @@ class FluidTypes(world: CreeperWorld) {
     )
 
     val foam = FluidLayer(
-        "foam",
+        "foam",0.1f,
         listOf(
-            FluidDissolve(creeper.data, antiCreeper.data),
-            FluidAccelerate(-0.1f, 0.5f),
+            FluidDissolveFluid(creeper.data, antiCreeper.data),
+            FluidAccelerate(-0.1f, gravity),
             FluidClampVelocity(),
             FluidMove(),
             FluidBlur(1f / 8f, 1f, 0.9f),
@@ -42,11 +44,27 @@ class FluidTypes(world: CreeperWorld) {
         1, Color.white.withAlpha(127), world,
     )
 
-    // todo creep + anti-creep = 0
-    // todo acid + rock = water
+    val water = FluidLayer("water", 1f, listOf(
+        FluidAccelerate(-0.1f, gravity),
+        FluidClampVelocity(),
+        FluidMove(),
+        FluidBlur(1f / 8f, 0.99f, 1f),
+        FluidExpand(),
+    ), 1, 0x99aaff.withAlpha(50), world)
+
+    // done creep + anti-creep = 0
+    // done acid + stone = water
     // todo lava + water = obsidian/rock
-    val acid = FluidLayer("acid", listOf(), 2, 0xff8833.withAlpha(100), world)
-    val lava = FluidLayer("lava", listOf(), 10, 0xffaa00.withAlpha(255), world)
-    val water = FluidLayer("water", listOf(), 1, 0x99aaff.withAlpha(50), world)
-    val fluids = listOf(creeper, antiCreeper, foam)
+    // todo lava + rock = more lava?
+    val acid = FluidLayer("acid", 1.3f, listOf(
+        FluidAccelerate(-0.1f, gravity),
+        FluidClampVelocity(),
+        FluidMove(),
+        FluidBlur(1f / 8f, 0.999f, 1f),
+        FluidExpand(),
+        FluidDissolveRock(5f, 0.1f, water.data),
+    ), 1, 0xfcdf5b.withAlpha(100), world)
+
+    val lava = FluidLayer("lava", 3.1f, listOf(), 10, 0xffaa00.withAlpha(255), world)
+    val fluids = listOf(creeper, antiCreeper, foam, acid, water)
 }

@@ -2,18 +2,18 @@ package me.anno.tests.game.creeperworld
 
 class FluidLayer(
     val id: String,
+    val density: Float,
     val shaders: List<FluidShader>,
     val viscosity: Int,
     val color: Int,
     world: CreeperWorld
 ) {
-    val data = FluidFramebuffer(world)
+    val data = FluidFramebuffer(world, this)
     fun tick(world: CreeperWorld, sumByType: HashMap<String, String>) {
         val fluid = this
         for (shader in fluid.shaders) {
             // val fluidSum = fluid.data.level.read.sum()
             shader.process(fluid.data, world)
-            // todo how/where is the fluid multiplying?
             sumByType[fluid.id] = "${fluid.data.level.read.sum().toInt()}"
             //validateNotOnWall(world.hardness, fluid.data.level.read)
             //validateNotOnWall(world.hardness, fluid.data.level.write)

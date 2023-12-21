@@ -6,7 +6,7 @@ import me.anno.utils.Color
 import me.anno.utils.Color.a01
 import me.anno.utils.Color.black
 
-class FluidFramebuffer(val world: CreeperWorld) {
+class FluidFramebuffer(val world: CreeperWorld, val layer: FluidLayer) {
 
     val level = RWState { FloatArray(world.size) } // 0..1: good, 1.. high pressure
     val impulseX = RWState { FloatArray(world.size) }
@@ -23,11 +23,12 @@ class FluidFramebuffer(val world: CreeperWorld) {
             }
         }
     }
-
+companion object {
     fun mixRGB2(a: Int, b: Int, f: Float): Int {
         return black or
                 Color.mixChannel2(a, b, 16, f) or
                 Color.mixChannel2(a, b, 8, f) or
                 Color.mixChannel2(a, b, 0, f)
     }
+}
 }

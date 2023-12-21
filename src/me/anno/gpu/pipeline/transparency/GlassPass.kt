@@ -28,7 +28,7 @@ import me.anno.utils.structures.tuples.IntPair
 
 /**
  * order-independent transparency for deferred rendering;
- * issue: lights are not tinted by lights before them
+ * issue: glass panes are not tinted by panes before them
  * */
 class GlassPass : TransparentPass() {
 

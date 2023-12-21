@@ -1,7 +1,9 @@
 package me.anno.tests.game.creeperworld
 
+import me.anno.tests.game.creeperworld.FluidFramebuffer.Companion.mixRGB2
 import me.anno.utils.Color
 import me.anno.utils.Color.a
+import me.anno.utils.Color.mixARGB
 
 class CreeperWorld(val w: Int, val h: Int) {
 
@@ -17,7 +19,10 @@ class CreeperWorld(val w: Int, val h: Int) {
 
     val fluidTypes = FluidTypes(this)
 
+    val weightSum = FloatArray(size)
+
     lateinit var hardness: FloatArray
+    lateinit var dissolved: FloatArray
 
     fun add(pixel: Pixel) {
         synchronized(pixels) {
@@ -92,7 +97,7 @@ class CreeperWorld(val w: Int, val h: Int) {
 
         for (pixel in pixels) {
             val pos = pixel.path[pixel.progress]
-            image[pos] = Color.mixARGB(image[pos], pixel.color, pixel.color.a())
+            image[pos] = mixARGB(image[pos], pixel.color, pixel.color.a())
         }
 
         for (agent in agents) {
@@ -105,8 +110,14 @@ class CreeperWorld(val w: Int, val h: Int) {
                 for (x in 0 until w) {
                     val type = rockTypes[i]
                     if (type > 0) {
+                        val alpha = 1f - dissolved[i]
                         val rockTex = RockTypes.rockTextures[type]
-                        image[i++] = rockTex.getRGB(x % rockTex.width, y % rockTex.height) or Color.black
+                        val skyTex = RockTypes.skyColor
+                        image[i++] = mixRGB2(
+                            skyTex.getRGB(x % skyTex.width, y % skyTex.height),
+                            rockTex.getRGB(x % rockTex.width, y % rockTex.height),
+                            alpha
+                        )
                     } else i++
                 }
             }
@@ -123,6 +134,17 @@ class CreeperWorld(val w: Int, val h: Int) {
 
         for (agent in agents) {
             agent.update(this)
+        }
+
+        weightSum.fill(0f)
+        worker.processBalanced(0, size, 256) { i0, i1 ->
+            for (fluid in fluidTypes.fluids) {
+                val density = fluid.density
+                val level = fluid.data.level.read
+                for (i in i0 until i1) {
+                    weightSum[i] += density * level[i]
+                }
+            }
         }
 
         for (fluid in fluidTypes.fluids) {
