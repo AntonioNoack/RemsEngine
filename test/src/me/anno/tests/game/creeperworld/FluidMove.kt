@@ -5,7 +5,7 @@ import kotlin.math.abs
 
 class FluidMove : FluidWithNeighborShader {
 
-    override fun process(fluid: FluidFramebuffer, world: World) {
+    override fun process(fluid: FluidFramebuffer, world: CreeperWorld) {
         super.process(fluid, world)
         fluid.level.swap()
         fluid.impulseX.swap()
@@ -18,7 +18,7 @@ class FluidMove : FluidWithNeighborShader {
         }
     }
 
-    override fun processInnerPixels(i0: Int, i1: Int, fluid: FluidFramebuffer, world: World) {
+    override fun processInnerPixels(i0: Int, i1: Int, fluid: FluidFramebuffer, world: CreeperWorld) {
 
         val srcH = fluid.level.read
         val srcVX = fluid.impulseX.read
@@ -29,6 +29,7 @@ class FluidMove : FluidWithNeighborShader {
         val dstVY = fluid.impulseY.write
         val hardness = world.hardness
 
+        val w = world.w
         for (i in i0 until i1) {
             // based on transfer, transfer fluid and velocity
             if (!isSolid(hardness[i])) {
@@ -57,7 +58,7 @@ class FluidMove : FluidWithNeighborShader {
         }
     }
 
-    override fun processEdgePixel(x: Int, y: Int, i: Int, fluid: FluidFramebuffer, world: World) {
+    override fun processEdgePixel(x: Int, y: Int, i: Int, fluid: FluidFramebuffer, world: CreeperWorld) {
         val srcH = fluid.level.read
         val srcVX = fluid.impulseX.read
         val srcVY = fluid.impulseY.read
@@ -75,8 +76,8 @@ class FluidMove : FluidWithNeighborShader {
                 for (dx in -1..1) {
                     val xi = x + dx
                     val yi = y + dy
-                    if (xi !in 0 until w || yi !in 0 until h) continue
-                    val j = xi + yi * w
+                    if (xi !in 0 until world.w || yi !in 0 until world.h) continue
+                    val j = xi + yi * world.w
                     val level = srcH[j]
                     if (level > 0f) {
                         // calculate flow from that cell into this cell

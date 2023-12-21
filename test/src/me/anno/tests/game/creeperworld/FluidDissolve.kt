@@ -13,7 +13,7 @@ class FluidDissolve(val pos: FluidFramebuffer, val neg: FluidFramebuffer) : Flui
         vy[i] *= ratio
     }
 
-    override fun process(fluid: FluidFramebuffer, world: World) {
+    override fun process(fluid: FluidFramebuffer, world: CreeperWorld) {
         val level = fluid.level.read
         val posH = pos.level.read
         val negH = neg.level.read
@@ -21,7 +21,7 @@ class FluidDissolve(val pos: FluidFramebuffer, val neg: FluidFramebuffer) : Flui
         val posY = pos.impulseY.read
         val negX = neg.impulseX.read
         val negY = neg.impulseY.read
-        worker.processBalanced(0, size, 64) { i0, i1 ->
+        worker.processBalanced(0, world.size, 64) { i0, i1 ->
             for (i in i0 until i1) {
                 val pi = posH[i]
                 val ni = negH[i]

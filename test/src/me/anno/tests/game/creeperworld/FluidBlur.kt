@@ -6,14 +6,14 @@ class FluidBlur(
     val revFluidDecay: Float,
 ) : FluidWithNeighborShader {
 
-    override fun process(fluid: FluidFramebuffer, world: World) {
+    override fun process(fluid: FluidFramebuffer, world: CreeperWorld) {
         super.process(fluid, world)
         fluid.level.swap()
         fluid.impulseX.swap()
         fluid.impulseY.swap()
     }
 
-    override fun processEdgePixel(x: Int, y: Int, i: Int, fluid: FluidFramebuffer, world: World) {
+    override fun processEdgePixel(x: Int, y: Int, i: Int, fluid: FluidFramebuffer, world: CreeperWorld) {
 
         val dstH = fluid.level.write
         val dstVX = fluid.impulseX.write
@@ -31,7 +31,7 @@ class FluidBlur(
             val srcVY = fluid.impulseY.read
 
             fun addValue(x: Int, y: Int) {
-                val j = x + y * w
+                val j = x + y * world.w
                 if (!isSolid(hardness[j])) {
                     sumH += srcH[j] * flow
                     sumVX += srcVX[j] * flow
@@ -42,8 +42,8 @@ class FluidBlur(
 
             if (x > 0) addValue(x - 1, y)
             if (y > 0) addValue(x, y - 1)
-            if (x + 1 < w) addValue(x + 1, y)
-            if (y + 1 < h) addValue(x, y + 1)
+            if (x + 1 < world.w) addValue(x + 1, y)
+            if (y + 1 < world.h) addValue(x, y + 1)
 
             val rem = 1f - sumW
             dstH[i] = (srcH[i] * rem + sumH) * revFluidDecay
@@ -52,7 +52,7 @@ class FluidBlur(
         }
     }
 
-    override fun processInnerPixels(i0: Int, i1: Int, fluid: FluidFramebuffer, world: World) {
+    override fun processInnerPixels(i0: Int, i1: Int, fluid: FluidFramebuffer, world: CreeperWorld) {
 
         val srcH = fluid.level.read
         val srcVX = fluid.impulseX.read
@@ -63,6 +63,7 @@ class FluidBlur(
         val dstVY = fluid.impulseY.write
         val hardness = world.hardness
 
+        val w = world.w
         for (i in i0 until i1) {
             if (!isSolid(hardness[i])) {
                 var sumH = 0f

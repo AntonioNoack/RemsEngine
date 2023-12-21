@@ -10,10 +10,12 @@ class Multiplier(
     val radius: Int,
     val fluids: List<FluidFramebuffer>
 ) : Agent(image) {
-    override fun update() {
-        val radius = min(radius, min(w, h))
+    override fun update(world: CreeperWorld) {
+        val radius = min(radius, min(world.w, world.h))
         for (fluid in fluids) {
             // multiply all fluid within my area
+            val w = world.w
+            val h = world.h
             val cx = clamp(position.x + (image.width - radius) / 2, 0, w - radius)
             val cy = clamp(position.y + (image.height - radius) / 2, 0, h - radius)
             val level = fluid.level.read

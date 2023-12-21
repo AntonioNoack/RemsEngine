@@ -3,7 +3,7 @@ package me.anno.tests.game.creeperworld
 import kotlin.math.min
 
 class FluidExpand : FluidShader {
-    override fun process(fluid: FluidFramebuffer, world: World) {
+    override fun process(fluid: FluidFramebuffer, world: CreeperWorld) {
 
         val srcH = fluid.level.read
         val srcVX = fluid.impulseX.read
@@ -14,6 +14,8 @@ class FluidExpand : FluidShader {
         val dstVY = fluid.impulseY.write
         val hardness = world.hardness
 
+        val w = world.w
+        val h = world.h
         worker.processBalanced(0, w, 8) { x0, x1 ->
             for (x in x0 until x1) {
                 var y = h - 1
