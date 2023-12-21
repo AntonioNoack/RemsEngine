@@ -1,6 +1,10 @@
 package me.anno.tests.game.creeperworld
 
-class FluidBlur(val wei: Float, val revFriction: Float) : FluidWithNeighborShader {
+class FluidBlur(
+    val flow: Float,
+    val revFriction: Float,
+    val revFluidDecay: Float,
+) : FluidWithNeighborShader {
 
     override fun process(fluid: FluidFramebuffer, world: World) {
         super.process(fluid, world)
@@ -26,7 +30,6 @@ class FluidBlur(val wei: Float, val revFriction: Float) : FluidWithNeighborShade
             val srcVX = fluid.impulseX.read
             val srcVY = fluid.impulseY.read
 
-            val flow = wei
             fun addValue(x: Int, y: Int) {
                 val j = x + y * w
                 if (!isSolid(hardness[j])) {
@@ -43,7 +46,7 @@ class FluidBlur(val wei: Float, val revFriction: Float) : FluidWithNeighborShade
             if (y + 1 < h) addValue(x, y + 1)
 
             val rem = 1f - sumW
-            dstH[i] = srcH[i] * rem + sumH
+            dstH[i] = (srcH[i] * rem + sumH) * revFluidDecay
             dstVX[i] = (srcVX[i] * rem + sumVX) * revFriction
             dstVY[i] = (srcVY[i] * rem + sumVY) * revFriction
         }
@@ -60,7 +63,6 @@ class FluidBlur(val wei: Float, val revFriction: Float) : FluidWithNeighborShade
         val dstVY = fluid.impulseY.write
         val hardness = world.hardness
 
-        val flow = wei
         for (i in i0 until i1) {
             if (!isSolid(hardness[i])) {
                 var sumH = 0f
@@ -81,7 +83,7 @@ class FluidBlur(val wei: Float, val revFriction: Float) : FluidWithNeighborShade
                 addValue(0, -1)
                 addValue(0, +1)
                 val rem = 1f - sumW
-                dstH[i] = srcH[i] * rem + sumH
+                dstH[i] = (srcH[i] * rem + sumH) * revFluidDecay
                 dstVX[i] = (srcVX[i] * rem + sumVX) * revFriction
                 dstVY[i] = (srcVY[i] * rem + sumVY) * revFriction
             }

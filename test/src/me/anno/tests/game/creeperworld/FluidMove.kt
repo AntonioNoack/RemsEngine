@@ -6,19 +6,10 @@ import kotlin.math.abs
 class FluidMove : FluidWithNeighborShader {
 
     override fun process(fluid: FluidFramebuffer, world: World) {
-        /*val sumH0 = fluid.level.read.sumOf { it.toDouble() }
-        val sumVX0 = fluid.impulseX.read.sumOf { it.toDouble() }
-        val sumVY0 = fluid.impulseY.read.sumOf { it.toDouble() }*/
         super.process(fluid, world)
         fluid.level.swap()
         fluid.impulseX.swap()
         fluid.impulseY.swap()
-        /*val sumH1 = fluid.level.read.sumOf { it.toDouble() }
-        val sumVX1 = fluid.impulseX.read.sumOf { it.toDouble() }
-        val sumVY1 = fluid.impulseY.read.sumOf { it.toDouble() }
-        check(sumH0, sumH1, "level")
-        check(abs(sumVX0), abs(sumVX1), "vx")
-        check(abs(sumVY0), abs(sumVY1), "vy")*/
     }
 
     fun check(a: Double, b: Double, name: String) {

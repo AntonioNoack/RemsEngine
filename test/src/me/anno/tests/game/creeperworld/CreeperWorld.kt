@@ -2,15 +2,18 @@ package me.anno.tests.game.creeperworld
 
 import me.anno.Time
 import me.anno.config.DefaultConfig.style
+import me.anno.gpu.GFX.addGPUTask
 import me.anno.gpu.drawing.DrawTexts.drawSimpleTextCharByChar
 import me.anno.gpu.drawing.DrawTexts.monospaceFont
 import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2D.Companion.switchRGB2BGR
 import me.anno.image.ImageCache
+import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.language.translation.NameDesc
 import me.anno.maths.Maths.SECONDS_TO_NANOS
+import me.anno.maths.Maths.max
 import me.anno.maths.noise.PerlinNoise
 import me.anno.maths.paths.PathFinding
 import me.anno.studio.StudioBase
@@ -19,7 +22,9 @@ import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.MapPanel
 import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.Color.a
+import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
+import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.hpc.ProcessingGroup
 import org.joml.Vector2i
@@ -58,14 +63,15 @@ fun validateNotOnWall(hardness: FloatArray, levels: FloatArray) {
 }
 
 fun forAllEdgePixels(processEdgePixel: (x: Int, y: Int, i: Int) -> Unit) {
-    for (y in 0 until h) {
-        processEdgePixel(0, y, y * w)
-        processEdgePixel(w - 1, y, (w - 1) + y * w)
-    }
-
-    for (x in 1 until w - 1) {
-        processEdgePixel(x, 0, x)
-        processEdgePixel(x, h - 1, x + w * (h - 1))
+    worker.processBalanced(0, max(w, h), 16) { i0, i1 ->
+        for (y in i0 until min(h, i1)) {
+            processEdgePixel(0, y, y * w)
+            processEdgePixel(w - 1, y, (w - 1) + y * w)
+        }
+        for (x in max(1, i0) until min(w - 1, i1)) {
+            processEdgePixel(x, 0, x)
+            processEdgePixel(x, h - 1, x + w * (h - 1))
+        }
     }
 }
 
@@ -95,8 +101,8 @@ class RockPropertyLayer(
 
 }
 
-val w = 64
-val h = 64
+val w = 512
+val h = 256
 val size = w * h
 
 fun isSolid(hardness: Float): Boolean {
@@ -141,8 +147,10 @@ fun main() {
 
     val hardness = RockProperty(0.5f, 0f)
 
-    val stone = RockType(1, NameDesc("Stone"), mapOf(hardness to 0.7f), 0x777777)
-    val rock = RockType(2, NameDesc("Rock"), mapOf(hardness to 0.9f), 0x333337)
+    val stoneTexture = ImageCache[getReference("res://textures/Stone.png"), false]!!
+    val stone = RockType(1, NameDesc("Stone"), mapOf(hardness to 0.7f), stoneTexture)
+    val rockTexture = ImageCache[getReference("res://textures/Rock.png"), false]!!
+    val rock = RockType(2, NameDesc("Rock"), mapOf(hardness to 0.9f), rockTexture)
     val clay = RockType(3, NameDesc("Clay"), mapOf(hardness to 0.1f), 0x889999)
 
     // todo gravity for sand
@@ -160,18 +168,31 @@ fun main() {
             FluidAccelerate(-0.1f, 0.5f),
             FluidClampVelocity(world[hardness]),
             FluidMove(),
-            FluidBlur(1f / 8f, 1f - 1f / 100f),
+            FluidBlur(1f / 8f, 0.99f, 1f),
             FluidExpand(),
-        ), 3, 0x33ff33.withAlpha(200)
+        ), 1, 0x33ff33.withAlpha(200)
     )
 
-    val antiCreeper = FluidLayer("antiCreeper", listOf(
-        FluidAccelerate(-0.1f, 0.5f),
-        FluidClampVelocity(world[hardness]),
-        FluidMove(),
-        FluidBlur(1f / 8f, 1f - 1f / 100f),
-        FluidExpand(),
-    ), 3, 0x3377ff.withAlpha(100))
+    val antiCreeper = FluidLayer(
+        "antiCreeper", listOf(
+            FluidAccelerate(-0.1f, 0.5f),
+            FluidClampVelocity(world[hardness]),
+            FluidMove(),
+            FluidBlur(1f / 8f, 0.99f, 1f),
+            FluidExpand(),
+        ), 1, 0x3377ff.withAlpha(140)
+    )
+
+    val foam = FluidLayer(
+        "foam", listOf(
+            FluidDissolve(creeper.data, antiCreeper.data),
+            FluidAccelerate(-0.1f, 0.5f),
+            FluidClampVelocity(world[hardness]),
+            FluidMove(),
+            FluidBlur(1f / 8f, 1f, 0.9f),
+            FluidExpand(),
+        ), 1, white.withAlpha(127)
+    )
 
     world.hardness = world[hardness]
 
@@ -181,18 +202,18 @@ fun main() {
     val acid = FluidLayer("acid", listOf(), 2, 0xff8833.withAlpha(100))
     val lava = FluidLayer("lava", listOf(), 10, 0xffaa00.withAlpha(255))
     val water = FluidLayer("water", listOf(), 1, 0x99aaff.withAlpha(50))
-    val fluids = listOf(creeper, antiCreeper)
+    val fluids = listOf(creeper, antiCreeper, foam)
 
     for (fluid in fluids) {
         world.register(fluid)
     }
 
-    val skyColor = 0xcceeff
+    val skyColor = ImageCache[getReference("res://textures/Clouds.jpg"), false]!!
 
     val rockTypes = listOf(stone, rock, clay, sand)
     val rockById = rockTypes.associateBy { it.id }
-    val rockColors = IntArray(rockTypes.maxOf { it.id } + 1) { id ->
-        (rockById[id]?.color ?: skyColor).withAlpha(255)
+    val rockTextures = Array(rockTypes.maxOf { it.id } + 1) { id ->
+        rockById[id]?.texture ?: skyColor
     }
 
     // fill in some sample data
@@ -215,13 +236,16 @@ fun main() {
     val height = PerlinNoise(
         1234L, 5, 0.5f,
         h * 5 / 6f, h * 6 / 6f,
-        Vector4f(0.1f)
+        Vector4f(10f / w)
     )
 
     for (x in 0 until w) {
         val hi = height[x.toFloat()].toInt()
-        for (y in hi until h) {
+        for (y in hi until hi + 3) {
             world.setBlock(x, y, stone)
+        }
+        for (y in hi + 3 until h) {
+            world.setBlock(x, y, rock)
         }
     }
 
@@ -236,16 +260,26 @@ fun main() {
     // spawn a few pixels and agents
     // todo spawn an agent with an actual image,
     //  and then use some key to reposition it (drag?), and let's see how it moves :3
-    val chopperImage = ImageCache[getReference("res://textures/chopper.png"), false]!!
-    val chopper = object : Agent(chopperImage, Vector2i(10, 10)) {
-        override fun onUpdate() {}
+    val chopperImage = ImageCache[getReference("res://textures/Chopper.png"), false]!!
+    val chopper = object : Agent(chopperImage) {
+        override fun update() {}
     }
+    chopper.position.set(10, 10)
     world.agents.add(chopper)
     val samplePixel = Pixel(IntArray(size) { it }, 0, 0x00ff00.withAlpha(255), chopper)
     world.pixels.add(samplePixel)
 
+    val multiplierImage = ImageCache[getReference("res://textures/Multiplier.png"), false]!!
+    val multiplier = Multiplier(multiplierImage, 2f, 2, listOf(creeper.data, antiCreeper.data))
+    multiplier.position.set(w * 5 / 6, height[w * 5 / 6f].toInt() - 10)
+    world.agents.add(multiplier)
+
+    val sink = Multiplier(multiplierImage, 0f, 2, listOf(creeper.data, antiCreeper.data))
+    sink.position.set(w * 1 / 6, height[w * 1 / 6f].toInt() - 10)
+    world.agents.add(sink)
+
     // create UI
-    var updateInterval = 1f / 20f
+    val updateInterval = 1f / 60f
     val image = IntArray(size)
     testUI3("Creeper World") {
         StudioBase.instance?.enableVSync = true
@@ -257,49 +291,63 @@ fun main() {
                 super.onDraw(x0, y0, x1, y1)
                 val time = Time.gameTimeN
                 if (time >= nextUpdate) {
+                    nextUpdate = Long.MAX_VALUE
+                    worker += {
 
-                    nextUpdate = time + (updateInterval * SECONDS_TO_NANOS).toLong()
-                    // todo update all systems that need it
-                    //  - rocks
-                    //  - ships
-                    //  - particles
-                    // todo render all rock types and such...
-                    // done:
-                    //  - fluids
+                        // todo update all systems that need it
+                        //  - rocks
+                        //  - ships
+                        //  - particles
+                        // todo render all rock types and such...
+                        // done:
+                        //  - fluids
 
-                    for (i in 0 until size) {
-                        image[i] = rockColors[world.rockTypes[i]]
-                    }
-
-                    for (fluid in fluids) {
-                        if (tickIndex % fluid.viscosity == 0) {
-                            fluid.tick(world, sumByType)
+                        worker.processBalanced(0, h, 16) { y0, y1 ->
+                            var i = y0 * w
+                            for (y in y0 until y1) {
+                                for (x in 0 until w) {
+                                    val rockTex = rockTextures[world.rockTypes[i]]
+                                    image[i++] = rockTex.getRGB(x % rockTex.width, y % rockTex.height) or black
+                                }
+                            }
                         }
-                        // render fluid
-                        fluid.data.render(image, fluid.color)
+
+                        for (fluid in fluids) {
+                            if (tickIndex % fluid.viscosity == 0) {
+                                fluid.tick(world, sumByType)
+                            }
+                            // render fluid
+                            fluid.data.render(image, fluid.color)
+                        }
+
+                        world.updatePixels()
+
+                        for (pixel in world.pixels) {
+                            val pos = pixel.path[pixel.progress]
+                            image[pos] = mixARGB(image[pos], pixel.color, pixel.color.a())
+                        }
+
+                        for (agent in world.agents) {
+                            agent.update()
+                            agent.render(image)
+                        }
+
+                        switchRGB2BGR(image)
+                        addGPUTask("texUpdate", 10) {
+                            texture.createRGB(image, false)
+                            tickIndex++
+                            nextUpdate = time + (updateInterval * SECONDS_TO_NANOS).toLong()
+                        }
                     }
-
-                    world.updatePixels()
-
-                    for (pixel in world.pixels) {
-                        val pos = pixel.path[pixel.progress]
-                        image[pos] = mixARGB(image[pos], pixel.color, pixel.color.a())
-                    }
-
-                    for (agent in world.agents) {
-                        agent.render(image)
-                    }
-
-                    switchRGB2BGR(image)
-                    texture.createRGB(image, false)
-                    tickIndex++
                 }
 
-                val xi = coordsToWindowX(0f).toInt()
-                val yi = coordsToWindowY(0f).toInt()
-                val wi = coordsToWindowDirX(texture.width.toDouble()).toInt()
-                val hi = coordsToWindowDirY(texture.height.toDouble()).toInt()
-                drawTexture(xi - wi / 2, yi - hi / 2, wi, hi, texture)
+                if (texture.isCreated) {
+                    val xi = coordsToWindowX(0f).toInt()
+                    val yi = coordsToWindowY(0f).toInt()
+                    val wi = coordsToWindowDirX(texture.width.toDouble()).toInt()
+                    val hi = coordsToWindowDirY(texture.height.toDouble()).toInt()
+                    drawTexture(xi - wi / 2, yi - hi / 2, wi, hi, texture)
+                }
 
                 val window = window!!
                 val mx = floor(windowToCoordsX(window.mouseX) + w / 2).toInt()
@@ -307,11 +355,16 @@ fun main() {
 
                 if (mx in 0 until w && my in 0 until h) {
                     val mi = mx + my * w
-                    var yj = this.y + this.height - monospaceFont.sizeInt * fluids.size
+                    var yj = this.y + this.height - monospaceFont.sizeInt * (fluids.size + 1)
+                    drawSimpleTextCharByChar(
+                        this.x, yj, 1,
+                        "$mx, $my"
+                    )
+                    yj += monospaceFont.sizeInt
                     for (fluid in fluids) {
                         drawSimpleTextCharByChar(
                             this.x, yj, 1,
-                            "${fluid.data.level.read[mi]}, vx: ${fluid.data.impulseX.read[mi]}, vy: ${fluid.data.impulseY.read[mi]}"
+                            "${fluid.id}: ${fluid.data.level.read[mi]}, vx: ${fluid.data.impulseX.read[mi]}, vy: ${fluid.data.impulseY.read[mi]}"
                         )
                         yj += monospaceFont.sizeInt
                     }
@@ -321,7 +374,7 @@ fun main() {
                 for (fluid in fluids) {
                     drawSimpleTextCharByChar(
                         this.x + this.width, yj, 1,
-                        "${sumByType[fluid.id]}", AxisAlignment.MAX, AxisAlignment.MIN
+                        "${fluid.id}: ${sumByType[fluid.id]}", AxisAlignment.MAX, AxisAlignment.MIN
                     )
                     yj += monospaceFont.sizeInt
                 }

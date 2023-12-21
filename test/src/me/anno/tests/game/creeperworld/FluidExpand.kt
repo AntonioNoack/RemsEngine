@@ -16,15 +16,6 @@ class FluidExpand : FluidShader {
 
         worker.processBalanced(0, w, 8) { x0, x1 ->
             for (x in x0 until x1) {
-
-                /*val sum0 = listOf(
-                    srcH, srcVX, srcVY
-                ).map { data ->
-                    (0 until h).sumOf { y ->
-                        data[x + y * w].toDouble()
-                    }
-                }*/
-
                 var y = h - 1
                 var i = x + y * w
                 while (y > 0) {
@@ -69,20 +60,6 @@ class FluidExpand : FluidShader {
                         i -= w
                     }
                 }
-
-                /*val sum1 = listOf(
-                    dstH, dstVX, dstVY
-                ).map { data ->
-                    (0 until h).sumOf { y ->
-                        data[x + y * w].toDouble()
-                    }
-                }
-
-                for (li in sum0.indices) {
-                    if (abs(sum0[li]) !in 0.999 * abs(sum1[li])..1.001 * abs(sum1[li])) {
-                        throw IllegalStateException("FluidExpand isn't conservative!, $sum0 -> $sum1 at x=$x")
-                    }
-                }*/
             }
         }
         fluid.level.swap()

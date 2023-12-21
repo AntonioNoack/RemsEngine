@@ -7,12 +7,12 @@ import me.anno.utils.Color.a
 import org.joml.Vector2i
 import kotlin.math.min
 
-abstract class Agent(
-    val image: Image,
-    val position: Vector2i
-) {
+abstract class Agent(val image: Image) {
+
+    val position = Vector2i()
+
     // todo fire logic and such...
-    abstract fun onUpdate()
+    abstract fun update()
 
     val completeState = (0 until image.width * image.height).count {
         image.getRGB(it).a() > 0
