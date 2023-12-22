@@ -394,14 +394,14 @@ open class Vector3f(
         return dx * dx + dy * dy + dz * dz
     }
 
-    fun dot(v: Vector3f) = dot(v.x, v.y, v.z)
-    fun dot(x: Float, y: Float, z: Float): Float {
-        return this.x * x + this.y * y + this.z * z
-    }
+    fun dot(v: Vector3f): Float = dot(v.x, v.y, v.z)
+    fun dot(v: Vector3d): Double = dot(v.x, v.y, v.z)
+    fun dot(vx: Float, vy: Float, vz: Float): Float = x * vx + y * vy + z * vz
+    fun dot(vx: Double, vy: Double, vz: Double): Double = x * vx + y * vy + z * vz
 
-    fun angleCos(v: Vector3f) = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
-
-    fun angleCos(vx: Float, vy: Float, vz: Float) = dot(vx, vy, vz) / sqrt(lengthSquared() * lengthSquared(vx, vy, vz))
+    fun angleCos(v: Vector3f): Float = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
+    fun angleCos(vx: Float, vy: Float, vz: Float): Float =
+        dot(vx, vy, vz) / sqrt(lengthSquared() * lengthSquared(vx, vy, vz))
 
     fun angle(v: Vector3f): Float {
         var cos = angleCos(v)

@@ -126,7 +126,10 @@ open class Vector2d(
         return dst.set(mat.m00 * x + mat.m10 * y, mat.m01 * x + mat.m11 * y)
     }
 
-    fun dot(v: Vector2d) = x * v.x + y * v.y
+    fun dot(v: Vector2f): Double = x * v.x + y * v.y
+    fun dot(v: Vector2d): Double = x * v.x + y * v.y
+    fun dot(vx: Float, vy: Float): Double = x * vx + y * vy
+    fun dot(vx: Double, vy: Double): Double = x * vx + y * vy
 
     fun angle(v: Vector2d): Double {
         val det = x * v.y - y * v.x

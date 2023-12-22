@@ -363,21 +363,18 @@ open class Vector4f(
         return sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
     }
 
-    fun distanceSquared(v: Vector4f) = distanceSquared(v.x, v.y, v.z, v.w)
-    fun distanceSquared(x: Float, y: Float, z: Float, w: Float): Float {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        val dw = this.w - w
-        return sqrt(dx * dx + dy * dy + dz * dz + dw * dw)
-    }
+    fun distanceSquared(v: Vector4f): Float = distanceSquared(v.x, v.y, v.z, v.w)
+    fun distanceSquared(vx: Float, vy: Float, vz: Float, vw: Float): Float =
+        lengthSquared(x - vx, y - vy, z - vz, w - vw)
 
-    fun dot(v: Vector4f) = dot(v.x, v.y, v.z, v.w)
-    fun dot(x: Float, y: Float, z: Float, w: Float): Float {
-        return this.x * x + this.y * y + this.z * z + this.w * w
-    }
+    fun dot(v: Vector4f): Float = dot(v.x, v.y, v.z, v.w)
+    fun dot(v: Vector4d): Double = dot(v.x, v.y, v.z, v.w)
+    fun dot(vx: Float, vy: Float, vz: Float, vw: Float): Float = x * vx + y * vy + z * vz + w * vw
+    fun dot(vx: Double, vy: Double, vz: Double, vw: Double): Double = x * vx + y * vy + z * vz + w * vw
 
-    fun angleCos(v: Vector4f) = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
+    fun angleCos(v: Vector4f): Float = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
+    fun angleCos(vx: Float, vy: Float, vz: Float, vw: Float): Float =
+        dot(vx, vy, vz, vw) / sqrt(lengthSquared() * lengthSquared(vx, vy, vz, vw))
 
     fun angle(v: Vector4f): Float {
         var cos = angleCos(v)

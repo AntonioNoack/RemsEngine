@@ -542,23 +542,17 @@ open class Vector3d(
         return sqrt(dx * dx + dy * dy + dz * dz)
     }
 
-    fun distanceSquared(v: Vector3d) = distanceSquared(v.x, v.y, v.z)
-    fun distanceSquared(x: Double, y: Double, z: Double): Double {
-        val dx = this.x - x
-        val dy = this.y - y
-        val dz = this.z - z
-        return (dx * dx + (dy * dy + dz * dz))
-    }
+    fun distanceSquared(v: Vector3d): Double = distanceSquared(v.x, v.y, v.z)
+    fun distanceSquared(vx: Double, vy: Double, vz: Double): Double = lengthSquared(x - vx, y - vy, z - vz)
 
-    fun dot(v: Vector3d): Double {
-        return (x * v.x + (y * v.y + z * v.z))
-    }
+    fun dot(v: Vector3f): Double = x * v.x + y * v.y + z * v.z
+    fun dot(v: Vector3d): Double = x * v.x + y * v.y + z * v.z
+    fun dot(vx: Float, vy: Float, vz: Float): Double = x * vx + y * vy + z * vz
+    fun dot(vx: Double, vy: Double, vz: Double): Double = x * vx + y * vy + z * vz
 
-    fun dot(x: Double, y: Double, z: Double): Double {
-        return (this.x * x + (this.y * y + this.z * z))
-    }
-
-    fun angleCos(v: Vector3d) = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
+    fun angleCos(v: Vector3d): Double = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
+    fun angleCos(vx: Double, vy: Double, vz: Double): Double =
+        dot(vx, vy, vz) / sqrt(lengthSquared() * lengthSquared(vx, vy, vz))
 
     fun angle(v: Vector3d): Double {
         var cos = angleCos(v)

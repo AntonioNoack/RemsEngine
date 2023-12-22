@@ -1,13 +1,11 @@
-package me.anno.tests.maths
+package me.anno.tests.maths.grid
 
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.coordsToIndexClosest
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.indexToCoords
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.neighbors
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.vertices
-import me.anno.gpu.drawing.DrawRectangles.drawRect
 import me.anno.maths.Maths.TAU
-import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import org.joml.Vector2d
 import org.joml.Vector2i
 import org.junit.jupiter.api.Test

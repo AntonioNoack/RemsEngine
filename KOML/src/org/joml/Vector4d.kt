@@ -645,12 +645,14 @@ open class Vector4d(
         return Companion.lengthSquared(this.x - x, this.y - y, this.z - z, this.w - w)
     }
 
-    fun dot(v: Vector4d) = x * v.x + y * v.y + z * v.z + w * v.w
-    fun dot(x: Double, y: Double, z: Double, w: Double): Double {
-        return this.x * x + this.y * y + this.z * z + this.w * w
-    }
+    fun dot(v: Vector4f): Double = dot(v.x, v.y, v.z, v.w)
+    fun dot(v: Vector4d): Double = dot(v.x, v.y, v.z, v.w)
+    fun dot(vx: Float, vy: Float, vz: Float, vw: Float): Double = x * vx + y * vy + z * vz + w * vw
+    fun dot(vx: Double, vy: Double, vz: Double, vw: Double): Double = x * vx + y * vy + z * vz + w * vw
 
-    fun angleCos(v: Vector4d) = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
+    fun angleCos(v: Vector4d): Double = dot(v) / sqrt(lengthSquared() * v.lengthSquared())
+    fun angleCos(vx: Double, vy: Double, vz: Double, vw: Double): Double =
+        dot(vx, vy, vz, vw) / sqrt(lengthSquared() * lengthSquared(vx, vy, vz, vw))
 
     fun angle(v: Vector4d): Double {
         var cos = angleCos(v)

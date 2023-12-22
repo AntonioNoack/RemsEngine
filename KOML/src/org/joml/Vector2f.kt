@@ -73,7 +73,11 @@ open class Vector2f(
         return dst
     }
 
-    fun dot(v: Vector2f) = x * v.x + y * v.y
+    fun dot(v: Vector2f): Float = x * v.x + y * v.y
+    fun dot(v: Vector2d): Double = x * v.x + y * v.y
+    fun dot(vx: Float, vy: Float): Float = x * vx + y * vy
+    fun dot(vx: Double, vy: Double): Double = x * vx + y * vy
+
     fun angle(v: Vector2f): Float {
         val dot = x * v.x + y * v.y
         val det = x * v.y - y * v.x
