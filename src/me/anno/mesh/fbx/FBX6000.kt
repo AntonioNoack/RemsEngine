@@ -6,12 +6,12 @@ import me.anno.io.Streams.readDoubleLE
 import me.anno.io.Streams.readLE16
 import me.anno.io.Streams.readLE32
 import me.anno.io.Streams.readLE64
-import me.anno.utils.LOGGER
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.lists.Lists.pop
 import me.anno.utils.types.InputStreams.readNBytes2
 import net.sf.image4j.io.CountingInputStream
+import org.apache.logging.log4j.LogManager
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
@@ -21,6 +21,7 @@ import java.io.InputStream
  * */
 object FBX6000 {
 
+    private val LOGGER = LogManager.getLogger(FBX6000::class)
     fun parseBinaryFBX6000(source: InputStream): Map<String, List<Any>> {
 
         val stream = CountingInputStream(source)
@@ -122,7 +123,6 @@ object FBX6000 {
         }
 
         return stack.first()
-
     }
 
     @Suppress("unchecked_cast")
@@ -181,7 +181,7 @@ object FBX6000 {
                         mesh.normals = normals2.toFloatArray()
                         mesh.uvs = uvs2?.toFloatArray()
                     }
-                    "ByVertex","ByVertice" -> {
+                    "ByVertex", "ByVertice" -> {
                         val size = indices.size * 2
                         val positions1 = positions0.map { it.toFloat() }.toFloatArray()
                         val normals1 = normals0.map { it.toFloat() }.toFloatArray()
@@ -219,5 +219,4 @@ object FBX6000 {
         }
         return meshes
     }
-
 }

@@ -37,9 +37,9 @@ import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.ui.input.EnumInput
 import me.anno.ui.input.FloatVectorInput
-import me.anno.utils.LOGGER
 import me.anno.utils.structures.lists.UpdatingList
 import me.anno.utils.types.Vectors
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -48,6 +48,10 @@ import kotlin.math.sqrt
  * defines how an animation with its own skeleton is mapped onto another skeleton
  * */
 class Retargeting : PrefabSaveable(), Renderable {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(Retargeting::class)
+    }
 
     var srcSkeleton: FileReference = InvalidRef
     var dstSkeleton: FileReference = InvalidRef

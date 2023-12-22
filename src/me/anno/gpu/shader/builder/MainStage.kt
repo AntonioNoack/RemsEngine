@@ -204,8 +204,11 @@ class MainStage {
                         code.append(if (isArray) "vec4(i,j,0.0,0.0));\n" else "vec3(i,j,0.0));\n")
                     } else {
                         // todo use smoothstep with bias?
-                        code.append("sum += step(texture(").append(nameIndex).append(", uvw.xy+du*")
-                        code.append(if (isArray) "vec3(i,j,0.0)).x,uvw.z);\n" else "vec2(i,j)).x,uvw.z);\n")
+                        code.append("sum += step(texture(").append(nameIndex).append(", ")
+                        code.append(
+                            if (isArray) "uvw.xyz+du*vec3(i,j,0.0)).x,uvw.w);\n"
+                            else "uvw.xy+du*vec2(i,j)).x,uvw.z);\n"
+                        )
                     }
                     code.append("}}\n return sum*0.04;\n")
                 }
@@ -268,7 +271,7 @@ class MainStage {
                 code.append("layout(location=0) out vec4 BuildColor;\n")
             } else {
                 // register all layers
-                settings.appendLayerDeclarators(code, disabledLayers)
+                settings.appendLayerDeclarators(code, disabledLayers, uniforms)
             }
             code.append('\n')
         }

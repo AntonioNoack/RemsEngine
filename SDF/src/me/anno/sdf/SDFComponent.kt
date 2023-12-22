@@ -34,7 +34,6 @@ import me.anno.parser.SimpleExpressionParser
 import me.anno.sdf.arrays.SDFGroupArray
 import me.anno.sdf.modifiers.DistanceMapper
 import me.anno.sdf.modifiers.PositionMapper
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.pooling.ObjectPool
 import me.anno.utils.structures.arrays.IntArrayList
@@ -458,7 +457,6 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         )
         mesh.inverseOutline = true
         mesh.invalidateGeometry()
-        JomlPools.aabbf.sub(1)
     }
 
     fun generateShader() {

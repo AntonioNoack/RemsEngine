@@ -55,7 +55,7 @@ class Variable(val type: GLSLType, var name: String, var arraySize: Int, var inO
     fun declare(code: StringBuilder, prefix: String?, assign: Boolean) {
         if (prefix != null && prefix.startsWith("uniform") && arraySize > 0 && type.glslName.startsWith("sampler")) {
             // define sampler array
-            val type = if (!GFX.supportsDepthTextures) GLSLType.withoutShadow(type) else type
+            val type = if (!GFX.supportsDepthTextures) type.withoutShadow() else type
             for (index in 0 until arraySize) {
                 code.append(prefix).append(' ')
                 code.append(type.glslName).append(' ')

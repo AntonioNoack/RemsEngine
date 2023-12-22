@@ -12,12 +12,14 @@ import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.io.utils.StringMap
 import me.anno.studio.Events.addEvent
 import me.anno.studio.StudioBase
-import me.anno.ui.editor.code.CodeEditor
 import me.anno.ui.WindowStack.Companion.printLayout
-import me.anno.utils.LOGGER
+import me.anno.ui.editor.code.CodeEditor
+import org.apache.logging.log4j.LogManager
 
 @Suppress("MemberVisibilityCanBePrivate")
 object EngineActions {
+
+    private val LOGGER = LogManager.getLogger(EngineActions::class)
 
     fun register() {
 
@@ -140,7 +142,6 @@ object EngineActions {
         CodeEditor.registerActions()
 
         ActionManager.createDefaultKeymap = EngineActions::createKeymap
-
     }
 
     fun createKeymap(register: StringMap) {
@@ -257,7 +258,5 @@ object EngineActions {
         register["SceneView.t.typed"] = "SetMode(ROTATE)"
         register["SceneView.y.typed"] = "SetMode(SCALE)"
         register["SceneView.z.typed"] = "SetMode(SCALE)"
-
     }
-
 }

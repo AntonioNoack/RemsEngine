@@ -5,10 +5,10 @@ import me.anno.maths.Maths.length
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.sq
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Triangles
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3f
 import kotlin.math.abs
 import kotlin.math.cos
@@ -17,6 +17,8 @@ import kotlin.math.sqrt
 
 // todo something seems to be incorrect... some blender meshes have broken normals
 object NormalCalculator {
+
+    private val LOGGER = LogManager.getLogger(NormalCalculator::class)
 
     fun needsNormalsComputation(normals: FloatArray, stride: Int): Boolean {
         for (j in 0 until normals.size / stride) {

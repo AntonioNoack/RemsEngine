@@ -3,14 +3,18 @@ package me.anno.utils.structures.arrays
 import me.anno.cache.ICacheData
 import me.anno.io.Saveable
 import me.anno.io.base.BaseWriter
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.FloatArrayPool
+import org.apache.logging.log4j.LogManager
 import org.joml.*
 import kotlin.math.max
 import kotlin.math.min
 
 open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = null) :
     Saveable(), ICacheData {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ExpandingFloatArray::class)
+    }
 
     var size = 0
 

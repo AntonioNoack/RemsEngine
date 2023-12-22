@@ -10,8 +10,17 @@ import kotlin.math.floor
 import kotlin.math.round
 
 /**
- * Triangle grid, where the center of each triangle is defined as the center of the AABB.
+ *
+ * This objects provides utility functions to make triangle grids easy to implement.
+ * It contains all the maths required for them.
+ * The center of each triangle is defined as the center of the AABB.
  * This makes it nicer to add textures to the triangles, and neighbor (180° rotated) triangles have the same coords.y.
+ *
+ * In this implementation, each side is 1.0 long.
+ * If you need another scale, just scale the coordinates by a constant.
+ *
+ * Triangles are simple, so you shouldn't necessarily use Objects to save their vertices/what you need.
+ * Instead, you can save their index (i,j), maybe in a 2d-like array.
  * */
 object TriangleGridMaths {
 

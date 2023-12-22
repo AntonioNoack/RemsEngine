@@ -101,11 +101,12 @@ object FSR {
         val functions = code.value.second
 
         val shader = Shader(
-            "sharpen", uiVertexShaderList, uiVertexShader, uvList, emptyList(), "" +
-                    "out vec4 glFragColor;\n" +
-                    "uniform vec2 dstWH;\n" +
-                    "uniform float sharpness;\n" +
-                    "uniform sampler2D source;\n" +
+            "sharpen", uiVertexShaderList, uiVertexShader, uvList, listOf(
+                Variable(GLSLType.V4F, "color", VariableMode.OUT),
+                Variable(GLSLType.V2F, "dstWH"),
+                Variable(GLSLType.V1F, "sharpness"),
+                Variable(GLSLType.S2D, "source"),
+            ), "" +
                     "#define A_GPU 1\n" +
                     "#define A_GLSL 1\n" +
                     "#define FSR_RCAS_PASSTHROUGH_ALPHA 1\n" +
@@ -117,10 +118,8 @@ object FSR {
                     "void FsrRcasInputF(inout float r,inout float g,inout float b){}\n" +
                     functions +
                     "void main(){\n" +
-                    "   vec4 color;\n" +
                     "   ivec2 coords = ivec2(uv*dstWH);\n" +
                     "   FsrRcasF(color.r,color.g,color.b,color.a,coords,sharpness);\n" +
-                    "   glFragColor = color;\n" +
                     "}"
         )
         shader.glslVersion = 420 // for int->float->int ops, which are used for fast sqrt and such

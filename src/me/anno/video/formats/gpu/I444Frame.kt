@@ -9,15 +9,16 @@ import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2D
-import me.anno.utils.LOGGER
 import me.anno.utils.Sleep
 import me.anno.utils.types.InputStreams.readNBytes2
+import org.apache.logging.log4j.LogManager
 import java.io.InputStream
 
 // this seems to work, and to be correct
 class I444Frame(iw: Int, ih: Int) : GPUFrame(iw, ih, 3, 2) {
 
     companion object {
+        private val LOGGER = LogManager.getLogger(I444Frame::class)
         val yuvStage = ShaderStage(
             "YUV", listOf(
                 Variable(GLSLType.V2F, "finalUV"),

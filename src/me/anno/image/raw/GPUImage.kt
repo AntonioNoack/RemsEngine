@@ -5,10 +5,14 @@ import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.io.files.FileReference
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 
 class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boolean) :
     Image(texture.width, texture.height, numChannels, hasAlphaChannel) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(GPUImage::class)
+    }
 
     constructor(texture: ITexture2D, numChannels: Int) : this(texture, numChannels, numChannels > 3)
     constructor(texture: Texture2D) : this(texture, texture.numChannels)

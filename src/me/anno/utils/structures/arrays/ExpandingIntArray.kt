@@ -1,16 +1,19 @@
 package me.anno.utils.structures.arrays
 
 import me.anno.cache.ICacheData
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.IntArrayPool
 import me.anno.utils.search.BinarySearch
-import me.anno.utils.types.Strings.joinChars
 import me.anno.utils.types.Strings.joinChars0
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
 open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) :
     Collection<Int>, ICacheData {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ExpandingIntArray::class)
+    }
 
     override var size = 0
 
@@ -265,5 +268,4 @@ open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) 
         builder.append(']')
         return builder.toString()
     }
-
 }

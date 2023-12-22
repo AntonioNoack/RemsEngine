@@ -84,7 +84,7 @@ object ScreenSpaceAmbientOcclusion {
     // because of that, we probably could store it in the shader itself
     // 2*16 values ~ just two matrices
     private fun generateRandomTexture(random: Random, w: Int, h: Int = w): Texture2D {
-        val data = ByteBufferPool.allocateDirect(3 * w * h)
+        val data = ByteBufferPool.allocateDirect(4 * w * h)
         for (i in 0 until w * h) {
             val nx = random.nextFloat() * 2 - 1
             val ny = random.nextFloat() * 2 - 1
@@ -96,10 +96,11 @@ object ScreenSpaceAmbientOcclusion {
             data.put(x.toInt().toByte())
             data.put(y.toInt().toByte())
             data.put(z.toInt().toByte())
+            data.put(-1)
         }
         data.flip()
         val tex = Texture2D("ssao-noise", w, h, 1)
-        tex.createRGB(data, false)
+        tex.createRGBA(data, false)
         return tex
     }
 

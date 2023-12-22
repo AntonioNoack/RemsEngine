@@ -770,7 +770,11 @@ object Input {
             val folder = instance!!.getPersistentStorage()
             val file0 = folder.getChild("PastedImage.png")
             val file1 = findNextFile(file0, 3, '-', 1)
-            file1.outputStream().use { out: OutputStream -> ImageIO.write(data, "png", out) }
+            file1.outputStream().use { out: OutputStream ->
+                if (!ImageIO.write(data, "png", out)) {
+                    LOGGER.warn("Couldn't find writer for PNG format")
+                }
+            }
             LOGGER.info("Pasted image of size ${data.width} x ${data.height}, placed into $file1")
             return listOf(file1)
         } catch (_: UnsupportedFlavorException) {
@@ -835,7 +839,11 @@ object Input {
             val folder = instance!!.getPersistentStorage()
             val file0 = folder.getChild("PastedImage.png")
             val file1 = findNextFile(file0, 3, '-', 1)
-            file1.outputStream().use { out: OutputStream -> ImageIO.write(image, "png", out) }
+            file1.outputStream().use { out: OutputStream ->
+                if (!ImageIO.write(image, "png", out)) {
+                    LOGGER.warn("Couldn't find writer for PNG format")
+                }
+            }
             LOGGER.info("Pasted image of size ${image.width} x ${image.height}, placed into $file1")
             panel.onPasteFiles(window.mouseX, window.mouseY, listOf(file1))
             return

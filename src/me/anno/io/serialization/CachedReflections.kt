@@ -3,9 +3,9 @@ package me.anno.io.serialization
 import me.anno.ecs.annotations.DebugAction
 import me.anno.ecs.annotations.DebugProperty
 import me.anno.ecs.annotations.DebugWarning
-import me.anno.utils.LOGGER
 import me.anno.utils.OS
 import me.anno.utils.strings.StringHelper.titlecase
+import org.apache.logging.log4j.LogManager
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -77,6 +77,8 @@ class CachedReflections(
     operator fun get(name: String) = allProperties[name]
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(CachedReflections::class)
 
         fun getDebugActions(clazz: KClass<*>): List<KFunction<*>> {
             if (OS.isWeb) return emptyList()

@@ -6,9 +6,9 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.utils.LOGGER
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.rotateRight
+import org.apache.logging.log4j.LogManager
 import org.joml.AABBf
 import org.joml.Vector3f
 import kotlin.math.atan2
@@ -22,6 +22,8 @@ class HexagonSphere(
 ) {
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(HexagonSphere::class)
 
         const val lineCount = 30
         const val pentagonCount = 12

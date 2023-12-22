@@ -21,14 +21,16 @@ import me.anno.studio.StudioBase.Companion.workspace
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.utils.Color
-import me.anno.utils.LOGGER
 import me.anno.utils.OS
+import org.apache.logging.log4j.LogManager
 import kotlin.math.abs
 
 /**
  * utility for retargeting
  * */
 object Retargetings {
+
+    private val LOGGER = LogManager.getLogger(Retargetings::class)
 
     val noBoneMapped = "?"
 

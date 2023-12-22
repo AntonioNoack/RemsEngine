@@ -156,6 +156,9 @@ object SDFComposer {
                             // convert normals into global normals
                             // compute global depth
 
+                            // shut the compiler up about it possibly not being initialized
+                            "gl_FragDepth = 0.5;\n" +
+                            // compute
                             "vec2 uv0 = gl_FragCoord.xy / renderSize;\n" +
                             "vec3 localDir = normalize(matMul(invLocalTransform, vec4(rawCameraDirection(uv0),0.0)));\n" +
                             // todo why is this slightly incorrect if orthographic????

@@ -5,11 +5,13 @@ import me.anno.utils.Color.a01
 import me.anno.utils.Color.b01
 import me.anno.utils.Color.g01
 import me.anno.utils.Color.r01
-import me.anno.utils.LOGGER
 import me.anno.utils.OS
+import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL33C.*
 
 object TextureHelper {
+
+    private val LOGGER = LogManager.getLogger(TextureHelper::class)
 
     fun clamping(target: Int, value0: Int, borderColor: Int) {
         var value = value0
@@ -46,5 +48,4 @@ object TextureHelper {
         glTexParameteriv(target, GL_TEXTURE_SWIZZLE_RGBA, tmp)
         GFX.check()
     }
-
 }

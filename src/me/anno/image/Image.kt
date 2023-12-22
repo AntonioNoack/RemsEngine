@@ -11,10 +11,11 @@ import me.anno.io.files.inner.temporary.InnerTmpImageFile
 import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.min
+import me.anno.maths.Maths.roundDiv
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.mixARGB22d
-import me.anno.maths.Maths.roundDiv
 import me.anno.utils.Color.toHexColor
+import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import java.io.OutputStream
@@ -148,7 +149,12 @@ abstract class Image(
         return getRGB(getIndex(x, y))
     }
 
-    open fun createTexture(texture: Texture2D, sync: Boolean, checkRedundancy: Boolean, callback: (Texture2D?, Exception?) -> Unit) {
+    open fun createTexture(
+        texture: Texture2D,
+        sync: Boolean,
+        checkRedundancy: Boolean,
+        callback: (Texture2D?, Exception?) -> Unit
+    ) {
         texture.create(createIntImage(), sync = sync, checkRedundancy = true, callback)
     }
 
@@ -394,7 +400,9 @@ abstract class Image(
 
     fun write(dst: OutputStream, format: String) {
         val image = createBufferedImage()
-        ImageIO.write(image, format, dst)
+        if (!ImageIO.write(image, format, dst)) {
+            LOGGER.warn("Couldn't find writer for $format")
+        }
     }
 
     override fun destroy() {}
@@ -446,6 +454,8 @@ abstract class Image(
         }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(Image::class)
 
         @JvmStatic
         fun argb(a: Byte, r: Byte, g: Byte, b: Byte): Int {

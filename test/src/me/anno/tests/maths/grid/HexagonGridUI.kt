@@ -1,6 +1,6 @@
 package me.anno.tests.maths.grid
 
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.coordsToIndexClosest
+import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.coordsToIndex
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.getClosestLine
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.getClosestVertex
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.getVertex
@@ -33,7 +33,7 @@ fun main() {
 
         val window = it.window!!
         val mouseCoords = Vector2d((window.mouseX - cx) / scale, (window.mouseY - cy) / scale)
-        val hovCell = coordsToIndexClosest(mouseCoords, Vector2i())
+        val hovCell = coordsToIndex(mouseCoords, Vector2i())
         val hovLine = getClosestLine(mouseCoords, Vector2d(), Vector2d(), Vector2i())
         val hovVert = getClosestVertex(mouseCoords, Input.isShiftDown, Vector2d(), Vector2d(), Vector2i())
 

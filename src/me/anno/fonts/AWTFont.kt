@@ -18,6 +18,7 @@ import me.anno.utils.structures.lists.ExpensiveList
 import me.anno.utils.types.Strings.incrementTab
 import me.anno.utils.types.Strings.isBlank2
 import me.anno.utils.types.Strings.joinChars
+import org.apache.logging.log4j.LogManager
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics2D
@@ -243,7 +244,9 @@ class AWTFont(val font: Font) {
     fun debug(image: BufferedImage) {
         OS.desktop.getChild("img").tryMkdirs()
         OS.desktop.getChild("img/${ctr++}.png").outputStream().use {
-            ImageIO.write(image, "png", it)
+            if (!ImageIO.write(image, "png", it)) {
+                LOGGER.warn("Couldn't find writer for PNG format.")
+            }
         }
     }
 
@@ -560,6 +563,8 @@ class AWTFont(val font: Font) {
     }
 
     companion object {
+
+        private val LOGGER = LogManager.getLogger(AWTFont::class)
 
         val asciiStrings = Array(128) { it.toChar().toString() }
 

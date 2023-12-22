@@ -2,6 +2,7 @@ package me.anno.image.raw
 
 import me.anno.image.Image
 import me.anno.io.files.FileReference
+import me.anno.utils.LOGGER
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_BYTE_GRAY
 import java.io.OutputStream
@@ -31,6 +32,8 @@ fun BufferedImage.toImage(): Image {
 fun BufferedImage.write(dst: FileReference) {
     val format = dst.lcExtension
     dst.outputStream().use { out: OutputStream ->
-        ImageIO.write(this, format, out)
+        if (!ImageIO.write(this, format, out)) {
+            LOGGER.warn("Couldn't find writer for $format")
+        }
     }
 }

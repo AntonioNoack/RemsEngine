@@ -508,15 +508,17 @@ object ShaderLib {
     val subpixelCorrectTextShader2 = Array(2) {
         val instanced = it > 0
         ComputeShader(
-            "subpixelCorrectTextShader2", Vector3i(16, 16, 1), "" +
+            "subpixelCorrectTextShader2", Vector3i(16, 16, 1), listOf(
+                Variable(GLSLType.V4F, "textColor"),
+                Variable(GLSLType.V4F, "backgroundColor"),
+                Variable(GLSLType.V1F, "uvZ"),
+                Variable(GLSLType.V2I, "srcOffset"),
+                Variable(GLSLType.V2I, "dstOffset"),
+                Variable(GLSLType.V2I, "invokeSize"),
+                Variable(if(instanced) GLSLType.S2DA else GLSLType.S2D, "tex"),
+            ), "" +
                     brightness +
-                    (if (instanced)
-                        "uniform sampler2DArray tex;\n" else
-                        "uniform sampler2D tex;\n") +
                     "layout(rgba8, binding = 1) restrict uniform image2D dst;\n" +
-                    "uniform vec4 textColor, backgroundColor;\n" +
-                    "uniform ivec2 srcOffset, dstOffset, invokeSize;\n" +
-                    "uniform float uvZ;\n" +
                     // the border isn't the most beautiful, but it ensures readability in front of bad backgrounds :)
                     "float read(vec2 uv){\n" +
                     (if (instanced)

@@ -4,7 +4,6 @@ import me.anno.audio.openal.AudioManager.openALSession
 import me.anno.audio.streams.AudioStream.Companion.bufferPool
 import me.anno.cache.ICacheData
 import me.anno.io.files.FileReference
-import me.anno.utils.LOGGER
 import me.anno.utils.hpc.ThreadLocal2
 import me.anno.utils.pooling.ByteBufferPool
 import org.lwjgl.openal.AL10.*

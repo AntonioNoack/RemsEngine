@@ -2,6 +2,7 @@ package me.anno.gpu.deferred
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.*
+import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
@@ -183,9 +184,9 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         return shader
     }
 
-    fun appendLayerDeclarators(output: StringBuilder, disabledLayers: BitSet?) {
+    fun appendLayerDeclarators(output: StringBuilder, disabledLayers: BitSet?, uniforms: HashSet<Variable>) {
         val layers = settingsV1
-        output.append("uniform float defRRT;\n")
+        uniforms.add(Variable(GLSLType.V1F, "defRRT"))
         for (index in layers.indices) {
             if (disabledLayers == null || !disabledLayers[index]) {
                 val type = layers[index]
@@ -194,7 +195,7 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
                 output.append(") out vec4 ")
                 output.append(type.name)
                 output.append(";\n")
-                output.append("uniform vec2 ").append(type.nameRR).append(";\n")
+                uniforms.add(Variable(GLSLType.V2F, type.nameRR))
             }
         }
     }

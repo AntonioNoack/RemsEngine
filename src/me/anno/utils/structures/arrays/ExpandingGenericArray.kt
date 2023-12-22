@@ -1,9 +1,13 @@
 package me.anno.utils.structures.arrays
 
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
 open class ExpandingGenericArray<V>(private val initCapacity: Int) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ExpandingGenericArray::class)
+    }
 
     var size = 0
 
@@ -60,5 +64,4 @@ open class ExpandingGenericArray<V>(private val initCapacity: Int) {
             array[size++] = value
         }
     }
-
 }

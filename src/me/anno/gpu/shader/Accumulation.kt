@@ -15,9 +15,10 @@ object Accumulation {
     // for the first ~10 rounds, we use shared memory for fewer invocations and synchronizations
     @JvmField
     val smallStepShader = ComputeShader(
-        "accumulate", Vector3i(1024, 1, 1), "" +
+        "accumulate", Vector3i(1024, 1, 1), listOf(
+            Variable(GLSLType.V1I, "totalSize"),
+        ), "" +
                 "layout(std430, binding = 0) buffer dataLayout { uint data[]; };\n" +
-                "uniform int totalSize;\n" +
                 "shared uint[1024] tmp;\n" + // 32 kB are guaranteed to exist -> we're fine with using 4 kB :)
                 "void main() {\n" +
                 "   int index = int(gl_GlobalInvocationID.x);\n" +

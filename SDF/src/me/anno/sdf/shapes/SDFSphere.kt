@@ -10,14 +10,6 @@ import kotlin.math.sqrt
 
 class SDFSphere : SDFShape() {
 
-    var forMorphing = false
-        set(value) {
-            if (field != value) {
-                field = value
-                invalidateShader()
-            }
-        }
-
     override fun buildShader(
         builder: StringBuilder,
         posIndex0: Int,
@@ -30,12 +22,7 @@ class SDFSphere : SDFShape() {
         val trans = buildTransform(builder, posIndex0, nextVariableId, uniforms, functions, seeds)
         functions.add(sdSphere)
         smartMinBegin(builder, dstIndex)
-        if (forMorphing) {
-            builder.append("sdSphere(pos").append(trans.posIndex).append(",1.0)")
-        } else {
-            builder.append("sdSphere2(pos").append(trans.posIndex)
-                .append(",dir").append(trans.posIndex).append(",1.0)")
-        }
+        builder.append("sdSphere(pos").append(trans.posIndex).append(",1.0)")
         smartMinEnd(builder, dstIndex, nextVariableId, uniforms, functions, seeds, trans)
     }
 
@@ -72,7 +59,6 @@ class SDFSphere : SDFShape() {
                 "   float disc = t*t-q;\n" +
                 "   if(disc < 0.0) return 1e38;\n" +
                 "   return -t - sqrt(disc);\n" +
-                "}\n" +
-                "float sdSphere2(vec3 p, vec3 d, float s){ float d0 = sdSphere(p,s); return d0 > 0.0 ? min(max(d0*2.0,0.03*s),sddSphere(p,d,s)) : d0; }\n"
+                "}\n"
     }
 }

@@ -1,7 +1,7 @@
 package me.anno.tests.maths.grid
 
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths
-import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.coordsToIndexClosest
+import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.coordsToIndex
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.indexToCoords
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.neighbors
 import me.anno.ecs.components.chunks.hexagon.HexagonGridMaths.vertices
@@ -54,7 +54,7 @@ class HexagonGridMathsTest {
 
     @Test
     fun testCoordsIndicesInvertible2() {
-        testCoordsIndicesInvertible(HexagonGridMaths::coordsToIndexClosest)
+        testCoordsIndicesInvertible(HexagonGridMaths::coordsToIndex)
     }
 
     fun testCoordsIndicesInvertible(coordsToIndex: (Vector2d, Vector2i, Vector2d) -> Vector2i) {
@@ -84,7 +84,7 @@ class HexagonGridMathsTest {
         for (i in -s until s) {
             for (j in -s until s) {
                 coords.set(i * 5.0 / s, j * 5.0 / s)
-                assertSame(coordsToIndexClosest(coords, index, remainder), index)
+                assertSame(coordsToIndex(coords, index, remainder), index)
                 assertSame(indexToCoords(index, center), center)
 
                 assertEquals(coords.x, center.x + remainder.x, 1e-15)

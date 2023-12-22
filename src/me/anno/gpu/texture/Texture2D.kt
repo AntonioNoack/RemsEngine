@@ -71,7 +71,7 @@ open class Texture2D(
 
     var numChannels = 0
 
-    override fun toString() = "Tex2D(\"$name\", $width $height $samples)"
+    override fun toString() = "Texture2D(\"$name\", $width x $height x $samples, ${GFX.getName(internalFormat)})"
 
     /**
      * Pseudo-Reference, such that ImageGPUCache[ref] = this;
@@ -226,7 +226,15 @@ open class Texture2D(
             }
         } else {
             if (withMultisampling) {
-                val needsFixedSampleLocations = owner?.depthBufferType == DepthBufferType.INTERNAL
+                var depthOwner = owner
+                while (true) {
+                    depthOwner = depthOwner?.depthAttachment ?: break
+                }
+                val needsFixedSampleLocations = when (depthOwner?.depthBufferType) {
+                    DepthBufferType.INTERNAL -> true
+                    DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> !GFX.supportsDepthTextures
+                    else -> false
+                }
                 glTexImage2DMultisample(target, samples, internalFormat, w, h, needsFixedSampleLocations)
                 check()
             } else {
@@ -240,7 +248,17 @@ open class Texture2D(
                     is IntArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is FloatArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is DoubleArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
-                    null -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, null as ByteBuffer?)
+                    null -> glTexImage2D(
+                        target,
+                        0,
+                        internalFormat,
+                        w,
+                        h,
+                        0,
+                        dataFormat,
+                        dataType,
+                        null as ByteBuffer?
+                    )
                     else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
                 }
                 check()
@@ -1205,7 +1223,8 @@ open class Texture2D(
                 this@Texture2D.bind(0, nearest, clamping)
             }
 
-            override fun getTextureI(index: Int) = if (index == 0) this@Texture2D else throw IndexOutOfBoundsException()
+            override fun getTextureI(index: Int) =
+                if (index == 0) this@Texture2D else throw IndexOutOfBoundsException()
 
             override val depthTexture = null
         }

@@ -2,21 +2,23 @@ package me.anno.tests.mesh.hexagons
 
 import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.dither2x2
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.Texture2DArray
 import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.image.ImageCache
-import me.anno.utils.LOGGER
 import me.anno.utils.OS.pictures
+import org.apache.logging.log4j.LogManager
 
 object HSMCShader : ECSMeshShader("hexagons") {
+
+    private val LOGGER = LogManager.getLogger(HSMCShader::class)
 
     val texture by lazy {
         val source = pictures.getChild("atlas.webp")

@@ -5,10 +5,14 @@ import me.anno.io.ISaveable
 import me.anno.io.NamedSaveable
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.InvalidRef
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import org.joml.Vector3d
 
 abstract class NodeConnector(var isCustom: Boolean) : NamedSaveable() {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(NodeConnector::class)
+    }
 
     constructor(type: String, isCustom: Boolean) : this(isCustom) {
         this.type = type

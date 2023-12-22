@@ -88,12 +88,12 @@ object HexagonGridMaths {
     }
 
     @Suppress("unused")
-    fun coordsToIndexClosest(coords: Vector2d, dstIndex: Vector2i): Vector2i {
+    fun coordsToIndex(coords: Vector2d, dstIndex: Vector2i): Vector2i {
         val tmp = JomlPools.vec2d.borrow()
-        return coordsToIndexClosest(coords, dstIndex, tmp)
+        return coordsToIndex(coords, dstIndex, tmp)
     }
 
-    fun coordsToIndexClosest(coords: Vector2d, index: Vector2i, remainder: Vector2d): Vector2i {
+    fun coordsToIndex(coords: Vector2d, index: Vector2i, remainder: Vector2d): Vector2i {
         coordsToIndexFast(coords, index, remainder)
         val lenSq = remainder.lengthSquared()
         if (lenSq < 0.75) {
@@ -134,7 +134,7 @@ object HexagonGridMaths {
         dstIndex: Vector2i,
     ): Int {
         if (coords === tmpCoords) throw IllegalArgumentException()
-        coordsToIndexClosest(coords, dstIndex, tmpRemainder)
+        coordsToIndex(coords, dstIndex, tmpRemainder)
         indexToCoords(dstIndex, tmpCoords)
         var idx = round(atan2(tmpRemainder.y, tmpRemainder.x) * 6 / TAU + 6).toInt()
         if (idx >= 6) idx -= 6
@@ -153,7 +153,7 @@ object HexagonGridMaths {
         dstIndex: Vector2i,
     ): Int {
         if (coords === tmpCoords) throw IllegalArgumentException()
-        coordsToIndexClosest(coords, dstIndex, tmpRemainder)
+        coordsToIndex(coords, dstIndex, tmpRemainder)
         indexToCoords(dstIndex, tmpCoords)
         var idx = floor(atan2(tmpRemainder.y, tmpRemainder.x) * 6 / TAU + 6).toInt()
         if (idx >= 6) idx -= 6

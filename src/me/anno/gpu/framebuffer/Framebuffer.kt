@@ -224,6 +224,7 @@ class Framebuffer(
     // lol, I need them myself for MSAA x deferred rendering 😂
 
     fun create() {
+        depthAttachment?.ensure()
         Frame.invalidate()
         GFX.check()
         val pointer = glGenFramebuffers()
@@ -282,7 +283,7 @@ class Framebuffer(
             }
             DepthBufferType.INTERNAL -> {
                 if (internalDepthRenderbuffer == 0) {
-                    internalDepthRenderbuffer = createRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
+                    internalDepthRenderbuffer = createAndAttachRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
                 }
             }
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
@@ -302,7 +303,7 @@ class Framebuffer(
                     this.depthTexture = depthTexture
                 } else if (internalDepthRenderbuffer == 0) {
                     // 4 is worst-case assumed
-                    internalDepthRenderbuffer = createRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
+                    internalDepthRenderbuffer = createAndAttachRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
                 }
             }
         }
@@ -317,7 +318,7 @@ class Framebuffer(
     // could be used in the future :)
     // we don't read multisampled textures currently anyway
     var colorRenderBuffers: IntArray? = null
-    fun createRenderbuffer(
+    fun createAndAttachRenderbuffer(
         attachment: Int = GL_COLOR_ATTACHMENT0,
         format: Int = GL_RGBA8,
         bytesPerPixel: Int,
@@ -476,7 +477,7 @@ class Framebuffer(
         if (state != GL_FRAMEBUFFER_COMPLETE) {
             throw RuntimeException(
                 "Framebuffer is incomplete: ${GFX.getErrorTypeName(state)}, " +
-                        "$width x $height x $samples, [${targets.joinToString { it.name }}], $depthBufferType"
+                        "$width x $height x $samples, [${targets.joinToString { it.name }}], $depthBufferType, ${depthAttachment?.samples}"
             )
         }
     }
@@ -628,5 +629,5 @@ class Framebuffer(
     }
 
     override fun toString(): String =
-        "FB[n=$name, i=$pointer, w=$width h=$height s=$samples t=${targets.joinToString()} d=$depthBufferType]"
+        "FB[n=$name, i=$pointer, w=$width h=$height s=$samples t=[${targets.joinToString { it.name }}] d=$depthBufferType]"
 }

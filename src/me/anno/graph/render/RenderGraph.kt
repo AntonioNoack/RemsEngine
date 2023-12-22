@@ -14,8 +14,8 @@ import me.anno.graph.types.flow.ReturnNode
 import me.anno.graph.types.flow.StartNode
 import me.anno.image.ImageScale
 import me.anno.ui.Panel
-import me.anno.utils.LOGGER
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
+import org.apache.logging.log4j.LogManager
 
 // stage 0:
 //  scene, meshes
@@ -30,6 +30,8 @@ import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 // todo create collection of render graphs for debugging
 
 object RenderGraph {
+
+    private val LOGGER = LogManager.getLogger(RenderGraph::class)
 
     var throwExceptions = false
 

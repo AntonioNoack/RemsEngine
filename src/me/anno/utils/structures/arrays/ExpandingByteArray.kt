@@ -1,11 +1,15 @@
 package me.anno.utils.structures.arrays
 
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 import kotlin.math.min
 
 @Suppress("unused")
 open class ExpandingByteArray(private val initCapacity: Int) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(ExpandingByteArray::class)
+    }
 
     var size = 0
 
@@ -101,6 +105,4 @@ open class ExpandingByteArray(private val initCapacity: Int) {
         if (size > 0) System.arraycopy(array!!, 0, tmp, 0, size)
         return tmp
     }
-
-
 }

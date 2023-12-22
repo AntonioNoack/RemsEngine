@@ -3,11 +3,15 @@ package me.anno.image.raw
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.io.files.FileReference
-import me.anno.utils.LOGGER
 import me.anno.video.formats.gpu.GPUFrame
+import org.apache.logging.log4j.LogManager
 
 class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Boolean) :
     Image(frame.width, frame.height, numChannels, hasAlphaChannel) {
+
+    companion object {
+        private val LOGGER = LogManager.getLogger(GPUFrameImage::class)
+    }
 
     constructor(frame: GPUFrame, numChannels: Int) : this(frame, numChannels, numChannels > 3)
     constructor(frame: GPUFrame) : this(frame, frame.numChannels)

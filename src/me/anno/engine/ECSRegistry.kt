@@ -44,9 +44,11 @@ import me.anno.io.SaveableArray
 import me.anno.io.files.FileReference
 import me.anno.io.utils.StringMap
 import me.anno.ui.UIRegistry
-import me.anno.utils.LOGGER
+import org.apache.logging.log4j.LogManager
 
 object ECSRegistry {
+
+    private val LOGGER = LogManager.getLogger(ECSRegistry::class)
 
     @JvmField
     var hasBeenInited = false

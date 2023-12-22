@@ -13,7 +13,6 @@ import me.anno.maths.Maths.PIf
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.utils.LOGGER
 import me.anno.utils.OS.downloads
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
@@ -405,6 +404,7 @@ class BoneByBoneAnimation() : Animation() {
 
     companion object {
 
+        private val LOGGER = LogManager.getLogger(BoneByBoneAnimation::class)
         private val f0 = FloatArray(0)
 
         fun fromImported(

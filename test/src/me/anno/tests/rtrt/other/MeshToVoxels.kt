@@ -150,9 +150,10 @@ fun meshToSeparatedVoxels(
 }
 
 val skipDistanceShader = ComputeShader(
-    "skip-distances", Vector3i(8, 8, 8), "" +
+    "skip-distances", Vector3i(8, 8, 8), listOf(
+        Variable(GLSLType.V3I, "size"),
+    ), "" +
             "layout(rgba8, binding = 0) uniform image3D data;\n" +
-            "uniform ivec3 size;\n" +
             "#define s 0.003921569\n" +
             "float read(ivec3 coords){\n" +
             "   if(all(greaterThanEqual(coords,ivec3(0))) && all(lessThan(coords,size))){\n" +

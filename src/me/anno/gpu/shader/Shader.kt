@@ -65,6 +65,20 @@ open class Shader(
         return word in vertexShader || word in fragmentShader
     }
 
+    private fun appendPrecisions(variables: List<Variable>) {
+        // these need default values, why ever...
+        builder.append("precision highp float;\n")
+        builder.append("precision highp int;\n")
+        val types = HashSet<GLSLType>()
+        for (variable in variables) {
+            var type = variable.type
+            if (!GFX.supportsDepthTextures) type = type.withoutShadow()
+            if (types.add(type) && type.glslName.startsWith("sampler")) {
+                builder.append("precision highp ").append(type.glslName).append(";\n")
+            }
+        }
+    }
+
     override fun compile() {
 
         val varyings = varyings.map {
@@ -92,15 +106,7 @@ open class Shader(
             builder.append(line).append('\n')
         }
 
-        builder.append("precision highp float;\n")
-        builder.append("precision highp int;\n")
-        for (type in GLSLType.values) {
-            if (type.glslName.startsWith("sampler")) {
-                if (vertexVariables.any2 { it.type == type }) {
-                    builder.append("precision highp ").append(type.glslName).append(";\n")
-                }
-            }
-        }
+        appendPrecisions(vertexVariables)
         builder.append(matMul)
 
         for (v in vertexVariables) {
@@ -132,17 +138,7 @@ open class Shader(
             builder.append(extension).append('\n')
         }
 
-        builder.append("precision highp float;\n")
-        builder.append("precision highp int;\n")
-        // these need default values, why ever...
-        for (type in GLSLType.values) {
-            if (type.glslName.startsWith("sampler")) {
-                if (varyings.any2 { it.type == type } || fragmentVariables.any2 { it.type == type }) {
-                    builder.append("precision highp ").append(type.glslName).append(";\n")
-                }
-            }
-        }
-
+        appendPrecisions(fragmentVariables)
         builder.append(matMul)
 
         for (v in varyings) {

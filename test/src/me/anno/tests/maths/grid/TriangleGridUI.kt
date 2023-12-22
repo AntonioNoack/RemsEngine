@@ -17,7 +17,7 @@ import org.joml.Vector2d
 import org.joml.Vector2i
 
 /**
- * create a UI to test the hexagon grid visually 😄, and to show how it can be used 😊
+ * create a UI to test the triangle grid visually 😄, and to show how it can be used 😊
  *
  * drag with your right mouse button pressed to move around
  * */
