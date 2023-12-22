@@ -18,6 +18,7 @@ import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.FlatShaders.copyShader
+import me.anno.gpu.shader.FlatShaders.copyShaderAnyToAny
 import me.anno.gpu.shader.FlatShaders.copyShaderMS
 import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.ShaderLib
@@ -30,6 +31,7 @@ import me.anno.utils.Clock
 import me.anno.utils.OS
 import me.anno.utils.structures.Task
 import me.anno.utils.structures.lists.Lists.firstOrNull2
+import me.anno.utils.types.Booleans.toInt
 import me.anno.utils.types.Floats.f3
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
@@ -39,6 +41,7 @@ import org.lwjgl.opengl.GL43C.GL_ANY_SAMPLES_PASSED_CONSERVATIVE
 import org.lwjgl.opengl.GL43C.GL_MAX_UNIFORM_LOCATIONS
 import org.lwjgl.opengl.GL45C.GL_CONTEXT_LOST
 import org.lwjgl.opengl.GL46C
+import java.lang.reflect.Modifier
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.abs
@@ -281,7 +284,15 @@ object GFX {
     fun copy(src: ITexture2D) {
         Frame.bind()
         src.bindTrulyNearest(0)
-        copy(if (src is Texture2D) src.samples else 1)
+        copy(src.samples)
+    }
+
+    @JvmStatic
+    fun copyColorAndDepth(color: ITexture2D, depth: ITexture2D) {
+        Frame.bind()
+        color.bindTrulyNearest(0)
+        depth.bindTrulyNearest(1)
+        copyColorAndDepth(color.samples, depth.samples)
     }
 
     @JvmStatic
@@ -302,6 +313,19 @@ object GFX {
         shader.use()
         shader.v1i("samples", samples)
         shader.v1f("alpha", 1f)
+        flat01.draw(shader)
+        check()
+    }
+
+    @JvmStatic
+    fun copyColorAndDepth(colorSamples: Int, depthSamples: Int) {
+        check()
+        val idx = (colorSamples > 1).toInt(2) or (depthSamples > 1).toInt(1)
+        val shader = copyShaderAnyToAny[idx]
+        shader.use()
+        shader.v1i("colorSamples", colorSamples)
+        shader.v1i("depthSamples", depthSamples)
+        shader.v1i("targetSamples", GFXState.currentBuffer.samples)
         flat01.draw(shader)
         check()
     }
@@ -662,11 +686,15 @@ object GFX {
         val glConstants = glConstants ?: return
         val properties2 = clazz.declaredFields
         for (property in properties2) {
-            val name = property.name
-            if (name.startsWith("GL_")) {
-                val value = property.get(null)
-                if (value is Int) {
-                    glConstants[value] = name.substring(3)
+            if (Modifier.isPublic(property.modifiers) &&
+                Modifier.isStatic(property.modifiers)
+            ) {
+                val name = property.name
+                if (name.startsWith("GL_")) {
+                    val value = property.get(null)
+                    if (value is Int) {
+                        glConstants[value] = name.substring(3)
+                    }
                 }
             }
         }

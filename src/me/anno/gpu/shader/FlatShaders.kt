@@ -7,6 +7,7 @@ import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.maths.Maths.hasFlag
 import kotlin.math.PI
 
 object FlatShaders {
@@ -32,6 +33,48 @@ object FlatShaders {
                 "   result = (alpha / float(samples)) * sum;\n" +
                 "}"
     ).apply { ignoreNameWarnings("posSize") }
+
+    val copyShaderAnyToAny = Array(4) {
+        val colorMS = it.hasFlag(2)
+        val depthMS = it.hasFlag(1)
+        Shader(
+            "copyMSAnyToAny", coordsList, coordsUVVertexShader, uvList, listOf(
+                Variable(if (colorMS) GLSLType.S2DMS else GLSLType.S2D, "colorTex"),
+                Variable(if (depthMS) GLSLType.S2DMS else GLSLType.S2D, "depthTex"),
+                Variable(GLSLType.V1I, "colorSamples"),
+                Variable(GLSLType.V1I, "depthSamples"),
+                Variable(GLSLType.V1I, "targetSamples"),
+                Variable(GLSLType.V4F, "result", VariableMode.OUT)
+            ), "" +
+                    (if (colorMS || depthMS) "" +
+                            "vec4 getColor1(sampler2DMS tex, int srcSamples){\n" +
+                            "   ivec2 uvi = ivec2(textureSize(tex) * uv);\n" +
+                            "   if(srcSamples > targetSamples){\n" +
+                            "       vec4 sum = vec4(0.0);\n" +
+                            "       int ctr = 0;\n" +
+                            "       for(int i=gl_SampleID;i<srcSamples;i+=targetSamples) {\n" +
+                            "           sum += texelFetch(tex, uvi, i);\n" +
+                            "           ctr++;\n" +
+                            "       }\n" +
+                            "       return sum / float(ctr);\n" +
+                            "   } else if(srcSamples == targetSamples){\n" +
+                            "       return texelFetch(tex, uvi, gl_SampleID);\n" +
+                            "   } else {\n" +
+                            "       return texelFetch(tex, uvi, gl_SampleID % srcSamples);\n" +
+                            "   }\n" +
+                            "}\n" else "") +
+                    (if (!colorMS || !depthMS) "" +
+                            "vec4 getColor0(sampler2D tex, int srcSamples){\n" +
+                            "   return texture(tex,uv);\n" +
+                            "}\n" else "") +
+                    "void main() {\n" +
+                    "   result = getColor${it shr 1}(colorTex, colorSamples);\n" +
+                    "   gl_FragDepth = getColor${it and 1}(depthTex, depthSamples).x;\n" +
+                    "}"
+        ).apply {
+            setTextureIndices("colorTex", "depthTex")
+        }
+    }
 
     val coordsPosSize = coordsList + listOf(
         Variable(GLSLType.V4F, "posSize"),

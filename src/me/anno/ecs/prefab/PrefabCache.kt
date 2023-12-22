@@ -5,6 +5,7 @@ import me.anno.ecs.components.mesh.ImagePlane
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache.Companion.ensureClasses
 import me.anno.ecs.prefab.change.Path
+import me.anno.engine.ECSRegistry
 import me.anno.engine.ScenePrefab
 import me.anno.io.ISaveable
 import me.anno.io.base.InvalidFormatException
@@ -163,6 +164,7 @@ object PrefabCache : CacheSection("Prefab") {
             callback(file.readPrefab(), null)
             return
         }
+        if ("Prefab" !in ISaveable.objectTypeRegistry) ECSRegistry.initPrefabs()
         Signature.findName(file) { signature ->
             when (signature) {
                 "json" -> {

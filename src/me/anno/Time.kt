@@ -35,7 +35,8 @@ object Time {
     val startTime = System.nanoTime()
 
     @JvmStatic
-    private var lastTime = startTime
+    var lastTimeNanos = startTime
+        private set
 
     /**
      * dateTime of when the engine was started
@@ -59,7 +60,7 @@ object Time {
      * todo this shouldn't be used by UI, use nanoTime instead
      * */
     @JvmStatic
-    var gameTimeN: Long = lastTime - startTime
+    var gameTimeN: Long = 0L
         private set
 
     /**
@@ -90,7 +91,7 @@ object Time {
     @JvmStatic
     fun updateTime() {
         val thisTime = System.nanoTime()
-        val rawDeltaTime = (thisTime - lastTime) * 1e-9
+        val rawDeltaTime = (thisTime - lastTimeNanos) * 1e-9
         updateTime(rawDeltaTime, thisTime)
     }
 
@@ -103,7 +104,7 @@ object Time {
 
         val newFPS = 1.0 / rawDeltaTime
         currentFPS = min(currentFPS + (newFPS - currentFPS) * 0.05, newFPS)
-        lastTime = thisTime
+        lastTimeNanos = thisTime
 
         lastGameTime = gameTimeN
         gameTimeN += (dt * timeSpeed * 1e9).toLong()
@@ -111,5 +112,4 @@ object Time {
 
         frameIndex++
     }
-
 }

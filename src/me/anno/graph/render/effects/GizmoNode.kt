@@ -2,6 +2,8 @@ package me.anno.graph.render.effects
 
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.GFXState.renderPurely
+import me.anno.gpu.GFXState.useFrame
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.deferred.DeferredSettings
@@ -10,10 +12,10 @@ import me.anno.gpu.framebuffer.FBStack
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.blackTexture
+import me.anno.gpu.texture.TextureLib.depthTexture
 import me.anno.graph.render.Texture
 import me.anno.graph.render.scene.RenderSceneNode0
-import org.lwjgl.opengl.GL30C.GL_COLOR_BUFFER_BIT
-import org.lwjgl.opengl.GL30C.GL_DEPTH_BUFFER_BIT
 
 class GizmoNode : RenderSceneNode0(
     "Gizmos",
@@ -70,7 +72,7 @@ class GizmoNode : RenderSceneNode0(
         GFX.check()
 
         framebuffer.ensure()
-        GFXState.useFrame(width, height, true, framebuffer, copyRenderer) {
+        useFrame(width, height, true, framebuffer, copyRenderer) {
             copyColorAndDepth(colorT, depthT, framebuffer)
             GFXState.depthMode.use(renderView.pipeline.defaultStage.depthMode) {
                 GFXState.blendMode.use(BlendMode.DEFAULT) {
@@ -92,23 +94,13 @@ class GizmoNode : RenderSceneNode0(
         }
 
         fun copyColorAndDepth(colorT: Texture2D?, depthT: Texture2D?, framebuffer: Framebuffer) {
-            val color = colorT?.owner
-            val depth = depthT?.owner
-            if (depth == null && color == null) {
-                framebuffer.clearColor(0, true)
-            } else if (depth != null && color === depth) {
-                color.copyColorTo(
-                    framebuffer, color.textures!!.indexOf(colorT), 0,
-                    GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT
-                )
-            } else {
-                if (depth == null) framebuffer.clearDepth()
-                else depth.copyTo(framebuffer, GL_DEPTH_BUFFER_BIT)
-                if (color == null) framebuffer.clearColor(0, false)
-                else color.copyColorTo(
-                    framebuffer, color.textures!!.indexOf(colorT), 0,
-                    GL_COLOR_BUFFER_BIT
-                )
+            useFrame(framebuffer) {
+                renderPurely {
+                    GFX.copyColorAndDepth(
+                        colorT ?: blackTexture,
+                        depthT ?: depthTexture
+                    )
+                }
             }
         }
     }

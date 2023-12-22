@@ -1,6 +1,5 @@
 package me.anno.gpu
 
-import me.anno.video.VideoCache
 import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.ecs.components.mesh.MeshVertexData
 import me.anno.fonts.FontManager.TextCache
@@ -14,6 +13,7 @@ import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.utils.structures.stacks.SecureStack
+import me.anno.video.VideoCache
 import org.lwjgl.opengl.GL20C.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45C.*
 
@@ -87,21 +87,17 @@ object GFXState {
     val depthMode = object : SecureStack<DepthMode>(DepthMode.ALWAYS) {
         override fun onChangeValue(newValue: DepthMode, oldValue: DepthMode) {
             GFX.check()
-            if (newValue.id != 0) {
-                glEnable(GL_DEPTH_TEST)
-                glDepthFunc(newValue.id)
-                val reversedDepth = newValue.reversedDepth
-                if (supportsClipControl) {
-                    glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
-                } else {
-                    // does this work??
-                    glDepthRange(0.0, 1.0)
-                }
-                // glDepthRange(-1.0, 1.0)
-                // glDepthFunc(GL_LESS)
+            glEnable(GL_DEPTH_TEST)
+            glDepthFunc(newValue.id)
+            val reversedDepth = newValue.reversedDepth
+            if (supportsClipControl) {
+                glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
             } else {
-                glDisable(GL_DEPTH_TEST)
+                // does this work??
+                glDepthRange(0.0, 1.0)
             }
+            // glDepthRange(-1.0, 1.0)
+            // glDepthFunc(GL_LESS)
         }
     }
 
