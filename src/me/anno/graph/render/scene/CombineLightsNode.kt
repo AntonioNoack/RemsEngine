@@ -27,6 +27,9 @@ import me.anno.graph.render.compiler.GraphCompiler
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.ReturnNode
 
+/**
+ * combines diffuse, emissive, and light into a single, final color
+ * */
 class CombineLightsNode : RenderSceneNode0(
     "Combine Lights",
     listOf(

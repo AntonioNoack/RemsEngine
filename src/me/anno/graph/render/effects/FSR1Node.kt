@@ -14,6 +14,9 @@ import me.anno.graph.render.scene.RenderSceneNode
 import me.anno.graph.types.FlowGraph
 import me.anno.graph.types.flow.actions.ActionNode
 
+/**
+ * AMD FSR reduces the rendering resolution to gain performance, and then upscales that image.
+ * */
 class FSR1Node : ActionNode(
     "FSR1",
     listOf(

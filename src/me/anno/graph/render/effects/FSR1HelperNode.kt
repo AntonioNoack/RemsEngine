@@ -3,6 +3,10 @@ package me.anno.graph.render.effects
 import me.anno.graph.types.flow.actions.ActionNode
 import me.anno.maths.Maths.clamp
 
+/**
+ * FSR reduces the rendering resolution, and then upscales that image.
+ * This helper saves the original resolution for the reconstruction.
+ * */
 class FSR1HelperNode : ActionNode(
     "FSR1Helper",
     listOf("Int", "Width", "Int", "Height", "Float", "Fraction"),

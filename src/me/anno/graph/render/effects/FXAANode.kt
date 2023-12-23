@@ -9,6 +9,10 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.types.flow.actions.ActionNode
 
+/**
+ * fast approximate edge reconstruction:
+ * smooths harsh pixelated lines
+ * */
 class FXAANode : ActionNode(
     "FXAA",
     listOf(

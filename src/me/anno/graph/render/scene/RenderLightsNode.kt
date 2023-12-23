@@ -18,12 +18,12 @@ import me.anno.gpu.shader.DepthTransforms.depthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer.Companion.copyRenderer
 import me.anno.gpu.texture.Texture2D
 import me.anno.graph.render.Texture
 import me.anno.graph.render.compiler.GraphCompiler
@@ -32,6 +32,9 @@ import me.anno.graph.types.flow.ReturnNode
 import me.anno.utils.types.Booleans.toInt
 import org.lwjgl.opengl.GL11C.GL_DEPTH_BUFFER_BIT
 
+/**
+ * collects the lights within a scene
+ * */
 class RenderLightsNode : RenderSceneNode0(
     "Render Lights",
     listOf(

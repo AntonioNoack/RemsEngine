@@ -13,6 +13,9 @@ import me.anno.io.ISaveable
 import me.anno.io.ISaveable.Companion.registerCustomClass
 import me.anno.ui.Style
 
+/**
+ * UI for render graph editing
+ * */
 class RenderGraphEditor(val rv: RenderView, graph: FlowGraph, style: Style) : GraphEditor(graph, style) {
 
     init {

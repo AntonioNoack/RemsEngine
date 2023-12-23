@@ -11,7 +11,6 @@ import me.anno.language.translation.NameDesc
 import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Window
-import me.anno.ui.base.components.AxisAlignment
 import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.menu.Menu
 
@@ -24,7 +23,7 @@ class TestStudio(title: String, val createMainPanel: () -> List<Panel>) : Studio
         val ui = PanelListY(style)
         ui.add(ConsoleOutputPanel.createConsoleWithStats(false, style))
         ui.addAll(createMainPanel())
-        ui.weight = 1f
+        ui.fill(1f)
         val windowStack = GFX.someWindow!!.windowStack
         val window = Window(ui, false, windowStack)
         window.drawDirectly = true
@@ -96,9 +95,7 @@ class TestStudio(title: String, val createMainPanel: () -> List<Panel>) : Studio
         fun testUI3(title: String, createMainPanel: () -> Panel) {
             TestStudio(title) {
                 val p = createMainPanel()
-                p.alignmentX = AxisAlignment.FILL
-                p.alignmentY = AxisAlignment.FILL
-                p.weight = 1f
+                p.fill(1f)
                 listOf(p)
             }.run()
         }
@@ -108,9 +105,7 @@ class TestStudio(title: String, val createMainPanel: () -> List<Panel>) : Studio
          * */
         fun testUI3(title: String, mainPanel: Panel) {
             TestStudio(title) {
-                mainPanel.alignmentX = AxisAlignment.FILL
-                mainPanel.alignmentY = AxisAlignment.FILL
-                mainPanel.weight = 1f
+                mainPanel.fill(1f)
                 listOf(mainPanel)
             }.run()
         }

@@ -3,6 +3,9 @@ package me.anno.graph.render.scene
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.graph.types.flow.actions.ActionNode
 
+/**
+ * bakes the skybox (for reflections and ambient light)
+ * */
 class BakeSkyboxNode : ActionNode("Render Scene", listOf("Int", "Resolution"), emptyList()) {
 
     init {
