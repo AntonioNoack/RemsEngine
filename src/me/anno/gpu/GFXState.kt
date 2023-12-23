@@ -17,6 +17,7 @@ import me.anno.video.VideoCache
 import org.lwjgl.opengl.GL20C.GL_FRONT
 import org.lwjgl.opengl.GL20C.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45C.*
+import kotlin.test.assertNotEquals
 
 /**
  * holds rendering-related state,
@@ -297,10 +298,12 @@ object GFXState {
      * render onto that texture
      * */
     fun useFrame(texture: Texture2D, level: Int, render: (IFramebuffer) -> Unit) {
+        assertNotEquals(0, texture.pointer)
         tmp.width = texture.width
         tmp.height = texture.height
         if (tmp.pointer == 0 || tmp.session != session) {
             tmp.pointer = glGenFramebuffers()
+            tmp.session = session
         }
         useFrame(tmp) {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, texture.target, texture.pointer, level)

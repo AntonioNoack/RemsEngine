@@ -347,6 +347,20 @@ class RenderMode(
                 .finish()
         )
 
+        val NIGHT_TEST = RenderMode(
+            "Night Test",
+            QuickPipeline()
+                .then(RenderSceneNode())
+                .then(RenderLightsNode())
+                .then(SSAONode())
+                .then(CombineLightsNode())
+                .then(SSRNode())
+                .then(NightNode())
+                .then1(BloomNode(), mapOf("Apply Tone Mapping" to true))
+                .then(GizmoNode(), mapOf("Illuminated" to listOf("Color")))
+                .finish()
+        )
+
         val IS_INSTANCED = RenderMode("Is Instanced", isInstancedRenderer)
 
         val BONE_INDICES = RenderMode("Bone Indices", boneIndicesRenderer)

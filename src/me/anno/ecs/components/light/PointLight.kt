@@ -28,6 +28,7 @@ import org.joml.Vector3d
 import kotlin.math.PI
 
 // todo - in proximity, the appearance must not stay as a point, but rather be a sphere
+// todo add visual light cone to all lights; somehow must be post-processing, or like glass, I'd guess... (cannot show background brighter)
 
 class PointLight : LightComponent(LightType.POINT) {
 
@@ -131,7 +132,7 @@ class PointLight : LightComponent(LightType.POINT) {
 
     companion object {
 
-        val falloff = "pow((1.0/length(lightPos)-1.0),2.0)"
+        val falloff = "pow(max(0.0,1.0/length(lightPos)-1.0),2.0)"
 
         val effectiveSpecular = "" +
                 "if(hasSpecular){\n" +
