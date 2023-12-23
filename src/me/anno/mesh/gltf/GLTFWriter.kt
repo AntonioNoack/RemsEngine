@@ -10,8 +10,8 @@ import me.anno.io.Streams.writeLE32
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.files.Signature
-import me.anno.io.json.generic.JsonWriter
 import me.anno.io.files.inner.InnerFile
+import me.anno.io.json.generic.JsonWriter
 import me.anno.maths.Maths.clamp
 import me.anno.utils.Color.b
 import me.anno.utils.Color.black3
@@ -29,8 +29,9 @@ import kotlin.test.assertEquals
  * writes a GLTF file from an Entity or Mesh,
  * writes materials and textures, too
  *
- * todo doesn't support skeletons nor animations yet
- * todo doesn't support cameras nor lights yet
+ * todo support skeletons and animations
+ * todo support cameras
+ * todo support lights
  * */
 class GLTFWriter(
     val allDepsToFolder: Boolean = false,
@@ -116,37 +117,17 @@ class GLTFWriter(
     private val views = ArrayList<BufferView>()
     private val accessors = ArrayList<Accessor>()
 
-    private fun createView(
-        type: String,
-        componentType: Int,
-        data: Any,
-        count: Int,
-        length: Int,
-        normalized: Boolean,
-        byteStride: Int,
-        min: String? = null,
-        max: String? = null
-    ): Int {
-        val pos = binary.size()
-        when (data) {
-            is IntArray -> {
-                for (v in data) {
-                    binary.writeLE32(v)
-                }
+    private fun createPositionsView(positions: FloatArray, bounds: AABBf): Int {
+        val start = binary.size()
+        for (v in positions) {
+            if (v.isNaN()) { // NaN is not supported
+                binary.writeLE32(0)
+            } else {
+                binary.writeLE32(v.toRawBits())
             }
-            is FloatArray -> {
-                for (v in data) {
-                    if (v.isNaN()) {
-                        binary.writeLE32(0)
-                    } else {
-                        binary.writeLE32(v.toRawBits())
-                    }
-                }
-            }
-            else -> throw NotImplementedError(data.javaClass.toString())
         }
-        accessors.add(Accessor(type, componentType, count, normalized, min, max))
-        views.add(BufferView(pos, length, 34962, byteStride))
+        accessors.add(Accessor("VEC3", GL_FLOAT, positions.size / 3, false, min(bounds), max(bounds)))
+        views.add(BufferView(start, positions.size * 4, 34962, 0))
         return accessors.size - 1
     }
 
@@ -163,13 +144,10 @@ class GLTFWriter(
         return accessors.size - 1
     }
 
-    private fun createIndicesView(
-        componentType: Int,
-        data: IntArray
-    ): Int {
+    private fun createIndicesView(data: IntArray): Int {
         val pos = binary.size()
         for (v in data) binary.writeLE32(v)
-        accessors.add(Accessor("SCALAR", componentType, data.size, false))
+        accessors.add(Accessor("SCALAR", GL_UNSIGNED_INT, data.size, false))
         views.add(BufferView(pos, data.size * 4, 34963, 0))
         return accessors.size - 1
     }
@@ -416,11 +394,7 @@ class GLTFWriter(
 
         val pos = mesh.positions!!
         val bounds = mesh.getBounds()
-        val posI = createView(
-            "VEC3", GL_FLOAT, pos, pos.size / 3, pos.size * 4,
-            false, 0,
-            min(bounds), max(bounds)
-        )
+        val posI = createPositionsView(pos, bounds)
 
         val normal = mesh.normals
         val norI = if (normal != null) createNormalsView(normal) else null
@@ -504,7 +478,7 @@ class GLTFWriter(
 
         if (indices != null) {
             writer.attr("indices")
-            writer.write(createIndicesView(GL_UNSIGNED_INT, indices))
+            writer.write(createIndicesView(indices))
         }
 
         writeMeshAttributes()
@@ -523,7 +497,7 @@ class GLTFWriter(
 
         val indices = helper.indices
         writer.attr("indices")
-        writer.write(createIndicesView(GL_UNSIGNED_INT, indices))
+        writer.write(createIndicesView(indices))
 
         writeMeshAttributes()
         writer.endObject() // primitive

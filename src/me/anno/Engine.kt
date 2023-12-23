@@ -1,5 +1,7 @@
 package me.anno
 
+import me.anno.gpu.GFXBase
+
 object Engine {
 
     @JvmStatic
@@ -12,7 +14,7 @@ object Engine {
     private val onShutdown = ArrayList<Runnable>()
     fun registerForShutdown(callable: Runnable) {
         if (shutdown) callable.run()
-        else synchronized(onShutdown) {
+        synchronized(onShutdown) {
             onShutdown.add(callable)
         }
     }
@@ -28,7 +30,14 @@ object Engine {
                     e.printStackTrace()
                 }
             }
-            onShutdown.clear()
         }
+    }
+
+    @JvmStatic
+    @Deprecated("This is experimental!")
+    fun cancelShutdown() {
+        shutdown = false
+        // todo how are CacheSections handling ShutdownErrors? Can a once failed resource still be created, or will it be failed?
+        GFXBase.destroyed = false
     }
 }

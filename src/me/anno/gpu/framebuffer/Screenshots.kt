@@ -21,6 +21,7 @@ import java.util.*
 import kotlin.concurrent.thread
 
 object Screenshots {
+    private val LOGGER = LogManager.getLogger(Screenshots::class)
 
     fun takeSystemScreenshot(): Image? {
         val robot = GFXBase.robot ?: return null
@@ -135,7 +136,6 @@ object Screenshots {
         }
 
         return bestResult
-
     }
 
     fun takeScreenshot(
@@ -184,9 +184,5 @@ object Screenshots {
                 )
             }
         }
-
     }
-
-    private val LOGGER = LogManager.getLogger(Screenshots::class)
-
 }

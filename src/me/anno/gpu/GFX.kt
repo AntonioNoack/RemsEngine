@@ -6,6 +6,8 @@ import me.anno.Engine
 import me.anno.Time
 import me.anno.audio.streams.AudioStream
 import me.anno.config.DefaultConfig
+import me.anno.gfx.GraphicsAPI
+import me.anno.gfx.OpenGLGraphics
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.useFrame
@@ -68,6 +70,9 @@ object GFX {
 
     @JvmField
     val windows = ArrayList<OSWindow>()
+
+    @JvmField
+    var api: GraphicsAPI = OpenGLGraphics
 
     /**
      * current window, which is being rendered to by OpenGL

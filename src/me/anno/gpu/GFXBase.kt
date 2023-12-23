@@ -233,6 +233,7 @@ object GFXBase {
     @JvmStatic
     fun prepareForRendering(tick: Clock?) {
         capabilities = GL.createCapabilities()
+        GFXState.newSession()
         tick?.stop("OpenGL initialization")
         debugMsgCallback = GLUtil.setupDebugMessageCallback(LWJGLDebugCallback)
         tick?.stop("Debugging Setup")
@@ -317,6 +318,7 @@ object GFXBase {
         if (useSeparateGLFWThread) {
 
             thread(name = "OpenGL") {
+                GFX.glThread = Thread.currentThread()
                 runRenderLoop0(window0)
                 runRenderLoop()
             }
@@ -333,6 +335,7 @@ object GFXBase {
             }
         } else {
 
+            GFX.glThread = Thread.currentThread()
             runRenderLoop0(window0)
 
             // run render loop incl. updating windows
