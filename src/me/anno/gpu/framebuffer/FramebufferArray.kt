@@ -89,7 +89,6 @@ class FramebufferArray(
         if (pointer == 0) create()
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
-        glDisable(GL_MULTISAMPLE)
     }
 
     private fun checkSize(w: Int, h: Int) {

@@ -1137,7 +1137,7 @@ open class Texture2D(
 
     fun bindBeforeUpload() {
         if (pointer == 0) throw RuntimeException("Pointer must be defined")
-        invalidateBinding()
+        boundTextures[boundTextureSlot] = 0
         bindTexture(target, pointer)
     }
 
@@ -1337,16 +1337,6 @@ open class Texture2D(
             } else false
         }
 
-        /**
-         * bind the texture, the slot doesn't matter
-         * @return whether the texture was actively bound
-         * */
-        @JvmStatic
-        fun forceBindTexture(mode: Int, pointer: Int): Boolean {
-            boundTextures[boundTextureSlot] = 0
-            return bindTexture(mode, pointer)
-        }
-
         @JvmStatic
         private val LOGGER = LogManager.getLogger(Texture2D::class)
 
@@ -1427,15 +1417,10 @@ open class Texture2D(
 
         @JvmStatic
         fun destroyTextures() {
-            synchronized(texturesToDelete) {
-                if (texturesToDelete.isNotEmpty()) {
+            if (texturesToDelete.isNotEmpty()) {
+                unbindAllTextures()
+                synchronized(texturesToDelete) {
                     // unbind old textures
-                    boundTextureSlot = -1
-                    boundTextures.fill(-1)
-                    for (slot in 0 until maxBoundTextures) {
-                        activeSlot(slot)
-                        bindTexture(GL_TEXTURE_2D, 0)
-                    }
                     glDeleteTextures(texturesToDelete.toIntArray())
                     texturesToDelete.clear()
                 }

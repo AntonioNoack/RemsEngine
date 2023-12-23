@@ -14,6 +14,7 @@ import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
 import me.anno.utils.structures.stacks.SecureStack
 import me.anno.video.VideoCache
+import org.lwjgl.opengl.GL20C.GL_FRONT
 import org.lwjgl.opengl.GL20C.GL_LOWER_LEFT
 import org.lwjgl.opengl.GL45C.*
 
@@ -29,6 +30,90 @@ object GFXState {
     var session = 0
         private set
 
+    private var lastBlendMode: Any? = BlendMode.INHERIT
+    private var lastDepthMode: DepthMode? = null
+    private var lastDepthMask: Boolean? = null
+    private var lastCullMode: CullMode? = null
+
+    private fun bindBlendMode(newValue: Any?) {
+        if (newValue == lastBlendMode) return
+        when (newValue) {
+            null -> glDisable(GL_BLEND)
+            BlendMode.INHERIT -> {
+                val stack = blendMode
+                var index = stack.index
+                var self: Any?
+                do {
+                    self = stack.values[index--]
+                } while (self == BlendMode.INHERIT)
+                return bindBlendMode(self)
+            }
+            is BlendMode -> {
+                if (lastBlendMode == null) {
+                    glEnable(GL_BLEND)
+                }
+                newValue.forceApply()
+            }
+            is Array<*> -> {
+                if (lastBlendMode == null) {
+                    glEnable(GL_BLEND)
+                }
+                for (i in newValue.indices) {
+                    val v = newValue[i] as BlendMode
+                    v.forceApply(i)
+                }
+            }
+            else -> throw IllegalArgumentException()
+        }
+        lastBlendMode = newValue
+    }
+
+    private fun bindDepthMode(newValue: DepthMode) {
+        if (lastDepthMode == newValue) return
+        glDepthFunc(newValue.id)
+        val reversedDepth = newValue.reversedDepth
+        if (lastDepthMode?.reversedDepth != reversedDepth) {
+            if (supportsClipControl) {
+                glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
+            } else {
+                // does this work??
+                glDepthRange(0.0, 1.0)
+            }
+        }
+        lastDepthMode = newValue
+    }
+
+    private fun bindDepthMask(newValue: Boolean) {
+        if (lastDepthMask == newValue) return
+        glDepthMask(newValue)
+        lastDepthMask = newValue
+    }
+
+    private fun bindCullMode(newValue: CullMode) {
+        if (lastCullMode == newValue) return
+        when (newValue) {
+            CullMode.BOTH -> {
+                glDisable(GL_CULL_FACE)
+            }
+            CullMode.FRONT -> {
+                glEnable(GL_CULL_FACE)
+                glCullFace(GL_FRONT)
+            }
+            CullMode.BACK -> {
+                glEnable(GL_CULL_FACE)
+                glCullFace(GL_BACK)
+            }
+        }
+        lastCullMode = newValue
+    }
+
+    fun bind() {
+        bindBlendMode(blendMode.currentValue)
+        bindDepthMode(depthMode.currentValue)
+        bindDepthMask(depthMask.currentValue)
+        bindCullMode(cullMode.currentValue)
+    }
+
     /**
      * in OpenGL ES (e.g. on Android),
      * the context can be destroyed, when the app
@@ -41,6 +126,10 @@ object GFXState {
         OpenGLShader.invalidateBinding()
         Texture2D.invalidateBinding()
         OpenGLBuffer.invalidateBinding()
+        lastBlendMode = BlendMode.INHERIT
+        lastDepthMode = null
+        lastDepthMask = null
+        lastCullMode = null
         // clear all caches, which contain gpu data
         FBStack.clear()
         TextCache.clear()
@@ -53,70 +142,14 @@ object GFXState {
     // (not that practical in RemsStudio)
     // val renderer = SecureStack(Renderer.colorRenderer)
 
-    val blendMode = object : SecureStack<Any?>(BlendMode.DEFAULT) {
-        // could be optimized
-        override fun onChangeValue(newValue: Any?, oldValue: Any?) {
-            // LOGGER.info("Blending: $newValue <- $oldValue")
-            GFX.check()
-            when (newValue) {
-                null -> glDisable(GL_BLEND)
-                BlendMode.INHERIT -> {
-                    var index = index
-                    var self: Any?
-                    do {
-                        self = values[index--]
-                    } while (self == BlendMode.INHERIT)
-                    return onChangeValue(self, oldValue)
-                }
-                is BlendMode -> {
-                    glEnable(GL_BLEND)
-                    newValue.forceApply()
-                }
-                is Array<*> -> {
-                    glEnable(GL_BLEND)
-                    for (i in newValue.indices) {
-                        val v = newValue[i] as BlendMode
-                        v.forceApply(i)
-                    }
-                }
-                else -> throw IllegalArgumentException()
-            }
-        }
-    }
-
-    val depthMode = object : SecureStack<DepthMode>(DepthMode.ALWAYS) {
-        override fun onChangeValue(newValue: DepthMode, oldValue: DepthMode) {
-            GFX.check()
-            glEnable(GL_DEPTH_TEST)
-            glDepthFunc(newValue.id)
-            val reversedDepth = newValue.reversedDepth
-            if (supportsClipControl) {
-                glClipControl(GL_LOWER_LEFT, if (reversedDepth) GL_ZERO_TO_ONE else GL_NEGATIVE_ONE_TO_ONE)
-            } else {
-                // does this work??
-                glDepthRange(0.0, 1.0)
-            }
-            // glDepthRange(-1.0, 1.0)
-            // glDepthFunc(GL_LESS)
-        }
-    }
-
-    val depthMask = object : SecureStack<Boolean>(true) {
-        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
-            GFX.check()
-            glDepthMask(newValue)
-        }
-    }
+    val blendMode = SecureStack<Any?>(BlendMode.DEFAULT)
+    val depthMode = SecureStack(DepthMode.ALWAYS)
+    val depthMask = SecureStack(true)
 
     /**
      * a flag for shaders whether their animated version (slower) is used
      * */
-    val animated = object : SecureStack<Boolean>(false) {
-        override fun onChangeValue(newValue: Boolean, oldValue: Boolean) {
-            // nothing changes on the OpenGL side,
-            // just the shaders need to be modified
-        }
-    }
+    val animated = SecureStack(false)
 
     /**
      * defines how localPosition, and normal are loaded from mesh attributes
@@ -128,24 +161,7 @@ object GFXState {
      * */
     val instanceData = SecureStack(MeshInstanceData.DEFAULT)
 
-    val cullMode = object : SecureStack<CullMode>(CullMode.BOTH) {
-        override fun onChangeValue(newValue: CullMode, oldValue: CullMode) {
-            GFX.check()
-            when (newValue) {
-                CullMode.BOTH -> {
-                    glDisable(GL_CULL_FACE)
-                }
-                CullMode.FRONT -> {
-                    glEnable(GL_CULL_FACE)
-                    glCullFace(GL_FRONT)
-                }
-                CullMode.BACK -> {
-                    glEnable(GL_CULL_FACE)
-                    glCullFace(GL_BACK)
-                }
-            }
-        }
-    }
+    val cullMode = SecureStack(CullMode.BOTH)
 
     @Suppress("unused")
     val stencilTest = object : SecureStack<Boolean>(false) {
@@ -192,7 +208,7 @@ object GFXState {
     }
 
     // maximum expected depth for OpenGL operations
-    // could be changed, if needed...
+// could be changed, if needed...
     private const val maxSize = 512
     val renderers = Array<Renderer>(maxSize) { colorRenderer }
 

@@ -9,6 +9,10 @@ import me.anno.utils.structures.lists.Lists.count2
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Related Classes:
+ *  - Android: GridLayout
+ * */
 open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter, style) {
 
     constructor(style: Style) : this(null, style)

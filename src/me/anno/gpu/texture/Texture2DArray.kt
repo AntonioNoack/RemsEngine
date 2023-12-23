@@ -16,6 +16,7 @@ import me.anno.gpu.texture.Texture2D.Companion.bindTexture
 import me.anno.gpu.texture.Texture2D.Companion.bufferPool
 import me.anno.gpu.texture.Texture2D.Companion.setWriteAlignment
 import me.anno.gpu.texture.Texture2D.Companion.switchRGB2BGR
+import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.gpu.texture.TextureLib.invisibleTex3d
 import me.anno.gpu.texture.callbacks.I3B
 import me.anno.gpu.texture.callbacks.I3I
@@ -381,8 +382,7 @@ open class Texture2DArray(
     override fun destroy() {
         val pointer = pointer
         if (pointer != 0) {
-            if (GFX.isGFXThread()) destroy(pointer)
-            else GFX.addGPUTask("Texture3D.destroy()", 1) { destroy(pointer) }
+            destroy(pointer)
         }
         this.pointer = 0
     }
@@ -391,10 +391,11 @@ open class Texture2DArray(
         if (Build.isDebug) synchronized(DebugGPUStorage.tex2da) {
             DebugGPUStorage.tex2da.remove(this)
         }
-        GFX.checkIsGFXThread()
-        glDeleteTextures(pointer)
-        Texture2D.invalidateBinding()
-        locallyAllocated = allocate(locallyAllocated, 0L)
+        synchronized(texturesToDelete) {
+            // allocation counter is removed a bit early, shouldn't be too bad
+            locallyAllocated = allocate(locallyAllocated, 0L)
+            texturesToDelete.add(pointer)
+        }
         isDestroyed = true
     }
 

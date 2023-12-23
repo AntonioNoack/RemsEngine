@@ -151,8 +151,8 @@ abstract class StudioBase(
     open fun run(runGraphics: Boolean = !OS.isWeb && !OS.isAndroid) {
 
         if (Engine.shutdown) {
+            LOGGER.warn("Engine restart is experimental!")
             Engine.cancelShutdown()
-            LOGGER.warn("Restart isn't supported within the engine!")
         }
 
         instance = this

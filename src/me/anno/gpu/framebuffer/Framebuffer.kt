@@ -187,13 +187,6 @@ class Framebuffer(
         }
 
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
-        if (!OS.isWeb) {// not defined in WebGL
-            if (withMultisampling) {
-                glEnable(GL_MULTISAMPLE)
-            } else {
-                glDisable(GL_MULTISAMPLE)
-            }
-        }
 
         // todo is this fine? might cost a lof ot performance...
         val textures = textures

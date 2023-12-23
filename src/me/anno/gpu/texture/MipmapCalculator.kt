@@ -26,6 +26,15 @@ import kotlin.math.max
  * */
 object MipmapCalculator {
 
+    /**
+     * bind the texture, the slot doesn't matter
+     * @return whether the texture was actively bound
+     * */
+    fun forceBindTexture(mode: Int, pointer: Int): Boolean {
+        Texture2D.boundTextures[Texture2D.boundTextureSlot] = 0
+        return Texture2D.bindTexture(mode, pointer)
+    }
+
     val shader = Shader(
         "mipmap", coordsList, coordsUVVertexShader, uvList, listOf(
             Variable(GLSLType.S2D, "srcTex"),
@@ -79,7 +88,7 @@ object MipmapCalculator {
             val target = texture.target
 
             Texture2D.activeSlot(0) // for the shader calculation
-            Texture2D.forceBindTexture(target, texture.pointer)
+            forceBindTexture(target, texture.pointer)
             texture.filtering
 
             val numLevels = allocateLevels(texture)

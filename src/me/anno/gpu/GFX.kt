@@ -6,8 +6,6 @@ import me.anno.Engine
 import me.anno.Time
 import me.anno.audio.streams.AudioStream
 import me.anno.config.DefaultConfig
-import me.anno.gfx.GraphicsAPI
-import me.anno.gfx.OpenGLGraphics
 import me.anno.gpu.GFXState.blendMode
 import me.anno.gpu.GFXState.depthMode
 import me.anno.gpu.GFXState.useFrame
@@ -26,6 +24,7 @@ import me.anno.gpu.shader.OpenGLShader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
 import me.anno.studio.Events
 import me.anno.studio.StudioBase
@@ -70,9 +69,6 @@ object GFX {
 
     @JvmField
     val windows = ArrayList<OSWindow>()
-
-    @JvmField
-    var api: GraphicsAPI = OpenGLGraphics
 
     /**
      * current window, which is being rendered to by OpenGL
@@ -149,7 +145,7 @@ object GFX {
     var glVersion = 0
 
     @JvmField
-    var canLooseContext = OS.isAndroid
+    var canLooseContext = true // on Android, and when somebody uses multiple StudioBase instances
 
     @JvmField
     val nextGPUTasks = ArrayList<Task>()
@@ -544,7 +540,7 @@ object GFX {
 
         check()
 
-        Texture2D.bindTexture(GL_TEXTURE_2D, 0)
+        whiteTexture.bind(0)
 
         // BlendDepth.reset()
 

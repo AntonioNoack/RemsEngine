@@ -321,10 +321,7 @@ open class Texture3D(
 
     override fun destroy() {
         val pointer = pointer
-        if (pointer != 0) {
-            if (GFX.isGFXThread()) destroy(pointer)
-            else GFX.addGPUTask("Texture3D.destroy()", 1) { destroy(pointer) }
-        }
+        if (pointer != 0) destroy(pointer)
         this.pointer = 0
     }
 
@@ -332,9 +329,11 @@ open class Texture3D(
         if (Build.isDebug) synchronized(DebugGPUStorage.tex3d) {
             DebugGPUStorage.tex3d.remove(this)
         }
-        GFX.checkIsGFXThread()
-        glDeleteTextures(pointer)
-        Texture2D.invalidateBinding()
+        synchronized(Texture2D.texturesToDelete) {
+            // allocation counter is removed a bit early, shouldn't be too bad
+            locallyAllocated = Texture2D.allocate(locallyAllocated, 0L)
+            Texture2D.texturesToDelete.add(pointer)
+        }
         locallyAllocated = allocate(locallyAllocated, 0L)
         isDestroyed = true
     }

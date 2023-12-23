@@ -9,6 +9,7 @@ import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.Texture2D.Companion.texturesToDelete
 import me.anno.maths.Maths
 import org.joml.Quaterniond
 import org.joml.Quaternionf
@@ -246,10 +247,7 @@ open class CubemapTexture(
         isCreated = false
         isDestroyed = true
         val pointer = pointer
-        if (pointer != 0) {
-            if (GFX.isGFXThread()) destroy(pointer)
-            else GFX.addGPUTask("CubemapTexture.destroy()", 1) { destroy(pointer) }
-        }
+        if (pointer != 0) destroy(pointer)
         this.pointer = 0
     }
 
@@ -257,10 +255,11 @@ open class CubemapTexture(
         if (Build.isDebug) synchronized(DebugGPUStorage.tex3dCs) {
             DebugGPUStorage.tex3dCs.remove(this)
         }
-        GFX.checkIsGFXThread()
-        Texture2D.invalidateBinding()
-        locallyAllocated = allocate(locallyAllocated, 0L)
-        Texture2D.texturesToDelete.add(pointer)
+        synchronized(texturesToDelete) {
+            // allocation counter is removed a bit early, shouldn't be too bad
+            locallyAllocated = allocate(locallyAllocated, 0L)
+            texturesToDelete.add(pointer)
+        }
     }
 
     companion object {

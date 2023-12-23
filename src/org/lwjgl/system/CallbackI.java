@@ -1,6 +1,5 @@
 package org.lwjgl.system;
 
-import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.libffi.FFICIF;
 import org.lwjgl.system.libffi.LibFFI;
 
@@ -16,7 +15,6 @@ public interface CallbackI extends Pointer {
      *
      * @return the CIF structure for this callback function
      */
-    @Nullable
     default FFICIF getCallInterface() {
         return null;
     }

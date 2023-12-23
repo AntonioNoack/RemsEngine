@@ -2,6 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.Build
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.Variable
@@ -72,6 +73,7 @@ class ComputeShader(
             logShader(name, source)
             GFX.check()
             this.program = program // only assign this value, when no error has occurred
+            this.session = GFXState.session
         }
 
         if (Build.isDebug) {

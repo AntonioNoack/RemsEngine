@@ -1,24 +1,26 @@
 package me.anno.gpu.buffer
 
+import org.lwjgl.opengl.GL30C.*
+
 @Suppress("unused")
-enum class AttributeType(val byteSize: Int, val normalized: Boolean) {
+enum class AttributeType(val byteSize: Int, val normalized: Boolean, val id: Int) {
 
-    HALF(2, false),
-    FLOAT(4, false),
-    DOUBLE(8, false),
+    HALF(2, false, GL_HALF_FLOAT),
+    FLOAT(4, false, GL_FLOAT),
+    DOUBLE(8, false, GL_DOUBLE),
 
-    UINT8(1, false),
-    UINT16(2, false),
-    UINT32(4, false),
-    SINT8(1, false),
-    SINT16(2, false),
-    SINT32(4, false),
+    UINT8(1, false, GL_UNSIGNED_BYTE),
+    UINT16(2, false, GL_UNSIGNED_SHORT),
+    UINT32(4, false, GL_UNSIGNED_INT),
+    SINT8(1, false, GL_BYTE),
+    SINT16(2, false, GL_SHORT),
+    SINT32(4, false, GL_INT),
 
-    UINT8_NORM(1, true),
-    UINT16_NORM(2, true),
-    UINT32_NORM(4, true),
-    SINT8_NORM(1, true),
-    SINT16_NORM(2, true),
-    SINT32_NORM(4, true),
+    UINT8_NORM(1, true, GL_UNSIGNED_BYTE),
+    UINT16_NORM(2, true, GL_UNSIGNED_SHORT),
+    UINT32_NORM(4, true, GL_UNSIGNED_INT),
+    SINT8_NORM(1, true, GL_BYTE),
+    SINT16_NORM(2, true, GL_SHORT),
+    SINT32_NORM(4, true, GL_INT),
 
 }

@@ -8,6 +8,10 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+/**
+ * Related Classes:
+ *  - Android: LinearLayout, orientation=vertical
+ * */
 open class PanelListY(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter, style) {
     constructor(style: Style) : this(null, style)
 

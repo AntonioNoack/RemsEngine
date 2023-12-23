@@ -313,7 +313,7 @@ abstract class MeshJoiner<V>(
             val k0 = j0 / 3
             val k1 = j / 3
             val srcIds = srcMesh.materialIds
-            if (materialIds.min() == materialIds.max() || srcIds == null) {
+            if (materialIds.minOrNull() == materialIds.maxOrNull() || srcIds == null) {
                 dstMaterialIds.fill(materialIds[0], k0, k1)
             } else {
                 val k2 = k0 + srcIds.size

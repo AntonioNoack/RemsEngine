@@ -89,7 +89,6 @@ class CubemapFramebuffer(
         if (pointer == 0) create()
         bindFramebuffer(GL_FRAMEBUFFER, pointer)
         Frame.lastPtr = pointer
-        glDisable(GL_MULTISAMPLE)
     }
 
     private fun checkSize(newSize: Int) {

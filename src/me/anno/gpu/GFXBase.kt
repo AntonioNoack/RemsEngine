@@ -40,6 +40,7 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.*
 import org.lwjgl.opengl.GL11C.*
+import org.lwjgl.opengl.GL43C.GL_MULTISAMPLE
 import org.lwjgl.opengl.GL43C.glDebugMessageCallback
 import org.lwjgl.system.Callback
 import org.lwjgl.system.MemoryUtil
@@ -247,6 +248,8 @@ object GFXBase {
         // cause issues in FrameGen -> not enabled everywhere
         // glEnable(GL_LINE_SMOOTH)
         // glEnable(GL_POINT_SMOOTH)
+        glEnable(GL_MULTISAMPLE)
+        glEnable(GL_DEPTH_TEST)
         checkIsGFXThread()
     }
 

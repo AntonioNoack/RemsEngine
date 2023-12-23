@@ -2,9 +2,11 @@ package me.anno.gpu.buffer
 
 import me.anno.Build
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
+import me.anno.maths.Maths.hasFlag
 import me.anno.utils.pooling.ByteBufferPool
 import me.anno.utils.structures.lists.Lists.none2
 import org.lwjgl.opengl.GL33C.*
@@ -68,7 +70,6 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
                 unbindAttribute(shader, attrName)
             }
         }
-
     }
 
     private var lastShader: Shader? = null
@@ -136,6 +137,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
         ensureBuffer()
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
+        GFXState.bind()
         glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceData.drawLength)
         unbind(shader)
     }
@@ -143,6 +145,7 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
     override fun drawInstanced(shader: Shader, instanceCount: Int) {
         ensureBuffer()
         bindInstanced(shader, null)
+        GFXState.bind()
         glDrawArraysInstanced(drawMode.id, 0, drawLength, instanceCount)
         unbind(shader)
     }
@@ -170,16 +173,8 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
     }
 
     open fun draw(drawMode: DrawMode, first: Int, length: Int) {
+        GFXState.bind()
         glDrawArrays(drawMode.id, first, length)
-    }
-
-    open fun drawSimpleInstanced(shader: Shader, drawMode: DrawMode, count: Int) {
-        bind(shader) // defines drawLength
-        if (drawLength > 0) {
-            glDrawArraysInstanced(drawMode.id, 0, drawLength, count)
-            unbind(shader)
-            GFX.check()
-        }
     }
 
     override fun destroy() {
@@ -207,36 +202,50 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
 
     companion object {
 
-        private val attrTypesOpenGL = intArrayOf(
-            GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE,
-            GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT,
-            GL_BYTE, GL_SHORT, GL_INT,
-            GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT,
-            GL_BYTE, GL_SHORT, GL_INT
-        )
+        private var enabledAttributes = 0
 
         @JvmStatic
         fun bindAttribute(shader: Shader, attr: Attribute, instanced: Boolean): Boolean {
             val instanceDivisor = if (instanced) 1 else 0
             val index = shader.getAttributeLocation(attr.name)
             return if (index > -1) {
-                val t = attr.type
+                val type = attr.type
                 if (attr.isNativeInt) {
-                    glVertexAttribIPointer(index, attr.components, attrTypesOpenGL[t.ordinal], attr.stride, attr.offset)
+                    glVertexAttribIPointer(
+                        index, attr.components, type.id,
+                        attr.stride, attr.offset
+                    )
                 } else {
-                    glVertexAttribPointer(index, attr.components, attrTypesOpenGL[t.ordinal], t.normalized, attr.stride, attr.offset)
+                    glVertexAttribPointer(
+                        index, attr.components, type.id,
+                        type.normalized, attr.stride, attr.offset
+                    )
                 }
                 glVertexAttribDivisor(index, instanceDivisor)
-                glEnableVertexAttribArray(index)
+                enable(index)
                 true
             } else false
+        }
+
+        private fun enable(index: Int){
+            if (useVAOs || !enabledAttributes.hasFlag(1 shl index)) {
+                glEnableVertexAttribArray(index)
+                enabledAttributes = enabledAttributes or (1 shl index)
+            }
+        }
+
+        private fun disable(index: Int){
+            if (useVAOs || enabledAttributes.hasFlag(1 shl index)) {
+                glDisableVertexAttribArray(index)
+                enabledAttributes = enabledAttributes and (1 shl index).inv()
+            }
         }
 
         @JvmStatic
         fun unbindAttribute(shader: Shader, attr: String) {
             val index = shader.getAttributeLocation(attr)
             if (index > -1) {
-                glDisableVertexAttribArray(index)
+                disable(index)
                 when (shader.attributes[index].type) {
                     GLSLType.V1B, GLSLType.V2B, GLSLType.V3B, GLSLType.V4B,
                     GLSLType.V1I, GLSLType.V2I, GLSLType.V3I, GLSLType.V4I -> glVertexAttribI1i(index, 0)

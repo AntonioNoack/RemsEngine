@@ -2,9 +2,9 @@ package me.anno.gpu.buffer
 
 import me.anno.Build
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.gpu.debug.DebugGPUStorage
 import me.anno.gpu.shader.Shader
-import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL31C.*
 import org.lwjgl.opengl.GL43C.GL_BUFFER
 import org.lwjgl.opengl.GL43C.glObjectLabel
@@ -117,6 +117,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
     fun draw(shader: Shader, drawMode: DrawMode) {
         bind(shader) // defines drawLength
         if (base.drawLength > 0) {
+            GFXState.bind()
             glDrawElements(drawMode.id, indices.size, elementsType, 0)
             unbind()
             GFX.check()
@@ -189,30 +190,17 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
     fun drawInstanced(shader: Shader, instanceData: Buffer, drawMode: DrawMode) {
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
+        GFXState.bind()
         glDrawElementsInstanced(drawMode.id, indices.size, elementsType, 0, instanceData.drawLength)
         unbind()
     }
 
     override fun drawInstanced(shader: Shader, instanceCount: Int) {
         bindInstanced(shader, null)
-        glDrawElementsInstanced(
-            (drawMode ?: base.drawMode).id,
-            indices.size,
-            elementsType,
-            0,
-            instanceCount
-        )
+        val drawMode = (drawMode ?: base.drawMode)
+        GFXState.bind()
+        glDrawElementsInstanced(drawMode.id, indices.size, elementsType, 0, instanceCount)
         unbind()
-    }
-
-    @Suppress("unused")
-    fun drawSimpleInstanced(shader: Shader, drawMode: DrawMode, count: Int) {
-        bind(shader) // defines drawLength
-        if (base.drawLength > 0) {
-            glDrawElementsInstanced(drawMode.id, indices.size, elementsType, 0, count)
-            unbind()
-            GFX.check()
-        }
     }
 
     override fun destroy() {
@@ -230,9 +218,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
     }
 
     companion object {
-        private val LOGGER = LogManager.getLogger(IndexBuffer::class)
         private val int32Attrs = listOf(Attribute("index", AttributeType.UINT32, 1))
         private val int16Attrs = listOf(Attribute("index", AttributeType.UINT16, 1))
     }
-
 }

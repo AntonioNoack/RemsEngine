@@ -310,13 +310,13 @@ abstract class OpenGLBuffer(val name: String, val type: Int, var attributes: Lis
         // because VAOs need default values (probably)
 
         // todo working? looks like it
-        val useVAOs get() = false
-        val renewVAOs get() = false
+        val useVAOs = false
+        val renewVAOs = false
 
         private var boundVAO = -1
         fun bindVAO(vao: Int) {
             val vao2 = if (useVAOs) vao else 0
-            if (vao2 >= 0 && boundVAO != vao) {
+            if (vao2 >= 0 && boundVAO != vao2) {
                 boundVAO = vao2
                 glBindVertexArray(vao2)
             }

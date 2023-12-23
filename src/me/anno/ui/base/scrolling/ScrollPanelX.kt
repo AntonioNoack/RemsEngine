@@ -21,6 +21,10 @@ import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
 import kotlin.math.round
 
+/**
+ * Android: HorizontalScrollView,
+ * Unity: ScrollView
+ * */
 open class ScrollPanelX(
     child: Panel, padding: Padding,
     style: Style

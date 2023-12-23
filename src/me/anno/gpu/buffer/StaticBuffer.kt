@@ -1,5 +1,6 @@
 package me.anno.gpu.buffer
 
+import me.anno.gpu.GFXState
 import me.anno.gpu.shader.Shader
 import me.anno.image.svg.SVGMesh
 import me.anno.utils.pooling.ByteBufferPool
@@ -98,6 +99,7 @@ open class StaticBuffer(name: String, attributes: List<Attribute>, var vertexCou
             nullBuffer.apply {
                 val baseLength = mode.minLength
                 bind(shader)
+                GFXState.bind()
                 glDrawArraysInstanced(mode.id, 0, baseLength, length)
                 unbind(shader)
             }

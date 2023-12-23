@@ -2,6 +2,7 @@ package me.anno.gpu.shader
 
 import me.anno.Build
 import me.anno.gpu.GFX
+import me.anno.gpu.GFXState
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -244,23 +245,13 @@ open class Shader(
         GFX.check()
 
         this.program = program // only assign the program, when no error happened
+        this.session = GFXState.session
 
         if (textureNames.isNotEmpty()) {
             lastProgram = program
             glUseProgram(program)
             setTextureIndicesIfExisting()
             GFX.check()
-        }
-
-        // deleting sources to free up RAM
-        if (!GFX.canLooseContext && Build.isShipped) {
-            vertexShader = ""
-            fragmentSource = ""
-            vertexVariables = emptyList()
-            fragmentVariables = emptyList()
-            this.varyings = emptyList()
-            vertexSource = ""
-            fragmentSource = ""
         }
 
         if (Build.isDebug) {

@@ -21,6 +21,12 @@ import me.anno.utils.types.Booleans.toInt
 import kotlin.math.max
 import kotlin.math.round
 
+/**
+ * Related Classes:
+ *  - Android: ScrollView,
+ *  - Unity: ScrollView,
+ *  - Unreal Engine: UScrollBox,
+ * */
 open class ScrollPanelY(
     child: Panel, padding: Padding,
     style: Style
