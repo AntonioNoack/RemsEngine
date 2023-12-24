@@ -82,7 +82,8 @@ class GlassPass : TransparentPass() {
         val applyShader = LazyMap<Int, Shader> { bits ->
             val diffuseSlot = bits.and(0xff)
             val emissiveSlot = bits.ushr(8).and(0xff)
-            val sampleType = if (bits.hasFlag(1 shl 16)) GLSLType.S2DMS else GLSLType.S2D
+            val multisampled = bits.hasFlag(1 shl 16)
+            val sampleType = if (multisampled) GLSLType.S2DMS else GLSLType.S2D
             Shader(
                 "applyGlass", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
                     Variable(sampleType, "diffuseSrcTex"),
@@ -94,11 +95,12 @@ class GlassPass : TransparentPass() {
                     Variable(GLSLType.V4F, "diffuse", VariableMode.OUT).apply { slot = diffuseSlot },
                     Variable(GLSLType.V4F, "emissive", VariableMode.OUT).apply { slot = emissiveSlot },
                 ), "" +
-                        (if(sampleType == GLSLType.S2DMS) "" +
+                        (if(multisampled) "" +
                                 "#define getTex(s) texelFetch(s,uvi,gl_SampleID)\n" else
                                     "#define getTex(s) texture(s,uv)\n") +
                         "void main() {\n" +
-                        "   ivec2 uvi = ivec2(uv*textureSize(diffuseGlassTex));\n" +
+                        (if(multisampled) "" +
+                                "ivec2 uvi = ivec2(uv*textureSize(diffuseGlassTex));\n" else "") +
                         "   vec4 tint = vec4(exp(-getTex(diffuseGlassTex).rgb),1.0);\n" +
                         "   diffuse  = getTex(diffuseSrcTex) * tint;\n" +
                         "   emissive = getTex(emissiveSrcTex) * tint + vec4(getTex(emissiveGlassTex).rgb,0.0);\n" +
