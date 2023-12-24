@@ -15,16 +15,17 @@ import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
+import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.texture.TextureLib.blackTexture
 import me.anno.gpu.texture.TextureLib.whiteTexture
+import me.anno.maths.Maths.hasFlag
 import me.anno.utils.structures.maps.LazyMap
-import me.anno.utils.structures.tuples.IntPair
+import me.anno.utils.types.Booleans.toInt
 
 /**
  * order-independent transparency for deferred rendering;
@@ -78,22 +79,29 @@ class GlassPass : TransparentPass() {
         }
 
         // override diffuseColor and finalEmissive in shader
-        val applyShader = LazyMap<IntPair, Shader> {
+        val applyShader = LazyMap<Int, Shader> { bits ->
+            val diffuseSlot = bits.and(0xff)
+            val emissiveSlot = bits.ushr(8).and(0xff)
+            val sampleType = if (bits.hasFlag(1 shl 16)) GLSLType.S2DMS else GLSLType.S2D
             Shader(
                 "applyGlass", ShaderLib.coordsList, ShaderLib.coordsUVVertexShader, ShaderLib.uvList, listOf(
-                    Variable(GLSLType.S2D, "diffuseSrcTex"),
-                    Variable(GLSLType.S2D, "emissiveSrcTex"),
-                    Variable(GLSLType.S2D, "diffuseGlassTex"),
-                    Variable(GLSLType.S2D, "emissiveGlassTex"),
+                    Variable(sampleType, "diffuseSrcTex"),
+                    Variable(sampleType, "emissiveSrcTex"),
+                    Variable(sampleType, "diffuseGlassTex"),
+                    Variable(sampleType, "emissiveGlassTex"),
                     Variable(GLSLType.V3F, "refX"),
                     Variable(GLSLType.V3F, "refY"),
-                    Variable(GLSLType.V4F, "diffuse", VariableMode.OUT).apply { slot = it.first },
-                    Variable(GLSLType.V4F, "emissive", VariableMode.OUT).apply { slot = it.second },
+                    Variable(GLSLType.V4F, "diffuse", VariableMode.OUT).apply { slot = diffuseSlot },
+                    Variable(GLSLType.V4F, "emissive", VariableMode.OUT).apply { slot = emissiveSlot },
                 ), "" +
+                        (if(sampleType == GLSLType.S2DMS) "" +
+                                "#define getTex(s) texelFetch(s,uvi,gl_SampleID)\n" else
+                                    "#define getTex(s) texture(s,uv)\n") +
                         "void main() {\n" +
-                        "   vec4 tint = vec4(exp(-texture(diffuseGlassTex,uv).rgb),1.0);\n" +
-                        "   diffuse  = texture(diffuseSrcTex,uv) * tint;\n" +
-                        "   emissive = texture(emissiveSrcTex,uv) * tint + vec4(texture(emissiveGlassTex,uv).rgb,0.0);\n" +
+                        "   ivec2 uvi = ivec2(uv*textureSize(diffuseGlassTex));\n" +
+                        "   vec4 tint = vec4(exp(-getTex(diffuseGlassTex).rgb),1.0);\n" +
+                        "   diffuse  = getTex(diffuseSrcTex) * tint;\n" +
+                        "   emissive = getTex(emissiveSrcTex) * tint + vec4(getTex(emissiveGlassTex).rgb,0.0);\n" +
                         "}\n"
             )
         }
@@ -122,14 +130,17 @@ class GlassPass : TransparentPass() {
         val l1 = s0?.findLayer(DeferredLayerType.EMISSIVE)
 
         combine {
-            val shader = applyShader[IntPair(l0?.texIndex ?: 0, l1?.texIndex ?: 1)]
+            val diffuseSlot = l0?.texIndex ?: 0
+            val emissiveSlot = l1?.texIndex ?: 1
+            val bits = diffuseSlot or emissiveSlot.shl(8) or (tmp.samples > 1).toInt(1 shl 16)
+            val shader = applyShader[bits]
             shader.use()
 
             // bind all textures
-            (s0?.findTexture(b0, l0) ?: whiteTexture).bindTrulyNearest(shader, "diffuseSrcTex")
-            (s0?.findTexture(b0, l1) ?: blackTexture).bindTrulyNearest(shader, "emissiveSrcTex")
-            tmp.getTextureI(0).bindTrulyNearest(shader, "diffuseGlassTex")
-            tmp.getTextureI(1).bindTrulyNearest(shader, "emissiveGlassTex")
+            (s0?.findTextureMS(b0, l0) ?: whiteTexture).bindTrulyNearest(shader, "diffuseSrcTex")
+            (s0?.findTextureMS(b0, l1) ?: blackTexture).bindTrulyNearest(shader, "emissiveSrcTex")
+            tmp.getTextureIMS(0).bindTrulyNearest(shader, "diffuseGlassTex")
+            tmp.getTextureIMS(1).bindTrulyNearest(shader, "emissiveGlassTex")
 
             flat01.draw(shader)
         }

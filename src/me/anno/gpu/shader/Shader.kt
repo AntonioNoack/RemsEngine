@@ -90,11 +90,13 @@ open class Shader(
             )
         }
 
-        if (glslVersion < 330 && fragmentVariables.any2 { it.isOutput })
+        if (glslVersion < 330 && fragmentVariables.any2 { it.isOutput }) {
             glslVersion = 330 // needed for layout(location=x) qualifier
+        }
 
-        if (glslVersion < 400 && "gl_SampleID" in fragmentShader)
+        if (glslVersion < 400 && ("gl_SampleID" in fragmentShader || "gl_SamplePosition" in fragmentShader)) {
             glslVersion = 400
+        }
 
         val versionString = formatVersion(glslVersion) + "\n// $name\n"
 

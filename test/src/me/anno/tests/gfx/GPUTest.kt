@@ -9,5 +9,7 @@ import org.lwjgl.opengl.GL11C.glGetString
 
 fun main() {
     HiddenOpenGLContext.createOpenGL()
-    println(glGetString(GL_EXTENSIONS)!!.replace(' ', '\n'))
+    for (line in glGetString(GL_EXTENSIONS)!!.split(' ')) {
+        println(line)
+    }
 }

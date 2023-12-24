@@ -85,6 +85,10 @@ open class SDFComponent : ProceduralMesh(), Renderable,
     @NotSerializedProperty
     var camFar = 0f
 
+    @Docs("Whether multiple samples get evaluated per pixel when MSAA is enabled; true=slower,nicer")
+    @SerializedProperty
+    var highQualityMSAA = false
+
     /**
      * how much larger the underlying mesh needs to be to cover this sdf mesh;
      * 0 = no larger than usual,

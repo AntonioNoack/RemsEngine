@@ -30,10 +30,8 @@ import org.lwjgl.opengl.GL31C.GL_DYNAMIC_DRAW
 abstract class UniqueMeshRenderer<Key>(
     val attributes: List<Attribute>,
     override val vertexData: MeshVertexData,
-    material: Material,
-    val drawMode: DrawMode
-) : MeshSpawner(), IMesh, ICacheData,
-    AllocationManager<MeshEntry, StaticBuffer> {
+    material: Material, val drawMode: DrawMode
+) : MeshSpawner(), IMesh, ICacheData, AllocationManager<MeshEntry, StaticBuffer> {
 
     abstract fun getData(key: Key, mesh: Mesh): StaticBuffer?
 
@@ -109,7 +107,7 @@ abstract class UniqueMeshRenderer<Key>(
 
     fun remove(key: Key): Boolean {
         val entry = entryLookup.remove(key) ?: return false
-        if(true) {
+        if (true) {
             // todo entries are sorted, so use binary search to remove it
             // todo we also need to remove this section from ranges
             entries.remove(entry)
