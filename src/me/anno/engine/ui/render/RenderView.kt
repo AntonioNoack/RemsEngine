@@ -373,12 +373,12 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         val drawCalls = PipelineStage.drawCalls - drawCalls0
         val usesBetterBlending = DrawTexts.canUseComputeShader()
         drawSimpleTextCharByChar(
-            x + 2,
-            y + height - 1 - DrawTexts.monospaceFont.sizeInt,
-            2, if (drawCalls == 1L && drawnInstances == 1L) "$drawnPrimitives tris, 1 inst, 1 draw call"
-            else "$drawnPrimitives tris, $drawnInstances inst, $drawCalls draw calls",
+            x + 2, y + height + 1,
+            0, if (drawCalls == 1L && drawnInstances == 1L) "%,d tris, 1 inst, 1 draw call".format(drawnPrimitives)
+            else "%,d tris, %,d inst, %,d draw calls".format(drawnPrimitives, drawnInstances, drawCalls),
             FrameTimings.textColor,
-            FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255)
+            FrameTimings.backgroundColor.withAlpha(if (usesBetterBlending) 0 else 255),
+            AxisAlignment.MIN, AxisAlignment.MAX
         )
         popBetterBlending(pbb)
     }

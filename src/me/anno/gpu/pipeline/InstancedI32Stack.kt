@@ -27,23 +27,23 @@ open class InstancedI32Stack(
 
         val size get() = data.size
         val data = ExpandingIntArray(256)
-        val gfxIds = ExpandingIntArray(16)
+        val metadata = ExpandingIntArray(16)
         val matrices = ArrayList<Matrix4x3d>() // transform for a group of meshes
 
         fun clear() {
             data.clear()
-            gfxIds.clear()
+            metadata.clear()
             matrices.clear()
         }
 
-        fun begin(gfxId: Int, matrix: Matrix4x3d): ExpandingIntArray {
-            gfxIds.add(gfxId)
-            matrices.add(matrix)
+        fun start(gfxId: Int, matrix: Matrix4x3d): ExpandingIntArray {
+            // we only need to mark a new section, when the matrix or gfx id changes
+            if (metadata.isEmpty() || gfxId != metadata.last() || matrices.last() != matrix) {
+                metadata.add(data.size)
+                metadata.add(gfxId)
+                matrices.add(matrix)
+            }
             return data
-        }
-
-        fun end() {
-            gfxIds.add(data.size)
         }
     }
 
@@ -107,48 +107,49 @@ open class InstancedI32Stack(
         shader.v2i("randomIdData", mesh.numPrimitives.toInt(), 0)
         GFX.check()
 
-        // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580
-        val buffer = PipelineStage.instancedBufferI32
-        // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
-        val nioBuffer = buffer.nioBuffer!!
-        nioBuffer.limit(nioBuffer.capacity())
-        val nioInt = nioBuffer.asIntBuffer()
-        nioInt.limit(nioInt.capacity())
-        // fill the data
-        val cameraPosition = RenderState.cameraPosition
-        val worldScale = RenderState.worldScale
-
-        var baseIndex = 0
-        val batchSize = buffer.vertexCount
         var drawCalls = 0L
-        for (i in 0 until instances.gfxIds.size / 2) {
+        GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
 
-            val totalEndIndex = if (i * 2 + 2 < instances.gfxIds.size)
-                instances.gfxIds[i * 2 + 2] else instances.size
+            // creating a new buffer allows the gpu some time to sort things out; had no performance benefit on my RX 580
+            val buffer = PipelineStage.instancedBufferI32
+            // StaticBuffer(meshInstancedAttributes, instancedBatchSize, GL_STREAM_DRAW)
+            val nioBytes = buffer.nioBuffer!!
+            nioBytes.limit(nioBytes.capacity())
+            val nioInt = nioBytes.asIntBuffer()
+            nioInt.limit(nioInt.capacity())
+            // fill the data
+            val cameraPosition = RenderState.cameraPosition
+            val worldScale = RenderState.worldScale
 
-            val gfxId = instances.gfxIds[i * 2 + 1]
-            shader.v4f("finalId", gfxId)
-            shader.m4x3delta("localTransform", instances.matrices[i], cameraPosition, worldScale)
+            var baseIndex = 0
+            val batchSize = buffer.vertexCount
+            val metadata = instances.metadata
+            for (i in 0 until (metadata.size ushr 1)) {
 
-            // draw them in batches of size <= batchSize
-            while (baseIndex < totalEndIndex) {
+                val offsetIdx = i * 2 + 2
+                val totalEndIndex = if (offsetIdx < metadata.size)
+                    metadata[offsetIdx] else instances.size
 
-                buffer.clear()
+                shader.v4f("finalId", metadata[i * 2 + 1])
+                shader.m4x3delta("localTransform", instances.matrices[i], cameraPosition, worldScale)
 
-                val data = instances.data
-                val endIndex = min(totalEndIndex, baseIndex + batchSize)
-                nioBuffer.position(0)
-                nioInt.position(0)
-                nioInt.put(data.array, baseIndex, endIndex - baseIndex)
-                nioBuffer.position(nioInt.position() shl 2)
-                buffer.isUpToDate = false
-                buffer.ensureBufferWithoutResize()
-                // slightly optimized over PSR ^^, ~ 8-fold throughput
-                GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
+                // draw them in batches of size <= batchSize
+                while (baseIndex < totalEndIndex) {
+
+                    buffer.clear()
+
+                    val data = instances.data
+                    nioInt.position(0)
+                    val length = min(totalEndIndex - baseIndex, batchSize)
+                    nioInt.put(data.array, baseIndex, length)
+                    nioBytes.position(length shl 2)
+                    buffer.ensureBufferWithoutResize()
+                    // slightly optimized over PSR ^^, ~ 8-fold throughput
                     mesh.drawInstanced(shader, 0, buffer)
+
+                    drawCalls++
+                    baseIndex += length
                 }
-                drawCalls++
-                baseIndex = endIndex
             }
         }
         return drawCalls

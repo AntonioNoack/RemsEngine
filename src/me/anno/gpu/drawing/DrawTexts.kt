@@ -138,7 +138,31 @@ object DrawTexts {
         val y2 = y + dy0 + padding - 1
         var x2 = x + dx0 + padding + (charWidth - texture.width) / 2
 
-        if (shader !is ComputeShader) {
+        if (shader is ComputeShader) {
+            fun drawChar(i: Int) {
+                val char = text[i]
+                val code = char.code - 33
+                if (code in simpleChars.indices) {
+                    shader.v1f("uvZ", code.toFloat())
+                    posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
+                }
+            }
+            for (i in text.indices step 2) {
+                drawChar(i)
+                x2 += charWidth * 2
+            }
+            // must be called on every char overlap, or we get flickering
+            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+            if (text.length > 1) {
+                x2 = x + dx0 + padding + (charWidth - texture.width) / 2 + charWidth
+                for (i in 1 until text.length step 2) {
+                    drawChar(i)
+                    x2 += charWidth * 2
+                }
+                glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
+            }
+            x2 = x + dx0 + padding + (charWidth - texture.width) / 2 + charWidth * text.length
+        } else {
             val posY = 1f - (y2 - GFX.viewportY).toFloat() / GFX.viewportHeight
             var x2f = (x2 - GFX.viewportX).toFloat() / GFX.viewportWidth
             val dxf = charWidth.toFloat() / GFX.viewportWidth
@@ -152,20 +176,6 @@ object DrawTexts {
                 }
                 x2f += dxf
             }
-        } else {
-            for (i in text.indices) {
-                val char = text[i]
-                val code = char.code - 33
-                if (code in simpleChars.indices) {
-                    shader.v1f("uvZ", code.toFloat())
-                    posSizeDraw(shader, x2, y2, texture.width, texture.height, 1)
-                }
-                x2 += charWidth
-            }
-            glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT)
-        }
-
-        if (shader is Shader) {
             simpleBatch.finish(v)
         }
 

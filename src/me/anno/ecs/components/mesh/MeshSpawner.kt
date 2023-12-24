@@ -253,7 +253,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             list = createInstance()
             stage.instances.add(list)
         }
-        return list.data.getOrPut(mesh, Material.defaultMaterial) { _, _ -> InstancedI32Stack.Data() }
+        return list.data.getOrPut(mesh, material) { _, _ -> InstancedI32Stack.Data() }
     }
 
     companion object {

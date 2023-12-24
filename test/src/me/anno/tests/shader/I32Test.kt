@@ -9,8 +9,6 @@ import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
-import me.anno.gpu.buffer.Attribute
-import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.pipeline.InstancedI32Stack
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.GLSLType
@@ -82,9 +80,8 @@ fun main() {
             val stack = getOrPutI32Stack(pipeline, mesh, material, TestI32Stack::class) {
                 TestI32Stack(space.toFloat())
             }
-            val buffer = stack.begin(gfxId, transform!!.globalTransform)
+            val buffer = stack.start(gfxId, transform!!.globalTransform)
             for (i in 0 until count) buffer.add(i)
-            stack.end()
             return clickId + 1
         }
     }

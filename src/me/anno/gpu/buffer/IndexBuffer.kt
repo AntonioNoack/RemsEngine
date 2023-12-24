@@ -24,8 +24,6 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
     var elementsType = GL_UNSIGNED_INT
     var drawMode: DrawMode? = null
 
-    private var hasWarned = false
-
     private var vao = -1
 
     override fun createNioBuffer() {
@@ -35,13 +33,6 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
     override fun onSessionChange() {
         super.onSessionChange()
         vao = -1
-    }
-
-    private fun ensureVAO() {
-        if (useVAOs) {
-            if (vao <= 0) vao = glGenVertexArrays()
-            if (vao <= 0) throw OutOfMemoryError("Could not allocate vertex array")
-        }
     }
 
     fun createVAO(shader: Shader, instanceData: Buffer? = null) {
