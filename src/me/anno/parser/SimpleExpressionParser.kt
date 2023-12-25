@@ -379,7 +379,7 @@ object SimpleExpressionParser {
         for (i in indices) {
             val name = this[i] as? String ?: continue
             if (getOrNull(i + 1) != '(') {
-                val replacement = constants[name] ?: constants[name.lowercase(Locale.getDefault())]
+                val replacement = constants[name] ?: constants[name.lowercase()]
                 if (replacement != null) {
                     this[i] = replacement
                 }

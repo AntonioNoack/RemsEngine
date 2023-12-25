@@ -33,7 +33,7 @@ import me.anno.ui.debug.TestStudio.Companion.testUI3
 import me.anno.utils.OS.documents
 import org.joml.Quaterniond
 import org.joml.Vector3d
-import java.lang.Math.PI
+import kotlin.math.PI
 import kotlin.math.roundToInt
 
 // todo simple car chase game

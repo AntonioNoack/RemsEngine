@@ -9,7 +9,7 @@ import kotlin.math.*
 object Functions {
 
     fun onUnknownFunction(name: String, paramString: String): Throwable {
-        val lcName = name.lowercase(Locale.getDefault())
+        val lcName = name.lowercase()
         val f0 = functions0[name] ?: functions0[lcName]
         val f1 = functions1[name] ?: functions1[lcName]
         val f2 = functions2[name] ?: functions2[lcName]
@@ -35,7 +35,7 @@ object Functions {
             if (this[i - 0] != ')') continue
             val name = this[i - 2] as? String ?: continue
             val function =
-                functions0[name] ?: functions0[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
+                functions0[name] ?: functions0[name.lowercase()] ?: throw onUnknownFunction(
                     name,
                     "x"
                 )
@@ -54,7 +54,7 @@ object Functions {
             val name = this[i - 3] as? String ?: continue
             val x = this[i - 1] as? Double ?: continue
             val function =
-                functions1[name] ?: functions1[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
+                functions1[name] ?: functions1[name.lowercase()] ?: throw onUnknownFunction(
                     name,
                     "x"
                 )
@@ -75,7 +75,7 @@ object Functions {
             val x = this[i - 3] as? Double ?: continue
             val y = this[i - 1] as? Double ?: continue
             val function =
-                functions2[name] ?: functions2[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
+                functions2[name] ?: functions2[name.lowercase()] ?: throw onUnknownFunction(
                     name,
                     "x,y"
                 )
@@ -98,7 +98,7 @@ object Functions {
             val y = this[i - 3] as? Double ?: continue
             val z = this[i - 1] as? Double ?: continue
             val function =
-                functions3[name] ?: functions3[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
+                functions3[name] ?: functions3[name.lowercase()] ?: throw onUnknownFunction(
                     name,
                     "x,y,z"
                 )
@@ -123,7 +123,7 @@ object Functions {
             val z = this[i - 3] as? Double ?: continue
             val w = this[i - 1] as? Double ?: continue
             val function =
-                functions4[name] ?: functions4[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
+                functions4[name] ?: functions4[name.lowercase()] ?: throw onUnknownFunction(
                     name,
                     "x,y,z,w"
                 )
@@ -156,7 +156,7 @@ object Functions {
             val d = this[i - 3] as? Double ?: continue
             val e = this[i - 1] as? Double ?: continue
             val function =
-                functions5[name] ?: functions5[name.lowercase(Locale.getDefault())] ?: throw onUnknownFunction(
+                functions5[name] ?: functions5[name.lowercase()] ?: throw onUnknownFunction(
                     name,
                     "a,b,c,d,e"
                 )

@@ -100,7 +100,7 @@ object FindLines {
         return if (j != lineIndices.size) {
             // there we duplicates
             val lineIndices2 = if (old?.size == j) old else IntArray(j)
-            System.arraycopy(lineIndices, 0, lineIndices2, 0, j)
+            lineIndices.copyInto(lineIndices2, 0, 0, j)
             lineIndices2
         } else lineIndices
     }

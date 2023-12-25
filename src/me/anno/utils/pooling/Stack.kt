@@ -38,7 +38,7 @@ class Stack<V : Any>(private val createInstance: () -> V) {
             if (tmp == null || index >= tmp.size) {
                 val newSize = if (tmp == null) 64 else tmp.size * 2
                 val tmp2 = arrayOfNulls<Any>(newSize)
-                if (tmp != null) System.arraycopy(tmp, 0, tmp2, 0, tmp.size)
+                tmp?.copyInto(tmp2)
                 for (i in (tmp?.size ?: 0) until newSize) {
                     tmp2[i] = createInstance()
                 }

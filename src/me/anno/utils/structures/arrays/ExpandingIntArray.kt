@@ -46,7 +46,7 @@ open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) 
                 LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingIntArray")
                 throw e
             }
-            System.arraycopy(array, 0, newArray, 0, this.size)
+            array.copyInto(newArray)
             this.array = newArray
         }
     }
@@ -69,7 +69,7 @@ open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) 
     fun add(index: Int, value: Int) {
         ensureCapacity(size + 1)
         val array = array
-        System.arraycopy(array, index, array, index + 1, size - index)
+        array.copyInto(array, index + 1, index, size)
         array[index] = value
         size++
     }
@@ -86,14 +86,13 @@ open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) 
     }
 
     fun addUnsafe(src: IntArray, startIndex: Int = 0, length: Int = src.size - startIndex) {
-        System.arraycopy(src, startIndex, array, size, length)
+        src.copyInto(array, size, startIndex, startIndex + length)
         size += length
     }
 
     @Suppress("unused")
     fun addUnsafe(src: ExpandingIntArray, startIndex: Int, length: Int) {
-        System.arraycopy(src.array, startIndex, array, size, length)
-        size += length
+        addUnsafe(src.array, startIndex, length)
     }
 
     fun add(v: IntArray, srcStartIndex: Int = 0, length: Int = v.size - srcStartIndex) {
@@ -104,11 +103,8 @@ open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) 
     fun add(values: ExpandingIntArray, srcStartIndex: Int = 0, length: Int = values.size - srcStartIndex) {
         if (length < 0) throw IllegalArgumentException()
         if (length == 0) return
-        ensureCapacity(size + length)
-        val dst = array
-        val src = values.array
-        System.arraycopy(src, srcStartIndex, dst, size, length)
-        this.size += length
+        ensureExtra(length)
+        addUnsafe(values.array, srcStartIndex, length)
     }
 
     fun joinChars(startIndex: Int = 0, endIndex: Int = size): CharSequence {
@@ -124,15 +120,13 @@ open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) 
     fun removeAt(index: Int): Int {
         val array = array
         val value = array[index]
-        System.arraycopy(array, index + 1, array, index, size - index - 1)
-        size--
+        removeBetween(index, index + 1)
         return value
     }
 
     fun removeBetween(index0: Int, index1: Int) {
         val length = index1 - index0
-        val array = array
-        System.arraycopy(array, index1, array, index0, size - index1)
+        array.copyInto(array, index0, index1, size)
         size -= length
     }
 
@@ -247,9 +241,9 @@ open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) 
         val array = array
         if (canReturnSelf && (size1 == array.size || (!exact && size1 <= array.size)))
             return array
-        val tmp = alloc(size1)
-        System.arraycopy(array, 0, tmp, 0, min(size, size1))
-        return tmp
+        val value = alloc(size1)
+        array.copyInto(value, 0, min(size, size1))
+        return value
     }
 
     override fun destroy() {

@@ -175,8 +175,8 @@ abstract class AudioCreator(
             val msg = e.message!!
             // pipe has been ended will be thrown, if we write more audio bytes than required
             // this really isn't an issue xD
-            if ("pipe has been ended" !in msg.lowercase(Locale.getDefault()) &&
-                "pipe is being closed" !in msg.lowercase(Locale.getDefault())
+            if ("pipe has been ended" !in msg.lowercase() &&
+                "pipe is being closed" !in msg.lowercase()
             ) throw e
         } finally {
             try {

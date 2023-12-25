@@ -318,7 +318,7 @@ class PrefabInspector(val reference: FileReference) {
                     // could become a little heavy....
                     for (instance in instances) {
                         // todo check class using inheritance / whether it exists...
-                        if (instance.javaClass == instances.first().javaClass) {
+                        if (instance::class == instances.first()::class) {
                             action.call(instance)
                         }
                     }
@@ -336,7 +336,7 @@ class PrefabInspector(val reference: FileReference) {
             list1.add(TextPanel("$title:", style))
             list1.add(UpdatingTextPanel(100L, style) {
                 // todo call on all, where class matches
-                val relevantInstances = instances.filter { it.javaClass == instances.first().javaClass }
+                val relevantInstances = instances.filter { it::class == instances.first()::class }
                 relevantInstances.joinToString { property.getter.call(it).toString() }
                     .shorten2Way(200)
             })

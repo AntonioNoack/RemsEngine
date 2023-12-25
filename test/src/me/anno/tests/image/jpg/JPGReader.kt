@@ -155,7 +155,6 @@ class JPGReader {
         @JvmStatic
         private fun mad3SizesValid(a: Int, b: Int, c: Int) =
             a.toLong() * b.toLong() * c.toLong() <= Int.MAX_VALUE
-
     }
 
     var succHigh = 0
@@ -290,7 +289,7 @@ class JPGReader {
                 }
             }
             when (n) {
-                1 -> System.arraycopy(data2[0], data2Off[0], out, outIndex, imgX)
+                1 -> data2[0].copyInto(out, outIndex, data2Off[0], data2Off[0] + imgX)
                 3 -> {
                     if (isRGB) {
                         val ra = data2[0]
@@ -1081,7 +1080,6 @@ class JPGReader {
                 value[i + 40] = (x2 - t1) shr 10
                 value[i + 48] = (x1 - t2) shr 10
                 value[i + 56] = (x0 - t3) shr 10
-
             }
         }
 
@@ -1142,7 +1140,6 @@ class JPGReader {
             out[oOffset++] = clamp((x0 - t3) shr 17)
 
             oOffset += outStride2
-
         }
     }
 
@@ -1150,5 +1147,4 @@ class JPGReader {
     // (saving memory)
 
     private fun find8x8(data: Short) = clamp((data + 1028) shr 3)
-
 }

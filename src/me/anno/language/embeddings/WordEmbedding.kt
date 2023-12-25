@@ -40,7 +40,7 @@ class WordEmbedding {
         val oldValue = values[name]!!
         if (oldValue.size <= index) {
             val clone = FloatArray(index + 1)
-            System.arraycopy(oldValue, 0, clone, 0, oldValue.size)
+            oldValue.copyInto(clone)
             clone[index] += value
             values[name] = clone
         } else {
@@ -51,8 +51,7 @@ class WordEmbedding {
     fun add(name: String, index: FloatArray, scale: Float) {
         val oldValue = values[name]!!
         if (oldValue.size <= index.size) {
-            val clone = FloatArray(index.size)
-            System.arraycopy(oldValue, 0, clone, 0, oldValue.size)
+            val clone = oldValue.copyOf(index.size)
             add(clone, index, scale)
             values[name] = clone
         } else {
@@ -134,7 +133,7 @@ class WordEmbedding {
     fun add(dst: FloatArray?, src: FloatArray, scale: Float = 1f): FloatArray {
         if (dst == null || dst.size < src.size) {
             val clone = FloatArray(src.size)
-            if (dst != null) System.arraycopy(dst, 0, clone, 0, dst.size)
+            dst?.copyInto(clone)
             return add(clone, src)
         }
         for (i in src.indices) {

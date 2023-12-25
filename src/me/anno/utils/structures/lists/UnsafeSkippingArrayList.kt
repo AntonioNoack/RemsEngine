@@ -45,12 +45,9 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
 
     override fun add(element: V): Boolean {
         if (size >= backend.size) {
-            val newArray = arrayOfNulls<Any>(backend.size * 2)
-            System.arraycopy(backend, 0, newArray, 0, backend.size)
-            backend = newArray
-            val newArray2 = BooleanArray(newArray.size)
-            System.arraycopy(removed, 0, newArray2, 0, removed.size)
-            removed = newArray2
+            val newSize = backend.size * 2
+            backend = backend.copyOf(newSize)
+            removed = removed.copyOf(newSize)
         }
         backend[size++] = element
         return true
@@ -80,15 +77,15 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
     }
 
     private fun findPreviousIndex(index: Int): Int {
-        for(i in index-1 downTo 0){
-            if(backend[i] != null) return i
+        for (i in index - 1 downTo 0) {
+            if (backend[i] != null) return i
         }
         return -1
     }
 
     private fun findNextIndex(index: Int): Int {
-        for(i in index+1 until size){
-            if(backend[i] != null) return i
+        for (i in index + 1 until size) {
+            if (backend[i] != null) return i
         }
         return size
     }
@@ -100,7 +97,7 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
             override fun hasPrevious(): Boolean = findPreviousIndex(nextIndex) >= 0
             override fun nextIndex(): Int = nextIndex
 
-            override fun previous(): V  {
+            override fun previous(): V {
                 nextIndex = findPreviousIndex(nextIndex)
                 @Suppress("unchecked_cast")
                 return backend[nextIndex] as V
@@ -128,13 +125,12 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
             override fun set(element: V) {
                 backend[nextIndex - 1] = element
             }
-
         }
     }
 
     override fun remove(element: V): Boolean {
         val index = indexOf(element)
-        return if(index < 0){
+        return if (index < 0) {
             false
         } else {
             removeAt(index)
@@ -151,10 +147,10 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
         val obj = backend[index] as V
         removed[index] = true
         backend[index] = null // for GC ;)
-        if(index >= startIndex){
+        if (index >= startIndex) {
             // find the new first index, which has an element
-            for(i in startIndex until size){
-                if(backend[i] != null){
+            for (i in startIndex until size) {
+                if (backend[i] != null) {
                     startIndex = i
                     break
                 }
@@ -182,5 +178,4 @@ class UnsafeSkippingArrayList<V> : MutableList<V> {
     override fun toString(): String {
         return joinToString { it.toString() }
     }
-
 }

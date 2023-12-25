@@ -153,7 +153,7 @@ open class Texture2DArray(
         var i0 = 0
         for (image in images) {
             val data = image.createIntImage().data
-            System.arraycopy(data, 0, intData, i0, data.size)
+            data.copyInto(intData, i0)
             i0 += data.size
         }
         if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {

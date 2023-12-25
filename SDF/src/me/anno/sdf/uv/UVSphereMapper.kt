@@ -11,6 +11,7 @@ import me.anno.utils.structures.arrays.IntArrayList
 import org.joml.Quaternionf
 import org.joml.Vector3f
 import org.joml.Vector4f
+import kotlin.math.PI
 
 class UVSphereMapper : PositionMapper(), UVMapper {
 
@@ -63,7 +64,7 @@ class UVSphereMapper : PositionMapper(), UVMapper {
     companion object {
         private const val uvSphere = "" +
                 "vec2 uvSphere(vec3 pos){\n" +
-                "   return vec2(atan(pos.x,pos.z)*${0.5 / Math.PI},atan(length(pos.xz),pos.y)*${1.0 / Math.PI});\n" +
+                "   return vec2(atan(pos.x,pos.z)*${0.5 / PI},atan(length(pos.xz),pos.y)*${1.0 / PI});\n" +
                 "}\n"
     }
 }

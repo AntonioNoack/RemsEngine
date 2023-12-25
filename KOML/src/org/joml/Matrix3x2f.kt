@@ -738,63 +738,33 @@ open class Matrix3x2f {
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        result = 31 * result + (m00).toBits()
-        result = 31 * result + (m01).toBits()
-        result = 31 * result + (m10).toBits()
-        result = 31 * result + (m11).toBits()
-        result = 31 * result + (m20).toBits()
-        result = 31 * result + (m21).toBits()
+        var result = m00.toBits()
+        result = 31 * result + m01.toBits()
+        result = 31 * result + m10.toBits()
+        result = 31 * result + m11.toBits()
+        result = 31 * result + m20.toBits()
+        result = 31 * result + m21.toBits()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other == null) {
-            false
-        } else if (this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Matrix3x2f
-            if ((m00) != (other.m00)) {
-                false
-            } else if ((m01) != (other.m01)) {
-                false
-            } else if ((m10) != (other.m10)) {
-                false
-            } else if ((m11) != (other.m11)) {
-                false
-            } else if ((m20) != (other.m20)) {
-                false
-            } else {
-                (m21) == (other.m21)
-            }
-        }
+        return if (this === other) true
+        else if (other !is Matrix3x2f) false
+        else m00 == other.m00 && m01 == other.m01 &&
+                m10 == other.m10 && m11 == other.m11 &&
+                m20 == other.m20 && m21 == other.m21
     }
 
-    fun equals(m: Matrix3x2f?, delta: Float): Boolean {
-        return if (this === m) {
-            true
-        } else if (m == null) {
-            false
-        } else if (!Runtime.equals(m00, m.m00, delta)) {
-            false
-        } else if (!Runtime.equals(m01, m.m01, delta)) {
-            false
-        } else if (!Runtime.equals(m10, m.m10, delta)) {
-            false
-        } else if (!Runtime.equals(m11, m.m11, delta)) {
-            false
-        } else if (!Runtime.equals(m20, m.m20, delta)) {
-            false
-        } else {
-            Runtime.equals(m21, m.m21, delta)
-        }
+    fun equals(m: Matrix3x2f, delta: Float): Boolean {
+        return if (this === m) true
+        else Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
+                Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta) &&
+                Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta)
     }
 
     val isFinite: Boolean
-        get() = isFinite(m00) && isFinite(m01) && isFinite(m10) && isFinite(m11) && isFinite(m20) && isFinite(m21)
+        get() = isFinite(m00) && isFinite(m01) && isFinite(m10) &&
+                isFinite(m11) && isFinite(m20) && isFinite(m21)
 
     fun skew(x: Float, y: Float): Matrix3x2f {
         return mul(1f, y, 0f, x, 1f, 0f)

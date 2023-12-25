@@ -350,7 +350,7 @@ object BVHBuilder {
         val c3 = count * 3
         val s3 = start * 3
         val indexBackup = IntArray(c3)
-        System.arraycopy(indices, s3, indexBackup, 0, indexBackup.size)
+        indices.copyInto(indexBackup, 0, s3, s3 + indexBackup.size)
         var dst3 = s3
         for (i in 0 until count) {
             val m = solution[i]

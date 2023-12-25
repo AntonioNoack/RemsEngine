@@ -7,7 +7,7 @@ import kotlin.math.min
 open class DenseI32VoxelModel(sizeX: Int, sizeY: Int, sizeZ: Int, val data: IntArray) : VoxelModel(sizeX, sizeY, sizeZ) {
 
     override fun fill(dst: IntArray) {
-        System.arraycopy(data, 0, dst, 0, min(data.size, dst.size))
+        data.copyInto(dst, 0, 0, min(data.size, dst.size))
     }
 
     override fun getBlock(x: Int, y: Int, z: Int): Int {

@@ -2,143 +2,69 @@ package org.joml
 
 import kotlin.math.*
 
-class AxisAngle4d {
-
+class AxisAngle4d(
     @JvmField
-    var angle = 0.0
-
+    var angle: Double,
     @JvmField
-    var x = 0.0
-
+    var x: Double,
     @JvmField
-    var y = 0.0
-
+    var y: Double,
     @JvmField
-    var z = 0.0
+    var z: Double
+) {
 
-    constructor() {
-        z = 1.0
+    constructor() : this(0.0, 0.0, 0.0, 1.0)
+    constructor(a: AxisAngle4d) : this(a.angle, a.x, a.y, a.z)
+    constructor(a: AxisAngle4f) : this(a.angle.toDouble(), a.x.toDouble(), a.y.toDouble(), a.z.toDouble())
+
+    constructor(angle: Double, v: Vector3d) : this(angle, v.x, v.y, v.z)
+    constructor(angle: Double, v: Vector3f) : this(angle, v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
+
+    constructor(q: Quaternionf) : this() {
+        set(q)
     }
 
-    constructor(a: AxisAngle4d) {
-        x = a.x
-        y = a.y
-        z = a.z
-        angle = (if (a.angle < 0.0) 6.283185307179586 + a.angle % 6.283185307179586 else a.angle) % 6.283185307179586
+    constructor(q: Quaterniond) : this() {
+        set(q)
     }
 
-    constructor(a: AxisAngle4f) {
-        x = a.x.toDouble()
-        y = a.y.toDouble()
-        z = a.z.toDouble()
-        angle =
-            (if (a.angle.toDouble() < 0.0) 6.283185307179586 + a.angle.toDouble() % 6.283185307179586 else a.angle.toDouble()) % 6.283185307179586
+    init {
+        angle = posMod(angle)
     }
 
-    constructor(q: Quaternionf) {
-        val acos = JomlMath.safeAcos(q.w)
-        val invSqrt = JomlMath.invsqrt(1f - q.w * q.w)
-        if (invSqrt.isInfinite()) {
-            x = 0.0
-            y = 0.0
-            z = 1.0
-        } else {
-            x = (q.x * invSqrt).toDouble()
-            y = (q.y * invSqrt).toDouble()
-            z = (q.z * invSqrt).toDouble()
-        }
-        angle = (acos + acos).toDouble()
-    }
-
-    constructor(q: Quaterniond) {
-        val acos = JomlMath.safeAcos(q.w)
-        val invSqrt = JomlMath.invsqrt(1.0 - q.w * q.w)
-        if (invSqrt.isInfinite()) {
-            x = 0.0
-            y = 0.0
-            z = 1.0
-        } else {
-            x = q.x * invSqrt
-            y = q.y * invSqrt
-            z = q.z * invSqrt
-        }
-        angle = acos + acos
-    }
-
-    constructor(angle: Double, x: Double, y: Double, z: Double) {
+    fun set(a: AxisAngle4d): AxisAngle4d = set(a.angle, a.x, a.y, a.z)
+    fun set(a: AxisAngle4f): AxisAngle4d = set(a.angle.toDouble(), a.x.toDouble(), a.y.toDouble(), a.z.toDouble())
+    fun set(angle: Double, x: Double, y: Double, z: Double): AxisAngle4d {
         this.x = x
         this.y = y
         this.z = z
-        this.angle = (if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586
-    }
-
-    constructor(angle: Double, v: Vector3d) : this(angle, v.x, v.y, v.z) {}
-    constructor(angle: Double, v: Vector3f) : this(angle, v.x.toDouble(), v.y.toDouble(), v.z.toDouble()) {}
-
-    fun set(a: AxisAngle4d): AxisAngle4d {
-        x = a.x
-        y = a.y
-        z = a.z
-        angle = (if (a.angle < 0.0) 6.283185307179586 + a.angle % 6.283185307179586 else a.angle) % 6.283185307179586
+        this.angle = posMod(angle)
         return this
     }
 
-    fun set(a: AxisAngle4f): AxisAngle4d {
-        x = a.x.toDouble()
-        y = a.y.toDouble()
-        z = a.z.toDouble()
-        angle =
-            (if (a.angle.toDouble() < 0.0) 6.283185307179586 + a.angle.toDouble() % 6.283185307179586 else a.angle.toDouble()) % 6.283185307179586
-        return this
-    }
+    fun set(angle: Double, v: Vector3d): AxisAngle4d = set(angle, v.x, v.y, v.z)
+    fun set(angle: Double, v: Vector3f): AxisAngle4d = set(angle, v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
 
-    operator fun set(angle: Double, x: Double, y: Double, z: Double): AxisAngle4d {
-        this.x = x
-        this.y = y
-        this.z = z
-        this.angle = (if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586
-        return this
-    }
-
-    operator fun set(angle: Double, v: Vector3d): AxisAngle4d {
-        return this.set(angle, v.x, v.y, v.z)
-    }
-
-    operator fun set(angle: Double, v: Vector3f): AxisAngle4d {
-        return this.set(angle, v.x.toDouble(), v.y.toDouble(), v.z.toDouble())
-    }
-
-    fun set(q: Quaternionf): AxisAngle4d {
-        val acos = JomlMath.safeAcos(q.w)
-        val invSqrt = JomlMath.invsqrt(1f - q.w * q.w)
+    fun setByQuaternion(qx: Double, qy: Double, qz: Double, qw: Double): AxisAngle4d {
+        val acos = JomlMath.safeAcos(qw)
+        val invSqrt = JomlMath.invsqrt(1.0 - qw * qw)
         if (invSqrt.isInfinite()) {
             x = 0.0
             y = 0.0
             z = 1.0
         } else {
-            x = (q.x * invSqrt).toDouble()
-            y = (q.y * invSqrt).toDouble()
-            z = (q.z * invSqrt).toDouble()
-        }
-        angle = (acos + acos).toDouble()
-        return this
-    }
-
-    fun set(q: Quaterniond): AxisAngle4d {
-        val acos = JomlMath.safeAcos(q.w)
-        val invSqrt = JomlMath.invsqrt(1.0 - q.w * q.w)
-        if (invSqrt.isInfinite()) {
-            x = 0.0
-            y = 0.0
-            z = 1.0
-        } else {
-            x = q.x * invSqrt
-            y = q.y * invSqrt
-            z = q.z * invSqrt
+            x = qx * invSqrt
+            y = qy * invSqrt
+            z = qz * invSqrt
         }
         angle = acos + acos
         return this
     }
+
+    fun set(q: Quaternionf): AxisAngle4d =
+        setByQuaternion(q.x.toDouble(), q.y.toDouble(), q.z.toDouble(), q.w.toDouble())
+
+    fun set(q: Quaterniond): AxisAngle4d = setByQuaternion(q.x, q.y, q.z, q.w)
 
     fun set(m: Matrix3f): AxisAngle4d {
         var nm00 = m.m00.toDouble()
@@ -564,16 +490,24 @@ class AxisAngle4d {
         return "($x,$y,$z <| $angle)"
     }
 
+
+    private fun posMod(value: Double): Double {
+        val tau = PI * 2.0
+        return if (value < 0.0) {
+            (tau + value % tau)
+        } else {
+            value % tau
+        }
+    }
+
     override fun hashCode(): Int {
-        var result = 1
-        var temp =
-            ((if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586).toBits()
+        var temp = posMod(angle).toBits()
+        var result = (temp xor (temp ushr 32)).toInt()
+        temp = x.toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (x).toBits()
+        temp = y.toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (y).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (z).toBits()
+        temp = z.toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
         return result
     }
@@ -581,11 +515,6 @@ class AxisAngle4d {
     override fun equals(other: Any?): Boolean {
         return if (this === other) true
         else if (other !is AxisAngle4d) false
-        else {
-            val a0 = (if (angle < 0.0) 6.283185307179586 + angle % 6.283185307179586 else angle) % 6.283185307179586
-            val a1 =
-                (if (other.angle < 0.0) 6.283185307179586 + other.angle % 6.283185307179586 else other.angle) % 6.283185307179586
-            return x == other.x && y == other.y && z == other.z && a0 == a1
-        }
+        else x == other.x && y == other.y && z == other.z && posMod(angle) == posMod(other.angle)
     }
 }

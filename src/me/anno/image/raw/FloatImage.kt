@@ -88,10 +88,7 @@ class FloatImage(
     fun normalized() = clone().normalize()
 
     fun clone(): FloatImage {
-        val data = data
-        val newData = FloatArray(data.size)
-        System.arraycopy(data, 0, newData, 0, data.size)
-        return FloatImage(width, height, numChannels, newData)
+        return FloatImage(width, height, numChannels, data.copyOf())
     }
 
     override fun normalize(): FloatImage {

@@ -124,7 +124,7 @@ object Optimization {
                 w += rj * rj
             }
             w = radius / sqrt(w)
-            System.arraycopy(bestValue, 0, testValue, 0, dims)
+            bestValue.copyInto(testValue)
             for (j in 0 until dims) {
                 testValue[j] += w * dv[j]
             }

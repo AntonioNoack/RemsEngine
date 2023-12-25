@@ -96,7 +96,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             if (value1 != null) LOGGER.warn("Texture ${value1.name} has not been created")
                         }
                     }
-                    else -> LOGGER.warn("Unsupported type for S2D: ${value.javaClass}")
+                    else -> LOGGER.warn("Unsupported type for S2D: ${value::class}")
                 }
             }
             GLSLType.S2DMS -> {
@@ -120,7 +120,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                             if (value1 != null) LOGGER.warn("Texture ${value1.name} has not been created")
                         }
                     }
-                    else -> LOGGER.warn("Unsupported type for S2D: ${value.javaClass}")
+                    else -> LOGGER.warn("Unsupported type for S2D: ${value::class}")
                 }
             }
             GLSLType.S2DA -> {

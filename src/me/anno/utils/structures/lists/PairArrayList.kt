@@ -51,8 +51,7 @@ class PairArrayList<A, B>(capacity: Int = 16) : Iterable<MutablePair<A, B>> {
         var elementSize = elementSize
         var array = array
         if (elementSize + 2 >= array.size) {
-            val newArray = arrayOfNulls<Any>(array.size * 2)
-            System.arraycopy(array, 0, newArray, 0, elementSize)
+            val newArray = array.copyOf(array.size * 2)
             this.array = newArray
             array = newArray
         }

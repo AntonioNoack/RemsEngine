@@ -115,7 +115,7 @@ object ICOReader {
                     val alphaData = BMPDecoder.read(andHeader, input1, andColorTable)
                     val alphaData2 = alphaData.data
                     val data0 = img.data
-                    System.arraycopy(img.data, 0, data0, 0, data0.size)
+                    img.data.copyInto(data0)
                     var j = 0
                     val l = data0.size
                     while (j < l) {

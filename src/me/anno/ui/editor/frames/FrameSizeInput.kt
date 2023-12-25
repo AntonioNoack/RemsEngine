@@ -91,7 +91,7 @@ class FrameSizeInput(title: String, value0: String, style: Style) : PanelListY(s
 
         @JvmStatic
         fun String.parseResolution(): Resolution? {
-            val wh = lowercase(Locale.getDefault())
+            val wh = lowercase()
                 .replace('×', 'x') // utf8 x -> ascii x
                 .split('x')
             val w = parseDouble(wh[0])?.toInt() ?: return null

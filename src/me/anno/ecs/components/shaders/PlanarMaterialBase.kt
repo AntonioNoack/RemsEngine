@@ -4,7 +4,6 @@ import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.shader.Shader
-import me.anno.io.files.InvalidRef
 import me.anno.utils.pooling.JomlPools
 import org.joml.Quaternionf
 import org.joml.Vector2d
@@ -70,5 +69,4 @@ open class PlanarMaterialBase : Material() {
         dst.scale.set(scale)
         dst.tilingDir.set(tilingDir)
     }
-
 }

@@ -40,7 +40,6 @@ import me.anno.utils.Color.black
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.structures.lists.Lists.none2
-import me.anno.utils.types.Arrays.subList
 import kotlin.math.*
 
 // todo show output value in tooltip on connector (for where it is easily computable without actions)
@@ -504,12 +503,12 @@ class NodePanel(
 
     inline fun <reified V> addConnector(old: Array<V>?, new: V, idx: Int): Array<V> {
         return if (old == null) arrayOf(new)
-        else (old.subList(0, idx) + new + old.subList(idx)).toTypedArray()
+        else (old.copyOfRange(0, idx) + new + old.copyOfRange(idx, old.size))
     }
 
     inline fun <reified V> removeConnector(old: Array<V>?, idx: Int): Array<V>? {
         return if (old == null) null
-        else (old.subList(0, idx) + old.subList(idx + 1)).toTypedArray()
+        else (old.copyOfRange(0, idx) + old.copyOfRange(idx + 1, old.size))
     }
 
     override fun onKeyUp(x: Float, y: Float, key: Key) {

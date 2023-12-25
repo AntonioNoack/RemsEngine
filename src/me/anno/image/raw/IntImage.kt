@@ -8,9 +8,9 @@ import me.anno.image.Image
 import me.anno.maths.Maths
 import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
-import me.anno.utils.Color.mixARGB
 import me.anno.maths.Maths.posMod
 import me.anno.utils.Color.a01
+import me.anno.utils.Color.mixARGB
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
 import kotlin.math.abs
@@ -98,10 +98,7 @@ open class IntImage(
         val height = height
         val image = BufferedImage(width, height, if (hasAlphaChannel) 2 else 1)
         val dataBuffer = image.raster.dataBuffer as DataBufferInt
-        val dataDst = dataBuffer.data
-        val dataSrc = data
-        // src, dst
-        System.arraycopy(dataSrc, 0, dataDst, 0, dataSrc.size)
+        data.copyInto(dataBuffer.data)
         return image
     }
 
@@ -137,14 +134,15 @@ open class IntImage(
         val dst = result.data
         val width = width
         for (y in 0 until h0) {
-            System.arraycopy(src, x0 + (y0 + y) * width, dst, y * w0, w0)
+            val srcIndex = x0 + (y0 + y) * width
+            src.copyInto(dst, y * w0, srcIndex, srcIndex + w0)
         }
         return result
     }
 
     fun cloneData(): IntArray {
         val clone = Texture2D.intArrayPool[data.size, false, true]
-        System.arraycopy(data, 0, clone, 0, data.size)
+        data.copyInto(clone)
         return clone
     }
 }

@@ -239,7 +239,8 @@ object SDFComposer {
 
             shader.v3f("localCamPos", localCamPos(tree, tmp3))
             shader.v1f("sdfReliability", tree.globalReliability)
-            shader.v1f("sdfNormalEpsilon", tree.normalEpsilon)
+            val target = GFXState.currentBuffer
+            shader.v1f("sdfNormalEpsilon", tree.normalEpsilon / (target.width + target.height))
             shader.v1f("sdfMaxRelativeError", tree.maxRelativeError)
 
             shader.v1i("maxSteps", tree.maxSteps)

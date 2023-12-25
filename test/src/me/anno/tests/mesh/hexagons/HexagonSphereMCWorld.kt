@@ -7,7 +7,6 @@ import me.anno.maths.Maths.clamp
 import me.anno.maths.Maths.max
 import me.anno.maths.noise.FullNoise
 import me.anno.maths.noise.PerlinNoise
-import me.anno.utils.types.Arrays.subArray
 import org.joml.Vector4f
 import kotlin.math.ln
 
@@ -42,7 +41,7 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere, val save: HexMCWorldSave =
     ) {
         if (world[yi] != block) {
             world[yi] = block
-            save[sphere, hexagon] = if (world.size > sy) world.subArray(0, sy) else world
+            save[sphere, hexagon] = if (world.size > sy) world.copyOfRange(0, sy) else world
         }
     }
 
@@ -117,7 +116,7 @@ class HexagonSphereMCWorld(val sphere: HexagonSphere, val save: HexMCWorldSave =
             if (custom != null) {
                 // val wi = mapping.map(hex0.index) * sy
                 val wi = i * sy // the same, just faster
-                System.arraycopy(custom, 0, world, wi, sy)
+                custom.copyInto(world, wi, 0, sy)
             }
         }
 

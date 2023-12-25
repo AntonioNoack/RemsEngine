@@ -16,7 +16,7 @@ fun applyTransform(transform: Matrix4d, actions: String) {
             if (endIndex < 0) return
             val params = tokens.subList(i + 2, endIndex)
                 .filterIsInstance<Double>()
-            when (name.lowercase(Locale.getDefault())) {
+            when (name.lowercase()) {
                 "translate" -> {
                     if (params.isNotEmpty()) {
                         transform.translate(
@@ -87,7 +87,7 @@ fun applyTransform(transform: Matrix3x2f, actions: String) {
             if (endIndex < 0) return
             val params = tokens.subList(i + 2, endIndex)
                 .filterIsInstance<Double>().map { it.toFloat() }
-            when (name.lowercase(Locale.getDefault())) {
+            when (name.lowercase()) {
                 "translate" -> {
                     if (params.isNotEmpty()) {
                         transform.translate(

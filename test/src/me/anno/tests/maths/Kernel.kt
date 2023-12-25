@@ -147,7 +147,7 @@ class Kernel(
 
     fun add(other: Kernel): Kernel {
         val v = DoubleArray(sx * sy)
-        System.arraycopy(values, 0, v, 0, v.size)
+        values.copyInto(v, 0, 0, v.size)
         for (i in v.indices) {
             v[i] += other.values[i]
         }
@@ -156,7 +156,7 @@ class Kernel(
 
     fun mix(other: Kernel, f: Double): Kernel {
         val v = DoubleArray(sx * sy)
-        System.arraycopy(values, 0, v, 0, v.size)
+        values.copyInto(v, 0, 0, v.size)
         for (i in v.indices) {
             v[i] = Maths.mix(v[i], other.values[i], f)
         }

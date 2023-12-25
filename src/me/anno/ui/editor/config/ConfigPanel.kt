@@ -95,7 +95,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
                 .split(',')
                 .map { it.trim() }
                 .filter { it.isNotEmpty() }
-                .map { it.lowercase(Locale.getDefault()) }
+                .map { it.lowercase() }
 
             if (lastTopic.isNotEmpty()) createContent("")
             for ((name, ui) in contentList) {
@@ -122,7 +122,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
                 }
             )
         }
-        for (topic in topics.sortedBy { it.lowercase(Locale.getDefault()) }) {
+        for (topic in topics.sortedBy { it.lowercase() }) {
             if (topic.isNotEmpty()) {
                 val lastIndex = topic.lastIndexOf('.')
                 val topicName = topic.substring(lastIndex + 1)
@@ -184,7 +184,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
             val subList = PanelListY(style)
             subList.tooltip = entry.fullName
             entry.createPanels(subList)
-            val searchKey = entry.fullName.lowercase(Locale.getDefault())
+            val searchKey = entry.fullName.lowercase()
             contentList += searchKey to subList
             contentListUI += subList
             subChain.append(searchKey)
@@ -208,7 +208,7 @@ class ConfigPanel(val config: StringMap, val isStyle: Boolean, style: Style) : P
                 val subList = PanelListY(style)
                 subList.tooltip = entry.fullName
                 entry.createPanels(subList)
-                val searchKey = entry.fullName.lowercase(Locale.getDefault())
+                val searchKey = entry.fullName.lowercase()
                 contentList += searchKey to subList
                 contentListUI += subList
                 subChain2.append(searchKey)

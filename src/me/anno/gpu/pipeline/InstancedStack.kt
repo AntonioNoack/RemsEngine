@@ -44,11 +44,11 @@ open class InstancedStack {
             // resize
             val newSize = transforms.size * 2
             val newTransforms = arrayOfNulls<Transform>(newSize)
-            val newClickIds = IntArray(newSize)
-            System.arraycopy(transforms, 0, newTransforms, 0, size)
-            System.arraycopy(gfxIds, 0, newClickIds, 0, size)
+            val newGfxIds = IntArray(newSize)
+            transforms.copyInto(newTransforms)
+            gfxIds.copyInto(newGfxIds)
             transforms = newTransforms
-            gfxIds = newClickIds
+            gfxIds = newGfxIds
         }
         val index = size++
         transforms[index] = transform

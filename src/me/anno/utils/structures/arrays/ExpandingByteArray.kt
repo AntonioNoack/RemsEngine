@@ -2,7 +2,6 @@ package me.anno.utils.structures.arrays
 
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
-import kotlin.math.min
 
 @Suppress("unused")
 open class ExpandingByteArray(private val initCapacity: Int) {
@@ -26,7 +25,7 @@ open class ExpandingByteArray(private val initCapacity: Int) {
     }
 
     fun addUnsafe(src: ByteArray, startIndex: Int = 0, length: Int = src.size) {
-        System.arraycopy(src, startIndex, array!!, size, length)
+        src.copyInto(array!!, size, startIndex, length)
         size += length
     }
 
@@ -35,7 +34,7 @@ open class ExpandingByteArray(private val initCapacity: Int) {
     }
 
     fun addUnsafe(src: ExpandingByteArray, startIndex: Int, length: Int) {
-        System.arraycopy(src.array!!, startIndex, array!!, size, length)
+        src.array?.copyInto(array!!, size, startIndex, length)
         size += length
     }
 
@@ -55,7 +54,7 @@ open class ExpandingByteArray(private val initCapacity: Int) {
         val array = array
         if (array == null || size + 1 >= array.size) {
             val newArray = ByteArray(if (array == null) initCapacity else max(array.size * 2, 16))
-            if (array != null) System.arraycopy(array, 0, newArray, 0, size)
+            array?.copyInto(newArray)
             this.array = newArray
             newArray[size++] = value
         } else {
@@ -78,7 +77,7 @@ open class ExpandingByteArray(private val initCapacity: Int) {
                 LOGGER.warn("Failed to allocated $newSize bytes for ExpandingByteArray")
                 throw e
             }
-            if (array != null) System.arraycopy(array, 0, newArray, 0, this.size)
+            array?.copyInto(newArray)
             this.array = newArray
         }
     }
@@ -88,21 +87,9 @@ open class ExpandingByteArray(private val initCapacity: Int) {
         size += delta
     }
 
-    fun toByteArray(size1: Int): ByteArray {
+    fun toByteArray(size1: Int = size): ByteArray {
         val array = array
-        val size = size
         if (array != null && size == array.size) return array
-        val tmp = ByteArray(size1)
-        if (size > 0) System.arraycopy(array!!, 0, tmp, 0, min(size, size1))
-        return tmp
-    }
-
-    fun toByteArray(): ByteArray {
-        val array = array
-        val size = size
-        if (array != null && size == array.size) return array
-        val tmp = ByteArray(size)
-        if (size > 0) System.arraycopy(array!!, 0, tmp, 0, size)
-        return tmp
+        return array?.copyOf(size1) ?: ByteArray(size1)
     }
 }

@@ -39,7 +39,7 @@ class ResetByteArrayInputStream(var buffer: ByteArray) : InputStream() {
         val pos = size
         val size = max(min(length, buffer.size - pos), 0)
         return if (length > 0 || size > 0) {
-            System.arraycopy(buffer, pos, dst, startIndex, size)
+            buffer.copyInto(dst, startIndex, pos, pos + size)
             this.size += size
             size
         } else -1
@@ -48,5 +48,4 @@ class ResetByteArrayInputStream(var buffer: ByteArray) : InputStream() {
     override fun available(): Int {
         return buffer.size - size
     }
-
 }

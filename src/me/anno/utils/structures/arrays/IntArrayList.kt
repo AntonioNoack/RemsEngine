@@ -85,7 +85,7 @@ class IntArrayList(val capacity: Int) : List<Int> {
         for (i in 0 until (size + capacity - 1) / capacity) {
             val src = buffers[i]
             val offset = i * capacity
-            System.arraycopy(src, 0, dst, offset, min(capacity, size - offset))
+            src.copyInto(dst, offset, 0, min(capacity, size - offset))
         }
         return dst
     }

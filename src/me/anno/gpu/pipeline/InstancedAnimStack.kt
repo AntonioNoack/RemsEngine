@@ -31,13 +31,13 @@ class InstancedAnimStack : InstancedStack() {
             val newSize = transforms.size * 2
             val newTransforms = arrayOfNulls<Transform>(newSize)
             val newAnimData = FloatArray(newSize * 16)
-            val newClickIds = IntArray(newSize)
-            System.arraycopy(transforms, 0, newTransforms, 0, size)
-            System.arraycopy(animData, 0, newAnimData, 0, size * 16)
-            System.arraycopy(gfxIds, 0, newClickIds, 0, size)
+            val newGfxIds = IntArray(newSize)
+            transforms.copyInto(newTransforms)
+            animData.copyInto(newAnimData)
+            gfxIds.copyInto(newGfxIds)
             transforms = newTransforms
             animData = newAnimData
-            gfxIds = newClickIds
+            gfxIds = newGfxIds
         }
         if (texture != null) this.animTexture = texture
         val index = size++

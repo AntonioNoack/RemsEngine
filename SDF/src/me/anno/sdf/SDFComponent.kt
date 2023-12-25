@@ -167,10 +167,10 @@ open class SDFComponent : ProceduralMesh(), Renderable,
     var maxRelativeError = 0.001f
 
     @Group("Tracing")
-    @Docs("In local units, from which distance the normals shall be sampled")
+    @Docs("In relative units, from which distance the normals shall be sampled")
     @Range(0.0, 1e3)
     @HideInInspector("isSDFChild")
-    var normalEpsilon = 0.005f
+    var normalEpsilon = 1f
 
     val isSDFChild get() = parent is SDFComponent
 
@@ -381,7 +381,7 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         }
     }
 
-    open fun calculateBounds(dst: AABBf) {
+    open fun calculateBounds(dst: AABBf): AABBf {
         dst.clear()
         calculateBaseBounds(dst)
         if (parent !is Entity) localAABB.set(dst)
@@ -389,6 +389,7 @@ open class SDFComponent : ProceduralMesh(), Renderable,
         transform(dst)
         // not truly the global one; rather the one inside our parent
         if (parent !is Entity) globalAABB.set(dst)
+        return dst
     }
 
     open fun transform(src: AABBf, dst: AABBf = src) {

@@ -87,7 +87,10 @@ object AutoInspector {
         // bold/plain for other properties
         val properties = reflections.propertiesByClass
         val cleanInstance = try {
-            instances.first().javaClass.newInstance()
+            instances.first()::class
+                .constructors
+                .first { it.parameters.isEmpty() }
+                .call()
         } catch (e: Exception) {
             e.printStackTrace()
             null

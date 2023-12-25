@@ -657,7 +657,8 @@ open class Matrix3x2d {
         val pyX = -m01
         val pyY = -m11
         val pyW = 1.0 - m21
-        return nxX * x + nxY * y + nxW >= 0.0 && pxX * x + pxY * y + pxW >= 0.0 && nyX * x + nyY * y + nyW >= 0.0 && pyX * x + pyY * y + pyW >= 0.0
+        return nxX * x + nxY * y + nxW >= 0.0 && pxX * x + pxY * y + pxW >= 0.0 &&
+                nyX * x + nyY * y + nyW >= 0.0 && pyX * x + pyY * y + pyW >= 0.0
     }
 
     fun testCircle(x: Double, y: Double, r: Double): Boolean {
@@ -689,7 +690,8 @@ open class Matrix3x2d {
         pyX *= invl
         pyY *= invl
         pyW *= invl
-        return nxX * x + nxY * y + nxW >= -r && pxX * x + pxY * y + pxW >= -r && nyX * x + nyY * y + nyW >= -r && pyX * x + pyY * y + pyW >= -r
+        return nxX * x + nxY * y + nxW >= -r && pxX * x + pxY * y + pxW >= -r &&
+                nyX * x + nyY * y + nyW >= -r && pyX * x + pyY * y + pyW >= -r
     }
 
     fun testAar(minX: Double, minY: Double, maxX: Double, maxY: Double): Boolean {
@@ -705,73 +707,44 @@ open class Matrix3x2d {
         val pyX = -m01
         val pyY = -m11
         val pyW = 1.0 - m21
-        return nxX * (if (nxX < 0.0) minX else maxX) + nxY * (if (nxY < 0.0) minY else maxY) >= -nxW && pxX * (if (pxX < 0.0) minX else maxX) + pxY * (if (pxY < 0.0) minY else maxY) >= -pxW && nyX * (if (nyX < 0.0) minX else maxX) + nyY * (if (nyY < 0.0) minY else maxY) >= -nyW && pyX * (if (pyX < 0.0) minX else maxX) + pyY * (if (pyY < 0.0) minY else maxY) >= -pyW
+        return nxX * (if (nxX < 0.0) minX else maxX) + nxY * (if (nxY < 0.0) minY else maxY) >= -nxW &&
+                pxX * (if (pxX < 0.0) minX else maxX) + pxY * (if (pxY < 0.0) minY else maxY) >= -pxW &&
+                nyX * (if (nyX < 0.0) minX else maxX) + nyY * (if (nyY < 0.0) minY else maxY) >= -nyW &&
+                pyX * (if (pyX < 0.0) minX else maxX) + pyY * (if (pyY < 0.0) minY else maxY) >= -pyW
     }
 
     override fun hashCode(): Int {
-        var result = 1
-        var temp = (m00).toBits()
+        var temp = m00.toBits()
+        var result = (temp xor (temp ushr 32)).toInt()
+        temp = m01.toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m01).toBits()
+        temp = m10.toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m10).toBits()
+        temp = m11.toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m11).toBits()
+        temp = m20.toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m20).toBits()
-        result = 31 * result + (temp xor (temp ushr 32)).toInt()
-        temp = (m21).toBits()
+        temp = m21.toBits()
         result = 31 * result + (temp xor (temp ushr 32)).toInt()
         return result
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other == null) {
-            false
-        } else if (this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Matrix3x2d
-            if ((m00) != (other.m00)) {
-                false
-            } else if ((m01) != (other.m01)) {
-                false
-            } else if ((m10) != (other.m10)) {
-                false
-            } else if ((m11) != (other.m11)) {
-                false
-            } else if ((m20) != (other.m20)) {
-                false
-            } else {
-                (m21) == (other.m21)
-            }
-        }
+        return if (this === other) true
+        else if (other !is Matrix3x2d) false
+        else m00 == other.m00 && m01 == other.m01 &&
+                m10 == other.m10 && m11 == other.m11 &&
+                m20 == other.m20 && m21 == other.m21
     }
 
-    fun equals(m: Matrix3x2d?, delta: Double): Boolean {
-        return if (this === m) {
-            true
-        } else if (m == null) {
-            false
-        } else if (!Runtime.equals(m00, m.m00, delta)) {
-            false
-        } else if (!Runtime.equals(m01, m.m01, delta)) {
-            false
-        } else if (!Runtime.equals(m10, m.m10, delta)) {
-            false
-        } else if (!Runtime.equals(m11, m.m11, delta)) {
-            false
-        } else if (!Runtime.equals(m20, m.m20, delta)) {
-            false
-        } else {
-            Runtime.equals(m21, m.m21, delta)
-        }
+    fun equals(m: Matrix3x2d, delta: Double): Boolean {
+        return if (this === m) true
+        else Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
+                Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta) &&
+                Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta)
     }
 
     val isFinite: Boolean
-        get() = JomlMath.isFinite(m00) && JomlMath.isFinite(m01) && JomlMath.isFinite(m10) && JomlMath.isFinite(
-            m11
-        ) && JomlMath.isFinite(m20) && JomlMath.isFinite(m21)
+        get() = JomlMath.isFinite(m00) && JomlMath.isFinite(m01) && JomlMath.isFinite(m10) &&
+                JomlMath.isFinite(m11) && JomlMath.isFinite(m20) && JomlMath.isFinite(m21)
 }

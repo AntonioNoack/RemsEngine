@@ -219,10 +219,8 @@ class PipelineStage(
             val newSize = max(16, size)
             val content = content
             if (content.size != newSize) {
-                val new = arrayOfNulls<Any?>(newSize)
-                System.arraycopy(content, 0, new, 0, min(newSize, content.size))
-                this.content = new
-                this.size = min(this.size, new.size)
+                this.content = content.copyOf(newSize)
+                this.size = min(this.size, this.content.size)
             }
         }
 

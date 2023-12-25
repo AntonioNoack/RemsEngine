@@ -156,7 +156,7 @@ class SVGMesh {
                     }
                     "style" -> {
                         val id = this["id"]
-                        when (val type = this["type"]?.lowercase(Locale.getDefault())) {
+                        when (val type = this["type"]?.lowercase()) {
                             "text/css" -> {
                                 val content = this.children.filterIsInstance<String>().joinToString("\n")
                                 CSSReader.read(this@SVGMesh, content)

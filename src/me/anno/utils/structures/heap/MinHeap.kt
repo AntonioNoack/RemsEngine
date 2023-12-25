@@ -68,9 +68,7 @@ class MinHeap<Value>(
     fun add(element: Value) {
         if (size >= values.size) {
             // resize
-            val newValues = arrayOfNulls<Any>(max(values.size * 2, 8))
-            System.arraycopy(values, 0, newValues, 0, size)
-            values = newValues
+            values = values.copyOf(max(values.size * 2, 8))
         }
         var current = size++
         values[current] = element

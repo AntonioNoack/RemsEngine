@@ -3,6 +3,7 @@ package me.anno.graph.types.flow.maths
 import me.anno.maths.Maths.cbrt
 import me.anno.utils.types.Floats.toDegrees
 import me.anno.utils.types.Floats.toRadians
+import kotlin.math.PI
 import kotlin.math.pow
 
 enum class FloatMathsUnary(
@@ -50,13 +51,13 @@ enum class FloatMathsUnary(
     ACOSH(50, "acosh(a)", { kotlin.math.acosh(it) }, { kotlin.math.acosh(it) }),
     ATANH(51, "atanh(a)", { kotlin.math.atanh(it) }, { kotlin.math.atanh(it) }),
 
-    RAD_TO_DEG(60, "a*${180.0 / Math.PI}", { it.toDegrees() }, { it.toDegrees() }),
-    DEG_TO_RAD(61, "a*${Math.PI / 180.0}", { it.toRadians() }, { it.toRadians() }),
+    RAD_TO_DEG(60, "a*${180.0 / PI}", { it.toDegrees() }, { it.toDegrees() }),
+    DEG_TO_RAD(61, "a*${PI / 180.0}", { it.toRadians() }, { it.toRadians() }),
 
     ;
 
     companion object {
-        val supportedUnaryVecTypes = FloatMathsUnary.values().filter { it != EXP2 && it != EXP10 }.toTypedArray()
+        val supportedUnaryVecTypes = entries.filter { it != EXP2 && it != EXP10 }.toTypedArray()
     }
 
 }

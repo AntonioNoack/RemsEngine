@@ -41,22 +41,6 @@ object Arrays {
     }
 
     @JvmStatic
-    @Suppress("unused")
-    inline fun <reified V> Array<V>.subArray(i0: Int = 0, i1: Int = size): Array<V> {
-        return Array(i1 - i0) { this[i0 + it] }
-    }
-
-    // if you need your own, message me 😄
-    @JvmStatic
-    fun ByteArray.subArray(i0: Int = 0, i1: Int = size) = ByteArray(i1 - i0) { this[i0 + it] }
-
-    @JvmStatic
-    fun IntArray.subArray(i0: Int = 0, i1: Int = size) = IntArray(i1 - i0) { this[i0 + it] }
-
-    @JvmStatic
-    fun <V> Array<V>.subList(i0: Int = 0, i1: Int = size): List<V> = asList().subList(i0, i1)
-
-    @JvmStatic
     fun LongArray.rotateRight(shift: Int) {
         val end = LongArray(shift) { this[size - shift + it] }
         System.arraycopy(this, 0, this, shift, size - shift)

@@ -226,11 +226,13 @@ abstract class MeshJoiner<V>(
             dstPositions[i++] = py + srcPositions[k + 1]
             dstPositions[i++] = pz + srcPositions[k + 2]
         }
-        System.arraycopy(srcNormals, 0, dstNormals, i0, srcNormals.size)
+        srcNormals.copyInto(dstNormals, i0)
         if (dstTangents != null && srcTangents != null) {
             val i4 = i0 / 3 * 4
             val j4 = min(i4 + srcPositions.size / 3 * 4, dstTangents.size)
-            if (j4 > i4) System.arraycopy(srcTangents, 0, dstTangents, i4, j4 - i4)
+            if (j4 > i4) {
+                srcTangents.copyInto(dstTangents, i4, 0, j4 - i4)
+            }
         }
         return i
     }
@@ -238,7 +240,9 @@ abstract class MeshJoiner<V>(
     private fun fillUVs(dstUVs: FloatArray, meshUVs: FloatArray, i0: Int) {
         val i2 = i0 / 3 * 2
         val j2 = min(i2 + meshUVs.size, dstUVs.size)
-        if (j2 > i2) System.arraycopy(meshUVs, 0, dstUVs, i2, j2 - i2)
+        if (j2 > i2) {
+            meshUVs.copyInto(dstUVs, i2, 0, j2 - i2)
+        }
     }
 
     private fun fillBones(
@@ -250,10 +254,8 @@ abstract class MeshJoiner<V>(
         val srcWeights = srcMesh.boneWeights
         val srcIndices = srcMesh.boneIndices
         if (srcWeights != null || srcIndices != null) {
-            if (srcWeights != null)
-                System.arraycopy(srcWeights, 0, dstBoneWeights, j0, min(dataSize, srcWeights.size))
-            if (srcIndices != null)
-                System.arraycopy(srcIndices, 0, dstBoneIndices, j0, min(dataSize, srcIndices.size))
+            srcWeights?.copyInto(dstBoneWeights, j0, 0, min(dataSize, srcWeights.size))
+            srcIndices?.copyInto(dstBoneIndices, j0, 0, min(dataSize, srcIndices.size))
         } else {
             val boneId = getBoneId(element)
             for (k in 0 until dataSize step 4) {
@@ -266,7 +268,7 @@ abstract class MeshJoiner<V>(
         val color = getVertexColor(element)
         val srcColor = srcMesh.color0
         if (color == -1 && srcColor != null) {
-            System.arraycopy(srcColor, 0, dstColors, i0 / 3, min(srcNormals.size, srcColor.size))
+            srcColor.copyInto(dstColors, i0 / 3, 0, min(srcNormals.size, srcColor.size))
         } else if (srcColor != null && multiplyColors(element)) {
             // multiply colors
             val k0 = i0 / 3

@@ -200,8 +200,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     private fun checkKey(key: Any?) {
         if (Build.isDebug && key != null) {
             @Suppress("KotlinConstantConditions")
-            if (key != key) throw IllegalStateException("${key.javaClass.name}.equals() is incorrect!")
-            if (key.hashCode() != key.hashCode()) throw IllegalStateException("${key.javaClass.name}.hashCode() is inconsistent!")
+            if (key != key) throw IllegalStateException("${key::class.simpleName}.equals() is incorrect!")
+            if (key.hashCode() != key.hashCode()) throw IllegalStateException("${key::class.simpleName}.hashCode() is inconsistent!")
         }// else we assume that it's fine
     }
 

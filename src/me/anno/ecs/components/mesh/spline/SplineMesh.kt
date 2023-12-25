@@ -524,24 +524,24 @@ class SplineMesh : ProceduralMesh() {
         fun merge(ts: List<Mesh>, dst: Mesh) {
             val colSize = ts.sumOf { it.color0!!.size }
             val posSize = colSize * 3
-            val col = dst.color0.resize(colSize)
-            val pos = dst.positions.resize(posSize)
-            val nor = dst.normals.resize(posSize)
+            val dstPos = dst.positions.resize(posSize)
+            val dstNor = dst.normals.resize(posSize)
+            val dstCol = dst.color0.resize(colSize)
             var i = 0
             var j = 0
             for (t in ts) {
-                val pi = t.positions!!
-                val ni = t.normals!!
-                val ci = t.color0!!
-                System.arraycopy(ci, 0, col, j, ci.size)
-                System.arraycopy(pi, 0, pos, i, pi.size)
-                System.arraycopy(ni, 0, nor, i, ni.size)
-                i += pi.size
-                j += ci.size
+                val srcPos = t.positions!!
+                val srcNor = t.normals!!
+                val srcCol = t.color0!!
+                srcPos.copyInto(dstPos, i, srcPos.size)
+                srcNor.copyInto(dstNor, i, srcNor.size)
+                srcCol.copyInto(dstCol, j, srcCol.size)
+                i += srcPos.size
+                j += srcCol.size
             }
-            dst.positions = pos
-            dst.normals = nor
-            dst.color0 = col
+            dst.positions = dstPos
+            dst.normals = dstNor
+            dst.color0 = dstCol
         }
 
     }

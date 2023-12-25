@@ -197,8 +197,8 @@ open class TextPanel(text: String, style: Style) : Panel(style), TextStyleable {
         val font = font
         var xOffsets = xOffsets
         if (charIndex >= xOffsets.size) {
-            val newOffsets = IntArray(text.length + 1) { Int.MIN_VALUE }
-            System.arraycopy(xOffsets, 0, newOffsets, 0, xOffsets.size)
+            val newOffsets = xOffsets.copyOf(text.length + 1)
+            newOffsets.fill(Int.MIN_VALUE, xOffsets.size)
             this.xOffsets = newOffsets
             xOffsets = newOffsets
         }

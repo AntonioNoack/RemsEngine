@@ -86,7 +86,7 @@ class ContentCreator(
                     is Double -> FloatInput("", "", value, Type.DOUBLE, style)
                         .setChangeListener { map[fullName] = it }
                     else -> {
-                        LOGGER.warn("Missing type implementation ${value.javaClass.simpleName}")
+                        LOGGER.warn("Missing type implementation ${value::class}")
                         // ComponentUI.vi(null, shortTitle, fullName, null, value, style) { map[fullName] = value }
                         return
                     }

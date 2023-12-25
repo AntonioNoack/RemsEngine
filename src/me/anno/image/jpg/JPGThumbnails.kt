@@ -48,9 +48,7 @@ object JPGThumbnails {
         while (i < li) {
             if (data[i] == 0xff.toByte() && data[i + 1] == 0xd9.toByte()) {
                 val end = i + 2
-                val bytes = ByteArray(end - start)
-                System.arraycopy(data, start, bytes, 0, end - start)
-                return bytes
+                return data.copyOfRange(start, end)
             }
             i++
         }

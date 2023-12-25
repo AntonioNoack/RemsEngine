@@ -60,9 +60,7 @@ class UnsafeArrayList<V>(capacity0: Int = 16) : MutableList<V> {
 
     override fun add(element: V): Boolean {
         if (size >= backend.size) {
-            val newArray = arrayOfNulls<Any>(backend.size * 2)
-            System.arraycopy(backend, 0, newArray, 0, backend.size)
-            backend = newArray
+            backend = backend.copyOf(backend.size * 2)
         }
         backend[size++] = element
         return true

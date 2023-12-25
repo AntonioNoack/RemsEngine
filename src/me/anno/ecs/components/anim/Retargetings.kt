@@ -212,25 +212,4 @@ object Retargetings {
         } as CacheData<*>
         return data.value as Retargeting
     }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        // todo for testing, find an easier case: one, where the mesh isn't rotated/scaled
-        ECSRegistry.init()
-        workspace = OS.documents.getChild("RemsEngine\\YandereSim")
-        // find two human meshes with different skeletons
-        val meshFile = workspace.getChild("Characters/SK_Chr_Asian_Gangster_Male_01.json")
-        val animFile = workspace.getChild("Characters/anim-files/Walking-inPlace.fbx")
-        val scene = PrefabCache[meshFile]!!.createInstance() as Entity
-        val animation = animFile.getChild("animations/mixamo.com/BoneByBone.json")
-        lateinit var testedComponent: AnimMeshComponent
-        scene.forAllComponentsInChildren(AnimMeshComponent::class) { mesh ->
-            mesh.animations = listOf(AnimationState(animation, 1f, 0f, 1f, LoopingState.PLAY_LOOP))
-            testedComponent = mesh
-        }
-        val retargeting = getRetargeting(AnimationCache[animation]!!.skeleton, testedComponent.skeleton)!!
-        sampleModel = testedComponent
-        sampleAnimation = animation
-        SceneView.testSceneWithUI("Retargeting", retargeting)
-    }
 }

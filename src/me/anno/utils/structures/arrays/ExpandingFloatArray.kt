@@ -70,7 +70,7 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
                 LOGGER.warn("Failed to allocated ${newSize * 4L} bytes for ExpandingFloatArray")
                 throw e
             }
-            System.arraycopy(array, 0, newArray, 0, this.size)
+            array.copyInto(newArray)
             pool?.returnBuffer(array)
             this.array = newArray
         }
@@ -148,10 +148,9 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
         this.size = size
     }
 
-    fun add(l: FloatArray, srcStartIndex: Int, srcLength: Int) {
+    fun add(src: FloatArray, srcStartIndex: Int, srcLength: Int) {
         ensureExtra(srcLength)
-        System.arraycopy(l, srcStartIndex, array, size, srcLength)
-        size += srcLength
+        addUnsafe(src, srcStartIndex, srcLength)
     }
 
     fun addAll(v: FloatArray, srcStartIndex: Int = 0, length: Int = v.size - srcStartIndex) {
@@ -165,13 +164,12 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
     }
 
     fun addUnsafe(src: FloatArray, startIndex: Int = 0, length: Int = src.size - startIndex) {
-        System.arraycopy(src, startIndex, array, size, length)
+        src.copyInto(array, size, startIndex, startIndex + length)
         size += length
     }
 
     fun addUnsafe(src: ExpandingFloatArray, startIndex: Int, length: Int) {
-        System.arraycopy(src.array, startIndex, array, size, length)
-        size += length
+        addUnsafe(src.array, startIndex, length)
     }
 
     operator fun get(index: Int) = array[index]
@@ -185,9 +183,9 @@ open class ExpandingFloatArray(initCapacity: Int, val pool: FloatArrayPool? = nu
         val array = array
         if (canReturnSelf && (size1 == array.size || (!exact && size1 <= array.size)))
             return array
-        val tmp = alloc(size1)
-        System.arraycopy(array, 0, tmp, 0, min(size, size1))
-        return tmp
+        val value = alloc(size1)
+        array.copyInto(value, 0, 0, min(size, size1))
+        return value
     }
 
     override fun destroy() {

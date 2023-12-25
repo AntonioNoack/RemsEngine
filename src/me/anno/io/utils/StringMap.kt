@@ -274,7 +274,7 @@ open class StringMap(
             is Float -> !value.isNaN() && value != 0f
             is Double -> !value.isNaN() && value != 0.0
             is String -> {
-                when (value.lowercase(Locale.getDefault())) {
+                when (value.lowercase()) {
                     "true", "t" -> true
                     "false", "f" -> false
                     else -> default

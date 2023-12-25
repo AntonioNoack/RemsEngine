@@ -183,7 +183,7 @@ object IcosahedronModel {
         mesh.positions = positions
         if (scale != 1f) {
             val normals = FloatArray(positions.size)
-            System.arraycopy(positions, 0, normals, 0, positions.size)
+            positions.copyInto(normals)
             for (i in positions.indices) positions[i] *= scale
             mesh.normals = normals
         } else mesh.normals = positions

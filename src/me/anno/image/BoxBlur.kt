@@ -20,7 +20,7 @@ object BoxBlur {
             for (x in 0 until th2) {
                 sum += image[i1 + x]
             }
-            System.arraycopy(image, i1, old, 0, w - th1)
+            image.copyInto(old, 0, i1, i1 + w - th1)
             // start of sum 2
             for (x in 0 until th1) {
                 val i = i1 + x
@@ -71,7 +71,7 @@ object BoxBlur {
         val th1 = thickness - th2
 
         for (y in 0 until h - th1) {
-            System.arraycopy(image, y * stride + i0, old, y * w, w)
+            image.copyInto(old, y * w, y * stride + i0, y * stride + i0 + w)
         }
 
         val th2y = th2 * stride
@@ -131,5 +131,4 @@ object BoxBlur {
             }
         }
     }
-
 }

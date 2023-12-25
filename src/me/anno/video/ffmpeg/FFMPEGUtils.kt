@@ -68,7 +68,7 @@ object FFMPEGUtils {
                     if (secondIndex < 0) secondIndex = remaining.length
                     val value = remaining.substring(0, secondIndex)
                     try {
-                        when (key.lowercase(Locale.getDefault())) {
+                        when (key.lowercase()) {
                             "speed" -> {
                                 // if frame is not delivered (rendering audio only), update frame
                                 speedStr = value

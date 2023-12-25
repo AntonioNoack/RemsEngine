@@ -163,34 +163,15 @@ open class Vector2f(
     }
 
     override fun hashCode(): Int {
-        return 31 * (x).toBits() + (y).toBits()
+        return 31 * x.toBits() + y.toBits()
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other == null) {
-            false
-        } else if (this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Vector2f
-            if ((x) != (other.x)) {
-                false
-            } else {
-                (y) == (other.y)
-            }
-        }
+        return (this === other) || (other is Vector2f && other.x == x && other.y == y)
     }
 
     fun equals(v: Vector2f, delta: Float): Boolean {
-        return if (this === v) {
-            true
-        } else if (!Runtime.equals(x, v.x, delta)) {
-            false
-        } else {
-            Runtime.equals(y, v.y, delta)
-        }
+        return (this === v) || (Runtime.equals(x, v.x, delta) && Runtime.equals(y, v.y, delta))
     }
 
     fun equals(x: Float, y: Float): Boolean {

@@ -23,7 +23,7 @@ open class ExpandingLongArray(private val initCapacity: Int) {
         val array = array
         if (array == null || size + 1 >= array.size) {
             val newArray = LongArray(if (array == null) initCapacity else max(array.size * 2, 16))
-            if (array != null) System.arraycopy(array, 0, newArray, 0, size)
+            array?.copyInto(newArray)
             this.array = newArray
             newArray[size++] = value
         } else {
@@ -32,10 +32,7 @@ open class ExpandingLongArray(private val initCapacity: Int) {
     }
 
     fun toLongArray(): LongArray {
-        val size = size
-        val clone = LongArray(size)
-        System.arraycopy(array!!, 0, clone, 0, size)
-        return clone
+        return array!!.copyOf(size)
     }
 
 }

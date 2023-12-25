@@ -1,19 +1,9 @@
 package me.anno.ecs.components.anim
 
-import me.anno.Engine
-import me.anno.animation.LoopingState
-import me.anno.ecs.Component
-import me.anno.ecs.Entity
-import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ECSRegistry
-import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.base.BaseWriter
-import me.anno.maths.Maths.PIf
-import me.anno.maths.Maths.max
 import me.anno.maths.Maths.min
 import me.anno.maths.Maths.mix
-import me.anno.utils.OS.downloads
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.types.Arrays.resize
 import me.anno.utils.types.Floats.f2s
@@ -22,8 +12,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3f
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import kotlin.math.cos
-import kotlin.math.sin
 import kotlin.test.assertTrue
 
 /**
@@ -509,72 +497,6 @@ class BoneByBoneAnimation() : Animation() {
                     "[${m.m10.f3s()} ${m.m11.f3s()} ${m.m12.f3s()}] " +
                     "[${m.m20.f3s()} ${m.m21.f3s()} ${m.m22.f3s()}] " +
                     "[${m.m30.f3s()}, ${m.m31.f3s()}, ${m.m32.f3s()}]]"
-        }
-
-        // todo recode animation retargeting using this class :3
-        /**
-         * ImportedAnimation -> BoneByBone -> ImportedAnimation
-         * */
-        @JvmStatic
-        fun main(args: Array<String>) {
-
-            LogManager.enableLogger("AnimatedMeshesLoader")
-
-            // front legs are broken slightly???
-
-            ECSRegistry.initMeshes()
-
-            val meshFile = downloads.getChild("3d/azeria/scene.gltf")
-            var animFile = meshFile.getChild("animations")
-            if (animFile.listChildren()!!.first().isDirectory) animFile = animFile.listChildren()!!.first()
-            animFile = animFile.getChild("BoneByBone.json")
-            val animation = PrefabCache.getPrefabInstance(animFile).run {
-                if (this is ImportedAnimation) BoneByBoneAnimation(this)
-                else this as BoneByBoneAnimation
-            }
-
-            // create test scene
-            val scene = Entity("Scene")
-            val mesh = AnimMeshComponent()
-            mesh.skeleton = animation.skeleton
-            val animState = AnimationState(animation.ref, 1f, 0f, 1f, LoopingState.PLAY_LOOP)
-            mesh.animations = listOf(animState)
-            mesh.meshFile = meshFile
-            scene.add(mesh)
-
-            for (bone in SkeletonCache[mesh.skeleton]!!.bones) {
-                LOGGER.debug(
-                    "Bone ${bone.id}: ${bone.name}${" ".repeat(max(0, 80 - bone.name.length))}" +
-                            "f0: ${animation.getTranslation(0, bone.id, Vector3f())}, " +
-                            "${animation.getRotation(0, bone.id, Quaternionf())}"
-                )
-            }
-
-            // create script, which modifies the animation at runtime
-            scene.add(object : Component() {
-                val r = Quaternionf()
-                override fun onUpdate(): Int {
-                    // rotations should be relative to their parent, probably
-                    //  but also in global space... is this contradicting?
-                    // yes, it is 😅, but we could define sth like a common up;
-                    val time = animState.progress * 2f * PIf / animation.duration
-                    val boneIndex = if (meshFile.absolutePath.contains("azeria")) 7 else 67
-                    val amplitude = 0.7f
-                    r.identity()
-                        .rotateX(sin(time) * amplitude)
-                        .rotateY(cos(time) * amplitude)
-                    // todo we'd actually only need to update the currently used two frames
-                    for (fi in 0 until animation.frameCount) {
-                        animation.setRotation(fi, boneIndex, r)
-                    }
-                    AnimationCache.invalidate(animation)
-                    return 1
-                }
-            })
-
-            testSceneWithUI("BoneByBoneAnimation", scene)
-
-            Engine.requestShutdown()
         }
     }
 }

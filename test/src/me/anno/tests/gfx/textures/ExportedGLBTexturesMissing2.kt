@@ -11,7 +11,7 @@ fun main() {
 }
 
 fun printHierarchy(file: FileReference, depth: Int) {
-    println("  ".repeat(depth) + file.name + ": " + file.javaClass.name)
+    println("  ".repeat(depth) + file.name + ": " + file::class.simpleName)
     when (file) {
         is InnerFolder -> {
             for (child in file.listChildren()) {

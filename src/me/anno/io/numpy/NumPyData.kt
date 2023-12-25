@@ -6,9 +6,7 @@ data class NumPyData(val descriptor: String, val shape: IntArray, val columnMajo
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as NumPyData
+        if (other !is NumPyData) return false
 
         if (descriptor != other.descriptor) return false
         if (!shape.contentEquals(other.shape)) return false

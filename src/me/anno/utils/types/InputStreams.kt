@@ -24,10 +24,7 @@ object InputStreams {
                     throw EOFException()
                 } else {
                     // end :/ -> return sub array
-                    val sub = ByteArray(i)
-                    // src, dst
-                    System.arraycopy(bytes, 0, sub, 0, i)
-                    return sub
+                    return bytes.copyOf(i)
                 }
             }
             i += numReadChars
