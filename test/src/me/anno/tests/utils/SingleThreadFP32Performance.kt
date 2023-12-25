@@ -1,5 +1,6 @@
 package me.anno.tests.utils
 
+import me.anno.Time
 import me.anno.maths.Maths.PIf
 
 fun main() {
@@ -12,7 +13,7 @@ fun main() {
     val x = FloatArray(length)
     val y = FloatArray(length)
 
-    val start = System.nanoTime()
+    val start = Time.nanoTime
 
     val a = PIf
     for (i in 0 until runs) {
@@ -21,7 +22,7 @@ fun main() {
         }
     }
 
-    val end = System.nanoTime()
+    val end = Time.nanoTime
     val duration = (end - start) / 1e9
     val ops = 2.0 * runs * length
     val gFlops = ops / duration / 1e9

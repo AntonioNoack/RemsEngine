@@ -89,7 +89,7 @@ fun main() {
                 )
             }
         }
-        val t2 = System.nanoTime()
+        val t2 = Time.nanoTime
         ImageWriter.writeImageFloat(dim, dim, "error-$channelIndex-x1.png", true, result)
         logger.info("${(t2 - t1) * 1e-9} vs ${(t1 - t0) * 1e-9}")*/
 

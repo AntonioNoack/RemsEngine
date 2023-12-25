@@ -20,6 +20,7 @@ import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.studio.Events.addEvent
 import me.anno.ui.debug.FrameTimings
 import me.anno.utils.Color.black
+import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.sets.ParallelHashSet
 import me.anno.utils.types.Floats.f1
 import org.apache.logging.log4j.LogManager
@@ -97,7 +98,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     open fun invalidate(entity: Entity) {
-        if (printValidations) LOGGER.debug("Invalidated {}", System.identityHashCode(this))
+        if (printValidations) LOGGER.debug("Invalidated {}", hash32(this))
         invalidEntities.add(entity)
     }
 
@@ -106,7 +107,7 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
     }
 
     fun validate() {
-        if (printValidations) LOGGER.debug("Validating {}", System.identityHashCode(this))
+        if (printValidations) LOGGER.debug("Validating {}", hash32(this))
         invalidEntities.process2x({ entity ->
             remove(entity, false)
             removeConstraints(entity)
@@ -273,14 +274,14 @@ abstract class Physics<InternalRigidBody : Component, ExternalRigidBody>(
                         Thread.sleep((timeNanos - targetTime) / (2 * MILLIS_TO_NANOS))
                     } else {
                         // there is still work to do
-                        val t0 = System.nanoTime()
+                        val t0 = Time.nanoTime
                         val debug = false //Engine.gameTime > 10e9 // wait 10s
                         if (debug) {
                             Stack.printClassUsage()
                             Stack.printSizes()
                         }
                         step(targetStepNanos, debug)
-                        val t1 = System.nanoTime()
+                        val t1 = Time.nanoTime
                         addEvent { FrameTimings.putValue((t1 - t0) * 1e-9f, 0xffff99 or black) }
                     }
                 }

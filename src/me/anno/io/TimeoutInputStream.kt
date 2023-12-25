@@ -1,6 +1,7 @@
 package me.anno.io
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.utils.Sleep.sleepShortly
 import java.io.InputStream
 import java.util.concurrent.TimeoutException
@@ -21,10 +22,10 @@ class TimeoutInputStream(
     override fun available(): Int = input.available()
 
     override fun read(): Int {
-        val startTime = System.nanoTime()
+        val startTime = Time.nanoTime
         while (available() < 1 && !Engine.shutdown) {
             sleepShortly(true)
-            val time = System.nanoTime()
+            val time = Time.nanoTime
             if (abs(startTime - time) > timeoutNanos) {
                 break
             }

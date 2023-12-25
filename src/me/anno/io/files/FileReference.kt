@@ -1,5 +1,6 @@
 package me.anno.io.files
 
+import me.anno.Time
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.cache.ICacheData
@@ -150,8 +151,8 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         @JvmStatic
         fun getReferenceOrTimeout(str: String?, timeoutMillis: Long = 10_000): FileReference {
             if (str == null || str.isBlank2()) return InvalidRef
-            val t1 = System.nanoTime() + timeoutMillis * MILLIS_TO_NANOS
-            while (System.nanoTime() < t1) {
+            val t1 = Time.nanoTime + timeoutMillis * MILLIS_TO_NANOS
+            while (Time.nanoTime < t1) {
                 val ref = getReferenceAsync(str)
                 if (ref != null) return ref
             }

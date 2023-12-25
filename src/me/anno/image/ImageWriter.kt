@@ -1,5 +1,6 @@
 package me.anno.image
 
+import me.anno.Time
 import me.anno.gpu.shader.effects.GaussianBlur.gaussianBlur
 import me.anno.gpu.texture.callbacks.F2F
 import me.anno.gpu.texture.callbacks.I3F
@@ -309,7 +310,7 @@ object ImageWriter {
         val image = FloatArray(w * h)
         // do all line sections
         var ctr = 0f
-        val t0 = System.nanoTime()
+        val t0 = Time.nanoTime
 
         val transform = Matrix3x2f()
         if (autoScale) {
@@ -356,7 +357,7 @@ object ImageWriter {
         // bokeh-blur would be nicer, and correcter,
         // but this is a pretty good trade-off between visuals and performance :)
         gaussianBlur(image, w, h, 0, w, thickness, true)
-        val t1 = System.nanoTime()
+        val t1 = Time.nanoTime
         // nanoseconds per pixel
         // ~ 24ns/px for everything, including copy;
         // for 2048² pixels, and thickness = 75

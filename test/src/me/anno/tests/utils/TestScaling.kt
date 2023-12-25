@@ -1,5 +1,6 @@
 package me.anno.tests.utils
 
+import me.anno.Time
 import me.anno.utils.hpc.ProcessingGroup
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.arrays.IntArrayList
@@ -65,9 +66,9 @@ fun main() {
         threads.clear()
         pool.start()
         work(pool)
-        val t0 = System.nanoTime()
+        val t0 = Time.nanoTime
         for (i in 0 until 4) work(pool)
-        val t1 = System.nanoTime()
+        val t1 = Time.nanoTime
         if (numThreads == 1) time0 = t1 - t0
         println("Threads $numThreads, Speedup ${time0.toFloat() / (t1 - t0).toFloat()}x, ${((t1 - t0) * 1e-9f).f3()}s, check: ${sum.get()}, threads: ${threads.size}")
         pool.stop()

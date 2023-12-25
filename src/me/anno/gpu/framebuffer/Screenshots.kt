@@ -1,5 +1,6 @@
 package me.anno.gpu.framebuffer
 
+import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXBase
 import me.anno.gpu.GFXState
@@ -149,7 +150,7 @@ object Screenshots {
 
         val format = SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")
         var name = format.format(Date())
-        if (folder.getChild("$name.png").exists) name += "_${System.nanoTime()}"
+        if (folder.getChild("$name.png").exists) name += "_${Time.nanoTime}"
         name += ".png"
         if (folder.getChild(name).exists) return // image already exists somehow...
 

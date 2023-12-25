@@ -1,5 +1,6 @@
 package me.anno.utils
 
+import me.anno.Time
 import me.anno.utils.types.Floats.f1
 import me.anno.utils.types.Floats.f2
 import me.anno.utils.types.Floats.f3
@@ -18,13 +19,13 @@ class Clock(
 
     var minTime = if (printZeros) -1.0 else 0.0005
 
-    var firstTime = System.nanoTime()
+    var firstTime = Time.nanoTime
     var lastTime = firstTime
 
-    val timeSinceStart get() = (System.nanoTime() - firstTime) * 1e-9
+    val timeSinceStart get() = (Time.nanoTime - firstTime) * 1e-9
 
     fun start() {
-        lastTime = System.nanoTime()
+        lastTime = Time.nanoTime
         firstTime = lastTime
     }
 
@@ -33,7 +34,7 @@ class Clock(
     }
 
     fun stop(wasUsedFor: () -> String, elementCount: Long): Double {
-        val time = System.nanoTime()
+        val time = Time.nanoTime
         val dt0 = time - lastTime
         val dt = dt0 * 1e-9
         lastTime = time
@@ -64,7 +65,7 @@ class Clock(
     }
 
     fun stop(wasUsedFor: String, elementCount: Long): Double {
-        val time = System.nanoTime()
+        val time = Time.nanoTime
         val dt0 = time - lastTime
         val dt = dt0 * 1e-9
         lastTime = time
@@ -88,7 +89,7 @@ class Clock(
     }
 
     fun stop(wasUsedFor: String, minTime: Double): Double {
-        val time = System.nanoTime()
+        val time = Time.nanoTime
         val dt = (time - lastTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
@@ -98,7 +99,7 @@ class Clock(
     }
 
     fun stop(wasUsedFor: () -> String, minTime: Double): Double {
-        val time = System.nanoTime()
+        val time = Time.nanoTime
         val dt = (time - lastTime) * 1e-9
         lastTime = time
         if (dt > minTime) {
@@ -116,7 +117,7 @@ class Clock(
     }
 
     fun total(wasUsedFor: String, minTime: Double) {
-        val time = System.nanoTime()
+        val time = Time.nanoTime
         val dt = (time - firstTime) * 1e-9
         lastTime = time
         if (dt > minTime) {

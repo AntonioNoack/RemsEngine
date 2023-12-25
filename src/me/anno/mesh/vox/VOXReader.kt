@@ -29,7 +29,7 @@ class VOXReader {
 
     fun read(input: InputStream): VOXReader {
 
-        //val t0 = System.nanoTime()
+        //val t0 = Time.nanoTime
         val bytes = ByteBuffer
             .wrap(input.readBytes())
             .order(ByteOrder.LITTLE_ENDIAN)
@@ -49,7 +49,7 @@ class VOXReader {
         }
 
         // 3 ms for the file in question
-        // val t1 = System.nanoTime()
+        // val t1 = Time.nanoTime
         // LOGGER.info("Used ${(t1-t0)*1e-9}s to read vox file")
 
         return this

@@ -472,7 +472,7 @@ object GFX {
             val remainingTime = Time.nanoTime - t0
             workQueue(lowPriorityGPUTasks, remainingTime * 1e-9f, all)
         }
-        /*val dt = (Engine.nanoTime - t0) * 1e-9f
+        /*val dt = (Time.nanoTime - t0) * 1e-9f
         if (dt > 1.5f * gpuTaskBudget) {
             LOGGER.warn("Spent too long in workGPUTasks(): ${dt}s")
         }*/
@@ -667,9 +667,9 @@ object GFX {
         discoverOpenGLNames(clazz.java)
         val t3 = Time.nanoTime
         LOGGER.debug("Took ${(t3 - t2) * 1e-9f}s for loading ${glConstants.size} OpenGL names")
-        /*val t0 = Engine.nanoTime
+        /*val t0 = Time.nanoTime
         val properties = clazz.staticProperties // this call takes 1000 ms 
-        val t1 = Engine.nanoTime
+        val t1 = Time.nanoTime
         println("took ${(t1 - t0) * 1e-9f}s for loading ${glConstants.size} OpenGL names")
         for (property in properties) {
             val name = property.name

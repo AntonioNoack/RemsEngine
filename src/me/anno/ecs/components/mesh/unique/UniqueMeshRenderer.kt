@@ -15,6 +15,7 @@ import me.anno.graph.hdb.allocator.size
 import me.anno.io.files.FileReference
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.utils.Clock
+import me.anno.utils.Logging.hash32
 import org.apache.logging.log4j.LogManager
 import org.joml.AABBd
 import org.joml.AABBf
@@ -137,7 +138,7 @@ abstract class UniqueMeshRenderer<Key>(
         if (numPrimitives == 0L) return
         val buffer = buffer0
         if (!buffer.isUpToDate) {
-            LOGGER.warn("Buffer ${System.identityHashCode(buffer)} isn't ready")
+            LOGGER.warn("Buffer ${hash32(buffer)} isn't ready")
             return
         }
         buffer.drawLength = numPrimitives.toInt()

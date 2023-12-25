@@ -10,6 +10,7 @@ import me.anno.ecs.components.physics.Physics
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.SQRT3
 import me.anno.maths.Maths.sq
+import me.anno.utils.Logging.hash32
 import me.anno.utils.pooling.Stack
 import org.apache.logging.log4j.LogManager
 import org.jbox2d.collision.shapes.CircleShape
@@ -62,7 +63,7 @@ class Box2dPhysics : Physics<Rigidbody2d, Body>(Rigidbody2d::class) {
 
     override fun invalidate(entity: Entity) {
         val rb = entity.getComponent(Rigidbody2d::class, false)?.entity ?: return
-        if (printValidations) LOGGER.debug("Invalidated {}", System.identityHashCode(this))
+        if (printValidations) LOGGER.debug("Invalidated {}", hash32(this))
         invalidEntities.add(rb)
     }
 

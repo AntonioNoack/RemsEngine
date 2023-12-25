@@ -1,5 +1,6 @@
 package me.anno.maths
 
+import me.anno.Time
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.joml.Vector4f
@@ -99,7 +100,7 @@ object Maths {
     fun cbrt(x: Double) = Math.cbrt(x)
 
     @JvmStatic
-    private val randomInst = Random(System.nanoTime())
+    private val randomInst = Random(Time.nanoTime)
 
     @JvmStatic
     fun random(): Double = synchronized(randomInst) { randomInst.nextDouble() }

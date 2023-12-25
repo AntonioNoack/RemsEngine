@@ -9,6 +9,7 @@ import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
 import me.anno.ui.Style
+import me.anno.utils.Logging.hash32raw
 
 class CompareNode(type: String = "?") :
     ComputeNode("Compare", listOf(type, "A", type, "B"), outputs) {
@@ -63,8 +64,8 @@ class CompareNode(type: String = "?") :
             } catch (ignored: Exception) {
             }
         }
-        val ha = System.identityHashCode(a)
-        val hb = System.identityHashCode(b)
+        val ha = hash32raw(a)
+        val hb = hash32raw(b)
         if (ha == hb) return -1
         return ha.compareTo(hb)
     }

@@ -1,6 +1,7 @@
 package me.anno.gpu.texture
 
 import me.anno.Build
+import me.anno.Time
 import me.anno.cache.ICacheData
 import me.anno.config.DefaultConfig
 import me.anno.ecs.annotations.Docs
@@ -475,12 +476,12 @@ open class Texture2D(
 
     /*fun createRGBA(buffer: ByteBuffer) {
         beforeUpload(4, buffer.remaining())
-        val t0 = System.nanoTime()
+        val t0 = Time.nanoTime
         texImage2D(TargetType.UByteTarget4, buffer)
         bufferPool.returnBuffer(buffer)
-        val t1 = System.nanoTime() // 0.02s for a single 4k texture
+        val t1 = Time.nanoTime // 0.02s for a single 4k texture
         afterUpload(false, 4)
-        val t2 = System.nanoTime() // 1e-6
+        val t2 = Time.nanoTime // 1e-6
         if (w * h > 1e4 && (t2 - t0) * 1e-9f > 0.01f) LOGGER.info("Used ${(t1 - t0) * 1e-9f}s + ${(t2 - t1) * 1e-9f}s to upload ${(w * h) / 1e6f} MPixel image to GPU")
     }*/
 
@@ -1097,10 +1098,10 @@ open class Texture2D(
             return
         }
         if (!hasMipmap && filtering.needsMipmap && (width > 1 || height > 1)) {
-            val t0 = System.nanoTime()
+            val t0 = Time.nanoTime
             glGenerateMipmap(target)
             // MipmapCalculator.generateMipmaps(this)
-            val t1 = System.nanoTime()
+            val t1 = Time.nanoTime
             if (t1 - t0 > MILLIS_TO_NANOS) {
                 LOGGER.warn("glGenerateMipmap took ${((t1 - t0).toFloat() / MILLIS_TO_NANOS).f1()} ms for $width x $height")
             }

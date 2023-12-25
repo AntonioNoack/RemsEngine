@@ -304,7 +304,7 @@ object GFXBase {
 
     @JvmStatic
     fun runRenderLoop() {
-        lastTime = System.nanoTime()
+        lastTime = Time.nanoTime
         while (!destroyed && !shutdown) {
             Time.updateTime()
             renderFrame()
@@ -326,14 +326,14 @@ object GFXBase {
                 runRenderLoop()
             }
 
-            var lastTime = System.nanoTime()
+            var lastTime = Time.nanoTime
             while (!windows.all2 { it.shouldClose } && !shutdown) {
                 updateWindows()
-                val currTime = System.nanoTime()
+                val currTime = Time.nanoTime
                 lastTime = if (currTime - lastTime < 1_000_000) {
                     // reduce load on CPU if the method call is very lightweight
                     Thread.sleep(1)
-                    System.nanoTime()
+                    Time.nanoTime
                 } else currTime
             }
         } else {
@@ -342,7 +342,7 @@ object GFXBase {
             runRenderLoop0(window0)
 
             // run render loop incl. updating windows
-            lastTime = System.nanoTime()
+            lastTime = Time.nanoTime
             while (!destroyed && !shutdown && !windows.all2 { it.shouldClose }) {
                 Time.updateTime()
                 updateWindows()
@@ -353,7 +353,7 @@ object GFXBase {
     }
 
     @JvmField
-    var lastTime = System.nanoTime()
+    var lastTime = Time.nanoTime
 
     @JvmStatic
     fun renderFrame() {
@@ -415,7 +415,7 @@ object GFXBase {
         ) {
             // enforce 30 fps, because we don't need more
             // and don't want to waste energy
-            val currentTime = System.nanoTime()
+            val currentTime = Time.nanoTime
             val waitingTime = 1000 / max(1, GFX.idleFPS) - (currentTime - lastTime) / 1000000
             lastTime = currentTime
             if (waitingTime > 0) try {

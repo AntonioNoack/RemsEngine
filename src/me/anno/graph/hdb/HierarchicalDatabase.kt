@@ -1,5 +1,6 @@
 package me.anno.graph.hdb
 
+import me.anno.Time
 import me.anno.cache.CacheData
 import me.anno.cache.CacheSection
 import me.anno.graph.hdb.allocator.FileAllocation
@@ -323,7 +324,7 @@ class HierarchicalDatabase(
 
     private fun runIndexUpdate() {
         if (!needsUpdate) return
-        val time = System.nanoTime()
+        val time = Time.nanoTime
         if (time - lastUpdate > 1000L * MILLIS_TO_NANOS) {
             lastUpdate = time
             needsUpdate = false

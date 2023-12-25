@@ -1,5 +1,6 @@
 package me.anno.tests.utils
 
+import me.anno.Time
 import me.anno.maths.Maths.length
 import me.anno.utils.files.Files.formatFileSize
 import me.anno.utils.types.Vectors.normalToQuaternion
@@ -15,7 +16,7 @@ fun main() {
     val dir1 = Vector3f()
     val dir2 = Vector3f()
     val rot = Quaternionf()
-    var t0 = System.nanoTime()
+    var t0 = Time.nanoTime
     var li = 0
     val runtime = Runtime.getRuntime()
     for (i in 0 until 1_000_000) {
@@ -23,7 +24,7 @@ fun main() {
         rand.nextFloat()
         rand.nextFloat()
     }
-    val t2 = System.nanoTime()
+    val t2 = Time.nanoTime
     println("for random: ${(t2 - t0) / 1e6} ns/e")
     val random = FloatArray(4096) { rand.nextFloat() * 2f - 1f }
     for (i in 0 until random.size - 2 step 3) {
@@ -35,12 +36,12 @@ fun main() {
     var j = 0
     for (i in 0 until 1_000_000_003) {
         if (i and 0xffff == 0) {
-            val t1 = System.nanoTime()
+            val t1 = Time.nanoTime
             if (t1 - t0 >= 1_000_000_000) {
                 val used = runtime.totalMemory() - runtime.freeMemory()
                 println("-- $i, ${(t1 - t0) / (i - li)} ns/e, ${used.formatFileSize()}")
                 // runtime.gc()
-                t0 = System.nanoTime()
+                t0 = Time.nanoTime
                 li = i
             }
         }

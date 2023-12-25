@@ -1,5 +1,6 @@
 package me.anno.tests.bench
 
+import me.anno.Time
 import me.anno.utils.LOGGER
 import me.anno.utils.hpc.HeavyProcessing.processBalanced
 import java.util.*
@@ -39,9 +40,9 @@ fun dot3(data: IntArray): Int {
 }
 
 fun measure(name: String, data: IntArray, func: (IntArray) -> Int) {
-    val t0 = System.nanoTime()
+    val t0 = Time.nanoTime
     val sum = func(data)
-    val t1 = System.nanoTime()
+    val t1 = Time.nanoTime
     LOGGER.info("$name: ${"%.4f".format(Locale.ENGLISH, (t1 - t0) * 1e-9)}, $sum")
 }
 

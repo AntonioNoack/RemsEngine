@@ -1,6 +1,7 @@
 package me.anno.audio.openal
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.utils.Sleep.sleepABit
 import org.apache.logging.log4j.LogManager
@@ -47,7 +48,7 @@ object AudioManager {
                     // idk, just in case...
                     ALBase.alThread = Thread.currentThread()
                     ALBase.check()
-                    val time = System.nanoTime()
+                    val time = Time.nanoTime
                     try {
                         AudioTasks.workQueue()
                     } catch (e: Exception) {
@@ -79,13 +80,13 @@ object AudioManager {
 
         // todo possibilities to select/change audio device manually
 
-        val time = System.nanoTime()
+        val time = Time.nanoTime
         if (abs(time - lastCheckedTime) > 500 * MILLIS_TO_NANOS) {
             lastCheckedTime = time
             // 0.1ms -> it would be fine to even check it every time
             // we could consider only playback devices, but realistically the audio config shouldn't change often
             val audioDevices = AudioSystem.getMixerInfo()
-            // val t1 = System.nanoTime()
+            // val t1 = Time.nanoTime
             if (audioDevices.isNotEmpty()) {
                 val currentConfig = audioDevices.size
                 if (currentConfig != lastDeviceConfig) {

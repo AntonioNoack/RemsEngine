@@ -7,6 +7,7 @@ import me.anno.io.ISaveable
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.studio.StudioBase
+import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.maps.Maps.removeIf
 import org.apache.logging.log4j.LogManager
 import kotlin.test.assertTrue
@@ -209,8 +210,8 @@ object Hierarchy {
         if (!dstPrefab.isWritable) throw ImmutablePrefabException(dstPrefab.source)
         LOGGER.debug(
             "Trying to add " +
-                    "'${srcPrefab.source}'/'$srcPath'@${System.identityHashCode(srcPrefab)},${srcPrefab.adds.size}+${srcPrefab.sets.size} to " +
-                    "'${dstPrefab.source}'/'$dstParentPath'@${System.identityHashCode(dstPrefab)},${dstPrefab.adds.size}+${dstPrefab.sets.size}"
+                    "'${srcPrefab.source}'/'$srcPath'@${hash32(srcPrefab)},${srcPrefab.adds.size}+${srcPrefab.sets.size} to " +
+                    "'${dstPrefab.source}'/'$dstParentPath'@${hash32(dstPrefab)},${dstPrefab.adds.size}+${dstPrefab.sets.size}"
         )
         if (srcPrefab == dstPrefab || (srcPrefab.source == dstPrefab.source && srcPrefab.source != InvalidRef)) {
             LOGGER.debug("src == dst, so trying extraction")

@@ -1,7 +1,9 @@
 package me.anno.network
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.io.Streams.readBE32
+import me.anno.maths.Maths
 import me.anno.utils.Color.hex32
 import me.anno.utils.structures.lists.UnsafeArrayList
 import org.apache.logging.log4j.LogManager
@@ -41,7 +43,7 @@ open class Server : Closeable {
 
     var shutdown = false
 
-    val nextRandomId = Random(System.nanoTime() xor System.currentTimeMillis())
+    val nextRandomId = Random((Maths.random() * 1e16).toLong())
 
     val clients = UnsafeArrayList<TCPClient>(1024)
 
@@ -139,7 +141,7 @@ open class Server : Closeable {
                 // is supposed to be non-deterministic,
                 // so a foreign client cannot guess their randomId
                 // this would ensure that it cannot send a udp packet in their name, if it is on the same inet address
-                id = nextRandomId.nextInt() or System.nanoTime().toInt()
+                id = nextRandomId.nextInt() or Time.nanoTime.toInt()
             }
             usedIds.add(id)
         }

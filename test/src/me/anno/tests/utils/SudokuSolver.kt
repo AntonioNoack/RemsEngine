@@ -1,5 +1,6 @@
 package me.anno.tests.utils
 
+import me.anno.Time
 import me.anno.utils.OS.downloads
 import org.junit.jupiter.api.Assertions.assertEquals
 
@@ -138,12 +139,12 @@ fun main() {
     val samples = getSamples()
     val solver = SudokuSolver()
     val emptyCells = ArrayList<Cell>(81)
-    val t0 = System.nanoTime()
+    val t0 = Time.nanoTime
 
     for (si in samples.indices) {
         solver.solve(samples[si], emptyCells)
     }
 
-    val t1 = System.nanoTime()
+    val t1 = Time.nanoTime
     println("Done in ${(t1 - t0) / 1e9f}s")
 }

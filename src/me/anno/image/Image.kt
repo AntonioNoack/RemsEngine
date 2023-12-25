@@ -14,7 +14,7 @@ import me.anno.maths.Maths.min
 import me.anno.maths.Maths.roundDiv
 import me.anno.utils.Color.mixARGB
 import me.anno.utils.Color.mixARGB22d
-import me.anno.utils.Color.toHexColor
+import me.anno.utils.Logging.hash32
 import org.apache.logging.log4j.LogManager
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
@@ -32,9 +32,7 @@ abstract class Image(
 ) : ICacheData {
 
     override fun toString(): String {
-        return "${javaClass.name}@${
-            System.identityHashCode(this).toHexColor()
-        }[$width x $height x $numChannels${if (hasAlphaChannel) ", alpha" else ""}]"
+        return "${javaClass.name}@${hash32(this)}[$width x $height x $numChannels${if (hasAlphaChannel) ", alpha" else ""}]"
     }
 
     open fun getIndex(x: Int, y: Int): Int {

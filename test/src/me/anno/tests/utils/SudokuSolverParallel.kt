@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.utils.hpc.ProcessingGroup
 
 fun main() {
@@ -10,7 +11,7 @@ fun main() {
     // unfortunately, moving the solver to a class also made it 15% slower...
     // (maybe because Thread-exclusivity can no longer be guaranteed)
     val samples = getSamples()
-    val t0 = System.nanoTime()
+    val t0 = Time.nanoTime
 
     ProcessingGroup("Sudoku", Runtime.getRuntime().availableProcessors())
         .processBalanced(0, samples.size, 512) { i0, i1 ->
@@ -21,7 +22,7 @@ fun main() {
             }
         }
 
-    val t1 = System.nanoTime()
+    val t1 = Time.nanoTime
     println("Done in ${(t1 - t0) / 1e9f}s")
 
     Engine.requestShutdown() // shutdown processing group

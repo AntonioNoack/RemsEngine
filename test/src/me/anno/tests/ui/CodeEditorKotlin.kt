@@ -14,7 +14,7 @@ fun main() {
                 "/* multi-line comment */\n" +
                 "data class X(val v: Float, var y: Float)\n" +
                 "fun main(x: Int){\n" +
-                "   print(\"this is cool, name: \$name, time: \${System.nanoTime()}\")\n" +
+                "   print(\"this is cool, name: \$name, time: \${Time.nanoTime}\")\n" +
                 "   if(true) System.exit(-1);\n" +
                 "}\n"
     )

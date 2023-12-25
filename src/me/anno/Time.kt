@@ -90,7 +90,7 @@ object Time {
 
     @JvmStatic
     fun updateTime() {
-        val thisTime = System.nanoTime()
+        val thisTime = nanoTime
         val rawDeltaTime = (thisTime - lastTimeNanos) * 1e-9
         updateTime(rawDeltaTime, thisTime)
     }

@@ -66,14 +66,14 @@ abstract class FrameReader<FrameType>(
     }
 
     fun waitForMetadata() {
-        var lt = System.nanoTime()
+        var lt = Time.nanoTime
         waitUntil(true) {
             // if the last line is too long ago, e.g., because the source is not readable as an image, return
             val timeLimit = 30e9
             if (codec == invalidCodec) true
             else if (parser.lastLineTime != 0L && Time.nanoTime - parser.lastLineTime > timeLimit) true
             else {
-                val t = System.nanoTime()
+                val t = Time.nanoTime
                 if (abs(t - lt) > 1e9) {
                     LOGGER.debug("Waiting for metadata on {}, {} x {}, {}", file, width, height, codec)
                     lt = t

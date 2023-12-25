@@ -1,5 +1,6 @@
 package me.anno.audio.streams
 
+import me.anno.Time
 import me.anno.animation.LoopingState
 import me.anno.audio.openal.ALBase
 import me.anno.audio.openal.AudioTasks
@@ -52,7 +53,7 @@ class AudioFileStreamOpenAL(
     fun start() {
         if (!isPlaying) {
             isPlaying = true
-            startTimeNanos = System.nanoTime()
+            startTimeNanos = Time.nanoTime
             realStartTimeNanos = startTimeNanos
             waitForRequiredBuffers()
         } else throw RuntimeException()
@@ -74,7 +75,7 @@ class AudioFileStreamOpenAL(
     fun checkSession() {
         if (alSource.checkSessionWasReset()) {
             // reset all progress
-            val time = System.nanoTime()
+            val time = Time.nanoTime
             // find start time and start index
             val deltaTime = (time - realStartTimeNanos) * 1e-9
             startTime = startTime0 + deltaTime * speed
@@ -125,7 +126,7 @@ class AudioFileStreamOpenAL(
 
                 if (!hadFirstBuffer) {
 
-                    val dt = max(0f, (System.nanoTime() - startTimeNanos) * 1e-9f)
+                    val dt = max(0f, (Time.nanoTime - startTimeNanos) * 1e-9f)
 
                     val startOffset = getFraction(startTime, speed, playbackSampleRate)
                     val samples = dt * playbackSampleRate + startOffset

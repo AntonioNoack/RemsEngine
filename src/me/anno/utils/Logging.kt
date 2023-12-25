@@ -1,5 +1,6 @@
 package me.anno.utils
 
+import me.anno.utils.Color.hex32
 import java.io.OutputStream
 import java.io.PrintStream
 import java.util.*
@@ -61,5 +62,21 @@ object Logging {
         System.setErr(PrintStream(object : OutputPipe(originalErr) {
             override fun processMessage(str: String) = "[ERR] $str"
         }))
+    }
+
+    /**
+     * returns a short random string with letters and numbers,
+     * such that most instances have different codes, and it won't ever change over the lifetime of an instance
+     * */
+    fun hash32(instance: Any?): String {
+        return hex32(hash32raw(instance))
+    }
+
+    /**
+     * returns a random i32,
+     * such that most instances have different codes, and it won't ever change over the lifetime of an instance
+     * */
+    fun hash32raw(instance: Any?): Int {
+        return System.identityHashCode(instance)
     }
 }

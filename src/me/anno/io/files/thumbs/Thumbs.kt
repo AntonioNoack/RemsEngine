@@ -1,5 +1,6 @@
 package me.anno.io.files.thumbs
 
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
@@ -1578,9 +1579,9 @@ object Thumbs {
         val totalNanos = 30_000_000_000L
         val timeout = 50L
         var image: Image? = null
-        val startTime = System.nanoTime()
+        val startTime = Time.nanoTime
         waitUntil(true) {
-            if (System.nanoTime() < startTime + totalNanos) {
+            if (Time.nanoTime < startTime + totalNanos) {
                 image = ImageCache[srcFile, timeout, true]
                 image != null || ImageCache.hasFileEntry(srcFile, timeout)
             } else true

@@ -36,6 +36,7 @@ import me.anno.ui.input.TextInput
 import me.anno.utils.Color.black
 import me.anno.utils.Color.hex32
 import me.anno.utils.Color.mulARGB
+import me.anno.utils.Logging.hash32
 import me.anno.utils.process.DelayedTask
 import me.anno.utils.strings.StringHelper.camelCaseToTitle
 import me.anno.utils.strings.StringHelper.shorten2Way
@@ -137,7 +138,7 @@ class PrefabInspector(val reference: FileReference) {
 
         val pathInformation = instances.joinToString("\n\n") {
             "" +
-                    "${it.className}@${hex32(System.identityHashCode(it))}\n" +
+                    "${it.className}@${hash32(it)}\n" +
                     "Path: ${it.prefabPath.toString(", ")}\n" +
                     "PathHash: ${hex32(it.prefabPath.hashCode())}"
         }

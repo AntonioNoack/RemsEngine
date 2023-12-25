@@ -153,7 +153,7 @@ class Retargeting : PrefabSaveable(), Renderable {
             // println("identity mapping, so returning self")
             return src
         }
-        // println("adding mapping to list in ${hex32(System.identityHashCode(this))}")
+        // println("adding mapping to list in ${hash32(this)}")
         mappedAnimations.add(src to dst)
         return recalculate(src, dst)
     }

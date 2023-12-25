@@ -1,6 +1,6 @@
 package me.anno.fonts
 
-import me.anno.utils.Color.hex32
+import me.anno.utils.Logging.hash32
 import kotlin.math.max
 
 class PartResult(
@@ -15,8 +15,6 @@ class PartResult(
     }, width + s.width, max(height, s.height), lineCount)
 
     override fun toString(): String {
-        return "PartResult@${
-            hex32(System.identityHashCode(this))
-        }{w=$width,h=$height,lc=$lineCount,p=[${parts.joinToString()}]}"
+        return "PartResult@${hash32(this)}{w=$width,h=$height,lc=$lineCount,p=[${parts.joinToString()}]}"
     }
 }

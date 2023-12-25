@@ -21,6 +21,7 @@ import me.anno.io.json.saveable.JsonStringReader
 import me.anno.io.json.saveable.JsonStringWriter
 import me.anno.io.unity.UnityReader
 import me.anno.studio.StudioBase
+import me.anno.utils.Logging.hash32
 import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.lists.Lists.firstInstanceOrNull
 import org.apache.logging.log4j.LogManager
@@ -259,9 +260,7 @@ object PrefabCache : CacheSection("Prefab") {
             data.value = loaded
             if (loaded != null) FileWatch.addWatchDog(file)
             if (debugLoading) LOGGER.info(
-                "loaded ${file.absolutePath.shorten(200)}, got ${loaded?.className}@${
-                    System.identityHashCode(loaded)
-                }"
+                "loaded ${file.absolutePath.shorten(200)}, got ${loaded?.className}@${hash32(loaded)}"
             )
             e?.printStackTrace()
         }

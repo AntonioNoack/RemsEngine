@@ -1,5 +1,6 @@
 package me.anno.tests.image
 
+import me.anno.Time
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.ImageCache
 import me.anno.utils.OS
@@ -47,7 +48,7 @@ fun main() {
     val uData = Texture2D.bufferPool[s1, false, false]
     val vData = Texture2D.bufferPool[s1, false, false]
 
-    val t0 = System.nanoTime()
+    val t0 = Time.nanoTime
 
     for (i in 0 until runs) {
         for (yi in 0 until hx) {
@@ -62,7 +63,7 @@ fun main() {
         }
     }
 
-    val t1 = System.nanoTime()
+    val t1 = Time.nanoTime
 
     for (i in 0 until runs) {
         for (yi in 0 until hx step 2) {
@@ -109,7 +110,7 @@ fun main() {
 
     }
 
-    val t2 = System.nanoTime()
+    val t2 = Time.nanoTime
     println("${(t1 - t0) / 1e9} vs ${(t2 - t1) / 1e9}")
 
     ImageCache[OS.pictures.getChild("Anime/70697252_p4_master1200.webp"), false]!!

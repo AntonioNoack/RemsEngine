@@ -1,5 +1,6 @@
 package me.anno.tests.bench
 
+import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.gpu.GFX.flat01
 import me.anno.gpu.GFXState
@@ -115,7 +116,7 @@ fun main() {
                     for (index in shaders.indices) {
                         val shader = shaders[index]
                         GFX.check()
-                        val t0 = System.nanoTime()
+                        val t0 = Time.nanoTime
                         for (i in 0 until benchmark) {
                             shader.use()
                             flat01.draw(shader)
@@ -124,7 +125,7 @@ fun main() {
                         setReadAlignment(4)
                         glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixels)
                         GFX.check()
-                        val t1 = System.nanoTime()
+                        val t1 = Time.nanoTime
                         // the first one may be an outlier
                         if (j > 0) flops[index] += multiplications * repeats.toDouble() * benchmark.toDouble() * size * size / (t1 - t0)
                         GFX.check()

@@ -1,6 +1,7 @@
 package me.anno.utils
 
 import me.anno.Engine.shutdown
+import me.anno.Time
 import me.anno.gpu.GFX
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -48,10 +49,10 @@ object Sleep {
     @Throws(ShutdownException::class)
     inline fun waitUntil(canBeKilled: Boolean, timeoutNanos: Long, key: Any?, condition: () -> Boolean) {
         if (timeoutNanos < 0) return waitUntil(canBeKilled, condition)
-        val startTime = System.nanoTime()
+        val startTime = Time.nanoTime
         while (!condition()) {
             if (canBeKilled && shutdown) throw ShutdownException()
-            val time = System.nanoTime() - startTime
+            val time = Time.nanoTime - startTime
             if (time > timeoutNanos) throw TimeoutException("Time limit exceeded for $key")
             sleepABit(canBeKilled)
         }
@@ -63,10 +64,10 @@ object Sleep {
     @JvmStatic
     @Throws(ShutdownException::class)
     inline fun waitUntil2(canBeKilled: Boolean, limit: Long, condition: () -> Boolean): Boolean {
-        val startTime = System.nanoTime()
+        val startTime = Time.nanoTime
         while (!condition()) {
             if (canBeKilled && shutdown) return true
-            val time = System.nanoTime() - startTime
+            val time = Time.nanoTime - startTime
             if (time > limit) return true
             sleepABit(canBeKilled)
         }

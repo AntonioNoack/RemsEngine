@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.Time
 import me.anno.ecs.Transform
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
@@ -113,7 +114,7 @@ open class InstancedStack {
             var drawCalls = 0
             animated.use(useAnimations) {
 
-                // val t0 = System.nanoTime()
+                // val t0 = Time.nanoTime
 
                 val shader = stage.getShader(material)
                 shader.use()
@@ -164,7 +165,7 @@ open class InstancedStack {
                 val cameraPosition = RenderState.cameraPosition
                 val worldScale = RenderState.worldScale
 
-                // val t1 = System.nanoTime()
+                // val t1 = Time.nanoTime
                 var st23 = 0L
                 var st34 = 0L
                 var st45 = 0L
@@ -179,11 +180,11 @@ open class InstancedStack {
                 val batchSize = buffer.vertexCount
                 for (baseIndex in 0 until instanceCount step batchSize) {
 
-                    val t2 = System.nanoTime()
+                    val t2 = Time.nanoTime
 
                     buffer.clear()
 
-                    val t3 = System.nanoTime()
+                    val t3 = Time.nanoTime
                     st23 += t3 - t2
 
                     val endIndex = Maths.min(instanceCount, baseIndex + batchSize)
@@ -245,7 +246,7 @@ open class InstancedStack {
                         }
                     }
 
-                    val t4 = System.nanoTime()
+                    val t4 = Time.nanoTime
                     st34 += t4 - t3
 
                     if (needsLightUpdateForEveryMesh) {
@@ -259,7 +260,7 @@ open class InstancedStack {
                     }
                     GFX.check()
 
-                    val t5 = System.nanoTime()
+                    val t5 = Time.nanoTime
                     st45 += t5 - t4
 
                     cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
@@ -267,7 +268,7 @@ open class InstancedStack {
                     }
                     drawCalls++
 
-                    val t6 = System.nanoTime()
+                    val t6 = Time.nanoTime
                     st56 += t6 - t5
 
                     // if (buffer !== meshInstanceBuffer) addGPUTask("PipelineStage.drawColor", 1) { buffer.destroy() }
@@ -275,7 +276,7 @@ open class InstancedStack {
 
                 // has been optimized from ~150ns/e to ~64ns/e on 1M bricks test, with worldScale=1.0 (or ~75 with worldScale != 1.0)
                 // mainly optimizing transforms to stop updating with lerp(), when they were no longer being changed
-                /*val t6 = System.nanoTime()
+                /*val t6 = Time.nanoTime
                 val dt = t6 - t1
                 println(
                     "base: ${(t1 - t0)} + $instanceCount meshes with [$st23, $st34, $st45, $st56] -> " +

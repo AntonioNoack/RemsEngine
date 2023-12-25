@@ -1,6 +1,7 @@
 package me.anno.network
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.maths.Maths.MILLIS_TO_NANOS
 import me.anno.network.Server.Companion.str32
 import me.anno.network.packets.PingPacket
@@ -103,7 +104,7 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
             server?.removeClient(client)
         }
         val dis = client.dis
-        var lastTime = System.nanoTime()
+        var lastTime = Time.nanoTime
         while (!Engine.shutdown && !shutdown() && !client.isClosed) {
             if (dis.available() > 3) {
                 val packetId = dis.readInt()
@@ -118,12 +119,12 @@ open class Protocol(val bigEndianMagic: Int, val networkProtocol: NetworkProtoco
                     else -> throw IOException("Unknown packet ${str32(packetId)}")
                 }
             } else {// no packet available for us :/
-                val time = System.nanoTime()
+                val time = Time.nanoTime
                 // send a ping to detect whether the server is still alive
                 // but don't send it too often
                 if (pingDelayMillis >= 0 && abs(time - lastTime) >= pingDelayMillis * MILLIS_TO_NANOS) {
                     client.sendTCP(PingPacket())
-                    lastTime = System.nanoTime()
+                    lastTime = Time.nanoTime
                 } else {
                     Sleep.sleepShortly(false)
                 }

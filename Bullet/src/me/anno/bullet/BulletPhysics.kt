@@ -41,6 +41,7 @@ import me.anno.ui.base.groups.PanelListY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.SettingCategory
 import me.anno.utils.Color.black
+import me.anno.utils.Logging.hash32
 import me.anno.utils.pooling.JomlPools
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
@@ -520,7 +521,7 @@ open class BulletPhysics : Physics<Rigidbody, RigidBody>(Rigidbody::class) {
     override fun invalidate(entity: Entity) {
         val rb0 = entity.getComponent(Rigidbody::class, false)
         val rb = rb0?.entity ?: return
-        if (printValidations) LOGGER.debug("Invalidated {}", System.identityHashCode(this))
+        if (printValidations) LOGGER.debug("Invalidated {}", hash32(this))
         invalidEntities.add(rb)
     }
 

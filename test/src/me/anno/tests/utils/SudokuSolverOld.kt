@@ -1,12 +1,13 @@
 package me.anno.tests.utils
 
+import me.anno.Time
 import org.junit.jupiter.api.Assertions.assertEquals
 
 // this is 2s faster (15%), just by removing the surrounding class :/
 fun main() {
 
     val samples = getSamples()
-    val t0 = System.nanoTime()
+    val t0 = Time.nanoTime
 
     val n = 9
     val xFull = IntArray(n)
@@ -109,6 +110,6 @@ fun main() {
         }
     }
 
-    val t1 = System.nanoTime()
+    val t1 = Time.nanoTime
     println("Done in ${(t1 - t0) / 1e9f}s")
 }

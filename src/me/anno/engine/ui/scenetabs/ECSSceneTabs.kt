@@ -15,6 +15,7 @@ import me.anno.studio.StudioBase
 import me.anno.studio.StudioBase.Companion.dragged
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.scrolling.ScrollPanelX
+import me.anno.utils.Logging.hash32
 import me.anno.utils.structures.lists.Lists.getOrPrevious
 import org.apache.logging.log4j.LogManager
 
@@ -131,7 +132,7 @@ object ECSSceneTabs : ScrollPanelX(style) {
     fun open(tab: ECSSceneTab, setActive: Boolean) {
 
         if (tab.file.nullIfUndefined() == null) {
-            throw RuntimeException("Cannot open InvalidRef as tab on prefab ${System.identityHashCode(tab.prefab)}")
+            throw RuntimeException("Cannot open InvalidRef as tab on prefab ${hash32(tab.prefab)}")
         }
 
         // add tab to project

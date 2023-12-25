@@ -1,5 +1,7 @@
 package me.anno.graph.hdb.index
 
+import me.anno.utils.Logging.hash32
+
 class Folder(var name: String) {
 
     val files = HashMap<Long, File>()
@@ -7,6 +9,6 @@ class Folder(var name: String) {
     var storageFile: StorageFile? = null
 
     override fun toString(): String {
-        return "Folder@${System.identityHashCode(this)}($name) { files: $files, children: $children, sf: ${storageFile?.index ?: -1} }"
+        return "Folder@${hash32(this)}($name) { files: $files, children: $children, sf: ${storageFile?.index ?: -1} }"
     }
 }

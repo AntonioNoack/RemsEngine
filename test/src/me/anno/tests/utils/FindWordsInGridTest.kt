@@ -1,6 +1,7 @@
 package me.anno.tests.utils
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.language.Language
 import me.anno.language.spellcheck.Spellchecking
 import me.anno.maths.Maths.MILLIS_TO_NANOS
@@ -151,7 +152,7 @@ fun waitForResults(timeoutMillis: Long = 30_000) {
     // to do for such tasks, we could start multiple spellchecker instances
     val logger = LogManager.getLogger("FindWords")
     val done = HashSet<String>()
-    var timeSinceLastResult = System.nanoTime()
+    var timeSinceLastResult = Time.nanoTime
     val timeoutNanos = timeoutMillis * MILLIS_TO_NANOS
     val processed = ArrayList(processed)
     processed.sortWith { a, b ->
@@ -160,7 +161,7 @@ fun waitForResults(timeoutMillis: Long = 30_000) {
     }
     val totalLength = processed.size
     logger.info("Checking $totalLength 'words'")
-    var lastPrint = System.nanoTime()
+    var lastPrint = Time.nanoTime
     while (processed.isNotEmpty()) {
         for (word in processed) {
             val list = Spellchecking.check(word, true)
@@ -171,15 +172,15 @@ fun waitForResults(timeoutMillis: Long = 30_000) {
                     logger.info(word)
                 }
             }
-            if (abs(lastPrint - System.nanoTime()) > 5e9) {
+            if (abs(lastPrint - Time.nanoTime) > 5e9) {
                 val percent = ceilDiv((totalLength - processed.size) * 100, totalLength)
                 val pct = formatPercent(totalLength - processed.size, totalLength)
                 logger.info("-".repeat(percent) + " ".repeat(100 - percent) + "| $pct%")
-                lastPrint = System.nanoTime()
+                lastPrint = Time.nanoTime
             }
         }
         if (done.isEmpty()) {
-            val deltaTime = System.nanoTime() - timeSinceLastResult
+            val deltaTime = Time.nanoTime - timeSinceLastResult
             if (deltaTime > timeoutNanos) {
                 logger.info("Reached timeout!")
                 break
@@ -188,7 +189,7 @@ fun waitForResults(timeoutMillis: Long = 30_000) {
         } else {
             processed.removeAll(done)
             done.clear()
-            timeSinceLastResult = System.nanoTime()
+            timeSinceLastResult = Time.nanoTime
         }
     }
     Engine.requestShutdown()

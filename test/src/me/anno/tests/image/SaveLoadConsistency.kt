@@ -1,6 +1,7 @@
 package me.anno.tests.image
 
 import me.anno.Engine
+import me.anno.Time
 import me.anno.video.VideoCache
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState.useFrame
@@ -41,7 +42,7 @@ fun testVideo(image: FileReference) {
     var ctr = 0
     fun process(src: FileReference, dst: FileReference) {
         TextureCache.clear()
-        val t0 = System.nanoTime()
+        val t0 = Time.nanoTime
         VideoCache.clear()
         val gpu = VideoCache.getFrame(src, 1, 0, 0, 1, 1.0, 50_000L, false, needsToBeCreated = true)
             ?: throw NullPointerException("Missing $src")
@@ -50,12 +51,12 @@ fun testVideo(image: FileReference) {
             dst1.clearColor(0)
             drawTexture(gpu, false)
         }
-        val t1 = System.nanoTime()
+        val t1 = Time.nanoTime
         val img = GPUImage(dst1.getTexture0(), 4, hasAlphaChannel = true)
         println("out: " + img.createIntImage().data[0].toHexColor())
         VideoCreator.renderVideo2(w, h, 1.0, dst, 1) { img }
         img.write(tmp0.getSibling("${ctr++}.png"))
-        val t2 = System.nanoTime()
+        val t2 = Time.nanoTime
         loadSum += t1 - t0
         storeSum += t2 - t0
     }
@@ -79,11 +80,11 @@ fun testImage(image: FileReference) {
     var storeSum = 0L
     fun process(src: FileReference, dst: FileReference) {
         TextureCache.clear()
-        val t0 = System.nanoTime()
+        val t0 = Time.nanoTime
         val gpu = TextureCache[src, false]!!
-        val t1 = System.nanoTime()
+        val t1 = Time.nanoTime
         gpu.write(dst)
-        val t2 = System.nanoTime()
+        val t2 = Time.nanoTime
         loadSum += t1 - t0
         storeSum += t2 - t0
     }

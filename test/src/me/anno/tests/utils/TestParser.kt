@@ -35,9 +35,9 @@ fun main(){
             long.append('1')
         }
         val symbolCount = length * 2 + 1
-        val t0 = System.nanoTime()
+        val t0 = Time.nanoTime
         parseDouble(long.toString())
-        val t1 = System.nanoTime()
+        val t1 = Time.nanoTime
         val dt = t1 - t0
         val charsPerSecond = symbolCount * 1e9f / dt
         LOGGER.info("$charsPerSecond chars/s for length $symbolCount")

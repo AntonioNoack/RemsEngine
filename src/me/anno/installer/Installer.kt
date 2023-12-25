@@ -1,5 +1,6 @@
 package me.anno.installer
 
+import me.anno.Time
 import me.anno.gpu.GFX
 import me.anno.io.BufferedIO.useBuffered
 import me.anno.io.files.FileReference
@@ -93,7 +94,7 @@ object Installer {
         val output = tmp.outputStream().useBuffered()
         val totalLength = con.contentLength.toLong()
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        var time0 = System.nanoTime()
+        var time0 = Time.nanoTime
         var length0 = 0L
         var downloadedLength = 0L
         while (true) {
@@ -102,7 +103,7 @@ object Installer {
             length0 += length
             downloadedLength += length
             output.write(buffer, 0, length)
-            val time1 = System.nanoTime()
+            val time1 = Time.nanoTime
             val dt = time1 - time0
             progress?.progress = downloadedLength.toDouble()
             if (dt > SECONDS_TO_NANOS) {

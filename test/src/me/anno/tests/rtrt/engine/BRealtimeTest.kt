@@ -1,5 +1,6 @@
 package me.anno.tests.rtrt.engine
 
+import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.components.camera.Camera
@@ -300,7 +301,7 @@ fun createCPUPanel(
                 } else cpuBytes!!
 
                 val ints = cpuBuffer!!
-                val t0 = System.nanoTime()
+                val t0 = Time.nanoTime
                 val maxDistance = 1e10
                 val maxDistanceF = maxDistance.toFloat()
                 pipeline.processBalanced2d(0, 0, w, h, tileSize, 1) { x0, y0, x1, y1 ->
@@ -334,7 +335,7 @@ fun createCPUPanel(
                         JomlPools.vec3f.sub(2)
                     }
                 }
-                val t1 = System.nanoTime()
+                val t1 = Time.nanoTime
                 dt += t1 - t0
                 frameIndex++
                 cpuSpeed = dt / (w * h * frameIndex.toLong())

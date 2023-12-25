@@ -1,5 +1,6 @@
 package me.anno.io.packer
 
+import me.anno.Time
 import me.anno.io.files.LastModifiedCache
 import me.anno.image.ImageReadable
 import me.anno.io.files.FileReference
@@ -84,13 +85,13 @@ object Packer {
         createMap: Boolean,
         updatingMillis: Int = 500
     ): Map<FileReference, FileReference> {
-        val startTime = System.nanoTime()
+        val startTime = Time.nanoTime
         var lastTime = startTime
         var lastSize = 0L
         val updatingNanos = updatingMillis * 1000_000L
         val map = pack(resources, ensurePrivacy, dst, createMap) { currentSize, totalSize ->
             if (currentSize < totalSize) {
-                val currentTime = System.nanoTime()
+                val currentTime = Time.nanoTime
                 if (lastTime == 0L || abs(currentTime - lastTime) > updatingNanos) {
                     val deltaSize = currentSize - lastSize
                     val deltaTime = currentTime - lastTime
@@ -113,7 +114,7 @@ object Packer {
         LastModifiedCache.invalidate(dst) // just in case dst was cached again in the mean-time
         val size = resources.sumOf { it.length() }
         val compressedSize = dst.length()
-        val endTime = System.nanoTime()
+        val endTime = Time.nanoTime
         val deltaTime = endTime - startTime
         val readingBandwidth = size * 1e9 / deltaTime
         val writingBandwidth = compressedSize * 1e9 / deltaTime

@@ -1,5 +1,6 @@
 package me.anno.tests.bench
 
+import me.anno.Time
 import me.anno.fonts.FontManager
 import me.anno.fonts.signeddistfields.algorithm.SignedDistanceField
 import me.anno.maths.Maths.sq
@@ -30,11 +31,11 @@ fun main() {
 
     Thread.sleep(8000)
 
-    val t0 = System.nanoTime()
+    val t0 = Time.nanoTime
 
     val data = SignedDistanceField.createBuffer(font, text, roundEdges)!!
 
-    val t1 = System.nanoTime()
+    val t1 = Time.nanoTime
     logger.info("Used ${((t1 - t0) * 1e-9)}s")
 
     val calculated = toBytes(data)

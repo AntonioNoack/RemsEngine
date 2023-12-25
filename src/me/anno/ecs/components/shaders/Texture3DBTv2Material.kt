@@ -7,6 +7,7 @@ import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.io.serialization.NotSerializedProperty
 import me.anno.maths.Maths.max
+import me.anno.utils.Logging.hash32raw
 import org.joml.Vector3i
 
 /**
@@ -53,7 +54,7 @@ open class Texture3DBTv2Material : Material() {
     }
 
     override fun hashCode(): Int {
-        return System.identityHashCode(this)
+        return hash32raw(this)
     }
 
     override fun equals(other: Any?): Boolean {

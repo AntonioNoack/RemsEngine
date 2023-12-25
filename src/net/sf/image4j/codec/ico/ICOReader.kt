@@ -148,7 +148,6 @@ object ICOReader {
     @JvmStatic
     fun readAllLayers(input0: InputStream): List<Image> {
 
-        // long t = System.currentTimeMillis()
         val input1 = CountingInputStream(input0)
 
         // Reserved 2 byte =0
@@ -177,12 +176,7 @@ object ICOReader {
                 throw IOException("Failed to read image #$i/$sCount", ex)
             }
         }
-
-        // long t2 = System.currentTimeMillis()
-        // LOGGER.debug("Loaded ICO file in "+(t2 - t)+"ms")
-
         return ret
-
     }
 
     @JvmStatic
