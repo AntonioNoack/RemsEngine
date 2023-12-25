@@ -333,22 +333,21 @@ class HexEditor(style: Style) : Panel(style), LongScrollable {
             if (limit >= 2e9) LOGGER.warn("Cannot copy slices larger than 2 GiB")
             return null
         }
-        val data = ByteArray((maxIndex - minIndex).toInt())
-        var i = minIndex
-        while (i < maxIndex) {
-            val bufferIndex = i / sectionSize
-            val startIndex = bufferIndex * sectionSize
+        val dst = ByteArray((maxIndex - minIndex).toInt())
+        var posInFile = minIndex
+        var sectionIndex = posInFile / sectionSize
+        while (posInFile < maxIndex) {
+            val startIndex = sectionIndex * sectionSize
             val endIndex = min(maxIndex, startIndex + sectionSize)
-            val partData = Companion.get(file, bufferIndex, false)!!
-            System.arraycopy(
-                partData,
-                (i - startIndex).toInt(), data,
-                (i - minIndex).toInt(),
-                (endIndex - i).toInt()
-            )
-            i = endIndex
+            val partData = Companion.get(file, sectionIndex, false)!!
+            val posInSection = (posInFile - startIndex).toInt()
+            val posInDst = (posInFile - minIndex).toInt()
+            val copyableLength = (endIndex - posInFile).toInt()
+            partData.copyInto(dst, posInDst, posInSection, min(posInSection + copyableLength, partData.size))
+            posInFile = endIndex
+            sectionIndex++
         }
-        return data
+        return dst
     }
 
     var copiedSeparator = ' '

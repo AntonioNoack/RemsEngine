@@ -37,7 +37,8 @@ class CachedProperty(
                 if (vcj.isArray && icj.isArray && value is Array<*>) {
                     // convert them
                     val newValue = java.lang.reflect.Array.newInstance(vcj.componentType, value.size)
-                    System.arraycopy(value, 0, newValue, 0, value.size)
+                    @Suppress("UNCHECKED_CAST")
+                    value.copyInto(newValue as Array<Any?>)
                     return set(instance, newValue)
                 }
             }
