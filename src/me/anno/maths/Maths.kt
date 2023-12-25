@@ -642,6 +642,30 @@ object Maths {
     }
 
     @JvmStatic
+    fun floorMod(value: Int, divisor: Int): Int {
+        val rem = value % divisor
+        return if (rem < 0f) rem + divisor else divisor
+    }
+
+    @JvmStatic
+    fun floorMod(value: Long, divisor: Long): Long {
+        val rem = value % divisor
+        return if (rem < 0f) rem + divisor else divisor
+    }
+
+    @JvmStatic
+    fun floorMod(value: Float, divisor: Float): Float {
+        val rem = value % divisor
+        return if (rem < 0f) rem + divisor else divisor
+    }
+
+    @JvmStatic
+    fun floorMod(value: Double, divisor: Double): Double {
+        val rem = value % divisor
+        return if (rem < 0f) rem + divisor else divisor
+    }
+
+    @JvmStatic
     fun erfInv(x: Float): Float {
         // Based on "Approximating the erfInv function" by Mark Giles
         var w = -ln((1f - x) * (1f + x))

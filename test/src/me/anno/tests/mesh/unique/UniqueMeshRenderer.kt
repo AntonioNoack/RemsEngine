@@ -26,7 +26,7 @@ import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.input.Key
-import me.anno.maths.Maths
+import me.anno.maths.Maths.floorMod
 import me.anno.maths.patterns.SpiralPattern.spiral2d
 import me.anno.mesh.vox.model.VoxelModel
 import me.anno.tests.utils.TestWorld
@@ -34,8 +34,6 @@ import me.anno.utils.Color.convertABGR2ARGB
 import me.anno.utils.hpc.ProcessingQueue
 import org.joml.AABBf
 import org.joml.Vector3i
-import java.lang.Math.floorDiv
-import java.lang.Math.floorMod
 import kotlin.math.floor
 
 /**
@@ -306,9 +304,9 @@ fun main() {
 
             fun coordsToChunkId(coords: Vector3i): Vector3i {
                 return Vector3i(
-                    floorDiv(coords.x, csx),
-                    floorDiv(coords.y, csy),
-                    floorDiv(coords.z, csz)
+                    coords.x.floorDiv(csx),
+                    coords.y.floorDiv(csy),
+                    coords.z.floorDiv(csz)
                 )
             }
 

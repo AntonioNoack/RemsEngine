@@ -29,6 +29,9 @@ import me.anno.utils.pooling.JomlPools
 import org.joml.Vector2f
 import org.joml.Vector3f
 import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashSet
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.math.max

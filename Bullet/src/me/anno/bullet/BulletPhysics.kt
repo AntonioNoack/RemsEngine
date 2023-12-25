@@ -47,8 +47,6 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
 import org.joml.Quaterniond
 import org.joml.Vector3f
-import java.lang.IllegalArgumentException
-import java.lang.IndexOutOfBoundsException
 import javax.vecmath.Quat4d
 import javax.vecmath.Vector3d
 import kotlin.math.max
