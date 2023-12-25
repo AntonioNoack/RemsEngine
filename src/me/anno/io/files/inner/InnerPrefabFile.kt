@@ -6,7 +6,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import java.io.InputStream
-import java.nio.charset.Charset
 
 open class InnerPrefabFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
@@ -30,7 +29,7 @@ open class InnerPrefabFile(
     override fun readTextSync() = text
     override fun readBytesSync() = bytes
 
-    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+    override fun readText(callback: (String?, Exception?) -> Unit) {
         callback(text, null)
     }
 

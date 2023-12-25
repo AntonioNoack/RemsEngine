@@ -161,7 +161,7 @@ object SDFComposer {
 
                             // compute
                             "vec2 uv0 = gl_FragCoord.xy;\n" +
-                            (if(tree.highQualityMSAA) "uv0 += gl_SamplePosition;\n" else "") +
+                            (if(tree.highQualityMSAA) "uv0 += gl_SamplePosition - 0.5;\n" else "") +
                             "uv0 /= renderSize;\n" +
 
                             "vec3 localDir = normalize(matMul(invLocalTransform, vec4(rawCameraDirection(uv0),0.0)));\n" +

@@ -2,7 +2,6 @@ package me.anno.io.files.inner
 
 import me.anno.io.files.FileReference
 import java.io.InputStream
-import java.nio.charset.Charset
 
 class InnerTextFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
@@ -20,7 +19,7 @@ class InnerTextFile(
 
     override fun inputStreamSync() = content.byteInputStream()
 
-    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+    override fun readText(callback: (String?, Exception?) -> Unit) {
         callback(content, null)
     }
 

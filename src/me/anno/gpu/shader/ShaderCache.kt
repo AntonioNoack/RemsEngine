@@ -34,7 +34,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
     "ShaderCache.json", "shaders", "ShaderCache"
 ) {
 
-    private val LOGGER = LogManager.getLogger(ShaderCache::class.java)
+    private val LOGGER = LogManager.getLogger(ShaderCache::class)
 
     class BinaryData(val format: Int, val data: ByteBuffer)
 

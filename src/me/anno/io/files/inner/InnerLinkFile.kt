@@ -3,7 +3,6 @@ package me.anno.io.files.inner
 import me.anno.io.files.FileReference
 import java.io.InputStream
 import java.nio.ByteBuffer
-import java.nio.charset.Charset
 
 class InnerLinkFile(
     absolutePath: String,
@@ -39,8 +38,8 @@ class InnerLinkFile(
     override fun readBytesSync(): ByteArray = link.readBytesSync()
     override fun readTextSync(): String = link.readTextSync()
     override fun readByteBufferSync(native: Boolean): ByteBuffer = link.readByteBufferSync(native)
-    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
-        link.readText(charset, callback)
+    override fun readText(callback: (String?, Exception?) -> Unit) {
+        link.readText(callback)
     }
 
     override fun readBytes(callback: (it: ByteArray?, exc: Exception?) -> Unit) {

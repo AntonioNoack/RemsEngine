@@ -30,7 +30,6 @@ import java.awt.Desktop
 import java.io.*
 import java.net.URI
 import java.nio.ByteBuffer
-import java.nio.charset.Charset
 
 // todo when a file is changed, all inner files based on that need to be invalidated (editor only)
 // done when a file is changed, the meta data of it needs to be invalidated
@@ -359,16 +358,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
      * give access to an output stream;
      * should be buffered for better performance
      * */
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     abstract fun outputStream(append: Boolean = false): OutputStream
 
     open fun readText(callback: (String?, Exception?) -> Unit) {
-        readText(Charset.forName("UTF-8"), callback)
-    }
-
-    open fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
         readBytes { it, exc ->
-            callback(if (it != null) String(it, charset) else null, exc)
+            callback(if (it != null) String(it) else null, exc)
         }
     }
 
@@ -385,7 +380,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun inputStreamSync(): InputStream {
         var e: Exception? = null
         var d: InputStream? = null
@@ -397,7 +392,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun readBytesSync(): ByteArray {
         var e: Exception? = null
         var d: ByteArray? = null
@@ -409,7 +404,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun readTextSync(): String {
         var e: Exception? = null
         var d: String? = null
@@ -421,7 +416,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun readByteBufferSync(native: Boolean): ByteBuffer {
         var e: Exception? = null
         var d: ByteBuffer? = null
@@ -458,7 +453,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun readLinesSync(lineLengthLimit: Int): ReadLineIterator {
         var e: Exception? = null
         var d: ReadLineIterator? = null
@@ -470,7 +465,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         return d ?: throw e!!
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun writeFile(file: FileReference, deltaProgress: (Long) -> Unit, callback: (Exception?) -> Unit) {
         outputStream().use { output: OutputStream ->
             file.inputStream { input, exc ->
@@ -488,12 +483,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     fun writeFile(file: FileReference, callback: (Exception?) -> Unit) {
         writeFile(file, {}, callback)
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun writeText(text: String) {
         val os = outputStream()
         val wr = OutputStreamWriter(os)
@@ -502,23 +497,14 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         os.close()
     }
 
-    @kotlin.jvm.Throws(IOException::class)
-    open fun writeText(text: String, charset: Charset) {
-        val os = outputStream()
-        val wr = OutputStreamWriter(os, charset)
-        wr.write(text)
-        wr.close()
-        os.close()
-    }
-
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun writeBytes(bytes: ByteArray) {
         val os = outputStream()
         os.write(bytes)
         os.close()
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun writeBytes(bytes: ByteBuffer) {
         val byte2 = ByteArray(bytes.remaining())
         val pos = bytes.position()
@@ -526,7 +512,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         writeBytes(byte2)
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     abstract fun length(): Long
 
     open fun toFile() = File(absolutePath.replace("!!", "/"))
@@ -594,10 +580,10 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     abstract fun delete(): Boolean
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     abstract fun mkdirs(): Boolean
 
     fun tryMkdirs(): Boolean {
@@ -609,12 +595,12 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
         }
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun deleteOnExit() {
         deleteRecursively()
     }
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     open fun deleteRecursively(): Boolean {
         return delete()
     }
@@ -642,7 +628,7 @@ abstract class FileReference(val absolutePath: String) : ICacheData {
 
     fun renameTo(newName: File) = renameTo(getReference(newName))
 
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     abstract fun renameTo(newName: FileReference): Boolean
 
     abstract val isDirectory: Boolean

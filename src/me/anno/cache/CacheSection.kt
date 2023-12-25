@@ -2,13 +2,13 @@ package me.anno.cache
 
 import me.anno.Build
 import me.anno.Time.nanoTime
-import me.anno.io.files.LastModifiedCache
 import me.anno.ecs.components.anim.AnimationCache
 import me.anno.ecs.components.anim.SkeletonCache
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.MeshCache
 import me.anno.gpu.GFX
 import me.anno.io.files.FileReference
+import me.anno.io.files.LastModifiedCache
 import me.anno.utils.ShutdownException
 import me.anno.utils.hpc.ProcessingQueue
 import me.anno.utils.structures.maps.KeyPairMap
@@ -42,8 +42,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     inline fun remove(crossinline filter: (Any?, CacheEntry) -> Boolean): Int {
-        synchronized(cache) {
-            return cache.removeIf2 { k, v ->
+        return synchronized(cache) {
+            cache.removeIf2 { k, v ->
                 if (filter(k, v)) {
                     v.destroy()
                     true
@@ -53,8 +53,8 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     inline fun removeDual(crossinline filter: (Any?, Any?, CacheEntry) -> Boolean): Int {
-        synchronized(dualCache) {
-            return dualCache.removeIf { k1, k2, v ->
+        return synchronized(dualCache) {
+            dualCache.removeIf { k1, k2, v ->
                 if (filter(k1, k2, v)) {
                     v.destroy()
                     true
@@ -64,10 +64,10 @@ open class CacheSection(val name: String) : Comparable<CacheSection> {
     }
 
     fun removeEntry(key: Any): ICacheData? {
-        synchronized(cache) {
+        return synchronized(cache) {
             val v = cache.remove(key)
             v?.destroy()
-            return v?.data
+            v?.data
         }
     }
 

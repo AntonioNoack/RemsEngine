@@ -1,7 +1,6 @@
 package me.anno.io.files.inner.temporary
 
 import java.io.InputStream
-import java.nio.charset.Charset
 
 @Suppress("unused")
 class InnerTmpTextFile(text: String, ext: String = "txt") : InnerTmpFile(ext) {
@@ -23,7 +22,7 @@ class InnerTmpTextFile(text: String, ext: String = "txt") : InnerTmpFile(ext) {
     override fun readBytesSync() = text.toByteArray()
     override fun inputStreamSync() = text.byteInputStream()
 
-    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+    override fun readText(callback: (String?, Exception?) -> Unit) {
         callback(readTextSync(), null)
     }
 

@@ -169,14 +169,7 @@ open class Vector2i(
     override fun hashCode() = x * 31 + y
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other == null || this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Vector2i
-            x == other.x && y == other.y
-        }
+        return other is Vector2i && other.x == x && other.y == y
     }
 
     fun equals(x: Int, y: Int) = this.x == x && this.y == y

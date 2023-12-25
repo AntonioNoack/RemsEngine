@@ -273,14 +273,7 @@ open class Vector4i(
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other == null || this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Vector4i
-            return x == other.x && y == other.y && z == other.z && w == other.w
-        }
+        return other is Vector4i && other.x == x && other.y == y && other.z == z && other.w == w
     }
 
     fun equals(x: Int, y: Int, z: Int, w: Int): Boolean {

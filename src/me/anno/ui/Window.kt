@@ -476,7 +476,7 @@ open class Window(
 
     companion object {
         private const val redrawColor = 0x33ff0000
-        private val LOGGER = LogManager.getLogger(Window::class.java)
+        private val LOGGER = LogManager.getLogger(Window::class)
         private val showRedraws get() = DefaultConfig["debug.ui.showRedraws", false]
         private val shadowShader = Shader(
             "shadow", uiVertexShaderList, uiVertexShader, uvList, listOf(

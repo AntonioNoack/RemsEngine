@@ -1480,60 +1480,20 @@ open class Matrix3f {
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) {
-            true
-        } else if (other == null) {
-            false
-        } else if (this.javaClass != other.javaClass) {
-            false
-        } else {
-            other as Matrix3f
-            if ((m00) != (other.m00)) {
-                false
-            } else if ((m01) != (other.m01)) {
-                false
-            } else if ((m02) != (other.m02)) {
-                false
-            } else if ((m10) != (other.m10)) {
-                false
-            } else if ((m11) != (other.m11)) {
-                false
-            } else if ((m12) != (other.m12)) {
-                false
-            } else if ((m20) != (other.m20)) {
-                false
-            } else if ((m21) != (other.m21)) {
-                false
-            } else {
-                (m22) == (other.m22)
-            }
-        }
+        return other === this || (other is Matrix3f &&
+                other.m00 == m00 && other.m01 == m01 && other.m02 == m02 &&
+                other.m10 == m10 && other.m11 == m11 && other.m12 == m02 &&
+                other.m20 == m20 && other.m21 == m21 && other.m22 == m02
+                )
     }
 
-    fun equals(m: Matrix3f?, delta: Float): Boolean {
-        return if (this === m) {
-            true
-        } else if (m == null) {
-            false
-        } else if (!Runtime.equals(m00, m.m00, delta)) {
-            false
-        } else if (!Runtime.equals(m01, m.m01, delta)) {
-            false
-        } else if (!Runtime.equals(m02, m.m02, delta)) {
-            false
-        } else if (!Runtime.equals(m10, m.m10, delta)) {
-            false
-        } else if (!Runtime.equals(m11, m.m11, delta)) {
-            false
-        } else if (!Runtime.equals(m12, m.m12, delta)) {
-            false
-        } else if (!Runtime.equals(m20, m.m20, delta)) {
-            false
-        } else if (!Runtime.equals(m21, m.m21, delta)) {
-            false
-        } else {
-            Runtime.equals(m22, m.m22, delta)
-        }
+    fun equals(m: Matrix3f, delta: Float): Boolean {
+        return this === m ||
+                Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
+                Runtime.equals(m02, m.m02, delta) && Runtime.equals(m10, m.m10, delta) &&
+                Runtime.equals(m11, m.m11, delta) && Runtime.equals(m12, m.m12, delta) &&
+                Runtime.equals(m20, m.m20, delta) && Runtime.equals(m21, m.m21, delta) &&
+                Runtime.equals(m22, m.m22, delta)
     }
 
     /*fun swap(other: Matrix3f?): Matrix3f {

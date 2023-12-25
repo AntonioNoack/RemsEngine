@@ -8,7 +8,6 @@ import me.anno.io.files.FileReference
 import me.anno.io.files.Signature
 import java.io.ByteArrayInputStream
 import java.io.InputStream
-import java.nio.charset.Charset
 
 class InnerImageFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
@@ -45,8 +44,8 @@ class InnerImageFile(
         return bytes
     }
 
-    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
-        callback(String(bytes, charset), null)
+    override fun readText(callback: (String?, Exception?) -> Unit) {
+        callback(String(bytes), null)
     }
 
     override fun readTextSync(): String {

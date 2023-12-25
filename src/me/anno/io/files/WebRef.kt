@@ -213,7 +213,7 @@ open class WebRef(url: String, args: Map<Any?, Any?> = emptyMap()) :
                     res.append(cp.toChar())
                 } else {
                     try {
-                        val b = String(intArrayOf(cp), 0, 1).toByteArray(Charsets.UTF_8)
+                        val b = String(intArrayOf(cp), 0, 1).toByteArray()
                         for (j in b.indices) {
                             res.append('%')
                             res.append(hex4(b[j].toInt().shr(4)))

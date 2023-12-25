@@ -22,7 +22,7 @@ class WaveData private constructor(var data: ByteBuffer?, val format: Int, val s
 
     companion object {
         @JvmStatic
-        private val LOGGER: Logger = getLogger(WaveData::class.java)
+        private val LOGGER: Logger = getLogger(WaveData::class)
         @JvmStatic
         fun create(input: InputStream): WaveData? {
             return try {

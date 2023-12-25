@@ -1586,7 +1586,7 @@ open class Quaternionf(
                 alphaN = alphaN + alphaN - 1f
             }
             dot = q1x * q2x + q1y * q2y + q1z * q2z + q1w * q2w
-            absDot = Math.abs(dot)
+            absDot = abs(dot)
         }
         val scale0 = 1f - alphaN
         val scale1 = if (dot >= 0.0f) alphaN else -alphaN
@@ -1887,9 +1887,7 @@ open class Quaternionf(
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) true
-        else if (other !is Quaternionf) false
-        else x == other.x && y == other.y && z == other.z && w == other.w
+        return other is Quaternionf && x == other.x && y == other.y && z == other.z && w == other.w
     }
 
     @JvmOverloads

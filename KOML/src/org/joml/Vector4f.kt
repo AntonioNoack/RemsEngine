@@ -404,10 +404,6 @@ open class Vector4f(
     }
 
     fun min(v: Vector4f, dst: Vector4f = this): Vector4f {
-        val x = x
-        val y = y
-        val z = z
-        val w = w
         dst.x = min(x, v.x)
         dst.y = min(y, v.y)
         dst.z = min(z, v.z)
@@ -416,10 +412,6 @@ open class Vector4f(
     }
 
     fun max(v: Vector4f, dst: Vector4f = this): Vector4f {
-        val x = x
-        val y = y
-        val z = z
-        val w = w
         dst.x = max(x, v.x)
         dst.y = max(y, v.y)
         dst.z = max(z, v.z)
@@ -437,37 +429,18 @@ open class Vector4f(
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) true
-        else if (other !is Vector4f) false
-        else x == other.x && y == other.y && z == other.z && w == other.w
+        return other is Vector4f && other.x == x && other.y == y && other.z == z && other.w == w
     }
 
-    fun equals(v: Vector4f?, delta: Float): Boolean {
-        return if (this === v) {
-            true
-        } else if (v == null) {
-            false
-        } else if (!Runtime.equals(x, v.x, delta)) {
-            false
-        } else if (!Runtime.equals(y, v.y, delta)) {
-            false
-        } else if (!Runtime.equals(z, v.z, delta)) {
-            false
-        } else {
-            Runtime.equals(w, v.w, delta)
-        }
+    fun equals(v: Vector4f, delta: Float): Boolean {
+        return Runtime.equals(x, v.x, delta) &&
+                Runtime.equals(y, v.y, delta) &&
+                Runtime.equals(z, v.z, delta) &&
+                Runtime.equals(w, v.w, delta)
     }
 
     fun equals(x: Float, y: Float, z: Float, w: Float): Boolean {
-        return if ((this.x) != (x)) {
-            false
-        } else if ((this.y) != (y)) {
-            false
-        } else if ((this.z) != (z)) {
-            false
-        } else {
-            (this.w) == (w)
-        }
+        return this.x == x && this.y == y && this.z == z && this.w == w
     }
 
     fun smoothStep(v: Vector4f, t: Float, dst: Vector4f = this): Vector4f {

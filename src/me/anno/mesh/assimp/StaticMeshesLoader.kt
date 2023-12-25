@@ -38,7 +38,7 @@ import kotlin.math.sign
 
 object StaticMeshesLoader {
 
-    private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class.java)
+    private val LOGGER = LogManager.getLogger(StaticMeshesLoader::class)
 
     const val defaultFlags = aiProcess_GenSmoothNormals or // if the normals are unavailable, generate smooth ones
             aiProcess_Triangulate or // we don't want to triangulate ourselves

@@ -7,7 +7,6 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.URI
-import java.nio.charset.Charset
 import kotlin.concurrent.thread
 
 class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath)) {
@@ -95,9 +94,9 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun readBytesSync() = file.readBytes()
 
-    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+    override fun readText(callback: (String?, Exception?) -> Unit) {
         try {
-            callback(file.readText(charset), null)
+            callback(file.readText(), null)
         } catch (e: Exception) {
             callback(null, e)
         }
@@ -119,11 +118,6 @@ class FileFileRef(val file: File) : FileReference(beautifyPath(file.absolutePath
 
     override fun writeBytes(bytes: ByteArray) {
         file.writeBytes(bytes)
-        LastModifiedCache.invalidate(file)
-    }
-
-    override fun writeText(text: String, charset: Charset) {
-        file.writeText(text, charset)
         LastModifiedCache.invalidate(file)
     }
 

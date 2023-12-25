@@ -64,6 +64,9 @@ class AABBf(
     fun union(point: Vector3f, dst: AABBf = this) =
         union(point.x, point.y, point.z, dst)
 
+    fun union(point: Vector3d, dst: AABBf = this) =
+        union(point.x.toFloat(), point.y.toFloat(), point.z.toFloat(), dst)
+
     fun union(x: Float, y: Float, z: Float, dst: AABBf = this): AABBf {
         dst.minX = min(minX, x)
         dst.minY = min(minY, y)
@@ -74,18 +77,15 @@ class AABBf(
         return this
     }
 
-    fun testPoint(v: Vector3f): Boolean {
-        return v.x in minX..maxX && v.y in minY..maxY && v.z in minZ..maxZ
-    }
-
+    fun testPoint(v: Vector3f): Boolean = testPoint(v.x, v.y, v.z)
     fun testPoint(x: Float, y: Float, z: Float): Boolean {
         return x in minX..maxX && y in minY..maxY && z in minZ..maxZ
     }
 
-    fun testAABB(other: AABBf): Boolean {
-        return maxX >= other.minX && maxY >= other.minY && maxZ >= other.minZ &&
-                minX <= other.maxX && minY <= other.maxY && minZ <= other.maxZ
-    }
+    fun testAABB(other: AABBf): Boolean = testAABB(
+        other.minX, other.minY, other.minZ,
+        other.maxX, other.maxY, other.maxZ
+    )
 
     fun testAABB(
         otherMinX: Float, otherMinY: Float, otherMinZ: Float,
@@ -98,8 +98,8 @@ class AABBf(
     fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float): Boolean =
         isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz, Float.POSITIVE_INFINITY)
 
-    fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float, th: Float): Boolean =
-        isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz, th, Float.POSITIVE_INFINITY)
+    fun testRay(px: Float, py: Float, pz: Float, dx: Float, dy: Float, dz: Float, margin: Float): Boolean =
+        isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz, margin, Float.POSITIVE_INFINITY)
 
     fun isEmpty() = minX > maxX
 
@@ -694,58 +694,41 @@ class AABBf(
         rdx: Float, rdy: Float, rdz: Float,
         maxDistance: Float
     ): Boolean {
-        val sx0 = (minX - rx) * rdx
-        val sy0 = (minY - ry) * rdy
-        val sz0 = (minZ - rz) * rdz
-        val sx1 = (maxX - rx) * rdx
-        val sy1 = (maxY - ry) * rdy
-        val sz1 = (maxZ - rz) * rdz
-        val nearX = min(sx0, sx1)
-        val farX = max(sx0, sx1)
-        val nearY = min(sy0, sy1)
-        val farY = max(sy0, sy1)
-        val nearZ = min(sz0, sz1)
-        val farZ = max(sz0, sz1)
-        val far = min(farX, min(farY, farZ))
-        val near = max(max(nearX, max(nearY, nearZ)), 0f)
-        return far >= near && near < maxDistance
+        return isRayIntersecting(
+            rx, ry, rz,
+            rdx, rdy, rdz,
+            0f, maxDistance
+        )
     }
 
     fun isRayIntersecting(
         rx: Float, ry: Float, rz: Float,
         rdx: Float, rdy: Float, rdz: Float,
-        th: Float, maxDistance: Float
+        margin: Float, maxDistance: Float
     ): Boolean {
-        val sx0 = (minX - th - rx) * rdx
-        val sy0 = (minY - th - ry) * rdy
-        val sz0 = (minZ - th - rz) * rdz
-        val sx1 = (maxX + th - rx) * rdx
-        val sy1 = (maxY + th - ry) * rdy
-        val sz1 = (maxZ + th - rz) * rdz
-        val nearX = min(sx0, sx1)
-        val farX = max(sx0, sx1)
-        val nearY = min(sy0, sy1)
-        val farY = max(sy0, sy1)
-        val nearZ = min(sz0, sz1)
-        val farZ = max(sz0, sz1)
-        val far = min(farX, min(farY, farZ))
-        val near = max(max(nearX, max(nearY, nearZ)), 0f)
-        return far >= near && near < maxDistance
+        val dist = whereIsRayIntersecting(rx, ry, rz, rdx, rdy, rdz, margin)
+        return dist < maxDistance
     }
 
-    fun whereIsRayIntersecting(rayOrigin: Vector3f, invRayDirection: Vector3f): Float {
-        val rx = rayOrigin.x
-        val ry = rayOrigin.y
-        val rz = rayOrigin.z
-        val rdx = invRayDirection.x
-        val rdy = invRayDirection.y
-        val rdz = invRayDirection.z
-        val sx0 = (minX - rx) * rdx
-        val sy0 = (minY - ry) * rdy
-        val sz0 = (minZ - rz) * rdz
-        val sx1 = (maxX - rx) * rdx
-        val sy1 = (maxY - ry) * rdy
-        val sz1 = (maxZ - rz) * rdz
+    fun whereIsRayIntersecting(rayOrigin: Vector3f, invRayDirection: Vector3f, margin: Float): Float {
+        return whereIsRayIntersecting(
+            rayOrigin.x, rayOrigin.y, rayOrigin.z,
+            invRayDirection.x, invRayDirection.y, invRayDirection.z,
+            margin
+        )
+    }
+
+    fun whereIsRayIntersecting(
+        rx: Float, ry: Float, rz: Float,
+        rdx: Float, rdy: Float, rdz: Float,
+        margin: Float,
+    ): Float {
+        val sx0 = (minX - margin - rx) * rdx
+        val sy0 = (minY - margin - ry) * rdy
+        val sz0 = (minZ - margin - rz) * rdz
+        val sx1 = (maxX + margin - rx) * rdx
+        val sy1 = (maxY + margin - ry) * rdy
+        val sz1 = (maxZ + margin - rz) * rdz
         val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
         val nearY = min(sy0, sy1)

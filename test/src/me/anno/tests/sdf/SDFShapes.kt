@@ -83,7 +83,7 @@ fun createShapesScene(): Entity {
      * Using Susanne as the sample mesh, with 2 small spheres, reduced my performance to 60 fps on a RTX 3070 (BAD!!!).
      * */
     val sampleMesh = getReference("res://icon-lowpoly.obj")
-    for ((index, type) in SDFMesh.SDFMeshTechnique.values().withIndex()) {
+    for ((index, type) in SDFMesh.SDFMeshTechnique.entries.withIndex()) {
         place(SDFMesh().apply {
             name = "SDFMesh - ${type.name.upperSnakeCaseToTitle()}"
             meshFile = sampleMesh

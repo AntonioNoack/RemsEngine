@@ -117,6 +117,6 @@ abstract class FrameReader<FrameType>(
         private val foundCodecs = HashSet<String>()
 
         @JvmStatic
-        private val LOGGER = LogManager.getLogger(FrameReader::class.java)
+        private val LOGGER = LogManager.getLogger(FrameReader::class)
     }
 }

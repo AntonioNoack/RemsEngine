@@ -39,12 +39,12 @@ abstract class History<V : Any> : Saveable() {
     }
 
     fun put(change: V): Int {
-        synchronized(states) {
+        return synchronized(states) {
             states.add(change)
             clearToSize()
             nextInsertIndex = states.size
             currentState = states.last()
-            return nextInsertIndex
+            nextInsertIndex
         }
     }
 

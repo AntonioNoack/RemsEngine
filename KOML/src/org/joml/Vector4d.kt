@@ -711,9 +711,7 @@ open class Vector4d(
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) true
-        else if (other !is Vector4d) false
-        else x == other.x && y == other.y && z == other.z && w == other.w
+        return other is Vector4d && other.x == x && other.y == y && other.z == z && other.w == w
     }
 
     fun equals(v: Vector4d?, delta: Double): Boolean {

@@ -88,6 +88,12 @@ open class SDFComponent : ProceduralMesh(), Renderable,
     @Docs("Whether multiple samples get evaluated per pixel when MSAA is enabled; true=slower,nicer")
     @SerializedProperty
     var highQualityMSAA = false
+        set(value) {
+            if (field != value) {
+                invalidateShader()
+                field = value
+            }
+        }
 
     /**
      * how much larger the underlying mesh needs to be to cover this sdf mesh;

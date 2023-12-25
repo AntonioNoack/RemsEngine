@@ -1385,7 +1385,7 @@ open class Quaterniond(
         var q2z = q.z
         var q2w = q.w
         var dot = q1x * q2x + q1y * q2y + q1z * q2z + q1w * q2w
-        var absDot = Math.abs(dot)
+        var absDot = abs(dot)
         if (1.0 - 1E-6 < absDot) {
             return dst.set(this)
         }
@@ -1417,7 +1417,7 @@ open class Quaterniond(
                 alphaN = alphaN + alphaN - 1.0
             }
             dot = q1x * q2x + q1y * q2y + q1z * q2z + q1w * q2w
-            absDot = Math.abs(dot)
+            absDot = abs(dot)
         }
         val scale0 = 1.0 - alphaN
         val scale1 = if (dot >= 0.0) alphaN else -alphaN
@@ -1526,9 +1526,7 @@ open class Quaterniond(
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) true
-        else if (other !is Quaterniond) false
-        else x == other.x && y == other.y && z == other.z && w == other.w
+        return other is Quaterniond && x == other.x && y == other.y && z == other.z && w == other.w
     }
 
     @JvmOverloads
@@ -1837,9 +1835,9 @@ open class Quaterniond(
     }
 
     fun getEulerAnglesZYX(eulerAngles: Vector3d): Vector3d {
-        eulerAngles.x = Math.atan2(y * z + w * x, 0.5 - x * x - y * y);
+        eulerAngles.x = atan2(y * z + w * x, 0.5 - x * x - y * y);
         eulerAngles.y = JomlMath.safeAsin(-2.0 * (x * z - w * y));
-        eulerAngles.z = Math.atan2(x * y + w * z, 0.5 - y * y - z * z);
+        eulerAngles.z = atan2(x * y + w * z, 0.5 - y * y - z * z);
         return eulerAngles
     }
 

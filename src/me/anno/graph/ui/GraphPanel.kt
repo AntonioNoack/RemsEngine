@@ -623,7 +623,7 @@ open class GraphPanel(graph: Graph? = null, style: Style) : MapPanel(style) {
     @Suppress("MayBeConstant")
     companion object {
 
-        private val LOGGER = LogManager.getLogger(GraphPanel::class.java)
+        private val LOGGER = LogManager.getLogger(GraphPanel::class)
 
         val greenish = 0x1cdeaa or black
         val yellowGreenish = 0x9cf841 or black

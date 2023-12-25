@@ -201,19 +201,11 @@ open class Vector2d(
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) true
-        else if (other !is Vector2d) false
-        else x == other.x && y == other.y
+        return other is Vector2d && other.x == x && other.y == y
     }
 
     fun equals(v: Vector2d, delta: Double): Boolean {
-        return if (this === v) {
-            true
-        } else if (!Runtime.equals(x, v.x, delta)) {
-            false
-        } else {
-            Runtime.equals(y, v.y, delta)
-        }
+        return Runtime.equals(x, v.x, delta) && Runtime.equals(y, v.y, delta)
     }
 
     fun equals(x: Double, y: Double) = this.x == x && this.y == y

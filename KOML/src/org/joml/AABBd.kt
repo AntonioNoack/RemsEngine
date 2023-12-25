@@ -64,8 +64,14 @@ class AABBd(
         return this
     }
 
-    fun union(other: Vector3d, dst: AABBd = this) =
+    fun union(other: Vector3d, dst: AABBd = this): AABBd =
         union(other.x, other.y, other.z, dst)
+
+    fun union(other: Vector3f, dst: AABBd = this): AABBd =
+        union(other.x, other.y, other.z, dst)
+
+    fun union(x: Float, y: Float, z: Float, dst: AABBd = this): AABBd =
+        union(x.toDouble(), y.toDouble(), z.toDouble(), dst)
 
     fun union(x: Double, y: Double, z: Double, dst: AABBd = this): AABBd {
         dst.minX = min(minX, x)
@@ -85,10 +91,10 @@ class AABBd(
         return x in minX..maxX && y in minY..maxY && z in minZ..maxZ
     }
 
-    fun testAABB(other: AABBd): Boolean {
-        return maxX >= other.minX && maxY >= other.minY && maxZ >= other.minZ &&
-                minX <= other.maxX && minY <= other.maxY && minZ <= other.maxZ
-    }
+    fun testAABB(other: AABBd): Boolean = testAABB(
+        other.minX, other.minY, other.minZ,
+        other.maxX, other.maxY, other.maxZ
+    )
 
     fun testAABB(
         otherMinX: Double, otherMinY: Double, otherMinZ: Double,
@@ -132,7 +138,7 @@ class AABBd(
     }
 
     fun testRay(px: Double, py: Double, pz: Double, dx: Double, dy: Double, dz: Double) =
-        isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz)
+        isRayIntersecting(px, py, pz, 1 / dx, 1 / dy, 1 / dz, 0.0, Double.POSITIVE_INFINITY)
 
     fun isEmpty(): Boolean = minX > maxX
 
@@ -388,48 +394,41 @@ class AABBd(
     fun isRayIntersecting(
         rayOrigin: Vector3d,
         invRayDirection: Vector3d,
-        maxDistance: Double = Double.POSITIVE_INFINITY
+        margin: Double, maxDistance: Double
     ): Boolean = isRayIntersecting(
         rayOrigin.x, rayOrigin.y, rayOrigin.z,
         invRayDirection.x, invRayDirection.y, invRayDirection.z,
-        maxDistance
+        margin, maxDistance
     )
 
     fun isRayIntersecting(
         rx: Double, ry: Double, rz: Double,
         rdx: Double, rdy: Double, rdz: Double,
-        maxDistance: Double = Double.POSITIVE_INFINITY
+        margin: Double, maxDistance: Double
     ): Boolean {
-        val sx0 = (minX - rx) * rdx
-        val sy0 = (minY - ry) * rdy
-        val sz0 = (minZ - rz) * rdz
-        val sx1 = (maxX - rx) * rdx
-        val sy1 = (maxY - ry) * rdy
-        val sz1 = (maxZ - rz) * rdz
-        val nearX = min(sx0, sx1)
-        val farX = max(sx0, sx1)
-        val nearY = min(sy0, sy1)
-        val farY = max(sy0, sy1)
-        val nearZ = min(sz0, sz1)
-        val farZ = max(sz0, sz1)
-        val far = min(farX, min(farY, farZ))
-        val near = max(max(nearX, max(nearY, nearZ)), 0.0)
-        return far >= near && near < maxDistance
+        val dist = whereIsRayIntersecting(rx, ry, rz, rdx, rdy, rdz, margin)
+        return dist < maxDistance
     }
 
-    fun whereIsRayIntersecting(rayOrigin: Vector3d, invRayDirection: Vector3d): Double {
-        val rx = rayOrigin.x
-        val ry = rayOrigin.y
-        val rz = rayOrigin.z
-        val rdx = invRayDirection.x
-        val rdy = invRayDirection.y
-        val rdz = invRayDirection.z
-        val sx0 = (minX - rx) * rdx
-        val sy0 = (minY - ry) * rdy
-        val sz0 = (minZ - rz) * rdz
-        val sx1 = (maxX - rx) * rdx
-        val sy1 = (maxY - ry) * rdy
-        val sz1 = (maxZ - rz) * rdz
+    fun whereIsRayIntersecting(rayOrigin: Vector3d, invRayDirection: Vector3d, margin: Double): Double {
+        return whereIsRayIntersecting(
+            rayOrigin.x, rayOrigin.y, rayOrigin.z,
+            invRayDirection.x, invRayDirection.y, invRayDirection.z,
+            margin
+        )
+    }
+
+    fun whereIsRayIntersecting(
+        rx: Double, ry: Double, rz: Double,
+        rdx: Double, rdy: Double, rdz: Double,
+        margin: Double,
+    ): Double {
+        val sx0 = (minX - margin - rx) * rdx
+        val sy0 = (minY - margin - ry) * rdy
+        val sz0 = (minZ - margin - rz) * rdz
+        val sx1 = (maxX + margin - rx) * rdx
+        val sy1 = (maxY + margin - ry) * rdy
+        val sz1 = (maxZ + margin - rz) * rdz
         val nearX = min(sx0, sx1)
         val farX = max(sx0, sx1)
         val nearY = min(sy0, sy1)

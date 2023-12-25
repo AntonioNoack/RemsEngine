@@ -577,25 +577,12 @@ open class Matrix2d {
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) true
-        else if (other !is Matrix2d) false
-        else m00 == other.m00 && m01 == other.m01 && m10 == other.m10 && m11 == other.m11
+        return other is Matrix2d && m00 == other.m00 && m01 == other.m01 && m10 == other.m10 && m11 == other.m11
     }
 
-    fun equals(m: Matrix2d?, delta: Double): Boolean {
-        return if (this === m) {
-            true
-        } else if (m == null) {
-            false
-        } else if (!Runtime.equals(m00, m.m00, delta)) {
-            false
-        } else if (!Runtime.equals(m01, m.m01, delta)) {
-            false
-        } else if (!Runtime.equals(m10, m.m10, delta)) {
-            false
-        } else {
-            Runtime.equals(m11, m.m11, delta)
-        }
+    fun equals(m: Matrix2d, delta: Double): Boolean {
+        return Runtime.equals(m00, m.m00, delta) && Runtime.equals(m01, m.m01, delta) &&
+                Runtime.equals(m10, m.m10, delta) && Runtime.equals(m11, m.m11, delta)
     }
 
     /*fun swap(other: Matrix2d?): Matrix2d {

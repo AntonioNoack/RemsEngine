@@ -524,9 +524,7 @@ open class Matrix2f {
     }
 
     override fun equals(other: Any?): Boolean {
-        return if (this === other) true
-        else if (other !is Matrix2f) false
-        else m00 == other.m00 && m01 == other.m01 && m10 == other.m10 && m11 == other.m11
+        return other is Matrix2f && m00 == other.m00 && m01 == other.m01 && m10 == other.m10 && m11 == other.m11
     }
 
     fun equals(m: Matrix2f?, delta: Float): Boolean {

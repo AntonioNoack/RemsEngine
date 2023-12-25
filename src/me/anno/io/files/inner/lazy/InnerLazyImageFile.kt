@@ -9,7 +9,6 @@ import me.anno.io.files.inner.InnerFile
 import me.anno.io.files.inner.SignatureFile
 import java.io.ByteArrayInputStream
 import java.io.InputStream
-import java.nio.charset.Charset
 
 open class InnerLazyImageFile(
     absolutePath: String, relativePath: String, _parent: FileReference,
@@ -51,8 +50,8 @@ open class InnerLazyImageFile(
         return bytes
     }
 
-    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
-        callback(String(bytes, charset), null)
+    override fun readText(callback: (String?, Exception?) -> Unit) {
+        callback(String(bytes), null)
     }
 
     override fun readTextSync(): String {

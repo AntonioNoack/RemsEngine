@@ -8,7 +8,6 @@ import net.sf.image4j.io.Utils
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
-import java.nio.charset.StandardCharsets
 
 /**
  * Decodes images in BMP format.
@@ -331,8 +330,7 @@ class BMPDecoder(input: InputStream) {
         val s1 = lis.read()
         if (s0 < 0 || s1 < 0) throw EOFException()
         if (s0 != 'B'.code || s1 != 'M'.code) {
-            val signature = String(byteArrayOf(s0.toByte(), s1.toByte()), StandardCharsets.UTF_8)
-            throw IOException("Invalid signature '$signature' for BMP format")
+            throw IOException("Invalid signature '${s0.toChar()}${s1.toChar()}' for BMP format")
         }
 
         // file size [4]

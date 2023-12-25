@@ -362,7 +362,7 @@ abstract class StudioBase(
 
         var workspace = OS.documents
 
-        private val LOGGER = LogManager.getLogger(StudioBase::class.java)
+        private val LOGGER = LogManager.getLogger(StudioBase::class)
 
         var dragged: IDraggable? = null
 

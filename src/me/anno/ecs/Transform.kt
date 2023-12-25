@@ -10,7 +10,7 @@ import org.joml.*
 class Transform() : Saveable() {
 
     companion object {
-        private val LOGGER = LogManager.getLogger(Transform::class.java)
+        private val LOGGER = LogManager.getLogger(Transform::class)
     }
 
     constructor(entity: Entity?) : this() {

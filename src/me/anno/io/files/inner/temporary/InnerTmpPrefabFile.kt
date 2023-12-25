@@ -7,7 +7,6 @@ import me.anno.io.files.InvalidRef
 import me.anno.io.json.saveable.JsonStringWriter
 import java.io.InputStream
 import java.lang.ref.WeakReference
-import java.nio.charset.Charset
 
 class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json") :
     InnerTmpFile(name, ext), PrefabReadable {
@@ -32,7 +31,7 @@ class InnerTmpPrefabFile(val prefab: Prefab, name: String, ext: String = "json")
     override fun isSerializedFolder(): Boolean = false
     override fun listChildren(): List<FileReference>? = null
 
-    override fun readText(charset: Charset, callback: (String?, Exception?) -> Unit) {
+    override fun readText(callback: (String?, Exception?) -> Unit) {
         callback(text, null)
     }
 
