@@ -289,14 +289,6 @@ object GFX {
     }
 
     @JvmStatic
-    fun copyColorAndDepth(color: ITexture2D, depth: ITexture2D) {
-        Frame.bind()
-        color.bindTrulyNearest(0)
-        depth.bindTrulyNearest(1)
-        copyColorAndDepth(color.samples, depth.samples)
-    }
-
-    @JvmStatic
     fun copy(alpha: Float, samples: Int = 1) {
         check()
         val shader = if (samples > 1) copyShaderMS else copyShader
@@ -316,6 +308,14 @@ object GFX {
         shader.v1f("alpha", 1f)
         flat01.draw(shader)
         check()
+    }
+
+    @JvmStatic
+    fun copyColorAndDepth(color: ITexture2D, depth: ITexture2D) {
+        Frame.bind()
+        color.bindTrulyNearest(0)
+        depth.bindTrulyNearest(1)
+        copyColorAndDepth(color.samples, depth.samples)
     }
 
     @JvmStatic

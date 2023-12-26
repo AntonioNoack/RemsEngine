@@ -264,7 +264,6 @@ class PipelineStage(
     }
 
     fun bind(draw: () -> Unit) {
-        Texture2D.unbindAllTextures()
         GFXState.blendMode.use(blendMode) {
             GFXState.depthMode.use(depthMode) {
                 GFXState.depthMask.use(writeDepth) {

@@ -28,11 +28,13 @@ import me.anno.gpu.texture.CubemapTexture
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.Texture2DArray
+import me.anno.gpu.texture.TextureLib.missingTexture
 import me.anno.graph.render.Texture
 import me.anno.input.Input
 import me.anno.maths.Maths
 import me.anno.ui.base.components.AxisAlignment
 import me.anno.utils.Color
+import me.anno.utils.Color.white
 import me.anno.utils.Color.withAlpha
 import me.anno.utils.pooling.JomlPools
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -42,6 +44,9 @@ import org.joml.Vector4f
 import kotlin.math.floor
 import kotlin.math.min
 
+/**
+ * Helpers to draw debug information onto RenderView
+ * */
 object DebugRendering {
 
     fun showShadowMapDebug(view: RenderView) {
@@ -292,15 +297,18 @@ object DebugRendering {
         view: RenderView, w: Int, h: Int, x0: Int, y0: Int, x1: Int, y1: Int,
         renderer: Renderer, buffer: IFramebuffer, lightBuffer: IFramebuffer, deferred: DeferredSettings
     ) {
-        view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = false)
+
+        // todo add another for depth
+
+        val layers = deferred.settingsV1
+        val size = layers.size + 2 /* 1 for light, 1 for depth */
+        val (rows, cols) = view.findRowsCols(size)
+
+        view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
         view.drawGizmos(buffer, true)
 
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
         view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightBuffer)
-
-        val layers = deferred.settingsV1
-        val size = layers.size + 1 /* 1 for light */
-        val (rows, cols) = view.findRowsCols(size)
 
         val pbb = DrawTexts.pushBetterBlending(true)
         for (index in 0 until size) {
@@ -313,26 +321,29 @@ object DebugRendering {
             val y02 = y0 + (y1 - y0) * (row + 0) / rows
             val y12 = y0 + (y1 - y0) * (row + 1) / rows
 
-            val texture: ITexture2D
-            val color: Int
-            val applyToneMapping: Boolean
-            if (index < layers.size) {
-                texture = buffer.getTextureI(index)
-                color = Color.white
-                applyToneMapping = false
-            } else {
-                // draw the light buffer as the last stripe
-                texture = lightBuffer.getTexture0()
-                color = (0x22 * 0x10101) or Color.black
-                applyToneMapping = true
+            var color = white
+            var applyToneMapping = false
+            val texture = when (index) {
+                size - 2 -> {
+                    // draw the light buffer as the last stripe
+                    color = (0x22 * 0x10101) or Color.black
+                    applyToneMapping = true
+                    lightBuffer.getTexture0()
+                }
+                size - 1 -> buffer.depthTexture ?: missingTexture
+                else -> buffer.getTextureI(index)
             }
 
             // y flipped, because it would be incorrect otherwise
             val name = if (texture is Texture2D) texture.name else texture.toString()
-            DrawTextures.drawTexture(
-                x02, y12, x12 - x02, y02 - y12, texture,
-                true, color, null, applyToneMapping
-            )
+            if (index == size - 1 && texture != missingTexture) {
+                DrawTextures.drawDepthTexture(x02, y02, x12 - x02, y12 - y02, texture)
+            } else {
+                DrawTextures.drawTexture(
+                    x02, y12, x12 - x02, y02 - y12, texture,
+                    true, color, null, applyToneMapping
+                )
+            }
 
             val f = 0.8f
             // draw alpha on right/bottom side
@@ -349,18 +360,19 @@ object DebugRendering {
 
     fun drawAllLayers(
         view: RenderView, w: Int, h: Int, x0: Int, y0: Int, x1: Int, y1: Int,
-        renderer: Renderer, buffer: IFramebuffer, lightNBuffer1: IFramebuffer, deferred: DeferredSettings
+        renderer: Renderer, buffer: IFramebuffer, light: IFramebuffer, deferred: DeferredSettings
     ) {
-        view.drawScene(w, h, renderer, buffer, changeSize = true, hdr = false)
+
+        val size = deferred.layerTypes.size + 2 /* 1 for light, 1 for depth */
+        val (rows, cols) = view.findRowsCols(size)
+
+        view.drawScene(w / cols, h / rows, renderer, buffer, changeSize = true, hdr = false)
         view.drawGizmos(buffer, true)
 
         val tex = Texture.texture(buffer, deferred, DeferredLayerType.DEPTH)
-        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, lightNBuffer1)
+        view.drawSceneLights(buffer, tex.tex as Texture2D, tex.mask!!, light)
 
         // instead of drawing the raw buffers, draw the actual layers (color,roughness,metallic,...)
-
-        val size = deferred.layerTypes.size + 1 /* 1 for light */
-        val (rows, cols) = view.findRowsCols(size)
 
         val tw = w / cols
         val th = h / rows
@@ -381,32 +393,43 @@ object DebugRendering {
             val name: String
             val texture: ITexture2D
             var applyTonemapping = false
-            var color = Color.white
-            if (index < deferred.layerTypes.size) {
-                // draw the light buffer as the last stripe
-                val layer = deferred.layerTypes[index]
-                name = layer.name
-                GFXState.useFrame(tmp) {
-                    val shader = Renderers.attributeEffects[layer to settings]!!
-                    shader.use()
-                    DepthTransforms.bindDepthToPosition(shader)
-                    settings.findTexture(buffer, layer)!!.bindTrulyNearest(0)
-                    SimpleBuffer.flat01.draw(shader)
+            var color = white
+            when (index) {
+                size - 2 -> {
+                    texture = light.getTexture0()
+                    val exposure = 0x22 // same as RenderMode.LIGHT_SUM.ToneMappingNode.Inputs[Exposure]
+                    color = (exposure * 0x10101).withAlpha(255)
+                    applyTonemapping = true
+                    name = "Light"
                 }
-                texture = tmp.getTexture0()
-            } else {
-                texture = lightNBuffer1.getTexture0()
-                val exposure = 0x22 // same as RenderMode.LIGHT_SUM.ToneMappingNode.Inputs[Exposure]
-                color = (exposure * 0x10101) or Color.black
-                applyTonemapping = true
-                name = "Light"
+                size - 1 -> {
+                    texture = buffer.depthTexture ?: missingTexture
+                    name = "Depth"
+                }
+                else -> {
+                    // draw the light buffer as the last stripe
+                    val layer = deferred.layerTypes[index]
+                    name = layer.name
+                    GFXState.useFrame(tmp) {
+                        val shader = Renderers.attributeEffects[layer to settings]!!
+                        shader.use()
+                        DepthTransforms.bindDepthToPosition(shader)
+                        settings.findTexture(buffer, layer)!!.bindTrulyNearest(0)
+                        SimpleBuffer.flat01.draw(shader)
+                    }
+                    texture = tmp.getTexture0()
+                }
             }
 
             // y flipped, because it would be incorrect otherwise
-            DrawTextures.drawTexture(
-                x02, y12, tw, -th, texture, true, color,
-                null, applyTonemapping
-            )
+            if (index == size - 1 && texture != missingTexture) {
+                DrawTextures.drawDepthTexture(x02, y02, tw, th, texture)
+            } else {
+                DrawTextures.drawTexture(
+                    x02, y12, tw, -th, texture, true, color,
+                    null, applyTonemapping
+                )
+            }
             DrawTexts.drawSimpleTextCharByChar(
                 (x02 + x12) / 2, (y02 + y12) / 2, 2,
                 name, AxisAlignment.CENTER, AxisAlignment.CENTER

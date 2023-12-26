@@ -332,8 +332,8 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
 
         val layers = deferred.settingsV1
         val size = when (renderMode) {
-            RenderMode.ALL_DEFERRED_BUFFERS -> layers.size + 1 /* 1 for light */
-            RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size + 1 /* 1 for light */
+            RenderMode.ALL_DEFERRED_BUFFERS -> layers.size + 2 /* 1 for light, 1 for depth */
+            RenderMode.ALL_DEFERRED_LAYERS -> deferred.layerTypes.size + 2 /* 1 for light, 1 for depth */
             else -> 1
         }
 

@@ -14,10 +14,10 @@ import me.anno.utils.types.Strings.iff
 object BufferCompute {
 
     fun createAccessors(
-        given: OpenGLBuffer, wanted: List<Attribute>, suffix: String,
+        given: OpenGLBuffer, wanted: List<Attribute>, name: String,
         binding: Int, setters: Boolean
     ): String {
-        return createAccessors(given.attributes, wanted, suffix, binding, setters)
+        return createAccessors(given.attributes, wanted, name, binding, setters)
     }
 
     private fun floatType(components: Int): String {
@@ -27,21 +27,23 @@ object BufferCompute {
     fun createAccessors(
         given: List<Attribute>,
         wanted: List<Attribute>,
-        name: String,
-        binding: Int,
+        name: String, binding: Int,
         setters: Boolean
     ): String {
         if (wanted.isEmpty()) return ""
         var pos = 0
-        val struct = StringBuilder()
-        struct.append("struct Struct_$name {\n")
-        val functions = StringBuilder()
-        var padI = 0
+        val result = StringBuilder()
+        result.append(
+            "layout(std140, set = 0, binding = $binding) buffer Buffer_$name {\n" +
+                    "    uint data[];\n" +
+                    "} $name;\n"
+        )
+        val stride4 = (given.firstOrNull()?.stride ?: 0) / 4
         for (attr in given) {
+            val offset4 = pos / 4
             val name1 = attr.name.titlecase()
             val reqType = wanted.firstOrNull { it.name == attr.name }
             if (reqType != null) {
-                struct.append("  ")
                 when (attr.type) {
                     AttributeType.FLOAT -> {
                         val type = floatType(attr.components)
@@ -54,19 +56,28 @@ object BufferCompute {
                         }
                         val size = attr.components * 4
                         if (pos % alignment != 0) throw IllegalStateException("Alignment breaks std140")
-                        functions.append(
+                        result.append(
                             "$type get$name$name1(uint index){\n" +
-                                    "   return $name.data[index].${attr.name};\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    when (attr.components) {
+                                        1 -> "return uintBitsToFloat($name.data[idx]);\n"
+                                        2 -> "return vec2(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]));\n"
+                                        3 -> "return vec3(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]),uintBitsToFloat($name.data[idx+2]));\n"
+                                        4 -> "return vec4(uintBitsToFloat($name.data[idx]),uintBitsToFloat($name.data[idx+1]),uintBitsToFloat($name.data[idx+2]),uintBitsToFloat($name.data[idx+3]));\n"
+                                        else -> throw NotImplementedError()
+                                    } +
                                     "}\n"
                         )
                         if (setters) {
-                            functions.append(
+                            result.append(
                                 "void set$name$name1(uint index, $type value){\n" +
-                                        "   $name.data[index].${attr.name} = value;\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        (0 until attr.components).joinToString("") {
+                                            "$name.data[idx+$it] = floatBitsToUint(value.${"xyzw"[it]})\n"
+                                        } +
                                         "}\n"
                             )
                         }
-                        struct.append(type)
                         pos += size
                     }
                     AttributeType.SINT8_NORM -> {
@@ -75,79 +86,67 @@ object BufferCompute {
                         if (pos % alignment != 0) throw IllegalStateException("Alignment breaks std140")
                         val c = reqType.components
                         when (c) {
-                            1 -> functions.append(
+                            1 -> result.append(
                                 "float get$name$name1(uint index){\n" +
-                                        "   int value = $name.data[index].${attr.name};\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        "   int value = int($name.data[idx]);\n" +
                                         "   return float((value<<24)>>24) / 127.0;\n" +
                                         "}\n"
                             )
-                            2 -> functions.append(
+                            2 -> result.append(
                                 "vec2 get$name$name1(uint index){\n" +
-                                        "   int value = $name.data[index].${attr.name};\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        "   int value = int($name.data[idx]);\n" +
                                         "   return vec2((value<<24)>>24, (value<<16)>>24) / 127.0;\n" +
                                         "}\n"
                             )
-                            3 -> functions.append(
+                            3 -> result.append(
                                 "vec3 get$name$name1(uint index){\n" +
-                                        "   int value = $name.data[index].${attr.name};\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        "   int value = int($name.data[idx]);\n" +
                                         "   return vec3((value<<24)>>24, (value<<16)>>24, (value<<8)>>24) / 127.0;\n" +
                                         "}\n"
                             )
-                            4 -> functions.append(
+                            4 -> result.append(
                                 "vec4 get$name$name1(uint index){\n" +
-                                        "   int value = $name.data[index].${attr.name};\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        "   int value = int($name.data[idx]);\n" +
                                         "   return vec4((value<<24)>>24, (value<<16)>>24, (value<<8)>>24, value>>24) / 127.0;\n" +
                                         "}\n"
                             )
                             else -> throw NotImplementedError()
                         }
                         if (setters) {
-                            functions.append(
+                            result.append(
                                 "void set$name$name1(uint index, ${floatType(c)} value){\n" +
                                         "   int sum = int(round(clamp(value.x,-1.0,1.0)*127.0))&255;\n" +
                                         "   sum |= (int(round(clamp(value.y,-1.0,1.0)*127.0))&255)<<8;\n".iff(c > 1) +
                                         "   sum |= (int(round(clamp(value.z,-1.0,1.0)*127.0))&255)<<16;\n".iff(c > 2) +
                                         "   sum |= (int(round(clamp(value.w,-1.0,1.0)*127.0)))<<24;\n".iff(c > 3) +
-                                        "   $name.data[index].${attr.name} = sum;\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        "   $name.data[idx] = uint(sum);\n" +
                                         "}\n"
                             )
                         }
-                        struct.append("int")
                         val size = attr.components
                         pos += size
                     }
                     else -> throw NotImplementedError(attr.toString())
                 }
-                struct.append(' ').append(attr.name).append(";\n")
-            } else {
-                val size = attr.type.byteSize * attr.components
-                if (size % 4 != 0) throw IllegalArgumentException()
-                struct.append("  ")
-                for (i in 0 until size step 4) {
-                    struct.append("int pad").append(padI++).append(";")
-                }
-                pos += size
             }
         }
-        struct.append("};\n")
-        struct.append(
-            "layout(std140, set = 0, binding = $binding) buffer Buffer_$name {\n" +
-                    "    Struct_$name data[];\n" +
-                    "} $name;\n"
-        )
         for (attr in wanted) {
             if (given.none2 { it.name == attr.name }) {
                 val name1 = attr.name.titlecase()
                 val type = floatType(attr.components)
-                functions.append(
+                result.append(
                     "$type get$name$name1(uint index){ return $type(0.0); }\n"
                 )
                 if (setters) {
-                    functions.append("void set$name$name1(uint index, $type value){}\n")
+                    result.append("void set$name$name1(uint index, $type value){}\n")
                 }
             }
         }
-        struct.append(functions)
-        return struct.toString()
+        return result.toString()
     }
 }

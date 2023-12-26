@@ -158,6 +158,7 @@ class ComputeShader(
             GL_RG16, GL_RG8, GL_R16, GL_R8,
             GL_RGBA16_SNORM, GL_RGBA8_SNORM, GL_RG16_SNORM, GL_RG8_SNORM,
             GL_R16_SNORM, GL_R8_SNORM -> format
+            // depth formats are not supported! bind a color texture instead, and transfer the data from and to it...
             0 -> throw IllegalArgumentException("Texture hasn't been created yet")
             else -> throw IllegalArgumentException("Format ${GFX.getName(format)} is not supported in Compute shaders (glBindImageTexture), use a sampler!")
         }
@@ -201,5 +202,9 @@ class ComputeShader(
         glDispatchCompute(widthGroups, heightGroups, depthGroups)
         // currently true, but that might change, if we just write to data buffers or similar
         Texture2D.wasModifiedInComputePipeline = true
+    }
+
+    fun printCode() {
+        LOGGER.warn(formatShader(name, "", source, ""))
     }
 }

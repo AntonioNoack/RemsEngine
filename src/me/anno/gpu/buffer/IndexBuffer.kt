@@ -21,7 +21,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
             }
         }
 
-    var elementsType = GL_UNSIGNED_INT
+    var elementsType = AttributeType.UINT32
     var drawMode: DrawMode? = null
 
     private var vao = -1
@@ -72,7 +72,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
                 GL30C.glBufferData(GL30C.GL_ELEMENT_ARRAY_BUFFER, buffer, usage)
             }*/
             maxIndex < 65536 -> {
-                elementsType = GL_UNSIGNED_SHORT
+                elementsType = AttributeType.UINT16
                 attributes = int16Attrs
                 val buffer = MemoryUtil.memAllocShort(indices.size)
                 for (i in indices) buffer.put(i.toShort())
@@ -86,7 +86,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
                 MemoryUtil.memFree(buffer)
             }
             else -> {
-                elementsType = GL_UNSIGNED_INT
+                elementsType = AttributeType.UINT32
                 attributes = int32Attrs
                 if (indices.size * 4L == locallyAllocated) {
                     glBufferSubData(target, 0, indices)
@@ -109,7 +109,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
         bind(shader) // defines drawLength
         if (base.drawLength > 0) {
             GFXState.bind()
-            glDrawElements(drawMode.id, indices.size, elementsType, 0)
+            glDrawElements(drawMode.id, indices.size, elementsType.id, 0)
             unbind()
             GFX.check()
         }
@@ -182,7 +182,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
         instanceData.ensureBuffer()
         bindInstanced(shader, instanceData)
         GFXState.bind()
-        glDrawElementsInstanced(drawMode.id, indices.size, elementsType, 0, instanceData.drawLength)
+        glDrawElementsInstanced(drawMode.id, indices.size, elementsType.id, 0, instanceData.drawLength)
         unbind()
     }
 
@@ -190,7 +190,7 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
         bindInstanced(shader, null)
         val drawMode = (drawMode ?: base.drawMode)
         GFXState.bind()
-        glDrawElementsInstanced(drawMode.id, indices.size, elementsType, 0, instanceCount)
+        glDrawElementsInstanced(drawMode.id, indices.size, elementsType.id, 0, instanceCount)
         unbind()
     }
 
