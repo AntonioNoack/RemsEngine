@@ -64,6 +64,6 @@ enum class LoopingState(val id: Int, val naming: NameDesc) {
 
     companion object {
         @JvmStatic
-        fun getState(id: Int) = values().firstOrNull { it.id == id } ?: PLAY_ONCE
+        fun getState(id: Int) = entries.firstOrNull { it.id == id } ?: PLAY_ONCE
     }
 }

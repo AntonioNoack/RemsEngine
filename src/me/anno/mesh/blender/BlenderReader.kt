@@ -359,10 +359,11 @@ object BlenderReader {
         if (!postTransform) scale.set(scale.x, scale.z, -scale.y)
         if (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0)
             prefab.setUnsafe(path, "scale", scale)
-        when (BObject.objectTypeById[obj.type.toInt()]) {
-            BObject.BObjectType.OB_EMPTY -> { // done
+        val typeId = obj.type.toInt()
+        when (BObjectType.entries.firstOrNull { it.id == typeId }) {
+            BObjectType.OB_EMPTY -> { // done
             }
-            BObject.BObjectType.OB_MESH -> {
+            BObjectType.OB_MESH -> {
                 // add mesh component
                 val armatureObject = obj.modifiers
                     .firstInstanceOrNull<BArmatureModifierData>()
@@ -424,7 +425,7 @@ object BlenderReader {
                 LOGGER.debug("Modifiers for mesh {}/{}: {}", obj.id.realName, path.nameId, obj.modifiers)
                 // materials would be nice... but somehow they are always null
             }
-            BObject.BObjectType.OB_CAMERA -> {
+            BObjectType.OB_CAMERA -> {
                 val cam = obj.data as? BCamera
                 if (cam != null) {
                     val c = prefab.add(path, 'c', "Camera", obj.id.realName)
@@ -432,7 +433,7 @@ object BlenderReader {
                     prefab.setUnsafe(c, "far", cam.far.toDouble())
                 }
             }
-            BObject.BObjectType.OB_LAMP -> {
+            BObjectType.OB_LAMP -> {
                 val light = obj.data as? BLamp
                 if (light != null) {
                     val name = obj.id.realName
@@ -503,7 +504,7 @@ object BlenderReader {
                     }
                 } else LOGGER.warn("obj.data of a lamp was not a lamp: ${obj.data?.run { this::class.simpleName }}")
             }
-            BObject.BObjectType.OB_ARMATURE -> {
+            BObjectType.OB_ARMATURE -> {
                 val armature = obj.data as BArmature
                 LOGGER.debug("Found armature, {}", armature)
                 LOGGER.debug(armature.bones)

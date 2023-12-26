@@ -368,16 +368,13 @@ enum class Interpolation(
     companion object {
 
         @JvmField
-        val values2 = values()
-
-        @JvmField
         val left = Vector4d(0.0, 1.0, 0.0, 0.0)
 
         @JvmField
         val right = Vector4d(0.0, 0.0, 1.0, 0.0)
 
         @JvmStatic
-        fun getType(code: Int): Interpolation = values().firstOrNull { it.id == code } ?: SPLINE
+        fun getType(code: Int): Interpolation = entries.firstOrNull { it.id == code } ?: SPLINE
 
     }
 

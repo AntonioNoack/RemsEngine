@@ -7,7 +7,7 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
     constructor(name: String, components: Int) : this(name, AttributeType.FLOAT, components, false)
 
     val byteSize = components * type.byteSize
-    var offset = 0L
+    var offset = 0
     var stride = 0
 
     override fun toString(): String {
@@ -41,7 +41,7 @@ class Attribute(val name: String, val type: AttributeType, val components: Int, 
         }
 
         fun computeOffsets(attributes: List<Attribute>): Int {
-            var offset = 0L
+            var offset = 0
             val stride = attributes.sumOf { it.byteSize }
             for (it in attributes) {
                 it.offset = offset

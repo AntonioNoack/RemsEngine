@@ -24,7 +24,7 @@ enum class GFXSettings(
     companion object {
 
         @JvmStatic
-        fun get(id: Int, alternative: GFXSettings) = values().firstOrNull { it.id == id } ?: alternative
+        fun get(id: Int, alternative: GFXSettings) = entries.firstOrNull { it.id == id } ?: alternative
 
         @JvmStatic
         fun <V> put(key: String, low: V, medium: V, high: V) {

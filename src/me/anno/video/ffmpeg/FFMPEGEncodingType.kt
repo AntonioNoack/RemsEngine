@@ -31,7 +31,8 @@ enum class FFMPEGEncodingType(val id: Int, val nameDesc: NameDesc, val internalN
             "ffmpeg.flags.zeroLatency"
         ), "zerolatency"
     );
+
     companion object {
-        operator fun get(id: Int) = values().firstOrNull { it.id == id } ?: DEFAULT
+        operator fun get(id: Int) = entries.firstOrNull { it.id == id } ?: DEFAULT
     }
 }

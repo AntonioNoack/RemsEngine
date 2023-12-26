@@ -1,7 +1,6 @@
 package me.anno.ui.editor.code.tokenizer
 
 enum class TokenType {
-
     COMMENT,
     VARIABLE,
     VARIABLE2,
@@ -23,8 +22,4 @@ enum class TokenType {
     QUALIFIER,
     BRACKET,
     UNKNOWN;
-
-    companion object {
-        val values2 = values()
-    }
 }

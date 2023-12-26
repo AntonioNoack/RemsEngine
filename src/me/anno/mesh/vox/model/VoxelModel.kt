@@ -177,8 +177,8 @@ abstract class VoxelModel(val sizeX: Int, val sizeY: Int, val sizeZ: Int) {
 
     companion object {
         var printReduction = false
-        private val allSides = BlockSide.values.toList()
-        private val sideList = BlockSide.values.map { listOf(it) }
+        private val allSides = BlockSide.entries
+        private val sideList = allSides.map { listOf(it) }
         private val LOGGER = LogManager.getLogger(VoxelModel::class)
     }
 }

@@ -20,7 +20,7 @@ abstract class MathNode<V : Enum<V>>(
 ) : ComputeNode("", data.inputs, data.outputs), EnumNode, GLSLExprNode {
 
     class MathNodeData<V : Enum<V>>(
-        val values: Array<V>,
+        val values: List<V>,
         inputTypes: List<String>,
         outputType: String,
         getId: (V) -> Int,

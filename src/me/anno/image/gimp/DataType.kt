@@ -1,7 +1,6 @@
 package me.anno.image.gimp
 
 enum class DataType(val value: Int, val bpp: Int) {
-
     U8_LINEAR(100, 1),
     U8_NON_LINEAR(150, 1),
     U8_PERCEPTUAL(175, 1),
@@ -20,8 +19,4 @@ enum class DataType(val value: Int, val bpp: Int) {
     DOUBLE_LINEAR(700, 8),
     DOUBLE_NON_LINEAR(750, 8),
     DOUBLE_PERCEPTUAL(775, 8);
-
-    companion object {
-        val valueById = values().associateBy { it.value }
-    }
 }

@@ -57,7 +57,7 @@ enum class FloatMathsUnary(
     ;
 
     companion object {
-        val supportedUnaryVecTypes = entries.filter { it != EXP2 && it != EXP10 }.toTypedArray()
+        val supportedUnaryVecTypes = entries.filter { it != EXP2 && it != EXP10 }
     }
 
 }

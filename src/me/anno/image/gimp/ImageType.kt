@@ -4,8 +4,4 @@ enum class ImageType(val channels: Int) {
     RGB(3),
     GRAY(1),
     INDEXED(1);
-
-    companion object {
-        val values2 = values()
-    }
 }

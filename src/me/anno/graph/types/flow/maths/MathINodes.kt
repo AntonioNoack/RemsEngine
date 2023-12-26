@@ -3,7 +3,7 @@ package me.anno.graph.types.flow.maths
 import me.anno.graph.EnumNode
 
 val dataI1 = MathNode.MathNodeData(
-    IntMathsUnary.values(),
+    IntMathsUnary.entries,
     listOf("Int"), "Int",
     { it.id }, { it.glsl }
 )
@@ -15,7 +15,7 @@ class MathI1Node : MathNode<IntMathsUnary>(dataI1), EnumNode, GLSLExprNode {
 }
 
 val dataI2 = MathNode.MathNodeData(
-    IntMathsBinary.values(),
+    IntMathsBinary.entries,
     listOf("Int", "Int"), "Int",
     { it.id }, { it.glsl }
 )
@@ -27,7 +27,7 @@ class MathI2Node : MathNode<IntMathsBinary>(dataI2), EnumNode, GLSLExprNode {
 }
 
 val dataI3 = MathNode.MathNodeData(
-    IntMathsTernary.values(),
+    IntMathsTernary.entries,
     listOf("Int", "Int", "Int"), "Int",
     { it.id }, { it.glsl }
 )

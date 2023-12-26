@@ -21,9 +21,9 @@ abstract class UIAnimation(
 
     override fun readInt(name: String, value: Int) {
         when (name) {
-            "in" -> inInterpolation = Interpolation.values2.firstOrNull { it.id == value } ?: inInterpolation
-            "out" -> inInterpolation = Interpolation.values2.firstOrNull { it.id == value } ?: outInterpolation
-            "eventType" -> eventType = EventType.values2.firstOrNull { it.id == value } ?: eventType
+            "in" -> inInterpolation = Interpolation.entries.firstOrNull { it.id == value } ?: inInterpolation
+            "out" -> inInterpolation = Interpolation.entries.firstOrNull { it.id == value } ?: outInterpolation
+            "eventType" -> eventType = EventType.entries.firstOrNull { it.id == value } ?: eventType
             else -> super.readInt(name, value)
         }
     }

@@ -29,7 +29,7 @@ class LightData {
         }
     }
 
-    val entries = LightType.values().map {
+    val entries = LightType.entries.map {
         Entry(it)
     }.toTypedArray()
 

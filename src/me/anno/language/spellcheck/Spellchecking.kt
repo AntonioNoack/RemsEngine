@@ -82,15 +82,15 @@ object Spellchecking : CacheSection("Spellchecking") {
     }
 
     private val libraries = listOf(
-        // currently not working, why ever...
-        //Language.values().filter { it.shortCode == "en" } to "enCompact.jar",
-        /*Language.values().filter {
+        // todo make this work again.
+        //Language.entries.filter { it.shortCode == "en" } to "enCompact.jar",
+        /*Language.entries.filter {
             when (it.shortCode) {
                 "en", "de", "es", "fr" -> true
                 else -> false
             }
         } to "de-en-es-frCompact.jar",*/
-        Language.values().toList() to "allCompact.jar"
+        Language.entries to "allCompact.jar"
     )
 
     private val requestedDownloads = HashSet<FileReference>()

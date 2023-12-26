@@ -87,14 +87,14 @@ interface WelcomeUI {
             create(studio)
         }
 
-        val gfxNames = GFXSettings.values().map { it.naming }
+        val gfxNames = GFXSettings.entries.map { it.naming }
 
         quickSettings += EnumInput(
             "GFX Quality",
             "Low disables UI MSAA", "ui.settings.gfxQuality",
             studio.gfxSettings.displayName, gfxNames, style
         ).setChangeListener { _, index, _ ->
-            val value = GFXSettings.values()[index]
+            val value = GFXSettings.entries[index]
             studio.gfxSettings = value
         }
 

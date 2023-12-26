@@ -24,6 +24,6 @@ enum class AxisAlignment(val id: Int, val xName: String, val yName: String) {
 
     companion object {
         @JvmStatic
-        fun find(id: Int) = values().firstOrNull { it.id == id }
+        fun find(id: Int) = entries.firstOrNull { it.id == id }
     }
 }

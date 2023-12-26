@@ -321,7 +321,7 @@ enum class Key(val id: Int) {
         private val byId = arrayOfNulls<Key>(528)
 
         init {
-            for (v in values()) {
+            for (v in entries) {
                 if (v.id >= 0) byId[v.id] = v
             }
         }

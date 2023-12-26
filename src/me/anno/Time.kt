@@ -12,21 +12,21 @@ object Time {
      * game time since last frame in seconds;
      * 0.1 at max.
      * */
-    @JvmField
     var deltaTime = 0.0
+        private set
 
     /**
      * game time since last frame in seconds;
      * not clamped
      * */
-    @JvmField
     var rawDeltaTime = 0.0
+        private set
 
     /**
      * estimate for current fps
      * */
-    @JvmField
     var currentFPS = 60.0
+        private set
 
     /**
      * nanoTime of when the engine was started in OS time
@@ -35,7 +35,7 @@ object Time {
     val startTime = System.nanoTime()
 
     @JvmStatic
-    var lastTimeNanos = startTime
+    var lastTimeNanos = 0L
         private set
 
     /**

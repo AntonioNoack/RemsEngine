@@ -23,10 +23,6 @@ enum class CullMode {
     val id get() = ordinal - 1
 
     operator fun times(mode: CullMode): CullMode {
-        return values[(ordinal - 1) * (mode.ordinal - 1) + 1]
-    }
-
-    companion object {
-        private val values = values()
+        return entries[(ordinal - 1) * (mode.ordinal - 1) + 1]
     }
 }

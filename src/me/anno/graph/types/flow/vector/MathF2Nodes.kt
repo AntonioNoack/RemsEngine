@@ -20,7 +20,7 @@ class MathF12Node : MathNode<FloatMathsUnary>(dataF12) {
 }
 
 private val dataF22 = MathNode.MathNodeData(
-    FloatMathsBinary.values(),
+    FloatMathsBinary.entries,
     listOf("Vector2f", "Vector2f"), "Vector2f",
     { it.id }, { it.glsl }
 )
@@ -34,7 +34,7 @@ class MathF22Node : MathNode<FloatMathsBinary>(dataF22) {
 }
 
 private val dataF32 = MathNode.MathNodeData(
-    FloatMathsTernary.values(),
+    FloatMathsTernary.entries,
     listOf("Vector2f", "Vector2f", "Vector2f"), "Vector2f",
     { it.id }, { it.glsl }
 )

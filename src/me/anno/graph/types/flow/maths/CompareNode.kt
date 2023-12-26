@@ -5,10 +5,10 @@ import me.anno.graph.ui.GraphEditor
 import me.anno.graph.ui.GraphPanel
 import me.anno.io.base.BaseWriter
 import me.anno.language.translation.NameDesc
+import me.anno.ui.Style
 import me.anno.ui.base.groups.PanelList
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.input.EnumInput
-import me.anno.ui.Style
 import me.anno.utils.Logging.hash32raw
 
 class CompareNode(type: String = "?") :
@@ -86,9 +86,9 @@ class CompareNode(type: String = "?") :
         if (g is GraphEditor) {
             list += EnumInput(
                 "Type", true, compType.name,
-                values2.map { NameDesc(it.niceName) }, style
+                Mode.entries.map { NameDesc(it.niceName) }, style
             ).setChangeListener { _, index, _ ->
-                compType = values2[index]
+                compType = Mode.entries[index]
                 g.onChange(false)
             }
         } else list.add(TextPanel("Type: ${compType.name}", style))
@@ -106,14 +106,13 @@ class CompareNode(type: String = "?") :
     }
 
     override fun readInt(name: String, value: Int) {
-        if (name == "type2") compType = values2.getOrNull(value) ?: compType
+        if (name == "type2") compType = Mode.entries.getOrNull(value) ?: compType
         else super.readInt(name, value)
     }
 
     override val className: String get() = "CompareNode"
 
     companion object {
-        val values2 = Mode.values()
         val outputs = listOf("Boolean", "Result")
     }
 }

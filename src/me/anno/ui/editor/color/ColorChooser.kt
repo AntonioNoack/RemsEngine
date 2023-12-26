@@ -99,10 +99,10 @@ open class ColorChooser(
     private val styleInput = EnumInput(
         "Style", true,
         visualisation.naming.name,
-        ColorVisualisation.values().map { it.naming },
+        ColorVisualisation.entries.map { it.naming },
         style
     ).setChangeListener { _, index, _ ->
-        visualisation = ColorVisualisation.values()[index]
+        visualisation = ColorVisualisation.entries[index]
         lastVisualisation = visualisation
     }.setTooltip("Style, does not change values")
 

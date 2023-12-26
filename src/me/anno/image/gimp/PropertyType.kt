@@ -41,8 +41,4 @@ enum class PropertyType {
     BLEND_SPACE,
     FLOAT_COLOR,
     SAMPLE_POINTS;
-
-    companion object {
-        val values2 = values()
-    }
 }

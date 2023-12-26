@@ -4,6 +4,7 @@ import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.ComputeBuffer
+import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
@@ -14,6 +15,7 @@ import org.apache.logging.log4j.LogManager
 import org.joml.Vector2i
 import org.joml.Vector3i
 import org.lwjgl.opengl.GL43.*
+import org.lwjgl.opengl.GL43C
 
 @Suppress("unused", "MemberVisibilityCanBePrivate")
 class ComputeShader(
@@ -100,7 +102,7 @@ class ComputeShader(
         bindTexture1(slot, texture, mode)
     }
 
-    fun bindBuffer(slot: Int, buffer: ComputeBuffer) {
+    fun bindBuffer(slot: Int, buffer: OpenGLBuffer) {
         bindBuffer1(slot, buffer)
     }
 
@@ -161,9 +163,9 @@ class ComputeShader(
         }
 
         @JvmStatic
-        fun bindBuffer1(slot: Int, buffer: ComputeBuffer) {
+        fun bindBuffer1(slot: Int, buffer: OpenGLBuffer) {
             buffer.ensureBuffer()
-            glBindBufferBase(buffer.type, slot, buffer.pointer)
+            glBindBufferBase(GL43C.GL_SHADER_STORAGE_BUFFER, slot, buffer.pointer)
         }
 
         /**

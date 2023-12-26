@@ -6,6 +6,7 @@ import kotlin.math.abs
 /**
  * https://trac.ffmpeg.org/wiki/Encode/H.264#FAQ
  * */
+@Suppress("unused")
 enum class FFMPEGEncodingBalance(val nameDesc: NameDesc, val internalName: String, val value: Float) {
 
     F4(NameDesc("Fastest", "Worst", "encoding.speed.f4"), "ultrafast", 0f),
@@ -20,6 +21,6 @@ enum class FFMPEGEncodingBalance(val nameDesc: NameDesc, val internalName: Strin
 
     companion object {
         @JvmStatic
-        operator fun get(value: Float) = values().minByOrNull { abs(value - it.value) }!!
+        operator fun get(value: Float) = entries.minByOrNull { abs(value - it.value) }!!
     }
 }

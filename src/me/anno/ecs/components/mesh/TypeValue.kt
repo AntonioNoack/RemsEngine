@@ -161,7 +161,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
     }
 
     override fun readInt(name: String, value: Int) {
-        if (name == "type") type = GLSLType.values.firstOrNull { it.id == value } ?: type
+        if (name == "type") type = GLSLType.entries.firstOrNull { it.id == value } ?: type
         else super.readInt(name, value)
     }
 

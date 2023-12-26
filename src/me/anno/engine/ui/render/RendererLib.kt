@@ -63,7 +63,7 @@ object RendererLib {
             "           float shaderV0 = data1, shaderV1 = data2.z, shaderV2 = data2.w;\n" +
             // local coordinates of the point in the light "cone"
             // removed switch(), because WebGL had issues with continue inside it...
-            LightType.values().joinToString("") {
+            LightType.entries.joinToString("") {
                 val start = if (it.ordinal == 0) "if" else " else if"
                 val co = "continue" // cutoff keyword
                 val ws = true // with shadows

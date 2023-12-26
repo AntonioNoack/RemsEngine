@@ -8,8 +8,8 @@ import kotlin.math.min
 
 class LanguageTheme(val styles: Array<LanguageStyle>) : Saveable() {
 
-    constructor() : this(Array(TokenType.values2.size) { LanguageStyle() })
-    constructor(base: LanguageStyle) : this(Array(TokenType.values2.size) { LanguageStyle(base) })
+    constructor() : this(Array(TokenType.entries.size) { LanguageStyle() })
+    constructor(base: LanguageStyle) : this(Array(TokenType.entries.size) { LanguageStyle(base) })
 
     fun getColor(tokenType: TokenType) = styles[tokenType.ordinal].color
     fun getSquiggles(tokenType: TokenType) = styles[tokenType.ordinal].squiggles

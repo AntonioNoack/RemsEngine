@@ -10,7 +10,7 @@ class NotNode : ComputeNode("Binary Not", listOf("Boolean", "Value"), "Boolean")
 }
 
 val dataB2 = MathNode.MathNodeData(
-    BooleanMathsBinary.values(),
+    BooleanMathsBinary.entries,
     listOf("Boolean", "Boolean"), "Boolean",
     { it.id }, { it.glsl }
 )
@@ -22,7 +22,7 @@ class MathB2Node : MathNode<BooleanMathsBinary>(dataB2), EnumNode, GLSLExprNode 
 }
 
 val dataB3 = MathNode.MathNodeData(
-    BooleanMathsTernary.values(),
+    BooleanMathsTernary.entries,
     listOf("Boolean", "Boolean", "Boolean"), "Boolean",
     { it.id }, { it.glsl }
 )

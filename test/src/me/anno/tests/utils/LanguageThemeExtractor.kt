@@ -39,7 +39,7 @@ fun main() {
         }
     }
 
-    val tokenTypeQualifiers = TokenType.values2.map {
+    val tokenTypeQualifiers = TokenType.entries.map {
         ".cm-" + when (it) {
             TokenType.DEFINE -> "def"
             TokenType.STRING2 -> "string-2"
@@ -71,7 +71,7 @@ fun main() {
             name = name.split('-').joinToString("") { it.titlecase() }
             print("val $name = read(\"")
             listOfAll.add(name)
-            val styles = Array(TokenType.values2.size) { LanguageStyle() }
+            val styles = Array(TokenType.entries.size) { LanguageStyle() }
             val theme = LanguageTheme(styles)
             while (true) {
 

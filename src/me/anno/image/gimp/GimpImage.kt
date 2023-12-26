@@ -220,7 +220,7 @@ class GimpImage {
         height = data.int
         if (width <= 0 || height <= 0) throw IOException("Image must not be empty $width x $height")
 
-        imageType = ImageType.values2.getOrNull(data.int) ?: throw IOException("Unknown image type")
+        imageType = ImageType.entries.getOrNull(data.int) ?: throw IOException("Unknown image type")
 
         precision = if (fileVersion >= 4) {
             val p = data.int
@@ -248,7 +248,8 @@ class GimpImage {
                         else -> throw IOException("Unknown precision")
                     }
                 }
-                else -> DataType.valueById[p] ?: throw IOException("Unknown precision")
+                else -> DataType.entries.firstOrNull { it.value == p }
+                    ?: throw IOException("Unknown precision")
             }
         } else DataType.U8_NON_LINEAR
 
@@ -574,7 +575,7 @@ class GimpImage {
     }
 
     private fun loadProp(data: ByteBuffer) {
-        propType = PropertyType.values2[data.int]
+        propType = PropertyType.entries[data.int]
         propSize = data.int
     }
 
@@ -627,7 +628,7 @@ class GimpImage {
                 }
                 PropertyType.COMPRESSION -> {
                     val ti = data.get().toInt()
-                    compression = Compression.values2.getOrNull(ti)
+                    compression = Compression.entries.getOrNull(ti)
                         ?: throw IOException("Unknown compression $ti")
                 }
                 else -> printUnknownProperty(data, "image-prop")

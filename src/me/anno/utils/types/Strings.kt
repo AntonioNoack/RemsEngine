@@ -431,4 +431,9 @@ object Strings {
         }
         return sign * (number + fraction)
     }
+
+    @JvmStatic
+    fun String.iff(condition: Boolean): String {
+        return if (condition) this else ""
+    }
 }

@@ -137,8 +137,8 @@ fun run(
 fun typeInput() = EnumInput(
     NameDesc("Draw Mode"),
     NameDesc(drawMode.name),
-    DrawMode.values().map { NameDesc(it.name) },
+    DrawMode.entries.map { NameDesc(it.name) },
     style
 ).setChangeListener { _, index, _ ->
-    drawMode = DrawMode.values()[index]
+    drawMode = DrawMode.entries[index]
 }

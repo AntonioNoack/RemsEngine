@@ -213,12 +213,12 @@ abstract class Buffer(name: String, attributes: List<Attribute>, usage: Int) :
                 if (attr.isNativeInt) {
                     glVertexAttribIPointer(
                         index, attr.components, type.id,
-                        attr.stride, attr.offset
+                        attr.stride, attr.offset.toLong()
                     )
                 } else {
                     glVertexAttribPointer(
                         index, attr.components, type.id,
-                        type.normalized, attr.stride, attr.offset
+                        type.normalized, attr.stride, attr.offset.toLong()
                     )
                 }
                 glVertexAttribDivisor(index, instanceDivisor)
