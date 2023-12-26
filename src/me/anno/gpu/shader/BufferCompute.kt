@@ -20,7 +20,7 @@ object BufferCompute {
         return createAccessors(given.attributes, wanted, suffix, binding, setters)
     }
 
-    fun floatType(components: Int): String {
+    private fun floatType(components: Int): String {
         return GLSLType.floats[components - 1].glslName
     }
 

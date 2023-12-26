@@ -2,6 +2,7 @@ package me.anno.tests.utils
 
 import me.anno.Time
 import me.anno.ecs.Transform
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
@@ -130,7 +131,7 @@ class BoidV3(val n: Int) : MeshSpawner() {
         return 1
     }
 
-    override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
+    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
         val mesh = flatCube.front
         for (i in 0 until n) {
             val transform = getTransform(i)
@@ -140,7 +141,7 @@ class BoidV3(val n: Int) : MeshSpawner() {
         }
     }
 
-    override fun forEachMeshGroupTRS(run: (Mesh, Material?) -> ExpandingFloatArray): Boolean {
+    override fun forEachMeshGroupTRS(run: (IMesh, Material?) -> ExpandingFloatArray): Boolean {
         val list = run(flatCube.front, null)
         list.ensureExtra(8 * n)
         for (i in 0 until n) {

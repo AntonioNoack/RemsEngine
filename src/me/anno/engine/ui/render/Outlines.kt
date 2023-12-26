@@ -1,6 +1,7 @@
 package me.anno.engine.ui.render
 
 import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.MaterialCache
 import me.anno.ecs.components.mesh.Mesh
@@ -45,7 +46,7 @@ object Outlines {
         drawOutlineForEntity(entity)
     }
 
-    fun drawOutline(comp: MeshComponentBase, mesh: Mesh) {
+    fun drawOutline(comp: MeshComponentBase, mesh: IMesh) {
 
         // todo respect alpha somehow?
 
@@ -97,7 +98,7 @@ object Outlines {
 
         if (scale < 1e10f) {
             useFrame(whiteRenderer) {
-                val cullMode = if (mesh.inverseOutline) CullMode.BACK else CullMode.FRONT
+                val cullMode = if (mesh is Mesh && mesh.inverseOutline) CullMode.BACK else CullMode.FRONT
                 GFXState.cullMode.use(cullMode) {
                     val matRef = comp.materials.firstOrNull() ?: mesh.materials.firstOrNull()
                     val material = MaterialCache[matRef, false] ?: defaultMaterial
@@ -123,7 +124,7 @@ object Outlines {
                         val hasAnim = animated && comp.defineVertexTransform(shader, entity, mesh)
                         shader.v1b("hasAnimation", hasAnim)
 
-                        mesh.draw(shader, 0)
+                        mesh.draw(shader, 0, Mesh.drawDebugLines)
 
                     }
                 }

@@ -33,7 +33,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
         val value0 = lru[ref]
         if (value0 !== Unit) return value0 as? Mesh
         val data = cache.getFileEntry(ref, false, PrefabCache.prefabTimeout, async) { ref1, _ ->
-            val mesh: Mesh? = when (val instance = PrefabCache.getPrefabInstance(ref1, maxPrefabDepth, async)) {
+            val mesh: IMesh? = when (val instance = PrefabCache.getPrefabInstance(ref1, maxPrefabDepth, async)) {
                 is Mesh -> instance
                 is MeshComponent -> {
                     // warning: if there is a dependency ring, this will produce a stack overflow
@@ -70,9 +70,9 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
 
     private fun addMesh(
         meshes: ArrayList<Triple<Mesh, Transform?, List<FileReference>>>,
-        mesh: Mesh?, transform: Transform?, compMaterials: List<FileReference>?
+        mesh: IMesh?, transform: Transform?, compMaterials: List<FileReference>?
     ) {
-        if (mesh != null && mesh.proceduralLength <= 0) {
+        if (mesh is Mesh && mesh.proceduralLength <= 0) {
             val meshMaterials = mesh.materials
             val materials = (0 until mesh.numMaterials).map {
                 compMaterials?.getOrNull(it)?.nullIfUndefined() ?: meshMaterials.getOrNull(it) ?: InvalidRef

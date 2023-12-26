@@ -4,6 +4,7 @@ import me.anno.Time
 import me.anno.config.DefaultConfig.style
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
@@ -199,7 +200,7 @@ fun main() {
         var count2 = 0
         val cubeMesh = Shapes.flatCube.scaled(0.4f).front
         val debugCubeSpawner = object : MeshSpawner() {
-            override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
+            override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
                 for (index in 0 until count0) {
                     run(cubeMesh, mat0, getTransform(index))
                 }

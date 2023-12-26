@@ -1,0 +1,60 @@
+package me.anno.tests.gfx
+
+import me.anno.ecs.Component
+import me.anno.ecs.Entity
+import me.anno.ecs.components.mesh.IMesh
+import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.shapes.IcosahedronModel
+import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
+import me.anno.gpu.buffer.Buffer
+import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.shader.Shader
+import org.joml.AABBf
+
+// todo create a software rasterizer for compute shaders
+//  - Unreal Engine devs said it was more efficient for small triangles -> let's do the same to render millions of tiny triangles
+fun main() {
+
+    // todo first step: create an IMesh
+    // todo create lots of small triangles for testing
+
+    val mesh = IcosahedronModel.createIcosphere(5)
+    lateinit var component: Component
+    val iMesh = object : IMesh {
+
+        override val numPrimitives: Long
+            get() = mesh.numPrimitives
+
+        override fun ensureBuffer() {
+            mesh.ensureBuffer()
+        }
+
+        override fun getBounds(): AABBf {
+            return mesh.getBounds()
+        }
+
+        override fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean) {
+            TODO("Not yet implemented")
+        }
+
+        override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
+            TODO("Not yet implemented")
+        }
+
+        override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
+            val material = Material.defaultMaterial
+            pipeline.findStage(material)
+                .add(component, this, entity, material, 0)
+            return clickId + 1
+        }
+    }
+    val comp = object : MeshComponentBase() {
+        override fun getMeshOrNull() = iMesh
+    }
+    component = comp
+
+    val scene = Entity("Scene")
+    scene.add(comp)
+    testSceneWithUI("Compute Rasterizer", scene)
+}

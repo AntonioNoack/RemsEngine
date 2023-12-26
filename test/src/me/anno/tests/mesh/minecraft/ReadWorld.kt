@@ -356,7 +356,7 @@ fun main() {
                     model.center0()
                     val x = ci and 31
                     val z = ci shr 5
-                    val neighbors = BlockSide.values.map {
+                    val neighbors = BlockSide.entries.map {
                         val nx = x + it.x
                         val nz = z + it.z
                         if (nx in 0 until 32 && nz in 0 until 32) {

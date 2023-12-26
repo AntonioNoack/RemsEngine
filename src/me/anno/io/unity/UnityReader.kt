@@ -451,6 +451,7 @@ object UnityReader {
         return buffer
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun defineMesh(prefab: Prefab, node: YAMLNode, guid: String, project: UnityProject) {
         // sample: Military, SM_Veh_Rocket_Truck_01_Convex 1.asset
         prefab.clazzName = "Mesh"

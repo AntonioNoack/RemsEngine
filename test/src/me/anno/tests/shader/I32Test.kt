@@ -3,11 +3,8 @@ package me.anno.tests.shader
 import me.anno.Time
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.Material
+import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshInstanceData
-import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.InstancedI32Stack
 import me.anno.gpu.pipeline.Pipeline
@@ -66,7 +63,7 @@ fun main() {
             return true
         }
 
-        override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
+        override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
             for (i in 0 until count) {
                 val tr = getTransform(i)
                 tr.setLocalPosition(0.0, 0.0, i * space)

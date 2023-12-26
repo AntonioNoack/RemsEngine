@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh.unique
 
 import me.anno.ecs.Transform
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshVertexData
@@ -164,7 +165,7 @@ class SMMMeshRenderer(material: Material) :
         return data
     }
 
-    override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
+    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
         // shall we implement this?
     }
 }

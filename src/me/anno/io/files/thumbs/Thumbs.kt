@@ -592,8 +592,8 @@ object Thumbs {
 
                 // todo why are some meshes still too small???
                 // camera transform incorrect?
-                fun addMesh(mesh: Mesh?, transform: Transform) {
-                    mesh ?: return
+                fun addMesh(mesh: IMesh?, transform: Transform) {
+                    if (mesh !is Mesh) return
                     // calculate transform
                     val pos = mesh.positions ?: return
                     val modelMatrix = transform.globalTransform
@@ -695,7 +695,7 @@ object Thumbs {
         comp: MeshComponentBase,
         callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        val mesh = comp.getMesh() ?: return
+        val mesh = comp.getMesh() as? Mesh ?: return
         mesh.checkCompleteness()
         mesh.ensureBuffer()
         waitForTextures(comp, mesh, srcFile)

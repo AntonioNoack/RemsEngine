@@ -3,10 +3,7 @@ package me.anno.ecs.components.mesh.unique
 import me.anno.Time
 import me.anno.ecs.Component
 import me.anno.ecs.Entity
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshComponent
-import me.anno.ecs.components.mesh.MeshComponentBase
+import me.anno.ecs.components.mesh.*
 import me.anno.ecs.interfaces.Renderable
 import me.anno.gpu.buffer.Attribute
 import me.anno.gpu.buffer.AttributeType
@@ -67,7 +64,7 @@ class StaticMeshManager : Component(), Renderable {
                 for (comp in entity.components) {
                     if (comp is MeshComponentBase && comp.manager == null) {
                         val mesh = comp.getMesh()
-                        if (mesh != null && supportsMesh(mesh)) {
+                        if (mesh is Mesh && supportsMesh(mesh)) {
                             register(comp, mesh)
                         }
                     }
@@ -105,7 +102,7 @@ class StaticMeshManager : Component(), Renderable {
         if (meshes.remove(comp)) {
             comp.manager = null
             val mesh = comp.getMesh()
-            if (mesh != null) {
+            if (mesh is Mesh) {
                 for (i in 0 until mesh.numMaterials) {
                     val material = getMaterial(comp.materials, mesh.materials, i)
                     managers[material]?.remove(SMMKey(comp, mesh, i))

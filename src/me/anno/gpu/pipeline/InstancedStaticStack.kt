@@ -1,9 +1,6 @@
 package me.anno.gpu.pipeline
 
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshInstanceData
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.*
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.StaticBuffer
@@ -17,7 +14,7 @@ import me.anno.utils.structures.tuples.LongTriple
  * */
 class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData.DEFAULT_INSTANCED) {
 
-    val data = KeyPairMap<Mesh, Material, Data>(capacity)
+    val data = KeyPairMap<IMesh, Material, Data>(capacity)
 
     class Data {
 
@@ -65,7 +62,7 @@ class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData
 
     fun drawStack(
         pipeline: Pipeline, stage: PipelineStage,
-        mesh: Mesh, material: Material,
+        mesh: IMesh, material: Material,
         stack: Data, indexIntoStack: Int,
     ) {
         mesh.ensureBuffer()

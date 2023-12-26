@@ -5,6 +5,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.*
 import me.anno.ecs.components.collider.CollidingComponent
 import me.anno.ecs.components.light.LightComponentBase
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshComponentBase
@@ -135,7 +136,7 @@ class ECSSceneTab(
         return aabb
     }
 
-    private fun resetCamera2(mesh: Mesh) {
+    private fun resetCamera2(mesh: IMesh) {
         resetCamera(mesh.getBounds(), true)
     }
 

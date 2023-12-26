@@ -59,6 +59,7 @@ class CompareNode(type: String = "?") :
         if (a == null) return -compare(b, null)
         if (a is Comparable<*>) {
             try {
+                @Suppress("UNCHECKED_CAST")
                 a as Comparable<Any?>
                 return a.compareTo(b)
             } catch (ignored: Exception) {

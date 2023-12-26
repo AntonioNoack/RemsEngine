@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshInstanceData
@@ -18,7 +19,7 @@ import me.anno.utils.structures.tuples.LongTriple
 class InstancedTRSStack(capacity: Int = 64) :
     DrawableStack(MeshInstanceData.TRS) {
 
-    val data = KeyPairMap<Mesh, Material, Data>(capacity)
+    val data = KeyPairMap<IMesh, Material, Data>(capacity)
 
     class Data {
         val size get() = posSizeRot.size ushr 3
@@ -56,7 +57,7 @@ class InstancedTRSStack(capacity: Int = 64) :
 
     fun draw(
         stage: PipelineStage,
-        mesh: Mesh,
+        mesh: IMesh,
         material: Material,
         pipeline: Pipeline,
         instances: Data,

@@ -1,6 +1,7 @@
 package me.anno.tests.mesh
 
 import me.anno.ecs.Transform
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
@@ -29,11 +30,11 @@ fun main() {
     }
     val mesh = Shapes.flatCube.front
     val spawner = object : MeshSpawner() {
-        override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
+        override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
             for (tr in transforms) run(mesh, null, tr)
         }
 
-        override fun forEachMeshGroupTRS(run: (Mesh, Material?) -> ExpandingFloatArray): Boolean {
+        override fun forEachMeshGroupTRS(run: (IMesh, Material?) -> ExpandingFloatArray): Boolean {
             return if (Input.isShiftDown) {
                 val data = run(mesh, null)
                 data.ensureExtra(transforms.size * 8)

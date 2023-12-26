@@ -1,5 +1,6 @@
 package me.anno.gpu.pipeline
 
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshInstanceData
@@ -21,7 +22,7 @@ open class InstancedI32Stack(
     capacity: Int = 512
 ) : DrawableStack(instanceData) {
 
-    val data = KeyPairMap<Mesh, Material, Data>(capacity)
+    val data = KeyPairMap<IMesh, Material, Data>(capacity)
 
     class Data {
 
@@ -73,7 +74,7 @@ open class InstancedI32Stack(
 
     fun draw(
         stage: PipelineStage,
-        mesh: Mesh,
+        mesh: IMesh,
         material: Material,
         pipeline: Pipeline,
         instances: Data,

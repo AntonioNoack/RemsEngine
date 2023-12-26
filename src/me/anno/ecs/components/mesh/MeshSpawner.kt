@@ -59,7 +59,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
                     val stage = pipeline.findStage(material)
                     if (mesh.proceduralLength <= 0) {
                         val stack = stage.instanced.data.getOrPut(mesh, material, matIndex) { mesh1, _, _ ->
-                            if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
+                            if (mesh1.hasBonesInBuffer) InstancedAnimStack() else InstancedStack()
                         }
                         stage.addToStack(stack, this, transform)
                     } else {
@@ -80,7 +80,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
             val material2 = material ?: Material.defaultMaterial
             val stage = pipeline.findStage(material2)
             val stack = stage.instanced.data.getOrPut(mesh, material2, 0) { mesh1, _, _ ->
-                if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
+                if (mesh1.hasBonesInBuffer) InstancedAnimStack() else InstancedStack()
             }
             validateLastStack()
             lastStack = stack
@@ -152,7 +152,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     override fun raycastClosestHit(query: RayQuery): Boolean {
         var hit = false
         forEachMesh { mesh, _, transform ->
-            if (RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)) {
+            if (mesh is Mesh && RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)) {
                 query.result.mesh = mesh
                 hit = true
             }
@@ -163,7 +163,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     override fun raycastAnyHit(query: RayQuery): Boolean {
         try {
             forEachMesh { mesh, _, transform ->
-                if (RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)) {
+                if (mesh is Mesh && RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)) {
                     query.result.mesh = mesh
                     throw StopIteration
                 }
@@ -206,7 +206,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
     /**
      * iterates over each mesh, which is actively visible; caller shall call transform.validate() if he needs the transform
      * */
-    abstract fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit)
+    abstract fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit)
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
@@ -214,7 +214,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * useful, if there are thousands of pre-grouped meshes with the same material; reduced overhead
      * */
-    open fun forEachMeshGroup(run: (Mesh, Material?) -> InstancedStack) = false
+    open fun forEachMeshGroup(run: (IMesh, Material?) -> InstancedStack) = false
 
     /**
      * iterates over each mesh group, which is actively visible;
@@ -224,7 +224,7 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * useful, if there are thousands of pre-grouped meshes with the same material; and just P+R+S, no shearing, only uniform scaling; reduced overhead
      * */
-    open fun forEachMeshGroupTRS(run: (Mesh, Material?) -> ExpandingFloatArray) = false
+    open fun forEachMeshGroupTRS(run: (IMesh, Material?) -> ExpandingFloatArray) = false
 
     /**
      * iterates over each mesh group, which is actively visible; caller shall call transform.validate();
@@ -238,11 +238,11 @@ abstract class MeshSpawner : CollidingComponent(), Renderable {
      *
      * this is like forEachMeshGroupI32, just generalized
      * */
-    open fun forEachInstancedGroup(run: (Mesh, Material?, StaticBuffer, Map<String, TypeValue>) -> Unit) = false
+    open fun forEachInstancedGroup(run: (IMesh, Material?, StaticBuffer, Map<String, TypeValue>) -> Unit) = false
 
     fun <V : InstancedI32Stack> getOrPutI32Stack(
         pipeline: Pipeline,
-        mesh: Mesh,
+        mesh: IMesh,
         material: Material,
         clazz: KClass<V>,
         createInstance: () -> V = { clazz.createInstance() }

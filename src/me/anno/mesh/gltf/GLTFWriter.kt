@@ -261,7 +261,7 @@ class GLTFWriter(
             val mesh = node.components
                 .filterIsInstance<MeshComponentBase>()
                 .firstNotNullOfOrNull {
-                    val mesh = it.getMesh()
+                    val mesh = it.getMesh() as? Mesh
                     if (mesh != null) Pair(mesh, it.materials) else null
                 }
             if (mesh != null) {

@@ -89,8 +89,7 @@ object MeshUtils {
             val global = entity.transform.globalTransform
             entity.forAllComponents(MeshComponentBase::class) { comp ->
                 val mesh = comp.getMesh()
-                if (mesh != null) {
-                    mesh.getBounds()
+                if (mesh is Mesh) {
 
                     // join the matrices for 2x better performance than without
                     jointMatrix.set(transform).mul(global)

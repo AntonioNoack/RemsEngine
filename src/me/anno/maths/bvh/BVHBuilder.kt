@@ -57,12 +57,14 @@ object BVHBuilder {
         }
         // add all instanced objects
         scene.instanced.data.forEach { mesh, _, _, stack ->
-            val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize)
-            if (blas != null) {
-                mesh.raycaster = blas
-                for (i in 0 until stack.size) {
-                    val transform = stack.transforms[i]!!
-                    add(mesh, blas, transform)
+            if (mesh is Mesh) {
+                val blas = mesh.raycaster ?: buildBLAS(mesh, splitMethod, maxNodeSize)
+                if (blas != null) {
+                    mesh.raycaster = blas
+                    for (i in 0 until stack.size) {
+                        val transform = stack.transforms[i]!!
+                        add(mesh, blas, transform)
+                    }
                 }
             }
         }

@@ -91,6 +91,7 @@ abstract class MathNode<V : Enum<V>>(
 
     override fun copyInto(dst: PrefabSaveable) {
         super.copyInto(dst)
+        @Suppress("UNCHECKED_CAST")
         dst as MathNode<V>
         dst.type = type
     }

@@ -4,6 +4,7 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.DirectionalLight
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Material.Companion.defaultMaterial
 import me.anno.ecs.components.mesh.Mesh
@@ -114,7 +115,7 @@ fun main() {
          * defines what the world looks like for Raycasting,
          * and for AABBs
          * */
-        override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
+        override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
             var i = 0
             for ((key, entry) in entryLookup) {
                 val transform = getTransform(i++)

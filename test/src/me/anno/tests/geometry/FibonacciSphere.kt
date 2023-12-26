@@ -1,8 +1,8 @@
 package me.anno.tests.geometry
 
 import me.anno.ecs.Transform
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshSpawner
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.io.ISaveable.Companion.registerCustomClass
@@ -17,7 +17,7 @@ import kotlin.math.sqrt
 class FibonacciSpawner : MeshSpawner() {
     var n = 12
     var scale = 0.3
-    override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
+    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
         val scale = scale * sqrt(1.0 / n)
         for ((i, pt) in FibonacciSphere.create(n).withIndex()) {
             val tr = getTransform(i)

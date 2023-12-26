@@ -2,6 +2,7 @@ package me.anno.gpu.pipeline
 
 import me.anno.Time
 import me.anno.ecs.Transform
+import me.anno.ecs.components.mesh.IMesh
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshInstanceData
@@ -58,7 +59,7 @@ open class InstancedStack {
 
     class Impl(capacity: Int = 512) : DrawableStack(MeshInstanceData.DEFAULT_INSTANCED) {
 
-        val data = KeyTripleMap<Mesh, Material, Int, InstancedStack>(capacity)
+        val data = KeyTripleMap<IMesh, Material, Int, InstancedStack>(capacity)
 
         override fun size1(): Long {
             return data.values.values.sumOf { it.size.toLong() }
@@ -97,7 +98,7 @@ open class InstancedStack {
         }
 
         private fun drawInstances(
-            mesh: Mesh, material: Material, materialIndex: Int,
+            mesh: IMesh, material: Material, materialIndex: Int,
             pipeline: Pipeline, stage: PipelineStage, needsLightUpdateForEveryMesh: Boolean,
             time: Long, instances: InstancedStack, depth: Boolean
         ): Int {

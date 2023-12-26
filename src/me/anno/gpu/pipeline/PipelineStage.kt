@@ -794,7 +794,7 @@ class PipelineStage(
     }
 
     fun addInstanced(
-        mesh: Mesh,
+        mesh: IMesh,
         component: Component,
         entity: Entity,
         material: Material,
@@ -802,14 +802,14 @@ class PipelineStage(
     ) = addInstanced(mesh, component, entity.transform, material, materialIndex)
 
     fun addInstanced(
-        mesh: Mesh,
+        mesh: IMesh,
         component: Component,
         transform: Transform,
         material: Material,
         materialIndex: Int
     ) {
         val stack = instanced.data.getOrPut(mesh, material, materialIndex) { mesh1, _, _ ->
-            if (mesh1.hasBones) InstancedAnimStack() else InstancedStack()
+            if (mesh1.hasBonesInBuffer) InstancedAnimStack() else InstancedStack()
         }
         addToStack(stack, component, transform)
     }

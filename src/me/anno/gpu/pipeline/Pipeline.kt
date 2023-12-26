@@ -149,12 +149,12 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
         }
     }
 
-    fun addMeshInstanced(mesh: Mesh, renderer: Component, entity: Entity) {
+    fun addMeshInstanced(mesh: IMesh, renderer: Component, entity: Entity) {
         val materialOverrides = (renderer as? MeshComponentBase)?.materials
         addMeshInstanced(mesh, renderer, materialOverrides, entity)
     }
 
-    fun addMeshInstanced(mesh: Mesh, renderer: Component, materialOverrides: List<FileReference>?, entity: Entity) {
+    fun addMeshInstanced(mesh: IMesh, renderer: Component, materialOverrides: List<FileReference>?, entity: Entity) {
         mesh.ensureBuffer()
         val materials = mesh.materials
         for (index in 0 until mesh.numMaterials) {

@@ -1,10 +1,7 @@
 package me.anno.ecs.components.text
 
 import me.anno.ecs.Transform
-import me.anno.ecs.components.mesh.Material
-import me.anno.ecs.components.mesh.Mesh
-import me.anno.ecs.components.mesh.MeshSpawner
-import me.anno.ecs.components.mesh.TypeValue
+import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.text.TextComponent.Companion.defaultFont
 import me.anno.fonts.FontManager
 import me.anno.fonts.mesh.TextMesh
@@ -96,7 +93,7 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
         return true
     }
 
-    override fun forEachMesh(run: (Mesh, Material?, Transform) -> Unit) {
+    override fun forEachMesh(run: (IMesh, Material?, Transform) -> Unit) {
         var i = 0
         val extraScale = 2f / TextMesh.DEFAULT_LINE_HEIGHT
         val meshGroup = meshGroup ?: TextSDFGroup(FontManager.getFont(font), text, 0f)

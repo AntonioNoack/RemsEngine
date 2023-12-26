@@ -57,8 +57,9 @@ open class MeshCollider() : Collider() {
     val mesh: Mesh?
         get() {
             if (meshFile == InvalidRef) {
-                meshFile = entity?.getComponentInChildren(MeshComponentBase::class, false)
-                    ?.getMeshOrNull()?.ref ?: InvalidRef
+                val mesh = entity?.getComponentInChildren(MeshComponentBase::class, false)
+                    ?.getMeshOrNull() as? Mesh
+                meshFile = mesh?.ref ?: InvalidRef
             }
             return MeshCache[meshFile]
         }

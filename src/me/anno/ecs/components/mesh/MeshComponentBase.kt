@@ -51,7 +51,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     var manager: StaticMeshManager? = null
 
     @Docs("Abstract function for you to define your mesh; you may return null, if you're not yet ready")
-    abstract fun getMeshOrNull(): Mesh?
+    abstract fun getMeshOrNull(): IMesh?
 
     @Docs("Overrides the mesh materials")
     @Type("List<Material/Reference>")
@@ -70,7 +70,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     @NotSerializedProperty
     val globalAABB = AABBd()
 
-    open fun getMesh(): Mesh? {
+    open fun getMesh(): IMesh? {
         return getMeshOrNull()
     }
 
@@ -79,7 +79,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     }
 
     override fun raycastClosestHit(query: RayQuery): Boolean {
-        val mesh = getMeshOrNull()
+        val mesh = getMeshOrNull() as? Mesh
         return if (mesh != null) {
             val wasHit = RaycastMesh.raycastGlobalMeshClosestHit(query, transform, mesh)
             if (wasHit) {
@@ -90,7 +90,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     }
 
     override fun raycastAnyHit(query: RayQuery): Boolean {
-        val mesh = getMeshOrNull()
+        val mesh = getMeshOrNull() as? Mesh
         return if (mesh != null) {
             val wasHit = RaycastMesh.raycastGlobalMeshAnyHit(query, transform, mesh)
             if (wasHit) {
@@ -151,7 +151,7 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
         return true
     }
 
-    fun fillSpace(mesh: Mesh, transform: Matrix4x3d?, dst: AABBd) {
+    fun fillSpace(mesh: IMesh, transform: Matrix4x3d?, dst: AABBd) {
         // add aabb of that mesh with the transform
         val bounds = mesh.getBounds()
         if (transform != null) bounds.transformUnion(transform, dst, dst)
@@ -171,12 +171,12 @@ abstract class MeshComponentBase : CollidingComponent(), Renderable {
     }
 
     fun draw(shader: Shader, materialIndex: Int) {
-        getMeshOrNull()?.draw(shader, materialIndex)
+        getMeshOrNull()?.draw(shader, materialIndex, Mesh.drawDebugLines)
     }
 
     @DebugAction
     fun printMesh() {
-        val mesh = getMesh()
+        val mesh = getMesh() as? Mesh
         if (mesh != null) {
             val pos = mesh.positions ?: return
             if (!LOGGER.isDebugEnabled) {
