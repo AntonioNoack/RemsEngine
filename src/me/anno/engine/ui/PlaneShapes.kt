@@ -130,7 +130,7 @@ object PlaneShapes {
         buffer.isUpToDate = false
         buffer.ensureBufferWithoutResize()
         // draw it
-        mesh.drawInstanced(shader, 0, buffer)
+        mesh.drawInstanced(shader, 0, buffer, Mesh.drawDebugLines)
         size = 0
         GFX.check()
     }

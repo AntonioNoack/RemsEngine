@@ -3,6 +3,7 @@ package me.anno.gpu.pipeline
 import me.anno.ecs.Entity
 import me.anno.ecs.Transform
 import me.anno.ecs.components.light.*
+import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.CullMode
@@ -282,7 +283,7 @@ class LightPipelineStage(var deferred: DeferredSettings?) : Saveable() {
                 nioBuffer.putFloat(light.getShaderV2())
             }
             buffer.ensureBufferWithoutResize()
-            mesh.drawInstanced(shader, 0, buffer)
+            mesh.drawInstanced(shader, 0, buffer, Mesh.drawDebugLines)
 
             baseIndex += batchSize
             callCount++

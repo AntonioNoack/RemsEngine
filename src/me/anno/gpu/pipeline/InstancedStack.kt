@@ -265,7 +265,7 @@ open class InstancedStack {
                     st45 += t5 - t4
 
                     cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
-                        mesh.drawInstanced(shader, materialIndex, buffer)
+                        mesh.drawInstanced(shader, materialIndex, buffer, Mesh.drawDebugLines)
                     }
                     drawCalls++
 

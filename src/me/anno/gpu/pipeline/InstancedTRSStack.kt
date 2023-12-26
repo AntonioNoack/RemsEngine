@@ -149,7 +149,7 @@ class InstancedTRSStack(capacity: Int = 64) :
                     }
                 }
                 GFXState.cullMode.use(mesh.cullMode * material.cullMode * stage.cullMode) {
-                    mesh.drawInstanced(shader, 0, buffer)
+                    mesh.drawInstanced(shader, 0, buffer, Mesh.drawDebugLines)
                 }
                 baseIndex = endIndex
                 drawCalls++

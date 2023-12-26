@@ -161,7 +161,7 @@ abstract class UniqueMeshRenderer<Key>(
         buffer.unbind()
     }
 
-    override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
+    override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer, drawLines: Boolean) {
         throw NotImplementedError("Drawing a bulk-mesh instanced doesn't make sense")
     }
 

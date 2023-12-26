@@ -31,5 +31,5 @@ interface IMesh: Renderable {
     fun getBounds(): AABBf
 
     fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean)
-    fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer)
+    fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer, drawLines: Boolean)
 }

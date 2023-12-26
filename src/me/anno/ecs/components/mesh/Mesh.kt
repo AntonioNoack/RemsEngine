@@ -1083,7 +1083,7 @@ open class Mesh : PrefabSaveable(), IMesh, Renderable, ICacheData {
         }
     }
 
-    override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
+    override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer, drawLines: Boolean) {
         if (proceduralLength <= 0) {
             GFX.check()
             ensureBuffer()

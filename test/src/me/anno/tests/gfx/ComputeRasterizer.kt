@@ -10,14 +10,15 @@ import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.buffer.Buffer
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.Shader
+import me.anno.tests.utils.dr
 import org.joml.AABBf
 
 // todo create a software rasterizer for compute shaders
 //  - Unreal Engine devs said it was more efficient for small triangles -> let's do the same to render millions of tiny triangles
 fun main() {
 
-    // todo first step: create an IMesh
-    // todo create lots of small triangles for testing
+    // done first step: create an IMesh
+    // done create lots of small triangles for testing
 
     val mesh = IcosahedronModel.createIcosphere(5)
     lateinit var component: Component
@@ -35,11 +36,13 @@ fun main() {
         }
 
         override fun draw(shader: Shader, materialIndex: Int, drawLines: Boolean) {
-            TODO("Not yet implemented")
+            mesh.draw(shader, materialIndex, drawLines)
+            // todo implement this
         }
 
-        override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer) {
-            TODO("Not yet implemented")
+        override fun drawInstanced(shader: Shader, materialIndex: Int, instanceData: Buffer, drawLines: Boolean) {
+            mesh.drawInstanced(shader, materialIndex, instanceData, drawLines)
+            // todo implement this
         }
 
         override fun fill(pipeline: Pipeline, entity: Entity, clickId: Int): Int {
