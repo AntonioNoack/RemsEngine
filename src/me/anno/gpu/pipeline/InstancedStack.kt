@@ -12,11 +12,14 @@ import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.animated
 import me.anno.gpu.GFXState.cullMode
 import me.anno.gpu.M4x3Delta
+import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBuffer
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferA
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferM
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferMA
 import me.anno.gpu.pipeline.PipelineStage.Companion.instancedBufferSlim
+import me.anno.gpu.pipeline.PipelineStage.Companion.setupLights
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -119,18 +122,18 @@ open class InstancedStack {
 
                 val shader = stage.getShader(material)
                 shader.use()
-                stage.bindRandomness(shader)
+                bindRandomness(shader)
 
                 // update material and light properties
                 val previousMaterial = PipelineStage.lastMaterial.put(shader, material)
                 if (previousMaterial == null) {
-                    stage.initShader(shader, pipeline)
+                    initShader(shader, pipeline.applyToneMapping)
                 }
 
                 if (!depth && previousMaterial == null && !needsLightUpdateForEveryMesh) {
                     aabb.clear()
                     // pipeline.frustum.union(aabb)
-                    stage.setupLights(pipeline, shader, aabb, true)
+                    setupLights(pipeline, shader, aabb, true)
                 }
 
                 material.bind(shader)
@@ -257,7 +260,7 @@ open class InstancedStack {
                         for (index in baseIndex until endIndex) {
                             localAABB.transformUnion(transforms[index]!!.getDrawMatrix(), aabb)
                         }
-                        stage.setupLights(pipeline, shader, aabb, receiveShadows)
+                        setupLights(pipeline, shader, aabb, receiveShadows)
                     }
                     GFX.check()
 

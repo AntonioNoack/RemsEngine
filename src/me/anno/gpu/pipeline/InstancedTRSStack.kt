@@ -7,6 +7,9 @@ import me.anno.ecs.components.mesh.MeshInstanceData
 import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
+import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
+import me.anno.gpu.pipeline.PipelineStage.Companion.setupLights
 import me.anno.maths.Maths
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.arrays.ExpandingIntArray
@@ -70,18 +73,18 @@ class InstancedTRSStack(capacity: Int = 64) :
 
         val shader = stage.getShader(material)
         shader.use()
-        stage.bindRandomness(shader)
+        bindRandomness(shader)
 
         // update material and light properties
         val previousMaterial = PipelineStage.lastMaterial.put(shader, material)
         if (previousMaterial == null) {
-            stage.initShader(shader, pipeline)
+            initShader(shader, pipeline.applyToneMapping)
         }
 
         if (!depth && previousMaterial == null) {
             aabb.clear()
             // pipeline.frustum.union(aabb)
-            stage.setupLights(pipeline, shader, aabb, true)
+            setupLights(pipeline, shader, aabb, true)
         }
 
         material.bind(shader)

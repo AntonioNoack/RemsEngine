@@ -29,6 +29,10 @@ import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.pipeline.PipelineStage.Companion.DECAL_PASS
 import me.anno.gpu.pipeline.PipelineStage.Companion.OPAQUE_PASS
 import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
+import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
+import me.anno.gpu.pipeline.PipelineStage.Companion.setupLights
+import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.pipeline.transparency.GlassPass
 import me.anno.gpu.pipeline.transparency.TransparentPass
 import me.anno.gpu.texture.CubemapTexture
@@ -309,10 +313,10 @@ class Pipeline(deferred: DeferredSettings?) : Saveable(), ICacheData {
             val material = MaterialCache[sky.materials.getOrNull(i)] ?: defaultMaterial
             val shader = (material.shader ?: pbrModelShader).value
             shader.use()
-            stage.initShader(shader, this)
-            stage.bindRandomness(shader)
-            stage.setupLights(this, shader, allAABB, false)
-            PipelineStage.setupLocalTransform(shader, sky.transform, Time.gameTimeN)
+            initShader(shader, applyToneMapping)
+            bindRandomness(shader)
+            setupLights(this, shader, allAABB, false)
+            setupLocalTransform(shader, sky.transform, Time.gameTimeN)
             shader.v1b("hasAnimation", false)
             shader.v4f("tint", -1)
             shader.v1f("finalAlpha", 1f)

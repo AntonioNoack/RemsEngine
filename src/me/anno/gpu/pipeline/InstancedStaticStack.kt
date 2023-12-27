@@ -4,6 +4,9 @@ import me.anno.ecs.components.mesh.*
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.StaticBuffer
+import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
+import me.anno.gpu.pipeline.PipelineStage.Companion.setupLights
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongTriple
@@ -79,19 +82,19 @@ class InstancedStaticStack(capacity: Int = 512) : DrawableStack(MeshInstanceData
             }
         }
 
-        stage.bindRandomness(shader)
+        bindRandomness(shader)
 
         // update material and light properties
         val previousMaterial = PipelineStage.lastMaterial.put(shader, material)
         if (previousMaterial == null) {
-            stage.initShader(shader, pipeline)
+            initShader(shader, pipeline.applyToneMapping)
         }
 
         if (previousMaterial == null) {
             val aabb = PipelineStage.tmpAABBd
             aabb.clear()
             // pipeline.frustum.union(aabb)
-            stage.setupLights(pipeline, shader, aabb, true)
+            setupLights(pipeline, shader, aabb, true)
         }
 
         shader.v4f("tint", -1)

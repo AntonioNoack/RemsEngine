@@ -26,6 +26,7 @@ import me.anno.gpu.buffer.AttributeType
 import me.anno.gpu.buffer.StaticBuffer
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.BaseShader
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -139,7 +140,7 @@ class PipelineStage(
         val tmpAABBd = AABBd()
 
         fun setupLocalTransform(
-            shader: Shader,
+            shader: GPUShader,
             transform: Transform?,
             time: Long
         ) {
@@ -191,14 +192,290 @@ class PipelineStage(
             }
         }
 
-        fun setupLocalTransform(
-            shader: Shader,
-            transform: Matrix4x3d
-        ) {
+        fun setupLocalTransform(shader: GPUShader, transform: Matrix4x3d) {
             tmp4x3.set4x3Delta(transform)
             shader.m4x3delta("localTransform", transform)
             shader.v1f("worldScale", RenderState.worldScale)
         }
+
+        fun initShader(shader: GPUShader, applyToneMapping: Boolean) {
+            // information for the shader, which is material agnostic
+            // add all things, the shader needs to know, e.g., light direction, strength, ...
+            // (for the cheap shaders, which are not deferred)
+            shader.m4x4("transform", RenderState.cameraMatrix)
+            shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
+            shader.v1b("applyToneMapping", applyToneMapping)
+            shader.v1f("worldScale", RenderState.worldScale)
+            shader.v3f("cameraPosition", RenderState.cameraPosition)
+            shader.v4f("cameraRotation", RenderState.cameraRotation)
+        }
+
+        fun bindRandomness(shader: GPUShader) {
+            val renderer = GFXState.currentRenderer
+            val deferred = renderer.deferredSettings
+            val target = GFXState.currentBuffer
+            if (deferred != null && target is Framebuffer) {
+                shader.v1f("defRRT", fract(Time.gameTime))
+                // define all randomnesses: depends on framebuffer
+                // and needs to be set for all shaders
+                val layers = deferred.layers2
+                for (index in layers.indices) {
+                    val layer = layers[index]
+                    val m: Float // (1+m)*x+n
+                    val n: Float
+                    when (Texture2D.fileType(layer.type.internalFormat)) {
+                        GL_UNSIGNED_BYTE.inv() -> {
+                            m = 0f
+                            n = 1f / ((1L shl 8) - 1f)
+                        }
+                        GL_BYTE.inv() -> {
+                            m = 0f
+                            n = 1f / ((1L shl 7) - 1f)
+                        }
+                        GL_UNSIGNED_SHORT.inv() -> {
+                            m = 0f
+                            n = 1f / ((1L shl 16) - 1f)
+                        }
+                        GL_SHORT.inv() -> {
+                            m = 0f
+                            n = 1f / ((1L shl 15) - 1f)
+                        }
+                        GL_UNSIGNED_INT.inv() -> {
+                            m = 0f
+                            n = 1f / ((1L shl 32) - 1f)
+                        }
+                        GL_INT.inv() -> {
+                            m = 0f
+                            n = 1f / ((1L shl 31) - 1f)
+                        }
+                        GL_HALF_FLOAT -> {
+                            m = 1f / 2048f // 11 bits of mantissa
+                            n = 0f
+                        }
+                        // m != 0, but random rounding cannot be computed with single precision
+                        // GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F
+                        else -> {
+                            m = 0f
+                            n = 0f
+                        }
+                    }
+                    shader.v2f(layer.nameRR, m, n)
+                }
+            }
+        }
+
+        fun setupPlanarReflection(pipeline: Pipeline, shader: GPUShader, aabb: AABBd) {
+
+            shader.v4f("reflectionCullingPlane", pipeline.reflectionCullingPlane)
+            shader.v2f("renderSize", GFXState.currentBuffer.width.toFloat(), GFXState.currentBuffer.height.toFloat())
+
+            val ti = shader.getTextureIndex("reflectionPlane")
+            if (ti < 0 || pipeline.planarReflections.isEmpty()) {
+                shader.v1b("hasReflectionPlane", false)
+                return
+            }
+
+            val minVolume = 0.5 * aabb.volume
+            val pos = JomlPools.vec3d.borrow().set(aabb.centerX, aabb.centerY, aabb.centerZ)
+            val mapBounds = JomlPools.aabbd.borrow()
+            val bestPr = if (minVolume.isFinite()) {
+                var candidates: Collection<PlanarReflection> = pipeline.planarReflections.filter {
+                    // todo check if reflection can be visible
+                    // doubleSided || it.transform!!.getDrawMatrix().transformDirection(0,0,1).dot(camDirection) > camPos.dot(camDir) (?)
+                    val buffer = it.lastBuffer
+                    buffer != null && buffer.pointer != 0
+                }
+                if (minVolume > 1e-308) candidates = candidates.filter {
+                    // todo use projected 2d comparison instead
+                    // only if environment map fills >= 50% of the AABB
+                    val volume = mapBounds
+                        .setMin(-1.0, -1.0, -1.0)
+                        .setMax(+1.0, +1.0, +1.0)
+                        .transform(it.transform!!.globalTransform)
+                        .intersectionVolume(aabb)
+                    volume >= minVolume
+                }
+                candidates.minByOrNull {
+                    it.transform!!.distanceSquaredGlobally(pos)
+                }
+            } else null
+
+            shader.v1b("hasReflectionPlane", bestPr != null)
+            if (bestPr != null) {
+                val tex = bestPr.lastBuffer!!
+                tex.getTexture0().bind(ti, Filtering.LINEAR, Clamping.CLAMP)
+                val normal = bestPr.globalNormal
+                shader.v3f("reflectionPlaneNormal", normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat())
+            }
+        }
+
+        fun setupReflectionMap(pipeline: Pipeline, shader: GPUShader, aabb: AABBd) {
+            val envMapSlot = shader.getTextureIndex("reflectionMap")
+            if (envMapSlot >= 0) {
+                // find the closest environment map
+                val minVolume = 0.5 * aabb.volume
+                val pos = JomlPools.vec3d.borrow().set(aabb.centerX, aabb.centerY, aabb.centerZ)
+                val mapBounds = JomlPools.aabbd.borrow()
+                val map = if (minVolume.isFinite()) {
+                    pipeline.lightStage.environmentMaps.minByOrNull {
+                        val isOk = if (minVolume > 1e-308) {
+                            // only if environment map fills >= 50% of the AABB
+                            val volume = mapBounds
+                                .setMin(-1.0, -1.0, -1.0)
+                                .setMax(+1.0, +1.0, +1.0)
+                                .transform(it.transform!!.globalTransform)
+                                .intersectionVolume(aabb)
+                            volume >= minVolume
+                        } else true
+                        if (isOk) it.transform!!.distanceSquaredGlobally(pos)
+                        else Double.POSITIVE_INFINITY
+                    }
+                } else null
+                var mapTexture = map?.texture
+                if (mapTexture?.isCreated != true) mapTexture = null
+                mapTexture = mapTexture ?: pipeline.bakedSkybox
+                if (mapTexture?.isCreated != true) mapTexture = null
+                val bakedSkyBox = mapTexture?.getTexture0() ?: blackCube
+                bakedSkyBox.bind(
+                    envMapSlot,
+                    Filtering.LINEAR,
+                    Clamping.CLAMP
+                ) // clamping doesn't really apply here
+            }
+        }
+
+        fun setupLights(pipeline: Pipeline, shader: GPUShader, aabb: AABBd, receiveShadows: Boolean) {
+
+            setupPlanarReflection(pipeline, shader, aabb)
+            setupReflectionMap(pipeline, shader, aabb)
+
+            val numberOfLightsPtr = shader["numberOfLights"]
+            if (numberOfLightsPtr >= 0) {
+                val maxNumberOfLights = RenderView.MAX_FORWARD_LIGHTS
+                val lights = pipeline.lights
+                val numberOfLights = pipeline.getClosestRelevantNLights(aabb, maxNumberOfLights, lights)
+                shader.v1i(numberOfLightsPtr, numberOfLights)
+                shader.v1b("receiveShadows", receiveShadows)
+                if (numberOfLights > 0) {
+                    val invLightMatrices = shader["invLightMatrices"]
+                    val buffer = buffer16x256
+                    if (invLightMatrices >= 0) {
+                        // fill all transforms
+                        buffer.limit(12 * numberOfLights)
+                        for (i in 0 until numberOfLights) {
+                            buffer.position(12 * i)
+                            val light = lights[i]!!.light
+                            light.invCamSpaceMatrix.putInto(buffer)
+                        }
+                        buffer.position(0)
+                        shader.m4x3Array(invLightMatrices, buffer)
+                    }
+                    val lightMatrices = shader.getUniformLocation("lightMatrices", false)
+                    if (invLightMatrices >= 0) {
+                        // fill all transforms
+                        buffer.limit(12 * numberOfLights)
+                        for (i in 0 until numberOfLights) {
+                            buffer.position(12 * i)
+                            m4x3delta(lights[i]!!.drawMatrix, RenderState.cameraPosition, RenderState.worldScale, buffer)
+                        }
+                        buffer.position(0)
+                        shader.m4x3Array(lightMatrices, buffer)
+                    }
+                    // and sharpness; implementation depending on type
+                    val lightIntensities = shader["lightData0"]
+                    if (lightIntensities >= 0) {
+                        // fill all light colors
+                        buffer.limit(4 * numberOfLights)
+                        for (i in 0 until numberOfLights) {
+                            val light = lights[i]!!.light
+                            val color = light.color
+                            buffer.put(color.x)
+                            buffer.put(color.y)
+                            buffer.put(color.z)
+                            buffer.put(light.lightType.id + 0.25f)
+                        }
+                        buffer.position(0)
+                        shader.v4Array(lightIntensities, buffer)
+                    }
+                    // type, and cone angle (or other data, if required)
+                    // additional, whether we have a texture, and maybe other data
+                    val lightTypes = shader["lightData1"]
+                    if (lightTypes >= 0) {
+                        buffer.limit(numberOfLights)
+                        for (i in 0 until numberOfLights) {
+                            val light = lights[i]!!.light
+                            buffer.put(light.getShaderV0())
+                        }
+                        buffer.flip()
+                        shader.v1Array(lightTypes, buffer)
+                    }
+                    val shadowData = shader["shadowData"]
+                    if (shadowData >= 0) {
+                        buffer.limit(4 * numberOfLights)
+                        // write all texture indices, and bind all shadow textures (as long as we have slots available)
+                        var planarSlot = 0
+                        var cubicSlot = 0
+                        val maxTextureIndex = 31
+                        val planarIndex0 = shader.getTextureIndex("shadowMapPlanar0")
+                        val cubicIndex0 = shader.getTextureIndex("shadowMapCubic0")
+                        val supportsPlanarShadows = planarIndex0 >= 0
+                        val supportsCubicShadows = cubicIndex0 >= 0
+                        if (planarIndex0 < 0) planarSlot = Renderers.MAX_PLANAR_LIGHTS
+                        if (cubicIndex0 < 0) cubicSlot = Renderers.MAX_CUBEMAP_LIGHTS
+                        if (supportsPlanarShadows || supportsCubicShadows) {
+                            for (i in 0 until numberOfLights) {
+                                buffer.position(4 * i)
+                                val light = lights[i]!!.light
+                                buffer.put(0f)
+                                buffer.put(0f)
+                                buffer.put(light.getShaderV1())
+                                buffer.put(light.getShaderV2())
+                                buffer.position(4 * i)
+                                if (light.hasShadow) {
+                                    if (light is PointLight) {
+                                        buffer.put(cubicSlot.toFloat()) // start index
+                                        if (cubicSlot < Renderers.MAX_CUBEMAP_LIGHTS) {
+                                            val cascades = light.shadowTextures ?: continue
+                                            val slot = cubicIndex0 + cubicSlot
+                                            if (slot > maxTextureIndex) continue
+                                            val texture = cascades.depthTexture ?: cascades.getTexture0()
+                                            // bind the texture, and don't you dare to use mipmapping ^^
+                                            // (at least without variance shadow maps)
+                                            texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
+                                            cubicSlot++ // no break necessary
+                                        }
+                                        buffer.put(cubicSlot.toFloat()) // end index
+                                    } else {
+                                        buffer.put(planarSlot.toFloat()) // start index
+                                        if (planarSlot < Renderers.MAX_PLANAR_LIGHTS) {
+                                            val cascades = light.shadowTextures ?: continue
+                                            val slot = planarIndex0 + planarSlot
+                                            if (slot > maxTextureIndex) break
+                                            val texture = cascades.depthTexture ?: cascades.getTexture0()
+                                            // bind the texture, and don't you dare to use mipmapping ^^
+                                            // (at least without variance shadow maps)
+                                            texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
+                                            if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
+                                        }
+                                        buffer.put(planarSlot.toFloat()) // end index
+                                    }
+                                }
+                            }
+                            // bind the other textures to avoid undefined behaviour, even if we don't use them
+                            for (i in planarSlot until Renderers.MAX_PLANAR_LIGHTS) {
+                                TextureLib.depthTexture.bindTrulyNearest(planarIndex0 + i)
+                            }
+                            for (i in cubicSlot until Renderers.MAX_CUBEMAP_LIGHTS) {
+                                TextureLib.depthCube.bindTrulyNearest(cubicIndex0 + i)
+                            }
+                        }
+                        buffer.position(0)
+                        shader.v4Array(shadowData, buffer)
+                    }
+                }
+            }
+        }
+
     }
 
     var nextInsertIndex = 0
@@ -269,230 +546,6 @@ class PipelineStage(
                 }
             }
         }
-    }
-
-    fun setupPlanarReflection(pipeline: Pipeline, shader: Shader, aabb: AABBd) {
-
-        shader.v4f("reflectionCullingPlane", pipeline.reflectionCullingPlane)
-        shader.v2f("renderSize", GFXState.currentBuffer.width.toFloat(), GFXState.currentBuffer.height.toFloat())
-
-        val ti = shader.getTextureIndex("reflectionPlane")
-        if (ti < 0 || pipeline.planarReflections.isEmpty()) {
-            shader.v1b("hasReflectionPlane", false)
-            return
-        }
-
-        val minVolume = 0.5 * aabb.volume
-        val pos = JomlPools.vec3d.borrow().set(aabb.centerX, aabb.centerY, aabb.centerZ)
-        val mapBounds = JomlPools.aabbd.borrow()
-        val bestPr = if (minVolume.isFinite()) {
-            var candidates: Collection<PlanarReflection> = pipeline.planarReflections.filter {
-                // todo check if reflection can be visible
-                // doubleSided || it.transform!!.getDrawMatrix().transformDirection(0,0,1).dot(camDirection) > camPos.dot(camDir) (?)
-                val buffer = it.lastBuffer
-                buffer != null && buffer.pointer != 0
-            }
-            if (minVolume > 1e-308) candidates = candidates.filter {
-                // todo use projected 2d comparison instead
-                // only if environment map fills >= 50% of the AABB
-                val volume = mapBounds
-                    .setMin(-1.0, -1.0, -1.0)
-                    .setMax(+1.0, +1.0, +1.0)
-                    .transform(it.transform!!.globalTransform)
-                    .intersectionVolume(aabb)
-                volume >= minVolume
-            }
-            candidates.minByOrNull {
-                it.transform!!.distanceSquaredGlobally(pos)
-            }
-        } else null
-
-        shader.v1b("hasReflectionPlane", bestPr != null)
-        if (bestPr != null) {
-            val tex = bestPr.lastBuffer!!
-            tex.getTexture0().bind(ti, Filtering.LINEAR, Clamping.CLAMP)
-            val normal = bestPr.globalNormal
-            shader.v3f("reflectionPlaneNormal", normal.x.toFloat(), normal.y.toFloat(), normal.z.toFloat())
-        }
-    }
-
-    fun setupReflectionMap(pipeline: Pipeline, shader: Shader, aabb: AABBd) {
-        val envMapSlot = shader.getTextureIndex("reflectionMap")
-        if (envMapSlot >= 0) {
-            // find the closest environment map
-            val minVolume = 0.5 * aabb.volume
-            val pos = JomlPools.vec3d.borrow().set(aabb.centerX, aabb.centerY, aabb.centerZ)
-            val mapBounds = JomlPools.aabbd.borrow()
-            val map = if (minVolume.isFinite()) {
-                pipeline.lightStage.environmentMaps.minByOrNull {
-                    val isOk = if (minVolume > 1e-308) {
-                        // only if environment map fills >= 50% of the AABB
-                        val volume = mapBounds
-                            .setMin(-1.0, -1.0, -1.0)
-                            .setMax(+1.0, +1.0, +1.0)
-                            .transform(it.transform!!.globalTransform)
-                            .intersectionVolume(aabb)
-                        volume >= minVolume
-                    } else true
-                    if (isOk) it.transform!!.distanceSquaredGlobally(pos)
-                    else Double.POSITIVE_INFINITY
-                }
-            } else null
-            var mapTexture = map?.texture
-            if (mapTexture?.isCreated != true) mapTexture = null
-            mapTexture = mapTexture ?: pipeline.bakedSkybox
-            if (mapTexture?.isCreated != true) mapTexture = null
-            val bakedSkyBox = mapTexture?.getTexture0() ?: blackCube
-            bakedSkyBox.bind(
-                envMapSlot,
-                Filtering.LINEAR,
-                Clamping.CLAMP
-            ) // clamping doesn't really apply here
-        }
-    }
-
-    fun setupLights(pipeline: Pipeline, shader: Shader, aabb: AABBd, receiveShadows: Boolean) {
-
-        setupPlanarReflection(pipeline, shader, aabb)
-        setupReflectionMap(pipeline, shader, aabb)
-
-        val numberOfLightsPtr = shader["numberOfLights"]
-        if (numberOfLightsPtr >= 0) {
-            val maxNumberOfLights = RenderView.MAX_FORWARD_LIGHTS
-            val lights = pipeline.lights
-            val numberOfLights = pipeline.getClosestRelevantNLights(aabb, maxNumberOfLights, lights)
-            shader.v1i(numberOfLightsPtr, numberOfLights)
-            shader.v1b("receiveShadows", receiveShadows)
-            if (numberOfLights > 0) {
-                val invLightMatrices = shader["invLightMatrices"]
-                val buffer = buffer16x256
-                if (invLightMatrices >= 0) {
-                    // fill all transforms
-                    buffer.limit(12 * numberOfLights)
-                    for (i in 0 until numberOfLights) {
-                        buffer.position(12 * i)
-                        val light = lights[i]!!.light
-                        light.invCamSpaceMatrix.putInto(buffer)
-                    }
-                    buffer.position(0)
-                    shader.m4x3Array(invLightMatrices, buffer)
-                }
-                val lightMatrices = shader.getUniformLocation("lightMatrices", false)
-                if (invLightMatrices >= 0) {
-                    // fill all transforms
-                    buffer.limit(12 * numberOfLights)
-                    for (i in 0 until numberOfLights) {
-                        buffer.position(12 * i)
-                        m4x3delta(lights[i]!!.drawMatrix, RenderState.cameraPosition, RenderState.worldScale, buffer)
-                    }
-                    buffer.position(0)
-                    shader.m4x3Array(lightMatrices, buffer)
-                }
-                // and sharpness; implementation depending on type
-                val lightIntensities = shader["lightData0"]
-                if (lightIntensities >= 0) {
-                    // fill all light colors
-                    buffer.limit(4 * numberOfLights)
-                    for (i in 0 until numberOfLights) {
-                        val light = lights[i]!!.light
-                        val color = light.color
-                        buffer.put(color.x)
-                        buffer.put(color.y)
-                        buffer.put(color.z)
-                        buffer.put(light.lightType.id + 0.25f)
-                    }
-                    buffer.position(0)
-                    shader.v4Array(lightIntensities, buffer)
-                }
-                // type, and cone angle (or other data, if required)
-                // additional, whether we have a texture, and maybe other data
-                val lightTypes = shader["lightData1"]
-                if (lightTypes >= 0) {
-                    buffer.limit(numberOfLights)
-                    for (i in 0 until numberOfLights) {
-                        val light = lights[i]!!.light
-                        buffer.put(light.getShaderV0())
-                    }
-                    buffer.flip()
-                    shader.v1Array(lightTypes, buffer)
-                }
-                val shadowData = shader["shadowData"]
-                if (shadowData >= 0) {
-                    buffer.limit(4 * numberOfLights)
-                    // write all texture indices, and bind all shadow textures (as long as we have slots available)
-                    var planarSlot = 0
-                    var cubicSlot = 0
-                    val maxTextureIndex = 31
-                    val planarIndex0 = shader.getTextureIndex("shadowMapPlanar0")
-                    val cubicIndex0 = shader.getTextureIndex("shadowMapCubic0")
-                    val supportsPlanarShadows = planarIndex0 >= 0
-                    val supportsCubicShadows = cubicIndex0 >= 0
-                    if (planarIndex0 < 0) planarSlot = Renderers.MAX_PLANAR_LIGHTS
-                    if (cubicIndex0 < 0) cubicSlot = Renderers.MAX_CUBEMAP_LIGHTS
-                    if (supportsPlanarShadows || supportsCubicShadows) {
-                        for (i in 0 until numberOfLights) {
-                            buffer.position(4 * i)
-                            val light = lights[i]!!.light
-                            buffer.put(0f)
-                            buffer.put(0f)
-                            buffer.put(light.getShaderV1())
-                            buffer.put(light.getShaderV2())
-                            buffer.position(4 * i)
-                            if (light.hasShadow) {
-                                if (light is PointLight) {
-                                    buffer.put(cubicSlot.toFloat()) // start index
-                                    if (cubicSlot < Renderers.MAX_CUBEMAP_LIGHTS) {
-                                        val cascades = light.shadowTextures ?: continue
-                                        val slot = cubicIndex0 + cubicSlot
-                                        if (slot > maxTextureIndex) continue
-                                        val texture = cascades.depthTexture ?: cascades.getTexture0()
-                                        // bind the texture, and don't you dare to use mipmapping ^^
-                                        // (at least without variance shadow maps)
-                                        texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                                        cubicSlot++ // no break necessary
-                                    }
-                                    buffer.put(cubicSlot.toFloat()) // end index
-                                } else {
-                                    buffer.put(planarSlot.toFloat()) // start index
-                                    if (planarSlot < Renderers.MAX_PLANAR_LIGHTS) {
-                                        val cascades = light.shadowTextures ?: continue
-                                        val slot = planarIndex0 + planarSlot
-                                        if (slot > maxTextureIndex) break
-                                        val texture = cascades.depthTexture ?: cascades.getTexture0()
-                                        // bind the texture, and don't you dare to use mipmapping ^^
-                                        // (at least without variance shadow maps)
-                                        texture.bind(slot, Filtering.TRULY_LINEAR, Clamping.CLAMP)
-                                        if (++planarSlot >= Renderers.MAX_PLANAR_LIGHTS) break
-                                    }
-                                    buffer.put(planarSlot.toFloat()) // end index
-                                }
-                            }
-                        }
-                        // bind the other textures to avoid undefined behaviour, even if we don't use them
-                        for (i in planarSlot until Renderers.MAX_PLANAR_LIGHTS) {
-                            TextureLib.depthTexture.bindTrulyNearest(planarIndex0 + i)
-                        }
-                        for (i in cubicSlot until Renderers.MAX_CUBEMAP_LIGHTS) {
-                            TextureLib.depthCube.bindTrulyNearest(cubicIndex0 + i)
-                        }
-                    }
-                    buffer.position(0)
-                    shader.v4Array(shadowData, buffer)
-                }
-            }
-        }
-    }
-
-    fun initShader(shader: Shader, pipeline: Pipeline) {
-        // information for the shader, which is material agnostic
-        // add all things, the shader needs to know, e.g., light direction, strength, ...
-        // (for the cheap shaders, which are not deferred)
-        shader.m4x4("transform", RenderState.cameraMatrix)
-        shader.m4x4("prevTransform", RenderState.prevCameraMatrix)
-        shader.v1b("applyToneMapping", pipeline.applyToneMapping)
-        shader.v1f("worldScale", RenderState.worldScale)
-        shader.v3f("cameraPosition", RenderState.cameraPosition)
-        shader.v4f("cameraRotation", RenderState.cameraRotation)
     }
 
     fun DrawRequest.revDistance(dir: Vector3d): Double {
@@ -632,7 +685,7 @@ class PipelineStage(
 
                 val previousMaterialByShader = lastMaterial.put(shader, material)
                 if (previousMaterialByShader == null) {
-                    initShader(shader, pipeline)
+                    initShader(shader, pipeline.applyToneMapping)
                 }
 
                 val receiveShadows = if (renderer is MeshComponentBase) renderer.receiveShadows else true
@@ -697,60 +750,6 @@ class PipelineStage(
                 drawnPrimitives += mesh.numPrimitives
                 drawnInstances++
                 drawCalls++
-            }
-        }
-    }
-
-    fun bindRandomness(shader: Shader) {
-        val renderer = GFXState.currentRenderer
-        val deferred = renderer.deferredSettings
-        val target = GFXState.currentBuffer
-        if (deferred != null && target is Framebuffer) {
-            shader.v1f("defRRT", fract(Time.gameTime))
-            // define all randomnesses: depends on framebuffer
-            // and needs to be set for all shaders
-            val layers = deferred.layers2
-            for (index in layers.indices) {
-                val layer = layers[index]
-                val m: Float // (1+m)*x+n
-                val n: Float
-                when (Texture2D.fileType(layer.type.internalFormat)) {
-                    GL_UNSIGNED_BYTE.inv() -> {
-                        m = 0f
-                        n = 1f / ((1L shl 8) - 1f)
-                    }
-                    GL_BYTE.inv() -> {
-                        m = 0f
-                        n = 1f / ((1L shl 7) - 1f)
-                    }
-                    GL_UNSIGNED_SHORT.inv() -> {
-                        m = 0f
-                        n = 1f / ((1L shl 16) - 1f)
-                    }
-                    GL_SHORT.inv() -> {
-                        m = 0f
-                        n = 1f / ((1L shl 15) - 1f)
-                    }
-                    GL_UNSIGNED_INT.inv() -> {
-                        m = 0f
-                        n = 1f / ((1L shl 32) - 1f)
-                    }
-                    GL_INT.inv() -> {
-                        m = 0f
-                        n = 1f / ((1L shl 31) - 1f)
-                    }
-                    GL_HALF_FLOAT -> {
-                        m = 1f / 2048f // 11 bits of mantissa
-                        n = 0f
-                    }
-                    // m != 0, but random rounding cannot be computed with single precision
-                    // GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F
-                    else -> {
-                        m = 0f
-                        n = 0f
-                    }
-                }
-                shader.v2f(layer.nameRR, m, n)
             }
         }
     }

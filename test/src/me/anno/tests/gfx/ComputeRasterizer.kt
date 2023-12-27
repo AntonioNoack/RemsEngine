@@ -4,14 +4,13 @@ import me.anno.ecs.Component
 import me.anno.ecs.Entity
 import me.anno.ecs.components.mesh.*
 import me.anno.ecs.components.mesh.shapes.IcosahedronModel
-import me.anno.engine.ui.render.RenderState
+import me.anno.engine.ui.render.RenderView
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.CullMode
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.GFXState.renderPurely
 import me.anno.gpu.GFXState.useFrame
-import me.anno.gpu.M4x3Delta.m4x3delta
 import me.anno.gpu.buffer.*
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.drawing.DrawRectangles.drawRect
@@ -20,6 +19,10 @@ import me.anno.gpu.drawing.DrawTextures.drawTexture
 import me.anno.gpu.framebuffer.*
 import me.anno.gpu.framebuffer.Framebuffer.Companion.drawBuffersN
 import me.anno.gpu.pipeline.Pipeline
+import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
+import me.anno.gpu.pipeline.PipelineStage.Companion.setupLights
+import me.anno.gpu.pipeline.PipelineStage.Companion.setupLocalTransform
 import me.anno.gpu.shader.BufferCompute.createAccessors
 import me.anno.gpu.shader.ComputeShader
 import me.anno.gpu.shader.ComputeTextureMode
@@ -588,22 +591,22 @@ fun computeRasterizer() {
             instanceData: Buffer?, target: IFramebuffer,
             numPrimitives: Int,
         ) {
+            val pipeline = RenderView.currentInstance!!.pipeline // meh; todo is there a better way to get the pipeline?
             val material = MaterialCache[mesh.materials.getOrNull(materialIndex), Material.defaultMaterial]
             material.bind(shader)
+            initShader(shader, false)
+            bindRandomness(shader)
+            setupLocalTransform(shader, null, 0L)
+            setupLights(pipeline, shader, AABBd(), true)
             shader.v1i("numPrimitives", numPrimitives)
             shader.v1i("numInstances", instanceData?.drawLength ?: 1)
             shader.v2i("viewportSize", target.width, target.height)
-            shader.m4x3delta("localTransform", Matrix4x3d())
-            shader.m4x4("transform", RenderState.cameraMatrix)
-            // todo use pipeline stage to bind all uniforms properly
-            // todo e.g. we need prevTransform for motion vectors
             shader.v2f("renderSize", target.width.toFloat(), target.height.toFloat())
         }
 
         private fun bindTargets(
             rasterizer: ComputeShader, depthAsColor: Texture2D,
-            outputs: List<Variable>,
-            target: IFramebuffer
+            outputs: List<Variable>, target: IFramebuffer
         ) {
             rasterizer.bindTexture(0, depthAsColor, ComputeTextureMode.READ_WRITE)
             for (i in outputs.indices) {

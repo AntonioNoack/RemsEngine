@@ -8,6 +8,9 @@ import me.anno.engine.ui.render.RenderState
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.M4x3Delta.m4x3delta
+import me.anno.gpu.pipeline.PipelineStage.Companion.bindRandomness
+import me.anno.gpu.pipeline.PipelineStage.Companion.initShader
+import me.anno.gpu.pipeline.PipelineStage.Companion.setupLights
 import me.anno.utils.structures.arrays.ExpandingIntArray
 import me.anno.utils.structures.maps.KeyPairMap
 import me.anno.utils.structures.tuples.LongTriple
@@ -87,18 +90,18 @@ open class InstancedI32Stack(
 
         val shader = stage.getShader(material)
         shader.use()
-        stage.bindRandomness(shader)
+        bindRandomness(shader)
 
         // update material and light properties
         val previousMaterial = PipelineStage.lastMaterial.put(shader, material)
         if (previousMaterial == null) {
-            stage.initShader(shader, pipeline)
+            initShader(shader, pipeline.applyToneMapping)
         }
 
         if (!depth && previousMaterial == null) {
             aabb.clear()
             // pipeline.frustum.union(aabb)
-            stage.setupLights(pipeline, shader, aabb, true)
+            setupLights(pipeline, shader, aabb, true)
         }
 
         material.bind(shader)
