@@ -26,6 +26,7 @@ import me.anno.gpu.shader.ComputeTextureMode
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.gpu.texture.TextureCache
@@ -33,9 +34,11 @@ import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Input
 import me.anno.io.files.FileReference.Companion.getReference
 import me.anno.mesh.Shapes.flatCube
+import me.anno.studio.StudioBase
 import me.anno.tests.shader.drawMovablePoints
 import me.anno.ui.debug.TestDrawPanel.Companion.testDrawing
 import me.anno.utils.Color
+import me.anno.utils.strings.StringHelper.titlecase
 import me.anno.utils.structures.arrays.ExpandingFloatArray
 import me.anno.utils.structures.maps.LazyMap
 import me.anno.utils.types.Floats.toRadians
@@ -52,8 +55,10 @@ data class ShaderKey(
     val drawMode: DrawMode
 )
 
-// todo create a software rasterizer for compute shaders
+// create a software rasterizer for compute shaders
 //  - Unreal Engine devs said it was more efficient for small triangles -> let's do the same to render millions of tiny triangles
+// todo -> this doesn't work by just using compute; we need something like dynamic LOD or meshlets, too
+
 fun main() {
     if (false) {
         testCopyColorToDepth()
@@ -177,158 +182,305 @@ fun Mesh.createUniqueIndices() {
     invalidateGeometry()
 }
 
+fun replaceTerms(name: String): String {
+    return name
+        .replace("gl_Position", "glPosition")
+        .replace("gl_FragCoord", "glFragCoord")
+        // they are signed in OpenGL because legacy OpenGL didn't have unsigned types
+        .replace("gl_VertexID", "int(glVertexID)")
+        .replace("gl_InstanceID", "int(glInstanceID)")
+        .replace("gl_FrontFacing", "true") // not yet supported properly
+        .replace("dFdx", "zero")
+        .replace("dFdy", "zero")
+        .replace("discard;", "return;")
+}
+
+fun extractMain(source: String): Pair<String, String> {
+    val prefix = "void main(){"
+    val idx = source.indexOf(prefix)
+    val end = source.lastIndexOf('}')
+    if (idx < 0 || end < idx) throw IllegalArgumentException("Missing main()")
+    return replaceTerms(source.substring(0, idx)) to
+            replaceTerms(source.substring(idx + prefix.length, end))
+}
+
 fun computeRasterizer() {
 
     // done first step: create an IMesh
     // done create lots of small triangles for testing
 
-    val shaders = LazyMap<ShaderKey, ComputeShader> { (shader, target, meshAttr, instAttr, indexed, drawMode) ->
-
-        // todo respect draw mode
-
-        ComputeShader(
-            "rasterizer", Vector3i(1024, 1, 1), listOf(
-                Variable(GLSLType.V1I, "numPrimitives"),
-                Variable(GLSLType.V1I, "numInstances"),
-                Variable(GLSLType.M4x3, "localTransform"),
-                Variable(GLSLType.M4x4, "transform"),
-                Variable(GLSLType.V2I, "viewportSize"),
-            ), "" +
-                    createAccessors(meshAttr, listOf(Attribute("coords", 3)), "Mesh", 0, false) +
-                    createAccessors(instAttr, listOf(), "Inst", 1, false) +
-                    "layout(r32f, binding = 0) coherent uniform image2D depthTex;\n" +
-                    (target?.layers2 ?: emptyList()).withIndex().joinToString("") { (idx, layer) ->
-                        "layout(rgba32f, binding = ${idx + 1}) uniform image2D ${layer.name};\n"
-                    } +
-                    (if (indexed != null) {
-                        "layout(std430, set = 0, binding = 2) buffer IndexBuffer {\n" +
-                                "    uint data[];\n" +
-                                "} Indices;\n"
-                    } else "") +
-                    "struct Pixel {\n" +
-                    "   ivec2 uv;\n" +
-                    "   vec4 glPosition;\n" +
-                    // todo add all varyings
-                    "};\n" +
-                    "Pixel projectPixel(uint vertexId){\n" +
-                    // todo load all attributes, that we need
-                    "   vec3 coord = getMeshCoords(vertexId);\n" +
-                    // todo coord -> localPosition -> finalPosition -> gl_Position -> /w [-1,1] -> [0,w]
-                    "   coord = matMul(localTransform,vec4(coord,1.0));\n" +
-
-                    // todo execute vertex shader
-
-                    "   vec4 glPosition = matMul(transform,vec4(coord,1.0));\n" +
-                    "   glPosition.xyz /= glPosition.w;\n" +
-                    "   ivec2 uv = ivec2((glPosition.xy*.5+.5)*vec2(viewportSize));\n" +
-                    "   return Pixel(uv,glPosition);\n" +
-                    "}\n" +
-                    "void setPixel(Pixel pixel){\n" +
-                    "   ivec2 uv = pixel.uv;\n" +
-                    "   float depth = pixel.glPosition.z;\n" +
-                    "   if(uv.x >= 0 && uv.y >= 0 && uv.x < viewportSize.x && uv.y < viewportSize.y){\n" +
-                    "       if(imageLoad(depthTex,uv).x < depth){\n" +
-                    "           imageStore(depthTex, uv, vec4(depth));\n" +
-                    // todo write proper values into all targets
-                    (target?.layers2 ?: emptyList()).joinToString("") { layer ->
-                        "   imageStore(${layer.name}, uv, vec4(1.0));\n"
-                    } +
-                    "       }\n" +
-                    "   }\n" +
-                    "}\n" +
-                    "void union1(ivec2 a, ivec2 b, int y, inout int minX, inout int maxX){\n" +
-                    "   if(y <= max(a.y,b.y) && y >= min(a.y,b.y)){\n" +
-                    "       if(a.y == b.y){\n" +
-                    "           minX = min(minX,min(a.x,b.x));\n" +
-                    "           maxX = max(maxX,max(a.x,b.x));\n" +
-                    "       } else {\n" +
-                    "           int x = a.x + (b.x-a.x) * (y-a.y)/(b.y-a.y);\n" +
-                    "           minX = min(minX,x);\n" +
-                    "           maxX = max(maxX,x);\n" +
-                    "       }\n" +
-                    "   }\n" +
-                    "}\n" +
-                    // todo change algorithm for line strips and triangle strips (?)
-                    "uint getIndex(uint triIdx){\n" +
-                    when (indexed) {
-                        AttributeType.UINT32 -> "return Indices.data[triIdx];\n"
-                        AttributeType.UINT16 -> "return (Indices.data[triIdx >> 1] << (16-16*(triIdx&1))) >> 16;\n" // correct order?
-                        else -> "return triIdx;\n"
-                    } +
-                    "}\n" +
-                    "void main(){\n" +
-                    "   if(gl_GlobalInvocationID.x >= numPrimitives * numInstances) return;\n" +
-                    "   uint instanceId = gl_GlobalInvocationID.x / numPrimitives;\n" +
-                    "   uint primitiveId = gl_GlobalInvocationID.x % numPrimitives;\n" +
-                    when (drawMode) {
-                        DrawMode.POINTS -> {
-                            "setPixel(projectPixel(getIndex(primitiveId)));\n"
-                        }
-                        DrawMode.LINES, DrawMode.LINE_STRIP -> {
-                            "" +
-                                    "   Pixel ua = projectPixel(getIndex(primitiveId*2u));\n" +
-                                    "   Pixel ub = projectPixel(getIndex(primitiveId*2u+1u));\n" +
-                                    // backside culling
-                                    "   if(min(ua.glPosition.w,ub.glPosition.w) <= 0.0) return;\n" +
-                                    "   int minX = max(min(ua.uv.x,ub.uv.x),0);\n" +
-                                    "   int maxX = min(max(ua.uv.x,ub.uv.x),viewportSize.x-1);\n" +
-                                    "   int minY = max(min(ua.uv.y,ub.uv.y),0);\n" +
-                                    "   int maxY = min(max(ua.uv.y,ub.uv.y),viewportSize.y-1);\n" +
-                                    "   if(maxY-minY > maxX-minX){\n" +
-                                    "       for(int y=minY;y<=maxY;y++){\n" +
-                                    "           int x = ua.uv.x + (ub.uv.x-ua.uv.x) * (y-ua.uv.y) / (ub.uv.y-ua.uv.y);\n" +
-                                    // todo interpolate correctly
-                                    "           setPixel(Pixel(ivec2(x,y),ua.glPosition));\n" +
-                                    "       }\n" +
-                                    "   } else if(maxX > minX){\n" +
-                                    "       for(int x=minX;x<=maxX;x++){\n" +
-                                    "           int y = ua.uv.y + (ub.uv.y-ua.uv.y) * (x-ua.uv.x) / (ub.uv.x-ua.uv.x);\n" +
-                                    // todo interpolate correctly
-                                    "           setPixel(Pixel(ivec2(x,y),ua.glPosition));\n" +
-                                    "       }\n" +
-                                    "   } else {\n" +
-                                    "       setPixel(ua);\n" +
-                                    "   }\n"
-                        }
-                        DrawMode.TRIANGLES, DrawMode.TRIANGLE_STRIP -> {
-                            "" +
-                                    "   Pixel ua = projectPixel(getIndex(primitiveId*3u));\n" +
-                                    "   Pixel ub = projectPixel(getIndex(primitiveId*3u+1u));\n" +
-                                    "   Pixel uc = projectPixel(getIndex(primitiveId*3u+2u));\n" +
-                                    // backside culling
-                                    "   if(min(ua.glPosition.w,min(ub.glPosition.w,uc.glPosition.w)) <= 0.0) return;\n" +
-                                    // backface culling
-                                    "   if(cross(vec3(ub.uv-ua.uv,0.0), vec3(uc.uv-ua.uv,0.0)).z <= 0.0) return;\n" +
-                                    "   int minX = max(min(ua.uv.x,min(ub.uv.x,uc.uv.x)),0);\n" +
-                                    "   int maxX = min(max(ua.uv.x,max(ub.uv.x,uc.uv.x)),viewportSize.x-1);\n" +
-                                    "   int minY = max(min(ua.uv.y,min(ub.uv.y,uc.uv.y)),0);\n" +
-                                    "   int maxY = min(max(ua.uv.y,max(ub.uv.y,uc.uv.y)),viewportSize.y-1);\n" +
-                                    "   if((maxY-minY+1)*(maxX-minX+1) > 1000) return;\n" + // discard too large triangles
-                                    "   for(int y=minY;y<=maxY;y++){\n" +
-                                    // calculate minX and maxX on this line
-                                    "       int minX1 = maxX, maxX1 = minX;\n" +
-                                    // todo each line only has two corresponding lines, find them (?)
-                                    "       union1(ua.uv,ub.uv,y,minX1,maxX1);\n" +
-                                    "       union1(ub.uv,uc.uv,y,minX1,maxX1);\n" +
-                                    "       union1(uc.uv,ua.uv,y,minX1,maxX1);\n" +
-                                    "       minX1 = max(minX1,minX);\n" +
-                                    "       maxX1 = min(maxX1,maxX);\n" +
-                                    "       for(int x=minX1;x<=maxX;x++){\n" +
-                                    // todo interpolate correctly
-                                    "           setPixel(Pixel(ivec2(x,y),ua.glPosition));\n" +
-                                    "       }\n" +
-                                    "   }\n"
-                        }
-                        else -> {}
-                    } +
-                    // todo rasterize big triangles as a group
-                    //  assumption: there won't be many of them
-                    "}\n"
-        )
-    }
+    val shaders =
+        LazyMap<ShaderKey, Pair<ComputeShader, List<Variable>>> { (shader, target, meshAttr, instAttr, indexed, drawMode) ->
+            val varyings = listOf(
+                Variable(GLSLType.V4F, "glFragCoord"),
+                Variable(GLSLType.V2I, "glFragCoordI"),
+            ) + shader.varyings
+            val attributes = shader.vertexVariables
+                .filter { it.isAttribute }
+            val instNames = instAttr.map { it.name }.toHashSet()
+            val (vertexFunctions, vertexMain) = extractMain(shader.vertexShader)
+            val (pixelFunctions, pixelMain) = extractMain(shader.fragmentShader)
+            val uniformNames = HashSet<String>()
+            val uniforms = (shader.vertexVariables +
+                    shader.fragmentVariables)
+                .filter { !it.isAttribute && it.isInput }
+                .filter { uniformNames.add(it.name) }
+                .sortedBy { it.size }
+            val uniformTextures = uniforms
+                .filter { it.type.glslName.startsWith("sampler") }
+            val outputs = (target?.layers2?.map { Variable(GLSLType.V4F, it.name) }
+                ?: shader.fragmentVariables.filter { it.inOutMode == VariableMode.OUT })
+            ComputeShader(
+                "rasterizer", Vector3i(512, 1, 1), listOf(
+                    Variable(GLSLType.V1I, "numPrimitives"),
+                    Variable(GLSLType.V1I, "numInstances"),
+                    Variable(GLSLType.V2I, "viewportSize"),
+                ), "" +
+                        createAccessors(
+                            meshAttr, attributes
+                                .filter { it.name !in instNames }
+                                .map { Attribute(it.name, it.type.components) },
+                            "Mesh", 0, false
+                        ) +
+                        createAccessors(instAttr, attributes
+                            .filter { it.name in instNames }
+                            .map { Attribute(it.name, it.type.components) },
+                            "Inst", 1, false
+                        ) +
+                        "layout(r32f, binding = 0) coherent uniform image2D depthTex;\n" +
+                        outputs.withIndex().joinToString("") { (idx, layer) ->
+                            "layout(rgba32f, binding = ${idx + 1}) uniform image2D ${layer.name}Tex;\n"
+                        } +
+                        (if (indexed != null) {
+                            "layout(std430, set = 0, binding = 2) buffer IndexBuffer {\n" +
+                                    "    uint data[];\n" +
+                                    "} Indices;\n"
+                        } else "") +
+                        "struct Pixel {\n" +
+                        varyings.joinToString("") {
+                            "  ${it.type.glslName} ${it.name};\n"
+                        } +
+                        "};\n" +
+                        "float zero(float x){ return 0.0; }\n" +
+                        "vec2 zero(vec2 x){ return vec2(0.0); }\n" +
+                        "vec3 zero(vec3 x){ return vec3(0.0); }\n" +
+                        "vec4 zero(vec4 x){ return vec4(0.0); }\n" +
+                        uniforms.joinToString("") {
+                            val tmp = StringBuilder()
+                            it.declare(tmp, "uniform", false)
+                            tmp.toString()
+                        } +
+                        vertexFunctions +
+                        pixelFunctions +
+                        // todo theoretically needs perspective-corrected lerping...
+                        //  -> disable that when the triangle is far enough
+                        "Pixel lerpPixels(Pixel a, Pixel b, float f, ivec2 glFragCoordI){\n" +
+                        "   if(!(f > 0.0)) f = 0.0;\n" + // avoid NaN/Infinity
+                        "   if(!(f < 1.0)) f = 1.0;\n" +
+                        "   Pixel lerped;\n" +
+                        "   lerped.glFragCoordI = glFragCoordI;\n" +
+                        varyings
+                            .filter { it.name != "glFragCoordI" }
+                            .joinToString("") {
+                                when (it.type) {
+                                    GLSLType.V1I, GLSLType.V2I, GLSLType.V3I, GLSLType.V4I -> {
+                                        val saveType = it.type
+                                        val workType = when (saveType) {
+                                            GLSLType.V1I -> GLSLType.V1F
+                                            GLSLType.V2I -> GLSLType.V2F
+                                            GLSLType.V3I -> GLSLType.V3F
+                                            GLSLType.V4I -> GLSLType.V4F
+                                            else -> throw NotImplementedError()
+                                        }.glslName
+                                        "lerped.${it.name} = ${saveType.glslName}(mix(" +
+                                                "$workType(a.${it.name})," +
+                                                "$workType(b.${it.name}),f));\n"
+                                    }
+                                    else -> {
+                                        "lerped.${it.name} = mix(a.${it.name},b.${it.name},f);\n"
+                                    }
+                                }
+                            } +
+                        "   return lerped;\n" +
+                        "}\n" +
+                        "Pixel projectPixel(uint glVertexID, uint glInstanceID){\n" +
+                        // load all attributes
+                        attributes.joinToString("") {
+                            val isInstanced = it.name in instNames
+                            val srcBuffer = if (isInstanced) "Inst" else "Mesh"
+                            val srcIndex = if (isInstanced) "glInstanceID" else "glVertexID"
+                            "${it.type.glslName} ${it.name} = get$srcBuffer${it.name.titlecase()}($srcIndex);\n"
+                        } +
+                        // "   vec3 coord = coords;\n" +
+                        // coord -> localPosition -> finalPosition -> gl_Position -> /w [-1,1] -> [0,w]
+                        // "   coord = matMul(localTransform,vec4(coord,1.0));\n" +
+                        varyings.joinToString("") { "${it.type.glslName} ${it.name} = ${it.type.glslName}(0);\n" } +
+                        "   vec4 glPosition;\n" +
+                        "{\n" +
+                        // execute vertex shader
+                        vertexMain +
+                        "}\n" +
+                        // "    = matMul(transform,vec4(coord,1.0));\n" +
+                        "   glFragCoord = vec4(glPosition.xyz / glPosition.w, glPosition.w);\n" +
+                        "   glFragCoord.xy = (glFragCoord.xy*.5+.5)*vec2(viewportSize);\n" +
+                        "   glFragCoordI = ivec2(glFragCoord.xy);\n" +
+                        "   return Pixel(${varyings.joinToString { it.name }});\n" +
+                        "}\n" +
+                        "void drawPixel(Pixel pixel){\n" +
+                        "   ivec2 glFragCoordI = pixel.glFragCoordI;\n" +
+                        "   float depth = pixel.glFragCoord.z;\n" +
+                        "   if(glFragCoordI.x >= 0 && glFragCoordI.y >= 0 && glFragCoordI.x < viewportSize.x && glFragCoordI.y < viewportSize.y){\n" +
+                        "       if(imageLoad(depthTex,glFragCoordI).x < depth){\n" +
+                        // output variables
+                        outputs.joinToString("") { layer ->
+                            "vec4 ${layer.name} = vec4(0.0);\n"
+                        } +
+                        // load all varyings from Pixel
+                        varyings
+                            .filter { it.name != "glFragCoordI" }
+                            .joinToString("") {
+                                "${it.type.glslName} ${it.name} = pixel.${it.name};\n"
+                            } +
+                        // execute fragment shader
+                        pixelMain +
+                        // some time has passed, so check depth again ^^ (it's unsafe without atomics anyway...)
+                        //"       if(imageLoad(depthTex,glFragCoordI).x < depth){\n" +
+                        "           imageStore(depthTex, glFragCoordI, vec4(depth));\n" +
+                        outputs.joinToString("") { layer ->
+                            "       imageStore(${layer.name}Tex, glFragCoordI, ${layer.name});\n"
+                        } +
+                        "           }\n" +
+                        //"       }\n" +
+                        "   }\n" +
+                        "}\n" +
+                        "void union1(ivec2 a, ivec2 b, int y, inout int minX, inout int maxX){\n" +
+                        "   if(y <= max(a.y,b.y) && y >= min(a.y,b.y)){\n" +
+                        "       if(a.y == b.y){\n" +
+                        "           minX = min(minX,min(a.x,b.x));\n" +
+                        "           maxX = max(maxX,max(a.x,b.x));\n" +
+                        "       } else {\n" +
+                        "           int x = a.x + (b.x-a.x) * (y-a.y)/(b.y-a.y);\n" +
+                        "           minX = min(minX,x);\n" +
+                        "           maxX = max(maxX,x);\n" +
+                        "       }\n" +
+                        "   }\n" +
+                        "}\n" +
+                        "vec3 findBarycentrics(ivec2 p0, ivec2 p1, ivec2 p2, ivec2 px){\n" +
+                        "   ivec2 v0 = p1-p0, v1 = p2-p0, v2 = px-p0;\n" +
+                        "   float d00=dot(v0,v0),d01=dot(v0,v1),d11=dot(v1,v1),d20=dot(v2,v0),d21=dot(v2,v1);\n" +
+                        "   float div = d00*d11-d01*d01;\n" +
+                        "   float d = 1.0/div;\n" +
+                        "   float v = clamp(float(d11 * d20 - d01 * d21) * d,0.0,1.0);\n" +
+                        "   float w = clamp(float(d00 * d21 - d01 * d20) * d,0.0,1.0);\n" +
+                        "   float u = 1.0 - v - w;\n" +
+                        "   return u+v+w < 1.0 ? vec3(u,v,w) : vec3(1.0,0.0,0.0);\n" +
+                        "}\n" +
+                        "Pixel lerpBarycentrics(Pixel a, Pixel b, Pixel c, ivec2 glFragCoordI){\n" +
+                        "   vec3 bary = findBarycentrics(a.glFragCoordI,b.glFragCoordI,c.glFragCoordI,glFragCoordI);\n" +
+                        "   Pixel ab = lerpPixels(a,b,bary.y/(bary.x+bary.y),glFragCoordI);\n" +
+                        "   return lerpPixels(ab,c,bary.z,glFragCoordI);\n" +
+                        "}\n" +
+                        // todo change indexing for line strips and triangle strips (?)
+                        "uint getIndex(uint triIdx){\n" +
+                        when (indexed) {
+                            AttributeType.UINT32 -> "return Indices.data[triIdx];\n"
+                            AttributeType.UINT16 -> "return (Indices.data[triIdx >> 1] << (16-16*(triIdx&1))) >> 16;\n" // correct order?
+                            else -> "return triIdx;\n"
+                        } +
+                        "}\n" +
+                        "void main(){\n" +
+                        "   if(gl_GlobalInvocationID.x >= numPrimitives * numInstances) return;\n" +
+                        "   uint instanceId = gl_GlobalInvocationID.x / numPrimitives;\n" +
+                        "   uint primitiveId = gl_GlobalInvocationID.x % numPrimitives;\n" +
+                        when (drawMode) {
+                            DrawMode.POINTS -> {
+                                "drawPixel(projectPixel(getIndex(primitiveId),instanceId));\n"
+                            }
+                            DrawMode.LINES, DrawMode.LINE_STRIP -> {
+                                "" +
+                                        "   Pixel ua = projectPixel(getIndex(primitiveId*2u),instanceId);\n" +
+                                        "   Pixel ub = projectPixel(getIndex(primitiveId*2u+1u),instanceId);\n" +
+                                        // backside culling
+                                        "   if(min(ua.glFragCoord.w,ub.glFragCoord.w) <= 0.0) return;\n" +
+                                        "   int minX = max(min(ua.glFragCoordI.x,ub.glFragCoordI.x),0);\n" +
+                                        "   int maxX = min(max(ua.glFragCoordI.x,ub.glFragCoordI.x),viewportSize.x-1);\n" +
+                                        "   int minY = max(min(ua.glFragCoordI.y,ub.glFragCoordI.y),0);\n" +
+                                        "   int maxY = min(max(ua.glFragCoordI.y,ub.glFragCoordI.y),viewportSize.y-1);\n" +
+                                        "   if(maxY-minY > maxX-minX){\n" +
+                                        "       for(int y=minY;y<=maxY;y++){\n" +
+                                        "           float f = float(y-ua.glFragCoordI.y) / float(ub.glFragCoordI.y-ua.glFragCoordI.y);\n" +
+                                        "           int x = ua.glFragCoordI.x + int((ub.glFragCoordI.x-ua.glFragCoordI.x) * f);\n" +
+                                        "           drawPixel(lerpPixels(ua,ub,f,ivec2(x,y)));\n" +
+                                        "       }\n" +
+                                        "   } else if(maxX > minX){\n" +
+                                        "       for(int x=minX;x<=maxX;x++){\n" +
+                                        "           float f = float(x-ua.glFragCoordI.x) / float(ub.glFragCoordI.x-ua.glFragCoordI.x);\n" +
+                                        "           int y = ua.glFragCoordI.y + int((ub.glFragCoordI.y-ua.glFragCoordI.y) * f);\n" +
+                                        "           drawPixel(lerpPixels(ua,ub,f,ivec2(x,y)));\n" +
+                                        "       }\n" +
+                                        "   } else {\n" +
+                                        "       drawPixel(ua);\n" +
+                                        "   }\n"
+                            }
+                            DrawMode.TRIANGLES, DrawMode.TRIANGLE_STRIP -> {
+                                "" +
+                                        "   Pixel ua = projectPixel(getIndex(primitiveId*3u),instanceId);\n" +
+                                        "   Pixel ub = projectPixel(getIndex(primitiveId*3u+1u),instanceId);\n" +
+                                        "   Pixel uc = projectPixel(getIndex(primitiveId*3u+2u),instanceId);\n" +
+                                        // backside culling
+                                        "   if(min(ua.glFragCoord.w,min(ub.glFragCoord.w,uc.glFragCoord.w)) <= 0.0) return;\n" +
+                                        // backface culling
+                                        "   if(cross(vec3(ub.glFragCoordI-ua.glFragCoordI,0.0), vec3(uc.glFragCoordI-ua.glFragCoordI,0.0)).z <= 0.0) return;\n" +
+                                        "   int minX = max(min(ua.glFragCoordI.x,min(ub.glFragCoordI.x,uc.glFragCoordI.x)),0);\n" +
+                                        "   int maxX = min(max(ua.glFragCoordI.x,max(ub.glFragCoordI.x,uc.glFragCoordI.x)),viewportSize.x-1);\n" +
+                                        "   int minY = max(min(ua.glFragCoordI.y,min(ub.glFragCoordI.y,uc.glFragCoordI.y)),0);\n" +
+                                        "   int maxY = min(max(ua.glFragCoordI.y,max(ub.glFragCoordI.y,uc.glFragCoordI.y)),viewportSize.y-1);\n" +
+                                        "   if((maxY-minY+1)*(maxX-minX+1) > 1000) return;\n" + // discard too large triangles
+                                        "   if(maxX<minX+2 && maxY<minY+2 && minX>0 && minY>0 && maxX<viewportSize.x-1 && maxY<viewportSize.y-1){\n" +
+                                        // small triangle on screen, max 3px -> no interpolations needed
+                                        // todo even with nothing visible, we only get 30% more fps???
+                                        "       drawPixel(ua);\n" +
+                                        "       if(ub.glFragCoordI != ua.glFragCoordI){\n" +
+                                        "           drawPixel(ub);\n" +
+                                        "       }\n" +
+                                        "       if(uc.glFragCoordI != ua.glFragCoordI && uc.glFragCoordI != ub.glFragCoordI){\n" +
+                                        "           drawPixel(uc);\n" +
+                                        "       }\n" +
+                                        "   } else {\n" + // medium sized triangle
+                                        "      for(int y=minY;y<=maxY;y++){\n" +
+                                        // calculate minX and maxX on this line
+                                        "           int minX1 = maxX, maxX1 = minX;\n" +
+                                        "           union1(ua.glFragCoordI,ub.glFragCoordI,y,minX1,maxX1);\n" +
+                                        "           union1(ub.glFragCoordI,uc.glFragCoordI,y,minX1,maxX1);\n" +
+                                        "           union1(uc.glFragCoordI,ua.glFragCoordI,y,minX1,maxX1);\n" +
+                                        "           minX1 = max(minX1,minX);\n" +
+                                        "           maxX1 = min(maxX1,maxX);\n" +
+                                        // find left and right pixel
+                                        "           Pixel minBary = lerpBarycentrics(ua,ub,uc,ivec2(minX1,y));\n" +
+                                        //  "           if(maxX1 == minX1){\n" +
+                                        //  "               drawPixel(minBary);\n" +
+                                        //  "           } else if(maxX1 > minX1) {\n" +
+                                        "               Pixel maxBary = lerpBarycentrics(ua,ub,uc,ivec2(maxX1,y));\n" +
+                                        "               for(int x=minX1;x<=maxX;x++){\n" +
+                                        "                   float f = float(x-minX)/float(maxX-minX+1);\n" +
+                                        "                   drawPixel(lerpPixels(minBary,maxBary,f,ivec2(x,y)));\n" +
+                                        "               }\n" +
+                                        // "           }" +
+                                        "      }\n" +
+                                        "   }\n"
+                            }
+                            else -> {}
+                        } +
+                        // todo rasterize big triangles as a group
+                        //  assumption: there won't be many of them
+                        "}\n"
+            ).apply {
+                setTextureIndices(uniformTextures.map { it.name })
+            } to outputs
+        }
 
     val mesh = IcosahedronModel.createIcosphere(7)
-    // mesh.createUniqueIndices()
+    if (false) mesh.createUniqueIndices()
 
     lateinit var component: Component
     val iMesh = object : IMesh {
@@ -371,7 +523,6 @@ fun computeRasterizer() {
         fun drawInstanced1(shader: Shader, materialIndex: Int, instanceData: Buffer?, drawLines: Boolean) {
 
             mesh.ensureBuffer()
-            val deferredSettings = GFXState.currentRenderer.deferredSettings
             if (drawLines) mesh.ensureDebugLines()
             val triBuffer = if (drawLines) mesh.debugLineBuffer else mesh.triBuffer
             val target = GFXState.currentBuffer
@@ -379,6 +530,7 @@ fun computeRasterizer() {
             // copy depth to color
             val depthAsColor = getDepthTarget(target)
 
+            val deferredSettings = GFXState.currentRenderer.deferredSettings
             val key = ShaderKey(
                 shader, deferredSettings, mesh.buffer!!.attributes,
                 instanceData?.attributes ?: emptyList(),
@@ -386,14 +538,17 @@ fun computeRasterizer() {
                 if (drawLines) DrawMode.LINES else mesh.drawMode
             )
 
-            val rasterizer = shaders[key]
+            val (rasterizer, outputs) = shaders[key]
             rasterizer.use()
 
-            bindBuffers(rasterizer, instanceData, triBuffer)
-            bindUniforms(rasterizer, materialIndex, instanceData, target, drawLines)
-            bindTargets(rasterizer, depthAsColor, deferredSettings, target)
+            val numPrimitives = if (drawLines) mesh.debugLineBuffer!!.elementCount / 2
+            else mesh.numPrimitives.toInt()
 
-            rasterizer.runBySize(mesh.numPrimitives.toInt() * (instanceData?.drawLength ?: 1))
+            bindBuffers(rasterizer, instanceData, triBuffer)
+            bindUniforms(rasterizer, materialIndex, instanceData, target, numPrimitives)
+            bindTargets(rasterizer, depthAsColor, outputs, target)
+
+            rasterizer.runBySize(numPrimitives * (instanceData?.drawLength ?: 1))
 
             writeDepth(target, depthAsColor)
         }
@@ -429,33 +584,30 @@ fun computeRasterizer() {
         }
 
         private fun bindUniforms(
-            rasterizer: ComputeShader, materialIndex: Int,
+            shader: ComputeShader, materialIndex: Int,
             instanceData: Buffer?, target: IFramebuffer,
-            drawLines: Boolean,
+            numPrimitives: Int,
         ) {
             val material = MaterialCache[mesh.materials.getOrNull(materialIndex), Material.defaultMaterial]
-            material.bind(rasterizer)
-            rasterizer.v1i(
-                "numPrimitives",
-                if (drawLines) mesh.debugLineBuffer!!.elementCount // todo why is soo much missing???
-                else mesh.numPrimitives.toInt()
-            )
-            rasterizer.v1i("numInstances", instanceData?.drawLength ?: 1)
-            rasterizer.v2i("viewportSize", target.width, target.height)
-            rasterizer.m4x3delta("localTransform", Matrix4x3d())
-            rasterizer.m4x4("transform", RenderState.cameraMatrix)
+            material.bind(shader)
+            shader.v1i("numPrimitives", numPrimitives)
+            shader.v1i("numInstances", instanceData?.drawLength ?: 1)
+            shader.v2i("viewportSize", target.width, target.height)
+            shader.m4x3delta("localTransform", Matrix4x3d())
+            shader.m4x4("transform", RenderState.cameraMatrix)
+            // todo use pipeline stage to bind all uniforms properly
+            // todo e.g. we need prevTransform for motion vectors
+            shader.v2f("renderSize", target.width.toFloat(), target.height.toFloat())
         }
 
         private fun bindTargets(
             rasterizer: ComputeShader, depthAsColor: Texture2D,
-            deferredSettings: DeferredSettings?,
+            outputs: List<Variable>,
             target: IFramebuffer
         ) {
             rasterizer.bindTexture(0, depthAsColor, ComputeTextureMode.READ_WRITE)
-            if (deferredSettings != null) {
-                for (i in 0 until deferredSettings.layers2.size) {
-                    rasterizer.bindTexture(i + 1, target.getTextureI(i) as Texture2D, ComputeTextureMode.WRITE)
-                }
+            for (i in outputs.indices) {
+                rasterizer.bindTexture(i + 1, target.getTextureI(i) as Texture2D, ComputeTextureMode.WRITE)
             }
         }
 
@@ -466,12 +618,23 @@ fun computeRasterizer() {
             return clickId + 1
         }
     }
-    val comp = object : MeshComponentBase() {
-        override fun getMeshOrNull() = iMesh
-    }
-    component = comp
 
     val scene = Entity("Scene")
+    val s = 5
+    for (z in -s..s) {
+        for (x in -s..s) {
+            val comp = object : MeshComponentBase() {
+                override fun getMeshOrNull() = iMesh
+            }
+            component = comp // any instance is fine
+            scene.add(
+                Entity("Compute/$x//$z")
+                    .setPosition(x * 2.0, 0.0, z * 2.0)
+                    .add(comp)
+            )
+        }
+    }
+
     for (i in 0 until 40) {
         val da = (45.0 * i).toRadians()
         val db = (30.0 * (i / 8 - 2)).toRadians()
@@ -485,6 +648,7 @@ fun computeRasterizer() {
                 .setScale(0.6)
         )
     }
-    scene.add(comp)
-    testSceneWithUI("Compute Rasterizer", scene)
+    testSceneWithUI("Compute Rasterizer", scene) {
+        StudioBase.instance?.enableVSync = false // we want to go fast, so we need to measure performance
+    }
 }

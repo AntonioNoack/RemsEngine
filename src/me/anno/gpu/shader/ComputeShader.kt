@@ -1,6 +1,5 @@
 package me.anno.gpu.shader
 
-import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.buffer.OpenGLBuffer
@@ -44,8 +43,9 @@ class ComputeShader(
                 variables.joinToString("") {
                     when (it.inOutMode) {
                         VariableMode.IN -> {
-                            val arr = if (it.arraySize >= 0) "[${it.arraySize}]" else ""
-                            "uniform ${it.type.glslName}$arr ${it.name};\n"
+                            val tmp = StringBuilder()
+                            it.declare(tmp, "uniform", false)
+                            tmp.toString()
                         }
                         else -> throw NotImplementedError()
                     }
@@ -77,9 +77,8 @@ class ComputeShader(
             this.session = GFXState.session
         }
 
-        if (Build.isDebug) {
-            glObjectLabel(GL_PROGRAM, pointer, name)
-        }
+        compileBindTextureNames()
+        compileSetDebugLabel()
     }
 
     override fun sourceContainsWord(word: String): Boolean {

@@ -1,6 +1,5 @@
 package me.anno.gpu.shader
 
-import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
 import me.anno.gpu.shader.ShaderLib.matMul
@@ -11,8 +10,6 @@ import me.anno.utils.structures.Compare.ifSame
 import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.lwjgl.opengl.GL20.*
-import org.lwjgl.opengl.GL43C.GL_PROGRAM
-import org.lwjgl.opengl.GL43C.glObjectLabel
 
 // todo locations for the varyings: for debugging with RenderDoc
 
@@ -20,11 +17,11 @@ import org.lwjgl.opengl.GL43C.glObjectLabel
 
 open class Shader(
     shaderName: String,
-    private var vertexVariables: List<Variable>,
-    var vertexShader: String,
-    private var varyings: List<Variable>,
-    private var fragmentVariables: List<Variable>,
-    var fragmentShader: String
+    val vertexVariables: List<Variable>,
+    val vertexShader: String,
+    val varyings: List<Variable>,
+    val fragmentVariables: List<Variable>,
+    val fragmentShader: String
 ) : GPUShader(shaderName) {
 
     companion object {
@@ -249,16 +246,8 @@ open class Shader(
         this.program = program // only assign the program, when no error happened
         this.session = GFXState.session
 
-        if (textureNames.isNotEmpty()) {
-            lastProgram = program
-            glUseProgram(program)
-            setTextureIndicesIfExisting()
-            GFX.check()
-        }
-
-        if (Build.isDebug) {
-            glObjectLabel(GL_PROGRAM, pointer, name)
-        }
+        compileBindTextureNames()
+        compileSetDebugLabel()
     }
 
     fun getAttributeLocation(name: String): Int {
@@ -278,6 +267,7 @@ open class Shader(
         }
     }
 
+    @Suppress("unused")
     fun printCode() {
         LOGGER.warn(formatShader(name, "", vertexSource, fragmentSource))
     }

@@ -56,7 +56,9 @@ object BufferCompute {
                             else -> throw IllegalArgumentException()
                         }
                         val size = attr.components * 4
-                        if (pos % alignment != 0) throw IllegalStateException("Alignment breaks std140")
+                        if (pos % alignment != 0) {
+                            throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
+                        }
                         result.append(
                             "$type get$name$name1(uint index){\n" +
                                     "   uint idx = index*${stride4}+$offset4;\n" +
@@ -126,6 +128,57 @@ object BufferCompute {
                                         "   sum |= (int(round(clamp(value.w,-1.0,1.0)*127.0)))<<24;\n".iff(c > 3) +
                                         "   uint idx = index*${stride4}+$offset4;\n" +
                                         "   $name.data[idx] = uint(sum);\n" +
+                                        "}\n"
+                            )
+                        }
+                        val size = attr.components
+                        pos += size
+                    }
+                    AttributeType.UINT8_NORM -> {
+                        if (attr.components != 4) throw NotImplementedError()
+                        val alignment = 4
+                        if (pos % alignment != 0) throw IllegalStateException("Alignment breaks std430")
+                        val c = reqType.components
+                        when (c) {
+                            1 -> result.append(
+                                "float get$name$name1(uint index){\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        "   uint value = $name.data[idx];\n" +
+                                        "   return float(value & 255) / 255.0;\n" +
+                                        "}\n"
+                            )
+                            2 -> result.append(
+                                "vec2 get$name$name1(uint index){\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        "   uint value = $name.data[idx];\n" +
+                                        "   return vec2((value<<24)>>24, (value<<16)>>24) / 255.0;\n" +
+                                        "}\n"
+                            )
+                            3 -> result.append(
+                                "vec3 get$name$name1(uint index){\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        "   uint value = $name.data[idx];\n" +
+                                        "   return vec3((value<<24)>>24, (value<<16)>>24, (value<<8)>>24) / 255.0;\n" +
+                                        "}\n"
+                            )
+                            4 -> result.append(
+                                "vec4 get$name$name1(uint index){\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        "   uint value = $name.data[idx];\n" +
+                                        "   return vec4((value<<24)>>24, (value<<16)>>24, (value<<8)>>24, value>>24) / 255.0;\n" +
+                                        "}\n"
+                            )
+                            else -> throw NotImplementedError()
+                        }
+                        if (setters) {
+                            result.append(
+                                "void set$name$name1(uint index, ${floatType(c)} value){\n" +
+                                        "   uint sum = uint(round(clamp(value.x,0.0,1.0)*255.0))&255;\n" +
+                                        "   sum |= (uint(round(clamp(value.y,0.0,1.0)*255.0))&255)<<8;\n".iff(c > 1) +
+                                        "   sum |= (uint(round(clamp(value.z,0.0,1.0)*255.0))&255)<<16;\n".iff(c > 2) +
+                                        "   sum |= (uint(round(clamp(value.w,0.0,1.0)*255.0)))<<24;\n".iff(c > 3) +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        "   $name.data[idx] = sum;\n" +
                                         "}\n"
                             )
                         }

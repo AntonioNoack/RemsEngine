@@ -1,6 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.ShaderLib.loadMat4x3
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
@@ -72,30 +73,28 @@ class MeshInstanceData(
                     "def-pos", listOf(
                         Variable(GLSLType.V4F, "instanceFinalId", VariableMode.ATTR),
                         Variable(GLSLType.V4F, "finalId", VariableMode.OUT),
-                        Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR),
+                        Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR),
+                        Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR),
+                        Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR),
                         Variable(GLSLType.M4x3, "localTransform", VariableMode.OUT),
                     ),
                     "" +
                             "finalId = instanceFinalId;\n" +
-                            "localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n"
-                )
+                            "localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n"
+                ).add(loadMat4x3)
             ) + DEFAULT.transformPosition,
             DEFAULT.transformNorTan,
             emptyList(), // colors aren't changed
             listOf(
                 ShaderStage(
                     "def-mov", listOf(
-                        Variable(GLSLType.V3F, "instancePrevTrans0", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "instancePrevTrans1", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "instancePrevTrans2", VariableMode.ATTR),
-                        Variable(GLSLType.V3F, "instancePrevTrans3", VariableMode.ATTR),
+                        Variable(GLSLType.V4F, "instancePrevTrans0", VariableMode.ATTR),
+                        Variable(GLSLType.V4F, "instancePrevTrans1", VariableMode.ATTR),
+                        Variable(GLSLType.V4F, "instancePrevTrans2", VariableMode.ATTR),
                         Variable(GLSLType.M4x3, "prevLocalTransform", VariableMode.OUT)
                     ),
-                    "prevLocalTransform = mat4x3(instancePrevTrans0,instancePrevTrans1,instancePrevTrans2,instancePrevTrans3);\n"
-                )
+                    "prevLocalTransform = loadMat4x3(instancePrevTrans0,instancePrevTrans1,instancePrevTrans2);\n"
+                ).add(loadMat4x3)
             ) + DEFAULT.transformMotionVec
         )
 

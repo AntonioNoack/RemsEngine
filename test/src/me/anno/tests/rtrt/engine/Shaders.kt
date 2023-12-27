@@ -6,6 +6,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
 import me.anno.gpu.shader.ShaderLib.coordsUVVertexShader
+import me.anno.gpu.shader.ShaderLib.loadMat4x3
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.ShaderLib.uvList
 import me.anno.gpu.shader.builder.Variable
@@ -21,7 +22,6 @@ import me.anno.maths.bvh.RayTracing.glslGraphicsDefines
 import me.anno.maths.bvh.RayTracing.glslIntersections
 import me.anno.maths.bvh.RayTracing.glslRandomGen
 import me.anno.maths.bvh.RayTracing.glslTLASIntersection
-import me.anno.maths.bvh.RayTracing.loadMat4x3
 import me.anno.maths.bvh.RayTracing2.bufferLayouts
 import me.anno.maths.bvh.RayTracing2.bufferStructs
 import me.anno.maths.bvh.RayTracing2.glslBLASIntersection2

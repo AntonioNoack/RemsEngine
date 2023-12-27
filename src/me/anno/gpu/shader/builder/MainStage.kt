@@ -268,10 +268,10 @@ class MainStage {
         if (isFragmentStage) {
             // fragment shader
             if (settings == null) {
-                code.append("layout(location=0) out vec4 BuildColor;\n")
+                uniforms.add(Variable(GLSLType.V4F, "BuildColor", VariableMode.OUT))
             } else {
                 // register all layers
-                settings.appendLayerDeclarators(code, disabledLayers, uniforms)
+                settings.appendLayerDeclarators(disabledLayers, uniforms)
             }
             code.append('\n')
         }

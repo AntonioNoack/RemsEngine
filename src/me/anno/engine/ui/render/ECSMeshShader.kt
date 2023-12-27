@@ -6,6 +6,7 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.brightness
+import me.anno.gpu.shader.ShaderLib.loadMat4x3
 import me.anno.gpu.shader.ShaderLib.parallaxMapping
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -14,7 +15,6 @@ import me.anno.gpu.shader.builder.Variable
 import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.CubemapTexture.Companion.cubemapsAreLeftHanded
 import me.anno.maths.Maths.hasFlag
-import me.anno.maths.bvh.RayTracing.loadMat4x3
 import kotlin.math.max
 
 open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
@@ -27,7 +27,7 @@ open class ECSMeshShader(name: String) : BaseShader(name, "", emptyList(), "") {
         const val getAnimMatrix =
             loadMat4x3 +
                     "mat4x3 getAnimMatrix(int index, float time){\n" +
-                    "   if(index < 0 || index >= textureSize(animTexture,0).x) return mat4x3(vec4(1,0,0,0),vec4(1,0,0,0),vec4(1,0,0,0));\n" +
+                    "   if(index < 0 || index >= textureSize(animTexture,0).x) return loadMat4x3(vec4(1,0,0,0),vec4(1,0,0,0),vec4(1,0,0,0));\n" +
                     "   int timeI = int(time); float timeF = fract(time);\n" +
                     "   vec4 a = mix(texelFetch(animTexture, ivec2(index,  timeI), 0), texelFetch(animTexture, ivec2(index,  timeI+1), 0), timeF);\n" +
                     "   vec4 b = mix(texelFetch(animTexture, ivec2(index+1,timeI), 0), texelFetch(animTexture, ivec2(index+1,timeI+1), 0), timeF);\n" +

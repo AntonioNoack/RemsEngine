@@ -7,6 +7,7 @@ import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.builder.ShaderBuilder
 import me.anno.gpu.shader.builder.ShaderStage
 import me.anno.gpu.shader.builder.Variable
+import me.anno.gpu.shader.builder.VariableMode
 import me.anno.gpu.texture.ITexture2D
 import me.anno.utils.structures.lists.Lists.first2
 import me.anno.utils.structures.lists.Lists.firstOrNull2
@@ -184,17 +185,13 @@ data class DeferredSettings(val layerTypes: List<DeferredLayerType>) {
         return shader
     }
 
-    fun appendLayerDeclarators(output: StringBuilder, disabledLayers: BitSet?, uniforms: HashSet<Variable>) {
+    fun appendLayerDeclarators(disabledLayers: BitSet?, uniforms: HashSet<Variable>) {
         val layers = settingsV1
         uniforms.add(Variable(GLSLType.V1F, "defRRT"))
         for (index in layers.indices) {
             if (disabledLayers == null || !disabledLayers[index]) {
                 val type = layers[index]
-                output.append("layout (location = ")
-                output.append(index)
-                output.append(") out vec4 ")
-                output.append(type.name)
-                output.append(";\n")
+                uniforms.add(Variable(GLSLType.V4F, type.name, VariableMode.OUT))
                 uniforms.add(Variable(GLSLType.V2F, type.nameRR))
             }
         }

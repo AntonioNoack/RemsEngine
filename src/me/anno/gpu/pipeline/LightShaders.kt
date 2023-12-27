@@ -27,6 +27,7 @@ import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GLSLType.Companion.floats
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib.coordsList
+import me.anno.gpu.shader.ShaderLib.loadMat4x3
 import me.anno.gpu.shader.ShaderLib.octNormalPacking
 import me.anno.gpu.shader.ShaderLib.quatRot
 import me.anno.gpu.shader.builder.ShaderBuilder
@@ -43,15 +44,13 @@ object LightShaders {
 
     private val lightInstancedAttributes = listOf(
         // transform
-        Attribute("instanceTrans0", 3),
-        Attribute("instanceTrans1", 3),
-        Attribute("instanceTrans2", 3),
-        Attribute("instanceTrans3", 3),
+        Attribute("instanceTrans0", 4),
+        Attribute("instanceTrans1", 4),
+        Attribute("instanceTrans2", 4),
         // inverse transform for light mapping
-        Attribute("invInsTrans0", 3),
-        Attribute("invInsTrans1", 3),
-        Attribute("invInsTrans2", 3),
-        Attribute("invInsTrans3", 3),
+        Attribute("invInsTrans0", 4),
+        Attribute("invInsTrans1", 4),
+        Attribute("invInsTrans2", 4),
         // light properties like type, color, cone angle
         Attribute("lightData0", 4),
         Attribute("lightData1", 1),
@@ -219,23 +218,20 @@ object LightShaders {
     val vertexI = ShaderStage(
         "v", listOf(
             Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "invInsTrans0", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "invInsTrans1", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "invInsTrans2", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "invInsTrans3", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "invInsTrans0", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "invInsTrans1", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "invInsTrans2", VariableMode.ATTR),
             Variable(GLSLType.V3F, "lightData0", VariableMode.ATTR),
             Variable(GLSLType.V1F, "lightData1", VariableMode.ATTR),
             Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V1B, "isDirectional"),
-            Variable(GLSLType.V3F, "invInsTrans0v", VariableMode.OUT).flat(),
-            Variable(GLSLType.V3F, "invInsTrans1v", VariableMode.OUT).flat(),
-            Variable(GLSLType.V3F, "invInsTrans2v", VariableMode.OUT).flat(),
-            Variable(GLSLType.V3F, "invInsTrans3v", VariableMode.OUT).flat(),
+            Variable(GLSLType.V4F, "invInsTrans0v", VariableMode.OUT).flat(),
+            Variable(GLSLType.V4F, "invInsTrans1v", VariableMode.OUT).flat(),
+            Variable(GLSLType.V4F, "invInsTrans2v", VariableMode.OUT).flat(),
             Variable(GLSLType.V4F, "data0", VariableMode.OUT).flat(),
             Variable(GLSLType.V1F, "data1", VariableMode.OUT).flat(),
             Variable(GLSLType.V4F, "data2", VariableMode.OUT).flat(),
@@ -249,16 +245,15 @@ object LightShaders {
                 "if(isDirectional && data2.a <= 0.0){\n" +
                 "   gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "} else {\n" +
-                "   mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
+                "   mat4x3 localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
                 "   vec3 globalPos = matMul(localTransform, vec4(coords, 1.0));\n" +
                 "   gl_Position = matMul(transform, vec4(globalPos, 1.0));\n" +
                 "}\n" +
                 "invInsTrans0v = invInsTrans0;\n" +
                 "invInsTrans1v = invInsTrans1;\n" +
                 "invInsTrans2v = invInsTrans2;\n" +
-                "invInsTrans3v = invInsTrans3;\n" +
                 "uvw = gl_Position.xyw;\n"
-    )
+    ).add(loadMat4x3)
 
     val vertexNI = ShaderStage(
         "v", listOf(
@@ -379,20 +374,20 @@ object LightShaders {
     val visualizeLightCountShaderInstanced = Shader(
         "visualize-light-count-instanced", listOf(
             Variable(GLSLType.V3F, "coords", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "instanceTrans0", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "instanceTrans1", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "instanceTrans2", VariableMode.ATTR),
-            Variable(GLSLType.V3F, "instanceTrans3", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "instanceTrans0", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "instanceTrans1", VariableMode.ATTR),
+            Variable(GLSLType.V4F, "instanceTrans2", VariableMode.ATTR),
             Variable(GLSLType.V4F, "shadowData", VariableMode.ATTR),
             Variable(GLSLType.M4x4, "transform"),
             Variable(GLSLType.V1B, "isDirectional"),
         ), "" +
+                loadMat4x3 +
                 "void main(){\n" +
                 // cutoff = 0 -> scale onto the whole screen, has effect everywhere
                 "   if(isDirectional && shadowData.a <= 0.0){\n" +
                 "      gl_Position = vec4(coords.xy, 0.5, 1.0);\n" +
                 "   } else {\n" +
-                "       mat4x3 localTransform = mat4x3(instanceTrans0,instanceTrans1,instanceTrans2,instanceTrans3);\n" +
+                "       mat4x3 localTransform = loadMat4x3(instanceTrans0,instanceTrans1,instanceTrans2);\n" +
                 "      gl_Position = matMul(transform, vec4(matMul(localTransform, vec4(coords, 1.0)), 1.0));\n" +
                 "   }\n" +
                 "}", emptyList(), listOf(
@@ -419,13 +414,12 @@ object LightShaders {
 
     val invStage = ShaderStage(
         "invTrans2cs2ls", listOf(
-            Variable(GLSLType.V3F, "invInsTrans0v", VariableMode.IN).flat(),
-            Variable(GLSLType.V3F, "invInsTrans1v", VariableMode.IN).flat(),
-            Variable(GLSLType.V3F, "invInsTrans2v", VariableMode.IN).flat(),
-            Variable(GLSLType.V3F, "invInsTrans3v", VariableMode.IN).flat(),
+            Variable(GLSLType.V4F, "invInsTrans0v", VariableMode.IN).flat(),
+            Variable(GLSLType.V4F, "invInsTrans1v", VariableMode.IN).flat(),
+            Variable(GLSLType.V4F, "invInsTrans2v", VariableMode.IN).flat(),
             Variable(GLSLType.M4x3, "camSpaceToLightSpace", VariableMode.OUT)
-        ), "camSpaceToLightSpace = mat4x3(invInsTrans0v,invInsTrans1v,invInsTrans2v,invInsTrans3v);\n"
-    )
+        ), "camSpaceToLightSpace = loadMat4x3(invInsTrans0v,invInsTrans1v,invInsTrans2v);\n"
+    ).add(loadMat4x3)
 
     fun getShader(settingsV2: DeferredSettings, type: LightType): Shader {
         val isInstanced = GFXState.instanceData.currentValue != MeshInstanceData.DEFAULT

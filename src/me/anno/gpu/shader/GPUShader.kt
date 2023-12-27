@@ -13,7 +13,9 @@ import me.anno.utils.types.Strings.isBlank2
 import org.apache.logging.log4j.LogManager
 import org.joml.*
 import org.lwjgl.BufferUtils
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GL21C.*
+import org.lwjgl.opengl.GL43C
 import org.lwjgl.opengl.GL43C.GL_SHADER
 import org.lwjgl.opengl.GL43C.glObjectLabel
 import java.nio.FloatBuffer
@@ -211,6 +213,21 @@ abstract class GPUShader(val name: String) : ICacheData {
 
     fun getTextureIndex(name: String): Int {
         return textureNames.indexOf(name)
+    }
+
+    fun compileSetDebugLabel() {
+        if (Build.isDebug) {
+            glObjectLabel(GL43C.GL_PROGRAM, pointer, name)
+        }
+    }
+
+    fun compileBindTextureNames() {
+        if (textureNames.isNotEmpty()) {
+            lastProgram = program
+            GL20.glUseProgram(program)
+            setTextureIndicesIfExisting()
+            GFX.check()
+        }
     }
 
     val pointer get() = program

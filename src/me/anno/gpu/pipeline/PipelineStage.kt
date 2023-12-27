@@ -75,20 +75,18 @@ class PipelineStage(
 
         val instancedBuffer = StaticBuffer(
             "instanced", listOf(
-                Attribute("instanceTrans0", 3),
-                Attribute("instanceTrans1", 3),
-                Attribute("instanceTrans2", 3),
-                Attribute("instanceTrans3", 3),
+                Attribute("instanceTrans0", 4),
+                Attribute("instanceTrans1", 4),
+                Attribute("instanceTrans2", 4),
                 Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
         val instancedBufferA = StaticBuffer(
             "instancedA", listOf(
-                Attribute("instanceTrans0", 3),
-                Attribute("instanceTrans1", 3),
-                Attribute("instanceTrans2", 3),
-                Attribute("instanceTrans3", 3),
+                Attribute("instanceTrans0", 4),
+                Attribute("instanceTrans1", 4),
+                Attribute("instanceTrans2", 4),
                 Attribute("animWeights", 4),
                 Attribute("animIndices", 4),
                 Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
@@ -97,28 +95,24 @@ class PipelineStage(
 
         val instancedBufferM = StaticBuffer(
             "instancedM", listOf(
-                Attribute("instanceTrans0", 3),
-                Attribute("instanceTrans1", 3),
-                Attribute("instanceTrans2", 3),
-                Attribute("instanceTrans3", 3),
-                Attribute("instancePrevTrans0", 3),
-                Attribute("instancePrevTrans1", 3),
-                Attribute("instancePrevTrans2", 3),
-                Attribute("instancePrevTrans3", 3),
+                Attribute("instanceTrans0", 4),
+                Attribute("instanceTrans1", 4),
+                Attribute("instanceTrans2", 4),
+                Attribute("instancePrevTrans0", 4),
+                Attribute("instancePrevTrans1", 4),
+                Attribute("instancePrevTrans2", 4),
                 Attribute("instanceFinalId", AttributeType.UINT8_NORM, 4)
             ), instancedBatchSize, GL_DYNAMIC_DRAW
         )
 
         val instancedBufferMA = StaticBuffer(
             "instancedMA", listOf(
-                Attribute("instanceTrans0", 3),
-                Attribute("instanceTrans1", 3),
-                Attribute("instanceTrans2", 3),
-                Attribute("instanceTrans3", 3),
-                Attribute("instancePrevTrans0", 3),
-                Attribute("instancePrevTrans1", 3),
-                Attribute("instancePrevTrans2", 3),
-                Attribute("instancePrevTrans3", 3),
+                Attribute("instanceTrans0", 4),
+                Attribute("instanceTrans1", 4),
+                Attribute("instanceTrans2", 4),
+                Attribute("instancePrevTrans0", 4),
+                Attribute("instancePrevTrans1", 4),
+                Attribute("instancePrevTrans2", 4),
                 // todo somehow add instance-prefix
                 Attribute("animWeights", 4),
                 Attribute("animIndices", 4),

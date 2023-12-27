@@ -82,16 +82,6 @@ object RayTracing {
             intersectTriangle +
             intersectAABB
 
-    const val loadMat4x3 = "" +
-            "mat4x3 loadMat4x3(vec4 a, vec4 b, vec4 c){\n" +
-            "   return mat4x3(\n" +
-            "       a.xyz,\n" +
-            "       vec3(a.w, b.xy),\n" +
-            "       vec3(b.zw, c.x),\n" +
-            "       c.yzw\n" +
-            "   );\n" +
-            "}\n"
-
     const val coloring = "" +
             "vec3 coloring(float t){\n" +
             "   float base = fract(t)*.8+.2;\n" +
