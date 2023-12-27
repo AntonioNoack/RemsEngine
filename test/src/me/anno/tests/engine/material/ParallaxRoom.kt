@@ -9,6 +9,7 @@ import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.pipeline.PipelineStage.Companion.TRANSPARENT_PASS
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.shader.builder.ShaderStage
@@ -35,7 +36,7 @@ class ParallaxMaterial : Material() {
             field.set(value)
         }
 
-    override fun bind(shader: Shader) {
+    override fun bind(shader: GPUShader) {
         super.bind(shader)
         shader.v4f("roomDepth", roomDepth)
     }

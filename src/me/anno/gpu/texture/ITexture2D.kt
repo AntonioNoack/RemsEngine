@@ -4,6 +4,7 @@ import me.anno.cache.ICacheData
 import me.anno.gpu.DepthMode
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.VRAMToRAM
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
@@ -19,7 +20,7 @@ interface ITexture2D : ICacheData {
     var depthFunc: DepthMode?
 
     fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean
-    fun bind(shader: Shader, texName: String, nearest: Filtering, clamping: Clamping): Boolean {
+    fun bind(shader: GPUShader, texName: String, nearest: Filtering, clamping: Clamping): Boolean {
         val index = shader.getTextureIndex(texName)
         return if (index >= 0) {
             bind(index, nearest, clamping)
@@ -28,14 +29,14 @@ interface ITexture2D : ICacheData {
 
     fun bindTrulyNearest(index: Int) = bind(index, Filtering.TRULY_NEAREST, Clamping.CLAMP)
 
-    fun bindTrulyNearest(shader: Shader, texName: String): Boolean {
+    fun bindTrulyNearest(shader: GPUShader, texName: String): Boolean {
         val index = shader.getTextureIndex(texName)
         return if (index >= 0) bindTrulyNearest(index) else false
     }
 
     fun bindTrulyLinear(index: Int) = bind(index, Filtering.TRULY_LINEAR, Clamping.CLAMP)
 
-    fun bindTrulyLinear(shader: Shader, texName: String): Boolean {
+    fun bindTrulyLinear(shader: GPUShader, texName: String): Boolean {
         val index = shader.getTextureIndex(texName)
         return if (index >= 0) bindTrulyLinear(index) else false
     }

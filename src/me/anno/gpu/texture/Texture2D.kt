@@ -123,7 +123,7 @@ open class Texture2D(
     var isDestroyed = false
 
     var filtering = Filtering.TRULY_NEAREST
-    var clamping: Clamping? = null
+    var clamping = Clamping.CLAMP
 
     // only used for images with exif rotation tag...
     var rotation: ImageTransform? = null

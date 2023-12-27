@@ -7,7 +7,7 @@ import me.anno.gpu.GFX.supportsClipControl
 import me.anno.gpu.blending.BlendMode
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.framebuffer.*
-import me.anno.gpu.shader.OpenGLShader
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.renderer.Renderer.Companion.colorRenderer
 import me.anno.gpu.texture.Texture2D
@@ -94,15 +94,15 @@ object GFXState {
         if (lastCullMode == newValue) return
         when (newValue) {
             CullMode.BOTH -> {
-                glDisable(GL_CULL_FACE)
+                glDisable(GL_CULL_FACE) // both visible -> disabled
             }
             CullMode.FRONT -> {
                 glEnable(GL_CULL_FACE)
-                glCullFace(GL_FRONT)
+                glCullFace(GL_BACK) // front visible -> back hidden
             }
             CullMode.BACK -> {
                 glEnable(GL_CULL_FACE)
-                glCullFace(GL_BACK)
+                glCullFace(GL_FRONT) // back visible -> front hidden
             }
         }
         lastCullMode = newValue
@@ -124,7 +124,7 @@ object GFXState {
     fun newSession() {
         session++
         GFX.gpuTasks.clear() // they all have become invalid
-        OpenGLShader.invalidateBinding()
+        GPUShader.invalidateBinding()
         Texture2D.invalidateBinding()
         OpenGLBuffer.invalidateBinding()
         lastBlendMode = BlendMode.INHERIT

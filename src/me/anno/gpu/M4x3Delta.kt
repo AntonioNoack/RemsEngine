@@ -1,8 +1,7 @@
 package me.anno.gpu
 
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.shader.OpenGLShader
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.GPUShader
 import me.anno.maths.Maths
 import org.joml.Matrix4f
 import org.joml.Matrix4x3d
@@ -25,7 +24,7 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
-    fun OpenGLShader.m4x3delta(
+    fun GPUShader.m4x3delta(
         location: String,
         a: Matrix4x3d,
         b: Matrix4x3d,
@@ -68,7 +67,7 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
-    fun OpenGLShader.m4x3delta(
+    fun GPUShader.m4x3delta(
         location: String, m: Matrix4x3d?,
         pos: Vector3d = RenderState.cameraPosition,
         worldScale: Double = RenderState.worldScale
@@ -78,7 +77,7 @@ object M4x3Delta {
     }
 
     @JvmStatic
-    fun OpenGLShader.m4x3delta(
+    fun GPUShader.m4x3delta(
         uniformIndex: Int, m: Matrix4x3d?,
         pos: Vector3d = RenderState.cameraPosition,
         worldScale: Double = RenderState.worldScale
@@ -241,7 +240,7 @@ object M4x3Delta {
      * the delta ensures, that we don't have to calculate high-precision numbers on the GPU
      * */
     @JvmStatic
-    fun OpenGLShader.m4x3delta(location: String, m: Matrix4x3d, b: Vector3d, worldScale: Double, localScale: Float) {
+    fun GPUShader.m4x3delta(location: String, m: Matrix4x3d, b: Vector3d, worldScale: Double, localScale: Float) {
         val uniformIndex = this[location]
         if (uniformIndex >= 0) {
 

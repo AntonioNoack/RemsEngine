@@ -67,7 +67,7 @@ fun main() {
         override fun renderScene(time: Double, flipY: Boolean, renderer: Renderer) {
             useFrame(previewRenderer) {
                 GFXState.currentBuffer.clearColor(0f, 0f, 0f, 0f, false)
-                GFXState.cullMode.use(CullMode.BACK) {
+                GFXState.cullMode.use(CullMode.FRONT) {
                     mesh.drawAssimp(
                         cameraMatrix,
                         createModelMatrix((time / fps).toFloat()), null,

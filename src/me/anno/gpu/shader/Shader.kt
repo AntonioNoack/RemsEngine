@@ -25,7 +25,7 @@ open class Shader(
     private var varyings: List<Variable>,
     private var fragmentVariables: List<Variable>,
     var fragmentShader: String
-) : OpenGLShader(shaderName) {
+) : GPUShader(shaderName) {
 
     companion object {
         private val LOGGER = LogManager.getLogger(Shader::class)

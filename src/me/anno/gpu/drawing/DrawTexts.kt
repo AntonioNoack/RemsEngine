@@ -335,7 +335,7 @@ object DrawTexts {
         }
     }
 
-    private fun chooseShader(textColor: Int, backgroundColor: Int, instanced: Int = 0): OpenGLShader {
+    private fun chooseShader(textColor: Int, backgroundColor: Int, instanced: Int = 0): GPUShader {
         GFX.check()
         val cuc = canUseComputeShader() && min(textColor.a(), backgroundColor.a()) < 255
         val shader = if (cuc && !ShaderLib.subpixelCorrectTextShader2[instanced].failedCompilation) {
@@ -435,7 +435,7 @@ object DrawTexts {
     }
 
     private fun draw(
-        shader: OpenGLShader, texture: ITexture2D?,
+        shader: GPUShader, texture: ITexture2D?,
         x2: Int, y2: Int, txt: CharSequence, barrier: Boolean
     ) {
         if (texture != null && (texture !is Texture2D || texture.isCreated)) {

@@ -47,7 +47,7 @@ object DepthTransforms {
         Variable(GLSLType.M4x3, "d_orthoMat"),
     )
 
-    fun bindDepthToPosition(shader: Shader) {
+    fun bindDepthToPosition(shader: GPUShader) {
         val mat0 = RenderState.cameraMatrix
         if (abs(mat0.m33 - 1f) < 0.001f) {
             // orthogonal

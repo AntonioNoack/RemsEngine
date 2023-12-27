@@ -20,7 +20,7 @@ import me.anno.gpu.query.OcclusionQuery
 import me.anno.gpu.shader.FlatShaders.copyShader
 import me.anno.gpu.shader.FlatShaders.copyShaderAnyToAny
 import me.anno.gpu.shader.FlatShaders.copyShaderMS
-import me.anno.gpu.shader.OpenGLShader
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.ShaderLib
 import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
@@ -387,7 +387,7 @@ object GFX {
         maxColorAttachments = glGetInteger(GL_MAX_COLOR_ATTACHMENTS)
         maxSamples = max(1, glGetInteger(GL_MAX_SAMPLES))
         maxTextureSize = max(256, glGetInteger(GL_MAX_TEXTURE_SIZE))
-        OpenGLShader.useShaderFileCache = !GFXBase.usesRenderDoc && glVersion >= 41
+        GPUShader.useShaderFileCache = !GFXBase.usesRenderDoc && glVersion >= 41
         if (glVersion >= 43) OcclusionQuery.target = GL_ANY_SAMPLES_PASSED_CONSERVATIVE
         LOGGER.info("Max Uniform Components: [Vertex: $maxVertexUniformComponents, Fragment: $maxFragmentUniformComponents]")
         LOGGER.info("Max Uniforms: $maxUniforms")
@@ -510,7 +510,7 @@ object GFX {
     @JvmStatic
     fun renderStep(window: OSWindow, doRender: Boolean) {
 
-        OpenGLShader.invalidateBinding()
+        GPUShader.invalidateBinding()
         Texture2D.destroyTextures()
         Texture2D.invalidateBinding()
         OpenGLBuffer.invalidateBinding()

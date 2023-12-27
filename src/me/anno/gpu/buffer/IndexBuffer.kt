@@ -40,6 +40,10 @@ class IndexBuffer(name: String, val base: Buffer, indices: IntArray, usage: Int 
         updateElementBuffer()
     }
 
+    override fun upload(allowResize: Boolean, keepLarge: Boolean) {
+        updateElementBuffer()
+    }
+
     private fun updateElementBuffer() {
 
         // GFX.check()

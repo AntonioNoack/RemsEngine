@@ -91,8 +91,8 @@ open class SimpleBuffer(name0: String, val vertices: Array<Vector2f>, name: Stri
             private val flat01FS = SimpleBuffer(
                 "flat01FS", arrayOf(
                     Vector2f(0f, 0f),
+                    Vector2f(2f, 0f),
                     Vector2f(0f, 2f),
-                    Vector2f(2f, 0f)
                 ), intArrayOf(0, 1, 2), "coords"
             )
 

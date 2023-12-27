@@ -1,7 +1,7 @@
 package me.anno.ecs.components.mesh
 
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
 import me.anno.gpu.texture.ITexture2D
@@ -20,7 +20,7 @@ class TypeValueTex(
         private val LOGGER = LogManager.getLogger(TypeValueTex::class)
     }
 
-    override fun bind(shader: Shader, location: Int) {
+    override fun bind(shader: GPUShader, location: Int) {
         when (type) {
             GLSLType.S2D -> {
                 val texture = TextureCache[source, false] ?: whileMissing

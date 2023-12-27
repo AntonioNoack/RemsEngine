@@ -5,7 +5,7 @@ import me.anno.engine.ui.render.ECSMeshShader
 import me.anno.gpu.GFXState
 import me.anno.gpu.deferred.DeferredLayerType
 import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.GPUShader
 import me.anno.maths.Maths.hasFlag
 import me.anno.maths.Maths.min
 import me.anno.utils.types.Booleans.toInt
@@ -72,7 +72,7 @@ class DecalMaterial : Material() {
         shader = getShader()
     }
 
-    override fun bind(shader: Shader) {
+    override fun bind(shader: GPUShader) {
         super.bind(shader)
         bindDepthToPosition(shader)
         // bind textures

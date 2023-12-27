@@ -37,7 +37,7 @@ open class BaseShader(
 
     constructor() : this("", "", emptyList(), "")
 
-    var glslVersion = OpenGLShader.DefaultGLSLVersion
+    var glslVersion = GPUShader.DefaultGLSLVersion
     var textures: List<String>? = null
     var ignoredNameWarnings = HashSet<String>()
 
@@ -106,15 +106,9 @@ open class BaseShader(
         get() {
             GFX.check()
             val renderer = GFXState.currentRenderer
-            val animated = GFXState.animated.currentValue
             val instanceData = GFXState.instanceData.currentValue
             val vertexData = GFXState.vertexData.currentValue
-            val isDepth = renderer == Renderer.nothingRenderer
-            val flags = animated.toInt(IS_ANIMATED) or
-                    motionVectors.toInt(NEEDS_MOTION_VECTORS) or
-                    (!isDepth).toInt(NEEDS_COLORS) or
-                    (instanceData != MeshInstanceData.DEFAULT).toInt(IS_INSTANCED) or
-                    (renderer.deferredSettings != null).toInt(IS_DEFERRED)
+            val flags = getFlags()
             val key = ShaderKey(renderer, vertexData, instanceData, flags)
             val shader = shaders.getOrPut(key) {
                 val r = key.renderer
@@ -214,5 +208,25 @@ open class BaseShader(
                         renderer == rawAttributeRenderers[DeferredLayerType.MOTION] ||
                         renderer.deferredSettings != null && DeferredLayerType.MOTION in renderer.deferredSettings.layerTypes)
             }
+
+        fun getKey(): ShaderKey {
+            val renderer = GFXState.currentRenderer
+            val instanceData = GFXState.instanceData.currentValue
+            val vertexData = GFXState.vertexData.currentValue
+            val flags = getFlags()
+            return ShaderKey(renderer, vertexData, instanceData, flags)
+        }
+
+        fun getFlags(): Int {
+            val renderer = GFXState.currentRenderer
+            val animated = GFXState.animated.currentValue
+            val instanceData = GFXState.instanceData.currentValue
+            val isDepth = renderer == Renderer.nothingRenderer
+            return animated.toInt(IS_ANIMATED) or
+                    motionVectors.toInt(NEEDS_MOTION_VECTORS) or
+                    (!isDepth).toInt(NEEDS_COLORS) or
+                    (instanceData != MeshInstanceData.DEFAULT).toInt(IS_INSTANCED) or
+                    (renderer.deferredSettings != null).toInt(IS_DEFERRED)
+        }
     }
 }

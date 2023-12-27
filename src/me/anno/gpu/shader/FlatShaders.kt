@@ -38,7 +38,7 @@ object FlatShaders {
         val colorMS = it.hasFlag(2)
         val depthMS = it.hasFlag(1)
         Shader(
-            "copyMSAnyToAny", coordsList, coordsUVVertexShader, uvList, listOf(
+            "copyMSAnyToAny/${it.toString(2)}", coordsList, coordsUVVertexShader, uvList, listOf(
                 Variable(if (colorMS) GLSLType.S2DMS else GLSLType.S2D, "colorTex"),
                 Variable(if (depthMS) GLSLType.S2DMS else GLSLType.S2D, "depthTex"),
                 Variable(GLSLType.V1I, "colorSamples"),

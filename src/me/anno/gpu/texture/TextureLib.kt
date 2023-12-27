@@ -47,12 +47,11 @@ object TextureLib {
 
         override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
             ensureExists()
-            return super.bind(index, filtering, clamping)
-        }
-
-        override fun bindTrulyNearest(index: Int): Boolean {
-            ensureExists()
-            return super.bindTrulyNearest(index)
+            val hasSize = width > 1 || height > 1
+            return super.bind(
+                index, if (hasSize) filtering else this.filtering,
+                if (hasSize) clamping else this.clamping
+            )
         }
     }
 

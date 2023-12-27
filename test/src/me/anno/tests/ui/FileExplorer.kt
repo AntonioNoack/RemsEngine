@@ -5,7 +5,7 @@ import me.anno.config.DefaultConfig.style
 import me.anno.engine.ECSRegistry
 import me.anno.gpu.GFXBase
 import me.anno.gpu.RenderDoc.disableRenderDoc
-import me.anno.gpu.shader.OpenGLShader.Companion.UniformCacheSize
+import me.anno.gpu.shader.GPUShader.Companion.UniformCacheSize
 import me.anno.io.files.FileReference
 import me.anno.studio.StudioBase
 import me.anno.ui.debug.TestStudio.Companion.testUI

@@ -396,7 +396,7 @@ fun createGPUPanel(
     val clockNanos = GPUClockNanos()
 
     var frameIndex = 0
-    fun prepareShader(shader: OpenGLShader, it: Panel) {
+    fun prepareShader(shader: GPUShader, it: Panel) {
 
         it.clone()
 

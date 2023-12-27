@@ -99,7 +99,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
             return weakCache[key]!!
         }
 
-        OpenGLShader.postPossibleError(name, program, false, "<bin>")
+        GPUShader.postPossibleError(name, program, false, "<bin>")
         glUseProgram(program)
         GFX.check()
 
@@ -144,15 +144,15 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
         val ni1 = vs.indexOf('\n', ni0 + 1)
         val name = if (ni1 > 0) vs.substring(ni0 + 1, ni1).trim() else ""
         if (fs == null) {
-            val shader = OpenGLShader.compileShader(GL_COMPUTE_SHADER, vs, name)
-            OpenGLShader.postPossibleError("", shader, true, vs)
+            val shader = GPUShader.compileShader(GL_COMPUTE_SHADER, vs, name)
+            GPUShader.postPossibleError("", shader, true, vs)
             glAttachShader(program, shader)
         } else {
-            val vertexShader = OpenGLShader.compileShader(GL_VERTEX_SHADER, vs, name)
-            OpenGLShader.postPossibleError("", vertexShader, true, vs)
+            val vertexShader = GPUShader.compileShader(GL_VERTEX_SHADER, vs, name)
+            GPUShader.postPossibleError("", vertexShader, true, vs)
 
-            val fragmentShader = OpenGLShader.compileShader(GL_FRAGMENT_SHADER, fs, name)
-            OpenGLShader.postPossibleError("", fragmentShader, true, fs)
+            val fragmentShader = GPUShader.compileShader(GL_FRAGMENT_SHADER, fs, name)
+            GPUShader.postPossibleError("", fragmentShader, true, fs)
 
             glAttachShader(program, vertexShader)
             glAttachShader(program, fragmentShader)
@@ -160,7 +160,7 @@ object ShaderCache : FileCache<Pair<String, String?>, ShaderCache.BinaryData?>(
 
         glLinkProgram(program)
 
-        OpenGLShader.postPossibleError(name, program, false, vs, fs ?: "")
+        GPUShader.postPossibleError(name, program, false, vs, fs ?: "")
 
         return program
     }

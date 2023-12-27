@@ -20,6 +20,7 @@ import me.anno.gpu.shader.DepthTransforms.bindDepthToPosition
 import me.anno.gpu.shader.DepthTransforms.depthVars
 import me.anno.gpu.shader.DepthTransforms.rawToDepth
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.renderer.Renderer
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.shader.ShaderLib
@@ -108,7 +109,7 @@ class ForceFieldMaterial : Material() {
         shader = ForceFieldShader
     }
 
-    override fun bind(shader: Shader) {
+    override fun bind(shader: GPUShader) {
         emissiveBase.set(60f * mix(1f, 1.05f, sin(1.5 * Time.gameTime).toFloat()))
         super.bind(shader)
     }

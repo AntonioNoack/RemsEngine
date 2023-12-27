@@ -3,7 +3,6 @@ package me.anno.gpu.shader
 import me.anno.Build
 import me.anno.gpu.GFX
 import me.anno.gpu.GFXState
-import me.anno.gpu.buffer.ComputeBuffer
 import me.anno.gpu.buffer.OpenGLBuffer
 import me.anno.gpu.shader.ShaderLib.matMul
 import me.anno.gpu.shader.builder.Variable
@@ -23,7 +22,7 @@ class ComputeShader(
     val version: Int,
     val groupSize: Vector3i,
     val source: String
-) : OpenGLShader(shaderName) {
+) : GPUShader(shaderName) {
 
     constructor(shaderName: String, localSize: Vector2i, source: String) :
             this(shaderName, Vector3i(localSize, 1), source)

@@ -17,13 +17,65 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 fun main() {
-    val np = 14
+    drawMovablePoints("Draw Curves", 14) { panel, local ->
+
+        val c0 = -1
+        val c1 = 0x777777 or black
+        val c2 = 0xff0000 or black
+        val c3 = 0xffff00 or black
+        val bg = panel.backgroundColor and 0xffffff
+
+        val scale = panel.scale
+        val r = 3f * scale.toFloat()
+        val th = 7f * scale.toFloat()
+
+        drawRect(local[1].x, local[1].y, r, r, c3)
+        drawRect(local[2].x, local[2].y, r, r, c3)
+        drawRect(local[3].x, local[3].y, r, r, c3)
+
+        drawRect(local[6].x, local[6].y, r, r, c0)
+        drawRect(local[7].x, local[7].y, r, r, c0)
+
+        drawRect(local[10].x, local[10].y, r, r, c1)
+
+        drawQuartBezier(
+            local[0].x, local[0].y,
+            local[1].x, local[1].y,
+            local[2].x, local[2].y,
+            local[3].x, local[3].y,
+            local[4].x, local[4].y,
+            th, c3, bg,
+            false
+        )
+        drawCubicBezier(
+            local[5].x, local[5].y,
+            local[6].x, local[6].y,
+            local[7].x, local[7].y,
+            local[8].x, local[8].y,
+            th, c0, bg,
+            false
+        )
+        drawQuadraticBezier(
+            local[9].x, local[9].y,
+            local[10].x, local[10].y,
+            local[11].x, local[11].y,
+            th, c1, bg, false
+        )
+        drawLine(
+            local[12].x, local[12].y,
+            local[13].x, local[13].y,
+            th, c2, bg, false
+        )
+    }
+}
+
+fun drawMovablePoints(title: String, np: Int, draw: (MapPanel, Array<Vector2f>) -> Unit) {
     val global = Array(np) {
         val a = it * TAUf / np
         Vector2f(cos(a), sin(a)).mul(300f)
     }
     val local = Array(np) { Vector2f() }
-    testUI3("Draw Curves") {
+    testUI3(title) {
         object : MapPanel(style) {
 
             var selected: Vector2f? = null
@@ -35,58 +87,11 @@ fun main() {
 
             override fun onDraw(x0: Int, y0: Int, x1: Int, y1: Int) {
                 super.onDraw(x0, y0, x1, y1)
-
-                val c0 = -1
-                val c1 = 0x777777 or black
-                val c2 = 0xff0000 or black
-                val c3 = 0xffff00 or black
-                val bg = backgroundColor and 0xffffff
-
-                val r = 3f * scale.toFloat()
-                val th = 7f * scale.toFloat()
-
                 for (i in 0 until np) {
                     val g = global[i]
                     local[i].set(coordsToWindowX(g.x.toDouble()), coordsToWindowY(g.y.toDouble()))
                 }
-
-                drawRect(local[1].x, local[1].y, r, r, c3)
-                drawRect(local[2].x, local[2].y, r, r, c3)
-                drawRect(local[3].x, local[3].y, r, r, c3)
-
-                drawRect(local[6].x, local[6].y, r, r, c0)
-                drawRect(local[7].x, local[7].y, r, r, c0)
-
-                drawRect(local[10].x, local[10].y, r, r, c1)
-
-                drawQuartBezier(
-                    local[0].x, local[0].y,
-                    local[1].x, local[1].y,
-                    local[2].x, local[2].y,
-                    local[3].x, local[3].y,
-                    local[4].x, local[4].y,
-                    th, c3, bg,
-                    false
-                )
-                drawCubicBezier(
-                    local[5].x, local[5].y,
-                    local[6].x, local[6].y,
-                    local[7].x, local[7].y,
-                    local[8].x, local[8].y,
-                    th, c0, bg,
-                    false
-                )
-                drawQuadraticBezier(
-                    local[9].x, local[9].y,
-                    local[10].x, local[10].y,
-                    local[11].x, local[11].y,
-                    th, c1, bg, false
-                )
-                drawLine(
-                    local[12].x, local[12].y,
-                    local[13].x, local[13].y,
-                    th, c2, bg, false
-                )
+                draw(this, local)
             }
 
             override fun onKeyDown(x: Float, y: Float, key: Key) {

@@ -2,7 +2,7 @@ package me.anno.ecs.components.mesh
 
 import me.anno.gpu.framebuffer.Framebuffer
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTex2da
 import me.anno.gpu.texture.TextureLib.whiteTex3d
@@ -23,7 +23,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
     override fun toString() = "$type:$value"
     override val className: String get() = "TypeValue"
 
-    fun bind(shader: Shader, uniformName: String) {
+    fun bind(shader: GPUShader, uniformName: String) {
         val location = when (type) {
             GLSLType.S2D, GLSLType.S2DI, GLSLType.S2DU,
             GLSLType.S2DMS, GLSLType.S3D, GLSLType.SCube,
@@ -33,7 +33,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
         if (location >= 0) bind(shader, location)
     }
 
-    open fun bind(shader: Shader, location: Int) {
+    open fun bind(shader: GPUShader, location: Int) {
         val value = value
         when (type) {
             GLSLType.V1B -> when (value) {

@@ -152,7 +152,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         null,
         DepthMode.CLOSE,
         true,
-        CullMode.BACK,
+        CullMode.FRONT,
         pbrModelShader
     )
 
@@ -292,7 +292,7 @@ abstract class RenderView(var playMode: PlayMode, style: Style) : Panel(style) {
         setClearDepth()
         stage0.blendMode = if (renderMode == RenderMode.OVERDRAW) BlendMode.ADD else null
         stage0.sorting = Sorting.FRONT_TO_BACK
-        stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.BACK else CullMode.BOTH
+        stage0.cullMode = if (renderMode != RenderMode.FRONT_BACK) CullMode.FRONT else CullMode.BOTH
     }
 
     fun findBuffer(renderer: Renderer): IFramebuffer {

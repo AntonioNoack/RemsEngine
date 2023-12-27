@@ -10,6 +10,7 @@ import me.anno.gpu.CullMode
 import me.anno.gpu.pipeline.Pipeline
 import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
@@ -184,7 +185,7 @@ open class Material : PrefabSaveable(), Renderable {
         shaderOverrides[name] = value
     }
 
-    open fun bind(shader: Shader) {
+    open fun bind(shader: GPUShader) {
 
         // all the data, the shader needs to know from the material
 
@@ -364,7 +365,7 @@ open class Material : PrefabSaveable(), Renderable {
         }
 
         fun bindTexture(
-            shader: Shader,
+            shader: GPUShader,
             name: String,
             file: FileReference,
             default: Texture2D,

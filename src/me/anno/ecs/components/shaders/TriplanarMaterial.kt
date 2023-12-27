@@ -3,8 +3,7 @@ package me.anno.ecs.components.shaders
 import me.anno.ecs.annotations.Range
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.GPUShader
 import org.joml.Vector4f
 import kotlin.math.min
 
@@ -22,7 +21,7 @@ class TriplanarMaterial : Material() {
         shader = TriplanarShader
     }
 
-    override fun bind(shader: Shader) {
+    override fun bind(shader: GPUShader) {
         super.bind(shader)
         shader.v1f("sharpness", if (blendPreferY > 0f) sharpness else min(sharpness, 0.999f))
         shader.v1f("blendPreferY", blendPreferY)
@@ -38,5 +37,4 @@ class TriplanarMaterial : Material() {
     }
 
     override val className: String get() = "TriplanarMaterial"
-
 }

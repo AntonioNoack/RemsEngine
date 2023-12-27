@@ -2,6 +2,7 @@ package me.anno.ecs.components.shaders
 
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTex3d
@@ -46,7 +47,7 @@ open class Texture3DBTMaterial : Material() {
         color1.lerp(tmp, f1)
     }
 
-    override fun bind(shader: Shader) {
+    override fun bind(shader: GPUShader) {
         super.bind(shader)
         val ti = shader.getTextureIndex("blocksTexture")
         val blocks = blocks
@@ -69,5 +70,4 @@ open class Texture3DBTMaterial : Material() {
     }
 
     override val className: String get() = "Texture3DBTMaterial"
-
 }

@@ -2,7 +2,7 @@ package me.anno.ecs.components.shaders
 
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.PrefabSaveable
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.texture.Texture3D
 import me.anno.gpu.texture.TextureLib.whiteTex3d
 import me.anno.io.serialization.NotSerializedProperty
@@ -33,7 +33,7 @@ open class Texture3DBTv2Material : Material() {
         shader = Texture3DBTv2Shader
     }
 
-    override fun bind(shader: Shader) {
+    override fun bind(shader: GPUShader) {
         super.bind(shader)
         val ti = shader.getTextureIndex("blocksTexture")
         val blocks = blocks
@@ -62,5 +62,4 @@ open class Texture3DBTv2Material : Material() {
     }
 
     override val className: String get() = "Texture3DBTv2Material"
-
 }

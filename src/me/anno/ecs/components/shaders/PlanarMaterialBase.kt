@@ -3,7 +3,7 @@ package me.anno.ecs.components.shaders
 import me.anno.ecs.components.mesh.Material
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.ui.render.RenderState
-import me.anno.gpu.shader.Shader
+import me.anno.gpu.shader.GPUShader
 import me.anno.utils.pooling.JomlPools
 import org.joml.Quaternionf
 import org.joml.Vector2d
@@ -15,7 +15,7 @@ open class PlanarMaterialBase : Material() {
     var scale = Vector2d(1.0)
     var tilingDir = Quaternionf()
 
-    private fun tiling(shader: Shader) {
+    private fun tiling(shader: GPUShader) {
 
         // world scale correction
         val worldScale = RenderState.worldScale
@@ -57,7 +57,7 @@ open class PlanarMaterialBase : Material() {
         )
     }
 
-    override fun bind(shader: Shader) {
+    override fun bind(shader: GPUShader) {
         super.bind(shader)
         tiling(shader)
     }

@@ -21,14 +21,14 @@ import java.nio.FloatBuffer
 /**
  * base class for shaders, e.g. for ComputeShader or Shader
  * */
-abstract class OpenGLShader(val name: String) : ICacheData {
+abstract class GPUShader(val name: String) : ICacheData {
 
     companion object {
 
         var logShaders = false
         var useShaderFileCache = false
 
-        private val LOGGER = LogManager.getLogger(OpenGLShader::class)
+        private val LOGGER = LogManager.getLogger(GPUShader::class)
 
         /** how attributes are called; is attribute in WebGL */
         val attribute get() = "in" // if(OS.isWeb) "attribute" else "in"
@@ -235,10 +235,10 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         uniformCache.fill(Float.NaN)
     }
 
-    fun setTextureIndices(vararg textures: String): OpenGLShader =
+    fun setTextureIndices(vararg textures: String): GPUShader =
         setTextureIndices(textures.toList())
 
-    fun setTextureIndices(textures: List<String>?): OpenGLShader {
+    fun setTextureIndices(textures: List<String>?): GPUShader {
         if (textures == null) return this
         if (pointer != 0) {
             use()
@@ -260,12 +260,12 @@ abstract class OpenGLShader(val name: String) : ICacheData {
         ignoredNames += names
     }
 
-    fun ignoreNameWarnings(vararg names: String): OpenGLShader {
+    fun ignoreNameWarnings(vararg names: String): GPUShader {
         ignoredNames += names
         return this
     }
 
-    fun ignoreNameWarnings(name: String): OpenGLShader {
+    fun ignoreNameWarnings(name: String): GPUShader {
         ignoredNames += name
         return this
     }

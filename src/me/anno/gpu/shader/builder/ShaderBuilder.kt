@@ -2,9 +2,8 @@ package me.anno.gpu.shader.builder
 
 import me.anno.gpu.deferred.DeferredSettings
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.shader.OpenGLShader
+import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
-import java.lang.IllegalStateException
 import java.util.*
 import kotlin.math.max
 
@@ -27,7 +26,7 @@ class ShaderBuilder(val name: String) {
     var settings: DeferredSettings? = null
     var disabledLayers: BitSet? = null
 
-    var glslVersion = OpenGLShader.DefaultGLSLVersion
+    var glslVersion = GPUShader.DefaultGLSLVersion
 
     val ignored = HashSet<String>()
 

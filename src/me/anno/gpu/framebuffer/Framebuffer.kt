@@ -49,16 +49,6 @@ class Framebuffer(
         depthBufferType: DepthBufferType = DepthBufferType.NONE
     ) : this(name, w, h, 1, arrayOf(target), depthBufferType)
 
-    init {
-        if (!GFX.supportsDepthTextures &&
-            (depthBufferType == DepthBufferType.TEXTURE ||
-                    depthBufferType == DepthBufferType.TEXTURE_16)
-        ) {
-            LOGGER.warn("Depth textures aren't supported")
-            depthBufferType = DepthBufferType.INTERNAL
-        }
-    }
-
     fun clone() = Framebuffer(name, width, height, samples, targets, depthBufferType)
 
     override val samples: Int = Maths.clamp(samples, 1, GFX.maxSamples)
@@ -216,7 +206,20 @@ class Framebuffer(
     // if you need multi-sampled textures, write me :) ->
     // lol, I need them myself for MSAA x deferred rendering 😂
 
+    private fun checkDepthTextureSupport() {
+        if (!GFX.supportsDepthTextures &&
+            (depthBufferType == DepthBufferType.TEXTURE ||
+                    depthBufferType == DepthBufferType.TEXTURE_16)
+        ) {
+            LOGGER.warn("Depth textures aren't supported")
+            depthBufferType = DepthBufferType.INTERNAL
+        }
+    }
+
     fun create() {
+
+        checkDepthTextureSupport()
+
         depthAttachment?.ensure()
         Frame.invalidate()
         GFX.check()
@@ -276,7 +279,8 @@ class Framebuffer(
             }
             DepthBufferType.INTERNAL -> {
                 if (internalDepthRenderbuffer == 0) {
-                    internalDepthRenderbuffer = createAndAttachRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
+                    internalDepthRenderbuffer =
+                        createAndAttachRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
                 }
             }
             DepthBufferType.TEXTURE, DepthBufferType.TEXTURE_16 -> {
@@ -296,7 +300,8 @@ class Framebuffer(
                     this.depthTexture = depthTexture
                 } else if (internalDepthRenderbuffer == 0) {
                     // 4 is worst-case assumed
-                    internalDepthRenderbuffer = createAndAttachRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
+                    internalDepthRenderbuffer =
+                        createAndAttachRenderbuffer(GL_DEPTH_ATTACHMENT, GL_DEPTH_COMPONENT24, 4)
                 }
             }
         }

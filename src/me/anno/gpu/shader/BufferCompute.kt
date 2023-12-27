@@ -34,7 +34,8 @@ object BufferCompute {
         var pos = 0
         val result = StringBuilder()
         result.append(
-            "layout(std140, set = 0, binding = $binding) buffer Buffer_$name {\n" +
+            // 430 = compact
+            "layout(std430, set = 0, binding = $binding) buffer Buffer$name {\n" +
                     "    uint data[];\n" +
                     "} $name;\n"
         )
