@@ -51,6 +51,7 @@ open class OSWindow(var title: String) {
 
     var isInFocus = false
     var isMinimized = false
+    var showFPS = true
 
     var needsRefresh = true
 

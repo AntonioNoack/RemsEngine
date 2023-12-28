@@ -293,7 +293,7 @@ abstract class StudioBase(
 
         var didSomething = false
 
-        if (showFPS) {
+        if (showFPS && window.showFPS) {
             FrameTimings.showFPS(window)
         }
 

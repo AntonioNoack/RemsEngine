@@ -8,6 +8,7 @@ import me.anno.ecs.Transform
 import me.anno.ecs.prefab.Prefab.Companion.maxPrefabDepth
 import me.anno.ecs.prefab.PrefabByFileCache
 import me.anno.ecs.prefab.PrefabCache
+import me.anno.ecs.prefab.change.Path
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.utils.pooling.JomlPools
@@ -15,6 +16,7 @@ import me.anno.utils.structures.lists.Lists.any2
 import org.apache.logging.log4j.LogManager
 import org.joml.Matrix4x3d
 import org.joml.Matrix4x3f
+import org.joml.Vector3f
 
 object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
 
@@ -33,7 +35,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
         val value0 = lru[ref]
         if (value0 !== Unit) return value0 as? Mesh
         val data = cache.getFileEntry(ref, false, PrefabCache.prefabTimeout, async) { ref1, _ ->
-            val mesh: IMesh? = when (val instance = PrefabCache.getPrefabInstance(ref1, maxPrefabDepth, async)) {
+            val mesh: Mesh? = when (val instance = PrefabCache.getPrefabInstance(ref1, maxPrefabDepth, async)) {
                 is Mesh -> instance
                 is MeshComponent -> {
                     // warning: if there is a dependency ring, this will produce a stack overflow
@@ -41,7 +43,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                     if (ref == ref2) null
                     else get(ref2, async)
                 }
-                is MeshComponentBase -> instance.getMesh()
+                is MeshComponentBase -> instance.getMesh() as? Mesh
                 is Entity -> {
                     val components = ArrayList<Component>(64)
                     fun forAll(entity: Entity) {
@@ -118,6 +120,8 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                     if (materials == mesh.materials) mesh else {
                         val clone = mesh.clone() as Mesh
                         clone.materials = materials
+                        clone.prefabPath = Path.ROOT_PATH
+                        clone.prefab = null
                         clone
                     }
                 } else {
@@ -127,6 +131,13 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                     clone.positions = transform(matrix, clone.positions)
                     clone.normals = rotate(matrix, clone.normals, 3)
                     clone.tangents = rotate(matrix, clone.tangents, 4)
+                    clone.invalidateGeometry()
+                    clone.buffer = null
+                    clone.triBuffer = null
+                    clone.lineBuffer = null
+                    clone.debugLineBuffer = null
+                    clone.prefabPath = Path.ROOT_PATH
+                    clone.prefab = null
                     clone
                 }
             }
@@ -154,7 +165,7 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
     private fun transform(matrix: Matrix4x3d, src: FloatArray?): FloatArray? {
         src ?: return null
         val tmp = JomlPools.vec3f.borrow()
-        val dst = FloatArray(src.size)
+        val dst = src.copyOf()
         for (i in src.indices step 3) {
             tmp.set(src, i)
             matrix.transformPosition(tmp)
@@ -166,10 +177,11 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
     private fun rotate(matrix: Matrix4x3d, src: FloatArray?, stride: Int): FloatArray? {
         src ?: return null
         val tmp = JomlPools.vec3f.borrow()
-        val dst = FloatArray(src.size)
+        val dst = src.copyOf()
         for (i in src.indices step stride) {
             tmp.set(src, i)
             matrix.transformDirection(tmp)
+                .safeNormalize()
             tmp.get(dst, i)
         }
         return dst

@@ -116,6 +116,7 @@ abstract class MeshJoiner<V>(
 
             val srcMesh = getMesh(element)
             srcMesh.ensureBuffer() // ensure normals, tangents and such have been initialized
+            srcMesh.ensureNorTanUVs()
 
             val srcPositions = srcMesh.positions!!
             val srcNormals = srcMesh.normals!!
@@ -200,13 +201,13 @@ abstract class MeshJoiner<V>(
                 dstPositions[i++] = tmp.y
                 dstPositions[i++] = tmp.z
                 tmp.set(srcNormals[k], srcNormals[k + 1], srcNormals[k + 2])
-                localToGlobal.transformDirection(tmp)
+                localToGlobal.transformDirection(tmp).safeNormalize()
                 dstNormals[i - 3] = tmp.x
                 dstNormals[i - 2] = tmp.y
                 dstNormals[i - 1] = tmp.z
                 if (dstTangents != null && srcTangents != null) {
                     tmp.set(srcTangents[j4++], srcTangents[j4++], srcTangents[j4++])
-                    localToGlobal.transformDirection(tmp)
+                    localToGlobal.transformDirection(tmp).safeNormalize()
                     dstTangents[i4++] = tmp.x
                     dstTangents[i4++] = tmp.y
                     dstTangents[i4++] = tmp.z

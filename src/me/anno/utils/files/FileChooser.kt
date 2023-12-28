@@ -164,6 +164,7 @@ object FileChooser {
             val w = OSWindow.defaultWidth * 6 / 7
             val h = OSWindow.defaultHeight * 5 / 7
             val window = GFXBase.createWindow(title.name, ui, w, h)
+            window.showFPS = false
             window.windowStack.first()
         } else {
             val window1 = Window(ui, false, baseWindow.windowStack)
