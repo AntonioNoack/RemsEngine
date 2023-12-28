@@ -163,7 +163,7 @@ class FloatArrayList(capacity: Int) : ICacheData {
         for (i in 0 until ((size + mask) ushr shift)) {
             val src = buffers[i]
             val offset = i shl shift
-            src.copyInto(dst, offset, min(capacity - offset, size))
+            src.copyInto(dst, offset, 0, min(capacity, size - offset))
         }
         return dst
     }
@@ -178,5 +178,4 @@ class FloatArrayList(capacity: Int) : ICacheData {
         }
         buffers.clear()
     }
-
 }

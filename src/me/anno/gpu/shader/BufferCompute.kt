@@ -24,6 +24,30 @@ object BufferCompute {
         return GLSLType.floats[components - 1].glslName
     }
 
+    private fun uintType(components: Int): String {
+        return when (components) {
+            1 -> "uint"
+            2 -> "uvec2"
+            3 -> "uvec3"
+            4 -> "uvec4"
+            else -> throw IllegalArgumentException()
+        }
+    }
+
+    private fun sintType(components: Int): String {
+        return GLSLType.integers[components - 1].glslName
+    }
+
+    private fun floatAlignment(components: Int): Int {
+        return when (components) {
+            1 -> 4
+            2 -> 8
+            3 -> 16
+            4 -> 16
+            else -> throw IllegalArgumentException()
+        }
+    }
+
     fun createAccessors(
         given: List<Attribute>,
         wanted: List<Attribute>,
@@ -48,13 +72,7 @@ object BufferCompute {
                 when (attr.type) {
                     AttributeType.FLOAT -> {
                         val type = floatType(attr.components)
-                        val alignment = when (attr.components) {
-                            1 -> 4
-                            2 -> 8
-                            3 -> 16
-                            4 -> 16
-                            else -> throw IllegalArgumentException()
-                        }
+                        val alignment = floatAlignment(attr.components)
                         val size = attr.components * 4
                         if (pos % alignment != 0) {
                             throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
@@ -77,6 +95,68 @@ object BufferCompute {
                                         "   uint idx = index*${stride4}+$offset4;\n" +
                                         (0 until attr.components).joinToString("") {
                                             "$name.data[idx+$it] = floatBitsToUint(value.${"xyzw"[it]})\n"
+                                        } +
+                                        "}\n"
+                            )
+                        }
+                        pos += size
+                    }
+                    AttributeType.UINT32 -> {
+                        val type = uintType(attr.components)
+                        val alignment = floatAlignment(attr.components)
+                        val size = attr.components * 4
+                        if (pos % alignment != 0) {
+                            throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
+                        }
+                        result.append(
+                            "$type get$name$name1(uint index){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    when (attr.components) {
+                                        1 -> "return ($name.data[idx]);\n"
+                                        2 -> "return uvec2(($name.data[idx]),($name.data[idx+1]));\n"
+                                        3 -> "return uvec3(($name.data[idx]),($name.data[idx+1]),($name.data[idx+2]));\n"
+                                        4 -> "return uvec4(($name.data[idx]),($name.data[idx+1]),($name.data[idx+2]),($name.data[idx+3]));\n"
+                                        else -> throw NotImplementedError()
+                                    } +
+                                    "}\n"
+                        )
+                        if (setters) {
+                            result.append(
+                                "void set$name$name1(uint index, $type value){\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        (0 until attr.components).joinToString("") {
+                                            "$name.data[idx+$it] = (value.${"xyzw"[it]})\n"
+                                        } +
+                                        "}\n"
+                            )
+                        }
+                        pos += size
+                    }
+                    AttributeType.SINT32 -> {
+                        val type = sintType(attr.components)
+                        val alignment = floatAlignment(attr.components)
+                        val size = attr.components * 4
+                        if (pos % alignment != 0) {
+                            throw IllegalStateException("Alignment breaks std430: $given, $pos % $alignment")
+                        }
+                        result.append(
+                            "$type get$name$name1(uint index){\n" +
+                                    "   uint idx = index*${stride4}+$offset4;\n" +
+                                    when (attr.components) {
+                                        1 -> "return int($name.data[idx]);\n"
+                                        2 -> "return ivec2(int($name.data[idx]),int($name.data[idx+1]));\n"
+                                        3 -> "return ivec3(int($name.data[idx]),int($name.data[idx+1]),int($name.data[idx+2]));\n"
+                                        4 -> "return ivec4(int($name.data[idx]),int($name.data[idx+1]),int($name.data[idx+2]),int($name.data[idx+3]));\n"
+                                        else -> throw NotImplementedError()
+                                    } +
+                                    "}\n"
+                        )
+                        if (setters) {
+                            result.append(
+                                "void set$name$name1(uint index, $type value){\n" +
+                                        "   uint idx = index*${stride4}+$offset4;\n" +
+                                        (0 until attr.components).joinToString("") {
+                                            "$name.data[idx+$it] = uint(value.${"xyzw"[it]})\n"
                                         } +
                                         "}\n"
                             )

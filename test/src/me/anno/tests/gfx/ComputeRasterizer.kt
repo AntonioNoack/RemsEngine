@@ -403,26 +403,26 @@ fun computeRasterizer() {
                                 "" +
                                         "   Pixel ua = projectPixel(getIndex(primitiveId*2u),instanceId);\n" +
                                         "   Pixel ub = projectPixel(getIndex(primitiveId*2u+1u),instanceId);\n" +
+                                        "   if(ua.glFragCoordI == ub.glFragCoordI) return;\n" + // line is in gaps
                                         // backside culling
                                         "   if(min(ua.glFragCoord.w,ub.glFragCoord.w) <= 0.0) return;\n" +
                                         "   int minX = max(min(ua.glFragCoordI.x,ub.glFragCoordI.x),0);\n" +
                                         "   int maxX = min(max(ua.glFragCoordI.x,ub.glFragCoordI.x),viewportSize.x-1);\n" +
                                         "   int minY = max(min(ua.glFragCoordI.y,ub.glFragCoordI.y),0);\n" +
                                         "   int maxY = min(max(ua.glFragCoordI.y,ub.glFragCoordI.y),viewportSize.y-1);\n" +
+                                        "   float invSteps = 1.0 / float(max(maxX-minX,maxY-minY));\n" +
                                         "   if(maxY-minY > maxX-minX){\n" +
                                         "       for(int y=minY;y<=maxY;y++){\n" +
-                                        "           float f = float(y-ua.glFragCoordI.y) / float(ub.glFragCoordI.y-ua.glFragCoordI.y);\n" +
+                                        "           float f = float(y-ua.glFragCoordI.y) * invSteps;\n" +
                                         "           int x = ua.glFragCoordI.x + int((ub.glFragCoordI.x-ua.glFragCoordI.x) * f);\n" +
                                         "           drawPixel(lerpPixels(ua,ub,f,ivec2(x,y)));\n" +
                                         "       }\n" +
                                         "   } else if(maxX > minX){\n" +
                                         "       for(int x=minX;x<=maxX;x++){\n" +
-                                        "           float f = float(x-ua.glFragCoordI.x) / float(ub.glFragCoordI.x-ua.glFragCoordI.x);\n" +
+                                        "           float f = float(x-ua.glFragCoordI.x) * invSteps;\n" +
                                         "           int y = ua.glFragCoordI.y + int((ub.glFragCoordI.y-ua.glFragCoordI.y) * f);\n" +
                                         "           drawPixel(lerpPixels(ua,ub,f,ivec2(x,y)));\n" +
                                         "       }\n" +
-                                        "   } else {\n" +
-                                        "       drawPixel(ua);\n" +
                                         "   }\n"
                             }
                             DrawMode.TRIANGLES, DrawMode.TRIANGLE_STRIP -> {
@@ -439,6 +439,7 @@ fun computeRasterizer() {
                                         "   int minY = max(min(ua.glFragCoordI.y,min(ub.glFragCoordI.y,uc.glFragCoordI.y)),0);\n" +
                                         "   int maxY = min(max(ua.glFragCoordI.y,max(ub.glFragCoordI.y,uc.glFragCoordI.y)),viewportSize.y-1);\n" +
                                         "   if((maxY-minY+1)*(maxX-minX+1) > 1000) return;\n" + // discard too large triangles
+                                        "   if(minX==maxX || minY==maxY) return;\n" + // triangle between gaps, can be skipped
                                         "   if(maxX<minX+2 && maxY<minY+2 && minX>0 && minY>0 && maxX<viewportSize.x-1 && maxY<viewportSize.y-1){\n" +
                                         // small triangle on screen, max 3px -> no interpolations needed
                                         // todo even with nothing visible, we only get 30% more fps???
@@ -460,15 +461,11 @@ fun computeRasterizer() {
                                         "           maxX1 = min(maxX1,maxX);\n" +
                                         // find left and right pixel
                                         "           Pixel minBary = lerpBarycentrics(ua,ub,uc,ivec2(minX1,y));\n" +
-                                        //  "           if(maxX1 == minX1){\n" +
-                                        //  "               drawPixel(minBary);\n" +
-                                        //  "           } else if(maxX1 > minX1) {\n" +
-                                        "               Pixel maxBary = lerpBarycentrics(ua,ub,uc,ivec2(maxX1,y));\n" +
-                                        "               for(int x=minX1;x<=maxX;x++){\n" +
-                                        "                   float f = float(x-minX)/float(maxX-minX+1);\n" +
-                                        "                   drawPixel(lerpPixels(minBary,maxBary,f,ivec2(x,y)));\n" +
-                                        "               }\n" +
-                                        // "           }" +
+                                        "           Pixel maxBary = lerpBarycentrics(ua,ub,uc,ivec2(maxX1,y));\n" +
+                                        "           for(int x=minX1;x<=maxX1;x++){\n" +
+                                        "               float f = float(x-minX)/float(maxX-minX+1);\n" +
+                                        "               drawPixel(lerpPixels(minBary,maxBary,f,ivec2(x,y)));\n" +
+                                        "           }\n" +
                                         "      }\n" +
                                         "   }\n"
                             }
@@ -601,7 +598,6 @@ fun computeRasterizer() {
             shader.v1i("numPrimitives", numPrimitives)
             shader.v1i("numInstances", instanceData?.drawLength ?: 1)
             shader.v2i("viewportSize", target.width, target.height)
-            shader.v2f("renderSize", target.width.toFloat(), target.height.toFloat())
         }
 
         private fun bindTargets(

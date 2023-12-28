@@ -242,7 +242,7 @@ open class ExpandingIntArray(initCapacity: Int, val pool: IntArrayPool? = null) 
         if (canReturnSelf && (size1 == array.size || (!exact && size1 <= array.size)))
             return array
         val value = alloc(size1)
-        array.copyInto(value, 0, min(size, size1))
+        array.copyInto(value, 0, 0, min(size, size1))
         return value
     }
 

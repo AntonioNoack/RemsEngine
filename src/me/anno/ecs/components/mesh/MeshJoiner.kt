@@ -35,6 +35,8 @@ abstract class MeshJoiner<V>(
 
     open fun multiplyColors(element: V): Boolean = false
 
+    open fun onFinishedMesh(index0: Int, index1: Int) {}
+
     private fun is3x3Identity(t: Matrix4x3f): Boolean {
         return abs(t.m00 - 1f) + abs(t.m10) + abs(t.m20) +
                 abs(t.m01) + abs(t.m11 - 1f) + abs(t.m21) +
@@ -146,6 +148,8 @@ abstract class MeshJoiner<V>(
             if (dstMaterialIds != null) {
                 fillMaterialIds(dstMaterialIds, element, srcMesh, materialToId, j0, j)
             }
+
+            onFinishedMesh(j0, j)
         }
 
         JomlPools.mat4x3f.sub(1)

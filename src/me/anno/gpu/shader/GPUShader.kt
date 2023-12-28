@@ -19,6 +19,7 @@ import org.lwjgl.opengl.GL43C
 import org.lwjgl.opengl.GL43C.GL_SHADER
 import org.lwjgl.opengl.GL43C.glObjectLabel
 import java.nio.FloatBuffer
+import java.nio.IntBuffer
 
 /**
  * base class for shaders, e.g. for ComputeShader or Shader
@@ -364,12 +365,14 @@ abstract class GPUShader(val name: String) : ICacheData {
         }
     }
 
-    @Suppress("unused")
-    fun v1fs(name: String, vs: FloatBuffer) = v1fs(getUniformLocation(name), vs)
-    fun v1fs(loc: Int, vs: FloatBuffer) {
+    /**
+     * sets an array of int uniforms
+     * */
+    fun v1is(name: String, vs: IntArray) = v1is(getUniformLocation(name), vs)
+    fun v1is(loc: Int, vs: IntArray) {
         if (loc > -1) {
             potentiallyUse()
-            glUniform1fv(loc, vs)
+            glUniform1iv(loc, vs)
         }
     }
 
