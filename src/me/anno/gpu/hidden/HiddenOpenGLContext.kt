@@ -62,8 +62,8 @@ object HiddenOpenGLContext {
 
         tick.stop("Create window")
 
-        glfwMakeContextCurrent(window.pointer)
-        glfwSwapInterval(1)
+        window.makeCurrent()
+        window.forceUpdateVsync()
         capabilities = GL.createCapabilities()
 
         GFX.check()

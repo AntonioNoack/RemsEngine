@@ -21,10 +21,10 @@ import me.anno.ui.Style
 import me.anno.ui.Window
 import me.anno.ui.base.SpacerPanel
 import me.anno.ui.base.buttons.TextButton
-import me.anno.ui.base.components.Padding
 import me.anno.ui.base.components.AxisAlignment
-import me.anno.ui.base.groups.SizeLimitingContainer
+import me.anno.ui.base.components.Padding
 import me.anno.ui.base.groups.PanelListY
+import me.anno.ui.base.groups.SizeLimitingContainer
 import me.anno.ui.base.menu.Menu
 import me.anno.ui.base.menu.MenuOption
 import me.anno.ui.base.scrolling.ScrollPanelY
@@ -98,14 +98,16 @@ interface WelcomeUI {
             studio.gfxSettings = value
         }
 
-        if (!OS.isWeb && !OS.isAndroid) quickSettings += BooleanInput(
-            "Enable Vsync",
-            "Recommended; false for debugging", "ui.settings.vSync",
-            window.enableVsync, true, style
-        ).setChangeListener {
-            DefaultConfig["debug.ui.enableVsync"] = it
-            window.setVsyncEnabled(it)
-        }
+        if (!OS.isWeb && !OS.isAndroid) {
+            quickSettings += BooleanInput(
+                "Enable Vsync",
+                "Recommended; false for debugging", "ui.settings.vSync",
+                studio.enableVSync, true, style
+            ).setChangeListener {
+                DefaultConfig["debug.ui.enableVsync"] = it
+                window.setVsyncEnabled(it)
+            }
+        } // else we cannot set vsync
 
         quickSettings += BooleanInput(
             "Show FPS",
