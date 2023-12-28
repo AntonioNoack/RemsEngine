@@ -57,17 +57,15 @@ import org.joml.Matrix4f
 
 // todo then create first release :3 (to easier get started for others)
 
-// todo : link files, which then get index for choosing meshes, skeletons, animations and such :)
-
 // todo billboards, which are conditionally rendered: when point is visible (for nice light camera-bug effects, e.g. stars with many blades)
-
-// todo loading is slow: all tabs are loaded, even if only a single one is actually used
 
 // todo forward-plus rendering
 // which platforms support Compute Shaders? we need them for forward+
 // Windows, Android with OpenGL 3.0
 
 // todo runtime-only-PrefabSaveables must show warning in UI, that they are temporary
+
+// todo different editing modes like Blender?, e.g. animating stuff, scripting, ...
 
 // todo spellchecking could then become a mod :)
 
@@ -239,8 +237,6 @@ open class RemsEngine : StudioBase("Rem's Engine", "RemsEngine", 1, true), Welco
         getWelcomeUI().create(this)
 
         ShaderLib.init()
-
-        // todo different editing modes like Blender?, e.g. animating stuff, scripting, ...
 
         val windowStack = GFX.windows.first().windowStack
         ECSSceneTabs.window = windowStack.firstElement()

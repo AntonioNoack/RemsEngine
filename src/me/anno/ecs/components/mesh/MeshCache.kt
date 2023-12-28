@@ -44,14 +44,20 @@ object MeshCache : PrefabByFileCache<Mesh>(Mesh::class) {
                 is MeshComponentBase -> instance.getMesh()
                 is Entity -> {
                     val components = ArrayList<Component>(64)
-                    instance.forAll {
-                        when (it) {
-                            is Entity -> it.validateTransform()
-                            is MeshComponentBase, is MeshSpawner -> {
-                                components.add(it as Component)
+                    fun forAll(entity: Entity) {
+                        entity.validateTransform()
+                        for (child in entity.children) {
+                            if (child.isEnabled) {
+                                forAll(child)
+                            }
+                        }
+                        for (comp in entity.components) {
+                            if (comp.isEnabled && (comp is MeshComponentBase || comp is MeshSpawner)) {
+                                components.add(comp)
                             }
                         }
                     }
+                    forAll(instance)
                     joinMeshes(components)
                 }
                 is MeshSpawner -> joinMeshes(listOf(instance))
