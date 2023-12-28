@@ -196,7 +196,7 @@ class GameEngineProject() : NamedSaveable() {
                     addToIndex(file, "Image") // cpu-side name
                     addToIndex(file, "Texture") // gpu-side name
                 }
-                "blend", "gltf", "dae", "md2", "vox", "fbx", "obj" -> addToIndex(file, "Mesh")
+                "blend", "gltf", "dae", "md2", "vox", "fbx", "obj", "ma" -> addToIndex(file, "Mesh")
                 "media", "gif" -> addToIndex(file, "Media")
                 "pdf" -> addToIndex(file, "PDF")
                 "ttf", "woff1", "woff2" -> addToIndex(file, "Font")

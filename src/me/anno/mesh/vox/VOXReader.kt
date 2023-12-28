@@ -369,12 +369,6 @@ class VOXReader {
             }
         }
 
-        /*@Suppress("unused")
-        fun readAsFolder2(file: FileReference): Quad<InnerFolder, FileReference, Prefab, List<FileReference>> {
-            val reader = VOXReader().read(file)
-            return readAsFolder(reader, file)
-        }*/
-
         fun readAsFolder(
             reader: VOXReader,
             file: FileReference

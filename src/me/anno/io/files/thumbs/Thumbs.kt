@@ -545,7 +545,7 @@ object Thumbs {
     }
 
     @JvmStatic
-    fun generateVOXMeshFrame(
+    fun generatePrefabReadableFrame(
         srcFile: FileReference,
         dstFile: HDBKey,
         size: Int,
@@ -1203,9 +1203,8 @@ object Thumbs {
     }
 
     init {
-        registerSignature("vox") { srcFile, dstFile, size, callback ->
-            generateVOXMeshFrame(srcFile, dstFile, size, callback)
-        }
+        registerSignature("vox", ::generatePrefabReadableFrame)
+        registerSignature("maya", ::generatePrefabReadableFrame)
         registerSignature("hdr") { srcFile, dstFile, size, callback ->
             srcFile.inputStream { it, exc ->
                 if (it != null) {

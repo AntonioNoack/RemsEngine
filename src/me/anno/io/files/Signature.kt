@@ -273,6 +273,7 @@ class Signature(val name: String, val offset: Int, val bytes: ByteArray) {
             Signature("md2", 0, "IDP2"),
             Signature("md5mesh", 0, "MD5Version"),
             Signature("dae", -1, "<COLLADA"),
+            Signature("maya", 0, "//Maya ASCII "),
             // scenes and meshes from mitsuba renderer
             Signature("mitsuba-meshes", 0, byteArrayOf(0x1c, 0x04)),
             Signature("mitsuba-scene", 0, "<scene version="),

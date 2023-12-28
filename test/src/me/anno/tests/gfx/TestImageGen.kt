@@ -31,7 +31,7 @@ import me.anno.io.files.thumbs.Thumbs.generateMeshFrame
 import me.anno.io.files.thumbs.Thumbs.generateSVGFrame
 import me.anno.io.files.thumbs.Thumbs.generateSkeletonFrame
 import me.anno.io.files.thumbs.Thumbs.generateSomething
-import me.anno.io.files.thumbs.Thumbs.generateVOXMeshFrame
+import me.anno.io.files.thumbs.Thumbs.generatePrefabReadableFrame
 import me.anno.io.files.thumbs.Thumbs.generateVideoFrame
 import me.anno.utils.Clock
 import me.anno.utils.OS.desktop
@@ -147,7 +147,7 @@ fun testMaterial(file: FileReference) {
 @Suppress("unused")
 fun testVOXMeshFrame(file: FileReference) {
     if (!file.exists) throw FileNotFoundException("$file does not exist")
-    generateVOXMeshFrame(file, HDBKey.InvalidKey, size) { result, exc ->
+    generatePrefabReadableFrame(file, HDBKey.InvalidKey, size) { result, exc ->
         if (result is Texture2D) GPUImage(result).write(file.dst())
         exc?.printStackTrace()
     }

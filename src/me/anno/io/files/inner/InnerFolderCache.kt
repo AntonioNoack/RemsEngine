@@ -12,6 +12,7 @@ import me.anno.io.unity.UnityReader
 import me.anno.io.zip.*
 import me.anno.mesh.assimp.AnimatedMeshesLoader
 import me.anno.mesh.blender.BlenderReader
+import me.anno.mesh.maya.MayaASCII2015
 import me.anno.mesh.mitsuba.MitsubaReader
 import me.anno.mesh.obj.MTLReader
 import me.anno.mesh.obj.OBJReader
@@ -93,6 +94,7 @@ object InnerFolderCache : CacheSection("InnerFolderCache") {
         register("obj", OBJReader.Companion::readAsFolder)
         register("mtl", MTLReader.Companion::readAsFolder)
         register("vox", VOXReader.Companion::readAsFolder)
+        register("maya", MayaASCII2015::readAsFolder)
 
         register("mitsuba-meshes", MitsubaReader::readMeshesAsFolder)
         register("mitsuba-scene", MitsubaReader::readSceneAsFolder)
