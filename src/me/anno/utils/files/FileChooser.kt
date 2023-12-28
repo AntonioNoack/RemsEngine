@@ -85,7 +85,7 @@ object FileChooser {
 
         var extensions: List<String> = emptyList()
         val files = object : FileExplorer(startDirectory, style) {
-            override fun filterShownFiles(file: FileReference): Boolean {
+            override fun shouldShowFile(file: FileReference): Boolean {
                 return extensions.isEmpty() || file.lcExtension in extensions || file.isDirectory
             }
 

@@ -21,7 +21,8 @@ import kotlin.math.max
 import kotlin.test.assertEquals
 
 /**
- * Maya Ascii 2015
+ * Reader for some ASCII Maya format; I don't know that much about it, or other versions,
+ * I just reversed engineered and used what I could find.
  * */
 object MayaASCII2015 {
 
@@ -146,19 +147,15 @@ object MayaASCII2015 {
         }
 
         for (line in text.split(';')) {
-            // todo remove comments
-            val depth = line.indexOfFirst { it != '\t' }
-            if (depth < 0) continue
-            // todo split, but also respect spaces in comments
             arguments.clear()
             namedArguments.clear()
             split(line, arguments)
             named(arguments, namedArguments)
             // println("$arguments, $namedArguments")
             when (arguments.first()) {
-                "requires" -> {}
+                /*"requires" -> {}
                 "currentUnit" -> {}
-                "fileInfo" -> {}
+                "fileInfo" -> {}*/
                 "createNode" -> {
                     finishNode()
                     when (val type = arguments[1]) {
@@ -212,8 +209,8 @@ object MayaASCII2015 {
                         } else link(scene)
                     }
                 }
-                "addAttr" -> {
-                }
+                /*"addAttr" -> {
+                }*/
                 "setAttr" -> {
                     when (val key = arguments[1]) {
                         ".t" -> {
@@ -378,10 +375,10 @@ object MayaASCII2015 {
                         }
                     }
                 }
-                "connectAttr" -> {
+                /*"connectAttr" -> {
                     val k0 = arguments[1]
                     val k1 = arguments[2]
-                }
+                }*/
             }
         }
         finishNode()

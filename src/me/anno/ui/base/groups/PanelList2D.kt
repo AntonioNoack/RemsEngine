@@ -90,13 +90,13 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
             children.size
         )*/
 
-    override fun getChildPanelAt(x: Int, y: Int): Panel? {
+    /*override fun getChildPanelAt(x: Int, y: Int): Panel? {
         val children = children
         if (children.isEmpty()) return null
         val i = getItemIndexAt(x, y)
         val panelAt = children[i].getPanelAt(x, y)
         return if (panelAt != null && panelAt.isOpaqueAt(x, y)) panelAt else null
-    }
+    }*/
 
     fun getItemIndexAt(cx: Int, cy: Int): Int {
         val lw = (calcChildWidth + spacing)

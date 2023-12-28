@@ -1,9 +1,58 @@
 package me.anno.ui.editor.files
 
+import me.anno.maths.Maths.min
+import me.anno.utils.structures.lists.Lists.any2
 import kotlin.math.max
 
 @Suppress("unused")
 class Search(val terms: String) {
+
+    override fun equals(other: Any?): Boolean {
+        return other is Search && other.terms == terms
+    }
+
+    override fun hashCode(): Int {
+        return terms.hashCode()
+    }
+
+    override fun toString(): String {
+        return expression.joinToString {
+            when (it) {
+                is Char -> "'$it'"
+                is String -> "\"$it\""
+                else -> it.toString()
+            }
+        }
+    }
+
+    fun containsAllResultsOf(other: Search): Boolean {
+        if (terms == other.terms) return true
+        if (expression == other.expression) return true
+        if ('!' in expression || '!' in other.expression) {
+            // idk how to handle this case; negations would be valued negative or in reverse
+            return false
+        }
+        if (expression.size != other.expression.size) {
+            // idk how to handle that
+            return false
+        }
+        var isEasierInAllParts = true
+        for (i in 0 until min(expression.size, other.expression.size)) {
+            val self = expression[i]
+            val oth = other.expression[i]
+            if (self == oth) {
+                // very good
+            } else if (self is String && oth is String) {
+                if (oth.startsWith(self, true) || oth.endsWith(self, true)) {
+                    // good
+                } else {
+                    isEasierInAllParts = false
+                    break // in our simple algorithm, we can break here
+                }
+            } else return false // idk how to handle that
+        }
+        return isEasierInAllParts
+    }
 
     private val expression = ArrayList<Any>()
 
@@ -41,11 +90,11 @@ class Search(val terms: String) {
                     expression += char
                     i++
                 }
-                '(', '[', '{' -> {
+                '(' -> {
                     expression += '('
                     i++
                 }
-                ')', ']', '}' -> {
+                ')' -> {
                     expression += ')'
                     i++
                 }
@@ -57,10 +106,7 @@ class Search(val terms: String) {
                     var str = ""
                     string@ while (i < terms.length) {
                         when (val char2 = terms[i]) {
-                            '|', '&',
-                            '(', '[', '{',
-                            ')', ']', '}',
-                            ' ', '\t' -> {
+                            '|', '&', '(', ')', ' ', '\t' -> {
                                 break@string
                             }
                             else -> {
@@ -119,11 +165,11 @@ class Search(val terms: String) {
             val value = name.containsPieces(term, true)
             expr[i] = value
         }
-        // LOGGER.info("$name x ${this.expr} ? $result")
         return matches(expr)
     }
 
     fun matches(expr: ArrayList<Any>): Boolean {
+        if (expr.any2 { it is String }) throw IllegalArgumentException()
         for (i in 0 until expr.size - 2) {
             if (expr[i] == '(' && expr[i + 2] == ')') {
                 expr.removeAt(i + 2)
@@ -158,11 +204,7 @@ class Search(val terms: String) {
                 return matches(expr)
             }
         }
-        for (i in 0 until expr.size) {
-            if (expr[i] is String) throw RuntimeException()
-        }
         if (expr.size >= 1) return expr[0] as? Boolean ?: true
         return true
     }
-
 }

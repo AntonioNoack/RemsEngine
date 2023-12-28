@@ -33,6 +33,7 @@ import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.drawLoadingCircle
+import me.anno.ui.editor.files.SearchAlgorithm.createResults
 import me.anno.ui.input.TextInput
 import me.anno.utils.OS
 import me.anno.utils.OS.desktop
@@ -44,7 +45,6 @@ import me.anno.utils.OS.pictures
 import me.anno.utils.OS.videos
 import me.anno.utils.ShutdownException
 import me.anno.utils.files.Files.findNextFile
-import me.anno.utils.files.Files.listFiles2
 import me.anno.utils.files.LocalFile.toGlobalFile
 import me.anno.utils.hpc.UpdatingTask
 import me.anno.utils.process.BetterProcessBuilder
@@ -197,11 +197,16 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
     var isValid = 0f
 
     init {
+        searchBar.tooltip =
+            "While search is a little broken, you can still paste a path, press enter, and should be redirected there."
         searchBar.alignmentX = AxisAlignment.FILL
         searchBar.weight = 1f
         searchBar.addChangeListener { invalidate() }
         searchBar.setEnterListener {
-            if (it.length > 3) {
+            val child = folder.getChild(it)
+            if (child.exists) {
+                switchTo(child)
+            } else if (it.length > 3) {
                 val ref = getReference(it)
                 if (ref.exists) {
                     switchTo(ref)
@@ -213,7 +218,6 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
 
     val history = History(initialLocation ?: documents)
     val folder get() = history.value
-
 
     var entrySize = 64f
     val minEntrySize = 32f
@@ -245,7 +249,8 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
     }, style)
 
     var lastFiles = emptyList<String>()
-    var lastSearch = true
+    var lastSearch: Search? = null
+    var calcIndex = 0
 
     val favourites = PanelListY(style)
 
@@ -374,10 +379,12 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
         }
     }
 
-    fun invalidate() {
+    fun invalidate(force: Boolean = false) {
         isValid = 0f
-        lastFiles = listOf("!")
-        invalidateLayout()
+        if (force) {
+            lastFiles = listOf("!")
+        }
+        onUpdate()
     }
 
     fun removeOldFiles() {
@@ -395,140 +402,15 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
     /**
      * decides whether a file shall be shown; e.g., to only show images
      * */
-    open fun filterShownFiles(file: FileReference): Boolean {
+    open fun shouldShowFile(file: FileReference): Boolean {
         return true
     }
 
     open fun createEntry(isParent: Boolean, file: FileReference): FileExplorerEntry {
         val entry = FileExplorerEntry(this, isParent, file, style)
         entry.alignmentX = AxisAlignment.CENTER
+        entry.listMode = listMode
         return entry
-    }
-
-    fun createResults() {
-        searchTask.compute {
-
-            val search = Search(searchBar.value)
-
-            var level0: List<FileReference> = folder.listFiles2()
-                .filter { !it.isHidden }
-            val newFiles = level0.map { it.name }
-            val newSearch = search.isNotEmpty()
-
-            if (lastFiles != newFiles || lastSearch != newSearch) {
-
-                lastFiles = newFiles
-                lastSearch = newSearch
-
-                // when searching something, also include sub-folders up to depth of xyz
-                val searchDepth = searchDepth
-                val fileLimit = 10000
-                if (search.isNotEmpty() && level0.size < fileLimit) {
-                    var lastLevel = level0
-                    var nextLevel = ArrayList<FileReference>()
-                    for (i in 0 until searchDepth) {
-                        for (file in lastLevel) {
-                            if (file.isHidden) continue
-                            if (file.isDirectory || when (file.lcExtension) {
-                                    "zip", "rar", "7z", "s7z", "jar", "tar", "gz", "xz",
-                                    "bz2", "lz", "lz4", "lzma", "lzo", "z", "zst",
-                                    "unitypackage" -> file.isPacked.value
-                                    else -> false
-                                }
-                            ) nextLevel.addAll(file.listChildren() ?: continue)
-                            Thread.sleep(0)
-                        }
-                        level0 = level0 + nextLevel
-                        if (level0.size > fileLimit) break
-                        lastLevel = nextLevel
-                        nextLevel = ArrayList()
-                        Thread.sleep(0)
-                    }
-                }
-
-                // be cancellable
-                Thread.sleep(0)
-
-                addEvent {
-                    removeOldFiles()
-                }
-
-                val parent = folder.getParent()
-                if (parent != null) {
-                    if (filterShownFiles(parent)) addEvent {
-                        // option to go up a folder
-                        val entry = createEntry(true, parent)
-                        entry.listMode = listMode
-                        content2d += entry
-                        invalidateLayout()
-                    }
-                }
-
-                val tmpCount = 64
-                var tmpList = ArrayList<FileReference>(tmpCount)
-
-                fun put() {
-                    if (tmpList.isNotEmpty()) {
-                        val list = tmpList
-                        tmpList = ArrayList(tmpCount)
-                        addEvent {
-                            // check if the folder is still the same
-                            if (lastFiles === newFiles && lastSearch == newSearch) {
-                                for (idx in list.indices) {
-                                    val file = list[idx]
-                                    if (filterShownFiles(file)) {
-                                        val entry = createEntry(false, file)
-                                        entry.listMode = listMode
-                                        content2d += entry
-                                    }
-                                }
-                                // force layout update
-                                val windows = GFX.windows
-                                for (i in windows.indices) {
-                                    windows[i].framesSinceLastInteraction = 0
-                                }
-                                invalidateLayout()
-                            }
-                        }
-                    }
-                }
-
-                for (file in level0) {
-                    if (file.isDirectory) {
-                        tmpList.add(file)
-                        if (tmpList.size >= tmpCount) {
-                            put()
-                            Thread.sleep(0)
-                        }
-                    }
-                }
-
-                for (file in level0) {
-                    if (!file.isDirectory) {
-                        tmpList.add(file)
-                        if (tmpList.size >= tmpCount) {
-                            put()
-                            Thread.sleep(0)
-                        }
-                    }
-                }
-
-                put()
-
-                Thread.sleep(0)
-            } else {
-                val entries = content2d.children
-                for (i in entries.indices) {
-                    val entry = entries[i] as? FileExplorerEntry ?: continue
-                    entry.isVisible = search.matches(getReferenceOrTimeout(entry.path).name)
-                }
-                invalidateLayout()
-            }
-
-            // reset query time
-            isValid = 5f
-
-        }
     }
 
     var loading = 0L
@@ -544,7 +426,7 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
             // todo "This Computer" isn't shown anymore :/
             pathPanel.file = folder// ?.toString() ?: "This Computer"
             pathPanel.tooltip = if (folder == FileRootRef) "This Computer" else folder.toString()
-            createResults()
+            createResults(this)
         } else isValid -= Time.deltaTime.toFloat()
         if (loading != 0L) invalidateDrawing()
     }
@@ -788,7 +670,8 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
         } else {
             addEvent {
                 history.add(folder)
-                invalidate()
+                searchBar.setValue("", true)
+                invalidate(true)
             }
         }
     }
