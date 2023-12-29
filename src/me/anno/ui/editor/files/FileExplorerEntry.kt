@@ -8,6 +8,7 @@ import me.anno.ecs.Entity
 import me.anno.ecs.components.anim.Animation
 import me.anno.ecs.components.mesh.Mesh
 import me.anno.ecs.components.shaders.effects.FSR
+import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabReadable
 import me.anno.engine.ui.render.Renderers
@@ -122,9 +123,9 @@ open class FileExplorerEntry(
             }
         }
 
-    private val originalBackgroundColor = backgroundColor
-    private val hoverBackgroundColor = mixARGB(black, originalBackgroundColor, 0.85f)
-    private val darkerBackgroundColor = mixARGB(black, originalBackgroundColor, 0.7f)
+    var originalBackgroundColor = backgroundColor
+    var hoverBackgroundColor = mixARGB(black, originalBackgroundColor, 0.85f)
+    var darkerBackgroundColor = mixARGB(black, originalBackgroundColor, 0.7f)
 
     private val importType = file.extension.getImportType()
     private var iconPath = if (isParent || file.isDirectory) {
@@ -383,7 +384,7 @@ open class FileExplorerEntry(
         }
         val image0 = Thumbs.getThumbnail(file, w, true)
         val image1 = image0 ?: getDefaultIcon()
-        val image2 = if (image1 == null || (image1 is Texture2D && !image1.isCreated)) whiteTexture else image1
+        val image2 = if (image1 == null || (image1 is Texture2D && !image1.wasCreated)) whiteTexture else image1
         val rot = (image2 as? Texture2D)?.rotation
         image2.bind(0, Filtering.TRULY_LINEAR, Clamping.CLAMP)
         if (rot == null || rot.isNull()) {
@@ -500,6 +501,48 @@ open class FileExplorerEntry(
         }
     }
 
+    private fun appendMetaTTT(file: FileReference, ttt: StringBuilder, meta: MediaMetadata) {
+        if (meta.hasVideo) {
+            ttt.append('\n').append(meta.videoWidth).append(" x ").append(meta.videoHeight)
+            if (meta.videoFrameCount > 1) ttt.append(" @").append(meta.videoFPS.f1())
+                .append(" fps")
+        } else {
+            val image = ImageCache.getImageWithoutGenerator(file)
+            if (image != null) {
+                ttt.append('\n').append(image.width).append(" x ").append(image.height)
+            }
+        }
+        if (meta.hasAudio) {
+            ttt.append('\n').append(roundDiv(meta.audioSampleRate, 1000)).append(" kHz")
+            when (meta.audioChannels) {
+                1 -> ttt.append(" Mono")
+                2 -> ttt.append(" Stereo")
+                else -> ttt.append(" ").append(meta.audioChannels).append(" Ch")
+            }
+        }
+        if (meta.duration > 0 && (meta.hasAudio || (meta.hasVideo && meta.videoFrameCount > 1))) {
+            val duration = meta.duration
+            val digits = if (duration < 60) max((1.5 - log10(duration)).roundToInt(), 0) else 0
+            ttt.append('\n').append(meta.duration.formatTime(digits))
+        }
+    }
+
+    private fun appendPrefabTTT(ttt: StringBuilder, prefab: Prefab) {
+        ttt.append('\n').append(prefab.clazzName)
+        if (prefab.prefab != InvalidRef) {
+            ttt.append(" : ").append(prefab.prefab.toLocalPath()).append('\n')
+        } else ttt.append(", ")
+        // if is entity, or mesh, get sample bounds
+        if (prefab.clazzName == "Entity" || prefab.clazzName == "Mesh") {
+            when (val sample = prefab.getSampleInstance()) {
+                // todo format bounds nicely
+                is Entity -> ttt.append(AABBf(sample.getBounds())).append('\n')
+                is Mesh -> ttt.append(sample.getBounds()).append('\n')
+            }
+        }
+        ttt.append(prefab.adds.size).append("+, ").append(prefab.sets.size).append("*")
+    }
+
     open fun updateTooltip() {
 
         // todo add created & modified information
@@ -546,47 +589,13 @@ open class FileExplorerEntry(
                         val ttt = StringBuilder()
                         ttt.append(file.name).append('\n')
                         ttt.append(file.length().formatFileSize())
-                        val prefab = PrefabCache[file, true]
-                        if (prefab != null) {
-                            ttt.append('\n').append(prefab.clazzName)
-                            if (prefab.prefab != InvalidRef) {
-                                ttt.append(" : ").append(prefab.prefab.toLocalPath()).append('\n')
-                            } else ttt.append(", ")
-                            // if is entity, or mesh, get sample bounds
-                            if (prefab.clazzName == "Entity" || prefab.clazzName == "Mesh") {
-                                when (val sample = prefab.getSampleInstance()) {
-                                    // todo format bounds nicely
-                                    is Entity -> ttt.append(AABBf(sample.getBounds())).append('\n')
-                                    is Mesh -> ttt.append(sample.getBounds()).append('\n')
-                                }
-                            }
-                            ttt.append(prefab.adds.size).append("+, ").append(prefab.sets.size).append("*")
+                        val meta = getMeta(path, true)
+                        if (meta != null) {
+                            appendMetaTTT(file, ttt, meta)
                         } else {
-                            val meta = getMeta(path, true)
-                            if (meta != null) {
-                                if (meta.hasVideo) {
-                                    ttt.append('\n').append(meta.videoWidth).append(" x ").append(meta.videoHeight)
-                                    if (meta.videoFrameCount > 1) ttt.append(" @").append(meta.videoFPS.f1())
-                                        .append(" fps")
-                                } else {
-                                    val image = ImageCache.getImageWithoutGenerator(file)
-                                    if (image != null) {
-                                        ttt.append('\n').append(image.width).append(" x ").append(image.height)
-                                    }
-                                }
-                                if (meta.hasAudio) {
-                                    ttt.append('\n').append(roundDiv(meta.audioSampleRate, 1000)).append(" kHz")
-                                    when (meta.audioChannels) {
-                                        1 -> ttt.append(" Mono")
-                                        2 -> ttt.append(" Stereo")
-                                        else -> ttt.append(" ").append(meta.audioChannels).append(" Ch")
-                                    }
-                                }
-                                if (meta.duration > 0 && (meta.hasAudio || (meta.hasVideo && meta.videoFrameCount > 1))) {
-                                    val duration = meta.duration
-                                    val digits = if (duration < 60) max((1.5 - log10(duration)).roundToInt(), 0) else 0
-                                    ttt.append('\n').append(meta.duration.formatTime(digits))
-                                }
+                            val prefab = PrefabCache[file, true]
+                            if (prefab != null) {
+                                appendPrefabTTT(ttt, prefab)
                             }
                         }
                         ttt.toString()

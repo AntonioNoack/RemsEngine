@@ -9,6 +9,6 @@ import me.anno.utils.OS.downloads
 fun main() {
     testUI("Vox") {
         ECSRegistry.initMeshes()
-        FileExplorer(downloads.getChild("MagicaVoxel/vox"), style)
+        FileExplorer(downloads.getChild("MagicaVoxel/vox"), true, style)
     }
 }

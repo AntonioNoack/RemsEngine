@@ -19,7 +19,7 @@ fun main() {
     }
     testTexture("Async Texture", false) {
         val texture = callOnce.value
-        if (texture.isCreated) {
+        if (texture.wasCreated) {
             texture
         } else invisibleTexture
     }

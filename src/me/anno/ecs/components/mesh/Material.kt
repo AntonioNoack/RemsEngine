@@ -12,11 +12,7 @@ import me.anno.gpu.shader.BaseShader
 import me.anno.gpu.shader.GLSLType
 import me.anno.gpu.shader.GPUShader
 import me.anno.gpu.shader.Shader
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureLib
-import me.anno.gpu.texture.TextureCache
+import me.anno.gpu.texture.*
 import me.anno.io.base.BaseWriter
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
@@ -353,9 +349,9 @@ open class Material : PrefabSaveable(), Renderable {
 
         val defaultMaterial = Material()
 
-        fun getTex(image: FileReference): Texture2D? = TextureCache[image, timeout, true]
+        fun getTex(image: FileReference): ITexture2D? = TextureCache[image, timeout, true]
 
-        fun bindTexture(shader: Shader, name: String, file: FileReference, default: Texture2D): Texture2D? {
+        fun bindTexture(shader: Shader, name: String, file: FileReference, default: Texture2D): ITexture2D? {
             val index = shader.getTextureIndex(name)
             return if (index >= 0) {
                 val tex = getTex(file)
@@ -371,7 +367,7 @@ open class Material : PrefabSaveable(), Renderable {
             default: Texture2D,
             filtering: Filtering,
             clamping: Clamping
-        ): Texture2D? {
+        ): ITexture2D? {
             val index = shader.getTextureIndex(name)
             return if (index >= 0) {
                 val tex = getTex(file)

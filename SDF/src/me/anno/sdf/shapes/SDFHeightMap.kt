@@ -9,14 +9,11 @@ import me.anno.engine.debug.DebugShapes.debugLines
 import me.anno.engine.debug.DebugShapes.debugPoints
 import me.anno.gpu.GFX
 import me.anno.gpu.shader.GLSLType
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
+import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.graph.ui.GraphPanel.Companion.greenish
 import me.anno.graph.ui.GraphPanel.Companion.red
 import me.anno.image.ImageCache
-import me.anno.gpu.texture.TextureCache
 import me.anno.io.files.FileReference
 import me.anno.io.files.InvalidRef
 import me.anno.io.serialization.SerializedProperty
@@ -96,7 +93,7 @@ class SDFHeightMap : SDFShape() {
     @SerializedProperty("Image/Reference")
     var source: FileReference = InvalidRef
 
-    private var lastImg: Texture2D? = null
+    private var lastImg: ITexture2D? = null
 
     override fun buildShader(
         builder: StringBuilder,

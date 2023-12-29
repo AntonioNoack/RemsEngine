@@ -8,8 +8,8 @@ import kotlin.math.min
 
 abstract class PanelList2(sorter: Comparator<Panel>?, style: Style) : PanelList(sorter, style) {
 
-    abstract val visibleIndex0: Int
-    abstract val visibleIndex1: Int
+    open val visibleIndex0: Int get() = 0
+    open val visibleIndex1: Int get() = children.size
 
     override fun drawChildren(x0: Int, y0: Int, x1: Int, y1: Int) {
         val children = children

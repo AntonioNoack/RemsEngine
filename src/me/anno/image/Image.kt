@@ -3,6 +3,7 @@ package me.anno.image
 import me.anno.cache.ICacheData
 import me.anno.gpu.texture.Clamping
 import me.anno.gpu.texture.Filtering
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
@@ -151,7 +152,7 @@ abstract class Image(
         texture: Texture2D,
         sync: Boolean,
         checkRedundancy: Boolean,
-        callback: (Texture2D?, Exception?) -> Unit
+        callback: (ITexture2D?, Exception?) -> Unit
     ) {
         texture.create(createIntImage(), sync = sync, checkRedundancy = true, callback)
     }

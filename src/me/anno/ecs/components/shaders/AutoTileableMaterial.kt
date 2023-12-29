@@ -26,7 +26,7 @@ class AutoTileableMaterial : PlanarMaterialBase() {
                 }
             }
             // if LUT is unknown (async), load alternative gradient texture
-            return if (tex is Texture2D && tex.isCreated) tex else gradientXTex
+            return if (tex is Texture2D && tex.wasCreated) tex else gradientXTex
         }
     }
 

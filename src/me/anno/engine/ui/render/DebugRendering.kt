@@ -77,35 +77,34 @@ object DebugRendering {
                 is PlanarReflection -> texture = light.lastBuffer?.getTexture0()
             }
             // draw the texture
-            if (texture is Texture2D && texture.isDestroyed) return
-            if (texture is Texture2DArray && texture.isDestroyed) return
-            if (texture is CubemapTexture && texture.isDestroyed) return
-            when (texture) {
-                is CubemapTexture -> {
-                    DrawTextures.drawProjection(x, y + h - s, s * 3 / 2, s, texture, true, -1, false, isDepth)
-                }
-                is Texture2DArray -> {
-                    val layer = floor(Time.gameTime % texture.layers).toFloat()
-                    if (Input.isShiftDown && light is PlanarReflection) {
-                        DrawTextures.drawTextureArray(x, y, w, h, texture, layer, true, 0x33ffffff, null)
-                    } else if (isDepth) {
-                        DrawTextures.drawDepthTextureArray(x, y + h, s, -s, texture, layer)
-                    } else if (flipY) {
-                        DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
-                    } else {
-                        DrawTextures.drawTextureArray(x, y + h, s, -s, texture, layer, true, -1, null)
+            if (texture != null && texture.isCreated()) {
+                when (texture) {
+                    is CubemapTexture -> {
+                        DrawTextures.drawProjection(x, y + h - s, s * 3 / 2, s, texture, true, -1, false, isDepth)
                     }
-                    DrawTexts.drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
-                }
-                is ITexture2D -> {
-                    if (Input.isShiftDown && light is PlanarReflection) {
-                        DrawTextures.drawTexture(x, y, w, h, texture, true, 0x33ffffff, null)
-                    } else if (isDepth) {
-                        DrawTextures.drawDepthTexture(x, y + h, s, -s, texture)
-                    } else if (flipY) {
-                        DrawTextures.drawTexture(x, y + h - s, s, s, texture, true, -1, null)
-                    } else {
-                        DrawTextures.drawTexture(x, y + h, s, -s, texture, true, -1, null)
+                    is Texture2DArray -> {
+                        val layer = floor(Time.gameTime % texture.layers).toFloat()
+                        if (Input.isShiftDown && light is PlanarReflection) {
+                            DrawTextures.drawTextureArray(x, y, w, h, texture, layer, true, 0x33ffffff, null)
+                        } else if (isDepth) {
+                            DrawTextures.drawDepthTextureArray(x, y + h, s, -s, texture, layer)
+                        } else if (flipY) {
+                            DrawTextures.drawTextureArray(x, y + h - s, s, s, texture, layer, true, -1, null)
+                        } else {
+                            DrawTextures.drawTextureArray(x, y + h, s, -s, texture, layer, true, -1, null)
+                        }
+                        DrawTexts.drawSimpleTextCharByChar(x, y + h - s, 2, "#${layer.toInt()}")
+                    }
+                    else -> {
+                        if (Input.isShiftDown && light is PlanarReflection) {
+                            DrawTextures.drawTexture(x, y, w, h, texture, true, 0x33ffffff, null)
+                        } else if (isDepth) {
+                            DrawTextures.drawDepthTexture(x, y + h, s, -s, texture)
+                        } else if (flipY) {
+                            DrawTextures.drawTexture(x, y + h - s, s, s, texture, true, -1, null)
+                        } else {
+                            DrawTextures.drawTexture(x, y + h, s, -s, texture, true, -1, null)
+                        }
                     }
                 }
             }
@@ -335,7 +334,6 @@ object DebugRendering {
             }
 
             // y flipped, because it would be incorrect otherwise
-            val name = if (texture is Texture2D) texture.name else texture.toString()
             if (index == size - 1 && texture != missingTexture) {
                 DrawTextures.drawDepthTexture(x02, y02, x12 - x02, y12 - y02, texture)
             } else {
@@ -353,7 +351,7 @@ object DebugRendering {
                 x12, y12
             ) { DrawTextures.drawTextureAlpha(x02, y12, x12 - x02, y02 - y12, texture) }
             // draw title
-            DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, name)
+            DrawTexts.drawSimpleTextCharByChar(x02, y02, 2, texture.name)
         }
         DrawTexts.popBetterBlending(pbb)
     }

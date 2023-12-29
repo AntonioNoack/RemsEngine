@@ -1,6 +1,7 @@
 package me.anno.image.raw
 
 import me.anno.gpu.framebuffer.TargetType.Companion.UByteTargets
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.utils.Color.convertABGR2ARGB
@@ -30,7 +31,7 @@ class BGRAImage(val base: Image) :
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (Texture2D?, Exception?) -> Unit
+        callback: (ITexture2D?, Exception?) -> Unit
     ) {
         if (base is GPUImage) {
             // todo if source has float precision, use that

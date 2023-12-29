@@ -21,6 +21,6 @@ fun main() {
     testUI3("AnimTest") {
         // to do downgrade LWJGL again, or upgrade, if available
         ECSRegistry.init()
-        FileExplorer(downloads.getChild("3d/Driving.fbx"), style)
+        FileExplorer(downloads.getChild("3d/Driving.fbx"), true, style)
     }
 }

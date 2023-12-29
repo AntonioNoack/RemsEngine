@@ -63,7 +63,7 @@ class TextTextureComponent : TextComponent {
     override fun onUpdate(): Int {
         return if (material.diffuseMap == InvalidRef) {
             val texture = FontManager.getTexture(key)
-            if (texture is Texture2D && texture.isCreated) {
+            if (texture != null && texture.isCreated()) {
                 material.diffuseMap = texture.createImage(flipY = false, withAlpha = false).ref
                 material.clamping = Clamping.CLAMP
                 -1 // done

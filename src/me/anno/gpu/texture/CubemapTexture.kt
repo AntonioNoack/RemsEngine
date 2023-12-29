@@ -23,16 +23,19 @@ import kotlin.math.PI
 // todo multi-sampled environment maps, because some gpus may handle them just fine :3
 
 open class CubemapTexture(
-    var name: String,
+    override var name: String,
     var size: Int,
     override val samples: Int
 ) : ICacheData, ITexture2D {
 
-    var isCreated = false
-    var isDestroyed = false
+    override var wasCreated = false
+    override var isDestroyed = false
     var pointer = 0
     var session = 0
     var createdSize = 0
+
+    // todo set this property when the texture was created
+    override var channels = 3
 
     var locallyAllocated = 0L
     var internalFormat = 0
@@ -72,7 +75,7 @@ open class CubemapTexture(
         if (session != GFXState.session) {
             session = GFXState.session
             pointer = 0
-            isCreated = false
+            wasCreated = false
             isDestroyed = false
             locallyAllocated = Texture2D.allocate(locallyAllocated, 0L)
             createdSize = 0
@@ -157,7 +160,7 @@ open class CubemapTexture(
         GFX.check()
         this.internalFormat = internalFormat
         locallyAllocated = allocate(locallyAllocated, size * size * bytesPerPixel.toLong())
-        isCreated = true
+        wasCreated = true
         filtering(filtering)
         clamping()
         GFX.check()
@@ -170,7 +173,7 @@ open class CubemapTexture(
     }
 
     fun bind(index: Int, nearest: Filtering): Boolean {
-        if (pointer != 0 && isCreated) {
+        if (pointer != 0 && wasCreated) {
             if (isBoundToSlot(index)) return false
             Texture2D.activeSlot(index)
             val result = Texture2D.bindTexture(target, pointer)
@@ -199,7 +202,8 @@ open class CubemapTexture(
     }
 
     var hasMipmap = false
-    var filtering: Filtering = Filtering.TRULY_NEAREST
+    override var filtering: Filtering = Filtering.TRULY_NEAREST
+    override val clamping: Clamping get() = Clamping.CLAMP
 
     var autoUpdateMipmaps = true
 
@@ -244,7 +248,7 @@ open class CubemapTexture(
     }
 
     override fun destroy() {
-        isCreated = false
+        wasCreated = false
         isDestroyed = true
         val pointer = pointer
         if (pointer != 0) destroy(pointer)

@@ -101,7 +101,7 @@ class SDFTextComponent(text: String, font: Font, alignmentX: AxisAlignment) : Me
         val baseScale = meshGroup.baseScale * extraScale
         meshGroup.draw { _, sdfTexture, offset ->
             val texture = sdfTexture?.texture
-            if (texture != null && texture.isCreated) {
+            if (texture != null && texture.wasCreated) {
 
                 val transform = getTransform(i)
                 if (i >= materials.size) materials.add(Material())

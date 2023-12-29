@@ -48,7 +48,7 @@ import kotlin.concurrent.thread
 
 @Suppress("unused")
 open class Texture2D(
-    val name: String,
+    override val name: String,
     final override var width: Int,
     final override var height: Int,
     samples: Int
@@ -70,7 +70,7 @@ open class Texture2D(
     var internalFormat = 0
     var border = 0
 
-    var numChannels = 0
+    override var channels: Int = 0
 
     override fun toString() = "Texture2D(\"$name\", $width x $height x $samples, ${GFX.getName(internalFormat)})"
 
@@ -92,7 +92,7 @@ open class Texture2D(
     private val withMultisampling = samples > 1
 
     val target = if (withMultisampling) GL_TEXTURE_2D_MULTISAMPLE else GL_TEXTURE_2D
-    val state get(): Int = pointer * 4 + isDestroyed.toInt(2) + isCreated.toInt(1)
+    val state get(): Int = pointer * 4 + isDestroyed.toInt(2) + wasCreated.toInt(1)
 
     var pointer = 0
     var session = 0
@@ -101,7 +101,7 @@ open class Texture2D(
         if (session != GFXState.session) {
             session = GFXState.session
             pointer = 0
-            isCreated = false
+            wasCreated = false
             isDestroyed = false
             locallyAllocated = allocate(locallyAllocated, 0L)
             createdW = 0
@@ -119,11 +119,11 @@ open class Texture2D(
         }
     }
 
-    var isCreated = false
-    var isDestroyed = false
+    override var wasCreated = false
+    override var isDestroyed = false
 
-    var filtering = Filtering.TRULY_NEAREST
-    var clamping = Clamping.CLAMP
+    override var filtering = Filtering.TRULY_NEAREST
+    override var clamping = Clamping.REPEAT
 
     // only used for images with exif rotation tag...
     var rotation: ImageTransform? = null
@@ -247,17 +247,11 @@ open class Texture2D(
                     is FloatBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is DoubleBuffer -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is IntArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
+                    is ShortArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is FloatArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     is DoubleArray -> glTexImage2D(target, 0, internalFormat, w, h, 0, dataFormat, dataType, data)
                     null -> glTexImage2D(
-                        target,
-                        0,
-                        internalFormat,
-                        w,
-                        h,
-                        0,
-                        dataFormat,
-                        dataType,
+                        target, 0, internalFormat, w, h, 0, dataFormat, dataType,
                         null as ByteBuffer?
                     )
                     else -> throw IllegalArgumentException("${data::class.simpleName} is not supported")
@@ -326,7 +320,7 @@ open class Texture2D(
         afterUpload(creationType.isHDR, creationType.bytesPerPixel, uploadType.channels)
     }
 
-    fun create(name: String, image: Image, checkRedundancy: Boolean, callback: (Texture2D?, Exception?) -> Unit) {
+    fun create(name: String, image: Image, checkRedundancy: Boolean, callback: (ITexture2D?, Exception?) -> Unit) {
         width = image.width
         height = image.height
         if (isDestroyed) throw RuntimeException("Texture $name must be reset first")
@@ -346,7 +340,7 @@ open class Texture2D(
         height = 1
     }
 
-    fun create(image: Image, sync: Boolean, checkRedundancy: Boolean, callback: (Texture2D?, Exception?) -> Unit) {
+    fun create(image: Image, sync: Boolean, checkRedundancy: Boolean, callback: (ITexture2D?, Exception?) -> Unit) {
         if (sync && isGFXThread()) {
             image.createTexture(this, true, checkRedundancy, callback)
         } else if (isGFXThread() && (width * height > 10_000)) {// large -> avoid the load and create it async
@@ -362,7 +356,7 @@ open class Texture2D(
 
         width = image.width
         height = image.height
-        isCreated = false
+        wasCreated = false
 
         // use the type to correctly create the image
         val buffer = image.data.dataBuffer
@@ -502,11 +496,11 @@ open class Texture2D(
 
     fun afterUpload(isHDR: Boolean, bytesPerPixel: Int, channels: Int) {
         locallyAllocated = allocate(locallyAllocated, width * height * bytesPerPixel.toLong())
-        isCreated = true
+        wasCreated = true
         this.isHDR = isHDR
-        numChannels = channels
+        this.channels = channels
         filtering(filtering)
-        clamping(clamping ?: Clamping.REPEAT)
+        clamping(clamping)
         check()
         if (Build.isDebug) glObjectLabel(GL_TEXTURE, pointer, name)
         if (isDestroyed) destroy()
@@ -830,7 +824,7 @@ open class Texture2D(
         dataI: Buffer,
         data1: ByteBuffer?,
         numChannels: Int,
-        callback: (Texture2D?, Exception?) -> Unit
+        callback: (ITexture2D?, Exception?) -> Unit
     ) {
         val width = width
         val height = height
@@ -840,8 +834,8 @@ open class Texture2D(
             GFX.addGPUTask("IntImage", width, height) {
                 if (!isDestroyed) {
                     create(creationType)
-                    this.numChannels = numChannels
-                    isCreated = false // mark as non-finished
+                    this.channels = numChannels
+                    wasCreated = false // mark as non-finished
                 } else LOGGER.warn("Image was already destroyed")
             }
             for (y in 0 until tiles) {
@@ -850,7 +844,7 @@ open class Texture2D(
                 val dy = y1 - y0
                 GFX.addGPUTask("IntImage", width, dy) {
                     if (!isDestroyed) {
-                        isCreated = true // reset to true state
+                        wasCreated = true // reset to true state
                         dataI.position(y0 * width)
                         dataI.limit(y1 * width)
                         overridePartially(
@@ -858,7 +852,7 @@ open class Texture2D(
                             uploadingType
                         )
                         // mark as non-finished again, if we're not done yet
-                        if (y1 < height) isCreated = false
+                        if (y1 < height) wasCreated = false
                         else callback(this, null)
                     }
                     if (y1 == height) bufferPool.returnBuffer(data1)
@@ -1144,7 +1138,7 @@ open class Texture2D(
 
     override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         checkSession()
-        if (pointer != 0 && isCreated) {
+        if (pointer != 0 && wasCreated) {
             if (isBoundToSlot(index)) {
                 if (filtering != this.filtering || clamping != this.clamping) {
                     activeSlot(index) // force this to be bound
@@ -1162,10 +1156,8 @@ open class Texture2D(
         )
     }
 
-    fun bind(index: Int) = bind(index, filtering, clamping ?: Clamping.REPEAT)
-
     override fun destroy() {
-        isCreated = false
+        wasCreated = false
         isDestroyed = true
         val pointer = pointer
         if (pointer != 0) {

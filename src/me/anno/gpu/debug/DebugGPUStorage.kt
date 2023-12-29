@@ -95,7 +95,7 @@ object DebugGPUStorage {
 
         override fun getTexW(): Int = tex.width
         override fun getTexH(): Int = tex.height
-        override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
+        override fun isFine(): Boolean = tex.wasCreated && !tex.isDestroyed
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {
             if (isDepthFormat(tex.internalFormat)) {
@@ -126,7 +126,7 @@ object DebugGPUStorage {
 
         override fun getTexW(): Int = tex.width
         override fun getTexH(): Int = tex.height
-        override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
+        override fun isFine(): Boolean = tex.wasCreated && !tex.isDestroyed
         val isDepth get() = isDepthFormat(tex.internalFormat)
 
         // animated
@@ -154,7 +154,7 @@ object DebugGPUStorage {
 
         override fun getTexW(): Int = tex.width
         override fun getTexH(): Int = tex.height
-        override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
+        override fun isFine(): Boolean = tex.wasCreated && !tex.isDestroyed
         val isDepth get() = isDepthFormat(tex.internalFormat)
 
         // animated
@@ -186,7 +186,7 @@ object DebugGPUStorage {
 
         override fun getTexW(): Int = tex.width * 2 // 360°
         override fun getTexH(): Int = tex.width // 180°
-        override fun isFine(): Boolean = tex.isCreated && !tex.isDestroyed
+        override fun isFine(): Boolean = tex.wasCreated && !tex.isDestroyed
         val isDepth get() = isDepthFormat(tex.internalFormat)
 
         override fun drawTexture(x: Int, y: Int, w: Int, h: Int) {

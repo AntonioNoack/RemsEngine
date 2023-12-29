@@ -54,12 +54,7 @@ object DrawTextures {
         shader.v1i("alphaMode", ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
-        val tex = texture as? Texture2D
-        texture.bind(
-            0,
-            tex?.filtering ?: Filtering.NEAREST,
-            tex?.clamping ?: Clamping.CLAMP
-        )
+        texture.bind(0)
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -80,12 +75,7 @@ object DrawTextures {
         shader.v1b("applyToneMapping", applyToneMapping)
         shader.v1f("layer", layer)
         GFXx2D.tiling(shader, tiling)
-        val tex = texture as? Texture2DArray
-        texture.bind(
-            0,
-            tex?.filtering ?: Filtering.NEAREST,
-            tex?.clamping ?: Clamping.CLAMP
-        )
+        texture.bind(0)
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -105,12 +95,7 @@ object DrawTextures {
         shader.v1i("alphaMode", ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
-        val tex = texture as? Texture2D
-        texture.bind(
-            0,
-            tex?.filtering ?: Filtering.NEAREST,
-            tex?.clamping ?: Clamping.CLAMP
-        )
+        texture.bind(0)
         GFX.flat01.draw(shader)
         GFX.check()
     }
@@ -126,11 +111,7 @@ object DrawTextures {
         posSize(shader, x, y + h - 1, w, -h)
         GFXx2D.noTiling(shader)
         val tex = texture as? Texture2D
-        texture.bind(
-            0,
-            tex?.filtering ?: Filtering.NEAREST,
-            tex?.clamping ?: Clamping.CLAMP
-        )
+        texture.bind(0)
         val depthFunc = tex?.depthFunc
         tex?.depthFunc = null
         GFX.flat01.draw(shader)
@@ -172,12 +153,7 @@ object DrawTextures {
         shader.v1i("alphaMode", 2)
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.tiling(shader, tiling)
-        val tex = texture as? Texture2D
-        texture.bind(
-            0,
-            tex?.filtering ?: Filtering.NEAREST,
-            tex?.clamping ?: Clamping.CLAMP
-        )
+        texture.bind(0)
         GFX.flat01.draw(shader)
         GFX.check()
     }

@@ -1,11 +1,6 @@
 package me.anno.ui.debug
 
-import me.anno.config.DefaultConfig
-import me.anno.engine.EngineActions
 import me.anno.gpu.GFX
-import me.anno.gpu.OSWindow
-import me.anno.input.ActionManager
-import me.anno.studio.StudioBase
 import me.anno.ui.Panel
 import me.anno.ui.Window
 
@@ -13,26 +8,15 @@ import me.anno.ui.Window
  * engine runtime for testing; without console
  * */
 @Suppress("unused")
-class PureTestStudio(title: String, val createMainPanel: () -> Panel) : StudioBase(title, 1, true) {
+class PureTestStudio(title: String, val createMainPanel1: () -> Panel) : TestStudio(title, { emptyList() }) {
 
     override fun createUI() {
-        val ui = createMainPanel()
+        val ui = createMainPanel1()
         ui.weight = 1f
         val windowStack = GFX.someWindow!!.windowStack
         val window = Window(ui, false, windowStack)
         window.drawDirectly = true
         windowStack.add(window)
-    }
-
-    override fun loadConfig() {
-        super.loadConfig()
-        EngineActions.register()
-        ActionManager.init()
-    }
-
-    override fun onGameLoop(window: OSWindow, w: Int, h: Int) {
-        DefaultConfig.saveMaybe("main.config")
-        super.onGameLoop(window, w, h)
     }
 
     companion object {
@@ -54,6 +38,5 @@ class PureTestStudio(title: String, val createMainPanel: () -> Panel) : StudioBa
         fun testPureUI(title: String, mainPanel: Panel) {
             PureTestStudio(title) { mainPanel }.run()
         }
-
     }
 }

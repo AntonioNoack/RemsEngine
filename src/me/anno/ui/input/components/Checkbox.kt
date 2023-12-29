@@ -2,10 +2,7 @@ package me.anno.ui.input.components
 
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.gpu.drawing.DrawTextures.drawTexture
-import me.anno.gpu.texture.Clamping
-import me.anno.gpu.texture.Filtering
-import me.anno.gpu.texture.Texture2D
-import me.anno.gpu.texture.TextureCache
+import me.anno.gpu.texture.*
 import me.anno.gpu.texture.TextureLib.whiteTexture
 import me.anno.input.Key
 import me.anno.io.files.FileReference.Companion.getReference
@@ -23,7 +20,7 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         private val unchecked = getReference("res://textures/Unchecked.png")
     }
 
-    open fun getImage(isChecked: Boolean): Texture2D? =
+    open fun getImage(isChecked: Boolean): ITexture2D? =
         TextureCache[if (isChecked) checked else unchecked, true]
 
     open fun getColor(): Int {
@@ -53,10 +50,10 @@ open class Checkbox(startValue: Boolean, val defaultValue: Boolean, var size: In
         minH = size + 2
     }
 
-    private var lastImage = -1
+    private var lastImage: Any? = null
     override fun onUpdate() {
         val leImage = getImage(value)
-        val leImageState = leImage?.state ?: 0
+        val leImageState = (leImage as? Texture2D)?.state ?: leImage?.name
         if (wasHovered != isHovered || leImageState != lastImage) {
             lastImage = leImageState
             invalidateDrawing()

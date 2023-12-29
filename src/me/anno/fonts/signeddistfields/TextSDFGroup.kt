@@ -41,7 +41,7 @@ class TextSDFGroup(font: AWTFont, text: CharSequence, charSpacing: Float) :
             if (isFinalRendering && cacheData == null) throw MissingFrameException("")
             val textSDF = cacheData?.value as? TextSDF
             val texture = textSDF?.texture
-            if (texture?.isCreated == true) {
+            if (texture?.wasCreated == true) {
                 drawBuffer.draw(null, textSDF, 0f)
             } else {
                 drawBuffer.draw(null, null, 0f)

@@ -22,7 +22,7 @@ object TextureLib {
 
         fun ensureExists() {
             checkSession()
-            if (!isCreated || isDestroyed) {
+            if (!wasCreated || isDestroyed) {
                 isDestroyed = false
                 when (creationData) {
                     is ByteArray -> {
@@ -68,7 +68,7 @@ object TextureLib {
 
         private fun checkExistence() {
             checkSession()
-            if (!isCreated || isDestroyed) {
+            if (!wasCreated || isDestroyed) {
                 isDestroyed = false
                 when (creationData) {
                     is ByteArray -> createRGBA(Array(6) { creationData }.toList())
@@ -106,7 +106,7 @@ object TextureLib {
 
         private fun checkExistence() {
             checkSession()
-            if (!isCreated || isDestroyed) {
+            if (!wasCreated || isDestroyed) {
                 isDestroyed = false
                 when (creationData) {
                     is ByteArray -> createRGBA(creationData)
@@ -134,7 +134,7 @@ object TextureLib {
 
         private fun checkExistence() {
             checkSession()
-            if (!isCreated || isDestroyed) {
+            if (!wasCreated || isDestroyed) {
                 isDestroyed = false
                 when (creationData) {
                     is ByteArray -> createRGBA(creationData)
@@ -174,7 +174,7 @@ object TextureLib {
         IntArray(4) { (if (it in 1..2) 0 else 0xff00ff) or black })
 
     fun bindWhite(index: Int): Boolean {
-        return whiteTexture.bind(index, whiteTexture.filtering, whiteTexture.clamping ?: Clamping.CLAMP)
+        return whiteTexture.bind(index, whiteTexture.filtering, whiteTexture.clamping)
     }
 
     fun destroy() {

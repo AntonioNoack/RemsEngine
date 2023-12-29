@@ -262,7 +262,7 @@ fun main() {
     //return
 
     TestStudio.testUI("Unity") {
-        object : FileExplorer(testScene, DefaultConfig.style) {
+        object : FileExplorer(testScene, true, DefaultConfig.style) {
 
             override fun getFolderOptions(): List<FileExplorerOption> = emptyList()
 

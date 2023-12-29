@@ -50,12 +50,12 @@ object TextureMapper {
 
     fun mapTexture(
         src: ITexture2D, dst: Texture2D, mapping: String, type: TargetType,
-        callback: (Texture2D?, Exception?) -> Unit
+        callback: (ITexture2D?, Exception?) -> Unit
     ) {
         LOGGER.debug("Mapping {} to {}/{} via {}", src, dst, type, mapping)
         if (mapping.length != 4) throw IllegalArgumentException()
         if (GFX.isGFXThread()) {
-            if (src !is Texture2D || src.isCreated) {
+            if (src !is Texture2D || src.wasCreated) {
                 dst.create(type)
                 useFrame(dst, 0) {
                     renderPurely {

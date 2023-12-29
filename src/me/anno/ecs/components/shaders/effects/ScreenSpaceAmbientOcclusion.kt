@@ -241,7 +241,7 @@ object ScreenSpaceAmbientOcclusion {
 
         var random4x4 = random4x4
         random4x4?.checkSession()
-        if (random4x4 == null || !random4x4.isCreated) {
+        if (random4x4 == null || !random4x4.wasCreated) {
             random4x4 = generateRandomTexture(Random(1234L), 4)
             this.random4x4 = random4x4
         }

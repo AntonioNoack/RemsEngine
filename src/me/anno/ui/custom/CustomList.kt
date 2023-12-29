@@ -282,7 +282,7 @@ open class CustomList(val isY: Boolean, style: Style) : PanelList(style) {
         while (scrollbars.size < size) {
             scrollbars.add(Scrollbar(style))
         }
-        while (scrollbars.size > size) {
+        while (scrollbars.isNotEmpty() && scrollbars.size > size) {
             scrollbars.removeAt(scrollbars.lastIndex)
         }
     }

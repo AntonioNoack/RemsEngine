@@ -1,6 +1,7 @@
 package me.anno.ui.base.groups
 
 import me.anno.ecs.prefab.PrefabSaveable
+import me.anno.maths.Maths.ceilDiv
 import me.anno.maths.Maths.fract
 import me.anno.maths.Maths.sq
 import me.anno.ui.Panel
@@ -13,11 +14,11 @@ import kotlin.math.min
  * Related Classes:
  *  - Android: GridLayout
  * */
-open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter, style) {
+open class PanelList2D(var isY: Boolean, sorter: Comparator<Panel>?, style: Style) : PanelList2(sorter, style) {
 
-    constructor(style: Style) : this(null, style)
+    constructor(style: Style) : this(true, null, style)
 
-    constructor(base: PanelList2D) : this(base.sorter, base.style) {
+    constructor(base: PanelList2D) : this(true, base.sorter, base.style) {
         base.copyInto(this)
     }
 
@@ -55,6 +56,7 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
     var calcChildHeight = 0
 
     var maxColumns = Int.MAX_VALUE
+    var maxRows = Int.MAX_VALUE
 
     override fun calculateSize(w: Int, h: Int) {
 
@@ -64,14 +66,25 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
         }
 
         val numChildren = children.count2 { it.isVisible }
-        val w2 = min(w, childWidth * numChildren)
-        columns = min(max(1, (w2 + spacing) / (childWidth + spacing)), maxColumns)
-        rows = max(1, (numChildren + columns - 1) / columns)
-        val childScale = if (scaleChildren) max(1f, ((w2 + spacing) / columns - spacing) * 1f / childWidth) else 1f
-        calcChildWidth = if (scaleChildren) (childWidth * childScale).toInt() else childWidth
-        calcChildHeight = if (scaleChildren) (childHeight * childScale).toInt() else childHeight
-        minW = min(w2, numChildren * (calcChildWidth + spacing) + spacing)
-        minH = (calcChildHeight + spacing) * rows - spacing
+        if (isY) {
+            val w2 = min(w, childWidth * numChildren)
+            columns = min(max(1, (w2 + spacing) / (childWidth + spacing)), maxColumns)
+            rows = ceilDiv(numChildren, columns)
+            val childScale = if (scaleChildren) max(1f, ((w2 + spacing) / columns - spacing) * 1f / childWidth) else 1f
+            calcChildWidth = if (scaleChildren) (childWidth * childScale).toInt() else childWidth
+            calcChildHeight = if (scaleChildren) (childHeight * childScale).toInt() else childHeight
+            minW = min(w2, numChildren * (calcChildWidth + spacing) + spacing)
+            minH = (calcChildHeight + spacing) * rows - spacing
+        } else {
+            val h2 = min(h, childHeight * numChildren)
+            rows = min(max(1, (h2 + spacing) / (childHeight + spacing)), maxRows)
+            columns = ceilDiv(numChildren, rows)
+            val childScale = if (scaleChildren) max(1f, ((h2 + spacing) / rows - spacing) * 1f / childHeight) else 1f
+            calcChildHeight = if (scaleChildren) (childHeight * childScale).toInt() else childHeight
+            calcChildWidth = if (scaleChildren) (childWidth * childScale).toInt() else childWidth
+            minH = min(h2, numChildren * (calcChildHeight + spacing) + spacing)
+            minW = (calcChildWidth + spacing) * columns - spacing
+        }
 
         // only execute for visible children
         for (i in visibleIndex0 until visibleIndex1) {
@@ -82,23 +95,8 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
         }
     }
 
-    override val visibleIndex0
-        get() = 0 // max((ly0 - (y + spacing - scrollPositionY.toInt())) / childHeight, 0) * columns
-    override val visibleIndex1
-        get() = children.size /*min(
-            (ly1 - (y + spacing - scrollPositionY.toInt()) + childHeight - 1) / childHeight * columns,
-            children.size
-        )*/
-
-    /*override fun getChildPanelAt(x: Int, y: Int): Panel? {
-        val children = children
-        if (children.isEmpty()) return null
-        val i = getItemIndexAt(x, y)
-        val panelAt = children[i].getPanelAt(x, y)
-        return if (panelAt != null && panelAt.isOpaqueAt(x, y)) panelAt else null
-    }*/
-
     fun getItemIndexAt(cx: Int, cy: Int): Int {
+        // todo only works if isY
         val lw = (calcChildWidth + spacing)
         val lh = (calcChildHeight + spacing)
         // todo skip invisible children less costly
@@ -118,6 +116,7 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
     }
 
     fun getItemFractionY(y: Float): Float {
+        // todo only works if isY
         val ly = y - this.y - spacing
         val itemY = ly * rows / height
         return fract(itemY)
@@ -127,25 +126,48 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
         super.setPosition(x, y)
         val sch = scaleChildren
         val ssp = scaleSpaces && !sch
-        var iy = 0
-        var i = 0
-        children@ while (true) {
-            var x0 = x + spacing
-            val cy = y + iy * (calcChildHeight + spacing) + spacing
-            for (ix in 0 until columns) {
-                var child: Panel
-                do {
-                    child = children.getOrNull(i++) ?: break@children
-                } while (!child.isVisible)
-                val x1 = if (ssp) x + width * (ix + 1) / columns else x0 + calcChildWidth + spacing
-                val aw = x1 - x0
-                val cw = if (sch) aw else min(max(childWidth, child.minW), aw)
-                val cx = x0 + child.alignmentX.getOffset(aw, cw)
-                val cw1 = child.alignmentX.getWidth(aw, cw)
-                child.setPosSize(cx, cy, cw1, calcChildHeight)
-                x0 = x1
+        if(isY){
+            var iy = 0
+            var i = 0
+            children@ while (true) {
+                var x0 = x + spacing
+                val cy = y + iy * (calcChildHeight + spacing) + spacing
+                for (ix in 0 until columns) {
+                    var child: Panel
+                    do {
+                        child = children.getOrNull(i++) ?: break@children
+                    } while (!child.isVisible)
+                    val x1 = if (ssp) x + width * (ix + 1) / columns else x0 + calcChildWidth + spacing
+                    val aw = x1 - x0
+                    val cw = if (sch) aw else min(max(childWidth, child.minW), aw)
+                    val cx = x0 + child.alignmentX.getOffset(aw, cw)
+                    val cw1 = child.alignmentX.getWidth(aw, cw)
+                    child.setPosSize(cx, cy, cw1, calcChildHeight)
+                    x0 = x1
+                }
+                iy++
             }
-            iy++
+        } else {
+            var ix = 0
+            var i = 0
+            children@ while (true) {
+                var y0 = y + spacing
+                val cx = x + ix * (calcChildWidth + spacing) + spacing
+                for (iy in 0 until rows) {
+                    var child: Panel
+                    do {
+                        child = children.getOrNull(i++) ?: break@children
+                    } while (!child.isVisible)
+                    val y1 = if (ssp) y + height * (iy + 1) / rows else y0 + calcChildHeight + spacing
+                    val ah = y1 - y0
+                    val ch = if (sch) ah else min(max(childHeight, child.minH), ah)
+                    val cy = y0 + child.alignmentY.getOffset(ah, ch)
+                    val ch1 = child.alignmentY.getWidth(ah, ch)
+                    child.setPosSize(cx, cy, calcChildWidth, ch1)
+                    y0 = y1
+                }
+                ix++
+            }
         }
     }
 
@@ -161,6 +183,8 @@ open class PanelList2D(sorter: Comparator<Panel>?, style: Style) : PanelList2(so
         dst.columns = columns
         dst.spacing = spacing
         dst.maxColumns = maxColumns
+        dst.maxRows = maxRows
+        dst.isY = isY
     }
 
     override val className: String

@@ -17,6 +17,6 @@ fun main() {
     test.getChild("3. Drag Me, 5B.txt").writeText("12345")
     test.getChild("Drag Target").tryMkdirs()
     testUI("Files: Copy/Paste") {
-        FileExplorer(test, style)
+        FileExplorer(test, true, style)
     }
 }

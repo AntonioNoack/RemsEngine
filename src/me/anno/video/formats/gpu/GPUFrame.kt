@@ -31,7 +31,7 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
         if (width < 1 || height < 1) throw IllegalArgumentException("Cannot create empty frames")
     }
 
-    val isCreated: Boolean get() = getTextures().all { it.isCreated && !it.isDestroyed }
+    val isCreated: Boolean get() = getTextures().all { it.wasCreated && !it.isDestroyed }
     val isDestroyed: Boolean get() = getTextures().any { it.isDestroyed }
 
     val blankDetector = BlankFrameDetector()
@@ -169,7 +169,7 @@ abstract class GPUFrame(var width: Int, var height: Int, var numChannels: Int, v
     fun toTexture(texture: Texture2D): Texture2D {
         GFX.checkIsGFXThread()
         texture.create(TargetType.UByteTargets[numChannels - 1])
-        texture.numChannels = numChannels
+        texture.channels = numChannels
         GFXState.useFrame(texture, 0) {
             GFXState.renderPurely {
                 val shader = get2DShader()

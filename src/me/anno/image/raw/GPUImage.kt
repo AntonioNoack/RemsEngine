@@ -15,7 +15,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
     }
 
     constructor(texture: ITexture2D, numChannels: Int) : this(texture, numChannels, numChannels > 3)
-    constructor(texture: Texture2D) : this(texture, texture.numChannels)
+    constructor(texture: ITexture2D) : this(texture, texture.channels)
 
     override fun getRGB(index: Int): Int {
         val msg = "GPUImage.getRGB() is highly inefficient!!!"
@@ -34,7 +34,7 @@ class GPUImage(val texture: ITexture2D, numChannels: Int, hasAlphaChannel: Boole
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (Texture2D?, Exception?) -> Unit
+        callback: (ITexture2D?, Exception?) -> Unit
     ) {
         val mapping = when (numChannels) {
             1 -> "r111"

@@ -2,6 +2,7 @@ package me.anno.image.raw
 
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.colormap.ColorMap
 import me.anno.image.colormap.LinearColorMap
@@ -54,7 +55,7 @@ class CompositeFloatBufferImage(
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (Texture2D?, Exception?) -> Unit
+        callback: (ITexture2D?, Exception?) -> Unit
     ) {
         val data = FloatArray(numChannels * width * height)
         // fill in all channels

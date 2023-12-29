@@ -16,7 +16,9 @@ import me.anno.utils.Sleep
 import me.anno.utils.types.Strings.getImportType
 import me.anno.video.VideoCache
 import org.apache.commons.imaging.Imaging
+import org.apache.commons.imaging.ImagingException
 import org.apache.logging.log4j.LogManager
+import java.io.IOException
 import java.io.InputStream
 import javax.imageio.ImageIO
 
@@ -40,20 +42,26 @@ class ImageToTexture(file: FileReference) : ICacheData {
         }
     }
 
-    var texture: Texture2D? = null
+    var texture: ITexture2D? = null
     var hasFailed = false
+
+    fun callback(texture: ITexture2D?, error: Exception?) {
+        if (texture != null) this.texture = texture
+        else hasFailed = true
+        error?.printStackTrace()
+    }
 
     init {
         if (file is ImageReadable) {
             val texture = Texture2D("i2t/ir/${file.name}", 1024, 1024, 1)
-            texture.create(file.toString(), file.readGPUImage(), true) { _, _ -> }
             this.texture = texture
+            texture.create(file.toString(), file.readGPUImage(), true, ::callback)
         } else {
             val cpuImage = ImageCache.getImageWithoutGenerator(file)
             if (cpuImage != null) {
                 val texture = Texture2D("i2t/ci/${file.name}", cpuImage.width, cpuImage.height, 1)
-                cpuImage.createTexture(texture, sync = true, checkRedundancy = true) { _, _ -> }
                 this.texture = texture
+                cpuImage.createTexture(texture, sync = true, checkRedundancy = true, ::callback)
             } else when (Signature.findNameSync(file)) {
                 "hdr" -> file.inputStream { input, exc ->
                     if (input != null) {
@@ -62,8 +70,8 @@ class ImageToTexture(file: FileReference) : ICacheData {
                         val h = img.height
                         GFX.addGPUTask("hdr", w, h) {
                             val texture = Texture2D("i2t/hdr/${file.name}", img.width, img.height, 1)
-                            img.createTexture(texture, sync = false, checkRedundancy = true) { _, _ -> }
                             this.texture = texture
+                            img.createTexture(texture, sync = false, checkRedundancy = true, ::callback)
                         }
                     } else exc?.printStackTrace()
                 }
@@ -75,9 +83,9 @@ class ImageToTexture(file: FileReference) : ICacheData {
                     val image = async.value
                     if (image != null) {
                         val texture = Texture2D("i2t/?/${file.name}", image.width, image.height, 1)
-                        texture.create(file.toString(), image, true) { _, _ -> }
                         texture.rotation = getRotation(file)
                         this.texture = texture
+                        texture.create(file.toString(), image, true, ::callback)
                     } else {
                         when (val fileExtension = file.lcExtension) {
                             // "hdr" -> loadHDR(file)
@@ -108,8 +116,8 @@ class ImageToTexture(file: FileReference) : ICacheData {
             TGAReader.read(stream, false)
         }
         val texture = Texture2D("i2t/tga/${file.name}", img.width, img.height, 1)
-        texture.create(img, sync = false, checkRedundancy = true) { _, _ -> }
         this.texture = texture
+        texture.create(img, sync = false, checkRedundancy = true, ::callback)
     }
 
     // find jpeg rotation by checking exif tags...
@@ -135,9 +143,9 @@ class ImageToTexture(file: FileReference) : ICacheData {
         val image = tryGetImage(file)
         if (image != null) {
             val texture = Texture2D("i2t/bi/${file.name}", 1024, 1024, 1)
-            texture.create(file.toString(), image, checkRedundancy = true) { _, _ -> }
             texture.rotation = getRotation(file)
             this.texture = texture
+            texture.create(file.toString(), image, checkRedundancy = true, ::callback)
         } else {
             useFFMPEG(file)
         }
@@ -158,7 +166,10 @@ class ImageToTexture(file: FileReference) : ICacheData {
             null
         } ?: try {
             Imaging.getBufferedImage(stream)
-        } catch (e: Exception) {
+        } catch (e: ImagingException) {
+            LOGGER.warn("Cannot read image from input $file", e)
+            return null
+        } catch (e: IOException) {
             LOGGER.warn("Cannot read image from input $file", e)
             return null
         }

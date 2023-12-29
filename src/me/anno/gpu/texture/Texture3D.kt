@@ -29,7 +29,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
 open class Texture3D(
-    var name: String,
+    override var name: String,
     override var width: Int,
     override var height: Int,
     var depth: Int
@@ -38,10 +38,13 @@ open class Texture3D(
     var pointer = 0
     var session = -1
 
-    var isCreated = false
-    var isDestroyed = false
-    var filtering = Filtering.NEAREST
-    var clamping = Clamping.CLAMP
+    override var wasCreated = false
+    override var isDestroyed = false
+    override var filtering = Filtering.NEAREST
+    override var clamping = Clamping.CLAMP
+
+    // todo set this when the texture is created
+    override var channels: Int = 3
 
     var locallyAllocated = 0L
 
@@ -64,7 +67,7 @@ open class Texture3D(
         if (session != GFXState.session) {
             session = GFXState.session
             pointer = 0
-            isCreated = false
+            wasCreated = false
             isDestroyed = false
         }
     }
@@ -86,7 +89,7 @@ open class Texture3D(
     }
 
     private fun afterUpload(internalFormat: Int, bpp: Int, hdr: Boolean) {
-        isCreated = true
+        wasCreated = true
         this.internalFormat = internalFormat
         locallyAllocated = allocate(locallyAllocated, width.toLong() * height.toLong() * depth.toLong() * bpp)
         filtering(filtering)
@@ -300,13 +303,9 @@ open class Texture3D(
         bindTexture(target, pointer)
     }
 
-    fun bind(index: Int) {
-        bind(index, filtering, clamping)
-    }
-
     override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         activeSlot(index)
-        if (pointer != 0 && isCreated) {
+        if (pointer != 0 && wasCreated) {
             bindTexture(target, pointer)
             ensureFiltering(filtering, clamping)
         } else {

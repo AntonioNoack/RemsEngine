@@ -7,7 +7,6 @@ import me.anno.ecs.prefab.Prefab
 import me.anno.ecs.prefab.PrefabCache
 import me.anno.ecs.prefab.PrefabSaveable
 import me.anno.engine.GameEngineProject.Companion.currentProject
-import me.anno.engine.RemsEngine
 import me.anno.engine.ScenePrefab
 import me.anno.engine.ui.AssetImport.deepCopyImport
 import me.anno.engine.ui.AssetImport.shallowCopyImport
@@ -39,12 +38,13 @@ import me.anno.utils.structures.lists.Lists.all2
 import org.apache.logging.log4j.LogManager
 import kotlin.math.max
 
-
 // done import mesh/material/... for modifications:
 // done create material, mesh, animation etc folder
 // done rename Scene.json to mesh file name.json
 
-class ECSFileExplorer(file0: FileReference?, style: Style) : FileExplorer(file0, style) {
+class ECSFileExplorer(file0: FileReference?, isY: Boolean, style: Style) : FileExplorer(file0, isY, style) {
+
+    constructor(file0: FileReference, style: Style) : this(file0, true, style)
 
     override fun onDoubleClick(file: FileReference) {
         // open the file

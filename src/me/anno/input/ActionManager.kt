@@ -19,7 +19,18 @@ object ActionManager {
     private val LOGGER = LogManager.getLogger(ActionManager::class)
 
     @JvmStatic
-    private val keyDragDelay = DefaultConfig["ui.keyDragDelay", 0.5f]
+    var keyDragDelay
+        get() = DefaultConfig["ui.keyDragDelay", 0.5f]
+        set(value) {
+            DefaultConfig["ui.keyDragDelay"] = value
+        }
+
+    @JvmStatic
+    var enableQuickDragging
+        get() = DefaultConfig["ui.mouse.enableQuickDragging", true]
+        set(value) {
+            DefaultConfig["ui.mouse.enableQuickDragging"] = value
+        }
 
     @JvmStatic
     private val localActions = KeyPairMap<String, KeyCombination, List<String>>(512)
@@ -149,7 +160,14 @@ object ActionManager {
         val mouseMoveConsumer = BiConsumer<Key, Long> { key, downTime ->
             onKeyHoldDown(window, dx, dy, key, KeyCombination.Type.PRESSING)
             val deltaTime = (Time.nanoTime - downTime) * 1e-9f
-            if (deltaTime >= keyDragDelay || Input.mouseHasMoved) {
+            val wasWaiting = deltaTime >= keyDragDelay
+            val mouseMoved = Input.mouseHasMoved
+            val isDragging = if (enableQuickDragging) {
+                wasWaiting || mouseMoved
+            } else {
+                wasWaiting && !mouseMoved
+            }
+            if (isDragging) {
                 onKeyHoldDown(window, dx, dy, key, KeyCombination.Type.DRAGGING)
             }
         }

@@ -5,20 +5,32 @@ import me.anno.gpu.DepthMode
 import me.anno.gpu.framebuffer.IFramebuffer
 import me.anno.gpu.framebuffer.VRAMToRAM
 import me.anno.gpu.shader.GPUShader
-import me.anno.gpu.shader.Shader
 import me.anno.image.raw.IntImage
 import me.anno.io.files.FileReference
 
 interface ITexture2D : ICacheData {
 
-    var width: Int
-    var height: Int
+    val name: String
+
+    val width: Int
+    val height: Int
     val samples: Int
+    val channels: Int
 
     val isHDR: Boolean
+    val wasCreated: Boolean
+    val isDestroyed: Boolean
 
     var depthFunc: DepthMode?
 
+    val filtering: Filtering
+    val clamping: Clamping
+
+    fun isCreated(): Boolean {
+        return wasCreated && !isDestroyed
+    }
+
+    fun bind(index: Int): Boolean = bind(index, filtering, clamping)
     fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean
     fun bind(shader: GPUShader, texName: String, nearest: Filtering, clamping: Clamping): Boolean {
         val index = shader.getTextureIndex(texName)

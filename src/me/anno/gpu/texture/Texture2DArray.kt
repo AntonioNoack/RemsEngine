@@ -33,7 +33,7 @@ import java.nio.FloatBuffer
 
 // is this correct?
 open class Texture2DArray(
-    var name: String,
+    override var name: String,
     override var width: Int,
     override var height: Int,
     var layers: Int
@@ -42,10 +42,13 @@ open class Texture2DArray(
     var pointer = 0
     var session = -1
 
-    var isCreated = false
-    var isDestroyed = false
-    var filtering = Filtering.TRULY_LINEAR
-    var clamping = Clamping.CLAMP
+    override var wasCreated = false
+    override var isDestroyed = false
+    override var filtering = Filtering.TRULY_LINEAR
+    override var clamping = Clamping.CLAMP
+
+    // todo set this when the texture is created
+    override var channels: Int = 3
 
     var needsMipmaps = false
 
@@ -64,7 +67,7 @@ open class Texture2DArray(
         if (session != GFXState.session) {
             session = GFXState.session
             pointer = 0
-            isCreated = false
+            wasCreated = false
             isDestroyed = false
         }
     }
@@ -91,7 +94,7 @@ open class Texture2DArray(
     }
 
     private fun afterUpload(internalFormat: Int, bpp: Int, hdr: Boolean) {
-        isCreated = true
+        wasCreated = true
         this.internalFormat = internalFormat
         locallyAllocated = allocate(locallyAllocated, width.toLong() * height.toLong() * layers.toLong() * bpp)
         filtering(filtering)
@@ -109,16 +112,8 @@ open class Texture2DArray(
     fun createRGBA8() {
         bindBeforeUpload(width * 4)
         glTexImage3D(
-            GL_TEXTURE_3D,
-            0,
-            GL_RGBA8,
-            width,
-            height,
-            layers,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            null as ByteBuffer?
+            GL_TEXTURE_3D, 0, GL_RGBA8, width, height, layers, 0,
+            GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?
         )
         afterUpload(GL_RGBA8, 4, false)
     }
@@ -360,13 +355,9 @@ open class Texture2DArray(
         bindTexture(target, pointer)
     }
 
-    fun bind(index: Int) {
-        bind(index, filtering, clamping)
-    }
-
     override fun bind(index: Int, filtering: Filtering, clamping: Clamping): Boolean {
         activeSlot(index)
-        if (pointer != 0 && isCreated) {
+        if (pointer != 0 && wasCreated) {
             bindTexture(target, pointer)
             ensureFiltering(filtering, clamping)
         } else {

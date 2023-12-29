@@ -10,7 +10,7 @@ class TextSDF private constructor(val texture: Texture2D?, val isNull: Boolean, 
     constructor(texture: Texture2D, offset: Vector2f) : this(texture, false, offset)
     private constructor() : this(null, true, Vector2f())
 
-    val isValid = isNull || texture?.isCreated == true
+    val isValid = isNull || texture?.wasCreated == true
 
     override fun destroy() {
         texture?.destroy()

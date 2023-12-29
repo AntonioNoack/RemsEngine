@@ -317,7 +317,7 @@ object DrawTexts {
                     val fx = x + dxi + o0
                     val w = o1 - o0
                     val texture = FontManager.getTexture(font, txt, -1, -1)
-                    if (texture != null && (texture !is Texture2D || texture.isCreated)) {
+                    if (texture != null && texture.wasCreated) {
                         texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
                         val x2 = fx + (w - texture.width).shr(1)
                         draw(shader, texture, x2, y2, txt, false)
@@ -438,7 +438,7 @@ object DrawTexts {
         shader: GPUShader, texture: ITexture2D?,
         x2: Int, y2: Int, txt: CharSequence, barrier: Boolean
     ) {
-        if (texture != null && (texture !is Texture2D || texture.isCreated)) {
+        if (texture != null && texture.isCreated()) {
             texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
             shader.use()
             if (shader is Shader) {
@@ -453,7 +453,7 @@ object DrawTexts {
             LOGGER.warn(
                 "Texture for '$txt' is ${
                     if (texture == null) "null"
-                    else if (texture is Texture2D && texture.isDestroyed) "destroyed"
+                    else if (texture.isDestroyed) "destroyed"
                     else "not created"
                 }, $texture"
             )
@@ -476,7 +476,7 @@ object DrawTexts {
 
         val tex0 = FontManager.getTexture(font, text, widthLimit, heightLimit)
 
-        val charByChar = (tex0 == null || tex0 !is Texture2D || !tex0.isCreated || tex0.isDestroyed) && text.length > 1
+        val charByChar = (tex0 == null || tex0 !is Texture2D || !tex0.wasCreated || tex0.isDestroyed) && text.length > 1
         return if (charByChar) {
             drawTextCharByChar(x, y, font, text, color, backgroundColor, widthLimit, heightLimit, alignX, alignY, false)
         } else drawText(x, y, color, backgroundColor, tex0 ?: whiteTexture, alignX, alignY)
@@ -492,7 +492,7 @@ object DrawTexts {
         val w = texture.width
         val h = texture.height
         // done if pixel is on the border of the drawn rectangle, make it grayscale, so we see no color seams
-        if (texture !is Texture2D || texture.isCreated) {
+        if (texture.isCreated()) {
             GFX.check()
             GFX.check()
             texture.bind(0, Filtering.TRULY_NEAREST, Clamping.CLAMP_TO_BORDER)
@@ -540,7 +540,7 @@ object DrawTexts {
             )
         } else {
             val tex0 = FontManager.getTexture(key)
-            val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.isCreated
+            val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.wasCreated
             if (charByChar) {
                 return drawTextCharByChar(
                     x, y, font, key.text,
@@ -577,7 +577,7 @@ object DrawTexts {
         }
 
         val tex0 = FontManager.getTexture(key)
-        val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.isCreated
+        val charByChar = tex0 == null || tex0 !is Texture2D || !tex0.wasCreated
         if (charByChar) {
             return drawTextCharByChar(
                 x, y, key.createFont(), key.text, color,

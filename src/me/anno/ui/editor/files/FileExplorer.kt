@@ -29,6 +29,7 @@ import me.anno.ui.base.menu.Menu.askName
 import me.anno.ui.base.menu.Menu.menuSeparator1
 import me.anno.ui.base.menu.Menu.openMenu
 import me.anno.ui.base.menu.MenuOption
+import me.anno.ui.base.scrolling.ScrollPanelX
 import me.anno.ui.base.scrolling.ScrollPanelY
 import me.anno.ui.base.text.TextPanel
 import me.anno.ui.editor.files.FileExplorerEntry.Companion.deleteFileMaybe
@@ -75,7 +76,7 @@ import kotlin.math.roundToInt
 // todo search in text files
 // todo search in meta data for audio and video
 
-open class FileExplorer(initialLocation: FileReference?, style: Style) :
+open class FileExplorer(initialLocation: FileReference?, isY: Boolean, style: Style) :
     PanelListY(style.getChild("fileExplorer")) {
 
     enum class FolderSorting(val weight: Int) {
@@ -223,7 +224,7 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
     val minEntrySize = 32f
 
     val uContent = PanelListX(style)
-    val content2d = PanelList2D({ p0, p1 ->
+    val content2d = PanelList2D(isY, { p0, p1 ->
         p0 as FileExplorerEntry
         p1 as FileExplorerEntry
         when {
@@ -371,10 +372,11 @@ open class FileExplorer(initialLocation: FileReference?, style: Style) :
             alignmentY = AxisAlignment.FILL
             alwaysShowShadowY = true
         }
-        uContent += ScrollPanelY(content2d, Padding(1), style).apply {
+        val scroll = if (isY) ScrollPanelY(content2d, Padding(1), style)
+        else ScrollPanelX(content2d, Padding(1), style)
+        uContent += scroll.apply {
             makeBackgroundTransparent()
-            alignmentX = AxisAlignment.FILL
-            alignmentY = AxisAlignment.FILL
+            fill(0f)
             alwaysShowShadowY = true
         }
     }

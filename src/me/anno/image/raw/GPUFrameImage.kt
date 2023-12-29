@@ -1,5 +1,7 @@
 package me.anno.image.raw
 
+import me.anno.gpu.GFX
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.io.files.FileReference
@@ -38,10 +40,14 @@ class GPUFrameImage(val frame: GPUFrame, numChannels: Int, hasAlphaChannel: Bool
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (Texture2D?, Exception?) -> Unit
+        callback: (ITexture2D?, Exception?) -> Unit
     ) {
-        frame.toTexture(texture)
-        callback(texture, null)
+        if (GFX.isGFXThread()) {
+            frame.toTexture(texture)
+            callback(texture, null)
+        } else GFX.addGPUTask("frame.toTexture", width, height) {
+            createTexture(texture, sync, checkRedundancy, callback)
+        }
     }
 
     override fun toString(): String {

@@ -47,12 +47,7 @@ object VRAMToRAM {
         shader.v1i("alphaMode", ignoreAlpha.toInt())
         shader.v1b("applyToneMapping", applyToneMapping)
         GFXx2D.noTiling(shader)
-        val tex = texture as? Texture2D
-        texture.bind(
-            0,
-            tex?.filtering ?: Filtering.NEAREST,
-            tex?.clamping ?: Clamping.CLAMP
-        )
+        texture.bind(0)
         GFX.flat01.draw(shader)
         GFX.check()
     }

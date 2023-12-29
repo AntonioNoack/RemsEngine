@@ -12,6 +12,6 @@ fun main() {
         // texImage2D() seems to be the culprit...
         // todo -> create a video streaming service, where video can be extracted as a single, long stream,
         //  with less performance and management headaches
-        FileExplorer(videos, style)
+        FileExplorer(videos, true, style)
     }
 }

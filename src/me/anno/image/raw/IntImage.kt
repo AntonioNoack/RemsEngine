@@ -3,6 +3,7 @@ package me.anno.image.raw
 import me.anno.gpu.GFX
 import me.anno.gpu.framebuffer.TargetType
 import me.anno.gpu.texture.Clamping
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.maths.Maths
@@ -104,7 +105,7 @@ open class IntImage(
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (Texture2D?, Exception?) -> Unit
+        callback: (ITexture2D?, Exception?) -> Unit
     ) {
         // data cloning is required, because the function in Texture2D switches the red and blue channels
         if (sync && GFX.isGFXThread()) {

@@ -772,8 +772,9 @@ object ComponentUI {
                 fun b2l(b: Vector3f): Vector4f {
                     var length = b.length()
                     if (length == 0f) length = 1f
-                    val power = Maths.clamp(ln(length) / ln(maxPower) * 0.5f + 0.5f, 0f, 1f)
-                    return Vector4f(b.x, b.y, b.z, power)
+                    val power = clamp(ln(length) / ln(maxPower) * 0.5f + 0.5f, 0f, 1f)
+                    val scale = maxPower.pow(power * 2f - 1f)
+                    return Vector4f(b.x / scale, b.y / scale, b.z / scale, power)
                 }
 
                 fun l2b(l: Vector4f): Vector3f {

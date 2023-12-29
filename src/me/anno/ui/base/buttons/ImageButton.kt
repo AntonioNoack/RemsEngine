@@ -47,8 +47,7 @@ class ImageButton(
         drawBackground(x0, y0, x1, y1)
         val icon = TextureCache[path, 10_000, false] ?: return
         renderDefault {
-            icon.filtering = Filtering.LINEAR
-            icon.clamping = Clamping.CLAMP
+            icon.bind(0, Filtering.LINEAR, Clamping.CLAMP)
             val scale = ((width - padding.width).toFloat() / max(icon.width, icon.height))
             val iw = (icon.width * scale).roundToInt()
             val ih = (icon.height * scale).roundToInt()

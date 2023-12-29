@@ -127,7 +127,7 @@ object PDFCache : CacheSection("PDFCache") {
                 }
             }
         }?.texture as? Texture2D
-        return if (tex?.isCreated == true) tex else null
+        return if (tex?.wasCreated == true) tex else null
     }
 
     @Suppress("unused")

@@ -78,7 +78,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
             GLSLType.S2D, GLSLType.S2DU, GLSLType.S2DI -> {
                 when (value) {
                     is Texture2D -> {
-                        if (value.isCreated) {
+                        if (value.wasCreated) {
                             value.bind(location)
                         } else {
                             whiteTexture.bind(location)
@@ -89,7 +89,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                     is ITexture2D -> value.bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
                         val value1 = TextureCache[value, true]
-                        if (value1 != null && value1.isCreated) {
+                        if (value1 != null && (value1 !is Texture2D || value1.wasCreated)) {
                             value1.bind(location)
                         } else {
                             whiteTexture.bind(location)
@@ -102,7 +102,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
             GLSLType.S2DMS -> {
                 when (value) {
                     is Texture2D -> {
-                        if (value.isCreated) {
+                        if (value.wasCreated) {
                             value.bind(location)
                         } else {
                             whiteTexture.bind(location)
@@ -113,7 +113,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
                     is ITexture2D -> value.bind(location, Filtering.TRULY_NEAREST, Clamping.REPEAT)
                     is FileReference -> {
                         val value1 = TextureCache[value, true]
-                        if (value1 != null && value1.isCreated) {
+                        if (value1 != null && value1.isCreated()) {
                             value1.bind(location)
                         } else {
                             whiteTexture.bind(location)
@@ -125,7 +125,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
             }
             GLSLType.S2DA -> {
                 value as Texture2DArray
-                if (value.isCreated) {
+                if (value.wasCreated) {
                     value.bind(location, value.filtering, value.clamping)
                 } else {
                     whiteTex2da.bind(location)
@@ -134,7 +134,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
             }
             GLSLType.S3D -> {
                 value as Texture3D
-                if (value.isCreated) {
+                if (value.wasCreated) {
                     value.bind(location, value.filtering, value.clamping)
                 } else {
                     whiteTex3d.bind(location)
@@ -143,7 +143,7 @@ open class TypeValue(var type: GLSLType, open var value: Any) : Saveable() {
             }
             GLSLType.SCube -> {
                 value as CubemapTexture
-                if (value.isCreated) {
+                if (value.wasCreated) {
                     value.bind(location, value.filtering)
                 } else {
                     whiteTex3d.bind(location)

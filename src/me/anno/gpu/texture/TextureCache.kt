@@ -35,16 +35,16 @@ object TextureCache : CacheSection("Texture") {
             entry == null -> false
             entry !is ImageToTexture -> true
             entry.hasFailed -> true
-            entry.texture?.isCreated == true -> true
+            entry.texture?.wasCreated == true -> true
             else -> false
         }
     }
 
-    operator fun get(file: FileReference, asyncGenerator: Boolean): Texture2D? {
+    operator fun get(file: FileReference, asyncGenerator: Boolean): ITexture2D? {
         return get(file, 1000L, asyncGenerator)
     }
 
-    operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): Texture2D? {
+    operator fun get(file: FileReference, timeout: Long, asyncGenerator: Boolean): ITexture2D? {
         if (file == InvalidRef) return null
         if (file is ImageReadable) {
             val image = file.readGPUImage()
@@ -52,7 +52,7 @@ object TextureCache : CacheSection("Texture") {
                 val texture = image.texture as? Texture2D
                     ?: throw RuntimeException("TODO: Implement handling of ITexture2D")
                 if (texture is TextureLib.IndestructibleTexture2D) texture.ensureExists()
-                return if (!texture.isDestroyed && texture.isCreated) texture else null
+                return if (!texture.isDestroyed && texture.wasCreated) texture else null
             }
         }
         if (file !is InnerFile) {
@@ -65,15 +65,18 @@ object TextureCache : CacheSection("Texture") {
             file, timeout, asyncGenerator,
             TextureCache::generateImageData
         ) as? ImageToTexture ?: return null
-        if (!imageData.hasFailed && imageData.texture?.isCreated != true && !asyncGenerator && !OS.isWeb) {
+        if (!imageData.hasFailed &&
+            imageData.texture?.run { this !is Texture2D || wasCreated } != true &&
+            !asyncGenerator && !OS.isWeb
+        ) {
             // the texture was forced to be loaded -> wait for it
             Sleep.waitForGFXThread(true) {
                 val texture = imageData.texture
-                (texture != null && (texture.isCreated || texture.isDestroyed)) || imageData.hasFailed
+                (texture != null && (texture.wasCreated || texture.isDestroyed)) || imageData.hasFailed
             }
         }
         val texture = imageData.texture
-        return if (texture != null && texture.isCreated) texture else null
+        return if (texture != null && texture.isCreated()) texture else null
     }
 
     private fun generateImageData(file: FileReference) = ImageToTexture(file)
@@ -102,7 +105,7 @@ object TextureCache : CacheSection("Texture") {
 
     fun getLUT(file: FileReference, asyncGenerator: Boolean, timeout: Long = 5000): Texture3D? {
         val texture = getEntry("LUT" to file, timeout, asyncGenerator, TextureCache::generateLUT) as? Texture3D
-        return if (texture?.isCreated == true) texture else null
+        return if (texture?.wasCreated == true) texture else null
     }
 
     private fun generateLUT(pair: Pair<String, FileReference>): ICacheData {

@@ -267,7 +267,7 @@ fun main() {
             }
 
             fun drawWorldTexture() {
-                if (texture.isCreated) {
+                if (texture.wasCreated) {
                     val xi = coordsToWindowX(0f).toInt()
                     val yi = coordsToWindowY(0f).toInt()
                     val wi = coordsToWindowDirX(texture.width.toDouble()).toInt()

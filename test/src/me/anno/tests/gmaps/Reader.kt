@@ -7,6 +7,7 @@ import me.anno.ecs.components.mesh.MeshComponent
 import me.anno.engine.ui.render.SceneView.Companion.testSceneWithUI
 import me.anno.gpu.GFX
 import me.anno.gpu.buffer.DrawMode
+import me.anno.gpu.texture.ITexture2D
 import me.anno.gpu.texture.Texture2D
 import me.anno.image.Image
 import me.anno.gpu.texture.TextureCache
@@ -75,7 +76,7 @@ class CompressedTexture(w: Int, h: Int, val format: Int, val data: ByteArray) : 
 
     override fun createTexture(
         texture: Texture2D, sync: Boolean, checkRedundancy: Boolean,
-        callback: (Texture2D?, Exception?) -> Unit
+        callback: (ITexture2D?, Exception?) -> Unit
     ) {
         if (!GFX.isGFXThread()) {
             GFX.addGPUTask("CompressedTexture", width, height) {

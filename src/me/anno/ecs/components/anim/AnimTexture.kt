@@ -44,7 +44,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
 
     val texture: Texture2D?
         get() {
-            return if (internalTexture.isCreated) internalTexture
+            return if (internalTexture.wasCreated) internalTexture
             else null
         }
 
@@ -92,7 +92,7 @@ class AnimTexture(val skeleton: Skeleton) : ICacheData {
         val numFrames = animation.numFrames + 1
         ensureCapacity(start + numFrames)
         val textureType = TargetType.FloatTarget4
-        if (internalTexture.isCreated) {
+        if (internalTexture.wasCreated) {
             // extend texture
             // 4 for sizeof(float), 4 for rgba
             val buffer = Texture2D.bufferPool[internalTexture.width * internalTexture.height * 4 * 4, false, false]

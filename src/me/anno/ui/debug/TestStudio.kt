@@ -17,7 +17,7 @@ import me.anno.ui.base.menu.Menu
 /**
  * engine runtime for testing
  * */
-class TestStudio(title: String, val createMainPanel: () -> List<Panel>) : StudioBase(title, "Test", 1, true) {
+open class TestStudio(title: String, val createMainPanel: () -> List<Panel>) : StudioBase(title, "Test", 1, true) {
 
     override fun createUI() {
         val ui = PanelListY(style)

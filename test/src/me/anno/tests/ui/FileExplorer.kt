@@ -18,13 +18,9 @@ import kotlin.system.exitProcess
 fun main() {
     if (false) {
         disableRenderDoc()
-        testUI("File Explorer") {
+        testUI3("File Explorer") {
             ECSRegistry.init()
-            object : FileExplorer(null, style) {
-                override fun getFolderOptions() = emptyList<FileExplorerOption>()
-                override fun onDoubleClick(file: FileReference) {}
-                override fun onPaste(x: Float, y: Float, data: String, type: String) {}
-            }
+            FileExplorer(null, true, style)
         }
     } else {
         runFileExplorerTest()
@@ -42,7 +38,7 @@ fun runFileExplorerTest() {
         testUI3("Engine in OpenGL") {
             StudioBase.instance?.enableVSync = false
             StudioBase.instance?.showFPS = true
-            FileExplorer(pictures, style)
+            FileExplorer(pictures, true, style)
         }
     } catch (e: Throwable) {
         e.printStackTrace()

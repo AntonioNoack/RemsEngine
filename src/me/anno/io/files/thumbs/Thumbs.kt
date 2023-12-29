@@ -227,8 +227,8 @@ object Thumbs {
             }
         }?.texture
         val value = when (texture) {
-            is GPUFrame -> if (texture.isCreated) texture else null
-            is Texture2D -> if (texture.isCreated && !texture.isDestroyed) texture else null
+            is GPUFrame -> if (texture.wasCreated) texture else null
+            is Texture2D -> if (texture.wasCreated && !texture.isDestroyed) texture else null
             else -> texture
         }
         if (value != null) return value
@@ -258,7 +258,7 @@ object Thumbs {
             val key1 = ThumbnailKey(key0.file, key0.lastModified, size1)
             val gen = TextureCache.getEntryWithoutGenerator(key1, 500) as? LateinitTexture
             val tex = gen?.texture
-            if (tex != null && (tex !is Texture2D || tex.isCreated)) {
+            if (tex != null && (tex !is Texture2D || tex.wasCreated)) {
                 copyTexIfPossible(srcFile, size, tex, callback)
                 return
             }
@@ -332,7 +332,7 @@ object Thumbs {
         val rotation = if (checkRotation) ImageToTexture.getRotation(srcFile) else null
         val texture = Texture2D(srcFile.name, dst.width, dst.height, 1)
         dst.createTexture(texture, sync = false, checkRedundancy = true) { tex, exc ->
-            tex?.rotation = rotation
+            if (tex is Texture2D) tex.rotation = rotation
             callback(tex, exc)
         }
     }
@@ -1157,7 +1157,7 @@ object Thumbs {
                         val newImage = image.toImage().resized(w, h, false)
                         val texture = Texture2D("${srcFile.name}-$size", newImage.width, newImage.height, 1)
                         newImage.createTexture(texture, sync = false, checkRedundancy = false) { tex, exc ->
-                            tex?.rotation = rotation
+                            if (tex is Texture2D) tex.rotation = rotation
                             callback(tex, exc)
                         }
                         foundSolution = true
@@ -1497,7 +1497,7 @@ object Thumbs {
         )
         if (texture is ITexture2D) {
             if (texture is Texture2D)
-                waitUntil(true) { texture.isCreated || texture.isDestroyed }
+                waitUntil(true) { texture.wasCreated || texture.isDestroyed }
             callback(texture, null)
         }
     }
