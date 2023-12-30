@@ -21,7 +21,6 @@ import me.anno.utils.strings.StringHelper.shorten
 import me.anno.utils.structures.tuples.IntPair
 import me.anno.utils.types.AnyToDouble.getDouble
 import me.anno.utils.types.AnyToInt.getInt
-import me.anno.utils.types.AnyToLong.getLong
 import me.anno.utils.types.Strings.formatTime
 import me.anno.utils.types.Strings.parseTime
 import me.anno.video.ffmpeg.FFMPEGStream.Companion.devNull
@@ -69,80 +68,29 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
     }
 
     init {
-        if (file is AudioReadable) {
-            hasAudio = true
-            audioChannels = file.channels
-            audioSampleRate = file.sampleRate
-            audioSampleCount = file.sampleCount
-            audioDuration = file.duration
-            duration = audioDuration
-        } else if (file is ImageReadable && file.hasInstantGPUImage()) {
-            val image = file.readGPUImage()
-            setImage(image.width, image.height)
-        } else if (file is ImageReadable) {
-            val image = file.readCPUImage()
-            setImage(image.width, image.height)
-        } else when (val signature1 = signature ?: Signature.findNameSync(file)) {
-            "gimp" -> {
-                // Gimp files are a special case, which is not covered by FFMPEG
-                ready = false
-                file.inputStream { it, exc ->
-                    if (it != null) {
-                        setImage(GimpImage.findSize(it))
-                    } else exc?.printStackTrace()
-                    ready = true
-                }
+        load(signature)
+    }
+
+    fun load(signature: String?) {
+        // type handlers
+        for (thi in typeHandlers.indices) {
+            val th = typeHandlers[thi]
+            if (th.second(file, this)) {
+                return
             }
-            "qoi" -> {
-                // we have a simple reader, so use it :)
-                ready = false
-                file.inputStream { it, exc ->
-                    if (it != null) {
-                        setImage(QOIReader.findSize(it))
-                    } else exc?.printStackTrace()
-                    ready = true
-                }
-            }
-            // only load ffmpeg for ffmpeg files
-            "gif", "media", "dds" -> {
-                if (!OS.isAndroid && (file is FileFileRef || file is WebRef)) {
-                    loadFFMPEG()
-                }
-            }
-            "png", "jpg", "psd", "exr", "webp" -> {
-                // webp supports video, but if so, FFMPEG doesn't seem to support it -> whatever, use ImageIO :)
-                for (reader in ImageIO.getImageReadersBySuffix(signature1)) {
-                    try {
-                        file.inputStreamSync().use { input: InputStream ->
-                            reader.input = ImageIO.createImageInputStream(input)
-                            setImage(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
-                        }
-                        break
-                    } catch (_: IOException) {
-                    } finally {
-                        reader.dispose()
-                    }
-                }
-            }
-            "ico" -> setImage(file.inputStreamSync().use { input: InputStream -> ICOReader.findSize(input) })
-            "", null -> {
-                when (file.lcExtension) {
-                    "tga" -> setImage(file.inputStreamSync().use { stream: InputStream -> TGAReader.findSize(stream) })
-                    "ico" -> setImage(file.inputStreamSync().use { stream: InputStream -> ICOReader.findSize(stream) })
-                    // else unknown
-                    else -> LOGGER.debug(
-                        "{} has unknown extension and signature: '{}'",
-                        file.absolutePath,
-                        signature1
-                    )
-                }
-            }
-            // todo xml/svg
-            else -> LOGGER.debug(
-                "{}'s signature wasn't registered in FFMPEGMetadata.kt: '{}'",
-                file.absolutePath, signature1
-            )
         }
+        // signature handlers
+        val signature1 = signature ?: Signature.findNameSync(file)
+        for (shi in signatureHandlers.indices) {
+            val sh = signatureHandlers[shi]
+            if (sh.second(file, signature1, this)) {
+                return
+            }
+        }
+        LOGGER.debug(
+            "{}'s signature wasn't registered in FFMPEGMetadata.kt: '{}'",
+            file.absolutePath, signature1
+        )
     }
 
     fun setImage(wh: IntPair) {
@@ -230,7 +178,8 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
             audioDuration = getDouble(audio["duration"], duration)
             audioSampleRate = getInt(audio["sample_rate"], 20)
             // duration_ts cannot be trusted
-            audioSampleCount = (audioSampleRate * audioDuration).toLong() // getLong(audio["duration_ts"], (audioSampleRate * audioDuration).toLong())
+            audioSampleCount =
+                (audioSampleRate * audioDuration).toLong() // getLong(audio["duration_ts"], (audioSampleRate * audioDuration).toLong())
             audioChannels = getInt(audio["channels"], 1)
         }
 
@@ -306,7 +255,40 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
 
     override fun destroy() {}
 
+    fun setImageByStream(callback: (InputStream) -> IntPair): Boolean {
+        ready = false
+        file.inputStream { it, exc ->
+            if (it != null) setImage(callback(it))
+            else exc?.printStackTrace()
+            ready = true
+        }
+        return true
+    }
+
     companion object {
+
+        private val typeHandlers = ArrayList<Pair<Int, (FileReference, MediaMetadata) -> Boolean>>()
+
+        private val signatureHandlers = ArrayList<Pair<Int, (FileReference, String?, MediaMetadata) -> Boolean>>()
+
+        private fun <V> registerHandler(list: ArrayList<Pair<Int, V>>, priority: Int, value: V) {
+            synchronized(list) {
+                var idx = list.binarySearch { it.first.compareTo(priority) }
+                if (idx < 0) idx = -idx - 1
+                list.add(idx, priority to value)
+            }
+        }
+
+        fun registerHandler(order: Int, handler: (file: FileReference, dst: MediaMetadata) -> Boolean) {
+            registerHandler(typeHandlers, order, handler)
+        }
+
+        fun registerSignatureHandler(
+            order: Int,
+            handler: (file: FileReference, signature: String?, dst: MediaMetadata) -> Boolean
+        ) {
+            registerHandler(signatureHandlers, order, handler)
+        }
 
         @JvmStatic
         private val LOGGER = LogManager.getLogger(MediaMetadata::class)
@@ -340,6 +322,106 @@ class MediaMetadata(val file: FileReference, signature: String?) : ICacheData {
             return metadataCache.getFileEntry(file, false, 300_000, async) { f, _ ->
                 createMetadata(f, signature)
             } as? MediaMetadata
+        }
+
+        init {
+            // todo xml/svg
+            registerHandler(100) { file, dst ->
+                if (file is AudioReadable) {
+                    dst.hasAudio = true
+                    dst.audioChannels = file.channels
+                    dst.audioSampleRate = file.sampleRate
+                    dst.audioSampleCount = file.sampleCount
+                    dst.audioDuration = file.duration
+                    dst.duration = dst.audioDuration
+                    true
+                } else false
+            }
+            registerHandler(200) { file, dst ->
+                if (file is ImageReadable && file.hasInstantGPUImage()) {
+                    val image = file.readGPUImage()
+                    dst.setImage(image.width, image.height)
+                    true
+                } else false
+            }
+            registerHandler(300) { file, dst ->
+                if (file is ImageReadable) {
+                    val image = file.readCPUImage()
+                    dst.setImage(image.width, image.height)
+                    true
+                } else false
+            }
+            registerSignatureHandler(100) { file, signature, dst ->
+                if (signature == "gimp") {
+                    // Gimp files are a special case, which is not covered by FFMPEG
+                    dst.ready = false
+                    file.inputStream { it, exc ->
+                        if (it != null) {
+                            dst.setImage(GimpImage.findSize(it))
+                        } else exc?.printStackTrace()
+                        dst.ready = true
+                    }
+                    true
+                } else false
+            }
+            registerSignatureHandler(100) { _, signature, dst ->
+                if (signature == "qoi") {
+                    // we have a simple reader, so use it :)
+                    dst.setImageByStream(QOIReader::findSize)
+                } else false
+            }
+            registerSignatureHandler(100) { file, signature, dst ->
+                // only load ffmpeg for ffmpeg files
+                if (signature == "gif" || signature == "media" || signature == "dds") {
+                    if (!OS.isAndroid && (file is FileFileRef || file is WebRef)) {
+                        dst.loadFFMPEG()
+                    }
+                    true
+                } else false
+            }
+            registerSignatureHandler(100) { _, signature, dst ->
+                if (signature == "ico") {
+                    dst.setImageByStream(ICOReader::findSize)
+                } else false
+            }
+            registerSignatureHandler(100) { file, signature, dst ->
+                if (signature == "" || signature == null) {
+                    when (file.lcExtension) {
+                        "tga" -> dst.setImageByStream(TGAReader::findSize)
+                        "ico" -> dst.setImageByStream(ICOReader::findSize)
+                        // else unknown
+                        else -> {
+                            LOGGER.debug(
+                                "{} has unknown extension and signature: '{}'",
+                                file.absolutePath,
+                                signature
+                            )
+                            false
+                        }
+                    }
+                } else false
+            }
+            registerSignatureHandler(100) { file, signature, dst ->
+                when (signature) {
+                    "png", "jpg", "psd", "exr", "webp" -> {
+                        // webp supports video, but if so, FFMPEG doesn't seem to support it -> whatever, use ImageIO :)
+                        for (reader in ImageIO.getImageReadersBySuffix(signature)) {
+                            try {
+                                file.inputStreamSync().use { input: InputStream ->
+                                    reader.input = ImageIO.createImageInputStream(input)
+                                    dst.setImage(reader.getWidth(reader.minIndex), reader.getHeight(reader.minIndex))
+                                }
+                                break
+                            } catch (_: IOException) {
+                            } finally {
+                                reader.dispose()
+                            }
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
         }
     }
 }
